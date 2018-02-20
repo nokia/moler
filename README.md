@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/nokia/moler.svg?branch=master)](https://travis-ci.org/nokia/moler)
+
 # Moler - library to help in building automated tests
 **Moler** name is coined by Grzegorz Latuszek with high impact of Bartosz Odziomek, Michał Ernst and Mateusz Smet.
 
