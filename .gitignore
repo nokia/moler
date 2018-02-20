@@ -1,8 +1,5 @@
-# Created by .ignore support plugin (hsz.mobi)
-### Python template
 # Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[cod]
 *$py.class
 
 # C extensions
@@ -47,6 +44,7 @@ nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/
+/.pytest_cache/
 
 # Translations
 *.mo
@@ -54,8 +52,6 @@ coverage.xml
 
 # Django stuff:
 *.log
-.static_storage/
-.media/
 local_settings.py
 
 # Flask stuff:
@@ -102,6 +98,18 @@ venv.bak/
 # mkdocs documentation
 /site
 
+# serialization files
+*.pkl
+*.serpent
+
 # mypy
 .mypy_cache/
 
+# git time metric
+/.gtm/
+
+# pycharm files
+*.idea
+
+# Visual Studio Code
+/.vscode/
