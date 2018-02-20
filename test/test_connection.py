@@ -158,6 +158,97 @@ def test_can_decode_data_from_external_io__decoder_via_composition(buffer_transp
     assert ["incoming", "data"] in moler_received_data
 
 
+def test_can_notify_its_observer_about_data_comming_from_external_io(buffer_transport_class):
+    from moler.connection import ObservableConnection
+
+    moler_received_data = []
+
+    def buffer_observer(data):
+        moler_received_data.append(data)
+
+    moler_conn = ObservableConnection()
+    moler_conn.subscribe(buffer_observer)
+
+    used_io = buffer_transport_class(moler_connection=moler_conn)  # external-IO internally sets .how2send
+    used_io.write(input_bytes=b"incoming data")  # inject to buffer for next line read
+    used_io.read()
+
+    assert b"incoming data" in moler_received_data
+
+
+def test_can_notify_multiple_observers_about_data_comming_from_external_io(buffer_transport_class):
+    from moler.connection import ObservableConnection
+
+    class BufferObserver(object):
+        def __init__(self):
+            self.received_data = []
+
+        def on_new_data(self, data):
+            self.received_data.append(data)
+
+    buffer_observer1 = BufferObserver()
+    buffer_observer2 = BufferObserver()
+
+    moler_conn = ObservableConnection()
+    moler_conn.subscribe(buffer_observer1.on_new_data)
+    moler_conn.subscribe(buffer_observer2.on_new_data)
+
+    used_io = buffer_transport_class(moler_connection=moler_conn)  # external-IO internally sets .how2send
+    used_io.write(input_bytes=b"incoming data")  # inject to buffer for next line read
+    used_io.read()
+
+    assert b"incoming data" in buffer_observer1.received_data
+    assert b"incoming data" in buffer_observer2.received_data
+
+
+def test_notifies_only_subscribed_observers_about_data_comming_from_external_io(buffer_transport_class):
+    from moler.connection import ObservableConnection
+
+    class BufferObserver(object):
+        def __init__(self):
+            self.received_data = []
+
+        def on_new_data(self, data):
+            self.received_data.append(data)
+
+    buffer_observer1 = BufferObserver()
+    buffer_observer2 = BufferObserver()
+    buffer_observer3 = BufferObserver()
+
+    moler_conn = ObservableConnection()
+    moler_conn.subscribe(buffer_observer1.on_new_data)
+    moler_conn.subscribe(buffer_observer2.on_new_data)
+
+    used_io = buffer_transport_class(moler_connection=moler_conn)  # external-IO internally sets .how2send
+    used_io.write(input_bytes=b"incoming data")  # inject to buffer for next line read
+    used_io.read()
+
+    assert b"incoming data" in buffer_observer1.received_data
+    assert b"incoming data" in buffer_observer2.received_data
+    assert b"incoming data" not in buffer_observer3.received_data  # that one was not subscribed
+
+
+def test_notified_observer_may_stop_subscription_of_data_comming_from_external_io(buffer_transport_class):
+    from moler.connection import ObservableConnection
+
+    moler_conn = ObservableConnection()
+    moler_received_data = []
+
+    def one_time_observer(data):
+        moler_received_data.append(data)
+        moler_conn.unsubscribe(one_time_observer)
+
+    moler_conn.subscribe(one_time_observer)
+
+    used_io = buffer_transport_class(moler_connection=moler_conn)  # external-IO internally sets .how2send
+    used_io.write(input_bytes=b"data 1")  # inject to buffer for next line read
+    used_io.read()
+    used_io.write(input_bytes=b"data 2")  # inject to buffer for next line read
+    used_io.read()
+
+    assert b"data 1" in moler_received_data
+    assert b"data 2" not in moler_received_data  # because of unsubscription during notification
+
 # --------------------------- resources
 
 
