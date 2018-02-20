@@ -5,7 +5,7 @@ python:
 install:
   # - pip install -r requirements.txt
   - pip2 list
-  - pip3 list
+  - pip3.6 list
 before_script:
   - python2 -V
   - python3 -V
