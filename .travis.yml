@@ -4,12 +4,15 @@ python:
   - 3.6
 install:
   - pip install -U pip
-  - pip install -U coveralls
+  - pip install -U coveralls pycodestyle pytest-mccabe
 before_script:
   - pip install -Ur requirements.txt
   - python2 -V
   - python3 -V
 script:
   - coverage run --source=moler,test -m py.test -vv
+  - pycodestyle moler
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then python3.6 -m pytest --mccabe moler; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then python2 -m pytest --mccabe moler; fi
 after_success:
   - if [[ $TRAVIS_PYTHON_VERSION == 3.6 && $TRAVIS_OS_NAME == "linux" ]]; then coveralls; fi
