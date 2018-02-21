@@ -12,4 +12,4 @@ before_script:
 script:
   - coverage run --source=moler,test -m py.test -vv
 after_success:
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.6 && $TRAVIS_OS_NAME != "linux" ]]; then coveralls; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.6 && $TRAVIS_OS_NAME == "linux" ]]; then coveralls; fi
