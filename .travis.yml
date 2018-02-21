@@ -3,13 +3,15 @@ python:
   - 2.7
   - 3.6
 install:
-  # - pip install -r requirements.txt
-  - pip2 list
-  - pip3.6 list
+  - pip install -U pip
+  - pip install -U coveralls
 before_script:
+  - pip install -rU requirements.txt
   - python2 -V
   - python3 -V
 script:
-  - uptime
+  - coverage run --source=moler,test -m py.test -vv
 after_success:
+  - coveralls
   - env
+  - uptime
