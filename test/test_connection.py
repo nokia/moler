@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2018 Nokia
-"""
-:author: Grzegorz Latuszek
-:contact: grzegorz.latuszek@nokia.com
-"""
-import pytest
 import binascii
+import pytest
+
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018 Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
 
 
 def test_can_attach_external_outgoing_io_to_moler_connection():
@@ -249,7 +248,7 @@ def test_notified_observer_may_stop_subscription_of_data_comming_from_external_i
     assert b"data 1" in moler_received_data
     assert b"data 2" not in moler_received_data  # because of unsubscription during notification
 
-# --------------------------- resources
+# --------------------------- resources ---------------------------
 
 
 @pytest.fixture
