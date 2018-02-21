@@ -6,7 +6,7 @@ install:
   - pip install -U pip
   - pip install -U coveralls
 before_script:
-  - pip install -rU requirements.txt
+  - pip install -Ur requirements.txt
   - python2 -V
   - python3 -V
 script:
