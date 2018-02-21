@@ -72,7 +72,7 @@ class ObservableConnection(Connection):
     """
     Allows objects to subscribe for notification about connection's data-received.
     Subscription is made by registering function to be called with this data (may be object's method).
-    Function should have signature like::
+    Function should have signature like:
 
     def observer(data):
         # handle that data
