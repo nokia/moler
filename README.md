@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.org/nokia/moler.svg?branch=master)](https://travis-ci.org/nokia/moler)
+[![Coverage Status](https://coveralls.io/repos/github/nokia/moler/badge.svg?branch=master)](https://coveralls.io/github/nokia/moler?branch=master)
+[![BCH compliance](https://bettercodehub.com/edge/badge/nokia/moler?branch=master)](https://bettercodehub.com/)
 
 # Moler - library to help in building automated tests
 **Moler** name is coined by Grzegorz Latuszek with high impact of Bartosz Odziomek, Michał Ernst and Mateusz Smet.
