@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2018 Nokia
-"""
-:author: Grzegorz Latuszek
-:contact: grzegorz.latuszek@nokia.com
-"""
-from threading import Lock
-
 """
 One of Moler's goals is to be IO-agnostic.
 So it can be used under twisted, asyncio, curio any any other IO system.
@@ -17,6 +10,11 @@ Connection responsibilities:
 - perform data encoding/decoding to let external IO use pure bytes
 - have a means allowing multiple observers to get it's received data (data dispatching)
 """
+from threading import Lock
+
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018 Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
 
 
 class WrongUsage(Exception):
@@ -74,7 +72,7 @@ class ObservableConnection(Connection):
     """
     Allows objects to subscribe for notification about connection's data-received.
     Subscription is made by registering function to be called with this data (may be object's method).
-    Function should have signature like::
+    Function should have signature like:
 
     def observer(data):
         # handle that data
@@ -98,7 +96,6 @@ class ObservableConnection(Connection):
         """
         Subscribe for 'data-received notification'
         :param observer: function to be called
-        :return: None
         """
         with self._observers_lock:
             self._observers.add(observer)
@@ -107,7 +104,6 @@ class ObservableConnection(Connection):
         """
         Unsubscribe from 'data-received notification'
         :param observer: function that was previously subscribed
-        :return: None
         """
         with self._observers_lock:
             self._observers.remove(observer)
