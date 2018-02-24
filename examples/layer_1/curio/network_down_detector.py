@@ -147,13 +147,13 @@ if __name__ == '__main__':
     )
     # --------------------------------------------------------------------
     import platform
+    import selectors
+    selector = selectors.DefaultSelector()
     if platform.system() == 'Windows':
         # need workaround:   https://github.com/dabeaz/curio/issues/75
-        import selectors
         import socket as stdlib_socket
         dummy_socket = stdlib_socket.socket(stdlib_socket.AF_INET,
                                             stdlib_socket.SOCK_DGRAM)
-        selector = selectors.DefaultSelector()
         selector.register(dummy_socket, selectors.EVENT_READ)
     # --------------------------------------------------------------------
     curio.run(main, '', 5679, selector=selector)
