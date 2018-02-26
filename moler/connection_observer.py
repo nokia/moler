@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2018 Nokia
-"""
-:author: Grzegorz Latuszek
-:contact: grzegorz.latuszek@nokia.com
-"""
 from abc import abstractmethod, ABCMeta
 from six import add_metaclass
 
@@ -11,7 +6,9 @@ from moler.exceptions import NoResultSinceCancelCalled
 from moler.exceptions import ResultNotAvailableYet
 from moler.exceptions import ResultAlreadySet
 
-__version__ = '1.0.1'
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
 
 
 @add_metaclass(ABCMeta)

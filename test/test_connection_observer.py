@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2018 Nokia
-"""
-:author: Grzegorz Latuszek
-:contact: grzegorz.latuszek@nokia.com
-"""
 import pytest
 import time
 import importlib
 
 from moler.connection_observer import ConnectionObserver
+
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
 
 
 def test_connection_observer_instance_is_callable(connection_observer_major_base_class):
@@ -355,7 +354,7 @@ def test_connection_observer_parses_data_inside_data_received_in_order_to_produc
     disk_usage_parsed_output = {'size': 7538128, 'path': '/home/greg'}
     assert disk_usage_observer.result() == disk_usage_parsed_output
 
-# --------------------------- resources
+# --------------------------- resources ---------------------------
 
 
 @pytest.fixture(params=['connection_observer.ConnectionObserver'])

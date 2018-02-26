@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2018 Nokia
 """
 asyncio.network_down_detector.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -25,6 +24,10 @@ import functools
 
 from moler.connection_observer import ConnectionObserver
 from moler.connection import ObservableConnection
+
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
 
 ping_output = '''
 greg@debian:~$ ping 10.0.2.15
@@ -93,8 +96,8 @@ async def tcp_connection(address):
         logger.debug('... closing')
         writer.close()
 
-# ===================== Moler's connection-observer usage ======================
 
+# ===================== Moler's connection-observer usage ======================
 class NetworkDownDetector(ConnectionObserver):
     def __init__(self):
         super(NetworkDownDetector, self).__init__()

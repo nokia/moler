@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2018 Nokia
-"""
-:author: Grzegorz Latuszek
-:contact: grzegorz.latuszek@nokia.com
-"""
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
 
 
 # TODO: do we need it? Just mapping to asyncio/concurrent.futures naming?

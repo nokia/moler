@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2018 Nokia
 """
 twisted.network_down_detector.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -29,6 +28,10 @@ from functools import partial
 
 from moler.connection_observer import ConnectionObserver
 from moler.connection import ObservableConnection
+
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
 
 ping_output = '''
 greg@debian:~$ ping 10.0.2.15
@@ -155,6 +158,7 @@ def ping_observing_task(address):
 
     start_tcp_connection(address, feed_moler)
     return observer_done
+
 
 # ==============================================================================
 if __name__ == '__main__':
