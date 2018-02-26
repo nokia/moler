@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-twisted.network_down_detector.py
+threaded.network_down_detector.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A fully-functional connection-observer using twisted.
+A fully-functional connection-observer using socket & threading.
 Works on Python 2.7 as well as on 3.6
 
 This example demonstrates basic concept of connection observer - entity
@@ -17,14 +17,14 @@ Please note that this example is LAYER-1 usage which means:
 - observer can't be awaited, must be queried for status before asking for data
 Another words - low level manual combining of all the pieces.
 """
-from twisted.internet.protocol import Protocol, Factory, ClientFactory
-from twisted.internet import reactor, task
-from twisted.internet.defer import Deferred
+import socket
+import select
+import threading
+from contextlib import closing
 
 import logging
 import sys
 import time
-from functools import partial
 
 from moler.connection_observer import ConnectionObserver
 from moler.connection import ObservableConnection
@@ -47,74 +47,84 @@ ping: sendmsg: Network is unreachable
 '''
 
 
-class PingSimTcpServer(Protocol):
-    def __init__(self):
-        self.logger = logging.getLogger('twisted.ping.tcp-server')
-        self.ping_lines = ping_output.splitlines(True)
+def ping_sim_tcp_server(client, address):
+    logger = logging.getLogger('threaded.ping.tcp-server')
+    logger.debug('connection accepted - client at tcp://{}:{}'.format(*address))
 
-    def connectionMade(self):
-        client_info = 'client at tcp://{}:{}'.format(*self.transport.client)
-        self.logger.debug('connection accepted - ' + client_info)
-        self.send_ping_line()
-
-    def connectionLost(self, reason):
-        self.logger.debug("Connection closed")
-
-    def send_ping_line(self):
-        if self.ping_lines:
-            ping_line = self.ping_lines.pop(0)
+    ping_lines = ping_output.splitlines(True)
+    with closing(client):
+        for ping_line in ping_lines:
             data = ping_line.encode(encoding='utf-8')
-            self.transport.write(data)
-            # simulate delay between ping lines
-            reactor.callLater(1, self.send_ping_line)
+            try:
+                client.sendall(data)
+            except socket.error:  # client is gone
+                break
+            time.sleep(1)  # simulate delay between ping lines
+    logger.info('Connection closed')
+
+
+def server_loop(server_socket, done_event):
+    logger = logging.getLogger('threaded.ping.tcp-server')
+    while not done_event.is_set():
+        # without select we can't break loop from outside (via done_event)
+        # since .accept() is blocking
+        read_sockets, _, _ = select.select([server_socket], [], [], 0.1)
+        if not read_sockets:
+            continue
+        client_socket, client_addr = server_socket.accept()
+        client_socket.setblocking(1)
+        client_thread = threading.Thread(target=ping_sim_tcp_server,
+                                         args=(client_socket, client_addr))
+        client_thread.start()
+    logger.debug("Ping Sim: I'm tired after this client ... bye")
 
 
 def start_ping_sim_server(server_address):
     """Run server simulating ping command output, this is one-shot server"""
-    logger = logging.getLogger('twisted.ping.tcp-server')
-    host, port = server_address
-    factory = Factory()
-    factory.protocol = PingSimTcpServer
-    reactor.listenTCP(port, factory)
-
+    logger = logging.getLogger('threaded.ping.tcp-server')
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_socket.bind(server_address)
+    server_socket.listen(1)
     logger.debug("Ping Sim started at tcp://{}:{}".format(*server_address))
     logger.debug("WARNING - I'll be tired too much just after first client!")
+    done_event = threading.Event()
+    server_thread = threading.Thread(target=server_loop,
+                                     args=(server_socket, done_event))
+    server_thread.start()
+    return server_thread, done_event
 
 
-class TcpConnection(Protocol):
-    def __init__(self, forward_data):
-        self.forward_data = forward_data
-        self.logger = logging.getLogger('twisted.tcp-connection')
+def tcp_connection(address):
+    """Generator reading from tcp network transport layer"""
+    logger = logging.getLogger('threaded.tcp-connection')
+    logger.debug('... connecting to tcp://{}:{}'.format(*address))
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.connect(address)
 
-    def connectionMade(self):
-        conn_info = 'tcp://{}:{}'.format(*self.transport.realAddress)
-        self.logger.debug('... connected to ' + conn_info)
-
-    def connectionLost(self, reason):
-        self.logger.debug("... closed")
-
-    def dataReceived(self, data):
-        self.logger.debug('<<< {!r}'.format(data))
-        self.forward_data(data)
-
-
-def start_tcp_connection(address, forward_data):
-    host, port = address
-    factory = ClientFactory()
-    factory.protocol=partial(TcpConnection, forward_data)
-    reactor.connectTCP(host, port, factory)
+    with closing(client_socket):
+        while True:
+            data = client_socket.recv(128)
+            if data:
+                logger.debug('<<< {!r}'.format(data))
+                yield data
+            else:
+                logger.debug("... closed")
+                break
 
 
-def main(reactor, address):
-    # Starting the server
-    start_ping_sim_server(address)
+def main(address):
+    # Starting the server - in threads: sever loop, handling accepted clients
+    server_thread, server_done = start_ping_sim_server(address)
     # Starting the client
-    processing_done_deferred = ping_observing_task(address)
-    return processing_done_deferred
+    client_thread = threading.Thread(target=ping_observing_task, args=(address,))
+    client_thread.start()  # client connection also works in thread
+    client_thread.join()
+    server_done.set()
+    server_thread.join()
 
 
 # ===================== Moler's connection-observer usage ======================
-
 class NetworkDownDetector(ConnectionObserver):
     def __init__(self):
         super(NetworkDownDetector, self).__init__()
@@ -130,35 +140,28 @@ class NetworkDownDetector(ConnectionObserver):
 
 def ping_observing_task(address):
     logger = logging.getLogger('moler.user.app-code')
-    observer_done = Deferred()
 
     # Lowest layer of Moler's usage (you manually glue all elements):
     # 1. create observer
     net_down_detector = NetworkDownDetector()
     # 2. ObservableConnection is a proxy-glue between observer (speaks str)
-    #                                   and twisted-connection (speaks bytes)
+    #                                   and threaded-connection (speaks bytes)
     moler_conn = ObservableConnection(decoder=lambda data: data.decode("utf-8"))
     # 3a. glue from proxy to observer
     moler_conn.subscribe(net_down_detector.data_received)
 
     logger.debug('waiting for data to observe')
-
-    def feed_moler(connection_data):
-        # 3b. glue to proxy from external-IO (twisted tcp client connection)
-        #    (client has to pass it's received data into Moler's connection)
+    for connection_data in tcp_connection(address):
+        # 3b. glue to proxy from external-IO (threaded tcp client connection)
+        #   (client code has to pass it's received data into Moler's connection)
         moler_conn.data_received(connection_data)
         # 4. Moler's client code must manually check status of observer ...
         if net_down_detector.done():
             # 5. ... to know when it can ask for result
             net_down_time = net_down_detector.result()
-            timestamp = time.strftime("%H:%M:%S",
-                                      time.localtime(net_down_time))
+            timestamp = time.strftime("%H:%M:%S", time.localtime(net_down_time))
             logger.debug('Network is down from {}'.format(timestamp))
-            observer_done.callback(None)  # break tcp client and server
-
-    start_tcp_connection(address, feed_moler)
-    return observer_done
-
+            break
 
 # ==============================================================================
 if __name__ == '__main__':
@@ -169,4 +172,4 @@ if __name__ == '__main__':
         stream=sys.stderr,
     )
     address = ('localhost', 5670)
-    task.react(main, argv=[address])
+    main(address)

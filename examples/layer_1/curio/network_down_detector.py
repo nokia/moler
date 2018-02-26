@@ -119,7 +119,7 @@ async def ping_observing_task(address):
     # 1. create observer
     net_down_detector = NetworkDownDetector()
     # 2. ObservableConnection is a proxy-glue between observer (speaks str)
-    #                                   and asyncio-connection (speaks bytes)
+    #                                   and curio-connection (speaks bytes)
     moler_conn = ObservableConnection(decoder=lambda data: data.decode("utf-8"))
     # 3a. glue from proxy to observer
     moler_conn.subscribe(net_down_detector.data_received)
@@ -127,7 +127,7 @@ async def ping_observing_task(address):
     logger.debug('waiting for data to observe')
     async with curio.meta.finalize(tcp_connection(address)) as tcp_conn:
         async for connection_data in tcp_conn:
-            # 3b. glue to proxy from external-IO (asyncio tcp client connection)
+            # 3b. glue to proxy from external-IO (curio tcp client connection)
             #    (client has to pass it's received data into Moler's connection)
             moler_conn.data_received(connection_data)
             # 4. Moler's client code must manually check status of observer ...
