@@ -4,13 +4,13 @@
 
 # Table of Contents
 1. [Moler](#moler)
-- [Moler key features](#moler-key-features)
-- [Library content](#library-content)
+   * [Moler key features](#moler-key-features)
+   * [Library content](#library-content)
 2. [API design reasoning](#api-design-reasoning)
-- [Command as future](#command-as-future)
-- [Command vs. Connection-observer](#command-vs-connection-observer)
-- [Most well known Python's futures are](#most-well-known-pythons-futures)
-- [Fundamental difference of command](#fundamental-difference-of-command)
+   * [Command as future](#command-as-future)
+   * [Command vs. Connection-observer](#command-vs-connection-observer)
+   * [Most well known Python's futures are](#most-well-known-pythons-futures)
+   * [Fundamental difference of command](#fundamental-difference-of-command)
 3. [Designed API](#designed-api)
 
 # Moler
@@ -40,7 +40,7 @@ Moler comes from:
   * to decrease investigation time by having logs focused on different parts of system under test
 
 ## Library content
-Library provides "bricks" for building automated tests. These bricks:
+Library provides "bricks" for building automated tests:
 * have clearly defined responsibilities
 * have similar API
 * follow same construction pattern (so new ones are easy to create)
@@ -63,15 +63,15 @@ After starting, we await for its result which is parsed out command output provi
 Running that command and parsing its output may take some time, so till that point result computation is yet incomplete.
 
 ## Command as future
-- it starts some command on device/shell over connection
+* it starts some command on device/shell over connection
   (as future-function starts it's execution)
-- it parses data incoming over such connection
+* it parses data incoming over such connection
   (as future-function does it's processing)
-- it stores result of that parsing
+* it stores result of that parsing
   (as future-function concludes in calculation result)
-- it provides means to return that result
+* it provides means to return that result
   (as future-function does via 'return' or 'yield' statement)
-- it's result is not ready "just-after" calling command
+* it's result is not ready "just-after" calling command
   (as it is with future in contrast to function)
 
 So command should have future API.
@@ -174,6 +174,6 @@ Moler's API maps to above well-known API
 ``` python
 result = command.await_done(timeout)
 ```
-  * it is "internal" to command "Hi command, that is what I want from you" (above APIs say "Hi you there, that is what I want you to do with command")
-  * it directly (Zen of Python) shows what we are awaiting for
-  * timeout is required parameter (not as in concurrent.futures) since we don't expect endless execution of command (user must know what is worst case timeout to await command completion)
+* it is "internal" to command "Hi command, that is what I want from you" (above APIs say "Hi you there, that is what I want you to do with command")
+* it directly (Zen of Python) shows what we are awaiting for
+* timeout is required parameter (not as in concurrent.futures) since we don't expect endless execution of command (user must know what is worst case timeout to await command completion)
