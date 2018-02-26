@@ -4,6 +4,11 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
 
+class WrongUsage(Exception):
+    """Wrong usage of library"""
+    pass
+
+
 # TODO: do we need it? Just mapping to asyncio/concurrent.futures naming?
 class CancelledError(Exception):
     pass

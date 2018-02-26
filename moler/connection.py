@@ -12,14 +12,11 @@ Connection responsibilities:
 """
 from threading import Lock
 
+from moler.exceptions import WrongUsage
+
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
-
-
-class WrongUsage(Exception):
-    """Wrong usage of library"""
-    pass
 
 
 def identity_transformation(data):

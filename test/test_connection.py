@@ -39,7 +39,8 @@ def test_can_attach_instance_method_as_external_outgoing_io():
 
 
 def test_not_attaching_external_outgoing_io_raises_exception_at_send_trial():
-    from moler.connection import Connection, WrongUsage
+    from moler.connection import Connection
+    from moler.exceptions import WrongUsage
 
     moler_conn = Connection()
     with pytest.raises(WrongUsage) as err:
