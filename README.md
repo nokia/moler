@@ -2,8 +2,19 @@
 [![Coverage Status](https://coveralls.io/repos/github/nokia/moler/badge.svg?branch=master)](https://coveralls.io/github/nokia/moler?branch=master)
 [![BCH compliance](https://bettercodehub.com/edge/badge/nokia/moler?branch=master)](https://bettercodehub.com/)
 
-# Moler - library to help in building automated tests
-**Moler** name is coined by Grzegorz Latuszek with high impact of Bartosz Odziomek, Michał Ernst and Mateusz Smet.
+# Table of Contents
+1. [Moler](#moler)
+- [Moler key features](#moler-key-features)
+- [Library content](#library-content)
+2. [API design reasoning](#api-design-reasoning)
+- [Command as future](#command-as-future)
+- [Command vs. Connection-observer](#command-vs-connection-observer)
+- [Most well known Python's futures are](#most-well-known-pythons-futures)
+- [Fundamental difference of command](#fundamental-difference-of-command)
+3. [Designed API](#designed-api)
+
+# Moler
+Moler is library to help in building automated tests. Name is coined by Grzegorz Latuszek with high impact of Bartosz Odziomek, Michał Ernst and Mateusz Smet.
 
 Moler comes from:
 ![moler_origin](https://github.com/nokia/moler/blob/master/images/moler_origin.png)
@@ -15,10 +26,7 @@ Moler comes from:
    * grind, reduce to powder
    * **as this library should grind tested software to find it's bugs**
 
--------
-
-## Moler key features:
-
+## Moler key features
 * Event observers & callbacks (alarms are events example)
   * to allow for online reaction (not offline postprocessing)
 * Commands as self-reliant object
@@ -31,16 +39,11 @@ Moler comes from:
 * Automatic logging of all connections towards devices used by tests
   * to decrease investigation time by having logs focused on different parts of system under test
 
--------
-
-## Library content:
-
+## Library content
 Library provides "bricks" for building automated tests. These bricks:
 * have clearly defined responsibilities
 * have similar API
 * follow same construction pattern (so new ones are easy to create)
-
--------
 
 # API design reasoning
 The main goal of command is its usage simplicity: just run it and give me back its result.
@@ -95,7 +98,7 @@ on device-behind-connection. That action is "command" in device terminology.
 Like `ping` on bash console/device. And it produces that "command" output.
 That output is what Moler's Command as connection-observer is looking for.
 
-## Most well known Python's futures are:
+## Most well known Python's futures
 * [concurrent.futures.Future](https://docs.python.org/3/library/concurrent.futures.html)
 * [asyncio.Future](https://docs.python.org/3/library/asyncio-task.html#future)
 
