@@ -163,6 +163,7 @@ def ping_observing_task(address):
             logger.debug('Network is down from {}'.format(timestamp))
             break
 
+
 # ==============================================================================
 if __name__ == '__main__':
     logging.basicConfig(
@@ -171,5 +172,5 @@ if __name__ == '__main__':
         datefmt='%H:%M:%S',
         stream=sys.stderr,
     )
-    address = ('localhost', 5670)
-    main(address)
+    local_address = ('localhost', 5670)
+    main(local_address)
