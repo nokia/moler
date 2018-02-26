@@ -174,3 +174,24 @@ if __name__ == '__main__':
     )
     local_address = ('localhost', 5670)
     main(local_address)
+
+'''
+LOG OUTPUT
+
+16:58:04 | threaded.ping.tcp-server |Ping Sim started at tcp://localhost:5670
+16:58:04 | threaded.ping.tcp-server |WARNING - I'll be tired too much just after first client!
+16:58:04 |      moler.user.app-code |waiting for data to observe
+16:58:04 |  threaded.tcp-connection |... connecting to tcp://localhost:5670
+16:58:04 | threaded.ping.tcp-server |connection accepted - client at tcp://127.0.0.1:56582
+16:58:04 |  threaded.tcp-connection |<<< b'\n'
+16:58:05 |  threaded.tcp-connection |<<< b'greg@debian:~$ ping 10.0.2.15\n'
+16:58:06 |  threaded.tcp-connection |<<< b'PING 10.0.2.15 (10.0.2.15) 56(84) bytes of data.\n'
+16:58:07 |  threaded.tcp-connection |<<< b'64 bytes from 10.0.2.15: icmp_req=1 ttl=64 time=0.080 ms\n'
+16:58:08 |  threaded.tcp-connection |<<< b'64 bytes from 10.0.2.15: icmp_req=2 ttl=64 time=0.037 ms\n'
+16:58:09 |  threaded.tcp-connection |<<< b'64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms\n'
+16:58:10 |  threaded.tcp-connection |<<< b'ping: sendmsg: Network is unreachable\n'
+16:58:10 |  moler.net-down-detector |Network is down!
+16:58:10 |      moler.user.app-code |Network is down from 16:58:10
+16:58:10 | threaded.ping.tcp-server |Ping Sim: I'm tired after this client ... bye
+16:58:12 | threaded.ping.tcp-server |Connection closed
+'''

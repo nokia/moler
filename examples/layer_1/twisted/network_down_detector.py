@@ -170,3 +170,24 @@ if __name__ == '__main__':
     )
     address = ('localhost', 5670)
     task.react(main, argv=[address])
+
+'''
+LOG OUTPUT
+
+16:58:39 |  twisted.ping.tcp-server |Ping Sim started at tcp://localhost:5670
+16:58:39 |  twisted.ping.tcp-server |WARNING - I'll be tired too much just after first client!
+16:58:39 |      moler.user.app-code |waiting for data to observe
+16:58:39 |  twisted.ping.tcp-server |connection accepted - client at tcp://127.0.0.1:56592
+16:58:39 |   twisted.tcp-connection |... connected to tcp://127.0.0.1:5670
+16:58:39 |   twisted.tcp-connection |<<< b'\n'
+16:58:40 |   twisted.tcp-connection |<<< b'greg@debian:~$ ping 10.0.2.15\n'
+16:58:41 |   twisted.tcp-connection |<<< b'PING 10.0.2.15 (10.0.2.15) 56(84) bytes of data.\n'
+16:58:42 |   twisted.tcp-connection |<<< b'64 bytes from 10.0.2.15: icmp_req=1 ttl=64 time=0.080 ms\n'
+16:58:43 |   twisted.tcp-connection |<<< b'64 bytes from 10.0.2.15: icmp_req=2 ttl=64 time=0.037 ms\n'
+16:58:44 |   twisted.tcp-connection |<<< b'64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms\n'
+16:58:45 |   twisted.tcp-connection |<<< b'ping: sendmsg: Network is unreachable\n'
+16:58:45 |  moler.net-down-detector |Network is down!
+16:58:45 |      moler.user.app-code |Network is down from 16:58:45
+16:58:45 |   twisted.tcp-connection |... closed
+16:58:45 |  twisted.ping.tcp-server |Connection closed
+'''

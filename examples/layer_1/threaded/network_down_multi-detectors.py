@@ -218,6 +218,7 @@ def ping_observing_task(address, ping_ip):
             moler_conn.unsubscribe(net_up_detector.data_received)
             break
 
+
 # ==============================================================================
 if __name__ == '__main__':
     logging.basicConfig(
@@ -275,5 +276,4 @@ LOG OUTPUT
 16:37:53 |threaded.ping.tcp-server(5672)           |Ping Sim: ... bye
 16:37:55 |threaded.ping.tcp-server(5671 -> 61044)  |Connection closed
 16:37:55 |threaded.ping.tcp-server(5672 -> 61045)  |Connection closed
-
 '''

@@ -153,3 +153,25 @@ if __name__ == '__main__':
     finally:
         event_loop.run_until_complete(server.wait_closed())
         event_loop.close()
+
+'''
+LOG OUTPUT
+
+16:56:30 |                  asyncio |Using selector: SelectSelector
+16:56:30 |  asyncio.ping.tcp-server |Ping Sim started at tcp://127.0.0.1:5678
+16:56:30 |  asyncio.ping.tcp-server |WARNING - I'll be tired too much just after first client!
+16:56:30 |      moler.user.app-code |waiting for data to observe
+16:56:30 |   asyncio.tcp-connection |... connecting to tcp://127.0.0.1:5678
+16:56:30 |  asyncio.ping.tcp-server |connection accepted - client at tcp://127.0.0.1:56556
+16:56:30 |   asyncio.tcp-connection |<<< b'\n'
+16:56:31 |   asyncio.tcp-connection |<<< b'greg@debian:~$ ping 10.0.2.15\n'
+16:56:32 |   asyncio.tcp-connection |<<< b'PING 10.0.2.15 (10.0.2.15) 56(84) bytes of data.\n'
+16:56:33 |   asyncio.tcp-connection |<<< b'64 bytes from 10.0.2.15: icmp_req=1 ttl=64 time=0.080 ms\n'
+16:56:34 |   asyncio.tcp-connection |<<< b'64 bytes from 10.0.2.15: icmp_req=2 ttl=64 time=0.037 ms\n'
+16:56:35 |   asyncio.tcp-connection |<<< b'64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms\n'
+16:56:36 |   asyncio.tcp-connection |<<< b'ping: sendmsg: Network is unreachable\n'
+16:56:36 |  moler.net-down-detector |Network is down!
+16:56:36 |      moler.user.app-code |Network is down from 16:56:36
+16:56:36 |   asyncio.tcp-connection |... closing
+16:56:38 |  asyncio.ping.tcp-server |Ping Sim: I'm tired after this client ... will do sepuku
+'''

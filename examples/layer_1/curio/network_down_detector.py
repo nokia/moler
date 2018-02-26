@@ -160,3 +160,24 @@ if __name__ == '__main__':
         selector.register(dummy_socket, selectors.EVENT_READ)
     # --------------------------------------------------------------------
     curio.run(main, '', 5679, selector=selector)
+
+'''
+LOG OUTPUT
+
+16:57:07 |    curio.ping.tcp-server |Ping Sim started at tcp://:5679
+16:57:07 |    curio.ping.tcp-server |WARNING - I'll be tired too much just after first client!
+16:57:07 |      moler.user.app-code |waiting for data to observe
+16:57:07 |     curio.tcp-connection |... connecting to tcp://:5679
+16:57:09 |    curio.ping.tcp-server |connection accepted - client at tcp://192.168.56.1:56578
+16:57:09 |     curio.tcp-connection |<<< b'\n'
+16:57:10 |     curio.tcp-connection |<<< b'greg@debian:~$ ping 10.0.2.15\n'
+16:57:11 |     curio.tcp-connection |<<< b'PING 10.0.2.15 (10.0.2.15) 56(84) bytes of data.\n'
+16:57:12 |     curio.tcp-connection |<<< b'64 bytes from 10.0.2.15: icmp_req=1 ttl=64 time=0.080 ms\n'
+16:57:13 |     curio.tcp-connection |<<< b'64 bytes from 10.0.2.15: icmp_req=2 ttl=64 time=0.037 ms\n'
+16:57:14 |     curio.tcp-connection |<<< b'64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms\n'
+16:57:15 |     curio.tcp-connection |<<< b'ping: sendmsg: Network is unreachable\n'
+16:57:15 |  moler.net-down-detector |Network is down!
+16:57:15 |      moler.user.app-code |Network is down from 16:57:15
+16:57:15 |    curio.ping.tcp-server |Ping Sim: You are right - I'm tired after this client
+16:57:15 |             curio.kernel |Kernel <curio.kernel.Kernel object at 0x000000000303E780> shutting down
+'''
