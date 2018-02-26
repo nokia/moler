@@ -103,7 +103,10 @@ class ObservableConnection(Connection):
         :param observer: function that was previously subscribed
         """
         with self._observers_lock:
-            self._observers.remove(observer)
+            if observer in self._observers:
+                self._observers.remove(observer)
+            else:
+                pass  # TODO: put warning into logs
 
     def notify_observers(self, data):
         """Notify all subscribed observers about data received on connection"""
