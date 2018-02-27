@@ -197,7 +197,7 @@ def ping_observing_task(address, ping_ip):
 
     info = '{} on {} using {}'.format(ping_ip, net_addr, net_down_detector)
     logger.debug('observe ' + info)
-    for connection_data in tcp_connection(address, moler_conn):
+    for _ in tcp_connection(address, moler_conn):
         # anytime new data comes it may change status of observer
         if not net_drop_found and net_down_detector.done():
             net_drop_found = True
@@ -227,9 +227,9 @@ if __name__ == '__main__':
         datefmt='%H:%M:%S',
         stream=sys.stderr,
     )
-    connections2observe4ip = [(('localhost', 5671), '10.0.2.15'),
-                              (('localhost', 5672), '10.0.2.16')]
-    main(connections2observe4ip)
+    connections2observe = [(('localhost', 5671), '10.0.2.15'),
+                           (('localhost', 5672), '10.0.2.16')]
+    main(connections2observe)
 
 '''
 LOG OUTPUT
