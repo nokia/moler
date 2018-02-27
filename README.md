@@ -57,7 +57,7 @@ Command shows to its caller:
 * API to start/stop it or await for its completion
 * API to query for its result or result readiness
 
-Command works as [Futures_and_promises](https://en.wikipedia.org/wiki/Futures_and_promises)
+Command works as [Futures and promises](https://en.wikipedia.org/wiki/Futures_and_promises)
 
 After starting, we await for its result which is parsed out command output provided usually as dict.
 Running that command and parsing its output may take some time, so till that point result computation is yet incomplete.
