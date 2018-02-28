@@ -123,7 +123,7 @@ class Tcp(object):
     def _close_ignoring_exceptions(self):
         try:
             self.socket.close()
-        except:
+        except Exception:
             pass
         self.socket = None
     
