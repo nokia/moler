@@ -41,3 +41,16 @@ class ResultAlreadySet(InvalidStateError):
         err_msg = 'for {}'.format(connection_observer)
         super(ResultAlreadySet, self).__init__(err_msg)
         self.connection_observer = connection_observer
+
+
+class ConnectionObserverTimeout(Exception):
+    def __init__(self, connection_observer, timeout,
+                 kind='run', passed_time=''):
+        """Create instance of ConnectionObserverTimeout exception"""
+        if passed_time:
+            passed_time = '{:.2f} '.format(passed_time)
+        err_msg = '{} {} time {}>= {:.2f} sec'.format(connection_observer, kind,
+                                                      passed_time, timeout)
+        super(ConnectionObserverTimeout, self).__init__(err_msg + ' timeout')
+        self.connection_observer = connection_observer
+        self.timeout = timeout
