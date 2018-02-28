@@ -126,7 +126,7 @@ class Tcp(object):
         except Exception:
             pass
         self.socket = None
-    
+
     def __str__(self):
         address = 'tcp://{}:{}'.format(self.host, self.port)
         return address
