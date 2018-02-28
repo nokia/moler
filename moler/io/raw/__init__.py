@@ -8,7 +8,23 @@ The only 3 requirements for these connections is:
     self.moler_connection.how2send = self.send
 (3) forward IO received data into self.moler_connection.data_received(data)
 """
+import threading
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
+
+
+class TillDoneThread(threading.Thread):
+    def __init__(self, done_event, target=None, name=None, kwargs=None):
+        super(TillDoneThread, self).__init__(target=target, name=name,
+                                             kwargs=kwargs)
+        self.done_event = done_event
+
+    def join(self, timeout=None):
+        """
+        Wait until the thread terminates.
+        Set event indicating "I'm done" before awaiting.
+        """
+        self.done_event.set()
+        super(TillDoneThread, self).join(timeout=timeout)

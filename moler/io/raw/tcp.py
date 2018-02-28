@@ -16,6 +16,7 @@ import threading
 from moler.io.io_exceptions import RemoteEndpointNotConnected
 from moler.io.io_exceptions import RemoteEndpointDisconnected
 from moler.io.io_exceptions import ConnectionTimeout
+from moler.io.raw import TillDoneThread
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -26,8 +27,17 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 
 
 class Tcp(object):
-    """Implementation of TCP connection using python builtin modules."""
+    r"""
+    Implementation of TCP connection using python builtin modules.::
 
+        socket.send    /|           |\
+                      / +-----------+ \
+                     /    host:port    \  TCP server
+        socket.recv  \                 /
+                      \ +-----------+ /
+                       \|           |/
+
+    """
     def __init__(self, port, host="localhost", receive_buffer_size=64 * 4096,
                  logger=None):
         """Initialization of TCP connection."""
@@ -136,21 +146,6 @@ class Tcp(object):
             self.logger.debug(msg)
 
 
-class TillDoneThread(threading.Thread):
-    def __init__(self, done_event, target=None, name=None, kwargs=None):
-        super(TillDoneThread, self).__init__(target=target, name=name,
-                                             kwargs=kwargs)
-        self.done_event = done_event
-
-    def join(self, timeout=None):
-        """
-        Wait until the thread terminates.
-        Set event indicating "I'm done" before awaiting.
-        """
-        self.done_event.set()
-        super(TillDoneThread, self).join(timeout=timeout)
-
-
 class ThreadedTcp(Tcp):
     """
     TCP connection feeding Moler's connection inside dedicated thread.
@@ -162,7 +157,7 @@ class ThreadedTcp(Tcp):
     def __init__(self, moler_connection,
                  port, host="localhost", receive_buffer_size=64 * 4096,
                  logger=None):
-        """Initialization of TCP connection."""
+        """Initialization of TCP-threaded connection."""
         super(ThreadedTcp, self).__init__(port=port, host=host,
                                           receive_buffer_size=receive_buffer_size,
                                           logger=logger)
