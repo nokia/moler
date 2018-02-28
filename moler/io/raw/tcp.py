@@ -101,7 +101,7 @@ class Tcp(object):
         Receive data.
 
         :param timeout: time-out, default 30 sec
-        :type timeout: int
+        :type timeout: float
         """
         if not self.socket:
             raise RemoteEndpointNotConnected()
