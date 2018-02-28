@@ -21,9 +21,10 @@ def test_can_submit_connection_observer_into_background(connection_observer,
     connection_observer_future = observer_runner.submit(connection_observer)
     # see API of concurrent.futures.Future
     try:
-        assert connection_observer_future.running()
         assert not connection_observer_future.done()
         assert not connection_observer.done()
+        time.sleep(0.1)  # give thread a chance to gain control
+        assert connection_observer_future.running()
     finally:  # test cleanup
         connection_observer_future.cancel()
 
