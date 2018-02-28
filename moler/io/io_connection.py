@@ -94,3 +94,30 @@ class IOConnection(object):
         just forward it to Moler's connection:
         """
         self.moler_connection.data_received(data)
+
+
+class FifoBuffer1(IOConnection):
+    """
+    .                  |\
+    inject   +---------+ \  read
+    write    +---------+ /
+    .                  |/
+    Usable for unit tests (manually inject what is expected).
+    """
+    pass
+
+
+class FifoBuffer(IOConnection):
+    """
+    write   +------------\
+    .       +-----------\ \
+    .                    \ \  inject
+    .        /|          / /  (simulate remote side)
+    .       / +---------/ /
+    read    \ +----------/
+    .        \|
+    Usable for unit tests (manually inject what is expected).
+    """
+    def __init__(self, moler_connection):
+        """Initialization of FIFO-in-memory connection."""
+        super(FifoBuffer, self).__init__(moler_connection=moler_connection)
