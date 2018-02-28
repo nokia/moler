@@ -60,7 +60,7 @@ def test_connection_observer_behaves_like_future(net_down_detector_and_ping_outp
         assert not future.done()
         assert not future.cancelled()
         assert future == network_down_detector
-        result = network_down_detector.await_done(timeout=1.0)
+        result = network_down_detector.await_done(timeout=2.0)
         assert result == network_down_detector.result()
     finally:  # test cleanup
         ext_io.join()
