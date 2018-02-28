@@ -5,6 +5,7 @@ from six import add_metaclass
 from moler.exceptions import NoResultSinceCancelCalled
 from moler.exceptions import ResultNotAvailableYet
 from moler.exceptions import ResultAlreadySet
+from moler.runner import ThreadPoolExecutorRunner
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -25,7 +26,8 @@ class ConnectionObserver(object):
         self._is_cancelled = False
         self._result = None
         self._exception = None
-        self.runner = None  # TODO: concurrency runner
+        self.runner = ThreadPoolExecutorRunner()
+        self._future = None
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, id(self))
@@ -60,14 +62,15 @@ class ConnectionObserver(object):
         # ----------------------------------------------------------------------
         # TODO: implement background run using runner
         self._is_running = True
+        self._future = self.runner.submit(self)
         return self
 
     def await_done(self, timeout=10.0):
         """Await completion of connection-observer."""
         if self.done():
             return self.result()
-        # TODO: implement blocking await for background run using runner
-        raise Exception("await_done() with runners not implemented yet")
+        result = self.runner.wait_for(connection_observer=self, connection_observer_future=self._future, timeout=timeout)
+        return result
 
     def cancel(self):
         """Cancel execution of connection-observer."""
