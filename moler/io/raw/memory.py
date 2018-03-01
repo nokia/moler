@@ -89,8 +89,7 @@ class FifoBuffer(IOConnection):
     receive = read  # just alias to make base class happy :-)
 
     def __str__(self):
-        address = 'tcp://{}:{}'.format(self.host, self.port)
-        return address
+        return 'FIFO-in-memory'
 
     def _debug(self, msg):  # TODO: refactor to class decorator or so
         if self.logger:
