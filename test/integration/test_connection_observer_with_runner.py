@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Testing connection observer runner based on threads
+Testing connection observer with runner based on threads
 
-- submit
-- wait_for
+- call as function (synchronous)
+- call as future  (asynchronous)
 """
 import pytest
 import time
@@ -56,10 +56,11 @@ def test_connection_observer_behaves_like_future(net_down_detector_and_ping_outp
         ext_io = threading.Thread(target=inject_data)
         ext_io.start()
         future = network_down_detector.start()
-        assert future.running()
         assert not future.done()
         assert not future.cancelled()
         assert future == network_down_detector
+        time.sleep(0.1)  # give concurrency-of-future a chance to gain control
+        assert future.running()
         result = network_down_detector.await_done(timeout=2.0)
         assert result == network_down_detector.result()
     finally:  # test cleanup

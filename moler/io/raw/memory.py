@@ -10,6 +10,8 @@ The only 3 requirements for these connections are:
 """
 import threading
 import time
+from six.moves.queue import Queue
+from six.moves.queue import Empty
 
 from moler.io.io_connection import IOConnection
 from moler.io.raw import TillDoneThread
@@ -38,9 +40,25 @@ class FifoBuffer(IOConnection):
         self.logger = logger  # TODO: build default logger if given is None?
         self.buffer = bytearray()
 
-    def inject(self, input_bytes):
+    def inject(self, input_bytes, delay=0.0):
+        """
+        Add bytes to FIFO with injection-delay before each data
+
+        :param input_bytes: iterable of bytes to inject
+        :param delay: delay before each inject
+        :return: None
+        """
+        for data in input_bytes:
+            if delay:
+                time.sleep(delay)
+            self._inject(data)
+
+    def _inject(self, data):
         """Add bytes to end of buffer"""
-        self.buffer.extend(input_bytes)
+        if hasattr(data, '__iter__') or hasattr(data, '__getitem__'):
+            self.buffer.extend(data)
+        else:
+            self.buffer.append(data)
 
     def write(self, input_bytes):
         """
@@ -48,7 +66,7 @@ class FifoBuffer(IOConnection):
         only if we simulate echo service of remote end.
         """
         if self.echo:
-            self.inject(input_bytes)
+            self.inject([input_bytes])
 
     send = write  # just alias to make base class happy :-)
 
@@ -94,6 +112,7 @@ class ThreadedFifoBuffer(FifoBuffer):
                                                  echo=echo,
                                                  logger=logger)
         self.pulling_thread = None
+        self.injections = Queue()
 
     def open(self):
         """Start thread pulling data from FIFO buffer."""
@@ -111,8 +130,28 @@ class ThreadedFifoBuffer(FifoBuffer):
             self.pulling_thread = None
         super(ThreadedFifoBuffer, self).close()
 
+    def inject(self, input_bytes, delay=0.0):
+        """
+        Add bytes to end of buffer
+
+        :param input_bytes: iterable of bytes to inject
+        :param delay: delay before each inject
+        :return: None
+        """
+        for data in input_bytes:
+            self.injections.put((data, delay))
+        if not delay:
+            time.sleep(0.05)  # give subsequent read() a chance to get data
+
     def pull_data(self, pulling_done):
         """Pull data from FIFO buffer."""
         while not pulling_done.is_set():
             self.read()  # internally forwards to embedded Moler connection
-            time.sleep(0.1)  # give FIFO chance to get data
+            try:
+                data, delay = self.injections.get_nowait()
+                if delay:
+                    time.sleep(delay)
+                self._inject(data)
+                self.injections.task_done()
+            except Empty:
+                time.sleep(0.01)  # give FIFO chance to get data
