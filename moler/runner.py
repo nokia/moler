@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor, wait
 import logging
 from abc import abstractmethod, ABCMeta
 from six import add_metaclass
+import atexit
 
 from moler.exceptions import ConnectionObserverTimeout
 
@@ -77,6 +78,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         self._i_own_executor = False
         self.executor = executor
         self.logger = logging.getLogger('moler.runner.thread-pool')
+        atexit.register(self.shutdown)
         if executor is None:
             max_workers = (cpu_count() or 1) * 5  # fix for concurrent.futures  v.3.0.3  to have API of v.3.1.1 or above
             self.executor = ThreadPoolExecutor(max_workers=max_workers)
