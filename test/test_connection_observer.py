@@ -4,6 +4,7 @@ import time
 import importlib
 
 from moler.connection_observer import ConnectionObserver
+from moler.connection import ObservableConnection
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -21,6 +22,7 @@ def test_calling_start_on_connection_observer_returns_itself(do_nothing_connecti
     Simplest (stupid) case: connection_observer.start().await_done()
     """
     connection_observer = do_nothing_connection_observer__for_major_base_class
+    connection_observer.connection = ObservableConnection()
     assert connection_observer == connection_observer.start()
 
 
@@ -101,15 +103,27 @@ def test_connection_observer_can_be_given_connection_it_is_operating_on(do_nothi
     assert observer_with_later_set_connection.connection == conn
 
 
+def test_connection_is_required_to_start_connection_observer(do_nothing_connection_observer__for_major_base_class):
+    from moler.exceptions import NoConnectionProvided
+    connection_observer = do_nothing_connection_observer__for_major_base_class
+    # no connection at construction nor later assignment '.connection = ...'
+    assert not connection_observer.connection
+
+    with pytest.raises(NoConnectionProvided):
+        connection_observer.start()  # start background-run of connection_observer-future
+
+
 def test_connection_observer_is_running_after_it_calls_start(do_nothing_connection_observer__for_major_base_class):
     connection_observer = do_nothing_connection_observer__for_major_base_class
     assert not connection_observer.running()
+    connection_observer.connection = ObservableConnection()
     connection_observer.start()  # start background-run of connection_observer-future
     assert connection_observer.running()
 
 
 def test_connection_observer_is_not_running_after_it_is_done(do_nothing_connection_observer__for_major_base_class):
     connection_observer = do_nothing_connection_observer__for_major_base_class
+    connection_observer.connection = ObservableConnection()
     connection_observer.start()  # start background-run of connection_observer-future
     assert connection_observer.running()
     connection_observer.cancel()  # one of ways to make it done; others are tested elsewhere
@@ -357,7 +371,7 @@ def test_connection_observer_parses_data_inside_data_received_in_order_to_produc
 # --------------------------- resources ---------------------------
 
 
-@pytest.fixture(params=['connection_observer.ConnectionObserver'])
+@pytest.fixture(params=['connection_observer.ConnectionObserver', 'command.Command'])
 def connection_observer_major_base_class(request):
     module_name, class_name = request.param.rsplit('.', 1)
     module = importlib.import_module('moler.{}'.format(module_name))
@@ -381,5 +395,8 @@ def do_nothing_connection_observer_class__for_major_base_class(connection_observ
 
 @pytest.fixture
 def do_nothing_connection_observer__for_major_base_class(do_nothing_connection_observer_class__for_major_base_class):
+    from moler.command import Command
     instance = do_nothing_connection_observer_class__for_major_base_class()
+    if isinstance(instance, Command):
+        instance.command_string = 'dummy command'  # required by .start() of Command
     return instance

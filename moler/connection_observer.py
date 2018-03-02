@@ -5,6 +5,7 @@ from six import add_metaclass
 from moler.exceptions import NoResultSinceCancelCalled
 from moler.exceptions import ResultNotAvailableYet
 from moler.exceptions import ResultAlreadySet
+from moler.exceptions import NoConnectionProvided
 from moler.runner import ThreadPoolExecutorRunner
 
 __author__ = 'Grzegorz Latuszek'
@@ -51,6 +52,17 @@ class ConnectionObserver(object):
 
     def start(self, *args, **kwargs):
         """Start background execution of connection-observer."""
+        self._validate_start(*args, **kwargs)
+        self._is_running = True
+        self._future = self.runner.submit(self)
+        return self
+
+    def _validate_start(self, *args, **kwargs):
+        # check base class invariants first
+        if not self.connection:
+            # only if we have connection we can expect some data on it
+            # at the latest "just before start" we need connection
+            raise NoConnectionProvided(self)
         # ----------------------------------------------------------------------
         # We intentionally do not check if connection is open here.
         # In such case net result anyway will be failed/timeouted observer -
@@ -60,9 +72,6 @@ class ConnectionObserver(object):
         # However, drawback is a requirement on connection to have is_open() API
         # We choose minimalistic dependency over better troubleshooting support.
         # ----------------------------------------------------------------------
-        self._is_running = True
-        self._future = self.runner.submit(self)
-        return self
 
     def await_done(self, timeout=10.0):
         """Await completion of connection-observer."""

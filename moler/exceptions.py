@@ -54,3 +54,20 @@ class ConnectionObserverTimeout(Exception):
         super(ConnectionObserverTimeout, self).__init__(err_msg + ' timeout')
         self.connection_observer = connection_observer
         self.timeout = timeout
+
+
+class NoCommandStringProvided(Exception):
+    def __init__(self, command):
+        """Create instance of NoCommandStringProvided exception"""
+        fix_info = 'fill .command_string member before starting command'
+        err_msg = 'for {}\nYou should {}'.format(command, fix_info)
+        super(NoCommandStringProvided, self).__init__(err_msg)
+        self.command = command
+
+
+class NoConnectionProvided(Exception):
+    def __init__(self, connection_observer):
+        """Create instance of NoConnectionProvided exception"""
+        err_msg = 'for {}'.format(connection_observer)
+        super(NoConnectionProvided, self).__init__(err_msg)
+        self.connection_observer = connection_observer
