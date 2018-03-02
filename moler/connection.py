@@ -11,6 +11,8 @@ Connection responsibilities:
 - have a means allowing multiple observers to get it's received data (data dispatching)
 """
 from threading import Lock
+import weakref
+import six
 
 from moler.exceptions import WrongUsage
 
@@ -36,6 +38,18 @@ class Connection(object):
         self.how2send = how2send or self._unknown_send
         self._encoder = encoder
         self._decoder = decoder
+
+    def __str__(self):
+        return '{}(id:{})'.format(self.__class__.__name__, id(self))
+
+    def __repr__(self):
+        cmd_str = self.__str__()
+        # sender_str = "<Don't know>"
+        sender_str = "?"
+        if self.how2send != self._unknown_send:
+            sender_str = repr(self.how2send)
+        # return '{}, how2send {})'.format(cmd_str[:-1], sender_str)
+        return '{}-->[{}]'.format(cmd_str, sender_str)
 
     def send(self, data, timeout=30):  # TODO: should timeout be property of IO? We timeout whole connection-observer.
         """Outgoing-IO API: Send data over external-IO."""
@@ -81,11 +95,14 @@ class ObservableConnection(Connection):
         :param how2send: any callable performing outgoing IO
         """
         super(ObservableConnection, self).__init__(how2send, encoder, decoder)
-        self._observers = set()
+        self._observers = dict()
         self._observers_lock = Lock()
 
     def data_received(self, data):
-        """Incoming-IO API: external-IO should call this method when data is received"""
+        """
+        Incoming-IO API:
+        external-IO should call this method when data is received
+        """
         decoded_data = self.decode(data)
         self.notify_observers(decoded_data)
 
@@ -95,7 +112,9 @@ class ObservableConnection(Connection):
         :param observer: function to be called
         """
         with self._observers_lock:
-            self._observers.add(observer)
+            observer_key, value = self._get_observer_key_value(observer)
+            if observer_key not in self._observers:
+                self._observers[observer_key] = value
 
     def unsubscribe(self, observer):
         """
@@ -103,13 +122,67 @@ class ObservableConnection(Connection):
         :param observer: function that was previously subscribed
         """
         with self._observers_lock:
-            if observer in self._observers:
-                self._observers.remove(observer)
+            observer_key, _ = self._get_observer_key_value(observer)
+            if observer_key in self._observers:
+                del self._observers[observer_key]
             else:
                 pass  # TODO: put warning into logs
 
     def notify_observers(self, data):
         """Notify all subscribed observers about data received on connection"""
-        current_subscribers = set(self._observers)  # need copy since calling subscribers may change self._observers
-        for observer in current_subscribers:
-            observer(data)
+        # need copy since calling subscribers may change self._observers
+        current_subscribers = list(self._observers.values())
+        for self_or_none, observer_function in current_subscribers:
+            try:
+                if self_or_none == None:
+                    observer_function(data)
+                else:
+                    observer_self = self_or_none
+                    observer_function(observer_self, data)
+            except ReferenceError:
+                pass  # ignore: weakly-referenced object no longer exists
+
+    @staticmethod
+    def _get_observer_key_value(observer):
+        """
+        Subscribing methods of objects is tricky::
+
+            class TheObserver(object):
+                def __init__(self):
+                    self.received_data = []
+
+                def on_new_data(self, data):
+                    self.received_data.append(data)
+
+            observer1 = TheObserver()
+            observer2 = TheObserver()
+
+            subscribe(observer1.on_new_data)
+            subscribe(observer2.on_new_data)
+            subscribe(observer2.on_new_data)
+
+        Even if it looks like 2 different subscriptions they all
+        pass 3 different bound-method objects (different id()).
+        So, to differentiate them we need to "unwind" out of them:
+        1) self                      - 2 different id()
+        2) function object of class  - all 3 have same id()
+
+        Observer key is pair: (self-id, function-id)
+        """
+        try:
+            self_or_none = six.get_method_self(observer)
+            self_id = hex(id(self_or_none))[2:]  # remove leading 0x
+            self_or_none = weakref.proxy(self_or_none)
+        except AttributeError:
+            self_id = 0  # default for not bound methods
+            self_or_none = None
+
+        try:
+            function = six.get_method_function(observer)
+        except AttributeError:
+            function = observer
+        function_id = hex(id(function))[2:]
+
+        observer_key = (self_id, function_id)
+        observer_value = (self_or_none, weakref.proxy(function))
+        return observer_key, observer_value

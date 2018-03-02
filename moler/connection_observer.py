@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from abc import abstractmethod, ABCMeta
 from six import add_metaclass
+import weakref
 
 from moler.exceptions import NoResultSinceCancelCalled
 from moler.exceptions import ResultNotAvailableYet
@@ -60,7 +61,6 @@ class ConnectionObserver(object):
         # However, drawback is a requirement on connection to have is_open() API
         # We choose minimalistic dependency over better troubleshooting support.
         # ----------------------------------------------------------------------
-        # TODO: implement background run using runner
         self._is_running = True
         self._future = self.runner.submit(self)
         return self
@@ -71,6 +71,12 @@ class ConnectionObserver(object):
             return self.result()
         result = self.runner.wait_for(connection_observer=self, connection_observer_future=self._future, timeout=timeout)
         return result
+
+    def __del__(self):
+        """Await completion of connection-observer."""
+        print("INSIDE __del__ of {!r}".format(self))
+        # if self._future.running():
+        # self.runner.shutdown()
 
     def cancel(self):
         """Cancel execution of connection-observer."""
