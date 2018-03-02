@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import binascii
 import pytest
+import gc
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -277,6 +278,106 @@ def test_repeated_unsubscription_does_nothing_but_logs_warning(buffer_transport_
     assert b"data 1" in moler_received_data
     assert b"data 2" not in moler_received_data  # because of unsubscription during notification
 
+
+def test_single_unsubscription_doesnt_impact_other_subscribers():
+    from moler.connection import ObservableConnection
+
+    class TheObserver(object):
+        def __init__(self):
+            self.received_data = []
+
+        def on_new_data(self, data):
+            self.received_data.append(data)
+
+    observer1 = TheObserver()
+    observer2 = TheObserver()
+
+    function_received_data = []
+
+    def raw_fun1(data):
+        function_received_data.append(data)
+
+    def raw_fun2(data):
+        function_received_data.append(data)
+
+    class TheCallableClass(object):
+        def __init__(self):
+            self.received_data = []
+
+        def __call__(self, data):
+            self.received_data.append(data)
+
+    callable1 = TheCallableClass()
+    callable2 = TheCallableClass()
+
+    moler_conn = ObservableConnection()
+    print("---")
+    moler_conn.subscribe(observer1.on_new_data)
+    moler_conn.subscribe(observer2.on_new_data)
+    moler_conn.subscribe(observer2.on_new_data)
+    moler_conn.unsubscribe(observer1.on_new_data)
+    moler_conn.unsubscribe(observer1.on_new_data)
+
+    moler_conn.subscribe(raw_fun1)
+    moler_conn.subscribe(raw_fun2)
+    moler_conn.subscribe(raw_fun2)
+    moler_conn.unsubscribe(raw_fun1)
+
+    moler_conn.subscribe(callable1)
+    moler_conn.subscribe(callable2)
+    moler_conn.subscribe(callable2)
+    moler_conn.unsubscribe(callable1)
+
+    moler_conn.data_received("incoming data")
+
+    assert observer1.received_data == []
+    assert observer2.received_data == ["incoming data"]
+
+    assert function_received_data == ["incoming data"]
+
+    assert callable1.received_data == []
+    assert callable2.received_data == ["incoming data"]
+
+
+def test_subscription_doesnt_block_subscriber_to_be_garbage_collected():
+    from moler.connection import ObservableConnection
+
+    moler_conn = ObservableConnection()
+    garbage_collected_subscribers = []
+
+    class Subscriber(object):
+        def __del__(self):
+            garbage_collected_subscribers.append('Subscriber')
+
+    subscr = Subscriber()
+    moler_conn.subscribe(subscr)
+
+    del subscr
+    gc.collect()
+
+    assert 'Subscriber' in garbage_collected_subscribers
+
+
+def test_garbage_collected_subscriber_is_not_notified():
+    from moler.connection import ObservableConnection
+
+    moler_conn = ObservableConnection()
+    received_data = []
+
+    class Subscriber(object):
+        def __call__(self, data):
+            received_data.append(data)
+
+    subscr1 = Subscriber()
+    subscr2 = Subscriber()
+    moler_conn.subscribe(subscr1)
+    moler_conn.subscribe(subscr2)
+
+    del subscr1
+    gc.collect()
+
+    moler_conn.data_received("data")
+    assert len(received_data) == 1
 
 # --------------------------- resources ---------------------------
 
