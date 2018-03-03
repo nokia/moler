@@ -134,7 +134,7 @@ class ObservableConnection(Connection):
         current_subscribers = list(self._observers.values())
         for self_or_none, observer_function in current_subscribers:
             try:
-                if self_or_none == None:
+                if self_or_none is None:
                     observer_function(data)
                 else:
                     observer_self = self_or_none
