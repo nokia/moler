@@ -14,6 +14,7 @@ import importlib
 
 from moler.command import Command
 from moler.connection import ObservableConnection
+from moler.io.raw.memory import FifoBuffer
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -70,7 +71,6 @@ def test_repr_conversion_of_command_object():
     repr() conversion shows same as str() plus embedded connection used by command
     """
     moler_conn = ObservableConnection(decoder=lambda data: data.decode("utf-8"))
-    from moler.io.raw.memory import FifoBuffer
 
     class LsCmd(Command):
         def __init__(self, options='-l', connection=None):
@@ -133,6 +133,67 @@ def test_command_string_is_required_to_call_command(command_major_base_class):
     assert 'You should fill .command_string member before starting command' in str(error.value)
 
 
+def test_calling_command_sends_command_string_over_connection(do_nothing_command_class__for_major_base_class,
+                                                              connection_to_remote):
+    """Command as function"""
+    from moler.exceptions import ConnectionObserverTimeout
+
+    class QuickCmd(do_nothing_command_class__for_major_base_class):
+        def await_done(self, timeout=0.1):
+            return super(QuickCmd, self).await_done(timeout=timeout)
+
+    ext_io = connection_to_remote
+    ping = QuickCmd(connection=ext_io.moler_connection)
+    ping.command_string = 'ping localhost'
+    with ext_io:
+        try:
+            ping()  # call the command-future (foreground run)
+        except ConnectionObserverTimeout:
+            pass
+        assert b'ping localhost' in ext_io.remote_endpoint()
+
+
+def test_calling_start_on_command_sends_command_string_over_connection(do_nothing_command_class__for_major_base_class,
+                                                                       connection_to_remote):
+    """Command as future"""
+
+    class QuickCmd(do_nothing_command_class__for_major_base_class):
+        def await_done(self, timeout=0.1):
+            return super(QuickCmd, self).await_done(timeout=timeout)
+
+    ext_io = connection_to_remote
+    ping = QuickCmd(connection=ext_io.moler_connection)
+    ping.command_string = 'ping localhost'
+    with ext_io:
+        ping.start()  # start background-run of command-future
+        assert b'ping localhost' in ext_io.remote_endpoint()
+
+
+def test_command_is_running_after_sending_command_string(do_nothing_command__for_major_base_class):
+    """
+    Default behaviour is:
+    after sending command string to device we treat command as running since
+    we have just activated some action on device
+
+    !!!!!!!!!!!!
+    OR: when it is run in some 'feeder process' (thread, process, asyncio loop, Twisted loop)
+        but even if we have no loop to progress our python-command
+        the real command on device has started since we have called it over connection
+    !!!!!!!!!!!!
+    """
+    ping = do_nothing_command__for_major_base_class
+
+    class TheConnection(object):
+        def send(self, data):
+            assert data == 'ping localhost'  # ping command to be started on some shell
+            assert ping.running()  # I'm in connection's send - command object should assume "real CMD (ping) is running"
+
+    ping.connection = TheConnection()
+    ping.command_string = 'ping localhost'
+    assert not ping.running()
+    ping.start()  # start the command-future
+
+
 # --------------------------- resources
 
 
@@ -162,3 +223,20 @@ def do_nothing_command_class__for_major_base_class(command_major_base_class):
 def do_nothing_command__for_major_base_class(do_nothing_command_class__for_major_base_class):
     instance = do_nothing_command_class__for_major_base_class()
     return instance
+
+
+@pytest.fixture
+def connection_to_remote():
+    """
+    Any external-IO connection that embeds Moler-connection
+    Alows to check if data send from command has reached remote side via:
+    `data in conn.remote_endpoint()`
+    """
+    class RemoteConnection(FifoBuffer):
+        def remote_endpoint(self):
+            """Simulate remote endpoint that gets data"""
+            return self.buffer
+
+    ext_io = RemoteConnection(moler_connection=ObservableConnection(encoder=lambda data: data.encode("utf-8"),
+                                                                    decoder=lambda data: data.decode("utf-8")))
+    return ext_io
