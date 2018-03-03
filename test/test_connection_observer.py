@@ -16,13 +16,14 @@ def test_connection_observer_instance_is_callable(connection_observer_major_base
     assert callable(connection_observer_major_base_class)
 
 
-def test_calling_start_on_connection_observer_returns_itself(do_nothing_connection_observer__for_major_base_class):
+def test_calling_start_on_connection_observer_returns_itself(do_nothing_connection_observer__for_major_base_class,
+                                                             connection_to_remote):
     """
     connection_observer.start() is asynchronous run. Return itself to allow for acting on it.
     Simplest (stupid) case: connection_observer.start().await_done()
     """
     connection_observer = do_nothing_connection_observer__for_major_base_class
-    connection_observer.connection = ObservableConnection()
+    connection_observer.connection = connection_to_remote.moler_connection
     assert connection_observer == connection_observer.start()
 
 
@@ -113,17 +114,19 @@ def test_connection_is_required_to_start_connection_observer(do_nothing_connecti
         connection_observer.start()  # start background-run of connection_observer-future
 
 
-def test_connection_observer_is_running_after_it_calls_start(do_nothing_connection_observer__for_major_base_class):
+def test_connection_observer_is_running_after_it_calls_start(do_nothing_connection_observer__for_major_base_class,
+                                                             connection_to_remote):
     connection_observer = do_nothing_connection_observer__for_major_base_class
     assert not connection_observer.running()
-    connection_observer.connection = ObservableConnection()
+    connection_observer.connection = connection_to_remote.moler_connection
     connection_observer.start()  # start background-run of connection_observer-future
     assert connection_observer.running()
 
 
-def test_connection_observer_is_not_running_after_it_is_done(do_nothing_connection_observer__for_major_base_class):
+def test_connection_observer_is_not_running_after_it_is_done(do_nothing_connection_observer__for_major_base_class,
+                                                             connection_to_remote):
     connection_observer = do_nothing_connection_observer__for_major_base_class
-    connection_observer.connection = ObservableConnection()
+    connection_observer.connection = connection_to_remote.moler_connection
     connection_observer.start()  # start background-run of connection_observer-future
     assert connection_observer.running()
     connection_observer.cancel()  # one of ways to make it done; others are tested elsewhere
@@ -400,3 +403,22 @@ def do_nothing_connection_observer__for_major_base_class(do_nothing_connection_o
     if isinstance(instance, Command):
         instance.command_string = 'dummy command'  # required by .start() of Command
     return instance
+
+
+@pytest.fixture
+def connection_to_remote():
+    """
+    Any external-IO connection that embeds Moler-connection
+    Alows to check if data send from command has reached remote side via:
+    `data in conn.remote_endpoint()`
+    """
+    from moler.io.raw.memory import FifoBuffer
+
+    class RemoteConnection(FifoBuffer):
+        def remote_endpoint(self):
+            """Simulate remote endpoint that gets data"""
+            return self.buffer
+
+    ext_io = RemoteConnection(moler_connection=ObservableConnection(encoder=lambda data: data.encode("utf-8"),
+                                                                    decoder=lambda data: data.decode("utf-8")))
+    return ext_io
