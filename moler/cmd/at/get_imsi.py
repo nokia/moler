@@ -1,0 +1,55 @@
+# -*- coding: utf-8 -*-
+"""
+AT+CIMI .
+
+AT commands specification:
+https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=1515
+(always check against latest version of standard)
+"""
+import re
+
+from moler.cmd.at.at import AtCmd, AtCommandModeNotSupported
+
+__author__ = 'Lukasz Blaszkiewicz, Kamil Kania, Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'kamil.kania@nokia.com, grzegorz.latuszek@nokia.com'
+
+
+class AtCmdGetIMSI(AtCmd):
+    def __init__(self, connection=None, operation='execute'):
+        """Create instance of AtCmdGetIMSI class"""
+        super(AtCmdGetIMSI, self).__init__(connection, operation)
+        if operation == 'read':
+            raise AtCommandModeNotSupported("{} operation no supported for: {}".format(operation, self))
+        self.set_at_command_string(command_base_string="AT+CIMI")
+
+    def parse_command_output(self):
+        """
+        AT+CIMI
+        49009123123123
+        OK
+        """
+        if self.operation == "test":  # empty response in test mode since +CIMI doesn't have subparameters
+            self.set_result({})
+        else:
+            match = re.search("(?P<imsi>\d+)\nOK", self.command_output)
+            if match:
+                self.set_result(match.groupdict())
+
+
+# -----------------------------------------------------------------------------
+# Following documentation is required for library CI.
+# It is used to perform command self-test.
+# Moreover, it documents what will be COMMAND_RESULT when command
+# is run on COMMAND_OUTPUT data coming from connection.
+# -----------------------------------------------------------------------------
+
+COMMAND_OUTPUT = """
+AT+CIMI
+440801200189934
+OK
+"""
+
+COMMAND_RESULT = {
+    'imsi': '440801200189934'
+}
