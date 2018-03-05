@@ -77,10 +77,10 @@ class ConnectionObserver(object):
 
     def await_done(self, timeout=10.0):
         """Await completion of connection-observer."""
-        if self._future is None:
-            raise ConnectionObserverNotStarted(self)
         if self.done():
             return self.result()
+        if self._future is None:
+            raise ConnectionObserverNotStarted(self)
         result = self.runner.wait_for(connection_observer=self, connection_observer_future=self._future, timeout=timeout)
         return result
 
