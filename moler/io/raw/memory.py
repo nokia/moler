@@ -39,6 +39,7 @@ class FifoBuffer(IOConnection):
         self.echo = echo
         self.logger = logger  # TODO: build default logger if given is None?
         self.buffer = bytearray()
+        self.deferred_injections = []
 
     def inject(self, input_bytes, delay=0.0):
         """
@@ -53,12 +54,31 @@ class FifoBuffer(IOConnection):
                 time.sleep(delay)
             self._inject(data)
 
+    def inject_response(self, input_bytes, delay=0.0):
+        """
+        Injection is activated by nearest write()
+
+        :param input_bytes: iterable of bytes to inject
+        :param delay: delay before each inject
+        :return: None
+        """
+        for data in input_bytes:
+            self.deferred_injections.append((data, delay))
+
     def _inject(self, data):
         """Add bytes to end of buffer"""
         if hasattr(data, '__iter__') or hasattr(data, '__getitem__'):
             self.buffer.extend(data)
         else:
             self.buffer.append(data)
+
+    def _inject_deferred(self):
+        if self.deferred_injections:
+            for data, delay in self.deferred_injections:
+                if delay:
+                    time.sleep(delay)
+                self._inject(data)
+            self.deferred_injections = []
 
     def write(self, input_bytes):
         """
@@ -67,6 +87,7 @@ class FifoBuffer(IOConnection):
         """
         if self.echo:
             self.inject([input_bytes])
+        self._inject_deferred()
 
     send = write  # just alias to make base class happy :-)
 
@@ -140,6 +161,13 @@ class ThreadedFifoBuffer(FifoBuffer):
         for data in input_bytes:
             self.injections.put((data, delay))
         if not delay:
+            time.sleep(0.05)  # give subsequent read() a chance to get data
+
+    def _inject_deferred(self):
+        if self.deferred_injections:
+            for data, delay in self.deferred_injections:
+                self.injections.put((data, delay))
+            self.deferred_injections = []
             time.sleep(0.05)  # give subsequent read() a chance to get data
 
     def pull_data(self, pulling_done):

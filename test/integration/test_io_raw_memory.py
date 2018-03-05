@@ -73,6 +73,24 @@ def test_can_inject_data_with_specified_delay(memory_connection_without_decoder)
         connection.read()
 
 
+def test_inject_response_awaits_nearest_write_before_responding(memory_connection_without_decoder):
+    connection = memory_connection_without_decoder
+    moler_conn = connection.moler_connection
+    received_data = bytearray()
+
+    def receiver(data):
+        received_data.extend(data)
+
+    moler_conn.subscribe(receiver)
+    with connection:
+        connection.inject_response(input_bytes=[b'response\n'])
+        connection.read()
+        assert b'' == received_data  # injection not active yet
+        connection.write(b'request\n')
+        connection.read()
+        assert b'request\nresponse\n' == received_data
+
+
 def test_can_receive_data_from_ext_io_into_moler_connection(memory_connection):
     connection = memory_connection
     received_data = {'data': ''}  # expecting data decoded into str
