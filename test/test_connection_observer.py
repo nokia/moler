@@ -306,6 +306,15 @@ def test_awaiting_done_on_already_done_connection_observer_immediately_returns_r
     assert time.time() - result_set_time < 0.01  # our immediately ;-)
 
 
+def test_awaiting_done_on_not_running_connection_observer_raises_ConnectionObserverNotStarted(do_nothing_connection_observer__for_major_base_class):
+    from moler.exceptions import ConnectionObserverNotStarted
+    connection_observer = do_nothing_connection_observer__for_major_base_class
+    with pytest.raises(ConnectionObserverNotStarted) as error:
+        connection_observer.await_done()
+    assert error.value.connection_observer == connection_observer
+    assert str(error.value) == 'for {}'.format(str(connection_observer))
+
+
 def test_connection_observer_has_data_received_api(connection_observer_major_base_class):
     connection_observer_class = connection_observer_major_base_class
     assert hasattr(connection_observer_class, "data_received")

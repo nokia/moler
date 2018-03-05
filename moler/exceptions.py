@@ -35,6 +35,14 @@ class ResultNotAvailableYet(InvalidStateError):
         self.connection_observer = connection_observer
 
 
+class ConnectionObserverNotStarted(InvalidStateError):
+    def __init__(self, connection_observer):
+        """Create instance of ConnectionObserverNotStarted exception"""
+        err_msg = 'for {}'.format(connection_observer)
+        super(ConnectionObserverNotStarted, self).__init__(err_msg)
+        self.connection_observer = connection_observer
+
+
 class ResultAlreadySet(InvalidStateError):
     def __init__(self, connection_observer):
         """Create instance of ResultAlreadySet exception"""
