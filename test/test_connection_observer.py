@@ -5,6 +5,7 @@ import importlib
 
 from moler.connection_observer import ConnectionObserver
 from moler.connection import ObservableConnection
+from moler.helpers import instance_id
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -45,7 +46,7 @@ def test_str_conversion_of_connection_observer_object():
             self.received_bytes += len(data)
 
     transfer_received = TransferCounter()
-    observer_id = id(transfer_received)
+    observer_id = instance_id(transfer_received)
     assert 'TransferCounter(id:{})'.format(observer_id) == str(transfer_received)
 
 
@@ -72,7 +73,7 @@ def test_repr_conversion_of_connection_observer_object():
 
     conn = SshConnection(target_host='127.0.0.1')
     transfer_received = TransferCounter(connection=conn)
-    observer_id = id(transfer_received)
+    observer_id = instance_id(transfer_received)
 
     # repr(conn_observer) uses repr(connection) which is used by that observer
     assert 'TransferCounter(id:{}, using <SshConnection(127.0.0.1)>)'.format(observer_id) == repr(transfer_received)

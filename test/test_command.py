@@ -15,6 +15,7 @@ import importlib
 from moler.command import Command
 from moler.connection import ObservableConnection
 from moler.io.raw.memory import FifoBuffer
+from moler.helpers import instance_id
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -41,13 +42,12 @@ def test_str_conversion_of_command_object():
             pass  # not important now
 
     ping = PingCmd()
-    cmd_id = id(ping)
-    assert 'PingCmd("ping localhost", id:{})'.format(cmd_id) == str(ping)
+    assert 'PingCmd("ping localhost", id:{})'.format(instance_id(ping)) == str(ping)
 
     ping = PingCmd(host='127.0.0.1')
-    assert 'PingCmd("ping 127.0.0.1", id:{})'.format(id(ping)) == str(ping)
+    assert 'PingCmd("ping 127.0.0.1", id:{})'.format(instance_id(ping)) == str(ping)
     ping.command_string = ''
-    assert 'PingCmd("<EMPTY COMMAND STRING>", id:{})'.format(id(ping)) == str(ping)
+    assert 'PingCmd("<EMPTY COMMAND STRING>", id:{})'.format(instance_id(ping)) == str(ping)
 
 
 def test_str_conversion_of_command_object_encodes_newline_for_display():
@@ -83,20 +83,20 @@ def test_repr_conversion_of_command_object():
     ls = LsCmd(connection=moler_conn)
 
     # (1) command with ObservableConnection to glued to ext-io
-    assert 'LsCmd("ls -l", id:{}, using ObservableConnection(id:{})-->[?])'.format(id(ls), id(moler_conn)) == repr(ls)
+    assert 'LsCmd("ls -l", id:{}, using ObservableConnection(id:{})-->[?])'.format(instance_id(ls), instance_id(moler_conn)) == repr(ls)
     # TODO: add test for <ObservableConnection( id:{}>
 
     # (2) command with ObservableConnection glued to ext-io
     ext_io_connection = FifoBuffer(moler_connection=moler_conn)
     how2send_repr = repr(ext_io_connection.write)
-    assert 'LsCmd("ls -l", id:{}, using ObservableConnection(id:{})-->[{}])'.format(id(ls), id(moler_conn), how2send_repr) == repr(ls)
-    # TODO: move ObservableConnection(id:{})-->[{}])'.format(id(moler_conn), how2send_repr) into ObservableConnection __repr__ test
+    assert 'LsCmd("ls -l", id:{}, using ObservableConnection(id:{})-->[{}])'.format(instance_id(ls), instance_id(moler_conn), how2send_repr) == repr(ls)
+    # TODO: move ObservableConnection(id:{})-->[{}])'.format(instance_id(moler_conn), how2send_repr) into ObservableConnection __repr__ test
     # TODO: and here just:
-    # assert 'LsCmd("ls -l", id:{}, using {})'.format(id(ls), repr(moler_conn)) == repr(ls)
+    # assert 'LsCmd("ls -l", id:{}, using {})'.format(instance_id(ls), repr(moler_conn)) == repr(ls)
 
     # (3) command without connection
     ls.connection = None
-    assert 'LsCmd("ls -l", id:{}, using <NO CONNECTION>)'.format(id(ls)) == repr(ls)
+    assert 'LsCmd("ls -l", id:{}, using <NO CONNECTION>)'.format(instance_id(ls)) == repr(ls)
 
     # TODO: generic - shift into ConnectionObserver; here just show that command's repr adds command string
 

@@ -7,6 +7,7 @@ from moler.exceptions import ResultNotAvailableYet
 from moler.exceptions import ResultAlreadySet
 from moler.exceptions import NoConnectionProvided
 from moler.runner import ThreadPoolExecutorRunner
+from moler.helpers import instance_id
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -31,7 +32,7 @@ class ConnectionObserver(object):
         self._future = None
 
     def __str__(self):
-        return '{}(id:{})'.format(self.__class__.__name__, id(self))
+        return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
 
     def __repr__(self):
         cmd_str = self.__str__()

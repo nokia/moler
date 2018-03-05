@@ -15,6 +15,7 @@ import weakref
 import six
 
 from moler.exceptions import WrongUsage
+from moler.helpers import instance_id
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -40,7 +41,7 @@ class Connection(object):
         self._decoder = decoder
 
     def __str__(self):
-        return '{}(id:{})'.format(self.__class__.__name__, id(self))
+        return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
 
     def __repr__(self):
         cmd_str = self.__str__()
@@ -171,7 +172,7 @@ class ObservableConnection(Connection):
         """
         try:
             self_or_none = six.get_method_self(observer)
-            self_id = hex(id(self_or_none))[2:]  # remove leading 0x
+            self_id = instance_id(self_or_none)
             self_or_none = weakref.proxy(self_or_none)
         except AttributeError:
             self_id = 0  # default for not bound methods
@@ -181,7 +182,7 @@ class ObservableConnection(Connection):
             function = six.get_method_function(observer)
         except AttributeError:
             function = observer
-        function_id = hex(id(function))[2:]
+        function_id = instance_id(function)
 
         observer_key = (self_id, function_id)
         observer_value = (self_or_none, weakref.proxy(function))

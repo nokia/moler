@@ -12,6 +12,7 @@ Additionally:
 """
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import NoCommandStringProvided
+from moler.helpers import instance_id
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -31,7 +32,7 @@ class Command(ConnectionObserver):
         cmd_str = self.command_string if self.command_string else '<EMPTY COMMAND STRING>'
         if cmd_str[-1] == '\n':
             cmd_str = cmd_str[:-1] + r'<\n>'
-        return '{}("{}", id:{})'.format(self.__class__.__name__, cmd_str, id(self))
+        return '{}("{}", id:{})'.format(self.__class__.__name__, cmd_str, instance_id(self))
 
     def start(self, *args, **kwargs):
         """Start background execution of command."""
