@@ -5,9 +5,10 @@ Testing connection observer with runner based on threads
 - call as function (synchronous)
 - call as future  (asynchronous)
 """
-import pytest
-import time
 import threading
+import time
+
+import pytest
 
 from moler.connection_observer import ConnectionObserver
 
@@ -27,10 +28,10 @@ def test_calling_connection_observer_returns_result(net_down_detector_and_ping_o
             moler_conn = connection_observer.connection
             moler_conn.data_received(line)
 
+    ext_io = threading.Thread(target=inject_data)
     try:
         # we use it as function so we want verb:
         detect_network_down = connection_observer
-        ext_io = threading.Thread(target=inject_data)
         ext_io.start()
         result = detect_network_down()
         assert detect_network_down.done()
@@ -50,10 +51,10 @@ def test_connection_observer_behaves_like_future(net_down_detector_and_ping_outp
             moler_conn = connection_observer.connection
             moler_conn.data_received(line)
 
+    ext_io = threading.Thread(target=inject_data)
     try:
         # we use it as future so we want noun:
         network_down_detector = connection_observer
-        ext_io = threading.Thread(target=inject_data)
         ext_io.start()
         future = network_down_detector.start()
         assert not future.done()

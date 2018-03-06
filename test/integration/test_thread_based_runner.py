@@ -5,9 +5,10 @@ Testing connection observer runner based on threads
 - submit
 - wait_for
 """
-import pytest
-import time
 import threading
+import time
+
+import pytest
 
 from moler.connection_observer import ConnectionObserver
 
@@ -31,23 +32,23 @@ def test_can_submit_connection_observer_into_background(connection_observer,
 
 def test_can_await_connection_observer_to_complete(observer_and_awaited_data,
                                                    observer_runner):
-    connection_observer, awaited_data = observer_and_awaited_data
-    connection_observer_future = observer_runner.submit(connection_observer)
+    conn_observer, awaited_data = observer_and_awaited_data
+    connection_observer_future = observer_runner.submit(conn_observer)
 
     def inject_data():
         time.sleep(0.5)
-        moler_conn = connection_observer.connection
+        moler_conn = conn_observer.connection
         moler_conn.data_received(awaited_data)
 
+    ext_io = threading.Thread(target=inject_data)
     try:
-        ext_io = threading.Thread(target=inject_data)
         ext_io.start()
-        result = observer_runner.wait_for(connection_observer,
+        result = observer_runner.wait_for(conn_observer,
                                           connection_observer_future,
                                           timeout=1.0)
         assert not connection_observer_future.running()
         assert connection_observer_future.done()
-        assert connection_observer.done()
+        assert conn_observer.done()
         assert result == connection_observer_future.result()
     finally:  # test cleanup
         ext_io.join()
