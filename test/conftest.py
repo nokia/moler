@@ -2,14 +2,15 @@
 """
 Testing resources for tests of AT commands.
 """
-import pytest
+from pytest import fixture, yield_fixture
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
 
-@pytest.yield_fixture
+# --------------------------- cmd_at and cmd_at_get_imsi resources ---------------------------
+@yield_fixture
 def buffer_connection():
     from moler.io.raw.memory import ThreadedFifoBuffer
     from moler.connection import ObservableConnection
@@ -30,3 +31,18 @@ def buffer_connection():
     # all tests assume working with already open connection
     with ext_io_in_memory:  # open it (autoclose by context-mngr)
         yield ext_io_in_memory
+
+
+@fixture
+def at_cmd_test_class():
+    from moler.cmd.at.at import AtCmd
+
+    class AtCmdTest(AtCmd):
+        def __init__(self, connection=None, operation="execute"):
+            super(AtCmdTest, self).__init__(connection, operation)
+            self.set_at_command_string("AT+CMD")
+
+        def parse_command_output(self):
+            self.set_result("result")
+
+    return AtCmdTest
