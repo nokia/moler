@@ -44,12 +44,25 @@ class AtCmdGetIMSI(AtCmd):
 # is run on COMMAND_OUTPUT data coming from connection.
 # -----------------------------------------------------------------------------
 
-COMMAND_OUTPUT = """
-AT+CIMI
+COMMAND_OUTPUT_ver_execute = """
+at+cimi
 440801200189934
 OK
 """
 
-COMMAND_RESULT = {
+COMMAND_KWARGS_ver_execute = {'operation': 'execute'}
+
+COMMAND_RESULT_ver_execute = {
     'imsi': '440801200189934'
 }
+
+# -----------------------------------------------------------------------------
+
+COMMAND_OUTPUT_ver_test = """
+at+cimi=?
+OK
+"""
+
+COMMAND_KWARGS_ver_test = {'operation': 'test'}
+
+COMMAND_RESULT_ver_test = {}
