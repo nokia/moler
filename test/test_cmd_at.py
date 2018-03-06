@@ -4,14 +4,12 @@ Testing AT commands.
 """
 import pytest
 
-from cmd_at_test_resources import buffer_connection
-
 __author__ = 'Lukasz Blaszkiewicz, Kamil Kania, Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'kamil.kania@nokia.com, grzegorz.latuszek@nokia.com'
 
 
-# --------------------------- testing base class
+# --------------------------- testing base class ---------------------------
 
 
 def test_at_cmd_completes_cmd_output_received_in_chunks(buffer_connection, at_cmd_test_class):
@@ -83,21 +81,3 @@ def test_at_cmd_raises_AtCommandModeNotSupported_when_instantiated_in_incorrect_
     from moler.cmd.at.at import AtCommandModeNotSupported
     with pytest.raises(AtCommandModeNotSupported) as error:
         at_cmd_test_class(operation="magic_mode")
-
-
-# --------------------------- resources
-
-
-@pytest.fixture
-def at_cmd_test_class():
-    from moler.cmd.at.at import AtCmd
-
-    class AtCmdTest(AtCmd):
-        def __init__(self, connection=None, operation="execute"):
-            super(AtCmdTest, self).__init__(connection, operation)
-            self.set_at_command_string("AT+CMD")
-
-        def parse_command_output(self):
-            self.set_result("result")
-
-    return AtCmdTest

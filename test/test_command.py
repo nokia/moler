@@ -9,13 +9,14 @@ inside test_connection_observer.py (as parametrized tests).
 - call as function (synchronous)
 - call as future  (asynchronous)
 """
-import pytest
 import importlib
+
+import pytest
 
 from moler.command import Command
 from moler.connection import ObservableConnection
-from moler.io.raw.memory import FifoBuffer
 from moler.helpers import instance_id
+from moler.io.raw.memory import FifoBuffer
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -194,7 +195,7 @@ def test_command_is_running_after_sending_command_string(do_nothing_command__for
     ping.start()  # start the command-future
 
 
-# --------------------------- resources
+# --------------------------- resources ---------------------------
 
 
 @pytest.fixture(params=['command.Command'])

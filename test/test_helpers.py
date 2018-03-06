@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Tests for helpers functions/classes
-
+Tests for helpers functions/classes.
 """
 import mock
 
