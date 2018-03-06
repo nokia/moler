@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-import pytest
-import time
 import importlib
+import time
 
-from moler.connection_observer import ConnectionObserver
+import pytest
+
 from moler.connection import ObservableConnection
+from moler.connection_observer import ConnectionObserver
 from moler.helpers import instance_id
 
 __author__ = 'Grzegorz Latuszek'
