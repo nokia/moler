@@ -86,3 +86,4 @@ class GenericUnix(Command):
         if self.ret:
             is_ret = True
         return is_ret
+

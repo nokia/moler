@@ -32,4 +32,3 @@ def command_output_and_expected_result():
 
     result = dict()
     return data, result
-
