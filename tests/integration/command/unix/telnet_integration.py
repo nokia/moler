@@ -62,3 +62,4 @@ def command_output_and_expected_result_timeout():
         data = data + line
     result = dict()
     return data, result
+

@@ -56,3 +56,4 @@ class Uptime(GenericUnix):
             self.ret["UPTIME_SECONDS"] = uptime_seconds
             self.ret["USERS"] = users
         return super(Uptime, self).on_new_line(line)
+

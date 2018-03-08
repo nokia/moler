@@ -42,3 +42,4 @@ class RegexHelper(object):
         if RegexHelper.instance is None:
             RegexHelper.instance = RegexHelper()
         return RegexHelper.instance
+

@@ -116,3 +116,4 @@ class Ssh(GenericUnix):
                         else:
                             if not self.done():
                                 self.set_result(self.ret)
+

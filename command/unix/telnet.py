@@ -91,3 +91,4 @@ class Telnet(GenericUnix):
                             if not self.done():
                                 self.set_result(self.ret)
 
+
