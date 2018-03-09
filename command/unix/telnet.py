@@ -7,7 +7,7 @@
 """
 
 import re
-from genericunix import GenericUnix
+from command.unix.genericunix import GenericUnix
 
 
 class Telnet(GenericUnix):

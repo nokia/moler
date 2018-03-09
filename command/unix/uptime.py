@@ -8,7 +8,7 @@
 
 
 import re
-from genericunix import GenericUnix
+from command.unix.genericunix import GenericUnix
 
 
 class Uptime(GenericUnix):
