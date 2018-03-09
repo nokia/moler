@@ -13,8 +13,7 @@ __email__ = 'marcin.usielski@nokia.com'
 
 
 class GenericUnix(Command):
-    _reg_fail = compile(
-        r'command not found|No such file or directory|running it may require superuser privileges')
+    _reg_fail = compile(r'command not found|No such file or directory|running it may require superuser privileges')
 
     def __init__(self, connection):
         super(GenericUnix, self).__init__(connection)
@@ -27,7 +26,6 @@ class GenericUnix(Command):
         self.ret_required = True
         self.break_on_timeout = True
         self._last_not_full_line = None
-
         self._reg_prompt = compile(r'^[^<]*[\$|%|#|>|~]\s*$')
 
     def data_received(self, data):
@@ -52,7 +50,7 @@ class GenericUnix(Command):
             self._cmd_matched = True
         elif self._cmd_matched and (self._stored_status is None) and (
                 self._regex_helper.search_compiled(GenericUnix._reg_fail, line)):
-            self.set_exception(Exception("command failed in line '%s'" % (line)))
+            self.set_exception(Exception("command failed in line '{}'".format(line)))
         elif self._cmd_matched and (self._regex_helper.search_compiled(self._reg_prompt, line)):
             if self._stored_status:
                 if (self.ret_required and self.is_ret()) or not self.ret_required:
