@@ -1,8 +1,14 @@
-import pytest
+# -*- coding: utf-8 -*-
+"""
+Testing of Yelnet command.
+"""
+__author__ = 'Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'marcin.usielski@nokia.com'
 
 
 def test_calling_uptime_returns_result_parsed_from_command_output(buffer_connection):
-    from command.unix.uptime import Uptime
+    from moler.cmd.unix.uptime import Uptime
     command_output, expected_result = command_output_and_expected_result()
     buffer_connection.remote_inject_response([command_output])
     uptime_cmd = Uptime(connection=buffer_connection.moler_connection)
@@ -22,4 +28,3 @@ fzm-tdd-1:~ #
             "USERS": '29',
              }
     return data, result
-

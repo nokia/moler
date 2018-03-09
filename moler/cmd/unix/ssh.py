@@ -1,30 +1,30 @@
+# -*- coding: utf-8 -*-
 """
-:copyright: Nokia Networks
-:author: Marcin Usielski
-:contact: marcin.usielski@nokia.com
-:maintainer:
-:contact:
+Ssh command module.
 """
+from re import compile, escape, IGNORECASE
 
+from moler.cmd.unix.genericunix import GenericUnix
 
-import re
-from command.unix.genericunix import GenericUnix
+__author__ = 'Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'marcin.usielski@nokia.com'
 
 
 class Ssh(GenericUnix):
     # Compiled regexp
-    _reg_host_key = re.compile("Add correct host key in (\\S+) to get rid of this message.*\\n$",
-                                    re.IGNORECASE)
-    _reg_yes_no = re.compile("\(yes/no\)\?|'yes' or 'no':", re.IGNORECASE)
-    _reg_id_dsa = re.compile("id_dsa:", re.IGNORECASE)
-    _reg_password = re.compile("password:", re.IGNORECASE)
-    _reg_permission_denied = re.compile("Permission denied, please try again", re.IGNORECASE)
-    _reg_failed_strings = re.compile("Permission denied|No route to host|ssh: Could not", re.IGNORECASE)
-    _reg_host_key_verification_failed = re.compile("Host key verification failed", re.IGNORECASE)
-    _reg_new_line = re.compile(r"\n$")
+    _reg_host_key = compile("Add correct host key in (\\S+) to get rid of this message.*\\n$",
+                            IGNORECASE)
+    _reg_yes_no = compile("\(yes/no\)\?|'yes' or 'no':", IGNORECASE)
+    _reg_id_dsa = compile("id_dsa:", IGNORECASE)
+    _reg_password = compile("password:", IGNORECASE)
+    _reg_permission_denied = compile("Permission denied, please try again", IGNORECASE)
+    _reg_failed_strings = compile("Permission denied|No route to host|ssh: Could not", IGNORECASE)
+    _reg_host_key_verification_failed = compile("Host key verification failed", IGNORECASE)
+    _reg_new_line = compile(r"\n$")
 
     def __init__(self, connection, login, password, host, expected_prompt='>', port=0, known_hosts_on_failure='keygen',
-                set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None):
+                 set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None):
         super(Ssh, self).__init__(connection)
 
         # Parameters defined by calling the command
@@ -53,7 +53,7 @@ class Ssh(GenericUnix):
             if self.port:
                 cmd = cmd + " -p " + str(self.port)
             cmd = cmd + " -l " + self.login + " " + self.host
-        self._cmd_escaped = re.escape(cmd)
+        self._cmd_escaped = escape(cmd)
         return cmd
 
     def on_new_line(self, line):
@@ -75,7 +75,7 @@ class Ssh(GenericUnix):
             elif Ssh._reg_id_dsa.search(line):
                 self.connection.send("")
             elif self._regex_helper.search_compiled(Ssh._reg_failed_strings, line):
-                self.set_exception(Exception("command failed in line '%s'" % line))
+                self.set_exception(Exception("command failed in line '{}'".format(line)))
             elif self._regex_helper.search_compiled(Ssh._reg_host_key_verification_failed, line):
                 if self._hosts_file:
                     if "rm" == self.known_hosts_on_failure:
@@ -83,7 +83,8 @@ class Ssh(GenericUnix):
                     elif "keygen" == self.known_hosts_on_failure:
                         self.connection.send("\nssh-keygen -R " + self.host)
                     else:
-                        self.set_exception(Exception("Bad value of parameter known_hosts_on_failure '%s'. Supported values: rm or keygen." % self.known_hosts_on_failure))
+                        self.set_exception(Exception("Bad value of parameter known_hosts_on_failure '{}'. "
+                                                     "Supported values: rm or keygen.".format(self.known_hosts_on_failure)))
                     self._cmd_matched = False
                     self._sent_continue_connecting = False
                     self._sent_prompt = False
@@ -91,7 +92,7 @@ class Ssh(GenericUnix):
                     self._sent_password = False
                     self.connection.send(self.command_string)
                 else:
-                    self.set_exception(Exception("command failed in line '%s'" % line))
+                    self.set_exception(Exception("command failed in line '{}'".format(line)))
             elif self._cmd_matched and self._regex_helper.search(self.expected_prompt, line):
                 if self.set_timeout and not self._sent_timeout:
                     self.connection.send("\n" + self.set_timeout)
@@ -116,4 +117,3 @@ class Ssh(GenericUnix):
                         else:
                             if not self.done():
                                 self.set_result(self.ret)
-

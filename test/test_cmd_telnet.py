@@ -1,5 +1,14 @@
-import pytest
-from command.unix.telnet import Telnet
+# -*- coding: utf-8 -*-
+"""
+Testing of Telnet command.
+"""
+from pytest import raises
+
+from moler.cmd.unix.telnet import Telnet
+
+__author__ = 'Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'marcin.usielski@nokia.com'
 
 
 def test_calling_telnet_returns_result_parsed_from_command_output(buffer_connection):
@@ -17,7 +26,7 @@ def test_calling_telnet_timeout(buffer_connection):
     telnet_cmd = Telnet(connection=buffer_connection.moler_connection, login="fzm-tdd-1", password="Nokia", port=6000,
                         host="FZM-TDD-1.lab0.krk-lab.nsn-rdnet.net", expected_prompt="fzm-tdd-1:.*#")
     from moler.exceptions import ConnectionObserverTimeout
-    with pytest.raises(ConnectionObserverTimeout) as exception:
+    with raises(ConnectionObserverTimeout) as exception:
         telnet_cmd(timeout=1)
     assert exception is not None
 
@@ -62,4 +71,3 @@ def command_output_and_expected_result_timeout():
         data = data + line
     result = dict()
     return data, result
-
