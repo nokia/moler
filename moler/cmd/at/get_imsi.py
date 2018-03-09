@@ -40,16 +40,35 @@ class AtCmdGetIMSI(AtCmd):
 # -----------------------------------------------------------------------------
 # Following documentation is required for library CI.
 # It is used to perform command self-test.
+#
 # Moreover, it documents what will be COMMAND_RESULT when command
-# is run on COMMAND_OUTPUT data coming from connection.
+# is run with COMMAND_KWARGS on COMMAND_OUTPUT data coming from connection.
+#
+# When you need to show parsing of multiple outputs just add suffixes:
+# COMMAND_OUTPUT_suffix
+# COMMAND_KWARGS_suffix
+# COMMAND_RESULT_suffix
 # -----------------------------------------------------------------------------
 
-COMMAND_OUTPUT = """
-AT+CIMI
+COMMAND_OUTPUT_ver_execute = """
+at+cimi
 440801200189934
 OK
 """
 
-COMMAND_RESULT = {
+COMMAND_KWARGS_ver_execute = {'operation': 'execute'}
+
+COMMAND_RESULT_ver_execute = {
     'imsi': '440801200189934'
 }
+
+# -----------------------------------------------------------------------------
+
+COMMAND_OUTPUT_ver_test = """
+at+cimi=?
+OK
+"""
+
+COMMAND_KWARGS_ver_test = {'operation': 'test'}
+
+COMMAND_RESULT_ver_test = {}
