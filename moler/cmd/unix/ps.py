@@ -1,18 +1,16 @@
+# -*- coding: utf-8 -*-
 """
-:copyright: Nokia Networks
-:author: Dariusz Rosinski
-:contact: dariusz.rosinski@nokia.com
-:maintainer:
+ps command module.
 """
-
-
 from moler.command import Command
 
-import re
+__author__ = 'Dariusz Rosinski'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'dariusz.rosinski@nokia.com'
+
 
 class Ps(Command):
-    def __init__(self,connection=None):
-
+    def __init__(self, connection=None):
         pass
 
     def data_received(self):
