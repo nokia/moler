@@ -3,6 +3,9 @@
 Testing resources for tests of AT commands.
 """
 from pytest import fixture, yield_fixture
+import os
+
+import moler.config.loggers
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -46,3 +49,9 @@ def at_cmd_test_class():
             self.set_result("result")
 
     return AtCmdTest
+
+
+# actions during import:
+os.environ['MOLER_DEBUG_LEVEL'] = 'TRACE'  # to have all debug details of tests
+moler.config.loggers.configure_debug_level()
+moler.config.loggers.configure_runner_logger(runner_name="thread-pool")

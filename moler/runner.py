@@ -78,11 +78,15 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         self._i_own_executor = False
         self.executor = executor
         self.logger = logging.getLogger('moler.runner.thread-pool')
+        self.logger.debug("created")
         atexit.register(self.shutdown)
         if executor is None:
             max_workers = (cpu_count() or 1) * 5  # fix for concurrent.futures  v.3.0.3  to have API of v.3.1.1 or above
             self.executor = ThreadPoolExecutor(max_workers=max_workers)
+            self.logger.debug("created own executor {!r}".format(self.executor))
             self._i_own_executor = True
+        else:
+            self.logger.debug("reusing provided executor {!r}".format(self.executor))
 
     def shutdown(self):
         self.logger.debug("shutting down")
@@ -95,7 +99,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Submit connection observer to background execution.
         Returns Future that could be used to await for connection_observer done.
         """
-        self.logger.debug("starting {}".format(connection_observer))
+        self.logger.debug("go background: {!r}".format(connection_observer))
         # TODO: check dependency - connection_observer.connection
         connection_observer_future = self.executor.submit(self.feed, connection_observer)
         return connection_observer_future
@@ -109,7 +113,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         :param timeout: Max time (in float seconds) you want to await before you give up.
         :return:
         """
-        self.logger.debug("awaiting {}".format(connection_observer))
+        self.logger.debug("go foreground: {!r} - await max. {} [sec]".format(connection_observer, timeout))
         start_time = time.time()
         done, not_done = wait([connection_observer_future], timeout=timeout)
         if connection_observer_future in done:
@@ -118,10 +122,10 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             self.logger.debug("{} returned {}".format(connection_observer, result))
             return result
         passed = time.time() - start_time
+        self.logger.debug("timeouted {}".format(connection_observer))
         connection_observer.cancel()
         connection_observer_future.cancel()
         self.shutdown()
-        self.logger.debug("timeouted {}".format(connection_observer))
         raise ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
 
     def feed(self, connection_observer):  # active feeder - pulls for data
@@ -130,12 +134,16 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Should be called from background-processing of connection observer.
         """
         moler_conn = connection_observer.connection
+        self.logger.debug("subscribing for data {!r}".format(connection_observer))
         moler_conn.subscribe(connection_observer.data_received)
         while True:
             if connection_observer.done():
+                self.logger.debug("done & unsubscribing {!r}".format(connection_observer))
                 moler_conn.unsubscribe(connection_observer.data_received)
                 break
             if self._in_shutdown:
+                self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))
                 connection_observer.cancel()
             time.sleep(0.01)  # give moler_conn a chance to feed observer
+        self.logger.debug("returning result {}".format(connection_observer))
         return connection_observer.result()
