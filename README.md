@@ -1,3 +1,6 @@
+[![pipeline status](https://gitlabe1.ext.net.nokia.com/connections/moler_int/badges/master/pipeline.svg)](https://gitlabe1.ext.net.nokia.com/connections/moler_int/commits/master)
+[![coverage report](https://gitlabe1.ext.net.nokia.com/connections/moler_int/badges/master/coverage.svg)](https://gitlabe1.ext.net.nokia.com/connections/moler_int/commits/master)
+
 # Table of Contents
 1. [Moler](#moler)
    * [Moler key features](#moler-key-features)
