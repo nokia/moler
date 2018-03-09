@@ -1,5 +1,5 @@
-ta_command
-==========
+moler
+=====
 
 .. toctree::
    :maxdepth: 4
