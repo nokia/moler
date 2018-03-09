@@ -59,21 +59,21 @@ class GenericUnix(Command):
                     if not self.done():
                         self.set_result(self.ret)
                 else:
-                    #print("Found candidate for final prompt but ret is undef, required not undef.")
+                    # print("Found candidate for final prompt but ret is undef, required not undef.")
                     pass
             else:
                 if (self.ret_required and self.is_ret()) or not self.ret_required:
                     if not self.done():
                         self.set_result(self.ret)
                 else:
-                    #print("Found candidate for final prompt but ret is undef, required not undef.")
+                    # print("Found candidate for final prompt but ret is undef, required not undef.")
                     pass
 
     def has_cmd_run(self):
         return self._cmd_matched
 
     def break_cmd(self):
-        self.connection.send("\x03")# ctrl+c
+        self.connection.send("\x03")  # ctrl+c
 
     def cancel(self):
         self.break_cmd()
@@ -88,4 +88,3 @@ class GenericUnix(Command):
         if self.ret:
             is_ret = True
         return is_ret
-

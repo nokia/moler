@@ -57,20 +57,18 @@ class Ssh(GenericUnix):
         return cmd
 
     def on_new_line(self, line):
-        if (not self._cmd_matched) and (self._regex_helper.search(self._cmd_escaped, line)):
+        if not self._cmd_matched and self._regex_helper.search(self._cmd_escaped, line):
             self._cmd_matched = True
         elif self._cmd_matched:
-            if (self.known_hosts_on_failure is not None) and self._regex_helper.search_compiled(Ssh._reg_host_key, line):
+            if self.known_hosts_on_failure is not None and self._regex_helper.search_compiled(Ssh._reg_host_key, line):
                 self._hosts_file = self._regex_helper.group(1)
-            if (not self._sent_continue_connecting) and (
-               self._regex_helper.search_compiled(Ssh._reg_yes_no, line)):
+            if not self._sent_continue_connecting and self._regex_helper.search_compiled(Ssh._reg_yes_no, line):
                 self.connection.send('yes')
                 self._sent_continue_connecting = True
-            elif (not self._sent_password) and (self._regex_helper.search_compiled(Ssh._reg_password, line)):
+            elif not self._sent_password and self._regex_helper.search_compiled(Ssh._reg_password, line):
                 self.connection.send(self.password)
                 self._sent_password = True
-            elif self._sent_password and (
-                 self._regex_helper.search_compiled(Ssh._reg_permission_denied, line)):
+            elif self._sent_password and self._regex_helper.search_compiled(Ssh._reg_permission_denied, line):
                 self._sent_password = False
             elif Ssh._reg_id_dsa.search(line):
                 self.connection.send("")
