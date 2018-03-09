@@ -5,7 +5,6 @@ Testing external-IO TCP connection
 - open/close
 - send/receive (naming may differ)
 """
-import time
 
 import pytest
 
@@ -22,5 +21,5 @@ def test_ps(ps_class):
 
 @pytest.fixture()
 def ps_class():
-    from command.unix.ps import Ps
+    from moler.cmd.unix.ps import Ps
     return Ps
