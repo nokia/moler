@@ -1,17 +1,19 @@
+# -*- coding: utf-8 -*-
 """
-:copyright: Nokia Networks
-:author: Marcin Usielski
-:contact: marcin.usielski@nokia.com
-:maintainer:
+Generic Unix/Linux module
 """
+from re import compile
 
-from command.regexhelper import RegexHelper
+from moler.cmd import RegexHelper
 from moler.command import Command
-import re
+
+__author__ = 'Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'marcin.usielski@nokia.com'
 
 
 class GenericUnix(Command):
-    _reg_fail = re.compile(
+    _reg_fail = compile(
         r'command not found|No such file or directory|running it may require superuser privileges')
 
     def __init__(self, connection):
@@ -26,7 +28,7 @@ class GenericUnix(Command):
         self.break_on_timeout = True
         self._last_not_full_line = None
 
-        self._reg_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')
+        self._reg_prompt = compile(r'^[^<]*[\$|%|#|>|~]\s*$')
 
     def data_received(self, data):
         lines = data.splitlines(True)

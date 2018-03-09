@@ -1,27 +1,26 @@
+# -*- coding: utf-8 -*-
 """
-:copyright: Nokia Networks
-:author: Marcin Usielski
-:contact: marcin.usielski@nokia.com
-:maintainer:
-:contact:
+Telnet command module.
 """
+from re import compile, escape, IGNORECASE
 
-import re
-from command.unix.genericunix import GenericUnix
+from moler.cmd.unix.genericunix import GenericUnix
+
+__author__ = 'Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'marcin.usielski@nokia.com'
 
 
 class Telnet(GenericUnix):
     # Compiled regexp
-    _reg_login = re.compile("login:", re.IGNORECASE)
-    _reg_password = re.compile("password:", re.IGNORECASE)
-    _reg_failed_strings = re.compile(
-        "Permission denied|closed by foreign host|telnet:.*Name or service not known", re.IGNORECASE)
-    _reg_has_just_connected = re.compile(r"/has just connected|\{bash_history,ssh\}|Escape character is",
-        re.IGNORECASE)
-    _reg_new_line = re.compile(r"\n$")
+    _reg_login = compile("login:", IGNORECASE)
+    _reg_password = compile("password:", IGNORECASE)
+    _reg_failed_strings = compile("Permission denied|closed by foreign host|telnet:.*Name or service not known", IGNORECASE)
+    _reg_has_just_connected = compile(r"/has just connected|\{bash_history,ssh\}|Escape character is", IGNORECASE)
+    _reg_new_line = compile(r"\n$")
 
-    def __init__(self, connection, login, password, host, expected_prompt='>', port=0, set_timeout=r'export TMOUT=\"2678400\"',
-                       set_prompt=None):
+    def __init__(self, connection, login, password, host, expected_prompt='>', port=0,
+                 set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None):
         super(Telnet, self).__init__(connection)
 
         # Parameters defined by calling the command
@@ -47,7 +46,7 @@ class Telnet(GenericUnix):
             if self.port:
                 cmd = cmd + " " + str(self.port)
             self.command_string = cmd
-        self._cmd_escaped = re.escape(cmd)
+        self._cmd_escaped = escape(cmd)
         return cmd
 
     def on_new_line(self, line):
@@ -63,7 +62,7 @@ class Telnet(GenericUnix):
                 self._sent_login = False
                 self._sent_password = True
             elif self._regex_helper.search_compiled(Telnet._reg_failed_strings, line):
-                self.set_exception(Exception("command failed in line '%s'" % line))
+                self.set_exception(Exception("command failed in line '{}'".format(line)))
             elif self._regex_helper.search_compiled(Telnet._reg_has_just_connected, line):
                 self.connection.send("")
             elif self._cmd_matched and self._regex_helper.search(self.expected_prompt, line):
@@ -90,5 +89,3 @@ class Telnet(GenericUnix):
                         else:
                             if not self.done():
                                 self.set_result(self.ret)
-
-

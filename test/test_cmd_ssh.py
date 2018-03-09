@@ -1,5 +1,12 @@
-import pytest
-from command.unix.ssh import Ssh
+# -*- coding: utf-8 -*-
+"""
+Testing of SSH command.
+"""
+from moler.cmd.unix.ssh import Ssh
+
+__author__ = 'Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'marcin.usielski@nokia.com'
 
 
 def test_calling_ssh_returns_result_parsed_from_command_output(buffer_connection):
@@ -7,7 +14,7 @@ def test_calling_ssh_returns_result_parsed_from_command_output(buffer_connection
     buffer_connection.remote_inject_response([command_output])
 
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="fzm-tdd-1", password="Nokia",
-              host="FZM-TDD-1.lab0.krk-lab.nsn-rdnet.net", expected_prompt="fzm-tdd-1:.*#")
+                  host="FZM-TDD-1.lab0.krk-lab.nsn-rdnet.net", expected_prompt="fzm-tdd-1:.*#")
     result = ssh_cmd()
     assert result == expected_result
 
