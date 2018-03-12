@@ -4,7 +4,7 @@ cd command module.
 """
 from re import compile, escape, IGNORECASE
 
-from moler.cmd.unix.genericUnix import GenericUnix
+from moler.cmd.unix.genericunix import GenericUnix
 
 __author__ = 'Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -20,7 +20,7 @@ class Cd(GenericUnix):
 
         # Parameters defined by calling the command
         self.path = path
-        self.command_string = self.get_cmd()
+        self.command_string, self._cmd_escaped = self.get_cmd()
         self.ret_required = False
 
         #regex
@@ -31,9 +31,7 @@ class Cd(GenericUnix):
             cmd = "cd"
             if self.path:
                 cmd = cmd + " " + self.path
-        self.command_string = cmd
-        self._cmd_escaped = escape(cmd)
-        return cmd
+        return cmd, escape(cmd)
 
     def on_new_line(self, line):
         if self._cmd_matched and self._regex_helper.search_compiled(self._reg_no_such_file_or_dir, line):
