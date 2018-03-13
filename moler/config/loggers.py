@@ -237,54 +237,27 @@ class MultilineWithDirectionFormatter(logging.Formatter):
     def __init__(self, fmt=None, datefmt=None):
         if fmt is None:
             fmt = "%(asctime)s.%(msecs)03d %(transfer_direction)s|%(message)s"
-        else:
+        else:  # message should be last part of format
             assert fmt.endswith("|%(message)s")
         super(MultilineWithDirectionFormatter, self).__init__(fmt=fmt, datefmt=datefmt)
-        self._base_formatter = logging.Formatter()
 
     def format(self, record):
         if not hasattr(record, 'transfer_direction'):
             record.transfer_direction = ' '
         msg_lines = record.getMessage().splitlines(True)
-        if not msg_lines:
-            return ''
-        if self.usesTime():
-            record.asctime = self.formatTime(record, self.datefmt)
-        empty_prefix = self._calculate_empty_prefix(record)
-
-        output = ''
+        base_output = super(MultilineWithDirectionFormatter, self).format(record)
+        out_lines = base_output.splitlines(True)
+        output = out_lines[0]
+        empty_prefix = self._calculate_empty_prefix(msg_lines[0], out_lines[0])
+        for line in out_lines[1:]:
+            output += "{}|{}".format(empty_prefix, line)
         # TODO: line completion for connection decoded data comming in chunks
-
-        if msg_lines:
-            record.message = msg_lines[0]
-            output += self.formatMessage(record)
-            for line in msg_lines[1:]:
-                output += "{}|{}".format(empty_prefix, line)
-
-        if record.exc_info:
-            output += self._format_exception_lines(record, empty_prefix)
-
         return output
 
-    def _calculate_empty_prefix(self, record):
-        record.message = "XXX"
-        out_line = self.formatMessage(record)
-        prefix_len = out_line.rindex("|XXX")
+    def _calculate_empty_prefix(self, message_first_line, output_first_line):
+        prefix_len = output_first_line.rindex("|{}".format(message_first_line))
         empty_prefix = " " * prefix_len
         return empty_prefix
-
-    def _format_exception_lines(self, record, prefix):
-        output = ""
-        # let base class handle exception formatting to lines
-        msg = record.msg
-        record.msg = ""
-        exc_out = self._base_formatter.format(record)
-        for line in exc_out.splitlines(True):
-            output += "{}|{}".format(prefix, line)
-        record.msg = msg
-        if not output.endswith('\n'):
-            output += '\n'
-        return output
 
 
 # actions during import:
