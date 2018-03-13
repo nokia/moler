@@ -2,7 +2,7 @@
 """
 Generic Unix/Linux module
 """
-from re import compile
+from re import compile, escape
 
 from moler.cmd import RegexHelper
 from moler.command import Command
@@ -86,3 +86,12 @@ class GenericUnix(Command):
         if self.ret:
             is_ret = True
         return is_ret
+
+    def set_unix_command_string(self, command_base_string, **kwargs):
+        self._cmd_escaped = command_base_string
+        if(command_base_string == None):
+            self.set_exception(Exception("No command passed: {}".format(command_base_string)))
+        else:
+            self.command_string = escape(command_base_string)
+
+
