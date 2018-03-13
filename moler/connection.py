@@ -12,10 +12,12 @@ Connection responsibilities:
 """
 import weakref
 from threading import Lock
-
 import six
+import logging
+
 from moler.exceptions import WrongUsage
 from moler.helpers import instance_id
+from moler.config.loggers import RAW_DATA, TRACE, TracedIn
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -30,7 +32,8 @@ def identity_transformation(data):
 class Connection(object):
     """Connection API required by ConnectionObservers."""
 
-    def __init__(self, how2send=None, encoder=identity_transformation, decoder=identity_transformation):
+    def __init__(self, how2send=None, encoder=identity_transformation, decoder=identity_transformation,
+                 logger=None):
         """
         Create Connection via registering external-IO
         :param how2send: any callable performing outgoing IO
@@ -39,6 +42,7 @@ class Connection(object):
         self.how2send = how2send or self._unknown_send
         self._encoder = encoder
         self._decoder = decoder
+        self.logger = logger
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
@@ -54,7 +58,11 @@ class Connection(object):
 
     def send(self, data, timeout=30):  # TODO: should timeout be property of IO? We timeout whole connection-observer.
         """Outgoing-IO API: Send data over external-IO."""
+        if self.logger:
+            self.logger.info(data, extra={'transfer_direction': '>'})
         data2send = self.encode(data)
+        if self.logger:
+            self.logger.log(RAW_DATA, data2send, extra={'transfer_direction': '>'})
         self.how2send(data2send)
 
     def data_received(self, data):
@@ -77,6 +85,8 @@ class Connection(object):
         err_msg += "\n{}: {}(how2send=external_io_send)".format("Do it either during connection construction",
                                                                 self.__class__.__name__)
         err_msg += "\nor later via attribute direct set: connection.how2send = external_io_send"
+        if self.logger:
+            self.logger.error(err_msg)
         raise WrongUsage(err_msg)
 
 
@@ -90,12 +100,13 @@ class ObservableConnection(Connection):
         # handle that data
     """
 
-    def __init__(self, how2send=None, encoder=identity_transformation, decoder=identity_transformation):
+    def __init__(self, how2send=None, encoder=identity_transformation, decoder=identity_transformation,
+                 logger=None):
         """
         Create Connection via registering external-IO
         :param how2send: any callable performing outgoing IO
         """
-        super(ObservableConnection, self).__init__(how2send, encoder, decoder)
+        super(ObservableConnection, self).__init__(how2send, encoder, decoder, logger=logger)
         self._observers = dict()
         self._observers_lock = Lock()
 
@@ -104,9 +115,14 @@ class ObservableConnection(Connection):
         Incoming-IO API:
         external-IO should call this method when data is received
         """
+        if self.logger:
+            self.logger.log(RAW_DATA, data, extra={'transfer_direction': '<'})
         decoded_data = self.decode(data)
+        if self.logger:
+            self.logger.info(decoded_data, extra={'transfer_direction': '<'})
         self.notify_observers(decoded_data)
 
+    @TracedIn('moler.connection')
     def subscribe(self, observer):
         """
         Subscribe for 'data-received notification'
@@ -117,6 +133,7 @@ class ObservableConnection(Connection):
             if observer_key not in self._observers:
                 self._observers[observer_key] = value
 
+    @TracedIn('moler.connection')
     def unsubscribe(self, observer):
         """
         Unsubscribe from 'data-received notification'
@@ -135,6 +152,8 @@ class ObservableConnection(Connection):
         current_subscribers = list(self._observers.values())
         for self_or_none, observer_function in current_subscribers:
             try:
+                log_info = r'notifying {}({})'.format(observer_function, data)
+                logging.getLogger('moler.connection').log(TRACE, log_info, extra={'transfer_direction': '<'})
                 if self_or_none is None:
                     observer_function(data)
                 else:
@@ -144,6 +163,7 @@ class ObservableConnection(Connection):
                 pass  # ignore: weakly-referenced object no longer exists
 
     @staticmethod
+    @TracedIn('moler.connection')
     def _get_observer_key_value(observer):
         """
         Subscribing methods of objects is tricky::

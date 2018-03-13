@@ -6,6 +6,7 @@ from pytest import fixture, yield_fixture
 import os
 
 import moler.config.loggers
+from moler.helpers import instance_id
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -17,6 +18,7 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 def buffer_connection():
     from moler.io.raw.memory import ThreadedFifoBuffer
     from moler.connection import ObservableConnection
+    from moler.config.loggers import configure_connection_logger
 
     class RemoteConnection(ThreadedFifoBuffer):
         def remote_inject_response(self, input_strings, delay=0.0):
@@ -31,6 +33,9 @@ def buffer_connection():
                                       decoder=lambda data: data.decode("utf-8"))
     ext_io_in_memory = RemoteConnection(moler_connection=moler_conn,
                                         echo=False)  # we don't want echo on connection
+    conection_name = "mem0x{}".format(instance_id(ext_io_in_memory.buffer))
+    logger = configure_connection_logger(conection_name)
+    moler_conn.logger = logger
     # all tests assume working with already open connection
     with ext_io_in_memory:  # open it (autoclose by context-mngr)
         yield ext_io_in_memory
@@ -54,4 +59,5 @@ def at_cmd_test_class():
 # actions during import:
 os.environ['MOLER_DEBUG_LEVEL'] = 'TRACE'  # to have all debug details of tests
 moler.config.loggers.configure_debug_level()
+moler.config.loggers.configure_moler_main_logger()
 moler.config.loggers.configure_runner_logger(runner_name="thread-pool")
