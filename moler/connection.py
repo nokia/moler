@@ -68,6 +68,7 @@ class Connection(object):
         If connection is using default logger ("moler.connection.<name>")
         then modify logger after connection name change.
         """
+        self._log(msg=r'changing name: {} --> {}'.format(self._name, value), level=TRACE)
         if self._using_default_logger():
             self.logger = self._select_logger(logger_name="", connection_name=value)
         self._name = value

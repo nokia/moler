@@ -7,14 +7,18 @@ The only 3 requirements for these connections are:
 (2) plugin into Moler's connection the way IO outputs data to external world:
     self.moler_connection.how2send = self.send
 (3) forward IO received data into self.moler_connection.data_received(data)
+
+Logging inside ext-IO is mainly focused on connection establishment/close/drop.
+Data transfer aspects of connection are logged by embedded Moler's connection.
 """
 import threading
 import time
 import logging
+from six.moves.queue import Queue, Empty
 
 from moler.io.io_connection import IOConnection
 from moler.io.raw import TillDoneThread
-from six.moves.queue import Queue, Empty
+from moler.config.loggers import TRACE
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -72,6 +76,7 @@ class FifoBuffer(IOConnection):
         If connection is using default logger ("moler.connection.<name>.io")
         then modify logger after connection name change.
         """
+        self._log(msg=r'changing name: {} --> {}'.format(self._name, value), level=TRACE)
         self.moler_connection.name = value
         if self._using_default_logger():
             self.logger = self._select_logger(logger_name="",
@@ -173,11 +178,11 @@ class FifoBuffer(IOConnection):
     receive = read  # just alias to make base class happy :-)
 
     def __str__(self):
-        return 'FIFO-in-memory'
+        return '{}:FIFO-in-memory'.format(self._name)
 
-    def _debug(self, msg):  # TODO: refactor to class decorator or so
+    def _log(self, msg, level, extra=None):
         if self.logger:
-            self.logger.debug(msg)
+            self.logger.log(level, msg, extra=extra)
 
 
 class ThreadedFifoBuffer(FifoBuffer):
@@ -206,6 +211,7 @@ class ThreadedFifoBuffer(FifoBuffer):
                                              done_event=done,
                                              kwargs={'pulling_done': done})
         self.pulling_thread.start()
+        self._log(msg="open {}".format(self), level=logging.INFO)
 
     def close(self):
         """Stop pulling thread."""
@@ -213,6 +219,7 @@ class ThreadedFifoBuffer(FifoBuffer):
             self.pulling_thread.join()
             self.pulling_thread = None
         super(ThreadedFifoBuffer, self).close()
+        self._log(msg="closed {}".format(self), level=logging.INFO)
 
     def inject(self, input_bytes, delay=0.0):
         """
