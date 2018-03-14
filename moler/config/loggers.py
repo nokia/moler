@@ -13,9 +13,11 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
 active_loggers = []  # TODO: use set()      # Active loggers created by Moler
 
+# new logging levels
 TRACE = 1     # highest possible debug level, may produce tons of logs, should be used for lib dev & troubleshooting
 RAW_DATA = 4  # should be used for logging data of external sources, like connection's data send/received
-
+# (above ERROR = 40, below CRITICAL = 50)
+TEST_CASE = 45
 
 debug_level = None  # means: inactive
 
@@ -263,4 +265,5 @@ class MultilineWithDirectionFormatter(logging.Formatter):
 # actions during import:
 logging.addLevelName(TRACE, "TRACE")
 logging.addLevelName(RAW_DATA, "RAW_DATA")
+logging.addLevelName(TEST_CASE, "TEST_CASE")
 configure_debug_level()
