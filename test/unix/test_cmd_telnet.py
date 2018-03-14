@@ -14,8 +14,8 @@ __email__ = 'marcin.usielski@nokia.com'
 def test_calling_telnet_returns_result_parsed_from_command_output(buffer_connection):
     from moler.config.loggers import configure_connection_logger
     command_output, expected_result = command_output_and_expected_result()
-    logger = configure_connection_logger(connection_name="fzm-tdd-1")
-    buffer_connection.moler_connection.logger = logger  # just to have log named as we want
+    configure_connection_logger(connection_name="fzm-tdd-1")
+    buffer_connection.moler_connection.name = "fzm-tdd-1"  # just to have log named as we want
     buffer_connection.remote_inject_response([command_output])
     telnet_cmd = Telnet(connection=buffer_connection.moler_connection, login="fzm-tdd-1", password="Nokia", port=6000,
                         host="FZM-TDD-1.lab0.krk-lab.nsn-rdnet.net", expected_prompt="fzm-tdd-1:.*#")
