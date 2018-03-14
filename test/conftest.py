@@ -4,6 +4,7 @@ Testing resources for tests of AT commands.
 """
 from pytest import fixture, yield_fixture
 import os
+import logging
 
 import moler.config.loggers
 from moler.helpers import instance_id
@@ -11,6 +12,20 @@ from moler.helpers import instance_id
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
+
+# plugins to let us see (in moler logs) where we are in testing
+
+
+def pytest_runtest_protocol(item, nextitem):
+    logger = logging.getLogger("moler")
+    logger.log(level=moler.config.loggers.TEST_CASE, msg=item.nodeid)
+
+
+def pytest_runtest_logreport(report):
+    logger = logging.getLogger("moler")
+    logger.log(level=moler.config.loggers.TEST_CASE,
+               msg="TC {} [{}]".format(str(report.when).upper(),
+                                       str(report.outcome).upper()))
 
 
 # --------------------------- cmd_at and cmd_at_get_imsi resources ---------------------------
