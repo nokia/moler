@@ -33,16 +33,44 @@ class Connection(object):
     """Connection API required by ConnectionObservers."""
 
     def __init__(self, how2send=None, encoder=identity_transformation, decoder=identity_transformation,
-                 logger=None):
+                 name=None, logger_name=""):
         """
         Create Connection via registering external-IO
+
         :param how2send: any callable performing outgoing IO
+        :param encoder: callable converting data to bytes
+        :param decoder: callable restoring data from bytes
+        :param name: name assigned to connection
+        :param logger_name: take that logger from logging
+
+        Logger is retrieved by logging.getLogger(logger_name)
+        If logger_name == "" - take logger "moler.connection.<name>"
+        If logger_name is None - don't use logging
         """
+
         super(Connection, self).__init__()
         self.how2send = how2send or self._unknown_send
         self._encoder = encoder
         self._decoder = decoder
-        self.logger = logger
+        self._name = self._use_or_generate_name(name)
+        self.logger = self._select_logger(logger_name, self._name)
+
+    @property
+    def name(self):
+        """Get name of connection"""
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        """
+        Set name of connection
+
+        If connection is using default logger ("moler.connection.<name>")
+        then modify logger after connection name change.
+        """
+        if self._using_default_logger():
+            self.logger = self._select_logger(logger_name="", connection_name=value)
+        self._name = value
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
@@ -55,6 +83,25 @@ class Connection(object):
             sender_str = repr(self.how2send)
         # return '{}, how2send {})'.format(cmd_str[:-1], sender_str)
         return '{}-->[{}]'.format(cmd_str, sender_str)
+
+    def _use_or_generate_name(self, name):
+        if name:
+            return name  # use provided one
+        return instance_id(self)  # generate
+
+    @staticmethod
+    def _select_logger(logger_name, connection_name):
+        if logger_name is None:
+            return None  # don't use logging
+        name = logger_name
+        if not logger_name:
+            name = "moler.connection.{}".format(connection_name)
+        return logging.getLogger(name)
+
+    def _using_default_logger(self):
+        if self.logger is None:
+            return False
+        return self.logger.name == "moler.connection.{}".format(self._name)
 
     def send(self, data, timeout=30):  # TODO: should timeout be property of IO? We timeout whole connection-observer.
         """Outgoing-IO API: Send data over external-IO."""
@@ -102,12 +149,22 @@ class ObservableConnection(Connection):
     """
 
     def __init__(self, how2send=None, encoder=identity_transformation, decoder=identity_transformation,
-                 logger=None):
+                 name=None, logger_name=""):
         """
         Create Connection via registering external-IO
+
         :param how2send: any callable performing outgoing IO
+        :param encoder: callable converting data to bytes
+        :param decoder: callable restoring data from bytes
+        :param name: name assigned to connection
+        :param logger_name: take that logger from logging
+
+        Logger is retrieved by logging.getLogger(logger_name)
+        If logger_name == "" - take logger "moler.connection.<name>"
+        If logger_name is None - don't use logging
         """
-        super(ObservableConnection, self).__init__(how2send, encoder, decoder, logger=logger)
+        super(ObservableConnection, self).__init__(how2send, encoder, decoder,
+                                                   name=name, logger_name=logger_name)
         self._observers = dict()
         self._observers_lock = Lock()
 
