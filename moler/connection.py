@@ -93,10 +93,14 @@ class Connection(object):
     def _select_logger(logger_name, connection_name):
         if logger_name is None:
             return None  # don't use logging
-        name = logger_name
-        if not logger_name:
-            name = "moler.connection.{}".format(connection_name)
-        return logging.getLogger(name)
+        default_logger_name = "moler.connection.{}".format(connection_name)
+        name = logger_name or default_logger_name
+        logger = logging.getLogger(name)
+        if logger_name and (logger_name != default_logger_name):
+            msg = "using '{}' logger - not default '{}'".format(logger_name,
+                                                                default_logger_name)
+            logger.log(level=logging.WARNING, msg=msg)
+        return logger
 
     def _using_default_logger(self):
         if self.logger is None:
