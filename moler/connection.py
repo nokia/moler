@@ -17,7 +17,7 @@ import logging
 
 from moler.exceptions import WrongUsage
 from moler.helpers import instance_id
-from moler.config.loggers import RAW_DATA, TRACE, TracedIn
+from moler.config.loggers import RAW_DATA, TRACE
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -58,11 +58,9 @@ class Connection(object):
 
     def send(self, data, timeout=30):  # TODO: should timeout be property of IO? We timeout whole connection-observer.
         """Outgoing-IO API: Send data over external-IO."""
-        if self.logger:
-            self.logger.info(data, extra={'transfer_direction': '>'})
+        self._log(msg=data, level=logging.INFO, extra={'transfer_direction': '>'})
         data2send = self.encode(data)
-        if self.logger:
-            self.logger.log(RAW_DATA, data2send, extra={'transfer_direction': '>'})
+        self._log(msg=data2send, level=RAW_DATA, extra={'transfer_direction': '>'})
         self.how2send(data2send)
 
     def data_received(self, data):
@@ -85,9 +83,12 @@ class Connection(object):
         err_msg += "\n{}: {}(how2send=external_io_send)".format("Do it either during connection construction",
                                                                 self.__class__.__name__)
         err_msg += "\nor later via attribute direct set: connection.how2send = external_io_send"
-        if self.logger:
-            self.logger.error(err_msg)
+        self._log(msg=err_msg, level=logging.ERROR)
         raise WrongUsage(err_msg)
+
+    def _log(self, msg, level, extra=None):
+        if self.logger:
+            self.logger.log(level, msg, extra=extra)
 
 
 class ObservableConnection(Connection):
@@ -115,36 +116,35 @@ class ObservableConnection(Connection):
         Incoming-IO API:
         external-IO should call this method when data is received
         """
-        if self.logger:
-            self.logger.log(RAW_DATA, data, extra={'transfer_direction': '<'})
+        self._log(msg=data, level=RAW_DATA, extra={'transfer_direction': '<'})
         decoded_data = self.decode(data)
-        if self.logger:
-            self.logger.info(decoded_data, extra={'transfer_direction': '<'})
+        self._log(msg=decoded_data, level=logging.INFO, extra={'transfer_direction': '<'})
         self.notify_observers(decoded_data)
 
-    @TracedIn('moler.connection')
     def subscribe(self, observer):
         """
         Subscribe for 'data-received notification'
         :param observer: function to be called
         """
         with self._observers_lock:
+            self._log(msg="subscribe({})".format(observer), level=TRACE)
             observer_key, value = self._get_observer_key_value(observer)
             if observer_key not in self._observers:
                 self._observers[observer_key] = value
 
-    @TracedIn('moler.connection')
     def unsubscribe(self, observer):
         """
         Unsubscribe from 'data-received notification'
         :param observer: function that was previously subscribed
         """
         with self._observers_lock:
+            self._log(msg="unsubscribe({})".format(observer), level=TRACE)
             observer_key, _ = self._get_observer_key_value(observer)
             if observer_key in self._observers:
                 del self._observers[observer_key]
             else:
-                pass  # TODO: put warning into logs
+                self._log(msg="{} was not subscribed".format(observer),
+                          level=logging.WARNING)
 
     def notify_observers(self, data):
         """Notify all subscribed observers about data received on connection"""
@@ -152,8 +152,7 @@ class ObservableConnection(Connection):
         current_subscribers = list(self._observers.values())
         for self_or_none, observer_function in current_subscribers:
             try:
-                log_info = r'notifying {}({})'.format(observer_function, data)
-                logging.getLogger('moler.connection').log(TRACE, log_info, extra={'transfer_direction': '<'})
+                self._log(msg=r'notifying {}({})'.format(observer_function, data), level=TRACE)
                 if self_or_none is None:
                     observer_function(data)
                 else:
@@ -163,7 +162,6 @@ class ObservableConnection(Connection):
                 pass  # ignore: weakly-referenced object no longer exists
 
     @staticmethod
-    @TracedIn('moler.connection')
     def _get_observer_key_value(observer):
         """
         Subscribing methods of objects is tricky::
