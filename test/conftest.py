@@ -30,12 +30,11 @@ def buffer_connection():
             self.inject_response(in_bytes, delay)
 
     moler_conn = ObservableConnection(encoder=lambda data: data.encode("utf-8"),
-                                      decoder=lambda data: data.decode("utf-8"))
+                                      decoder=lambda data: data.decode("utf-8"),
+                                      name="buffer")
     ext_io_in_memory = RemoteConnection(moler_connection=moler_conn,
                                         echo=False)  # we don't want echo on connection
-    conection_name = "mem0x{}".format(instance_id(ext_io_in_memory.buffer))
-    logger = configure_connection_logger(conection_name)
-    moler_conn.logger = logger
+    configure_connection_logger(moler_conn.name)
     # all tests assume working with already open connection
     with ext_io_in_memory:  # open it (autoclose by context-mngr)
         yield ext_io_in_memory

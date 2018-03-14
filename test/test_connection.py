@@ -160,6 +160,86 @@ def test_can_decode_data_from_external_io__decoder_via_composition(buffer_transp
     assert ["incoming", "data"] in moler_received_data
 
 
+def test_can_assign_name_to_connection():
+    from moler.connection import Connection
+
+    moler_conn = Connection(name="ctrl_server")
+    assert moler_conn.name == "ctrl_server"
+
+
+def test_can_generate_connection_name_if_none_given():
+    from moler.connection import Connection
+    from moler.helpers import instance_id
+
+    moler_conn = Connection()
+    assert moler_conn.name == instance_id(moler_conn)
+
+
+def test_can_use_provided_logger():
+    from moler.connection import Connection
+    import logging
+
+    moler_conn = Connection(logger_name="conn.XYZ")
+    assert isinstance(moler_conn.logger, logging.Logger)
+    assert moler_conn.logger.name == "conn.XYZ"
+
+
+def test_can_switch_off_logging():
+    from moler.connection import Connection
+
+    moler_conn = Connection(logger_name=None)
+    assert moler_conn.logger is None
+
+
+def test_can_use_default_logger_based_on_connection_name():
+    from moler.connection import Connection
+    import logging
+
+    moler_conn = Connection(name="ABC")
+    assert isinstance(moler_conn.logger, logging.Logger)
+    assert moler_conn.logger.name == "moler.connection.ABC"
+
+    moler_conn = Connection()
+    assert isinstance(moler_conn.logger, logging.Logger)
+    assert moler_conn.logger.name == "moler.connection.{}".format(moler_conn.name)
+
+
+def test_changing_connection_name_doesnt_switch_logger_if_external_logger_used():
+    from moler.connection import Connection
+
+    moler_conn = Connection(name="ABC", logger_name="conn.ABC")
+    assert moler_conn.logger.name == "conn.ABC"
+
+    moler_conn.name = "DEF"
+    assert moler_conn.logger.name == "conn.ABC"
+
+
+def test_changing_connection_name_doesnt_activate_logger_if_logging_is_off():
+    from moler.connection import Connection
+
+    moler_conn = Connection(name="ABC", logger_name=None)
+    assert moler_conn.logger is None
+
+    moler_conn.name = "DEF"
+    assert moler_conn.logger is None
+
+
+def test_changing_connection_name_switches_logger_if_default_logger_used():
+    from moler.connection import Connection
+
+    # default logger generated internally by connection
+    moler_conn = Connection(name="ABC")
+    assert moler_conn.logger.name == "moler.connection.ABC"
+
+    moler_conn.name = "DEF"
+    assert moler_conn.logger.name == "moler.connection.DEF"
+
+    # default logger via default naming
+    moler_conn = Connection(name="ABC", logger_name="moler.connection.ABC")
+    moler_conn.name = "DEF"
+    assert moler_conn.logger.name == "moler.connection.DEF"
+
+
 def test_can_notify_its_observer_about_data_comming_from_external_io(buffer_transport_class):
     from moler.connection import ObservableConnection
 
