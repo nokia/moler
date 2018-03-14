@@ -10,6 +10,7 @@ The only 3 requirements for these connections are:
 """
 import threading
 import time
+import logging
 
 from moler.io.io_connection import IOConnection
 from moler.io.raw import TillDoneThread
@@ -31,14 +32,77 @@ class FifoBuffer(IOConnection):
 
     Usable for unit tests (manually inject what is expected).
     """
-    def __init__(self, moler_connection, echo=True, logger=None):
-        """Initialization of FIFO-in-memory connection."""
+    def __init__(self, moler_connection, echo=True, name=None, logger_name=""):
+        """
+        Initialization of FIFO-in-memory connection.
+
+        :param moler_connection: Moler's connection to join with
+        :param echo: do we want echo of written data
+        :param name: name assigned to connection
+        :param logger_name: take that logger from logging
+
+        Logger is retrieved by logging.getLogger(logger_name)
+        If logger_name == "" - take logger "<moler-connection-logger>.io"
+        If logger_name is None - don't use logging
+        """
         super(FifoBuffer, self).__init__(moler_connection=moler_connection)
-        # TODO: do we want connection.name?
+        if name:
+            self._name = name
+            self.moler_connection.name = name
+        else:
+            self._name = moler_connection.name
         self.echo = echo
-        self.logger = logger  # TODO: build default logger if given is None?
+        self.logger = self._select_logger(logger_name, self._name, moler_connection)
         self.buffer = bytearray()
         self.deferred_injections = []
+
+    @property
+    def name(self):
+        """Get name of connection"""
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        """
+        Set name of connection
+
+        Moreover, overwrite name of embedded Moler's connection
+        since the two compose "one logical connection".
+
+        If connection is using default logger ("moler.connection.<name>.io")
+        then modify logger after connection name change.
+        """
+        self.moler_connection.name = value
+        if self._using_default_logger():
+            self.logger = self._select_logger(logger_name="",
+                                              connection_name=value,
+                                              moler_connection=self.moler_connection)
+        self._name = value
+
+    @staticmethod
+    def _select_logger(logger_name, connection_name, moler_connection):
+        if logger_name is None:
+            return None  # don't use logging
+        default_logger_name = "moler.connection.{}.io".format(connection_name)
+        if logger_name:
+            name = logger_name
+        else:
+            # take it from moler_connection.logger and extend by ".io"
+            if moler_connection.logger is None:
+                name = default_logger_name
+            else:
+                name = "{}.io".format(moler_connection.logger.name)
+        logger = logging.getLogger(name)
+        if name and (name != default_logger_name):
+            msg = "using '{}' logger - not default '{}'".format(name,
+                                                                default_logger_name)
+            logger.log(level=logging.WARNING, msg=msg)
+        return logger
+
+    def _using_default_logger(self):
+        if self.logger is None:
+            return False
+        return self.logger.name == "moler.connection.{}.io".format(self._name)
 
     def inject(self, input_bytes, delay=0.0):
         """
@@ -125,11 +189,12 @@ class ThreadedFifoBuffer(FifoBuffer):
     Usable for integration tests.
     """
 
-    def __init__(self, moler_connection, echo=True, logger=None):
+    def __init__(self, moler_connection, echo=True, name=None, logger_name=""):
         """Initialization of FIFO-mem-threaded connection."""
         super(ThreadedFifoBuffer, self).__init__(moler_connection=moler_connection,
                                                  echo=echo,
-                                                 logger=logger)
+                                                 name=name,
+                                                 logger_name=logger_name)
         self.pulling_thread = None
         self.injections = Queue()
 
