@@ -18,20 +18,20 @@ class Cd(GenericUnix):
     def __init__(self, connection, path=None):
         super(Cd, self).__init__(connection)
 
-        # Parameters defined by calling the command
+        #Parameters defined by calling the command
         self.path = path
-        self.command_string, self._cmd_escaped = self.get_cmd()
+
+        #command parameters
         self.ret_required = False
+        self.get_cmd()
 
         #regex
         self._reg_no_such_file_or_dir = compile(r"(.* No such file or directory)")
 
-    def get_cmd(self, cmd=None):
-        if cmd is None:
-            cmd = "cd"
-            if self.path:
-                cmd = cmd + " " + self.path
-        return cmd, escape(cmd)
+    def get_cmd(self, cmd="cd"):
+        if self.path:
+            cmd = cmd + " " + self.path
+        return cmd
 
     def on_new_line(self, line):
         if self._cmd_matched and self._regex_helper.search_compiled(self._reg_no_such_file_or_dir, line):
