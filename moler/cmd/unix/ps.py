@@ -8,7 +8,7 @@ from moler.cmd.unix.genericunix import GenericUnix
 
 
 class Ps(GenericUnix):
-    def __init__(self, connection=None, cmd='ps'):
+    def __init__(self, connection=None, options=''):
         """Commad Ps is parsed to list of dictionary.
          Each dictionary in list contains all columns defined in columns printed in first line of command result
          Last column may contain more parameters while this field is responsible for process name
@@ -17,24 +17,24 @@ class Ps(GenericUnix):
          'CMD': 'avahi-autoipd: [ens4] sleeping'}
          Each key is derived from first line of executed ps command so accessing it needs ps command with option
          result knowledge """
+        self._cmd = 'ps'
         self._cmd_line_found = False
         self._column_line_found = False
         self._columns = list()
         self._space_columns = list()
         super(Ps, self).__init__(connection)
         self.ret = list()
-        if self.check_command_correctness(cmd):
-            self.set_unix_command_string(cmd)
+        self.set_unix_command_string(self._cmd)
 
     def on_prepare_run(self):
         pass
 
-    def check_command_correctness(self, cmd):
-        """Checking if command passed to Ps class is ps command"""
-        if not re.match(r'\s*ps', cmd):
-            self.set_exception(RuntimeError('Wrong command passed to ps class'))
-            return False
-        return True
+#    def check_command_correctness(self, cmd):
+#        """Checking if command passed to Ps class is ps command"""
+#        if not re.match(r'\s*ps', cmd):
+#            self.set_exception(RuntimeError('Wrong command passed to ps class'))
+#            return False
+#        return True
 
     def on_new_line(self, line):
         """Operations executed on new line
