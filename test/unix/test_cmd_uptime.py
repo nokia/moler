@@ -16,6 +16,12 @@ def test_calling_uptime_returns_result_parsed_from_command_output(buffer_connect
     assert result == expected_result
 
 
+def test_uptime_returns_proper_command_string(buffer_connection):
+    from moler.cmd.unix.uptime import Uptime
+    uptime_cmd = Uptime(buffer_connection)
+    assert "uptime" == uptime_cmd.command_string
+
+
 def command_output_and_expected_result():
     data = """
 fzm-tdd-1:~ # uptime

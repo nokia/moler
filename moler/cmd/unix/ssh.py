@@ -24,7 +24,7 @@ class Ssh(GenericUnix):
     _reg_new_line = compile(r"\n$")
 
     def __init__(self, connection, login, password, host, expected_prompt='>', port=0, known_hosts_on_failure='keygen',
-                 set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None):
+                 set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono=True):
         super(Ssh, self).__init__(connection)
 
         # Parameters defined by calling the command
@@ -36,8 +36,9 @@ class Ssh(GenericUnix):
         self.known_hosts_on_failure = known_hosts_on_failure
         self.set_timeout = set_timeout
         self.set_prompt = set_prompt
+        self.term_mono = term_mono
 
-        self.command_string = self.get_cmd()
+        self.get_cmd()
         self.ret_required = False
 
         # Internal variables
@@ -49,11 +50,15 @@ class Ssh(GenericUnix):
 
     def get_cmd(self, cmd=None):
         if cmd is None:
-            cmd = "TERM=xterm-mono ssh"
+            cmd = ""
+            if self.term_mono:
+                cmd = "TERM=xterm-mono "
+            cmd = cmd + "ssh"
             if self.port:
                 cmd = cmd + " -p " + str(self.port)
             cmd = cmd + " -l " + self.login + " " + self.host
-        self._cmd_escaped = escape(cmd)
+        #self._cmd_escaped = escape(cmd)
+        #self.command_string = cmd
         return cmd
 
     def on_new_line(self, line):
@@ -115,3 +120,26 @@ class Ssh(GenericUnix):
                         else:
                             if not self.done():
                                 self.set_result(self.ret)
+
+
+COMMAND_OUTPUT_ver_execute = """
+amu012@belvedere07:~/automation/Flexi/config>
+amu012@belvedere07:~/automation/Flexi/config>TERM=xterm-mono ssh -l fzm-tdd-1 FZM-TDD-1.lab0.krk-lab.nsn-rdnet.net
+To edit this message please edit /etc/ssh_banner
+You may put information to /etc/ssh_banner who is owner of this PC
+Password:
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 10.83.200.37
+Have a lot of fun...
+fzm-tdd-1:~ #
+fzm-tdd-1:~ # export TMOUT="2678400"
+fzm-tdd-1:~ #"""
+
+COMMAND_KWARGS_ver_execute = {
+    "login": "fzm-tdd-1", "password": "Nokia",
+    "host": "FZM-TDD-1.lab0.krk-lab.nsn-rdnet.net", "expected_prompt": "fzm-tdd-1:.*#"
+}
+
+COMMAND_RESULT_ver_execute = {
+
+}

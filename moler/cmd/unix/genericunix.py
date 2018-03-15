@@ -3,6 +3,7 @@
 Generic Unix/Linux module
 """
 from re import compile, escape
+import abc
 
 from moler.cmd import RegexHelper
 from moler.command import Command
@@ -17,6 +18,7 @@ class GenericUnix(Command):
 
     def __init__(self, connection):
         super(GenericUnix, self).__init__(connection)
+        self.__command_string = None
         self.ret = dict()
         self._cmd_escaped = None
         self._cmd_matched = False
@@ -27,6 +29,18 @@ class GenericUnix(Command):
         self.break_on_timeout = True
         self._last_not_full_line = None
         self._reg_prompt = compile(r'^[^<]*[\$|%|#|>|~]\s*$')
+
+    @property
+    def command_string(self):
+        if not self.__command_string:
+            self.__command_string = self.get_cmd()
+            self._cmd_escaped = escape(self.__command_string)
+        return self.__command_string
+
+    @command_string.setter
+    def command_string(self, command_string):
+        self.__command_string = command_string
+        self._cmd_escaped = escape(command_string)
 
     def data_received(self, data):
         lines = data.splitlines(True)
@@ -42,6 +56,7 @@ class GenericUnix(Command):
     def start(self, *args, **kwargs):
         return super(GenericUnix, self).start(args, kwargs)
 
+    @abc.abstractmethod
     def get_cmd(self, cmd=None):
         pass
 
