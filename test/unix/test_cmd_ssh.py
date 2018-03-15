@@ -18,6 +18,10 @@ def test_calling_ssh_returns_result_parsed_from_command_output(buffer_connection
     result = ssh_cmd()
     assert result == expected_result
 
+def test_ssh_returns_proper_command_string(buffer_connection):
+    ssh_cmd = Ssh(buffer_connection, login="fzm-tdd-1", password="Nokia",
+                  host="FZM-TDD-1.lab0.krk-lab.nsn-rdnet.net", expected_prompt="fzm-tdd-1:.*#")
+    assert "TERM=xterm-mono ssh -l fzm-tdd-1 FZM-TDD-1.lab0.krk-lab.nsn-rdnet.net" == ssh_cmd.command_string
 
 def command_output_and_expected_result():
     lines = [

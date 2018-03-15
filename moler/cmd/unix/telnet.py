@@ -2,7 +2,7 @@
 """
 Telnet command module.
 """
-from re import compile, escape, IGNORECASE
+from re import compile, IGNORECASE
 
 from moler.cmd.unix.genericunix import GenericUnix
 
@@ -20,7 +20,7 @@ class Telnet(GenericUnix):
     _reg_new_line = compile(r"\n$")
 
     def __init__(self, connection, login, password, host, expected_prompt='>', port=0,
-                 set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None):
+                 set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono=True):
         super(Telnet, self).__init__(connection)
 
         # Parameters defined by calling the command
@@ -31,8 +31,7 @@ class Telnet(GenericUnix):
         self.port = port
         self.set_timeout = set_timeout
         self.set_prompt = set_prompt
-
-        self.command_string = self.get_cmd()
+        self.term_mono = term_mono
 
         # Internal variables
         self._sent_timeout = False
@@ -42,11 +41,12 @@ class Telnet(GenericUnix):
 
     def get_cmd(self, cmd=None):
         if cmd is None:
-            cmd = "TERM=xterm-mono telnet " + self.host
+            cmd = ""
+            if self.term_mono:
+                cmd = "TERM=xterm-mono "
+            cmd = cmd + "telnet " + self.host
             if self.port:
                 cmd = cmd + " " + str(self.port)
-            self.command_string = cmd
-        self._cmd_escaped = escape(cmd)
         return cmd
 
     def on_new_line(self, line):
@@ -89,3 +89,24 @@ class Telnet(GenericUnix):
                         else:
                             if not self.done():
                                 self.set_result(self.ret)
+
+
+COMMAND_OUTPUT_ver_execute = """
+amu012@belvedere07:~/automation/Flexi/config> TERM=xterm-mono telnet FZM-TDD-1.lab0.krk-lab.nsn-rdnet.net 6000
+Login:
+Login:fzm-tdd-1
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 10.83.200.37
+Have a lot of fun...
+fzm-tdd-1:~ #
+export TMOUT="2678400",
+fzm-tdd-1:~ #"""
+
+COMMAND_KWARGS_ver_execute = {
+    "login": "fzm-tdd-1", "password": "Nokia", "port": "6000",
+    "host": "FZM-TDD-1.lab0.krk-lab.nsn-rdnet.net", "expected_prompt": "fzm-tdd-1:.*#"
+}
+
+COMMAND_RESULT_ver_execute = {
+
+}

@@ -33,6 +33,10 @@ def test_calling_telnet_timeout(buffer_connection):
         telnet_cmd(timeout=1)
     assert exception is not None
 
+def test_telnet_returns_proper_command_string(buffer_connection):
+    telnet_cmd = Telnet(buffer_connection, login="fzm-tdd-1", password="Nokia", port=6000,
+                        host="FZM-TDD-1.lab0.krk-lab.nsn-rdnet.net", expected_prompt="fzm-tdd-1:.*#")
+    assert "TERM=xterm-mono telnet FZM-TDD-1.lab0.krk-lab.nsn-rdnet.net 6000" == telnet_cmd.command_string
 
 def command_output_and_expected_result():
     lines = [
