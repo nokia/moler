@@ -104,6 +104,7 @@ class GenericUnix(Command):
 
     def set_unix_command_string(self, command_base_string, **kwargs):
         self._cmd_escaped = command_base_string
+        #niepotrzebne
         if(command_base_string == None):
             self.set_exception(Exception("No command passed: {}".format(command_base_string)))
         else:
