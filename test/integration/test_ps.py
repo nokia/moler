@@ -9,8 +9,6 @@ __email__ = 'dariusz.rosinski@nokia.com'
 
 
 
-    #assert  RuntimeError('Wrong command passed to ps class',) == ps_cmd._exception
-
 def test_ps_command_V1_short_commands(buffer_connection):
     from moler.cmd.unix import ps
     buffer_connection.remote_inject_response([ps.COMMAND_OUTPUT_V1])
