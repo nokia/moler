@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Testing external-IO TCP connection
-
-- open/close
-- send/receive (naming may differ)
-"""
 
 import pytest
 
