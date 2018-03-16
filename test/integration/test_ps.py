@@ -11,7 +11,7 @@ import pytest
 
 __author__ = 'Dariusz Rosinski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'dariusz.rosinski@nokia.com'
 
 
 
