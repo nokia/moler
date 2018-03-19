@@ -2,25 +2,11 @@
 """
 Testing factory responsible for returning "requested" connection
 """
-from funcsigs import signature
 import pytest
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
-
-
-@pytest.mark.parametrize("python_api_method_name, expected_signature",
-                         [('register_construction',
-                           '(io_type, variant, constructor)'),
-                          ('get_connection',
-                           '(io_type, variant, **constructor_kwargs)'),
-                          ])
-def test_factory_has_expected_api(python_api_method_name, expected_signature):
-    """ check order of parameters and their default values """
-    from moler import connection_factory
-    api_method = getattr(connection_factory, python_api_method_name)
-    assert str(signature(api_method)) == expected_signature
 
 
 def test_registered_constructor_must_be_callable():
