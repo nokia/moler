@@ -88,6 +88,11 @@ class Ps(GenericUnix):
             parsed_line = result
         return parsed_line
 
+    def get_cmd(self, cmd=None):
+        if cmd is None:
+            cmd = ""
+        return cmd
+
     @staticmethod
     def convert_data_to_type(data):
         # when casting wrong type Value Error will be raised
