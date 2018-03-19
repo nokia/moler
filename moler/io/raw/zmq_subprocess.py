@@ -157,7 +157,7 @@ class Popen(object):
             # print("Forwarding {} output: {}".format(topic, line.strip()))
             if forward_sock:
                 forward_sock.send_multipart([topic.encode('utf-8'), line])
-            sub_process.stdout.close()
+        sub_process.stdout.close()
         print("forward_subprocess_output ... DONE")
 
     @staticmethod
