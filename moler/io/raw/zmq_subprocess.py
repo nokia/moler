@@ -151,13 +151,13 @@ class Popen(object):
     def forward_subprocess_output(pulling_done, sub_process, forward_sock=None):
         print("forward_subprocess_output ... STARTED")
         while not pulling_done.is_set():
-        # for line in iter(sub_process.stdout.readline, b''):
-        line = sub_process.stdout.readline()  # BLOCKING !!!
-        topic = 'process.pid:{}'.format(sub_process.pid)
-        # print("Forwarding {} output: {}".format(topic, line.strip()))
-        if forward_sock:
-            forward_sock.send_multipart([topic.encode('utf-8'), line])
-        sub_process.stdout.close()
+            # for line in iter(sub_process.stdout.readline, b''):
+            line = sub_process.stdout.readline()  # BLOCKING !!!
+            topic = 'process.pid:{}'.format(sub_process.pid)
+            # print("Forwarding {} output: {}".format(topic, line.strip()))
+            if forward_sock:
+                forward_sock.send_multipart([topic.encode('utf-8'), line])
+            sub_process.stdout.close()
         print("forward_subprocess_output ... DONE")
 
     @staticmethod
