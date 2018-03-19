@@ -109,7 +109,7 @@ class Ps(GenericUnix):
 COMMAND_OUTPUT_V1 = '''
 root@DMICTRL:~# ps -o user,pid,vsz,osz,pmem,rss,cmd -e
  USER       PID    VSZ SZ %MEM   RSS COMMAND
- root         1   1664  -  0.1   572 init [3]  
+ root         1   1664  -  0.1   572 init [3]
  root         2      0  -  0.0     0 [ksoftirqd/0]
  root         3      0  -  0.0     0 [desched/0]
  root         4      0  -  0.0     0 [events/0]
@@ -123,8 +123,8 @@ root@DMICTRL:~# ps -o user,pid,vsz,osz,pmem,rss,cmd -e
  root       665      0  -  0.0     0 [kjournald]
  bin        814   1908  -  0.1   544 /sbin/portmap
  root       847   1772  -  0.1   712 /sbin/syslogd -r
- root       855   1664  -  0.0   500 /sbin/klogd -x   
- root@DMICTRL:~# 
+ root       855   1664  -  0.0   500 /sbin/klogd -x
+ root@DMICTRL:~#
  '''
 
 COMMAND_RESULT_V1 = [
@@ -146,16 +146,16 @@ COMMAND_RESULT_V1 = [
 
 COMMAND_OUTPUT_V2 = '''FZM-FDD-086-ws-kvm:/home/rtg # ps -ef
 UID        PID  PPID  C STIME TTY          TIME CMD
-avahi-a+  3597     1  0  2017 ?        00:00:45 avahi-autoipd: [ens4] sleeping  
+avahi-a+  3597     1  0  2017 ?        00:00:45 avahi-autoipd: [ens4] sleeping
 root      3598  3597  0  2017 ?        00:00:00 avahi-autoipd: [ens4] callout dispatcher
-root      3681     1  0  2017 ?        00:00:17 /sbin/dhclient6 -6 -cf /var/lib/dhcp6/dhclient6.ens3.conf -lf /var/lib/dhcp6/dhclient6.ens3.lease -pf 
+root      3681     1  0  2017 ?        00:00:17 /sbin/dhclient6 -6 -cf /var/lib/dhcp6/dhclient6.ens3.conf -lf /var/lib/dhcp6/dhclient6.ens3.lease -pf
 root      3812     1  0  2017 ?        00:00:00 /usr/sbin/xinetd -stayalive -dontfork
 root      3814     1  0  2017 ?        00:00:00 /usr/sbin/vsftpd /etc/vsftpd.conf
 root      3826     1  0  2017 ?        00:00:02 /usr/sbin/sshd -D
 root      3835     2  0  2017 ?        00:00:00 [cifsiod]
 root      3867     1  0  2017 ?        00:00:18 /usr/sbin/cron -n
 root      3870     1  0  2017 tty1     00:00:00 /sbin/agetty --noclear tty1 linux
-avahi-a+  4592     1  0  2017 ?        00:17:15 avahi-autoipd: [ens3] sleeping  
+avahi-a+  4592     1  0  2017 ?        00:17:15 avahi-autoipd: [ens3] sleeping
 root      4593  4592  0  2017 ?        00:00:00 avahi-autoipd: [ens3] callout dispatcher
 root      4648     1  0  2017 ?        00:00:00 /sbin/dhcpcd --netconfig -L -E -HHH -c /etc/sysconfig/network/scripts/dhcpcd-hook -t 0 -h FZM-FDD-086-
 root      5823     2  0 Mar09 ?        00:00:03 [kworker/u8:2]
@@ -192,20 +192,20 @@ COMMAND_RESULT_V2 = [
 ]
 
 COMMAND_OUTPUT_V3 = '''FZM-FDD-086-ws-kvm:/home/rtg # ps -ef
-UID        PID  PPID  C STIME TTY   CMD                                                                                                                 TIME 
-avahi-a+  3597     1  0  2017 ?     avahi-autoipd: [ens4] sleeping                                                                                      00:00:45   
-root      3598  3597  0  2017 ?     avahi-autoipd: [ens4] callout dispatcher                                                                            00:00:00 
-root      3681     1  0  2017 ?     /sbin/dhclient6 -6 -cf /var/lib/dhcp6/dhclient6.ens3.conf -lf /var/lib/dhcp6/dhclient6.ens3.lease -pf               00:00:17  
-root      3812     1  0  2017 ?     /usr/sbin/xinetd -stayalive -dontfork                                                                               00:00:00 
-root      3814     1  0  2017 ?     /usr/sbin/vsftpd /etc/vsftpd.conf                                                                                   00:00:00 
-root      3826     1  0  2017 ?     /usr/sbin/sshd -D                                                                                                   00:00:02 
-root      3835     2  0  2017 ?     [cifsiod]                                                                                                           00:00:00 
-root      3867     1  0  2017 ?     /usr/sbin/cron -n                                                                                                   00:00:18 
-root      3870     1  0  2017 tty1  /sbin/agetty --noclear tty1 linux                                                                                   00:00:00 
-avahi-a+  4592     1  0  2017 ?     avahi-autoipd: [ens3] sleeping                                                                                      00:17:15 
-root      4593  4592  0  2017 ?     avahi-autoipd: [ens3] callout dispatcher                                                                            00:00:00 
-root      4648     1  0  2017 ?     /sbin/dhcpcd --netconfig -L -E -HHH -c /etc/sysconfig/network/scripts/dhcpcd-hook -t 0 -h FZM-FDD-086-              00:00:00 
-root      5823     2  0 Mar09 ?     [kworker/u8:2]                                                                                                      00:00:03 
+UID        PID  PPID  C STIME TTY   CMD                                                                                                                 TIME
+avahi-a+  3597     1  0  2017 ?     avahi-autoipd: [ens4] sleeping                                                                                      00:00:45
+root      3598  3597  0  2017 ?     avahi-autoipd: [ens4] callout dispatcher                                                                            00:00:00
+root      3681     1  0  2017 ?     /sbin/dhclient6 -6 -cf /var/lib/dhcp6/dhclient6.ens3.conf -lf /var/lib/dhcp6/dhclient6.ens3.lease -pf               00:00:17
+root      3812     1  0  2017 ?     /usr/sbin/xinetd -stayalive -dontfork                                                                               00:00:00
+root      3814     1  0  2017 ?     /usr/sbin/vsftpd /etc/vsftpd.conf                                                                                   00:00:00
+root      3826     1  0  2017 ?     /usr/sbin/sshd -D                                                                                                   00:00:02
+root      3835     2  0  2017 ?     [cifsiod]                                                                                                           00:00:00
+root      3867     1  0  2017 ?     /usr/sbin/cron -n                                                                                                   00:00:18
+root      3870     1  0  2017 tty1  /sbin/agetty --noclear tty1 linux                                                                                   00:00:00
+avahi-a+  4592     1  0  2017 ?     avahi-autoipd: [ens3] sleeping                                                                                      00:17:15
+root      4593  4592  0  2017 ?     avahi-autoipd: [ens3] callout dispatcher                                                                            00:00:00
+root      4648     1  0  2017 ?     /sbin/dhcpcd --netconfig -L -E -HHH -c /etc/sysconfig/network/scripts/dhcpcd-hook -t 0 -h FZM-FDD-086-              00:00:00
+root      5823     2  0 Mar09 ?     [kworker/u8:2]                                                                                                      00:00:03
 FZM-FDD-086-ws-kvm:/home/rtg #
 '''
 

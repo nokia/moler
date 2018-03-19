@@ -65,7 +65,7 @@ class Uptime(GenericUnix):
 COMMAND_OUTPUT_ver_execute = """
 fzm-tdd-1:~ # uptime
 10:38am  up 3 days  2:14,  29 users,  load average: 0.09, 0.10, 0.07
-fzm-tdd-1:~ #  
+fzm-tdd-1:~ #
 """
 
 COMMAND_KWARGS_ver_execute = {}
