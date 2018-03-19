@@ -3,13 +3,12 @@ External-IO connections based on subprocess library with zeroMQ proxy.
 
 ZeroMQ used to minimize impact of os.fork inside subprocess.Popen
 """
-import platform
 import os
-import io
-import time
-import sys
+import platform
 import subprocess
 import threading
+import time
+
 import zmq
 
 from moler.io.raw import TillDoneThread
@@ -153,11 +152,11 @@ class Popen(object):
         print("forward_subprocess_output ... STARTED")
         while not pulling_done.is_set():
         # for line in iter(sub_process.stdout.readline, b''):
-            line = sub_process.stdout.readline()  # BLOCKING !!!
-            topic = 'process.pid:{}'.format(sub_process.pid)
-            # print("Forwarding {} output: {}".format(topic, line.strip()))
-            if forward_sock:
-                forward_sock.send_multipart([topic.encode('utf-8'), line])
+        line = sub_process.stdout.readline()  # BLOCKING !!!
+        topic = 'process.pid:{}'.format(sub_process.pid)
+        # print("Forwarding {} output: {}".format(topic, line.strip()))
+        if forward_sock:
+            forward_sock.send_multipart([topic.encode('utf-8'), line])
         sub_process.stdout.close()
         print("forward_subprocess_output ... DONE")
 
