@@ -1,0 +1,76 @@
+# -*- coding: utf-8 -*-
+"""
+Testing factory responsible for returning "requested" connection
+"""
+from funcsigs import signature
+import pytest
+
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
+
+
+@pytest.mark.parametrize("python_api_method_name, expected_signature",
+                         [('register_construction',
+                           '(io_type, variant, constructor)'),
+                          ('get_connection',
+                           '(io_type, variant, **constructor_kwargs)'),
+                          ])
+def test_factory_has_expected_api(python_api_method_name, expected_signature):
+    """ check order of parameters and their default values """
+    from moler import connection_factory
+    api_method = getattr(connection_factory, python_api_method_name)
+    assert str(signature(api_method)) == expected_signature
+
+
+def test_registered_constructor_must_be_callable():
+    from moler.connection_factory import register_construction
+    with pytest.raises(ValueError) as err:
+        register_construction(io_type='memory', variant='superquick',
+                              constructor=[1, 2])
+    assert "constructor must be callable not" in str(err)
+
+
+def test_missing_constructor_raises_KeyError():
+    from moler.connection_factory import get_connection
+    with pytest.raises(KeyError) as err:
+        get_connection(io_type='memory', variant='superquick')
+    assert "No constructor registered for [('memory', 'superquick')] connection" in str(err)
+
+
+def test_factory_has_buildin_constructors_active_by_default():
+    from moler.connection_factory import get_connection
+
+    conn = get_connection(io_type='memory', variant='threaded')
+    assert conn.__module__ == 'moler.io.raw.memory'
+    assert conn.__class__.__name__ == 'ThreadedFifoBuffer'
+
+    conn = get_connection(io_type='tcp', variant='threaded', host='localhost', port=2345)
+    assert conn.__module__ == 'moler.io.raw.tcp'
+    assert conn.__class__.__name__ == 'ThreadedTcp'
+
+
+def test_returned_connections_have_moler_integrated_connection(builtin_variant,
+                                                               builtin_io_type_example):
+    from moler.connection_factory import get_connection
+
+    io_type, kwargs = builtin_io_type_example
+    conn = get_connection(io_type=io_type, variant=builtin_variant, **kwargs)
+    assert hasattr(conn, 'moler_connection')
+    assert conn.moler_connection.how2send != conn.moler_connection._unknown_send
+
+
+# --------------------------- resources ---------------------------
+
+
+@pytest.fixture(params=['threaded'])
+def builtin_variant(request):
+    return request.param
+
+
+@pytest.fixture(params=['memory', 'tcp'])
+def builtin_io_type_example(request):
+    kwargs = {}
+    if request.param == 'tcp':
+        kwargs = {'host': 'localhost', 'port': 2345}
+    return request.param, kwargs
