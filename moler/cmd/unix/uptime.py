@@ -2,7 +2,7 @@
 """
 Uptime command module.
 """
-from re import compile, escape, IGNORECASE
+from re import compile, IGNORECASE
 
 from moler.cmd.unix.genericunix import GenericUnix
 
@@ -12,9 +12,8 @@ __email__ = 'marcin.usielski@nokia.com'
 
 
 class Uptime(GenericUnix):
-    #Compiled regexp
-    _reg_uptime_line = compile(r"(\d{2}:\d{2}:\d{2}|\d{2}:\d{2}(am|pm))\s+up\s+(.*?),\s+(\d+)\s+user.*\n",
-                                    IGNORECASE)
+    # Compiled regexp
+    _reg_uptime_line = compile(r"(\d{2}:\d{2}:\d{2}|\d{2}:\d{2}(am|pm))\s+up\s+(.*?),\s+(\d+)\s+user.*\n", IGNORECASE)
     _reg_days = compile(r"(\d+) day(?:s)?,\s+(\d+):(\d+)")
     _reg_days_minutes = compile(r"(\d+) day(?:s)?,\s+(\d+)\s+min")
     _reg_hours_minutes = compile(r"(\d+):(\d+)")
@@ -26,7 +25,6 @@ class Uptime(GenericUnix):
         # Parameters defined by calling the command
         self.file = file
         self.get_cmd()
-
 
     def get_cmd(self, cmd=None):
         if cmd is None:
@@ -73,8 +71,6 @@ fzm-tdd-1:~ #
 COMMAND_KWARGS_ver_execute = {}
 
 COMMAND_RESULT_ver_execute = {
-            "UPTIME": '3 days  2:14',
-            "UPTIME_SECONDS": 8040,
-            "USERS": '29',
-}
-
+    "UPTIME": '3 days  2:14',
+    "UPTIME_SECONDS": 8040,
+    "USERS": '29'}

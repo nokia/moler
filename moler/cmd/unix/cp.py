@@ -7,11 +7,14 @@ __author__ = 'Julia Patacz'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'julia.patacz@nokia.com'
 
-from re import compile, escape, IGNORECASE
+from re import escape
+
 from moler.cmd.unix.genericunix import GenericUnix
+
 
 class CpCommandFailure(Exception):
     pass
+
 
 class Cp(GenericUnix):
     def __init__(self, connection, src, dst, options=None):

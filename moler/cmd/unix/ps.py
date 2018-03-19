@@ -2,8 +2,8 @@
 """
 ps command module.
 """
-import logging
 import re
+
 from moler.cmd.unix.genericunix import GenericUnix
 
 
@@ -60,21 +60,21 @@ class Ps(GenericUnix):
         # remove white spaces from start and end of line
         parsed_line = re.sub(r'^\s+', '', line)
         parsed_line = re.sub(r'\s+$', '', parsed_line)
-        #split with whitespaces
+        # split with whitespaces
         parsed_line = re.split(r'\s+', parsed_line)
         result = []
         # If no enough columns leave this line
         if len(self._columns) > len(parsed_line) or parsed_line == ['']:
             parsed_line = None
         # When data is avaliable proceed with parsing
-        if self._columns != []  and parsed_line is not None:
+        if self._columns != [] and parsed_line is not None:
             result = list()
             # command field may contain white space so it needs to be connected correctly
             lines_to_connect = len(parsed_line) - len(self._columns) + 1
             column_name_number = 0
             connected_value = ''
             for value in parsed_line:
-                if (re.match('COMMAND|CMD', self._columns[column_name_number]) and lines_to_connect):
+                if re.match('COMMAND|CMD', self._columns[column_name_number]) and lines_to_connect:
                     connected_value += value + ' '
                     lines_to_connect -= 1
                     if lines_to_connect > 0:
