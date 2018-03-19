@@ -67,33 +67,30 @@ drwxr-xr-x  5 root root    4096 Mar 20  2015 btslog2
 -rw-r--r--  1 root root      24 Dec 15 10:48 getfzmip.txt-old.20171215-104858.txt 
 lrwxrwxrwx  1 root root       4 Mar 20  2015 bcn -> /bcn
 lrwxrwxrwx  1 root root      10 Mar 20  2015 logsremote -> /mnt/logs/
-FZM-TDD-249:~ #"""
+FZM-TDD-249:~ #
+"""
 
 COMMAND_KWARGS_ver_long = {"opt": "-l"}
 
 COMMAND_RESULT_ver_long = {
-            "-LINKS": {
-                "bcn": "/bcn",
-                "logsremote": "/mnt/logs/"
-            },
-            "-SIZE": {
-                "bin": "4096",
-                "btslog2": "4096",
-                "getfzmip.txt": "51",
-                "getfzmip.txt-old.20171215-104858.txt": "24"
-            },
-            "files": ["bin", "btslog2", "getfzmip.txt", "getfzmip.txt-old.20171215-104858.txt"]
-}
+    "-LINKS": {
+        "bcn": "/bcn", "logsremote": "/mnt/logs/"},
+    "-SIZE": {
+        "bin": "4096",
+        "btslog2": "4096",
+        "getfzmip.txt": "51",
+        "getfzmip.txt-old.20171215-104858.txt": "24"},
+    "files": ["bin", "btslog2", "getfzmip.txt", "getfzmip.txt-old.20171215-104858.txt"]}
 
 
 COMMAND_OUTPUT_ver_plain = """
 FZM-TDD-249:~ # ls
 .ansible               dot1ag-13.2.tgz                       .kde4             .skel
 .bash_history          Downloads
-FZM-TDD-249:~ #"""
+FZM-TDD-249:~ #
+"""
 
 COMMAND_KWARGS_ver_plain = {}
 
 COMMAND_RESULT_ver_plain = {
-            "files": [".ansible", "dot1ag-13.2.tgz", ".kde4", ".skel", ".bash_history", "Downloads"]
-}
+    "files": [".ansible", "dot1ag-13.2.tgz", ".kde4", ".skel", ".bash_history", "Downloads"]}

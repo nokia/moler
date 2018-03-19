@@ -2,7 +2,7 @@
 """
 Ssh command module.
 """
-from re import compile, escape, IGNORECASE
+from re import compile, IGNORECASE
 
 from moler.cmd.unix.genericunix import GenericUnix
 
@@ -57,8 +57,8 @@ class Ssh(GenericUnix):
             if self.port:
                 cmd = cmd + " -p " + str(self.port)
             cmd = cmd + " -l " + self.login + " " + self.host
-        #self._cmd_escaped = escape(cmd)
-        #self.command_string = cmd
+        # self._cmd_escaped = escape(cmd)
+        # self.command_string = cmd
         return cmd
 
     def on_new_line(self, line):

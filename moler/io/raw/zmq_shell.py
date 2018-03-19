@@ -1,17 +1,14 @@
 """
 Subprocess+ZeroMQ based connection - backend.
 """
-import os
-import time
-import sys
 import atexit
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
-
-import zmq_subprocess
-
+import os
+import sys
+import time
 
 if __name__ == '__main__':
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
+    import zmq_subprocess
     shell_path = "cmd.exe"
     # shell_path = "bash"
     command2run = [shell_path]
@@ -25,5 +22,5 @@ if __name__ == '__main__':
 
     for sec in range(20):
         time.sleep(1)  # give subprocess a chance to start
-        print("running {} [sec] @@@@@@@@".format(sec+1))
+        print("running {} [sec] @@@@@@@@".format(sec + 1))
     print("end of file @@@@@@@@")
