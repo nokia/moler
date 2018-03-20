@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Testing of Yelnet command.
+Testing of uptime command.
 """
 __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
