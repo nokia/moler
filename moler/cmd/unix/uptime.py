@@ -3,6 +3,7 @@
 Uptime command module.
 """
 import re
+
 from moler.cmd.unix.genericunix import GenericUnix
 
 __author__ = 'Marcin Usielski'
@@ -22,7 +23,6 @@ class Uptime(GenericUnix):
 
     def __init__(self, connection, options=None, prompt=None, new_line_chars=None):
         super(Uptime, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
-
         # Parameters defined by calling the command
         self.options = options
 

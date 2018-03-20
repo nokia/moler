@@ -22,7 +22,8 @@ class Ssh(GenericUnix):
     _re_new_line = re.compile(r"[\n\r]$")
 
     def __init__(self, connection, login, password, host, expected_prompt='>', port=0, known_hosts_on_failure='keygen',
-                 set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono=True, prompt=None, new_line_chars=None):
+                 set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono=True, prompt=None,
+                 new_line_chars=None):
         super(Ssh, self).__init__(connection, prompt, new_line_chars)
 
         # Parameters defined by calling the command

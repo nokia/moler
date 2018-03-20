@@ -138,7 +138,7 @@ class TextualGeneric(Command):
 
     def is_ret(self):
         """
-        :return: True if current_ret has anything. Otherwise False
+        :return: True if current_ret has anything. Otherwise False.
         """
         is_ret = False
         if self.current_ret:
