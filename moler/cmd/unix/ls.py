@@ -14,7 +14,6 @@ __email__ = 'marcin.usielski@nokia.com'
 
 
 class Ls(GenericUnix):
-
     _re_files_list = re.compile(r"\S{2,}")
     _re_total = re.compile(r"total\s+(\d+\S*)")
     _re_long = re.compile(r"([\w-]{10})\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S.*\S)\s+(\S+)\s*$")
@@ -65,7 +64,8 @@ class Ls(GenericUnix):
         self.current_ret["files"][filename]["owner"] = self._regex_helper.group(3)
         self.current_ret["files"][filename]["group"] = self._regex_helper.group(4)
         self.current_ret["files"][filename]["size_raw"] = self._regex_helper.group(5)
-        self.current_ret["files"][filename]["size_bytes"] = self._converter_helper.to_bytes(self._regex_helper.group(5))[0]
+        self.current_ret["files"][filename]["size_bytes"] = \
+        self._converter_helper.to_bytes(self._regex_helper.group(5))[0]
         self.current_ret["files"][filename]["date"] = self._regex_helper.group(6)
         self.current_ret["files"][filename]["name"] = self._regex_helper.group(7)
         if islink:
@@ -106,21 +106,26 @@ total 1T
 -rwxr-xr-x 2 root  root    92 Nov 10  2016 file5
 FZM-TDD-249:~ #"""
 
-
 COMMAND_KWARGS_ver_human = {"options": "-lh"}
 
 COMMAND_RESULT_ver_human = {
-"total": {
-    "raw": "1T",
-    "bytes": 1099511627776
-},
-"files": {
-                "file1": {"permissions": "-rwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root", "size_bytes": 4096, "size_raw": "4.0K", "date": "Nov 10  2016", "name": "file1", },
-                "file2": {"permissions": "-rwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root", "size_bytes": 4718592, "size_raw": "4.5M", "date": "Nov 10  2016", "name": "file2", },
-                "file3": {"permissions": "-rwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root", "size_bytes": 3221225472, "size_raw": "3.0G", "date": "Nov 10  2016", "name": "file3", },
-                "file4": {"permissions": "-rwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root", "size_bytes": 1099511627776, "size_raw": "1.0T", "date": "Nov 10  2016", "name": "file4", },
-                "file5": {"permissions": "-rwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root", "size_bytes": 92, "size_raw": "92", "date": "Nov 10  2016", "name": "file5", },
-            },
+    "total": {
+        "raw": "1T",
+        "bytes": 1099511627776
+    },
+
+    "files": {
+        "file1": {"permissions": "-rwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root",
+                  "size_bytes": 4096, "size_raw": "4.0K", "date": "Nov 10  2016", "name": "file1", },
+        "file2": {"permissions": "-rwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root",
+                  "size_bytes": 4718592, "size_raw": "4.5M", "date": "Nov 10  2016", "name": "file2", },
+        "file3": {"permissions": "-rwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root",
+                  "size_bytes": 3221225472, "size_raw": "3.0G", "date": "Nov 10  2016", "name": "file3", },
+        "file4": {"permissions": "-rwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root",
+                  "size_bytes": 1099511627776, "size_raw": "1.0T", "date": "Nov 10  2016", "name": "file4", },
+        "file5": {"permissions": "-rwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root",
+                  "size_bytes": 92, "size_raw": "92", "date": "Nov 10  2016", "name": "file5", },
+    },
 }
 
 COMMAND_OUTPUT_ver_long = """
@@ -139,21 +144,29 @@ COMMAND_KWARGS_ver_long = {"options": "-l"}
 
 COMMAND_RESULT_ver_long = {
 
-"total": {
-            "raw": "8",
-            "bytes": 8,
-},
+    "total": {
+        "raw": "8",
+        "bytes": 8,
+    },
 
-"files": {
-            "bin": {"permissions": "drwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root", "size_bytes": 4096, "size_raw": "4096", "date": "Sep 25  2014", "name": "bin", },
-            "btslog2": {"permissions": "drwxr-xr-x", "hard_links_count": 5, "owner": "root", "group": "root", "size_bytes": 4096, "size_raw": "4096", "date": "Mar 20  2015", "name": "btslog2", },
-            "getfzmip.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1, "owner": "root", "group": "root", "size_bytes":51, "size_raw": "51", "date": "Dec 15 10:48", "name": "getfzmip.txt", },
-            "getfzmip.txt-old.20171215-104858.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1, "owner": "root", "group": "root", "size_bytes": 24, "size_raw": "24", "date": "Dec 15 10:48", "name": "getfzmip.txt-old.20171215-104858.txt", },
-            "bcn": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root", "size_bytes": 4, "size_raw": "4", "date": "Mar 20  2015", "name": "bcn", "link": "/bcn"},
-            "logsremote": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root", "size_bytes":10, "size_raw": "10", "date": "Mar 20  2015", "name": "logsremote", "link": "/mnt/logs/"},
+    "files": {
+        "bin": {"permissions": "drwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root",
+                "size_bytes": 4096, "size_raw": "4096", "date": "Sep 25  2014", "name": "bin", },
+        "btslog2": {"permissions": "drwxr-xr-x", "hard_links_count": 5, "owner": "root", "group": "root",
+                    "size_bytes": 4096, "size_raw": "4096", "date": "Mar 20  2015", "name": "btslog2", },
+        "getfzmip.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1, "owner": "root", "group": "root",
+                         "size_bytes": 51, "size_raw": "51", "date": "Dec 15 10:48", "name": "getfzmip.txt", },
+        "getfzmip.txt-old.20171215-104858.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1, "owner": "root",
+                                                 "group": "root", "size_bytes": 24, "size_raw": "24",
+                                                 "date": "Dec 15 10:48",
+                                                 "name": "getfzmip.txt-old.20171215-104858.txt", },
+        "bcn": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root", "size_bytes": 4,
+                "size_raw": "4", "date": "Mar 20  2015", "name": "bcn", "link": "/bcn"},
+        "logsremote": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root",
+                       "size_bytes": 10, "size_raw": "10", "date": "Mar 20  2015", "name": "logsremote",
+                       "link": "/mnt/logs/"},
     },
 }
-
 
 COMMAND_OUTPUT_ver_plain = """
 FZM-TDD-249:~ # ls
@@ -165,11 +178,11 @@ FZM-TDD-249:~ #
 COMMAND_KWARGS_ver_plain = {}
 
 COMMAND_RESULT_ver_plain = {
-            "files": {
-                ".ansible": {"name": ".ansible"},
-                "dot1ag-13.2.tgz": {"name": "dot1ag-13.2.tgz"},
-                ".kde4": {"name": ".kde4"},
-                ".bash_history": {"name": ".bash_history"},
-                "Downloads": {"name": "Downloads"},
-            },
+    "files": {
+        ".ansible": {"name": ".ansible"},
+        "dot1ag-13.2.tgz": {"name": "dot1ag-13.2.tgz"},
+        ".kde4": {"name": ".kde4"},
+        ".bash_history": {"name": ".bash_history"},
+        "Downloads": {"name": "Downloads"},
+    },
 }
