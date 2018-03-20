@@ -2,8 +2,7 @@
 """
 Uptime command module.
 """
-from re import compile, IGNORECASE
-
+import re
 from moler.cmd.unix.genericunix import GenericUnix
 
 __author__ = 'Marcin Usielski'
@@ -12,47 +11,50 @@ __email__ = 'marcin.usielski@nokia.com'
 
 
 class Uptime(GenericUnix):
-    # Compiled regexp
-    _reg_uptime_line = compile(r"(\d{2}:\d{2}:\d{2}|\d{2}:\d{2}(am|pm))\s+up\s+(.*?),\s+(\d+)\s+user.*\n", IGNORECASE)
-    _reg_days = compile(r"(\d+) day(?:s)?,\s+(\d+):(\d+)")
-    _reg_days_minutes = compile(r"(\d+) day(?:s)?,\s+(\d+)\s+min")
-    _reg_hours_minutes = compile(r"(\d+):(\d+)")
-    _reg_minutes = compile(r"(\d+) min")
 
-    def __init__(self, connection, file=None):
-        super(Uptime, self).__init__(connection)
+    # Compiled regexp
+    _re_uptime_line = re.compile(r"(\d{2}:\d{2}:\d{2}|\d{2}:\d{2}(am|pm))\s+up\s+(.*?),\s+(\d+)\s+user.*",
+                                 re.IGNORECASE)
+    _re_days = re.compile(r"(\d+) day(?:s)?,\s+(\d+):(\d+)")
+    _re_days_minutes = re.compile(r"(\d+) day(?:s)?,\s+(\d+)\s+min")
+    _re_hours_minutes = re.compile(r"(\d+):(\d+)")
+    _re_minutes = re.compile(r"(\d+) min")
+
+    def __init__(self, connection, options=None, prompt=None, new_line_chars=None):
+        super(Uptime, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
         # Parameters defined by calling the command
-        self.file = file
-        self.get_cmd()
+        self.options = options
 
     def get_cmd(self, cmd=None):
         if cmd is None:
             cmd = "uptime"
-            if self.file:
-                cmd = cmd + " " + self.file
+            if self.options:
+                cmd = cmd + " " + self.options
         return cmd
 
-    def on_new_line(self, line):
-        if self._cmd_matched and self._regex_helper.search_compiled(Uptime._reg_uptime_line, line):
+    def on_new_line(self, line, is_full_line):
+        if not is_full_line:
+            return super(Uptime, self).on_new_line(line, is_full_line)
+        if self._regex_helper.search_compiled(Uptime._re_uptime_line, line):
             val = self._regex_helper.group(3)
             users = self._regex_helper.group(4)
             uptime_seconds = 0
-            if self._regex_helper.search_compiled(Uptime._reg_days, val):
+            if self._regex_helper.search_compiled(Uptime._re_days, val):
                 uptime_seconds = 24 * 3600 * int(self._regex_helper.group(1)) + 3600 * int(
                     self._regex_helper.group(2)) + 60 * int(self._regex_helper.group(3))
-            elif self._regex_helper.search_compiled(Uptime._reg_days_minutes, val):
+            elif self._regex_helper.search_compiled(Uptime._re_days_minutes, val):
                 uptime_seconds = 24 * 3600 * int(self._regex_helper.group(1)) + 3600 * int(self._regex_helper.group(2))
-            elif self._regex_helper.search_compiled(Uptime._reg_hours_minutes, val):
+            elif self._regex_helper.search_compiled(Uptime._re_hours_minutes, val):
                 uptime_seconds = 3600 * int(self._regex_helper.group(1)) + 60 * int(self._regex_helper.group(2))
-            elif self._regex_helper.search_compiled(self._reg_minutes, val):
+            elif self._regex_helper.search_compiled(self._re_minutes, val):
                 uptime_seconds = 60 * int(self._regex_helper.group(1))
             else:
                 self.set_exception(Exception("Unsupported string format in line '{}'".format(line)))
-            self.ret["UPTIME"] = val
-            self.ret["UPTIME_SECONDS"] = uptime_seconds
-            self.ret["USERS"] = users
-        return super(Uptime, self).on_new_line(line)
+            self.current_ret["UPTIME"] = val
+            self.current_ret["UPTIME_SECONDS"] = uptime_seconds
+            self.current_ret["USERS"] = users
+        return super(Uptime, self).on_new_line(line, is_full_line)
 
 
 # -----------------------------------------------------------------------------
