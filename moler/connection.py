@@ -337,7 +337,7 @@ class ConnectionFactory(object):
         :param io_type: 'tcp', 'memory', 'ssh', ...
         :return: list of variants, ex. ['threaded', 'twisted']
         """
-        available = [vt for io, vt in cls._constructors_registry if io==io_type]
+        available = [vt for io, vt in cls._constructors_registry if io == io_type]
         return available
 
 
