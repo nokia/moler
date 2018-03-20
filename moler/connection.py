@@ -329,6 +329,18 @@ class ConnectionFactory(object):
         return connection
 
 
+def get_connection(io_type, variant, **constructor_kwargs):
+    """
+    Return connection instance of given io_type/variant
+
+    :param io_type: 'tcp', 'memory', 'ssh', ...
+    :param variant: implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
+    :param constructor_kwargs: arguments specific for given io_type
+    :return: None
+    """
+    return ConnectionFactory.get_connection(io_type, variant, **constructor_kwargs)
+
+
 def _register_builtin_connections():
     from moler.io.raw.memory import ThreadedFifoBuffer
     from moler.io.raw.tcp import ThreadedTcp

@@ -10,31 +10,30 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 
 
 def test_missing_constructor_raises_KeyError():
-    from moler.connection import ConnectionFactory
+    from moler.connection import get_connection
     with pytest.raises(KeyError) as err:
-        ConnectionFactory.get_connection(io_type='memory', variant='superquick')
+        get_connection(io_type='memory', variant='superquick')
     assert "No constructor registered for [('memory', 'superquick')] connection" in str(err)
 
 
 def test_factory_has_buildin_constructors_active_by_default():
-    from moler.connection import ConnectionFactory
+    from moler.connection import get_connection
 
-    conn = ConnectionFactory.get_connection(io_type='memory', variant='threaded')
+    conn = get_connection(io_type='memory', variant='threaded')
     assert conn.__module__ == 'moler.io.raw.memory'
     assert conn.__class__.__name__ == 'ThreadedFifoBuffer'
 
-    conn = ConnectionFactory.get_connection(io_type='tcp', variant='threaded', host='localhost', port=2345)
+    conn = get_connection(io_type='tcp', variant='threaded', host='localhost', port=2345)
     assert conn.__module__ == 'moler.io.raw.tcp'
     assert conn.__class__.__name__ == 'ThreadedTcp'
 
 
 def test_returned_connections_have_moler_integrated_connection(builtin_variant,
                                                                builtin_io_type_example):
-    from moler.connection import ConnectionFactory
+    from moler.connection import get_connection
 
     io_type, kwargs = builtin_io_type_example
-    conn = ConnectionFactory.get_connection(io_type=io_type,
-                                            variant=builtin_variant, **kwargs)
+    conn = get_connection(io_type=io_type, variant=builtin_variant, **kwargs)
     assert hasattr(conn, 'moler_connection')
     assert conn.moler_connection.how2send != conn.moler_connection._unknown_send
 
@@ -49,7 +48,7 @@ def test_registered_constructor_must_be_callable():
 
 
 def test_can_plugin_alternative_connection_instead_of_builtin_one(builtin_connection_factories):
-    from moler.connection import ConnectionFactory
+    from moler.connection import ConnectionFactory, get_connection
     from moler.connection import ObservableConnection
 
     class DummyTcpConnection(object):
@@ -61,7 +60,7 @@ def test_can_plugin_alternative_connection_instead_of_builtin_one(builtin_connec
 
     ConnectionFactory.register_construction(io_type='tcp', variant='threaded',
                                             constructor=DummyTcpConnection)
-    conn = ConnectionFactory.get_connection(io_type='tcp', variant='threaded')
+    conn = get_connection(io_type='tcp', variant='threaded')
     assert conn.__class__.__name__ == 'DummyTcpConnection'
 
 
