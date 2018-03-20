@@ -3,6 +3,8 @@
 """
 Connections related configuration
 """
+import yaml
+from contextlib import contextmanager
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -36,6 +38,39 @@ def define_connection(name, io_type, **constructor_kwargs):
         svr1_conn.open()
     """
     named_connections[name] = (io_type, constructor_kwargs)
+
+
+@contextmanager
+def read_configfile(path):
+    """
+    Context manager that reads content of configuration file into string
+
+    :param path: location of configuration file
+    :return: configuration file content as string
+    """
+    with open(path, 'r') as config_file:
+        content = config_file.read()
+        yield content
+
+
+def read_yaml_configfile(path):
+    """
+    Read and convert YAML into dictionary
+
+    :param path: location of yaml file
+    :return: configuration as a python dictionary
+    """
+    with read_configfile(path) as content:
+        return yaml.load(content)
+
+
+def load_config(path, config_type='yaml'):
+    assert config_type == 'yaml'  # no other format supported yet
+    config = read_yaml_configfile(path)
+    # TODO: check schema
+    for name, connection_specification in config.items():
+        io_type = connection_specification.pop("io_type")
+        define_connection(name, io_type, **connection_specification)
 
 
 def clear():

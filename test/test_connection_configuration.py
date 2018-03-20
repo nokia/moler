@@ -2,6 +2,7 @@
 """
 Testing possibilities to configure connections
 """
+import os
 import pytest
 
 __author__ = 'Grzegorz Latuszek'
@@ -90,6 +91,20 @@ def test_cannot_select_connection_by_nonexisting_name(connections_config):
     with pytest.raises(KeyError) as err:
         get_connection(name='www_server_1')
     assert "Connection named 'www_server_1' was not defined inside configuration" in str(err)
+
+
+def test_can_select_connection_loaded_from_config_file(connections_config):
+    from moler.connection import get_connection
+
+    conn_config = os.path.join(os.path.dirname(__file__), "resources", "www_servers_connections.yml")
+    connections_config.load_config(path=conn_config,
+                                   config_type='yaml')
+    connections_config.set_default_variant(io_type='tcp', variant='threaded')
+    conn = get_connection(name='www_server_1')
+    assert conn.__module__ == 'moler.io.raw.tcp'
+    assert conn.__class__.__name__ == 'ThreadedTcp'
+    assert conn.host == 'localhost'
+    assert conn.port == 2345
 
 
 # --------------------------- resources ---------------------------
