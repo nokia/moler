@@ -55,7 +55,7 @@ class Cd(GenericUnix):
 
 COMMAND_OUTPUT_ver_execute = """
 fzm-tdd-1:~ # cd /home/ute/
-fzm-tdd-1:/home/ute #  
+fzm-tdd-1:/home/ute #
 """
 
 COMMAND_KWARGS_ver_execute = {'path': '/home/ute'}
