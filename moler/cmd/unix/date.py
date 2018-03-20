@@ -93,33 +93,33 @@ MONTH:          3 (March)
 tkrol@belvedere01:~>"""
 
 COMMAND_RESULT = {
-        'DATE': {
-            'FULL': '14-03-2018',
-            'YEAR': '2018',
-            'MONTH': '03',
-            'DAY': '14'
-        },
-        'DAY_NAME': 'Wednesday',
-        'DAY_OF_YEAR': 73,
-        'DAY_OF_MONTH': 14,
-        'DAY_OF_WEEK': 3,
-        'EPOCH': 1521034698,
-        'MONTH_NAME': 'March',
-        'MONTH_NUMBER': 3,
-        'TIME': {
-            'FULL': '14:38:18',
-            'MINUTE': '38',
-            'HOUR': '14',
-            'SECOND': '18',
-        },
-        'WEEK_NUMBER': 11,
-        'ZONE': {
-            'FULL': '+0100 CET',
-            'SIGN': '+',
-            'HOUR': '01',
-            'MINUTE': '00',
-            'NAME': 'CET'
-        }
+    'DATE': {
+        'FULL': '14-03-2018',
+        'YEAR': '2018',
+        'MONTH': '03',
+        'DAY': '14'
+    },
+    'DAY_NAME': 'Wednesday',
+    'DAY_OF_YEAR': 73,
+    'DAY_OF_MONTH': 14,
+    'DAY_OF_WEEK': 3,
+    'EPOCH': 1521034698,
+    'MONTH_NAME': 'March',
+    'MONTH_NUMBER': 3,
+    'TIME': {
+        'FULL': '14:38:18',
+        'MINUTE': '38',
+        'HOUR': '14',
+        'SECOND': '18',
+    },
+    'WEEK_NUMBER': 11,
+    'ZONE': {
+        'FULL': '+0100 CET',
+        'SIGN': '+',
+        'HOUR': '01',
+        'MINUTE': '00',
+        'NAME': 'CET'
     }
+}
 
 COMMAND_KWARGS = {}
