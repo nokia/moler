@@ -1,0 +1,4 @@
+www_server_1:          # connection name
+    io_type: tcp
+    host: localhost
+    port: 2345
