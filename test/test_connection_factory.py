@@ -10,9 +10,9 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 
 
 def test_missing_constructor_raises_KeyError():
-    from moler.connection import get_connection
+    from moler.connection import ConnectionFactory
     with pytest.raises(KeyError) as err:
-        get_connection(io_type='memory', variant='superquick')
+        ConnectionFactory.get_connection(io_type='memory', variant='superquick')
     assert "No constructor registered for [('memory', 'superquick')] connection" in str(err)
 
 
@@ -52,7 +52,7 @@ def test_can_plugin_alternative_connection_instead_of_builtin_one(builtin_connec
     from moler.connection import ObservableConnection
 
     class DummyTcpConnection(object):
-        def __init__(self):
+        def __init__(self, host, port):
             self.moler_connection = ObservableConnection(how2send=self.send)
 
         def send(self, data):
@@ -60,7 +60,8 @@ def test_can_plugin_alternative_connection_instead_of_builtin_one(builtin_connec
 
     ConnectionFactory.register_construction(io_type='tcp', variant='threaded',
                                             constructor=DummyTcpConnection)
-    conn = get_connection(io_type='tcp', variant='threaded')
+    conn = get_connection(io_type='tcp', variant='threaded',
+                          host='localhost', port=2345)
     assert conn.__class__.__name__ == 'DummyTcpConnection'
 
 

@@ -18,6 +18,7 @@ import logging
 from moler.exceptions import WrongUsage
 from moler.helpers import instance_id
 from moler.config.loggers import RAW_DATA, TRACE
+import moler.config.connections as connection_cfg
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -314,7 +315,7 @@ class ConnectionFactory(object):
         :param io_type: 'tcp', 'memory', 'ssh', ...
         :param variant: implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
         :param constructor_kwargs: arguments specific for given io_type
-        :return: None
+        :return: requested connection
         """
         key = (io_type, variant)
         if key not in cls._constructors_registry:
@@ -328,16 +329,43 @@ class ConnectionFactory(object):
         # try to use funcsigs.signature to give more detailed missing-param
         return connection
 
+    @classmethod
+    def available_variants(cls, io_type):
+        """
+        Return variants available for given io_type
 
-def get_connection(io_type, variant, **constructor_kwargs):
+        :param io_type: 'tcp', 'memory', 'ssh', ...
+        :return: list of variants, ex. ['threaded', 'twisted']
+        """
+        available = [vt for io, vt in cls._constructors_registry if io==io_type]
+        return available
+
+
+def get_connection(io_type, variant=None, **constructor_kwargs):
     """
     Return connection instance of given io_type/variant
 
     :param io_type: 'tcp', 'memory', 'ssh', ...
     :param variant: implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
     :param constructor_kwargs: arguments specific for given io_type
-    :return: None
+    :return: requested connection
+
+    If variant is not given then it is taken from configuration.
     """
+    if variant is None:
+        if io_type in connection_cfg.default_variant:
+            variant = connection_cfg.default_variant[io_type]
+    if variant is None:
+        whats_wrong = "No variant selected"
+        selection_method = "directly or via configuration"
+        raise KeyError("{} ({}) for '{}' connection".format(whats_wrong,
+                                                            selection_method,
+                                                            io_type))
+    if variant not in ConnectionFactory.available_variants(io_type):
+        whats_wrong = "is not registered inside ConnectionFactory"
+        raise KeyError("'{}' variant of '{}' connection {}".format(variant,
+                                                                   io_type,
+                                                                   whats_wrong))
     return ConnectionFactory.get_connection(io_type, variant, **constructor_kwargs)
 
 
