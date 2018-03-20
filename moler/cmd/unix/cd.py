@@ -14,17 +14,18 @@ __email__ = 'michal.ernst@nokia.com'
 class CdNoSuchFileOrDirectory(Exception):
     pass
 
+
 class Cd(GenericUnix):
     def __init__(self, connection, path=None):
         super(Cd, self).__init__(connection)
 
-        #Parameters defined by calling the command
+        # Parameters defined by calling the command
         self.path = path
 
-        #command parameters
+        # command parameters
         self.ret_required = False
 
-        #regex
+        # regex
         self._reg_no_such_file_or_dir = compile(r"(.* No such file or directory)")
 
     def get_cmd(self, cmd="cd"):
@@ -37,6 +38,7 @@ class Cd(GenericUnix):
             self.set_exception(CdNoSuchFileOrDirectory("ERROR: {}".format(self._regex_helper.group(1))))
 
         return super(Cd, self).on_new_line(line)
+
 
 # -----------------------------------------------------------------------------
 # Following documentation is required for library CI.
