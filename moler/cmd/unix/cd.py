@@ -23,7 +23,6 @@ class Cd(GenericUnix):
 
         #command parameters
         self.ret_required = False
-        self.get_cmd()
 
         #regex
         self._reg_no_such_file_or_dir = compile(r"(.* No such file or directory)")
