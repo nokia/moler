@@ -17,30 +17,28 @@ def test_get_connection_without_variant_selection_raises_KeyError():
     assert "No variant selected (directly or via configuration) for 'tcp' connection" in str(err)
 
 
-def test_can_select_connection_variant_from_buildin_connections():
+def test_can_select_connection_variant_from_buildin_connections(connections_config):
     from moler.connection import get_connection
-    from moler.config.connections import set_default_variant
 
-    set_default_variant(io_type='tcp', variant='threaded')
+    connections_config.set_default_variant(io_type='tcp', variant='threaded')
     conn = get_connection(io_type='tcp', host='localhost', port=2345)
     assert conn.__module__ == 'moler.io.raw.tcp'
     assert conn.__class__.__name__ == 'ThreadedTcp'
 
 
-def test_cannot_select_nonexisting_connection_variant():
+def test_cannot_select_nonexisting_connection_variant(connections_config):
     """Non-existing means not registered inside ConnectionFactory"""
     from moler.connection import get_connection
-    from moler.config.connections import set_default_variant
 
-    set_default_variant(io_type='tcp', variant='yedi_magic')
+    connections_config.set_default_variant(io_type='tcp', variant='yedi_magic')
     with pytest.raises(KeyError) as err:
         get_connection(io_type='tcp', host='localhost', port=2345)
     assert "'yedi_magic' variant of 'tcp' connection is not registered inside ConnectionFactory" in str(err)
 
 
-def test_can_select_connection_variant_from_plugin_connections(builtin_connection_factories):
+def test_can_select_connection_variant_from_plugin_connections(builtin_connection_factories,
+                                                               connections_config):
     from moler.connection import ConnectionFactory, get_connection
-    from moler.config.connections import set_default_variant
 
     class DummyTcpConnection(object):
         def __init__(self, host, port):
@@ -48,12 +46,19 @@ def test_can_select_connection_variant_from_plugin_connections(builtin_connectio
 
     ConnectionFactory.register_construction(io_type='tcp', variant='dummy',
                                             constructor=DummyTcpConnection)
-    set_default_variant(io_type='tcp', variant='dummy')
+    connections_config.set_default_variant(io_type='tcp', variant='dummy')
     conn = get_connection(io_type='tcp', host='localhost', port=2345)
     assert conn.__class__.__name__ == 'DummyTcpConnection'
 
 
 # --------------------------- resources ---------------------------
+
+@pytest.yield_fixture
+def connections_config():
+    import moler.config.connections as conn_cfg
+    yield conn_cfg
+    # restore since tests may change configuration
+    conn_cfg.clear()
 
 
 @pytest.yield_fixture

@@ -15,3 +15,8 @@ default_variant = {}
 def set_default_variant(io_type, variant):
     """Set variant to use as default when requesting 'io_type' connection"""
     default_variant[io_type] = variant
+
+
+def clear():
+    """Cleanup configuration related to connections"""
+    default_variant.clear()
