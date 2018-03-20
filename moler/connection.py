@@ -341,17 +341,31 @@ class ConnectionFactory(object):
         return available
 
 
-def get_connection(io_type, variant=None, **constructor_kwargs):
+def get_connection(name=None, io_type=None, variant=None, **constructor_kwargs):
     """
     Return connection instance of given io_type/variant
 
+    :param name: name of connection defined in configuration
     :param io_type: 'tcp', 'memory', 'ssh', ...
     :param variant: implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
     :param constructor_kwargs: arguments specific for given io_type
     :return: requested connection
 
+    You may provide either 'name' or 'io_type' but not both.
+    If you provide 'name' then it is searched inside configuration
+    to find io_type and constructor_kwargs assigned to that name.
+
     If variant is not given then it is taken from configuration.
     """
+    if (not name) and (not io_type):
+        raise AssertionError("Provide either 'name' or 'io_type' parameter (none given)")
+    if name and io_type:
+        raise AssertionError("Use either 'name' or 'io_type' parameter (not both)")
+    if name:
+        if name not in connection_cfg.named_connections:
+            whats_wrong = "was not defined inside configuration"
+            raise KeyError("Connection named '{}' {}".format(name, whats_wrong))
+        io_type, constructor_kwargs = connection_cfg.named_connections[name]
     if variant is None:
         if io_type in connection_cfg.default_variant:
             variant = connection_cfg.default_variant[io_type]
