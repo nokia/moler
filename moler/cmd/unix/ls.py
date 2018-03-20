@@ -65,7 +65,7 @@ class Ls(GenericUnix):
         self.current_ret["files"][filename]["group"] = self._regex_helper.group(4)
         self.current_ret["files"][filename]["size_raw"] = self._regex_helper.group(5)
         self.current_ret["files"][filename]["size_bytes"] = \
-        self._converter_helper.to_bytes(self._regex_helper.group(5))[0]
+            self._converter_helper.to_bytes(self._regex_helper.group(5))[0]
         self.current_ret["files"][filename]["date"] = self._regex_helper.group(6)
         self.current_ret["files"][filename]["name"] = self._regex_helper.group(7)
         if islink:

@@ -7,7 +7,6 @@ __author__ = 'Julia Patacz'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'julia.patacz@nokia.com'
 
-from re import escape
 
 from moler.cmd.unix.genericunix import GenericUnix
 
@@ -42,6 +41,7 @@ class Cp(GenericUnix):
 
         return super(Cp, self).on_new_line(line, is_full_line)
 
+
 COMMAND_OUTPUT = """
 patacz@belvedere07:~> cp uses.pl uses.pl.bak
 patacz@belvedere07:~>"""
@@ -54,4 +54,3 @@ COMMAND_KWARGS = {
     "src": "uses.pl",
     "dst": "uses.pl.bak",
 }
-
