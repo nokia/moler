@@ -9,14 +9,6 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
 
-def test_registered_constructor_must_be_callable():
-    from moler.connection_factory import register_construction
-    with pytest.raises(ValueError) as err:
-        register_construction(io_type='memory', variant='superquick',
-                              constructor=[1, 2])
-    assert "constructor must be callable not" in str(err)
-
-
 def test_missing_constructor_raises_KeyError():
     from moler.connection_factory import get_connection
     with pytest.raises(KeyError) as err:
@@ -46,6 +38,31 @@ def test_returned_connections_have_moler_integrated_connection(builtin_variant,
     assert conn.moler_connection.how2send != conn.moler_connection._unknown_send
 
 
+def test_registered_constructor_must_be_callable():
+    from moler.connection_factory import register_construction
+    with pytest.raises(ValueError) as err:
+        register_construction(io_type='memory', variant='superquick',
+                              constructor=[1, 2])
+    assert "constructor must be callable not" in str(err)
+
+
+def test_can_plugin_alternative_connection_instead_of_builtin_one(builtin_connection_factories):
+    from moler.connection_factory import register_construction, get_connection
+    from moler.connection import ObservableConnection
+
+    class DummyTcpConnection(object):
+        def __init__(self):
+            self.moler_connection = ObservableConnection(how2send=self.send)
+
+        def send(self, data):
+            pass
+
+    register_construction(io_type='tcp', variant='threaded',
+                          constructor=DummyTcpConnection)
+    conn = get_connection(io_type='tcp', variant='threaded')
+    assert conn.__class__.__name__ == 'DummyTcpConnection'
+
+
 # --------------------------- resources ---------------------------
 
 
@@ -60,3 +77,11 @@ def builtin_io_type_example(request):
     if request.param == 'tcp':
         kwargs = {'host': 'localhost', 'port': 2345}
     return request.param, kwargs
+
+
+@pytest.yield_fixture
+def builtin_connection_factories():
+    import moler.connection_factory  # installs builtin ones
+    yield
+    # restore since tests may overwrite builtins
+    moler.connection_factory._register_builtin_constructors()
