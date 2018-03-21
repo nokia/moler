@@ -4,13 +4,17 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
 
-class WrongUsage(Exception):
+class MolerException(Exception):
+    pass
+
+
+class WrongUsage(MolerException):
     """Wrong usage of library"""
     pass
 
 
 # TODO: do we need it? Just mapping to asyncio/concurrent.futures naming?
-class CancelledError(Exception):
+class CancelledError(MolerException):
     pass
 
 
@@ -23,7 +27,7 @@ class NoResultSinceCancelCalled(CancelledError):
 
 
 # TODO: do we need it? Just mapping to asyncio naming?
-class InvalidStateError(Exception):
+class InvalidStateError(MolerException):
     pass
 
 
@@ -51,7 +55,7 @@ class ResultAlreadySet(InvalidStateError):
         self.connection_observer = connection_observer
 
 
-class ConnectionObserverTimeout(Exception):
+class ConnectionObserverTimeout(MolerException):
     def __init__(self, connection_observer, timeout,
                  kind='run', passed_time=''):
         """Create instance of ConnectionObserverTimeout exception"""
@@ -64,7 +68,7 @@ class ConnectionObserverTimeout(Exception):
         self.timeout = timeout
 
 
-class NoCommandStringProvided(Exception):
+class NoCommandStringProvided(MolerException):
     def __init__(self, command):
         """Create instance of NoCommandStringProvided exception"""
         fix_info = 'fill .command_string member before starting command'
@@ -73,9 +77,20 @@ class NoCommandStringProvided(Exception):
         self.command = command
 
 
-class NoConnectionProvided(Exception):
+class NoConnectionProvided(MolerException):
     def __init__(self, connection_observer):
         """Create instance of NoConnectionProvided exception"""
         err_msg = 'for {}'.format(connection_observer)
         super(NoConnectionProvided, self).__init__(err_msg)
         self.connection_observer = connection_observer
+
+
+class CommandFailure(MolerException):
+    def __init__(self, command, message):
+        err_msg = "Command failed '{}' with {}".format(command.command_string, message)
+        self.command = command
+        super(CommandFailure, self).__init__(err_msg)
+
+
+class CommandTimeout(ConnectionObserverTimeout):
+    pass

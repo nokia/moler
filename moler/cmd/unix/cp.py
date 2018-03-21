@@ -9,10 +9,7 @@ __email__ = 'julia.patacz@nokia.com'
 
 
 from moler.cmd.unix.genericunix import GenericUnix
-
-
-class CpCommandFailure(Exception):
-    pass
+from moler.exceptions import CommandFailure
 
 
 class Cp(GenericUnix):
@@ -26,25 +23,22 @@ class Cp(GenericUnix):
 
         # self._reg_fail = compile(r'(cp\: cannot access)')
 
-    def get_cmd(self, cmd=None):
-        if not cmd:
-            if self.options:
-                cmd = "{} {} {} {}".format("cp", self.src, self.dst, self.options)
-            else:
-                cmd = "{} {} {}".format("cp", self.src, self.dst)
+    def build_command_string(self):
+        if self.options:
+            cmd = "{} {} {} {}".format("cp", self.src, self.dst, self.options)
+        else:
+            cmd = "{} {} {}".format("cp", self.src, self.dst)
         return cmd
 
     def on_new_line(self, line, is_full_line):
-        # if self._regex_helper.search_compiled(self._reg_fail, line):
-        if self._cmd_matched and self._regex_helper.search(r'(cp\: cannot access)', line):
-            self.set_exception(CpCommandFailure("ERROR: {}".format(self._regex_helper.group(1))))
-
+        if self._cmd_output_started and self._regex_helper.search(r'(cp\: cannot access)', line):
+            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group(1))))
         return super(Cp, self).on_new_line(line, is_full_line)
 
 
 COMMAND_OUTPUT = """
-patacz@belvedere07:~> cp uses.pl uses.pl.bak
-patacz@belvedere07:~>"""
+user@server:~> cp uses.pl uses.pl.bak
+user@server:~>"""
 
 COMMAND_RESULT = {
 

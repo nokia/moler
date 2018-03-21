@@ -9,8 +9,8 @@ import logging
 import time
 from abc import abstractmethod, ABCMeta
 from concurrent.futures import ThreadPoolExecutor, wait
-
 from moler.exceptions import ConnectionObserverTimeout
+from moler.exceptions import CommandTimeout
 from six import add_metaclass
 
 __author__ = 'Grzegorz Latuszek'
@@ -126,7 +126,10 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         connection_observer.cancel()
         connection_observer_future.cancel()
         self.shutdown()
-        raise ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
+        if hasattr(connection_observer, "command_string"):
+            raise CommandTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
+        else:
+            raise ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
 
     def feed(self, connection_observer):  # active feeder - pulls for data
         """

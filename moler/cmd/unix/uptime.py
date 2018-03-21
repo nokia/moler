@@ -26,11 +26,10 @@ class Uptime(GenericUnix):
         # Parameters defined by calling the command
         self.options = options
 
-    def get_cmd(self, cmd=None):
-        if cmd is None:
-            cmd = "uptime"
-            if self.options:
-                cmd = cmd + " " + self.options
+    def build_command_string(self):
+        cmd = "uptime"
+        if self.options:
+            cmd = cmd + " " + self.options
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -65,9 +64,9 @@ class Uptime(GenericUnix):
 # -----------------------------------------------------------------------------
 
 COMMAND_OUTPUT_ver_execute = """
-fzm-tdd-1:~ # uptime
+host:~ # uptime
 10:38am  up 3 days  2:14,  29 users,  load average: 0.09, 0.10, 0.07
-fzm-tdd-1:~ #
+host:~ #
 """
 
 COMMAND_KWARGS_ver_execute = {}

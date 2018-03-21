@@ -16,7 +16,7 @@ __email__ = 'marcin.usielski@nokia.com'
 
 class TextualGeneric(Command):
 
-    _re_default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')  # When user doesn't provide anything
+    _re_default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')  # When user provides no prompt
     _default_new_line_chars = ("\n", "\r")  # New line chars on device, not system with script!
 
     def __init__(self, connection, prompt=None, new_line_chars=None):
@@ -27,22 +27,14 @@ class TextualGeneric(Command):
         """
         super(TextualGeneric, self).__init__(connection)
         self.__command_string = None  # String representing command on device
-        self.current_ret = dict()  # Store everything here for user
+        self.current_ret = dict()  # Placeholder for result as-it-grows, before final write into self._result
         self._cmd_escaped = None  # Escaped regular expression string with command
-        self._cmd_matched = False  # If false parsing is not passed to command
+        self._cmd_output_started = False  # If false parsing is not passed to command
         self._regex_helper = RegexHelper()  # Object to regular expression matching
-        self.ret_required = True  # Set true if something must be parsed
+        self.ret_required = True  # # Set False for commands not returning parsed result
         self.break_on_timeout = True  # If True then Ctrl+c on timeout
         self._last_not_full_line = None  # Part of line
-        self._reg_prompt = prompt  # Expected prompt on device
-        if not self._reg_prompt:
-            self._reg_prompt = TextualGeneric._re_default_prompt
-        if sys.version_info >= (3, 0):
-            if isinstance(self._reg_prompt, str):
-                self._reg_prompt = re.compile(self._reg_prompt)
-        else:
-            if isinstance(self._reg_prompt, basestring):
-                self._reg_prompt = re.compile(self._reg_prompt)
+        self._re_prompt = TextualGeneric._calculate_prompt(prompt)  # Expected prompt on device
         self._new_line_chars = new_line_chars  # New line characters on device
         if not self._new_line_chars:
             self._new_line_chars = TextualGeneric._default_new_line_chars
@@ -50,7 +42,7 @@ class TextualGeneric(Command):
     @property
     def command_string(self):
         if not self.__command_string:
-            self.__command_string = self.get_cmd()
+            self.__command_string = self.build_command_string()
             self._cmd_escaped = re.escape(self.__command_string)
         return self.__command_string
 
@@ -58,6 +50,18 @@ class TextualGeneric(Command):
     def command_string(self, command_string):
         self.__command_string = command_string
         self._cmd_escaped = re.escape(command_string)
+
+    @staticmethod
+    def _calculate_prompt(prompt):
+        if not prompt:
+            prompt = TextualGeneric._re_default_prompt
+        if sys.version_info >= (3, 0):
+            if isinstance(prompt, str):
+                prompt = re.compile(prompt)
+        else:
+            if isinstance(prompt, basestring):
+                prompt = re.compile(prompt)
+        return prompt
 
     def is_new_line(self, line):
         """
@@ -79,19 +83,20 @@ class TextualGeneric(Command):
         for line in lines:
             if self._last_not_full_line is not None:
                 line = self._last_not_full_line + line
-            if self._cmd_matched:
+            if self._cmd_output_started:
                 is_full_line = self.is_new_line(line)
                 if is_full_line:
-                    for char in self._new_line_chars:
-                        line = line.rstrip(char)
+                    line = self._strip_new_lines_chars(line)
+                    self._last_not_full_line = None
+                else:
+                    self._last_not_full_line = line
                 self.on_new_line(line, is_full_line)
-            elif self._regex_helper.search(self._cmd_escaped, line) and self.is_new_line(line):
-                self._cmd_matched = True
+            else:
+                self._detect_start_of_cmd_output(line)
 
     @abc.abstractmethod
-    def get_cmd(self, cmd=None):
+    def build_command_string(self):
         """
-        :param cmd:  If provided then parameters form command will not be used
         :return:  String with command
         """
         pass
@@ -104,19 +109,34 @@ class TextualGeneric(Command):
         :param is_full_line: True if new line character was removed from line, False otherwise
         :return: Nothing
         """
-        if self._regex_helper.search_compiled(self._reg_prompt, line):
-            if (self.ret_required and self.is_ret()) or not self.ret_required:
+        if self.is_end_of_cmd_output(line):
+            if (self.ret_required and self.has_any_result()) or not self.ret_required:
                 if not self.done():
                     self.set_result(self.current_ret)
-                else:
-                    # print("Found candidate for final prompt but current ret is None or empty, required not None nor empty.")
-                    pass
+            else:
+                self.logger.debug("Found candidate for final prompt but current ret is None or empty, required not None nor empty.")
 
-    def has_cmd_run(self):
+    def is_end_of_cmd_output(self, line):
+        if self._regex_helper.search_compiled(self._re_prompt, line):
+            return True
+        return False
+
+    def _strip_new_lines_chars(self, line):
         """
-        :return: True if command string was already parsed in output. False otherwise
+        :param line: line from device
+        :return: line without new lines chars
         """
-        return self._cmd_matched
+        for char in self._new_line_chars:
+            line = line.rstrip(char)
+        return line
+
+    def _detect_start_of_cmd_output(self, line):
+        """
+        :param line: line to check if echo of command is sent by device
+        :return: Nothing
+        """
+        if self._regex_helper.search(self._cmd_escaped, line) and self.is_new_line(line):
+            self._cmd_output_started = True
 
     def break_cmd(self):
         """
@@ -141,9 +161,9 @@ class TextualGeneric(Command):
         if self.break_on_timeout:
             self.break_cmd()
 
-    def is_ret(self):
+    def has_any_result(self):
         """
-        :return: True if current_ret has anything. Otherwise False.
+        :return: True if current_ret has collected any data. Otherwise False
         """
         is_ret = False
         if self.current_ret:

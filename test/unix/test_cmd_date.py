@@ -18,7 +18,7 @@ def test_calling_date_returns_result_parsed_from_command_output(buffer_connectio
 
 def command_output_and_expected_result():
     data = """
-tkrol@belvedere01:~> date '+DATE:%t%t%d-%m-%Y%nTIME:%t%t%H:%M:%S%nZONE:%t%t%z %Z%nEPOCH:%t%t%s%nWEEK_NUMBER:%t%-V%nDAY_OF_YEAR:%t%-j%nDAY_OF_WEEK:%t%u (%A)%nMONTH:%t%t%-m (%B)'
+user@host:~> date '+DATE:%t%t%d-%m-%Y%nTIME:%t%t%H:%M:%S%nZONE:%t%t%z %Z%nEPOCH:%t%t%s%nWEEK_NUMBER:%t%-V%nDAY_OF_YEAR:%t%-j%nDAY_OF_WEEK:%t%u (%A)%nMONTH:%t%t%-m (%B)'
 DATE:           14-03-2018
 TIME:           14:38:18
 ZONE:           +0100 CET
@@ -27,8 +27,7 @@ WEEK_NUMBER:    11
 DAY_OF_YEAR:    73
 DAY_OF_WEEK:    3 (Wednesday)
 MONTH:          3 (March)
-tkrol@belvedere01:~> 
-    """
+user@host:~>"""
 
     result = {
         'DATE': {

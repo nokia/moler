@@ -24,10 +24,10 @@ def test_uptime_returns_proper_command_string(buffer_connection):
 
 def command_output_and_expected_result():
     data = """
-fzm-tdd-1:~ # uptime
+host:~ # uptime
  10:38am  up 3 days  2:14,  29 users,  load average: 0.09, 0.10, 0.07
-fzm-tdd-1:~ #  
-    """
+host:~ #"""
+
     result = {
             "UPTIME": '3 days  2:14',
             "UPTIME_SECONDS": 8040,
