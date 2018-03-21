@@ -60,19 +60,7 @@ class Telnet(GenericUnix):
             return
         sent = self.send_after_login_settings(line)
         if (not sent) and self.is_target_prompt(line) and (not is_full_line):
-            if self.set_prompt and self.set_timeout:
-                if self._sent_prompt and self._sent_timeout:
-                    if not self.done():
-                        self.set_result({})
-            elif self.set_prompt:
-                if self._sent_prompt:
-                    if not self.done():
-                        self.set_result({})
-            elif self.set_timeout:
-                if self._sent_timeout:
-                    if not self.done():
-                        self.set_result({})
-            else:
+            if self.all_after_login_settings_sent() or self.no_after_login_settings_needed():
                 if not self.done():
                     self.set_result({})
 
@@ -97,6 +85,19 @@ class Telnet(GenericUnix):
                 self.send_prompt_set()
                 return True  # just sent
         return False  # nothing sent
+
+    def all_after_login_settings_sent(self):
+        if (((self.set_prompt and self.set_timeout) and     # both requested
+            (self._sent_prompt and self._sent_timeout)) or  # both sent
+
+            (self.set_prompt and self._sent_prompt) or      # single req & sent
+
+            (self.set_timeout and self._sent_timeout)):     # single req & sent
+            return True
+        return False
+
+    def no_after_login_settings_needed(self):
+        return (not self.set_prompt) and (not self.set_timeout)
 
     def timeout_set_needed(self):
         return self.set_timeout and not self._sent_timeout
