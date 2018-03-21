@@ -83,9 +83,9 @@ class Ssh(GenericUnix):
                     elif "keygen" == self.known_hosts_on_failure:
                         self.connection.send("\nssh-keygen -R " + self.host)
                     else:
-                        self.set_exception(Exception("Bad value of parameter known_hosts_on_failure '{}'. "
-                                                     "Supported values: rm or keygen.".format(
-                                                        self.known_hosts_on_failure)))
+                        self.set_exception(
+                            Exception("Bad value of parameter known_hosts_on_failure '{}'. "
+                                      "Supported values: rm or keygen.".format(self.known_hosts_on_failure)))
                     self._cmd_matched = False
                     self._sent_continue_connecting = False
                     self._sent_prompt = False
