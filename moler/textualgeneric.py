@@ -8,6 +8,7 @@ import sys
 
 from moler.cmd import RegexHelper
 from moler.command import Command
+import logging
 
 __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -26,6 +27,7 @@ class TextualGeneric(Command):
         :param new_line_chars:  new line chars on device
         """
         super(TextualGeneric, self).__init__(connection)
+        self.logger = logging.getLogger('moler.conn-observer')
         self.__command_string = None  # String representing command on device
         self.current_ret = dict()  # Placeholder for result as-it-grows, before final write into self._result
         self._cmd_escaped = None  # Escaped regular expression string with command
