@@ -50,15 +50,10 @@ class Telnet(GenericUnix):
         return cmd
 
     def on_new_line(self, line, is_full_line):
-        if not self._sent_login and (self._regex_helper.search_compiled(Telnet._re_login, line)):
-            self.connection.send(self.login)
-            self._sent_login = True
-            self._sent_password = False
-        elif (not self._sent_password) and (self._regex_helper.search_compiled(Telnet._re_password, line)):
-            self.connection.send(self.password)
-            self._sent_login = False
-            self._sent_password = True
-        elif self._regex_helper.search_compiled(Telnet._re_failed_strings, line):
+        self.send_login_if_requested(line)
+        self.send_password_if_requested(line)
+
+        if self.is_failure_indication(line):
             self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
         elif self._regex_helper.search_compiled(Telnet._re_has_just_connected, line):
             self.connection.send("")
@@ -86,6 +81,27 @@ class Telnet(GenericUnix):
                     else:
                         if not self.done():
                             self.set_result(self.current_ret)
+
+    def send_login_if_requested(self, line):
+        if (not self._sent_login) and self.is_login_requested(line):
+            self.connection.send(self.login)
+            self._sent_login = True
+            self._sent_password = False
+
+    def send_password_if_requested(self, line):
+        if (not self._sent_password) and self.is_password_requested(line):
+            self.connection.send(self.password)
+            self._sent_login = False
+            self._sent_password = True
+
+    def is_failure_indication(self, line):
+        return self._regex_helper.search_compiled(Telnet._re_failed_strings, line)
+
+    def is_login_requested(self, line):
+        return self._regex_helper.search_compiled(Telnet._re_login, line)
+
+    def is_password_requested(self, line):
+        return self._regex_helper.search_compiled(Telnet._re_password, line)
 
 
 COMMAND_OUTPUT_ver_execute = """
