@@ -66,18 +66,18 @@ class Telnet(GenericUnix):
                     if self.set_prompt and self.set_timeout:
                         if self._sent_prompt and self._sent_timeout:
                             if not self.done():
-                                self.set_result(self.current_ret)
+                                self.set_result({})
                     elif self.set_prompt:
                         if self._sent_prompt:
                             if not self.done():
-                                self.set_result(self.current_ret)
+                                self.set_result({})
                     elif self.set_timeout:
                         if self._sent_timeout:
                             if not self.done():
-                                self.set_result(self.current_ret)
+                                self.set_result({})
                     else:
                         if not self.done():
-                            self.set_result(self.current_ret)
+                            self.set_result({})
 
     def send_login_if_requested(self, line):
         if (not self._sent_login) and self.is_login_requested(line):
@@ -115,7 +115,7 @@ class Telnet(GenericUnix):
         return self._regex_helper.search_compiled(Telnet._re_password, line)
 
 
-COMMAND_OUTPUT_ver_execute = """
+COMMAND_OUTPUT = """
 amu012@belvedere07:~/automation/Flexi/config> TERM=xterm-mono telnet host.domain.net 1500
 Login:
 Login:user
@@ -126,11 +126,9 @@ host:~ #
 export TMOUT="2678400",
 host:~ #"""
 
-COMMAND_KWARGS_ver_execute = {
+COMMAND_KWARGS = {
     "login": "user", "password": "english", "port": "1500",
     "host": "host.domain.net", "prompt": "host:.*#"
 }
 
-COMMAND_RESULT_ver_execute = {
-
-}
+COMMAND_RESULT = {}
