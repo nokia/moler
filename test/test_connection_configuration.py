@@ -98,7 +98,7 @@ def test_can_select_connection_loaded_from_config_file(moler_config):
 
     conn_config = os.path.join(os.path.dirname(__file__), "resources", "www_servers_connections.yml")
     moler_config.load_config(path=conn_config, config_type='yaml')
-    moler_config.conn_cfg.set_default_variant(io_type='tcp', variant='threaded')
+
     conn = get_connection(name='www_server_1')
     assert conn.__module__ == 'moler.io.raw.tcp'
     assert conn.__class__.__name__ == 'ThreadedTcp'

@@ -41,9 +41,15 @@ def load_config(path, config_type='yaml'):
     assert config_type == 'yaml'  # no other format supported yet
     config = read_yaml_configfile(path)
     # TODO: check schema
-    for name, connection_specification in config.items():
-        io_type = connection_specification.pop("io_type")
-        conn_cfg.define_connection(name, io_type, **connection_specification)
+    if 'NAMED_CONNECTIONS' in config:
+        for name, connection_specification in config['NAMED_CONNECTIONS'].items():
+            io_type = connection_specification.pop("io_type")
+            conn_cfg.define_connection(name, io_type, **connection_specification)
+    if 'IO_TYPES' in config:
+        if 'default_variant' in config['IO_TYPES']:
+            defaults = config['IO_TYPES']['default_variant']
+            for io_type, variant in defaults.items():
+                conn_cfg.set_default_variant(io_type, variant)
 
 
 def clear():
