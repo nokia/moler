@@ -27,9 +27,8 @@ class Date(GenericUnix):
         self._re_day_of_week_line = re.compile(r"DAY_OF_WEEK:\s+(\d+)\s+\((\w+)\)", re.IGNORECASE)
         self._re_month_line = re.compile(r"MONTH:\s+(\d+)\s+\((\w+)\)", re.IGNORECASE)
 
-    def get_cmd(self, cmd=None):
-        if not cmd:
-            cmd = """date \
+    def build_command_string(self):
+        cmd = """date \
 '+DATE:%t%t%d-%m-%Y%n\
 TIME:%t%t%H:%M:%S%n\
 ZONE:%t%t%z %Z%n\
@@ -81,7 +80,7 @@ MONTH:%t%t%-m (%B)'"""
 
 
 COMMAND_OUTPUT = """
-tkrol@belvedere01:~> date '+DATE:%t%t%d-%m-%Y%nTIME:%t%t%H:%M:%S%nZONE:%t%t%z %Z%nEPOCH:%t%t%s%nWEEK_NUMBER:%t%-V%nDAY_OF_YEAR:%t%-j%nDAY_OF_WEEK:%t%u (%A)%nMONTH:%t%t%-m (%B)'
+user@server:~> date '+DATE:%t%t%d-%m-%Y%nTIME:%t%t%H:%M:%S%nZONE:%t%t%z %Z%nEPOCH:%t%t%s%nWEEK_NUMBER:%t%-V%nDAY_OF_YEAR:%t%-j%nDAY_OF_WEEK:%t%u (%A)%nMONTH:%t%t%-m (%B)'
 DATE:           14-03-2018
 TIME:           14:38:18
 ZONE:           +0100 CET
@@ -90,7 +89,7 @@ WEEK_NUMBER:    11
 DAY_OF_YEAR:    73
 DAY_OF_WEEK:    3 (Wednesday)
 MONTH:          3 (March)
-tkrol@belvedere01:~>"""
+user@server:~>"""
 
 COMMAND_RESULT = {
     'DATE': {

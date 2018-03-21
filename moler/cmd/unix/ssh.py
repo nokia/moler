@@ -4,6 +4,7 @@ Ssh command module.
 """
 import re
 from moler.cmd.unix.genericunix import GenericUnix
+from moler.exceptions import CommandFailure
 
 __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -37,7 +38,6 @@ class Ssh(GenericUnix):
         self.set_prompt = set_prompt
         self.term_mono = term_mono
 
-        self.get_cmd()
         self.ret_required = False
 
         # Internal variables
@@ -47,21 +47,20 @@ class Ssh(GenericUnix):
         self._sent_password = False
         self._sent_continue_connecting = False
 
-    def get_cmd(self, cmd=None):
-        if cmd is None:
-            cmd = ""
-            if self.term_mono:
-                cmd = "TERM=xterm-mono "
-            cmd = cmd + "ssh"
-            if self.port:
-                cmd = cmd + " -p " + str(self.port)
-            cmd = cmd + " -l " + self.login + " " + self.host
+    def build_command_string(self):
+        cmd = ""
+        if self.term_mono:
+            cmd = "TERM=xterm-mono "
+        cmd = cmd + "ssh"
+        if self.port:
+            cmd = cmd + " -p " + str(self.port)
+        cmd = cmd + " -l " + self.login + " " + self.host
         return cmd
 
     def on_new_line(self, line, is_full_line):
-        if not self._cmd_matched and self._regex_helper.search(self._cmd_escaped, line):
-            self._cmd_matched = True
-        elif self._cmd_matched:
+        if not self._cmd_output_started and self._regex_helper.search(self._cmd_escaped, line):
+            self._cmd_output_started = True
+        elif self._cmd_output_started:
             if self.known_hosts_on_failure is not None and self._regex_helper.search_compiled(Ssh._re_host_key, line):
                 self._hosts_file = self._regex_helper.group(1)
             if not self._sent_continue_connecting and self._regex_helper.search_compiled(Ssh._re_yes_no, line):
@@ -75,7 +74,7 @@ class Ssh(GenericUnix):
             elif Ssh._re_id_dsa.search(line):
                 self.connection.send("")
             elif self._regex_helper.search_compiled(Ssh._re_failed_strings, line):
-                self.set_exception(Exception("command failed in line '{}'".format(line)))
+                self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
             elif self._regex_helper.search_compiled(Ssh._re_host_key_verification_failed, line):
                 if self._hosts_file:
                     if "rm" == self.known_hosts_on_failure:
@@ -84,17 +83,17 @@ class Ssh(GenericUnix):
                         self.connection.send("\nssh-keygen -R " + self.host)
                     else:
                         self.set_exception(
-                            Exception("Bad value of parameter known_hosts_on_failure '{}'. "
-                                      "Supported values: rm or keygen.".format(self.known_hosts_on_failure)))
-                    self._cmd_matched = False
+                            CommandFailure(self, "Bad value of parameter known_hosts_on_failure '{}'. "
+                                           "Supported values: rm or keygen.".format(self.known_hosts_on_failure)))
+                    self._cmd_output_started = False
                     self._sent_continue_connecting = False
                     self._sent_prompt = False
                     self._sent_timeout = False
                     self._sent_password = False
                     self.connection.send(self.command_string)
                 else:
-                    self.set_exception(Exception("command failed in line '{}'".format(line)))
-            elif self._cmd_matched and self._regex_helper.search_compiled(self._reg_prompt, line):
+                    self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+            elif self._cmd_output_started and self._regex_helper.search_compiled(self._re_prompt, line):
                 if self.set_timeout and not self._sent_timeout:
                     self.connection.send("\n" + self.set_timeout)
                     self._sent_timeout = True
@@ -121,21 +120,20 @@ class Ssh(GenericUnix):
 
 
 COMMAND_OUTPUT_ver_execute = """
-amu012@belvedere07:~/automation/Flexi/config>
-amu012@belvedere07:~/automation/Flexi/config>TERM=xterm-mono ssh -l fzm-tdd-1 FZM-TDD-1.lab0.krk-lab.nsn-rdnet.net
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
 To edit this message please edit /etc/ssh_banner
 You may put information to /etc/ssh_banner who is owner of this PC
 Password:
 Password:
-Last login: Thu Nov 23 10:38:16 2017 from 10.83.200.37
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
 Have a lot of fun...
-fzm-tdd-1:~ #
-fzm-tdd-1:~ # export TMOUT="2678400"
-fzm-tdd-1:~ #"""
+host:~ #
+host:~ # export TMOUT="2678400"
+host:~ #"""
 
 COMMAND_KWARGS_ver_execute = {
-    "login": "fzm-tdd-1", "password": "Nokia",
-    "host": "FZM-TDD-1.lab0.krk-lab.nsn-rdnet.net", "prompt": "fzm-tdd-1:.*#"
+    "login": "user", "password": "english",
+    "host": "host.domain.net", "prompt": "host.*#"
 }
 
 COMMAND_RESULT_ver_execute = {

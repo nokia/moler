@@ -75,7 +75,7 @@ def test_ls_returns_proper_command_string(buffer_connection):
 
 def command_output_and_expected_result():
     data = """
-FZM-TDD-249:~ # ls -l
+host:~ # ls -l
 total 8
 drwxr-xr-x  2 root root    4096 Sep 25  2014 bin
 drwxr-xr-x  5 root root    4096 Mar 20  2015 btslog2
@@ -83,7 +83,7 @@ drwxr-xr-x  5 root root    4096 Mar 20  2015 btslog2
 -rw-r--r--  1 root root      24 Dec 15 10:48 getfzmip.txt-old.20171215-104858.txt
 lrwxrwxrwx  1 root root       4 Mar 20  2015 bcn -> /bcn
 lrwxrwxrwx  1 root root      10 Mar 20  2015 logsremote -> /mnt/logs/
-FZM-TDD-249:~ #"""
+host:~ #"""
     result = {
         "total": {
             "raw": "8",

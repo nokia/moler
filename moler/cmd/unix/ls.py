@@ -6,7 +6,7 @@ import re
 
 from moler.cmd.unix.genericunix import GenericUnix
 from moler.cmd.converterhelper import ConverterHelper
-from moler.exceptions import WrongUsage
+from moler.exceptions import ResultNotAvailableYet
 
 __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -26,11 +26,10 @@ class Ls(GenericUnix):
         self.options = options
         self.matched = 0
 
-    def get_cmd(self, cmd=None):
-        if cmd is None:
-            cmd = "ls"
-            if self.options:
-                cmd = cmd + " " + self.options
+    def build_command_string(self):
+        cmd = "ls"
+        if self.options:
+            cmd = cmd + " " + self.options
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -73,7 +72,7 @@ class Ls(GenericUnix):
 
     def _get_types(self, requested_type):
         if not self.done():
-            raise WrongUsage("Command not executed already")
+            raise ResultNotAvailableYet("Command not executed already")
         requested_type = requested_type.lower()
         ret = dict()
         result = self.result()
@@ -97,14 +96,14 @@ class Ls(GenericUnix):
 
 
 COMMAND_OUTPUT_ver_human = """
-FZM-TDD-249:~ # ls -lh
+host:~ # ls -lh
 total 1T
 -rwxr-xr-x 2 root  root  4.0K Nov 10  2016 file1
 -rwxr-xr-x 2 root  root  4.5M Nov 10  2016 file2
 -rwxr-xr-x 2 root  root  3.0G Nov 10  2016 file3
 -rwxr-xr-x 2 root  root  1.0T Nov 10  2016 file4
 -rwxr-xr-x 2 root  root    92 Nov 10  2016 file5
-FZM-TDD-249:~ #"""
+host:~ #"""
 
 COMMAND_KWARGS_ver_human = {"options": "-lh"}
 
@@ -129,7 +128,7 @@ COMMAND_RESULT_ver_human = {
 }
 
 COMMAND_OUTPUT_ver_long = """
-FZM-TDD-249:~ # ls -l
+host:~ # ls -l
 total 8
 drwxr-xr-x  2 root root    4096 Sep 25  2014 bin
 drwxr-xr-x  5 root root    4096 Mar 20  2015 btslog2
@@ -137,8 +136,7 @@ drwxr-xr-x  5 root root    4096 Mar 20  2015 btslog2
 -rw-r--r--  1 root root      24 Dec 15 10:48 getfzmip.txt-old.20171215-104858.txt
 lrwxrwxrwx  1 root root       4 Mar 20  2015 bcn -> /bcn
 lrwxrwxrwx  1 root root      10 Mar 20  2015 logsremote -> /mnt/logs/
-FZM-TDD-249:~ #
-"""
+host:~ #"""
 
 COMMAND_KWARGS_ver_long = {"options": "-l"}
 
@@ -169,11 +167,10 @@ COMMAND_RESULT_ver_long = {
 }
 
 COMMAND_OUTPUT_ver_plain = """
-FZM-TDD-249:~ # ls
+host:~ # ls
 .ansible               dot1ag-13.2.tgz                       .kde4
 .bash_history          Downloads
-FZM-TDD-249:~ #
-"""
+host:~ #"""
 
 COMMAND_KWARGS_ver_plain = {}
 

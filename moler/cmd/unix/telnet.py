@@ -5,6 +5,7 @@ Telnet command module.
 
 import re
 from moler.cmd.unix.genericunix import GenericUnix
+from moler.exceptions import CommandFailure
 
 __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -39,20 +40,19 @@ class Telnet(GenericUnix):
         self._sent_login = False
         self._sent_password = False
 
-    def get_cmd(self, cmd=None):
-        if cmd is None:
-            cmd = ""
-            if self.term_mono:
-                cmd = "TERM=xterm-mono "
-            cmd = cmd + "telnet " + self.host
-            if self.port:
-                cmd = cmd + " " + str(self.port)
+    def build_command_string(self):
+        cmd = ""
+        if self.term_mono:
+            cmd = "TERM=xterm-mono "
+        cmd = cmd + "telnet " + self.host
+        if self.port:
+            cmd = cmd + " " + str(self.port)
         return cmd
 
     def on_new_line(self, line, is_full_line):
-        if (not self._cmd_matched) and (self._regex_helper.search(self._cmd_escaped, line)):
-            self._cmd_matched = True
-        elif self._cmd_matched:
+        if (not self._cmd_output_started) and (self._regex_helper.search(self._cmd_escaped, line)):
+            self._cmd_output_started = True
+        elif self._cmd_output_started:
             if not self._sent_login and (self._regex_helper.search_compiled(Telnet._re_login, line)):
                 self.connection.send(self.login)
                 self._sent_login = True
@@ -62,10 +62,10 @@ class Telnet(GenericUnix):
                 self._sent_login = False
                 self._sent_password = True
             elif self._regex_helper.search_compiled(Telnet._re_failed_strings, line):
-                self.set_exception(Exception("command failed in line '{}'".format(line)))
+                self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
             elif self._regex_helper.search_compiled(Telnet._re_has_just_connected, line):
                 self.connection.send("")
-            elif self._cmd_matched and self._regex_helper.search_compiled(self._reg_prompt, line):
+            elif self._cmd_output_started and self._regex_helper.search_compiled(self._re_prompt, line):
                 if self.set_timeout and not self._sent_timeout:
                     self.connection.send("\n" + self.set_timeout)
                     self._sent_timeout = True
@@ -92,19 +92,19 @@ class Telnet(GenericUnix):
 
 
 COMMAND_OUTPUT_ver_execute = """
-amu012@belvedere07:~/automation/Flexi/config> TERM=xterm-mono telnet FZM-TDD-1.lab0.krk-lab.nsn-rdnet.net 6000
+amu012@belvedere07:~/automation/Flexi/config> TERM=xterm-mono telnet host.domain.net 1500
 Login:
-Login:fzm-tdd-1
+Login:user
 Password:
-Last login: Thu Nov 23 10:38:16 2017 from 10.83.200.37
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
 Have a lot of fun...
-fzm-tdd-1:~ #
+host:~ #
 export TMOUT="2678400",
-fzm-tdd-1:~ #"""
+host:~ #"""
 
 COMMAND_KWARGS_ver_execute = {
-    "login": "fzm-tdd-1", "password": "Nokia", "port": "6000",
-    "host": "FZM-TDD-1.lab0.krk-lab.nsn-rdnet.net", "prompt": "fzm-tdd-1:.*#"
+    "login": "user", "password": "english", "port": "1500",
+    "host": "host.domain.net", "prompt": "host:.*#"
 }
 
 COMMAND_RESULT_ver_execute = {

@@ -11,6 +11,7 @@ __email__ = 'marcin.usielski@nokia.com'
 
 class ConverterHelper(object):
     instance = None
+    # examples of matched strings: 1K 1 .5M  3.2G
     _re_to_bytes = re.compile(r"(\d+\.?\d*|\.\d+)\s*(\w?)")
     _binary_multipliers = {
         "k": 1024,
@@ -44,7 +45,7 @@ class ConverterHelper(object):
         value_str = m.group(1)
         value_unit = m.group(2)
         value_in_units = float(value_str)
-        value_in_bytes = int(value_in_units)  # Default, not unit provided
+        value_in_bytes = int(value_in_units)  # Default when not unit provided
         if value_unit:
             multipliers = ConverterHelper._binary_multipliers
             if not binary_multipliers:
