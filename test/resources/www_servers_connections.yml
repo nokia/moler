@@ -1,4 +1,8 @@
-www_server_1:          # connection name
-    io_type: tcp
-    host: localhost
-    port: 2345
+NAMED_CONNECTIONS:
+    www_server_1:          # connection name
+        io_type: tcp
+        host: localhost
+        port: 2345
+IO_TYPES:
+    default_variant:
+        tcp: threaded
