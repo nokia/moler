@@ -18,7 +18,6 @@ class Telnet(GenericUnix):
     _re_password = re.compile("password:", re.IGNORECASE)
     _re_failed_strings = re.compile("Permission denied|closed by foreign host|telnet:.*Name or service not known", re.IGNORECASE)
     _re_has_just_connected = re.compile(r"/has just connected|\{bash_history,ssh\}|Escape character is", re.IGNORECASE)
-    _re_new_line = re.compile(r"\n$")
 
     def __init__(self, connection, login, password, host, port=0, prompt=None,
                  set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono=True,
@@ -58,11 +57,11 @@ class Telnet(GenericUnix):
 
         if self._regex_helper.search_compiled(Telnet._re_has_just_connected, line):
             self.connection.send("")
-        elif self._regex_helper.search_compiled(self._re_prompt, line):
+        elif self.is_target_prompt(line):
             sent = self.send_timeout_set_if_requested()
             sent = sent if sent else self.send_prompt_set_if_requested()
             if not sent:
-                if not self._regex_helper.search(Telnet._re_new_line, line):
+                if not is_full_line:
                     if self.set_prompt and self.set_timeout:
                         if self._sent_prompt and self._sent_timeout:
                             if not self.done():
@@ -113,6 +112,9 @@ class Telnet(GenericUnix):
 
     def is_password_requested(self, line):
         return self._regex_helper.search_compiled(Telnet._re_password, line)
+
+    def is_target_prompt(self, line):
+        return self._regex_helper.search_compiled(self._re_prompt, line)
 
 
 COMMAND_OUTPUT = """
