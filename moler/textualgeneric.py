@@ -4,6 +4,7 @@ Generic Unix/Linux module
 """
 import re
 import abc
+import sys
 
 from moler.cmd import RegexHelper
 from moler.command import Command
@@ -36,8 +37,12 @@ class TextualGeneric(Command):
         self._reg_prompt = prompt  # Expected prompt on device
         if not self._reg_prompt:
             self._reg_prompt = TextualGeneric._re_default_prompt
-        if isinstance(self._reg_prompt, basestring):
-            self._reg_prompt = re.compile(self._reg_prompt)
+        if sys.version_info >= (3, 0):
+            if isinstance(self._reg_prompt, str):
+                self._reg_prompt = re.compile(self._reg_prompt)
+        else:
+            if isinstance(self._reg_prompt, basestring):
+                self._reg_prompt = re.compile(self._reg_prompt)
         self._new_line_chars = new_line_chars  # New line characters on device
         if not self._new_line_chars:
             self._new_line_chars = TextualGeneric._default_new_line_chars
