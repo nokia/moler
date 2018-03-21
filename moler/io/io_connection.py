@@ -16,9 +16,9 @@ but for majority (tcp, udp, ssh, process ...) it applies,
 so lets have common API.
 Moreover, we will map it to context manager API.
 
-send()/receive() is required but we cant force naming here since:
-- it's better to keep native/well-known naming of external-IO
-  (send/recv for socket, transport.write/data_received for asyncio, ...)
+send()/receive() is required but we cant force naming here since
+it's better to keep native/well-known naming of external-IO
+(send/recv for socket, transport.write/data_received for asyncio, ...)
 Specific external-IO implementation must do data-forwarding and
 send-plugin as stated above.
 NOTE: send/receive works on bytes since encoding/decoding
