@@ -20,7 +20,6 @@ class Ssh(GenericUnix):
     _re_permission_denied = re.compile("Permission denied, please try again", re.IGNORECASE)
     _re_failed_strings = re.compile("Permission denied|No route to host|ssh: Could not", re.IGNORECASE)
     _re_host_key_verification_failed = re.compile("Host key verification failed", re.IGNORECASE)
-    _re_new_line = re.compile(r"[\n\r]$")
 
     def __init__(self, connection, login, password, host, expected_prompt='>', port=0, known_hosts_on_failure='keygen',
                  set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono=True, prompt=None,
@@ -51,72 +50,114 @@ class Ssh(GenericUnix):
         cmd = ""
         if self.term_mono:
             cmd = "TERM=xterm-mono "
-        cmd = cmd + "ssh"
+        cmd += "ssh"
         if self.port:
-            cmd = cmd + " -p " + str(self.port)
-        cmd = cmd + " -l " + self.login + " " + self.host
+            cmd += " -p " + str(self.port)
+        cmd += " -l " + self.login + " " + self.host
         return cmd
 
     def on_new_line(self, line, is_full_line):
-        if self.known_hosts_on_failure is not None and self._regex_helper.search_compiled(Ssh._re_host_key, line):
+        if self.is_failure_indication(line):
+            self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+            return
+        self.get_hosts_file_if_displayed(line)
+        self.push_yes_if_needed(line)
+        self.send_password_if_requested(line)
+
+        if Ssh._re_id_dsa.search(line):
+            self.connection.send("")
+        elif self._regex_helper.search_compiled(Ssh._re_host_key_verification_failed, line):
+            if self._hosts_file:
+                self.handle_failed_host_key_verification()
+            else:
+                self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+        else:
+            sent = self.send_after_login_settings(line)
+            if (not sent) and self.is_target_prompt(line) and (not is_full_line):
+                if self.all_after_login_settings_sent() or self.no_after_login_settings_needed():
+                    if not self.done():
+                        self.set_result({})
+
+    def get_hosts_file_if_displayed(self, line):
+        if (self.known_hosts_on_failure is not None) and self._regex_helper.search_compiled(Ssh._re_host_key, line):
             self._hosts_file = self._regex_helper.group(1)
-        if not self._sent_continue_connecting and self._regex_helper.search_compiled(Ssh._re_yes_no, line):
+
+    def push_yes_if_needed(self, line):
+        if (not self._sent_continue_connecting) and self._regex_helper.search_compiled(Ssh._re_yes_no, line):
             self.connection.send('yes')
             self._sent_continue_connecting = True
-        elif not self._sent_password and self._regex_helper.search_compiled(Ssh._re_password, line):
+
+    def send_password_if_requested(self, line):
+        if (not self._sent_password) and self.is_password_requested(line):
             self.connection.send(self.password)
             self._sent_password = True
         elif self._sent_password and self._regex_helper.search_compiled(Ssh._re_permission_denied, line):
             self._sent_password = False
-        elif Ssh._re_id_dsa.search(line):
-            self.connection.send("")
-        elif self._regex_helper.search_compiled(Ssh._re_failed_strings, line):
-            self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
-        elif self._regex_helper.search_compiled(Ssh._re_host_key_verification_failed, line):
-            if self._hosts_file:
-                if "rm" == self.known_hosts_on_failure:
-                    self.connection.send("\nrm -f " + self._hosts_file)
-                elif "keygen" == self.known_hosts_on_failure:
-                    self.connection.send("\nssh-keygen -R " + self.host)
-                else:
-                    self.set_exception(
-                        CommandFailure(self, "Bad value of parameter known_hosts_on_failure '{}'. "
-                                       "Supported values: rm or keygen.".format(self.known_hosts_on_failure)))
-                self._cmd_output_started = False
-                self._sent_continue_connecting = False
-                self._sent_prompt = False
-                self._sent_timeout = False
-                self._sent_password = False
-                self.connection.send(self.command_string)
-            else:
-                self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
-        elif self._regex_helper.search_compiled(self._re_prompt, line):
-            if self.set_timeout and not self._sent_timeout:
-                self.connection.send("\n" + self.set_timeout)
-                self._sent_timeout = True
-            elif self.set_prompt and not self._sent_prompt:
-                self.connection.send("\n" + self.set_prompt)
-                self._sent_prompt = True
-            else:
-                if not self._regex_helper.search(Ssh._re_new_line, line):
-                    if self.set_prompt and self.set_timeout:
-                        if self._sent_prompt and self._sent_timeout:
-                            if not self.done():
-                                self.set_result(self.current_ret)
-                    elif self.set_prompt:
-                        if self._sent_prompt:
-                            if not self.done():
-                                self.set_result(self.current_ret)
-                    elif self.set_timeout:
-                        if self._sent_timeout:
-                            if not self.done():
-                                self.set_result(self.current_ret)
-                    else:
-                        if not self.done():
-                            self.set_result(self.current_ret)
+
+    def handle_failed_host_key_verification(self):
+        if "rm" == self.known_hosts_on_failure:
+            self.connection.send("\nrm -f " + self._hosts_file)
+        elif "keygen" == self.known_hosts_on_failure:
+            self.connection.send("\nssh-keygen -R " + self.host)
+        else:
+            self.set_exception(
+                CommandFailure(self,
+                               "Bad value of parameter known_hosts_on_failure '{}'. "
+                               "Supported values: rm or keygen.".format(
+                                   self.known_hosts_on_failure)))
+        self._cmd_output_started = False
+        self._sent_continue_connecting = False
+        self._sent_prompt = False
+        self._sent_timeout = False
+        self._sent_password = False
+        self.connection.send(self.command_string)
+
+    def send_after_login_settings(self, line):
+        if self.is_target_prompt(line):
+            if self.timeout_set_needed():
+                self.send_timeout_set()
+                return True  # just sent
+            elif self.prompt_set_needed():
+                self.send_prompt_set()
+                return True  # just sent
+        return False  # nothing sent
+
+    def all_after_login_settings_sent(self):
+        return (((self.set_prompt and self.set_timeout) and     # both requested
+                (self._sent_prompt and self._sent_timeout)) or  # & both sent
+
+                (self.set_prompt and self._sent_prompt) or      # single req & sent
+
+                (self.set_timeout and self._sent_timeout))      # single req & sent
+
+    def no_after_login_settings_needed(self):
+        return (not self.set_prompt) and (not self.set_timeout)
+
+    def timeout_set_needed(self):
+        return self.set_timeout and not self._sent_timeout
+
+    def send_timeout_set(self):
+        self.connection.send("\n" + self.set_timeout)
+        self._sent_timeout = True
+
+    def prompt_set_needed(self):
+        return self.set_prompt and not self._sent_prompt
+
+    def send_prompt_set(self):
+        self.connection.send("\n" + self.set_prompt)
+        self._sent_prompt = True
+
+    def is_failure_indication(self, line):
+        return self._regex_helper.search_compiled(Ssh._re_failed_strings, line)
+
+    def is_password_requested(self, line):
+        return self._regex_helper.search_compiled(Ssh._re_password, line)
+
+    def is_target_prompt(self, line):
+        return self._regex_helper.search_compiled(self._re_prompt, line)
 
 
-COMMAND_OUTPUT_ver_execute = """
+COMMAND_OUTPUT = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
 To edit this message please edit /etc/ssh_banner
 You may put information to /etc/ssh_banner who is owner of this PC
@@ -128,11 +169,9 @@ host:~ #
 host:~ # export TMOUT="2678400"
 host:~ #"""
 
-COMMAND_KWARGS_ver_execute = {
+COMMAND_KWARGS = {
     "login": "user", "password": "english",
     "host": "host.domain.net", "prompt": "host.*#"
 }
 
-COMMAND_RESULT_ver_execute = {
-
-}
+COMMAND_RESULT = {}
