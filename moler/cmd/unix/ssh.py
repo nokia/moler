@@ -58,65 +58,62 @@ class Ssh(GenericUnix):
         return cmd
 
     def on_new_line(self, line, is_full_line):
-        if not self._cmd_output_started and self._regex_helper.search(self._cmd_escaped, line):
-            self._cmd_output_started = True
-        elif self._cmd_output_started:
-            if self.known_hosts_on_failure is not None and self._regex_helper.search_compiled(Ssh._re_host_key, line):
-                self._hosts_file = self._regex_helper.group(1)
-            if not self._sent_continue_connecting and self._regex_helper.search_compiled(Ssh._re_yes_no, line):
-                self.connection.send('yes')
-                self._sent_continue_connecting = True
-            elif not self._sent_password and self._regex_helper.search_compiled(Ssh._re_password, line):
-                self.connection.send(self.password)
-                self._sent_password = True
-            elif self._sent_password and self._regex_helper.search_compiled(Ssh._re_permission_denied, line):
+        if self.known_hosts_on_failure is not None and self._regex_helper.search_compiled(Ssh._re_host_key, line):
+            self._hosts_file = self._regex_helper.group(1)
+        if not self._sent_continue_connecting and self._regex_helper.search_compiled(Ssh._re_yes_no, line):
+            self.connection.send('yes')
+            self._sent_continue_connecting = True
+        elif not self._sent_password and self._regex_helper.search_compiled(Ssh._re_password, line):
+            self.connection.send(self.password)
+            self._sent_password = True
+        elif self._sent_password and self._regex_helper.search_compiled(Ssh._re_permission_denied, line):
+            self._sent_password = False
+        elif Ssh._re_id_dsa.search(line):
+            self.connection.send("")
+        elif self._regex_helper.search_compiled(Ssh._re_failed_strings, line):
+            self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+        elif self._regex_helper.search_compiled(Ssh._re_host_key_verification_failed, line):
+            if self._hosts_file:
+                if "rm" == self.known_hosts_on_failure:
+                    self.connection.send("\nrm -f " + self._hosts_file)
+                elif "keygen" == self.known_hosts_on_failure:
+                    self.connection.send("\nssh-keygen -R " + self.host)
+                else:
+                    self.set_exception(
+                        CommandFailure(self, "Bad value of parameter known_hosts_on_failure '{}'. "
+                                       "Supported values: rm or keygen.".format(self.known_hosts_on_failure)))
+                self._cmd_output_started = False
+                self._sent_continue_connecting = False
+                self._sent_prompt = False
+                self._sent_timeout = False
                 self._sent_password = False
-            elif Ssh._re_id_dsa.search(line):
-                self.connection.send("")
-            elif self._regex_helper.search_compiled(Ssh._re_failed_strings, line):
+                self.connection.send(self.command_string)
+            else:
                 self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
-            elif self._regex_helper.search_compiled(Ssh._re_host_key_verification_failed, line):
-                if self._hosts_file:
-                    if "rm" == self.known_hosts_on_failure:
-                        self.connection.send("\nrm -f " + self._hosts_file)
-                    elif "keygen" == self.known_hosts_on_failure:
-                        self.connection.send("\nssh-keygen -R " + self.host)
-                    else:
-                        self.set_exception(
-                            CommandFailure(self, "Bad value of parameter known_hosts_on_failure '{}'. "
-                                           "Supported values: rm or keygen.".format(self.known_hosts_on_failure)))
-                    self._cmd_output_started = False
-                    self._sent_continue_connecting = False
-                    self._sent_prompt = False
-                    self._sent_timeout = False
-                    self._sent_password = False
-                    self.connection.send(self.command_string)
-                else:
-                    self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
-            elif self._cmd_output_started and self._regex_helper.search_compiled(self._re_prompt, line):
-                if self.set_timeout and not self._sent_timeout:
-                    self.connection.send("\n" + self.set_timeout)
-                    self._sent_timeout = True
-                elif self.set_prompt and not self._sent_prompt:
-                    self.connection.send("\n" + self.set_prompt)
-                    self._sent_prompt = True
-                else:
-                    if not self._regex_helper.search(Ssh._re_new_line, line):
-                        if self.set_prompt and self.set_timeout:
-                            if self._sent_prompt and self._sent_timeout:
-                                if not self.done():
-                                    self.set_result(self.current_ret)
-                        elif self.set_prompt:
-                            if self._sent_prompt:
-                                if not self.done():
-                                    self.set_result(self.current_ret)
-                        elif self.set_timeout:
-                            if self._sent_timeout:
-                                if not self.done():
-                                    self.set_result(self.current_ret)
-                        else:
+        elif self._regex_helper.search_compiled(self._re_prompt, line):
+            if self.set_timeout and not self._sent_timeout:
+                self.connection.send("\n" + self.set_timeout)
+                self._sent_timeout = True
+            elif self.set_prompt and not self._sent_prompt:
+                self.connection.send("\n" + self.set_prompt)
+                self._sent_prompt = True
+            else:
+                if not self._regex_helper.search(Ssh._re_new_line, line):
+                    if self.set_prompt and self.set_timeout:
+                        if self._sent_prompt and self._sent_timeout:
                             if not self.done():
                                 self.set_result(self.current_ret)
+                    elif self.set_prompt:
+                        if self._sent_prompt:
+                            if not self.done():
+                                self.set_result(self.current_ret)
+                    elif self.set_timeout:
+                        if self._sent_timeout:
+                            if not self.done():
+                                self.set_result(self.current_ret)
+                    else:
+                        if not self.done():
+                            self.set_result(self.current_ret)
 
 
 COMMAND_OUTPUT_ver_execute = """

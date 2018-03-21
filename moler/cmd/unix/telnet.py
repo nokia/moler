@@ -50,45 +50,42 @@ class Telnet(GenericUnix):
         return cmd
 
     def on_new_line(self, line, is_full_line):
-        if (not self._cmd_output_started) and (self._regex_helper.search(self._cmd_escaped, line)):
-            self._cmd_output_started = True
-        elif self._cmd_output_started:
-            if not self._sent_login and (self._regex_helper.search_compiled(Telnet._re_login, line)):
-                self.connection.send(self.login)
-                self._sent_login = True
-                self._sent_password = False
-            elif (not self._sent_password) and (self._regex_helper.search_compiled(Telnet._re_password, line)):
-                self.connection.send(self.password)
-                self._sent_login = False
-                self._sent_password = True
-            elif self._regex_helper.search_compiled(Telnet._re_failed_strings, line):
-                self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
-            elif self._regex_helper.search_compiled(Telnet._re_has_just_connected, line):
-                self.connection.send("")
-            elif self._cmd_output_started and self._regex_helper.search_compiled(self._re_prompt, line):
-                if self.set_timeout and not self._sent_timeout:
-                    self.connection.send("\n" + self.set_timeout)
-                    self._sent_timeout = True
-                elif self.set_prompt and not self._sent_prompt:
-                    self.connection.send("\n" + self.set_prompt)
-                    self._sent_prompt = True
-                else:
-                    if not self._regex_helper.search(Telnet._re_new_line, line):
-                        if self.set_prompt and self.set_timeout:
-                            if self._sent_prompt and self._sent_timeout:
-                                if not self.done():
-                                    self.set_result(self.current_ret)
-                        elif self.set_prompt:
-                            if self._sent_prompt:
-                                if not self.done():
-                                    self.set_result(self.current_ret)
-                        elif self.set_timeout:
-                            if self._sent_timeout:
-                                if not self.done():
-                                    self.set_result(self.current_ret)
-                        else:
+        if not self._sent_login and (self._regex_helper.search_compiled(Telnet._re_login, line)):
+            self.connection.send(self.login)
+            self._sent_login = True
+            self._sent_password = False
+        elif (not self._sent_password) and (self._regex_helper.search_compiled(Telnet._re_password, line)):
+            self.connection.send(self.password)
+            self._sent_login = False
+            self._sent_password = True
+        elif self._regex_helper.search_compiled(Telnet._re_failed_strings, line):
+            self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+        elif self._regex_helper.search_compiled(Telnet._re_has_just_connected, line):
+            self.connection.send("")
+        elif self._regex_helper.search_compiled(self._re_prompt, line):
+            if self.set_timeout and not self._sent_timeout:
+                self.connection.send("\n" + self.set_timeout)
+                self._sent_timeout = True
+            elif self.set_prompt and not self._sent_prompt:
+                self.connection.send("\n" + self.set_prompt)
+                self._sent_prompt = True
+            else:
+                if not self._regex_helper.search(Telnet._re_new_line, line):
+                    if self.set_prompt and self.set_timeout:
+                        if self._sent_prompt and self._sent_timeout:
                             if not self.done():
                                 self.set_result(self.current_ret)
+                    elif self.set_prompt:
+                        if self._sent_prompt:
+                            if not self.done():
+                                self.set_result(self.current_ret)
+                    elif self.set_timeout:
+                        if self._sent_timeout:
+                            if not self.done():
+                                self.set_result(self.current_ret)
+                    else:
+                        if not self.done():
+                            self.set_result(self.current_ret)
 
 
 COMMAND_OUTPUT_ver_execute = """
