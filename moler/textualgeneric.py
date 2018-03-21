@@ -65,7 +65,7 @@ class TextualGeneric(Command):
                 prompt = re.compile(prompt)
         return prompt
 
-    def is_new_line(self, line):
+    def is_new_line(self, line):  # TODO: change to has_endline_char()
         """
         Method to check if line has chars of new line at the right side
         :param line: String to check
