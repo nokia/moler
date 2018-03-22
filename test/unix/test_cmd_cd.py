@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Testing of Yelnet command.
+Testing of cd command.
 """
 __author__ = 'Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
