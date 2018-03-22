@@ -11,13 +11,12 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'michal.ernst@nokia.com'
 
 
-class CdNoSuchFileOrDirectory(Exception):
-    pass
-
-
 class Cd(GenericUnix):
-    def __init__(self, connection, path=None):
-        super(Cd, self).__init__(connection)
+    # Compiled regexp
+    _re_no_such_file_or_dir = compile(r"(.* No such file or directory)")
+
+    def __init__(self, connection, path=None, prompt=None, new_line_chars=None):
+        super(Cd, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
         # Parameters defined by calling the command
         self.path = path
@@ -26,36 +25,32 @@ class Cd(GenericUnix):
         self.ret_required = False
 
         # regex
-        self._reg_no_such_file_or_dir = compile(r"(.* No such file or directory)")
 
-    def get_cmd(self, cmd="cd"):
+    def build_command_string(self):
+        cmd = "cd"
         if self.path:
             cmd = cmd + " " + self.path
         return cmd
 
-    def on_new_line(self, line):
-        if self._cmd_matched and self._regex_helper.search_compiled(self._reg_no_such_file_or_dir, line):
-            self.set_exception(CdNoSuchFileOrDirectory("ERROR: {}".format(self._regex_helper.group(1))))
+    def on_new_line(self, line, is_full_line):
+        if not is_full_line:
+            return super(Cd, self).on_new_line(line, is_full_line)
+        if self._regex_helper.search_compiled(self._re_no_such_file_or_dir, line):
+            self.set_exception(Exception("ERROR: {}".format(self._regex_helper.group(1))))
 
-        return super(Cd, self).on_new_line(line)
+        return super(Cd, self).on_new_line(line, is_full_line)
 
 
 # -----------------------------------------------------------------------------
 # Following documentation is required for library CI.
 # It is used to perform command self-test.
-#
-# Moreover, it documents what will be COMMAND_RESULT when command
-# is run with COMMAND_KWARGS on COMMAND_OUTPUT data coming from connection.
-#
-# When you need to show parsing of multiple outputs just add suffixes:
-# COMMAND_OUTPUT_suffix
-# COMMAND_KWARGS_suffix
-# COMMAND_RESULT_suffix
+# Parameters:
+# path is Optional.Path for Unix cd command
 # -----------------------------------------------------------------------------
 
 COMMAND_OUTPUT_ver_execute = """
-fzm-tdd-1:~ # cd /home/ute/
-fzm-tdd-1:/home/ute #
+host:~ # cd /home/ute/
+host:/home/ute #
 """
 
 COMMAND_KWARGS_ver_execute = {'path': '/home/ute'}

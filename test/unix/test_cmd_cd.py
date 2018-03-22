@@ -15,11 +15,16 @@ def test_calling_uptime_returns_result_parsed_from_command_output(buffer_connect
     result = cd_cmd()
     assert result == expected_result
 
+def test_cd_returns_proper_command_string(buffer_connection):
+    from moler.cmd.unix.cd import Cd
+    cd_cmd = Cd(buffer_connection)
+    assert "cd" == cd_cmd.command_string
+
 
 def command_output_and_expected_result():
     data = """
-fzm-tdd-1:~ # cd /home/ute/
-fzm-tdd-1:/home/ute #  
+host:~ # cd /home/ute/
+host:/home/ute #  
     """
     result = {
              }
