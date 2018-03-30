@@ -15,11 +15,7 @@ class Rm(GenericUnix):
         super(Rm, self).__init__(connection)
 
         self.file = file
-        # self.params = parameters
-        self.command_string = self.get_cmd()
         self.ret_required = False
-
-        # self._reg_fail = compile(r'(cp\: cannot access)')
 
     def build_command_string(self):
         if self.options:
@@ -37,7 +33,7 @@ class Rm(GenericUnix):
 
 
 COMMAND_OUTPUT = """
-user@server:~> cp uses.pl uses.pl.bak
+user@server:~> rm test.txt
 user@server:~>"""
 
 COMMAND_RESULT = {
@@ -45,6 +41,5 @@ COMMAND_RESULT = {
 }
 
 COMMAND_KWARGS = {
-    "src": "uses.pl",
-    "dst": "uses.pl.bak",
+    "file": "test.txt",
 }
