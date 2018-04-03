@@ -10,6 +10,7 @@ __email__ = 'bartosz.odziomek@nokia.com'
 from moler.cmd.unix.genericunix import GenericUnix
 from moler.exceptions import CommandFailure
 
+
 class Rm(GenericUnix):
     def __init__(self, connection, file, options=None, prompt=None, new_line_chars=None):
         super(Rm, self).__init__(connection)
@@ -29,7 +30,6 @@ class Rm(GenericUnix):
             self.set_exception(CommandFailure("ERROR: {}".format(self._regex_helper.group(1))))
 
         return super(Rm, self).on_new_line(line)
-
 
 
 COMMAND_OUTPUT = """
