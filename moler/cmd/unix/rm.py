@@ -16,6 +16,7 @@ class Rm(GenericUnix):
         super(Rm, self).__init__(connection)
 
         self.file = file
+        self.options = options
         self.ret_required = False
 
     def build_command_string(self):
