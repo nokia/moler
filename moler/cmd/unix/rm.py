@@ -30,7 +30,7 @@ class Rm(GenericUnix):
         if self._cmd_output_started and self._regex_helper.search(r'(rm\: cannot remove)', line):
             self.set_exception(CommandFailure("ERROR: {}".format(self._regex_helper.group(1))))
 
-        return super(Rm, self).on_new_line(line)
+        return super(Rm, self).on_new_line(line, is_full_line)
 
 
 COMMAND_OUTPUT = """
