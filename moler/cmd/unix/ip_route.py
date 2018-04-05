@@ -18,7 +18,8 @@ class Ip_route(GenericUnix):
     _re_via_dev_proto_metric = re.compile(r"^\s*(\S+)\s+via\s+(\S+)\s+dev\s+(\S+)\s+proto\s+(\S+)\s+metric\s+(\S+)\s*$")
 
     # default via fe80::a00:27ff:fe91:697c dev br0  proto ra  metric 1024  expires 1079sec mtu 1340 hoplimit 64
-    _re_via_dev_proto_expires_mtu_hoplimit = re.compile(r"^\s*(\S+)\s+via\s+(\S+)\s+dev\s+(\S+)\s+proto\s+(\S+)\s+metric\s+(\S+)\s+expires\s+(\S+)\s+mtu\s+(\S+)\s+hoplimit\s+(\S+)$")
+    _re_via_dev_proto_expires_mtu_hoplimit = re.compile(
+        r"^\s*(\S+)\s+via\s+(\S+)\s+dev\s+(\S+)\s+proto\s+(\S+)\s+metric\s+(\S+)\s+expires\s+(\S+)\s+mtu\s+(\S+)\s+hoplimit\s+(\S+)$")
 
     # default via 2a00:8a00:6000:7000:a00:7900:3:0 dev br0.2605  metric 1
     _re_via_dev_metric = re.compile(r"^\s*(\S+)\s+via\s+(\S+)\s+dev\s+(\S+)\s+metric\s+(\S+)\s*$")
@@ -75,7 +76,7 @@ class Ip_route(GenericUnix):
             return super(Ip_route, self).on_new_line(line, is_full_line)
         _ret = dict()
 
-        #_re_via_dev_proto_metric
+        # _re_via_dev_proto_metric
         if self._regex_helper.search_compiled(Ip_route._re_via_dev_proto_metric, line):
             _key_addr = self._regex_helper.group(1)
             _ret[_key_addr] = dict()
@@ -86,7 +87,7 @@ class Ip_route(GenericUnix):
             _ret[_key_addr]["METRIC"] = self._regex_helper.group(5)
             self.current_ret["VIA"][_key_addr] = _ret[_key_addr]
             self.current_ret["ALL"].append(_ret[_key_addr])
-        #_re_via_dev_proto_expires_mtu_hoplimit
+        # _re_via_dev_proto_expires_mtu_hoplimit
         elif self._regex_helper.search_compiled(Ip_route._re_via_dev_proto_expires_mtu_hoplimit, line):
             _key_addr = self._regex_helper.group(1)
             _ret[_key_addr] = dict()
@@ -110,7 +111,7 @@ class Ip_route(GenericUnix):
             _ret[_key_addr]["MTU"] = self._regex_helper.group(5)
             self.current_ret["VIA"][_key_addr] = _ret[_key_addr]
             self.current_ret["ALL"].append(_ret[_key_addr])
-        #_re_via_dev_metric
+        # _re_via_dev_metric
         elif self._regex_helper.search_compiled(Ip_route._re_via_dev_metric, line):
             _key_addr = self._regex_helper.group(1)
             _ret[_key_addr] = dict()
@@ -120,7 +121,7 @@ class Ip_route(GenericUnix):
             _ret[_key_addr]["METRIC"] = self._regex_helper.group(4)
             self.current_ret["VIA"][_key_addr] = _ret[_key_addr]
             self.current_ret["ALL"].append(_ret[_key_addr])
-        #_re_via_dev
+        # _re_via_dev
         elif self._regex_helper.search_compiled(Ip_route._re_via_dev, line):
             _key_addr = self._regex_helper.group(1)
             _ret[_key_addr] = dict()
@@ -129,7 +130,7 @@ class Ip_route(GenericUnix):
             _ret[_key_addr]["DEV"] = self._regex_helper.group(3)
             self.current_ret["VIA"][_key_addr] = _ret[_key_addr]
             self.current_ret["ALL"].append(_ret[_key_addr])
-        #_re_dev_proto_scope_src
+        # _re_dev_proto_scope_src
         elif self._regex_helper.search_compiled(Ip_route._re_dev_proto_scope_src, line):
             _key_addr = self._regex_helper.group(1)
             _ret[_key_addr] = dict()
@@ -140,7 +141,7 @@ class Ip_route(GenericUnix):
             _ret[_key_addr]["SRC"] = self._regex_helper.group(5)
             self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
             self.current_ret["ALL"].append(_ret[_key_addr])
-        #_re_dev_proto_metric_mtu
+        # _re_dev_proto_metric_mtu
         elif self._regex_helper.search_compiled(Ip_route._re_dev_proto_metric_mtu, line):
             _key_addr = self._regex_helper.group(1)
             _ret[_key_addr] = dict()
@@ -151,7 +152,7 @@ class Ip_route(GenericUnix):
             _ret[_key_addr]["MTU"] = self._regex_helper.group(5)
             self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
             self.current_ret["ALL"].append(_ret[_key_addr])
-        #_re_dev_proto_metric
+        # _re_dev_proto_metric
         elif self._regex_helper.search_compiled(Ip_route._re_dev_proto_metric, line):
             _key_addr = self._regex_helper.group(1)
             _ret[_key_addr] = dict()
@@ -161,7 +162,7 @@ class Ip_route(GenericUnix):
             _ret[_key_addr]["METRIC"] = self._regex_helper.group(4)
             self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
             self.current_ret["ALL"].append(_ret[_key_addr])
-        #_re_from_src_metric
+        # _re_from_src_metric
         elif self._regex_helper.search_compiled(Ip_route._re_dev_proto_metric, line):
             _key_addr = self._regex_helper.group(1)
             _ret[_key_addr] = dict()
@@ -171,7 +172,7 @@ class Ip_route(GenericUnix):
             _ret[_key_addr]["METRIC"] = self._regex_helper.group(4)
             self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
             self.current_ret["ALL"].append(_ret[_key_addr])
-        #_re_dev_src
+        # _re_dev_src
         elif self._regex_helper.search_compiled(Ip_route._re_dev_src, line):
             _key_addr = self._regex_helper.group(1)
             _ret[_key_addr] = dict()
@@ -180,7 +181,7 @@ class Ip_route(GenericUnix):
             _ret[_key_addr]["SRC"] = self._regex_helper.group(3)
             self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
             self.current_ret["ALL"].append(_ret[_key_addr])
-        #_re_from_via_dev
+        # _re_from_via_dev
         elif self._regex_helper.search_compiled(Ip_route._re_from_via_dev, line):
             _key_addr = self._regex_helper.group(1)
             _ret[_key_addr] = dict()
@@ -212,6 +213,7 @@ class Ip_route(GenericUnix):
 
         return def_route
 
+
 COMMAND_OUTPUT_ver_human = """
  FZM-TDD-248:/l # ip route
  default via 10.83.207.254 dev eth0  proto dhcp
@@ -228,70 +230,70 @@ COMMAND_OUTPUT_ver_human = """
 COMMAND_KWARGS_ver_human = {}
 
 COMMAND_RESULT_ver_human = {
-'ADDRESS': {'10.0.0.0/24': {'ADDRESS': '10.0.0.0/24',
-                            'DEV': 'eth3',
-                            'PROTO': 'kernel',
-                            'SCOPE': 'link',
-                            'SRC': '10.0.0.2'},
-            '10.83.200.0/21': {'ADDRESS': '10.83.200.0/21',
-                               'DEV': 'eth0',
-                               'PROTO': 'kernel',
-                               'SCOPE': 'link',
-                               'SRC': '10.83.204.18'},
-            '10.89.5.0/25': {'ADDRESS': '10.89.5.0/25',
-                             'DEV': 'eth2',
-                             'PROTO': 'kernel',
-                             'SCOPE': 'link',
-                             'SRC': '10.89.5.52'},
-            '192.168.255.0/24': {'ADDRESS': '192.168.255.0/24',
-                                 'DEV': 'eth1',
+    'ADDRESS': {'10.0.0.0/24': {'ADDRESS': '10.0.0.0/24',
+                                'DEV': 'eth3',
+                                'PROTO': 'kernel',
+                                'SCOPE': 'link',
+                                'SRC': '10.0.0.2'},
+                '10.83.200.0/21': {'ADDRESS': '10.83.200.0/21',
+                                   'DEV': 'eth0',
+                                   'PROTO': 'kernel',
+                                   'SCOPE': 'link',
+                                   'SRC': '10.83.204.18'},
+                '10.89.5.0/25': {'ADDRESS': '10.89.5.0/25',
+                                 'DEV': 'eth2',
                                  'PROTO': 'kernel',
                                  'SCOPE': 'link',
-                                 'SRC': '192.168.255.126'},
-            '41.1.0.0/20': {'ADDRESS': '41.1.0.0/20',
-                            'DEV': 'tunPGW',
-                            'PROTO': 'kernel',
-                            'SCOPE': 'link',
-                            'SRC': '41.1.1.254'}},
-'ALL': [{'ADDRESS': 'default', 'DEV': 'eth0', 'VIA': '10.83.207.254'},
-        {'ADDRESS': '10.0.0.0/24',
-         'DEV': 'eth3',
-         'PROTO': 'kernel',
-         'SCOPE': 'link',
-         'SRC': '10.0.0.2'},
-        {'ADDRESS': '10.1.52.248', 'DEV': 'eth3', 'VIA': '10.0.0.248'},
-        {'ADDRESS': '10.83.200.0/21',
-         'DEV': 'eth0',
-         'PROTO': 'kernel',
-         'SCOPE': 'link',
-         'SRC': '10.83.204.18'},
-        {'ADDRESS': '10.83.224.0/23', 'DEV': 'eth2', 'VIA': '10.89.5.126'},
-        {'ADDRESS': '10.89.5.0/25',
-         'DEV': 'eth2',
-         'PROTO': 'kernel',
-         'SCOPE': 'link',
-         'SRC': '10.89.5.52'},
-        {'ADDRESS': '10.254.0.0/16', 'DEV': 'eth2', 'VIA': '10.89.5.126'},
-        {'ADDRESS': '41.1.0.0/20',
-         'DEV': 'tunPGW',
-         'PROTO': 'kernel',
-         'SCOPE': 'link',
-         'SRC': '41.1.1.254'},
-        {'ADDRESS': '192.168.255.0/24',
-         'DEV': 'eth1',
-         'PROTO': 'kernel',
-         'SCOPE': 'link',
-         'SRC': '192.168.255.126'}],
-'VIA': {'10.1.52.248': {'ADDRESS': '10.1.52.248',
-                        'DEV': 'eth3',
-                        'VIA': '10.0.0.248'},
-        '10.254.0.0/16': {'ADDRESS': '10.254.0.0/16',
-                          'DEV': 'eth2',
-                          'VIA': '10.89.5.126'},
-        '10.83.224.0/23': {'ADDRESS': '10.83.224.0/23',
-                           'DEV': 'eth2',
-                           'VIA': '10.89.5.126'},
-        'default': {'ADDRESS': 'default',
-                    'DEV': 'eth0',
-                    'VIA': '10.83.207.254'}}
+                                 'SRC': '10.89.5.52'},
+                '192.168.255.0/24': {'ADDRESS': '192.168.255.0/24',
+                                     'DEV': 'eth1',
+                                     'PROTO': 'kernel',
+                                     'SCOPE': 'link',
+                                     'SRC': '192.168.255.126'},
+                '41.1.0.0/20': {'ADDRESS': '41.1.0.0/20',
+                                'DEV': 'tunPGW',
+                                'PROTO': 'kernel',
+                                'SCOPE': 'link',
+                                'SRC': '41.1.1.254'}},
+    'ALL': [{'ADDRESS': 'default', 'DEV': 'eth0', 'VIA': '10.83.207.254'},
+            {'ADDRESS': '10.0.0.0/24',
+             'DEV': 'eth3',
+             'PROTO': 'kernel',
+             'SCOPE': 'link',
+             'SRC': '10.0.0.2'},
+            {'ADDRESS': '10.1.52.248', 'DEV': 'eth3', 'VIA': '10.0.0.248'},
+            {'ADDRESS': '10.83.200.0/21',
+             'DEV': 'eth0',
+             'PROTO': 'kernel',
+             'SCOPE': 'link',
+             'SRC': '10.83.204.18'},
+            {'ADDRESS': '10.83.224.0/23', 'DEV': 'eth2', 'VIA': '10.89.5.126'},
+            {'ADDRESS': '10.89.5.0/25',
+             'DEV': 'eth2',
+             'PROTO': 'kernel',
+             'SCOPE': 'link',
+             'SRC': '10.89.5.52'},
+            {'ADDRESS': '10.254.0.0/16', 'DEV': 'eth2', 'VIA': '10.89.5.126'},
+            {'ADDRESS': '41.1.0.0/20',
+             'DEV': 'tunPGW',
+             'PROTO': 'kernel',
+             'SCOPE': 'link',
+             'SRC': '41.1.1.254'},
+            {'ADDRESS': '192.168.255.0/24',
+             'DEV': 'eth1',
+             'PROTO': 'kernel',
+             'SCOPE': 'link',
+             'SRC': '192.168.255.126'}],
+    'VIA': {'10.1.52.248': {'ADDRESS': '10.1.52.248',
+                            'DEV': 'eth3',
+                            'VIA': '10.0.0.248'},
+            '10.254.0.0/16': {'ADDRESS': '10.254.0.0/16',
+                              'DEV': 'eth2',
+                              'VIA': '10.89.5.126'},
+            '10.83.224.0/23': {'ADDRESS': '10.83.224.0/23',
+                               'DEV': 'eth2',
+                               'VIA': '10.89.5.126'},
+            'default': {'ADDRESS': 'default',
+                        'DEV': 'eth0',
+                        'VIA': '10.83.207.254'}}
 }
