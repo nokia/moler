@@ -36,7 +36,7 @@ class Ip_route(GenericUnix):
     _re_dev_proto_metric_mtu = re.compile(r"(\S+)\s+dev\s+(\S+)\s+proto\s+(\S+)\s+metric\s+(\S+)\s+mtu\s+(\S+)")
 
     # 2a00:8a00:6000:7000:a00:3900::/96 dev br0.2607  proto kernel  metric 256
-    _re_dev_proto_metric = re.compile (r"(\S+)\s+dev\s+(\S+)\s+proto\s+(\S+)\s+metric\s+(\S+)")
+    _re_dev_proto_metric = re.compile(r"(\S+)\s+dev\s+(\S+)\s+proto\s+(\S+)\s+metric\s+(\S+)")
 
     # 2000::2011 from :: dev eth3  src 2000::2012  metric 0
     _re_from_src_metric = re.compile(r"(\S+)\s+from\s+(\S+)\s+dev\s+(\S+)\s+src\s+(\S+)\s+metric\s+(\d+)")
@@ -47,10 +47,6 @@ class Ip_route(GenericUnix):
     # ip route get 99.99.99.99 from 10.0.0.249
     # 99.99.99.99 from 10.0.0.249 via 10.0.0.2 dev br0
     _re_from_via_dev = re.compile(r"(\S+)\s+from\s+(\S+)\s+via\s+(\S+)\s+dev\s+(\S+)")
-    
-
-
-
 
     def __init__(self, connection, prompt=None, new_line_chars=None, is_ipv6=False, addr_get=None, addr_from=None):
         super(Ip_route, self).__init__(connection, prompt, new_line_chars)
@@ -83,7 +79,7 @@ class Ip_route(GenericUnix):
         if self._regex_helper.search_compiled(Ip_route._re_via_dev_proto_metric, line):
             _key_addr = self._regex_helper.group(1)
             _ret[_key_addr] = dict()
-            _ret[_key_addr]["ADDRESS"]=self._regex_helper.group(1)
+            _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
             _ret[_key_addr]["VIA"] = self._regex_helper.group(2)
             _ret[_key_addr]["DEV"] = self._regex_helper.group(3)
             _ret[_key_addr]["PROTO"] = self._regex_helper.group(4)
@@ -94,7 +90,7 @@ class Ip_route(GenericUnix):
         elif self._regex_helper.search_compiled(Ip_route._re_via_dev_proto_expires_mtu_hoplimit, line):
             _key_addr = self._regex_helper.group(1)
             _ret[_key_addr] = dict()
-            _ret[_key_addr]["ADDRESS"]=self._regex_helper.group(1)
+            _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
             _ret[_key_addr]["VIA"] = self._regex_helper.group(2)
             _ret[_key_addr]["DEV"] = self._regex_helper.group(3)
             _ret[_key_addr]["PROTO"] = self._regex_helper.group(4)
@@ -197,8 +193,7 @@ class Ip_route(GenericUnix):
 
         return super(Ip_route, self).on_new_line(line, is_full_line)
 
-
-    def get_default_route (self):
+    def get_default_route(self):
         def_route = None
         if "VIA" in self.current_ret:
             if "default" in self.current_ret["VIA"]:
@@ -212,28 +207,25 @@ class Ip_route(GenericUnix):
                             if metric:
                                 if item["METRIC"] > metric:
                                     pass
-                            def_route = item ["VIA"]
-                            metric = item ["METRIC"]
+                            def_route = item["VIA"]
+                            metric = item["METRIC"]
 
         return def_route
 
-
 COMMAND_OUTPUT_ver_human = """
  FZM-TDD-248:/l # ip route
- default via 10.83.207.254 dev eth0  proto dhcp 
- 10.0.0.0/24 dev eth3  proto kernel  scope link  src 10.0.0.2 
- 10.1.52.248 via 10.0.0.248 dev eth3 
- 10.83.200.0/21 dev eth0  proto kernel  scope link  src 10.83.204.18 
- 10.83.224.0/23 via 10.89.5.126 dev eth2 
- 10.89.5.0/25 dev eth2  proto kernel  scope link  src 10.89.5.52 
- 10.254.0.0/16 via 10.89.5.126 dev eth2 
- 41.1.0.0/20 dev tunPGW  proto kernel  scope link  src 41.1.1.254 
- 192.168.255.0/24 dev eth1  proto kernel  scope link  src 192.168.255.126 
+ default via 10.83.207.254 dev eth0  proto dhcp
+ 10.0.0.0/24 dev eth3  proto kernel  scope link  src 10.0.0.2
+ 10.1.52.248 via 10.0.0.248 dev eth3
+ 10.83.200.0/21 dev eth0  proto kernel  scope link  src 10.83.204.18
+ 10.83.224.0/23 via 10.89.5.126 dev eth2
+ 10.89.5.0/25 dev eth2  proto kernel  scope link  src 10.89.5.52
+ 10.254.0.0/16 via 10.89.5.126 dev eth2
+ 41.1.0.0/20 dev tunPGW  proto kernel  scope link  src 41.1.1.254
+ 192.168.255.0/24 dev eth1  proto kernel  scope link  src 192.168.255.126
  FZM-TDD-248:/l # """
 
-COMMAND_KWARGS_ver_human = {
-
-}
+COMMAND_KWARGS_ver_human = {}
 
 COMMAND_RESULT_ver_human = {
 'ADDRESS': {'10.0.0.0/24': {'ADDRESS': '10.0.0.0/24',
@@ -303,4 +295,3 @@ COMMAND_RESULT_ver_human = {
                     'DEV': 'eth0',
                     'VIA': '10.83.207.254'}}
 }
-
