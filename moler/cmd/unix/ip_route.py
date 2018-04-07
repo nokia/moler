@@ -6,7 +6,7 @@ import re
 
 from moler.cmd.unix.genericunix import GenericUnix
 from moler.cmd.converterhelper import ConverterHelper
-from moler.exceptions import ResultNotAvailableYet
+
 
 __author__ = 'Yang Snackwell'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -215,7 +215,7 @@ class Ip_route(GenericUnix):
 
 
 COMMAND_OUTPUT_ver_human = """
- FZM-TDD-248:/l # ip route
+ host:~ # ip route
  default via 10.83.207.254 dev eth0  proto dhcp
  10.0.0.0/24 dev eth3  proto kernel  scope link  src 10.0.0.2
  10.1.52.248 via 10.0.0.248 dev eth3
@@ -225,7 +225,7 @@ COMMAND_OUTPUT_ver_human = """
  10.254.0.0/16 via 10.89.5.126 dev eth2
  41.1.0.0/20 dev tunPGW  proto kernel  scope link  src 41.1.1.254
  192.168.255.0/24 dev eth1  proto kernel  scope link  src 192.168.255.126
- FZM-TDD-248:/l # """
+ host:~ # """
 
 COMMAND_KWARGS_ver_human = {}
 
