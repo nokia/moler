@@ -71,126 +71,169 @@ class Ip_route(GenericUnix):
                 cmd = cmd + " from ".addr_from
         return cmd
 
+    def _get_re_via_dev_proto_metric(self):
+        _ret = dict()
+        _key_addr = self._regex_helper.group(1)
+        _ret[_key_addr] = dict()
+        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
+        _ret[_key_addr]["VIA"] = self._regex_helper.group(2)
+        _ret[_key_addr]["DEV"] = self._regex_helper.group(3)
+        _ret[_key_addr]["PROTO"] = self._regex_helper.group(4)
+        _ret[_key_addr]["METRIC"] = self._regex_helper.group(5)
+        self.current_ret["VIA"][_key_addr] = _ret[_key_addr]
+        self.current_ret["ALL"].append(_ret[_key_addr])
+
+    def _get_re_via_dev_proto_expires_mtu_hoplimit(self):
+        _ret = dict()
+        _key_addr = self._regex_helper.group(1)
+        _ret[_key_addr] = dict()
+        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
+        _ret[_key_addr]["VIA"] = self._regex_helper.group(2)
+        _ret[_key_addr]["DEV"] = self._regex_helper.group(3)
+        _ret[_key_addr]["PROTO"] = self._regex_helper.group(4)
+        _ret[_key_addr]["EXPIRES"] = self._regex_helper.group(5)
+        _ret[_key_addr]["MTU"] = self._regex_helper.group(6)
+        _ret[_key_addr]["HOPLIMIT"] = self._regex_helper.group(7)
+        self.current_ret["VIA"][_key_addr] = _ret[_key_addr]
+        self.current_ret["ALL"].append(_ret[_key_addr])
+
+    def _get_re_via_dev_metric_mtu(self):
+        _ret = dict()
+        _key_addr = self._regex_helper.group(1)
+        _ret[_key_addr] = dict()
+        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
+        _ret[_key_addr]["VIA"] = self._regex_helper.group(2)
+        _ret[_key_addr]["DEV"] = self._regex_helper.group(3)
+        _ret[_key_addr]["METRIC"] = self._regex_helper.group(4)
+        _ret[_key_addr]["MTU"] = self._regex_helper.group(5)
+        self.current_ret["VIA"][_key_addr] = _ret[_key_addr]
+        self.current_ret["ALL"].append(_ret[_key_addr])
+
+    def _get_re_via_dev_metric(self):
+        _ret = dict()
+        _key_addr = self._regex_helper.group(1)
+        _ret[_key_addr] = dict()
+        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
+        _ret[_key_addr]["VIA"] = self._regex_helper.group(2)
+        _ret[_key_addr]["DEV"] = self._regex_helper.group(3)
+        _ret[_key_addr]["METRIC"] = self._regex_helper.group(4)
+        self.current_ret["VIA"][_key_addr] = _ret[_key_addr]
+        self.current_ret["ALL"].append(_ret[_key_addr])
+
+    def _get_re_via_dev(self):
+        _ret = dict()
+        _key_addr = self._regex_helper.group(1)
+        _ret[_key_addr] = dict()
+        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
+        _ret[_key_addr]["VIA"] = self._regex_helper.group(2)
+        _ret[_key_addr]["DEV"] = self._regex_helper.group(3)
+        self.current_ret["VIA"][_key_addr] = _ret[_key_addr]
+        self.current_ret["ALL"].append(_ret[_key_addr])
+
+    def _get_re_dev_proto_scope_src(self):
+        _ret = dict()
+        _key_addr = self._regex_helper.group(1)
+        _ret[_key_addr] = dict()
+        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
+        _ret[_key_addr]["DEV"] = self._regex_helper.group(2)
+        _ret[_key_addr]["PROTO"] = self._regex_helper.group(3)
+        _ret[_key_addr]["SCOPE"] = self._regex_helper.group(4)
+        _ret[_key_addr]["SRC"] = self._regex_helper.group(5)
+        self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
+        self.current_ret["ALL"].append(_ret[_key_addr])
+
+    def _get_re_dev_proto_metric_mtu(self):
+        _ret = dict()
+        _key_addr = self._regex_helper.group(1)
+        _ret[_key_addr] = dict()
+        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
+        _ret[_key_addr]["DEV"] = self._regex_helper.group(2)
+        _ret[_key_addr]["PROTO"] = self._regex_helper.group(3)
+        _ret[_key_addr]["METRIC"] = self._regex_helper.group(4)
+        _ret[_key_addr]["MTU"] = self._regex_helper.group(5)
+        self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
+        self.current_ret["ALL"].append(_ret[_key_addr])
+
+    def _get_re_dev_proto_metric(self):
+        _ret = dict()
+        _key_addr = self._regex_helper.group(1)
+        _ret[_key_addr] = dict()
+        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
+        _ret[_key_addr]["DEV"] = self._regex_helper.group(2)
+        _ret[_key_addr]["PROTO"] = self._regex_helper.group(3)
+        _ret[_key_addr]["METRIC"] = self._regex_helper.group(4)
+        self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
+        self.current_ret["ALL"].append(_ret[_key_addr])
+
+    def _get_re_from_src_metric(self):
+        _ret = dict()
+        _key_addr = self._regex_helper.group(1)
+        _ret[_key_addr] = dict()
+        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
+        _ret[_key_addr]["FROM"] = self._regex_helper.group(2)
+        _ret[_key_addr]["SRC"] = self._regex_helper.group(3)
+        _ret[_key_addr]["METRIC"] = self._regex_helper.group(4)
+        self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
+        self.current_ret["ALL"].append(_ret[_key_addr])
+
+    def _get_re_dev_src(self):
+        _ret = dict()
+        _key_addr = self._regex_helper.group(1)
+        _ret[_key_addr] = dict()
+        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
+        _ret[_key_addr]["DEV"] = self._regex_helper.group(2)
+        _ret[_key_addr]["SRC"] = self._regex_helper.group(3)
+        self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
+        self.current_ret["ALL"].append(_ret[_key_addr])
+
+    def _get_re_from_via_dev(self):
+        _ret = dict()
+        _key_addr = self._regex_helper.group(1)
+        _ret[_key_addr] = dict()
+        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
+        _ret[_key_addr]["FROM"] = self._regex_helper.group(2)
+        _ret[_key_addr]["VIA"] = self._regex_helper.group(3)
+        _ret[_key_addr]["DEV"] = self._regex_helper.group(4)
+        self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
+        self.current_ret["ALL"].append(_ret[_key_addr])
+
     def on_new_line(self, line, is_full_line):
         if not is_full_line:
             return super(Ip_route, self).on_new_line(line, is_full_line)
-        _ret = dict()
 
         # _re_via_dev_proto_metric
         if self._regex_helper.search_compiled(Ip_route._re_via_dev_proto_metric, line):
-            _key_addr = self._regex_helper.group(1)
-            _ret[_key_addr] = dict()
-            _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-            _ret[_key_addr]["VIA"] = self._regex_helper.group(2)
-            _ret[_key_addr]["DEV"] = self._regex_helper.group(3)
-            _ret[_key_addr]["PROTO"] = self._regex_helper.group(4)
-            _ret[_key_addr]["METRIC"] = self._regex_helper.group(5)
-            self.current_ret["VIA"][_key_addr] = _ret[_key_addr]
-            self.current_ret["ALL"].append(_ret[_key_addr])
+            self._get_re_via_dev_proto_metric()
         # _re_via_dev_proto_expires_mtu_hoplimit
         elif self._regex_helper.search_compiled(Ip_route._re_via_dev_proto_expires_mtu_hoplimit, line):
-            _key_addr = self._regex_helper.group(1)
-            _ret[_key_addr] = dict()
-            _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-            _ret[_key_addr]["VIA"] = self._regex_helper.group(2)
-            _ret[_key_addr]["DEV"] = self._regex_helper.group(3)
-            _ret[_key_addr]["PROTO"] = self._regex_helper.group(4)
-            _ret[_key_addr]["EXPIRES"] = self._regex_helper.group(5)
-            _ret[_key_addr]["MTU"] = self._regex_helper.group(6)
-            _ret[_key_addr]["HOPLIMIT"] = self._regex_helper.group(7)
-            self.current_ret["VIA"][_key_addr] = _ret[_key_addr]
-            self.current_ret["ALL"].append(_ret[_key_addr])
+            self._get_re_via_dev_proto_expires_mtu_hoplimit()
         # _re_via_dev_metric_mtu
         elif self._regex_helper.search_compiled(Ip_route._re_via_dev_metric_mtu, line):
-            _key_addr = self._regex_helper.group(1)
-            _ret[_key_addr] = dict()
-            _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-            _ret[_key_addr]["VIA"] = self._regex_helper.group(2)
-            _ret[_key_addr]["DEV"] = self._regex_helper.group(3)
-            _ret[_key_addr]["METRIC"] = self._regex_helper.group(4)
-            _ret[_key_addr]["MTU"] = self._regex_helper.group(5)
-            self.current_ret["VIA"][_key_addr] = _ret[_key_addr]
-            self.current_ret["ALL"].append(_ret[_key_addr])
+            self._get_re_via_dev_metric_mtu()
         # _re_via_dev_metric
         elif self._regex_helper.search_compiled(Ip_route._re_via_dev_metric, line):
-            _key_addr = self._regex_helper.group(1)
-            _ret[_key_addr] = dict()
-            _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-            _ret[_key_addr]["VIA"] = self._regex_helper.group(2)
-            _ret[_key_addr]["DEV"] = self._regex_helper.group(3)
-            _ret[_key_addr]["METRIC"] = self._regex_helper.group(4)
-            self.current_ret["VIA"][_key_addr] = _ret[_key_addr]
-            self.current_ret["ALL"].append(_ret[_key_addr])
+            self._get_re_via_dev_metric()
         # _re_via_dev
         elif self._regex_helper.search_compiled(Ip_route._re_via_dev, line):
-            _key_addr = self._regex_helper.group(1)
-            _ret[_key_addr] = dict()
-            _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-            _ret[_key_addr]["VIA"] = self._regex_helper.group(2)
-            _ret[_key_addr]["DEV"] = self._regex_helper.group(3)
-            self.current_ret["VIA"][_key_addr] = _ret[_key_addr]
-            self.current_ret["ALL"].append(_ret[_key_addr])
+            self._get_re_via_dev()
         # _re_dev_proto_scope_src
         elif self._regex_helper.search_compiled(Ip_route._re_dev_proto_scope_src, line):
-            _key_addr = self._regex_helper.group(1)
-            _ret[_key_addr] = dict()
-            _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-            _ret[_key_addr]["DEV"] = self._regex_helper.group(2)
-            _ret[_key_addr]["PROTO"] = self._regex_helper.group(3)
-            _ret[_key_addr]["SCOPE"] = self._regex_helper.group(4)
-            _ret[_key_addr]["SRC"] = self._regex_helper.group(5)
-            self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
-            self.current_ret["ALL"].append(_ret[_key_addr])
+            self._get_re_dev_proto_scope_src()
         # _re_dev_proto_metric_mtu
         elif self._regex_helper.search_compiled(Ip_route._re_dev_proto_metric_mtu, line):
-            _key_addr = self._regex_helper.group(1)
-            _ret[_key_addr] = dict()
-            _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-            _ret[_key_addr]["DEV"] = self._regex_helper.group(2)
-            _ret[_key_addr]["PROTO"] = self._regex_helper.group(3)
-            _ret[_key_addr]["METRIC"] = self._regex_helper.group(4)
-            _ret[_key_addr]["MTU"] = self._regex_helper.group(5)
-            self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
-            self.current_ret["ALL"].append(_ret[_key_addr])
+            self._get_re_dev_proto_metric_mtu()
         # _re_dev_proto_metric
         elif self._regex_helper.search_compiled(Ip_route._re_dev_proto_metric, line):
-            _key_addr = self._regex_helper.group(1)
-            _ret[_key_addr] = dict()
-            _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-            _ret[_key_addr]["DEV"] = self._regex_helper.group(2)
-            _ret[_key_addr]["PROTO"] = self._regex_helper.group(3)
-            _ret[_key_addr]["METRIC"] = self._regex_helper.group(4)
-            self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
-            self.current_ret["ALL"].append(_ret[_key_addr])
+            self._get_re_dev_proto_metric()
         # _re_from_src_metric
-        elif self._regex_helper.search_compiled(Ip_route._re_dev_proto_metric, line):
-            _key_addr = self._regex_helper.group(1)
-            _ret[_key_addr] = dict()
-            _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-            _ret[_key_addr]["DEV"] = self._regex_helper.group(2)
-            _ret[_key_addr]["PROTO"] = self._regex_helper.group(3)
-            _ret[_key_addr]["METRIC"] = self._regex_helper.group(4)
-            self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
-            self.current_ret["ALL"].append(_ret[_key_addr])
+        elif self._regex_helper.search_compiled(Ip_route._re_from_src_metric, line):
+            self._get_re_from_src_metric()
         # _re_dev_src
         elif self._regex_helper.search_compiled(Ip_route._re_dev_src, line):
-            _key_addr = self._regex_helper.group(1)
-            _ret[_key_addr] = dict()
-            _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-            _ret[_key_addr]["DEV"] = self._regex_helper.group(2)
-            _ret[_key_addr]["SRC"] = self._regex_helper.group(3)
-            self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
-            self.current_ret["ALL"].append(_ret[_key_addr])
+            self._get_re_dev_src()
         # _re_from_via_dev
         elif self._regex_helper.search_compiled(Ip_route._re_from_via_dev, line):
-            _key_addr = self._regex_helper.group(1)
-            _ret[_key_addr] = dict()
-            _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-            _ret[_key_addr]["FROM"] = self._regex_helper.group(2)
-            _ret[_key_addr]["VIA"] = self._regex_helper.group(3)
-            _ret[_key_addr]["DEV"] = self._regex_helper.group(4)
-            self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
-            self.current_ret["ALL"].append(_ret[_key_addr])
+            self._get_re_from_via_dev()
 
         return super(Ip_route, self).on_new_line(line, is_full_line)
 
