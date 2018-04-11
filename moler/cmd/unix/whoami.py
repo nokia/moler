@@ -7,7 +7,7 @@ import re
 from moler.cmd.unix.genericunix import GenericUnix
 from moler.cmd.converterhelper import ConverterHelper
 
-__author__ = 'Yang Yeshu'
+__author__ = 'Yeshu Yang'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'yeshu.yang@nokia.com'
 
