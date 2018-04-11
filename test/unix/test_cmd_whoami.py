@@ -3,7 +3,7 @@
 Testing of whoami command.
 """
 
-__author__ = 'Yang Yeshu'
+__author__ = 'Yeshu Yang'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'yeshu.yang@nokia.com'
 
