@@ -12,8 +12,6 @@ __email__ = 'michal.ernst@nokia.com'
 
 
 class Cd(GenericUnix):
-    # Compiled regexp
-    _re_no_such_file_or_dir = compile(r"(.* No such file or directory)")
 
     def __init__(self, connection, path=None, prompt=None, new_line_chars=None):
         super(Cd, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
@@ -24,19 +22,15 @@ class Cd(GenericUnix):
         # command parameters
         self.ret_required = False
 
-        # regex
-
     def build_command_string(self):
         cmd = "cd"
         if self.path:
-            cmd = cmd + " " + self.path
+            cmd = "{} {}".format(cmd, self.path)
         return cmd
 
     def on_new_line(self, line, is_full_line):
         if not is_full_line:
             return super(Cd, self).on_new_line(line, is_full_line)
-        if self._regex_helper.search_compiled(self._re_no_such_file_or_dir, line):
-            self.set_exception(Exception("ERROR: {}".format(self._regex_helper.group(1))))
 
         return super(Cd, self).on_new_line(line, is_full_line)
 
