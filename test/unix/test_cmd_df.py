@@ -51,7 +51,7 @@ udev         tmpfs           999M        1M      999M       1% /dev
             '/home/emssim': {'Avail': '403282', 'Used': '7865', 'Type': 'cifs', 'Size': '433150',
                             'Filesystem': '//175.28.247.174/emssim', 'Mounted_on': '/home/emssim', 'Use_percentage': '2'},
             '/': {'Avail': '2073', 'Used': '1760', 'Type': 'ext3', 'Size': '4039',
-                 'Filesystem': '/dev/sda2', 'Mounted_on': '/', 'Use_percentage': '46'},
+                  'Filesystem': '/dev/sda2', 'Mounted_on': '/', 'Use_percentage': '46'},
             '/dev': {'Avail': '999', 'Used': '1', 'Type': 'tmpfs', 'Size': '999',
                      'Filesystem': 'udev', 'Mounted_on': '/dev', 'Use_percentage': '1'},
             '/vobs': {'Avail': '916356', 'Used': '1299', 'Type': 'cifs', 'Size': '918588',
