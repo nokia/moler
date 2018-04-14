@@ -224,7 +224,7 @@ class Ip_route(GenericUnix):
         elif self._regex_helper.search_compiled(Ip_route._re_via_dev, line):
             self._parse_re_via_dev()
 
-    def _process_re_dev_pattern_group(self,line):
+    def _process_re_dev_pattern_group(self, line):
         # _re_dev_proto_scope_src
         if self._regex_helper.search_compiled(Ip_route._re_dev_proto_scope_src, line):
             self._parse_re_dev_proto_scope_src()
@@ -238,7 +238,7 @@ class Ip_route(GenericUnix):
         elif self._regex_helper.search_compiled(Ip_route._re_dev_src, line):
             self._parse_re_dev_src()
 
-    def _process_re_from_pattern_group(self,line):
+    def _process_re_from_pattern_group(self, line):
         # _re_from_src_metric
         if self._regex_helper.search_compiled(Ip_route._re_from_src_metric, line):
             self._parse_re_from_src_metric()
