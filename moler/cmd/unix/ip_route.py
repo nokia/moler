@@ -253,8 +253,10 @@ class Ip_route(GenericUnix):
         # _re_via_pattern_group
         if self._regex_helper.search_compiled(Ip_route._re_via_pattern_group, line):
             self._process_re_via_pattern_group(line)
+        # _re_dev_pattern_group
         elif self._regex_helper.search_compiled(Ip_route._re_dev_pattern_group, line):
             self._process_re_dev_pattern_group(line)
+        # _re_from_pattern_group
         elif self._regex_helper.search_compiled(Ip_route._re_from_pattern_group, line):
             self._process_re_from_pattern_group(line)
 
