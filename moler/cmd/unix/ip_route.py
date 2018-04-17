@@ -94,8 +94,8 @@ class Ip_route(GenericUnix):
     # default via fe80::a00:27ff:fe91:697c dev br0  proto ra  metric 1024  expires 1079sec mtu 1340 hoplimit 64
     _re_via_dev_proto_expires_mtu_hoplimit = re.compile(r"^\s*(?P<ADDRESS>\S+)\s+via\s+(?P<VIA>\S+)\s+"
                                                         r"dev\s+(?P<DEV>\S+)\s+proto\s+(?P<PROTO>\S+)\s+"
-                                                        r"metric\s+(?P<EXPIRES>\S+)\s+expires\s+(?P<MTU>\S+)\s+"
-                                                        r"mtu\s+(?P<HOPLIMIT>\S+)\s+hoplimit\s+(\S+)$")
+                                                        r"metric\s+(?P<METRIC>\S+)\s+expires\s+(?P<EXPIRES>\S+)\s+"
+                                                        r"mtu\s+(?P<MTU>\S+)\s+hoplimit\s+(?P<HOPLIMIT>\S+)$")
 
     def _parse_via_dev_proto_expires_mtu_hoplimit(self, line, parsed):
         return self._process_line_via_all(line, parsed, Ip_route._re_via_dev_proto_expires_mtu_hoplimit)
@@ -180,6 +180,7 @@ COMMAND_OUTPUT_ver_human = """
  10.254.0.0/16 via 10.89.5.126 dev eth2
  41.1.0.0/20 dev tunPGW  proto kernel  scope link  src 41.1.1.254
  192.168.255.0/24 dev eth1  proto kernel  scope link  src 192.168.255.126
+ 10.0.0.249 dev eth3  src 10.0.0.2
  host:~ # """
 
 COMMAND_KWARGS_ver_human = {}
@@ -209,7 +210,10 @@ COMMAND_RESULT_ver_human = {
                                 'DEV': 'tunPGW',
                                 'PROTO': 'kernel',
                                 'SCOPE': 'link',
-                                'SRC': '41.1.1.254'}},
+                                'SRC': '41.1.1.254'},
+                '10.0.0.249': {'ADDRESS': '10.0.0.249',
+                               'DEV': 'eth3',
+                               'SRC': '10.0.0.2'}},
     'ALL': [{'ADDRESS': 'default', 'DEV': 'eth0', 'VIA': '10.83.207.254'},
             {'ADDRESS': '10.0.0.0/24',
              'DEV': 'eth3',
@@ -238,7 +242,8 @@ COMMAND_RESULT_ver_human = {
              'DEV': 'eth1',
              'PROTO': 'kernel',
              'SCOPE': 'link',
-             'SRC': '192.168.255.126'}],
+             'SRC': '192.168.255.126'},
+            {'ADDRESS': '10.0.0.249', 'DEV': 'eth3', 'SRC': '10.0.0.2'}],
     'VIA': {'10.1.52.248': {'ADDRESS': '10.1.52.248',
                             'DEV': 'eth3',
                             'VIA': '10.0.0.248'},
@@ -251,4 +256,108 @@ COMMAND_RESULT_ver_human = {
             'default': {'ADDRESS': 'default',
                         'DEV': 'eth0',
                         'VIA': '10.83.207.254'}}
+}
+
+
+COMMAND_OUTPUT_with_hoplimit = """
+ host:~ # ip route
+ default via fe80::a00:27ff:fe91:697c dev br0  proto ra  metric 1024  expires 1079sec mtu 1340 hoplimit 64
+ host:~ # """
+
+COMMAND_KWARGS_with_hoplimit = {}
+
+COMMAND_RESULT_with_hoplimit = {
+    'ADDRESS': {},
+    'ALL': [{'ADDRESS': 'default',
+             'VIA': 'fe80::a00:27ff:fe91:697c',
+             'DEV': 'br0',
+             'PROTO': 'ra',
+             'METRIC': '1024',
+             'EXPIRES': '1079sec',
+             'MTU': '1340',
+             'HOPLIMIT': '64'}],
+    'VIA': {'default': {'ADDRESS': 'default',
+                        'VIA': 'fe80::a00:27ff:fe91:697c',
+                        'DEV': 'br0',
+                        'PROTO': 'ra',
+                        'METRIC': '1024',
+                        'EXPIRES': '1079sec',
+                        'MTU': '1340',
+                        'HOPLIMIT': '64'}}
+}
+
+
+COMMAND_OUTPUT_with_metric = """
+ host:~ # ip route
+ default via 10.83.225.254 dev eth0  proto none  metric 1
+ 10.1.52.248 via 2a00:8a00:6000:7000:1000:4100:151:2 dev br0  metric 1  mtu 1500
+ 10.83.200.0/21 via 2a00:8a00:6000:7000:a00:7900:3:0 dev br0.2605  metric 1
+ fe80::/64 dev br0  proto kernel  metric 256  mtu 1632
+ 2a00:8a00:6000:7000:a00:3900::/96 dev br0.2607  proto kernel  metric 256
+ 2000::2011 from :: dev eth3  src 2000::2012  metric 0
+ host:~ # """
+
+
+COMMAND_KWARGS_with_metric = {}
+
+COMMAND_RESULT_with_metric = {
+    'ADDRESS': {'fe80::/64': {'ADDRESS': 'fe80::/64',
+                              'DEV': 'br0',
+                              'METRIC': '256',
+                              'MTU': '1632',
+                              'PROTO': 'kernel'},
+                '2a00:8a00:6000:7000:a00:3900::/96': {'ADDRESS': '2a00:8a00:6000:7000:a00:3900::/96',
+                                                      'DEV': 'br0.2607',
+                                                      'METRIC': '256',
+                                                      'PROTO': 'kernel'},
+                '2000::2011': {'ADDRESS': '2000::2011',
+                               'DEV': 'eth3',
+                               'FROM': '::',
+                               'METRIC': '0',
+                               'SRC': '2000::2012'},
+                },
+    'ALL': [{'ADDRESS': 'default',
+             'VIA': '10.83.225.254',
+             'DEV': 'eth0',
+             'PROTO': 'none',
+             'METRIC': '1'},
+            {'ADDRESS': '10.1.52.248',
+             'DEV': 'br0',
+             'METRIC': '1',
+             'MTU': '1500',
+             'VIA': '2a00:8a00:6000:7000:1000:4100:151:2'},
+            {'ADDRESS': '10.83.200.0/21',
+             'DEV': 'br0.2605',
+             'METRIC': '1',
+             'VIA': '2a00:8a00:6000:7000:a00:7900:3:0'},
+            {'ADDRESS': 'fe80::/64',
+             'DEV': 'br0',
+             'METRIC': '256',
+             'MTU': '1632',
+             'PROTO': 'kernel'},
+            {'ADDRESS': '2a00:8a00:6000:7000:a00:3900::/96',
+             'DEV': 'br0.2607',
+             'METRIC': '256',
+             'PROTO': 'kernel'},
+            {'ADDRESS': '2000::2011',
+             'DEV': 'eth3',
+             'FROM': '::',
+             'METRIC': '0',
+             'SRC': '2000::2012'}
+            ],
+    'VIA': {'default': {'ADDRESS': 'default',
+                        'VIA': '10.83.225.254',
+                        'DEV': 'eth0',
+                        'PROTO': 'none',
+                        'METRIC': '1'},
+            '10.1.52.248': {'ADDRESS': '10.1.52.248',
+                            'DEV': 'br0',
+                            'METRIC': '1',
+                            'MTU': '1500',
+                            'VIA': '2a00:8a00:6000:7000:1000:4100:151:2'},
+            '10.83.200.0/21': {'ADDRESS': '10.83.200.0/21',
+                               'DEV': 'br0.2605',
+                               'METRIC': '1',
+                               'VIA': '2a00:8a00:6000:7000:a00:7900:3:0'},
+            }
 }
