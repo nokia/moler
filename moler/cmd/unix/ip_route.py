@@ -15,50 +15,6 @@ __email__ = 'snackwell.yang@nokia-sbell.com'
 
 class Ip_route(GenericUnix):
 
-    # ====== Group for ^ xxx via * $======
-    _re_via_pattern_group = re.compile(r"^\s*\S+\s+via\s+")
-
-    # default via 10.83.225.254 dev eth0  proto none  metric 1
-    _re_via_dev_proto_metric = re.compile(r"^\s*(\S+)\s+via\s+(\S+)\s+dev\s+(\S+)\s+proto\s+(\S+)\s+metric\s+(\S+)\s*$")
-
-    # default via fe80::a00:27ff:fe91:697c dev br0  proto ra  metric 1024  expires 1079sec mtu 1340 hoplimit 64
-    _re_via_dev_proto_expires_mtu_hoplimit = re.compile(
-        r"^\s*(\S+)\s+via\s+(\S+)\s+dev\s+(\S+)\s+proto\s+(\S+)\s+metric\s+(\S+)\s+expires\s+(\S+)\s+mtu\s+(\S+)\s+hoplimit\s+(\S+)$")
-
-    # default via 2a00:8a00:6000:7000:a00:7900:3:0 dev br0.2605  metric 1
-    _re_via_dev_metric = re.compile(r"^\s*(\S+)\s+via\s+(\S+)\s+dev\s+(\S+)\s+metric\s+(\S+)\s*$")
-
-    # default via 2a00:8a00:6000:7000:1000:4100:151:2 dev br0  metric 1  mtu 1500
-    _re_via_dev_metric_mtu = re.compile(r"^\s*(\S+)\s+via\s+(\S+)\s+dev\s+(\S+)\s+metric\s+(\S+)\s+mtu\s+(\S+)\s*$")
-
-    # default via 2a00:8a00:6000:7000:1000:4100:151:2 dev br0
-    _re_via_dev = re.compile(r"^\s*(\S+)\s+via\s+(\S+)\s+dev\s+(\S+).*$")
-
-    # ======= Group for ^ xxx dev * $ =======
-    _re_dev_pattern_group = re.compile(r"^\s*(\S+)\s+dev\s+")
-
-    # 10.83.224.0/23 dev eth0  proto kernel  scope link  src 10.83.225.103
-    _re_dev_proto_scope_src = re.compile(r"^\s*(\S+)\s+dev\s+(\S+)\s+proto\s+(\S+)\s+scope\s+(\S+)\s+src\s+(\S+)\s*$")
-
-    # fe80::/64 dev br0  proto kernel  metric 256  mtu 1632
-    _re_dev_proto_metric_mtu = re.compile(r"(\S+)\s+dev\s+(\S+)\s+proto\s+(\S+)\s+metric\s+(\S+)\s+mtu\s+(\S+)")
-
-    # 2a00:8a00:6000:7000:a00:3900::/96 dev br0.2607  proto kernel  metric 256
-    _re_dev_proto_metric = re.compile(r"(\S+)\s+dev\s+(\S+)\s+proto\s+(\S+)\s+metric\s+(\S+)")
-
-    # 10.0.0.249 dev eth3  src 10.0.0.2
-    _re_dev_src = re.compile(r"(\S+)\s+dev\s+(\S+)\s+src\s+(\S+)")
-
-    # ======= Group for ^ xxx from * $ =======
-    _re_from_pattern_group = re.compile(r"(\S+)\s+from\s+")
-
-    # 2000::2011 from :: dev eth3  src 2000::2012  metric 0
-    _re_from_src_metric = re.compile(r"(\S+)\s+from\s+(\S+)\s+dev\s+(\S+)\s+src\s+(\S+)\s+metric\s+(\d+)")
-
-    # ip route get 99.99.99.99 from 10.0.0.249
-    # 99.99.99.99 from 10.0.0.249 via 10.0.0.2 dev br0
-    _re_from_via_dev = re.compile(r"(\S+)\s+from\s+(\S+)\s+via\s+(\S+)\s+dev\s+(\S+)")
-
     def __init__(self, connection, prompt=None, new_line_chars=None, is_ipv6=False, addr_get=None, addr_from=None):
         super(Ip_route, self).__init__(connection, prompt, new_line_chars)
         self._converter_helper = ConverterHelper()
@@ -66,7 +22,6 @@ class Ip_route(GenericUnix):
         self.is_ipv6 = is_ipv6
         self.addr_get = addr_get
         self.addr_from = addr_from
-        self.matched = 0
         self.current_ret["VIA"] = dict()
         self.current_ret["ALL"] = []
         self.current_ret["ADDRESS"] = dict()
@@ -81,185 +36,20 @@ class Ip_route(GenericUnix):
                 cmd = cmd + " from ".addr_from
         return cmd
 
-    def _parse_re_via_dev_proto_metric(self):
-        _ret = dict()
-        _key_addr = self._regex_helper.group(1)
-        _ret[_key_addr] = dict()
-        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-        _ret[_key_addr]["VIA"] = self._regex_helper.group(2)
-        _ret[_key_addr]["DEV"] = self._regex_helper.group(3)
-        _ret[_key_addr]["PROTO"] = self._regex_helper.group(4)
-        _ret[_key_addr]["METRIC"] = self._regex_helper.group(5)
-        self.current_ret["VIA"][_key_addr] = _ret[_key_addr]
-        self.current_ret["ALL"].append(_ret[_key_addr])
-
-    def _parse_re_via_dev_proto_expires_mtu_hoplimit(self):
-        _ret = dict()
-        _key_addr = self._regex_helper.group(1)
-        _ret[_key_addr] = dict()
-        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-        _ret[_key_addr]["VIA"] = self._regex_helper.group(2)
-        _ret[_key_addr]["DEV"] = self._regex_helper.group(3)
-        _ret[_key_addr]["PROTO"] = self._regex_helper.group(4)
-        _ret[_key_addr]["EXPIRES"] = self._regex_helper.group(5)
-        _ret[_key_addr]["MTU"] = self._regex_helper.group(6)
-        _ret[_key_addr]["HOPLIMIT"] = self._regex_helper.group(7)
-        self.current_ret["VIA"][_key_addr] = _ret[_key_addr]
-        self.current_ret["ALL"].append(_ret[_key_addr])
-
-    def _parse_re_via_dev_metric_mtu(self):
-        _ret = dict()
-        _key_addr = self._regex_helper.group(1)
-        _ret[_key_addr] = dict()
-        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-        _ret[_key_addr]["VIA"] = self._regex_helper.group(2)
-        _ret[_key_addr]["DEV"] = self._regex_helper.group(3)
-        _ret[_key_addr]["METRIC"] = self._regex_helper.group(4)
-        _ret[_key_addr]["MTU"] = self._regex_helper.group(5)
-        self.current_ret["VIA"][_key_addr] = _ret[_key_addr]
-        self.current_ret["ALL"].append(_ret[_key_addr])
-
-    def _parse_re_via_dev_metric(self):
-        _ret = dict()
-        _key_addr = self._regex_helper.group(1)
-        _ret[_key_addr] = dict()
-        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-        _ret[_key_addr]["VIA"] = self._regex_helper.group(2)
-        _ret[_key_addr]["DEV"] = self._regex_helper.group(3)
-        _ret[_key_addr]["METRIC"] = self._regex_helper.group(4)
-        self.current_ret["VIA"][_key_addr] = _ret[_key_addr]
-        self.current_ret["ALL"].append(_ret[_key_addr])
-
-    def _parse_re_via_dev(self):
-        _ret = dict()
-        _key_addr = self._regex_helper.group(1)
-        _ret[_key_addr] = dict()
-        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-        _ret[_key_addr]["VIA"] = self._regex_helper.group(2)
-        _ret[_key_addr]["DEV"] = self._regex_helper.group(3)
-        self.current_ret["VIA"][_key_addr] = _ret[_key_addr]
-        self.current_ret["ALL"].append(_ret[_key_addr])
-
-    def _parse_re_dev_proto_scope_src(self):
-        _ret = dict()
-        _key_addr = self._regex_helper.group(1)
-        _ret[_key_addr] = dict()
-        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-        _ret[_key_addr]["DEV"] = self._regex_helper.group(2)
-        _ret[_key_addr]["PROTO"] = self._regex_helper.group(3)
-        _ret[_key_addr]["SCOPE"] = self._regex_helper.group(4)
-        _ret[_key_addr]["SRC"] = self._regex_helper.group(5)
-        self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
-        self.current_ret["ALL"].append(_ret[_key_addr])
-
-    def _parse_re_dev_proto_metric_mtu(self):
-        _ret = dict()
-        _key_addr = self._regex_helper.group(1)
-        _ret[_key_addr] = dict()
-        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-        _ret[_key_addr]["DEV"] = self._regex_helper.group(2)
-        _ret[_key_addr]["PROTO"] = self._regex_helper.group(3)
-        _ret[_key_addr]["METRIC"] = self._regex_helper.group(4)
-        _ret[_key_addr]["MTU"] = self._regex_helper.group(5)
-        self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
-        self.current_ret["ALL"].append(_ret[_key_addr])
-
-    def _parse_re_dev_proto_metric(self):
-        _ret = dict()
-        _key_addr = self._regex_helper.group(1)
-        _ret[_key_addr] = dict()
-        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-        _ret[_key_addr]["DEV"] = self._regex_helper.group(2)
-        _ret[_key_addr]["PROTO"] = self._regex_helper.group(3)
-        _ret[_key_addr]["METRIC"] = self._regex_helper.group(4)
-        self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
-        self.current_ret["ALL"].append(_ret[_key_addr])
-
-    def _parse_re_from_src_metric(self):
-        _ret = dict()
-        _key_addr = self._regex_helper.group(1)
-        _ret[_key_addr] = dict()
-        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-        _ret[_key_addr]["FROM"] = self._regex_helper.group(2)
-        _ret[_key_addr]["SRC"] = self._regex_helper.group(3)
-        _ret[_key_addr]["METRIC"] = self._regex_helper.group(4)
-        self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
-        self.current_ret["ALL"].append(_ret[_key_addr])
-
-    def _parse_re_dev_src(self):
-        _ret = dict()
-        _key_addr = self._regex_helper.group(1)
-        _ret[_key_addr] = dict()
-        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-        _ret[_key_addr]["DEV"] = self._regex_helper.group(2)
-        _ret[_key_addr]["SRC"] = self._regex_helper.group(3)
-        self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
-        self.current_ret["ALL"].append(_ret[_key_addr])
-
-    def _parse_re_from_via_dev(self):
-        _ret = dict()
-        _key_addr = self._regex_helper.group(1)
-        _ret[_key_addr] = dict()
-        _ret[_key_addr]["ADDRESS"] = self._regex_helper.group(1)
-        _ret[_key_addr]["FROM"] = self._regex_helper.group(2)
-        _ret[_key_addr]["VIA"] = self._regex_helper.group(3)
-        _ret[_key_addr]["DEV"] = self._regex_helper.group(4)
-        self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
-        self.current_ret["ALL"].append(_ret[_key_addr])
-
-    def _process_re_via_pattern_group(self, line):
-        # _re_via_dev_proto_metric
-        if self._regex_helper.search_compiled(Ip_route._re_via_dev_proto_metric, line):
-            self._parse_re_via_dev_proto_metric()
-        # _re_via_dev_proto_expires_mtu_hoplimit
-        elif self._regex_helper.search_compiled(Ip_route._re_via_dev_proto_expires_mtu_hoplimit, line):
-            self._parse_re_via_dev_proto_expires_mtu_hoplimit()
-        # _re_via_dev_metric_mtu
-        elif self._regex_helper.search_compiled(Ip_route._re_via_dev_metric_mtu, line):
-            self._parse_re_via_dev_metric_mtu()
-        # _re_via_dev_metric
-        elif self._regex_helper.search_compiled(Ip_route._re_via_dev_metric, line):
-            self._parse_re_via_dev_metric()
-        # _re_via_dev
-        elif self._regex_helper.search_compiled(Ip_route._re_via_dev, line):
-            self._parse_re_via_dev()
-
-    def _process_re_dev_pattern_group(self, line):
-        # _re_dev_proto_scope_src
-        if self._regex_helper.search_compiled(Ip_route._re_dev_proto_scope_src, line):
-            self._parse_re_dev_proto_scope_src()
-        # _re_dev_proto_metric_mtu
-        elif self._regex_helper.search_compiled(Ip_route._re_dev_proto_metric_mtu, line):
-            self._parse_re_dev_proto_metric_mtu()
-        # _re_dev_proto_metric
-        elif self._regex_helper.search_compiled(Ip_route._re_dev_proto_metric, line):
-            self._parse_re_dev_proto_metric()
-        # _re_dev_src
-        elif self._regex_helper.search_compiled(Ip_route._re_dev_src, line):
-            self._parse_re_dev_src()
-
-    def _process_re_from_pattern_group(self, line):
-        # _re_from_src_metric
-        if self._regex_helper.search_compiled(Ip_route._re_from_src_metric, line):
-            self._parse_re_from_src_metric()
-        # _re_from_via_dev
-        elif self._regex_helper.search_compiled(Ip_route._re_from_via_dev, line):
-            self._parse_re_from_via_dev()
-
     def on_new_line(self, line, is_full_line):
-        if not is_full_line:
-            return super(Ip_route, self).on_new_line(line, is_full_line)
-
-        # _re_via_pattern_group
-        if self._regex_helper.search_compiled(Ip_route._re_via_pattern_group, line):
-            self._process_re_via_pattern_group(line)
-        # _re_dev_pattern_group
-        elif self._regex_helper.search_compiled(Ip_route._re_dev_pattern_group, line):
-            self._process_re_dev_pattern_group(line)
-        # _re_from_pattern_group
-        elif self._regex_helper.search_compiled(Ip_route._re_from_pattern_group, line):
-            self._process_re_from_pattern_group(line)
-
+        if is_full_line:
+            parsed = False
+            parsed = self._parse_via_dev_proto_metric(line, parsed)
+            parsed = self._parse_via_dev_proto_expires_mtu_hoplimit(line, parsed)
+            parsed = self._parse_via_dev_metric_mtu(line, parsed)
+            parsed = self._parse_via_dev_metric(line, parsed)
+            parsed = self._parse_via_dev(line, parsed)
+            parsed = self._parse_dev_proto_scope_src(line, parsed)
+            parsed = self._parse_dev_proto_metric_mtu(line, parsed)
+            parsed = self._parse_dev_proto_metric(line, parsed)
+            parsed = self._parse_from_src_metric(line, parsed)
+            parsed = self._parse_dev_src(line, parsed)
+            self._parse_from_via_dev(line, parsed)
         return super(Ip_route, self).on_new_line(line, is_full_line)
 
     def get_default_route(self):
@@ -280,6 +70,96 @@ class Ip_route(GenericUnix):
                             metric = item["METRIC"]
 
         return def_route
+
+    def _process_line_address_all(self, line, parsed, regexp):
+        if not parsed and self._regex_helper.search_compiled(regexp, line):
+            _ret = dict()
+            _key_addr = self._regex_helper.group("ADDRESS")
+            _ret[_key_addr] = self._regex_helper.groupdict()
+            self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
+            self.current_ret["ALL"].append(_ret[_key_addr])
+            parsed = True
+        return parsed
+
+    def _process_line_via_all(self, line, parsed, regexp):
+        if not parsed and self._regex_helper.search_compiled(regexp, line):
+            _ret = dict()
+            _key_addr = self._regex_helper.group("ADDRESS")
+            _ret[_key_addr] = self._regex_helper.groupdict()
+            self.current_ret["VIA"][_key_addr] = _ret[_key_addr]
+            self.current_ret["ALL"].append(_ret[_key_addr])
+            parsed = True
+        return parsed
+
+    # default via fe80::a00:27ff:fe91:697c dev br0  proto ra  metric 1024  expires 1079sec mtu 1340 hoplimit 64
+    _re_via_dev_proto_expires_mtu_hoplimit = re.compile(
+        r"^\s*(?P<ADDRESS>\S+)\s+via\s+(?P<VIA>\S+)\s+dev\s+(?P<DEV>\S+)\s+proto\s+(?P<PROTO>\S+)\s+metric\s+(?P<EXPIRES>\S+)\s+expires\s+(?P<MTU>\S+)\s+mtu\s+(?P<HOPLIMIT>\S+)\s+hoplimit\s+(\S+)$")
+
+    def _parse_via_dev_proto_expires_mtu_hoplimit(self, line, parsed):
+        return self._process_line_via_all(line, parsed, Ip_route._re_via_dev_proto_expires_mtu_hoplimit)
+
+    # default via 10.83.225.254 dev eth0  proto none  metric 1
+    _re_via_dev_proto_metric = re.compile(
+            r"^\s*(?P<ADDRESS>\S+)\s+via\s+(?P<VIA>\S+)\s+dev\s+(?P<DEV>\S+)\s+proto\s+(?P<PROTO>\S+)\s+metric\s+(?P<METRIC>\S+)\s*$")
+
+    def _parse_via_dev_proto_metric(self, line, parsed):
+        return self._process_line_via_all(line, parsed, Ip_route._re_via_dev_proto_metric)
+
+    # default via 2a00:8a00:6000:7000:1000:4100:151:2 dev br0  metric 1  mtu 1500
+    _re_via_dev_metric_mtu = re.compile(r"^\s*(?P<ADDRESS>\S+)\s+via\s+(?P<VIA>\S+)\s+dev\s+(?P<DEV>\S+)\s+metric\s+(?P<METRIC>\S+)\s+mtu\s+(?P<MTU>\S+)\s*$")
+
+    def _parse_via_dev_metric_mtu(self, line, parsed):
+        return self._process_line_via_all(line, parsed, Ip_route._re_via_dev_metric_mtu)
+
+    # default via 2a00:8a00:6000:7000:a00:7900:3:0 dev br0.2605  metric 1
+    _re_via_dev_metric = re.compile(r"^\s*(?P<ADDRESS>\S+)\s+via\s+(?P<VIA>\S+)\s+dev\s+(?P<DEV>\S+)\s+metric\s+(?P<METRIC>\S+)\s*$")
+
+    def _parse_via_dev_metric(self, line, parsed):
+        return self._process_line_via_all(line, parsed, Ip_route._re_via_dev_metric)
+
+    # default via 2a00:8a00:6000:7000:1000:4100:151:2 dev br0
+    _re_via_dev = re.compile(r"^\s*(?P<ADDRESS>\S+)\s+via\s+(?P<VIA>\S+)\s+dev\s+(?P<DEV>\S+).*$")
+
+    def _parse_via_dev(self, line, parsed):
+        return self._process_line_via_all(line, parsed, Ip_route._re_via_dev)
+
+    # 10.83.224.0/23 dev eth0  proto kernel  scope link  src 10.83.225.103
+    _re_dev_proto_scope_src = re.compile(
+            r"^\s*(?P<ADDRESS>\S+)\s+dev\s+(?P<DEV>\S+)\s+proto\s+(?P<PROTO>\S+)\s+scope\s+(?P<SCOPE>\S+)\s+src\s+(?P<SRC>\S+)\s*$")
+
+    def _parse_dev_proto_scope_src(self, line, parsed):
+        return self._process_line_address_all(line, parsed, Ip_route._re_dev_proto_scope_src)
+
+    # fe80::/64 dev br0  proto kernel  metric 256  mtu 1632
+    _re_dev_proto_metric_mtu = re.compile(r"(?P<ADDRESS>\S+)\s+dev\s+(?P<DEV>\S+)\s+proto\s+(?P<PROTO>\S+)\s+metric\s+(?P<METRIC>\S+)\s+mtu\s+(?P<MTU>\S+)")
+
+    def _parse_dev_proto_metric_mtu(self, line, parsed):
+        return self._process_line_address_all(line, parsed, Ip_route._re_dev_proto_metric_mtu)
+
+    # 2a00:8a00:6000:7000:a00:3900::/96 dev br0.2607  proto kernel  metric 256
+    _re_dev_proto_metric = re.compile(r"(?P<ADDRESS>\S+)\s+dev\s+(?P<DEV>\S+)\s+proto\s+(?P<PROTO>\S+)\s+metric\s+(?P<METRIC>\S+)")
+
+    def _parse_dev_proto_metric(self, line, parsed):
+        return self._process_line_address_all(line, parsed, Ip_route._re_dev_proto_metric)
+
+    # 2000::2011 from :: dev eth3  src 2000::2012  metric 0
+    _re_from_src_metric = re.compile(r"(?P<ADDRESS>\S+)\s+from\s+(?P<FROM>\S+)\s+dev\s+(?P<DEV>\S+)\s+src\s+(?P<SRC>\S+)\s+metric\s+(?P<METRIC>\d+)")
+
+    def _parse_from_src_metric(self, line, parsed):
+        return self._process_line_address_all(line, parsed, Ip_route._re_from_src_metric)
+
+    # 10.0.0.249 dev eth3  src 10.0.0.2
+    _re_dev_src = re.compile(r"(?P<ADDRESS>\S+)\s+dev\s+(?P<DEV>\S+)\s+src\s+(?P<SRC>\S+)")
+
+    def _parse_dev_src(self, line, parsed):
+        return self._process_line_address_all(line, parsed, Ip_route._re_dev_src)
+
+    # ip route get 99.99.99.99 from 10.0.0.249
+    # 99.99.99.99 from 10.0.0.249 via 10.0.0.2 dev br0
+    _re_from_via_dev = re.compile(r"(?P<ADDRESS>\S+)\s+from\s+(?P<FROM>\S+)\s+via\s+(?P<VIA>\S+)\s+dev\s+(?P<DEV>\S+)")
+
+    def _parse_from_via_dev(self, line, parsed):
+        return self._process_line_address_all(line, parsed, Ip_route._re_from_via_dev)
 
 
 COMMAND_OUTPUT_ver_human = """

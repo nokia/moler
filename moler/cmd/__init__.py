@@ -37,6 +37,9 @@ class RegexHelper(object):
     def group(self, number):
         return self.match.group(number)
 
+    def groupdict(self):
+        return self.match.groupdict()
+
     @staticmethod
     def get_regex_helper():
         if RegexHelper.instance is None:
