@@ -8,6 +8,14 @@ class MolerException(Exception):
     pass
 
 
+class ParsingDone(MolerException):
+    """
+    Indicate that given part of output has been fully parsed
+    and requires no further processing.
+    """
+    pass
+
+
 class WrongUsage(MolerException):
     """Wrong usage of library"""
     pass

@@ -6,6 +6,7 @@ import re
 
 from moler.cmd.unix.genericunix import GenericUnix
 from moler.cmd.converterhelper import ConverterHelper
+from moler.exceptions import ParsingDone
 
 
 __author__ = 'Yang Snackwell'
@@ -38,18 +39,20 @@ class Ip_route(GenericUnix):
 
     def on_new_line(self, line, is_full_line):
         if is_full_line:
-            parsed = False
-            parsed = self._parse_via_dev_proto_metric(line, parsed)
-            parsed = self._parse_via_dev_proto_expires_mtu_hoplimit(line, parsed)
-            parsed = self._parse_via_dev_metric_mtu(line, parsed)
-            parsed = self._parse_via_dev_metric(line, parsed)
-            parsed = self._parse_via_dev(line, parsed)
-            parsed = self._parse_dev_proto_scope_src(line, parsed)
-            parsed = self._parse_dev_proto_metric_mtu(line, parsed)
-            parsed = self._parse_dev_proto_metric(line, parsed)
-            parsed = self._parse_from_src_metric(line, parsed)
-            parsed = self._parse_dev_src(line, parsed)
-            self._parse_from_via_dev(line, parsed)
+            try:
+                self._parse_via_dev_proto_metric(line)
+                self._parse_via_dev_proto_expires_mtu_hoplimit(line)
+                self._parse_via_dev_metric_mtu(line)
+                self._parse_via_dev_metric(line)
+                self._parse_via_dev(line)
+                self._parse_dev_proto_scope_src(line)
+                self._parse_dev_proto_metric_mtu(line)
+                self._parse_dev_proto_metric(line)
+                self._parse_from_src_metric(line)
+                self._parse_dev_src(line)
+                self._parse_from_via_dev(line)
+            except ParsingDone:
+                pass  # line has been fully parsed by one of above parse-methods
         return super(Ip_route, self).on_new_line(line, is_full_line)
 
     def get_default_route(self):
@@ -71,25 +74,23 @@ class Ip_route(GenericUnix):
 
         return def_route
 
-    def _process_line_address_all(self, line, parsed, regexp):
-        if not parsed and self._regex_helper.search_compiled(regexp, line):
+    def _process_line_address_all(self, line, regexp):
+        if self._regex_helper.search_compiled(regexp, line):
             _ret = dict()
             _key_addr = self._regex_helper.group("ADDRESS")
             _ret[_key_addr] = self._regex_helper.groupdict()
             self.current_ret["ADDRESS"][_key_addr] = _ret[_key_addr]
             self.current_ret["ALL"].append(_ret[_key_addr])
-            parsed = True
-        return parsed
+            raise ParsingDone
 
-    def _process_line_via_all(self, line, parsed, regexp):
-        if not parsed and self._regex_helper.search_compiled(regexp, line):
+    def _process_line_via_all(self, line, regexp):
+        if self._regex_helper.search_compiled(regexp, line):
             _ret = dict()
             _key_addr = self._regex_helper.group("ADDRESS")
             _ret[_key_addr] = self._regex_helper.groupdict()
             self.current_ret["VIA"][_key_addr] = _ret[_key_addr]
             self.current_ret["ALL"].append(_ret[_key_addr])
-            parsed = True
-        return parsed
+            raise ParsingDone
 
     # default via fe80::a00:27ff:fe91:697c dev br0  proto ra  metric 1024  expires 1079sec mtu 1340 hoplimit 64
     _re_via_dev_proto_expires_mtu_hoplimit = re.compile(r"^\s*(?P<ADDRESS>\S+)\s+via\s+(?P<VIA>\S+)\s+"
@@ -97,76 +98,76 @@ class Ip_route(GenericUnix):
                                                         r"metric\s+(?P<METRIC>\S+)\s+expires\s+(?P<EXPIRES>\S+)\s+"
                                                         r"mtu\s+(?P<MTU>\S+)\s+hoplimit\s+(?P<HOPLIMIT>\S+)$")
 
-    def _parse_via_dev_proto_expires_mtu_hoplimit(self, line, parsed):
-        return self._process_line_via_all(line, parsed, Ip_route._re_via_dev_proto_expires_mtu_hoplimit)
+    def _parse_via_dev_proto_expires_mtu_hoplimit(self, line):
+        return self._process_line_via_all(line, Ip_route._re_via_dev_proto_expires_mtu_hoplimit)
 
     # default via 10.83.225.254 dev eth0  proto none  metric 1
     _re_via_dev_proto_metric = re.compile(r"^\s*(?P<ADDRESS>\S+)\s+via\s+(?P<VIA>\S+)\s+dev\s+(?P<DEV>\S+)\s+"
                                           r"proto\s+(?P<PROTO>\S+)\s+metric\s+(?P<METRIC>\S+)\s*$")
 
-    def _parse_via_dev_proto_metric(self, line, parsed):
-        return self._process_line_via_all(line, parsed, Ip_route._re_via_dev_proto_metric)
+    def _parse_via_dev_proto_metric(self, line):
+        return self._process_line_via_all(line, Ip_route._re_via_dev_proto_metric)
 
     # default via 2a00:8a00:6000:7000:1000:4100:151:2 dev br0  metric 1  mtu 1500
     _re_via_dev_metric_mtu = re.compile(r"^\s*(?P<ADDRESS>\S+)\s+via\s+(?P<VIA>\S+)\s+dev\s+(?P<DEV>\S+)\s+"
                                         r"metric\s+(?P<METRIC>\S+)\s+mtu\s+(?P<MTU>\S+)\s*$")
 
-    def _parse_via_dev_metric_mtu(self, line, parsed):
-        return self._process_line_via_all(line, parsed, Ip_route._re_via_dev_metric_mtu)
+    def _parse_via_dev_metric_mtu(self, line):
+        return self._process_line_via_all(line, Ip_route._re_via_dev_metric_mtu)
 
     # default via 2a00:8a00:6000:7000:a00:7900:3:0 dev br0.2605  metric 1
     _re_via_dev_metric = re.compile(r"^\s*(?P<ADDRESS>\S+)\s+via\s+(?P<VIA>\S+)\s+dev\s+(?P<DEV>\S+)\s+"
                                     r"metric\s+(?P<METRIC>\S+)\s*$")
 
-    def _parse_via_dev_metric(self, line, parsed):
-        return self._process_line_via_all(line, parsed, Ip_route._re_via_dev_metric)
+    def _parse_via_dev_metric(self, line):
+        return self._process_line_via_all(line, Ip_route._re_via_dev_metric)
 
     # default via 2a00:8a00:6000:7000:1000:4100:151:2 dev br0
     _re_via_dev = re.compile(r"^\s*(?P<ADDRESS>\S+)\s+via\s+(?P<VIA>\S+)\s+dev\s+(?P<DEV>\S+).*$")
 
-    def _parse_via_dev(self, line, parsed):
-        return self._process_line_via_all(line, parsed, Ip_route._re_via_dev)
+    def _parse_via_dev(self, line):
+        return self._process_line_via_all(line, Ip_route._re_via_dev)
 
     # 10.83.224.0/23 dev eth0  proto kernel  scope link  src 10.83.225.103
     _re_dev_proto_scope_src = re.compile(r"^\s*(?P<ADDRESS>\S+)\s+dev\s+(?P<DEV>\S+)\s+"
                                          r"proto\s+(?P<PROTO>\S+)\s+scope\s+(?P<SCOPE>\S+)\s+src\s+(?P<SRC>\S+)\s*$")
 
-    def _parse_dev_proto_scope_src(self, line, parsed):
-        return self._process_line_address_all(line, parsed, Ip_route._re_dev_proto_scope_src)
+    def _parse_dev_proto_scope_src(self, line):
+        return self._process_line_address_all(line, Ip_route._re_dev_proto_scope_src)
 
     # fe80::/64 dev br0  proto kernel  metric 256  mtu 1632
     _re_dev_proto_metric_mtu = re.compile(r"(?P<ADDRESS>\S+)\s+dev\s+(?P<DEV>\S+)\s+proto\s+(?P<PROTO>\S+)\s+"
                                           r"metric\s+(?P<METRIC>\S+)\s+mtu\s+(?P<MTU>\S+)")
 
-    def _parse_dev_proto_metric_mtu(self, line, parsed):
-        return self._process_line_address_all(line, parsed, Ip_route._re_dev_proto_metric_mtu)
+    def _parse_dev_proto_metric_mtu(self, line):
+        return self._process_line_address_all(line, Ip_route._re_dev_proto_metric_mtu)
 
     # 2a00:8a00:6000:7000:a00:3900::/96 dev br0.2607  proto kernel  metric 256
     _re_dev_proto_metric = re.compile(r"(?P<ADDRESS>\S+)\s+dev\s+(?P<DEV>\S+)\s+proto\s+(?P<PROTO>\S+)\s+"
                                       r"metric\s+(?P<METRIC>\S+)")
 
-    def _parse_dev_proto_metric(self, line, parsed):
-        return self._process_line_address_all(line, parsed, Ip_route._re_dev_proto_metric)
+    def _parse_dev_proto_metric(self, line):
+        return self._process_line_address_all(line, Ip_route._re_dev_proto_metric)
 
     # 2000::2011 from :: dev eth3  src 2000::2012  metric 0
     _re_from_src_metric = re.compile(r"(?P<ADDRESS>\S+)\s+from\s+(?P<FROM>\S+)\s+dev\s+(?P<DEV>\S+)\s+"
                                      r"src\s+(?P<SRC>\S+)\s+metric\s+(?P<METRIC>\d+)")
 
-    def _parse_from_src_metric(self, line, parsed):
-        return self._process_line_address_all(line, parsed, Ip_route._re_from_src_metric)
+    def _parse_from_src_metric(self, line):
+        return self._process_line_address_all(line, Ip_route._re_from_src_metric)
 
     # 10.0.0.249 dev eth3  src 10.0.0.2
     _re_dev_src = re.compile(r"(?P<ADDRESS>\S+)\s+dev\s+(?P<DEV>\S+)\s+src\s+(?P<SRC>\S+)")
 
-    def _parse_dev_src(self, line, parsed):
-        return self._process_line_address_all(line, parsed, Ip_route._re_dev_src)
+    def _parse_dev_src(self, line):
+        return self._process_line_address_all(line, Ip_route._re_dev_src)
 
     # ip route get 99.99.99.99 from 10.0.0.249
     # 99.99.99.99 from 10.0.0.249 via 10.0.0.2 dev br0
     _re_from_via_dev = re.compile(r"(?P<ADDRESS>\S+)\s+from\s+(?P<FROM>\S+)\s+via\s+(?P<VIA>\S+)\s+dev\s+(?P<DEV>\S+)")
 
-    def _parse_from_via_dev(self, line, parsed):
-        return self._process_line_address_all(line, parsed, Ip_route._re_from_via_dev)
+    def _parse_from_via_dev(self, line):
+        return self._process_line_address_all(line, Ip_route._re_from_via_dev)
 
 
 COMMAND_OUTPUT_ver_human = """
