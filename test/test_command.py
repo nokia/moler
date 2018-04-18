@@ -189,6 +189,9 @@ def test_command_is_running_after_sending_command_string(do_nothing_command__for
             assert data == 'ping localhost'  # ping command to be started on some shell
             assert ping.running()  # I'm in connection's send - command object should assume "real CMD (ping) is running"
 
+        def subscribe(self, observer):
+            pass
+
     ping.connection = TheConnection()
     ping.command_string = 'ping localhost'
     assert not ping.running()
