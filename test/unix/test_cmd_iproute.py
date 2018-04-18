@@ -12,10 +12,10 @@ import pytest
 
 def test_calling_iproute_get_default_returns_result_parsed_from_command_output(buffer_connection,
                                                                                command_output_and_expected_result):
-    from moler.cmd.unix.ip_route import Ip_route
+    from moler.cmd.unix.ip_route import IpRoute
     command_output, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
-    iproute_cmd = Ip_route(connection=buffer_connection.moler_connection)
+    iproute_cmd = IpRoute(connection=buffer_connection.moler_connection)
     iproute_cmd()
     result = iproute_cmd.get_default_route()
     expected_default_route = "10.83.207.254"
@@ -23,8 +23,8 @@ def test_calling_iproute_get_default_returns_result_parsed_from_command_output(b
 
 
 def test_iproute_returns_proper_command_string(buffer_connection):
-    from moler.cmd.unix.ip_route import Ip_route
-    iproute_cmd = Ip_route(buffer_connection, is_ipv6=True)
+    from moler.cmd.unix.ip_route import IpRoute
+    iproute_cmd = IpRoute(buffer_connection, is_ipv6=True)
     assert "ip -6 route" == iproute_cmd.command_string
 
 
