@@ -10,6 +10,11 @@ The only 3 requirements for these connections are:
 
 (3) forward IO received data into self.moler_connection.data_received(data)
 """
+
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
+
 import select
 import socket
 import sys
@@ -19,10 +24,6 @@ from moler.io.io_exceptions import ConnectionTimeout
 from moler.io.io_exceptions import RemoteEndpointDisconnected
 from moler.io.io_exceptions import RemoteEndpointNotConnected
 from moler.io.raw import TillDoneThread
-
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
 
 # TODO: logging - want to know what happens on GIVEN connection
 # TODO: logging - rethink details

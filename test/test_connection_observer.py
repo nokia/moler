@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
+
 import importlib
 import time
 
@@ -6,10 +11,6 @@ import pytest
 from moler.connection import ObservableConnection
 from moler.connection_observer import ConnectionObserver
 from moler.helpers import instance_id
-
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
 
 
 def test_connection_observer_instance_is_callable(connection_observer_major_base_class):

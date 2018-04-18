@@ -2,11 +2,12 @@
 """
 Testing of ssh command.
 """
-from moler.cmd.unix.ssh import Ssh
 
 __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
+
+from moler.cmd.unix.ssh import Ssh
 
 
 def test_calling_ssh_returns_result_parsed_from_command_output(buffer_connection):

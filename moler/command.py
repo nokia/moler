@@ -10,13 +10,14 @@ Additionally:
 - CMD - command started on some device like 'ls -l' that has its own output
 - Command - Python code automating its startup/parsing/completion
 """
-from moler.connection_observer import ConnectionObserver
-from moler.exceptions import NoCommandStringProvided
-from moler.helpers import instance_id
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
+
+from moler.connection_observer import ConnectionObserver
+from moler.exceptions import NoCommandStringProvided
+from moler.helpers import instance_id
 
 
 class Command(ConnectionObserver):

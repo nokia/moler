@@ -2,11 +2,12 @@
 """
 Tests for helpers functions/classes.
 """
-import mock
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
+
+import mock
 
 
 def test_instance_id_returns_id_in_hex_form_without_0x():

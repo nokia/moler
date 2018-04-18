@@ -5,14 +5,15 @@ Testing external-IO FIFO-mem-buffer connection
 - open/close (for threaded)
 - send/receive (naming may differ)
 """
-import importlib
-import time
-
-import pytest
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
+
+import importlib
+import time
+
+import pytest
 
 
 # TODO: test open/close for threaded FIFO

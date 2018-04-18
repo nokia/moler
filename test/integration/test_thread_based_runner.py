@@ -5,15 +5,16 @@ Testing connection observer runner based on threads
 - submit
 - wait_for
 """
+
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
+
 import threading
 import time
 
 import pytest
 from moler.connection_observer import ConnectionObserver
-
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
 
 
 def test_can_submit_connection_observer_into_background(connection_observer,

@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
-import binascii
-import gc
-
-import pytest
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
+
+import binascii
+import gc
+
+import pytest
 
 
 def test_can_attach_external_outgoing_io_to_moler_connection():

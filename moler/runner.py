@@ -4,6 +4,11 @@
 Runner abstraction goal is to hide concurrency machinery used
 to make it exchangeable (threads, asyncio, twisted, curio)
 """
+
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
+
 import atexit
 import logging
 import time
@@ -12,10 +17,6 @@ from concurrent.futures import ThreadPoolExecutor, wait
 from moler.exceptions import ConnectionObserverTimeout
 from moler.exceptions import CommandTimeout
 from six import add_metaclass
-
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
 
 # fix for concurrent.futures  v.3.0.3  to have API of v.3.1.1 or above
 try:

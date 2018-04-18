@@ -2,6 +2,11 @@
 """
 Perform command autotest for selected command(s).
 """
+
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
+
 import argparse
 import importlib
 import pprint
@@ -16,10 +21,6 @@ from moler.command import Command
 import moler
 
 pp = pprint.PrettyPrinter(indent=4)
-
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
 
 
 # ----------------------------------- input parameters parsing ----------------

@@ -13,6 +13,11 @@ The only 3 requirements for these connections are:
 Logging inside ext-IO is mainly focused on connection establishment/close/drop.
 Data transfer aspects of connection are logged by embedded Moler's connection.
 """
+
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
+
 import threading
 import time
 import logging
@@ -21,10 +26,6 @@ from six.moves.queue import Queue, Empty
 from moler.io.io_connection import IOConnection
 from moler.io.raw import TillDoneThread
 from moler.config.loggers import TRACE
-
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
 
 
 class FifoBuffer(IOConnection):

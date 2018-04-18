@@ -2,13 +2,14 @@
 """
 Date command module.
 """
-import re
-
-from moler.cmd.unix.genericunix import GenericUnix
 
 __author__ = 'Tomasz Krol'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'tomasz.krol@nokia.com'
+
+import re
+
+from moler.cmd.unix.genericunix import GenericUnix
 
 
 class Date(GenericUnix):

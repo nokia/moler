@@ -2,16 +2,16 @@
 """
 Ip_route command module.
 """
+
+__author__ = 'Yang Snackwell'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'snackwell.yang@nokia-sbell.com'
+
 import re
 
 from moler.cmd.unix.genericunix import GenericUnix
 from moler.cmd.converterhelper import ConverterHelper
 from moler.exceptions import ParsingDone
-
-
-__author__ = 'Yang Snackwell'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'snackwell.yang@nokia-sbell.com'
 
 
 class Ip_route(GenericUnix):

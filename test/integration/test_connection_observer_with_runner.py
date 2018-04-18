@@ -5,15 +5,16 @@ Testing connection observer with runner based on threads
 - call as function (synchronous)
 - call as future  (asynchronous)
 """
+
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
+
 import threading
 import time
 
 import pytest
 from moler.connection_observer import ConnectionObserver
-
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
 
 
 def test_calling_connection_observer_returns_result(net_down_detector_and_ping_output):
