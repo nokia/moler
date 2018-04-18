@@ -101,6 +101,12 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Returns Future that could be used to await for connection_observer done.
         """
         self.logger.debug("go background: {!r}".format(connection_observer))
+        # subscription for data must be done early (before feeding thread starts)
+        # to protect against threads races: connection thread may may get some data
+        # even before feeding thread starts
+        self.logger.debug("subscribing for data {!r}".format(connection_observer))
+        moler_conn = connection_observer.connection
+        moler_conn.subscribe(connection_observer.data_received)
         # TODO: check dependency - connection_observer.connection
         connection_observer_future = self.executor.submit(self.feed, connection_observer)
         return connection_observer_future
@@ -117,6 +123,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         self.logger.debug("go foreground: {!r} - await max. {} [sec]".format(connection_observer, timeout))
         start_time = time.time()
         done, not_done = wait([connection_observer_future], timeout=timeout)
+        moler_conn = connection_observer.connection
+        moler_conn.unsubscribe(connection_observer.data_received)
         if connection_observer_future in done:
             self.shutdown()
             result = connection_observer_future.result()
@@ -138,8 +146,6 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Should be called from background-processing of connection observer.
         """
         moler_conn = connection_observer.connection
-        self.logger.debug("subscribing for data {!r}".format(connection_observer))
-        moler_conn.subscribe(connection_observer.data_received)
         while True:
             if connection_observer.done():
                 self.logger.debug("done & unsubscribing {!r}".format(connection_observer))
