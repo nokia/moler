@@ -2,11 +2,12 @@
 """
 Testing of ip route command.
 """
-import pytest
 
 __author__ = 'Yang Snackwell'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'snackwell.yang@nokia-sbell.com'
+
+import pytest
 
 
 def test_calling_iproute_get_default_returns_result_parsed_from_command_output(buffer_connection,

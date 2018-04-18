@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-import logging
-import time
-import pytest
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
+
+import logging
+import time
+import pytest
 
 
 def test_multiline_formatter_expects_format_ending_with_message():

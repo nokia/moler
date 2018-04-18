@@ -3,12 +3,13 @@
 """
 Configure logging for Moler's needs
 """
-import os
-import logging
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
+
+import os
+import logging
 
 logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
 active_loggers = []  # TODO: use set()      # Active loggers created by Moler

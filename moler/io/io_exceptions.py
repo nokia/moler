@@ -3,11 +3,12 @@
 External-IO exceptions.
 
 """
-import platform
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
+
+import platform
 
 WIN_SOCKET_ERRORS = {
     10053: ("Software caused connection abort.",

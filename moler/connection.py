@@ -10,6 +10,11 @@ Connection responsibilities:
 - perform data encoding/decoding to let external IO use pure bytes
 - have a means allowing multiple observers to get it's received data (data dispatching)
 """
+
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
+
 import weakref
 from threading import Lock
 import six
@@ -19,10 +24,6 @@ from moler.exceptions import WrongUsage
 from moler.helpers import instance_id
 from moler.config.loggers import RAW_DATA, TRACE
 import moler.config.connections as connection_cfg
-
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
 
 
 def identity_transformation(data):

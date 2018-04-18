@@ -2,15 +2,16 @@
 """
 Ls command module.
 """
+
+__author__ = 'Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'marcin.usielski@nokia.com'
+
 import re
 
 from moler.cmd.unix.genericunix import GenericUnix
 from moler.cmd.converterhelper import ConverterHelper
 from moler.exceptions import ResultNotAvailableYet
-
-__author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
 
 
 class Ls(GenericUnix):

@@ -10,11 +10,12 @@ The only 3 requirements for these connections is:
 
 (3) forward IO received data into self.moler_connection.data_received(data)
 """
-import threading
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
+
+import threading
 
 
 class TillDoneThread(threading.Thread):

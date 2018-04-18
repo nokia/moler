@@ -2,6 +2,11 @@
 """
 Generic Unix/Linux module
 """
+
+__author__ = 'Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'marcin.usielski@nokia.com'
+
 import re
 import abc
 import sys
@@ -9,10 +14,6 @@ import sys
 from moler.cmd import RegexHelper
 from moler.command import Command
 import logging
-
-__author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
 
 
 class TextualGeneric(Command):

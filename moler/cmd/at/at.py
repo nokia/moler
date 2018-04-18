@@ -6,14 +6,15 @@ AT commands specification:
 https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=1515
 (always check against latest version of standard)
 """
-import re
-from abc import abstractmethod
-
-from moler.command import Command
 
 __author__ = 'Lukasz Blaszkiewicz, Kamil Kania, Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'kamil.kania@nokia.com, grzegorz.latuszek@nokia.com'
+
+import re
+from abc import abstractmethod
+
+from moler.command import Command
 
 
 class AtCommandModeNotSupported(Exception):

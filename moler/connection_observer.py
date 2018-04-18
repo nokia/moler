@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
+
 from abc import abstractmethod, ABCMeta
 
 from moler.exceptions import ConnectionObserverNotStarted
@@ -9,10 +14,6 @@ from moler.exceptions import ResultNotAvailableYet
 from moler.helpers import instance_id
 from moler.runner import ThreadPoolExecutorRunner
 from six import add_metaclass
-
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
 
 
 @add_metaclass(ABCMeta)

@@ -2,6 +2,11 @@
 """
 ps command module.
 """
+
+__author__ = 'Dariusz Rosinski'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'dariusz.rosinski@nokia.com'
+
 import re
 
 from moler.cmd.unix.genericunix import GenericUnix

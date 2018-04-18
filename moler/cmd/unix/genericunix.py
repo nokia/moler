@@ -2,14 +2,15 @@
 """
 Generic Unix/Linux module
 """
-import re
-
-from moler.exceptions import CommandFailure
-from moler.textualgeneric import TextualGeneric
 
 __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
+
+import re
+
+from moler.exceptions import CommandFailure
+from moler.textualgeneric import TextualGeneric
 
 
 class GenericUnix(TextualGeneric):

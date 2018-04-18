@@ -15,6 +15,11 @@ Shows following concepts:
 - client code may "start" observers in sequence
 - external-IO-connection must be given Moler's connection for data forwarding
 """
+
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
+
 import logging
 import select
 import socket
@@ -25,10 +30,6 @@ from contextlib import closing
 
 from moler.connection import ObservableConnection
 from moler.connection_observer import ConnectionObserver
-
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
 
 ping_output = '''
 greg@debian:~$ ping 10.0.2.15

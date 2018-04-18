@@ -11,6 +11,11 @@ It has backdoor connection over pipe that forms control-service which can:
 - shutdown server
 
 """
+
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
+
 import logging
 import select
 import socket
@@ -20,10 +25,6 @@ from contextlib import contextmanager
 from multiprocessing import Pipe
 from multiprocessing import Process
 from socket import error as socket_error
-
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
 
 
 @contextmanager

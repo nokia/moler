@@ -5,13 +5,14 @@ Testing external-IO TCP connection
 - open/close
 - send/receive (naming may differ)
 """
-import time
-
-import pytest
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
+
+import time
+
+import pytest
 
 
 def test_can_open_and_close_connection(tcp_connection_class,

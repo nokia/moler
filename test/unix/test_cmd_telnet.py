@@ -2,13 +2,14 @@
 """
 Testing of telnet command.
 """
-from pytest import raises
-
-from moler.cmd.unix.telnet import Telnet
 
 __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
+
+from pytest import raises
+
+from moler.cmd.unix.telnet import Telnet
 
 
 def test_calling_telnet_returns_result_parsed_from_command_output(buffer_connection):

@@ -2,11 +2,12 @@
 """
 Testing AtGetIMSI commands.
 """
-import pytest
 
 __author__ = 'Lukasz Blaszkiewicz, Kamil Kania, Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'kamil.kania@nokia.com, grzegorz.latuszek@nokia.com'
+
+import pytest
 
 
 # --------------------------- testing base class ---------------------------

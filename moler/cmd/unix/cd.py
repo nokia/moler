@@ -2,13 +2,14 @@
 """
 cd command module.
 """
-from re import compile, escape, IGNORECASE
-
-from moler.cmd.unix.genericunix import GenericUnix
 
 __author__ = 'Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'michal.ernst@nokia.com'
+
+from re import compile, escape, IGNORECASE
+
+from moler.cmd.unix.genericunix import GenericUnix
 
 
 class Cd(GenericUnix):

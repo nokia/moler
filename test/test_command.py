@@ -9,6 +9,11 @@ inside test_connection_observer.py (as parametrized tests).
 - call as function (synchronous)
 - call as future  (asynchronous)
 """
+
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
+
 import importlib
 
 import pytest
@@ -16,10 +21,6 @@ from moler.command import Command
 from moler.connection import ObservableConnection
 from moler.helpers import instance_id
 from moler.io.raw.memory import FifoBuffer
-
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
 
 
 def test_command_has_means_to_retrieve_embedded_command_string(do_nothing_command__for_major_base_class):

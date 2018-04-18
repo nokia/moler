@@ -3,13 +3,13 @@
 Telnet command module.
 """
 
-import re
-from moler.cmd.unix.genericunix import GenericUnix
-from moler.exceptions import CommandFailure
-
 __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
+
+import re
+from moler.cmd.unix.genericunix import GenericUnix
+from moler.exceptions import CommandFailure
 
 
 class Telnet(GenericUnix):

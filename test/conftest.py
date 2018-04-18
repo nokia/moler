@@ -2,16 +2,17 @@
 """
 Testing resources for tests of AT commands.
 """
+
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
+
 from pytest import fixture, yield_fixture
 import os
 import logging
 
 import moler.config.loggers
 from moler.helpers import instance_id
-
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
 
 # plugins to let us see (in moler logs) where we are in testing
 

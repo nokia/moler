@@ -5,13 +5,14 @@ Testing external-IO subprocess connection
 - open/close
 - send/receive (naming may differ)
 """
-import importlib
-import sys
-import pytest
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
+
+import importlib
+import sys
+import pytest
 
 
 def test_can_open_connection(subprocess_connection_class):
