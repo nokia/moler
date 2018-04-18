@@ -49,8 +49,8 @@ class Ip_route(GenericUnix):
                 self._parse_dev_proto_metric_mtu(line)
                 self._parse_dev_proto_metric(line)
                 self._parse_from_src_metric(line)
-                self._parse_dev_src(line)
                 self._parse_from_via_dev(line)
+                self._parse_dev_src(line)
             except ParsingDone:
                 pass  # line has been fully parsed by one of above parse-methods
         return super(Ip_route, self).on_new_line(line, is_full_line)
@@ -156,18 +156,18 @@ class Ip_route(GenericUnix):
     def _parse_from_src_metric(self, line):
         return self._process_line_address_all(line, Ip_route._re_from_src_metric)
 
-    # 10.0.0.249 dev eth3  src 10.0.0.2
-    _re_dev_src = re.compile(r"(?P<ADDRESS>\S+)\s+dev\s+(?P<DEV>\S+)\s+src\s+(?P<SRC>\S+)")
-
-    def _parse_dev_src(self, line):
-        return self._process_line_address_all(line, Ip_route._re_dev_src)
-
     # ip route get 99.99.99.99 from 10.0.0.249
     # 99.99.99.99 from 10.0.0.249 via 10.0.0.2 dev br0
     _re_from_via_dev = re.compile(r"(?P<ADDRESS>\S+)\s+from\s+(?P<FROM>\S+)\s+via\s+(?P<VIA>\S+)\s+dev\s+(?P<DEV>\S+)")
 
     def _parse_from_via_dev(self, line):
         return self._process_line_address_all(line, Ip_route._re_from_via_dev)
+
+    # 10.0.0.249 dev eth3  src 10.0.0.2
+    _re_dev_src = re.compile(r"(?P<ADDRESS>\S+)\s+dev\s+(?P<DEV>\S+)\s+src\s+(?P<SRC>\S+)")
+
+    def _parse_dev_src(self, line):
+        return self._process_line_address_all(line, Ip_route._re_dev_src)
 
 
 COMMAND_OUTPUT_ver_human = """
