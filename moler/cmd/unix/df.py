@@ -2,19 +2,19 @@
 """
 Df command module.
 """
-import re
-
-from moler.cmd.unix.genericunix import GenericUnix
-from moler.cmd.converterhelper import ConverterHelper
 
 __author__ = 'Yeshu Yang'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'yeshu.yang@nokia.com'
 
+import re
+
+from moler.cmd.unix.genericunix import GenericUnix
+from moler.cmd.converterhelper import ConverterHelper
+from moler.exceptions import ParsingDone
+
 
 class Df(GenericUnix):
-
-    _re_filesystem_line = re.compile(r"^(\S+)\s+(\S+)\s+(\S+)M\s+(\S+)M\s+(\S+)M\s+(\d+)%\s+(\S+)$")
 
     def __init__(self, connection, prompt=None, new_line_chars=None):
         super(Df, self).__init__(connection, prompt, new_line_chars)
@@ -25,33 +25,26 @@ class Df(GenericUnix):
         return cmd
 
     def on_new_line(self, line, is_full_line):
-        if not is_full_line:
-            return super(Df, self).on_new_line(line, is_full_line)
+        if is_full_line:
+            try:
+                self._parse_filesystem_line(line)
+            except ParsingDone:
+                pass
+        return super(Df, self).on_new_line(line, is_full_line)
+
+    _re_filesystem_line = re.compile(r"^(?P<Filesystem>\S+)\s+(?P<Type>\S+)\s+(?P<Size>\S+)M\s+(?P<Used>\S+)M\s+"
+                                     r"(?P<Avail>\S+)M\s+(?P<Use_percentage>\d+)%\s+(?P<Mounted_on>\S+)$")
+
+    def _parse_filesystem_line(self,line):
         if self._regex_helper.search_compiled(Df._re_filesystem_line, line):
-            filesystem = self._regex_helper.group(1)
-            Mounted_on = self._regex_helper.group(7)
+            filesystem = self._regex_helper.group("Filesystem")
+            Mounted_on = self._regex_helper.group("Mounted_on")
             if "by_FS" not in self.current_ret:
                 self.current_ret["by_FS"] = dict()
             if "by_MOUNTPOINT" not in self.current_ret:
                 self.current_ret["by_MOUNTPOINT"] = dict()
-            self.current_ret["by_FS"][filesystem] = {
-                "Filesystem": self._regex_helper.group(1),
-                "Type": self._regex_helper.group(2),
-                "Size": self._regex_helper.group(3),
-                "Used": self._regex_helper.group(4),
-                "Avail": self._regex_helper.group(5),
-                "Use_percentage": self._regex_helper.group(6),
-                "Mounted_on": self._regex_helper.group(7)
-            }
-            self.current_ret["by_MOUNTPOINT"][Mounted_on] = {
-                "Filesystem": self._regex_helper.group(1),
-                "Type": self._regex_helper.group(2),
-                "Size": self._regex_helper.group(3),
-                "Used": self._regex_helper.group(4),
-                "Avail": self._regex_helper.group(5),
-                "Use_percentage": self._regex_helper.group(6),
-                "Mounted_on": self._regex_helper.group(7)
-            }
+            self.current_ret["by_FS"][filesystem] = self._regex_helper.groupdict()
+            self.current_ret["by_MOUNTPOINT"][Mounted_on] = self._regex_helper.groupdict()
 
 
 COMMAND_OUTPUT = """
