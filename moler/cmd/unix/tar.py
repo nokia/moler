@@ -15,7 +15,7 @@ __email__ = 'snackwell.yang@nokia-sbell.com'
 
 
 class Tar(GenericUnix):
-    _re_failed_strings = re.compile("No such file or directory",  re.IGNORECASE)
+    _re_failed_strings = re.compile("No such file or directory", re.IGNORECASE)
 
     def __init__(self, connection, prompt=None, new_line_chars=None, options=None, file=None):
         super(Tar, self).__init__(connection, prompt, new_line_chars)
@@ -31,7 +31,7 @@ class Tar(GenericUnix):
             return
 
         cmd = "tar"
-        cmd = cmd + " " + self.options+" "+self.file
+        cmd = cmd + " " + self.options + " " + self.file
         return cmd
 
     def on_new_line(self, line, is_full_line):
