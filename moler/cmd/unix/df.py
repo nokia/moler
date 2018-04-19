@@ -35,7 +35,7 @@ class Df(GenericUnix):
     _re_filesystem_line = re.compile(r"^(?P<Filesystem>\S+)\s+(?P<Type>\S+)\s+(?P<Size>\S+)M\s+(?P<Used>\S+)M\s+"
                                      r"(?P<Avail>\S+)M\s+(?P<Use_percentage>\d+)%\s+(?P<Mounted_on>\S+)$")
 
-    def _parse_filesystem_line(self,line):
+    def _parse_filesystem_line(self, line):
         if self._regex_helper.search_compiled(Df._re_filesystem_line, line):
             filesystem = self._regex_helper.group("Filesystem")
             Mounted_on = self._regex_helper.group("Mounted_on")
