@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Grzegorz Latuszek'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 from abc import abstractmethod, ABCMeta
 
@@ -32,6 +32,7 @@ class ConnectionObserver(object):
         self._exception = None
         self.runner = ThreadPoolExecutorRunner()
         self._future = None
+        self.observer_timeout = 7
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
@@ -48,6 +49,8 @@ class ConnectionObserver(object):
         Run connection-observer in foreground
         till it is done or timeouted
         """
+        if "timeout" in kwargs:
+            self.observer_timeout = kwargs.pop("timeout")
         started_observer = self.start(*args, **kwargs)
         if started_observer:
             return started_observer.await_done(*args, **kwargs)
@@ -55,6 +58,8 @@ class ConnectionObserver(object):
 
     def start(self, *args, **kwargs):
         """Start background execution of connection-observer."""
+        if "timeout" in kwargs:
+            self.observer_timeout = kwargs.pop("timeout")
         self._validate_start(*args, **kwargs)
         self._is_running = True
         self._future = self.runner.submit(self)
@@ -76,7 +81,7 @@ class ConnectionObserver(object):
         # We choose minimalistic dependency over better troubleshooting support.
         # ----------------------------------------------------------------------
 
-    def await_done(self, timeout=10.0):
+    def await_done(self, timeout=None):
         """Await completion of connection-observer."""
         if self.done():
             return self.result()
