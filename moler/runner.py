@@ -142,6 +142,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         connection_observer.cancel()
         connection_observer_future.cancel()
         self.shutdown()
+        connection_observer.timeout()
         if hasattr(connection_observer, "command_string"):
             raise CommandTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
         else:

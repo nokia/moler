@@ -141,3 +141,7 @@ class ConnectionObserver(object):
         if not self.done():
             raise ResultNotAvailableYet(self)
         return self._result
+
+    def timeout(self):
+        # Call by framework just before raise exception for Timeout
+        pass
