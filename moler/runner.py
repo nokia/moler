@@ -5,9 +5,9 @@ Runner abstraction goal is to hide concurrency machinery used
 to make it exchangeable (threads, asyncio, twisted, curio)
 """
 
-__author__ = 'Grzegorz Latuszek'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import atexit
 import logging
@@ -111,25 +111,32 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         connection_observer_future = self.executor.submit(self.feed, connection_observer)
         return connection_observer_future
 
-    def wait_for(self, connection_observer, connection_observer_future, timeout=10.0):
+    def wait_for(self, connection_observer, connection_observer_future, timeout=None):
         """
         Await for connection_observer running in background or timeout.
 
         :param connection_observer: The one we are awaiting for.
         :param connection_observer_future: Future of connection-observer returned from submit().
-        :param timeout: Max time (in float seconds) you want to await before you give up.
+        :param timeout: Max time (in float seconds) you want to await before you give up. If None then taken from connection_observer
         :return:
         """
         self.logger.debug("go foreground: {!r} - await max. {} [sec]".format(connection_observer, timeout))
         start_time = time.time()
-        done, not_done = wait([connection_observer_future], timeout=timeout)
-        moler_conn = connection_observer.connection
-        moler_conn.unsubscribe(connection_observer.data_received)
-        if connection_observer_future in done:
-            self.shutdown()
-            result = connection_observer_future.result()
-            self.logger.debug("{} returned {}".format(connection_observer, result))
-            return result
+        remain_time = connection_observer.observer_timeout
+        check_timeout_from_observer = True
+        if timeout:
+            remain_time = timeout
+            check_timeout_from_observer = False
+        while remain_time > 0.0:
+            done, not_done = wait([connection_observer_future], timeout=remain_time)
+            if connection_observer_future in done:
+                self.shutdown()
+                result = connection_observer_future.result()
+                self.logger.debug("{} returned {}".format(connection_observer, result))
+                return result
+            if check_timeout_from_observer:
+                timeout = connection_observer.observer_timeout
+            remain_time = timeout - (time.time() - start_time)
         passed = time.time() - start_time
         self.logger.debug("timeouted {}".format(connection_observer))
         connection_observer.cancel()
