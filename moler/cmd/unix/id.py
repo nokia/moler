@@ -40,12 +40,12 @@ class Id(GenericUnix):
 # -----------------------------------------------------------------------------
 
 COMMAND_OUTPUT_ver_execute = """
-host:~ # id root
-uid=1000(root) gid=100(root) groups=100(root)
+host:~ # id user
+uid=1000(user) gid=1000(user) groups=1000(user),24(cdrom),25(floppy),29(audio),30(dip),44(video),46(plugdev),108(netdev),110(lpadmin),113(scanner),118(bluetooth)
 host:~ #
 """
 
-COMMAND_KWARGS_ver_execute = {'user': 'ute'}
+COMMAND_KWARGS_ver_execute = {'user': 'user'}
 
 COMMAND_RESULT_ver_execute = {
 }
