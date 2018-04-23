@@ -23,10 +23,9 @@ class Killall(GenericUnix):
         self.is_verbose = is_verbose
         self.name = name
 
-
     def build_command_string(self):
         if self.is_verbose:
-            cmd = "{} {} {}".format("killall", self.is_verbose, self.name )
+            cmd = "{} {} {}".format("killall", self.is_verbose, self.name)
         else:
             cmd = "{} {}".format("killall", self.name)
         return cmd
@@ -73,7 +72,7 @@ Pclinux90:~ #
 COMMAND_KWARGS_verbose = {"name": "iperf",
                           "is_verbose": "-v"}
 
-COMMAND_RESULT_verbose ={
+COMMAND_RESULT_verbose = {
     "Status": "True",
     "Detail": {"15054": "iperf"}
 }
@@ -85,7 +84,7 @@ Pclinux90:~ #
 
 COMMAND_KWARGS_no_verbose = {"name": "iperf"}
 
-COMMAND_RESULT_no_verbose ={
+COMMAND_RESULT_no_verbose = {
     "Status": "True"
 }
 
@@ -97,7 +96,6 @@ PClinux110:/home/runner #
 
 COMMAND_KWARGS_no_process = {"name": "tshark"}
 
-COMMAND_RESULT_no_process ={
+COMMAND_RESULT_no_process = {
     "Status": "True"
 }
-
