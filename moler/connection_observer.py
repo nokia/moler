@@ -143,5 +143,5 @@ class ConnectionObserver(object):
         return self._result
 
     def timeout(self):
-        # Call by framework just before raise exception for Timeout
+        """ Call by framework just before raise exception for Timeout """
         pass
