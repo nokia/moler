@@ -7,6 +7,7 @@ __author__ = 'Yeshu Yang'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'yeshu.yang@nokia.com'
 
+import pytest
 
 def test_calling_df_returns_result(buffer_connection):
     from moler.cmd.unix.df import Df
@@ -16,7 +17,10 @@ def test_calling_df_returns_result(buffer_connection):
     result = df_cmd()
     assert result == expected_result
 
+# --------------------------- resources
 
+
+@pytest.fixture
 def command_output_and_expected_result():
     data = """
 [root@Pclinux90: /home/runner]# df -BM -T -P
