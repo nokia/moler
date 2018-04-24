@@ -45,6 +45,7 @@ class Df(GenericUnix):
                 self.current_ret["by_MOUNTPOINT"] = dict()
             self.current_ret["by_FS"][filesystem] = self._regex_helper.groupdict()
             self.current_ret["by_MOUNTPOINT"][Mounted_on] = self._regex_helper.groupdict()
+            raise ParsingDone
 
 
 COMMAND_OUTPUT = """
