@@ -7,6 +7,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'yeshu.yang@nokia.com'
 
 from moler.exceptions import CommandFailure
+import pytest
 
 
 def test_calling_killall_returns_result(buffer_connection):
@@ -25,7 +26,10 @@ def test_killall_returns_proper_command_string(buffer_connection):
     killall_cmd = Killall(buffer_connection, name="iperf", is_verbose=None)
     assert "killall iperf" == killall_cmd.command_string
 
+# --------------------------- resources
 
+
+@pytest.fixture
 def command_output_and_expected_result():
     data = """
 [emssim@Pclinux90: ~]$ killall iperf
