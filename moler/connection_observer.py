@@ -142,6 +142,9 @@ class ConnectionObserver(object):
             raise ResultNotAvailableYet(self)
         return self._result
 
-    def timeout(self):
-        """ Call by framework just before raise exception for Timeout """
+    def on_timeout(self):
+        """ It's callback called by framework just before raise exception for Timeout """
         pass
+
+    def extend_observer_timeout(self, new_timeout):
+        self.observer_timeout = self.observer_timeout + new_timeout

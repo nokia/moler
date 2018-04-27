@@ -156,9 +156,9 @@ class TextualGeneric(Command):
         self.break_cmd()
         return super(TextualGeneric, self).cancel()
 
-    def timeout(self):
+    def on_timeout(self):
         """
-        Called by framework when timeout occurs
+        Callback called by framework when timeout occurs
         :return: Nothing
         """
         if self.break_on_timeout:
