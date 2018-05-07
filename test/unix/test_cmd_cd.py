@@ -7,7 +7,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'michal.ernst@nokia.com'
 
 
-def test_calling_uptime_returns_result_parsed_from_command_output(buffer_connection):
+def test_calling_cd_returns_result_parsed_from_command_output(buffer_connection):
     from moler.cmd.unix.cd import Cd
     command_output, expected_result = command_output_and_expected_result()
     buffer_connection.remote_inject_response([command_output])
