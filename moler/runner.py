@@ -122,7 +122,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         """
         self.logger.debug("go foreground: {!r} - await max. {} [sec]".format(connection_observer, timeout))
         start_time = time.time()
-        remain_time = connection_observer.observer_timeout
+        remain_time = connection_observer.timeout
         check_timeout_from_observer = True
         if timeout:
             remain_time = timeout
@@ -135,7 +135,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 self.logger.debug("{} returned {}".format(connection_observer, result))
                 return result
             if check_timeout_from_observer:
-                timeout = connection_observer.observer_timeout
+                timeout = connection_observer.timeout
             remain_time = timeout - (time.time() - start_time)
         passed = time.time() - start_time
         self.logger.debug("timeouted {}".format(connection_observer))
