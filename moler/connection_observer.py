@@ -11,9 +11,11 @@ from moler.exceptions import NoConnectionProvided
 from moler.exceptions import NoResultSinceCancelCalled
 from moler.exceptions import ResultAlreadySet
 from moler.exceptions import ResultNotAvailableYet
+from moler.exceptions import ConnectionObserverTimeout
 from moler.helpers import instance_id
 from moler.runner import ThreadPoolExecutorRunner
 from six import add_metaclass
+import logging
 
 
 @add_metaclass(ABCMeta)
@@ -32,7 +34,8 @@ class ConnectionObserver(object):
         self._exception = None
         self.runner = ThreadPoolExecutorRunner()
         self._future = None
-        self.observer_timeout = 7
+        self.timeout = 7
+        self.logger = logging.getLogger('moler.connection_observer')
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
@@ -44,22 +47,20 @@ class ConnectionObserver(object):
             connection_str = repr(self.connection)
         return '{}, using {})'.format(cmd_str[:-1], connection_str)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, timeout=10, *args, **kwargs):
         """
         Run connection-observer in foreground
         till it is done or timeouted
         """
-        if "timeout" in kwargs:
-            self.observer_timeout = kwargs.pop("timeout")
-        started_observer = self.start(*args, **kwargs)
+        self.timeout = timeout
+        started_observer = self.start(timeout, *args, **kwargs)
         if started_observer:
             return started_observer.await_done(*args, **kwargs)
         # TODO: raise ConnectionObserverFailedToStart
 
-    def start(self, *args, **kwargs):
+    def start(self, timeout=10, *args, **kwargs):
         """Start background execution of connection-observer."""
-        if "timeout" in kwargs:
-            self.observer_timeout = kwargs.pop("timeout")
+        self.timeout = timeout
         self._validate_start(*args, **kwargs)
         self._is_running = True
         self._future = self.runner.submit(self)
@@ -80,6 +81,8 @@ class ConnectionObserver(object):
         # However, drawback is a requirement on connection to have is_open() API
         # We choose minimalistic dependency over better troubleshooting support.
         # ----------------------------------------------------------------------
+        if self.timeout <= 0.0:
+            raise ConnectionObserverTimeout(self, self.timeout, "before run", "timeout is not positive value")
 
     def await_done(self, timeout=None):
         """Await completion of connection-observer."""
@@ -146,5 +149,8 @@ class ConnectionObserver(object):
         """ It's callback called by framework just before raise exception for Timeout """
         pass
 
-    def extend_observer_timeout(self, new_timeout):
-        self.observer_timeout = self.observer_timeout + new_timeout
+    def extend_timeout(self, timedelta):
+        prev_timeot = self.timeout
+        self.timeout = self.timeout + timedelta
+        msg = "Extended timeout from %.2f with delta %.2f to %.2f" % (prev_timeot, timedelta, self.timeout)
+        self.logger.info(msg)
