@@ -32,7 +32,8 @@ class Id(GenericUnix):
                 pass  # line has been fully parsed by one of above parse-methods
         return super(Id, self).on_new_line(line, is_full_line)
 
-    # uid=1000(user) gid=1000(user) groups=1000(user),24(cdrom),25(floppy),29(audio),30(dip),44(video),46(plugdev),108(netdev),110(lpadmin),113(scanner),118(bluetooth)
+    # uid=1000(user) gid=1000(user) groups=1000(user),24(cdrom),25(floppy),29(audio),30(dip),44(video),46(plugdev),
+    # 108(netdev),110(lpadmin),113(scanner),118(bluetooth)
     _re_uid_gid_groups = re.compile(r"uid=(?P<UID>\S+)\s+gid=(?P<GID>\S+)\s+groups=(?P<GROUPS>\S+)")
     _ret_dict_key = ['UID', 'GID', 'GROUPS']
 
