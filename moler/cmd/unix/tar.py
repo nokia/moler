@@ -7,6 +7,7 @@ import re
 from moler.cmd.unix.genericunix import GenericUnix
 from moler.cmd.converterhelper import ConverterHelper
 from moler.exceptions import CommandFailure
+from moler.exceptions import ParsingDone
 
 
 __author__ = 'Yang Snackwell'
@@ -15,7 +16,6 @@ __email__ = 'snackwell.yang@nokia-sbell.com'
 
 
 class Tar(GenericUnix):
-    _re_failed_strings = re.compile("No such file or directory", re.IGNORECASE)
 
     def __init__(self, connection, prompt=None, new_line_chars=None, options=None, file=None):
         super(Tar, self).__init__(connection, prompt, new_line_chars)
@@ -35,12 +35,18 @@ class Tar(GenericUnix):
         return cmd
 
     def on_new_line(self, line, is_full_line):
-        if self.is_failure_indication(line):
-            self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+        try:
+            self._parse_fail_return(line)
+        except ParsingDone:
+            pass
         return super(Tar, self).on_new_line(line, is_full_line)
 
-    def is_failure_indication(self, line):
-        return self._regex_helper.search_compiled(Tar._re_failed_strings, line)
+    _re_failed_strings = re.compile("No such file or directory", re.IGNORECASE)
+
+    def _parse_fail_return(self, line):
+        if self._regex_helper.search_compiled(Tar._re_failed_strings, line):
+            self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+        raise ParsingDone
 
 
 COMMAND_OUTPUT = """
