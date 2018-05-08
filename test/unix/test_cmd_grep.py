@@ -6,6 +6,7 @@ Testing of grep command.
 _email_ = 'julia.patacz@nokia.com'
 
 import pytest
+
 from moler.cmd.unix.grep import Grep
 
 

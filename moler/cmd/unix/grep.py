@@ -7,8 +7,8 @@ __email__ = 'julia.patacz@nokia.com'
 
 import re
 
-from moler.cmd.unix.genericunix import GenericUnix
 from moler.cmd.converterhelper import ConverterHelper
+from moler.cmd.unix.genericunix import GenericUnix
 from moler.exceptions import ParsingDone
 
 
@@ -99,7 +99,7 @@ class Grep(GenericUnix):
 
 
 COMMAND_OUTPUT_with_file_path_and_lines_number_and_bytes = """
-ute@debdev:~$ grep -bnH PREROUTING /etc/iptables/rules.v4 
+ute@debdev:~$ grep -bnH PREROUTING /etc/iptables/rules.v4
 /etc/iptables/rules.v4:16:196:#PREROUTING-RULES
 /etc/iptables/rules.v4:17:214:-A PREROUTING -i eth0 -p udp -d  --dport 319 -j DNAT --to-destination 10.0.1.2:319
 /etc/iptables/rules.v4:18:297:-A PREROUTING -i eth0 -p udp -d  --dport 320 -j DNAT --to-destination 10.0.1.2:320
@@ -130,7 +130,7 @@ COMMAND_RESULT_with_file_path_and_lines_number_and_bytes = {
 }
 
 COMMAND_OUTPUT_with_file_path_and_lines_number_or_bytes = """
-ute@debdev:~$ grep -nH PREROUTING /etc/iptables/rules.v4 
+ute@debdev:~$ grep -nH PREROUTING /etc/iptables/rules.v4
 /etc/iptables/rules.v4:16:#PREROUTING-RULES
 /etc/iptables/rules.v4:17:-A PREROUTING -i eth0 -p udp -d  --dport 319 -j DNAT --to-destination 10.0.1.2:319
 /etc/iptables/rules.v4:18:-A PREROUTING -i eth0 -p udp -d  --dport 320 -j DNAT --to-destination 10.0.1.2:320
@@ -158,7 +158,7 @@ COMMAND_RESULT_with_file_path_and_lines_number_or_bytes = {
 }
 
 COMMAND_OUTPUT_with_file_path = """
-ute@debdev:~$ grep -H PREROUTING /etc/iptables/rules.v4 
+ute@debdev:~$ grep -H PREROUTING /etc/iptables/rules.v4
 /etc/iptables/rules.v4:#PREROUTING-RULES
 /etc/iptables/rules.v4:-A PREROUTING -i eth0 -p udp -d  --dport 319 -j DNAT --to-destination 10.0.1.2:319
 /etc/iptables/rules.v4:-A PREROUTING -i eth0 -p udp -d  --dport 320 -j DNAT --to-destination 10.0.1.2:320
@@ -183,7 +183,7 @@ COMMAND_RESULT_with_file_path = {
 }
 
 COMMAND_OUTPUT_with_lines_number_and_bytes = """
-ute@debdev:~$ grep -bn PREROUTING /etc/iptables/rules.v4 
+ute@debdev:~$ grep -bn PREROUTING /etc/iptables/rules.v4
 16:196:#PREROUTING-RULES
 17:214:-A PREROUTING -i eth0 -p udp -d  --dport 319 -j DNAT --to-destination 10.0.1.2:319
 18:297:-A PREROUTING -i eth0 -p udp -d  --dport 320 -j DNAT --to-destination 10.0.1.2:320
@@ -213,7 +213,7 @@ COMMAND_RESULT_with_lines_number_and_bytes = {
 COMMAND_KWARGS_with_lines_number_or_bytes = """
 -n PREROUTING /etc/iptables/rules.v4 """
 COMMAND_OUTPUT_with_lines_number_or_bytes = """
-ute@debdev:~$ grep -n PREROUTING /etc/iptables/rules.v4 
+ute@debdev:~$ grep -n PREROUTING /etc/iptables/rules.v4
 16:#PREROUTING-RULES
 17:-A PREROUTING -i eth0 -p udp -d  --dport 319 -j DNAT --to-destination 10.0.1.2:319
 18:-A PREROUTING -i eth0 -p udp -d  --dport 320 -j DNAT --to-destination 10.0.1.2:320
