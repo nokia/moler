@@ -30,7 +30,6 @@ class Grep(GenericUnix):
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             self.line_no += 1
-            # self.current_ret["LINES"].append(line)
             try:
                 self._parse_path_number_bytes_lines(line)
                 self._parse_path_number_lines(line)
@@ -97,8 +96,9 @@ ute@debdev:~$ grep -bnH PREROUTING /etc/iptables/rules.v4
 /etc/iptables/rules.v4:17:214:-A PREROUTING -i eth0 -p udp -d  --dport 319 -j DNAT --to-destination 10.0.1.2:319
 /etc/iptables/rules.v4:18:297:-A PREROUTING -i eth0 -p udp -d  --dport 320 -j DNAT --to-destination 10.0.1.2:320
 ute@debdev:~$ """
-COMMAND_KWARGS_with_file_path_and_lines_number_and_bytes = """
--bnH PREROUTING /etc/iptables/rules.v4 """
+COMMAND_KWARGS_with_file_path_and_lines_number_and_bytes = {
+    "options": "-bnH PREROUTING /etc/iptables/rules.v4"
+}
 COMMAND_RESULT_with_file_path_and_lines_number_and_bytes = {
     "LINES": [
         {
@@ -128,8 +128,9 @@ ute@debdev:~$ grep -nH PREROUTING /etc/iptables/rules.v4
 /etc/iptables/rules.v4:17:-A PREROUTING -i eth0 -p udp -d  --dport 319 -j DNAT --to-destination 10.0.1.2:319
 /etc/iptables/rules.v4:18:-A PREROUTING -i eth0 -p udp -d  --dport 320 -j DNAT --to-destination 10.0.1.2:320
 ute@debdev:~$ """
-COMMAND_KWARGS_with_file_path_and_lines_number_or_bytes = """
--nH PREROUTING /etc/iptables/rules.v4 """
+COMMAND_KWARGS_with_file_path_and_lines_number_or_bytes = {
+    "options": "-nH PREROUTING /etc/iptables/rules.v4"
+}
 COMMAND_RESULT_with_file_path_and_lines_number_or_bytes = {
     "LINES": [
         {
@@ -156,8 +157,9 @@ ute@debdev:~$ grep -H PREROUTING /etc/iptables/rules.v4
 /etc/iptables/rules.v4:-A PREROUTING -i eth0 -p udp -d  --dport 319 -j DNAT --to-destination 10.0.1.2:319
 /etc/iptables/rules.v4:-A PREROUTING -i eth0 -p udp -d  --dport 320 -j DNAT --to-destination 10.0.1.2:320
 ute@debdev:~$ """
-COMMAND_KWARGS_with_file_path = """
--H PREROUTING /etc/iptables/rules.v4 """
+COMMAND_KWARGS_with_file_path = {
+    "options": "-H PREROUTING /etc/iptables/rules.v4"
+}
 COMMAND_RESULT_with_file_path = {
     "LINES": [
         {
@@ -181,8 +183,9 @@ ute@debdev:~$ grep -bn PREROUTING /etc/iptables/rules.v4
 17:214:-A PREROUTING -i eth0 -p udp -d  --dport 319 -j DNAT --to-destination 10.0.1.2:319
 18:297:-A PREROUTING -i eth0 -p udp -d  --dport 320 -j DNAT --to-destination 10.0.1.2:320
 ute@debdev:~$ """
-COMMAND_KWARGS_with_lines_number_and_bytes = """
--bn PREROUTING /etc/iptables/rules.v4 """
+COMMAND_KWARGS_with_lines_number_and_bytes = {
+    "options": "-bn PREROUTING /etc/iptables/rules.v4"
+}
 COMMAND_RESULT_with_lines_number_and_bytes = {
     "LINES": [
         {
@@ -203,8 +206,10 @@ COMMAND_RESULT_with_lines_number_and_bytes = {
     ]
 }
 
-COMMAND_KWARGS_with_lines_number_or_bytes = """
--n PREROUTING /etc/iptables/rules.v4 """
+COMMAND_KWARGS_with_lines_number_or_bytes = {
+    "options": "-n PREROUTING /etc/iptables/rules.v4"
+}
+
 COMMAND_OUTPUT_with_lines_number_or_bytes = """
 ute@debdev:~$ grep -n PREROUTING /etc/iptables/rules.v4
 16:#PREROUTING-RULES
