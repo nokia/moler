@@ -71,6 +71,7 @@ def command_output_and_expected_result_with_path_and_lines_number_and_bytes():
     return data, result
 
 
+@pytest.fixture
 def command_output_and_expected_result_with_path_and_lines_number():
     from moler.cmd.unix.grep import COMMAND_OUTPUT_with_file_path_and_lines_number_or_bytes, \
         COMMAND_RESULT_with_file_path_and_lines_number_or_bytes
@@ -79,6 +80,7 @@ def command_output_and_expected_result_with_path_and_lines_number():
     return data, result
 
 
+@pytest.fixture
 def command_output_and_expected_result_with_path():
     from moler.cmd.unix.grep import COMMAND_OUTPUT_with_file_path, COMMAND_RESULT_with_file_path
     data = COMMAND_OUTPUT_with_file_path
@@ -86,6 +88,7 @@ def command_output_and_expected_result_with_path():
     return data, result
 
 
+@pytest.fixture
 def command_output_and_expected_result_with_lines_number_and_bytes():
     from moler.cmd.unix.grep import COMMAND_OUTPUT_with_lines_number_and_bytes, \
         COMMAND_RESULT_with_lines_number_and_bytes
@@ -94,6 +97,7 @@ def command_output_and_expected_result_with_lines_number_and_bytes():
     return data, result
 
 
+@pytest.fixture
 def command_output_and_expected_result_with_lines_number():
     from moler.cmd.unix.grep import COMMAND_OUTPUT_with_lines_number_or_bytes, COMMAND_RESULT_with_lines_number_or_bytes
     data = COMMAND_OUTPUT_with_lines_number_or_bytes
@@ -101,6 +105,7 @@ def command_output_and_expected_result_with_lines_number():
     return data, result
 
 
+@pytest.fixture
 def command_output_and_expected_result():
     from moler.cmd.unix.grep import COMMAND_OUTPUT_ver_human, COMMAND_RESULT_ver_human
     data = COMMAND_OUTPUT_ver_human
