@@ -60,30 +60,35 @@ class Grep(GenericUnix):
     # /etc/iptables/rules.v4:16:196:#PREROUTING-RULES
     _re_path_number_bytes_line = re.compile(r"^(?P<PATH>\/\S+):(?P<NUMBER>\d+):(?P<BYTES>\d+):(?P<LINE>.*)$")
     _key_list_path_number_bytes_line = ["PATH", "NUMBER", "BYTES", "LINE"]
+
     def _parse_path_number_bytes_lines(self, line):
         return self._process_line(line, Grep._re_path_number_bytes_line, Grep._key_list_path_number_bytes_line)
 
-     # /etc/iptables/rules.v4:16:#PREROUTING-RULES
+    # /etc/iptables/rules.v4:16:#PREROUTING-RULES
     _re_path_number_line = re.compile(r"^(?P<PATH>\/\S+):(?P<NUMBER>\d+):(?P<LINE>.*)$")
     _key_list_path_number_line = ["PATH", "NUMBER", "LINE"]
+
     def _parse_path_number_lines(self, line):
         return self._process_line(line, Grep._re_path_number_line, Grep._key_list_path_number_line)
 
     # /etc/iptables/rules.v4:#PREROUTING-RULES
     _re_path_line = re.compile(r"^(?P<PATH>\/\S+):(?P<LINE>.*)$")
     _key_list_path_line = ["PATH", "LINE"]
+
     def _parse_path_lines(self, line):
         return self._process_line(line, Grep._re_path_line, Grep._key_list_path_line)
 
-     # 16:196:#PREROUTING-RULES
+    # 16:196:#PREROUTING-RULES
     _re_number_bytes_line = re.compile(r"^(?P<NUMBER>\d+):(?P<BYTES>\d+):(?P<LINE>.*)$")
-    _key_list_number_bytes_line = ["NUMBER", "BYTES","LINE"]
+    _key_list_number_bytes_line = ["NUMBER", "BYTES", "LINE"]
+
     def _parse_number_bytes_lines(self, line):
         return self._process_line(line, Grep._re_number_bytes_line, Grep._key_list_number_bytes_line)
 
     # 16:#PREROUTING-RULES
     _re_number_line = re.compile(r"^(?P<NUMBER>\d+):(?P<LINE>.*)$")
     _key_list_number_line = ["NUMBER", "LINE"]
+
     def _parse_number_lines(self, line):
         return self._process_line(line, Grep._re_number_line, Grep._key_list_number_line)
 
@@ -91,6 +96,7 @@ class Grep(GenericUnix):
     def _parse_lines(self, line):
         self.current_ret["LINES"].append(line)
         raise ParsingDone
+
 
 COMMAND_OUTPUT_with_file_path_and_lines_number_and_bytes = """
 ute@debdev:~$ grep -bnH PREROUTING /etc/iptables/rules.v4 
@@ -106,19 +112,19 @@ COMMAND_RESULT_with_file_path_and_lines_number_and_bytes = {
             "PATH": "/etc/iptables/rules.v4",
             "LINE": "#PREROUTING-RULES",
             "NUMBER": "16",
-            "BYTES" : "196",
+            "BYTES": "196",
         },
         {
             "PATH": "/etc/iptables/rules.v4",
             "LINE": "-A PREROUTING -i eth0 -p udp -d  --dport 319 -j DNAT --to-destination 10.0.1.2:319",
             "NUMBER": "17",
-            "BYTES" : "214",
+            "BYTES": "214",
         },
         {
             "PATH": "/etc/iptables/rules.v4",
             "LINE": "-A PREROUTING -i eth0 -p udp -d  --dport 320 -j DNAT --to-destination 10.0.1.2:320",
             "NUMBER": "18",
-            "BYTES" : "297",
+            "BYTES": "297",
         },
     ]
 }
@@ -189,17 +195,17 @@ COMMAND_RESULT_with_lines_number_and_bytes = {
         {
             "LINE": "#PREROUTING-RULES",
             "NUMBER": "16",
-            "BYTES" : "196",
+            "BYTES": "196",
         },
         {
             "LINE": "-A PREROUTING -i eth0 -p udp -d  --dport 319 -j DNAT --to-destination 10.0.1.2:319",
             "NUMBER": "17",
-            "BYTES" : "214",
+            "BYTES": "214",
         },
         {
             "LINE": "-A PREROUTING -i eth0 -p udp -d  --dport 320 -j DNAT --to-destination 10.0.1.2:320",
             "NUMBER": "18",
-            "BYTES" : "297",
+            "BYTES": "297",
         },
     ]
 }
@@ -236,10 +242,10 @@ Mode: 600
 Mode: 644
 host:~ # """
 COMMAND_KWARGS_ver_human = {
-    "options" : "Mode debconf.conf",
+    "options": "Mode debconf.conf",
 }
 COMMAND_RESULT_ver_human = {
-    "LINES" : [
+    "LINES": [
         "Mode: 644",
         "Mode: 600",
         "Mode: 644",
