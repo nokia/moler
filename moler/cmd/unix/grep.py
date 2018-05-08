@@ -50,13 +50,6 @@ class Grep(GenericUnix):
             self.current_ret["LINES"].append(_ret)
             raise ParsingDone
 
-    def _add_single_entry_to_dict(self, key_list):
-        _ret = dict()
-        for key in key_list:
-            _ret[key] = self._regex_helper.group(key)
-        self.current_ret["LINES"].append(_ret)
-        raise ParsingDone
-
     # /etc/iptables/rules.v4:16:196:#PREROUTING-RULES
     _re_path_number_bytes_line = re.compile(r"^(?P<PATH>\/\S+):(?P<NUMBER>\d+):(?P<BYTES>\d+):(?P<LINE>.*)$")
     _key_list_path_number_bytes_line = ["PATH", "NUMBER", "BYTES", "LINE"]
