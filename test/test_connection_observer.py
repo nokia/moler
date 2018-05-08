@@ -139,13 +139,13 @@ def test_connection_observer_call_passes_positional_arguments_to_start(do_nothin
     called_with_params = []
 
     class ParametrizedObserver(do_nothing_connection_observer_class__for_major_base_class):
-        def start(self, param1, param2):
+        def start(self, timeout, param1, param2):
             called_with_params.append(param1)
             called_with_params.append(param2)
 
     connection_observer = ParametrizedObserver()
 
-    connection_observer(23, "foo")
+    connection_observer(1., 23, "foo")
 
     assert called_with_params == [23, "foo"]
 
@@ -154,7 +154,7 @@ def test_connection_observer_call_passes_keyword_arguments_to_start(do_nothing_c
     called_with_params = []
 
     class ParametrizedObserver(do_nothing_connection_observer_class__for_major_base_class):
-        def start(self, param1, param2):
+        def start(self, timeout, param1, param2):
             called_with_params.append(param1)
             called_with_params.append(param2)
 

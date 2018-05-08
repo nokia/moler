@@ -47,20 +47,22 @@ class ConnectionObserver(object):
             connection_str = repr(self.connection)
         return '{}, using {})'.format(cmd_str[:-1], connection_str)
 
-    def __call__(self, timeout=10, *args, **kwargs):
+    def __call__(self, timeout=None, *args, **kwargs):
         """
         Run connection-observer in foreground
         till it is done or timeouted
         """
-        self.timeout = timeout
+        if timeout:
+            self.timeout = timeout
         started_observer = self.start(timeout, *args, **kwargs)
         if started_observer:
             return started_observer.await_done(*args, **kwargs)
         # TODO: raise ConnectionObserverFailedToStart
 
-    def start(self, timeout=10, *args, **kwargs):
+    def start(self, timeout=None, *args, **kwargs):
         """Start background execution of connection-observer."""
-        self.timeout = timeout
+        if timeout:
+            self.timeout = timeout
         self._validate_start(*args, **kwargs)
         self._is_running = True
         self._future = self.runner.submit(self)

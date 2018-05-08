@@ -35,10 +35,10 @@ class Command(ConnectionObserver):
             cmd_str = cmd_str[:-1] + r'<\n>'
         return '{}("{}", id:{})'.format(self.__class__.__name__, cmd_str, instance_id(self))
 
-    def start(self, *args, **kwargs):
+    def start(self, timeout=None, *args, **kwargs):
         """Start background execution of command."""
         self._validate_start(*args, **kwargs)
-        ret = super(Command, self).start(*args, **kwargs)
+        ret = super(Command, self).start(timeout, *args, **kwargs)
         self._is_running = True  # when it sends - real CMD starts running
         self.connection.send(self.command_string)
         return ret
