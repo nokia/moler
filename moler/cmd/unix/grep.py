@@ -3,6 +3,8 @@
 Grep command module.
 """
 
+__author__ = 'Julia Patacz'
+__copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'julia.patacz@nokia.com'
 
 import re

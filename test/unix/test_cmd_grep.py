@@ -3,6 +3,8 @@
 Testing of grep command.
 """
 
+__author__ = 'Julia Patacz'
+__copyright__ = 'Copyright (C) 2018, Nokia'
 _email_ = 'julia.patacz@nokia.com'
 
 import pytest
