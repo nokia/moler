@@ -7,12 +7,10 @@ __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
-import argparse
 import importlib
-import pprint
-
-import os.path
 import os
+import os.path
+import pprint
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
@@ -43,6 +41,7 @@ def get_options():
 
     options = "moler/cmd"
     return options
+
 
 # -----------------------------------------------------------------------------
 
