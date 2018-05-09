@@ -11,12 +11,13 @@ import re
 
 from moler.cmd.unix.genericunix import GenericUnix
 from moler.cmd.converterhelper import ConverterHelper
-from moler.exceptions import ResultNotAvailableYet
+from moler.exceptions import ParsingDone
+
 
 
 class IpAddr(GenericUnix):
     _re_interface = re.compile(r"^\d+:\s([a-z\d\.]+):.*$")
-    _re_inet = re.compile(r"\s*inet\s+(\d+\.\d+\.\d+\.\d+)\/(\d+)\s(brd)\s(\d+\.\d+\.\d+\.\d+)\sscope\s(\S.*\S)\s(\S.*\S)")
+    _re_inet_v4 = re.compile(r"\s*inet\s+(\d+\.\d+\.\d+\.\d+)\/(\d+)\s(brd)\s(\d+\.\d+\.\d+\.\d+)\sscope\s(\S.*\S)\s(\S.*\S)")
 
     def __init__(self, connection, prompt=None, new_line_chars=None, options=None):
         super(IpAddr, self).__init__(connection, prompt, new_line_chars)
@@ -32,21 +33,28 @@ class IpAddr(GenericUnix):
         return cmd
 
     def on_new_line(self, line, is_full_line):
-        if not is_full_line:
-            return super(IpAddr, self).on_new_line(line, is_full_line)
-        #interface name
-        if self._regex_helper.search_compiled(IpAddr._re_interface, line):
-            if_name = self._regex_helper.group(1)
-            if if_name not in self.current_ret:
-                self.current_ret[if_name] = dict()
-        #link details
-        # if self._regex_helper.search_compiled(IpAddr._re_inet, line):
-        #     self.current_ret["ip4"] = self._regex_helper.group(1)
-        #     self.current_ret["mask"] = self._regex_helper.group(2)
-
-        #no match
+        if is_full_line:
+            try:
+                self._parse_interface(line)
+                self._parse_inet_v4(line)
+            except ParsingDone:
+                pass
         return super(IpAddr, self).on_new_line(line, is_full_line)
 
+
+    def _parse_interface(self, line):
+        if self._regex_helper.search_compiled(IpAddr._re_interface, line):
+            self.if_name = self._regex_helper.group(1)
+            if self.if_name not in self.current_ret:
+                self.current_ret[self.if_name] = dict()
+
+
+
+    def _parse_inet_v4(self, line):
+        if self._regex_helper.search_compiled(IpAddr._re_inet_v4, line):
+            self.current_ret[self.if_name]["ipv4"] = self._regex_helper.group(1)
+            self.current_ret[self.if_name]["mask"] = self._regex_helper.group(2)
+            #dodac reszte parametow
 
 
 COMMAND_OUTPUT = """
