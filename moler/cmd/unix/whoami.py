@@ -39,7 +39,6 @@ class Whoami(GenericUnix):
             raise ParsingDone
 
 
-
 COMMAND_OUTPUT = """
 host:~ # whoami
 ute
