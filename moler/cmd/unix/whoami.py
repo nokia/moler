@@ -10,7 +10,6 @@ __email__ = 'yeshu.yang@nokia-sbell.com'
 import re
 
 from moler.cmd.unix.genericunix import GenericUnix
-from moler.cmd.converterhelper import ConverterHelper
 from moler.exceptions import ParsingDone
 
 
@@ -18,7 +17,6 @@ class Whoami(GenericUnix):
 
     def __init__(self, connection, prompt=None, new_line_chars=None):
         super(Whoami, self).__init__(connection, prompt, new_line_chars)
-        self._converter_helper = ConverterHelper()
 
     def build_command_string(self):
         cmd = "whoami"
