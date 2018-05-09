@@ -27,19 +27,21 @@ pp = pprint.PrettyPrinter(indent=4)
 
 
 def get_options():
-    parser = argparse.ArgumentParser(description='Command(s) autotest')
+    # parser = argparse.ArgumentParser(description='Command(s) autotest')
+    #
+    # # required
+    # parser.add_argument("--cmd_filename", required=False,
+    #                     help="python module implementing given command")
+    #
+    # options = parser.parse_args()
+    # if options.cmd_filename:
+    #     module_path = options.cmd_filename
+    #     if not os.path.exists(module_path):
+    #         print("\n{} path doesn't exist!\n".format(module_path))
+    #         parser.print_help()
+    #         exit()
 
-    # required
-    parser.add_argument("--cmd_filename", required=True,
-                        help="python module implementing given command")
-
-    options = parser.parse_args()
-    if options.cmd_filename:
-        module_path = options.cmd_filename
-        if not os.path.exists(module_path):
-            print("\n{} path doesn't exist!\n".format(module_path))
-            parser.print_help()
-            exit()
+    options = "moler/cmd"
     return options
 
 # -----------------------------------------------------------------------------
@@ -198,13 +200,12 @@ def run_command_parsing_test(moler_cmd, creation_str, buffer_io,
     return ""
 
 
-if __name__ == '__main__':
-
+def test_documentation_exists():
     options = get_options()
     wrong_commands = {}
     errors_found = []
 
-    for moler_module, moler_class in walk_moler_nonabstract_commands(path=options.cmd_filename):
+    for moler_module, moler_class in walk_moler_nonabstract_commands(path=options):
         print("processing: {}, {} ".format(moler_module, moler_class))
 
         test_data = retrieve_command_documentation(moler_module)
@@ -248,3 +249,7 @@ if __name__ == '__main__':
         err_msg = "{}\n    {}".format(msg, "\n    ".join(wrong_commands.keys()))
         sys.exit(err_msg)
     print("All processed commands have correct documentation")
+
+
+if __name__ == '__main__':
+    test_documentation_exists()
