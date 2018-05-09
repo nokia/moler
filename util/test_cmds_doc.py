@@ -3,15 +3,18 @@
 Perform command autotest for selected command(s).
 """
 
-__author__ = 'Grzegorz Latuszek'
+__author__ = 'Grzegorz Latuszek', 'Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com', 'michal.ernst@nokia.com'
 
+import argparse
 import importlib
 import os
 import os.path
 import pprint
 import sys
+
+import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
@@ -25,21 +28,20 @@ pp = pprint.PrettyPrinter(indent=4)
 
 
 def get_options():
-    # parser = argparse.ArgumentParser(description='Command(s) autotest')
-    #
-    # # required
-    # parser.add_argument("--cmd_filename", required=False,
-    #                     help="python module implementing given command")
-    #
-    # options = parser.parse_args()
-    # if options.cmd_filename:
-    #     module_path = options.cmd_filename
-    #     if not os.path.exists(module_path):
-    #         print("\n{} path doesn't exist!\n".format(module_path))
-    #         parser.print_help()
-    #         exit()
+    parser = argparse.ArgumentParser(description='Command(s) autotest')
 
-    options = "moler/cmd"
+    # required
+    parser.add_argument("--cmd_filename", required=False,
+                        help="python module implementing given command")
+
+    options = parser.parse_args()
+    if options.cmd_filename:
+        module_path = options.cmd_filename
+        if not os.path.exists(module_path):
+            print("\n{} path doesn't exist!\n".format(module_path))
+            parser.print_help()
+            exit()
+
     return options
 
 
@@ -199,12 +201,16 @@ def run_command_parsing_test(moler_cmd, creation_str, buffer_io,
     return ""
 
 
-def test_documentation_exists():
-    options = get_options()
+@pytest.mark.parametrize("path2cmds", ["moler/cmd"])
+def test_documentation_exists(path2cmds):
+    check_if_documentation_exists(path2cmds)
+
+
+def check_if_documentation_exists(path2cmds):
     wrong_commands = {}
     errors_found = []
 
-    for moler_module, moler_class in walk_moler_nonabstract_commands(path=options):
+    for moler_module, moler_class in walk_moler_nonabstract_commands(path=path2cmds):
         print("processing: {}, {} ".format(moler_module, moler_class))
 
         test_data = retrieve_command_documentation(moler_module)
@@ -251,4 +257,5 @@ def test_documentation_exists():
 
 
 if __name__ == '__main__':
-    test_documentation_exists()
+    options = get_options()
+    check_if_documentation_exists(path2cmds=options.cmd_filename)
