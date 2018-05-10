@@ -16,7 +16,6 @@ class Tar(GenericUnix):
 
     def __init__(self, connection, prompt=None, new_line_chars=None, options=None, file=None):
         super(Tar, self).__init__(connection, prompt, new_line_chars)
-        self._converter_helper = ConverterHelper()
         # Parameters defined by calling the command
         self.options = options
         self.file = file
