@@ -16,8 +16,6 @@ from moler.exceptions import ParsingDone
 
 
 class IpAddr(GenericUnix):
-    _re_interface = re.compile(r"^\d+:\s([a-z\d\.]+):.*$")
-    _re_inet_v4 = re.compile(r"\s*inet\s+(\d+\.\d+\.\d+\.\d+)\/(\d+)\s(brd)\s(\d+\.\d+\.\d+\.\d+)\sscope\s(\S.*\S)\s(\S.*\S)")
     _re_inet_v4_no_br = re.compile(r"^\s*inet\s+(\d+\.\d+\.\d+\.\d+)\/(\d+)\sscope\s(\S.*\S)\s(\S.*\S)$")
     _re_inet_v6 = re.compile(r"^.*inet6\s(.*)\sscope\s(\S.*\S)\s?$")
     _re_link = re.compile(r"^.*(link\/.*)\s(.*)\s(brd)\s(\S.*\S)\s?$")
@@ -26,7 +24,6 @@ class IpAddr(GenericUnix):
         self._converter_helper = ConverterHelper()
         # Parameters defined by calling the command
         self.options = options
-        self.matched = 0
 
     def build_command_string(self):
         cmd = "ip addr"
@@ -38,56 +35,34 @@ class IpAddr(GenericUnix):
         if is_full_line:
             try:
                 self._parse_interface(line)
-                self._parse_inet_v4(line)
-                self._parse_inet_v4_no_br(line)
-                self._parse_inet_v6(line)
-                self._parse_link(line)
+                self._parse_v4(line)
             except ParsingDone:
                 pass
         return super(IpAddr, self).on_new_line(line, is_full_line)
 
+    def _process_line(self, line, regexp, key_list, type):
+        if self._regex_helper.search_compiled(regexp, line):
+            _ret = dict()
+            for key in key_list:
+                if type=="INTERFACE":
+                    self.current_ret[self._regex_helper.group(key)] = {"IPv4":[], "IPv6":[], "link":[]}
+                    self.if_name = self._regex_helper.group(key)
+                _ret[key] = self._regex_helper.group(key)
+            if not type=="INTERFACE":
+                self.current_ret[self.if_name][type].append(_ret)
+            raise ParsingDone
 
+    _re_interface = re.compile(r"^\d+:\s(?P<INTERFACE>[a-z\d\.]+):.*$")
+    _key_interface = ["INTERFACE"]
     def _parse_interface(self, line):
-        if self._regex_helper.search_compiled(IpAddr._re_interface, line):
-            self.if_name = self._regex_helper.group(1)
-            if self.if_name not in self.current_ret:
-                self.current_ret[self.if_name] = dict()
+        return self._process_line(line, IpAddr._re_interface, IpAddr._key_interface, "INTERFACE")
 
+    _re_inet_v4 = re.compile(
+            r"\s*inet\s+(?P<IP>\d+\.\d+\.\d+\.\d+)\/(?P<MASK>\d+)\s(brd)\s(\d+\.\d+\.\d+\.\d+)\sscope\s(\S.*\S)\s(\S.*\S)")
 
-
-    def _parse_inet_v4(self, line):
-        if self._regex_helper.search_compiled(IpAddr._re_inet_v4, line):
-            try:
-                isinstance(self.current_ret[self.if_name]["arr"], list)
-            except:
-                self.current_ret[self.if_name]["arr"] = []
-            self.current_ret[self.if_name]["arr"].append({"ip4":self._regex_helper.group(1), "mask":self._regex_helper.group(2)})
-            scope = self._regex_helper.group(5) + " " + self._regex_helper.group(6)
-            self.current_ret[self.if_name][scope] = self._regex_helper.group(1)
-            self.current_ret[self.if_name][scope + " " + self._regex_helper.group(3)] = self._regex_helper.group(4)
-            self.current_ret[self.if_name][scope + " mask"] = self._regex_helper.group(2)
-
-    def _parse_inet_v4_no_br(self, line):
-        if self._regex_helper.search_compiled(IpAddr._re_inet_v4_no_br, line):
-            try:
-                isinstance(self.current_ret[self.if_name]["arr"], list)
-            except:
-                self.current_ret[self.if_name]["arr"] = []
-            self.current_ret[self.if_name]["arr"].append(
-                {"ip4": self._regex_helper.group(1), "mask": self._regex_helper.group(2)})
-            scope = self._regex_helper.group(3) + " " + self._regex_helper.group(4)
-            self.current_ret[self.if_name][scope] = self._regex_helper.group(1)
-            self.current_ret[self.if_name][scope + " mask"] = self._regex_helper.group(2)
-
-    def _parse_inet_v6(self, line):
-        if self._regex_helper.search_compiled(IpAddr._re_inet_v6, line):
-            self.current_ret[self.if_name][self._regex_helper.group(2)] = self._regex_helper.group(1)
-
-    def _parse_link(self, line):
-        if self._regex_helper.search_compiled(IpAddr._re_link, line):
-            self.current_ret[self.if_name][self._regex_helper.group(1)] = self._regex_helper.group(2)
-            self.current_ret[self.if_name][self._regex_helper.group(1)+self._regex_helper.group(3)] = self._regex_helper.group(4)
-
+    _key_v4 = ["IP", "MASK"]
+    def _parse_v4(self, line):
+        return self._process_line(line, IpAddr._re_inet_v4, IpAddr._key_v4, "IPv4")
 
 COMMAND_OUTPUT = """
  root@fzm-lsp-k2:~# ip addr show
@@ -100,6 +75,7 @@ COMMAND_OUTPUT = """
 2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UNKNOWN group default qlen 1000
       link/ether 00:16:3e:71:7b:5d brd ff:ff:ff:ff:ff:ff
       inet 10.83.206.42/21 brd 10.83.207.255 scope global eth0
+      inet 10.00.00.11/24 brd 10.83.207.255 scope global eth0
          valid_lft forever preferred_lft forever
       inet6 fe80::216:3eff:fe71:7b5d/64 scope link 
          valid_lft forever preferred_lft forever
