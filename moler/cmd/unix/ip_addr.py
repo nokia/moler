@@ -78,9 +78,11 @@ class IpAddr(GenericUnix):
             scope = self._regex_helper.group(3) + " " + self._regex_helper.group(4)
             self.current_ret[self.if_name][scope] = self._regex_helper.group(1)
             self.current_ret[self.if_name][scope + " mask"] = self._regex_helper.group(2)
+
     def _parse_inet_v6(self, line):
         if self._regex_helper.search_compiled(IpAddr._re_inet_v6, line):
             self.current_ret[self.if_name][self._regex_helper.group(2)] = self._regex_helper.group(1)
+
     def _parse_link(self, line):
         if self._regex_helper.search_compiled(IpAddr._re_link, line):
             self.current_ret[self.if_name][self._regex_helper.group(1)] = self._regex_helper.group(2)
@@ -120,11 +122,53 @@ COMMAND_OUTPUT = """
   root@fzm-lsp-k2:~# """
 COMMAND_KWARGS = {}
 COMMAND_RESULT ={
-    'br4': {   },
-    'eth0': {   },
-    'eth1': {   },
-    'eth2': {   },
-    'eth3': {   },
-    'lo': {   },
-    'vboxnet0': {   }
-}
+   'eth0': {   'arr': [
+                            {
+                                'ip4': '10.83.206.42',
+                                'mask': '21'
+                            }
+                        ],
+                 'global eth0': '10.83.206.42',
+                 'global eth0 brd': '10.83.207.255',
+                 'global eth0 mask': '21',
+                 'link': 'fe80::216:3eff:fe71:7b5d/64',
+                 'link/ether': '00:16:3e:71:7b:5d',
+                 'link/etherbrd': 'ff:ff:ff:ff:ff:ff'},
+    'eth1': {   'arr': [
+                            {
+                                'ip4': '192.168.255.126',
+                                'mask': '24'
+                            },
+                            {   'ip4': '10.0.0.3',
+                                'mask': '24'
+                            }
+                        ],
+                 'global eth1': '10.0.0.3',
+                 'global eth1 mask': '24',
+                 'link': 'fe80::216:3eff:fe86:4a3a/64',
+                 'link/ether': '00:16:3e:86:4a:3a',
+                 'link/etherbrd': 'ff:ff:ff:ff:ff:ff'},
+    'eth2': {   'arr': [
+                            {   'ip4': '192.168.255.25',
+                                'mask': '24'
+                            }
+                        ],
+                 'global eth2': '192.168.255.25',
+                 'global eth2 brd': '192.168.255.255',
+                 'global eth2 mask': '24',
+                 'link': 'fe80::216:3eff:fe04:3515/64',
+                 'link/ether': '00:16:3e:04:35:15',
+                 'link/etherbrd': 'ff:ff:ff:ff:ff:ff'},
+    'eth3': {   'link/ether': '00:16:3e:04:35:15',
+                 'link/etherbrd': 'ff:ff:ff:ff:ff:ff'},
+    'lo': {   'arr': [
+                            {
+                                'ip4': '127.0.0.1',
+                                'mask': '8'
+                            }
+                    ],
+               'host': '::1/128',
+               'host lo': '127.0.0.1',
+               'host lo mask': '8',
+               'link/loopback': '00:00:00:00:00:00',
+               'link/loopbackbrd': '00:00:00:00:00:00'}}
