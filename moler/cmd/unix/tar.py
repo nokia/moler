@@ -14,7 +14,7 @@ __email__ = 'snackwell.yang@nokia-sbell.com'
 
 class Tar(GenericUnix):
 
-    def __init__(self, connection, prompt=None, new_line_chars=None, options=None, file=None):
+    def __init__(self, connection, options, file, prompt=None, new_line_chars=None):
         super(Tar, self).__init__(connection, prompt, new_line_chars)
         # Parameters defined by calling the command
         self.options = options
@@ -22,10 +22,6 @@ class Tar(GenericUnix):
         self.ret_required = False
 
     def build_command_string(self):
-        if not self.file or not self.options:
-            self.set_exception(CommandFailure(self, "Wrong Command Syntax for tar command with options {}, file {}".format(self.options, self.file)))
-            return
-
         cmd = "tar"
         cmd = cmd + " " + self.options + " " + self.file
         return cmd
