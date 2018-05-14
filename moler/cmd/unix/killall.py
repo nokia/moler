@@ -61,6 +61,7 @@ class Killall(GenericUnix):
                 pid = self._regex_helper.group("Pid")
                 self.current_ret["Detail"][pid] = self._regex_helper.group("Name")
         self.current_ret["Status"] = "True"
+        raise ParsingDone
 
 
 COMMAND_OUTPUT_verbose = """
