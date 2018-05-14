@@ -12,7 +12,7 @@ def test_calling_ln_returns_result_parsed_from_command_output(buffer_connection)
     from moler.cmd.unix.ln import Ln
     command_output, expected_result = command_output_and_expected_result()
     buffer_connection.remote_inject_response([command_output])
-    ln_cmd = Ln(connection=buffer_connection.moler_connection, option="-s file1 file2")
+    ln_cmd = Ln(connection=buffer_connection.moler_connection, options="-s file1 file2")
     result = ln_cmd()
     assert result == expected_result
 
