@@ -17,5 +17,5 @@ def test_tar_returns_proper_command_string(buffer_connection):
 
 def test_tar_raise_exception_wrong_command_string(buffer_connection):
     from moler.cmd.unix.tar import Tar
-    with pytest.raises(TypeError, match=r'.*missing \d+ required positional argument.*'):
+    with pytest.raises(TypeError, match=r'.*missing \d+ required positional argument.*|__init__() takes at least \d+ arguments (\d+ given)'):
         Tar(buffer_connection, options="xzvf").command_string
