@@ -34,10 +34,9 @@ def test_calling_kill_returns_result_no_permit(buffer_connection):
     command_output, expected_result = command_output_and_expected_result_no_permit()
     buffer_connection.remote_inject_response([command_output])
     kill_cmd = Kill(connection=buffer_connection.moler_connection, options="-9", pid="46911")
-    try:
+    with pytest.raises(CommandFailure, match=r'Command failed \'kill -9 46911\' with ERROR: Operation not permitted'):
         kill_cmd()
-    except CommandFailure as e:
-        assert "Command failed 'kill -9 46911' with ERROR: Operation not permitted" == e.args[0]
+
 
 # --------------------------- resources
 
