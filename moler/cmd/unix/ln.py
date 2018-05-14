@@ -33,11 +33,11 @@ class Ln(GenericUnix):
 
     def on_new_line(self, line, is_full_line):
         if self._cmd_output_started and self._regex_helper.search_compiled(Ln._re_ln_line, line):
-            self.set_exception(CommandFailure(self,"ERROR: {}".format(self._regex_helper.group(1))))
+            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group(1))))
         return super(Ln, self).on_new_line(line, is_full_line)
 
 
-COMMAND_OUTPUT ="""
+COMMAND_OUTPUT = """
 user@server:~> ln -s file1 file2
 user@server:~>"""
 
