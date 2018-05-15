@@ -152,7 +152,8 @@ class ConnectionObserver(object):
         pass
 
     def extend_timeout(self, timedelta):
-        prev_timeot = self.timeout
+        prev_timeout = self.timeout
         self.timeout = self.timeout + timedelta
-        msg = "Extended timeout from %.2f with delta %.2f to %.2f" % (prev_timeot, timedelta, self.timeout)
+        msg = "Extended timeout from %.2f with delta %.2f to %.2f" % (prev_timeout, timedelta, self.timeout)
+        self.runner.timeout_change(timedelta)
         self.logger.info(msg)

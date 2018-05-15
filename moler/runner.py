@@ -64,6 +64,15 @@ class ConnectionObserverRunner(object):
         """
         pass
 
+    @abstractmethod
+    def timeout_change(self, delta_timeout):
+        """
+        Call this method to notify runner that timeout has been changed in observer
+        :param delta_timeout: delta timeout in float seconds
+        :return: Nothing
+        """
+        pass
+
     def __enter__(self):
         return self
 
@@ -124,11 +133,13 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         start_time = time.time()
         remain_time = connection_observer.timeout
         check_timeout_from_observer = True
+        wait_tick = 0.2
         if timeout:
             remain_time = timeout
             check_timeout_from_observer = False
+            wait_tick = remain_time
         while remain_time > 0.0:
-            done, not_done = wait([connection_observer_future], timeout=remain_time)
+            done, not_done = wait([connection_observer_future], timeout=wait_tick)
             if connection_observer_future in done:
                 self.shutdown()
                 result = connection_observer_future.result()
@@ -165,3 +176,6 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             time.sleep(0.01)  # give moler_conn a chance to feed observer
         self.logger.debug("returning result {}".format(connection_observer))
         return connection_observer.result()
+
+    def timeout_change(self, timeout_delta):
+        pass
