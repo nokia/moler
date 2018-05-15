@@ -4,8 +4,6 @@ tar command module.
 """
 
 from moler.cmd.unix.genericunix import GenericUnix
-from moler.cmd.converterhelper import ConverterHelper
-from moler.exceptions import CommandFailure
 
 __author__ = 'Yang Snackwell'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -25,11 +23,6 @@ class Tar(GenericUnix):
         cmd = "tar"
         cmd = cmd + " " + self.options + " " + self.file
         return cmd
-
-    def on_new_line(self, line, is_full_line):
-        if not is_full_line:
-            return super(Tar, self).on_new_line(line, is_full_line)
-        return super(Tar, self).on_new_line(line, is_full_line)
 
 
 COMMAND_OUTPUT = """
