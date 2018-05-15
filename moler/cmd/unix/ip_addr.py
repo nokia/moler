@@ -60,7 +60,7 @@ class IpAddr(GenericUnix):
             self.if_name = self._regex_helper.group("INTERFACE")
 
     _re_ip_v4_brd = re.compile(
-            r"\s*inet\s+(?P<IP>\d+\.\d+\.\d+\.\d+)\/(?P<MASK>\d+)\s(brd)\s(?P<BRD>\d+\.\d+\.\d+\.\d+)\sscope\s(\S.*\S)\s(\S.*\S)")
+        r"\s*inet\s+(?P<IP>\d+\.\d+\.\d+\.\d+)\/(?P<MASK>\d+)\s(brd)\s(?P<BRD>\d+\.\d+\.\d+\.\d+)\sscope\s(\S.*\S)\s(\S.*\S)")
     _key_ip_v4_brd = ["IP", "MASK", "BRD"]
 
     def _parse_v4_brd(self, line):
@@ -84,6 +84,7 @@ class IpAddr(GenericUnix):
 
     def _parse_link(self, line):
         return self._process_line(line, IpAddr._re_link, IpAddr._key_link, "LINK")
+
 
 COMMAND_OUTPUT = """
  root@fzm-lsp-k2:~# ip addr show
@@ -119,53 +120,53 @@ COMMAND_OUTPUT = """
 COMMAND_KWARGS = {}
 COMMAND_RESULT = {
     'eth0': {
-            'IPV4': [{
-                                 'BRD': '10.83.207.255',
-                                 'IP': '10.83.206.42',
-                                 'MASK': '21'}],
-            'IPV6': [{
-                                 'IP': 'fe80::216:3eff:fe71:7b5d',
-                                 'MASK': '64'}],
-            'LINK': [{
-                                 'BRD': 'ff:ff:ff:ff:ff:ff',
-                                 'MAC': '00:16:3e:71:7b:5d'}]},
+        'IPV4': [{
+            'BRD': '10.83.207.255',
+            'IP': '10.83.206.42',
+            'MASK': '21'}],
+        'IPV6': [{
+            'IP': 'fe80::216:3eff:fe71:7b5d',
+            'MASK': '64'}],
+        'LINK': [{
+            'BRD': 'ff:ff:ff:ff:ff:ff',
+            'MAC': '00:16:3e:71:7b:5d'}]},
     'eth1': {
-            'IPV4': [{
-                                 'IP': '192.168.255.126',
-                                 'MASK': '24'}, {
-                                 'IP': '10.0.0.3',
-                                 'MASK': '24'}],
-            'IPV6': [{
-                                 'IP': 'fe80::216:3eff:fe86:4a3a',
-                                 'MASK': '64'}],
-            'LINK': [
-                            {
-                                 'BRD': 'ff:ff:ff:ff:ff:ff',
-                                 'MAC': '00:16:3e:86:4a:3a'}]},
+        'IPV4': [{
+            'IP': '192.168.255.126',
+            'MASK': '24'}, {
+            'IP': '10.0.0.3',
+            'MASK': '24'}],
+        'IPV6': [{
+            'IP': 'fe80::216:3eff:fe86:4a3a',
+            'MASK': '64'}],
+        'LINK': [
+            {
+                'BRD': 'ff:ff:ff:ff:ff:ff',
+                'MAC': '00:16:3e:86:4a:3a'}]},
     'eth2': {
-            'IPV4': [{
-                                 'BRD': '192.168.255.255',
-                                 'IP': '192.168.255.25',
-                                 'MASK': '24'}],
-            'IPV6': [{
-                                 'IP': 'fe80::216:3eff:fe04:3515',
-                                 'MASK': '64'}],
-            'LINK': [{
-                                 'BRD': 'ff:ff:ff:ff:ff:ff',
-                                 'MAC': '00:16:3e:04:35:15'}]},
+        'IPV4': [{
+            'BRD': '192.168.255.255',
+            'IP': '192.168.255.25',
+            'MASK': '24'}],
+        'IPV6': [{
+            'IP': 'fe80::216:3eff:fe04:3515',
+            'MASK': '64'}],
+        'LINK': [{
+            'BRD': 'ff:ff:ff:ff:ff:ff',
+            'MAC': '00:16:3e:04:35:15'}]},
     'eth3': {
-            'IPV4': [{}],
-            'IPV6': [{}],
-            'LINK': [{
-                                 'BRD': 'ff:ff:ff:ff:ff:ff',
-                                 'MAC': '00:16:3e:04:35:15'}]},
+        'IPV4': [{}],
+        'IPV6': [{}],
+        'LINK': [{
+            'BRD': 'ff:ff:ff:ff:ff:ff',
+            'MAC': '00:16:3e:04:35:15'}]},
     'lo': {
-            'IPV4': [{
-                                 'IP': '127.0.0.1',
-                                 'MASK': '8'}],
-            'IPV6': [{
-                                 'IP': '::1',
-                                 'MASK': '128'}],
-            'LINK': [{
-                                 'BRD': '00:00:00:00:00:00',
-                                 'MAC': '00:00:00:00:00:00'}]}}
+        'IPV4': [{
+            'IP': '127.0.0.1',
+            'MASK': '8'}],
+        'IPV6': [{
+            'IP': '::1',
+            'MASK': '128'}],
+        'LINK': [{
+            'BRD': '00:00:00:00:00:00',
+            'MAC': '00:00:00:00:00:00'}]}}
