@@ -16,18 +16,18 @@ from moler.exceptions import ParsingDone
 
 
 class Kill(GenericUnix):
-    def __init__(self, connection, prompt=None, new_line_chars=None, options=None, pid=None):
+    def __init__(self, connection, pid, prompt=None, new_line_chars=None, options=None):
         super(Kill, self).__init__(connection, prompt, new_line_chars)
         self._converter_helper = ConverterHelper()
-        self.Pid = pid
+        self.pid = pid
         self.options = options
 
     def build_command_string(self):
         cmd = "kill"
         if self.options:
             cmd = cmd + " " + self.options
-        if self.Pid:
-            cmd = cmd + " " + self.Pid
+        if self.pid:
+            cmd = cmd + " " + self.pid
         return cmd
 
     def on_new_line(self, line, is_full_line):
