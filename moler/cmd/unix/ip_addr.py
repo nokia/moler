@@ -88,7 +88,7 @@ class IpAddr(GenericUnix):
 
 COMMAND_OUTPUT = """
  root@fzm-lsp-k2:~# ip addr show
-1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default 
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdiscd noqueue state UNKNOWN group default
       link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
       inet 127.0.0.1/8 scope host lo
          valid_lft forever preferred_lft forever
@@ -98,7 +98,7 @@ COMMAND_OUTPUT = """
       link/ether 00:16:3e:71:7b:5d brd ff:ff:ff:ff:ff:ff
       inet 10.83.206.42/21 brd 10.83.207.255 scope global eth0
          valid_lft forever preferred_lft forever
-      inet6 fe80::216:3eff:fe71:7b5d/64 scope link 
+      inet6 fe80::216:3eff:fe71:7b5d/64 scope link
          valid_lft forever preferred_lft forever
 3: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1600 qdisc pfifo_fast state UNKNOWN group default qlen 5000
       link/ether 00:16:3e:86:4a:3a brd ff:ff:ff:ff:ff:ff
@@ -106,13 +106,13 @@ COMMAND_OUTPUT = """
          valid_lft forever preferred_lft forever
       inet 10.0.0.3/24 scope global eth1
          valid_lft forever preferred_lft forever
-      inet6 fe80::216:3eff:fe86:4a3a/64 scope link 
+      inet6 fe80::216:3eff:fe86:4a3a/64 scope link
          valid_lft forever preferred_lft forever
 4: eth2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UNKNOWN group default qlen 1000
       link/ether 00:16:3e:04:35:15 brd ff:ff:ff:ff:ff:ff
       inet 192.168.255.25/24 brd 192.168.255.255 scope global eth2
          valid_lft forever preferred_lft forever
-      inet6 fe80::216:3eff:fe04:3515/64 scope link 
+      inet6 fe80::216:3eff:fe04:3515/64 scope link
          valid_lft forever preferred_lft forever
 5: eth3: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000
       link/ether 00:16:3e:04:35:15 brd ff:ff:ff:ff:ff:ff
