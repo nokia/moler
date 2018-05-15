@@ -16,7 +16,7 @@ from moler.exceptions import ParsingDone
 
 
 class Kill(GenericUnix):
-    def __init__(self, connection, pid, prompt=None, new_line_chars=None, options=None):
+    def __init__(self, connection, pid, options=None, prompt=None, new_line_chars=None):
         super(Kill, self).__init__(connection, prompt, new_line_chars)
         self._converter_helper = ConverterHelper()
         self.pid = pid
