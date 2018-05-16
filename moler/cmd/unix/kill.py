@@ -18,7 +18,6 @@ from moler.exceptions import ParsingDone
 class Kill(GenericUnix):
     def __init__(self, connection, pid, options=None, prompt=None, new_line_chars=None):
         super(Kill, self).__init__(connection, prompt, new_line_chars)
-        self._converter_helper = ConverterHelper()
         self.pid = pid
         self.options = options
 
@@ -35,9 +34,9 @@ class Kill(GenericUnix):
             try:
                 self._parse_no_permit(line)
                 self._parse_no_process(line)
-                self._parse_kill(line)
             except ParsingDone:
                 pass
+        self.current_ret["Status"] = "True"
         return super(Kill, self).on_new_line(line, is_full_line)
 
     def _parse_no_permit(self, line):
@@ -54,10 +53,6 @@ class Kill(GenericUnix):
             self.current_ret["Status"] = "True"
             self.current_ret["Pid"] = self._regex_helper.group("Pid")
             raise ParsingDone
-
-    def _parse_kill(self, line):
-        self.current_ret["Status"] = "True"
-        raise ParsingDone
 
 
 COMMAND_OUTPUT_no_process = """
@@ -77,8 +72,7 @@ COMMAND_RESULT_no_process = {
 
 COMMAND_OUTPUT = """
 ttyserver@ttyserver:~> kill 637
-ttyserver@ttyserver:~>
- """
+ttyserver@ttyserver:~> """
 
 COMMAND_KWARGS = {"pid": "637"}
 
