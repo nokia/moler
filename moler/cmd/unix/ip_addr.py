@@ -108,7 +108,7 @@ COMMAND_OUTPUT = """
          valid_lft forever preferred_lft forever
       inet6 fe80::216:3eff:fe86:4a3a/64 scope link
          valid_lft forever preferred_lft forever
-4: eth2s: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UNKNOWN group default qlen 1000
+4: eth2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UNKNOWN group default qlen 1000
       link/ether 00:16:3e:04:35:15 brd ff:ff:ff:ff:ff:ff
       inet 192.168.255.25/24 brd 192.168.255.255 scope global eth2
          valid_lft forever preferred_lft forever
