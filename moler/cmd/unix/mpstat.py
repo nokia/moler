@@ -40,7 +40,7 @@ class Mpstat(GenericUnix):
     _re_headers = re.compile(
         r"(?P<TIME>\S+)\s+(?P<CPU>\S+)\s+(?P<USR>\d+.\d+)\s+(?P<NICE>\d+.\d+)\s+(?P<SYS>\d+.\d+)\s+(?P<IOWAIT>\d+.\d+)\s+(?P<IRQ>\d+.\d+)\s+(?P<SOFT>\d+.\d+)\s+(?P<STEAL>\d+.\d+)\s+(?P<GUEST>\d+.\d+)\s+(?P<IDLE>\d+.\d+)$")
 
-    _re_keys_table = ['USR', 'NICE', 'SYS', 'IOWAIT', 'IRQ','SOFT','STEAL', 'GUEST','IDLE']
+    _re_keys_table = ['USR', 'NICE', 'SYS', 'IOWAIT', 'IRQ', 'SOFT', 'STEAL', 'GUEST', 'IDLE']
 
     def _parse_line(self, line):
         if self._regex_helper.search_compiled(Mpstat._re_headers, line):
