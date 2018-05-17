@@ -14,7 +14,7 @@ from moler.exceptions import ParsingDone
 
 
 class IpAddr(GenericUnix):
-    def __init__(self, connection, prompt=None, new_line_chars=None, options=None):
+    def __init__(self, connection, options=None, prompt=None, new_line_chars=None):
         super(IpAddr, self).__init__(connection, prompt, new_line_chars)
         # Parameters defined by calling the command
         self.if_name = None
@@ -115,7 +115,7 @@ COMMAND_OUTPUT = """
 5: eth3: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000
       link/ether 00:16:3e:04:35:15 brd ff:ff:ff:ff:ff:ff
   root@fzm-lsp-k2:~# """
-COMMAND_KWARGS = {}
+COMMAND_KWARGS = {'options': 'show'}
 COMMAND_RESULT = {
     'eth0': {
         'IPV4': [{
