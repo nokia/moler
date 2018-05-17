@@ -10,14 +10,12 @@ __email__ = 'sylwester.golonka@nokia.com'
 import re
 
 from moler.cmd.unix.genericunix import GenericUnix
-from moler.cmd.converterhelper import ConverterHelper
 from moler.exceptions import ParsingDone
 
 
 class IpAddr(GenericUnix):
     def __init__(self, connection, prompt=None, new_line_chars=None, options=None):
         super(IpAddr, self).__init__(connection, prompt, new_line_chars)
-        self._converter_helper = ConverterHelper()
         # Parameters defined by calling the command
         self.if_name = None
         self.options = options
@@ -58,6 +56,7 @@ class IpAddr(GenericUnix):
         if self._regex_helper.search_compiled(IpAddr._re_interface, line):
             self.current_ret[self._regex_helper.group("INTERFACE")] = {"IPV4": [{}], "IPV6": [{}], "LINK": [{}]}
             self.if_name = self._regex_helper.group("INTERFACE")
+            raise ParsingDone
 
     _re_ip_v4_brd = re.compile(
         r"\s*inet\s+(?P<IP>\d+\.\d+\.\d+\.\d+)\/(?P<MASK>\d+)\s(brd)\s(?P<BRD>\d+\.\d+\.\d+\.\d+)\sscope\s(\S.*\S)\s(\S.*\S)")
@@ -73,7 +72,6 @@ class IpAddr(GenericUnix):
         return self._process_line(line, IpAddr._re_ip_v4, IpAddr._key_ip_v4, "IPV4")
 
     _re_ip_v6 = re.compile(r"^.*inet6\s(?P<IP>.*)\/(?P<MASK>\d+)\sscope\s(\S.*\S)\s?$")
-
     _key_ip_v6 = ["IP", "MASK"]
 
     def _parse_v6(self, line):
