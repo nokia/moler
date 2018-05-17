@@ -29,11 +29,11 @@ class IpAddr(GenericUnix):
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
-                self._parse_interface(line)
-                self._parse_v4(line)
                 self._parse_v4_brd(line)
+                self._parse_v4(line)
                 self._parse_v6(line)
                 self._parse_link(line)
+                self._parse_interface(line)
             except ParsingDone:
                 pass
         return super(IpAddr, self).on_new_line(line, is_full_line)
@@ -48,14 +48,6 @@ class IpAddr(GenericUnix):
                 self.current_ret[self.if_name][dict_type][0] = _ret
             else:
                 self.current_ret[self.if_name][dict_type].append(_ret)
-            raise ParsingDone
-
-    _re_interface = re.compile(r"^\d+:\s(?P<INTERFACE>[a-z\d.]+):.*$")
-
-    def _parse_interface(self, line):
-        if self._regex_helper.search_compiled(IpAddr._re_interface, line):
-            self.current_ret[self._regex_helper.group("INTERFACE")] = {"IPV4": [{}], "IPV6": [{}], "LINK": [{}]}
-            self.if_name = self._regex_helper.group("INTERFACE")
             raise ParsingDone
 
     _re_ip_v4_brd = re.compile(
@@ -82,6 +74,14 @@ class IpAddr(GenericUnix):
 
     def _parse_link(self, line):
         return self._process_line(line, IpAddr._re_link, IpAddr._key_link, "LINK")
+
+    _re_interface = re.compile(r"^\d+:\s(?P<INTERFACE>[a-z\d.]+):.*$")
+
+    def _parse_interface(self, line):
+        if self._regex_helper.search_compiled(IpAddr._re_interface, line):
+            self.current_ret[self._regex_helper.group("INTERFACE")] = {"IPV4": [{}], "IPV6": [{}], "LINK": [{}]}
+            self.if_name = self._regex_helper.group("INTERFACE")
+            raise ParsingDone
 
 
 COMMAND_OUTPUT = """
