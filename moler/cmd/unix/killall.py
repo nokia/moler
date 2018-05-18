@@ -20,6 +20,7 @@ class Killall(GenericUnix):
         super(Killall, self).__init__(connection, prompt=prompt, new_line_chars=new_line_chars)
         self.is_verbose = is_verbose
         self.name = name
+        self.ret_required = False
 
     def build_command_string(self):
         if self.is_verbose:
@@ -32,21 +33,14 @@ class Killall(GenericUnix):
         if is_full_line:
             try:
                 self._parse_no_permit(line)
-                self._parse_no_process(line)
                 self._parse_killall_verbose(line)
             except ParsingDone:
                 pass
-        self.current_ret["Status"] = "True"
         return super(Killall, self).on_new_line(line, is_full_line)
 
     def _parse_no_permit(self, line):
         if self._regex_helper.search(r'(Operation not permitted)', line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group(1))))
-            raise ParsingDone
-
-    def _parse_no_process(self, line):
-        if self._regex_helper.search(r'(no process found)', line):
-            self.current_ret["Status"] = "True"
             raise ParsingDone
 
     _re_killall = re.compile(r"Killed (?P<Name>[^\(]+)\((?P<Pid>\d+)\) with signal")
@@ -68,7 +62,7 @@ Pclinux90:~ # """
 COMMAND_KWARGS_no_verbose = {"name": "iperf"}
 
 COMMAND_RESULT_no_verbose = {
-    "Status": "True"
+
 }
 
 COMMAND_OUTPUT_no_process = """
@@ -79,5 +73,5 @@ PClinux110:/home/runner #"""
 COMMAND_KWARGS_no_process = {"name": "tshark"}
 
 COMMAND_RESULT_no_process = {
-    "Status": "True"
+
 }

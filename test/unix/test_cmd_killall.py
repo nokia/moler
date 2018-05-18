@@ -56,8 +56,8 @@ Pclinux90:~ #  killall -v iperf
 Killed iperf(15054) with signal 15
 Pclinux90:~ #"""
 
-    result = { "Status": "True",
-               "Detail": {"15054": "iperf"}}
+    result = {"Detail": {"15054": "iperf"}
+              }
     return data, result
 
 
