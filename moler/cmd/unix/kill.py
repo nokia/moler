@@ -73,5 +73,5 @@ ttyserver@ttyserver:~> """
 COMMAND_KWARGS = {"pid": "637"}
 
 COMMAND_RESULT = {
-    
+
 }
