@@ -19,6 +19,7 @@ class Kill(GenericUnix):
         super(Kill, self).__init__(connection, prompt, new_line_chars)
         self.pid = pid
         self.options = options
+        self.ret_required = False
 
     def build_command_string(self):
         cmd = "kill"
@@ -35,12 +36,10 @@ class Kill(GenericUnix):
                 self._parse_no_process(line)
             except ParsingDone:
                 pass
-        self.current_ret["Status"] = "True"
         return super(Kill, self).on_new_line(line, is_full_line)
 
     def _parse_no_permit(self, line):
         if self._regex_helper.search(r'(Operation not permitted)', line):
-            self.current_ret["Status"] = "False"
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group(1))))
             raise ParsingDone
 
@@ -49,7 +48,6 @@ class Kill(GenericUnix):
 
     def _parse_no_process(self, line):
         if self._regex_helper.search_compiled(Kill._re_no_process, line):
-            self.current_ret["Status"] = "True"
             self.current_ret["Pid"] = self._regex_helper.group("Pid")
             raise ParsingDone
 
@@ -65,7 +63,6 @@ COMMAND_KWARGS_no_process = {
 }
 
 COMMAND_RESULT_no_process = {
-    "Status": "True",
     "Pid": "973"
 }
 
@@ -76,5 +73,5 @@ ttyserver@ttyserver:~> """
 COMMAND_KWARGS = {"pid": "637"}
 
 COMMAND_RESULT = {
-    "Status": "True"
+    
 }
