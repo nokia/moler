@@ -12,10 +12,10 @@ from moler.exceptions import CommandFailure
 
 
 class Mv(GenericUnix):
-    _reg_fail_permission = re.compile(r'(mv: cannot (re)?move [\w\/’‘\s\.]+?: Permission denied)')
-    _reg_fail_no_file = re.compile(r'(mv: cannot stat [\w\/’‘\s\.]+?: No such file or directory)')
-    _reg_fail_crate_file = re.compile(r'(mv: cannot create regular file [\w\/’‘\s\.]+?: Permission denied)')
-    _reg_fail_the_same = re.compile(r'(mv: [\w\/’‘\s\.]+? are the same file)')
+    _reg_fail_permission = re.compile(r'(mv: cannot (re)?move .*?: Permission denied)')
+    _reg_fail_no_file = re.compile(r'(mv: cannot stat .*?: No such file or directory)')
+    _reg_fail_crate_file = re.compile(r'(mv: cannot create regular file .*?: Permission denied)')
+    _reg_fail_the_same = re.compile(r'(mv: .*? are the same file)')
 
     def __init__(self, connection, src, dst, options=None, prompt=None, new_line_chars=None):
         super(Mv, self).__init__(connection, prompt=prompt, new_line_chars=new_line_chars)
