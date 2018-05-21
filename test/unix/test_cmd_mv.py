@@ -24,11 +24,11 @@ def test_calling_mv_returns_result_parsed_from_command_output(buffer_connection)
 
 
 @pytest.mark.parametrize("source,destination,error", [
-    ('1.txt', '1.txt', 'mv: ‘1.txt’ and ‘1.txt’ are the same file'),
-    ('/home/ute/1.txt', '/opt/', 'mv: cannot create regular file ‘/opt/1.txt’: Permission denied'),
-    ('/opt/lua', '/opt/old_lua', 'mv: cannot move ‘/opt/lua’ to ‘/opt/old_lua’: Permission denied'),
-    ('/opt/btslog/assistant', '/home/ute/', 'mv: cannot remove ‘/opt/btslog/assistant’: Permission denied'),
-    ('/opt/some_dir', '/home/ute/', 'mv: cannot stat ‘/opt/some_dir’: No such file or directory'),
+    ("1.txt", "1.txt", "mv: '1.txt' and '1.txt' are the same file"),
+    ("/home/ute/1.txt", "/opt/", "mv: cannot create regular file '/opt/1.txt': Permission denied"),
+    ("/opt/lua", "/opt/old_lua", "mv: cannot move '/opt/lua' to '/opt/old_lua': Permission denied"),
+    ("/opt/btslog/assistant", "/home/ute/", "mv: cannot remove '/opt/btslog/assistant': Permission denied"),
+    ("/opt/some_dir", "/home/ute/", "mv: cannot stat '/opt/some_dir': No such file or directory"),
 ])
 def test_calling_mv_raises_exception_command_failure(source, destination, error, buffer_connection):
     from moler.cmd.unix.mv import Mv
