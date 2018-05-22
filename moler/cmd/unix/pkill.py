@@ -13,6 +13,7 @@ from moler.cmd.unix.genericunix import GenericUnix
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 
+
 class Pkill(GenericUnix):
 
     def __init__(self, connection, name, prompt=None, new_line_chars=None):
