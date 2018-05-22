@@ -1,0 +1,49 @@
+# -*- coding: utf-8 -*-
+"""
+Pkill command module.
+"""
+
+__author__ = 'Yeshu Yang'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'yeshu.yang@nokia-sbell.com'
+
+import re
+
+from moler.cmd.unix.genericunix import GenericUnix
+from moler.exceptions import CommandFailure
+from moler.exceptions import ParsingDone
+
+class Pkill(GenericUnix):
+
+    def __init__(self, connection, name, prompt=None, new_line_chars=None):
+        super(Pkill, self).__init__(connection, prompt, new_line_chars)
+        self.name = name
+        self.ret_required = False
+
+    def build_command_string(self):
+        cmd = "{} {}".format("pkill", self.name)
+        return cmd
+
+    def on_new_line(self, line, is_full_line):
+        if is_full_line:
+            try:
+                self._parse_no_permit(line)
+            except ParsingDone:
+                pass
+        return super(Pkill, self).on_new_line(line, is_full_line)
+
+    def _parse_no_permit(self, line):
+        if self._regex_helper.search(r'(Operation not permitted)', line):
+            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group(1))))
+            raise ParsingDone
+
+
+COMMAND_OUTPUT_no_verbose = """
+ute@cp19-nj:~$ pkill ping
+ute@cp19-nj:~$ """
+
+COMMAND_KWARGS_no_verbose = {"name": "ping"}
+
+COMMAND_RESULT_no_verbose = {
+
+}
