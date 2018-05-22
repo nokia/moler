@@ -206,6 +206,11 @@ def test_documentation_exists(path2cmds):
     check_if_documentation_exists(path2cmds)
 
 
+@pytest.mark.parametrize("path2cmds", ["moler_nokia/cmd"])
+def test_documentation_exists_nokia(path2cmds):
+    check_if_documentation_exists(path2cmds)
+
+
 def check_if_documentation_exists(path2cmds):
     wrong_commands = {}
     errors_found = []
