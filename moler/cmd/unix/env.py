@@ -198,7 +198,7 @@ COMMAND_RESULT = {
         'http_proxy': 'http://87.254.212.120:8080',
         'https_proxy': 'http://87.254.212.120:8080',
         'no_proxy': 'localhost, 127.0.0.1, 192.168.0.0/16, 10.83.0.0/16, 10.254.0.0/16, 10.0.0.0/16'
-         }
+    }
 }
 
 COMMAND_KWARGS = {}
