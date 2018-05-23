@@ -33,14 +33,14 @@ class Env(GenericUnix):
                 pass
         return super(Env, self).on_new_line(line, is_full_line)
 
-    _re_name_line = re.compile(r"^(\S+)=(.*)$")
+    _re_name_line = re.compile(r"^(?P<title>\S+)=(?P<content>.*)$")
 
     def _parse_name_line(self, line):
         if self._regex_helper.search_compiled(Env._re_name_line, line):
-            name = self._regex_helper.group(1)
+            name = self._regex_helper.group("title")
             if "ENV" not in self.current_ret:
                 self.current_ret["ENV"] = dict()
-            self.current_ret["ENV"][name] = self._regex_helper.group(2)
+            self.current_ret["ENV"][name] = self._regex_helper.group("content")
             raise ParsingDone
 
 
