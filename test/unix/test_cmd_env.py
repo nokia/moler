@@ -9,6 +9,7 @@ __email__ = 'haili.guo@nokia-sbell.com'
 
 import pytest
 
+
 def test_calling_env_returns_result(buffer_connection):
     from moler.cmd.unix.env import Env
     env_cmd = Env(connection=buffer_connection.moler_connection)
