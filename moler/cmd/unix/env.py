@@ -89,7 +89,7 @@ JAVA_HOME=/usr/java/latest
 LANG=en_US.UTF-8
 PYTHONSTARTUP=/etc/pythonstart
 https_proxy=http://87.254.212.120:8080
-GPG_TTY=/dev/pts/4
+GPG_TTY=/dev/pts/3
 AUDIODRIVER=pulseaudio
 QT_SYSTEM_DIR=/usr/share/desktop-data
 SHLVL=1
@@ -134,7 +134,7 @@ COMMAND_RESULT = {
         'CSHEDIT': 'emacs',
         'CVS_RSH': 'ssh',
         'FROM_HEADER': '',
-        'GPG_TTY': '/dev/pts/4',
+        'GPG_TTY': '/dev/pts/3',
         'G_BROKEN_FILENAMES': '1',
         'G_FILENAME_ENCODING': '@locale,UTF-8,ISO-8859-15,CP1252',
         'HISTSIZE': '1000',
