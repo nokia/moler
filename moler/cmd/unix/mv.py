@@ -8,15 +8,10 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'maciej.malczyk@nokia.com'
 import re
 from moler.cmd.unix.genericunix import GenericUnix
-from moler.exceptions import CommandFailure
+from moler.exceptions import CommandFailure, ParsingDone
 
 
 class Mv(GenericUnix):
-    _reg_fail_permission = re.compile(r'(mv: cannot (re)?move .*?: Permission denied)')
-    _reg_fail_no_file = re.compile(r'(mv: cannot stat .*?: No such file or directory)')
-    _reg_fail_crate_file = re.compile(r'(mv: cannot create regular file .*?: Permission denied)')
-    _reg_fail_the_same = re.compile(r'(mv: .*? are the same file)')
-
     def __init__(self, connection, src, dst, options=None, prompt=None, new_line_chars=None):
         super(Mv, self).__init__(connection, prompt=prompt, new_line_chars=new_line_chars)
 
@@ -31,13 +26,22 @@ class Mv(GenericUnix):
 
     def on_new_line(self, line, is_full_line):
         if self._cmd_output_started:
-            if self._regex_helper.search(Mv._reg_fail_permission, line) or \
-                    self._regex_helper.search(Mv._reg_fail_no_file, line) or \
-                    self._regex_helper.search(Mv._reg_fail_the_same, line) or \
-                    self._regex_helper.search(Mv._reg_fail_crate_file, line):
-                self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group(1))))
-
+            try:
+                self._parse_errors(line)
+            except ParsingDone:
+                pass
         return super(Mv, self).on_new_line(line, is_full_line)
+
+    _reg_fail = re.compile(
+        r'(mv: cannot (re)?move .*?: Permission denied'
+        r'|mv: cannot stat .*?: No such file or directory'
+        r'|mv: cannot create regular file .*?: Permission denied'
+        r'|mv: .*? are the same file)')
+
+    def _parse_errors(self, line):
+        if self._regex_helper.search(Mv._reg_fail, line):
+            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group(1))))
+            raise ParsingDone
 
 
 COMMAND_OUTPUT_NO_FLAGS = """
