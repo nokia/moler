@@ -38,9 +38,8 @@ class Env(GenericUnix):
     def _parse_name_line(self, line):
         if self._regex_helper.search_compiled(Env._re_name_line, line):
             name = self._regex_helper.group("title")
-            if "ENV" not in self.current_ret:
-                self.current_ret["ENV"] = dict()
-            self.current_ret["ENV"][name] = self._regex_helper.group("content")
+            self.current_ret[name] = dict()
+            self.current_ret[name] = self._regex_helper.group("content")
             raise ParsingDone
 
 
@@ -123,7 +122,6 @@ _=/usr/bin/env
 host:~#"""
 
 COMMAND_RESULT = {
-    'ENV': {
         'ALSA_CONFIG_PATH': '/etc/alsa-pulse.conf',
         'AUDIODRIVER': 'pulseaudio',
         'BASH_FUNC_mc%%': '() {  . /usr/share/mc/mc-wrapper.sh',
@@ -198,7 +196,6 @@ COMMAND_RESULT = {
         'http_proxy': 'http://87.254.212.120:8080',
         'https_proxy': 'http://87.254.212.120:8080',
         'no_proxy': 'localhost, 127.0.0.1, 192.168.0.0/16, 10.83.0.0/16, 10.254.0.0/16, 10.0.0.0/16'
-    }
 }
 
 COMMAND_KWARGS = {}
