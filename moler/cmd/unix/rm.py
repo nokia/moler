@@ -45,7 +45,6 @@ user@server:~> rm test.txt
 user@server:~>"""
 
 COMMAND_RESULT_NO_OPTIONS = {
-
 }
 
 COMMAND_KWARGS_NO_OPTIONS = {
@@ -57,7 +56,6 @@ user@server:~> rm -R test.txt
 user@server:~>"""
 
 COMMAND_RESULT_WITH_OPTIONS = {
-
 }
 
 COMMAND_KWARGS_WITH_OPTIONS = {
