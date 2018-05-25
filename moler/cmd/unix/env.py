@@ -38,7 +38,6 @@ class Env(GenericUnix):
     def _parse_name_line(self, line):
         if self._regex_helper.search_compiled(Env._re_name_line, line):
             name = self._regex_helper.group("title")
-            self.current_ret[name] = []
             self.current_ret[name] = self._regex_helper.group("content")
             raise ParsingDone
 
