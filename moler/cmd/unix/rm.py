@@ -21,7 +21,7 @@ class Rm(GenericUnix):
 
     def build_command_string(self):
         if self.options:
-            cmd = "{} {} {}".format('rm', self.file, self.options)
+            cmd = "{} {} {}".format('rm', self.options, self.file)
         else:
             cmd = "{} {}".format('rm', self.file)
         return cmd
@@ -40,14 +40,27 @@ class Rm(GenericUnix):
 # options is Optional.Options for Unix cd command
 # -----------------------------------------------------------------------------
 
-COMMAND_OUTPUT = """
+COMMAND_OUTPUT_NO_OPTIONS = """
 user@server:~> rm test.txt
 user@server:~>"""
 
-COMMAND_RESULT = {
+COMMAND_RESULT_NO_OPTIONS = {
 
 }
 
-COMMAND_KWARGS = {
+COMMAND_KWARGS_NO_OPTIONS = {
     "file": "test.txt",
+}
+
+COMMAND_OUTPUT_WITH_OPTIONS = """
+user@server:~> rm -R test.txt
+user@server:~>"""
+
+COMMAND_RESULT_WITH_OPTIONS = {
+
+}
+
+COMMAND_KWARGS_WITH_OPTIONS = {
+    "file": "test.txt",
+    "options": "-R"
 }
