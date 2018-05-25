@@ -8,7 +8,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'bartosz.odziomek@nokia.com'
 
 from moler.cmd.unix.genericunix import GenericUnix
-from moler.exceptions import CommandFailure
+from moler.exceptions import ParsingDone
 
 
 class Rm(GenericUnix):
@@ -27,11 +27,18 @@ class Rm(GenericUnix):
         return cmd
 
     def on_new_line(self, line, is_full_line):
-        if self._cmd_output_started and self._regex_helper.search(r'(rm\: cannot remove)', line):
-            self.set_exception(CommandFailure("ERROR: {}".format(self._regex_helper.group(1))))
+        if not is_full_line:
+            return super(Rm, self).on_new_line(line, is_full_line)
 
         return super(Rm, self).on_new_line(line, is_full_line)
 
+
+# -----------------------------------------------------------------------------
+# Following documentation is required for library CI.
+# It is used to perform command self-test.
+# Parameters:
+# options is Optional.Options for Unix cd command
+# -----------------------------------------------------------------------------
 
 COMMAND_OUTPUT = """
 user@server:~> rm test.txt
