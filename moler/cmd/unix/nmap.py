@@ -35,8 +35,10 @@ class Nmap(GenericUnix):
         if is_full_line:
             try:
                 self._parse_ports_line(line)
-                self._parse_scan_report(line)
                 self._parse_raw_packets(line)
+                self._parse_scan_report(line)
+                self._parse_syn_stealth_scan(line)
+                self._parse_skipping_host(line)
             except ParsingDone:
                 pass
         return super(Nmap, self).on_new_line(line, is_full_line)
