@@ -57,18 +57,18 @@ class Nmap(GenericUnix):
             del(self.current_ret["PORTS"][ports]["LINES"])
             raise ParsingDone
 
-    #Raw packets sent: 65544 (2.884MB) | Rcvd: 65528 (2.621MB)
+#    Raw packets sent: 65544 (2.884MB) | Rcvd: 65528 (2.621MB)
     _re_raw_packets = re.compile(r"Raw packets sent: (?P<SENT_NO>\d+)\s+\((?P<SENT_SIZE>\S+)\)\s+"
                                  r"\|\s+Rcvd:\s+(?P<RCVD_NO>\d+)\s+\((?P<RCVD_SIZE>\S+)\)")
 
-    def _parse_raw_packets(self,line):
+    def _parse_raw_packets(self, line):
         if self._regex_helper.search_compiled(Nmap._re_raw_packets, line):
             if "RAW_PACKETS" not in self.current_ret:
                 self.current_ret["RAW_PACKETS"] = dict()
             self.current_ret["RAW_PACKETS"] = self._regex_helper.groupdict()
             raise ParsingDone
 
-    # Nmap scan report for 192.168.255.4 [host down, received no-response]
+#    Nmap scan report for 192.168.255.4 [host down, received no-response]
     _re_scan_report = re.compile(r"(?P<LINE>Nmap scan report for (?P<ADDRESS>\S+)\s+\[host\s+"
                                  r"(?P<HOST>\S+),\s+received\s+(?P<RECEIVED>\S+)\])")
 
@@ -79,7 +79,7 @@ class Nmap(GenericUnix):
             self.current_ret["SCAN_REPORT"] = self._regex_helper.groupdict()
             raise ParsingDone
 
-    # SYN Stealth Scan Timing: About 52.55% done; ETC: 14:18 (0:10:24 remaining)
+#    SYN Stealth Scan Timing: About 52.55% done; ETC: 14:18 (0:10:24 remaining)
     _re_syn_stealth_scan = re.compile(r"SYN Stealth Scan Timing: About (?P<DONE>[\d\.]+)% done; "
                                       r"ETC: (?P<ETC>[\d:]+) \((?P<REMAINING>[\d:]+) remaining\)")
 
