@@ -107,6 +107,27 @@ def test_can_select_connection_loaded_from_config_file(moler_config):
     assert conn.port == 2345
 
 
+def test_can_select_connection_loaded_from_env_variable(moler_config, monkeypatch):
+    from moler.connection import get_connection
+
+    conn_config = os.path.join(os.path.dirname(__file__), "resources", "www_servers_connections.yml")
+    monkeypatch.setitem(os.environ, 'MOLER_CONFIG', conn_config)
+    moler_config.load_config(from_env_var="MOLER_CONFIG", config_type='yaml')
+
+    conn = get_connection(name='www_server_1')
+    assert conn.__module__ == 'moler.io.raw.tcp'
+    assert conn.__class__.__name__ == 'ThreadedTcp'
+    assert conn.host == 'localhost'
+    assert conn.port == 2345
+
+
+def test_load_config_checks_env_variable_existence(moler_config):
+    with pytest.raises(KeyError) as err:
+        moler_config.load_config(from_env_var="MOLER_CONFIG", config_type='yaml')
+
+    assert "Environment variable 'MOLER_CONFIG' is not set" in str(err.value)
+
+
 # --------------------------- resources ---------------------------
 
 @pytest.yield_fixture
