@@ -27,9 +27,9 @@ class Zip(GenericUnix):
 
     def build_command_string(self):
         if self.options:
-          cmd = "{} {} {} {}".format("zip", self.options, self.zip_file, self.file)
+            cmd = "{} {} {} {}".format("zip", self.options, self.zip_file, self.file)
         else:
-          cmd = "{} {} {}".format("zip", self.zip_file, self.file)
+            cmd = "{} {} {}".format("zip", self.zip_file, self.file)
         return cmd
 
     def on_new_line(self, line, is_full_line):
