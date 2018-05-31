@@ -81,7 +81,7 @@ class Nmap(GenericUnix):
             self.current_ret["SCAN_REPORT"] = self._regex_helper.groupdict()
             raise ParsingDone
 
-#    SYN Stealth Scan Timing: About 52.55% done; ETC: 14:18 (0:10:24 remaining)
+#    SYN Stealth Scan Timing: About 78.01% done; ETC: 23:30 (0:00:52 remaining)
     _re_syn_stealth_scan = re.compile(r"SYN Stealth Scan Timing: About (?P<DONE>[\d\.]+)% done; "
                                       r"ETC: (?P<ETC>[\d:]+) \((?P<REMAINING>[\d:]+) remaining\)")
 
@@ -92,13 +92,16 @@ class Nmap(GenericUnix):
             self.current_ret["SYN_STEALTH_SCAN"] = self._regex_helper.groupdict()
             raise ParsingDone
 
+#    Skipping host 10.9.134.1 due to host timeout
     _re_skipping_host = re.compile(r"Skipping host (?P<HOST>\S+) due to host timeout")
 
     def _parse_skipping_host(self, line):
         if self._regex_helper.search_compiled(Nmap._re_skipping_host, line):
             if "SKIPPING_HOST" not in self.current_ret:
                 self.current_ret["SKIPPING_HOST"] = dict()
-            self.current_ret["SKIPPING_HOST"] = self._regex_helper.groupdict()
+            if "HOST" not in self.current_ret["SKIPPING_HOST"]:
+                self.current_ret["SKIPPING_HOST"]["HOST"] = list()
+            self.current_ret["SKIPPING_HOST"]["HOST"]. append(self._regex_helper.group("HOST"))
             raise ParsingDone
 
 
@@ -321,5 +324,177 @@ COMMAND_RESULT_host_down = {
         'HOST': 'down',
         'LINE': 'Nmap scan report for 192.168.255.4 [host down, received no-response]',
         'RECEIVED': 'no-response'
+    }
+}
+
+COMMAND_OUTPUT = """root@cp19-nj:/home/ute#  nmap -d1 -p- --host-timeout 100 10.9.134.0/28 -PN
+
+Starting Nmap 6.00 ( http://nmap.org ) at 2018-05-31 03:23 CST
+--------------- Timing report ---------------
+  hostgroups: min 1, max 100000
+  rtt-timeouts: init 1000, min 100, max 10000
+  max-scan-delay: TCP 1000, UDP 1000, SCTP 1000
+  parallelism: min 0, max 0
+  max-retries: 10, host-timeout: 100000
+  min-rate: 0, max-rate: 0
+---------------------------------------------
+mass_rdns: Using DNS server 135.251.124.100
+mass_rdns: Using DNS server 135.251.38.218
+Initiating Parallel DNS resolution of 16 hosts. at 03:23
+mass_rdns: 0.01s 0/16 [#: 2, OK: 0, NX: 0, DR: 0, SF: 0, TR: 16]
+Completed Parallel DNS resolution of 16 hosts. at 03:23, 9.08s elapsed
+DNS resolution of 16 IPs took 9.08s. Mode: Async [#: 2, OK: 0, NX: 16, DR: 0, SF: 0, TR: 36, CN: 0]
+Initiating SYN Stealth Scan at 03:23
+Scanning 4 hosts [65535 ports/host]
+Packet capture filter (device eth0): dst host 10.9.132.16 and (icmp or icmp6 or ((tcp or udp or sctp) and (src host 10.9.134.0 or src host 10.9.134.1 or src host 10.9.134.2 or src host 10.9.134.3)))
+Discovered open port 23/tcp on 10.9.134.1
+Discovered open port 80/tcp on 10.9.134.1
+Discovered open port 22/tcp on 10.9.134.1
+Discovered open port 443/tcp on 10.9.134.1
+Discovered open port 21/tcp on 10.9.134.1
+Increased max_successful_tryno for 10.9.134.1 to 1 (packet drop)
+Increased max_successful_tryno for 10.9.134.1 to 2 (packet drop)
+Increased max_successful_tryno for 10.9.134.1 to 3 (packet drop)
+Increased max_successful_tryno for 10.9.134.1 to 4 (packet drop)
+Increasing send delay for 10.9.134.1 from 0 to 5 due to max_successful_tryno increase to 4
+Increased max_successful_tryno for 10.9.134.1 to 5 (packet drop)
+Increasing send delay for 10.9.134.1 from 5 to 10 due to max_successful_tryno increase to 5
+Increased max_successful_tryno for 10.9.134.1 to 6 (packet drop)
+Increasing send delay for 10.9.134.1 from 10 to 20 due to max_successful_tryno increase to 6
+SYN Stealth Scan Timing: About 0.49% done
+SYN Stealth Scan Timing: About 1.98% done; ETC: 04:15 (0:50:16 remaining)
+Increased max_successful_tryno for 10.9.134.1 to 7 (packet drop)
+Increasing send delay for 10.9.134.1 from 20 to 40 due to max_successful_tryno increase to 7
+Increased max_successful_tryno for 10.9.134.1 to 8 (packet drop)
+Increasing send delay for 10.9.134.1 from 40 to 80 due to max_successful_tryno increase to 8
+SYN Stealth Scan Timing: About 3.32% done; ETC: 04:09 (0:44:09 remaining)
+10.9.134.0 timed out during SYN Stealth Scan (3 hosts left)
+10.9.134.1 timed out during SYN Stealth Scan (2 hosts left)
+10.9.134.2 timed out during SYN Stealth Scan (1 host left)
+10.9.134.3 timed out during SYN Stealth Scan (0 hosts left)
+Completed SYN Stealth Scan at 03:25, 100.05s elapsed (4 hosts timed out)
+Overall sending rates: 230.05 packets / s, 10122.35 bytes / s.
+Nmap scan report for 10.9.134.0
+Host is up, received user-set.
+Skipping host 10.9.134.0 due to host timeout
+Nmap scan report for 10.9.134.1
+Host is up, received user-set (0.0035s latency).
+Skipping host 10.9.134.1 due to host timeout
+Nmap scan report for 10.9.134.2
+Host is up, received user-set.
+Skipping host 10.9.134.2 due to host timeout
+Nmap scan report for 10.9.134.3
+Host is up, received user-set.
+Skipping host 10.9.134.3 due to host timeout
+Initiating SYN Stealth Scan at 03:25
+Scanning 12 hosts [65535 ports/host]
+Packet capture filter (device eth0): dst host 10.9.132.16 and (icmp or icmp6 or ((tcp or udp or sctp) and (src host 10.9.134.4 or src host 10.9.134.5 or src host 10.9.134.6 or src host 10.9.134.7 or src host 10.9.134.8 or src host 10.9.134.9 or src host 10.9.134.10 or src host 10.9.134.11 or src host 10.9.134.12 or src host 10.9.134.13 or src host 10.9.134.14 or src host 10.9.134.15)))
+Discovered open port 23/tcp on 10.9.134.4
+Discovered open port 445/tcp on 10.9.134.12
+Discovered open port 445/tcp on 10.9.134.13
+Discovered open port 3389/tcp on 10.9.134.12
+Discovered open port 3389/tcp on 10.9.134.13
+Discovered open port 135/tcp on 10.9.134.12
+Discovered open port 443/tcp on 10.9.134.12
+Discovered open port 135/tcp on 10.9.134.13
+Discovered open port 139/tcp on 10.9.134.12
+Discovered open port 443/tcp on 10.9.134.13
+Discovered open port 139/tcp on 10.9.134.13
+Increased max_successful_tryno for 10.9.134.12 to 1 (packet drop)
+Discovered open port 22/tcp on 10.9.134.4
+Increased max_successful_tryno for 10.9.134.13 to 1 (packet drop)
+Discovered open port 443/tcp on 10.9.134.4
+Discovered open port 22/tcp on 10.9.134.15
+Discovered open port 21/tcp on 10.9.134.4
+SYN Stealth Scan Timing: About 1.04% done; ETC: 04:15 (0:49:20 remaining)
+SYN Stealth Scan Timing: About 4.44% done; ETC: 03:48 (0:21:52 remaining)
+SYN Stealth Scan Timing: About 11.04% done; ETC: 03:39 (0:12:13 remaining)
+10.9.134.4 timed out during SYN Stealth Scan (11 hosts left)
+10.9.134.5 timed out during SYN Stealth Scan (10 hosts left)
+10.9.134.6 timed out during SYN Stealth Scan (9 hosts left)
+10.9.134.7 timed out during SYN Stealth Scan (8 hosts left)
+10.9.134.8 timed out during SYN Stealth Scan (7 hosts left)
+10.9.134.9 timed out during SYN Stealth Scan (6 hosts left)
+10.9.134.10 timed out during SYN Stealth Scan (5 hosts left)
+10.9.134.11 timed out during SYN Stealth Scan (4 hosts left)
+10.9.134.12 timed out during SYN Stealth Scan (3 hosts left)
+10.9.134.13 timed out during SYN Stealth Scan (2 hosts left)
+10.9.134.14 timed out during SYN Stealth Scan (1 host left)
+10.9.134.15 timed out during SYN Stealth Scan (0 hosts left)
+Completed SYN Stealth Scan at 03:27, 100.00s elapsed (12 hosts timed out)
+Overall sending rates: 1876.97 packets / s, 82586.62 bytes / s.
+Nmap scan report for 10.9.134.4
+Host is up, received user-set (0.00045s latency).
+Skipping host 10.9.134.4 due to host timeout
+Nmap scan report for 10.9.134.5
+Host is up, received user-set.
+Skipping host 10.9.134.5 due to host timeout
+Nmap scan report for 10.9.134.6
+Host is up, received user-set.
+Skipping host 10.9.134.6 due to host timeout
+Nmap scan report for 10.9.134.7
+Host is up, received user-set.
+Skipping host 10.9.134.7 due to host timeout
+Nmap scan report for 10.9.134.8
+Host is up, received user-set.
+Skipping host 10.9.134.8 due to host timeout
+Nmap scan report for 10.9.134.9
+Host is up, received user-set.
+Skipping host 10.9.134.9 due to host timeout
+Nmap scan report for 10.9.134.10
+Host is up, received user-set.
+Skipping host 10.9.134.10 due to host timeout
+Nmap scan report for 10.9.134.11
+Host is up, received user-set.
+Skipping host 10.9.134.11 due to host timeout
+Nmap scan report for 10.9.134.12
+Host is up, received user-set (0.00023s latency).
+Skipping host 10.9.134.12 due to host timeout
+Nmap scan report for 10.9.134.13
+Host is up, received user-set (0.00030s latency).
+Skipping host 10.9.134.13 due to host timeout
+Nmap scan report for 10.9.134.14
+Host is up, received user-set.
+Skipping host 10.9.134.14 due to host timeout
+Nmap scan report for 10.9.134.15
+Host is up, received user-set (0.00030s latency).
+Skipping host 10.9.134.15 due to host timeout
+Read from /usr/bin/../share/nmap: nmap-payloads nmap-services.
+Nmap done: 16 IP addresses (16 hosts up) scanned in 209.25 seconds
+           Raw packets sent: 210722 (9.272MB) | Rcvd: 18224 (730.812KB)
+root@cp19-nj:/home/ute# """
+
+COMMAND_KWARGS = {'option': '-d1 -p- --host-timeout 100',
+                            'ip': '10.9.134.0/28'}
+
+COMMAND_RESULT = {
+    'RAW_PACKETS': {
+        'RCVD_NO': '18224',
+        'RCVD_SIZE': '730.812KB',
+        'SENT_NO': '210722',
+        'SENT_SIZE': '9.272MB'
+    },
+    'SKIPPING_HOST': {
+        'HOST': [
+            '10.9.134.0',
+            '10.9.134.1',
+            '10.9.134.2',
+            '10.9.134.3',
+            '10.9.134.4',
+            '10.9.134.5',
+            '10.9.134.6',
+            '10.9.134.7',
+            '10.9.134.8',
+            '10.9.134.9',
+            '10.9.134.10',
+            '10.9.134.11',
+            '10.9.134.12',
+            '10.9.134.13',
+            '10.9.134.14',
+            '10.9.134.15']},
+    'SYN_STEALTH_SCAN': {
+        'DONE': '11.04',
+        'ETC': '03:39',
+        'REMAINING': '0:12:13'
     }
 }
