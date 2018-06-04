@@ -15,14 +15,6 @@ ute@debdev:~$ {}
 RESULT = {}
 
 
-def test_calling_mv_returns_result_parsed_from_command_output(buffer_connection):
-    from moler.cmd.unix.mv import Mv
-    buffer_connection.remote_inject_response([DATA.format('test', 'moved_test', '')])
-    mv_cmd = Mv(connection=buffer_connection.moler_connection, src='test', dst='moved_test')
-    result = mv_cmd()
-    assert result == RESULT
-
-
 @pytest.mark.parametrize("source,destination,error", [
     ("1.txt", "1.txt", "mv: '1.txt' and '1.txt' are the same file"),
     ("/home/ute/1.txt", "/opt/", "mv: cannot create regular file '/opt/1.txt': Permission denied"),
@@ -40,7 +32,7 @@ def test_calling_mv_raises_exception_command_failure(source, destination, error,
         assert result == RESULT
 
 
-def test_cd_returns_proper_command_string(buffer_connection):
+def test_mv_returns_proper_command_string(buffer_connection):
     from moler.cmd.unix.mv import Mv
     mv_cmd = Mv(connection=buffer_connection.moler_connection, src='/home/ute/robotlte', dst='/home/ute/trunk')
     assert "mv /home/ute/robotlte /home/ute/trunk" == mv_cmd.command_string
