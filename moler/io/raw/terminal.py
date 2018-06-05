@@ -55,8 +55,7 @@ class Terminal(Thread, ObservableConnection):
 
     def _read_from_terminal(self):
         try:
-            data = self._terminal.read(self._read_buffer_size)
-            self.data_received(data)
+            self.data_received(self._terminal.read(self._read_buffer_size))
         except EOFError:
             return False
 

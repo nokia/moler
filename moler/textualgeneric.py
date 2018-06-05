@@ -7,17 +7,16 @@ __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
-import re
 import abc
+import logging
+import re
 import sys
 
 from moler.cmd import RegexHelper
 from moler.command import Command
-import logging
 
 
 class TextualGeneric(Command):
-
     _re_default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')  # When user provides no prompt
     _default_new_line_chars = ("\n", "\r")  # New line chars on device, not system with script!
 
@@ -84,14 +83,18 @@ class TextualGeneric(Command):
         """
         lines = data.splitlines(True)
         for line in lines:
+
             if self._last_not_full_line is not None:
                 line = self._last_not_full_line + line
+                self._last_not_full_line = None
+
             is_full_line = self.is_new_line(line)
             if not is_full_line:
                 self._last_not_full_line = line
+            else:
+                line = self._strip_new_lines_chars(line)
+
             if self._cmd_output_started:
-                if is_full_line:
-                    line = self._strip_new_lines_chars(line)
                 self.on_new_line(line, is_full_line)
             else:
                 self._detect_start_of_cmd_output(line)
@@ -116,7 +119,8 @@ class TextualGeneric(Command):
                 if not self.done():
                     self.set_result(self.current_ret)
             else:
-                self.logger.debug("Found candidate for final prompt but current ret is None or empty, required not None nor empty.")
+                self.logger.debug(
+                    "Found candidate for final prompt but current ret is None or empty, required not None nor empty.")
 
     def is_end_of_cmd_output(self, line):
         if self._regex_helper.search_compiled(self._re_prompt, line):
@@ -137,7 +141,7 @@ class TextualGeneric(Command):
         :param line: line to check if echo of command is sent by device
         :return: Nothing
         """
-        if self._regex_helper.search(self._cmd_escaped, line) and self.is_new_line(line):
+        if self._regex_helper.search(self._cmd_escaped, line):
             self._cmd_output_started = True
 
     def break_cmd(self):
