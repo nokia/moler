@@ -10,6 +10,7 @@ __email__ = 'marcin.usielski@nokia.com'
 import re
 from moler.cmd.unix.genericunix import GenericUnix
 from moler.exceptions import CommandFailure
+from moler.textualgeneric import TextualGeneric
 
 
 class Ssh(GenericUnix):
@@ -22,13 +23,14 @@ class Ssh(GenericUnix):
     _re_failed_strings = re.compile("Permission denied|No route to host|ssh: Could not", re.IGNORECASE)
     _re_host_key_verification_failed = re.compile("Host key verification failed", re.IGNORECASE)
 
-    def __init__(self, connection, login, password, host, expected_prompt='>', port=0, known_hosts_on_failure='keygen',
-                 set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono=True, prompt=None,
-                 new_line_chars=None):
+    def __init__(self, connection, login, password, host, prompt=None, expected_prompt='>', port=0,
+                 known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
+                 term_mono=True, new_line_chars=None):
+
         super(Ssh, self).__init__(connection, prompt, new_line_chars)
 
         # Parameters defined by calling the command
-        self.expected_prompt = expected_prompt
+        self._re_expected_prompt = TextualGeneric._calculate_prompt(expected_prompt)  # Expected prompt on device
         self.login = login
         self.password = password
         self.host = host
@@ -155,7 +157,7 @@ class Ssh(GenericUnix):
         return self._regex_helper.search_compiled(Ssh._re_password, line)
 
     def is_target_prompt(self, line):
-        return self._regex_helper.search_compiled(self._re_prompt, line)
+        return self._regex_helper.search_compiled(self._re_expected_prompt, line)
 
 
 COMMAND_OUTPUT = """
@@ -172,7 +174,7 @@ host:~ #"""
 
 COMMAND_KWARGS = {
     "login": "user", "password": "english",
-    "host": "host.domain.net", "prompt": "host.*#"
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
 }
 
 COMMAND_RESULT = {}
