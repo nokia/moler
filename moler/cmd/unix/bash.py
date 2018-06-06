@@ -24,7 +24,6 @@ class Bash(GenericUnix):
         return self.bash
 
 
-
 COMMAND_OUTPUT = """
 user@server:~/tmp$ TERM=xterm-mono bash
 user@server:~/tmp$"""
