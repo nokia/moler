@@ -83,20 +83,18 @@ class TextualGeneric(Command):
         """
         lines = data.splitlines(True)
         for line in lines:
-
             if self._last_not_full_line is not None:
                 line = self._last_not_full_line + line
                 self._last_not_full_line = None
-
             is_full_line = self.is_new_line(line)
-            if not is_full_line:
-                self._last_not_full_line = line
-            else:
+            if is_full_line:
                 line = self._strip_new_lines_chars(line)
+            else:
+                self._last_not_full_line = line
 
             if self._cmd_output_started:
                 self.on_new_line(line, is_full_line)
-            else:
+            elif is_full_line:
                 self._detect_start_of_cmd_output(line)
 
     @abc.abstractmethod
