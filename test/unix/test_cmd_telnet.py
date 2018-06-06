@@ -19,7 +19,7 @@ def test_calling_telnet_returns_result_parsed_from_command_output(buffer_connect
     buffer_connection.name = "fzm-tdd-1"  # just to have log named as we want
     buffer_connection.remote_inject_response([command_output])
     telnet_cmd = Telnet(connection=buffer_connection.moler_connection, login="user", password="Nokia", port=1500,
-                        host="host.domain.net", prompt="host:.*#")
+                        host="host.domain.net", expected_prompt="host:.*#")
     result = telnet_cmd()
     assert result == expected_result
 
@@ -28,7 +28,7 @@ def test_calling_telnet_timeout(buffer_connection):
     command_output, expected_result = command_output_and_expected_result_timeout()
     buffer_connection.remote_inject_response([command_output])
     telnet_cmd = Telnet(connection=buffer_connection.moler_connection, login="user", password="Nokia", port=1500,
-                        host="host.domain.net", prompt="host:.*#")
+                        host="host.domain.net", expected_prompt="host:.*#")
     from moler.exceptions import CommandTimeout
     with raises(CommandTimeout) as exception:
         telnet_cmd(timeout=0.5)
@@ -37,7 +37,7 @@ def test_calling_telnet_timeout(buffer_connection):
 
 def test_telnet_returns_proper_command_string(buffer_connection):
     telnet_cmd = Telnet(buffer_connection, login="user", password="english", port=1500,
-                        host="host.domain.net", prompt="host:.*#")
+                        host="host.domain.net", expected_prompt="host:.*#")
     assert "TERM=xterm-mono telnet host.domain.net 1500" == telnet_cmd.command_string
 
 
