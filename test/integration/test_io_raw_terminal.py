@@ -10,7 +10,10 @@ __email__ = 'marcin.usielski@nokia.com'
 from moler.io.raw.terminal import Terminal
 from moler.cmd.unix.whoami import Whoami
 from moler.cmd.unix.ls import Ls
+from moler.cmd.unix.env import Env
+from moler.exceptions import CommandTimeout
 import getpass
+import pytest
 
 
 def test_termial_cmd_whoami():
@@ -22,6 +25,22 @@ def test_termial_cmd_whoami():
     assert 'USER' in ret
     assert ret['USER'] is not None
     assert ret['USER'] == getpass.getuser()
+
+
+def test_terminal_timeout_next_command():
+    terminal = Terminal()
+    terminal.setDaemon(True)
+    terminal.start()
+    max_nr = 5
+    for i in range(1, max_nr):
+        cmd = Env(connection=terminal)
+        cmd.command_string = "ping 127.0.0.1"
+        with pytest.raises(CommandTimeout):
+            cmd(timeout=0.3)
+        cmd = Whoami(connection=terminal)
+        ret = cmd()
+        user = ret['USER']
+        assert getpass.getuser() == user
 
 
 def test_terminal_whoami_ls():
