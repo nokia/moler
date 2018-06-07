@@ -22,6 +22,7 @@ def test_termial_cmd_whoami():
     terminal.start()
     cmd = Whoami(connection=terminal)
     ret = cmd()
+    terminal.close()
     assert 'USER' in ret
     assert ret['USER'] is not None
     assert ret['USER'] == getpass.getuser()
@@ -41,6 +42,7 @@ def test_terminal_timeout_next_command():
         ret = cmd()
         user = ret['USER']
         assert getpass.getuser() == user
+    terminal.close()
 
 
 def test_terminal_whoami_ls():
@@ -54,6 +56,7 @@ def test_terminal_whoami_ls():
     cmd()
     cmd = Whoami(connection=terminal)
     ret = cmd()
+    terminal.close()
     user2 = ret['USER']
     assert user1 == user2
     assert user2 == getpass.getuser()
