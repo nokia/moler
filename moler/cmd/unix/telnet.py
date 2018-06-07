@@ -20,8 +20,8 @@ class Telnet(GenericUnix):
     _re_failed_strings = re.compile("Permission denied|closed by foreign host|telnet:.*Name or service not known", re.IGNORECASE)
     _re_has_just_connected = re.compile(r"/has just connected|\{bash_history,ssh\}|Escape character is", re.IGNORECASE)
 
-    def __init__(self, connection, login, password, host, port=0, prompt=None, expected_prompt='>',
-                 set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono=True,
+    def __init__(self, connection, host, login=None, password=None, port=0, prompt=None, expected_prompt='>',
+                 set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono="TERM=xterm-mono", prefix=None,
                  new_line_chars=None):
         super(Telnet, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
@@ -34,6 +34,7 @@ class Telnet(GenericUnix):
         self.set_timeout = set_timeout
         self.set_prompt = set_prompt
         self.term_mono = term_mono
+        self.prefix = prefix
 
         # Internal variables
         self._sent_timeout = False
@@ -44,8 +45,11 @@ class Telnet(GenericUnix):
     def build_command_string(self):
         cmd = ""
         if self.term_mono:
-            cmd = "TERM=xterm-mono "
-        cmd = cmd + "telnet " + self.host
+            cmd = self.term_mono + " "
+        cmd = cmd + "telnet "
+        if self.prefix:
+            cmd = cmd + self.prefix + " "
+        cmd = cmd + self.host
         if self.port:
             cmd = cmd + " " + str(self.port)
         return cmd
@@ -67,13 +71,13 @@ class Telnet(GenericUnix):
                     self.set_result({})
 
     def send_login_if_requested(self, line):
-        if (not self._sent_login) and self.is_login_requested(line):
+        if (not self._sent_login) and self.is_login_requested(line) and self.login:
             self.connection.send(self.login)
             self._sent_login = True
             self._sent_password = False
 
     def send_password_if_requested(self, line):
-        if (not self._sent_password) and self.is_password_requested(line):
+        if (not self._sent_password) and self.is_password_requested(line) and self.password:
             self.connection.send(self.password)
             self._sent_login = False
             self._sent_password = True

@@ -25,7 +25,7 @@ class Ssh(GenericUnix):
 
     def __init__(self, connection, login, password, host, prompt=None, expected_prompt='>', port=0,
                  known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
-                 term_mono=True, new_line_chars=None):
+                 term_mono="TERM=xterm-mono", new_line_chars=None):
 
         super(Ssh, self).__init__(connection, prompt, new_line_chars)
 
@@ -52,7 +52,7 @@ class Ssh(GenericUnix):
     def build_command_string(self):
         cmd = ""
         if self.term_mono:
-            cmd = "TERM=xterm-mono "
+            cmd = self.term_mono + " "
         cmd += "ssh"
         if self.port:
             cmd += " -p " + str(self.port)
