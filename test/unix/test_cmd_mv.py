@@ -8,12 +8,6 @@ __author__ = 'Maciej Malczyk'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'maciej.malczyk@nokia.com'
 
-DATA = """
-ute@debdev:~$ mv {} {}
-ute@debdev:~$ {}
-    """
-RESULT = {}
-
 
 @pytest.mark.parametrize("source,destination,error", [
     ("1.txt", "1.txt", "mv: '1.txt' and '1.txt' are the same file"),
@@ -22,17 +16,31 @@ RESULT = {}
     ("/opt/btslog/assistant", "/home/ute/", "mv: cannot remove '/opt/btslog/assistant': Permission denied"),
     ("/opt/some_dir", "/home/ute/", "mv: cannot stat '/opt/some_dir': No such file or directory"),
 ])
-def test_calling_mv_raises_exception_command_failure(source, destination, error, buffer_connection):
+def test_calling_mv_raises_exception_command_failure(source, destination, error, buffer_connection, command_output_and_expected_result):
     from moler.cmd.unix.mv import Mv
     from moler.exceptions import CommandFailure
-    buffer_connection.remote_inject_response([DATA.format(source, destination, error)])
+    output_data, result = command_output_and_expected_result(source, destination, error)
+    buffer_connection.remote_inject_response([output_data])
     mv_cmd = Mv(connection=buffer_connection.moler_connection, src=source, dst=destination)
     with pytest.raises(CommandFailure):
         result = mv_cmd()
-        assert result == RESULT
+        assert result == result
 
 
 def test_mv_returns_proper_command_string(buffer_connection):
     from moler.cmd.unix.mv import Mv
     mv_cmd = Mv(connection=buffer_connection.moler_connection, src='/home/ute/robotlte', dst='/home/ute/trunk')
     assert "mv /home/ute/robotlte /home/ute/trunk" == mv_cmd.command_string
+
+
+@pytest.fixture
+def command_output_and_expected_result():
+    def output_data(src, dst, err):
+        data = """
+        ute@debdev:~$ mv {} {}
+        ute@debdev:~$ {}
+            """
+        result = {}
+        return data.format(src, dst, err), result
+
+    return output_data
