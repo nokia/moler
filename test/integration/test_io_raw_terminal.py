@@ -17,21 +17,17 @@ import pytest
 
 
 def test_termial_cmd_whoami():
-    terminal = Terminal()
-    terminal.setDaemon(True)
-    terminal.start()
+    terminal = terminal_connection()
     cmd = Whoami(connection=terminal)
     ret = cmd()
     terminal.close()
     assert 'USER' in ret
     assert ret['USER'] is not None
-    assert ret['USER'] == getpass.getuser()
+    assert getpass.getuser() == ret['USER']
 
 
 def test_terminal_timeout_next_command():
-    terminal = Terminal()
-    terminal.setDaemon(True)
-    terminal.start()
+    terminal = terminal_connection()
     max_nr = 5
     for i in range(1, max_nr):
         cmd = Env(connection=terminal)
@@ -46,9 +42,7 @@ def test_terminal_timeout_next_command():
 
 
 def test_terminal_whoami_ls():
-    terminal = Terminal()
-    terminal.setDaemon(True)
-    terminal.start()
+    terminal = terminal_connection()
     cmd = Whoami(connection=terminal)
     ret = cmd()
     user1 = ret['USER']
@@ -59,4 +53,12 @@ def test_terminal_whoami_ls():
     terminal.close()
     user2 = ret['USER']
     assert user1 == user2
-    assert user2 == getpass.getuser()
+    assert getpass.getuser() == user2
+
+
+@pytest.fixture
+def terminal_connection():
+    terminal = Terminal()
+    terminal.setDaemon(True)
+    terminal.start()
+    return terminal
