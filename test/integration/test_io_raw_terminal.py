@@ -16,7 +16,7 @@ import getpass
 import pytest
 
 
-def test_termial_cmd_whoami():
+def test_terminal_cmd_whoami():
     terminal = terminal_connection()
     cmd = Whoami(connection=terminal)
     ret = cmd()
