@@ -9,44 +9,41 @@ from threading import Event
 from ptyprocess import PtyProcessUnicode
 
 from moler.cmd.unix.bash import Bash
-from moler.connection import ObservableConnection
+from moler.io.io_connection import IOConnection
 from moler.io.raw import TillDoneThread
 
 
-class Terminal(ObservableConnection):
+class Terminal(IOConnection):
     """
     Works on Unix (like Linux) systems only!
     """
 
-    def __init__(self, cmd='/bin/bash', bash_cmd='TERM=xterm-mono bash', select_timeout=0.002, read_buffer_size=4096,
+    def __init__(self, moler_connection, cmd='/bin/bash', bash_cmd='TERM=xterm-mono bash', select_timeout=0.002,
+                 read_buffer_size=4096,
                  first_prompt=None):
+        super(Terminal, self).__init__(moler_connection=moler_connection)
         self._cmd = [cmd]
+        self.bash_cmd = bash_cmd
         self._select_timeout = select_timeout
         self._read_buffer_size = read_buffer_size
         self._terminal = None
-        self._exit = False
-        self._terminal = PtyProcessUnicode.spawn(self._cmd)
+        self.pulling_thread = None
+
         if first_prompt:
-            self.prompt = first_prompt
+            self.prompt = first_prompt  # niedeklarowany promp - & po bashu + echo
+
         else:
             self.prompt = re.compile(r'^[^<]*[\$|%|#|>|~|:]\s*')
-        # Thread.__init__(self)
-        ObservableConnection.__init__(self)
-        self.pulling_thread = None
+
+    def open(self, ):
+        self._terminal = PtyProcessUnicode.spawn(self._cmd)
         done = Event()
         self.pulling_thread = TillDoneThread(target=self.pull_data,
                                              done_event=done,
                                              kwargs={'pulling_done': done})
         self.pulling_thread.start()
-        cmd = Bash(connection=self, bash=bash_cmd)
+        cmd = Bash(connection=self.moler_connection, bash=self.bash_cmd)
         cmd.start()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
-        return False  # reraise exceptions if any
 
     def close(self, ):
         if self.pulling_thread:
@@ -60,29 +57,20 @@ class Terminal(ObservableConnection):
             self._terminal.write(newline)
 
     def pull_data(self, pulling_done):
-        was_first_prompt = False
+        shell_operable = False
         read_buffer = ""
+
         while not pulling_done.is_set():
             reads, _, _ = select.select([self._terminal.fd], [], [], self._select_timeout)
             if self._terminal.fd in reads:
-                if was_first_prompt:
-                    if not self._read_from_terminal():
-                        break
-                else:
-                    read_line = self._terminal.read(self._read_buffer_size)
-                    read_buffer = read_buffer + read_line
-                    if re.search(self.prompt, read_buffer):
-                        was_first_prompt = True
-                        read_buffer = None
-
-            if self._exit:
-                self._exit = False
-                break
-
-    def _read_from_terminal(self):
-        try:
-            self.data_received(self._terminal.read(self._read_buffer_size))
-        except EOFError:
-            return False
-
-        return True
+                try:
+                    data = self._terminal.read(self._read_buffer_size)
+                    if shell_operable:
+                        self.data_received(data)
+                    else:
+                        read_buffer = read_buffer + data
+                        if re.search(self.prompt, read_buffer):
+                            shell_operable = True
+                            read_buffer = None
+                except EOFError:
+                    pulling_done.set()
