@@ -2,23 +2,24 @@ __author__ = 'Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
-import select
-import time
-from threading import Thread, Event
-from moler.io.raw import TillDoneThread
 import re
-from moler.cmd.unix.bash import Bash
+import select
+from threading import Event
 
 from ptyprocess import PtyProcessUnicode
 
+from moler.cmd.unix.bash import Bash
 from moler.connection import ObservableConnection
+from moler.io.raw import TillDoneThread
 
 
 class Terminal(ObservableConnection):
     """
     Works on Unix (like Linux) systems only!
     """
-    def __init__(self, cmd='/bin/bash', bash_cmd='TERM=xterm-mono bash', select_timeout=0.002, read_buffer_size=4096, first_prompt=None):
+
+    def __init__(self, cmd='/bin/bash', bash_cmd='TERM=xterm-mono bash', select_timeout=0.002, read_buffer_size=4096,
+                 first_prompt=None):
         self._cmd = [cmd]
         self._select_timeout = select_timeout
         self._read_buffer_size = read_buffer_size
