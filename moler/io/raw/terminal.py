@@ -34,7 +34,7 @@ class Terminal(ObservableConnection):
         ObservableConnection.__init__(self)
         self.pulling_thread = None
         done = Event()
-        self.pulling_thread = TillDoneThread(target=self._main_loop,
+        self.pulling_thread = TillDoneThread(target=self.pull_data,
                                              done_event=done,
                                              kwargs={'pulling_done': done})
         self.pulling_thread.start()
@@ -59,12 +59,7 @@ class Terminal(ObservableConnection):
         if newline:
             self._terminal.write(newline)
 
-    def run(self, ):
-        self._main_loop()
-        self._terminal.wait()
-        self._terminal.close()
-
-    def _main_loop(self, pulling_done):
+    def pull_data(self, pulling_done):
         was_first_prompt = False
         read_buffer = ""
         while not pulling_done.is_set():
