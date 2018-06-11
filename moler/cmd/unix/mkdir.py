@@ -35,7 +35,7 @@ class Mkdir(GenericUnix):
                 pass
         return super(Mkdir, self).on_new_line(line, is_full_line)
 
-    _re_error = re.compile(r'mkdir:\scannot\screate\sdirectory\s(?P<PATH>.*):\s(?P<ERROR>.*)')
+    _re_parse_error = re.compile(r'mkdir:\scannot\screate\sdirectory\s(?P<PATH>.*):\s(?P<ERROR>.*)')
 
     def _parse_error(self, line):
         if self._regex_helper.search_compiled(Mkdir._re_parse_error, line):
