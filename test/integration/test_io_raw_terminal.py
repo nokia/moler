@@ -3,9 +3,9 @@
 Tests for connection shell
 """
 
-__author__ = 'Marcin Usielski'
+__author__ = 'Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 from moler.io.raw.terminal import Terminal
 from moler.cmd.unix.whoami import Whoami
@@ -20,7 +20,6 @@ def test_terminal_cmd_whoami():
     terminal = terminal_connection()
     cmd = Whoami(connection=terminal)
     ret = cmd()
-    terminal.close()
     assert 'USER' in ret
     assert ret['USER'] is not None
     assert getpass.getuser() == ret['USER']
@@ -39,7 +38,6 @@ def test_terminal_timeout_next_command():
         ret = cmd()
         user = ret['USER']
         assert getpass.getuser() == user
-    terminal.close()
 
 
 def test_terminal_whoami_ls():
@@ -51,7 +49,6 @@ def test_terminal_whoami_ls():
     cmd()
     cmd = Whoami(connection=terminal)
     ret = cmd()
-    terminal.close()
     user2 = ret['USER']
     assert user1 == user2
     assert getpass.getuser() == user2
@@ -60,6 +57,5 @@ def test_terminal_whoami_ls():
 @pytest.fixture
 def terminal_connection():
     terminal = Terminal()
-    terminal.setDaemon(True)
-    terminal.start()
+
     return terminal

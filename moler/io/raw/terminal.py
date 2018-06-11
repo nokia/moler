@@ -4,7 +4,8 @@ __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import select
 import time
-from threading import Thread
+from threading import Thread, Event
+from moler.io.raw import TillDoneThread
 import re
 from moler.cmd.unix.bash import Bash
 
@@ -13,7 +14,10 @@ from ptyprocess import PtyProcessUnicode
 from moler.connection import ObservableConnection
 
 
-class Terminal(Thread, ObservableConnection):
+class Terminal(ObservableConnection):
+    """
+    Works on Unix (like Linux) systems only!
+    """
     def __init__(self, cmd='/bin/bash', bash_cmd='TERM=xterm-mono bash', select_timeout=0.002, read_buffer_size=4096, first_prompt=None):
         self._cmd = [cmd]
         self._select_timeout = select_timeout
@@ -25,8 +29,14 @@ class Terminal(Thread, ObservableConnection):
             self.prompt = first_prompt
         else:
             self.prompt = re.compile(r'^[^<]*[\$|%|#|>|~|:]\s*')
-        Thread.__init__(self)
+        # Thread.__init__(self)
         ObservableConnection.__init__(self)
+        self.pulling_thread = None
+        done = Event()
+        self.pulling_thread = TillDoneThread(target=self._main_loop,
+                                             done_event=done,
+                                             kwargs={'pulling_done': done})
+        self.pulling_thread.start()
         cmd = Bash(connection=self, bash=bash_cmd)
         cmd.start()
 
@@ -37,11 +47,11 @@ class Terminal(Thread, ObservableConnection):
         self.close()
         return False  # reraise exceptions if any
 
-    def close(self, wait=True):
-        self._exit = True
-        if wait:
-            while self._exit:
-                time.sleep(self._select_timeout / 10.)
+    def close(self, ):
+        if self.pulling_thread:
+            self.pulling_thread.join()
+            self.pulling_thread = None
+        super(Terminal, self).close()
 
     def send(self, cmd, newline="\n"):
         self._terminal.write(cmd)
@@ -53,10 +63,10 @@ class Terminal(Thread, ObservableConnection):
         self._terminal.wait()
         self._terminal.close()
 
-    def _main_loop(self):
+    def _main_loop(self, pulling_done):
         was_first_prompt = False
         read_buffer = ""
-        while True:
+        while not pulling_done.is_set():
             reads, _, _ = select.select([self._terminal.fd], [], [], self._select_timeout)
             if self._terminal.fd in reads:
                 if was_first_prompt:
