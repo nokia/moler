@@ -17,7 +17,7 @@ def test_nmap_returns_proper_command_string(buffer_connection):
     assert "nmap 192.168.255.3" == nmap_cmd.command_string
 
 
-def test_calling_telnet_timeout(buffer_connection):
+def test_calling_nmap_timeout(buffer_connection):
     command_output, expected_result = command_output_and_expected_result_timeout()
     buffer_connection.remote_inject_response([command_output])
     nmap_cmd = Nmap(connection=buffer_connection.moler_connection, ip="192.168.255.3")
