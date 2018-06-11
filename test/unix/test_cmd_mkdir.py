@@ -7,7 +7,8 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'sylwester.golonka@nokia.com'
 
 from moler.cmd.unix.mkdir import Mkdir
-from pytest import raises
+from moler.exceptions import CommandFailure
+import pytest
 
 
 def test_mkdir_returns_proper_command_string(buffer_connection):
@@ -19,16 +20,18 @@ def test_mkdir_raise_exception_wrong_path(buffer_connection):
     command_output, expected_result = command_output_and_expected_result()
     buffer_connection.remote_inject_response([command_output])
     mkdir_cmd = Mkdir(connection=buffer_connection.moler_connection, path="/home/test/test")
-    result = mkdir_cmd.command_string
-    assert result == expected_result
+    with pytest.raises(CommandFailure, match=r'Command failed \'mkdir\' with ERROR: No such file or directory'):
+        mkdir_cmd()
 
 
 def command_output_and_expected_result():
     data = """
 ute@debdev:~$ mkdir /home/test/test
-mkdir: cannot create directory ‘/home/test/test’: No such file or directory
+mkdir: cannot create directory /home/test/test: No such file or directory
 ute@debdev:~$
     """
-    result = "ERROR: No such file or directory"
+    result = {
+
+    }
 
     return data, result
