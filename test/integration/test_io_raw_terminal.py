@@ -18,8 +18,8 @@ from moler.exceptions import CommandTimeout
 from moler.io.raw.terminal import Terminal
 
 
-def test_terminal_cmd_whoami():
-    terminal = terminal_connection()
+def test_terminal_cmd_whoami(terminal_connection):
+    terminal = terminal_connection
     cmd = Whoami(connection=terminal)
     ret = cmd()
     assert 'USER' in ret
@@ -27,8 +27,8 @@ def test_terminal_cmd_whoami():
     assert getpass.getuser() == ret['USER']
 
 
-def test_terminal_timeout_next_command():
-    terminal = terminal_connection()
+def test_terminal_timeout_next_command(terminal_connection):
+    terminal = terminal_connection
     max_nr = 5
     for i in range(1, max_nr):
         cmd = Env(connection=terminal)
@@ -42,8 +42,8 @@ def test_terminal_timeout_next_command():
         assert getpass.getuser() == user
 
 
-def test_terminal_whoami_ls():
-    terminal = terminal_connection()
+def test_terminal_whoami_ls(terminal_connection):
+    terminal = terminal_connection
     cmd = Whoami(connection=terminal)
     ret = cmd()
     user1 = ret['USER']
@@ -56,8 +56,12 @@ def test_terminal_whoami_ls():
     assert getpass.getuser() == user2
 
 
-@pytest.fixture
+@pytest.yield_fixture()
 def terminal_connection():
-    terminal = Terminal()
+    from moler.connection import ObservableConnection
 
-    return terminal
+    moler_conn = ObservableConnection()
+    terminal = Terminal(moler_connection=moler_conn)
+
+    with terminal as connection:
+        yield connection.moler_connection
