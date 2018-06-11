@@ -31,6 +31,7 @@ def test_terminal_timeout_next_command():
     max_nr = 5
     for i in range(1, max_nr):
         cmd = Env(connection=terminal)
+        #exchange to command ping when it is ready
         cmd.command_string = "ping 127.0.0.1"
         with pytest.raises(CommandTimeout):
             cmd(timeout=0.3)
