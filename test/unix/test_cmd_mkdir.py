@@ -24,6 +24,7 @@ def test_mkdir_raise_exception_wrong_path(buffer_connection):
         mkdir_cmd()
 
 
+@pytest.fixture
 def command_output_and_expected_result():
     data = """
 ute@debdev:~$ mkdir /home/test/test
