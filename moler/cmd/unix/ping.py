@@ -20,7 +20,6 @@ class Ping(GenericUnix):
         # Parameters defined by calling the command
         self.options = options
         self.destination = destination
-        self.ret_required = False
 
     def build_command_string(self):
         if ":" in self.destination:
