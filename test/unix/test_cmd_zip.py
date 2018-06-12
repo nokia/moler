@@ -54,6 +54,7 @@ def command_output_and_expected_result_file_not_exist():
     return data, result
 
 
+@pytest.fixture
 def command_output_and_expected_result_timeout():
     data = """
     user@server:~> zip test.zip test.txt
