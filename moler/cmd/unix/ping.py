@@ -42,26 +42,26 @@ class Ping(GenericUnix):
 
     # 11 packets transmitted, 11 received, 0 % packet loss, time 9999 ms
     _re_trans_recv_loss_time = re.compile(
-        r"(?P<PCKTS_TRANS>\d+) packets transmitted, (?P<PCKTS_RECV>\d+) received, (?P<PCKT_LOSS>\S+)% packet loss, time (?P<TIME>\S+)")
+        r"(?P<PKTS_TRANS>\d+) packets transmitted, (?P<PKTS_RECV>\d+) received, (?P<PKT_LOSS>\S+)% packet loss, time (?P<TIME>\S+)")
 
     def _parse_trans_recv_loss_time(self, line):
         if self._regex_helper.search_compiled(Ping._re_trans_recv_loss_time, line):
-            self.current_ret['packets_transmitted'] = self._regex_helper.group('PCKTS_TRANS')
-            self.current_ret['packets_received'] = self._regex_helper.group('PCKTS_RECV')
-            self.current_ret['packet_loss'] = self._regex_helper.group('PCKT_LOSS')
+            self.current_ret['packets_transmitted'] = self._regex_helper.group('PKTS_TRANS')
+            self.current_ret['packets_received'] = self._regex_helper.group('PKTS_RECV')
+            self.current_ret['packet_loss'] = self._regex_helper.group('PKT_LOSS')
             self.current_ret['time'] = self._regex_helper.group('TIME')
             raise ParsingDone
 
     # rtt min/avg/max/mdev = 0.033/0.050/0.084/0.015 ms
     _re_min_avg_max_mdev_unit_time = re.compile(
-        r"rtt min\/avg\/max\/mdev = (?P<MIN>\S+)\/(?P<AVG>\S+)\/(?P<MAX>\S+)\/(?P<MDEC>\S+)\s+(?P<UNIT>\S+)")
+        r"rtt min\/avg\/max\/mdev = (?P<MIN>\S+)\/(?P<AVG>\S+)\/(?P<MAX>\S+)\/(?P<MDEV>\S+)\s+(?P<UNIT>\S+)")
 
     def _parse_min_avg_max_mdev_unit_time(self, line):
         if self._regex_helper.search_compiled(Ping._re_min_avg_max_mdev_unit_time, line):
             self.current_ret['time_min'] = self._regex_helper.group('MIN')
             self.current_ret['time_avg'] = self._regex_helper.group('AVG')
             self.current_ret['time_max'] = self._regex_helper.group('MAX')
-            self.current_ret['time_mdec'] = self._regex_helper.group('MDEC')
+            self.current_ret['time_mdev'] = self._regex_helper.group('MDEV')
             self.current_ret['time_unit'] = self._regex_helper.group('UNIT')
             raise ParsingDone
 
@@ -90,7 +90,7 @@ COMMAND_RESULT = {
     'time_min': '0.035',
     'time_avg': '0.045',
     'time_max': '0.062',
-    'time_mdec': '0.012',
+    'time_mdev': '0.012',
     'time_unit': 'ms',
 }
 
@@ -121,6 +121,6 @@ COMMAND_RESULT_v6 = {
     'time_min': '0.022',
     'time_avg': '0.049',
     'time_max': '0.070',
-    'time_mdec': '0.019',
+    'time_mdev': '0.019',
     'time_unit': 'ms',
 }
