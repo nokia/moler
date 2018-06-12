@@ -7,10 +7,8 @@ __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
-import re
 
 from moler.cmd.unix.genericunix import GenericUnix
-from moler.exceptions import ParsingDone
 
 
 class Bash(GenericUnix):
