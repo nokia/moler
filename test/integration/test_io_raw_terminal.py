@@ -12,6 +12,7 @@ import getpass
 import pytest
 
 from moler.cmd.unix.env import Env
+from moler.cmd.unix.ping import Ping
 from moler.cmd.unix.ls import Ls
 from moler.cmd.unix.whoami import Whoami
 from moler.exceptions import CommandTimeout
@@ -31,9 +32,7 @@ def test_terminal_timeout_next_command(terminal_connection):
     terminal = terminal_connection
     max_nr = 5
     for i in range(1, max_nr):
-        cmd = Env(connection=terminal)
-        # exchange to command ping when it is ready
-        cmd.command_string = "ping 127.0.0.1"
+        cmd = Ping(connection=terminal, destination="127.0.0.1")
         with pytest.raises(CommandTimeout):
             cmd(timeout=0.3)
         cmd = Whoami(connection=terminal)
