@@ -83,7 +83,7 @@ Pclinux90:~ # """
 
 COMMAND_KWARGS_verbose = {
     "name": "iperf",
-    "is_verbose": "False"
+    "is_verbose": True
 }
 
 COMMAND_RESULT_verbose = {
