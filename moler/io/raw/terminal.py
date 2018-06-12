@@ -8,7 +8,6 @@ from threading import Event
 
 from ptyprocess import PtyProcessUnicode
 
-from moler.cmd.unix.bash import Bash
 from moler.io.io_connection import IOConnection
 from moler.io.raw import TillDoneThread
 
@@ -18,22 +17,19 @@ class Terminal(IOConnection):
     Works on Unix (like Linux) systems only!
     """
 
-    def __init__(self, moler_connection, cmd='/bin/bash', bash_cmd='TERM=xterm-mono bash', select_timeout=0.002,
-                 read_buffer_size=4096,
-                 first_prompt=None):
+    def __init__(self, moler_connection, cmd='/bin/bash --norc --noprofile', select_timeout=0.002,
+                 read_buffer_size=4096, first_prompt=None):
         super(Terminal, self).__init__(moler_connection=moler_connection)
-        self._cmd = [cmd]
-        self.bash_cmd = bash_cmd
+        self._cmd = cmd.split(' ')
         self._select_timeout = select_timeout
         self._read_buffer_size = read_buffer_size
         self._terminal = None
         self.pulling_thread = None
 
         if first_prompt:
-            self.prompt = first_prompt  # niedeklarowany promp - & po bashu + echo
-
+            self.prompt = first_prompt
         else:
-            self.prompt = re.compile(r'^[^<]*[\$|%|#|>|~|:]\s*')
+            self.prompt = re.compile(r'^bash-\d+\.*\d*')
 
     def open(self, ):
         self._terminal = PtyProcessUnicode.spawn(self._cmd)
@@ -42,8 +38,6 @@ class Terminal(IOConnection):
                                              done_event=done,
                                              kwargs={'pulling_done': done})
         self.pulling_thread.start()
-        cmd = Bash(connection=self.moler_connection, bash=self.bash_cmd)
-        cmd.start()
 
     def close(self, ):
         if self.pulling_thread:
