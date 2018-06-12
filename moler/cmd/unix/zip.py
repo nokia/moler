@@ -16,20 +16,20 @@ from moler.exceptions import CommandFailure, ParsingDone
 
 class Zip(GenericUnix):
 
-    def __init__(self, connection, options, file, zip_file, timeout=60, prompt=None, new_line_chars=None):
+    def __init__(self, connection, options, file_name, zip_file, timeout=60, prompt=None, new_line_chars=None):
         super(Zip, self).__init__(connection, prompt, new_line_chars)
         # Parameters defined by calling the command
         self.options = options
-        self.file = file
+        self.file_name = file_name
         self.zip_file = zip_file
         self.ret_required = False
         self.timeout = timeout
 
     def build_command_string(self):
         if self.options:
-            cmd = "{} {} {} {}".format("zip", self.options, self.zip_file, self.file)
+            cmd = "{} {} {} {}".format("zip", self.options, self.zip_file, self.file_name)
         else:
-            cmd = "{} {} {}".format("zip", self.zip_file, self.file)
+            cmd = "{} {} {}".format("zip", self.zip_file, self.file_name)
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -59,5 +59,5 @@ COMMAND_RESULT = {
 COMMAND_KWARGS = {
     "options": "",
     "zip_file": "test.zip",
-    "file": "test.txt",
+    "file_name": "test.txt",
 }
