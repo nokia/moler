@@ -75,3 +75,17 @@ COMMAND_KWARGS_no_process = {"name": "tshark"}
 COMMAND_RESULT_no_process = {
 
 }
+
+COMMAND_OUTPUT_verbose = """
+Pclinux90:~ #  killall -v iperf
+Killed iperf(15054) with signal 15
+Pclinux90:~ # """
+
+COMMAND_KWARGS_verbose = {
+    "name": "iperf",
+    "is_verbose": "False"
+}
+
+COMMAND_RESULT_verbose = {
+    "Detail": {"15054": "iperf"}
+}
