@@ -11,9 +11,8 @@ import getpass
 
 import pytest
 
-from moler.cmd.unix.env import Env
-from moler.cmd.unix.ping import Ping
 from moler.cmd.unix.ls import Ls
+from moler.cmd.unix.ping import Ping
 from moler.cmd.unix.whoami import Whoami
 from moler.exceptions import CommandTimeout
 from moler.io.raw.terminal import Terminal
