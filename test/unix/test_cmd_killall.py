@@ -19,15 +19,6 @@ def test_calling_killall_returns_result_no_permit(buffer_connection):
         killall_cmd()
 
 
-def test_calling_killall_returns_result_verbose(buffer_connection):
-    from moler.cmd.unix.killall import Killall
-    command_output, expected_result = command_output_and_expected_result_verbose()
-    buffer_connection.remote_inject_response([command_output])
-    killall_cmd = Killall(connection=buffer_connection.moler_connection, name="iperf", is_verbose=True)
-    result = killall_cmd()
-    assert result == expected_result
-
-
 def test_killall_returns_proper_command_string(buffer_connection):
     from moler.cmd.unix.killall import Killall
     killall_cmd = Killall(buffer_connection, name="iperf", is_verbose=True)
@@ -47,17 +38,3 @@ iperf: no process killed
 
     result = {}
     return data, result
-
-
-@pytest.fixture
-def command_output_and_expected_result_verbose():
-    data = """
-Pclinux90:~ #  killall -v iperf
-Killed iperf(15054) with signal 15
-Pclinux90:~ #"""
-
-    result = {"Detail": {"15054": "iperf"}
-              }
-    return data, result
-
-
