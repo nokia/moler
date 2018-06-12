@@ -12,8 +12,8 @@ from moler.exceptions import CommandFailure
 
 def test_zip_returns_proper_command_string(buffer_connection):
     from moler.cmd.unix.zip import Zip
-    zip_cmd = Zip(buffer_connection, options="", zip_file="test.zip", file="test.txt")
-    assert "zip test.zip test.txt" == zip_cmd.command_string
+    zip_cmd = Zip(buffer_connection, options="-r", zip_file="test.zip", file="test.txt")
+    assert "zip -r test.zip test.txt" == zip_cmd.command_string
 
 
 def test_calling_zip_raise_exception_wrong_command_string(buffer_connection):
