@@ -29,8 +29,10 @@ def test_calling_ln_raise_exception_wrong_command_string(buffer_connection):
 @pytest.fixture
 def command_output_and_expected_result_file_exist():
     data = """
-    host:~ # ln -s file1 file2
+    user@server:~> ln -s file1 file2
     ln: failed to create symbolic link, File exists
-    host:~ # """
-    result = {}
+    user@server:~> """
+    result = {
+
+    }
     return data, result
