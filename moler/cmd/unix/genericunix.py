@@ -18,7 +18,7 @@ class GenericUnix(TextualGeneric):
     _re_color_codes = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")  # Regex to remove color codes from command output
 
     def __init__(self, connection, prompt=None, new_line_chars=None):
-        super(GenericUnix, self).__init__(connection, prompr, new_line_chars)
+        super(GenericUnix, self).__init__(connection, prompt, new_line_chars)
         self.remove_colors_from_terminal_output = True
 
     def on_new_line(self, line, is_full_line):
