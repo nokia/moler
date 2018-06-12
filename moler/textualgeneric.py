@@ -19,6 +19,7 @@ from moler.command import Command
 class TextualGeneric(Command):
     _re_default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')  # When user provides no prompt
     _default_new_line_chars = ("\n", "\r")  # New line chars on device, not system with script!
+    _re_color_codes = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")  # Regex to remove color codes from command output
 
     def __init__(self, connection, prompt=None, new_line_chars=None):
         """
@@ -38,6 +39,7 @@ class TextualGeneric(Command):
         self._last_not_full_line = None  # Part of line
         self._re_prompt = TextualGeneric._calculate_prompt(prompt)  # Expected prompt on device
         self._new_line_chars = new_line_chars  # New line characters on device
+        self.remove_colors_from_terminal_output = True
         if not self._new_line_chars:
             self._new_line_chars = TextualGeneric._default_new_line_chars
 
@@ -89,9 +91,10 @@ class TextualGeneric(Command):
             is_full_line = self.is_new_line(line)
             if is_full_line:
                 line = self._strip_new_lines_chars(line)
+                if self.remove_colors_from_terminal_output:
+                    line = self._remove_color_terminal_codes(line)
             else:
                 self._last_not_full_line = line
-
             if self._cmd_output_started:
                 self.on_new_line(line, is_full_line)
             elif is_full_line:
@@ -132,6 +135,14 @@ class TextualGeneric(Command):
         """
         for char in self._new_line_chars:
             line = line.rstrip(char)
+        return line
+
+    def _remove_color_terminal_codes(self, line):
+        """
+        :param line: line from terminal
+        :return: line without terminal color codes
+        """
+        line = re.sub(TextualGeneric._re_color_codes, "", line)
         return line
 
     def _detect_start_of_cmd_output(self, line):
