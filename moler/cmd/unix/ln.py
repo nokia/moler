@@ -38,11 +38,11 @@ class Ln(GenericUnix):
                 pass
         return super(Ln, self).on_new_line(line, is_full_line)
 
-    _re_ln_line = re.compile(r'(ln\:.*File exists)')
+    _re_ln_line = re.compile(r'(?P<error>ln:.*File exists)')
 
     def _parse_failure_via_output_line(self, line):
         if self._cmd_output_started and self._regex_helper.search_compiled(Ln._re_ln_line, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group(1))))
+            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("error"))))
             raise ParsingDone
 
 
