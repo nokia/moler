@@ -32,6 +32,7 @@ cat: /home/ute/test: Is a directory
 ute@debdev:~$
     """
     result = {
+        'LINES': []
 
     }
 

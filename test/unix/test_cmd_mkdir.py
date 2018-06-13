@@ -32,7 +32,6 @@ mkdir: cannot create directory /home/test/test: No such file or directory
 ute@debdev:~$
     """
     result = {
-        'LINES': []
 
     }
 
