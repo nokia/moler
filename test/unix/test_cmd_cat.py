@@ -33,7 +33,6 @@ ute@debdev:~$
     """
     result = {
         'LINES': []
-
     }
 
     return data, result
