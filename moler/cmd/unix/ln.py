@@ -2,7 +2,6 @@
 """
 Ln command module.
 """
-from moler import connection_observer
 
 __author__ = 'Haili Guo'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -11,7 +10,6 @@ __email__ = 'haili.guo@nokia-sbell.com'
 import re
 
 from moler.cmd.unix.genericunix import GenericUnix
-from moler.cmd.converterhelper import ConverterHelper
 from moler.exceptions import CommandFailure, ParsingDone
 
 
@@ -19,7 +17,6 @@ class Ln(GenericUnix):
 
     def __init__(self, connection, prompt=None, new_line_chars=None, options=None):
         super(Ln, self).__init__(connection, prompt, new_line_chars)
-        self._converter_helper = ConverterHelper()
         # Parameters defined by calling the command
         self.options = options
         self.ret_required = False
