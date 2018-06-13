@@ -16,7 +16,7 @@ def test_ln_returns_proper_command_string(buffer_connection):
     assert "ln -s file1 file2" == ln_cmd.command_string
 
 
-def test_calling_ln_raise_exception_wrong_command_string(buffer_connection):
+def test_calling_ln_raise_exception_command_failure(buffer_connection):
         from moler.cmd.unix.ln import Ln
         command_output, expected_result = command_output_and_expected_result_file_exist()
         buffer_connection.remote_inject_response([command_output])
