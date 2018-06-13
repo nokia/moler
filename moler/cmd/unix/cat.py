@@ -59,7 +59,7 @@ source /etc/network/interfaces.d/*
 
 auto lo
 iface lo inet loopback
-ute@debdev:~$ 
+ute@debdev:~$
 """
 
 COMMAND_RESULT_no_parms = {
@@ -85,7 +85,7 @@ ute@debdev:~$ cat /etc/network/interfaces -b
      4	# The loopback network interface
      5	auto lo
      6	iface lo inet loopback
-ute@debdev:~$ 
+ute@debdev:~$
 """
 COMMAND_RESULT_parms = {
     'LINES': ['     1\t# This file describes the network interfaces available on your system',
