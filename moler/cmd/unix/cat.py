@@ -3,40 +3,66 @@
 Cat command module.
 """
 from moler.cmd.unix.genericunix import GenericUnix
+from moler.exceptions import CommandFailure
+from moler.exceptions import ParsingDone
+import re
 
-__author__ = 'Michal Plichta'
+__author__ = 'Sylwester Golonka'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'michal.plichta@nokia.com'
+__email__ = 'sylwester.golonka@nokia.com'
 
 
 class Cat(GenericUnix):
-    def __init__(self, connection, file=None):
-        super(Cat, self).__init__(connection)
-        self.file = file
+    def __init__(self, connection, path, options=None, prompt=None, new_line_chars=None):
+        super(Cat, self).__init__(connection, prompt=prompt, new_line_chars=new_line_chars)
+        self.path = path
+        self.options = options
+        self.ret_required = False
 
-    def data_received(self, data):
-        super(Cat, self).data_received(data)
+    def build_command_string(self):
+        cmd = "cat"
+        if self.options:
+            cmd = "{} {} {}".format(cmd, self.path, self.options)
+        else:
+            cmd = "{} {}".format(cmd, self.path)
+        return cmd
 
-    def start(self, *args, **kwargs):
-        return super(Cat, self).start(*args, **kwargs)
+    def on_new_line(self, line, is_full_line):
+        if is_full_line:
+            try:
+                self._parse_error(line)
+            except ParsingDone:
+                pass
+        return super(Cat, self).on_new_line(line, is_full_line)
 
-    def get_cmd(self, cmd=None):
-        super(Cat, self).get_cmd(cmd)
+    _re_parse_error = re.compile(r'cat:\s(?P<PATH>.*):\s(?P<ERROR>.*)')
 
-    def on_new_line(self, line):
-        super(Cat, self).on_new_line(line)
+    def _parse_error(self, line):
+        if self._regex_helper.search_compiled(Cat._re_parse_error, line):
+            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
+            raise ParsingDone
 
-    def has_cmd_run(self):
-        return super(Cat, self).has_cmd_run()
 
-    def break_cmd(self):
-        super(Cat, self).break_cmd()
+COMMAND_OUTPUT_no_parms = """
+user@server:~> cat /home/ute/test
+user@server:~>"""
 
-    def cancel(self):
-        return super(Cat, self).cancel()
+COMMAND_RESULT_no_parms = {
 
-    def on_timeout(self):
-        super(Cat, self).on_timeout()
+}
+COMMAND_KWARGS_no_parms = {
+    "path": "/home/ute/test",
+}
 
-    def is_ret(self):
-        return super(Cat, self).is_ret()
+#
+COMMAND_OUTPUT_parms = """
+user@server:~> cat /home/ute/test -b
+user@server:~>"""
+
+COMMAND_RESULT_parms = {
+
+}
+COMMAND_KWARGS_parms = {
+    "path": "/home/ute/test",
+    "options": "-b",
+}
