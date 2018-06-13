@@ -17,12 +17,13 @@ class Terminal(IOConnection):
     Works on Unix (like Linux) systems only!
     """
 
-    def __init__(self, moler_connection, cmd='/bin/bash --norc --noprofile', select_timeout=0.002,
-                 read_buffer_size=4096, first_prompt=None):
+    def __init__(self, moler_connection, cmd=['/bin/bash', '--norc', '--noprofile'], select_timeout=0.002,
+                 read_buffer_size=4096, first_prompt=None, dimensions=(100, 300)):
         super(Terminal, self).__init__(moler_connection=moler_connection)
-        self._cmd = cmd.split(' ')
+        self._cmd = cmd
         self._select_timeout = select_timeout
         self._read_buffer_size = read_buffer_size
+        self.dimensions = dimensions
         self._terminal = None
         self.pulling_thread = None
 
@@ -32,7 +33,7 @@ class Terminal(IOConnection):
             self.prompt = re.compile(r'^bash-\d+\.*\d*')
 
     def open(self, ):
-        self._terminal = PtyProcessUnicode.spawn(self._cmd)
+        self._terminal = PtyProcessUnicode.spawn(self._cmd, dimensions=self.dimensions)
         done = Event()
         self.pulling_thread = TillDoneThread(target=self.pull_data,
                                              done_event=done,
@@ -44,6 +45,8 @@ class Terminal(IOConnection):
             self.pulling_thread.join()
             self.pulling_thread = None
         super(Terminal, self).close()
+
+        self._terminal.close()
 
     def send(self, cmd, newline="\n"):
         self._terminal.write(cmd)
