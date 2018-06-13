@@ -69,7 +69,7 @@ COMMAND_RESULT_no_parms = {
               '# The loopback network interface',
               'auto lo',
               'iface lo inet loopback',
-              'ute@debdev:~$ ']
+              'ute@debdev:~$']
 
 }
 COMMAND_KWARGS_no_parms = {
@@ -94,7 +94,7 @@ COMMAND_RESULT_parms = {
               '     4\t# The loopback network interface',
               '     5\tauto lo',
               '     6\tiface lo inet loopback',
-              'ute@debdev:~$ ']
+              'ute@debdev:~$']
 
 }
 COMMAND_KWARGS_parms = {
