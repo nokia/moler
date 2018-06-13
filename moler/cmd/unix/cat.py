@@ -17,7 +17,7 @@ class Cat(GenericUnix):
         super(Cat, self).__init__(connection, prompt=prompt, new_line_chars=new_line_chars)
         self.path = path
         self.options = options
-        self.ret_required = False
+        self.current_ret["LINES"] = []
 
     def build_command_string(self):
         cmd = "cat"
@@ -31,6 +31,7 @@ class Cat(GenericUnix):
         if is_full_line:
             try:
                 self._parse_error(line)
+                self._parse_line(line)
             except ParsingDone:
                 pass
         return super(Cat, self).on_new_line(line, is_full_line)
@@ -42,27 +43,58 @@ class Cat(GenericUnix):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
             raise ParsingDone
 
+    def _parse_line(self, line):
+        self.current_ret["LINES"].append(line)
+        raise ParsingDone
+
 
 COMMAND_OUTPUT_no_parms = """
-user@server:~> cat /home/ute/test
-user@server:~>"""
+ute@debdev:~$ cat /etc/network/interfaces
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+source /etc/network/interfaces.d/*
+# The loopback network interface
+auto lo
+iface lo inet loopback
+ute@debdev:~$ 
+"""
 
 COMMAND_RESULT_no_parms = {
+    'LINES': ['# This file describes the network interfaces available on your system',
+              '# and how to activate them. For more information, see interfaces(5).',
+              'source /etc/network/interfaces.d/*',
+              '# The loopback network interface',
+              'auto lo',
+              'iface lo inet loopback',
+              'ute@debdev:~$ ']
 
 }
 COMMAND_KWARGS_no_parms = {
-    "path": "/home/ute/test",
+    "path": "/etc/network/interfaces",
 }
 
 #
 COMMAND_OUTPUT_parms = """
-user@server:~> cat /home/ute/test -b
-user@server:~>"""
-
+ute@debdev:~$ cat /etc/network/interfaces -b
+     1	# This file describes the network interfaces available on your system
+     2	# and how to activate them. For more information, see interfaces(5).
+     3	source /etc/network/interfaces.d/*
+     4	# The loopback network interface
+     5	auto lo
+     6	iface lo inet loopback
+ute@debdev:~$ 
+"""
 COMMAND_RESULT_parms = {
+    'LINES': ['     1\t# This file describes the network interfaces available on your system',
+              '     2\t# and how to activate them. For more information, see interfaces(5).',
+              '     3\tsource /etc/network/interfaces.d/*',
+              '     4\t# The loopback network interface',
+              '     5\tauto lo',
+              '     6\tiface lo inet loopback',
+              'ute@debdev:~$ ']
 
 }
 COMMAND_KWARGS_parms = {
-    "path": "/home/ute/test",
+    "path": "/etc/network/interfaces",
     "options": "-b",
 }
