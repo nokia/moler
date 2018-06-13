@@ -44,7 +44,8 @@ class Cat(GenericUnix):
             raise ParsingDone
 
     def _parse_line(self, line):
-        self.current_ret["LINES"].append(line)
+        if not line == "":
+            self.current_ret["LINES"].append(line)
         raise ParsingDone
 
 
@@ -52,8 +53,10 @@ COMMAND_OUTPUT_no_parms = """
 ute@debdev:~$ cat /etc/network/interfaces
 # This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
+
 source /etc/network/interfaces.d/*
 # The loopback network interface
+
 auto lo
 iface lo inet loopback
 ute@debdev:~$ 
