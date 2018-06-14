@@ -423,5 +423,6 @@ def _register_builtin_connections():
                                             variant="threaded",
                                             constructor=terminal_thd_conn)
 
+
 # actions during import
 _register_builtin_connections()
