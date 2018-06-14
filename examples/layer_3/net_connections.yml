@@ -1,0 +1,3 @@
+IO_TYPES:
+    default_variant:
+        tcp: threaded-and-logged
