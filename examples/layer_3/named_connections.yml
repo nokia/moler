@@ -1,0 +1,12 @@
+NAMED_CONNECTIONS:
+    net_1:               # connection name
+        io_type: tcp
+        host: localhost
+        port: 5671
+    net_2:
+        io_type: tcp
+        host: localhost
+        port: 5672
+IO_TYPES:
+    default_variant:
+        tcp: threaded
