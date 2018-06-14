@@ -242,66 +242,104 @@ if __name__ == '__main__':
 '''
 LOG OUTPUT
 
-14:10:44 |threaded.ping.tcp-server(5671)           |Ping Sim started at tcp://localhost:5671
-14:10:44 |threaded.ping.tcp-server(5672)           |Ping Sim started at tcp://localhost:5672
-14:10:44 |moler.user.app-code                      |observe 10.0.2.15 on tcp://localhost:5671 using NetworkDownDetector(id:47689008)
-14:10:44 |moler.runner.thread-pool                 |starting NetworkDownDetector(id:47689008)
-14:10:44 |moler.user.app-code                      |observe 10.0.2.16 on tcp://localhost:5672 using NetworkDownDetector(id:47752080)
-14:10:44 |moler.runner.thread-pool                 |starting NetworkDownDetector(id:47752080)
-14:10:44 |threaded.tcp-connection(localhost:5671)  |connecting to tcp://localhost:5671
-14:10:44 |threaded.tcp-connection(localhost:5672)  |connecting to tcp://localhost:5672
-14:10:44 |threaded.tcp-connection(localhost:5671)  |connection tcp://localhost:5671 is open
-14:10:44 |threaded.ping.tcp-server(5671 -> 58889)  |connection accepted - client at tcp://127.0.0.1:58889
-14:10:44 |threaded.tcp-connection(localhost:5671)  |< b'\n'
-14:10:44 |moler.runner.thread-pool                 |awaiting NetworkDownDetector(id:47689008)
-14:10:44 |threaded.tcp-connection(localhost:5672)  |connection tcp://localhost:5672 is open
-14:10:44 |moler.runner.thread-pool                 |awaiting NetworkDownDetector(id:47752080)
-14:10:44 |threaded.ping.tcp-server(5672 -> 58890)  |connection accepted - client at tcp://127.0.0.1:58890
-14:10:44 |threaded.tcp-connection(localhost:5672)  |< b'\n'
-14:10:45 |threaded.tcp-connection(localhost:5671)  |< b'greg@debian:~$ ping 10.0.2.15\n'
-14:10:45 |threaded.tcp-connection(localhost:5672)  |< b'greg@debian:~$ ping 10.0.2.16\n'
-14:10:46 |threaded.tcp-connection(localhost:5671)  |< b'PING 10.0.2.15 (10.0.2.15) 56(84) bytes of data.\n'
-14:10:46 |threaded.tcp-connection(localhost:5672)  |< b'PING 10.0.2.16 (10.0.2.16) 56(84) bytes of data.\n'
-14:10:47 |threaded.tcp-connection(localhost:5671)  |< b'64 bytes from 10.0.2.15: icmp_req=1 ttl=64 time=0.080 ms\n'
-14:10:47 |threaded.tcp-connection(localhost:5672)  |< b'64 bytes from 10.0.2.16: icmp_req=1 ttl=64 time=0.080 ms\n'
-14:10:48 |threaded.tcp-connection(localhost:5671)  |< b'64 bytes from 10.0.2.15: icmp_req=2 ttl=64 time=0.037 ms\n'
-14:10:48 |threaded.tcp-connection(localhost:5672)  |< b'64 bytes from 10.0.2.16: icmp_req=2 ttl=64 time=0.037 ms\n'
-14:10:49 |threaded.tcp-connection(localhost:5671)  |< b'64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms\n'
-14:10:49 |threaded.tcp-connection(localhost:5672)  |< b'64 bytes from 10.0.2.16: icmp_req=3 ttl=64 time=0.045 ms\n'
-14:10:50 |threaded.tcp-connection(localhost:5671)  |< b'ping: sendmsg: Network is unreachable\n'
-14:10:50 |moler.NetworkDownDetector(id:47689008)   |Network 10.0.2.15 is down!
-14:10:50 |threaded.tcp-connection(localhost:5672)  |< b'ping: sendmsg: Network is unreachable\n'
-14:10:50 |moler.NetworkDownDetector(id:47752080)   |Network 10.0.2.16 is down!
-14:10:50 |moler.runner.thread-pool                 |shutting down
-14:10:50 |moler.runner.thread-pool                 |NetworkDownDetector(id:47689008) returned 1519823450.4585001
-14:10:50 |moler.user.app-code                      |Network 10.0.2.15 is down from 14:10:50
-14:10:50 |moler.user.app-code                      |observe 10.0.2.15 on tcp://localhost:5671 using NetworkUpDetector(id:47689568)
-14:10:50 |moler.runner.thread-pool                 |starting NetworkUpDetector(id:47689568)
-14:10:50 |moler.runner.thread-pool                 |awaiting NetworkUpDetector(id:47689568)
-14:10:50 |moler.runner.thread-pool                 |shutting down
-14:10:50 |moler.runner.thread-pool                 |NetworkDownDetector(id:47752080) returned 1519823450.4620001
-14:10:50 |moler.user.app-code                      |Network 10.0.2.16 is down from 14:10:50
-14:10:50 |moler.user.app-code                      |observe 10.0.2.16 on tcp://localhost:5672 using NetworkUpDetector(id:47752472)
-14:10:50 |moler.runner.thread-pool                 |starting NetworkUpDetector(id:47752472)
-14:10:50 |moler.runner.thread-pool                 |awaiting NetworkUpDetector(id:47752472)
-14:10:51 |threaded.tcp-connection(localhost:5671)  |< b'ping: sendmsg: Network is unreachable\n'
-14:10:51 |threaded.tcp-connection(localhost:5672)  |< b'ping: sendmsg: Network is unreachable\n'
-14:10:52 |threaded.tcp-connection(localhost:5671)  |< b'ping: sendmsg: Network is unreachable\n'
-14:10:52 |threaded.tcp-connection(localhost:5672)  |< b'ping: sendmsg: Network is unreachable\n'
-14:10:53 |threaded.tcp-connection(localhost:5671)  |< b'64 bytes from 10.0.2.15: icmp_req=7 ttl=64 time=0.123 ms\n'
-14:10:53 |moler.NetworkUpDetector(id:47689568)     |Network 10.0.2.15 is up!
-14:10:53 |threaded.tcp-connection(localhost:5672)  |< b'64 bytes from 10.0.2.16: icmp_req=7 ttl=64 time=0.123 ms\n'
-14:10:53 |moler.NetworkUpDetector(id:47752472)     |Network 10.0.2.16 is up!
-14:10:53 |moler.runner.thread-pool                 |shutting down
-14:10:53 |moler.runner.thread-pool                 |NetworkUpDetector(id:47689568) returned 1519823453.459
-14:10:53 |moler.user.app-code                      |Network 10.0.2.15 is back "up" from 14:10:53
-14:10:53 |moler.runner.thread-pool                 |shutting down
-14:10:53 |moler.runner.thread-pool                 |NetworkUpDetector(id:47752472) returned 1519823453.4625
-14:10:53 |moler.user.app-code                      |Network 10.0.2.16 is back "up" from 14:10:53
-14:10:53 |threaded.tcp-connection(localhost:5671)  |connection tcp://localhost:5671 is closed
-14:10:53 |threaded.tcp-connection(localhost:5672)  |connection tcp://localhost:5672 is closed
-14:10:53 |threaded.ping.tcp-server(5671)           |Ping Sim: ... bye
-14:10:53 |threaded.ping.tcp-server(5672)           |Ping Sim: ... bye
-14:10:55 |threaded.ping.tcp-server(5671 -> 58889)  |Connection closed
-14:10:55 |threaded.ping.tcp-server(5672 -> 58890)  |Connection closed
+15:43:35 |threaded.ping.tcp-server(5671)           |Ping Sim started at tcp://localhost:5671
+15:43:35 |threaded.ping.tcp-server(5672)           |Ping Sim started at tcp://localhost:5672
+15:43:35 |moler.runner.thread-pool                 |created
+15:43:35 |moler.runner.thread-pool                 |created own executor <concurrent.futures.thread.ThreadPoolExecutor object at 0x0000000002DFD0B8>
+15:43:35 |moler.runner.thread-pool                 |created
+15:43:35 |moler.runner.thread-pool                 |created
+15:43:35 |moler.runner.thread-pool                 |created own executor <concurrent.futures.thread.ThreadPoolExecutor object at 0x0000000002DFD4A8>
+15:43:35 |moler.runner.thread-pool                 |created own executor <concurrent.futures.thread.ThreadPoolExecutor object at 0x0000000002DFD5C0>
+15:43:35 |moler.runner.thread-pool                 |created
+15:43:35 |moler.user.app-code                      |observe 10.0.2.15 on tcp://localhost:5671 using NetworkDownDetector(id:2de3f98)
+15:43:35 |moler.runner.thread-pool                 |created own executor <concurrent.futures.thread.ThreadPoolExecutor object at 0x0000000002DFD8D0>
+15:43:35 |moler.runner.thread-pool                 |go background: NetworkDownDetector(id:2de3f98, using ObservableConnection(id:2de3cf8)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002DE3E48>>])
+15:43:35 |moler.user.app-code                      |observe 10.0.2.16 on tcp://localhost:5672 using NetworkDownDetector(id:2dfd470)
+15:43:35 |moler.runner.thread-pool                 |subscribing for data NetworkDownDetector(id:2de3f98, using ObservableConnection(id:2de3cf8)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002DE3E48>>])
+15:43:35 |moler.runner.thread-pool                 |go background: NetworkDownDetector(id:2dfd470, using ObservableConnection(id:2dfd198)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002DFD208>>])
+15:43:35 |moler.runner.thread-pool                 |subscribing for data NetworkDownDetector(id:2dfd470, using ObservableConnection(id:2dfd198)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002DFD208>>])
+15:43:35 |moler.runner.thread-pool                 |go foreground: NetworkDownDetector(id:2de3f98, using ObservableConnection(id:2de3cf8)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002DE3E48>>]) - await max. 10 [sec]
+15:43:35 |threaded.ping.tcp-server(5671 -> 60265)  |connection accepted - client at tcp://127.0.0.1:60265
+15:43:35 |threaded.ping.tcp-server(5672 -> 60266)  |connection accepted - client at tcp://127.0.0.1:60266
+15:43:35 |moler.connection.2de3cf8                 |
+
+15:43:35 |moler.runner.thread-pool                 |go foreground: NetworkDownDetector(id:2dfd470, using ObservableConnection(id:2dfd198)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002DFD208>>]) - await max. 10 [sec]
+15:43:35 |moler.connection.2dfd198                 |
+
+15:43:36 |moler.connection.2dfd198                 |greg@debian:~$ ping 10.0.2.16
+
+15:43:36 |moler.connection.2de3cf8                 |greg@debian:~$ ping 10.0.2.15
+
+15:43:37 |moler.connection.2de3cf8                 |PING 10.0.2.15 (10.0.2.15) 56(84) bytes of data.
+
+15:43:37 |moler.connection.2dfd198                 |PING 10.0.2.16 (10.0.2.16) 56(84) bytes of data.
+
+15:43:38 |moler.connection.2de3cf8                 |64 bytes from 10.0.2.15: icmp_req=1 ttl=64 time=0.080 ms
+
+15:43:38 |moler.connection.2dfd198                 |64 bytes from 10.0.2.16: icmp_req=1 ttl=64 time=0.080 ms
+
+15:43:39 |moler.connection.2de3cf8                 |64 bytes from 10.0.2.15: icmp_req=2 ttl=64 time=0.037 ms
+
+15:43:39 |moler.connection.2dfd198                 |64 bytes from 10.0.2.16: icmp_req=2 ttl=64 time=0.037 ms
+
+15:43:40 |moler.connection.2de3cf8                 |64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms
+
+15:43:40 |moler.connection.2dfd198                 |64 bytes from 10.0.2.16: icmp_req=3 ttl=64 time=0.045 ms
+
+15:43:41 |moler.connection.2dfd198                 |ping: sendmsg: Network is unreachable
+
+15:43:41 |moler.NetworkDownDetector(id:2dfd470)    |Network 10.0.2.16 is down!
+15:43:41 |moler.runner.thread-pool                 |done & unsubscribing NetworkDownDetector(id:2dfd470, using ObservableConnection(id:2dfd198)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002DFD208>>])
+15:43:41 |moler.runner.thread-pool                 |returning result NetworkDownDetector(id:2dfd470)
+15:43:41 |moler.connection.2de3cf8                 |ping: sendmsg: Network is unreachable
+
+15:43:41 |moler.NetworkDownDetector(id:2de3f98)    |Network 10.0.2.15 is down!
+15:43:41 |moler.runner.thread-pool                 |shutting down
+15:43:41 |moler.runner.thread-pool                 |NetworkDownDetector(id:2dfd470) returned 1528983821.6602228
+15:43:41 |moler.user.app-code                      |Network 10.0.2.16 is down from 15:43:41
+15:43:41 |moler.user.app-code                      |observe 10.0.2.16 on tcp://localhost:5672 using NetworkUpDetector(id:2dfd748)
+15:43:41 |moler.runner.thread-pool                 |go background: NetworkUpDetector(id:2dfd748, using ObservableConnection(id:2dfd198)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002DFD208>>])
+15:43:41 |moler.runner.thread-pool                 |subscribing for data NetworkUpDetector(id:2dfd748, using ObservableConnection(id:2dfd198)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002DFD208>>])
+15:43:41 |moler.runner.thread-pool                 |go foreground: NetworkUpDetector(id:2dfd748, using ObservableConnection(id:2dfd198)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002DFD208>>]) - await max. None [sec]
+15:43:41 |moler.runner.thread-pool                 |done & unsubscribing NetworkDownDetector(id:2de3f98, using ObservableConnection(id:2de3cf8)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002DE3E48>>])
+15:43:41 |moler.runner.thread-pool                 |returning result NetworkDownDetector(id:2de3f98)
+15:43:41 |moler.runner.thread-pool                 |shutting down
+15:43:41 |moler.runner.thread-pool                 |NetworkDownDetector(id:2de3f98) returned 1528983821.6622226
+15:43:41 |moler.user.app-code                      |Network 10.0.2.15 is down from 15:43:41
+15:43:41 |moler.user.app-code                      |observe 10.0.2.15 on tcp://localhost:5671 using NetworkUpDetector(id:2dfd550)
+15:43:41 |moler.runner.thread-pool                 |go background: NetworkUpDetector(id:2dfd550, using ObservableConnection(id:2de3cf8)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002DE3E48>>])
+15:43:41 |moler.runner.thread-pool                 |subscribing for data NetworkUpDetector(id:2dfd550, using ObservableConnection(id:2de3cf8)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002DE3E48>>])
+15:43:41 |moler.runner.thread-pool                 |go foreground: NetworkUpDetector(id:2dfd550, using ObservableConnection(id:2de3cf8)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002DE3E48>>]) - await max. None [sec]
+15:43:42 |moler.connection.2dfd198                 |ping: sendmsg: Network is unreachable
+
+15:43:42 |moler.connection.2de3cf8                 |ping: sendmsg: Network is unreachable
+
+15:43:43 |moler.connection.2dfd198                 |ping: sendmsg: Network is unreachable
+
+15:43:43 |moler.connection.2de3cf8                 |ping: sendmsg: Network is unreachable
+
+15:43:44 |moler.connection.2dfd198                 |64 bytes from 10.0.2.16: icmp_req=7 ttl=64 time=0.123 ms
+
+15:43:44 |moler.NetworkUpDetector(id:2dfd748)      |Network 10.0.2.16 is up!
+15:43:44 |moler.connection.2de3cf8                 |64 bytes from 10.0.2.15: icmp_req=7 ttl=64 time=0.123 ms
+
+15:43:44 |moler.NetworkUpDetector(id:2dfd550)      |Network 10.0.2.15 is up!
+15:43:44 |moler.runner.thread-pool                 |done & unsubscribing NetworkUpDetector(id:2dfd550, using ObservableConnection(id:2de3cf8)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002DE3E48>>])
+15:43:44 |moler.runner.thread-pool                 |returning result NetworkUpDetector(id:2dfd550)
+15:43:44 |moler.runner.thread-pool                 |done & unsubscribing NetworkUpDetector(id:2dfd748, using ObservableConnection(id:2dfd198)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002DFD208>>])
+15:43:44 |moler.runner.thread-pool                 |returning result NetworkUpDetector(id:2dfd748)
+15:43:44 |moler.runner.thread-pool                 |shutting down
+15:43:44 |moler.runner.thread-pool                 |NetworkUpDetector(id:2dfd748) returned 1528983824.6632228
+15:43:44 |moler.user.app-code                      |Network 10.0.2.16 is back "up" from 15:43:44
+15:43:44 |moler.runner.thread-pool                 |shutting down
+15:43:44 |moler.runner.thread-pool                 |NetworkUpDetector(id:2dfd550) returned 1528983824.6652226
+15:43:44 |moler.user.app-code                      |Network 10.0.2.15 is back "up" from 15:43:44
+15:43:44 |threaded.ping.tcp-server(5671)           |Ping Sim: ... bye
+15:43:44 |threaded.ping.tcp-server(5672)           |Ping Sim: ... bye
+15:43:46 |threaded.ping.tcp-server(5672 -> 60266)  |Connection closed
+15:43:46 |threaded.ping.tcp-server(5671 -> 60265)  |Connection closed
+15:43:46 |moler.runner.thread-pool                 |shutting down
+15:43:46 |moler.runner.thread-pool                 |shutting down
+15:43:46 |moler.runner.thread-pool                 |shutting down
+15:43:46 |moler.runner.thread-pool                 |shutting down
 '''
