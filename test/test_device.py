@@ -22,6 +22,14 @@ def test_device_may_be_created_on_named_connection(configure_net_1_connection):
     assert dev.io_connection.name == 'net_1'
 
 
+def test_device_unix_can_return_cd_command(configure_net_1_connection):
+    from moler.device.unix import Unix
+    from moler.cmd.unix.cd import Cd
+
+    ux = Unix.from_named_connection(connection_name='net_1')
+    assert hasattr(ux, 'get_cmd')
+    assert isinstance(ux.get_cmd(cmd_name='cd', path="/home/user/"), Cd)
+
 # --------------------------- resources ---------------------------
 
 

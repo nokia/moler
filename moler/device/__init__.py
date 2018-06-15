@@ -16,7 +16,7 @@ from moler.connection import get_connection
 class Device(object):
     def __init__(self, io_connection):
         """
-        Create Device communication over io_connection
+        Create Device communicating over io_connection
 
         :param io_connection: External-IO connection having embedded moler-connection
         """
