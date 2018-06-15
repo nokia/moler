@@ -26,12 +26,6 @@ class Rm(GenericUnix):
             cmd = "{} {}".format('rm', self.file)
         return cmd
 
-    def on_new_line(self, line, is_full_line):
-        if not is_full_line:
-            return super(Rm, self).on_new_line(line, is_full_line)
-
-        return super(Rm, self).on_new_line(line, is_full_line)
-
 
 # -----------------------------------------------------------------------------
 # Following documentation is required for library CI.
