@@ -46,7 +46,7 @@ class TextualGeneric(Command):
         if not self.__command_string:
             self.__command_string = self.build_command_string()
             self._cmd_escaped = re.escape(self.__command_string)
-        return self.__command_string
+        return self.__command_string + self._new_line_chars
 
     @command_string.setter
     def command_string(self, command_string):
