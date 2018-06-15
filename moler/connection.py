@@ -11,9 +11,9 @@ Connection responsibilities:
 - have a means allowing multiple observers to get it's received data (data dispatching)
 """
 
-__author__ = 'Grzegorz Latuszek'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import weakref
 from threading import Lock
@@ -394,6 +394,9 @@ def _register_builtin_connections():
                                     decoder=lambda data: data.decode("utf-8"),
                                     name=name)
 
+    def mlr_conn_bytes(name):
+        return ObservableConnection(name=name)
+
     def mem_thd_conn(name=None, echo=True):
         mlr_conn = mlr_conn_utf8(name=name)
         io_conn = ThreadedFifoBuffer(moler_connection=mlr_conn,
@@ -406,13 +409,11 @@ def _register_builtin_connections():
                               port=port, host=host)  # TODO: add name
         return io_conn
 
-    def terminal_thd_conn(port, name=None):
-        mlr_conn = mlr_conn_utf8(name=name)
-        # TODO: rename into ThreadedTerminal
-        io_conn = Terminal(moler_connection=mlr_conn)  # TODO: add name, logger
+    def terminal_thd_conn(name=None):
+        mlr_conn = mlr_conn_bytes(name=name)
+        io_conn = Terminal(moler_connection=mlr_conn)  # TODO: add name
         return io_conn
 
-    # TODO: unify passing logger to io_conn (logger/logger_name)
     ConnectionFactory.register_construction(io_type="memory",
                                             variant="threaded",
                                             constructor=mem_thd_conn)
