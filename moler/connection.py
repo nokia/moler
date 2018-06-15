@@ -417,14 +417,12 @@ def _register_builtin_connections():
 def _register_builtin_unix_connections():
     from moler.io.raw.terminal import ThreadedTerminal
 
-    def mlr_conn_utf8(name):
-        return ObservableConnection(encoder=lambda data: data.encode("utf-8"),
-                                    decoder=lambda data: data.decode("utf-8"),
-                                    name=name)
+    def mlr_conn_no_encoding(name):
+        return ObservableConnection(name=name)
 
     def terminal_thd_conn(name=None):
-        mlr_conn = mlr_conn_utf8(name=name)
-        # TODO: rename into ThreadedTerminal
+        # ThreadedTerminal works on unicode so moler_connection must do no encoding
+        mlr_conn = mlr_conn_no_encoding(name=name)
         io_conn = ThreadedTerminal(moler_connection=mlr_conn)  # TODO: add name, logger
         return io_conn
 
