@@ -12,17 +12,18 @@ from moler.io.io_connection import IOConnection
 from moler.io.raw import TillDoneThread
 
 
-class Terminal(IOConnection):
+class ThreadedTerminal(IOConnection):
     """
     Works on Unix (like Linux) systems only!
 
-    Terminal is shell working under Pty
+    ThreadedTerminal is shell working under Pty
     """
 
-    def __init__(self, moler_connection, cmd=['/bin/bash', '--norc', '--noprofile'], select_timeout=0.002,
-                 read_buffer_size=4096, first_prompt=None, dimensions=(100, 300)):
-        super(Terminal, self).__init__(moler_connection=moler_connection)
+    def __init__(self, moler_connection, cmd=['/bin/bash', '--norc', '--noprofile'], newline="\n",
+                 select_timeout=0.002, read_buffer_size=4096, first_prompt=None, dimensions=(100, 300)):
+        super(ThreadedTerminal, self).__init__(moler_connection=moler_connection)
         self._cmd = cmd
+        self.newline = newline
         self._select_timeout = select_timeout
         self._read_buffer_size = read_buffer_size
         self.dimensions = dimensions
@@ -35,7 +36,7 @@ class Terminal(IOConnection):
             self.prompt = re.compile(r'^bash-\d+\.*\d*')
 
     def open(self):
-        """Open Terminal connection & start thread pulling data from it."""
+        """Open ThreadedTerminal connection & start thread pulling data from it."""
         self._terminal = PtyProcessUnicode.spawn(self._cmd, dimensions=self.dimensions)
         done = Event()
         self.pulling_thread = TillDoneThread(target=self.pull_data,
@@ -44,11 +45,11 @@ class Terminal(IOConnection):
         self.pulling_thread.start()
 
     def close(self):
-        """Close Terminal connection & stop pulling thread."""
+        """Close ThreadedTerminal connection & stop pulling thread."""
         if self.pulling_thread:
             self.pulling_thread.join()
             self.pulling_thread = None
-        super(Terminal, self).close()
+        super(ThreadedTerminal, self).close()
 
         self._terminal.close()
 
@@ -56,14 +57,14 @@ class Terminal(IOConnection):
     # 1) type of line ending is a nature of connection and not each write
     # 2) command can't pass any other newline since it just calls:
     #       self.connection.send(self.command_string)
-    def send(self, cmd, newline="\n"):  # TODO: cmd --> data
-        """Write data into Terminal connection."""
+    def send(self, cmd):  # TODO: cmd --> data
+        """Write data into ThreadedTerminal connection."""
         self._terminal.write(cmd)
-        if newline:
-            self._terminal.write(newline)
+        if self.newline:
+            self._terminal.write(self.newline)
 
     def pull_data(self, pulling_done):
-        """Pull data from Terminal connection."""
+        """Pull data from ThreadedTerminal connection."""
         shell_operable = False
         read_buffer = ""
 

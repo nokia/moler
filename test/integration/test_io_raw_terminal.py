@@ -15,7 +15,7 @@ from moler.cmd.unix.ls import Ls
 from moler.cmd.unix.ping import Ping
 from moler.cmd.unix.whoami import Whoami
 from moler.exceptions import CommandTimeout
-from moler.io.raw.terminal import Terminal
+from moler.io.raw.terminal import ThreadedTerminal
 
 
 def test_terminal_cmd_whoami(terminal_connection):
@@ -59,7 +59,7 @@ def terminal_connection():
     from moler.connection import ObservableConnection
 
     moler_conn = ObservableConnection()
-    terminal = Terminal(moler_connection=moler_conn)
+    terminal = ThreadedTerminal(moler_connection=moler_conn)
 
     with terminal as connection:
         yield connection.moler_connection
