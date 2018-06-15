@@ -414,6 +414,26 @@ def _register_builtin_connections():
                                             constructor=tcp_thd_conn)
 
 
+def _register_builtin_unix_connections():
+    from moler.io.raw.terminal import ThreadedTerminal
+
+    def mlr_conn_utf8(name):
+        return ObservableConnection(encoder=lambda data: data.encode("utf-8"),
+                                    decoder=lambda data: data.decode("utf-8"),
+                                    name=name)
+
+    def terminal_thd_conn(name=None):
+        mlr_conn = mlr_conn_utf8(name=name)
+        # TODO: rename into ThreadedTerminal
+        io_conn = ThreadedTerminal(moler_connection=mlr_conn)  # TODO: add name, logger
+        return io_conn
+
+    # TODO: unify passing logger to io_conn (logger/logger_name)
+    ConnectionFactory.register_construction(io_type="terminal",
+                                            variant="threaded",
+                                            constructor=terminal_thd_conn)
+
+
 # actions during import
 _register_builtin_connections()
 if platform.system() == 'Linux':
