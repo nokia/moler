@@ -19,6 +19,7 @@ import weakref
 from threading import Lock
 import six
 import logging
+import platform
 
 from moler.exceptions import WrongUsage
 from moler.helpers import instance_id
@@ -387,7 +388,6 @@ def get_connection(name=None, io_type=None, variant=None, **constructor_kwargs):
 def _register_builtin_connections():
     from moler.io.raw.memory import ThreadedFifoBuffer
     from moler.io.raw.tcp import ThreadedTcp
-    from moler.io.raw.terminal import Terminal
 
     def mlr_conn_utf8(name):
         return ObservableConnection(encoder=lambda data: data.encode("utf-8"),
@@ -409,21 +409,35 @@ def _register_builtin_connections():
                               port=port, host=host)  # TODO: add name
         return io_conn
 
-    def terminal_thd_conn(name=None):
-        mlr_conn = mlr_conn_bytes(name=name)
-        io_conn = Terminal(moler_connection=mlr_conn)  # TODO: add name
-        return io_conn
-
+    # TODO: unify passing logger to io_conn (logger/logger_name)
     ConnectionFactory.register_construction(io_type="memory",
                                             variant="threaded",
                                             constructor=mem_thd_conn)
     ConnectionFactory.register_construction(io_type="tcp",
                                             variant="threaded",
                                             constructor=tcp_thd_conn)
+
+
+def _register_builtin_unix_connections():
+    from moler.io.raw.terminal import Terminal
+
+    def mlr_conn_utf8(name):
+        return ObservableConnection(encoder=lambda data: data.encode("utf-8"),
+                                    decoder=lambda data: data.decode("utf-8"),
+                                    name=name)
+
+    def terminal_thd_conn(name=None):
+        mlr_conn = mlr_conn_utf8(name=name)
+        # TODO: rename into ThreadedTerminal
+        io_conn = Terminal(moler_connection=mlr_conn)  # TODO: add name, logger
+        return io_conn
+
+    # TODO: unify passing logger to io_conn (logger/logger_name)
     ConnectionFactory.register_construction(io_type="terminal",
                                             variant="threaded",
                                             constructor=terminal_thd_conn)
 
-
 # actions during import
 _register_builtin_connections()
+if platform.system() == 'Linux':
+    _register_builtin_unix_connections()
