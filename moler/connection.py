@@ -368,6 +368,8 @@ def get_connection(name=None, io_type=None, variant=None, **constructor_kwargs):
             whats_wrong = "was not defined inside configuration"
             raise KeyError("Connection named '{}' {}".format(name, whats_wrong))
         io_type, constructor_kwargs = connection_cfg.named_connections[name]
+        # assume connection constructor allows 'name' parameter
+        constructor_kwargs['name'] = name
     if variant is None:
         if io_type in connection_cfg.default_variant:
             variant = connection_cfg.default_variant[io_type]
@@ -382,7 +384,16 @@ def get_connection(name=None, io_type=None, variant=None, **constructor_kwargs):
         raise KeyError("'{}' variant of '{}' connection {}".format(variant,
                                                                    io_type,
                                                                    whats_wrong))
-    return ConnectionFactory.get_connection(io_type, variant, **constructor_kwargs)
+    try:
+        return ConnectionFactory.get_connection(io_type, variant, **constructor_kwargs)
+    except TypeError as err:
+        if "unexpected keyword argument 'name'" in str(err):
+            # 'name' parameter not allowed in connection constructor
+            del constructor_kwargs['name']
+            return ConnectionFactory.get_connection(io_type, variant,
+                                                    **constructor_kwargs)
+        raise
+
 
 
 def _register_builtin_connections():
