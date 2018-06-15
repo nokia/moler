@@ -42,7 +42,8 @@ class Rm(GenericUnix):
 
 COMMAND_OUTPUT_NO_OPTIONS = """
 user@server:~> rm test.txt
-user@server:~>"""
+user@server:~>
+"""
 
 COMMAND_RESULT_NO_OPTIONS = {
 }
@@ -53,7 +54,8 @@ COMMAND_KWARGS_NO_OPTIONS = {
 
 COMMAND_OUTPUT_WITH_OPTIONS = """
 user@server:~> rm -R test.txt
-user@server:~>"""
+user@server:~>
+"""
 
 COMMAND_RESULT_WITH_OPTIONS = {
 }
