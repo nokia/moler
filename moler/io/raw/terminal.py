@@ -59,8 +59,8 @@ class ThreadedTerminal(IOConnection):
     def send(self, data, newline="\n"):
         """Write data into ThreadedTerminal connection."""
         self._terminal.write(data)
-        # if newline:
-        #     self._terminal.write(newline)
+        if newline:
+            self._terminal.write(newline)
 
     def pull_data(self, pulling_done):
         """Pull data from ThreadedTerminal connection."""
