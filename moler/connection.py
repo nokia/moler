@@ -11,9 +11,9 @@ Connection responsibilities:
 - have a means allowing multiple observers to get it's received data (data dispatching)
 """
 
-__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
+__author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com'
 
 import weakref
 from threading import Lock
@@ -394,9 +394,6 @@ def _register_builtin_connections():
                                     decoder=lambda data: data.decode("utf-8"),
                                     name=name)
 
-    def mlr_conn_bytes(name):
-        return ObservableConnection(name=name)
-
     def mem_thd_conn(name=None, echo=True):
         mlr_conn = mlr_conn_utf8(name=name)
         io_conn = ThreadedFifoBuffer(moler_connection=mlr_conn,
@@ -409,33 +406,12 @@ def _register_builtin_connections():
                               port=port, host=host)  # TODO: add name
         return io_conn
 
-    # TODO: unify passing logger to io_conn (logger/logger_name)
     ConnectionFactory.register_construction(io_type="memory",
                                             variant="threaded",
                                             constructor=mem_thd_conn)
     ConnectionFactory.register_construction(io_type="tcp",
                                             variant="threaded",
                                             constructor=tcp_thd_conn)
-
-
-def _register_builtin_unix_connections():
-    from moler.io.raw.terminal import Terminal
-
-    def mlr_conn_utf8(name):
-        return ObservableConnection(encoder=lambda data: data.encode("utf-8"),
-                                    decoder=lambda data: data.decode("utf-8"),
-                                    name=name)
-
-    def terminal_thd_conn(name=None):
-        mlr_conn = mlr_conn_utf8(name=name)
-        # TODO: rename into ThreadedTerminal
-        io_conn = Terminal(moler_connection=mlr_conn)  # TODO: add name, logger
-        return io_conn
-
-    # TODO: unify passing logger to io_conn (logger/logger_name)
-    ConnectionFactory.register_construction(io_type="terminal",
-                                            variant="threaded",
-                                            constructor=terminal_thd_conn)
 
 
 # actions during import
