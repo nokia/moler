@@ -363,6 +363,14 @@ def get_connection(name=None, io_type=None, variant=None, **constructor_kwargs):
         raise AssertionError("Provide either 'name' or 'io_type' parameter (none given)")
     if name and io_type:
         raise AssertionError("Use either 'name' or 'io_type' parameter (not both)")
+    io_type, constructor_kwargs = _try_take_named_connection_params(name, io_type, **constructor_kwargs)
+    variant = _try_select_io_type_variant(io_type, variant)
+
+    io_conn = _try_get_connection_with_name(io_type, variant, **constructor_kwargs)
+    return io_conn
+
+
+def _try_take_named_connection_params(name, io_type, **constructor_kwargs):
     if name:
         if name not in connection_cfg.named_connections:
             whats_wrong = "was not defined inside configuration"
@@ -370,6 +378,10 @@ def get_connection(name=None, io_type=None, variant=None, **constructor_kwargs):
         io_type, constructor_kwargs = connection_cfg.named_connections[name]
         # assume connection constructor allows 'name' parameter
         constructor_kwargs['name'] = name
+    return io_type, constructor_kwargs
+
+
+def _try_select_io_type_variant(io_type, variant):
     if variant is None:
         if io_type in connection_cfg.default_variant:
             variant = connection_cfg.default_variant[io_type]
@@ -384,6 +396,10 @@ def get_connection(name=None, io_type=None, variant=None, **constructor_kwargs):
         raise KeyError("'{}' variant of '{}' connection {}".format(variant,
                                                                    io_type,
                                                                    whats_wrong))
+    return variant
+
+
+def _try_get_connection_with_name(io_type, variant, **constructor_kwargs):
     try:
         return ConnectionFactory.get_connection(io_type, variant, **constructor_kwargs)
     except TypeError as err:
@@ -393,7 +409,6 @@ def get_connection(name=None, io_type=None, variant=None, **constructor_kwargs):
             return ConnectionFactory.get_connection(io_type, variant,
                                                     **constructor_kwargs)
         raise
-
 
 
 def _register_builtin_connections():
