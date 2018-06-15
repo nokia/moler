@@ -19,11 +19,10 @@ class ThreadedTerminal(IOConnection):
     ThreadedTerminal is shell working under Pty
     """
 
-    def __init__(self, moler_connection, cmd=['/bin/bash', '--norc', '--noprofile'], newline="\n",
+    def __init__(self, moler_connection, data=['/bin/bash', '--norc', '--noprofile'],
                  select_timeout=0.002, read_buffer_size=4096, first_prompt=None, dimensions=(100, 300)):
         super(ThreadedTerminal, self).__init__(moler_connection=moler_connection)
-        self._cmd = cmd
-        self.newline = newline
+        self._data = data
         self._select_timeout = select_timeout
         self._read_buffer_size = read_buffer_size
         self.dimensions = dimensions
@@ -37,7 +36,7 @@ class ThreadedTerminal(IOConnection):
 
     def open(self):
         """Open ThreadedTerminal connection & start thread pulling data from it."""
-        self._terminal = PtyProcessUnicode.spawn(self._cmd, dimensions=self.dimensions)
+        self._terminal = PtyProcessUnicode.spawn(self._data, dimensions=self.dimensions)
         done = Event()
         self.pulling_thread = TillDoneThread(target=self.pull_data,
                                              done_event=done,
@@ -57,11 +56,11 @@ class ThreadedTerminal(IOConnection):
     # 1) type of line ending is a nature of connection and not each write
     # 2) command can't pass any other newline since it just calls:
     #       self.connection.send(self.command_string)
-    def send(self, cmd):  # TODO: cmd --> data
+    def send(self, data, newline="\n"):
         """Write data into ThreadedTerminal connection."""
-        self._terminal.write(cmd)
-        if self.newline:
-            self._terminal.write(self.newline)
+        self._terminal.write(data)
+        # if newline:
+        #     self._terminal.write(newline)
 
     def pull_data(self, pulling_done):
         """Pull data from ThreadedTerminal connection."""
