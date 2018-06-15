@@ -24,5 +24,5 @@ class Device(object):
 
     @classmethod
     def from_named_connection(cls, connection_name):
-        io_conn= get_connection(name=connection_name)
+        io_conn = get_connection(name=connection_name)
         return cls(io_connection=io_conn)
