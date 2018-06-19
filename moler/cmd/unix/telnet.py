@@ -62,7 +62,7 @@ class Telnet(GenericUnix):
         self.send_password_if_requested(line)
 
         if self._regex_helper.search_compiled(Telnet._re_has_just_connected, line):
-            self.connection.send("")
+            self.connection.sendline("")
             return
         sent = self.send_after_login_settings(line)
         if (not sent) and self.is_target_prompt(line) and (not is_full_line):
@@ -72,13 +72,13 @@ class Telnet(GenericUnix):
 
     def send_login_if_requested(self, line):
         if (not self._sent_login) and self.is_login_requested(line) and self.login:
-            self.connection.send(self.login)
+            self.connection.sendline(self.login)
             self._sent_login = True
             self._sent_password = False
 
     def send_password_if_requested(self, line):
         if (not self._sent_password) and self.is_password_requested(line) and self.password:
-            self.connection.send(self.password)
+            self.connection.sendline(self.password)
             self._sent_login = False
             self._sent_password = True
 
@@ -107,14 +107,14 @@ class Telnet(GenericUnix):
         return self.set_timeout and not self._sent_timeout
 
     def send_timeout_set(self):
-        self.connection.send("\n" + self.set_timeout)
+        self.connection.sendline("\n" + self.set_timeout)
         self._sent_timeout = True
 
     def prompt_set_needed(self):
         return self.set_prompt and not self._sent_prompt
 
     def send_prompt_set(self):
-        self.connection.send("\n" + self.set_prompt)
+        self.connection.sendline("\n" + self.set_prompt)
         self._sent_prompt = True
 
     def is_failure_indication(self, line):

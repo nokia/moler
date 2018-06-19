@@ -15,16 +15,17 @@ __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
-import weakref
-from threading import Lock
-import six
 import logging
 import platform
+import weakref
+from threading import Lock
 
+import six
+
+import moler.config.connections as connection_cfg
+from moler.config.loggers import RAW_DATA, TRACE
 from moler.exceptions import WrongUsage
 from moler.helpers import instance_id
-from moler.config.loggers import RAW_DATA, TRACE
-import moler.config.connections as connection_cfg
 
 
 def identity_transformation(data):
@@ -36,7 +37,7 @@ class Connection(object):
     """Connection API required by ConnectionObservers."""
 
     def __init__(self, how2send=None, encoder=identity_transformation, decoder=identity_transformation,
-                 name=None, logger_name=""):
+                 name=None, newline='\n', logger_name=""):
         """
         Create Connection via registering external-IO
 
@@ -45,6 +46,7 @@ class Connection(object):
         :param decoder: callable restoring data from bytes
         :param name: name assigned to connection
         :param logger_name: take that logger from logging
+        :param newline: new line character
 
         Logger is retrieved by logging.getLogger(logger_name)
         If logger_name == "" - take logger "moler.connection.<name>"
@@ -56,6 +58,7 @@ class Connection(object):
         self._encoder = encoder
         self._decoder = decoder
         self._name = self._use_or_generate_name(name)
+        self.newline = newline
         self.logger = self._select_logger(logger_name, self._name)
 
     @property
@@ -118,6 +121,11 @@ class Connection(object):
         self._log(msg=data2send, level=RAW_DATA, extra={'transfer_direction': '>'})
         self.how2send(data2send)
 
+    def sendline(self, data, timeout=30):
+        """Outgoing-IO API: Send data line over external-IO."""
+        line = data + self.newline
+        self.send(data=line, timeout=timeout)
+
     def data_received(self, data):
         """Incoming-IO API: external-IO should call this method when data is received"""
         pass
@@ -157,7 +165,7 @@ class ObservableConnection(Connection):
     """
 
     def __init__(self, how2send=None, encoder=identity_transformation, decoder=identity_transformation,
-                 name=None, logger_name=""):
+                 name=None, newline='\n', logger_name=""):
         """
         Create Connection via registering external-IO
 
@@ -171,8 +179,8 @@ class ObservableConnection(Connection):
         If logger_name == "" - take logger "moler.connection.<name>"
         If logger_name is None - don't use logging
         """
-        super(ObservableConnection, self).__init__(how2send, encoder, decoder,
-                                                   name=name, logger_name=logger_name)
+        super(ObservableConnection, self).__init__(how2send, encoder, decoder, name=name, newline=newline,
+                                                   logger_name=logger_name)
         self._observers = dict()
         self._observers_lock = Lock()
 

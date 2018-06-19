@@ -146,7 +146,7 @@ class TextualGeneric(Command):
         Send ctrl+c to device to break command execution
         :return:
         """
-        self.connection.send("\x03")  # ctrl+c
+        self.connection.sendline("\x03")  # ctrl+c
 
     def cancel(self):
         """
