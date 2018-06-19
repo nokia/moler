@@ -52,15 +52,9 @@ class ThreadedTerminal(IOConnection):
 
         self._terminal.close()
 
-    # TODO: newline should be attribute of __init__ since:
-    # 1) type of line ending is a nature of connection and not each write
-    # 2) command can't pass any other newline since it just calls:
-    #       self.connection.send(self.command_string)
-    def send(self, cmd, newline="\n"):  # TODO: cmd --> data
+    def send(self, data):
         """Write data into ThreadedTerminal connection."""
-        self._terminal.write(cmd)
-        if newline:
-            self._terminal.write(newline)
+        self._terminal.write(data)
 
     def pull_data(self, pulling_done):
         """Pull data from ThreadedTerminal connection."""

@@ -43,7 +43,7 @@ class Command(ConnectionObserver):
         self._validate_start(*args, **kwargs)
         ret = super(Command, self).start(timeout, *args, **kwargs)
         self._is_running = True  # when it sends - real CMD starts running
-        self.connection.send(self.command_string)
+        self.connection.sendline(self.command_string)
         return ret
 
     @property
