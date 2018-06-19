@@ -6,6 +6,39 @@ __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
+from moler.exceptions import CommandWrongState
+import pytest
+
+
+def test_calling_ls_in_proper_and_inproper_state(buffer_connection):
+    from moler.cmd.unix.ls import Ls
+    command_output, expected_result = command_output_and_expected_result()
+    buffer_connection.remote_inject_response([command_output])
+
+    class Dev(object):
+        def __init__(self):
+            self.state=None
+
+        def set_state(self, state):
+            self.state = state
+
+        def get_state(self):
+            return self.state
+
+    d = Dev()
+    d.set_state("A")
+    ls_cmd_ok = Ls(connection=buffer_connection.moler_connection)
+    ls_cmd_ok.state_dev = d.get_state
+    result = ls_cmd_ok()
+    assert result == expected_result
+
+    ls_cmd_wrg = Ls(connection=buffer_connection.moler_connection)
+    ls_cmd_wrg.state_dev = d.get_state
+    d.set_state("B")
+    with pytest.raises(CommandWrongState):
+        ls_cmd_wrg()
+
+
 
 def test_calling_ls_returns_result_parsed_from_command_output(buffer_connection):
     from moler.cmd.unix.ls import Ls

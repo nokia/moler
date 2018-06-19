@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-__author__ = 'Grzegorz Latuszek'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 
 class MolerException(Exception):
@@ -98,6 +98,13 @@ class CommandFailure(MolerException):
         err_msg = "Command failed '{}' with {}".format(command.command_string, message)
         self.command = command
         super(CommandFailure, self).__init__(err_msg)
+
+
+class CommandWrongState(MolerException):
+    def __init__(self, command, expected_state, current_state):
+        err_msg = "Command '{}' tried to run in state '{}' but crated in {}".format(command.command_string, expected_state, current_state)
+        self.command = command
+        super(CommandWrongState, self).__init__(err_msg)
 
 
 class CommandTimeout(ConnectionObserverTimeout):

@@ -157,3 +157,6 @@ class ConnectionObserver(object):
         msg = "Extended timeout from %.2f with delta %.2f to %.2f" % (prev_timeout, timedelta, self.timeout)
         self.runner.timeout_change(timedelta)
         self.logger.info(msg)
+
+    def get_registration_name(self):
+        return type(self).__name__.lower()
