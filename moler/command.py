@@ -11,13 +11,12 @@ Additionally:
 - Command - Python code automating its startup/parsing/completion
 """
 
-__author__ = 'Grzegorz Latuszek, Marcin Usielski'
+__author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com'
 
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import NoCommandStringProvided
-from moler.exceptions import CommandWrongState
 from moler.helpers import instance_id
 
 
@@ -29,8 +28,6 @@ class Command(ConnectionObserver):
         """
         super(Command, self).__init__(connection=connection)
         self.command_string = ''
-        self._initial_state = None
-        self._get_state_dev_fun = None
 
     def __str__(self):
         cmd_str = self.command_string if self.command_string else '<EMPTY COMMAND STRING>'
@@ -46,15 +43,6 @@ class Command(ConnectionObserver):
         self.connection.sendline(self.command_string)
         return ret
 
-    @property
-    def state_dev(self):
-        pass
-
-    @state_dev.setter
-    def state_dev(self, get_state_dev_fun):
-        self._get_state_dev_fun = get_state_dev_fun
-        self._initial_state = self._get_state_dev_fun()
-
     def _validate_start(self, *args, **kwargs):
         # check base class invariants first
         super(Command, self)._validate_start(*args, **kwargs)
@@ -62,7 +50,3 @@ class Command(ConnectionObserver):
         if not self.command_string:
             # no chance to start CMD
             raise NoCommandStringProvided(self)
-        if self._initial_state and self._get_state_dev_fun:
-            current_state = self._get_state_dev_fun()
-            if self._initial_state != current_state:
-                raise CommandWrongState(self, self._initial_state, current_state)
