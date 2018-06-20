@@ -51,7 +51,6 @@ class Device(object):
 
             @functools.wraps(cmd._validate_start)
             def validate_device_state_before_cmd_start(*args, **kargs):
-                print "get_cmd::Device validate"
                 current_state = self.get_state()
                 if current_state == created_state:
                     ret = org_fun(*args, **kargs)
