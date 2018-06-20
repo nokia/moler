@@ -30,7 +30,7 @@ class Unix(Device):
     def _get_cmds_in_state(self, state):
         return commands_of_device
 
-    def run(self, cmd_name='cd', **kwargs):
+    def run(self, cmd_name, **kwargs):
         """
         Wrapper for simple use:
 
@@ -41,7 +41,7 @@ class Unix(Device):
         cmd = self.get_cmd(cmd_name=cmd_name, **kwargs)
         return cmd()
 
-    def start(self, cmd_name='cd', **kwargs):
+    def start(self, cmd_name, **kwargs):
         """
         Wrapper for simple use:
 
