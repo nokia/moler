@@ -10,6 +10,11 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
 from moler.device import Device
+from moler.cmd.unix.cd import Cd
+
+commands_of_device = {
+    'cd': Cd,
+}
 
 
 # TODO: name, logger/logger_name as param
@@ -21,6 +26,9 @@ class Unix(Device):
         :param io_connection: External-IO connection having embedded moler-connection
         """
         super(Unix, self).__init__(io_connection=io_connection)
+
+    def _get_cmds_in_state(self, state):
+        return commands_of_device
 
     def run(self, cmd_name='cd', **kwargs):
         """
