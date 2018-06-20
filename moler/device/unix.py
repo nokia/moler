@@ -22,7 +22,6 @@ class Unix(Device):
         """
         super(Unix, self).__init__(io_connection=io_connection)
 
-
     def run(self, cmd_name='cd', **kwargs):
         """
         Wrapper for simple use:
