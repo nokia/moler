@@ -4,18 +4,21 @@ __author__ = 'Grzegorz Latuszek, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
+import logging
 from abc import abstractmethod, ABCMeta
 
+from six import add_metaclass
+
 from moler.exceptions import ConnectionObserverNotStarted
+from moler.exceptions import ConnectionObserverTimeout
 from moler.exceptions import NoConnectionProvided
 from moler.exceptions import NoResultSinceCancelCalled
 from moler.exceptions import ResultAlreadySet
 from moler.exceptions import ResultNotAvailableYet
-from moler.exceptions import ConnectionObserverTimeout
+from moler.helpers import ClassProperty
+from moler.helpers import camel_case_to_lower_case_underscore
 from moler.helpers import instance_id
 from moler.runner import ThreadPoolExecutorRunner
-from six import add_metaclass
-import logging
 
 
 @add_metaclass(ABCMeta)
@@ -92,7 +95,8 @@ class ConnectionObserver(object):
             return self.result()
         if self._future is None:
             raise ConnectionObserverNotStarted(self)
-        result = self.runner.wait_for(connection_observer=self, connection_observer_future=self._future, timeout=timeout)
+        result = self.runner.wait_for(connection_observer=self, connection_observer_future=self._future,
+                                      timeout=timeout)
         return result
 
     def cancel(self):
@@ -158,5 +162,7 @@ class ConnectionObserver(object):
         self.runner.timeout_change(timedelta)
         self.logger.info(msg)
 
-    def get_registration_name(self):
-        return type(self).__name__.lower()
+    @ClassProperty
+    def registration_name(cls):
+        name = camel_case_to_lower_case_underscore(cls.__name__)
+        return name
