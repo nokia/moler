@@ -44,7 +44,7 @@ class Device(object):
         raise KeyError("Unknown Command-derived class to instantiate " + for_whom)
 
     def get_cmd(self, cmd_name, check_states=True, **kwargs):
-        cmd = self._get_cmd_in_state(cmd_name, kwargs)
+        cmd = self._get_cmd_in_state(cmd_name, **kwargs)
         if check_states:
             org_fun = cmd._validate_start
             created_state = self.get_state()
