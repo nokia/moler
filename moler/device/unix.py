@@ -12,7 +12,6 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 from moler.device import Device
 
 
-
 # TODO: name, logger/logger_name as param
 class Unix(Device):
     def __init__(self, io_connection):
