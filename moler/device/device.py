@@ -19,14 +19,23 @@ import pkgutil
 
 # TODO: name, logger/logger_name as param
 class Device(object):
-    def __init__(self, io_connection):
+    def __init__(self, io_connection=None, io_type=None, variant=None):
         """
         Create Device communicating over io_connection
 
         :param io_connection: External-IO connection having embedded moler-connection
+        :param io_type: External-IO connection connection type
+        :param variant: External-IO connection variant
         """
-        self.io_connection = io_connection
+        if io_connection:
+            self.io_connection = io_connection
+        else:
+            self.io_connection = get_connection(io_type=io_type, variant=variant)
+            self.io_connection.open()
         self._current_state = ""
+
+    def __del__(self):
+        self.io_connection.close()
 
     def get_state(self):
         return self._current_state
