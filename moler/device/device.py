@@ -4,6 +4,8 @@ Moler's device has 2 main responsibilities:
 - be the factory that returns commands of that device
 - be the state machine that controls which commands may run in given state
 """
+import importlib
+import inspect
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -12,6 +14,7 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 from moler.connection import get_connection
 from moler.exceptions import CommandWrongState
 import functools
+import pkgutil
 
 
 # TODO: name, logger/logger_name as param
@@ -29,7 +32,20 @@ class Device(object):
         return self._current_state
 
     def _get_cmds_in_state(self, state):
-        return dict()
+        available_cmds = dict()
+        basic_module = importlib.import_module(state)
+        for importer, modname, is_pkg in pkgutil.iter_modules(basic_module.__path__):
+            module_name = "{}.{}".format(state, modname)
+            module = importlib.import_module(module_name)
+
+            for (cmd_class_name, cmd_module_name) in inspect.getmembers(module, inspect.isclass):
+                if cmd_module_name.__module__ == module_name:
+                    cmd_class_obj = getattr(module, cmd_class_name)
+                    cmd_name = cmd_class_obj.registration_name
+                    cmd_class = "{}.{}".format(module_name, cmd_class_name)
+
+                    available_cmds.update({cmd_name: cmd_class})
+        return available_cmds
 
     def _get_cmd_in_state(self, cmd_name, **kwargs):
         """Return Command object assigned to cmd_name of given device"""
@@ -37,8 +53,14 @@ class Device(object):
         # TODO:  to check it it is starting in correct state (do it on flag)
         commands_of_device = self._get_cmds_in_state(self.get_state())
         if cmd_name in commands_of_device:
-            cmd_class = commands_of_device[cmd_name]  # load from factory/registry
+            cmd_splited = commands_of_device[cmd_name].split('.')
+            cmd_module_name = ".".join(cmd_splited[:-1])
+            cmd_class_name = cmd_splited[-1]
+
+            cmd_module = importlib.import_module(cmd_module_name)
+            cmd_class = getattr(cmd_module, cmd_class_name)
             cmd = cmd_class(connection=self.io_connection.moler_connection, **kwargs)
+            
             return cmd
         for_whom = "for '{}' command of {} device".format(cmd_name, self.__class__.__name__)
         raise KeyError("Unknown Command-derived class to instantiate " + for_whom)
