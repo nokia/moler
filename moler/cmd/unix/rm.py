@@ -20,10 +20,10 @@ class Rm(GenericUnix):
         self.ret_required = False
 
     def build_command_string(self):
+        cmd = "{} {}".format('rm', self.file)
         if self.options:
             cmd = "{} {} {}".format('rm', self.options, self.file)
-        else:
-            cmd = "{} {}".format('rm', self.file)
+
         return cmd
 
 
