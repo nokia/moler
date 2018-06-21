@@ -60,7 +60,7 @@ class Device(object):
             cmd_module = importlib.import_module(cmd_module_name)
             cmd_class = getattr(cmd_module, cmd_class_name)
             cmd = cmd_class(connection=self.io_connection.moler_connection, **kwargs)
-            
+
             return cmd
         for_whom = "for '{}' command of {} device".format(cmd_name, self.__class__.__name__)
         raise KeyError("Unknown Command-derived class to instantiate " + for_whom)
