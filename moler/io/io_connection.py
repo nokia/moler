@@ -28,9 +28,11 @@ So, below class is not needed to work as base class. It may, but
 rather it is generic template how to glue external-IO with Moler's connection.
 """
 
-__author__ = 'Grzegorz Latuszek'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
+
+from threading import Lock
 
 
 class IOConnection(object):
@@ -42,6 +44,10 @@ class IOConnection(object):
         how to establish connection (like host/port info)
         """
         super(IOConnection, self).__init__()
+        self._connect_subscribers = list()
+        self._connect_subscribers_lock = Lock()
+        self._disconnect_subscribers = list()
+        self._disconnect_subscribers_lock = Lock()
         self.moler_connection = moler_connection
         # plugin the way we output data to external world
         self.moler_connection.how2send = self.send
@@ -94,3 +100,56 @@ class IOConnection(object):
         just forward it to Moler's connection:
         """
         self.moler_connection.data_received(data)
+
+    def subscribe_on_connect(self, subscriber):
+        """
+        Adds subscriber to list of functions to call when connection is open/established (also reopen after close)
+        :param subscriber: reference to function to call when connection is open/established
+        :return: Nothing
+        """
+        self._subscribe(self._connect_subscribers_lock, self._connect_subscribers, subscriber)
+
+    def subscribe_on_disconnect(self, subscriber):
+        """
+        Adds subscriber to list of functions to call when connection is closed/disconnected
+        :param subscriber: reference to function to call when connection is closed/disconnected
+        :return: Nothing
+        """
+        self._subscribe(self._disconnect_subscribers_lock, self._disconnect_subscribers, subscriber)
+
+    def unsubscribe_on_connect(self, subscriber):
+        """
+        Remove subscriber from list of functions to call when connection is open/established (also reopen after close)
+        :param subscriber: reference to function registered by method subscribe_on_connect
+        :return: Nothing
+        """
+        self._unsubscribe(self._connect_subscribers_lock, self._connect_subscribers, subscriber)
+
+    def unsubscribe_on_disconnect(self, subscriber):
+        """
+        Remove subscriber from list of functions to call when connection is closed/disconnected
+        :param subscriber: reference to function registered by method subscribe_on_disconnect
+        :return: Nothing
+        """
+        self._unsubscribe(self._disconnect_subscribers_lock, self._disconnect_subscribers, subscriber)
+
+    def _notify(self, lock, subscribers):
+        with lock:
+            copied_subscribers = subscribers[:]
+            for subscriber in copied_subscribers:
+                subscriber(self)
+
+    def _notify_on_connect(self):
+        self._notify(self._connect_subscribers_lock, self._connect_subscribers)
+
+    def _notify_on_disconnect(self):
+        self._notify(self._disconnect_subscribers_lock, self._disconnect_subscribers)
+
+    def _subscribe(self, lock, subscribers, subscriber):
+        with lock:
+            if subscriber not in subscribers:
+                subscribers.append(subscriber)
+
+    def _unsubscribe(self, lock, subscribers, subscriber):
+        with lock:
+            subscribers.remove(subscriber)
