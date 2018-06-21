@@ -72,7 +72,9 @@ class ThreadedTerminal(IOConnection):
                         read_buffer = read_buffer + data
                         if re.search(self.prompt, read_buffer, re.MULTILINE):
                             shell_operable = True
+                            self._notify_on_connect()
                             data = re.sub(self.prompt, '', read_buffer, re.MULTILINE)
                             self.data_received(data)
                 except EOFError:
+                    self._notify_on_disconnect()
                     pulling_done.set()
