@@ -27,13 +27,6 @@ class Rm(GenericUnix):
         return cmd
 
 
-# -----------------------------------------------------------------------------
-# Following documentation is required for library CI.
-# It is used to perform command self-test.
-# Parameters:
-# options is Optional.Options for Unix cd command
-# -----------------------------------------------------------------------------
-
 COMMAND_OUTPUT_NO_OPTIONS = """
 user@server:~> rm test.txt
 user@server:~>
