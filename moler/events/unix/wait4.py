@@ -20,8 +20,6 @@ class Wait4(Event):
         self.detect_patterns = detect_patterns
         self.logger = logging.getLogger('moler.{}'.format(self))
         self.end_on_caught = end_on_caught
-        self.callback = callback
-        self.callback_params = callback_params
 
     def data_received(self, data):
         if not self.done():
@@ -33,11 +31,9 @@ class Wait4(Event):
 
     def _process_data(self, data, detect_pattern):
         if re.search(detect_pattern, data):
+            self.notify()
             when_detected = time.time()
             self.logger.debug("Caught '{}' on Device '{}'!".format(detect_pattern, self.connection))
-            print("Caught '{}' on Device '{}'!".format(detect_pattern, self.connection))
 
             if self.end_on_caught:
                 self.set_result(result=when_detected)
-            if self.callback:
-                self.callback(self, **self.callback_params)
