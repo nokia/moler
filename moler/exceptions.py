@@ -85,6 +85,15 @@ class NoCommandStringProvided(MolerException):
         self.command = command
 
 
+class NoDetectPatternProvided(MolerException):
+    def __init__(self, command):
+        """Create instance of NoDetectPatternProvided exception"""
+        fix_info = 'fill .detect_pattern or .detect_patterns member before starting event'
+        err_msg = 'for {}\nYou should {}'.format(command, fix_info)
+        super(NoDetectPatternProvided, self).__init__(err_msg)
+        self.command = command
+
+
 class NoConnectionProvided(MolerException):
     def __init__(self, connection_observer):
         """Create instance of NoConnectionProvided exception"""
@@ -102,9 +111,18 @@ class CommandFailure(MolerException):
 
 class CommandWrongState(MolerException):
     def __init__(self, command, expected_state, current_state):
-        err_msg = "Command '{}' tried to run in state '{}' but crated in {}".format(command.command_string, expected_state, current_state)
+        err_msg = "Command '{}' tried to run in state '{}' but created in '{}'".format(command.command_string,
+                                                                                       current_state, expected_state)
         self.command = command
         super(CommandWrongState, self).__init__(err_msg)
+
+
+class EventWrongState(MolerException):
+    def __init__(self, command, expected_state, current_state):
+        err_msg = "Event '{}' tried to run in state '{}' but created in '{}'".format(command.command_string,
+                                                                                     current_state, expected_state)
+        self.command = command
+        super(EventWrongState, self).__init__(err_msg)
 
 
 class CommandTimeout(ConnectionObserverTimeout):

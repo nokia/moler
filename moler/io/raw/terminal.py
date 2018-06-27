@@ -51,6 +51,7 @@ class ThreadedTerminal(IOConnection):
         super(ThreadedTerminal, self).close()
 
         self._terminal.close()
+        self._notify_on_disconnect()
 
     def send(self, data):
         """Write data into ThreadedTerminal connection."""
