@@ -10,12 +10,14 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 from moler.device import Device
+from threading import Lock
 
 
 # TODO: name, logger/logger_name as param
 class Unix(Device):
     unix = "UNIX"
-    states = [unix]
+    unix2 = "UNIX2"
+    states = [unix, unix2]
 
     transitions = [
         {'trigger': Device.get_trigger_to_state(unix), 'source': Device.connected, 'dest': unix,
@@ -35,7 +37,9 @@ class Unix(Device):
         super(Unix, self).__init__(io_connection=io_connection, io_type=io_type, variant=variant, states=Unix.states)
         self.SM.add_transitions(transitions=Unix.transitions)
 
-        self.events = dict()
+        self._events = dict()
+        self._events_lock = Lock()
+        self._configurations = dict()
 
     def _get_packages_for_state(self, state, observable):
         if state == Unix.connected:
@@ -51,27 +55,30 @@ class Unix(Device):
     def _connect_to_remote_host(self, source_state, dest_state):
         configurations = self.get_configurations(dest_state)
         connection_type = configurations.pop("connection_type")
-        self.events[dest_state] = []
+        self._events[dest_state] = []
 
         logout_event = self.get_event(event_name="wait4",
                                       detect_patterns=[
                                           r"Connection to .* closed.".format(configurations["host"])
                                       ],
-                                      end_on_caught=False,
-                                      callback=self._logout_callback,
-                                      callback_params={"source_state": source_state, "dest_state": dest_state})
+                                      end_on_caught=False)
+
+        logout_event.subscribe(callback=self._logout_callback,
+                               callback_params={"source_state": source_state, "dest_state": dest_state})
+
         logout_event.start()
-        self.events[dest_state].append(logout_event)
+        self._events[dest_state].append(logout_event)
 
         cmd = self.get_cmd(cmd_name=connection_type, **configurations)
         cmd()
 
     def _exit_from_remote_host(self, current_state=None, dest_state=None):
         # Cancel run of observers when exiting current state
-        if current_state in self.events.keys():
-            while self.events[current_state]:
-                event = self.events[current_state].pop(0)
-                event.cancel()
+        if current_state in self._events.keys():
+            while self._events[current_state]:
+                event = self._events[current_state].pop(0)
+                event.stop_observer()
+                event.unsubscribe()
 
         cmd = self.get_cmd('exit')
         cmd()
@@ -84,19 +91,15 @@ class Unix(Device):
 
         if current_state == dest_state:
             event.cancel()
+            event.unsubscribe()
             self._set_state(source_state)
-            self.events[dest_state].remove(event)
+            self._events[dest_state].remove(event)
 
-    def get_configurations(self, dest_state):
-        configurations = {
-            Unix.unix: {
-                "connection_type": "ssh",
-                "host": "localhost",
-                "login": "root",
-                "password": "emssim",
-                "prompt": "ute@debdev:~>",
-                "expected_prompt": 'root@debdev:~#'
-            }
-        }
+    def get_configurations(self, state=None):
+        if not (state is None):
+            return self._configurations[state]
+        else:
+            return self._configurations
 
-        return configurations[dest_state]
+    def set_configurations(self, configurations):
+        self._configurations = configurations
