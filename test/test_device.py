@@ -28,9 +28,8 @@ def test_device_unix_can_return_cd_command(configure_net_1_connection):
 
     ux = Unix.from_named_connection(connection_name='net_1')
     assert hasattr(ux, 'get_cmd')
-    from moler.device import Device
-    ux._set_state(Device.connected)
     assert isinstance(ux.get_cmd(cmd_name='cd', path="/home/user/"), Cd)
+
 
 # --------------------------- resources ---------------------------
 
