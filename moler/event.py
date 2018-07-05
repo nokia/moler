@@ -7,8 +7,6 @@ __email__ = 'michal.ernst@nokia.com'
 from abc import ABCMeta
 
 from six import add_metaclass
-from threading import Lock
-from copy import copy
 
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import NoDetectPatternProvided
@@ -21,8 +19,8 @@ class Event(ConnectionObserver):
         super(Event, self).__init__(connection=connection)
         self.detect_pattern = ''
         self.detect_patterns = []
-        self.subscribers_lock = Lock()
-        self.subscribers = list()
+        self.callback = None
+        self.callback_params = dict()
 
     def __str__(self):
         detect_pattern = self.detect_pattern if not (self.detect_pattern is None) else ', '.join(self.detect_patterns)
@@ -44,16 +42,14 @@ class Event(ConnectionObserver):
             # no chance to start CMD
             raise NoDetectPatternProvided(self)
 
-    def notify(self):
-        with self.subscribers_lock:
-            copied_subscribers = copy(self.subscribers)
-            for subscriber in copied_subscribers:
-                subscriber[0](self, **subscriber[1])
-
     def subscribe(self, callback, callback_params={}):
-        with self.subscribers_lock:
-            if (callback, callback_params) not in self.subscribers:
-                self.subscribers.append((callback, callback_params))
+        self.callback = callback
+        self.callback_params = callback_params
 
-    def unsubscribe(self, ):
-        self.subscribers = list()
+    def unsubscribe(self):
+        if not (self.callback_params is None):
+            self.callback = None
+            self.callback_params = dict()
+
+    def notify(self):
+        self.callback(self, **self.callback_params)
