@@ -215,6 +215,7 @@ class ThreadedFifoBuffer(FifoBuffer):
                                              kwargs={'pulling_done': done})
         self.pulling_thread.start()
         self._log(msg="open {}".format(self), level=logging.INFO)
+        self._notify_on_connect()
 
     def close(self):
         """Stop pulling thread."""
@@ -223,6 +224,7 @@ class ThreadedFifoBuffer(FifoBuffer):
             self.pulling_thread = None
         super(ThreadedFifoBuffer, self).close()
         self._log(msg="closed {}".format(self), level=logging.INFO)
+        self._notify_on_disconnect()
 
     def inject(self, input_bytes, delay=0.0):
         """
