@@ -36,12 +36,13 @@ class ThreadedTerminal(IOConnection):
 
     def open(self):
         """Open ThreadedTerminal connection & start thread pulling data from it."""
-        self._terminal = PtyProcessUnicode.spawn(self._cmd, dimensions=self.dimensions)
-        done = Event()
-        self.pulling_thread = TillDoneThread(target=self.pull_data,
-                                             done_event=done,
-                                             kwargs={'pulling_done': done})
-        self.pulling_thread.start()
+        if not self._terminal:
+            self._terminal = PtyProcessUnicode.spawn(self._cmd, dimensions=self.dimensions)
+            done = Event()
+            self.pulling_thread = TillDoneThread(target=self.pull_data,
+                                                 done_event=done,
+                                                 kwargs={'pulling_done': done})
+            self.pulling_thread.start()
 
     def close(self):
         """Close ThreadedTerminal connection & stop pulling thread."""
@@ -50,8 +51,10 @@ class ThreadedTerminal(IOConnection):
             self.pulling_thread = None
         super(ThreadedTerminal, self).close()
 
-        self._terminal.close()
-        self._notify_on_disconnect()
+        if self._terminal.isalive():
+            self._terminal.close()
+            self._terminal = None
+            self._notify_on_disconnect()
 
     def send(self, data):
         """Write data into ThreadedTerminal connection."""

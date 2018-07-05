@@ -9,8 +9,9 @@ __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
-from moler.device import Device
 from threading import Lock
+
+from moler.device import Device
 
 
 # TODO: name, logger/logger_name as param
@@ -19,6 +20,7 @@ class Unix(Device):
     unix2 = "UNIX2"
     states = [unix, unix2]
 
+    # before pass list of method to call
     transitions = [
         {'trigger': Device.get_trigger_to_state(unix), 'source': Device.connected, 'dest': unix,
          'before': '_connect_to_remote_host'},
@@ -41,15 +43,15 @@ class Unix(Device):
         self._events_lock = Lock()
         self._configurations = dict()
 
-    def _get_packages_for_state(self, state, observable):
+    def _get_packages_for_state(self, state, observer):
         if state == Unix.connected:
             available = {Unix.cmds: ['moler.cmd.unix'],
                          Unix.events: ['moler.events.unix']}
-            return available[observable]
+            return available[observer]
         elif state == Unix.unix:
             available = {Unix.cmds: ['moler.cmd.unix'],
                          Unix.events: ['moler.events.unix']}
-            return available[observable]
+            return available[observer]
         return []
 
     def _connect_to_remote_host(self, source_state, dest_state):
@@ -77,17 +79,17 @@ class Unix(Device):
         if current_state in self._events.keys():
             while self._events[current_state]:
                 event = self._events[current_state].pop(0)
-                event.stop_observer()
+                event.cancel()
                 event.unsubscribe()
 
-        cmd = self.get_cmd('exit')
+        cmd = self.get_cmd(cmd_name='exit', prompt=r'^bash-\d+\.*\d*')
         cmd()
 
     def _logout_callback(self, event, **kwargs):
         # Cancel run of observers when exiting current state
         dest_state = kwargs["dest_state"]
         source_state = kwargs["source_state"]
-        current_state = self.get_state()
+        current_state = self.current_state
 
         if current_state == dest_state:
             event.cancel()

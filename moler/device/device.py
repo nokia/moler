@@ -38,49 +38,63 @@ class Device(object):
         {'trigger': goto_not_connected, 'source': connected, 'dest': not_connected}
     ]
 
+    """
+    CAUTION: Device owns (takes over ownership) of connection. It will be open when device "is born" and close when 
+    device "dies".
+    """
+
     def __init__(self, io_connection=None, io_type=None, variant=None, states=[]):
         """
         Create Device communicating over io_connection
 
         :param io_connection: External-IO connection having embedded moler-connection
-        :param io_type: External-IO connection connection type
-        :param variant: External-IO connection variant
+        :param io_type: type of connection - tcp, udp, ssh, telnet, ...
+        :param variant: connection implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
+                        (if not given then default one is taken)
         """
         Device.states += states
         self.SM = StateMachine(model=self, states=Device.states, initial=Device.not_connected, auto_transitions=False,
                                queued=True)
         self.SM.add_transitions(Device.transitions)
 
-        self.logger = logging.getLogger('moler.conn-observer')
+        self.logger = logging.getLogger('moler.device')
         if io_connection:
             self.io_connection = io_connection
-            # TODO what if not open?
-            self.goto_state(Device.connected)
-            self.io_connection.subscribe_on_connect(subscriber=self.call_on_connect)
         else:
             self.io_connection = get_connection(io_type=io_type, variant=variant)
-            self.io_connection.subscribe_on_connect(subscriber=self.call_on_connect)
-            self.io_connection.open()
+        self.io_connection.subscribe_on_connect(subscriber=self.call_on_connect)
+        self.io_connection.open()
         self.io_connection.subscribe_on_disconnect(subscriber=self.call_on_disconnect)
         self._cmds_in_states = dict()
         self._events_in_states = dict()
-        self._feed_cmds_and_events_on_start()
+        self._collect_cmds_and_events_for_state_machine()
 
     def __del__(self):
         self.io_connection.close()
 
-    def get_state(self):
+    def _collect_cmds_and_events_for_state_machine(self):
+        for state in self._get_available_states():
+            self._cmds_in_states[state] = dict()
+            self._events_in_states[state] = dict()
+
+            cmds, events = self._collect_cmds_and_events_for_state(state)
+
+            self._cmds_in_states[state].update(cmds)
+            self._events_in_states[state].update(events)
+
+    @property
+    def current_state(self):
         return self.state
 
     def get_name(self):
         return self.io_connection.moler_connection.name
 
     def _set_state(self, state):
-        self.logger.debug("Changing state from '%s' into '%s'" % (self.get_state, state))
+        self.logger.debug("Changing state from '%s' into '%s'" % (self.current_state, state))
         self.SM.set_state(state=state)
 
     def goto_state(self, state):
-        current_state = self.get_state()
+        current_state = self.current_state
 
         if current_state == state:
             return
@@ -104,11 +118,11 @@ class Device(object):
         self._set_state(Device.not_connected)
 
     @abc.abstractmethod
-    def _get_packages_for_state(self, state, observable):
+    def _get_packages_for_state(self, state, observer):
         """
         Returns list of packages (list of strings) for a given state
         :param state: state name
-        :param observable: type of return packages - Device.events or Device.cmds
+        :param observer: type of return packages - Device.events or Device.cmds
         :return: list of packages
         """
         return []  # Workaround for test_device.py test test_device_may_be_created_on_named_connection
@@ -129,57 +143,59 @@ class Device(object):
             for (cmd_class_name, cmd_module_name) in inspect.getmembers(module, inspect.isclass):
                 if cmd_module_name.__module__ == module_name:
                     cmd_class_obj = getattr(module, cmd_class_name)
-                    cmd_name = cmd_class_obj.registration_name
-                    cmd_class = "{}.{}".format(module_name, cmd_class_name)
+                    # like:  IpAddr --> ip_addr
+                    cmd_name = cmd_class_obj.observer_name
 
-                    available_cmds.update({cmd_name: cmd_class})
+                    cmd_class_fullname = "{}.{}".format(module_name, cmd_class_name)
+
+                    available_cmds.update({cmd_name: cmd_class_fullname})
         return available_cmds
 
-    def _get_observable_in_state(self, observable_name, observable_type, **kwargs):
+    def _get_observer_in_state(self, observer_name, observer_type, **kwargs):
         """Return Observable object assigned to cmd_name of given device"""
-        # TODO: return observable object wrapped in decorator mocking it's start()
+        # TODO: return observer object wrapped in decorator mocking it's start()
         # TODO:  to check it it is starting in correct state (do it on flag)
-        observable_of_device = []
+        observer_of_device = []
 
-        if observable_type == Device.cmds:
-            observable_of_device = self._get_cmds_in_state(self.get_state())
-        elif observable_type == Device.events:
-            observable_of_device = self._get_events_in_state(self.get_state())
+        if observer_type == Device.cmds:
+            observer_of_device = self._get_cmds_in_state(self.current_state)
+        elif observer_type == Device.events:
+            observer_of_device = self._get_events_in_state(self.current_state)
 
-        if observable_name in observable_of_device:
-            observable_splited = observable_of_device[observable_name].split('.')
-            observable_module_name = ".".join(observable_splited[:-1])
-            observable_class_name = observable_splited[-1]
+        if observer_name in observer_of_device:
+            observer_splited = observer_of_device[observer_name].split('.')
+            observer_module_name = ".".join(observer_splited[:-1])
+            observer_class_name = observer_splited[-1]
 
-            observable_module = importlib.import_module(observable_module_name)
-            observable_class = getattr(observable_module, observable_class_name)
-            observable = observable_class(connection=self.io_connection.moler_connection, **kwargs)
+            observer_module = importlib.import_module(observer_module_name)
+            observer_class = getattr(observer_module, observer_class_name)
+            observer = observer_class(connection=self.io_connection.moler_connection, **kwargs)
 
-            return observable
+            return observer
 
-        for_whom = "for '{}' command of {} device".format(observable_name, self.__class__.__name__)
-        raise KeyError("Unknown {}-derived class to instantiate {}".format(observable_type, for_whom))
+        for_whom = "for '{}' command of {} device".format(observer_name, self.__class__.__name__)
+        raise KeyError("Unknown {}-derived class to instantiate {}".format(observer_type, for_whom))
 
     def _get_cmd_in_state(self, cmd_name, **kwargs):
-        return self._get_observable_in_state(observable_name=cmd_name, observable_type=Device.cmds, **kwargs)
+        return self._get_observer_in_state(observer_name=cmd_name, observer_type=Device.cmds, **kwargs)
 
     def _get_event_in_state(self, event_name, **kwargs):
-        return self._get_observable_in_state(observable_name=event_name, observable_type=Device.events, **kwargs)
+        return self._get_observer_in_state(observer_name=event_name, observer_type=Device.events, **kwargs)
 
     def get_cmd(self, cmd_name, check_states=True, **kwargs):
         cmd = self._get_cmd_in_state(cmd_name, **kwargs)
         if check_states:
             org_fun = cmd._validate_start
-            created_state = self.get_state()
+            creation_state = self.current_state
 
             @functools.wraps(cmd._validate_start)
             def validate_device_state_before_cmd_start(*args, **kargs):
-                current_state = self.get_state()
-                if current_state == created_state:
+                current_state = self.current_state
+                if current_state == creation_state:
                     ret = org_fun(*args, **kargs)
                     return ret
                 else:
-                    raise CommandWrongState(cmd, created_state, current_state)
+                    raise CommandWrongState(cmd, creation_state, current_state)
 
             cmd._validate_start = validate_device_state_before_cmd_start
         return cmd
@@ -188,16 +204,16 @@ class Device(object):
         event = self._get_event_in_state(event_name, **kwargs)
         if check_states:
             org_fun = event._validate_start
-            created_state = self.get_state()
+            creation_state = self.current_state
 
             @functools.wraps(event._validate_start)
             def validate_device_state_before_cmd_start(*args, **kargs):
-                current_state = self.get_state()
-                if current_state == created_state:
+                current_state = self.current_state
+                if current_state == creation_state:
                     ret = org_fun(*args, **kargs)
                     return ret
                 else:
-                    raise EventWrongState(event, created_state, current_state)
+                    raise EventWrongState(event, creation_state, current_state)
 
             event._validate_start = validate_device_state_before_cmd_start
         return event
@@ -234,26 +250,16 @@ class Device(object):
     def _get_events_in_state(self, state):
         return self._events_in_states[state]
 
-    def _feed_cmds_and_events_for_state(self, state):
+    def _collect_cmds_and_events_for_state(self, state):
         cmds = dict()
         events = dict()
 
-        for package_name in self._get_packages_for_state(state=state, observable=Device.cmds):
+        for package_name in self._get_packages_for_state(state=state, observer=Device.cmds):
             cmds.update(self._load_cmds_from_package(package_name))
-        for package_name in self._get_packages_for_state(state=state, observable=Device.events):
+        for package_name in self._get_packages_for_state(state=state, observer=Device.events):
             events.update(self._load_cmds_from_package(package_name))
 
         return cmds, events
-
-    def _feed_cmds_and_events_on_start(self):
-        for state in self._get_available_states():
-            self._cmds_in_states[state] = dict()
-            self._events_in_states[state] = dict()
-
-            cmds, events = self._feed_cmds_and_events_for_state(state)
-
-            self._cmds_in_states[state].update(cmds)
-            self._events_in_states[state].update(events)
 
     @classmethod
     def from_named_connection(cls, connection_name):

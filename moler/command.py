@@ -28,6 +28,7 @@ class Command(ConnectionObserver):
         """
         super(Command, self).__init__(connection=connection)
         self.command_string = ''
+        self.cmd_name = Command.observer_name
 
     def __str__(self):
         cmd_str = self.command_string if self.command_string else '<EMPTY COMMAND STRING>'

@@ -4,16 +4,11 @@ __author__ = 'Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'michal.ernst@nokia.com'
 
-from abc import ABCMeta
-
-from six import add_metaclass
-
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import NoDetectPatternProvided
 from moler.helpers import instance_id
 
 
-@add_metaclass(ABCMeta)
 class Event(ConnectionObserver):
     def __init__(self, connection=None):
         super(Event, self).__init__(connection=connection)
@@ -21,6 +16,7 @@ class Event(ConnectionObserver):
         self.detect_patterns = []
         self.callback = None
         self.callback_params = dict()
+        self.event_name = Event.observer_name
 
     def __str__(self):
         detect_pattern = self.detect_pattern if not (self.detect_pattern is None) else ', '.join(self.detect_patterns)
