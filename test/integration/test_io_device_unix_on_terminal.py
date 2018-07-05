@@ -40,12 +40,12 @@ def test_device_unix_can_not_execute_cmds_in_incorect_state():
 def _wait_workaround(unix, dest_state):
     # Workaround when goto_state is not available
     start_time = time.time()
-    while unix.get_state() != dest_state:
+    while unix.current_state != dest_state:
         if time.time() - start_time > 7:  # No infinite loop
             break
         time.sleep(0.1)
 
-    assert (unix.get_state() == dest_state)
+    assert (unix.current_state == dest_state)
 
 # def test_device_unix_connect_to_remote_host():
 #     unix = Unix(io_type='terminal', variant='threaded')
@@ -54,7 +54,7 @@ def _wait_workaround(unix, dest_state):
 #             "connection_type": "ssh",
 #             "host": "localhost",
 #             "login": "root",
-#             "password": "uteadmin",
+#             "password": "emssim",
 #             "prompt": "ute@debdev:~>",
 #             "expected_prompt": 'root@debdev:~#'
 #         }
@@ -64,4 +64,6 @@ def _wait_workaround(unix, dest_state):
 #     unix.goto_state(Unix.unix)
 #     _wait_workaround(unix, Unix.unix)
 #     unix.io_connection.moler_connection.sendline("exit")
+#     _wait_workaround(unix, Unix.connected)
+#     unix.goto_state(Unix.connected)
 #     _wait_workaround(unix, Unix.connected)

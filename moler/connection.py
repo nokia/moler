@@ -225,7 +225,7 @@ class ObservableConnection(Connection):
         current_subscribers = list(self._observers.values())
         for self_or_none, observer_function in current_subscribers:
             try:
-                self._log(msg=r'notifying {}({})'.format(observer_function, repr(data)), level=TRACE)
+                self._log(msg=r'notifying {}({!r})'.format(observer_function, data), level=TRACE)
                 if self_or_none is None:
                     observer_function(data)
                 else:

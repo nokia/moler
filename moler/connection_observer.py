@@ -163,6 +163,6 @@ class ConnectionObserver(object):
         self.logger.info(msg)
 
     @ClassProperty
-    def registration_name(cls):
+    def observer_name(cls):
         name = camel_case_to_lower_case_underscore(cls.__name__)
         return name
