@@ -39,7 +39,7 @@ class Device(object):
     ]
 
     """
-    CAUTION: Device owns (takes over ownership) of connection. It will be open when device "is born" and close when 
+    CAUTION: Device owns (takes over ownership) of connection. It will be open when device "is born" and close when
     device "dies".
     """
 
