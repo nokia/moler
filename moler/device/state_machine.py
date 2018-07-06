@@ -4,11 +4,12 @@ __author__ = 'Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'michal.ernst@nokia.com'
 
+import itertools
 import logging
+from functools import partial
 
 import transitions
-import itertools
-from functools import partial
+
 
 def listify(obj):
     """Wraps a passed object into a list in case it has not been a list, tuple before.
@@ -21,6 +22,7 @@ def listify(obj):
     if obj is None:
         return []
     return obj if isinstance(obj, (list, tuple)) else [obj]
+
 
 def _get_trigger(model, trigger_name, *args, **kwargs):
     """Convenience function added to the model to trigger events by name.
@@ -114,7 +116,7 @@ class Transition(transitions.Transition):
             successfully executed (True if successful, False if not).
         """
         self.logger.debug("%sInitiating transition from state %s to state %s...",
-                      event_data.machine.name, self.source, self.dest)
+                          event_data.machine.name, self.source, self.dest)
         machine = event_data.machine
 
         for func in self.prepare:
@@ -124,7 +126,7 @@ class Transition(transitions.Transition):
         for cond in self.conditions:
             if not cond.check(event_data):
                 self.logger.debug("%sTransition condition failed: %s() does not return %s. Transition halted.",
-                              event_data.machine.name, cond.func, cond.target)
+                                  event_data.machine.name, cond.func, cond.target)
                 return False
         for func in itertools.chain(machine.before_state_change, self.before):
             machine.callback(func, event_data)
@@ -169,7 +171,7 @@ class StateMachine(transitions.Machine):
             if mod not in self.models:
                 if hasattr(mod, 'trigger'):
                     self.logger.warning("%sModel already contains an attribute 'trigger'. Skip method binding ",
-                                    self.name)
+                                        self.name)
                 else:
                     mod.trigger = partial(_get_trigger, mod)
 
