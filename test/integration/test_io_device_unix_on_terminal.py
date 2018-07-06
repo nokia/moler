@@ -33,7 +33,7 @@ def test_device_unix_can_not_execute_cmds_in_incorect_state():
     unix.goto_state(Unix.not_connected)
     _wait_workaround(unix, Unix.not_connected)
 
-    with pytest.raises(KeyError, match=r'Unknown cmds-derived class to instantiate.*'):
+    with pytest.raises(KeyError, match=r'Failed to create .*-object for .* is unknown for state .* of device .*'):
         unix.get_cmd(cmd_name='cd', path="/home/user/")
 
 
