@@ -82,8 +82,8 @@ class Unix(Device):
                 event.cancel()
                 event.unsubscribe()
 
-        cmd = self.get_cmd(cmd_name='exit', prompt=r'^bash-\d+\.*\d*')
-        cmd()
+        exit = self.get_cmd(cmd_name='exit', prompt=r'^bash-\d+\.*\d*')
+        exit()
 
     def _logout_callback(self, event, **kwargs):
         # Cancel run of observers when exiting current state

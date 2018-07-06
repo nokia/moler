@@ -101,7 +101,19 @@ class IOConnection(object):
         """
         self.moler_connection.data_received(data)
 
-    def subscribe_on_connect(self, subscriber):
+    def notify(self, callback, when):
+        """
+        Adds subscriber to list of functions to call
+        :param callback: reference to function to call when connection is open/established
+        :param when: connection state change
+        :return: Nothing
+        """
+        if when == "connection_made":
+            self.subscribe_on_connection_made(subscriber=callback)
+        elif when == "connection_lost":
+            self.subscribe_on_connection_lost(subscriber=callback)
+
+    def subscribe_on_connection_made(self, subscriber):
         """
         Adds subscriber to list of functions to call when connection is open/established (also reopen after close)
         :param subscriber: reference to function to call when connection is open/established
@@ -109,7 +121,7 @@ class IOConnection(object):
         """
         self._subscribe(self._connect_subscribers_lock, self._connect_subscribers, subscriber)
 
-    def subscribe_on_disconnect(self, subscriber):
+    def subscribe_on_connection_lost(self, subscriber):
         """
         Adds subscriber to list of functions to call when connection is closed/disconnected
         :param subscriber: reference to function to call when connection is closed/disconnected
@@ -117,18 +129,18 @@ class IOConnection(object):
         """
         self._subscribe(self._disconnect_subscribers_lock, self._disconnect_subscribers, subscriber)
 
-    def unsubscribe_on_connect(self, subscriber):
+    def unsubscribe_on_connection_made(self, subscriber):
         """
         Remove subscriber from list of functions to call when connection is open/established (also reopen after close)
-        :param subscriber: reference to function registered by method subscribe_on_connect
+        :param subscriber: reference to function registered by method subscribe_on_connection_made
         :return: Nothing
         """
         self._unsubscribe(self._connect_subscribers_lock, self._connect_subscribers, subscriber)
 
-    def unsubscribe_on_disconnect(self, subscriber):
+    def unsubscribe_on_connection_lost(self, subscriber):
         """
         Remove subscriber from list of functions to call when connection is closed/disconnected
-        :param subscriber: reference to function registered by method subscribe_on_disconnect
+        :param subscriber: reference to function registered by method subscribe_on_connection_lost
         :return: Nothing
         """
         self._unsubscribe(self._disconnect_subscribers_lock, self._disconnect_subscribers, subscriber)
