@@ -19,11 +19,11 @@ class Unix(Device):
     unix = "UNIX"
     states = [unix]
 
-    # before pass list of method to call
+    # Defining state machine for UNIX device (using notation of transition module)
     transitions = [
-        {'trigger': Device.get_trigger_to_state(unix), 'source': Device.connected, 'dest': unix,
+        {'trigger': Device.build_trigger_to_state(unix), 'source': Device.connected, 'dest': unix,
          'before': '_connect_to_remote_host'},
-        {'trigger': Device.get_trigger_to_state(Device.connected), 'source': unix, 'dest': Device.connected,
+        {'trigger': Device.build_trigger_to_state(Device.connected), 'source': unix, 'dest': Device.connected,
          'before': '_exit_from_remote_host'}
     ]
 
@@ -39,7 +39,6 @@ class Unix(Device):
         self.SM.add_transitions(transitions=Unix.transitions)
 
         self._events = dict()
-        self._events_lock = Lock()
         self._configurations = dict()
 
     def _get_packages_for_state(self, state, observer):
@@ -67,11 +66,11 @@ class Unix(Device):
         logout_event.subscribe(callback=self._logout_callback,
                                callback_params={"source_state": source_state, "dest_state": dest_state})
 
-        logout_event.start()
-        self._events[dest_state].append(logout_event)
-
         cmd = self.get_cmd(cmd_name=connection_type, **configurations)
         cmd()
+
+        logout_event.start()
+        self._events[dest_state].append(logout_event)
 
     def _exit_from_remote_host(self, current_state=None, dest_state=None):
         # Cancel run of observers when exiting current state
