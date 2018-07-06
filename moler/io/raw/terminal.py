@@ -28,6 +28,7 @@ class ThreadedTerminal(IOConnection):
         self.dimensions = dimensions
         self._terminal = None
         self.pulling_thread = None
+        self._shell_operable = Event()
 
         if first_prompt:
             self.prompt = first_prompt
@@ -43,6 +44,7 @@ class ThreadedTerminal(IOConnection):
                                                  done_event=done,
                                                  kwargs={'pulling_done': done})
             self.pulling_thread.start()
+            self._shell_operable.wait(timeout=2)
 
     def close(self):
         """Close ThreadedTerminal connection & stop pulling thread."""
@@ -63,20 +65,19 @@ class ThreadedTerminal(IOConnection):
     def pull_data(self, pulling_done):
         """Pull data from ThreadedTerminal connection."""
         read_buffer = ""
-        shell_operable = False
 
         while not pulling_done.is_set():
             reads, _, _ = select.select([self._terminal.fd], [], [], self._select_timeout)
             if self._terminal.fd in reads:
                 try:
                     data = self._terminal.read(self._read_buffer_size)
-                    if shell_operable:
+                    if self._shell_operable.is_set():
                         self.data_received(data)
                     else:
                         read_buffer = read_buffer + data
                         if re.search(self.prompt, read_buffer, re.MULTILINE):
-                            shell_operable = True
                             self._notify_on_connect()
+                            self._shell_operable.set()
                             data = re.sub(self.prompt, '', read_buffer, re.MULTILINE)
                             self.data_received(data)
                 except EOFError:
