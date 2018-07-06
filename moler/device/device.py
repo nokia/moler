@@ -38,14 +38,11 @@ class Device(object):
         {'trigger': goto_not_connected, 'source': connected, 'dest': not_connected}
     ]
 
-    """
-    CAUTION: Device owns (takes over ownership) of connection. It will be open when device "is born" and close when
-    device "dies".
-    """
-
     def __init__(self, io_connection=None, io_type=None, variant=None, states=[]):
         """
         Create Device communicating over io_connection
+        CAUTION: Device owns (takes over ownership) of connection. It will be open when device "is born" and close when
+        device "dies".
 
         :param io_connection: External-IO connection having embedded moler-connection
         :param io_type: type of connection - tcp, udp, ssh, telnet, ...
@@ -62,31 +59,39 @@ class Device(object):
             self.io_connection = io_connection
         else:
             self.io_connection = get_connection(io_type=io_type, variant=variant)
-        self.io_connection.subscribe_on_connect(subscriber=self.call_on_connect)
+        self.io_connection.subscribe_on_connection_made(subscriber=self.on_connection_made)
         self.io_connection.open()
-        self.io_connection.subscribe_on_disconnect(subscriber=self.call_on_disconnect)
-        self._cmds_in_states = dict()
-        self._events_in_states = dict()
-        self._collect_cmds_and_events_for_state_machine()
+        self.io_connection.subscribe_on_connection_lost(subscriber=self.on_connection_lost)
+        self._cmdnames_available_in_state = dict()
+        self._eventnames_available_in_state = dict()
+        self._collect_cmds_for_state_machine()
+        self._collect_events_for_state_machine()
 
     def __del__(self):
         self.io_connection.close()
 
-    def _collect_cmds_and_events_for_state_machine(self):
+    def _collect_cmds_for_state_machine(self):
         for state in self._get_available_states():
-            self._cmds_in_states[state] = dict()
-            self._events_in_states[state] = dict()
+            self._cmdnames_available_in_state[state] = dict()
 
-            cmds, events = self._collect_cmds_and_events_for_state(state)
+            cmds = self._collect_cmds_for_state(state)
 
-            self._cmds_in_states[state].update(cmds)
-            self._events_in_states[state].update(events)
+            self._cmdnames_available_in_state[state].update(cmds)
+
+    def _collect_events_for_state_machine(self):
+        for state in self._get_available_states():
+            self._eventnames_available_in_state[state] = dict()
+
+            events = self._collect_events_for_state(state)
+
+            self._eventnames_available_in_state[state].update(events)
 
     @property
     def current_state(self):
         return self.state
 
-    def get_name(self):
+    @property
+    def name(self):
         return self.io_connection.moler_connection.name
 
     def _set_state(self, state):
@@ -111,10 +116,10 @@ class Device(object):
             raise DeviceFailure(
                 "Try to change state to incorrect state {}. Available states: {}".format(state, Device.states))
 
-    def call_on_connect(self, connection):
+    def on_connection_made(self, connection):
         self._set_state(Device.connected)
 
-    def call_on_disconnect(self, connection):
+    def on_connection_lost(self, connection):
         self._set_state(Device.not_connected)
 
     @abc.abstractmethod
@@ -145,22 +150,22 @@ class Device(object):
                     cmd_class_obj = getattr(module, cmd_class_name)
                     # like:  IpAddr --> ip_addr
                     cmd_name = cmd_class_obj.observer_name
-
+                    # like:  IpAddr --> moler.cmd.unix.ip_addr.IpAddr
                     cmd_class_fullname = "{}.{}".format(module_name, cmd_class_name)
 
                     available_cmds.update({cmd_name: cmd_class_fullname})
         return available_cmds
 
     def _get_observer_in_state(self, observer_name, observer_type, **kwargs):
-        """Return Observable object assigned to cmd_name of given device"""
+        """Return Observable object assigned to obserber_name of given device"""
         # TODO: return observer object wrapped in decorator mocking it's start()
         # TODO:  to check it it is starting in correct state (do it on flag)
         observer_of_device = []
 
         if observer_type == Device.cmds:
-            observer_of_device = self._get_cmds_in_state(self.current_state)
+            observer_of_device = self._cmdnames_available_in_state[self.current_state]
         elif observer_type == Device.events:
-            observer_of_device = self._get_events_in_state(self.current_state)
+            observer_of_device = self._eventnames_available_in_state[self.current_state]
 
         if observer_name in observer_of_device:
             observer_splited = observer_of_device[observer_name].split('.')
@@ -173,49 +178,51 @@ class Device(object):
 
             return observer
 
-        for_whom = "for '{}' command of {} device".format(observer_name, self.__class__.__name__)
+        for_whom = "for '{}' {} of {} device".format(observer_name, observer_type, self.__class__.__name__)
         raise KeyError("Unknown {}-derived class to instantiate {}".format(observer_type, for_whom))
 
-    def _get_cmd_in_state(self, cmd_name, **kwargs):
+    def _create_cmd_instance(self, cmd_name, **kwargs):
+        """
+        CAUTION: it checks if cmd may be created in current_state of device
+        """
         return self._get_observer_in_state(observer_name=cmd_name, observer_type=Device.cmds, **kwargs)
 
-    def _get_event_in_state(self, event_name, **kwargs):
+    def _create_event_in_state(self, event_name, **kwargs):
         return self._get_observer_in_state(observer_name=event_name, observer_type=Device.events, **kwargs)
 
-    def get_cmd(self, cmd_name, check_states=True, **kwargs):
-        cmd = self._get_cmd_in_state(cmd_name, **kwargs)
-        if check_states:
-            org_fun = cmd._validate_start
+    def get_observer(self, observer_name, observer_type, observer_exception, check_state=True, **kwargs):
+        observer = None
+        if observer_type == Device.cmds:
+            observer = self._create_cmd_instance(observer_name, **kwargs)
+        elif observer_type == Device.events:
+            observer = self._create_event_in_state(observer_name, **kwargs)
+
+        if check_state:
+            original_fun = observer._validate_start
             creation_state = self.current_state
 
-            @functools.wraps(cmd._validate_start)
+            @functools.wraps(observer._validate_start)
             def validate_device_state_before_cmd_start(*args, **kargs):
                 current_state = self.current_state
                 if current_state == creation_state:
-                    ret = org_fun(*args, **kargs)
+                    ret = original_fun(*args, **kargs)
                     return ret
                 else:
-                    raise CommandWrongState(cmd, creation_state, current_state)
+                    raise observer_exception(observer, creation_state, current_state)
 
-            cmd._validate_start = validate_device_state_before_cmd_start
+            observer._validate_start = validate_device_state_before_cmd_start
+        return observer
+
+    def get_cmd(self, cmd_name, check_state=True, **kwargs):
+        cmd = self.get_observer(observer_name=cmd_name, observer_type=Device.cmds,
+                                 observer_exception=CommandWrongState, check_state=check_state, **kwargs)
+
         return cmd
 
-    def get_event(self, event_name, check_states=True, **kwargs):
-        event = self._get_event_in_state(event_name, **kwargs)
-        if check_states:
-            org_fun = event._validate_start
-            creation_state = self.current_state
+    def get_event(self, event_name, check_state=True, **kwargs):
+        event = self.get_observer(observer_name=event_name, observer_type=Device.events,
+                                 observer_exception=EventWrongState, check_state=check_state, **kwargs)
 
-            @functools.wraps(event._validate_start)
-            def validate_device_state_before_cmd_start(*args, **kargs):
-                current_state = self.current_state
-                if current_state == creation_state:
-                    ret = org_fun(*args, **kargs)
-                    return ret
-                else:
-                    raise EventWrongState(event, creation_state, current_state)
-
-            event._validate_start = validate_device_state_before_cmd_start
         return event
 
     def run(self, cmd_name, **kwargs):
@@ -244,22 +251,23 @@ class Device(object):
         cmd = self.get_cmd(cmd_name=cmd_name, **kwargs)
         return cmd.start()
 
-    def _get_cmds_in_state(self, state):
-        return self._cmds_in_states[state]
+    def _collect_observer_for_state(self, observer_type, state):
+        observer = dict()
 
-    def _get_events_in_state(self, state):
-        return self._events_in_states[state]
+        for package_name in self._get_packages_for_state(state=state, observer=observer_type):
+            observer.update(self._load_cmds_from_package(package_name))
 
-    def _collect_cmds_and_events_for_state(self, state):
-        cmds = dict()
-        events = dict()
+        return observer
 
-        for package_name in self._get_packages_for_state(state=state, observer=Device.cmds):
-            cmds.update(self._load_cmds_from_package(package_name))
-        for package_name in self._get_packages_for_state(state=state, observer=Device.events):
-            events.update(self._load_cmds_from_package(package_name))
+    def _collect_cmds_for_state(self, state):
+        cmds = self._collect_observer_for_state(observer_type=Device.cmds, state=state)
 
-        return cmds, events
+        return cmds
+
+    def _collect_events_for_state(self, state):
+        events = self._collect_observer_for_state(observer_type=Device.events, state=state)
+
+        return events
 
     @classmethod
     def from_named_connection(cls, connection_name):
