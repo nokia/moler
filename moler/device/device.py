@@ -22,9 +22,10 @@ from moler.exceptions import CommandWrongState, DeviceFailure, EventWrongState
 
 
 # TODO: name, logger/logger_name as param
+# TODO: change states logging
 class Device(object):
-    cmds = "cmds"
-    events = "events"
+    cmds = "cmd"
+    events = "event"
     connected = "CONNECTED"
     not_connected = "NOT_CONNECTED"
     states = [connected, not_connected]
@@ -50,6 +51,8 @@ class Device(object):
                         (if not given then default one is taken)
         """
         Device.states += states
+        # Below line will modify self extending it with methods and atributes od StateMachine
+        # For eg. it will add atribute self.state
         self.SM = StateMachine(model=self, states=Device.states, initial=Device.not_connected, auto_transitions=False,
                                queued=True)
         self.SM.add_transitions(Device.transitions)
@@ -59,13 +62,19 @@ class Device(object):
             self.io_connection = io_connection
         else:
             self.io_connection = get_connection(io_type=io_type, variant=variant)
-        self.io_connection.subscribe_on_connection_made(subscriber=self.on_connection_made)
+        self.io_connection.notify(callback=self.on_connection_made, when="connection_made")
+        # TODO: Need test to ensure above sentence for all connection
         self.io_connection.open()
-        self.io_connection.subscribe_on_connection_lost(subscriber=self.on_connection_lost)
+        self.io_connection.notify(callback=self.on_connection_lost, when="connection_lost")
         self._cmdnames_available_in_state = dict()
         self._eventnames_available_in_state = dict()
         self._collect_cmds_for_state_machine()
         self._collect_events_for_state_machine()
+
+    @classmethod
+    def from_named_connection(cls, connection_name):
+        io_conn = get_connection(name=connection_name)
+        return cls(io_connection=io_conn)
 
     def __del__(self):
         self.io_connection.close()
@@ -99,11 +108,9 @@ class Device(object):
         self.SM.set_state(state=state)
 
     def goto_state(self, state):
-        current_state = self.current_state
-
-        if current_state == state:
+        if self.current_state == state:
             return
-        self.logger.debug("Go to state '%s' from '%s'" % (state, current_state))
+        self.logger.debug("Go to state '%s' from '%s'" % (state, self.current_state))
         change_state_method = None
 
         for goto_method in Device.goto_states_triggers:
@@ -111,7 +118,8 @@ class Device(object):
                 change_state_method = getattr(self, goto_method)
 
         if change_state_method:
-            change_state_method(current_state, state)
+            change_state_method(self.current_state, state)
+            self.logger.debug("Successfully enter state '%s'".format(state))
         else:
             raise DeviceFailure(
                 "Try to change state to incorrect state {}. Available states: {}".format(state, Device.states))
@@ -160,15 +168,16 @@ class Device(object):
         """Return Observable object assigned to obserber_name of given device"""
         # TODO: return observer object wrapped in decorator mocking it's start()
         # TODO:  to check it it is starting in correct state (do it on flag)
-        observer_of_device = []
+        available_observer_names = []
 
         if observer_type == Device.cmds:
-            observer_of_device = self._cmdnames_available_in_state[self.current_state]
+            available_observer_names = self._cmdnames_available_in_state[self.current_state]
         elif observer_type == Device.events:
-            observer_of_device = self._eventnames_available_in_state[self.current_state]
+            available_observer_names = self._eventnames_available_in_state[self.current_state]
 
-        if observer_name in observer_of_device:
-            observer_splited = observer_of_device[observer_name].split('.')
+        if observer_name in available_observer_names:
+            # TODO: GL refactor to instance_loader
+            observer_splited = available_observer_names[observer_name].split('.')
             observer_module_name = ".".join(observer_splited[:-1])
             observer_class_name = observer_splited[-1]
 
@@ -178,8 +187,10 @@ class Device(object):
 
             return observer
 
-        for_whom = "for '{}' {} of {} device".format(observer_name, observer_type, self.__class__.__name__)
-        raise KeyError("Unknown {}-derived class to instantiate {}".format(observer_type, for_whom))
+        raise KeyError(
+            "Failed to create {}-object for '{}' {}. '{}' {} is unknown for state '{}' of device '{}'.".format(
+                observer_type, observer_name, observer_type, observer_name, observer_type, self.current_state,
+                self.__class__.__name__))
 
     def _create_cmd_instance(self, cmd_name, **kwargs):
         """
@@ -187,7 +198,10 @@ class Device(object):
         """
         return self._get_observer_in_state(observer_name=cmd_name, observer_type=Device.cmds, **kwargs)
 
-    def _create_event_in_state(self, event_name, **kwargs):
+    def _create_event_instance(self, event_name, **kwargs):
+        """
+        CAUTION: it checks if event may be created in current_state of device
+        """
         return self._get_observer_in_state(observer_name=event_name, observer_type=Device.events, **kwargs)
 
     def get_observer(self, observer_name, observer_type, observer_exception, check_state=True, **kwargs):
@@ -195,14 +209,14 @@ class Device(object):
         if observer_type == Device.cmds:
             observer = self._create_cmd_instance(observer_name, **kwargs)
         elif observer_type == Device.events:
-            observer = self._create_event_in_state(observer_name, **kwargs)
+            observer = self._create_event_instance(observer_name, **kwargs)
 
         if check_state:
             original_fun = observer._validate_start
             creation_state = self.current_state
 
             @functools.wraps(observer._validate_start)
-            def validate_device_state_before_cmd_start(*args, **kargs):
+            def validate_device_state_before_observer_start(*args, **kargs):
                 current_state = self.current_state
                 if current_state == creation_state:
                     ret = original_fun(*args, **kargs)
@@ -210,7 +224,7 @@ class Device(object):
                 else:
                     raise observer_exception(observer, creation_state, current_state)
 
-            observer._validate_start = validate_device_state_before_cmd_start
+            observer._validate_start = validate_device_state_before_observer_start
         return observer
 
     def get_cmd(self, cmd_name, check_state=True, **kwargs):
@@ -270,12 +284,7 @@ class Device(object):
         return events
 
     @classmethod
-    def from_named_connection(cls, connection_name):
-        io_conn = get_connection(name=connection_name)
-        return cls(io_connection=io_conn)
-
-    @classmethod
-    def get_trigger_to_state(cls, state):
+    def build_trigger_to_state(cls, state):
         trigger = "GOTO_{}".format(state)
         if trigger not in cls.goto_states_triggers:
             cls.goto_states_triggers += [trigger]
