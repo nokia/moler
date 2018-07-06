@@ -17,8 +17,7 @@ from moler.device import Device
 # TODO: name, logger/logger_name as param
 class Unix(Device):
     unix = "UNIX"
-    unix2 = "UNIX2"
-    states = [unix, unix2]
+    states = [unix]
 
     # before pass list of method to call
     transitions = [
