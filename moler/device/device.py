@@ -215,13 +215,13 @@ class Device(object):
 
     def get_cmd(self, cmd_name, check_state=True, **kwargs):
         cmd = self.get_observer(observer_name=cmd_name, observer_type=Device.cmds,
-                                 observer_exception=CommandWrongState, check_state=check_state, **kwargs)
+                                observer_exception=CommandWrongState, check_state=check_state, **kwargs)
 
         return cmd
 
     def get_event(self, event_name, check_state=True, **kwargs):
         event = self.get_observer(observer_name=event_name, observer_type=Device.events,
-                                 observer_exception=EventWrongState, check_state=check_state, **kwargs)
+                                  observer_exception=EventWrongState, check_state=check_state, **kwargs)
 
         return event
 
