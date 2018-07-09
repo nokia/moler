@@ -36,14 +36,14 @@ class Device(object):
     transitions = {
         connected: {
             not_connected: {
-                "before": [
+                "action": [
                     "_open_connection"
                 ],
             },
         },
         not_connected: {
             connected: {
-                "before": [
+                "action": [
                     "_close_connection"
                 ],
             },
@@ -114,8 +114,9 @@ class Device(object):
         return self.io_connection.moler_connection.name
 
     def _set_state(self, state):
-        self.logger.debug("Changing state from '%s' into '%s'" % (self.current_state, state))
-        self.SM.set_state(state=state)
+        if self.current_state != state:
+            self.logger.debug("Changing state from '%s' into '%s'" % (self.current_state, state))
+            self.SM.set_state(state=state)
 
     def goto_state(self, dest_state):
         if self.current_state == dest_state:
@@ -146,7 +147,7 @@ class Device(object):
                 raise DeviceFailure(
                     "Try to change state to incorrect state {}. Available states: {}".format(state, Device.states))
 
-            if self.current_state is dest_state:
+            if self.current_state == dest_state:
                 is_dest_state = True
 
     def on_connection_made(self, connection):
@@ -253,6 +254,7 @@ class Device(object):
         return observer
 
     def get_cmd(self, cmd_name, check_state=True, **kwargs):
+        # TODO: add sending prompt from device to command
         cmd = self.get_observer(observer_name=cmd_name, observer_type=Device.cmds,
                                 observer_exception=CommandWrongState, check_state=check_state, **kwargs)
 
@@ -315,7 +317,7 @@ class Device(object):
                     {'trigger': Device.build_trigger_to_state(dest_state),
                      'source': source_state,
                      'dest': dest_state,
-                     'before': transitions[source_state][dest_state]["before"]},
+                     'before': transitions[source_state][dest_state]["action"]},
                 ]
                 self.SM.add_state(dest_state)
                 self.SM.add_transitions(single_transition)

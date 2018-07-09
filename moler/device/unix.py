@@ -19,18 +19,23 @@ class Unix(Device):
     transitions = {
         unix: {
             Device.connected: {
-                "before": [
+                "action": [
                     "_exit_from_remote_host"
                 ],
             }
         },
         Device.connected: {
             unix: {
-                "before": [
+                "action": [
                     "_connect_to_remote_host"
                 ],
             }
         },
+    }
+
+    state_prompts = {
+        unix: r'root@debdev:~#',
+        Device.connected: r'bash-\d+\.*\d*',
     }
 
     state_hops = {
@@ -54,10 +59,11 @@ class Unix(Device):
                                    state_hops=Unix.state_hops)
         self._add_transitions(transitions=Unix.transitions)
 
-        self._events = dict()
+        self._prompts_events = []
         self._configurations = dict()
         self._collect_cmds_for_state_machine()
         self._collect_events_for_state_machine()
+        self._run_prompts_observers()
 
     def _get_packages_for_state(self, state, observer):
         if state == Unix.connected:
@@ -73,51 +79,36 @@ class Unix(Device):
     def _connect_to_remote_host(self, source_state, dest_state):
         configurations = self.get_configurations(dest_state)
         connection_type = configurations.pop("connection_type")
-        self._events[dest_state] = []
-
-        logout_event = self.get_event(event_name="wait4",
-                                      detect_patterns=[
-                                          r"Connection to .* closed.".format(configurations["host"])
-                                      ],
-                                      end_on_caught=False)
-
-        logout_event.subscribe(callback=self._logout_callback,
-                               callback_params={"source_state": source_state, "dest_state": dest_state})
 
         cmd = self.get_cmd(cmd_name=connection_type, **configurations)
         cmd()
 
-        logout_event.start()
-        self._events[dest_state].append(logout_event)
-
     def _exit_from_remote_host(self, current_state=None, dest_state=None):
-        # Cancel run of observers when exiting current state
-        if current_state in self._events.keys():
-            while self._events[current_state]:
-                event = self._events[current_state].pop(0)
-                event.cancel()
-                event.unsubscribe()
-
         exit = self.get_cmd(cmd_name='exit', prompt=r'^bash-\d+\.*\d*')
         exit()
 
-    def _logout_callback(self, event, **kwargs):
-        # Cancel run of observers when exiting current state
-        dest_state = kwargs["dest_state"]
-        source_state = kwargs["source_state"]
-        current_state = self.current_state
-
-        if current_state == dest_state:
-            event.cancel()
-            event.unsubscribe()
-            self._set_state(source_state)
-            self._events[dest_state].remove(event)
+    def _prompt_callback(self, event, **kwargs):
+        self._set_state(kwargs["state"])
 
     def get_configurations(self, state=None):
-        if not (state is None):
-            return self._configurations[state]
-        else:
+        if state is None:
             return self._configurations
+        else:
+            return self._configurations[state]
 
     def set_configurations(self, configurations):
         self._configurations = configurations
+
+    def _run_prompts_observers(self):
+        for state in Unix.state_prompts.keys():
+            prompt_event = self.get_event(event_name="wait4",
+                                          detect_patterns=[
+                                              Unix.state_prompts[state]
+                                          ],
+                                          end_on_caught=False)
+
+            prompt_event.subscribe(callback=self._prompt_callback,
+                                   callback_params={"state": state})
+
+            prompt_event.start()
+            self._prompts_events.append(prompt_event)
