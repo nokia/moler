@@ -18,14 +18,18 @@ class Unix(Device):
 
     transitions = {
         unix: {
-            Device.connected: [
-                "_exit_from_remote_host"
-            ],
+            Device.connected: {
+                "before": [
+                    "_exit_from_remote_host"
+                ],
+            }
         },
         Device.connected: {
-            unix: [
-                "_connect_to_remote_host"
-            ],
+            unix: {
+                "before": [
+                    "_connect_to_remote_host"
+                ],
+            }
         },
     }
 
