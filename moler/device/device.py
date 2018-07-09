@@ -35,14 +35,18 @@ class Device(object):
 
     transitions = {
         connected: {
-            not_connected: [
-                "_open_connection"
-            ],
+            not_connected: {
+                "before": [
+                    "_open_connection"
+                ],
+            },
         },
         not_connected: {
-            connected: [
-                "_close_connection"
-            ],
+            connected: {
+                "before": [
+                    "_close_connection"
+                ],
+            },
         }
     }
 
@@ -128,6 +132,8 @@ class Device(object):
 
             if not state:
                 state = dest_state
+
+            self.logger.debug("Changing state from '%s' into '%s'" % (self.current_state, state))
 
             for goto_method in Device.goto_states_triggers:
                 if "GOTO_{}".format(state) == goto_method:
@@ -309,7 +315,7 @@ class Device(object):
                     {'trigger': Device.build_trigger_to_state(dest_state),
                      'source': source_state,
                      'dest': dest_state,
-                     'before': transitions[source_state][dest_state]},
+                     'before': transitions[source_state][dest_state]["before"]},
                 ]
                 self.SM.add_state(dest_state)
                 self.SM.add_transitions(single_transition)
