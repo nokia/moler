@@ -9,23 +9,34 @@ __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
-from threading import Lock
-
 from moler.device import Device
 
 
 # TODO: name, logger/logger_name as param
 class Unix(Device):
     unix = "UNIX"
-    states = [unix]
 
-    # Defining state machine for UNIX device (using notation of transition module)
-    transitions = [
-        {'trigger': Device.build_trigger_to_state(unix), 'source': Device.connected, 'dest': unix,
-         'before': '_connect_to_remote_host'},
-        {'trigger': Device.build_trigger_to_state(Device.connected), 'source': unix, 'dest': Device.connected,
-         'before': '_exit_from_remote_host'}
-    ]
+    transitions = {
+        unix: {
+            Device.connected: [
+                "_exit_from_remote_host"
+            ],
+        },
+        Device.connected: {
+            unix: [
+                "_connect_to_remote_host"
+            ],
+        },
+    }
+
+    state_hops = {
+        Device.not_connected: {
+            unix: Device.connected,
+        },
+        unix: {
+            Device.not_connected: Device.connected
+        }
+    }
 
     def __init__(self, io_connection=None, io_type=None, variant=None):
         """
@@ -35,11 +46,14 @@ class Unix(Device):
         :param io_type: External-IO connection connection type
         :param variant: External-IO connection variant
         """
-        super(Unix, self).__init__(io_connection=io_connection, io_type=io_type, variant=variant, states=Unix.states)
-        self.SM.add_transitions(transitions=Unix.transitions)
+        super(Unix, self).__init__(io_connection=io_connection, io_type=io_type, variant=variant,
+                                   state_hops=Unix.state_hops)
+        self._add_transitions(transitions=Unix.transitions)
 
         self._events = dict()
         self._configurations = dict()
+        self._collect_cmds_for_state_machine()
+        self._collect_events_for_state_machine()
 
     def _get_packages_for_state(self, state, observer):
         if state == Unix.connected:
