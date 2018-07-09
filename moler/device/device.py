@@ -26,20 +26,27 @@ from moler.exceptions import CommandWrongState, DeviceFailure, EventWrongState
 class Device(object):
     cmds = "cmd"
     events = "event"
+
     connected = "CONNECTED"
     not_connected = "NOT_CONNECTED"
-    states = [connected, not_connected]
+    states = []
+    goto_states_triggers = []
+    state_hops = {}
 
-    goto_connected = "GOTO_CONNECTED"
-    goto_not_connected = "GOTO_NOT_CONNECTED"
-    goto_states_triggers = [goto_connected, goto_not_connected]
+    transitions = {
+        connected: {
+            not_connected: [
+                "_open_connection"
+            ],
+        },
+        not_connected: {
+            connected: [
+                "_close_connection"
+            ],
+        }
+    }
 
-    transitions = [
-        {'trigger': goto_connected, 'source': not_connected, 'dest': connected},
-        {'trigger': goto_not_connected, 'source': connected, 'dest': not_connected}
-    ]
-
-    def __init__(self, io_connection=None, io_type=None, variant=None, states=[]):
+    def __init__(self, io_connection=None, io_type=None, variant=None, state_hops={}):
         """
         Create Device communicating over io_connection
         CAUTION: Device owns (takes over ownership) of connection. It will be open when device "is born" and close when
@@ -50,13 +57,12 @@ class Device(object):
         :param variant: connection implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
                         (if not given then default one is taken)
         """
-        Device.states += states
         # Below line will modify self extending it with methods and atributes od StateMachine
         # For eg. it will add atribute self.state
         self.SM = StateMachine(model=self, states=Device.states, initial=Device.not_connected, auto_transitions=False,
                                queued=True)
-        self.SM.add_transitions(Device.transitions)
-
+        self._add_transitions(Device.transitions)
+        Device.state_hops.update(state_hops)
         self.logger = logging.getLogger('moler.device')
         if io_connection:
             self.io_connection = io_connection
@@ -107,22 +113,35 @@ class Device(object):
         self.logger.debug("Changing state from '%s' into '%s'" % (self.current_state, state))
         self.SM.set_state(state=state)
 
-    def goto_state(self, state):
-        if self.current_state == state:
+    def goto_state(self, dest_state):
+        if self.current_state == dest_state:
             return
-        self.logger.debug("Go to state '%s' from '%s'" % (state, self.current_state))
+        self.logger.debug("Go to state '%s' from '%s'" % (dest_state, self.current_state))
         change_state_method = None
+        is_dest_state = False
 
-        for goto_method in Device.goto_states_triggers:
-            if "GOTO_{}".format(state) == goto_method:
-                change_state_method = getattr(self, goto_method)
+        while not is_dest_state:
+            state = None
+            if self.current_state in Device.state_hops.keys():
+                if dest_state in Device.state_hops[self.current_state].keys():
+                    state = Device.state_hops[self.current_state][dest_state]
 
-        if change_state_method:
-            change_state_method(self.current_state, state)
-            self.logger.debug("Successfully enter state '%s'".format(state))
-        else:
-            raise DeviceFailure(
-                "Try to change state to incorrect state {}. Available states: {}".format(state, Device.states))
+            if not state:
+                state = dest_state
+
+            for goto_method in Device.goto_states_triggers:
+                if "GOTO_{}".format(state) == goto_method:
+                    change_state_method = getattr(self, goto_method)
+
+            if change_state_method:
+                change_state_method(self.current_state, state)
+                self.logger.debug("Successfully enter state '%s'".format(state))
+            else:
+                raise DeviceFailure(
+                    "Try to change state to incorrect state {}. Available states: {}".format(state, Device.states))
+
+            if self.current_state is dest_state:
+                is_dest_state = True
 
     def on_connection_made(self, connection):
         self._set_state(Device.connected)
@@ -282,6 +301,29 @@ class Device(object):
         events = self._collect_observer_for_state(observer_type=Device.events, state=state)
 
         return events
+
+    def _add_transitions(self, transitions):
+        for source_state in transitions.keys():
+            for dest_state in transitions[source_state].keys():
+                single_transition = [
+                    {'trigger': Device.build_trigger_to_state(dest_state),
+                     'source': source_state,
+                     'dest': dest_state,
+                     'before': transitions[source_state][dest_state]},
+                ]
+                self.SM.add_state(dest_state)
+                self.SM.add_transitions(single_transition)
+                self._update_SM_states(dest_state)
+
+    def _update_SM_states(self, state):
+        if state not in Device.states:
+            Device.states.append(state)
+
+    def _open_connection(self, source_state, dest_state):
+        self.io_connection.open()
+
+    def _close_connection(self, source_state, dest_state):
+        self.io_connection.close()
 
     @classmethod
     def build_trigger_to_state(cls, state):
