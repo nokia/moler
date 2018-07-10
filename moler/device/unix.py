@@ -16,37 +16,6 @@ from moler.device import Device
 class Unix(Device):
     unix = "UNIX"
 
-    transitions = {
-        unix: {
-            Device.connected: {
-                "action": [
-                    "_exit_from_remote_host"
-                ],
-            }
-        },
-        Device.connected: {
-            unix: {
-                "action": [
-                    "_connect_to_remote_host"
-                ],
-            }
-        },
-    }
-
-    state_prompts = {
-        unix: r'root@debdev:~#',
-        Device.connected: r'bash-\d+\.*\d*',
-    }
-
-    state_hops = {
-        Device.not_connected: {
-            unix: Device.connected,
-        },
-        unix: {
-            Device.not_connected: Device.connected
-        }
-    }
-
     def __init__(self, io_connection=None, io_type=None, variant=None):
         """
         Create Unix device communicating over io_connection
@@ -55,15 +24,59 @@ class Unix(Device):
         :param io_type: External-IO connection connection type
         :param variant: External-IO connection variant
         """
-        super(Unix, self).__init__(io_connection=io_connection, io_type=io_type, variant=variant,
-                                   state_hops=Unix.state_hops)
-        self._add_transitions(transitions=Unix.transitions)
+        super(Unix, self).__init__(io_connection=io_connection, io_type=io_type, variant=variant)
 
         self._prompts_events = []
         self._configurations = dict()
         self._collect_cmds_for_state_machine()
         self._collect_events_for_state_machine()
         self._run_prompts_observers()
+
+    def _prepare_transitions(self):
+        super(Unix, self)._prepare_transitions()
+
+        transitions = {
+            Unix.unix: {
+                Device.connected: {
+                    "action": [
+                        "_exit_from_remote_host"
+                    ],
+                }
+            },
+            Device.connected: {
+                Unix.unix: {
+                    "action": [
+                        "_connect_to_remote_host"
+                    ],
+                }
+            },
+        }
+
+        self._add_transitions(transitions=transitions)
+
+    def _prepare_state_prompts(self):
+        super(Unix, self)._prepare_state_prompts()
+
+        state_prompts = {
+            Unix.unix: r'root@debdev:~#',
+            Device.connected: r'bash-\d+\.*\d*',
+        }
+
+        self._state_prompts.update(state_prompts)
+
+    def _prepare_state_hops(self):
+        super(Unix, self)._prepare_state_hops()
+
+        state_hops = {
+            Device.not_connected: {
+                Unix.unix: Device.connected,
+            },
+            Unix.unix: {
+                Device.not_connected: Device.connected
+            }
+        }
+
+        self._state_hops.update(state_hops)
 
     def _get_packages_for_state(self, state, observer):
         if state == Unix.connected:
@@ -100,11 +113,9 @@ class Unix(Device):
         self._configurations = configurations
 
     def _run_prompts_observers(self):
-        for state in Unix.state_prompts.keys():
-            prompt_event = self.get_event(event_name="wait4",
-                                          detect_patterns=[
-                                              Unix.state_prompts[state]
-                                          ],
+        for state in self._state_prompts.keys():
+            prompt_event = self.get_event(event_name="wait4prompt",
+                                          prompt=self._state_prompts[state],
                                           end_on_caught=False)
 
             prompt_event.subscribe(callback=self._prompt_callback,

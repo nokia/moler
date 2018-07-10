@@ -31,9 +31,8 @@ class Device(object):
     not_connected = "NOT_CONNECTED"
     states = []
     goto_states_triggers = []
-    state_hops = {}
 
-    transitions = {
+    _transitions = {
         connected: {
             not_connected: {
                 "action": [
@@ -50,7 +49,7 @@ class Device(object):
         }
     }
 
-    def __init__(self, io_connection=None, io_type=None, variant=None, state_hops={}):
+    def __init__(self, io_connection=None, io_type=None, variant=None):
         """
         Create Device communicating over io_connection
         CAUTION: Device owns (takes over ownership) of connection. It will be open when device "is born" and close when
@@ -61,13 +60,20 @@ class Device(object):
         :param variant: connection implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
                         (if not given then default one is taken)
         """
+        self.logger = logging.getLogger('moler.device')
         # Below line will modify self extending it with methods and atributes od StateMachine
         # For eg. it will add atribute self.state
         self.SM = StateMachine(model=self, states=Device.states, initial=Device.not_connected, auto_transitions=False,
                                queued=True)
-        self._add_transitions(Device.transitions)
-        Device.state_hops.update(state_hops)
-        self.logger = logging.getLogger('moler.device')
+
+        self._transitions = {}
+        self._state_hops = {}
+        self._state_prompts = {}
+
+        self._prepare_transitions()
+        self._prepare_state_hops()
+        self._prepare_state_prompts()
+
         if io_connection:
             self.io_connection = io_connection
         else:
@@ -78,8 +84,36 @@ class Device(object):
         self.io_connection.notify(callback=self.on_connection_lost, when="connection_lost")
         self._cmdnames_available_in_state = dict()
         self._eventnames_available_in_state = dict()
+
         self._collect_cmds_for_state_machine()
         self._collect_events_for_state_machine()
+
+    def _prepare_transitions(self):
+        self._transitions = {
+            Device.connected: {
+                Device.not_connected: {
+                    "action": [
+                        "_open_connection"
+                    ],
+                },
+            },
+            Device.not_connected: {
+                Device.connected: {
+                    "action": [
+                        "_close_connection"
+                    ],
+                },
+            }
+        }
+        self._add_transitions(transitions=self._transitions)
+
+    def _prepare_state_prompts(self):
+        self._state_prompts = {
+            Device.connected: r'bash-\d+\.*\d*',
+        }
+
+    def _prepare_state_hops(self):
+        pass
 
     @classmethod
     def from_named_connection(cls, connection_name):
@@ -127,9 +161,9 @@ class Device(object):
 
         while not is_dest_state:
             state = None
-            if self.current_state in Device.state_hops.keys():
-                if dest_state in Device.state_hops[self.current_state].keys():
-                    state = Device.state_hops[self.current_state][dest_state]
+            if self.current_state in self._state_hops.keys():
+                if dest_state in self._state_hops[self.current_state].keys():
+                    state = self._state_hops[self.current_state][dest_state]
 
             if not state:
                 state = dest_state
