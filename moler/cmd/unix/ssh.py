@@ -8,7 +8,6 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
-
 from moler.cmd.unix.genericunix import GenericUnix
 from moler.exceptions import CommandFailure
 from moler.textualgeneric import TextualGeneric
@@ -16,13 +15,13 @@ from moler.textualgeneric import TextualGeneric
 
 class Ssh(GenericUnix):
     # Compiled regexp
-    _re_host_key = re.compile(r"Add correct host key in (\\S+) to get rid of this message.*\\n$", re.IGNORECASE)
-    _re_yes_no = re.compile(r"\(yes/no\)\?|'yes' or 'no':", re.IGNORECASE)
-    _re_id_dsa = re.compile(r"id_dsa:", re.IGNORECASE)
-    _re_password = re.compile(r"password:", re.IGNORECASE)
-    _re_permission_denied = re.compile(r"Permission denied, please try again", re.IGNORECASE)
-    _re_failed_strings = re.compile(r"Permission denied|No route to host|ssh: Could not", re.IGNORECASE)
-    _re_host_key_verification_failed = re.compile(r"Host key verification failed", re.IGNORECASE)
+    _re_host_key = re.compile("Add correct host key in (\\S+) to get rid of this message.*\\n$", re.IGNORECASE)
+    _re_yes_no = re.compile("\(yes/no\)\?|'yes' or 'no':", re.IGNORECASE)
+    _re_id_dsa = re.compile("id_dsa:", re.IGNORECASE)
+    _re_password = re.compile("password:", re.IGNORECASE)
+    _re_permission_denied = re.compile("Permission denied, please try again", re.IGNORECASE)
+    _re_failed_strings = re.compile("Permission denied|No route to host|ssh: Could not", re.IGNORECASE)
+    _re_host_key_verification_failed = re.compile("Host key verification failed", re.IGNORECASE)
 
     def __init__(self, connection, login, password, host, prompt=None, expected_prompt='>', port=0,
                  known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
@@ -127,10 +126,12 @@ class Ssh(GenericUnix):
         return False  # nothing sent
 
     def all_after_login_settings_sent(self):
-        return (((self.set_prompt and self.set_timeout)  # both requested
-                 and (self._sent_prompt and self._sent_timeout))  # & both sent
-                or (self.set_prompt and self._sent_prompt)  # single req & sent
-                or (self.set_timeout and self._sent_timeout))  # single req & sent
+        return (((self.set_prompt and self.set_timeout) and     # both requested
+                (self._sent_prompt and self._sent_timeout)) or  # & both sent
+
+                (self.set_prompt and self._sent_prompt) or      # single req & sent
+
+                (self.set_timeout and self._sent_timeout))      # single req & sent
 
     def no_after_login_settings_needed(self):
         return (not self.set_prompt) and (not self.set_timeout)
