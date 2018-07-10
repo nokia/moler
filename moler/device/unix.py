@@ -9,11 +9,11 @@ __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
-from moler.device import Device
+from moler.device import TextualDevice
 
 
 # TODO: name, logger/logger_name as param
-class Unix(Device):
+class Unix(TextualDevice):
     unix = "UNIX"
 
     def __init__(self, io_connection=None, io_type=None, variant=None):
@@ -37,13 +37,13 @@ class Unix(Device):
 
         transitions = {
             Unix.unix: {
-                Device.connected: {
+                TextualDevice.connected: {
                     "action": [
                         "_exit_from_remote_host"
                     ],
                 }
             },
-            Device.connected: {
+            TextualDevice.connected: {
                 Unix.unix: {
                     "action": [
                         "_connect_to_remote_host"
@@ -59,7 +59,7 @@ class Unix(Device):
 
         state_prompts = {
             Unix.unix: r'root@debdev:~#',
-            Device.connected: r'bash-\d+\.*\d*',
+            TextualDevice.connected: r'bash-\d+\.*\d*',
         }
 
         self._state_prompts.update(state_prompts)
@@ -68,11 +68,11 @@ class Unix(Device):
         super(Unix, self)._prepare_state_hops()
 
         state_hops = {
-            Device.not_connected: {
-                Unix.unix: Device.connected,
+            TextualDevice.not_connected: {
+                Unix.unix: TextualDevice.connected,
             },
             Unix.unix: {
-                Device.not_connected: Device.connected
+                TextualDevice.not_connected: TextualDevice.connected
             }
         }
 
