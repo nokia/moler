@@ -67,6 +67,7 @@ class Event(ConnectionObserver):
         if self.till_occurs_times > 0:
             if len(self._result) >= self.till_occurs_times:
                 self._is_done = True
+        self.notify()
 
     def compile_patterns(self, patterns):
         compiled_patterns = []

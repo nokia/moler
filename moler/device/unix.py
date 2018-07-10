@@ -27,6 +27,7 @@ class Unix(TextualDevice):
         super(Unix, self).__init__(io_connection=io_connection, io_type=io_type, variant=variant)
 
         self._prompts_events = []
+        self.last_time = 0
         self._configurations = dict()
         self._collect_cmds_for_state_machine()
         self._collect_events_for_state_machine()
@@ -58,8 +59,8 @@ class Unix(TextualDevice):
         super(Unix, self)._prepare_state_prompts()
 
         state_prompts = {
-            Unix.unix: r'root@debdev:~#',
-            TextualDevice.connected: r'bash-\d+\.*\d*',
+            TextualDevice.connected: r'^bash-\d+\.*\d*',
+            Unix.unix: r'^root@debdev:~#',
         }
 
         self._state_prompts.update(state_prompts)
@@ -101,7 +102,11 @@ class Unix(TextualDevice):
         exit()
 
     def _prompt_callback(self, event, **kwargs):
-        self._set_state(kwargs["state"])
+        # TODO: TBD
+        if abs(self.last_time - event._result[-1]["time"]) > 0.01:
+            if self.current_state != kwargs["state"]:
+                self._set_state(kwargs["state"])
+                self.last_time = event._result[-1]["time"]
 
     def get_configurations(self, state=None):
         if state is None:
