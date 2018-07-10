@@ -33,7 +33,7 @@ class AtCmdGetIMSI(AtCmd):
         if self.operation == "test":  # empty response in test mode since +CIMI doesn't have subparameters
             self.set_result({})
         else:
-            match = re.search("(?P<imsi>\d+)\nOK", self.command_output)
+            match = re.search(r"(?P<imsi>\d+)\nOK", self.command_output)
             if match:
                 self.set_result(match.groupdict())
 
