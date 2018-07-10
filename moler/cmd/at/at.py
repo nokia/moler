@@ -67,7 +67,7 @@ class AtCmd(Command):
         at+cmd
         +CME ERROR: result code
         """
-        match = re.search('\n\+CME\s+ERROR:\s+(?P<error>[\w ]+)', self.command_output, flags=re.IGNORECASE)
+        match = re.search(r'\n\+CME\s+ERROR:\s+(?P<error>[\w ]+)', self.command_output, flags=re.IGNORECASE)
         if match:
             self.set_exception(AtCommandFailure("ERROR: {}".format(match.group(1))))
         else:

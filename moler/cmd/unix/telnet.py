@@ -15,9 +15,9 @@ from moler.exceptions import CommandFailure
 
 class Telnet(GenericUnix):
     # Compiled regexp
-    _re_login = re.compile("login:", re.IGNORECASE)
-    _re_password = re.compile("password:", re.IGNORECASE)
-    _re_failed_strings = re.compile("Permission denied|closed by foreign host|telnet:.*Name or service not known", re.IGNORECASE)
+    _re_login = re.compile(r"login:", re.IGNORECASE)
+    _re_password = re.compile(r"password:", re.IGNORECASE)
+    _re_failed_strings = re.compile(r"Permission denied|closed by foreign host|telnet:.*Name or service not known", re.IGNORECASE)
     _re_has_just_connected = re.compile(r"/has just connected|\{bash_history,ssh\}|Escape character is", re.IGNORECASE)
 
     def __init__(self, connection, host, login=None, password=None, port=0, prompt=None, expected_prompt='>',
