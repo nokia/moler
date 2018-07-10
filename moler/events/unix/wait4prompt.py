@@ -5,8 +5,6 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'michal.ernst@nokia.com'
 
 import logging
-import re
-import time
 
 from moler.events.lineevent import LineEvent
 
@@ -17,4 +15,3 @@ class Wait4prompt(LineEvent):
         self.connection = connection
         self.detect_pattern = prompt
         self.logger = logging.getLogger('moler.{}'.format(self))
-
