@@ -116,7 +116,7 @@ class Unix(TextualDevice):
         for state in self._state_prompts.keys():
             prompt_event = self.get_event(event_name="wait4prompt",
                                           prompt=self._state_prompts[state],
-                                          end_on_caught=False)
+                                          till_occurs_times=-1)
 
             prompt_event.subscribe(callback=self._prompt_callback,
                                    callback_params={"state": state})
