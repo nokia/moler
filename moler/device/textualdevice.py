@@ -32,23 +32,6 @@ class TextualDevice(object):
     states = []
     goto_states_triggers = []
 
-    _transitions = {
-        connected: {
-            not_connected: {
-                "action": [
-                    "_open_connection"
-                ],
-            },
-        },
-        not_connected: {
-            connected: {
-                "action": [
-                    "_close_connection"
-                ],
-            },
-        }
-    }
-
     def __init__(self, io_connection=None, io_type=None, variant=None):
         """
         Create Device communicating over io_connection
