@@ -108,12 +108,17 @@ class Device(object):
         self._add_transitions(transitions=self._transitions)
 
     def _prepare_state_prompts(self):
-        self._state_prompts = {
+        state_prompts = {
             Device.connected: r'bash-\d+\.*\d*',
         }
 
+        self._state_prompts.update(state_prompts)
+
     def _prepare_state_hops(self):
-        pass
+        state_hops = {
+        }
+
+        self._state_hops.update(state_hops)
 
     @classmethod
     def from_named_connection(cls, connection_name):
