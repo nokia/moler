@@ -1,21 +1,25 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Michal Ernst'
+__author__ = 'Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'michal.ernst@nokia.com'
+__email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import NoDetectPatternProvided
 from moler.helpers import instance_id
+from moler.exceptions import ResultAlreadySet
+import re
 
 
 class Event(ConnectionObserver):
-    def __init__(self, connection=None):
+
+    def __init__(self, connection=None, till_occurs_times=-1):
         super(Event, self).__init__(connection=connection)
         self.detect_pattern = ''
         self.detect_patterns = []
         self.callback = None
         self.callback_params = dict()
+        self.till_occurs_times = till_occurs_times
         self.event_name = Event.observer_name
 
     def __str__(self):
@@ -24,6 +28,9 @@ class Event(ConnectionObserver):
 
     def start(self, timeout=None, *args, **kwargs):
         """Start background execution of command."""
+        if self.detect_pattern and not self.detect_patterns:
+            self.detect_patterns = [self.detect_pattern]
+        self.detect_patterns = self.compile_patterns(self.detect_patterns)
         self._validate_start(*args, **kwargs)
         ret = super(Event, self).start(timeout, *args, **kwargs)
         self._is_running = True
@@ -49,3 +56,22 @@ class Event(ConnectionObserver):
 
     def notify(self):
         self.callback(self, **self.callback_params)
+
+    def set_result(self, result):
+        """Should be used to set final result"""
+        if self.done():
+            raise ResultAlreadySet(self)
+        if self._result is None:
+            self._result = []
+        self._result.append(result)
+        if self.till_occurs_times > 0:
+            if len(self._result) >= self.till_occurs_times:
+                self._is_done = True
+
+    def compile_patterns(self, patterns):
+        compiled_patterns = []
+        for pattern in patterns:
+            if not hasattr(pattern, "match"):  # Not compiled regexp
+                pattern = re.compile(pattern)
+            compiled_patterns.append(pattern)
+        return compiled_patterns
