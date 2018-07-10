@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Grzegorz Latuszek'
+__author__ = 'Grzegorz Latuszek, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com'
 
 import pytest
 
@@ -15,9 +15,9 @@ def test_device_directly_created_must_be_given_io_connection(buffer_connection):
 
 
 def test_device_may_be_created_on_named_connection(configure_net_1_connection):
-    from moler.device import Device
+    from moler.device.textualdevice import TextualDevice
 
-    dev = Device.from_named_connection(connection_name='net_1')
+    dev = TextualDevice.from_named_connection(connection_name='net_1')
     assert dev.io_connection is not None
     assert dev.io_connection.name == 'net_1'
 
