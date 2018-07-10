@@ -23,7 +23,7 @@ from moler.exceptions import CommandWrongState, DeviceFailure, EventWrongState
 
 # TODO: name, logger/logger_name as param
 # TODO: change states logging
-class Device(object):
+class TextualDevice(object):
     cmds = "cmd"
     events = "event"
 
@@ -63,7 +63,7 @@ class Device(object):
         self.logger = logging.getLogger('moler.device')
         # Below line will modify self extending it with methods and atributes od StateMachine
         # For eg. it will add atribute self.state
-        self.SM = StateMachine(model=self, states=Device.states, initial=Device.not_connected, auto_transitions=False,
+        self.SM = StateMachine(model=self, states=TextualDevice.states, initial=TextualDevice.not_connected, auto_transitions=False,
                                queued=True)
 
         self._transitions = {}
@@ -90,15 +90,15 @@ class Device(object):
 
     def _prepare_transitions(self):
         self._transitions = {
-            Device.connected: {
-                Device.not_connected: {
+            TextualDevice.connected: {
+                TextualDevice.not_connected: {
                     "action": [
                         "_open_connection"
                     ],
                 },
             },
-            Device.not_connected: {
-                Device.connected: {
+            TextualDevice.not_connected: {
+                TextualDevice.connected: {
                     "action": [
                         "_close_connection"
                     ],
@@ -109,7 +109,7 @@ class Device(object):
 
     def _prepare_state_prompts(self):
         state_prompts = {
-            Device.connected: r'bash-\d+\.*\d*',
+            TextualDevice.connected: r'bash-\d+\.*\d*',
         }
 
         self._state_prompts.update(state_prompts)
@@ -175,7 +175,7 @@ class Device(object):
 
             self.logger.debug("Changing state from '%s' into '%s'" % (self.current_state, state))
 
-            for goto_method in Device.goto_states_triggers:
+            for goto_method in TextualDevice.goto_states_triggers:
                 if "GOTO_{}".format(state) == goto_method:
                     change_state_method = getattr(self, goto_method)
 
@@ -184,16 +184,16 @@ class Device(object):
                 self.logger.debug("Successfully enter state '%s'".format(state))
             else:
                 raise DeviceFailure(
-                    "Try to change state to incorrect state {}. Available states: {}".format(state, Device.states))
+                    "Try to change state to incorrect state {}. Available states: {}".format(state, TextualDevice.states))
 
             if self.current_state == dest_state:
                 is_dest_state = True
 
     def on_connection_made(self, connection):
-        self._set_state(Device.connected)
+        self._set_state(TextualDevice.connected)
 
     def on_connection_lost(self, connection):
-        self._set_state(Device.not_connected)
+        self._set_state(TextualDevice.not_connected)
 
     @abc.abstractmethod
     def _get_packages_for_state(self, state, observer):
@@ -210,7 +210,7 @@ class Device(object):
         """
         :return: List of all states for a device.
         """
-        return Device.states
+        return TextualDevice.states
 
     def _load_cmds_from_package(self, package_name):
         available_cmds = dict()
@@ -235,9 +235,9 @@ class Device(object):
         # TODO:  to check it it is starting in correct state (do it on flag)
         available_observer_names = []
 
-        if observer_type == Device.cmds:
+        if observer_type == TextualDevice.cmds:
             available_observer_names = self._cmdnames_available_in_state[self.current_state]
-        elif observer_type == Device.events:
+        elif observer_type == TextualDevice.events:
             available_observer_names = self._eventnames_available_in_state[self.current_state]
 
         if observer_name in available_observer_names:
@@ -261,19 +261,19 @@ class Device(object):
         """
         CAUTION: it checks if cmd may be created in current_state of device
         """
-        return self._get_observer_in_state(observer_name=cmd_name, observer_type=Device.cmds, **kwargs)
+        return self._get_observer_in_state(observer_name=cmd_name, observer_type=TextualDevice.cmds, **kwargs)
 
     def _create_event_instance(self, event_name, **kwargs):
         """
         CAUTION: it checks if event may be created in current_state of device
         """
-        return self._get_observer_in_state(observer_name=event_name, observer_type=Device.events, **kwargs)
+        return self._get_observer_in_state(observer_name=event_name, observer_type=TextualDevice.events, **kwargs)
 
     def get_observer(self, observer_name, observer_type, observer_exception, check_state=True, **kwargs):
         observer = None
-        if observer_type == Device.cmds:
+        if observer_type == TextualDevice.cmds:
             observer = self._create_cmd_instance(observer_name, **kwargs)
-        elif observer_type == Device.events:
+        elif observer_type == TextualDevice.events:
             observer = self._create_event_instance(observer_name, **kwargs)
 
         if check_state:
@@ -294,13 +294,13 @@ class Device(object):
 
     def get_cmd(self, cmd_name, check_state=True, **kwargs):
         # TODO: add sending prompt from device to command
-        cmd = self.get_observer(observer_name=cmd_name, observer_type=Device.cmds,
+        cmd = self.get_observer(observer_name=cmd_name, observer_type=TextualDevice.cmds,
                                 observer_exception=CommandWrongState, check_state=check_state, **kwargs)
 
         return cmd
 
     def get_event(self, event_name, check_state=True, **kwargs):
-        event = self.get_observer(observer_name=event_name, observer_type=Device.events,
+        event = self.get_observer(observer_name=event_name, observer_type=TextualDevice.events,
                                   observer_exception=EventWrongState, check_state=check_state, **kwargs)
 
         return event
@@ -340,12 +340,12 @@ class Device(object):
         return observer
 
     def _collect_cmds_for_state(self, state):
-        cmds = self._collect_observer_for_state(observer_type=Device.cmds, state=state)
+        cmds = self._collect_observer_for_state(observer_type=TextualDevice.cmds, state=state)
 
         return cmds
 
     def _collect_events_for_state(self, state):
-        events = self._collect_observer_for_state(observer_type=Device.events, state=state)
+        events = self._collect_observer_for_state(observer_type=TextualDevice.events, state=state)
 
         return events
 
@@ -353,7 +353,7 @@ class Device(object):
         for source_state in transitions.keys():
             for dest_state in transitions[source_state].keys():
                 single_transition = [
-                    {'trigger': Device.build_trigger_to_state(dest_state),
+                    {'trigger': TextualDevice.build_trigger_to_state(dest_state),
                      'source': source_state,
                      'dest': dest_state,
                      'before': transitions[source_state][dest_state]["action"]},
@@ -363,8 +363,8 @@ class Device(object):
                 self._update_SM_states(dest_state)
 
     def _update_SM_states(self, state):
-        if state not in Device.states:
-            Device.states.append(state)
+        if state not in TextualDevice.states:
+            TextualDevice.states.append(state)
 
     def _open_connection(self, source_state, dest_state):
         self.io_connection.open()

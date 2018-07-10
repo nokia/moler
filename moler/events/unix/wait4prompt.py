@@ -27,7 +27,7 @@ class Wait4prompt(Event):
         if re.search(detect_pattern, data):
             self.notify()
             when_detected = time.time()
-            self.logger.debug("Caught '{}' on Device '{}'!".format(detect_pattern, self.connection))
+            self.logger.debug("Caught prompt '{}' on Device '{}'!".format(detect_pattern, self.connection))
 
             if self.end_on_caught:
                 self.set_result(result=when_detected)
