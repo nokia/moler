@@ -15,9 +15,9 @@ def test_device_directly_created_must_be_given_io_connection(buffer_connection):
 
 
 def test_device_may_be_created_on_named_connection(configure_net_1_connection):
-    from moler.device.textualdevice import TextualDevice
+    from moler.device.unix import Unix
 
-    dev = TextualDevice.from_named_connection(connection_name='net_1')
+    dev = Unix.from_named_connection(connection_name='net_1')
     assert dev.io_connection is not None
     assert dev.io_connection.name == 'net_1'
 
