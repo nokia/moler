@@ -52,10 +52,10 @@ class TextualDevice(object):
         self._transitions = {}
         self._state_hops = {}
         self._state_prompts = {}
+        self._prompts_events = {}
 
         self._prepare_transitions()
         self._prepare_state_hops()
-        self._prepare_state_prompts()
 
         if io_connection:
             self.io_connection = io_connection
@@ -70,6 +70,7 @@ class TextualDevice(object):
 
         self._collect_cmds_for_state_machine()
         self._collect_events_for_state_machine()
+        self._prepare_state_prompts()
 
     def _prepare_transitions(self):
         self._transitions = {
@@ -96,6 +97,7 @@ class TextualDevice(object):
         }
 
         self._state_prompts.update(state_prompts)
+        self._run_prompts_observers()
 
     def _prepare_state_hops(self):
         state_hops = {
@@ -354,6 +356,21 @@ class TextualDevice(object):
 
     def _close_connection(self, source_state, dest_state):
         self.io_connection.close()
+
+    def _prompt_observer_callback(self, event, **kwargs):
+        self._set_state(kwargs["state"])
+
+    def _run_prompts_observers(self):
+        for state in self._state_prompts.keys():
+            prompt_event = self.get_event(event_name="wait4prompt",
+                                          prompt=self._state_prompts[state],
+                                          till_occurs_times=-1)
+
+            prompt_event.subscribe(callback=self._prompt_observer_callback,
+                                   callback_params={"state": state})
+
+            prompt_event.start()
+            self._prompts_events[state] = prompt_event
 
     @classmethod
     def build_trigger_to_state(cls, state):
