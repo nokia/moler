@@ -15,6 +15,10 @@ class TextualEvent(Event):
         self._last_not_full_line = None
         self._new_line_chars = TextualEvent._default_new_line_chars
 
+    def set_result(self, result):
+        self._consume_already_parsed_fragment()
+        super(TextualEvent, self).set_result(result)
+
     def on_new_line(self, line, is_full_line):
         """
         Method to parse output from device.
@@ -61,3 +65,10 @@ class TextualEvent(Event):
         for char in self._new_line_chars:
             line = line.rstrip(char)
         return line
+
+    def _consume_already_parsed_fragment(self):
+        """
+        Clear already parsed fragment of line to not parse it twice when another fragment appears on device.
+        :return: Nothing
+        """
+        self._last_not_full_line = None
