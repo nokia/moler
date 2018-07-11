@@ -26,16 +26,11 @@ class Unix(TextualDevice):
         """
         super(Unix, self).__init__(io_connection=io_connection, io_type=io_type, variant=variant)
 
-        self._prompts_events = []
-        self.last_time = 0
         self._configurations = dict()
         self._collect_cmds_for_state_machine()
         self._collect_events_for_state_machine()
-        self._run_prompts_observers()
 
     def _prepare_transitions(self):
-        super(Unix, self)._prepare_transitions()
-
         transitions = {
             Unix.unix: {
                 TextualDevice.connected: {
@@ -54,20 +49,17 @@ class Unix(TextualDevice):
         }
 
         self._add_transitions(transitions=transitions)
+        super(Unix, self)._prepare_transitions()
 
     def _prepare_state_prompts(self):
-        super(Unix, self)._prepare_state_prompts()
-
         state_prompts = {
             TextualDevice.connected: r'^bash-\d+\.*\d*',
-            Unix.unix: r'^root@debdev:~#',
         }
 
         self._state_prompts.update(state_prompts)
+        super(Unix, self)._prepare_state_prompts()
 
     def _prepare_state_hops(self):
-        super(Unix, self)._prepare_state_hops()
-
         state_hops = {
             TextualDevice.not_connected: {
                 Unix.unix: TextualDevice.connected,
@@ -76,8 +68,8 @@ class Unix(TextualDevice):
                 TextualDevice.not_connected: TextualDevice.connected
             }
         }
-
         self._state_hops.update(state_hops)
+        super(Unix, self)._prepare_state_hops()
 
     def _get_packages_for_state(self, state, observer):
         if state == Unix.connected:
@@ -101,13 +93,6 @@ class Unix(TextualDevice):
         exit = self.get_cmd(cmd_name='exit', prompt=r'^bash-\d+\.*\d*')
         exit()
 
-    def _prompt_callback(self, event, **kwargs):
-        # TODO: TBD
-        if abs(self.last_time - event._result[-1]["time"]) > 0.01:
-            if self.current_state != kwargs["state"]:
-                self._set_state(kwargs["state"])
-                self.last_time = event._result[-1]["time"]
-
     def get_configurations(self, state=None):
         if state is None:
             return self._configurations
@@ -116,15 +101,3 @@ class Unix(TextualDevice):
 
     def set_configurations(self, configurations):
         self._configurations = configurations
-
-    def _run_prompts_observers(self):
-        for state in self._state_prompts.keys():
-            prompt_event = self.get_event(event_name="wait4prompt",
-                                          prompt=self._state_prompts[state],
-                                          till_occurs_times=-1)
-
-            prompt_event.subscribe(callback=self._prompt_callback,
-                                   callback_params={"state": state})
-
-            prompt_event.start()
-            self._prompts_events.append(prompt_event)
