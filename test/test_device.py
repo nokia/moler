@@ -8,25 +8,25 @@ import pytest
 
 
 def test_device_directly_created_must_be_given_io_connection(buffer_connection):
-    from moler.device.unix import Unix
+    from moler.device.unixremote import UnixRemote
 
-    dev = Unix(io_connection=buffer_connection)
+    dev = UnixRemote(io_connection=buffer_connection)
     assert dev.io_connection == buffer_connection
 
 
 def test_device_may_be_created_on_named_connection(configure_net_1_connection):
-    from moler.device.unix import Unix
+    from moler.device.unixremote import UnixRemote
 
-    dev = Unix.from_named_connection(connection_name='net_1')
+    dev = UnixRemote.from_named_connection(connection_name='net_1')
     assert dev.io_connection is not None
     assert dev.io_connection.name == 'net_1'
 
 
 def test_device_unix_can_return_cd_command(configure_net_1_connection):
-    from moler.device.unix import Unix
+    from moler.device.unixremote import UnixRemote
     from moler.cmd.unix.cd import Cd
 
-    ux = Unix.from_named_connection(connection_name='net_1')
+    ux = UnixRemote.from_named_connection(connection_name='net_1')
     assert hasattr(ux, 'get_cmd')
     assert isinstance(ux.get_cmd(cmd_name='cd', path="/home/user/"), Cd)
 

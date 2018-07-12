@@ -22,5 +22,5 @@ class LineEvent(TextualEvent):
                     current_ret = dict()
                     current_ret["line"] = line
                     current_ret["time"] = time.time()
-                    self.set_result(current_ret)
+                    self.event_occurred(event_data=current_ret)
                     return

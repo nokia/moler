@@ -2,7 +2,7 @@
 """
 Cat command module.
 """
-from moler.cmd.unix.genericunix import GenericUnix
+from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 import re
@@ -12,7 +12,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'sylwester.golonka@nokia.com'
 
 
-class Cat(GenericUnix):
+class Cat(GenericUnixCommand):
     def __init__(self, connection, path, options=None, prompt=None, new_line_chars=None):
         super(Cat, self).__init__(connection, prompt=prompt, new_line_chars=new_line_chars)
         self.path = path

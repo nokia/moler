@@ -9,12 +9,12 @@ __email__ = 'yeshu.yang@nokia-sbell.com'
 
 import re
 
-from moler.cmd.unix.genericunix import GenericUnix
+from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 
 
-class Kill(GenericUnix):
+class Kill(GenericUnixCommand):
     def __init__(self, connection, pid, options=None, prompt=None, new_line_chars=None):
         super(Kill, self).__init__(connection, prompt, new_line_chars)
         self.pid = pid

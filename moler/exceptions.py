@@ -132,5 +132,12 @@ class CommandTimeout(ConnectionObserverTimeout):
 class DeviceFailure(MolerException):
     def __init__(self, device, message):
         self.device = device
-        err_msg = "Device failed '{}' with {}".format(device.name, message)
+        err_msg = "Device failed '{}' with {}".format(device, message)
         super(DeviceFailure, self).__init__(err_msg)
+
+
+class DeviceChangeStateFailure(DeviceFailure):
+    def __init__(self, device, exception):
+        self.device = device
+        err_msg = "Exception raised by device '{}' SM when try to changing state: {}".format(device, exception)
+        super(DeviceChangeStateFailure, self).__init__(device, err_msg)

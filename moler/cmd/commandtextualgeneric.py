@@ -16,7 +16,7 @@ from moler.cmd import RegexHelper
 from moler.command import Command
 
 
-class TextualGeneric(Command):
+class CommandTextualGeneric(Command):
     _re_default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')  # When user provides no prompt
     _default_new_line_chars = ("\n", "\r")  # New line chars on device, not system with script!
 
@@ -26,7 +26,7 @@ class TextualGeneric(Command):
         :param prompt: expected prompt sending by device after command execution. Maybe String or compiled re
         :param new_line_chars:  new line chars on device
         """
-        super(TextualGeneric, self).__init__(connection)
+        super(CommandTextualGeneric, self).__init__(connection)
         self.logger = logging.getLogger('moler.conn-observer')
         self.__command_string = None  # String representing command on device
         self.current_ret = dict()  # Placeholder for result as-it-grows, before final write into self._result
@@ -36,10 +36,10 @@ class TextualGeneric(Command):
         self.ret_required = True  # # Set False for commands not returning parsed result
         self.break_on_timeout = True  # If True then Ctrl+c on timeout
         self._last_not_full_line = None  # Part of line
-        self._re_prompt = TextualGeneric._calculate_prompt(prompt)  # Expected prompt on device
+        self._re_prompt = CommandTextualGeneric._calculate_prompt(prompt)  # Expected prompt on device
         self._new_line_chars = new_line_chars  # New line characters on device
         if not self._new_line_chars:
-            self._new_line_chars = TextualGeneric._default_new_line_chars
+            self._new_line_chars = CommandTextualGeneric._default_new_line_chars
 
     @property
     def command_string(self):
@@ -56,7 +56,7 @@ class TextualGeneric(Command):
     @staticmethod
     def _calculate_prompt(prompt):
         if not prompt:
-            prompt = TextualGeneric._re_default_prompt
+            prompt = CommandTextualGeneric._re_default_prompt
         if sys.version_info >= (3, 0):
             if isinstance(prompt, str):
                 prompt = re.compile(prompt)
@@ -154,7 +154,7 @@ class TextualGeneric(Command):
         :return:
         """
         self.break_cmd()
-        return super(TextualGeneric, self).cancel()
+        return super(CommandTextualGeneric, self).cancel()
 
     def on_timeout(self):
         """

@@ -4,6 +4,9 @@ Moler's device has 2 main responsibilities:
 - be the factory that returns commands of that device
 - be the state machine that controls which commands may run in given state
 """
+import traceback
+
+from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -15,22 +18,20 @@ import importlib
 import inspect
 import logging
 import pkgutil
+import time
 
 from moler.connection import get_connection
 from moler.device.state_machine import StateMachine
-from moler.exceptions import CommandWrongState, DeviceFailure, EventWrongState
+from moler.exceptions import CommandWrongState, DeviceFailure, EventWrongState, DeviceChangeStateFailure
 
 
 # TODO: name, logger/logger_name as param
-# TODO: change states logging
 class TextualDevice(object):
     cmds = "cmd"
     events = "event"
 
     connected = "CONNECTED"
     not_connected = "NOT_CONNECTED"
-    states = []
-    goto_states_triggers = []
 
     def __init__(self, io_connection=None, io_type=None, variant=None):
         """
@@ -43,13 +44,15 @@ class TextualDevice(object):
         :param variant: connection implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
                         (if not given then default one is taken)
         """
-        self.logger = logging.getLogger('moler.device')
+        self.logger = logging.getLogger('moler.textualdevice')
+        self.logger.setLevel(logging.DEBUG)
+        self.states = []
+        self.goto_states_triggers = []
         # Below line will modify self extending it with methods and atributes od StateMachine
         # For eg. it will add atribute self.state
-        self.SM = StateMachine(model=self, states=TextualDevice.states, initial=TextualDevice.not_connected, auto_transitions=False,
+        self.SM = StateMachine(model=self, states=self.states, initial=TextualDevice.not_connected, auto_transitions=False,
                                queued=True)
 
-        self._transitions = {}
         self._state_hops = {}
         self._state_prompts = {}
         self._prompts_events = {}
@@ -71,9 +74,10 @@ class TextualDevice(object):
         self._collect_cmds_for_state_machine()
         self._collect_events_for_state_machine()
         self._prepare_state_prompts()
+        self._run_prompts_observers()
 
     def _prepare_transitions(self):
-        self._transitions = {
+        transitions = {
             TextualDevice.connected: {
                 TextualDevice.not_connected: {
                     "action": [
@@ -89,7 +93,8 @@ class TextualDevice(object):
                 },
             }
         }
-        self._add_transitions(transitions=self._transitions)
+
+        self._add_transitions(transitions=transitions)
 
     def _prepare_state_prompts(self):
         state_prompts = {
@@ -97,13 +102,10 @@ class TextualDevice(object):
         }
 
         self._state_prompts.update(state_prompts)
-        self._run_prompts_observers()
 
     def _prepare_state_hops(self):
-        state_hops = {
-        }
-
-        self._state_hops.update(state_hops)
+        # both state are directly connected, no hops needed
+        pass
 
     @classmethod
     def from_named_connection(cls, connection_name):
@@ -142,37 +144,51 @@ class TextualDevice(object):
             self.logger.debug("Changing state from '%s' into '%s'" % (self.current_state, state))
             self.SM.set_state(state=state)
 
-    def goto_state(self, dest_state):
+    def goto_state(self, dest_state, timeout=-1):
         if self.current_state == dest_state:
             return
         self.logger.debug("Go to state '%s' from '%s'" % (dest_state, self.current_state))
         change_state_method = None
         is_dest_state = False
+        is_timeout = False
+        start_time = time.time()
 
-        while not is_dest_state:
-            state = None
+        while (not is_dest_state) and (not is_timeout):
+            next_state = None
             if self.current_state in self._state_hops.keys():
                 if dest_state in self._state_hops[self.current_state].keys():
-                    state = self._state_hops[self.current_state][dest_state]
+                    next_state = self._state_hops[self.current_state][dest_state]
 
-            if not state:
-                state = dest_state
+            if not next_state:  # direct transition without hops
+                next_state = dest_state
 
-            self.logger.debug("Changing state from '%s' into '%s'" % (self.current_state, state))
+            self.logger.debug("Changing state from '%s' into '%s'" % (self.current_state, next_state))
+            # print("[DEVICE] Changing state from '%s' into '%s'" % (self.current_state, next_state))
 
-            for goto_method in TextualDevice.goto_states_triggers:
-                if "GOTO_{}".format(state) == goto_method:
+            # all state triggers used by SM are methods with names starting from "GOTO_"
+            # for e.g. GOTO_REMOTE, GOTO_CONNECTED
+            for goto_method in self.goto_states_triggers:
+                if "GOTO_{}".format(next_state) == goto_method:
                     change_state_method = getattr(self, goto_method)
 
             if change_state_method:
-                change_state_method(self.current_state, state)
-                self.logger.debug("Successfully enter state '%s'".format(state))
+                try:
+                    change_state_method(self.current_state, next_state)
+                except Exception as ex:
+                    ex_traceback = traceback.format_exc()
+                    raise DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback)
+
+                self.logger.debug("Successfully enter state '{}'".format(next_state))
             else:
                 raise DeviceFailure(
-                    "Try to change state to incorrect state {}. Available states: {}".format(state, TextualDevice.states))
+                    "Try to change state to incorrect state {}. Available states: {}".format(next_state, self.states))
 
             if self.current_state == dest_state:
                 is_dest_state = True
+
+            if (timeout > 0) and (time.time()-start_time > timeout):
+                is_timeout = True
+
 
     def on_connection_made(self, connection):
         self._set_state(TextualDevice.connected)
@@ -195,7 +211,7 @@ class TextualDevice(object):
         """
         :return: List of all states for a device.
         """
-        return TextualDevice.states
+        return self.states
 
     def _load_cmds_from_package(self, package_name):
         available_cmds = dict()
@@ -281,7 +297,7 @@ class TextualDevice(object):
         # TODO: add sending prompt from device to command
         cmd = self.get_observer(observer_name=cmd_name, observer_type=TextualDevice.cmds,
                                 observer_exception=CommandWrongState, check_state=check_state, **kwargs)
-
+        assert isinstance(cmd, CommandTextualGeneric)
         return cmd
 
     def get_event(self, event_name, check_state=True, **kwargs):
@@ -337,19 +353,21 @@ class TextualDevice(object):
     def _add_transitions(self, transitions):
         for source_state in transitions.keys():
             for dest_state in transitions[source_state].keys():
+                self._update_SM_states(dest_state)
+
                 single_transition = [
-                    {'trigger': TextualDevice.build_trigger_to_state(dest_state),
+                    {'trigger': self.build_trigger_to_state(dest_state),
                      'source': source_state,
                      'dest': dest_state,
                      'before': transitions[source_state][dest_state]["action"]},
                 ]
+
                 self.SM.add_state(dest_state)
                 self.SM.add_transitions(single_transition)
-                self._update_SM_states(dest_state)
 
     def _update_SM_states(self, state):
-        if state not in TextualDevice.states:
-            TextualDevice.states.append(state)
+        if state not in self.states:
+            self.states.append(state)
 
     def _open_connection(self, source_state, dest_state):
         self.io_connection.open()
@@ -357,8 +375,8 @@ class TextualDevice(object):
     def _close_connection(self, source_state, dest_state):
         self.io_connection.close()
 
-    def _prompt_observer_callback(self, event, **kwargs):
-        self._set_state(kwargs["state"])
+    def _prompt_observer_callback(self, event, state):
+        self._set_state(state)
 
     def _run_prompts_observers(self):
         for state in self._state_prompts.keys():
@@ -366,15 +384,14 @@ class TextualDevice(object):
                                           prompt=self._state_prompts[state],
                                           till_occurs_times=-1)
 
-            prompt_event.subscribe(callback=self._prompt_observer_callback,
-                                   callback_params={"state": state})
+            prompt_event_callback = functools.partial(self._prompt_observer_callback, event=prompt_event, state=state)
+            prompt_event.add_event_occurred_callback(callback=prompt_event_callback)
 
             prompt_event.start()
             self._prompts_events[state] = prompt_event
 
-    @classmethod
-    def build_trigger_to_state(cls, state):
+    def build_trigger_to_state(self, state):
         trigger = "GOTO_{}".format(state)
-        if trigger not in cls.goto_states_triggers:
-            cls.goto_states_triggers += [trigger]
+        if trigger not in self.goto_states_triggers:
+            self.goto_states_triggers += [trigger]
         return trigger

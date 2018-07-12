@@ -15,9 +15,9 @@ class TextualEvent(Event):
         self._last_not_full_line = None
         self._new_line_chars = TextualEvent._default_new_line_chars
 
-    def set_result(self, result):
+    def event_occurred(self, event_data):
         self._consume_already_parsed_fragment()
-        super(TextualEvent, self).set_result(result)
+        super(TextualEvent, self).event_occurred(event_data)
 
     def on_new_line(self, line, is_full_line):
         """

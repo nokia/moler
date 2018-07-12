@@ -9,10 +9,10 @@ __email__ = 'dariusz.rosinski@nokia.com'
 
 import re
 
-from moler.cmd.unix.genericunix import GenericUnix
+from moler.cmd.unix.genericunix import GenericUnixCommand
 
 
-class Ps(GenericUnix):
+class Ps(GenericUnixCommand):
     def __init__(self, connection=None, options=''):
         """Commad Ps is parsed to list of dictionary.
          Each dictionary in list contains all columns defined in columns printed in first line of command result

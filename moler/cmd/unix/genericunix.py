@@ -10,15 +10,15 @@ __email__ = 'marcin.usielski@nokia.com'
 import re
 
 from moler.exceptions import CommandFailure
-from moler.textualgeneric import TextualGeneric
+from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 
 
-class GenericUnix(TextualGeneric):
+class GenericUnixCommand(CommandTextualGeneric):
     _re_fail = re.compile(r'command not found|No such file or directory|running it may require superuser privileges')
     _re_color_codes = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")  # Regex to remove color codes from command output
 
     def __init__(self, connection, prompt=None, new_line_chars=None):
-        super(GenericUnix, self).__init__(connection, prompt, new_line_chars)
+        super(GenericUnixCommand, self).__init__(connection, prompt, new_line_chars)
         self.remove_colors_from_terminal_output = True
 
     def on_new_line(self, line, is_full_line):
@@ -31,13 +31,13 @@ class GenericUnix(TextualGeneric):
         """
         if is_full_line and self.is_failure_indication(line):
             self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
-        return super(GenericUnix, self).on_new_line(line, is_full_line)
+        return super(GenericUnixCommand, self).on_new_line(line, is_full_line)
 
     def is_failure_indication(self, line):
-        return self._regex_helper.search_compiled(GenericUnix._re_fail, line)
+        return self._regex_helper.search_compiled(GenericUnixCommand._re_fail, line)
 
     def _strip_new_lines_chars(self, line):
-        line = super(GenericUnix, self)._strip_new_lines_chars(line)
+        line = super(GenericUnixCommand, self)._strip_new_lines_chars(line)
         if self.remove_colors_from_terminal_output:
             line = self._remove_color_terminal_codes(line)
         return line
@@ -47,5 +47,5 @@ class GenericUnix(TextualGeneric):
         :param line: line from terminal
         :return: line without terminal color codes
         """
-        line = re.sub(GenericUnix._re_color_codes, "", line)
+        line = re.sub(GenericUnixCommand._re_color_codes, "", line)
         return line

@@ -3,14 +3,14 @@
 tar command module.
 """
 
-from moler.cmd.unix.genericunix import GenericUnix
+from moler.cmd.unix.genericunix import GenericUnixCommand
 
 __author__ = 'Yang Snackwell'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'snackwell.yang@nokia-sbell.com'
 
 
-class Tar(GenericUnix):
+class Tar(GenericUnixCommand):
 
     def __init__(self, connection, options, file, prompt=None, new_line_chars=None):
         super(Tar, self).__init__(connection, prompt, new_line_chars)

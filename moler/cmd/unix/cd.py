@@ -9,10 +9,10 @@ __email__ = 'michal.ernst@nokia.com'
 
 from re import compile, escape, IGNORECASE
 
-from moler.cmd.unix.genericunix import GenericUnix
+from moler.cmd.unix.genericunix import GenericUnixCommand
 
 
-class Cd(GenericUnix):
+class Cd(GenericUnixCommand):
 
     def __init__(self, connection, path=None, prompt=None, new_line_chars=None):
         super(Cd, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
