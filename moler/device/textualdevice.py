@@ -87,7 +87,7 @@ class TextualDevice(object):
         if passed_timeout <= 0 and configuration_timeout > 0:
             command_timeout = configuration_timeout
         elif passed_timeout > 0 and configuration_timeout <= 0:
-            command_timeout = timeout
+            command_timeout = passed_timeout
         elif passed_timeout > 0 and configuration_timeout > 0:
             command_timeout = passed_timeout
             if configuration_timeout < passed_timeout:
@@ -212,7 +212,9 @@ class TextualDevice(object):
             self.logger.debug("Successfully enter state '{}'".format(next_state))
         else:
             raise DeviceFailure(
-                "Try to change state to incorrect state {}. Available states: {}".format(next_state, self.states))
+                device=self.__class__.__name__,
+                message="Try to change state to incorrect state {}. Available states: {}".format(next_state,
+                                                                                                 self.states))
 
     def on_connection_made(self, connection):
         self._set_state(TextualDevice.connected)
@@ -277,8 +279,9 @@ class TextualDevice(object):
 
             return observer
 
-        raise KeyError(
-            "Failed to create {}-object for '{}' {}. '{}' {} is unknown for state '{}' of device '{}'.".format(
+        raise DeviceFailure(
+            device=self.__class__.__name__,
+            message="Failed to create {}-object for '{}' {}. '{}' {} is unknown for state '{}' of device '{}'.".format(
                 observer_type, observer_name, observer_type, observer_name, observer_type, self.current_state,
                 self.__class__.__name__))
 
