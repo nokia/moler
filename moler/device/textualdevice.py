@@ -170,7 +170,7 @@ class TextualDevice(object):
         next_stage_timeout = timeout
         while (not is_dest_state) and (not is_timeout):
             next_state = self._get_next_state(dest_state)
-            self._trigger_change_state(next_state, timeout=next_stage_timeout)
+            self._trigger_change_state(next_state=next_state, timeout=next_stage_timeout)
 
             if self.current_state == dest_state:
                 is_dest_state = True
@@ -191,7 +191,7 @@ class TextualDevice(object):
 
         return next_state
 
-    def _trigger_change_state(self, next_state):
+    def _trigger_change_state(self, next_state, timeout):
         self.logger.debug("Changing state from '%s' into '%s'" % (self.current_state, next_state))
         change_state_method = None
         # all state triggers used by SM are methods with names starting from "GOTO_"
@@ -202,7 +202,7 @@ class TextualDevice(object):
 
         if change_state_method:
             try:
-                change_state_method(self.current_state, next_state, timeout=-1)
+                change_state_method(self.current_state, next_state, timeout=timeout)
             except Exception as ex:
                 ex_traceback = traceback.format_exc()
                 raise DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback)
@@ -391,10 +391,10 @@ class TextualDevice(object):
         if state not in self.states:
             self.states.append(state)
 
-    def _open_connection(self, source_state, dest_state):
+    def _open_connection(self, source_state, dest_state, timeout):
         self.io_connection.open()
 
-    def _close_connection(self, source_state, dest_state):
+    def _close_connection(self, source_state, dest_state, timeout):
         self.io_connection.close()
 
     def _prompt_observer_callback(self, event, state):
