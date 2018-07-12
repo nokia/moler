@@ -48,7 +48,7 @@ class TextualDevice(object):
         self.states = []
         self.goto_states_triggers = []
         # Below line will modify self extending it with methods and atributes od StateMachine
-        # For eg. it will add atribute self.state
+        # For eg. it will add attribute self.state
         self.SM = StateMachine(model=self, states=self.states, initial=TextualDevice.not_connected,
                                auto_transitions=False,
                                queued=True)
