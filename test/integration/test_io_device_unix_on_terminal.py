@@ -9,6 +9,7 @@ import time
 import pytest
 
 from moler.device.unixremote import UnixRemote
+from moler.exceptions import DeviceFailure
 from moler.device.textualdevice import TextualDevice
 
 
@@ -29,10 +30,10 @@ def test_device_unix_can_not_execute_cmds_in_incorect_state():
 
     unix.goto_state(UnixRemote.not_connected)
 
-    with pytest.raises(KeyError, match=r'Failed to create .*-object for .* is unknown for state .* of device .*'):
+    with pytest.raises(DeviceFailure, match=r'Failed to create .*-object for .* is unknown for state .* of device .*'):
         unix.get_cmd(cmd_name='cd', path="/home/user/")
 
-
+#
 # def _wait_workaround(unix, dest_state):
 #     # Workaround when goto_state is not available
 #     start_time = time.time()
@@ -45,18 +46,6 @@ def test_device_unix_can_not_execute_cmds_in_incorect_state():
 #
 # def test_device_unix_connect_to_remote_host(get_configuration):
 #     unix = UnixRemote(io_type='terminal', variant='threaded')
-#     # configuration = {
-#     #     UnixRemote.connected: {
-#     #         UnixRemote.remote: {
-#     #             "execute_command": "ssh",
-#     #             "host": "localhost",
-#     #             "login": "root",
-#     #             "password": "emssim",
-#     #             "prompt": "ute@debdev:~>",
-#     #             "expected_prompt": 'root@debdev:~#'
-#     #         }
-#     #     }
-#     # }
 #     unix.configure_state_machine(get_configuration)
 #     # _wait_workaround(unix, Unix.connected)
 #     unix.goto_state(UnixRemote.remote)
@@ -69,18 +58,6 @@ def test_device_unix_can_not_execute_cmds_in_incorect_state():
 #
 # def test_device_unix_sm_change_state_on_send_exit(get_configuration):
 #     unix = UnixRemote(io_type='terminal', variant='threaded')
-#     # configuration = {
-#     #     UnixRemote.connected: {
-#     #         UnixRemote.remote: {
-#     #             "execute_command": "ssh",
-#     #             "host": "localhost",
-#     #             "login": "root",
-#     #             "password": "emssim",
-#     #             "prompt": "ute@debdev:~>",
-#     #             "expected_prompt": 'root@debdev:~#'
-#     #         }
-#     #     }
-#     # }
 #     unix.configure_state_machine(get_configuration)
 #     # _wait_workaround(unix, Unix.connected)
 #     unix.goto_state(UnixRemote.remote)
