@@ -19,6 +19,7 @@ class Event(ConnectionObserver):
         self.detect_patterns = []
         self.callback = None
         self.callback_params = dict()
+        self._occurred = []
         self.till_occurs_times = till_occurs_times
         self.event_name = Event.observer_name
 
@@ -60,12 +61,12 @@ class Event(ConnectionObserver):
         """Should be used to set final result"""
         if self.done():
             raise ResultAlreadySet(self)
-        if self._result is None:
-            self._result = []
-        self._result.append(event_data)
+        if self._occurred is None:
+            self._occurred = []
+        self._occurred.append(event_data)
         if self.till_occurs_times > 0:
-            if len(self._result) >= self.till_occurs_times:
-                self.set_result(self._result)
+            if len(self._occurred) >= self.till_occurs_times:
+                self.set_result(self._occurred)
         self.notify()
 
     def compile_patterns(self, patterns):

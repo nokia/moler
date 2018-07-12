@@ -77,6 +77,21 @@ class TextualDevice(object):
         self._prepare_state_prompts()
         self._run_prompts_observers()
 
+    def calc_timeout_for_command(self, passed_timeout, configurations):
+        command_timeout = None
+        configuration_timeout = -1
+        if "timeout" in configurations:
+            configuration_timeout = float(configurations["timeout"])
+        if passed_timeout <= 0 and configuration_timeout > 0:
+            command_timeout = configuration_timeout
+        elif passed_timeout > 0 and configuration_timeout <= 0:
+            command_timeout = timeout
+        elif passed_timeout > 0 and configuration_timeout > 0:
+            command_timeout = passed_timeout
+            if configuration_timeout < passed_timeout:
+                command_timeout = configuration_timeout
+        return command_timeout
+
     def _prepare_transitions(self):
         transitions = {
             TextualDevice.connected: {
@@ -149,20 +164,21 @@ class TextualDevice(object):
         if self.current_state == dest_state:
             return
         self.logger.debug("Go to state '%s' from '%s'" % (dest_state, self.current_state))
-        change_state_method = None
         is_dest_state = False
         is_timeout = False
         start_time = time.time()
-
+        next_stage_timeout = timeout
         while (not is_dest_state) and (not is_timeout):
             next_state = self._get_next_state(dest_state)
-            self._trigger_change_state(next_state)
+            self._trigger_change_state(next_state, timeout=next_stage_timeout)
 
             if self.current_state == dest_state:
                 is_dest_state = True
 
-            if (timeout > 0) and (time.time() - start_time > timeout):
-                is_timeout = True
+            if timeout > 0:
+                next_stage_timeout = timeout - (time.time() - start_time)
+                if next_stage_timeout <= 0:
+                    is_timeout = True
 
     def _get_next_state(self, dest_state):
         next_state = None
@@ -177,8 +193,7 @@ class TextualDevice(object):
 
     def _trigger_change_state(self, next_state):
         self.logger.debug("Changing state from '%s' into '%s'" % (self.current_state, next_state))
-        # print("[DEVICE] Changing state from '%s' into '%s'" % (self.current_state, next_state))
-
+        change_state_method = None
         # all state triggers used by SM are methods with names starting from "GOTO_"
         # for e.g. GOTO_REMOTE, GOTO_CONNECTED
         for goto_method in self.goto_states_triggers:
@@ -187,7 +202,7 @@ class TextualDevice(object):
 
         if change_state_method:
             try:
-                change_state_method(self.current_state, next_state)
+                change_state_method(self.current_state, next_state, timeout=-1)
             except Exception as ex:
                 ex_traceback = traceback.format_exc()
                 raise DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback)

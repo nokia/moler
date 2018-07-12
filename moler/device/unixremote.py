@@ -82,21 +82,23 @@ class UnixRemote(TextualDevice):
             return available[observer]
         return []
 
-    def _connect_to_remote_host(self, source_state, dest_state):
+    def _connect_to_remote_host(self, source_state, dest_state, timeout=-1):
         configurations = self.get_configurations(source_state=source_state, dest_state=dest_state)
         # will be telnet or ssh
         connection_type = configurations.pop("execute_command")
 
+        command_timeout = self.calc_timeout_for_command(timeout, configurations)
         establish_connection = self.get_cmd(cmd_name=connection_type, **configurations)
-        establish_connection()
+        establish_connection(timeout=command_timeout)
 
-    def _disconnect_from_remote_host(self, source_state, dest_state):
+    def _disconnect_from_remote_host(self, source_state, dest_state, timeout=-1):
         configurations = self.get_configurations(source_state=source_state, dest_state=dest_state)
         # will be exit
         close_connection = configurations.pop("execute_command")
 
+        command_timeout = self.calc_timeout_for_command(timeout, configurations)
         end_connection = self.get_cmd(cmd_name=close_connection, **configurations)
-        end_connection()
+        end_connection(timeout=command_timeout)
 
     # TODO: Not official API
     def get_configurations(self, source_state, dest_state):
