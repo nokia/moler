@@ -12,7 +12,6 @@ __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
-import abc
 import functools
 import importlib
 import inspect
@@ -20,6 +19,7 @@ import logging
 import pkgutil
 import time
 import re
+import abc
 
 from moler.connection import get_connection
 from moler.device.state_machine import StateMachine
@@ -31,7 +31,6 @@ class TextualDevice(object):
     cmds = "cmd"
     events = "event"
 
-    connected = "CONNECTED"
     not_connected = "NOT_CONNECTED"
 
     def __init__(self, io_connection=None, io_type=None, variant=None):
@@ -46,7 +45,6 @@ class TextualDevice(object):
                         (if not given then default one is taken)
         """
         self.logger = logging.getLogger('moler.textualdevice')
-        self.logger.setLevel(logging.DEBUG)
         self.states = []
         self.goto_states_triggers = []
         # Below line will modify self extending it with methods and atributes od StateMachine
@@ -94,35 +92,16 @@ class TextualDevice(object):
                 command_timeout = configuration_timeout
         return command_timeout
 
+    @abc.abstractmethod
     def _prepare_transitions(self):
-        transitions = {
-            TextualDevice.connected: {
-                TextualDevice.not_connected: {
-                    "action": [
-                        "_open_connection"
-                    ],
-                },
-            },
-            TextualDevice.not_connected: {
-                TextualDevice.connected: {
-                    "action": [
-                        "_close_connection"
-                    ],
-                },
-            }
-        }
+        pass
 
-        self._add_transitions(transitions=transitions)
-
+    @abc.abstractmethod
     def _prepare_state_prompts(self):
-        state_prompts = {
-            TextualDevice.connected: r'bash-\d+\.*\d*',
-        }
+        pass
 
-        self._state_prompts.update(state_prompts)
-
+    @abc.abstractmethod
     def _prepare_state_hops(self):
-        # both state are directly connected, no hops needed
         pass
 
     @classmethod
@@ -397,11 +376,13 @@ class TextualDevice(object):
         if state not in self.states:
             self.states.append(state)
 
+    @abc.abstractmethod
     def _open_connection(self, source_state, dest_state, timeout):
-        self.io_connection.open()
+        pass
 
+    @abc.abstractmethod
     def _close_connection(self, source_state, dest_state, timeout):
-        self.io_connection.close()
+        pass
 
     def _prompt_observer_callback(self, event, state):
         self._set_state(state)
