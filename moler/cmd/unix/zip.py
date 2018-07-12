@@ -10,11 +10,11 @@ __email__ = 'haili.guo@nokia-sbell.com'
 
 import re
 
-from moler.cmd.unix.genericunix import GenericUnix
+from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure, ParsingDone
 
 
-class Zip(GenericUnix):
+class Zip(GenericUnixCommand):
 
     def __init__(self, connection, options, file_name, zip_file, timeout=60, prompt=None, new_line_chars=None):
         super(Zip, self).__init__(connection, prompt, new_line_chars)

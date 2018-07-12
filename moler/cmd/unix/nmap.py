@@ -9,11 +9,11 @@ __email__ = 'yeshu.yang@nokia-sbell.com'
 
 import re
 
-from moler.cmd.unix.genericunix import GenericUnix
+from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
 
 
-class Nmap(GenericUnix):
+class Nmap(GenericUnixCommand):
 
     def __init__(self, connection, ip, is_ping=False, option=None, prompt=None, new_line_chars=None):
         super(Nmap, self).__init__(connection, prompt, new_line_chars)

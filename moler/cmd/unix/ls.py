@@ -9,12 +9,12 @@ __email__ = 'marcin.usielski@nokia.com'
 
 import re
 
-from moler.cmd.unix.genericunix import GenericUnix
+from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.cmd.converterhelper import ConverterHelper
 from moler.exceptions import ResultNotAvailableYet
 
 
-class Ls(GenericUnix):
+class Ls(GenericUnixCommand):
     _re_files_list = re.compile(r"\S{2,}")
     _re_total = re.compile(r"total\s+(\d+\S*)")
     _re_long = re.compile(r"([\w-]{10})\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S.*\S)\s+(\S+)\s*$")

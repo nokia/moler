@@ -45,28 +45,27 @@ class Event(ConnectionObserver):
             # no chance to start CMD
             raise NoDetectPatternProvided(self)
 
-    def subscribe(self, callback, callback_params={}):
+    def add_event_occurred_callback(self, callback):
         self.callback = callback
-        self.callback_params = callback_params
 
-    def unsubscribe(self):
+    def remove_event_occurred_callback(self):
         if not (self.callback_params is None):
             self.callback = None
             self.callback_params = dict()
 
     def notify(self):
-        self.callback(self, **self.callback_params)
+        self.callback()
 
-    def set_result(self, result):
+    def event_occurred(self, event_data):
         """Should be used to set final result"""
         if self.done():
             raise ResultAlreadySet(self)
         if self._result is None:
             self._result = []
-        self._result.append(result)
+        self._result.append(event_data)
         if self.till_occurs_times > 0:
             if len(self._result) >= self.till_occurs_times:
-                self._is_done = True
+                self.set_result(self._result)
         self.notify()
 
     def compile_patterns(self, patterns):

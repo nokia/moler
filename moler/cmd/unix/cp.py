@@ -8,11 +8,11 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'julia.patacz@nokia.com'
 
 
-from moler.cmd.unix.genericunix import GenericUnix
+from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
 
 
-class Cp(GenericUnix):
+class Cp(GenericUnixCommand):
     def __init__(self, connection, src, dst, options=None, prompt=None, new_line_chars=None):
         super(Cp, self).__init__(connection, prompt=prompt, new_line_chars=new_line_chars)
 

@@ -13,8 +13,8 @@ from moler.device import TextualDevice
 
 
 # TODO: name, logger/logger_name as param
-class Unix(TextualDevice):
-    unix = "UNIX"
+class UnixRemote(TextualDevice):
+    remote = "REMOTE"
 
     def __init__(self, io_connection=None, io_type=None, variant=None):
         """
@@ -24,7 +24,7 @@ class Unix(TextualDevice):
         :param io_type: External-IO connection connection type
         :param variant: External-IO connection variant
         """
-        super(Unix, self).__init__(io_connection=io_connection, io_type=io_type, variant=variant)
+        super(UnixRemote, self).__init__(io_connection=io_connection, io_type=io_type, variant=variant)
 
         self._configurations = dict()
         self._collect_cmds_for_state_machine()
@@ -32,15 +32,15 @@ class Unix(TextualDevice):
 
     def _prepare_transitions(self):
         transitions = {
-            Unix.unix: {
+            UnixRemote.remote: {
                 TextualDevice.connected: {
                     "action": [
-                        "_exit_from_remote_host"
+                        "_disconnect_from_remote_host"
                     ],
                 }
             },
             TextualDevice.connected: {
-                Unix.unix: {
+                UnixRemote.remote: {
                     "action": [
                         "_connect_to_remote_host"
                     ],
@@ -49,55 +49,61 @@ class Unix(TextualDevice):
         }
 
         self._add_transitions(transitions=transitions)
-        super(Unix, self)._prepare_transitions()
+        super(UnixRemote, self)._prepare_transitions()
 
     def _prepare_state_prompts(self):
         state_prompts = {
-            TextualDevice.connected: r'^bash-\d+\.*\d*',
+            UnixRemote.remote: r'^root@debdev:~#',
         }
 
         self._state_prompts.update(state_prompts)
-        super(Unix, self)._prepare_state_prompts()
+        super(UnixRemote, self)._prepare_state_prompts()
 
     def _prepare_state_hops(self):
         state_hops = {
             TextualDevice.not_connected: {
-                Unix.unix: TextualDevice.connected,
+                UnixRemote.remote: TextualDevice.connected,
             },
-            Unix.unix: {
+            UnixRemote.remote: {
                 TextualDevice.not_connected: TextualDevice.connected
             }
         }
         self._state_hops.update(state_hops)
-        super(Unix, self)._prepare_state_hops()
+        super(UnixRemote, self)._prepare_state_hops()
 
     def _get_packages_for_state(self, state, observer):
-        if state == Unix.connected:
-            available = {Unix.cmds: ['moler.cmd.unix'],
-                         Unix.events: ['moler.events.unix']}
+        if state == TextualDevice.connected:
+            available = {TextualDevice.cmds: ['moler.cmd.unix'],
+                         TextualDevice.events: ['moler.events.unix']}
             return available[observer]
-        elif state == Unix.unix:
-            available = {Unix.cmds: ['moler.cmd.unix'],
-                         Unix.events: ['moler.events.unix']}
+        elif state == UnixRemote.remote:
+            available = {TextualDevice.cmds: ['moler.cmd.unix'],
+                         TextualDevice.events: ['moler.events.unix']}
             return available[observer]
         return []
 
     def _connect_to_remote_host(self, source_state, dest_state):
-        configurations = self.get_configurations(dest_state)
-        connection_type = configurations.pop("connection_type")
+        configurations = self.get_configurations(source_state=source_state, dest_state=dest_state)
+        # will be telnet or ssh
+        connection_type = configurations.pop("execute_command")
 
-        cmd = self.get_cmd(cmd_name=connection_type, **configurations)
-        cmd()
+        establish_connection = self.get_cmd(cmd_name=connection_type, **configurations)
+        establish_connection()
 
-    def _exit_from_remote_host(self, current_state=None, dest_state=None):
-        exit = self.get_cmd(cmd_name='exit', prompt=r'^bash-\d+\.*\d*')
-        exit()
+    def _disconnect_from_remote_host(self, source_state, dest_state):
+        configurations = self.get_configurations(source_state=source_state, dest_state=dest_state)
+        # will be exit
+        close_connection = configurations.pop("execute_command")
 
-    def get_configurations(self, state=None):
-        if state is None:
-            return self._configurations
+        end_connection = self.get_cmd(cmd_name=close_connection, **configurations)
+        end_connection()
+
+    # TODO: Not official API
+    def get_configurations(self, source_state, dest_state):
+        if source_state and dest_state:
+            return self._configurations[source_state][dest_state]
         else:
-            return self._configurations[state]
+            return self._configurations
 
-    def set_configurations(self, configurations):
+    def configure_state_machine(self, configurations):
         self._configurations = configurations

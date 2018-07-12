@@ -9,10 +9,10 @@ __email__ = 'tomasz.krol@nokia.com'
 
 import re
 
-from moler.cmd.unix.genericunix import GenericUnix
+from moler.cmd.unix.genericunix import GenericUnixCommand
 
 
-class Date(GenericUnix):
+class Date(GenericUnixCommand):
     def __init__(self, connection, prompt=None, new_line_chars=None):
         super(Date, self).__init__(connection, prompt=prompt, new_line_chars=new_line_chars)
 

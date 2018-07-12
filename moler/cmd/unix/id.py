@@ -9,11 +9,11 @@ __email__ = 'michal.ernst@nokia.com'
 
 import re
 
-from moler.cmd.unix.genericunix import GenericUnix
+from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
 
 
-class Id(GenericUnix):
+class Id(GenericUnixCommand):
 
     def __init__(self, connection, user=None, prompt=None, new_line_chars=None):
         super(Id, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)

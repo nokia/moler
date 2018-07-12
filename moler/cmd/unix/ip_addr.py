@@ -9,11 +9,11 @@ __email__ = 'sylwester.golonka@nokia.com'
 
 import re
 
-from moler.cmd.unix.genericunix import GenericUnix
+from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
 
 
-class IpAddr(GenericUnix):
+class IpAddr(GenericUnixCommand):
     def __init__(self, connection, options=None, prompt=None, new_line_chars=None):
         super(IpAddr, self).__init__(connection, prompt, new_line_chars)
         # Parameters defined by calling the command

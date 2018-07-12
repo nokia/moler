@@ -9,12 +9,12 @@ __email__ = 'marcin.usielski@nokia.com'
 
 import re
 
-from moler.cmd.unix.genericunix import GenericUnix
+from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
-from moler.textualgeneric import TextualGeneric
+from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 
 
-class Ssh(GenericUnix):
+class Ssh(GenericUnixCommand):
     # Compiled regexp
     _re_host_key = re.compile(r"Add correct host key in (\\S+) to get rid of this message.*\\n$", re.IGNORECASE)
     _re_yes_no = re.compile(r"\(yes/no\)\?|'yes' or 'no':", re.IGNORECASE)
@@ -31,7 +31,7 @@ class Ssh(GenericUnix):
         super(Ssh, self).__init__(connection, prompt, new_line_chars)
 
         # Parameters defined by calling the command
-        self._re_expected_prompt = TextualGeneric._calculate_prompt(expected_prompt)  # Expected prompt on device
+        self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(expected_prompt)  # Expected prompt on device
         self.login = login
         self.password = password
         self.host = host

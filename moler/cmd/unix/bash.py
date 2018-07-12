@@ -8,10 +8,10 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 
-from moler.cmd.unix.genericunix import GenericUnix
+from moler.cmd.unix.genericunix import GenericUnixCommand
 
 
-class Bash(GenericUnix):
+class Bash(GenericUnixCommand):
 
     def __init__(self, connection, prompt=None, new_line_chars=None, bash="TERM=xterm-mono bash"):
         super(Bash, self).__init__(connection, prompt, new_line_chars)

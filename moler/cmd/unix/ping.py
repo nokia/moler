@@ -9,11 +9,11 @@ __email__ = 'julia.patacz@nokia.com'
 
 import re
 
-from moler.cmd.unix.genericunix import GenericUnix
+from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
 
 
-class Ping(GenericUnix):
+class Ping(GenericUnixCommand):
 
     def __init__(self, connection, destination, options=None, prompt=None, new_line_chars=None):
         super(Ping, self).__init__(connection, prompt, new_line_chars)

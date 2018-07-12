@@ -7,11 +7,11 @@ __author__ = 'Maciej Malczyk'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'maciej.malczyk@nokia.com'
 import re
-from moler.cmd.unix.genericunix import GenericUnix
+from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure, ParsingDone
 
 
-class Mv(GenericUnix):
+class Mv(GenericUnixCommand):
     def __init__(self, connection, src, dst, options=None, prompt=None, new_line_chars=None):
         super(Mv, self).__init__(connection, prompt=prompt, new_line_chars=new_line_chars)
 

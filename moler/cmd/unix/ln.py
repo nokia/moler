@@ -9,11 +9,11 @@ __email__ = 'haili.guo@nokia-sbell.com'
 
 import re
 
-from moler.cmd.unix.genericunix import GenericUnix
+from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure, ParsingDone
 
 
-class Ln(GenericUnix):
+class Ln(GenericUnixCommand):
 
     def __init__(self, connection, prompt=None, new_line_chars=None, options=None):
         super(Ln, self).__init__(connection, prompt, new_line_chars)

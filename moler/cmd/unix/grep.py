@@ -10,11 +10,11 @@ __email__ = 'julia.patacz@nokia.com'
 import re
 
 from moler.cmd.converterhelper import ConverterHelper
-from moler.cmd.unix.genericunix import GenericUnix
+from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
 
 
-class Grep(GenericUnix):
+class Grep(GenericUnixCommand):
 
     def __init__(self, connection, options, prompt=None, new_line_chars=None):
         super(Grep, self).__init__(connection, prompt, new_line_chars)
