@@ -9,12 +9,14 @@ __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
-from moler.device import TextualDevice
+import logging
+
+from moler.device.unixlocal import UnixLocal
 
 
 # TODO: name, logger/logger_name as param
-class UnixRemote(TextualDevice):
-    remote = "REMOTE"
+class UnixRemote(UnixLocal):
+    unix_remote = "UNIX_REMOTE"
 
     def __init__(self, io_connection=None, io_type=None, variant=None):
         """
@@ -25,22 +27,22 @@ class UnixRemote(TextualDevice):
         :param variant: External-IO connection variant
         """
         super(UnixRemote, self).__init__(io_connection=io_connection, io_type=io_type, variant=variant)
-
+        self.logger = logging.getLogger('moler.unixlocal')
         self._configurations = dict()
         self._collect_cmds_for_state_machine()
         self._collect_events_for_state_machine()
 
     def _prepare_transitions(self):
         transitions = {
-            UnixRemote.remote: {
-                TextualDevice.connected: {
+            UnixRemote.unix_remote: {
+                UnixLocal.unix_local: {
                     "action": [
                         "_disconnect_from_remote_host"
                     ],
                 }
             },
-            TextualDevice.connected: {
-                UnixRemote.remote: {
+            UnixLocal.unix_local: {
+                UnixRemote.unix_remote: {
                     "action": [
                         "_connect_to_remote_host"
                     ],
@@ -53,7 +55,7 @@ class UnixRemote(TextualDevice):
 
     def _prepare_state_prompts(self):
         state_prompts = {
-            UnixRemote.remote: r'^root@debdev:~#',
+            UnixRemote.unix_remote: r'^root@debdev:~#',
         }
 
         self._state_prompts.update(state_prompts)
@@ -61,24 +63,24 @@ class UnixRemote(TextualDevice):
 
     def _prepare_state_hops(self):
         state_hops = {
-            TextualDevice.not_connected: {
-                UnixRemote.remote: TextualDevice.connected,
+            UnixLocal.not_connected: {
+                UnixRemote.unix_remote: UnixLocal.unix_local,
             },
-            UnixRemote.remote: {
-                TextualDevice.not_connected: TextualDevice.connected
+            UnixRemote.unix_remote: {
+                UnixLocal.not_connected: UnixLocal.unix_local
             }
         }
         self._state_hops.update(state_hops)
         super(UnixRemote, self)._prepare_state_hops()
 
     def _get_packages_for_state(self, state, observer):
-        if state == TextualDevice.connected:
-            available = {TextualDevice.cmds: ['moler.cmd.unix'],
-                         TextualDevice.events: ['moler.events.unix']}
+        if state == UnixLocal.unix_local:
+            available = {UnixLocal.cmds: ['moler.cmd.unix'],
+                         UnixLocal.events: ['moler.events.unix']}
             return available[observer]
-        elif state == UnixRemote.remote:
-            available = {TextualDevice.cmds: ['moler.cmd.unix'],
-                         TextualDevice.events: ['moler.events.unix']}
+        elif state == UnixRemote.unix_remote:
+            available = {UnixLocal.cmds: ['moler.cmd.unix'],
+                         UnixLocal.events: ['moler.events.unix']}
             return available[observer]
         return []
 
@@ -86,24 +88,25 @@ class UnixRemote(TextualDevice):
         configurations = self.get_configurations(source_state=source_state, dest_state=dest_state)
         # will be telnet or ssh
         connection_type = configurations.pop("execute_command")
+        connection_type_parmas = configurations.pop("command_params")
 
-        command_timeout = self.calc_timeout_for_command(timeout, configurations)
-        establish_connection = self.get_cmd(cmd_name=connection_type, **configurations)
+        command_timeout = self.calc_timeout_for_command(timeout, connection_type_parmas)
+        establish_connection = self.get_cmd(cmd_name=connection_type, **connection_type_parmas)
         establish_connection(timeout=command_timeout)
 
     def _disconnect_from_remote_host(self, source_state, dest_state, timeout=-1):
         configurations = self.get_configurations(source_state=source_state, dest_state=dest_state)
         # will be exit
         close_connection = configurations.pop("execute_command")
+        close_connection_params = configurations.pop("command_params")
 
-        command_timeout = self.calc_timeout_for_command(timeout, configurations)
-        end_connection = self.get_cmd(cmd_name=close_connection, **configurations)
+        command_timeout = self.calc_timeout_for_command(timeout, close_connection_params)
+        end_connection = self.get_cmd(cmd_name=close_connection, **close_connection_params)
         end_connection(timeout=command_timeout)
 
-    # TODO: Not official API
     def get_configurations(self, source_state, dest_state):
         if source_state and dest_state:
-            return self._configurations[source_state][dest_state]
+            return self._configurations["CONNECTION_HOPS"][source_state][dest_state]
         else:
             return self._configurations
 

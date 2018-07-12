@@ -33,7 +33,7 @@ def test_device_unix_can_not_execute_cmds_in_incorect_state():
     with pytest.raises(DeviceFailure, match=r'Failed to create .*-object for .* is unknown for state .* of device .*'):
         unix.get_cmd(cmd_name='cd', path="/home/user/")
 
-#
+
 # def _wait_workaround(unix, dest_state):
 #     # Workaround when goto_state is not available
 #     start_time = time.time()
@@ -48,7 +48,7 @@ def test_device_unix_can_not_execute_cmds_in_incorect_state():
 #     unix = UnixRemote(io_type='terminal', variant='threaded')
 #     unix.configure_state_machine(get_configuration)
 #     # _wait_workaround(unix, Unix.connected)
-#     unix.goto_state(UnixRemote.remote)
+#     unix.goto_state(UnixRemote.unix_remote)
 #     # _wait_workaround(unix, Unix.unix)
 #     # unix.io_connection.moler_connection.sendline("exit")
 #     # _wait_workaround(unix, Unix.connected)
@@ -60,10 +60,10 @@ def test_device_unix_can_not_execute_cmds_in_incorect_state():
 #     unix = UnixRemote(io_type='terminal', variant='threaded')
 #     unix.configure_state_machine(get_configuration)
 #     # _wait_workaround(unix, Unix.connected)
-#     unix.goto_state(UnixRemote.remote)
+#     unix.goto_state(UnixRemote.unix_remote)
 #     # _wait_workaround(unix, Unix.unix)
 #     unix.io_connection.moler_connection.sendline("exit")
-#     _wait_workaround(unix, UnixRemote.connected)
+#     _wait_workaround(unix, UnixRemote.unix_local)
 #     print(unix.current_state)
 #
 # @pytest.fixture(scope="module", autouse=True)
@@ -76,20 +76,26 @@ def test_device_unix_can_not_execute_cmds_in_incorect_state():
 # @pytest.fixture()
 # def get_configuration():
 #     configuration = {
-#         TextualDevice.connected: {
-#             UnixRemote.remote: {
-#                 "execute_command": "ssh",
-#                 "host": "localhost",
-#                 "login": "root",
-#                 "password": "emssim",
-#                 "prompt": "ute@debdev:~>",
-#                 "expected_prompt": 'root@debdev:~#'
-#             }
-#         },
-#         UnixRemote.remote: {
-#             TextualDevice.connected: {
-#                 "execute_command": "exit",
-#                 "prompt": r'^bash-\d+\.*\d*'
+#         "CONNECTION_HOPS": {
+#             "UNIX_LOCAL": {  # from
+#                 "UNIX_REMOTE": {  # to
+#                     "execute_command": "ssh",  # using command
+#                     "command_params": {  # with parameters
+#                         "host": "localhost",
+#                         "login": "root",
+#                         "password": "emssim",
+#                         "prompt": "ute@debdev:~>",
+#                         "expected_prompt": 'root@debdev:~#'
+#                     }
+#                 }
+#             },
+#             "UNIX_REMOTE": {  # from
+#                 "UNIX_LOCAL": {  # to
+#                     "execute_command": "exit",  # using command
+#                     "command_params": {  # with parameters
+#                         "prompt": r'^bash-\d+\.*\d*'
+#                     }
+#                 }
 #             }
 #         }
 #     }
