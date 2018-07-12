@@ -50,7 +50,8 @@ class TextualDevice(object):
         self.goto_states_triggers = []
         # Below line will modify self extending it with methods and atributes od StateMachine
         # For eg. it will add atribute self.state
-        self.SM = StateMachine(model=self, states=self.states, initial=TextualDevice.not_connected, auto_transitions=False,
+        self.SM = StateMachine(model=self, states=self.states, initial=TextualDevice.not_connected,
+                               auto_transitions=False,
                                queued=True)
 
         self._state_hops = {}
@@ -154,41 +155,47 @@ class TextualDevice(object):
         start_time = time.time()
 
         while (not is_dest_state) and (not is_timeout):
-            next_state = None
-            if self.current_state in self._state_hops.keys():
-                if dest_state in self._state_hops[self.current_state].keys():
-                    next_state = self._state_hops[self.current_state][dest_state]
-
-            if not next_state:  # direct transition without hops
-                next_state = dest_state
-
-            self.logger.debug("Changing state from '%s' into '%s'" % (self.current_state, next_state))
-            # print("[DEVICE] Changing state from '%s' into '%s'" % (self.current_state, next_state))
-
-            # all state triggers used by SM are methods with names starting from "GOTO_"
-            # for e.g. GOTO_REMOTE, GOTO_CONNECTED
-            for goto_method in self.goto_states_triggers:
-                if "GOTO_{}".format(next_state) == goto_method:
-                    change_state_method = getattr(self, goto_method)
-
-            if change_state_method:
-                try:
-                    change_state_method(self.current_state, next_state)
-                except Exception as ex:
-                    ex_traceback = traceback.format_exc()
-                    raise DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback)
-
-                self.logger.debug("Successfully enter state '{}'".format(next_state))
-            else:
-                raise DeviceFailure(
-                    "Try to change state to incorrect state {}. Available states: {}".format(next_state, self.states))
+            next_state = self._get_next_state(dest_state)
+            self._trigger_change_state(next_state)
 
             if self.current_state == dest_state:
                 is_dest_state = True
 
-            if (timeout > 0) and (time.time()-start_time > timeout):
+            if (timeout > 0) and (time.time() - start_time > timeout):
                 is_timeout = True
 
+    def _get_next_state(self, dest_state):
+        next_state = None
+        if self.current_state in self._state_hops.keys():
+            if dest_state in self._state_hops[self.current_state].keys():
+                next_state = self._state_hops[self.current_state][dest_state]
+
+        if not next_state:  # direct transition without hops
+            next_state = dest_state
+
+        return next_state
+
+    def _trigger_change_state(self, next_state):
+        self.logger.debug("Changing state from '%s' into '%s'" % (self.current_state, next_state))
+        # print("[DEVICE] Changing state from '%s' into '%s'" % (self.current_state, next_state))
+
+        # all state triggers used by SM are methods with names starting from "GOTO_"
+        # for e.g. GOTO_REMOTE, GOTO_CONNECTED
+        for goto_method in self.goto_states_triggers:
+            if "GOTO_{}".format(next_state) == goto_method:
+                change_state_method = getattr(self, goto_method)
+
+        if change_state_method:
+            try:
+                change_state_method(self.current_state, next_state)
+            except Exception as ex:
+                ex_traceback = traceback.format_exc()
+                raise DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback)
+
+            self.logger.debug("Successfully enter state '{}'".format(next_state))
+        else:
+            raise DeviceFailure(
+                "Try to change state to incorrect state {}. Available states: {}".format(next_state, self.states))
 
     def on_connection_made(self, connection):
         self._set_state(TextualDevice.connected)
