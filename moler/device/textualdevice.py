@@ -19,6 +19,7 @@ import inspect
 import logging
 import pkgutil
 import time
+import re
 
 from moler.connection import get_connection
 from moler.device.state_machine import StateMachine
@@ -76,6 +77,7 @@ class TextualDevice(object):
         self._collect_events_for_state_machine()
         self._prepare_state_prompts()
         self._run_prompts_observers()
+        self._default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')
 
     def calc_timeout_for_command(self, passed_timeout, configurations):
         command_timeout = None
@@ -420,4 +422,10 @@ class TextualDevice(object):
         return trigger
 
     def get_prompt(self):
-        return re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')
+        state = self.current_state
+        prompt = self._default_prompt
+        if state in self._state_prompts:
+            prompt = self._state_prompts[state]
+            if not hasattr(prompt, "match"):
+                prompt = re.compile(prompt)
+        return prompt
