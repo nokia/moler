@@ -316,7 +316,8 @@ class TextualDevice(object):
         return observer
 
     def get_cmd(self, cmd_name, check_state=True, **kwargs):
-        # TODO: add sending prompt from device to command
+        if "prompt" not in kwargs:
+            kwargs["prompt"] = self.get_prompt()
         cmd = self.get_observer(observer_name=cmd_name, observer_type=TextualDevice.cmds,
                                 observer_exception=CommandWrongState, check_state=check_state, **kwargs)
         assert isinstance(cmd, CommandTextualGeneric)
@@ -417,3 +418,6 @@ class TextualDevice(object):
         if trigger not in self.goto_states_triggers:
             self.goto_states_triggers += [trigger]
         return trigger
+
+    def get_prompt(self):
+        return re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')
