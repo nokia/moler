@@ -20,7 +20,7 @@ class StateMachine(transitions.Machine):
                                            before_state_change, after_state_change, name,
                                            queued, prepare_event, finalize_event, **kwargs)
         self.logger = logging.getLogger('transitions')
-        self.logger.propagate=False
+        self.logger.propagate = False
         self.logger.addHandler(ForwardingHandler(target_logger_name="moler.state_machine"))
 
 
@@ -28,6 +28,7 @@ class ForwardingHandler(logging.Handler):
     """
     Take log record and pass it to target_logger
     """
+
     def __init__(self, target_logger_name):
         super(ForwardingHandler, self).__init__(level=logging.DEBUG)
         self.target_logger = logging.getLogger(target_logger_name)
