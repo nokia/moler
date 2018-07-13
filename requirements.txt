@@ -2,3 +2,4 @@ ptyprocess
 six
 futures >= 3.0.0 ; python_version < '3.0'
 transitions
+pyyaml
