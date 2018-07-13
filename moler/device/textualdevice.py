@@ -20,6 +20,7 @@ import pkgutil
 import time
 import re
 import abc
+import copy
 
 from moler.connection import get_connection
 from moler.device.state_machine import StateMachine
@@ -33,7 +34,7 @@ class TextualDevice(object):
 
     not_connected = "NOT_CONNECTED"
 
-    def __init__(self, io_connection=None, io_type=None, variant=None):
+    def __init__(self, io_connection=None, io_type=None, variant=None, sm_params=dict()):
         """
         Create Device communicating over io_connection
         CAUTION: Device owns (takes over ownership) of connection. It will be open when device "is born" and close when
@@ -59,6 +60,7 @@ class TextualDevice(object):
 
         self._prepare_transitions()
         self._prepare_state_hops()
+        self._configure_state_machine(sm_params)
 
         if io_connection:
             self.io_connection = io_connection
@@ -413,3 +415,27 @@ class TextualDevice(object):
             if not hasattr(prompt, "match"):
                 prompt = re.compile(prompt)
         return prompt
+
+    def _configure_state_machine(self, sm_params):
+        default_configurations = self._get_default_sm_configuration()
+        configuration = self._update_configuration(default_configurations, sm_params)
+        self._configurations = configuration
+
+    def _update_configuration(self, default_configuration, current_configuration):
+        hops = "CONNECTION_HOPS"
+        ec = "execute_command"
+        cp = "command_params"
+        if hops not in current_configuration:
+            return default_configuration
+        default_configuration = copy.deepcopy(default_configuration)
+        for frm_state in default_configuration[hops]:
+            for dst_state in default_configuration[hops][frm_state]:
+                if frm_state in current_configuration[hops] and dst_state in current_configuration[hops][frm_state]:
+                    for param in [ec, cp]:
+                        if param in current_configuration[hops][frm_state][dst_state]:
+                            default_configuration[hops][frm_state][dst_state][param].update(
+                                current_configuration[hops][frm_state][dst_state])
+        return default_configuration
+
+    def _get_default_sm_configuration(self):
+        return {"CONNECTION_HOPS": {}}

@@ -17,8 +17,9 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 class UnixLocal(TextualDevice):
     unix_local = "UNIX_LOCAL"
 
-    def __init__(self, io_connection=None, io_type=None, variant=None):
-        super(UnixLocal, self).__init__(io_connection=io_connection, io_type=io_type, variant=variant)
+    def __init__(self, io_connection=None, io_type=None, variant=None, sm_params=dict()):
+        super(UnixLocal, self).__init__(io_connection=io_connection, io_type=io_type, variant=variant,
+                                        sm_params=sm_params)
         self.logger = logging.getLogger('moler.unixlocal')
 
     def _prepare_transitions(self):

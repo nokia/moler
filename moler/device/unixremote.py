@@ -18,7 +18,7 @@ from moler.device.unixlocal import UnixLocal
 class UnixRemote(UnixLocal):
     unix_remote = "UNIX_REMOTE"
 
-    def __init__(self, io_connection=None, io_type=None, variant=None):
+    def __init__(self, io_connection=None, io_type=None, variant=None, sm_params=dict()):
         """
         Create Unix device communicating over io_connection
 
@@ -26,7 +26,8 @@ class UnixRemote(UnixLocal):
         :param io_type: External-IO connection connection type
         :param variant: External-IO connection variant
         """
-        super(UnixRemote, self).__init__(io_connection=io_connection, io_type=io_type, variant=variant)
+        super(UnixRemote, self).__init__(io_connection=io_connection, io_type=io_type, variant=variant,
+                                         sm_params=sm_params)
         self.logger = logging.getLogger('moler.unixlocal')
         self._configurations = dict()
         self._collect_cmds_for_state_machine()
@@ -110,5 +111,28 @@ class UnixRemote(UnixLocal):
         else:
             return self._configurations
 
-    def configure_state_machine(self, configurations):
-        self._configurations = configurations
+    def _get_default_sm_configuration(self):
+        config = {"CONNECTION_HOPS": {
+                "UNIX_LOCAL": {  # from
+                    "UNIX_REMOTE": {  # to
+                        "execute_command": "ssh",  # using command
+                        "command_params": {  # with parameters
+                            "host": "localhost",
+                            "login": "root",
+                            "password": "emssim",
+                            "prompt": "ute@debdev:~>",
+                            "expected_prompt": 'root@debdev:~#'
+                        }
+                    }
+                },
+                "UNIX_REMOTE": {  # from
+                    "UNIX_LOCAL": {  # to
+                        "execute_command": "exit",  # using command
+                        "command_params": {  # with parameters
+                            "prompt": r'^bash-\d+\.*\d*'
+                        }
+                    }
+                }
+            }
+        }
+        return config
