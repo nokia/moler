@@ -423,20 +423,6 @@ class TextualDevice(object):
         self._configurations = configuration
 
     def _update_configuration(self, destination, source):
-        # hops = "CONNECTION_HOPS"
-        # ec = "execute_command"
-        # cp = "command_params"
-        # if hops not in current_configuration:
-        #     return default_configuration
-        # default_configuration = copy.deepcopy(default_configuration)
-        # for frm_state in default_configuration[hops]:
-        #     for dst_state in default_configuration[hops][frm_state]:
-        #         if frm_state in current_configuration[hops] and dst_state in current_configuration[hops][frm_state]:
-        #             for param in [ec, cp]:
-        #                 if param in current_configuration[hops][frm_state][dst_state]:
-        #                     default_configuration[hops][frm_state][dst_state][param].update(
-        #                         current_configuration[hops][frm_state][dst_state])
-        # return default_configuration
         for key, value in source.items():
             if isinstance(value, dict):
                 # get node or create one
