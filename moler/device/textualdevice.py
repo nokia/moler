@@ -57,6 +57,7 @@ class TextualDevice(object):
         self._state_hops = {}
         self._state_prompts = {}
         self._prompts_events = {}
+        self._configurations = dict()
 
         self._prepare_transitions()
         self._prepare_state_hops()
@@ -421,21 +422,30 @@ class TextualDevice(object):
         configuration = self._update_configuration(default_configurations, sm_params)
         self._configurations = configuration
 
-    def _update_configuration(self, default_configuration, current_configuration):
-        hops = "CONNECTION_HOPS"
-        ec = "execute_command"
-        cp = "command_params"
-        if hops not in current_configuration:
-            return default_configuration
-        default_configuration = copy.deepcopy(default_configuration)
-        for frm_state in default_configuration[hops]:
-            for dst_state in default_configuration[hops][frm_state]:
-                if frm_state in current_configuration[hops] and dst_state in current_configuration[hops][frm_state]:
-                    for param in [ec, cp]:
-                        if param in current_configuration[hops][frm_state][dst_state]:
-                            default_configuration[hops][frm_state][dst_state][param].update(
-                                current_configuration[hops][frm_state][dst_state])
-        return default_configuration
+    def _update_configuration(self, destination, source):
+        # hops = "CONNECTION_HOPS"
+        # ec = "execute_command"
+        # cp = "command_params"
+        # if hops not in current_configuration:
+        #     return default_configuration
+        # default_configuration = copy.deepcopy(default_configuration)
+        # for frm_state in default_configuration[hops]:
+        #     for dst_state in default_configuration[hops][frm_state]:
+        #         if frm_state in current_configuration[hops] and dst_state in current_configuration[hops][frm_state]:
+        #             for param in [ec, cp]:
+        #                 if param in current_configuration[hops][frm_state][dst_state]:
+        #                     default_configuration[hops][frm_state][dst_state][param].update(
+        #                         current_configuration[hops][frm_state][dst_state])
+        # return default_configuration
+        for key, value in source.items():
+            if isinstance(value, dict):
+                # get node or create one
+                node = destination.setdefault(key, {})
+                self._update_configuration(value, node)
+            else:
+                destination[key] = value
+
+        return destination
 
     def _get_default_sm_configuration(self):
         return {"CONNECTION_HOPS": {}}

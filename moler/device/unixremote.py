@@ -29,9 +29,33 @@ class UnixRemote(UnixLocal):
         super(UnixRemote, self).__init__(io_connection=io_connection, io_type=io_type, variant=variant,
                                          sm_params=sm_params)
         self.logger = logging.getLogger('moler.unixlocal')
-        self._configurations = dict()
         self._collect_cmds_for_state_machine()
         self._collect_events_for_state_machine()
+
+    def _get_default_sm_configuration(self):
+        config = {
+            "CONNECTION_HOPS": {
+                "UNIX_LOCAL": {  # from
+                    "UNIX_REMOTE": {  # to
+                        "execute_command": "ssh",  # using command
+                        "command_params": {  # with parameters
+                            "host": "localhost",
+                            "login": "root",
+                            "expected_prompt": 'root@debdev:~#'
+                        }
+                    }
+                },
+                "UNIX_REMOTE": {  # from
+                    "UNIX_LOCAL": {  # to
+                        "execute_command": "exit",  # using command
+                        "command_params": {  # with parameters
+                            "expected_prompt": r'^bash-\d+\.*\d*'
+                        }
+                    }
+                }
+            }
+        }
+        return config
 
     def _prepare_transitions(self):
         transitions = {
@@ -108,31 +132,3 @@ class UnixRemote(UnixLocal):
     def get_configurations(self, source_state, dest_state):
         if source_state and dest_state:
             return self._configurations["CONNECTION_HOPS"][source_state][dest_state]
-        else:
-            return self._configurations
-
-    def _get_default_sm_configuration(self):
-        config = {"CONNECTION_HOPS": {
-                "UNIX_LOCAL": {  # from
-                    "UNIX_REMOTE": {  # to
-                        "execute_command": "ssh",  # using command
-                        "command_params": {  # with parameters
-                            "host": "localhost",
-                            "login": "root",
-                            "password": "emssim",
-                            "prompt": "ute@debdev:~>",
-                            "expected_prompt": 'root@debdev:~#'
-                        }
-                    }
-                },
-                "UNIX_REMOTE": {  # from
-                    "UNIX_LOCAL": {  # to
-                        "execute_command": "exit",  # using command
-                        "command_params": {  # with parameters
-                            "prompt": r'^bash-\d+\.*\d*'
-                        }
-                    }
-                }
-            }
-        }
-        return config
