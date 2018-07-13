@@ -4,14 +4,14 @@
 Runner abstraction goal is to hide concurrency machinery used
 to make it exchangeable (threads, asyncio, twisted, curio)
 """
-import time
-from concurrent.futures import ThreadPoolExecutor, wait
-import logging
-from abc import abstractmethod, ABCMeta
-from six import add_metaclass
 import atexit
+import logging
+import time
+from abc import abstractmethod, ABCMeta
+from concurrent.futures import ThreadPoolExecutor, wait
 
 from moler.exceptions import ConnectionObserverTimeout
+from six import add_metaclass
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'

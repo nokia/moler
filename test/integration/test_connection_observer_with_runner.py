@@ -9,7 +9,6 @@ import threading
 import time
 
 import pytest
-
 from moler.connection_observer import ConnectionObserver
 
 __author__ = 'Grzegorz Latuszek'

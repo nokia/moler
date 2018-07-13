@@ -13,9 +13,9 @@ import socket
 import sys
 import threading
 
-from moler.io.io_exceptions import RemoteEndpointNotConnected
-from moler.io.io_exceptions import RemoteEndpointDisconnected
 from moler.io.io_exceptions import ConnectionTimeout
+from moler.io.io_exceptions import RemoteEndpointDisconnected
+from moler.io.io_exceptions import RemoteEndpointNotConnected
 from moler.io.raw import TillDoneThread
 
 __author__ = 'Grzegorz Latuszek'

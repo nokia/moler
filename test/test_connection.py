@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import binascii
-import pytest
 import gc
+
+import pytest
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'

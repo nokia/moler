@@ -11,10 +11,9 @@ The only 3 requirements for these connections are:
 import threading
 import time
 
-from six.moves.queue import Queue, Empty
-
 from moler.io.io_connection import IOConnection
 from moler.io.raw import TillDoneThread
+from six.moves.queue import Queue, Empty
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'

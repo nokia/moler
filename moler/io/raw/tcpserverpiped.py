@@ -11,15 +11,15 @@ It has backdoor connection over pipe that forms control-service which can:
 - shutdown server
 
 """
-from multiprocessing import Process
-from multiprocessing import Pipe
-import socket
+import logging
 import select
-from socket import error as socket_error
+import socket
+import sys
 import time
 from contextlib import contextmanager
-import logging
-import sys
+from multiprocessing import Pipe
+from multiprocessing import Process
+from socket import error as socket_error
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
