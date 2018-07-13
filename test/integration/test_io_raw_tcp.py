@@ -5,8 +5,9 @@ Testing external-IO TCP connection
 - open/close
 - send/receive (naming may differ)
 """
-import pytest
 import time
+
+import pytest
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'

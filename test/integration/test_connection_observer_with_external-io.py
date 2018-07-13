@@ -5,9 +5,9 @@ Testing connection observer with external-IO
 - call as function (synchronous)
 - call as future  (asynchronous)
 """
-import pytest
 import time
 
+import pytest
 from moler.connection_observer import ConnectionObserver
 
 __author__ = 'Grzegorz Latuszek'

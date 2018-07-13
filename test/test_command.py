@@ -12,7 +12,6 @@ inside test_connection_observer.py (as parametrized tests).
 import importlib
 
 import pytest
-
 from moler.command import Command
 from moler.connection import ObservableConnection
 from moler.helpers import instance_id

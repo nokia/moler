@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 from abc import abstractmethod, ABCMeta
-from six import add_metaclass
 
-from moler.exceptions import NoResultSinceCancelCalled
 from moler.exceptions import ConnectionObserverNotStarted
-from moler.exceptions import ResultNotAvailableYet
-from moler.exceptions import ResultAlreadySet
 from moler.exceptions import NoConnectionProvided
-from moler.runner import ThreadPoolExecutorRunner
+from moler.exceptions import NoResultSinceCancelCalled
+from moler.exceptions import ResultAlreadySet
+from moler.exceptions import ResultNotAvailableYet
 from moler.helpers import instance_id
+from moler.runner import ThreadPoolExecutorRunner
+from six import add_metaclass
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
