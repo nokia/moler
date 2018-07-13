@@ -16,13 +16,13 @@ Please note that this example is LAYER-1 usage which means:
 - observer can't be awaited, must be queried for status before asking for data
 Another words - low level manual combining of all the pieces.
 """
-import curio
 import logging
 import sys
 import time
 
-from moler.connection_observer import ConnectionObserver
+import curio
 from moler.connection import ObservableConnection
+from moler.connection_observer import ConnectionObserver
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'

@@ -19,17 +19,16 @@ Shows following concepts:
 - client code may run observers on different connections
 - client code may "start" observers in sequence
 """
-import socket
+import logging
 import select
+import socket
+import sys
 import threading
+import time
 from contextlib import closing
 
-import logging
-import sys
-import time
-
-from moler.connection_observer import ConnectionObserver
 from moler.connection import ObservableConnection
+from moler.connection_observer import ConnectionObserver
 from moler.io.raw import tcp
 
 __author__ = 'Grzegorz Latuszek'
