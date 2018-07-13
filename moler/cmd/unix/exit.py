@@ -42,6 +42,7 @@ amu012@belvedere07:~$ exit
 bash-4.2:~ #"""
 
 COMMAND_KWARGS = {
+    "expected_prompt": r'bash-4.2'
 }
 
 COMMAND_RESULT = {}
