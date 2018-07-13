@@ -1,5 +1,6 @@
-[![pipeline status](https://gitlabe1.ext.net.nokia.com/connections/moler_int/badges/master/pipeline.svg)](https://gitlabe1.ext.net.nokia.com/connections/moler_int/commits/master)
-[![coverage report](https://gitlabe1.ext.net.nokia.com/connections/moler_int/badges/master/coverage.svg)](https://gitlabe1.ext.net.nokia.com/connections/moler_int/commits/master)
+[![Build Status](https://travis-ci.org/nokia/moler.svg?branch=master)](https://travis-ci.org/nokia/moler)
+[![Coverage Status](https://coveralls.io/repos/github/nokia/moler/badge.svg?branch=master)](https://coveralls.io/github/nokia/moler?branch=master)
+[![BCH compliance](https://bettercodehub.com/edge/badge/nokia/moler?branch=master)](https://bettercodehub.com/)
 
 # Table of Contents
 1. [Moler](#moler)
@@ -16,6 +17,7 @@
 Moler is library to help in building automated tests. Name is coined by Grzegorz Latuszek with high impact of Bartosz Odziomek, Michał Ernst and Mateusz Smet.
 
 Moler comes from:
+![moler_origin](https://github.com/nokia/moler/blob/master/images/moler_origin.png)
 * **Mole** :gb:
    * has tunnel-connections to search for data (:bug:) it is processing
    * can detect different bugs hidden under ground
