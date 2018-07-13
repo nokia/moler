@@ -15,17 +15,16 @@ Shows following concepts:
 - client code may "start" observers in sequence
 - external-IO-connection must be given Moler's connection for data forwarding
 """
-import socket
+import logging
 import select
+import socket
+import sys
 import threading
+import time
 from contextlib import closing
 
-import logging
-import sys
-import time
-
-from moler.connection_observer import ConnectionObserver
 from moler.connection import ObservableConnection
+from moler.connection_observer import ConnectionObserver
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'

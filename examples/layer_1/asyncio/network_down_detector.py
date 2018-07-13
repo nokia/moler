@@ -17,13 +17,13 @@ Please note that this example is LAYER-1 usage which means:
 Another words - low level manual combining of all the pieces.
 """
 import asyncio
+import functools
 import logging
 import sys
 import time
-import functools
 
-from moler.connection_observer import ConnectionObserver
 from moler.connection import ObservableConnection
+from moler.connection_observer import ConnectionObserver
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
