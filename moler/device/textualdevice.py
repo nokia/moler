@@ -194,8 +194,10 @@ class TextualDevice(object):
         else:
             raise DeviceFailure(
                 device=self.__class__.__name__,
-                message="Try to change state to incorrect state {}. Available states: {}".format(next_state,
-                                                                                                 self.states))
+                message="Failed to change state. "
+                        "Either target state does not exist in SM or there is no direct/indirect transition "
+                        "towards target state. Try to change state machine definition. "
+                        "Available states: {}".format(next_state, self.states))
 
     def on_connection_made(self, connection):
         self._set_state(TextualDevice.connected)
@@ -378,13 +380,11 @@ class TextualDevice(object):
         if state not in self.states:
             self.states.append(state)
 
-    @abc.abstractmethod
     def _open_connection(self, source_state, dest_state, timeout):
-        pass
+        self.io_connection.open()
 
-    @abc.abstractmethod
     def _close_connection(self, source_state, dest_state, timeout):
-        pass
+        self.io_connection.close()
 
     def _prompt_observer_callback(self, event, state):
         self._set_state(state)

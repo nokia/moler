@@ -14,6 +14,12 @@ from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 
 class Exit(GenericUnixCommand):
     def __init__(self, connection, prompt=None, expected_prompt='>', new_line_chars=None):
+        """
+        :param connection:
+        :param prompt: Prompt of the starting shell
+        :param expected_prompt: Prompt of the target shell reached after exit command
+        :param new_line_chars:
+        """
         super(Exit, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
         self.ret_required = False
 
