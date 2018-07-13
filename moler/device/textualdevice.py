@@ -76,7 +76,6 @@ class TextualDevice(object):
 
         self._collect_cmds_for_state_machine()
         self._collect_events_for_state_machine()
-        self._prepare_state_prompts()
         self._run_prompts_observers()
         self._default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')
 
@@ -421,6 +420,7 @@ class TextualDevice(object):
         default_configurations = self._get_default_sm_configuration()
         configuration = self._update_configuration(default_configurations, sm_params)
         self._configurations = configuration
+        self._prepare_state_prompts()
 
     def _update_configuration(self, destination, source):
         for key, value in source.items():

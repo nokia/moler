@@ -35,8 +35,8 @@ class UnixRemote(UnixLocal):
     def _get_default_sm_configuration(self):
         config = {
             "CONNECTION_HOPS": {
-                "UNIX_LOCAL": {  # from
-                    "UNIX_REMOTE": {  # to
+                UnixRemote.unix_local: {  # from
+                    UnixRemote.unix_remote: {  # to
                         "execute_command": "ssh",  # using command
                         "command_params": {  # with parameters
                             "host": "localhost",
@@ -45,8 +45,8 @@ class UnixRemote(UnixLocal):
                         }
                     }
                 },
-                "UNIX_REMOTE": {  # from
-                    "UNIX_LOCAL": {  # to
+                UnixRemote.unix_remote: {  # from
+                    UnixRemote.unix_local: {  # to
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
                             "expected_prompt": r'^bash-\d+\.*\d*'
@@ -80,7 +80,12 @@ class UnixRemote(UnixLocal):
 
     def _prepare_state_prompts(self):
         state_prompts = {
-            UnixRemote.unix_remote: r'^root@debdev:~#',
+            UnixRemote.unix_remote:
+                self._configurations["CONNECTION_HOPS"][UnixRemote.unix_local][UnixRemote.unix_remote][
+                    "command_params"]["expected_prompt"],
+            UnixRemote.unix_local:
+                self._configurations["CONNECTION_HOPS"][UnixRemote.unix_remote][UnixRemote.unix_local][
+                    "command_params"]["expected_prompt"],
         }
 
         self._state_prompts.update(state_prompts)
