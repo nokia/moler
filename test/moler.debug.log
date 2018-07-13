@@ -1,0 +1,19 @@
+15 17:48:19.759 TEST_CASE  moler                           |test/test_device.py::test_device_directly_created_must_be_given_io_connection
+15 17:48:19.796 INFO       moler.connection.buffer.io      |open buffer:FIFO-in-memory
+15 17:48:19.796 TEST_CASE  moler                           |TC SETUP [PASSED]
+15 17:48:19.801 TEST_CASE  moler                           |TC CALL [PASSED]
+15 17:48:19.806 INFO       moler.connection.buffer.io      |closed buffer:FIFO-in-memory
+15 17:48:19.806 TEST_CASE  moler                           |TC TEARDOWN [PASSED]
+15 17:48:19.806 TEST_CASE  moler                           |test/test_device.py::test_device_may_be_created_on_named_connection
+15 17:48:19.808 TEST_CASE  moler                           |TC SETUP [PASSED]
+15 17:48:19.809 TRACE      moler.connection.net_1          |changing name: net_1 --> net_1
+15 17:48:19.809 TEST_CASE  moler                           |TC CALL [PASSED]
+15 17:48:19.809 TEST_CASE  moler                           |TC TEARDOWN [PASSED]
+15 17:48:19.809 TEST_CASE  moler                           |test/test_device.py::test_device_unix_can_return_cd_command
+15 17:48:19.809 TEST_CASE  moler                           |TC SETUP [PASSED]
+15 17:48:19.871 TRACE      moler.connection.net_1          |changing name: net_1 --> net_1
+15 17:48:19.871 DEBUG      moler.runner.thread-pool        |created
+15 17:48:19.871 DEBUG      moler.runner.thread-pool        |created own executor <concurrent.futures.thread.ThreadPoolExecutor object at 0x02FCC9D0>
+15 17:48:19.872 TEST_CASE  moler                           |TC CALL [PASSED]
+15 17:48:19.872 TEST_CASE  moler                           |TC TEARDOWN [PASSED]
+15 17:48:19.882 DEBUG      moler.runner.thread-pool        |shutting down

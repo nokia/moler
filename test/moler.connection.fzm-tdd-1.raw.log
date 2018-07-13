@@ -1,0 +1,20 @@
+21 14:50:26.367 INFO       >|TERM=xterm-mono telnet FZM-TDD-1.lab0.krk-lab.nsn-rdnet.net 6000
+21 14:50:26.367 RAW_DATA   >|b'TERM=xterm-mono telnet FZM-TDD-1.lab0.krk-lab.nsn-rdnet.net 6000'
+21 14:50:26.371 RAW_DATA   <|bytearray(b'amu012@belvedere07:~/automation/Flexi/config> TERM=xterm-mono telnet FZM-TDD-1.lab0.krk-lab.nsn-rdnet.net 6000\nLogin: fzm-tdd-1\nPassword: \nLast login: Thu Nov 23 10:38:16 2017 from 10.83.200.37\nHave a lot of fun...\nfzm-tdd-1:~ # export TMOUT="2678400"\nfzm-tdd-1:~ # ')
+21 14:50:26.371 INFO       <|amu012@belvedere07:~/automation/Flexi/config> TERM=xterm-mono telnet FZM-TDD-1.lab0.krk-lab.nsn-rdnet.net 6000
+                            |Login: fzm-tdd-1
+                            |Password: 
+                            |Last login: Thu Nov 23 10:38:16 2017 from 10.83.200.37
+                            |Have a lot of fun...
+                            |fzm-tdd-1:~ # export TMOUT="2678400"
+                            |fzm-tdd-1:~ # 
+21 14:50:26.372 INFO       >|fzm-tdd-1
+21 14:50:26.372 RAW_DATA   >|b'fzm-tdd-1'
+21 14:50:26.372 INFO       >|Nokia
+21 14:50:26.372 RAW_DATA   >|b'Nokia'
+21 14:50:26.372 INFO       >|fzm-tdd-1
+21 14:50:26.372 RAW_DATA   >|b'fzm-tdd-1'
+21 14:50:26.372 INFO       >|
+                            |export TMOUT=\"2678400\"
+21 14:50:26.373 RAW_DATA   >|b'\nexport TMOUT=\\"2678400\\"'
+21 14:50:26.423 INFO        |closed fzm-tdd-1:FIFO-in-memory

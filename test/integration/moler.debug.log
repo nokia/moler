@@ -1,0 +1,8 @@
+19 16:50:49.313 TEST_CASE  moler                           |test_io_raw_subprocess.py::test_can_open_connection[Subprocess]
+19 16:50:49.322 TEST_CASE  moler                           |TC SETUP [PASSED]
+19 16:50:49.322 TEST_CASE  moler                           |TC CALL [PASSED]
+19 16:50:49.323 TEST_CASE  moler                           |TC TEARDOWN [PASSED]
+19 16:50:49.323 TEST_CASE  moler                           |test_io_raw_subprocess.py::test_can_open_connection[ThreadedSubprocess]
+19 16:50:49.325 TEST_CASE  moler                           |TC SETUP [PASSED]
+19 16:50:49.326 TEST_CASE  moler                           |TC CALL [PASSED]
+19 16:50:49.326 TEST_CASE  moler                           |TC TEARDOWN [PASSED]

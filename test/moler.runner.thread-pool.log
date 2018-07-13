@@ -1,0 +1,3 @@
+15 17:48:19.871 DEBUG      |created
+15 17:48:19.871 DEBUG      |created own executor <concurrent.futures.thread.ThreadPoolExecutor object at 0x02FCC9D0>
+15 17:48:19.882 DEBUG      |shutting down
