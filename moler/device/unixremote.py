@@ -49,7 +49,7 @@ class UnixRemote(UnixLocal):
                     UnixRemote.unix_local: {  # to
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
-                            "expected_prompt": r'^bash-\d+\.*\d*'
+                            "expected_prompt": r'^moler_bash#'
                         }
                     }
                 }
