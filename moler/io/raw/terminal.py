@@ -4,6 +4,7 @@ __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import re
 import select
+import os
 from threading import Event
 
 from ptyprocess import PtyProcessUnicode
@@ -19,21 +20,21 @@ class ThreadedTerminal(IOConnection):
     ThreadedTerminal is shell working under Pty
     """
 
-    def __init__(self, moler_connection, cmd=['/bin/bash', '--norc', '--noprofile'], select_timeout=0.002,
+    def __init__(self, moler_connection, cmd=['/bin/bash', '--init-file'], select_timeout=0.002,
                  read_buffer_size=4096, first_prompt=None, dimensions=(100, 300)):
         super(ThreadedTerminal, self).__init__(moler_connection=moler_connection)
-        self._cmd = cmd
         self._select_timeout = select_timeout
         self._read_buffer_size = read_buffer_size
         self.dimensions = dimensions
         self._terminal = None
         self.pulling_thread = None
         self._shell_operable = Event()
+        self._cmd = self._build_bash_command(cmd)
 
         if first_prompt:
             self.prompt = first_prompt
         else:
-            self.prompt = r'^bash-\d+\.*\d*'
+            self.prompt = r'^moler_bash#'
 
     def open(self):
         """Open ThreadedTerminal connection & start thread pulling data from it."""
@@ -83,3 +84,9 @@ class ThreadedTerminal(IOConnection):
                 except EOFError:
                     self._notify_on_disconnect()
                     pulling_done.set()
+
+    def _build_bash_command(self, bash_cmd):
+        abs_path = os.path.dirname(__file__)
+        init_file_path = [os.path.join(abs_path, "..", "..", "config", "bash_config")]
+
+        return bash_cmd + init_file_path
