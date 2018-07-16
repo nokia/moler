@@ -443,4 +443,3 @@ class TextualDevice(object):
 
     def _check_device_parameters(self):
         pass
-
