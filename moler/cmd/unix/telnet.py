@@ -9,9 +9,9 @@ __email__ = 'marcin.usielski@nokia.com'
 
 import re
 
+from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
-from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 
 
 class Telnet(GenericUnixCommand):
@@ -95,10 +95,11 @@ class Telnet(GenericUnixCommand):
         return False  # nothing sent
 
     def all_after_login_settings_sent(self):
-        return (((self.set_prompt and self.set_timeout) and  # both requested
-                 (self._sent_prompt and self._sent_timeout)) or  # & both sent
-                (self.set_prompt and self._sent_prompt) or  # single req & sent
-                (self.set_timeout and self._sent_timeout))  # single req & sent
+        both_requested = self.set_prompt and self.set_timeout
+        both_sent = self._sent_prompt and self._sent_timeout
+        single_req_and_sent1 = self.set_prompt and self._sent_prompt
+        single_req_and_sent2 = self.set_timeout and self._sent_timeout
+        return (both_requested and both_sent) or single_req_and_sent1 or single_req_and_sent2
 
     def no_after_login_settings_needed(self):
         return (not self.set_prompt) and (not self.set_timeout)
