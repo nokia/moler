@@ -69,8 +69,9 @@ class ThreadedTerminal(IOConnection):
         while not pulling_done.is_set():
             reads, _, _ = select.select([self._terminal.fd], [], [], self._select_timeout)
             if self._terminal.fd in reads:
-                try:
+                try:                    
                     data = self._terminal.read(self._read_buffer_size)
+                    print (data)
                     if self._shell_operable.is_set():
                         self.data_received(data)
                     else:
