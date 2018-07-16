@@ -28,7 +28,7 @@ class UnixRemote(UnixLocal):
         """
         super(UnixRemote, self).__init__(io_connection=io_connection, io_type=io_type, variant=variant,
                                          sm_params=sm_params)
-        self.logger = logging.getLogger('moler.unixlocal')
+        self.logger = logging.getLogger('moler.unixremote')
         self._collect_cmds_for_state_machine()
         self._collect_events_for_state_machine()
 
