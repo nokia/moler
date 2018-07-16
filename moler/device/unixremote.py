@@ -133,7 +133,3 @@ class UnixRemote(UnixLocal):
         command_timeout = self.calc_timeout_for_command(timeout, close_connection_params)
         end_connection = self.get_cmd(cmd_name=close_connection, **close_connection_params)
         end_connection(timeout=command_timeout)
-
-    def get_configurations(self, source_state, dest_state):
-        if source_state and dest_state:
-            return self._configurations["CONNECTION_HOPS"][source_state][dest_state]
