@@ -78,6 +78,7 @@ class TextualDevice(object):
         self._collect_events_for_state_machine()
         self._run_prompts_observers()
         self._default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')
+        self._check_device_parameters()
 
     def calc_timeout_for_command(self, passed_timeout, configurations):
         command_timeout = None
@@ -439,3 +440,7 @@ class TextualDevice(object):
     def get_configurations(self, source_state, dest_state):
         if source_state and dest_state:
             return self._configurations["CONNECTION_HOPS"][source_state][dest_state]
+
+    def _check_device_parameters(self):
+        pass
+
