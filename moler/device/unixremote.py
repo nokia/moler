@@ -14,7 +14,7 @@ import logging
 from moler.device.unixlocal import UnixLocal
 
 
-# TODO: name, logger/logger_name as param
+# TODO: name, logger/logger_name  as param
 class UnixRemote(UnixLocal):
     unix_remote = "UNIX_REMOTE"
 
