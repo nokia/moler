@@ -435,3 +435,7 @@ class TextualDevice(object):
 
     def _get_default_sm_configuration(self):
         return {"CONNECTION_HOPS": {}}
+
+    def get_configurations(self, source_state, dest_state):
+        if source_state and dest_state:
+            return self._configurations["CONNECTION_HOPS"][source_state][dest_state]

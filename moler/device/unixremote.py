@@ -28,7 +28,7 @@ class UnixRemote(UnixLocal):
         """
         super(UnixRemote, self).__init__(io_connection=io_connection, io_type=io_type, variant=variant,
                                          sm_params=sm_params)
-        self.logger = logging.getLogger('moler.unixlocal')
+        self.logger = logging.getLogger('moler.unixremote')
         self._collect_cmds_for_state_machine()
         self._collect_events_for_state_machine()
 
@@ -49,7 +49,7 @@ class UnixRemote(UnixLocal):
                     UnixRemote.unix_local: {  # to
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
-                            "expected_prompt": r'^bash-\d+\.*\d*'
+                            "expected_prompt": r'^moler_bash#'
                         }
                     }
                 }
@@ -133,7 +133,3 @@ class UnixRemote(UnixLocal):
         command_timeout = self.calc_timeout_for_command(timeout, close_connection_params)
         end_connection = self.get_cmd(cmd_name=close_connection, **close_connection_params)
         end_connection(timeout=command_timeout)
-
-    def get_configurations(self, source_state, dest_state):
-        if source_state and dest_state:
-            return self._configurations["CONNECTION_HOPS"][source_state][dest_state]
