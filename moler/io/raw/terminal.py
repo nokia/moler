@@ -72,7 +72,6 @@ class ThreadedTerminal(IOConnection):
             if self._terminal.fd in reads:
                 try:
                     data = self._terminal.read(self._read_buffer_size)
-                    print(data)
                     if self._shell_operable.is_set():
                         self.data_received(data)
                     else:
