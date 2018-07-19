@@ -83,7 +83,7 @@ class Route(GenericUnixCommand):
             raise ParsingDone
 
     # SIOCADDRT: No such device
-    _re_fail = re.compile(r".*:\s+File exists|.*:\s+No such device")
+    _re_fail = re.compile(r".*:\s+File exists|.*:\s+No such device|.*:\s+No such process")
 
     def _parse_fail(self, line):
         if self._regex_helper.search_compiled(Route._re_fail, line):
