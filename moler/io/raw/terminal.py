@@ -20,7 +20,7 @@ class ThreadedTerminal(IOConnection):
     ThreadedTerminal is shell working under Pty
     """
 
-    def __init__(self, moler_connection, cmd=['/bin/bash', '--init-file'], select_timeout=0.002,
+    def __init__(self, moler_connection, cmd=None, select_timeout=0.002,
                  read_buffer_size=4096, first_prompt=None, dimensions=(100, 300)):
         super(ThreadedTerminal, self).__init__(moler_connection=moler_connection)
         self._select_timeout = select_timeout
@@ -29,6 +29,8 @@ class ThreadedTerminal(IOConnection):
         self._terminal = None
         self.pulling_thread = None
         self._shell_operable = Event()
+        if cmd is None:
+            cmd = ['/bin/bash', '--init-file']
         self._cmd = self._build_bash_command(cmd)
 
         if first_prompt:
