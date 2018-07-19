@@ -10,6 +10,7 @@ __email__ = 'julia.patacz@nokia.com'
 import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
+from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 
 
@@ -19,6 +20,8 @@ class Route(GenericUnixCommand):
         self.options = options
         self.headers = []
         self.values = []
+
+        self.ret_required = False
 
     def build_command_string(self):
         cmd = "route"
@@ -31,6 +34,7 @@ class Route(GenericUnixCommand):
             try:
                 self._parse_values(line)
                 self._parse_header(line)
+                self._parse_fail(line)
             except ParsingDone:
                 pass
         return super(Route, self).on_new_line(line, is_full_line)
@@ -76,6 +80,14 @@ class Route(GenericUnixCommand):
 
             self.values = []
 
+            raise ParsingDone
+
+    # SIOCADDRT: No such device
+    _re_fail = re.compile(r".*:\s+File exists|.*:\s+No such device")
+
+    def _parse_fail(self, line):
+        if self._regex_helper.search_compiled(Route._re_fail, line):
+            self.set_exception(CommandFailure(self, "Command failed in line '{}'".format(line)))
             raise ParsingDone
 
 
@@ -188,3 +200,11 @@ COMMAND_RESULT_cached = {
                 'Use',
                 'Iface'],
 }
+
+COMMAND_OUTPUT_add = """
+root@debdev:/home/ute# route add -net 0.0.0.0 netmask 0.0.0.0 gw 10.0.2.2
+root@debdev:/home/ute# """
+COMMAND_KWARGS_add = {
+    'options': 'add -net 0.0.0.0 netmask 0.0.0.0 gw 10.0.2.2'
+}
+COMMAND_RESULT_add = {}
