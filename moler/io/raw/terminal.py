@@ -31,7 +31,7 @@ class ThreadedTerminal(IOConnection):
         self._shell_operable = Event()
         if cmd is None:
             cmd = ['/bin/bash', '--init-file']
-        self._cmd = self._build_bash_command(cmd)
+        self._cmd = ThreadedTerminal._build_bash_command(cmd)
 
         if first_prompt:
             self.prompt = first_prompt
@@ -87,7 +87,8 @@ class ThreadedTerminal(IOConnection):
                     self._notify_on_disconnect()
                     pulling_done.set()
 
-    def _build_bash_command(self, bash_cmd):
+    @staticmethod
+    def _build_bash_command(bash_cmd):
         abs_path = os.path.dirname(__file__)
         init_file_path = [os.path.join(abs_path, "..", "..", "config", "bash_config")]
 
