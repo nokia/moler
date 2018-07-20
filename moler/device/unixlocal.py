@@ -44,7 +44,7 @@ class UnixLocal(TextualDevice):
 
     def _prepare_state_prompts(self):
         state_prompts = {
-            UnixLocal.unix_local: r'bash-\d+\.*\d*',
+            UnixLocal.unix_local: r'^moler_bash#',
         }
 
         self._state_prompts.update(state_prompts)
