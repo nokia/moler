@@ -18,6 +18,9 @@ class Iptables(GenericUnixCommand):
         super(Iptables, self).__init__(connection, prompt, new_line_chars)
         self.options = options
         self.v6 = v6
+        self.ret_required = False
+
+        self.chain = None
 
     def build_command_string(self):
         cmd = "iptables"
@@ -30,10 +33,53 @@ class Iptables(GenericUnixCommand):
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
-                pass
+                self._parse_chain(line)
+                self._parse_chain_references(line)
+                self._parse_headers(line)
+                self._parse_details(line)
             except ParsingDone:
                 pass
         return super(Iptables, self).on_new_line(line, is_full_line)
+
+    # Chain INPUT (policy DROP 0 packets, 0 bytes)
+    _re_parse_chain = re.compile(r"Chain\s+(?P<NAME>\S+)\s+\(policy\s(?P<POLICY>\S+)\s+(?P<PACKETS>\d+)\s+packets,\s+(?P<BYTES>\d+)\s+bytes\)$")
+
+    def _parse_chain(self, line):
+        if self._regex_helper.search_compiled(Iptables._re_parse_chain, line):
+            self.chain = self._regex_helper.group("NAME")
+            self.current_ret[self.chain] = dict()
+            self.current_ret[self.chain]["POLICY"] = self._regex_helper.group("POLICY")
+            self.current_ret[self.chain]["PACKETS"] = self._regex_helper.group("PACKETS")
+            self.current_ret[self.chain]["BYTES"] = self._regex_helper.group("BYTES")
+            self.current_ret[self.chain]["CHAIN"] = []
+            raise ParsingDone
+
+    # Chain CP_TRAFFIC_RATE_LIMIT (1 references)
+    _re_parse_chain_references = re.compile(r"Chain\s+(?P<NAME>\S+)\s+\((?P<REFERENCES>\d+) references\)$")
+
+    def _parse_chain_references(self, line):
+        if self._regex_helper.search_compiled(Iptables._re_parse_chain_references, line):
+            self.chain = self._regex_helper.group("NAME")
+            self.current_ret[self.chain] = dict()
+            self.current_ret[self.chain]["REFERENCES"] = self._regex_helper.group("REFERENCES")
+            self.current_ret[self.chain]["CHAIN"] = []
+
+    _re_parse_headers = re.compile (r"(?P<HEADERS>pkts\s+bytes\s+target\s+prot\s+opt\s+in\s+out\s+source\s+destination)")
+
+    def _parse_headers(self, line):
+        if self._regex_helper.search_compiled(Iptables._re_parse_headers, line):
+            raise ParsingDone
+
+    _re_parse_details = re.compile(r"\s+(?P<VALUE>\S+)")
+    _key_details = ["PKTS", "BYTES", "TARGET", "PROT", "OPT", "IN", "OUT", "SOURCE", "DESTINATION"]
+    def _parse_details(self, line):
+        if self._regex_helper.search_compiled(Iptables._re_parse_details, line):
+            VALUE = re.findall(Iptables._re_parse_details, line)
+            ret = dict()
+            for value, key in zip(VALUE, Iptables._key_details):
+                ret[value] = key
+                self.current_ret[self.chain]["CHAIN"].append(ret)
+            raise ParsingDone
 
 COMMAND_OUTPUT = """         
 toor4nsn@fzm-lsp-k2:~# iptables -nvxL
