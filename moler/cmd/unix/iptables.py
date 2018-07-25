@@ -95,85 +95,85 @@ class Iptables(GenericUnixCommand):
 COMMAND_OUTPUT = """         
 toor4nsn@fzm-lsp-k2:~# iptables -nvxL
 Chain INPUT (policy DROP 12 packets, 3054 bytes)
-    pkts      bytes target     prot opt in     out     source               destination         
+    pkts      bytes target     prot opt in     out     source               destination
        0        0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            u32 "0x0&0xf000000=0x6000000:0xf000000"
        0        0 ACCEPT     tcp  --  br0+   *       0.0.0.0/0            0.0.0.0/0            multiport dports 15010:15014 state RELATED,ESTABLISHED
-       0        0 ACCEPT     all  --  eth4   *       0.0.0.0/0            0.0.0.0/0           
+       0        0 ACCEPT     all  --  eth4   *       0.0.0.0/0            0.0.0.0/0
        0        0 ACCEPT     udp  --  *      *       0.0.0.0/0            0.0.0.0/0            udp dpt:16009
-       0        0 ACCEPT     esp  --  *      *       0.0.0.0/0            0.0.0.0/0           
-   17207 52497455 ACCEPT     all  --  lo     *       0.0.0.0/0            0.0.0.0/0           
+       0        0 ACCEPT     esp  --  *      *       0.0.0.0/0            0.0.0.0/0
+   17207 52497455 ACCEPT     all  --  lo     *       0.0.0.0/0            0.0.0.0/0
        0        0 ACCEPT     udp  --  *      *       0.0.0.0/0            0.0.0.0/0            udp spt:67 dpt:68 ctstate RELATED,ESTABLISHED
        0        0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            u32 "0x0&0xf000000>>0x18=0x6:0xf"
        0        0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            u32 "0x0&0xffff=0x3fe1:0xffff"
        0        0 DROP       tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:21
-      12     3054 ACCEPT     all  --  eth1+  *       192.168.255.0/24     0.0.0.0/0           
+      12     3054 ACCEPT     all  --  eth1+  *       192.168.255.0/24     0.0.0.0/0
        0        0 ACCEPT     udp  --  *      *       0.0.0.0/0            0.0.0.0/0            udp dpts:5001:5010 ctstate RELATED,ESTABLISHED
        0        0 UDP_ECHO_REQUEST_RATE_LIMIT  udp  --  *      *       0.0.0.0/0            0.0.0.0/0            udp spts:5001:5010
        0        0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            udp spt:7 dpt:7
        0        0 ACCEPT     udp  --  *      *       0.0.0.0/0            0.0.0.0/0            udp dpts:33434:33933 ADDRTYPE match dst-type LOCAL
-       0        0 INGRESS_ICMP  icmp --  br0+   *       0.0.0.0/0            0.0.0.0/0           
+       0        0 INGRESS_ICMP  icmp --  br0+   *       0.0.0.0/0            0.0.0.0/0
        0        0 ACCEPT     udp  --  br0+   *       0.0.0.0/0            10.0.0.248           udp dpt:2152
        0        0 ACCEPT     udp  --  br0+   *       0.0.0.0/0            10.0.111.248         udp dpt:2152
-      13      468 CP_TRAFFIC_RATE_LIMIT  sctp --  br0+   *       0.0.0.0/0            10.0.0.248          
+      13      468 CP_TRAFFIC_RATE_LIMIT  sctp --  br0+   *       0.0.0.0/0            10.0.0.248
        0        0 ACCEPT     udp  --  *      *       0.0.0.0/0            10.0.0.248           udp dpt:500
        0        0 ACCEPT     udp  --  *      *       0.0.0.0/0            10.0.111.248         udp dpt:500
-     254    15621 MP_TRAFFIC  all  --  *      *       0.0.0.0/0            10.1.52.248         
+     254    15621 MP_TRAFFIC  all  --  *      *       0.0.0.0/0            10.1.52.248
        0        0 MP_TRAFFIC_RATE_LIMIT  tcp  --  *      *       10.83.225.1          0.0.0.0/0            tcp spt:389 ctstate RELATED,ESTABLISHED
        0        0 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            multiport dports 15001:15005,15007
        0        0 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:22
 
 Chain FORWARD (policy DROP 0 packets, 0 bytes)
-    pkts      bytes target     prot opt in     out     source               destination         
+    pkts      bytes target     prot opt in     out     source               destination
        0        0 MP_TRAFFIC_RATE_LIMIT  udp  --  *      *       10.1.52.248          0.0.0.0/0            multiport sports 13080:13099,13120:13140
        0        0 MP_TRAFFIC_RATE_LIMIT  tcp  --  *      *       10.1.52.248          0.0.0.0/0            multiport sports 15008,15010:15029
 
 Chain OUTPUT (policy ACCEPT 50759 packets, 87055714 bytes)
-    pkts      bytes target     prot opt in     out     source               destination         
-   38592 18743328 EGRESS_ICMP  icmp --  *      *       0.0.0.0/0            0.0.0.0/0           
+    pkts      bytes target     prot opt in     out     source               destination
+   38592 18743328 EGRESS_ICMP  icmp --  *      *       0.0.0.0/0            0.0.0.0/0
 
 Chain CP_TRAFFIC_RATE_LIMIT (1 references)
     pkts      bytes target     prot opt in     out     source               destination         
       13      468 ACCEPT     sctp --  *      *       0.0.0.0/0            0.0.0.0/0            limit: avg 2000/sec burst 80
-       0        0 DROP       sctp --  *      *       0.0.0.0/0            0.0.0.0/0           
+       0        0 DROP       sctp --  *      *       0.0.0.0/0            0.0.0.0/0
 
 Chain DISCARD_CHAIN (2 references)
-    pkts      bytes target     prot opt in     out     source               destination         
-       0        0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+    pkts      bytes target     prot opt in     out     source               destination
+       0        0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0
 
 Chain EGRESS_ICMP (1 references)
-    pkts      bytes target     prot opt in     out     source               destination         
+    pkts      bytes target     prot opt in     out     source               destination
        0        0 EGRESS_ICMP_RATE_LIMIT  icmp --  *      *       0.0.0.0/0            0.0.0.0/0            icmptype 8 ctstate NEW,ESTABLISHED
        0        0 EGRESS_ICMP_RATE_LIMIT  icmp --  *      *       0.0.0.0/0            0.0.0.0/0            icmptype 0 ctstate ESTABLISHED
    38592 18743328 EGRESS_ICMP_RATE_LIMIT  icmp --  *      *       0.0.0.0/0            0.0.0.0/0            icmptype 3
        0        0 EGRESS_ICMP_RATE_LIMIT  icmp --  *      *       0.0.0.0/0            0.0.0.0/0            icmptype 11
        0        0 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0            icmptype 12
-       0        0 DISCARD_CHAIN  icmp --  *      *       0.0.0.0/0            0.0.0.0/0           
+       0        0 DISCARD_CHAIN  icmp --  *      *       0.0.0.0/0            0.0.0.0/0
 
 Chain EGRESS_ICMP_RATE_LIMIT (4 references)
-    pkts      bytes target     prot opt in     out     source               destination         
+    pkts      bytes target     prot opt in     out     source               destination
        0        0 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0            icmptype 8 limit: avg 25/sec burst 5
        0        0 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0            icmptype 0 limit: avg 25/sec burst 5
     6101  2834715 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0            icmptype 3 limit: avg 25/sec burst 5
        0        0 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0            icmptype 11 limit: avg 25/sec burst 5
-   32491 15908613 DROP       icmp --  *      *       0.0.0.0/0            0.0.0.0/0           
+   32491 15908613 DROP       icmp --  *      *       0.0.0.0/0            0.0.0.0/0
 
 Chain INGRESS_ICMP (1 references)
-    pkts      bytes target     prot opt in     out     source               destination         
+    pkts      bytes target     prot opt in     out     source               destination
        0        0 INGRESS_ICMP_RATE_LIMIT  icmp --  *      *       0.0.0.0/0            0.0.0.0/0            icmptype 8 ctstate NEW,ESTABLISHED
        0        0 INGRESS_ICMP_RATE_LIMIT  icmp --  *      *       0.0.0.0/0            0.0.0.0/0            icmptype 0 ctstate ESTABLISHED
        0        0 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0            icmptype 3
        0        0 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0            icmptype 11
        0        0 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0            icmptype 12
-       0        0 DISCARD_CHAIN  icmp --  *      *       0.0.0.0/0            0.0.0.0/0           
+       0        0 DISCARD_CHAIN  icmp --  *      *       0.0.0.0/0            0.0.0.0/0
 
 Chain INGRESS_ICMP_RATE_LIMIT (2 references)
-    pkts      bytes target     prot opt in     out     source               destination         
+    pkts      bytes target     prot opt in     out     source               destination
        0        0 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0            icmptype 8 limit: avg 25/sec burst 8
        0        0 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0            icmptype 0 limit: avg 25/sec burst 8
-       0        0 DROP       icmp --  *      *       0.0.0.0/0            0.0.0.0/0           
+       0        0 DROP       icmp --  *      *       0.0.0.0/0            0.0.0.0/0
 
 Chain MP_TRAFFIC (1 references)
-    pkts      bytes target     prot opt in     out     source               destination         
+    pkts      bytes target     prot opt in     out     source               destination
        0        0 MP_TRAFFIC_RATE_LIMIT  udp  --  *      *       0.0.0.0/0            0.0.0.0/0            udp spt:53 ctstate RELATED,ESTABLISHED
        0        0 MP_TRAFFIC_RATE_LIMIT  tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp spt:53 ctstate RELATED,ESTABLISHED
        0        0 MP_TRAFFIC_RATE_LIMIT  tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp spt:21 ctstate RELATED,ESTABLISHED
@@ -189,20 +189,20 @@ Chain MP_TRAFFIC (1 references)
        0        0 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:12000 state NEW
 
 Chain MP_TRAFFIC_RATE_LIMIT (15 references)
-    pkts      bytes target     prot opt in     out     source               destination         
+    pkts      bytes target     prot opt in     out     source               destination
      254    15621 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            limit: avg 2000/sec burst 32
-       0        0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+       0        0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0
 
 Chain TLS_RENEG_RATE_LIMIT (0 references)
-    pkts      bytes target     prot opt in     out     source               destination         
+    pkts      bytes target     prot opt in     out     source               destination
 
 Chain TOP_TRAFFIC_RATE_LIMIT (0 references)
-    pkts      bytes target     prot opt in     out     source               destination         
+    pkts      bytes target     prot opt in     out     source               destination
 
 Chain UDP_ECHO_REQUEST_RATE_LIMIT (1 references)
-    pkts      bytes target     prot opt in     out     source               destination         
+    pkts      bytes target     prot opt in     out     source               destination
        0        0 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            limit: avg 100/sec burst 5
-       0        0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+       0        0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0
 toor4nsn@fzm-lsp-k2:~# 
 """
 COMMAND_KWARGS = {'options': '-nvxL'}
@@ -224,8 +224,7 @@ COMMAND_RESULT = {u'CP_TRAFFIC_RATE_LIMIT': {'CHAIN': [{'BYTES': u'468',
                                                         'PKTS': u'0',
                                                         'PROT': u'sctp',
                                                         'SOURCE': u'0.0.0.0/0',
-                                                        'TARGET': u'DROP'},
-                                                       {'REST': u''}],
+                                                        'TARGET': u'DROP'}],
                                              'REFERENCES': u'1'},
                   u'DISCARD_CHAIN': {'CHAIN': [{'BYTES': u'0',
                                                 'DESTINATION': u'0.0.0.0/0',
@@ -235,8 +234,7 @@ COMMAND_RESULT = {u'CP_TRAFFIC_RATE_LIMIT': {'CHAIN': [{'BYTES': u'468',
                                                 'PKTS': u'0',
                                                 'PROT': u'all',
                                                 'SOURCE': u'0.0.0.0/0',
-                                                'TARGET': u'DROP'},
-                                               {'REST': u''}],
+                                                'TARGET': u'DROP'}],
                                      'REFERENCES': u'2'},
                   u'EGRESS_ICMP': {'CHAIN': [{'BYTES': u'0',
                                               'DESTINATION': u'0.0.0.0/0',
@@ -296,8 +294,7 @@ COMMAND_RESULT = {u'CP_TRAFFIC_RATE_LIMIT': {'CHAIN': [{'BYTES': u'468',
                                               'PKTS': u'0',
                                               'PROT': u'icmp',
                                               'SOURCE': u'0.0.0.0/0',
-                                              'TARGET': u'DISCARD_CHAIN'},
-                                             {'REST': u''}],
+                                              'TARGET': u'DISCARD_CHAIN'}],
                                    'REFERENCES': u'1'},
                   u'EGRESS_ICMP_RATE_LIMIT': {'CHAIN': [{'BYTES': u'0',
                                                          'DESTINATION': u'0.0.0.0/0',
@@ -347,8 +344,7 @@ COMMAND_RESULT = {u'CP_TRAFFIC_RATE_LIMIT': {'CHAIN': [{'BYTES': u'468',
                                                          'PKTS': u'32491',
                                                          'PROT': u'icmp',
                                                          'SOURCE': u'0.0.0.0/0',
-                                                         'TARGET': u'DROP'},
-                                                        {'REST': u''}],
+                                                         'TARGET': u'DROP'}],
                                               'REFERENCES': u'4'},
                   u'FORWARD': {'BYTES': u'0',
                                'CHAIN': [{'BYTES': u'0',
@@ -431,8 +427,7 @@ COMMAND_RESULT = {u'CP_TRAFFIC_RATE_LIMIT': {'CHAIN': [{'BYTES': u'468',
                                                'PKTS': u'0',
                                                'PROT': u'icmp',
                                                'SOURCE': u'0.0.0.0/0',
-                                               'TARGET': u'DISCARD_CHAIN'},
-                                              {'REST': u''}],
+                                               'TARGET': u'DISCARD_CHAIN'}],
                                     'REFERENCES': u'1'},
                   u'INGRESS_ICMP_RATE_LIMIT': {'CHAIN': [{'BYTES': u'0',
                                                           'DESTINATION': u'0.0.0.0/0',
@@ -462,8 +457,7 @@ COMMAND_RESULT = {u'CP_TRAFFIC_RATE_LIMIT': {'CHAIN': [{'BYTES': u'468',
                                                           'PKTS': u'0',
                                                           'PROT': u'icmp',
                                                           'SOURCE': u'0.0.0.0/0',
-                                                          'TARGET': u'DROP'},
-                                                         {'REST': u''}],
+                                                          'TARGET': u'DROP'}],
                                                'REFERENCES': u'2'},
                   u'INPUT': {'BYTES': u'3054',
                              'CHAIN': [{'BYTES': u'0',
@@ -495,7 +489,6 @@ COMMAND_RESULT = {u'CP_TRAFFIC_RATE_LIMIT': {'CHAIN': [{'BYTES': u'468',
                                         'PROT': u'all',
                                         'SOURCE': u'0.0.0.0/0',
                                         'TARGET': u'ACCEPT'},
-                                       {'REST': u''},
                                        {'BYTES': u'0',
                                         'DESTINATION': u'0.0.0.0/0',
                                         'IN': u'*',
@@ -515,7 +508,6 @@ COMMAND_RESULT = {u'CP_TRAFFIC_RATE_LIMIT': {'CHAIN': [{'BYTES': u'468',
                                         'PROT': u'esp',
                                         'SOURCE': u'0.0.0.0/0',
                                         'TARGET': u'ACCEPT'},
-                                       {'REST': u''},
                                        {'BYTES': u'52497455',
                                         'DESTINATION': u'0.0.0.0/0',
                                         'IN': u'lo',
@@ -525,7 +517,6 @@ COMMAND_RESULT = {u'CP_TRAFFIC_RATE_LIMIT': {'CHAIN': [{'BYTES': u'468',
                                         'PROT': u'all',
                                         'SOURCE': u'0.0.0.0/0',
                                         'TARGET': u'ACCEPT'},
-                                       {'REST': u''},
                                        {'BYTES': u'0',
                                         'DESTINATION': u'0.0.0.0/0',
                                         'IN': u'*',
@@ -575,7 +566,6 @@ COMMAND_RESULT = {u'CP_TRAFFIC_RATE_LIMIT': {'CHAIN': [{'BYTES': u'468',
                                         'PROT': u'all',
                                         'SOURCE': u'192.168.255.0/24',
                                         'TARGET': u'ACCEPT'},
-                                       {'REST': u''},
                                        {'BYTES': u'0',
                                         'DESTINATION': u'0.0.0.0/0',
                                         'IN': u'*',
@@ -625,7 +615,6 @@ COMMAND_RESULT = {u'CP_TRAFFIC_RATE_LIMIT': {'CHAIN': [{'BYTES': u'468',
                                         'PROT': u'icmp',
                                         'SOURCE': u'0.0.0.0/0',
                                         'TARGET': u'INGRESS_ICMP'},
-                                       {'REST': u''},
                                        {'BYTES': u'0',
                                         'DESTINATION': u'10.0.0.248',
                                         'IN': u'br0+',
@@ -655,7 +644,6 @@ COMMAND_RESULT = {u'CP_TRAFFIC_RATE_LIMIT': {'CHAIN': [{'BYTES': u'468',
                                         'PROT': u'sctp',
                                         'SOURCE': u'0.0.0.0/0',
                                         'TARGET': u'CP_TRAFFIC_RATE_LIMIT'},
-                                       {'REST': u''},
                                        {'BYTES': u'0',
                                         'DESTINATION': u'10.0.0.248',
                                         'IN': u'*',
@@ -685,7 +673,6 @@ COMMAND_RESULT = {u'CP_TRAFFIC_RATE_LIMIT': {'CHAIN': [{'BYTES': u'468',
                                         'PROT': u'all',
                                         'SOURCE': u'0.0.0.0/0',
                                         'TARGET': u'MP_TRAFFIC'},
-                                       {'REST': u''},
                                        {'BYTES': u'0',
                                         'DESTINATION': u'0.0.0.0/0',
                                         'IN': u'*',
@@ -867,8 +854,7 @@ COMMAND_RESULT = {u'CP_TRAFFIC_RATE_LIMIT': {'CHAIN': [{'BYTES': u'468',
                                                         'PKTS': u'0',
                                                         'PROT': u'all',
                                                         'SOURCE': u'0.0.0.0/0',
-                                                        'TARGET': u'DROP'},
-                                                       {'REST': u''}],
+                                                        'TARGET': u'DROP'}],
                                              'REFERENCES': u'15'},
                   u'OUTPUT': {'BYTES': u'87055714',
                               'CHAIN': [{'BYTES': u'18743328',
@@ -879,8 +865,7 @@ COMMAND_RESULT = {u'CP_TRAFFIC_RATE_LIMIT': {'CHAIN': [{'BYTES': u'468',
                                          'PKTS': u'38592',
                                          'PROT': u'icmp',
                                          'SOURCE': u'0.0.0.0/0',
-                                         'TARGET': u'EGRESS_ICMP'},
-                                        {'REST': u''}],
+                                         'TARGET': u'EGRESS_ICMP'}],
                               'PACKETS': u'50759',
                               'POLICY': u'ACCEPT'},
                   u'TLS_RENEG_RATE_LIMIT': {'CHAIN': [], 'REFERENCES': u'0'},
@@ -903,6 +888,5 @@ COMMAND_RESULT = {u'CP_TRAFFIC_RATE_LIMIT': {'CHAIN': [{'BYTES': u'468',
                                                               'PKTS': u'0',
                                                               'PROT': u'all',
                                                               'SOURCE': u'0.0.0.0/0',
-                                                              'TARGET': u'DROP'},
-                                                             {'REST': u''}],
+                                                              'TARGET': u'DROP'}],
                                                    'REFERENCES': u'1'}}
