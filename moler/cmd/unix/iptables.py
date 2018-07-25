@@ -92,7 +92,7 @@ class Iptables(GenericUnixCommand):
             raise ParsingDone
 
 
-COMMAND_OUTPUT = """         
+COMMAND_OUTPUT = """
 toor4nsn@fzm-lsp-k2:~# iptables -nvxL
 Chain INPUT (policy DROP 12 packets, 3054 bytes)
     pkts      bytes target     prot opt in     out     source               destination
@@ -132,7 +132,7 @@ Chain OUTPUT (policy ACCEPT 50759 packets, 87055714 bytes)
    38592 18743328 EGRESS_ICMP  icmp --  *      *       0.0.0.0/0            0.0.0.0/0
 
 Chain CP_TRAFFIC_RATE_LIMIT (1 references)
-    pkts      bytes target     prot opt in     out     source               destination         
+    pkts      bytes target     prot opt in     out     source               destination
       13      468 ACCEPT     sctp --  *      *       0.0.0.0/0            0.0.0.0/0            limit: avg 2000/sec burst 80
        0        0 DROP       sctp --  *      *       0.0.0.0/0            0.0.0.0/0
 
@@ -203,9 +203,10 @@ Chain UDP_ECHO_REQUEST_RATE_LIMIT (1 references)
     pkts      bytes target     prot opt in     out     source               destination
        0        0 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            limit: avg 100/sec burst 5
        0        0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0
-toor4nsn@fzm-lsp-k2:~# 
-"""
+toor4nsn@fzm-lsp-k2:~#"""
+
 COMMAND_KWARGS = {'options': '-nvxL'}
+
 COMMAND_RESULT = {u'CP_TRAFFIC_RATE_LIMIT': {'CHAIN': [{'BYTES': u'468',
                                                         'DESTINATION': u'0.0.0.0/0',
                                                         'IN': u'*',
