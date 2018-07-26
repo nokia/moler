@@ -4,9 +4,9 @@
 Perform command autotest for selected command(s).
 """
 
-__author__ = 'Grzegorz Latuszek', 'Michal Ernst'
+__author__ = 'Grzegorz Latuszek', 'Michal Ernst', 'Michal Plichta'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com', 'michal.ernst@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com', 'michal.ernst@nokia.com', 'michal.plichta@nokia.com'
 
 import argparse
 import importlib
@@ -15,12 +15,8 @@ import os.path
 import pprint
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-from moler.command import Command
 import moler
-
-pp = pprint.PrettyPrinter(indent=4)
+from moler.command import Command
 
 
 # ----------------------------------- input parameters parsing ----------------
@@ -68,7 +64,8 @@ def buffer_connection():
 
 
 def walk_moler_python_files(path):
-    repo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    repo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+    path = os.path.join(__file__.partition('moler/util/cmds_doc.py')[0], path)
     for (dirpath, dirnames, filenames) in os.walk(path):
         for filename in filenames:
             if filename.endswith('__init__.py'):
