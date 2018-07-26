@@ -51,7 +51,7 @@ root@fzm-lsp-k2:~# dmesg
 [755739.693709] ucd9000 1-007e: [UCD9000] UCD interval: 299920 [ms], Linux interval: 300000 [ms], Diff: -80 [ms]
 [755739.693721] ucd9000 1-007e: [UCD9000] Clock accuracy OK
 [756039.693730] ucd9000 1-007e: [UCD9000] UCD interval: 299950 [ms], Linux interval: 300000 [ms], Diff: -50 [ms]
-[756039.693741] ucd9000 1-007e: [UCD9000] Clock accuracy OK 
+[756039.693741] ucd9000 1-007e: [UCD9000] Clock accuracy OK
 
 [778239.693823] ucd9000 1-007e: [UCD9000] Clock accuracy OK
 [778539.693523] ucd9000 1-007e: [UCD9000] UCD interval: 299862 [ms], Linux interval: 300000 [ms], Diff: -138 [ms]
@@ -73,7 +73,7 @@ COMMAND_RESULT = {'LINES': [
     u'[755739.693709] ucd9000 1-007e: [UCD9000] UCD interval: 299920 [ms], Linux interval: 300000 [ms], Diff: -80 [ms]',
     u'[755739.693721] ucd9000 1-007e: [UCD9000] Clock accuracy OK',
     u'[756039.693730] ucd9000 1-007e: [UCD9000] UCD interval: 299950 [ms], Linux interval: 300000 [ms], Diff: -50 [ms]',
-    u'[756039.693741] ucd9000 1-007e: [UCD9000] Clock accuracy OK ',
+    u'[756039.693741] ucd9000 1-007e: [UCD9000] Clock accuracy OK',
     u'[778239.693823] ucd9000 1-007e: [UCD9000] Clock accuracy OK',
     u'[778539.693523] ucd9000 1-007e: [UCD9000] UCD interval: 299862 [ms], Linux interval: 300000 [ms], Diff: -138 [ms]',
     u'[778539.693534] ucd9000 1-007e: [UCD9000] Clock accuracy OK',
