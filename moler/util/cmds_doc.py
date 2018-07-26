@@ -1,3 +1,4 @@
+#!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 """
 Perform command autotest for selected command(s).
@@ -14,8 +15,6 @@ import os.path
 import pprint
 import sys
 
-import pytest
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from moler.command import Command
@@ -31,8 +30,7 @@ def get_options():
     parser = argparse.ArgumentParser(description='Command(s) autotest')
 
     # required
-    parser.add_argument("--cmd_filename", required=False,
-                        help="python module implementing given command")
+    parser.add_argument("--cmd_filename", required=False, help="python module implementing given command")
 
     options = parser.parse_args()
     if options.cmd_filename:
@@ -110,7 +108,7 @@ def walk_moler_nonabstract_commands(path):
             if "Can't instantiate abstract class" in str(err):
                 continue  # ABSTRACT BASE-CLASS COMMAND - skip it
             pass  # other error of class instantiation, maybe missing args
-        except Exception as err:
+        except Exception:
             pass  # other error of class instantiation, maybe missing args
         yield moler_module, moler_class
 
@@ -141,19 +139,13 @@ def validate_documentation_consistency(moler_module, test_data, variant):
     for attr in ['COMMAND_OUTPUT', 'COMMAND_KWARGS', 'COMMAND_RESULT']:
         if attr in test_data[variant]:
             if 'COMMAND_OUTPUT' not in test_data[variant]:
-                error_msg = "{} has {} but no {}".format(moler_module,
-                                                         attr + variant,
-                                                         'COMMAND_OUTPUT' + variant)
+                error_msg = "{} has {} but no {}".format(moler_module, attr + variant, 'COMMAND_OUTPUT' + variant)
                 errors.append(error_msg)
             if 'COMMAND_KWARGS' not in test_data[variant]:
-                error_msg = "{} has {} but no {}".format(moler_module,
-                                                         attr + variant,
-                                                         'COMMAND_KWARGS' + variant)
+                error_msg = "{} has {} but no {}".format(moler_module, attr + variant, 'COMMAND_KWARGS' + variant)
                 errors.append(error_msg)
             if 'COMMAND_RESULT' not in test_data[variant]:
-                error_msg = "{} has {} but no {}".format(moler_module,
-                                                         attr + variant,
-                                                         'COMMAND_RESULT' + variant)
+                error_msg = "{} has {} but no {}".format(moler_module, attr + variant, 'COMMAND_RESULT' + variant)
                 errors.append(error_msg)
     return errors
 
@@ -182,33 +174,18 @@ def create_command(moler_class, moler_connection, cmd_kwargs):
         raise Exception(error_msg)
 
 
-def run_command_parsing_test(moler_cmd, creation_str, buffer_io,
-                             cmd_output, cmd_result, variant):
+def run_command_parsing_test(moler_cmd, creation_str, buffer_io, cmd_output, cmd_result, variant):
     with buffer_io:  # open it (autoclose by context-mngr)
         buffer_io.remote_inject_response([cmd_output])
         result = moler_cmd()
         if result != cmd_result:
             expected_result = pprint.pformat(cmd_result, indent=4)
             real_result = pprint.pformat(result, indent=4)
-            error_msg = "Command {} {} (see {}{}):\n{}\n{}:\n{}".format(creation_str,
-                                                                        'expected to return',
-                                                                        'COMMAND_RESULT',
-                                                                        variant,
-                                                                        expected_result,
-                                                                        'but returned',
-                                                                        real_result)
+            error_msg = "Command {} {} (see {}{}):\n{}\n{}:\n{}".format(creation_str, 'expected to return',
+                                                                        'COMMAND_RESULT', variant, expected_result,
+                                                                        'but returned', real_result)
             return error_msg
     return ""
-
-
-@pytest.mark.parametrize("path2cmds", ["moler/cmd"])
-def test_documentation_exists(path2cmds):
-    check_if_documentation_exists(path2cmds)
-
-
-@pytest.mark.parametrize("path2cmds", ["moler_nokia/cmd"])
-def test_documentation_exists_nokia(path2cmds):
-    check_if_documentation_exists(path2cmds)
 
 
 def check_if_documentation_exists(path2cmds):
@@ -262,5 +239,5 @@ def check_if_documentation_exists(path2cmds):
 
 
 if __name__ == '__main__':
-    options = get_options()
-    check_if_documentation_exists(path2cmds=options.cmd_filename)
+    opts = get_options()
+    check_if_documentation_exists(path2cmds=opts.cmd_filename)
