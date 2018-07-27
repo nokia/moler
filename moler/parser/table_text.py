@@ -24,7 +24,7 @@ import re
 class TableText:
 
     def __init__(self, _header_regexps, _header_keys, _skip='',
-                 _finish='', value_splitter='\s+'):
+                 _finish='', value_splitter=r'\s+'):
         self._header_regexps = _header_regexps  # array of regexps defining header parts
         self._header_keys = _header_keys  # array of keys returned for matched header parts
         self._skip = _skip  # regexp to be used to find lines that should be skipped

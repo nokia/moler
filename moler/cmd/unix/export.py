@@ -183,7 +183,7 @@ COMMAND_RESULT = {
 
 COMMAND_KWARGS = {}
 
-COMMAND_OUTPUT_PS1 = """
+COMMAND_OUTPUT_PS1 = r"""
 AP-AWT-LP3-11:~/sstlib/config #export PS1="\h: #"
 AP-AWT-LP3-11: #
 """
@@ -194,7 +194,7 @@ COMMAND_KWARGS_PS1 = {
     "ps1_param": r'"\h: #"'
 }
 
-COMMAND_OUTPUT_SET = """
+COMMAND_OUTPUT_SET = r"""
 AP-AWT-LP3-11:~/sstlib/config # export PS1="\e[0;31;1m\h:\w #\e[m"
 AP-AWT-LP3-11:~/sstlib/config #
 """

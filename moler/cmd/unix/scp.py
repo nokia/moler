@@ -96,7 +96,7 @@ class Scp(GenericUnixCommand):
     def _parse_continue_connecting(self, line):
         return self._regex_helper.search_compiled(Scp._re_continue_connecting, line)
 
-    _re_host_key = re.compile("Add correct host key in (?P<PATH>\S+) to get rid of this message", re.IGNORECASE)
+    _re_host_key = re.compile(r"Add correct host key in (?P<PATH>\S+) to get rid of this message", re.IGNORECASE)
 
     def _get_hosts_file_if_displayed(self, line):
         if (self.known_hosts_on_failure is not None) and self._regex_helper.search_compiled(Scp._re_host_key, line):

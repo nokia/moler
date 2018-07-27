@@ -219,7 +219,7 @@ class Ipsec(GenericUnixCommand):
             raise ParsingDone
 
     # conn1_7[1]: IKEv2 SPIs: 2c490bd4d6890edd_i* f3e4885e051cf217_r, rekeying in 22 hours
-    _re_ike_group_key_value = re.compile("(?P<CONN>[^\[\s]+)\[\d+\]:\s+(?P<KEY>.*):\s+(?P<VALUE>.*)")
+    _re_ike_group_key_value = re.compile(r"(?P<CONN>[^\[\s]+)\[\d+\]:\s+(?P<KEY>.*):\s+(?P<VALUE>.*)")
 
     def _parse_ike_group(self, line):
         if self.security_associations and self._regex_helper.search_compiled(Ipsec._re_ike_group_key_value, line):
@@ -231,7 +231,7 @@ class Ipsec(GenericUnixCommand):
             raise ParsingDone
 
     # conn1_7{1}:  INSTALLED, TUNNEL, ESP in UDP SPIs: c5434194_i c94514b4_o
-    _re_child_group = re.compile("(?P<CONN>[^\[\s]+)\{\d+\}:\s+(?P<LINE>.*)")
+    _re_child_group = re.compile(r"(?P<CONN>[^\[\s]+)\{\d+\}:\s+(?P<LINE>.*)")
 
     def _parse_child_group(self, line):
         if self.security_associations and self._regex_helper.search_compiled(Ipsec._re_child_group, line):
