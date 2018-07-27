@@ -4,7 +4,6 @@ Dmesg command module.
 """
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
-import re
 
 __author__ = 'Sylwester Golonka'
 __copyright__ = 'Copyright (C) 2018, Nokia'
