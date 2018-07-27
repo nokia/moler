@@ -59,7 +59,10 @@ def buffer_connection():
             Simulate remote endpoint that sends response.
             Response is given as strings.
             """
-            in_bytes = [data.encode("utf-8") for data in input_strings]
+            try:
+                in_bytes = [data.encode("utf-8") for data in input_strings]
+            except UnicodeDecodeError:
+                in_bytes = [data.decode("utf-8").encode("utf-8") for data in input_strings]
             self.inject_response(in_bytes, delay)
 
     moler_conn = ObservableConnection(encoder=lambda data: data.encode("utf-8"),
@@ -203,11 +206,6 @@ def run_command_parsing_test(moler_cmd, creation_str, buffer_io,
 
 @pytest.mark.parametrize("path2cmds", ["moler/cmd"])
 def test_documentation_exists(path2cmds):
-    check_if_documentation_exists(path2cmds)
-
-
-@pytest.mark.parametrize("path2cmds", ["moler_nokia/cmd"])
-def test_documentation_exists_nokia(path2cmds):
     check_if_documentation_exists(path2cmds)
 
 
