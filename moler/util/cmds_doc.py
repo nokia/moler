@@ -12,7 +12,6 @@ import os
 import os.path
 import pprint
 
-import moler
 from moler.command import Command
 
 
@@ -63,12 +62,12 @@ def _walk_moler_commands(path):
         for name, cls in moler_module.__dict__.items():
             if not isinstance(cls, type):
                 continue
-            if not issubclass(cls, moler.command.Command):
+            if not issubclass(cls, Command):
                 continue
             module_of_class = cls.__dict__['__module__']
             # take only Commands
             # take only the ones defined in given file (not imported ones)
-            if (cls != moler.command.Command) and (module_of_class == pkg_name):
+            if (cls != Command) and (module_of_class == pkg_name):
                 yield moler_module, cls
 
 
