@@ -7,7 +7,6 @@ __author__ = 'Grzegorz Latuszek', 'Michal Ernst', 'Michal Plichta'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com', 'michal.ernst@nokia.com', 'michal.plichta@nokia.com'
 
-import argparse
 import importlib
 import os
 import os.path
@@ -16,29 +15,6 @@ import sys
 
 import moler
 from moler.command import Command
-
-
-# ----------------------------------- input parameters parsing ----------------
-
-
-def get_options():
-    parser = argparse.ArgumentParser(description='Command(s) autotest')
-
-    # required
-    parser.add_argument("--cmd_filename", required=False, help="python module implementing given command")
-
-    options = parser.parse_args()
-    if options.cmd_filename:
-        module_path = options.cmd_filename
-        if not os.path.exists(module_path):
-            print("\n{} path doesn't exist!\n".format(module_path))
-            parser.print_help()
-            exit()
-
-    return options
-
-
-# -----------------------------------------------------------------------------
 
 
 def buffer_connection():
@@ -235,8 +211,3 @@ def check_if_documentation_exists(path2cmds):
         err_msg = "{}\n    {}".format(msg, "\n    ".join(wrong_commands.keys()))
         sys.exit(err_msg)
     print("All processed commands have correct documentation")
-
-
-if __name__ == '__main__':
-    opts = get_options()
-    check_if_documentation_exists(path2cmds=opts.cmd_filename)
