@@ -106,6 +106,7 @@ def create_logger(name,
     :param log_file: Path to logfile. Final logfile location is logging_path + log_file
     :param log_level: only log records with equal and greater level will be accepted for storage in log
     :param log_format: layout of log file, default is "%(asctime)s %(levelname)-10s: |%(message)s"
+    :param datefmt: format the creation time of the log record
     :return: None
     """
     logger = logging.getLogger(name)
