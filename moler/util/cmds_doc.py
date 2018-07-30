@@ -16,7 +16,7 @@ import moler
 from moler.command import Command
 
 
-def buffer_connection():
+def _buffer_connection():
     """External-io based on memory FIFO-buffer"""
     from moler.io.raw.memory import ThreadedFifoBuffer
     from moler.connection import ObservableConnection
@@ -54,7 +54,7 @@ def walk_moler_python_files(path):
                 yield in_moler_path
 
 
-def walk_moler_commands(path):
+def _walk_moler_commands(path):
     for fname in walk_moler_python_files(path=path):
         pkg_name = fname.replace(".py", "")
         parts = pkg_name.split(os.sep)
@@ -72,8 +72,8 @@ def walk_moler_commands(path):
                 yield moler_module, cls
 
 
-def walk_moler_nonabstract_commands(path):
-    for moler_module, moler_class in walk_moler_commands(path):
+def _walk_moler_nonabstract_commands(path):
+    for moler_module, moler_class in _walk_moler_commands(path):
         # We don't require COMMAND_OUTPUT/COMMAND_RESULT for base classes
         # however, they should be abstract to block their instantiation
         try:
@@ -87,7 +87,7 @@ def walk_moler_nonabstract_commands(path):
         yield moler_module, moler_class
 
 
-def retrieve_command_documentation(moler_module):
+def _retrieve_command_documentation(moler_module):
     test_data = {}
     for attr, value in moler_module.__dict__.items():
         for info in ['COMMAND_OUTPUT', 'COMMAND_KWARGS', 'COMMAND_RESULT']:
@@ -99,7 +99,7 @@ def retrieve_command_documentation(moler_module):
     return test_data
 
 
-def validate_documentation_existence(moler_module, test_data):
+def _validate_documentation_existence(moler_module, test_data):
     """Check if module has at least one variant of output documented"""
     if len(test_data.keys()) == 0:
         expected_info = 'COMMAND_OUTPUT/COMMAND_KWARGS/COMMAND_RESULT'
@@ -108,7 +108,7 @@ def validate_documentation_existence(moler_module, test_data):
     return ""
 
 
-def validate_documentation_consistency(moler_module, test_data, variant):
+def _validate_documentation_consistency(moler_module, test_data, variant):
     errors = []
     for attr in ['COMMAND_OUTPUT', 'COMMAND_KWARGS', 'COMMAND_RESULT']:
         if attr in test_data[variant]:
@@ -124,7 +124,7 @@ def validate_documentation_consistency(moler_module, test_data, variant):
     return errors
 
 
-def get_doc_variant(test_data, variant):
+def _get_doc_variant(test_data, variant):
     cmd_output = test_data[variant]['COMMAND_OUTPUT']
     # COMMAND_KWARGS is optional? missing == {}
     # or we should be direct "zen of Python"
@@ -136,7 +136,7 @@ def get_doc_variant(test_data, variant):
     return cmd_output, cmd_kwargs, cmd_result
 
 
-def create_command(moler_class, moler_connection, cmd_kwargs):
+def _create_command(moler_class, moler_connection, cmd_kwargs):
     """Can we construct instance with given params?"""
     arguments = ", ".join(["{}={}".format(param, value) for (param, value) in cmd_kwargs.items()])
     constructor_str = "{}({})".format(moler_class.__name__, arguments)
@@ -148,7 +148,7 @@ def create_command(moler_class, moler_connection, cmd_kwargs):
         raise Exception(error_msg)
 
 
-def run_command_parsing_test(moler_cmd, creation_str, buffer_io, cmd_output, cmd_result, variant):
+def _run_command_parsing_test(moler_cmd, creation_str, buffer_io, cmd_output, cmd_result, variant):
     with buffer_io:  # open it (autoclose by context-mngr)
         buffer_io.remote_inject_response([cmd_output])
         result = moler_cmd()
@@ -166,40 +166,40 @@ def check_if_documentation_exists(path2cmds):
     wrong_commands = {}
     errors_found = []
 
-    for moler_module, moler_class in walk_moler_nonabstract_commands(path=path2cmds):
+    for moler_module, moler_class in _walk_moler_nonabstract_commands(path=path2cmds):
         print("processing: {}, {} ".format(moler_module, moler_class))
 
-        test_data = retrieve_command_documentation(moler_module)
+        test_data = _retrieve_command_documentation(moler_module)
 
-        error_msg = validate_documentation_existence(moler_module, test_data)
+        error_msg = _validate_documentation_existence(moler_module, test_data)
         if error_msg:
             wrong_commands[moler_class.__name__] = 1
             errors_found.append(error_msg)
             continue
 
         for variant in test_data:
-            error_msgs = validate_documentation_consistency(moler_module, test_data, variant)
+            error_msgs = _validate_documentation_consistency(moler_module, test_data, variant)
             if error_msgs:
                 wrong_commands[moler_class.__name__] = 1
                 errors_found.extend(error_msgs)
                 continue
 
-            cmd_output, cmd_kwargs, cmd_result = get_doc_variant(test_data, variant)
+            cmd_output, cmd_kwargs, cmd_result = _get_doc_variant(test_data, variant)
 
-            buffer_io = buffer_connection()
+            buffer_io = _buffer_connection()
             try:
-                moler_cmd, creation_str = create_command(moler_class,
-                                                         buffer_io.moler_connection,
-                                                         cmd_kwargs)
+                moler_cmd, creation_str = _create_command(moler_class,
+                                                          buffer_io.moler_connection,
+                                                          cmd_kwargs)
             except Exception as err:
                 wrong_commands[moler_class.__name__] = 1
                 errors_found.append(str(err))
                 continue
 
-            error_msg = run_command_parsing_test(moler_cmd, creation_str,
-                                                 buffer_io,
-                                                 cmd_output, cmd_result,
-                                                 variant)
+            error_msg = _run_command_parsing_test(moler_cmd, creation_str,
+                                                  buffer_io,
+                                                  cmd_output, cmd_result,
+                                                  variant)
             if error_msg:
                 wrong_commands[moler_class.__name__] = 1
                 errors_found.append(error_msg)
