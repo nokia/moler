@@ -39,7 +39,7 @@ def _buffer_connection():
     return ext_io_in_memory
 
 
-def walk_moler_python_files(path):
+def _walk_moler_python_files(path):
     repo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
     path = os.path.join(__file__.partition('moler/util/cmds_doc.py')[0], path)
     for (dirpath, _, filenames) in os.walk(path):
@@ -54,7 +54,7 @@ def walk_moler_python_files(path):
 
 
 def _walk_moler_commands(path):
-    for fname in walk_moler_python_files(path=path):
+    for fname in _walk_moler_python_files(path=path):
         pkg_name = fname.replace(".py", "")
         parts = pkg_name.split(os.sep)
         pkg_name = ".".join(parts)
