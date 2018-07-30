@@ -195,10 +195,15 @@ class ObservableConnection(Connection):
         self._log(msg=printable_data, level=RAW_DATA, extra={'transfer_direction': '<'})
 
         decoded_data = self.decode(data)
-        # decoded data is in general unicode string, logger accepts only ascii.
-        # We create ascii logs interpretable as utf-8 bytes.
-        # Editor with utf-8 support can correctly display such logs.
-        self._log(msg=decoded_data.encode('utf-8'), level=logging.INFO, extra={'transfer_direction': '<'})
+        # decoded data might be unicode or bytes/ascii string, logger accepts only ascii.
+        if isinstance(decoded_data, six.text_type):
+            # We create ascii logs interpretable as utf-8 bytes.
+            # Editor with utf-8 support can correctly display such logs.
+            encoded_for_log = decoded_data.encode('utf-8')
+        else:
+            # bytes or ascii log
+            encoded_for_log = decoded_data
+        self._log(msg=encoded_for_log, level=logging.INFO, extra={'transfer_direction': '<'})
 
         self.notify_observers(decoded_data)
 
