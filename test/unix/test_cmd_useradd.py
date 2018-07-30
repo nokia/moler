@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Su command module.
+Useradd test module.
 """
 
 __author__ = 'Agnieszka Bylica'
@@ -9,6 +9,7 @@ __email__ = 'agnieszka.bylica@nokia.com'
 
 
 import pytest
+
 from moler.exceptions import CommandFailure
 from moler.cmd.unix.useradd import Useradd
 
@@ -51,7 +52,6 @@ Usage: useradd [options] LOGIN
 useradd -D
 useradd -D [options]
 xyz@debian:~$"""
-
     result = dict()
     return data, result
 
