@@ -9,4 +9,4 @@ __email__ = 'michal.plichta@nokia.com'
 
 @mark.parametrize("path2cmds", ["moler/cmd"])
 def test_documentation_exists(path2cmds):
-    check_if_documentation_exists(path2cmds)
+    assert check_if_documentation_exists(path2cmds) is True
