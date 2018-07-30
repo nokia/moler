@@ -40,3 +40,20 @@ def test_walk_moler_python_files_is_generator_return_all_files_in_dir():
     for f in walker:
         gen_list.append(f)
     assert gen_list == file_list
+
+
+def test_walk_moler_python_files_return_files_withour_dunder_init():
+    from moler.util.cmds_doc import _walk_moler_python_files
+    from os import listdir
+    from os.path import isfile, join, abspath, dirname
+
+    test_path = 'moler/cmd/at/'
+    repo_path = abspath(join(dirname(__file__), '..'))
+    abs_test_path = join(repo_path, test_path)
+    file_list = [f for f in listdir(abs_test_path) if isfile(join(abs_test_path, f))]
+
+    walker = _walk_moler_python_files(test_path)
+
+    with raises(StopIteration):
+        for _ in range(len(file_list)):
+            next(walker)
