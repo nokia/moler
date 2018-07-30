@@ -20,7 +20,7 @@ class Useradd(GenericUnixCommand):
         super(Useradd, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
         # Parameters defined by calling the command
-        self.options = options
+        self.options = options          # list of strings
         self.defaults = defaults
         self.user = user
 
@@ -45,6 +45,7 @@ class Useradd(GenericUnixCommand):
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
+                self._command_error(line)
                 self._parse(line)
             except ParsingDone:
                 pass
@@ -57,15 +58,11 @@ class Useradd(GenericUnixCommand):
         self._result_set = True
         raise ParsingDone
 
-    _re_user_exists = re.compile(r"useradd:\suser\s.*\salready\sexists\s(?P<USER>.*)", re.I)
-    _re_command_error_shows_help = re.compile(r"Usage:\suseradd\s\[options\]\sLOGIN\s(?P<HELP>.*)", re.I)
-    _re_command_error = re.compile(r"useradd:\s.*\s(?P<ERROR>.*)", re.I)
+    _re_command_error_shows_help = re.compile(r"Usage:\suseradd\s\[options\]\sLOGIN(?P<HELP>.*)", re.IGNORECASE)
+    _re_command_error = re.compile(r"useradd:\s.*\s(?P<ERROR>.*)", re.IGNORECASE)
 
     def _command_error(self, line):
-        if self._regex_helper.search_compiled(Useradd._re_user_exists, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("USER"))))
-            raise ParsingDone
-        elif self._regex_helper.search_compiled(Useradd._re_command_error_shows_help, line):
+        if self._regex_helper.search_compiled(Useradd._re_command_error_shows_help, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("HELP"))))
             raise ParsingDone
         elif self._regex_helper.search_compiled(Useradd._re_command_error, line):
@@ -73,14 +70,6 @@ class Useradd(GenericUnixCommand):
             raise ParsingDone
 
 
-"""
-useradd: invalid user ID 'bylica'
-Usage: useradd [options] LOGIN
-useradd: user 'bylica' already exists
-useradd: group '500' does not exist
-useradd: UID 1001 is not unique
-useradd: option requires an argument
-"""
 COMMAND_OUTPUT = """xyz@debian:~$ useradd -D
 GROUP=100
 HOME=/home
@@ -99,3 +88,13 @@ COMMAND_RESULT = {
     'RESULT': ['GROUP=100', 'HOME=/home', 'INACTIVE=-1', 'EXPIRE=', 'SHELL=/bin/sh', 'SKEL=/etc/skel',
                'CREATE_MAIL_SPOOL=no']
 }
+
+
+COMMAND_OUTPUT_pwd = """xyz@debian:~$ useradd -p 1234 abc
+xyz@debian:~$"""
+
+COMMAND_KWARGS_pwd = {
+    'user': 'abc', 'options': ['-p 1234']
+}
+
+COMMAND_RESULT_pwd = {}
