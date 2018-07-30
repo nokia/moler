@@ -42,7 +42,7 @@ def _buffer_connection():
 def walk_moler_python_files(path):
     repo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
     path = os.path.join(__file__.partition('moler/util/cmds_doc.py')[0], path)
-    for (dirpath, dirnames, filenames) in os.walk(path):
+    for (dirpath, _, filenames) in os.walk(path):
         for filename in filenames:
             if filename.endswith('__init__.py'):
                 continue
@@ -59,7 +59,7 @@ def _walk_moler_commands(path):
         parts = pkg_name.split(os.sep)
         pkg_name = ".".join(parts)
         moler_module = importlib.import_module(pkg_name)
-        for name, cls in moler_module.__dict__.items():
+        for _, cls in moler_module.__dict__.items():
             if not isinstance(cls, type):
                 continue
             if not issubclass(cls, Command):
@@ -76,12 +76,12 @@ def _walk_moler_nonabstract_commands(path):
         # We don't require COMMAND_OUTPUT/COMMAND_RESULT for base classes
         # however, they should be abstract to block their instantiation
         try:
-            cmd_instance = moler_class()
+            _ = moler_class()
         except TypeError as err:
             if "Can't instantiate abstract class" in str(err):
                 continue  # ABSTRACT BASE-CLASS COMMAND - skip it
-            pass  # other error of class instantiation, maybe missing args
-        except Exception:
+        except Exception as err:
+            print(str(err))
             pass  # other error of class instantiation, maybe missing args
         yield moler_module, moler_class
 
