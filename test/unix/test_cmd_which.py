@@ -15,5 +15,5 @@ from moler.cmd.unix.which import Which
 
 
 def test_which_returns_proper_command_string(buffer_connection):
-    uname_cmd = Uname(connection=buffer_connection.moler_connection)
-    assert "which" == uname_cmd.command_string
+    which_cmd = Which(connection=buffer_connection.moler_connection)
+    assert "which" == which_cmd.command_string
