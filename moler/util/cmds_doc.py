@@ -163,6 +163,14 @@ def _run_command_parsing_test(moler_cmd, creation_str, buffer_io, cmd_output, cm
 
 
 def check_if_documentation_exists(path2cmds):
+    """
+    Check if documentation exists and has proper structure.
+
+    :param path2cmds: relative path to comands directory
+    :type path2cmds: str
+    :return: True if all checks passed
+    :rtype: bool
+    """
     wrong_commands = {}
     errors_found = []
 
