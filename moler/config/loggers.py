@@ -3,7 +3,6 @@
 """
 Configure logging for Moler's needs
 """
-import six
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
