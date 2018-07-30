@@ -23,7 +23,7 @@ def test_buffer_connection_returns_threadconnection_with_moler_conn():
 
 def test_walk_moler_python_files_is_generator_return_all_files_in_dir():
     from moler.util.cmds_doc import _walk_moler_python_files
-    from inspect import isgenerator
+    from inspect import isgenerator, isgeneratorfunction
     from os import listdir
     from os.path import isfile, join, abspath, dirname
 
@@ -34,6 +34,7 @@ def test_walk_moler_python_files_is_generator_return_all_files_in_dir():
                  if isfile(join(abs_test_path, f)) and '__init__' not in f]
 
     walker = _walk_moler_python_files(test_path)
+    assert isgeneratorfunction(_walk_moler_python_files) is True
     assert isgenerator(walker) is True
 
     gen_list = []
