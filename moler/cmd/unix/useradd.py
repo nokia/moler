@@ -54,6 +54,7 @@ class Useradd(GenericUnixCommand):
 
     def _parse(self, line):
         self.current_ret['RESULT'].append(line)
+        self._result_set = True
         raise ParsingDone
 
     _re_user_exists = re.compile(r"useradd:\suser\s.*\salready\sexists\s(?P<USER>.*)", re.I)
