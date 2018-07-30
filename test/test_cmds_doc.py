@@ -31,7 +31,7 @@ def test_walk_moler_python_files_is_generator_return_all_files_in_dir():
     repo_path = abspath(join(dirname(__file__), '..'))
     abs_test_path = join(repo_path, test_path)
     file_list = ['{}{}'.format(test_path, f) for f in listdir(abs_test_path)
-                 if isfile(join(abs_test_path, f)) and '__init__' not in f]
+                 if isfile(join(abs_test_path, f)) and '__init__' not in f and '.pyc' not in f]
 
     walker = _walk_moler_python_files(test_path)
     assert isgeneratorfunction(_walk_moler_python_files) is True
