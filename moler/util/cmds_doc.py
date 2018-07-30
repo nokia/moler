@@ -72,9 +72,14 @@ def _walk_moler_commands(path):
 
 
 def _walk_moler_nonabstract_commands(path):
+    """
+    We don't require COMMAND_OUTPUT/COMMAND_RESULT for base classes
+    however, they should be abstract to block their instantiation.
+
+    :param path: path to python module
+    :type path: str
+    """
     for moler_module, moler_class in _walk_moler_commands(path):
-        # We don't require COMMAND_OUTPUT/COMMAND_RESULT for base classes
-        # however, they should be abstract to block their instantiation
         try:
             _ = moler_class()
         except TypeError as err:
