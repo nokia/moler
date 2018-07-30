@@ -3,6 +3,7 @@
 """
 Configure logging for Moler's needs
 """
+import six
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -253,7 +254,9 @@ class MultilineWithDirectionFormatter(logging.Formatter):
         output = out_lines[0].decode("utf-8")
         empty_prefix = self._calculate_empty_prefix(msg_lines[0], out_lines[0])
         for line in out_lines[1:]:
-            output += u"{}|{}".format(empty_prefix, line.decode('utf-8'))
+            if not isinstance(line, six.text_type):
+                line = line.decode('utf-8')
+            output += u"{}|{}".format(empty_prefix, line)
         # TODO: line completion for connection decoded data comming in chunks
         return output
 
