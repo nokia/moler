@@ -250,10 +250,10 @@ class MultilineWithDirectionFormatter(logging.Formatter):
         msg_lines = record.getMessage().splitlines(True)
         base_output = super(MultilineWithDirectionFormatter, self).format(record)
         out_lines = base_output.splitlines(True)
-        output = u'{}'.format(out_lines[0])
+        output = out_lines[0].decode("utf-8")
         empty_prefix = self._calculate_empty_prefix(msg_lines[0], out_lines[0])
         for line in out_lines[1:]:
-            output += u"{}|{}".format(empty_prefix, line)
+            output += u"{}|{}".format(empty_prefix, line.decode('utf-8'))
         # TODO: line completion for connection decoded data comming in chunks
         return output
 
