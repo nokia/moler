@@ -33,8 +33,8 @@ class Useradd(GenericUnixCommand):
         if self.defaults:
             cmd = cmd + " -D"
             if self.options:
-                for option in self.options:
-                    cmd = cmd + " {}".format(option)
+                for d_option in self.options:
+                    cmd = cmd + " {}".format(d_option)
         elif self.user:
             if self.options:
                 for option in self.options:
@@ -70,6 +70,7 @@ class Useradd(GenericUnixCommand):
         elif self._regex_helper.search_compiled(Useradd._re_command_error, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
             raise ParsingDone
+
 
 """
 useradd: invalid user ID 'bylica'
