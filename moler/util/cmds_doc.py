@@ -11,7 +11,6 @@ import importlib
 import os
 import os.path
 import pprint
-import sys
 
 import moler
 from moler.command import Command
@@ -209,5 +208,7 @@ def check_if_documentation_exists(path2cmds):
         print("\n".join(errors_found))
         msg = "Following commands have incorrect documentation:"
         err_msg = "{}\n    {}".format(msg, "\n    ".join(wrong_commands.keys()))
-        sys.exit(err_msg)
+        print(err_msg)
+        return False
     print("All processed commands have correct documentation")
+    return True
