@@ -40,6 +40,14 @@ def _buffer_connection():
 
 
 def _walk_moler_python_files(path):
+    """
+    Walk thru directory with commands and search for python source code (except __init__.py)
+    Yield relative filepath to parameter path
+
+    :param path: relative path do directory with commands
+    :type path:
+    :rtype: str
+    """
     repo_path = abspath(join(dirname(__file__), '../..'))
     path = join(__file__.partition('moler/util/cmds_doc.py')[0], path)
     for (dirpath, _, filenames) in walk(path):
