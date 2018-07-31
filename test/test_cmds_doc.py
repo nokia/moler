@@ -43,7 +43,7 @@ def test_walk_moler_python_files_is_generator_return_all_files_in_dir():
     assert gen_list == file_list
 
 
-def test_walk_moler_python_files_return_files_withour_dunder_init():
+def test_walk_moler_python_files_return_files_without_dunder_init():
     from moler.util.cmds_doc import _walk_moler_python_files
     from os import listdir
     from os.path import isfile, join, abspath, dirname
