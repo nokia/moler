@@ -55,15 +55,26 @@ def test_buffer_connection_returns_threadconnection_with_moler_conn():
     assert isinstance(buff_conn.moler_connection, ObservableConnection) is True
 
 
+@mark.parametrize('func2test,method_param,expected', [
+    ('_walk_moler_python_files', test_path, True),
+    ('_walk_moler_commands', test_path, True)
+])
+def test_test(func2test, method_param, expected):
+    from inspect import isgenerator, isgeneratorfunction
+    import importlib
+
+    func_obj = getattr(importlib.import_module('moler.util.cmds_doc'), func2test)
+    generator_obj = func_obj(method_param)
+
+    assert isgeneratorfunction(func_obj) is expected
+    assert isgenerator(generator_obj) is expected
+
+
 def test_walk_moler_python_files_is_generator_return_all_files_in_dir():
     from moler.util.cmds_doc import _walk_moler_python_files
-    from inspect import isgenerator, isgeneratorfunction
 
     file_list = ffile(listing_type='fullpath')
     walker = _walk_moler_python_files(test_path)
-
-    assert isgeneratorfunction(_walk_moler_python_files) is True
-    assert isgenerator(walker) is True
 
     gen_list = []
     for f in walker:
@@ -73,14 +84,10 @@ def test_walk_moler_python_files_is_generator_return_all_files_in_dir():
 
 def test_walk_moler_commands_is_generator_return_all_files_in_dir():
     from moler.util.cmds_doc import _walk_moler_commands
-    from inspect import isgenerator, isgeneratorfunction
     from six.moves import zip
 
     file_list = ffile(listing_type='only_py')
     walker = _walk_moler_commands(test_path)
-
-    assert isgeneratorfunction(_walk_moler_commands) is True
-    assert isgenerator(walker) is True
 
     gen_list = []
     for cmd, file in zip(walker, file_list):
