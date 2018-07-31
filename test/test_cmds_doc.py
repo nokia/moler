@@ -95,23 +95,17 @@ def test_walk_moler_commands_is_generator_return_all_files_in_dir():
     assert len(gen_list) == len(file_list)
 
 
-def test_walk_moler_python_files_return_files_without_dunder_init():
-    from moler.util.cmds_doc import _walk_moler_python_files
+@mark.parametrize('func2test,method_param', [
+    ('_walk_moler_python_files', cmd_dir_under_test),
+    ('_walk_moler_commands', cmd_dir_under_test)
+])
+def test_genertors_return_files_without_dunder_init(func2test,method_param):
+    import importlib
 
+    func_obj = getattr(importlib.import_module('moler.util.cmds_doc'), func2test)
+    generator_obj = func_obj(method_param)
     file_list = _list_in_path(listing_type='allfiles')
-    walker = _walk_moler_python_files(cmd_dir_under_test)
 
     with raises(StopIteration):
         for _ in range(len(file_list)):
-            next(walker)
-
-
-def test_walk_moler_commands_return_files_without_dunder_init():
-    from moler.util.cmds_doc import _walk_moler_commands
-
-    file_list = _list_in_path(listing_type='allfiles')
-    walker = _walk_moler_commands(cmd_dir_under_test)
-
-    with raises(StopIteration):
-        for _ in range(len(file_list)):
-            next(walker)
+            next(generator_obj)
