@@ -1,3 +1,4 @@
+from importlib import import_module
 from os import listdir
 from os.path import isfile, join, abspath, dirname
 
@@ -36,6 +37,17 @@ def _list_in_path(listing_type):
         file_list = [f for f in listdir(abs_test_path)
                      if isfile(join(abs_test_path, f)) and '__init__' not in f and '.pyc' not in f]
     return file_list
+
+
+def _load_obj(func_name):
+    """
+    Load instance form module.
+
+    :param func_name: function name as string
+    :return: object instance
+    :rtype: type
+    """
+    return getattr(import_module('moler.util.cmds_doc'), func_name)
 # --------------- helper functions ---------------
 
 
@@ -60,9 +72,8 @@ def test_buffer_connection_returns_threadconnection_with_moler_conn():
 ])
 def test_functions_are_generators(func2test, method_param, expected):
     from inspect import isgenerator, isgeneratorfunction
-    import importlib
 
-    func_obj = getattr(importlib.import_module('moler.util.cmds_doc'), func2test)
+    func_obj = _load_obj(func_name=func2test)
     generator_obj = func_obj(method_param)
 
     assert isgeneratorfunction(func_obj) is expected
@@ -99,10 +110,8 @@ def test_walk_moler_commands_is_generator_return_all_files_in_dir():
     ('_walk_moler_python_files', cmd_dir_under_test),
     ('_walk_moler_commands', cmd_dir_under_test)
 ])
-def test_genertors_return_files_without_dunder_init(func2test,method_param):
-    import importlib
-
-    func_obj = getattr(importlib.import_module('moler.util.cmds_doc'), func2test)
+def test_genertors_return_files_without_dunder_init(func2test, method_param):
+    func_obj = _load_obj(func_name=func2test)
     generator_obj = func_obj(method_param)
     file_list = _list_in_path(listing_type='allfiles')
 
