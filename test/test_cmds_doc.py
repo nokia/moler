@@ -39,10 +39,9 @@ def ffile(listing_type):
 # --------------- helper functions ---------------
 
 
-@mark.parametrize("path2cmds", ["moler/cmd"])
-def test_documentation_exists(path2cmds):
+def test_documentation_exists():
     from moler.util.cmds_doc import check_if_documentation_exists
-    assert check_if_documentation_exists(path2cmds) is True
+    assert check_if_documentation_exists("moler/cmd") is True
 
 
 def test_buffer_connection_returns_threadconnection_with_moler_conn():
