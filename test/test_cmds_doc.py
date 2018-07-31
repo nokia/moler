@@ -58,3 +58,44 @@ def test_walk_moler_python_files_return_files_withour_dunder_init():
     with raises(StopIteration):
         for _ in range(len(file_list)):
             next(walker)
+
+
+def test_walk_moler_commands_is_generator_return_all_files_in_dir():
+    from moler.util.cmds_doc import _walk_moler_commands
+    from inspect import isgenerator, isgeneratorfunction
+    from os import listdir
+    from os.path import isfile, join, abspath, dirname
+    from six.moves import zip
+
+    test_path = 'moler/cmd/at/'
+    repo_path = abspath(join(dirname(__file__), '..'))
+    abs_test_path = join(repo_path, test_path)
+    file_list = [f for f in listdir(abs_test_path)
+                 if isfile(join(abs_test_path, f)) and '__init__' not in f and '.pyc' not in f]
+
+    walker = _walk_moler_commands(test_path)
+    assert isgeneratorfunction(_walk_moler_commands) is True
+    assert isgenerator(walker) is True
+
+    gen_list = []
+    for cmd, file in zip(walker, file_list):
+        gen_list.append(cmd)
+        assert file in str(cmd[0])
+    assert len(gen_list) == len(file_list)
+
+
+def test_walk_moler_commands_return_files_without_dunder_init():
+    from moler.util.cmds_doc import _walk_moler_commands
+    from os import listdir
+    from os.path import isfile, join, abspath, dirname
+
+    test_path = 'moler/cmd/at/'
+    repo_path = abspath(join(dirname(__file__), '..'))
+    abs_test_path = join(repo_path, test_path)
+    file_list = [f for f in listdir(abs_test_path) if isfile(join(abs_test_path, f))]
+
+    walker = _walk_moler_commands(test_path)
+
+    with raises(StopIteration):
+        for _ in range(len(file_list)):
+            next(walker)
