@@ -58,7 +58,7 @@ def test_buffer_connection_returns_threadconnection_with_moler_conn():
     ('_walk_moler_python_files', cmd_dir_under_test, True),
     ('_walk_moler_commands', cmd_dir_under_test, True)
 ])
-def test_test(func2test, method_param, expected):
+def test_functions_are_generators(func2test, method_param, expected):
     from inspect import isgenerator, isgeneratorfunction
     import importlib
 
