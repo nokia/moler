@@ -9,10 +9,10 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'michal.plichta@nokia.com'
 
 
-# --------------- helper functions ---------------
 cmd_dir_under_test = 'moler/cmd/at/'
 
 
+# --------------- helper functions ---------------
 def _list_in_path(listing_type):
     """
     Quick and dirty function to return list of strings depends on parameter:
@@ -68,8 +68,7 @@ def test_buffer_connection_returns_threadconnection_with_moler_conn():
 
 @mark.parametrize('func2test,method_param,expected', [
     ('_walk_moler_python_files', cmd_dir_under_test, True),
-    ('_walk_moler_commands', cmd_dir_under_test, True)
-])
+    ('_walk_moler_commands', cmd_dir_under_test, True)])
 def test_functions_are_generators(func2test, method_param, expected):
     from inspect import isgenerator, isgeneratorfunction
 
@@ -86,10 +85,10 @@ def test_walk_moler_python_files_is_generator_return_all_files_in_dir():
     file_list = _list_in_path(listing_type='fullpath')
     walker = _walk_moler_python_files(cmd_dir_under_test)
 
-    gen_list = []
-    for f in walker:
-        gen_list.append(f)
-    assert gen_list == file_list
+    list_from_generator = []
+    for file in walker:
+        list_from_generator.append(file)
+    assert list_from_generator == file_list
 
 
 def test_walk_moler_commands_is_generator_return_all_files_in_dir():
@@ -99,17 +98,16 @@ def test_walk_moler_commands_is_generator_return_all_files_in_dir():
     file_list = _list_in_path(listing_type='only_py')
     walker = _walk_moler_commands(cmd_dir_under_test)
 
-    gen_list = []
+    list_from_generator = []
     for cmd, file in zip(walker, file_list):
-        gen_list.append(cmd)
+        list_from_generator.append(cmd)
         assert file in str(cmd[0])
-    assert len(gen_list) == len(file_list)
+    assert len(list_from_generator) == len(file_list)
 
 
 @mark.parametrize('func2test,method_param', [
     ('_walk_moler_python_files', cmd_dir_under_test),
-    ('_walk_moler_commands', cmd_dir_under_test)
-])
+    ('_walk_moler_commands', cmd_dir_under_test)])
 def test_genertors_return_files_without_dunder_init(func2test, method_param):
     func_obj = _load_obj(func_name=func2test)
     generator_obj = func_obj(method_param)
