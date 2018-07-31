@@ -9,10 +9,10 @@ __email__ = 'michal.plichta@nokia.com'
 
 
 # --------------- helper functions ---------------
-test_path = 'moler/cmd/at/'
+cmd_dir_under_test = 'moler/cmd/at/'
 
 
-def ffile(listing_type):
+def _list_in_path(listing_type):
     """
     Quick and dirty function to return list of strings depends on parameter:
     - allfiles - list all file without path
@@ -24,13 +24,13 @@ def ffile(listing_type):
     :rtype: list(str)
     """
     repo_path = abspath(join(dirname(__file__), '..'))
-    abs_test_path = join(repo_path, test_path)
+    abs_test_path = join(repo_path, cmd_dir_under_test)
     file_list = []
 
     if listing_type == 'allfiles':
         file_list = [f for f in listdir(abs_test_path) if isfile(join(abs_test_path, f))]
     elif listing_type == 'fullpath':
-        file_list = ['{}{}'.format(test_path, f) for f in listdir(abs_test_path)
+        file_list = ['{}{}'.format(cmd_dir_under_test, f) for f in listdir(abs_test_path)
                      if isfile(join(abs_test_path, f)) and '__init__' not in f and '.pyc' not in f]
     elif listing_type == 'only_py':
         file_list = [f for f in listdir(abs_test_path)
@@ -55,8 +55,8 @@ def test_buffer_connection_returns_threadconnection_with_moler_conn():
 
 
 @mark.parametrize('func2test,method_param,expected', [
-    ('_walk_moler_python_files', test_path, True),
-    ('_walk_moler_commands', test_path, True)
+    ('_walk_moler_python_files', cmd_dir_under_test, True),
+    ('_walk_moler_commands', cmd_dir_under_test, True)
 ])
 def test_test(func2test, method_param, expected):
     from inspect import isgenerator, isgeneratorfunction
@@ -72,8 +72,8 @@ def test_test(func2test, method_param, expected):
 def test_walk_moler_python_files_is_generator_return_all_files_in_dir():
     from moler.util.cmds_doc import _walk_moler_python_files
 
-    file_list = ffile(listing_type='fullpath')
-    walker = _walk_moler_python_files(test_path)
+    file_list = _list_in_path(listing_type='fullpath')
+    walker = _walk_moler_python_files(cmd_dir_under_test)
 
     gen_list = []
     for f in walker:
@@ -85,8 +85,8 @@ def test_walk_moler_commands_is_generator_return_all_files_in_dir():
     from moler.util.cmds_doc import _walk_moler_commands
     from six.moves import zip
 
-    file_list = ffile(listing_type='only_py')
-    walker = _walk_moler_commands(test_path)
+    file_list = _list_in_path(listing_type='only_py')
+    walker = _walk_moler_commands(cmd_dir_under_test)
 
     gen_list = []
     for cmd, file in zip(walker, file_list):
@@ -98,8 +98,8 @@ def test_walk_moler_commands_is_generator_return_all_files_in_dir():
 def test_walk_moler_python_files_return_files_without_dunder_init():
     from moler.util.cmds_doc import _walk_moler_python_files
 
-    file_list = ffile(listing_type='allfiles')
-    walker = _walk_moler_python_files(test_path)
+    file_list = _list_in_path(listing_type='allfiles')
+    walker = _walk_moler_python_files(cmd_dir_under_test)
 
     with raises(StopIteration):
         for _ in range(len(file_list)):
@@ -109,8 +109,8 @@ def test_walk_moler_python_files_return_files_without_dunder_init():
 def test_walk_moler_commands_return_files_without_dunder_init():
     from moler.util.cmds_doc import _walk_moler_commands
 
-    file_list = ffile(listing_type='allfiles')
-    walker = _walk_moler_commands(test_path)
+    file_list = _list_in_path(listing_type='allfiles')
+    walker = _walk_moler_commands(cmd_dir_under_test)
 
     with raises(StopIteration):
         for _ in range(len(file_list)):
