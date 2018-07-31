@@ -70,7 +70,10 @@ COMMAND_KWARGS = {
     'names': ['uname', 'git']
 }
 
-COMMAND_RESULT = {'uname': ['/bin/uname'], 'git': ['/usr/bin/git']}
+COMMAND_RESULT = {
+    'uname': ['/bin/uname'],
+    'git': ['/usr/bin/git']
+}
 
 
 COMMAND_OUTPUT_all = """
@@ -81,10 +84,14 @@ xyz@debian:~$ which -a git less
 xyz@debian:~$"""
 
 COMMAND_KWARGS_all = {
-    'names': ['git', 'less'], 'show_all': True
+    'names': ['git', 'less'],
+    'show_all': True
 }
 
-COMMAND_RESULT_all = {'git': ['/usr/bin/git'], 'less': ['/usr/bin/less', '/bin/less']}
+COMMAND_RESULT_all = {
+    'git': ['/usr/bin/git'],
+    'less': ['/usr/bin/less', '/bin/less']
+}
 
 
 COMMAND_OUTPUT_no_result = """
@@ -92,7 +99,8 @@ xyz@debian:~$ which -a abc
 xyz@debian:~$"""
 
 COMMAND_KWARGS_no_result = {
-    'names': ['abc'], 'show_all': True
+    'names': ['abc'],
+    'show_all': True
 }
 
 COMMAND_RESULT_no_result = {}

@@ -18,6 +18,6 @@ def test_which_returns_proper_command_string(buffer_connection):
 
 
 def test_which_returns_proper_command_string_show_all(buffer_connection):
-    which_cmd = Which(connection=buffer_connection.moler_connection, show_all=True, names=["man"],
-                      prompt=None, new_line_chars=None)
+    which_cmd = Which(connection=buffer_connection.moler_connection, show_all=True, names=["man"], prompt=None,
+                      new_line_chars=None)
     assert "which -a man" == which_cmd.command_string
