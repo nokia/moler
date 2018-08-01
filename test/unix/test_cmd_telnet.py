@@ -67,7 +67,7 @@ def test_telnet_with_additional_commands(buffer_connection):
     telnet_cmd.start()
     outputs = [output1, output2, output3, output4, output5, output6]
     for output in outputs:
-        buffer_connection.moler_connection.data_received(output)
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"))
     telnet_cmd.await_done()
     assert telnet_cmd.done() is True
 
