@@ -41,6 +41,37 @@ def test_telnet_returns_proper_command_string(buffer_connection):
     assert "TERM=xterm-mono telnet host.domain.net 1500" == telnet_cmd.command_string
 
 
+def test_telnet_with_additional_commands(buffer_connection):
+    output1 = """TERM=xterm-mono telnet
+    telnet> """
+    output2 = """set binary
+    telnet> """
+    output3 = """open host.domain.net 1500
+    Login:
+    Login:user
+    Password:
+    Last login: Thu Nov 24 10:38:16 2017 from 127.0.0.1
+    Have a lot of fun...
+    host:~ #"""
+    output4 = """^]
+    telnet> """
+    output5 = """mode character
+    host:~ #"""
+    output6 = """export TMOUT="2678400",
+    host:~ #"""
+    telnet_cmd = Telnet(connection=buffer_connection.moler_connection, login="user", password="english", port=1500,
+                        host="host.domain.net", expected_prompt="host:.*#",
+                        cmds_before_establish_connection=['set binary'],
+                        cmds_after_establish_connection=['mode character'])
+    assert "TERM=xterm-mono telnet" == telnet_cmd.command_string
+    telnet_cmd.start()
+    outputs = [output1, output2, output3, output4, output5, output6]
+    for output in outputs:
+        buffer_connection.moler_connection.data_received(output)
+    telnet_cmd.await_done()
+    assert telnet_cmd.done() is True
+
+
 def command_output_and_expected_result():
     lines = [
         'user@client:~>',
