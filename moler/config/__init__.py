@@ -57,6 +57,11 @@ def load_config(path=None, from_env_var=None, config_type='yaml'):
     assert config_type == 'yaml'  # no other format supported yet
     config = read_yaml_configfile(path)
     # TODO: check schema
+    load_connection_from_config(config)
+    load_device_from_config(config)
+
+
+def load_connection_from_config(config):
     if 'NAMED_CONNECTIONS' in config:
         for name, connection_specification in config['NAMED_CONNECTIONS'].items():
             io_type = connection_specification.pop("io_type")
@@ -66,6 +71,9 @@ def load_config(path=None, from_env_var=None, config_type='yaml'):
             defaults = config['IO_TYPES']['default_variant']
             for io_type, variant in defaults.items():
                 conn_cfg.set_default_variant(io_type, variant)
+
+
+def load_device_from_config(config):
     if 'DEVICES' in config:
         if 'DEFAULT_CONNECTION' in config['DEVICES']:
             default_conn = config['DEVICES'].pop('DEFAULT_CONNECTION')
@@ -83,3 +91,4 @@ def load_config(path=None, from_env_var=None, config_type='yaml'):
 def clear():
     """Cleanup Moler's configuration"""
     conn_cfg.clear()
+    dev_cfg.clear()
