@@ -185,9 +185,9 @@ def check_if_documentation_exists(path2cmds):
     """
     wrong_commands = {}
     errors_found = []
-
+    print()
     for moler_module, moler_class in _walk_moler_nonabstract_commands(path=path2cmds):
-        print("processing: {}, {} ".format(moler_module, moler_class))
+        print("processing: {}".format(moler_class))
 
         test_data = _retrieve_command_documentation(moler_module)
 
