@@ -476,8 +476,6 @@ class TextualDevice(object):
                                 required_command_param, source_state, dest_state)
 
         if exception_message:
-            import pprint
-            pprint.pprint(self._configurations)
             raise DeviceFailure(device=self.__class__.__name__,
                                 message="Missing required parameter(s). There is no required parameter(s):{}".format(
                                     exception_message))
