@@ -20,7 +20,7 @@ class Chgrp(GenericUnixCommand):
         self.options = options
         self.files = files
         self.group = group
-        self.current_ret['RESULT'] = list()
+        self.ret_required = False
 
     def build_command_string(self):
         cmd = "chgrp"
@@ -31,32 +31,31 @@ class Chgrp(GenericUnixCommand):
         if self.files:
             for file in self.files:
                 cmd = cmd + " " + file
-        else:
-            pass
         return cmd
 
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
-                self._parse(line)
+                self._command_failure(line)
             except ParsingDone:
                 pass
-        elif not self.done():
-            self.set_result({})
         return super(Chgrp, self).on_new_line(line, is_full_line)
 
-    def _parse(self, line):
-        self.current_ret['RESULT'].append(line)
-        raise ParsingDone
+    _re_error = re.compile(r"chgrp:\s(?P<ERROR_MSG>.*)", re.IGNORECASE)
+
+    def _command_failure(self, line):
+        if self._regex_helper.search_compiled(Chgrp._re_error, line):
+            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG"))))
+            raise ParsingDone
 
 
 COMMAND_OUTPUT_basic_test = """
-xyz@debian:~$ chgrp test new
+xyz@debian:~$ chgrp test new new2
 xyz@debian:~$"""
 
 COMMAND_KWARGS_basic_test = {
     'group': "test",
-    'files': ["new"]
+    'files': ["new", "new2"]
 }
 
 COMMAND_RESULT_basic_test = {
