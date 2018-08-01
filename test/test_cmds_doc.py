@@ -2,6 +2,7 @@ from importlib import import_module
 from os import listdir
 from os.path import isfile, join, abspath, dirname
 
+from mock import mock
 from pytest import mark, raises
 
 __author__ = 'Michal Plichta'
@@ -118,3 +119,14 @@ def test_genertors_return_files_without_dunder_init(func2test, method_param):
     with raises(StopIteration):
         for _ in range(len(file_list)):
             next(generator_obj)
+
+
+def test_walk_moler_nonabstract_commands_raise_exception_when_called():
+    class FakeCommand:
+        def __call__(self, fake):
+            pass
+
+    with mock.patch('moler.util.cmds_doc._walk_moler_commands', return_value=(None, FakeCommand)):
+        from moler.util import cmds_doc
+        with raises(Exception) as e:
+            next(cmds_doc._walk_moler_nonabstract_commands(cmd_dir_under_test))
