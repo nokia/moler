@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Testing possibilities to configure connections
+Testing possibilities to configure devices
 """
 
 __author__ = 'Michal Ernst'
