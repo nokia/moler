@@ -137,3 +137,16 @@ def test_retrieve_command_documentation_as_dict():
     assert isinstance(fake_cmd_from_conftest['_ver_execute']['COMMAND_OUTPUT'], str)
     assert isinstance(fake_cmd_from_conftest['_ver_execute']['COMMAND_KWARGS'], dict)
     assert isinstance(fake_cmd_from_conftest['_ver_execute']['COMMAND_RESULT'], dict)
+
+
+def test_validate_documentation_existence():
+    from moler.util.cmds_doc import _validate_documentation_existence
+    fake_cmd = import_module('conftest')
+
+    test_data = {'_ver_execute': {'COMMAND_OUTPUT': '', 'COMMAND_KWARGS': {}, 'COMMAND_RESULT': {}},
+                 '_ver_test': {'COMMAND_OUTPUT': '', 'COMMAND_KWARGS': {}, 'COMMAND_RESULT': {}}}
+    assert _validate_documentation_existence(fake_cmd, test_data) == ''
+
+    missing = _validate_documentation_existence(fake_cmd, {})
+    assert 'conftest' in missing
+    assert 'is missing documentation: COMMAND_OUTPUT/COMMAND_KWARGS/COMMAND_RESULT' in missing
