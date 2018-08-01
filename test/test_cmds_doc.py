@@ -126,3 +126,14 @@ def test_walk_moler_nonabstract_commands_raise_exception_when_called(fake_cmd):
         from moler.util import cmds_doc
         with raises(Exception):
             next(cmds_doc._walk_moler_nonabstract_commands(cmd_dir_under_test))
+
+
+def test_retrieve_command_documentation_as_dict():
+    from moler.util.cmds_doc import _retrieve_command_documentation
+
+    fake_cmd_from_conftest = _retrieve_command_documentation(import_module('conftest'))
+    assert isinstance(fake_cmd_from_conftest, dict)
+    assert isinstance(fake_cmd_from_conftest['_ver_execute'], dict)
+    assert isinstance(fake_cmd_from_conftest['_ver_execute']['COMMAND_OUTPUT'], str)
+    assert isinstance(fake_cmd_from_conftest['_ver_execute']['COMMAND_KWARGS'], dict)
+    assert isinstance(fake_cmd_from_conftest['_ver_execute']['COMMAND_RESULT'], dict)
