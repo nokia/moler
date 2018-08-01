@@ -256,7 +256,7 @@ class MultilineWithDirectionFormatter(logging.Formatter):
             try:
                 output += "{}|{}".format(empty_prefix, line)
             except UnicodeEncodeError:
-                output += "{}|{}".format(empty_prefix, line.decode('utf-8'))
+                output += "{}|{}".format(empty_prefix, unicode(line, 'utf-8'))
         # TODO: line completion for connection decoded data comming in chunks
         return output
 
