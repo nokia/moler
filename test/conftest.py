@@ -76,3 +76,31 @@ os.environ['MOLER_DEBUG_LEVEL'] = 'TRACE'  # to have all debug details of tests
 moler.config.loggers.configure_debug_level()
 moler.config.loggers.configure_moler_main_logger()
 moler.config.loggers.configure_runner_logger(runner_name="thread-pool")
+
+
+# --------------------------- test/test_cmds_doc.py resources ---------------------------
+@fixture
+def fake_cmd():
+    class FakeCommand:
+        def __call__(self, fake):
+            pass
+    return FakeCommand
+
+
+COMMAND_OUTPUT_ver_execute = """
+"""
+
+COMMAND_KWARGS_ver_execute = {'operation': 'execute'}
+
+COMMAND_RESULT_ver_execute = {
+    'done': 'executed'
+}
+
+COMMAND_OUTPUT_ver_test = """
+"""
+
+COMMAND_KWARGS_ver_test = {'operation': 'test'}
+
+COMMAND_RESULT_ver_test = {
+    'done': 'tested'
+}
