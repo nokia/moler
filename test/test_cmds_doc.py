@@ -128,5 +128,5 @@ def test_walk_moler_nonabstract_commands_raise_exception_when_called():
 
     with mock.patch('moler.util.cmds_doc._walk_moler_commands', return_value=(None, FakeCommand)):
         from moler.util import cmds_doc
-        with raises(Exception) as e:
+        with raises(Exception):
             next(cmds_doc._walk_moler_nonabstract_commands(cmd_dir_under_test))
