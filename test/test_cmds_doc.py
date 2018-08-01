@@ -121,12 +121,8 @@ def test_genertors_return_files_without_dunder_init(func2test, method_param):
             next(generator_obj)
 
 
-def test_walk_moler_nonabstract_commands_raise_exception_when_called():
-    class FakeCommand:
-        def __call__(self, fake):
-            pass
-
-    with mock.patch('moler.util.cmds_doc._walk_moler_commands', return_value=(None, FakeCommand)):
+def test_walk_moler_nonabstract_commands_raise_exception_when_called(fake_cmd):
+    with mock.patch('moler.util.cmds_doc._walk_moler_commands', return_value=(None, fake_cmd)):
         from moler.util import cmds_doc
         with raises(Exception):
             next(cmds_doc._walk_moler_nonabstract_commands(cmd_dir_under_test))
