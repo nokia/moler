@@ -18,7 +18,10 @@ def set_default_connection(io_type, variant):
 
 def define_device(name, device_class, connection_desc, connection_hops):
     """Assign name to device specification."""
-    connection_hops['CONNECTION_HOPS'] = connection_hops
+    device_connection_hops = {
+        'CONNECTION_HOPS': connection_hops
+    }
+    connection_hops = device_connection_hops
     named_devices[name] = (device_class, connection_desc, connection_hops)
 
 

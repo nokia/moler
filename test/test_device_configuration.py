@@ -46,6 +46,20 @@ def test_can_select_connection_by_name(device_config):
     assert device.__class__.__name__ == 'UnixLocal'
 
 
+def test(device_config):
+    from moler.device.device import DeviceFactory
+
+    device_config.define_device(
+        name="UNIX",
+        device_class='moler.device.unixlocal.UnixLocal',
+        connection_desc=None,
+        connection_hops={}
+    )
+    device = DeviceFactory.get_device(name='UNIX')
+    assert device.__module__ == 'moler.device.unixlocal'
+    assert device.__class__.__name__ == 'UnixLocal'
+
+
 def test_cannot_select_device_by_nonexisting_name(device_config):
     """Non-existing means here not defined inside configuration"""
     from moler.device.device import DeviceFactory
