@@ -24,7 +24,7 @@ class Telnet(GenericUnixCommand):
                                     re.IGNORECASE)
     _re_has_just_connected = re.compile(r"/has just connected|\{bash_history,ssh\}|Escape character is", re.IGNORECASE)
 
-    def __init__(self, connection, host, login=None, password=None, port=0, prompt=None, expected_prompt='^>\s*',
+    def __init__(self, connection, host, login=None, password=None, port=0, prompt=None, expected_prompt=r'^>\s*',
                  set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono="TERM=xterm-mono", prefix=None,
                  new_line_chars=None, cmds_before_establish_connection=[], cmds_after_establish_connection=[],
                  telnet_prompt=r"^\s*telnet>\s*"):
@@ -202,4 +202,3 @@ COMMAND_KWARGS = {
 }
 
 COMMAND_RESULT = {}
-
