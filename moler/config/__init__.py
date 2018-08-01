@@ -82,10 +82,12 @@ def load_device_from_config(config):
 
         for device_name in config['DEVICES']:
             device_def = config['DEVICES'][device_name]
-            dev_cfg.define_device(name=device_name,
-                                  device_class=device_def['DEVICE_CLASS'],
-                                  connection_desc=device_def.get('CONNECTION_DESC', dev_cfg.default_connection),
-                                  connection_hops=device_def.get('CONNECTION_HOPS', {}))
+            dev_cfg.define_device(
+                name=device_name,
+                device_class=device_def['DEVICE_CLASS'],
+                connection_desc=device_def.get('CONNECTION_DESC', dev_cfg.default_connection),
+                connection_hops=device_def.get('CONNECTION_HOPS', {})
+            )
 
 
 def clear():
