@@ -19,12 +19,13 @@ class Hexdump(GenericUnixCommand):
         self.options = options
         self.files = files
         self.current_ret['RESULT'] = list()
+        self._is_file()
 
     def build_command_string(self):
         cmd = "hexdump"
         if self.options:
             cmd = cmd + " " + self.options
-        if self.files and self._is_file():
+        if self.files:
             for file in self.files:
                 cmd = cmd + ' {}'.format(file)
         return cmd
