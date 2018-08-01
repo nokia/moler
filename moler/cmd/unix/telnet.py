@@ -75,18 +75,26 @@ class Telnet(GenericUnixCommand):
             self._send_commands_before_establish_connection_if_requested(line, is_full_line)
             self._send_login_if_requested(line)
             self._send_password_if_requested(line)
-
-            if self._regex_helper.search_compiled(Telnet._re_has_just_connected, line):
-                self.connection.sendline("")
-                return
+            self._just_connected(line)
             self._send_commands_after_establish_connection_if_requested(line, is_full_line)
-            sent = self._send_after_login_settings(line)
-            if (not sent) and self._is_target_prompt(line) and (not is_full_line):
-                if self._all_after_login_settings_sent() or self._no_after_login_settings_needed():
-                    if not self.done():
-                        self.set_result({})
+            self._settings_after_login(line, is_full_line)
         except ParsingDone:
             pass
+
+    def _settings_after_login(self, line, is_full_line):
+        sent = self._send_after_login_settings(line)
+        if sent:
+            raise ParsingDone()
+        if (not sent) and self._is_target_prompt(line) and (not is_full_line):
+            if self._all_after_login_settings_sent() or self._no_after_login_settings_needed():
+                if not self.done():
+                    self.set_result({})
+                    raise ParsingDone()
+
+    def _just_connected(self, line):
+        if self._regex_helper.search_compiled(Telnet._re_has_just_connected, line):
+            self.connection.sendline("")
+            raise ParsingDone()
 
     def _send_telnet_commands(self, line, is_full_line, commands):
         len_cmds = len(commands)
@@ -110,8 +118,8 @@ class Telnet(GenericUnixCommand):
 
     def _change_telnet_to_setting_commands(self):
         if not self._telnet_command_mode:
-            self._telnet_command_mode = True
             self.connection.send(chr(0x1D))  # ctrl + ]
+            self._telnet_command_mode = True
 
     def _send_login_if_requested(self, line):
         if (not self._sent_login) and self._is_login_requested(line) and self.login:
