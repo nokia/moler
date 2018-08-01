@@ -62,7 +62,6 @@ class TextualDevice(object):
         self._prepare_transitions()
         self._prepare_state_hops()
         self._configure_state_machine(sm_params)
-        self._validate_device_configuration()
 
         if io_connection:
             self.io_connection = io_connection
@@ -217,7 +216,7 @@ class TextualDevice(object):
         else:
             raise DeviceFailure(
                 device=self.__class__.__name__,
-                message="Failed to change state. "
+                message="Failed to change state to '{}'. "
                         "Either target state does not exist in SM or there is no direct/indirect transition "
                         "towards target state. Try to change state machine definition. "
                         "Available states: {}".format(next_state, self.states))
@@ -443,6 +442,7 @@ class TextualDevice(object):
         default_configurations = self._get_default_sm_configuration()
         configuration = self._update_configuration(default_configurations, sm_params)
         self._configurations = configuration
+        self._validate_device_configuration()
         self._prepare_state_prompts()
 
     def _update_configuration(self, destination, source):
@@ -476,6 +476,8 @@ class TextualDevice(object):
                                 required_command_param, source_state, dest_state)
 
         if exception_message:
+            import pprint
+            pprint.pprint(self._configurations)
             raise DeviceFailure(device=self.__class__.__name__,
                                 message="Missing required parameter(s). There is no required parameter(s):{}".format(
                                     exception_message))

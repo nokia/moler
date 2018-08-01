@@ -4,14 +4,15 @@ Moler related configuration
 """
 import os
 
-__author__ = 'Grzegorz Latuszek'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import yaml
 from contextlib import contextmanager
 
 from . import connections as conn_cfg
+from . import devices as dev_cfg
 
 
 @contextmanager
@@ -65,6 +66,18 @@ def load_config(path=None, from_env_var=None, config_type='yaml'):
             defaults = config['IO_TYPES']['default_variant']
             for io_type, variant in defaults.items():
                 conn_cfg.set_default_variant(io_type, variant)
+    if 'DEVICES' in config:
+        if 'DEFAULT_CONNECTION' in config['DEVICES']:
+            default_conn = config['DEVICES'].pop('DEFAULT_CONNECTION')
+            conn_desc = default_conn['CONNECTION_DESC']
+            dev_cfg.set_default_connection(**conn_desc)
+
+        for device_name in config['DEVICES']:
+            device_def = config['DEVICES'][device_name]
+            dev_cfg.define_device(name=device_name,
+                                  device_class=device_def['DEVICE_CLASS'],
+                                  connection_desc=device_def.get('CONNECTION_DESC', dev_cfg.default_connection),
+                                  connection_hops=device_def.get('CONNECTION_HOPS', {}))
 
 
 def clear():
