@@ -68,7 +68,8 @@ def test_buffer_connection_returns_threadconnection_with_moler_conn():
 
 @mark.parametrize('func2test,method_param,expected', [
     ('_walk_moler_python_files', cmd_dir_under_test, True),
-    ('_walk_moler_commands', cmd_dir_under_test, True)])
+    ('_walk_moler_commands', cmd_dir_under_test, True),
+    ('_walk_moler_nonabstract_commands', cmd_dir_under_test, True)])
 def test_functions_are_generators(func2test, method_param, expected):
     from inspect import isgenerator, isgeneratorfunction
 
@@ -107,7 +108,8 @@ def test_walk_moler_commands_is_generator_return_all_files_in_dir():
 
 @mark.parametrize('func2test,method_param', [
     ('_walk_moler_python_files', cmd_dir_under_test),
-    ('_walk_moler_commands', cmd_dir_under_test)])
+    ('_walk_moler_commands', cmd_dir_under_test),
+    ('_walk_moler_nonabstract_commands', cmd_dir_under_test)])
 def test_genertors_return_files_without_dunder_init(func2test, method_param):
     func_obj = _load_obj(func_name=func2test)
     generator_obj = func_obj(method_param)
