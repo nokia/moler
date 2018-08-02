@@ -11,6 +11,12 @@ from moler.instance_loader import create_instance_from_class_fullname
 
 
 class DeviceFactory(object):
+    _devices = {}
+
+    @classmethod
+    def create_all_devices(cls):
+        for device_name in devices_config.named_devices:
+            cls.get_device(name=device_name)
 
     @classmethod
     def get_device(cls, name=None, device_class=None, connection_desc=None, connection_hops=None):
@@ -27,6 +33,10 @@ class DeviceFactory(object):
             raise AssertionError("Provide either 'name' or 'device_class' parameter (none given)")
         if name and device_class:
             raise AssertionError("Use either 'name' or 'device_class' parameter (not both)")
+
+        if name in cls._devices.keys():
+            return cls._devices[name]
+
         device_class, connection_desc, connection_hops = cls._try_take_named_device_params(name, device_class,
                                                                                            connection_desc,
                                                                                            connection_hops)
@@ -34,6 +44,10 @@ class DeviceFactory(object):
             connection_desc = cls._try_select_device_connection_desc(device_class, connection_desc)
 
         device = cls._create_device(device_class, connection_desc, connection_hops)
+        if name:
+            cls._devices[name] = device
+        else:
+            cls._devices[device.name] = device
         return device
 
     @classmethod
@@ -69,3 +83,7 @@ class DeviceFactory(object):
                                                      constructor_parameters=constructor_parameters)
 
         return device
+
+    @classmethod
+    def clear(cls):
+        cls._devices = {}
