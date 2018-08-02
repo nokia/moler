@@ -87,20 +87,32 @@ def fake_cmd():
     return FakeCommand
 
 
-COMMAND_OUTPUT_ver_execute = """
+@fixture
+def nice_cmd():
+    from moler.command import Command
+
+    class NiceCommand(Command):
+        def __init__(self, nice='', connection=None):
+            super(NiceCommand, self).__init__(connection=connection)
+            self.nice = nice
+
+        def data_received(self, data):
+            if self.nice == 'nice':
+                self.set_result({'nice': 'nice'})
+
+        def __call__(self, timeout=None, *args, **kwargs):
+            self.set_result({'nice': self.nice})
+            return {'nice': self.nice}
+
+    return NiceCommand
+
+
+COMMAND_OUTPUT_ver_nice = """
+'nice'
 """
 
-COMMAND_KWARGS_ver_execute = {'operation': 'execute'}
+COMMAND_KWARGS_ver_nice = {}
 
-COMMAND_RESULT_ver_execute = {
-    'done': 'executed'
-}
-
-COMMAND_OUTPUT_ver_test = """
-"""
-
-COMMAND_KWARGS_ver_test = {'operation': 'test'}
-
-COMMAND_RESULT_ver_test = {
-    'done': 'tested'
+COMMAND_RESULT_ver_nice = {
+    'nice': 'nice'
 }
