@@ -167,9 +167,9 @@ def test_validate_documentation_consistency():
     assert isinstance(result1, list)
     assert isinstance(result2, list)
     assert isinstance(result3, list)
-    assert "<module 'conftest' from" in result1[0] and "<module 'conftest' from" in result1[0]
-    assert "<module 'conftest' from" in result2[0] and "<module 'conftest' from" in result2[0]
-    assert "<module 'conftest' from" in result3[0] and "<module 'conftest' from" in result3[0]
+    assert "<module 'conftest'" in result1[0] and "<module 'conftest'" in result1[0]
+    assert "<module 'conftest'" in result2[0] and "<module 'conftest'" in result2[0]
+    assert "<module 'conftest'" in result3[0] and "<module 'conftest'" in result3[0]
     assert "test/conftest.py'> has COMMAND_KWARGS_ver_test1 but no COMMAND_OUTPUT_ver_test1" in result1[0]
     assert "test/conftest.py'> has COMMAND_RESULT_ver_test1 but no COMMAND_OUTPUT_ver_test1" in result1[1]
     assert "test/conftest.py'> has COMMAND_OUTPUT_ver_test2 but no COMMAND_KWARGS_ver_test2" in result2[0]
@@ -196,7 +196,7 @@ def test_create_command_raise_exception_when_object_takes_no_params(fake_cmd):
     with raises(Exception) as exc:
         _create_command(fake_cmd, _buffer_connection().moler_connection, {})
 
-    assert "Can't create command instance via FakeCommand() : object() takes no parameters" in str(exc)
+    assert "via FakeCommand() : object() takes no parameters" or "via FakeCommand() : this constructor takes no arguments" in str(exc.value)
 
 
 def test_create_command_success(nice_cmd):
