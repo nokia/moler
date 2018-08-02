@@ -64,19 +64,11 @@ class Sed(GenericUnixCommand):
             self.set_result({})
         return super(Sed, self).on_new_line(line, is_full_line)
 
-    _re_command_fail = re.compile(r"sed:.*(unknown|missing|unterminated).*command.*(?P<COMMAND>.*)", re.IGNORECASE)
-    _re_option_error = re.compile(r"sed:\s(invalid|unknown)\soption.*(?P<OPTION>.*)", re.IGNORECASE)
-    _re_file_error = re.compile(r"sed:\scan't\sread.*:\sNo\ssuch\sfile\sor\sdirectory.*(?P<FILE>.*)", re.IGNORECASE)
+    _re_command_error = re.compile(r"sed:\s(?P<ERROR>.*)", re.IGNORECASE)
 
     def _command_error(self, line):
-        if self._regex_helper.search_compiled(Sed._re_command_fail, line):
-            self.set_exception(CommandFailure(self, "ERROR {}".format(self._regex_helper.group("COMMAND"))))
-            raise ParsingDone
-        elif self._regex_helper.search_compiled(Sed._re_option_error, line):
-            self.set_exception(CommandFailure(self, "ERROR {}".format(self._regex_helper.group("OPTION"))))
-            raise ParsingDone
-        elif self._regex_helper.search_compiled(Sed._re_file_error, line):
-            self.set_exception(CommandFailure(self, "ERROR {}".format(self._regex_helper.group("FILE"))))
+        if self._regex_helper.search_compiled(Sed._re_command_error, line):
+            self.set_exception(CommandFailure(self, "ERROR {}".format(self._regex_helper.group("ERROR"))))
             raise ParsingDone
 
     def _parse(self, line):
