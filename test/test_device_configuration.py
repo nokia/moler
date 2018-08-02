@@ -79,6 +79,31 @@ def test_can_select_named_device_by_default_connection_desc(device_config, devic
     assert device.__class__.__name__ == 'UnixLocal'
 
 
+def test_cannot_select_named_device_without_connection(device_config, device_factory):
+    device_config.define_device(
+        name="UNIX",
+        device_class='moler.device.unixlocal.UnixLocal',
+        connection_desc=None,
+        connection_hops={}
+    )
+    device_config.default_connection = None
+
+    with pytest.raises(KeyError) as err:
+        device_factory.get_device(name='UNIX')
+    assert "No connection_desc selected (directly or via configuration)" in str(err)
+
+
+def test_cannot_select_desc_device_without_connection(device_config, device_factory):
+    device_config.default_connection = None
+
+    with pytest.raises(KeyError) as err:
+        device_factory.get_device(
+            device_class='moler.device.unixlocal.UnixLocal',
+            connection_hops={}
+        )
+    assert "No connection_desc selected (directly or via configuration)" in str(err)
+
+
 def test_cannot_select_device_by_nonexisting_name(device_factory):
     """Non-existing means here not defined inside configuration"""
     with pytest.raises(KeyError) as err:
