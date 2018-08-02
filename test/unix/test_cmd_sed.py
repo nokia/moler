@@ -67,6 +67,7 @@ def test_sed_catches_file_error(buffer_connection):
         sed_cmd()
 
 
+@pytest.fixture
 def command_output_and_expected_result_command_failure():
     data = """xyz@debian:~$ sed -e 's/a/A' old old2
 sed: -e expression #1, char 5: unterminated `s' command
@@ -75,6 +76,7 @@ xyz@debian:~$"""
     return data, result
 
 
+@pytest.fixture
 def command_output_and_expected_result_command_failure_empty_input_file():
     data = """xyz@debian:~$ sed -e 's/a/A'
 
@@ -83,6 +85,7 @@ xyz@debian:~$"""
     return data, result
 
 
+@pytest.fixture
 def command_output_and_expected_result_command_failure_no_script():
     data = """xyz@debian:~$ sed -e old
     sed: -e expression #1, char 2: extra characters after command
@@ -91,6 +94,7 @@ def command_output_and_expected_result_command_failure_no_script():
     return data, result
 
 
+@pytest.fixture
 def command_output_and_expected_result_option_error():
     data = """xyz@debian:~$ sed -h -e 's/a/A/' old old2
 sed: invalid option -- 'h'
@@ -138,6 +142,7 @@ xyz@debian:~$"""
     return data, result
 
 
+@pytest.fixture
 def command_output_and_expected_result_file_error():
     data = """xyz@debian:~$ sed -e 's/a/A/' old old3
 Aga
