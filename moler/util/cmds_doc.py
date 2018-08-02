@@ -7,9 +7,10 @@ __author__ = 'Grzegorz Latuszek', 'Michal Ernst', 'Michal Plichta'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com', 'michal.ernst@nokia.com', 'michal.plichta@nokia.com'
 
+from argparse import ArgumentParser
 from importlib import import_module
 from os import walk, sep
-from os.path import abspath, join, dirname, relpath
+from os.path import abspath, join, dirname, relpath, exists
 from pprint import pformat
 
 from moler.command import Command
@@ -232,3 +233,16 @@ def check_if_documentation_exists(path2cmds):
         return False
     print("All processed commands have correct documentation")
     return True
+
+
+if __name__ == '__main__':
+    parser = ArgumentParser(description="Moler's Command(s) autotest")
+    parser.add_argument('-c', '--cmd_filename', required=True, help='python module implementing given command')
+    options = parser.parse_args()
+
+    if not exists(options.cmd_filename):
+        print('\n{} path doesn\'t exist!\n'.format(options.cmd_filename))
+        parser.print_help()
+        exit()
+    else:
+        check_if_documentation_exists(path2cmds=options.cmd_filename)
