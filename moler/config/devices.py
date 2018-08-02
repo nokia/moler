@@ -11,7 +11,7 @@ default_connection = {"io_type": "terminal", "variant": "threaded"}
 
 
 def set_default_connection(io_type, variant):
-    """Set conncetion to use as default when requesting 'device' without connection specification"""
+    """Set connection to use as default when requesting 'device' without connection specification"""
     global default_connection
     default_connection = {"io_type": io_type, "variant": variant}
 
