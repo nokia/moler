@@ -170,12 +170,12 @@ def test_validate_documentation_consistency():
     assert "<module 'conftest'" in result1[0] and "<module 'conftest'" in result1[0]
     assert "<module 'conftest'" in result2[0] and "<module 'conftest'" in result2[0]
     assert "<module 'conftest'" in result3[0] and "<module 'conftest'" in result3[0]
-    assert "test/conftest.py'> has COMMAND_KWARGS_ver_test1 but no COMMAND_OUTPUT_ver_test1" in result1[0]
-    assert "test/conftest.py'> has COMMAND_RESULT_ver_test1 but no COMMAND_OUTPUT_ver_test1" in result1[1]
-    assert "test/conftest.py'> has COMMAND_OUTPUT_ver_test2 but no COMMAND_KWARGS_ver_test2" in result2[0]
-    assert "test/conftest.py'> has COMMAND_RESULT_ver_test2 but no COMMAND_KWARGS_ver_test2" in result2[1]
-    assert "test/conftest.py'> has COMMAND_OUTPUT_ver_test3 but no COMMAND_RESULT_ver_test3" in result3[0]
-    assert "test/conftest.py'> has COMMAND_KWARGS_ver_test3 but no COMMAND_RESULT_ver_test3" in result3[1]
+    assert '> has COMMAND_KWARGS_ver_test1 but no COMMAND_OUTPUT_ver_test1' in result1[0]
+    assert '> has COMMAND_RESULT_ver_test1 but no COMMAND_OUTPUT_ver_test1' in result1[1]
+    assert '> has COMMAND_OUTPUT_ver_test2 but no COMMAND_KWARGS_ver_test2' in result2[0]
+    assert '> has COMMAND_RESULT_ver_test2 but no COMMAND_KWARGS_ver_test2' in result2[1]
+    assert '> has COMMAND_OUTPUT_ver_test3 but no COMMAND_RESULT_ver_test3' in result3[0]
+    assert '> has COMMAND_KWARGS_ver_test3 but no COMMAND_RESULT_ver_test3' in result3[1]
 
 
 def test_get_doc_variant():
