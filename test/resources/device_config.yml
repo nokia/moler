@@ -1,0 +1,8 @@
+DEVICES:
+  DEFAULT_CONNECTION:
+    CONNECTION_DESC:
+      io_type: terminal
+      variant: threaded
+
+  UNIX:
+    DEVICE_CLASS: moler.device.unixremote.UnixLocal

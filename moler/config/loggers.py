@@ -254,6 +254,7 @@ class MultilineWithDirectionFormatter(logging.Formatter):
         empty_prefix = self._calculate_empty_prefix(msg_lines[0], out_lines[0])
         for line in out_lines[1:]:
             output += "{}|{}".format(empty_prefix, line)
+
         # TODO: line completion for connection decoded data comming in chunks
         return output
 
