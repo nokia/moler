@@ -205,3 +205,15 @@ def test_create_command_success(nice_cmd):
     result = _create_command(nice_cmd, _buffer_connection().moler_connection, {'nice': 'nice'})
     assert isinstance(result[0], nice_cmd)
     assert result[1] == 'NiceCommand(nice=nice)'
+
+
+def test_run_command_parsing_test_success(nice_cmd):
+    # ToDo: not finished
+    from moler.util.cmds_doc import _run_command_parsing_test, _buffer_connection, _get_doc_variant, _create_command
+    buffer_io = _buffer_connection()
+    variant = '_ver_nice'
+    test_data = {variant: {'COMMAND_OUTPUT': 'nice', 'COMMAND_KWARGS': {'nice': 'nice'}, 'COMMAND_RESULT': {'nice': 'nice'}}}
+
+    cmd_output, cmd_kwargs, cmd_result = _get_doc_variant(test_data, variant)
+    moler_cmd, creation_str = _create_command(nice_cmd, buffer_io.moler_connection, cmd_kwargs)
+    _run_command_parsing_test(nice_cmd, creation_str, buffer_io, cmd_output, cmd_result, variant)
