@@ -40,7 +40,7 @@ def camel_case_to_lower_case_underscore(string):
     return '_'.join(words)
 
 
-_re_color_codes = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")  # Regex to remove color codes from command output
+_re_escape_codes = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")  # Regex to remove color codes from command output
 
 
 def remove_escape_codes(line):
@@ -48,5 +48,5 @@ def remove_escape_codes(line):
     :param line: line from terminal
     :return: line without terminal escape codes
     """
-    line = re.sub(_re_color_codes, "", line)
+    line = re.sub(_re_escape_codes, "", line)
     return line
