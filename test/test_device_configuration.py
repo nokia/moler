@@ -222,4 +222,5 @@ def device_config():
 def device_factory():
     from moler.device.device import DeviceFactory as dev_factory
     yield dev_factory
+    # restore since tests may change configuration
     dev_factory.clear()
