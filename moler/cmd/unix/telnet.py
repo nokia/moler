@@ -194,7 +194,7 @@ class Telnet(GenericUnixCommand):
 
 
 COMMAND_OUTPUT = """
-amu012@belvedere07:~/automation/Flexi/config> TERM=xterm-mono telnet host.domain.net 1500
+user@host01:~> TERM=xterm-mono telnet host.domain.net 1500
 Login:
 Login:user
 Password:
@@ -210,3 +210,25 @@ COMMAND_KWARGS = {
 }
 
 COMMAND_RESULT = {}
+
+COMMAND_OUTPUT_prompt = """
+user@host01:~> TERM=xterm-mono telnet host.domain.net 1500
+Login:
+Login:user
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+host:~ #
+export TMOUT="2678400",
+host:~ #
+export PS1="host_new#",
+host_new#"""
+
+COMMAND_KWARGS_prompt = {
+    "login": "user", "password": "english", "port": "1500",
+    "host": "host.domain.net", "expected_prompt": "host.*#",
+    "set_prompt": "export PS1=\"host_new#\""
+
+}
+
+COMMAND_RESULT_prompt = {}
