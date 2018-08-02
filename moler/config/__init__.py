@@ -86,7 +86,7 @@ def load_device_from_config(config):
                 name=device_name,
                 device_class=device_def['DEVICE_CLASS'],
                 connection_desc=device_def.get('CONNECTION_DESC', dev_cfg.default_connection),
-                connection_hops=device_def.get('CONNECTION_HOPS', {})
+                connection_hops={'CONNECTION_HOPS': device_def.get('CONNECTION_HOPS', {})}
             )
 
 
