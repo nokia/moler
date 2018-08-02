@@ -151,3 +151,28 @@ def test_validate_documentation_existence():
     missing = _validate_documentation_existence(fake_cmd, {})
     assert 'conftest' in missing
     assert 'is missing documentation: COMMAND_OUTPUT/COMMAND_KWARGS/COMMAND_RESULT' in missing
+
+
+def test_validate_documentation_consistency():
+    from moler.util.cmds_doc import _validate_documentation_consistency
+    fake_cmd = import_module('conftest')
+
+    test_data = {'_ver_test1': {'COMMAND_KWARGS': {}, 'COMMAND_RESULT': {}},
+                 '_ver_test2': {'COMMAND_OUTPUT': '', 'COMMAND_RESULT': {}},
+                 '_ver_test3': {'COMMAND_OUTPUT': '', 'COMMAND_KWARGS': {}}}
+    result1 = _validate_documentation_consistency(fake_cmd, test_data, '_ver_test1')
+    result2 = _validate_documentation_consistency(fake_cmd, test_data, '_ver_test2')
+    result3 = _validate_documentation_consistency(fake_cmd, test_data, '_ver_test3')
+
+    assert isinstance(result1, list)
+    assert isinstance(result2, list)
+    assert isinstance(result3, list)
+    assert "<module 'conftest' from" in result1[0] and "<module 'conftest' from" in result1[0]
+    assert "<module 'conftest' from" in result2[0] and "<module 'conftest' from" in result2[0]
+    assert "<module 'conftest' from" in result3[0] and "<module 'conftest' from" in result3[0]
+    assert "test/conftest.py'> has COMMAND_KWARGS_ver_test1 but no COMMAND_OUTPUT_ver_test1" in result1[0]
+    assert "test/conftest.py'> has COMMAND_RESULT_ver_test1 but no COMMAND_OUTPUT_ver_test1" in result1[1]
+    assert "test/conftest.py'> has COMMAND_OUTPUT_ver_test2 but no COMMAND_KWARGS_ver_test2" in result2[0]
+    assert "test/conftest.py'> has COMMAND_RESULT_ver_test2 but no COMMAND_KWARGS_ver_test2" in result2[1]
+    assert "test/conftest.py'> has COMMAND_OUTPUT_ver_test3 but no COMMAND_RESULT_ver_test3" in result3[0]
+    assert "test/conftest.py'> has COMMAND_KWARGS_ver_test3 but no COMMAND_RESULT_ver_test3" in result3[1]
