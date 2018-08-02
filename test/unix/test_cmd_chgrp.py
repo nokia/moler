@@ -2,7 +2,7 @@
 """
 Testing of chgrp command.
 """
-__author__ = 'Adrianna Pienkowska'
+__author__ = 'Adrianna Pienkowska '
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'adrianna.pienkowska@nokia.com'
 
