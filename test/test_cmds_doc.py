@@ -176,3 +176,15 @@ def test_validate_documentation_consistency():
     assert "test/conftest.py'> has COMMAND_RESULT_ver_test2 but no COMMAND_KWARGS_ver_test2" in result2[1]
     assert "test/conftest.py'> has COMMAND_OUTPUT_ver_test3 but no COMMAND_RESULT_ver_test3" in result3[0]
     assert "test/conftest.py'> has COMMAND_KWARGS_ver_test3 but no COMMAND_RESULT_ver_test3" in result3[1]
+
+
+def test_get_doc_variant():
+    from moler.util.cmds_doc import _get_doc_variant
+
+    test_data = {'_ver_test1': {'COMMAND_OUTPUT': 'out1', 'COMMAND_KWARGS': {1: 1}, 'COMMAND_RESULT': {1: 1}},
+                 '_ver_test2': {'COMMAND_OUTPUT': 'out2', 'COMMAND_RESULT': {2: 2}}}
+    result1 = _get_doc_variant(test_data, '_ver_test1')
+    result2 = _get_doc_variant(test_data, '_ver_test2')
+
+    assert result1 == ('out1', {1: 1}, {1: 1})
+    assert result2 == ('out2', {}, {2: 2})
