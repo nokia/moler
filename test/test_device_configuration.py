@@ -29,7 +29,7 @@ def test_get_device_must_use_either_name_or_device_class():
     assert "Provide either 'name' or 'device_class' parameter (none given)" in str(err)
 
 
-def test_can_select_connection_by_name(device_config):
+def test_can_select_device_by_name(device_config):
     from moler.device.device import DeviceFactory
 
     device_config.define_device(
@@ -46,7 +46,7 @@ def test_can_select_connection_by_name(device_config):
     assert device.__class__.__name__ == 'UnixLocal'
 
 
-def test(device_config):
+def test_can_select_device_by_default_connection_desc(device_config):
     from moler.device.device import DeviceFactory
 
     device_config.define_device(
@@ -69,7 +69,7 @@ def test_cannot_select_device_by_nonexisting_name(device_config):
     assert "Device named 'UNIX' was not defined inside configuration" in str(err)
 
 
-def test_can_select_connection_loaded_from_config_file(moler_config):
+def test_can_select_device_loaded_from_config_file(moler_config):
     from moler.device.device import DeviceFactory
 
     conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
@@ -80,7 +80,7 @@ def test_can_select_connection_loaded_from_config_file(moler_config):
     assert device.__class__.__name__ == 'UnixLocal'
 
 
-def test_can_select_connection_loaded_from_env_variable(moler_config, monkeypatch):
+def test_can_select_device_loaded_from_env_variable(moler_config, monkeypatch):
     from moler.device.device import DeviceFactory
 
     conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
