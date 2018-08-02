@@ -134,10 +134,10 @@ def test_retrieve_command_documentation_as_dict():
 
     fake_cmd_from_conftest = _retrieve_command_documentation(import_module('conftest'))
     assert isinstance(fake_cmd_from_conftest, dict)
-    assert isinstance(fake_cmd_from_conftest['_ver_execute'], dict)
-    assert isinstance(fake_cmd_from_conftest['_ver_execute']['COMMAND_OUTPUT'], str)
-    assert isinstance(fake_cmd_from_conftest['_ver_execute']['COMMAND_KWARGS'], dict)
-    assert isinstance(fake_cmd_from_conftest['_ver_execute']['COMMAND_RESULT'], dict)
+    assert isinstance(fake_cmd_from_conftest['_ver_nice'], dict)
+    assert isinstance(fake_cmd_from_conftest['_ver_nice']['COMMAND_OUTPUT'], str)
+    assert isinstance(fake_cmd_from_conftest['_ver_nice']['COMMAND_KWARGS'], dict)
+    assert isinstance(fake_cmd_from_conftest['_ver_nice']['COMMAND_RESULT'], dict)
 
 
 def test_validate_documentation_existence():
