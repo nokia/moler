@@ -188,3 +188,20 @@ def test_get_doc_variant():
 
     assert result1 == ('out1', {1: 1}, {1: 1})
     assert result2 == ('out2', {}, {2: 2})
+
+
+def test_create_command_raise_exception_when_object_takes_no_params(fake_cmd):
+    from moler.util.cmds_doc import _create_command, _buffer_connection
+
+    with raises(Exception) as exc:
+        _create_command(fake_cmd, _buffer_connection().moler_connection, {})
+
+    assert "Can't create command instance via FakeCommand() : object() takes no parameters" in str(exc)
+
+
+def test_create_command_success(nice_cmd):
+    from moler.util.cmds_doc import _create_command, _buffer_connection
+
+    result = _create_command(nice_cmd, _buffer_connection().moler_connection, {'nice': 'nice'})
+    assert isinstance(result[0], nice_cmd)
+    assert result[1] == 'NiceCommand(nice=nice)'
