@@ -30,15 +30,18 @@ def test_hexdump_raise_error_on_wrong_option(buffer_connection):
     with pytest.raises(CommandFailure):
         hexdump_cmd()
 
+def test_hexdump_raise_error_on_no_such_file(buffer_connection):
+    hexdump_cmd = Hexdump(connection=buffer_connection.moler_connection, files=["new5"])
+    command_output, expected_result = command_output_and_expected_result_on_wrong_option()
+    buffer_connection.remote_inject_response([command_output])
+    assert 'hexdump -abc old' == hexdump_cmd.command_string
+    with pytest.raises(CommandFailure):
+        hexdump_cmd()
 
 @pytest.fixture
 def command_output_and_expected_result_on_wrong_option():
-    output = """xyz@debian:~/Dokumenty/sed$ hexdump -abc old
-hexdump: invalid option -- 'a'
-usage: hexdump [-bcCdovx] [-e fmt] [-f fmt_file] [-n length]
-               [-s skip] [file ...]
-       hd      [-bcdovx]  [-e fmt] [-f fmt_file] [-n length]
-               [-s skip] [file ...]
+    output = """xyz@debian:~/Dokumenty/sed$ hexdump new5
+hexdump: new5: No such file or directory
 xyz@debian:~/Dokumenty/sed$ """
     result = dict()
     return output, result
