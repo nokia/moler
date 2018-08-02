@@ -20,8 +20,10 @@ class Telnet(GenericUnixCommand):
     # Compiled regexp
     _re_login = re.compile(r"login:", re.IGNORECASE)
     _re_password = re.compile(r"password:", re.IGNORECASE)
-    _re_failed_strings = re.compile(r"Permission denied|closed by foreign host|telnet:.*Name or service not known",
-                                    re.IGNORECASE)
+    _re_failed_strings = re.compile(
+        r"Permission denied|closed by foreign host|telnet:.*Name or service not known|"
+        "is not a typo you can use command-not-found to lookup the package|command not found",
+        re.IGNORECASE)
     _re_has_just_connected = re.compile(r"/has just connected|\{bash_history,ssh\}|Escape character is", re.IGNORECASE)
 
     def __init__(self, connection, host, login=None, password=None, port=0, prompt=None, expected_prompt=r'^>\s*',
@@ -68,10 +70,8 @@ class Telnet(GenericUnixCommand):
         return cmd
 
     def on_new_line(self, line, is_full_line):
-        if self.is_failure_indication(line):
-            self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
-            return
         try:
+            self._parse_failure_indication(line)
             self._send_commands_before_establish_connection_if_requested(line, is_full_line)
             self._send_login_if_requested(line)
             self._send_password_if_requested(line)
@@ -80,6 +80,11 @@ class Telnet(GenericUnixCommand):
             self._settings_after_login(line, is_full_line)
         except ParsingDone:
             pass
+
+    def _parse_failure_indication(self, line):
+        if self.is_failure_indication(line):
+            self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+            raise ParsingDone()
 
     def _settings_after_login(self, line, is_full_line):
         sent = self._send_after_login_settings(line)
@@ -213,6 +218,7 @@ COMMAND_RESULT = {}
 
 COMMAND_OUTPUT_prompt = """
 user@host01:~> TERM=xterm-mono telnet host.domain.net 1500
+CLIENT5 [] has just connected!
 Login:
 Login:user
 Password:

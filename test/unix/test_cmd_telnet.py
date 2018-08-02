@@ -7,32 +7,45 @@ __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
-from pytest import raises
+import pytest
 
 from moler.cmd.unix.telnet import Telnet
+from moler.exceptions import CommandFailure
 
 
 def test_calling_telnet_returns_result_parsed_from_command_output(buffer_connection):
     from moler.config.loggers import configure_connection_logger
     command_output, expected_result = command_output_and_expected_result()
     configure_connection_logger(connection_name="host")
-    buffer_connection.name = "fzm-tdd-1"  # just to have log named as we want
+    buffer_connection.name = "host-name"  # just to have log named as we want
     buffer_connection.remote_inject_response([command_output])
-    telnet_cmd = Telnet(connection=buffer_connection.moler_connection, login="user", password="Nokia", port=1500,
+    telnet_cmd = Telnet(connection=buffer_connection.moler_connection, login="user", password="english", port=1500,
                         host="host.domain.net", expected_prompt="host:.*#")
     result = telnet_cmd()
     assert result == expected_result
 
 
+def test_calling_telnet_raise_exception_command_failure(buffer_connection):
+    from moler.config.loggers import configure_connection_logger
+    command_output ="""TERM=xterm-mono telnet host.domain.net 1500
+    bash: telnet: command not found
+    user@client:~>"""
+    configure_connection_logger(connection_name="host")
+    buffer_connection.remote_inject_response([command_output])
+    telnet_cmd = Telnet(connection=buffer_connection.moler_connection, login="user", password="english", port=1500,
+                        host="host.domain.net", expected_prompt="host:.*#")
+    with pytest.raises(CommandFailure):
+        telnet_cmd()
+
+
 def test_calling_telnet_timeout(buffer_connection):
     command_output, expected_result = command_output_and_expected_result_timeout()
     buffer_connection.remote_inject_response([command_output])
-    telnet_cmd = Telnet(connection=buffer_connection.moler_connection, login="user", password="Nokia", port=1500,
+    telnet_cmd = Telnet(connection=buffer_connection.moler_connection, login="user", password="english", port=1500,
                         host="host.domain.net", expected_prompt="host:.*#")
     from moler.exceptions import CommandTimeout
-    with raises(CommandTimeout) as exception:
+    with pytest.raises(CommandTimeout):
         telnet_cmd(timeout=0.5)
-    assert exception is not None
 
 
 def test_telnet_returns_proper_command_string(buffer_connection):
