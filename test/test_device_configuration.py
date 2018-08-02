@@ -42,7 +42,6 @@ def test_can_select_device_by_name(device_config, device_factory):
 
 
 def test_can_select_device_by_description(device_factory):
-
     device = device_factory.get_device(
         device_class='moler.device.unixlocal.UnixLocal',
         connection_desc={
@@ -120,6 +119,7 @@ def test_can_select_device_loaded_from_config_file(moler_config, device_factory)
     assert device.__module__ == 'moler.device.unixlocal'
     assert device.__class__.__name__ == 'UnixLocal'
 
+
 def test_can_select_all_devices_loaded_from_config_file(moler_config, device_factory):
     conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
     moler_config.load_config(path=conn_config, config_type='yaml')
@@ -192,6 +192,13 @@ def test_return_new_device_when_call_another_time_same_desc_device(device_factor
     assert another_device.__class__.__name__ == 'UnixLocal'
 
     assert device != another_device
+
+
+def test_cannot_load_config_from_when_path_or_from_env_var_not_provide(moler_config):
+    with pytest.raises(AssertionError) as err:
+        moler_config.load_config()
+
+    assert "Provide either 'path' or 'from_env_var' parameter (none given)" in str(err.value)
 
 
 # --------------------------- resources ---------------------------
