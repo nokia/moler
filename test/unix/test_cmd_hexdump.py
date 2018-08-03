@@ -17,6 +17,12 @@ def test_hexdump_returns_proper_command_string(buffer_connection):
     assert "hexdump old" == hexdump_cmd.command_string
 
 
+def test_hexdump_catches_empty_files_list(buffer_connection):
+    hexdump_cmd = Hexdump(buffer_connection.moler_connection, files=[" ", "     "])
+    with pytest.raises(CommandFailure):
+        hexdump_cmd()
+
+
 def test_hexdump_raise_error_on_wrong_option(buffer_connection):
     hexdump_cmd = Hexdump(connection=buffer_connection.moler_connection, files=["old"], options='-abc')
     command_output, expected_result = command_output_and_expected_result_on_wrong_option()
