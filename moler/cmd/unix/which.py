@@ -30,24 +30,22 @@ class Which(GenericUnixCommand):
     def build_command_string(self):
         cmd = "which"
         if self.show_all:
-            cmd = cmd + " -a"
+            cmd = "{} {}".format(cmd, '-a')
         for name in self.names:
-            cmd = cmd + " {}".format(name)
+            cmd = "{} {}".format(cmd, name)
         return cmd
 
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
-                self._parse(line)
+                self._parse_line(line)
             except ParsingDone:
                 pass
-        elif not self.done() and not self._result_set:
-            self.set_result({})
         return super(Which, self).on_new_line(line, is_full_line)
 
-    def _parse(self, line):
+    def _parse_line(self, line):
         for name in self.names:
-            _re_name = re.compile(r"(?P<NAME>.*%s.*)" % name, re.IGNORECASE)
+            _re_name = re.compile(r"(?P<NAME>.*{}.*)".format(name), re.IGNORECASE)
 
             if self._regex_helper.search_compiled(_re_name, line):
                 self.current_ret[name].append(self._regex_helper.group("NAME"))
@@ -103,4 +101,6 @@ COMMAND_KWARGS_no_result = {
     'show_all': True
 }
 
-COMMAND_RESULT_no_result = {}
+COMMAND_RESULT_no_result = {
+    'abc': []
+}
