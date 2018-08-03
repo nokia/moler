@@ -21,11 +21,8 @@ class Gunzip(GenericUnixCommand):
         self.options = options
         self.new_suffix = new_suffix
         self.overwrite = overwrite
-        if self.options:
-            self.ret_required = True
-            self.current_ret['RESULT'] = list()
-        else:
-            self.ret_required = False
+        self.ret_required = True
+        self.current_ret['RESULT'] = list()
 
     def build_command_string(self):
         cmd = 'gunzip'
@@ -45,12 +42,9 @@ class Gunzip(GenericUnixCommand):
             try:
                 self._asks_to_overwrite(line)
                 self._command_failure(line)
-                if self.ret_required:
-                    self._parse_line(line)
+                self._parse_line(line)
             except ParsingDone:
                 pass
-        else:
-            self._clean_result_if_empty()
         return super(Gunzip, self).on_new_line(line, is_full_line)
 
     _re_overwrite = re.compile(r"already exists;", re.IGNORECASE)
@@ -60,7 +54,8 @@ class Gunzip(GenericUnixCommand):
             if self.overwrite:
                 self.connection.sendline('y')
                 raise ParsingDone
-            else:#to do jaki file
+            else:
+                self.connection.sendline('n')
                 self.set_exception(CommandFailure(self, "ERROR: file already exists and overwrite is set to False"))
                 raise ParsingDone
 
@@ -75,11 +70,6 @@ class Gunzip(GenericUnixCommand):
         self.current_ret['RESULT'].append(line)
         raise ParsingDone
 
-    def _clean_result_if_empty(self):
-        if self.ret_required and not self.current_ret['RESULT']:
-            self.ret_required = False
-            del self.current_ret['RESULT']
-
 
 COMMAND_OUTPUT_without_options = """
 xyz@debian:~$ gunzip new.gz
@@ -89,19 +79,9 @@ COMMAND_KWARGS_without_options = {
     'archive_name': ['new.gz']
 }
 
-COMMAND_RESULT_without_options = {}
-
-
-COMMAND_OUTPUT_quiet_options = """
-xyz@debian:~$ gunzip -c new.gz
-xyz@debian:~$"""
-
-COMMAND_KWARGS_quiet_options = {
-    'archive_name': ['new.gz'],
-    'options': '-c'
+COMMAND_RESULT_without_options = {
+    'RESULT': []
 }
-
-COMMAND_RESULT_quiet_options = {}
 
 
 COMMAND_OUTPUT_loud_options = """
@@ -119,32 +99,16 @@ COMMAND_RESULT_loud_options = {
 }
 
 
-COMMAND_OUTPUT_quiet_options_overwrite = """
+COMMAND_OUTPUT_overwrite = """
 xyz@debian:~$ gunzip new.gz
-gzip: new5 already exists; do you wish to overwrite (y or n)?
+gzip: new already exists; do you wish to overwrite (y or n)?
 xyz@debian:~$"""
 
-COMMAND_KWARGS_quiet_options_overwrite = {
+COMMAND_KWARGS_overwrite = {
     'archive_name': ['new.gz'],
     'overwrite': 'True'
 }
 
-COMMAND_RESULT_quiet_options_overwrite = {
-}
-
-
-COMMAND_OUTPUT_loud_options_overwrite = """
-xyz@debian:~$ gunzip -v new5.gz
-gzip: new5 already exists; do you wish to overwrite (y or n)?
-new5.gz:	  0.0% -- replaced with new5
-xyz@debian:~$"""
-
-COMMAND_KWARGS_loud_options_overwrite = {
-    'archive_name': ['new5.gz'],
-    'overwrite': 'True',
-    'options': '-v'
-}
-
-COMMAND_RESULT_loud_options_overwrite = {
-    'RESULT': ['new5.gz:\t  0.0% -- replaced with new5']
+COMMAND_RESULT_overwrite = {
+    'RESULT': []
 }
