@@ -51,7 +51,6 @@ class Hexdump(GenericUnixCommand):
             raise ParsingDone
 
 
-
 COMMAND_OUTPUT_proper_use = """
 xyz@debian:~$ hexdump old
 0000000 6741 0a61 6e41 6169 410a 646e 7a72 6a65
