@@ -10,7 +10,7 @@ __email__ = 'marcin.usielski@nokia.com'
 import abc
 import logging
 import re
-import sys
+import six
 
 from moler.cmd import RegexHelper
 from moler.command import Command
@@ -57,15 +57,11 @@ class CommandTextualGeneric(Command):
     def _calculate_prompt(prompt):
         if not prompt:
             prompt = CommandTextualGeneric._re_default_prompt
-        if sys.version_info >= (3, 0):
-            if isinstance(prompt, str):
-                prompt = re.compile(prompt)
-        else:
-            if isinstance(prompt, basestring):
-                prompt = re.compile(prompt)
+        if isinstance(prompt, six.string_types):
+            prompt = re.compile(prompt)
         return prompt
 
-    def is_new_line(self, line):  # TODO: change to has_endline_char()
+    def has_endline_char(self, line):
         """
         Method to check if line has chars of new line at the right side
         :param line: String to check
@@ -86,7 +82,7 @@ class CommandTextualGeneric(Command):
             if self._last_not_full_line is not None:
                 line = self._last_not_full_line + line
                 self._last_not_full_line = None
-            is_full_line = self.is_new_line(line)
+            is_full_line = self.has_endline_char(line)
             if is_full_line:
                 line = self._strip_new_lines_chars(line)
             else:
