@@ -87,5 +87,5 @@ class DeviceFactory(object):
     @classmethod
     def _clear(cls):
         for device in cls._devices.values():
-            device.__del__()
+            del device
         cls._devices = {}
