@@ -19,7 +19,6 @@ class Hexdump(GenericUnixCommand):
         self.options = options
         self.files = files
         self.current_ret['RESULT'] = list()
-        self._is_file_name()
 
     def build_command_string(self):
         cmd = "hexdump"
@@ -51,16 +50,6 @@ class Hexdump(GenericUnixCommand):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG"))))
             raise ParsingDone
 
-    def _is_file_name(self):
-        # To make sure any file names are given.
-        # Hexdump without any files as arguments display standard output in hexadecimal.
-        is_file_name = False
-        for afile in self.files:
-            if afile.isalnum():
-                is_file_name = True
-                break
-        if is_file_name is False:
-            self.set_exception(CommandFailure(self, "No files given to hexdump"))
 
 
 COMMAND_OUTPUT_proper_use = """
