@@ -76,3 +76,43 @@ os.environ['MOLER_DEBUG_LEVEL'] = 'TRACE'  # to have all debug details of tests
 moler.config.loggers.configure_debug_level()
 moler.config.loggers.configure_moler_main_logger()
 moler.config.loggers.configure_runner_logger(runner_name="thread-pool")
+
+
+# --------------------------- test/test_cmds_doc.py resources ---------------------------
+@fixture
+def fake_cmd():
+    class FakeCommand:
+        def __call__(self, fake):
+            pass
+    return FakeCommand
+
+
+@fixture
+def nice_cmd():
+    from moler.command import Command
+
+    class NiceCommand(Command):
+        def __init__(self, nice='', connection=None):
+            super(NiceCommand, self).__init__(connection=connection)
+            self.nice = nice
+
+        def data_received(self, data):
+            if self.nice == 'nice':
+                self.set_result({'nice': 'nice'})
+
+        def __call__(self, timeout=None, *args, **kwargs):
+            self.set_result({'nice': self.nice})
+            return {'nice': self.nice}
+
+    return NiceCommand
+
+
+COMMAND_OUTPUT_ver_nice = """
+'nice'
+"""
+
+COMMAND_KWARGS_ver_nice = {}
+
+COMMAND_RESULT_ver_nice = {
+    'nice': 'nice'
+}

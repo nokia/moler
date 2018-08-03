@@ -105,6 +105,7 @@ def create_logger(name,
     :param log_file: Path to logfile. Final logfile location is logging_path + log_file
     :param log_level: only log records with equal and greater level will be accepted for storage in log
     :param log_format: layout of log file, default is "%(asctime)s %(levelname)-10s: |%(message)s"
+    :param datefmt: format the creation time of the log record
     :return: None
     """
     logger = logging.getLogger(name)
@@ -251,14 +252,15 @@ class MultilineWithDirectionFormatter(logging.Formatter):
         base_output = super(MultilineWithDirectionFormatter, self).format(record)
         out_lines = base_output.splitlines(True)
         output = out_lines[0]
-        empty_prefix = self._calculate_empty_prefix(msg_lines[0], out_lines[0])
+        empty_prefix = MultilineWithDirectionFormatter._calculate_empty_prefix(msg_lines[0], out_lines[0])
         for line in out_lines[1:]:
             output += "{}|{}".format(empty_prefix, line)
 
         # TODO: line completion for connection decoded data comming in chunks
         return output
 
-    def _calculate_empty_prefix(self, message_first_line, output_first_line):
+    @staticmethod
+    def _calculate_empty_prefix(message_first_line, output_first_line):
         prefix_len = output_first_line.rindex("|{}".format(message_first_line))
         empty_prefix = " " * prefix_len
         return empty_prefix
