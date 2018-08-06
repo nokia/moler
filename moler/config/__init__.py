@@ -4,14 +4,15 @@ Moler related configuration
 """
 import os
 
-__author__ = 'Grzegorz Latuszek'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import yaml
 from contextlib import contextmanager
 
 from . import connections as conn_cfg
+from . import devices as dev_cfg
 
 
 @contextmanager
@@ -56,6 +57,11 @@ def load_config(path=None, from_env_var=None, config_type='yaml'):
     assert config_type == 'yaml'  # no other format supported yet
     config = read_yaml_configfile(path)
     # TODO: check schema
+    load_connection_from_config(config)
+    load_device_from_config(config)
+
+
+def load_connection_from_config(config):
     if 'NAMED_CONNECTIONS' in config:
         for name, connection_specification in config['NAMED_CONNECTIONS'].items():
             io_type = connection_specification.pop("io_type")
@@ -67,6 +73,24 @@ def load_config(path=None, from_env_var=None, config_type='yaml'):
                 conn_cfg.set_default_variant(io_type, variant)
 
 
+def load_device_from_config(config):
+    if 'DEVICES' in config:
+        if 'DEFAULT_CONNECTION' in config['DEVICES']:
+            default_conn = config['DEVICES'].pop('DEFAULT_CONNECTION')
+            conn_desc = default_conn['CONNECTION_DESC']
+            dev_cfg.set_default_connection(**conn_desc)
+
+        for device_name in config['DEVICES']:
+            device_def = config['DEVICES'][device_name]
+            dev_cfg.define_device(
+                name=device_name,
+                device_class=device_def['DEVICE_CLASS'],
+                connection_desc=device_def.get('CONNECTION_DESC', dev_cfg.default_connection),
+                connection_hops={'CONNECTION_HOPS': device_def.get('CONNECTION_HOPS', {})}
+            )
+
+
 def clear():
     """Cleanup Moler's configuration"""
     conn_cfg.clear()
+    dev_cfg.clear()

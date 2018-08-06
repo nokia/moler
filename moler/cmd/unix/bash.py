@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Env command module.
+Bash command module.
 """
 
 __author__ = 'Marcin Usielski'

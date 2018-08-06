@@ -37,12 +37,12 @@ class UnixRemote(UnixLocal):
                     UnixRemote.unix_remote: {  # to
                         "execute_command": "ssh",  # using command
                         "command_params": {  # with parameters
-                            "expected_prompt": 'root@debdev:~#'
                         },
                         "required_command_params": [
                             "host",
                             "login",
-                            "password"
+                            "password",
+                            "expected_prompt"
                         ]
                     }
                 },

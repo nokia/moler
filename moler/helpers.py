@@ -7,6 +7,8 @@ __author__ = 'Grzegorz Latuszek, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com'
 
+import re
+
 
 class ClassProperty(property):
     def __get__(self, cls, owner):
@@ -36,3 +38,15 @@ def camel_case_to_lower_case_underscore(string):
             from_char_position = current_char_position
     words.append(string[from_char_position:].lower())
     return '_'.join(words)
+
+
+_re_escape_codes = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")  # Regex to remove color codes from command output
+
+
+def remove_escape_codes(line):
+    """
+    :param line: line from terminal
+    :return: line without terminal escape codes
+    """
+    line = re.sub(_re_escape_codes, "", line)
+    return line

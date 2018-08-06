@@ -10,3 +10,4 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
 from moler.device.textualdevice import TextualDevice
+from moler.device.device import DeviceFactory
