@@ -32,7 +32,7 @@ class Mount(GenericUnixCommand):
     def build_command_string(self):
         cmd = "mount"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = "{} {}".format(cmd, self.options)  # Does it matter if options are left or right from dev|dir?
         if self.device:
             cmd = "{} {}".format(cmd, self.device)
         if self.directory:
@@ -59,19 +59,32 @@ class Mount(GenericUnixCommand):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
 
 
-
-COMMAND_OUTPUT_ = """
+COMMAND_OUTPUT_no_args = """
 root@debian:~$ mount
 sysfs on /sys type sysfs (rw,nosuid,nodev,noexec,relatime)
 proc on /proc type proc (rw,nosuid,nodev,noexec,relatime)
 udev on /dev type devtmpfs (rw,nosuid,relatime,size=1015000k,nr_inodes=253750,mode=755)
 root@debian:~$"""
 
-COMMAND_KWARGS_ = {
+COMMAND_KWARGS_no_args = {
 }
 
-COMMAND_RESULT_ = {
+COMMAND_RESULT_no_args = {
     'RESULT': ['sysfs on /sys type sysfs (rw,nosuid,nodev,noexec,relatime)',
                'proc on /proc type proc (rw,nosuid,nodev,noexec,relatime)',
                'udev on /dev type devtmpfs (rw,nosuid,relatime,size=1015000k,nr_inodes=253750,mode=755)']
+}
+
+
+COMMAND_OUTPUT_with_options = """
+root@debian:~$ mount -l -t ext4
+/dev/sda1 on / type ext4 (rw,relatime,errors=remount-ro,data=ordered)
+root@debian:~$"""
+
+COMMAND_KWARGS_with_options = {
+    'options': '-l -t ext4'
+}
+
+COMMAND_RESULT_with_options = {
+    'RESULT': ['/dev/sda1 on / type ext4 (rw,relatime,errors=remount-ro,data=ordered)']
 }
