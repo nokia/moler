@@ -33,35 +33,32 @@ class Sed(GenericUnixCommand):
 
         # Other parameters
         self.current_ret['RESULT'] = list()
-        self._result_set = False
 
     def build_command_string(self):
         cmd = "sed"
         if self.options:
             for option in self.options:
-                cmd = cmd + " {}".format(option)
+                cmd = "{} {}".format(cmd, option)
         if self.scripts:
             for script in self.scripts:
-                cmd = cmd + " -e '{}'".format(script)
+                cmd = "{} -e '{}'".format(cmd, script)
         if self.script_files:
-            for file in self.script_files:
-                cmd = cmd + " -f {}".format(file)
+            for script_file in self.script_files:
+                cmd = "{} -f {}".format(cmd, script_file)
         if self.input_files:
             for in_file in self.input_files:
-                cmd = cmd + " " + in_file
+                cmd = "{} {}".format(cmd, in_file)
         if self.output_file:
-            cmd = cmd + " > " + self.output_file
+            cmd = "{} > {}".format(cmd, self.output_file)
         return cmd
 
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
                 self._command_error(line)
-                self._parse(line)
+                self._parse_line(line)
             except ParsingDone:
                 pass
-        elif not self.done() and not self._result_set:
-            self.set_result({})
         return super(Sed, self).on_new_line(line, is_full_line)
 
     _re_command_error = re.compile(r"sed:\s(?P<ERROR>.*)", re.IGNORECASE)
@@ -71,9 +68,8 @@ class Sed(GenericUnixCommand):
             self.set_exception(CommandFailure(self, "ERROR {}".format(self._regex_helper.group("ERROR"))))
             raise ParsingDone
 
-    def _parse(self, line):
+    def _parse_line(self, line):
         self.current_ret['RESULT'].append(line)
-        self._result_set = True
         raise ParsingDone
 
     def _is_input_file(self):
@@ -106,7 +102,9 @@ COMMAND_KWARGS = {
     'scripts': ['s/a/A/'], 'output_file': 'new', 'input_files': ['old', 'old2']
 }
 
-COMMAND_RESULT = {}
+COMMAND_RESULT = {
+    'RESULT': []
+}
 
 
 COMMAND_OUTPUT_to_stdout = """xyz@debian:~$ sed -e 's/a/A/' old old2
