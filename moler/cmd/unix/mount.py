@@ -17,15 +17,14 @@ from moler.exceptions import ParsingDone
 
 class Mount(GenericUnixCommand):
 
-    def __init__(self, connection, options=None, device=None, pipe=None, directory=None, prompt=None,
+    def __init__(self, connection, options=None, device=None, directory=None, prompt=None,
                  new_line_chars=None):
         super(Mount, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
         # Parameters defined by calling the command
         self.options = options
-        self.device = device
-        self.pipe = pipe
-        self.directory = directory
+        self.device = device        # olddir ?
+        self.directory = directory  # newdir ?
 
         # Internal variables
         self.current_ret['RESULT'] = list()
@@ -34,20 +33,16 @@ class Mount(GenericUnixCommand):
         cmd = "mount"
         if self.options:
             cmd = "{} {}".format(cmd, self.options)
-        if self.device and self.pipe and self.directory:
-            cmd = "{} {}|{}".format(cmd, self.device, self.directory)
-        elif self.device and self.directory:
-            cmd = "{} {} {}".format(cmd, self.device, self.directory)
-        elif self.device:
+        if self.device:
             cmd = "{} {}".format(cmd, self.device)
-        elif self.directory:
+        if self.directory:
             cmd = "{} {}".format(cmd, self.directory)
         return cmd
 
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
-                # self._command_failure(line)
+                self._command_failure(line)
                 self._parse_line(line)
             except ParsingDone:
                 pass
@@ -57,9 +52,16 @@ class Mount(GenericUnixCommand):
         self.current_ret['RESULT'].append(line)
         raise ParsingDone
 
+    _re_error = re.compile(r"mount:\s(?P<ERROR>.*)", re.I)
+
+    def _command_failure(self, line):
+        if self._regex_helper.search_compiled(Mount._re_error, line):
+            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
+
+
 
 COMMAND_OUTPUT_ = """
-xyz@debian:~$ mount
+root@debian:~$ mount
 sysfs on /sys type sysfs (rw,nosuid,nodev,noexec,relatime)
 proc on /proc type proc (rw,nosuid,nodev,noexec,relatime)
 udev on /dev type devtmpfs (rw,nosuid,relatime,size=1015000k,nr_inodes=253750,mode=755)
