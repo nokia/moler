@@ -20,54 +20,49 @@ class Useradd(GenericUnixCommand):
         super(Useradd, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
         # Parameters defined by calling the command
-        self.options = options          # list of strings
+        self.options = options
         self.defaults = defaults
         self.user = user
 
         # Internal variables
         self.current_ret['RESULT'] = list()
-        self._result_set = False
+        self._regex_compiled = list()
+        self._compile_regex()
 
     def build_command_string(self):
         cmd = "useradd"
         if self.defaults:
-            cmd = cmd + " -D"
+            cmd = "{} -D".format(cmd)
             if self.options:
-                for d_option in self.options:
-                    cmd = cmd + " {}".format(d_option)
+                cmd = "{} {}".format(cmd, self.options)
         elif self.user:
             if self.options:
-                for option in self.options:
-                    cmd = cmd + " {}".format(option)
-            cmd = cmd + " {}".format(self.user)
+                cmd = "{} {}".format(cmd, self.options)
+            cmd = "{} {}".format(cmd, self.user)
         return cmd
 
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
                 self._command_error(line)
-                self._parse(line)
+                self._parse_line(line)
             except ParsingDone:
                 pass
-        elif not self.done() and not self._result_set:
-            self.set_result({})
         return super(Useradd, self).on_new_line(line, is_full_line)
 
-    def _parse(self, line):
+    def _parse_line(self, line):
         self.current_ret['RESULT'].append(line)
-        self._result_set = True
         raise ParsingDone
 
-    _re_command_error_shows_help = re.compile(r"Usage:\suseradd\s\[options\]\sLOGIN(?P<HELP>.*)", re.IGNORECASE)
-    _re_command_error = re.compile(r"useradd:\s.*\s(?P<ERROR>.*)", re.IGNORECASE)
+    def _compile_regex(self):
+        self._regex_compiled.append(re.compile(r"Usage:\suseradd\s\[options\]\sLOGIN(?P<ERROR>.*)", re.IGNORECASE))
+        self._regex_compiled.append(re.compile(r"useradd:\s.*\s(?P<ERROR>.*)", re.IGNORECASE))
 
     def _command_error(self, line):
-        if self._regex_helper.search_compiled(Useradd._re_command_error_shows_help, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("HELP"))))
-            raise ParsingDone
-        elif self._regex_helper.search_compiled(Useradd._re_command_error, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
-            raise ParsingDone
+        for _re_error in self._regex_compiled:
+            if self._regex_helper.search_compiled(_re_error, line):
+                self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
+                raise ParsingDone
 
 
 COMMAND_OUTPUT = """xyz@debian:~$ useradd -D
@@ -94,7 +89,9 @@ COMMAND_OUTPUT_pwd = """xyz@debian:~$ useradd -p 1234 abc
 xyz@debian:~$"""
 
 COMMAND_KWARGS_pwd = {
-    'user': 'abc', 'options': ['-p 1234']
+    'user': 'abc', 'options': '-p 1234'
 }
 
-COMMAND_RESULT_pwd = {}
+COMMAND_RESULT_pwd = {
+    'RESULT': []
+}
