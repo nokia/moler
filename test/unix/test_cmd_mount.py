@@ -30,7 +30,7 @@ def test_mount_raise_exception(buffer_connection):
 @pytest.fixture
 def command_output_and_expected_result():
     data = """xyz@debian:~$ mount -t ext3 /tmp/disk.img /mnt
-moUnt: only root can use "--types" option
+mount: only root can use "--types" option
 xyz@debian:~$"""
     result = dict()
     return data, result
