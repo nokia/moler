@@ -67,8 +67,6 @@ class Which(GenericUnixCommand):
             self._result_set = True
 
 
-
-
 COMMAND_OUTPUT = """
 xyz@debian:~$ which uname git
 /bin/uname
