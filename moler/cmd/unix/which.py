@@ -11,6 +11,7 @@ __email__ = 'agnieszka.bylica@nokia.com'
 import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
+from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 
 
@@ -22,10 +23,10 @@ class Which(GenericUnixCommand):
         self.names = names
         self.show_all = show_all
 
-        self._set_result_keys()
-
         # Internal variables
+        self._compiled_regex = []
         self._result_set = False
+        self._set_result()
 
     def build_command_string(self):
         cmd = "which"
@@ -44,18 +45,28 @@ class Which(GenericUnixCommand):
         return super(Which, self).on_new_line(line, is_full_line)
 
     def _parse_line(self, line):
-        for name in self.names:
-            _re_name = re.compile(r"(?P<NAME>.*{}.*)".format(name), re.IGNORECASE)
-
-            if self._regex_helper.search_compiled(_re_name, line):
-                self.current_ret[name].append(self._regex_helper.group("NAME"))
-                self._result_set = True
+        if not self._compiled_regex:
+            self._compile_regex()
+        for regex in self._compiled_regex:
+            if self._regex_helper.search_compiled(regex[1], line):
+                self.current_ret[regex[0]].append(self._regex_helper.group("NAME"))
                 raise ParsingDone
 
-    def _set_result_keys(self):
+    def _compile_regex(self):
         for name in self.names:
-            if name and name.split(" \t\n\r\f\v"):
-                self.current_ret[name] = list()
+            _re_name = re.compile(r"(?P<NAME>.*{}.*)".format(name), re.IGNORECASE)
+            self._compiled_regex.append((name, _re_name))
+
+    def _set_result(self):
+        if not self._result_set:
+            for name in self.names:
+                if not name:
+                    self.set_exception(CommandFailure(self, "ERROR: name is empty"))
+                else:
+                    self.current_ret[name] = list()
+            self._result_set = True
+
+
 
 
 COMMAND_OUTPUT = """
