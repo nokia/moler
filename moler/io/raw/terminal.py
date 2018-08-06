@@ -56,7 +56,7 @@ class ThreadedTerminal(IOConnection):
             self.pulling_thread = None
         super(ThreadedTerminal, self).close()
 
-        if self._terminal.isalive():
+        if self._terminal and self._terminal.isalive():
             self._terminal.close()
             self._terminal = None
             self._notify_on_disconnect()
