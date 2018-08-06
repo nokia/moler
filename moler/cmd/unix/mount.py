@@ -88,3 +88,16 @@ COMMAND_KWARGS_with_options = {
 COMMAND_RESULT_with_options = {
     'RESULT': ['/dev/sda1 on / type ext4 (rw,relatime,errors=remount-ro,data=ordered)']
 }
+
+
+COMMAND_OUTPUT_with_device_and_directory = """
+root@debian:~$ mount -B /mydata /mnt
+root@debian:~$"""
+
+COMMAND_KWARGS_with_device_and_directory = {
+    'options': '-B', 'device': '/mydata', 'directory': '/mnt'
+}
+
+COMMAND_RESULT_with_device_and_directory = {
+    'RESULT': []
+}
