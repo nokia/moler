@@ -9,13 +9,13 @@ __email__ = 'marcin.usielski@nokia.com'
 
 import re
 
-from moler.exceptions import CommandFailure
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
+from moler.exceptions import CommandFailure
+from moler.helpers import remove_escape_codes
 
 
 class GenericUnixCommand(CommandTextualGeneric):
     _re_fail = re.compile(r'command not found|No such file or directory|running it may require superuser privileges')
-    _re_color_codes = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")  # Regex to remove color codes from command output
 
     def __init__(self, connection, prompt=None, new_line_chars=None):
         super(GenericUnixCommand, self).__init__(connection, prompt, new_line_chars)
@@ -39,13 +39,5 @@ class GenericUnixCommand(CommandTextualGeneric):
     def _strip_new_lines_chars(self, line):
         line = super(GenericUnixCommand, self)._strip_new_lines_chars(line)
         if self.remove_colors_from_terminal_output:
-            line = self._remove_color_terminal_codes(line)
-        return line
-
-    def _remove_color_terminal_codes(self, line):
-        """
-        :param line: line from terminal
-        :return: line without terminal color codes
-        """
-        line = re.sub(GenericUnixCommand._re_color_codes, "", line)
+            line = remove_escape_codes(line)
         return line
