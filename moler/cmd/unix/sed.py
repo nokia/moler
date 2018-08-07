@@ -121,3 +121,15 @@ COMMAND_KWARGS_to_stdout = {
 }
 
 COMMAND_RESULT_to_stdout = {'RESULT': ['Aga', 'Ania', 'Andrzej', 'Antoni', 'jAblko', 'gruszkA']}
+
+
+COMMAND_OUTPUT_with_script_file = """xyz@debian:~$ sed -f script old old2 > new
+xyz@debian:~$"""
+
+COMMAND_KWARGS_with_script_file = {
+    'script_files': ['script'], 'output_file': 'new', 'input_files': ['old', 'old2']
+}
+
+COMMAND_RESULT_with_script_file = {
+    'RESULT': []
+}
