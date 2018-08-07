@@ -17,14 +17,13 @@ from moler.exceptions import ParsingDone
 
 class Mount(GenericUnixCommand):
 
-    def __init__(self, connection, options=None, device=None, directory=None, prompt=None,
-                 new_line_chars=None):
+    def __init__(self, connection, options=None, device=None, directory=None, prompt=None, new_line_chars=None):
         super(Mount, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
         # Parameters defined by calling the command
         self.options = options
-        self.device = device        # olddir ?
-        self.directory = directory  # newdir ?
+        self.device = device
+        self.directory = directory
 
         # Internal variables
         self.current_ret['RESULT'] = list()
@@ -32,7 +31,7 @@ class Mount(GenericUnixCommand):
     def build_command_string(self):
         cmd = "mount"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)  # Does it matter if options are left or right from dev|dir?
+            cmd = "{} {}".format(cmd, self.options)
         if self.device:
             cmd = "{} {}".format(cmd, self.device)
         if self.directory:
@@ -57,6 +56,7 @@ class Mount(GenericUnixCommand):
     def _command_failure(self, line):
         if self._regex_helper.search_compiled(Mount._re_error, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
+            raise ParsingDone
 
 
 COMMAND_OUTPUT_no_args = """
