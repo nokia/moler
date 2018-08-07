@@ -25,6 +25,12 @@ def test_sed_returns_proper_command_string_with_files(buffer_connection):
     assert "sed -e 's/a/A/' old old2 > new" == sed_cmd.command_string
 
 
+def test_sed_returns_proper_command_string_with_script_file(buffer_connection):
+    sed_cmd = Sed(connection=buffer_connection.moler_connection, input_files=["old", "old2"], script_files=["script"],
+                  output_file="new")
+    assert "sed -f script old old2 > new" == sed_cmd.command_string
+
+
 def test_sed_catches_command_failure(buffer_connection):
     command_output, expected_result = command_output_and_expected_result_command_failure()
     buffer_connection.remote_inject_response([command_output])
