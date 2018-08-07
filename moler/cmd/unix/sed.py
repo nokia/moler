@@ -108,19 +108,18 @@ COMMAND_RESULT = {
 
 
 COMMAND_OUTPUT_to_stdout = """xyz@debian:~$ sed -e 's/a/A/' old old2
-Aga
-Ania
-Andrzej
-Antoni
-jAblko
-gruszkA
+Apple
+peAr
+plum
 xyz@debian:~$"""
 
 COMMAND_KWARGS_to_stdout = {
     'scripts': ['s/a/A/'], 'input_files': ['old', 'old2']
 }
 
-COMMAND_RESULT_to_stdout = {'RESULT': ['Aga', 'Ania', 'Andrzej', 'Antoni', 'jAblko', 'gruszkA']}
+COMMAND_RESULT_to_stdout = {
+    'RESULT': ['Apple', 'peAr', 'plum']
+}
 
 
 COMMAND_OUTPUT_with_script_file = """xyz@debian:~$ sed -f script old old2 > new
