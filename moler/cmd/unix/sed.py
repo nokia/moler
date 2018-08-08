@@ -73,7 +73,7 @@ class Sed(GenericUnixCommand):
     def _is_input_file(self):
         is_empty = True
         for file in self.input_files:
-            if file and file.strip(" \t\n\r\f\v"):
+            if file and not file.isspace():
                 is_empty = False
         if is_empty:
             self.set_exception(CommandFailure(self, "No input file given in: {}".format(self.input_files)))
