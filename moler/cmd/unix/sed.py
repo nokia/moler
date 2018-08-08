@@ -22,14 +22,13 @@ class Sed(GenericUnixCommand):
         super(Sed, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
         # Parameters defined by calling the command
-        self.options = options            # list of strings
+        self.options = options            # string
         self.scripts = scripts            # list of strings
         self.script_files = script_files  # list of strings
         self.input_files = input_files    # list of strings
         self.output_file = output_file    # string
 
         self._is_input_file()
-        self._is_script()
 
         # Other parameters
         self.current_ret['RESULT'] = list()
@@ -37,8 +36,7 @@ class Sed(GenericUnixCommand):
     def build_command_string(self):
         cmd = "sed"
         if self.options:
-            for option in self.options:
-                cmd = "{} {}".format(cmd, option)
+                cmd = "{} {}".format(cmd, self.options)
         if self.scripts:
             for script in self.scripts:
                 cmd = "{} -e '{}'".format(cmd, script)
@@ -80,20 +78,6 @@ class Sed(GenericUnixCommand):
         if is_empty:
             self.set_exception(CommandFailure(self, "No input file given in: {}".format(self.input_files)))
 
-    def _is_script(self):
-        is_empty = True
-        if self.script_files:
-            for s_file in self.script_files:
-                if s_file and s_file.strip(" \t\n\r\f\v"):
-                    is_empty = False
-        if self.scripts:
-            for script in self.scripts:
-                if script and script.strip(" \t\n\r\f\v"):
-                    is_empty = False
-        if is_empty:
-            self.set_exception(CommandFailure(self, "No script given in: {} or {}".format(self.scripts,
-                                                                                          self.script_files)))
-
 
 COMMAND_OUTPUT = """xyz@debian:~$ sed -e 's/a/A/' old old2 > new
 xyz@debian:~$"""
@@ -114,7 +98,8 @@ plum
 xyz@debian:~$"""
 
 COMMAND_KWARGS_to_stdout = {
-    'scripts': ['s/a/A/'], 'input_files': ['old', 'old2']
+    'scripts': ['s/a/A/'],
+    'input_files': ['old', 'old2']
 }
 
 COMMAND_RESULT_to_stdout = {
@@ -126,9 +111,25 @@ COMMAND_OUTPUT_with_script_file = """xyz@debian:~$ sed -f script old old2 > new
 xyz@debian:~$"""
 
 COMMAND_KWARGS_with_script_file = {
-    'script_files': ['script'], 'output_file': 'new', 'input_files': ['old', 'old2']
+    'script_files': ['script'],
+    'output_file': 'new',
+    'input_files': ['old', 'old2']
 }
 
 COMMAND_RESULT_with_script_file = {
+    'RESULT': []
+}
+
+
+COMMAND_OUTPUT_with_option = """xyz@debian:~$ sed -i -e 's/a/A/' old old2
+xyz@debian:~$"""
+
+COMMAND_KWARGS_with_option = {
+    'options': '-i',
+    'scripts': ['s/a/A/'],
+    'input_files': ['old', 'old2']
+}
+
+COMMAND_RESULT_with_option = {
     'RESULT': []
 }

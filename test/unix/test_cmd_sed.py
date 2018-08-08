@@ -14,7 +14,7 @@ import pytest
 
 
 def test_sed_returns_proper_command_string(buffer_connection):
-    sed_cmd = Sed(connection=buffer_connection.moler_connection, input_files=["old2"], options=["-r"],
+    sed_cmd = Sed(connection=buffer_connection.moler_connection, input_files=["old2"], options="-r",
                   scripts=["s/a/A/"])
     assert "sed -r -e 's/a/A/' old2" == sed_cmd.command_string
 
@@ -51,7 +51,8 @@ def test_sed_catches_command_failure_no_script(buffer_connection):
     command_output, expected_result = command_output_and_expected_result_command_failure_no_script()
     buffer_connection.remote_inject_response([command_output])
     sed_cmd = Sed(connection=buffer_connection.moler_connection, input_files=["old"],
-                  scripts=["", " "], script_files=[" ", "\n"])
+                  scripts=["", " "], script_files=[" ", " "])
+    assert "sed -e '' -e ' ' -f   -f   old" == sed_cmd.command_string
     with pytest.raises(CommandFailure):
         sed_cmd()
 
@@ -59,7 +60,7 @@ def test_sed_catches_command_failure_no_script(buffer_connection):
 def test_sed_catches_option_error(buffer_connection):
     command_output, expected_result = command_output_and_expected_result_option_error()
     buffer_connection.remote_inject_response([command_output])
-    sed_cmd = Sed(connection=buffer_connection.moler_connection, input_files=["old", "old2"], options=["-h"],
+    sed_cmd = Sed(connection=buffer_connection.moler_connection, input_files=["old", "old2"], options="-h",
                   scripts=["s/a/A/"])
     with pytest.raises(CommandFailure):
         sed_cmd()
@@ -93,8 +94,8 @@ xyz@debian:~$"""
 
 @pytest.fixture
 def command_output_and_expected_result_command_failure_no_script():
-    data = """xyz@debian:~$ sed -e old
-    sed: -e expression #1, char 2: extra characters after command
+    data = """xyz@debian:~$ sed -e '' -e ' ' -f   -f   old
+    sed: couldn't open file -f: No such file or directory
     xyz@debian:~$"""
     result = dict()
     return data, result
@@ -151,10 +152,9 @@ xyz@debian:~$"""
 @pytest.fixture
 def command_output_and_expected_result_file_error():
     data = """xyz@debian:~$ sed -e 's/a/A/' old old3
-Aga
-Ania
-Andrzej
-Antoni
+Apple
+peAr
+plum
 sed: can't read old3: No such file or directory
 xyz@debian:~$"""
     result = dict()
