@@ -40,6 +40,8 @@ class Hexdump(GenericUnixCommand):
 
     def _parse_hex_line(self, line):
         separate_hex = line.split()
+        if not self.current_ret['RESULT']:
+            separate_hex = separate_hex[1:]
         self.current_ret["RESULT"].extend(separate_hex)
         raise ParsingDone
 
@@ -63,7 +65,7 @@ COMMAND_KWARGS_proper_use = {
 }
 
 COMMAND_RESULT_proper_use = {
-    'RESULT': ['0000000', '6741', '0a61', '6e41', '6169', '410a', '646e', '7a72', '6a65', '0000010', '410a', '746e',
+    'RESULT': ['6741', '0a61', '6e41', '6169', '410a', '646e', '7a72', '6a65', '0000010', '410a', '746e',
                '6e6f', '0a69', '0000018']
 }
 
@@ -92,6 +94,27 @@ COMMAND_KWARGS_options = {
 }
 
 COMMAND_RESULT_options = {
-    'RESULT': ['0000000', '101', '147', '141', '012', '101', '156', '151', '141', '012', '101', '156', '144', '162',
+    'RESULT': ['101', '147', '141', '012', '101', '156', '151', '141', '012', '101', '156', '144', '162',
                '172', '145', '152', '0000010', '012', '101', '156', '164', '157', '156', '151', '012', '0000018']
+}
+
+COMMAND_OUTPUT_two_files = """
+xyz@debian:~$ hexdump old new5
+0000000 616a 6c62 6f6b 670a 7572 7a73 616b 6b0a
+0000010 6d6f 6f70 0a74 6741 0a61 6e41 6169 410a
+0000020 646e 7a72 6a65 410a 746e 6e6f 0a69 416a
+0000030 6c62 6f6b 670a 7572 7a73 416b 6b0a 6d6f
+0000040 6f70 0074                              
+0000043
+xyz@debian:~$"""
+
+COMMAND_KWARGS_two_files = {
+    'files': ["old", "new5"]
+}
+
+COMMAND_RESULT_two_files = {
+    'RESULT': ['616a', '6c62', '6f6b', '670a', '7572', '7a73', '616b', '6b0a', '0000010', '6d6f', '6f70', '0a74',
+               '6741', '0a61', '6e41', '6169', '410a', '0000020', '646e', '7a72', '6a65', '410a', '746e', '6e6f',
+               '0a69', '416a', '0000030', '6c62', '6f6b', '670a', '7572', '7a73', '416b', '6b0a', '6d6f', '0000040',
+               '6f70', '0074', '0000043']
 }
