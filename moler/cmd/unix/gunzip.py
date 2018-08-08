@@ -27,14 +27,14 @@ class Gunzip(GenericUnixCommand):
     def build_command_string(self):
         cmd = 'gunzip'
         if self.options:
-            cmd = ' {} {}'.format(cmd, self.options)
+            cmd = '{} {}'.format(cmd, self.options)
         if self.new_suffix:
-            cmd = ' {} -S {}'.format(cmd, self.new_suffix)
+            cmd = '{} -S {}'.format(cmd, self.new_suffix)
         if self.archive_name:
             for file in self.archive_name:
-                cmd = ' {} {}'.format(cmd, file)
+                cmd = '{} {}'.format(cmd, file)
         if self.output_file_name:
-            cmd = ' {} > {}'.format(cmd, self.output_file_name)
+            cmd = '{} > {}'.format(cmd, self.output_file_name)
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -53,11 +53,10 @@ class Gunzip(GenericUnixCommand):
         if self._regex_helper.search_compiled(Gunzip._re_overwrite, line):
             if self.overwrite:
                 self.connection.sendline('y')
-                raise ParsingDone
             else:
                 self.connection.sendline('n')
                 self.set_exception(CommandFailure(self, "ERROR: file already exists and overwrite is set to False"))
-                raise ParsingDone
+            raise ParsingDone
 
     _re_error = re.compile(r"gzip:\s(?P<ERROR_MSG>.*)", re.IGNORECASE)
 
@@ -97,7 +96,6 @@ COMMAND_KWARGS_loud_options = {
 COMMAND_RESULT_loud_options = {
     'RESULT': ['new.gz:\t -7.7% -- replaced with new']
 }
-
 
 COMMAND_OUTPUT_overwrite = """
 xyz@debian:~$ gunzip new.gz
