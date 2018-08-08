@@ -25,6 +25,8 @@ class Echo(GenericUnixCommand):
         if self.options:
             cmd = "{} {}".format(cmd, self.options)
         if self.text:
+            """a = self.text.encode('unicode_escape')
+            a = a.decode()"""
             cmd = "{} {}".format(cmd, repr(self.text))
         print(cmd)
         return cmd
@@ -32,6 +34,7 @@ class Echo(GenericUnixCommand):
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
+                print("on_new_line")
                 self._parse_line(line)
             except ParsingDone:
                 pass
@@ -39,6 +42,7 @@ class Echo(GenericUnixCommand):
 
     def _parse_line(self, line):
         self.current_ret["RESULT"].append(line)
+        print("parse_line: " + line)
         raise ParsingDone
 
 
@@ -79,8 +83,8 @@ COMMAND_RESULT_n_option = {
 }
 
 
-COMMAND_OUTPUT_e_option = """xyz@debian:~$ echo -e 'Hello \\rmy \\bbeautiful \\tcode!'
-Hello \rmy \bbeautiful \tcode!
+COMMAND_OUTPUT_e_option = """xyz@debian:~$ echo -e 'Hello \\rmy \\x08beautiful \\tcode!'
+Hello \rmy \x08beautiful \tcode!
 xyz@debian:~$"""
 
 COMMAND_KWARGS_e_option = {
@@ -89,7 +93,7 @@ COMMAND_KWARGS_e_option = {
 }
 
 COMMAND_RESULT_e_option = {
-    'RESULT': ['Hello ', 'my ', 'beautiful ', 'code!']
+    'RESULT': ['mybeautiful 	code!']
 }
 
 
