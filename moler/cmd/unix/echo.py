@@ -25,7 +25,8 @@ class Echo(GenericUnixCommand):
         if self.options:
             cmd = "{} {}".format(cmd, self.options)
         if self.text:
-            cmd = "{} '{}'".format(cmd, self.text)
+            cmd = "{} {}".format(cmd, repr(self.text))
+        print(cmd)
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -65,21 +66,42 @@ COMMAND_RESULT_text = {
 }
 
 
-COMMAND_OUTPUT_e_option = """xyz@debian:~$ echo -e 'Tecmint \nis \na \ncommunity \nof \nLinux \nNerds'
-Tecmint 
-is 
-a 
-community 
-of 
-Linux 
-Nerds
+COMMAND_OUTPUT_n_option = """xyz@debian:~$ echo -n 'Hello world'
+Hello worldxyz@debian:~$"""
+
+COMMAND_KWARGS_n_option = {
+    'options': '-n',
+    'text': 'Hello world'
+}
+
+COMMAND_RESULT_n_option = {
+    'RESULT': []
+}
+
+
+COMMAND_OUTPUT_e_option = """xyz@debian:~$ echo -e 'Hello \\rmy \\bbeautiful \\tcode!'
+Hello \rmy \bbeautiful \tcode!
 xyz@debian:~$"""
 
 COMMAND_KWARGS_e_option = {
     'options': '-e',
-    'text': 'Tecmint \nis \na \ncommunity \nof \nLinux \nNerds'
+    'text': 'Hello \rmy \bbeautiful \tcode!'
 }
 
 COMMAND_RESULT_e_option = {
-    'RESULT': ['Tecmint', 'is', 'a', 'community', 'of', 'Linux', 'Nerds']
+    'RESULT': ['Hello ', 'my ', 'beautiful ', 'code!']
+}
+
+
+COMMAND_OUTPUT_e_option_new_line = """xyz@debian:~$ echo -e 'Hello \\nmy \\nbeautiful \\ncode!'
+Hello \nmy \nbeautiful \ncode!
+xyz@debian:~$"""
+
+COMMAND_KWARGS_e_option_new_line = {
+    'options': '-e',
+    'text': 'Hello \nmy \nbeautiful \ncode!'
+}
+
+COMMAND_RESULT_e_option_new_line = {
+    'RESULT': ['Hello ', 'my ', 'beautiful ', 'code!']
 }
