@@ -47,7 +47,7 @@ class Gunzip(GenericUnixCommand):
                 pass
         return super(Gunzip, self).on_new_line(line, is_full_line)
 
-    _re_overwrite = re.compile(r"already exists;", re.IGNORECASE)
+    _re_overwrite = re.compile(r"gzip:\s(?P<FILE_NAME>.*already exists)", re.IGNORECASE)
 
     def _asks_to_overwrite(self, line):
         if self._regex_helper.search_compiled(Gunzip._re_overwrite, line):
@@ -55,7 +55,7 @@ class Gunzip(GenericUnixCommand):
                 self.connection.sendline('y')
             else:
                 self.connection.sendline('n')
-                self.set_exception(CommandFailure(self, "ERROR: file already exists and overwrite is set to False"))
+                self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("FILE_NAME"))))
             raise ParsingDone
 
     _re_error = re.compile(r"gzip:\s(?P<ERROR_MSG>.*)", re.IGNORECASE)
@@ -108,5 +108,18 @@ COMMAND_KWARGS_overwrite = {
 }
 
 COMMAND_RESULT_overwrite = {
+    'RESULT': []
+}
+
+COMMAND_OUTPUT_send_to_another_directory = """
+xyz@debian:~$ gunzip afile.gz > sed/afile
+xyz@debian:~$"""
+
+COMMAND_KWARGS_send_to_another_directory = {
+    'archive_name': ['afile.gz'],
+    'output_file_name': 'sed/afile'
+}
+
+COMMAND_RESULT_send_to_another_directory = {
     'RESULT': []
 }
