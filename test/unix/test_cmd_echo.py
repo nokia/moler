@@ -6,7 +6,7 @@ __author__ = 'Agnieszka Bylica'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'agnieszka.bylica@nokia.com'
 
-import pytest
+
 from moler.cmd.unix.echo import Echo
 
 
@@ -33,3 +33,8 @@ def test_echo_returns_proper_command_string_with_new_line_chars(buffer_connectio
 def test_echo_returns_proper_command_string_with_chars(buffer_connection):
     echo_cmd = Echo(connection=buffer_connection.moler_connection, options='-e', text='Hello \rmy \bbeautiful \tcode!')
     assert "echo -e 'Hello \\rmy \\x08beautiful \\tcode!'" == echo_cmd.command_string
+
+
+def test_echo_returns_proper_command_string_with_output_file(buffer_connection):
+    echo_cmd = Echo(connection=buffer_connection.moler_connection, text='Python is great!', output_file='myfile.txt')
+    assert "echo 'Python is great!' > myfile.txt" == echo_cmd.command_string

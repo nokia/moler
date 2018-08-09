@@ -12,11 +12,12 @@ from moler.exceptions import ParsingDone
 
 
 class Echo(GenericUnixCommand):
-    def __init__(self, connection, options=None, text=None, prompt=None, new_line_chars=None):
+    def __init__(self, connection, options=None, text=None, output_file=None, prompt=None, new_line_chars='\n'):
         super(Echo, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
         self.options = options
         self.text = text
+        self.output_file = output_file
 
         self.current_ret['RESULT'] = list()
 
@@ -25,16 +26,14 @@ class Echo(GenericUnixCommand):
         if self.options:
             cmd = "{} {}".format(cmd, self.options)
         if self.text:
-            """a = self.text.encode('unicode_escape')
-            a = a.decode()"""
-            cmd = "{} {}".format(cmd, repr(self.text))
-        print(cmd)
+            cmd = "{} {!r}".format(cmd, self.text)
+        if self.output_file:
+            cmd = "{} > {}".format(cmd, self.output_file)
         return cmd
 
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
-                print("on_new_line")
                 self._parse_line(line)
             except ParsingDone:
                 pass
@@ -42,7 +41,6 @@ class Echo(GenericUnixCommand):
 
     def _parse_line(self, line):
         self.current_ret["RESULT"].append(line)
-        print("parse_line: " + line)
         raise ParsingDone
 
 
@@ -83,17 +81,17 @@ COMMAND_RESULT_n_option = {
 }
 
 
-COMMAND_OUTPUT_e_option = """xyz@debian:~$ echo -e 'Hello \\rmy \\x08beautiful \\tcode!'
-Hello \rmy \x08beautiful \tcode!
+COMMAND_OUTPUT_e_option = """xyz@debian:~$ echo -e 'Hello \\rmy \\x08beautiful \\tdog!'
+Hello \rmy \x08beautiful \tdog!
 xyz@debian:~$"""
 
 COMMAND_KWARGS_e_option = {
     'options': '-e',
-    'text': 'Hello \rmy \bbeautiful \tcode!'
+    'text': 'Hello \rmy \bbeautiful \tdog!'
 }
 
 COMMAND_RESULT_e_option = {
-    'RESULT': ['mybeautiful 	code!']
+    'RESULT': ['Hello \rmy \x08beautiful \tdog!']
 }
 
 
