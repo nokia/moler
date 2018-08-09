@@ -26,8 +26,7 @@ class Useradd(GenericUnixCommand):
 
         # Internal variables
         self.current_ret['RESULT'] = list()
-        self._regex_compiled = list()
-        self._compile_regex()
+        Useradd._compile_regex()
 
     def build_command_string(self):
         cmd = "useradd"
@@ -54,12 +53,15 @@ class Useradd(GenericUnixCommand):
         self.current_ret['RESULT'].append(line)
         raise ParsingDone
 
-    def _compile_regex(self):
-        self._regex_compiled.append(re.compile(r"Usage:\suseradd\s\[options\]\sLOGIN(?P<ERROR>.*)", re.IGNORECASE))
-        self._regex_compiled.append(re.compile(r"useradd:\s.*\s(?P<ERROR>.*)", re.IGNORECASE))
+    _regex_compiled = list()
+
+    @staticmethod
+    def _compile_regex():
+        Useradd._regex_compiled.append(re.compile(r"Usage:\suseradd\s\[options\]\sLOGIN(?P<ERROR>.*)", re.IGNORECASE))
+        Useradd._regex_compiled.append(re.compile(r"useradd:\s.*\s(?P<ERROR>.*)", re.IGNORECASE))
 
     def _command_error(self, line):
-        for _re_error in self._regex_compiled:
+        for _re_error in Useradd._regex_compiled:
             if self._regex_helper.search_compiled(_re_error, line):
                 self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
                 raise ParsingDone
