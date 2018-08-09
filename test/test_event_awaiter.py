@@ -22,6 +22,8 @@ def test_events_true_all():
     done, not_done = EventAwaiter.separate_done_events(events)
     assert 2 == len(done)
     assert 0 == len(not_done)
+    for event in events:
+        event.cancel()
 
 
 def test_events_false_all():
@@ -37,6 +39,8 @@ def test_events_false_all():
     done, not_done = EventAwaiter.separate_done_events(events)
     assert 1 == len(done)
     assert 1 == len(not_done)
+    for event in events:
+        event.cancel()
 
 
 def test_events_true_any_all():
@@ -52,6 +56,8 @@ def test_events_true_any_all():
     done, not_done = EventAwaiter.separate_done_events(events)
     assert 2 == len(done)
     assert 0 == len(not_done)
+    for event in events:
+        event.cancel()
 
 
 def test_events_true_any_one():
@@ -67,6 +73,8 @@ def test_events_true_any_one():
     done, not_done = EventAwaiter.separate_done_events(events)
     assert 1 == len(done)
     assert 1 == len(not_done)
+    for event in events:
+        event.cancel()
 
 
 def test_events_false_any():
@@ -81,3 +89,5 @@ def test_events_false_any():
     done, not_done = EventAwaiter.separate_done_events(events)
     assert 0 == len(done)
     assert 2 == len(not_done)
+    for event in events:
+        event.cancel()

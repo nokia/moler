@@ -46,7 +46,7 @@ class EventAwaiter(object):
         grand_timeout = timeout
         start_time = time.time()
         any_done = False
-        while timeout >= 0:
+        while timeout >= 0 and not any_done:
             time.sleep(interval)
             for event in events:
                 if event.done():
