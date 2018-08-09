@@ -56,7 +56,8 @@ class Event(ConnectionObserver):
         self.callback = None
 
     def notify(self):
-        self.callback()
+        if self.callback:
+            self.callback()
 
     def event_occurred(self, event_data):
         """Should be used to set final result"""

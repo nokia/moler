@@ -14,29 +14,29 @@ import time
 class EventAwaiter(object):
 
     @staticmethod
-    def wait_all(timeout, events):
+    def wait_all(timeout, events, interval=0.001):
         """
         Wait for all events are done or timeout occurs
         :param timeout: time in seconds
         :param events: list of events to check
+        :param interval: interval in seconds between checking events
         :return: True if all events are done, False otherwise
         """
         grand_timeout = timeout
         start_time = time.time()
-        for event in events:
-            timeout = grand_timeout - (time.time() - start_time)
-            if time < 0:
-                break
-            event.await_done(timeout=timeout)
         all_done = True
-        for event in events:
-            if not event.done():
-                all_done = False
-                break
+        while timeout >= 0:
+            time.sleep(interval)
+            all_done = True
+            for event in events:
+                if not event.done():
+                    all_done = False
+                    break
+            timeout = grand_timeout - (time.time() - start_time)
         return all_done
 
     @staticmethod
-    def wait_any(timeout, events, interval=0.01):
+    def wait_any(timeout, events, interval=0.001):
         """
         :param timeout: time in seconds
         :param events: list of events to check
