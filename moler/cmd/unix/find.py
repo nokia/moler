@@ -36,15 +36,18 @@ class Find(GenericUnixCommand):
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
+                self._ignore_permission_denied(line)
                 self._command_failure(line)
                 self._parse_file(line)
             except ParsingDone:
                 pass
         return super(Find, self).on_new_line(line, is_full_line)
 
-    def _parse_file(self, line):
-        self.current_ret['RESULT'].append(line)
-        raise ParsingDone
+    _re_permission_denied = re.compile(r"find:\s(?P<PERMISSION_DENIED>.*Permission denied)", re.IGNORECASE)
+
+    def _ignore_permission_denied(self, line):
+        if self._regex_helper.search_compiled(Find._re_permission_denied, line):
+            raise ParsingDone
 
     _re_error_find = re.compile(r"find:\s(?P<ERROR_MSG_FIND>.*)", re.IGNORECASE)
     _re_error_bash = re.compile(r"bash:\s(?P<ERROR_MSG_BASH>.*)", re.IGNORECASE)
@@ -56,6 +59,10 @@ class Find(GenericUnixCommand):
         if self._regex_helper.search_compiled(Find._re_error_bash, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG_BASH"))))
             raise ParsingDone
+
+    def _parse_file(self, line):
+        self.current_ret['RESULT'].append(line)
+        raise ParsingDone
 
 
 COMMAND_OUTPUT_without_arguments = """
@@ -166,6 +173,7 @@ COMMAND_RESULT_with_operators = {
                './.config/libreoffice/4/user/autotext/mytexts.bau']
 }
 
+
 COMMAND_OUTPUT_no_files_found = """
 xyz@debian:~$ find Doc -name 'my*' -type f -print.
 xyz@debian:~$"""
@@ -177,4 +185,34 @@ COMMAND_KWARGS_no_files_found = {
 
 COMMAND_RESULT_no_files_found = {
     'RESULT': []
+}
+
+
+COMMAND_OUTPUT_permission_denied = """
+xyz@debian:~$ find
+./devices/LNXSYSTM:00/LNXPWRBN:00/input/input3/power/autosuspend_delay_ms
+./devices/LNXSYSTM:00/LNXPWRBN:00/input/input3/power/runtime_enabled
+./devices/LNXSYSTM:00/LNXPWRBN:00/input/input3/power/runtime_active_time
+./devices/LNXSYSTM:00/LNXPWRBN:00/input/input3/power/control
+./devices/LNXSYSTM:00/LNXPWRBN:00/input/input3/power/async
+find: ‘./fs/fuse/connections/38’: Permission denied
+./module/kernel
+./module/kernel/parameters
+./module/kernel/parameters/crash_kexec_post_notifiers
+./module/kernel/parameters/consoleblank
+./module/kernel/parameters/initcall_debug
+find: ‘./kernel/debug’: Permission denied
+xyz@debian:~$"""
+
+COMMAND_KWARGS_permission_denied = {}
+
+COMMAND_RESULT_permission_denied = {
+    'RESULT': ['./devices/LNXSYSTM:00/LNXPWRBN:00/input/input3/power/autosuspend_delay_ms',
+               './devices/LNXSYSTM:00/LNXPWRBN:00/input/input3/power/runtime_enabled',
+               './devices/LNXSYSTM:00/LNXPWRBN:00/input/input3/power/runtime_active_time',
+               './devices/LNXSYSTM:00/LNXPWRBN:00/input/input3/power/control',
+               './devices/LNXSYSTM:00/LNXPWRBN:00/input/input3/power/async',
+               './module/kernel', './module/kernel/parameters', './module/kernel/parameters/crash_kexec_post_notifiers',
+               './module/kernel/parameters/consoleblank', './module/kernel/parameters/initcall_debug']
+
 }
