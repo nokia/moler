@@ -15,10 +15,9 @@ import re
 
 
 class Find(GenericUnixCommand):
-    def __init__(self, connection, path=None, options=None, operators=None, debug_options=None):
+    def __init__(self, connection, path=None, options=None, operators=None):
         super(Find, self).__init__(connection=connection)
         self.options = options
-        self.debug_options = debug_options
         self.operators = operators
         self.path = path
         self.current_ret['RESULT'] = list()
@@ -27,8 +26,6 @@ class Find(GenericUnixCommand):
         cmd = "find"
         if self.options:
             cmd = cmd + " " + self.options
-        if self.debug_options:
-            cmd = cmd + " " + self.debug_options
         if self.path:
             for afile in self.path:
                 cmd = cmd + " " + afile
@@ -39,6 +36,7 @@ class Find(GenericUnixCommand):
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
+                self._command_failure(line)
                 self._parse_file(line)
             except ParsingDone:
                 pass
@@ -49,7 +47,7 @@ class Find(GenericUnixCommand):
         raise ParsingDone
 
     _re_error_find = re.compile(r"find:\s(?P<ERROR_MSG_FIND>.*)", re.IGNORECASE)
-    _re_error_bash = re.compile("bash:\s(?P<ERROR_MSG_BASH>.*)", re.IGNORECASE)
+    _re_error_bash = re.compile(r"bash:\s(?P<ERROR_MSG_BASH>.*)", re.IGNORECASE)
 
     def _command_failure(self, line):
         if self._regex_helper.search_compiled(Find._re_error_find, line):
