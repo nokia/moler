@@ -34,4 +34,3 @@ userdel: user bylica is currently used by process 788
 xyz@debian:~$"""
     result = dict()
     return data, result
-
