@@ -35,6 +35,7 @@ class Userdel(GenericUnixCommand):
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
+                self._parse_line_with_force_option(line)
                 self._command_error(line)
             except ParsingDone:
                 pass
@@ -51,6 +52,17 @@ class Userdel(GenericUnixCommand):
                 self.set_exception(CommandFailure(self, "ERROR: wrong syntax, should be: {}".format(
                     self._regex_helper.group("HELP_MSG"))))
                 raise ParsingDone
+
+    _re_command_error_user_used = re.compile(r"userdel:\suser\s(?P<USER>.*)\sis\scurrently\sused\sby\sprocess"
+                                             r"\s(?P<PROCESS>.*)", re.IGNORECASE)
+
+    def _parse_line_with_force_option(self, line):
+        if self.options:
+            if self.options.find('-f') or self.options.find('--force'):
+                if self._regex_helper.search_compiled(Userdel._re_command_error_user_used, line):
+                    self.current_ret['RESULT'].append("User {} currently used by process {} was deleted".format(
+                        self._regex_helper.group("USER"), self._regex_helper.group("PROCESS")))
+                    raise ParsingDone
 
 
 COMMAND_OUTPUT = """xyz@debian:~$ userdel tmp_user
@@ -75,4 +87,18 @@ COMMAND_KWARGS_with_option = {
 
 COMMAND_RESULT_with_option = {
     'RESULT': []
+}
+
+
+COMMAND_OUTPUT_with_force_option = """xyz@debian:~$ userdel --force tmp_user2
+userdel: user tmp_user2 is currently used by process 10274
+xyz@debian:~$"""
+
+COMMAND_KWARGS_with_force_option = {
+    'user': 'tmp_user2',
+    'options': '--force'
+}
+
+COMMAND_RESULT_with_force_option = {
+    'RESULT': ['User tmp_user2 currently used by process 10274 was deleted']
 }
