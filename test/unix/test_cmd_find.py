@@ -53,7 +53,7 @@ def test_find_on_bash_failure(buffer_connection):
 @pytest.fixture
 def command_output_and_expected_result_on_no_file_found():
     output = """xyz@debian:~$ find Doc -name 'my*' -type f -print
-find: ‘Doc’: No such file or directory
+find: 'Doc': No such file or directory
 xyz@debian:~$"""
     result = dict()
     return output, result
@@ -62,7 +62,7 @@ xyz@debian:~$"""
 @pytest.fixture
 def command_output_and_expected_result_on_unknown_predicate():
     output = """xyz@debian:~$ find -b Doc
-find: unknown predicate `-b'
+find: unknown predicate '-b'
 Try 'find --help' for more information.
 xyz@debian:~$"""
     result = dict()
@@ -81,7 +81,7 @@ xyz@debian:~$"""
 @pytest.fixture
 def command_output_and_expected_result_on__bash_failure():
     output = """xyz@debian:~$ find ~ ( -iname 'jpeg' -o -iname 'jpg' )
-bash: syntax error near unexpected token `('
+bash: syntax error near unexpected token '('
 xyz@debian:~$"""
     result = dict()
     return output, result
