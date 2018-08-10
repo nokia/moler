@@ -4,7 +4,6 @@ Moler's device has 2 main responsibilities:
 - be the factory that returns commands of that device
 - be the state machine that controls which commands may run in given state
 """
-import logging
 
 from moler.device.textualdevice import TextualDevice
 
@@ -20,7 +19,6 @@ class UnixLocal(TextualDevice):
     def __init__(self, name=None, io_connection=None, io_type=None, variant=None, sm_params=dict()):
         super(UnixLocal, self).__init__(name=name, io_connection=io_connection, io_type=io_type, variant=variant,
                                         sm_params=sm_params)
-        self.logger = logging.getLogger('moler.unixlocal')
 
     def _prepare_transitions(self):
         transitions = {

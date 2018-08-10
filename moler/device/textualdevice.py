@@ -7,7 +7,7 @@ Moler's device has 2 main responsibilities:
 import traceback
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
-from moler.config.loggers import configure_connection_logger, configure_debug_level
+from moler.config.loggers import configure_connection_logger, configure_debug_level, configure_device_logger
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -16,7 +16,6 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 import functools
 import importlib
 import inspect
-import logging
 import pkgutil
 import time
 import re
@@ -46,7 +45,7 @@ class TextualDevice(object):
         :param variant: connection implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
                         (if not given then default one is taken)
         """
-        self.logger = logging.getLogger('moler.textualdevice')
+        self.logger = configure_device_logger(device_name=name)
         self.states = []
         self.goto_states_triggers = []
         # Below line will modify self extending it with methods and atributes od StateMachine
@@ -60,7 +59,7 @@ class TextualDevice(object):
         self._prompts_events = {}
         self._configurations = dict()
         self._name = None
-        self.data_logger = None
+        self._connection_data_logger = None
 
         self.name = name
         self._prepare_transitions()
@@ -72,6 +71,7 @@ class TextualDevice(object):
         else:
             self.io_connection = get_connection(io_type=io_type, variant=variant)
 
+        self.io_connection.moler_connection.name = self.name
         self.configure_connection_logger(name=self.name)
         self.io_connection.notify(callback=self.on_connection_made, when="connection_made")
         # TODO: Need test to ensure above sentence for all connection
@@ -101,11 +101,11 @@ class TextualDevice(object):
         return command_timeout
 
     def configure_connection_logger(self, name):
-        if not self.data_logger:
+        if not self._connection_data_logger:
             configure_debug_level()
-            self.data_logger = configure_connection_logger(connection_name=name)
+            self._connection_data_logger = configure_connection_logger(connection_name=name)
 
-        self.io_connection.moler_connection.add_data_logger(self.data_logger)
+        self.io_connection.moler_connection.add_data_logger(self._connection_data_logger)
 
     @abc.abstractmethod
     def _prepare_transitions(self):

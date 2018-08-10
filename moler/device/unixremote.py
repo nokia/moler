@@ -9,8 +9,6 @@ __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
-import logging
-
 from moler.device.unixlocal import UnixLocal
 
 
@@ -28,7 +26,6 @@ class UnixRemote(UnixLocal):
         """
         super(UnixRemote, self).__init__(name=name, io_connection=io_connection, io_type=io_type, variant=variant,
                                          sm_params=sm_params)
-        self.logger = logging.getLogger('moler.unixlocal')
 
     def _get_default_sm_configuration(self):
         config = {

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Grzegorz Latuszek, Marcin Usielski'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
 from abc import abstractmethod, ABCMeta
@@ -38,7 +38,7 @@ class ConnectionObserver(object):
         self.runner = ThreadPoolExecutorRunner()
         self._future = None
         self.timeout = 7
-        self.logger = logging.getLogger('moler.connection_observer')
+        self.logger = logging.getLogger('moler.{}'.format(connection.name))
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
@@ -69,6 +69,7 @@ class ConnectionObserver(object):
         self._validate_start(*args, **kwargs)
         self._is_running = True
         self._future = self.runner.submit(self)
+        self.logger.log(logging.INFO, self.get_start_desc())
         return self
 
     def _validate_start(self, *args, **kwargs):
@@ -97,6 +98,8 @@ class ConnectionObserver(object):
             raise ConnectionObserverNotStarted(self)
         result = self.runner.wait_for(connection_observer=self, connection_observer_future=self._future,
                                       timeout=timeout)
+
+        self.logger.log(logging.INFO, "'{}' finished.".format(self.__class__.__name__))
         return result
 
     def cancel(self):
@@ -166,3 +169,6 @@ class ConnectionObserver(object):
     def observer_name(cls):
         name = camel_case_to_lower_case_underscore(cls.__name__)
         return name
+
+    def get_start_desc(self):
+        return "Observer '{}.{}' started.".format(self.__class__.__module__, self.__class__.__name__)

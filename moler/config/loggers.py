@@ -4,9 +4,9 @@
 Configure logging for Moler's needs
 """
 
-__author__ = 'Grzegorz Latuszek'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
 import os
@@ -15,7 +15,7 @@ logging_path = os.getcwd()  # Logging path that is used as a prefix for log file
 active_loggers = []  # TODO: use set()      # Active loggers created by Moler
 
 # new logging levels
-TRACE = 1     # highest possible debug level, may produce tons of logs, should be used for lib dev & troubleshooting
+TRACE = 1  # highest possible debug level, may produce tons of logs, should be used for lib dev & troubleshooting
 RAW_DATA = 4  # should be used for logging data of external sources, like connection's data send/received
 # (above ERROR = 40, below CRITICAL = 50)
 TEST_CASE = 45
@@ -62,7 +62,7 @@ def debug_level_or_info_level():
     return level
 
 
-def setup_new_file_handler(logger_name, log_level, log_filename, formatter):
+def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filter=None):
     """
     Sets up new file handler for given logger
 
@@ -76,12 +76,14 @@ def setup_new_file_handler(logger_name, log_level, log_filename, formatter):
     cfh = logging.FileHandler(log_filename, 'w')
     cfh.setLevel(log_level)
     cfh.setFormatter(formatter)
+    if filter:
+        cfh.addFilter(filter)
     logger.addHandler(cfh)
     return cfh
 
 
 def _add_new_file_handler(logger_name,
-                          log_file, formatter, log_level=TRACE):
+                          log_file, formatter, log_level=TRACE, filter=None):
     """
     Add file writer into Logger
 
@@ -96,7 +98,8 @@ def _add_new_file_handler(logger_name,
     setup_new_file_handler(logger_name=logger_name,
                            log_level=log_level,
                            log_filename=logfile_full_path,
-                           formatter=formatter)
+                           formatter=formatter,
+                           filter=filter)
 
 
 def create_logger(name,
@@ -130,10 +133,10 @@ def configure_moler_main_logger():
     """Configure main logger of Moler"""
     # warning or above go to logfile
     logger = create_logger(name='moler', log_level=TRACE)
-    main_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s |%(message)s"
+    main_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(name)-30s |%(message)s"
     _add_new_file_handler(logger_name='moler',
                           log_file='moler.log',
-                          log_level=logging.WARNING,  # only hi-level info from library
+                          log_level=logging.INFO,  # only hi-level info from library
                           formatter=logging.Formatter(fmt=main_log_format,
                                                       datefmt="%d %H:%M:%S"))
     if want_debug_details():
@@ -163,6 +166,25 @@ def configure_runner_logger(runner_name):
 def configure_connection_logger(connection_name):
     """Configure logger with file storing connection's log"""
     logger_name = 'moler.connection.{}'.format(connection_name)
+    logger = create_logger(name=logger_name, log_level=TRACE)
+    conn_formatter = MultilineWithDirectionFormatter(fmt=None,
+                                                     datefmt="%d %H:%M:%S")
+    _add_new_file_handler(logger_name=logger_name,
+                          log_file='{}.log'.format(logger_name),
+                          log_level=logging.DEBUG,
+                          formatter=conn_formatter)
+    if want_debug_details():
+        _add_new_file_handler(logger_name=logger_name,
+                              log_file='{}.raw.log'.format(logger_name),
+                              log_level=RAW_DATA,
+                              formatter=conn_formatter,
+                              filter=SpecificLevelFilter(RAW_DATA))
+    return logger
+
+
+def configure_device_logger(device_name):
+    """Configure logger with file storing connection's log"""
+    logger_name = 'moler.device.{}'.format(device_name)
     logger = create_logger(name=logger_name, log_level=TRACE)
     conn_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(transfer_direction)s|%(message)s"
     conn_formatter = MultilineWithDirectionFormatter(fmt=conn_log_format,
@@ -201,6 +223,7 @@ class TracedIn(object):
     @TracedIn('moler')
     def method(self, arg1, arg2):
     """
+
     def __init__(self, logger_name):  # decorator parameter
         self.logger = logging.getLogger(logger_name)
         self.trace_active = (debug_level == TRACE)
@@ -243,6 +266,7 @@ class MultilineWithDirectionFormatter(logging.Formatter):
 
     This formatter allows to use %(transfer_direction)s inside format
     """
+
     def __init__(self, fmt=None, datefmt=None):
         if fmt is None:
             fmt = "%(asctime)s.%(msecs)03d %(transfer_direction)s|%(message)s"
@@ -269,6 +293,14 @@ class MultilineWithDirectionFormatter(logging.Formatter):
         prefix_len = output_first_line.rindex("|{}".format(message_first_line))
         empty_prefix = " " * prefix_len
         return empty_prefix
+
+
+class SpecificLevelFilter(object):
+    def __init__(self, level):
+        self.__level = level
+
+    def filter(self, logRecord):
+        return logRecord.levelno == self.__level
 
 
 # actions during import:

@@ -11,9 +11,9 @@ Connection responsibilities:
 - have a means allowing multiple observers to get it's received data (data dispatching)
 """
 
-__author__ = 'Grzegorz Latuszek'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
 import platform
@@ -126,9 +126,9 @@ class Connection(object):
 
     def send(self, data, timeout=30):  # TODO: should timeout be property of IO? We timeout whole connection-observer.
         """Outgoing-IO API: Send data over external-IO."""
-        self._log(msg=data, level=logging.INFO, extra={'transfer_direction': '>'})
+        self._log_data(msg=data, level=logging.INFO, extra={'transfer_direction': '>'})
         data2send = self.encode(data)
-        self._log(msg=data2send, level=RAW_DATA, extra={'transfer_direction': '>'})
+        self._log_data(msg=data2send, level=RAW_DATA, extra={'transfer_direction': '>'})
         self.how2send(data2send)
 
     def sendline(self, data, timeout=30):
@@ -159,11 +159,13 @@ class Connection(object):
         self._log(msg=err_msg, level=logging.ERROR)
         raise WrongUsage(err_msg)
 
+    def _log_data(self, msg, level, extra=None):
+        for logger in self.data_loggers:
+            logger.log(level, msg, extra=extra)
+
     def _log(self, msg, level, extra=None):
         if self.logger:
             self.logger.log(level, msg, extra=extra)
-        for logger in self.data_loggers:
-            logger.log(level, msg, extra=extra)
 
 
 class ObservableConnection(Connection):
@@ -203,7 +205,7 @@ class ObservableConnection(Connection):
         """
         # log input as ascii printable (for non-ascii dump as \0x prefixed bytes)
         printable_data = decodestring(data)
-        self._log(msg=printable_data, level=RAW_DATA, extra={'transfer_direction': '<'})
+        self._log_data(msg=printable_data, level=RAW_DATA, extra={'transfer_direction': '<'})
 
         decoded_data = self.decode(data)
         # decoded data might be unicode or bytes/ascii string, logger accepts only ascii.
@@ -214,7 +216,7 @@ class ObservableConnection(Connection):
         else:
             # bytes or ascii log
             encoded_for_log = decoded_data
-        self._log(msg=encoded_for_log, level=logging.INFO, extra={'transfer_direction': '<'})
+        self._log_data(msg=encoded_for_log, level=logging.DEBUG, extra={'transfer_direction': '<'})
 
         self.notify_observers(decoded_data)
 
