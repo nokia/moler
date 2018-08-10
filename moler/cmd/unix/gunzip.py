@@ -14,13 +14,13 @@ import re
 
 
 class Gunzip(GenericUnixCommand):
-    def __init__(self, connection, archive_name, new_suffix=None, output_file_name=None, options=None, overwrite=False):
+    def __init__(self, connection, archive_name, output_file_name=None, options=None, overwrite=False):
         super(Gunzip, self).__init__(connection=connection)
         self.archive_name = archive_name
         self.output_file_name = output_file_name
         self.options = options
-        self.new_suffix = new_suffix
         self.overwrite = overwrite
+        self.l_option = False
         self.ret_required = True
         self.current_ret['RESULT'] = list()
 
@@ -28,8 +28,6 @@ class Gunzip(GenericUnixCommand):
         cmd = 'gunzip'
         if self.options:
             cmd = '{} {}'.format(cmd, self.options)
-        if self.new_suffix:
-            cmd = '{} -S {}'.format(cmd, self.new_suffix)
         if self.archive_name:
             for file in self.archive_name:
                 cmd = '{} {}'.format(cmd, file)
@@ -41,6 +39,7 @@ class Gunzip(GenericUnixCommand):
         if is_full_line:
             try:
                 self._asks_to_overwrite(line)
+                self._create_dictionary_at_l_option(line)
                 self._command_failure(line)
                 self._parse_line(line)
             except ParsingDone:
@@ -56,6 +55,19 @@ class Gunzip(GenericUnixCommand):
             else:
                 self.connection.sendline('n')
                 self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("FILE_NAME"))))
+            raise ParsingDone
+
+    _re_l_option = re.compile(r"(?P<L_OPTION> compressed\s*uncompressed\s*ratio\s*uncompressed_name.*)", re.IGNORECASE)
+
+    def _create_dictionary_at_l_option(self, line):
+        if self.l_option:
+            self.values = line.strip().split()
+            if 'date' in self.keys:
+                self.values = self.values[:2]+['{} {}'.format(self.values[2], self.values[3])]+self.values[4:]
+            self._parse_line(dict(zip(self.keys, self.values)))
+        if self._regex_helper.search_compiled(Gunzip._re_l_option, line):
+            self.l_option = True
+            self.keys = line.strip().split()
             raise ParsingDone
 
     _re_error = re.compile(r"gzip:\s(?P<ERROR_MSG>.*)", re.IGNORECASE)
@@ -97,6 +109,7 @@ COMMAND_RESULT_loud_options = {
     'RESULT': ['new.gz:\t -7.7% -- replaced with new']
 }
 
+
 COMMAND_OUTPUT_overwrite = """
 xyz@debian:~$ gunzip new.gz
 gzip: new already exists; do you wish to overwrite (y or n)?
@@ -111,6 +124,7 @@ COMMAND_RESULT_overwrite = {
     'RESULT': []
 }
 
+
 COMMAND_OUTPUT_send_to_another_directory = """
 xyz@debian:~$ gunzip afile.gz > sed/afile
 xyz@debian:~$"""
@@ -123,3 +137,37 @@ COMMAND_KWARGS_send_to_another_directory = {
 COMMAND_RESULT_send_to_another_directory = {
     'RESULT': []
 }
+
+
+COMMAND_OUTPUT_on_l_option = """
+xyz@debian:~$ gunzip -l afile.gz
+         compressed        uncompressed  ratio uncompressed_name
+                 26                   0   0.0% afile
+xyz@debian:~$"""
+
+COMMAND_KWARGS_on_l_option = {
+    'archive_name': ['afile.gz'],
+    'options': '-l'
+}
+
+COMMAND_RESULT_on_l_option = {
+    'RESULT': [{'compressed': '26', 'uncompressed': '0', 'ratio': '0.0%', 'uncompressed_name': 'afile'}]
+}
+
+
+COMMAND_OUTPUT_on_vl_option = """
+xyz@debian:~$ gunzip -vl afile.gz 
+method  crc     date  time           compressed        uncompressed  ratio uncompressed_name
+defla 00000000 Aug 9 12:27                  26                   0   0.0% afile
+xyz@debian:~$"""
+
+COMMAND_KWARGS_on_vl_option = {
+    'archive_name': ['afile.gz'],
+    'options': '-vl'
+}
+
+COMMAND_RESULT_on_vl_option = {
+    'RESULT': [{'method': 'defla', 'crc': '00000000', 'date': 'Aug 9', 'time': '12:27', 'compressed': '26',
+                'uncompressed': '0', 'ratio': '0.0%', 'uncompressed_name': 'afile'}]
+}
+

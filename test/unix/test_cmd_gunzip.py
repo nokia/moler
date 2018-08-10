@@ -62,6 +62,7 @@ xyz@debian:~/Dokumenty/sed$ """
     result = dict()
     return output, result
 
+
 @pytest.fixture
 def command_output_and_expected_result_on_cannot_overwrite():
     output = """xyz@debian:~/Dokumenty/sed$ gunzip new5.gz
