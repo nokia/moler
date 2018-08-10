@@ -26,12 +26,53 @@ class Userdel(GenericUnixCommand):
 
     def build_command_string(self):
         cmd = "userdel"
+        if self.options:
+            cmd = "{} {}".format(cmd, self.options)
+        if self.user:
+            cmd = "{} {}".format(cmd, self.user)
         return cmd
 
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
-                self._parse_line(line)
+                self._command_error(line)
             except ParsingDone:
                 pass
         return super(Userdel, self).on_new_line(line, is_full_line)
+
+    _re_command_error = re.compile(r"userdel:\s(?P<ERROR>.*)", re.IGNORECASE)
+    _re_wrong_syntax = re.compile(r"Usage:\s(?P<HELP_MSG>.*)", re.IGNORECASE)
+
+    def _command_error(self, line):
+            if self._regex_helper.search_compiled(Userdel._re_command_error, line):
+                self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
+                raise ParsingDone
+            if self._regex_helper.search_compiled(Userdel._re_wrong_syntax, line):
+                self.set_exception(CommandFailure(self, "ERROR: wrong syntax, should be: {}".format(
+                    self._regex_helper.group("HELP_MSG"))))
+                raise ParsingDone
+
+
+COMMAND_OUTPUT = """xyz@debian:~$ userdel tmp_user
+xyz@debian:~$"""
+
+COMMAND_KWARGS = {
+    'user': 'tmp_user'
+}
+
+COMMAND_RESULT = {
+    'RESULT': []
+}
+
+
+COMMAND_OUTPUT_with_option = """xyz@debian:~$ userdel --force tmp_user
+xyz@debian:~$"""
+
+COMMAND_KWARGS_with_option = {
+    'user': 'tmp_user',
+    'options': '--force'
+}
+
+COMMAND_RESULT_with_option = {
+    'RESULT': []
+}
