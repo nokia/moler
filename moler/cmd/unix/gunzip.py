@@ -63,7 +63,7 @@ class Gunzip(GenericUnixCommand):
         if self.l_option:
             self.values = line.strip().split()
             if 'date' in self.keys:
-                self.values = self.values[:2]+['{} {}'.format(self.values[2], self.values[3])]+self.values[4:]
+                self.values = self.values[:2] + ['{} {}'.format(self.values[2], self.values[3])] + self.values[4:]
             self._parse_line(dict(zip(self.keys, self.values)))
         if self._regex_helper.search_compiled(Gunzip._re_l_option, line):
             self.l_option = True
@@ -156,7 +156,7 @@ COMMAND_RESULT_on_l_option = {
 
 
 COMMAND_OUTPUT_on_vl_option = """
-xyz@debian:~$ gunzip -vl afile.gz 
+xyz@debian:~$ gunzip -vl afile.gz
 method  crc     date  time           compressed        uncompressed  ratio uncompressed_name
 defla 00000000 Aug 9 12:27                  26                   0   0.0% afile
 xyz@debian:~$"""
@@ -170,4 +170,3 @@ COMMAND_RESULT_on_vl_option = {
     'RESULT': [{'method': 'defla', 'crc': '00000000', 'date': 'Aug 9', 'time': '12:27', 'compressed': '26',
                 'uncompressed': '0', 'ratio': '0.0%', 'uncompressed_name': 'afile'}]
 }
-
