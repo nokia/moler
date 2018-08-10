@@ -8,8 +8,8 @@ __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
-import os
 import logging
+import os
 
 logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
 active_loggers = []  # TODO: use set()      # Active loggers created by Moler
@@ -21,6 +21,11 @@ RAW_DATA = 4  # should be used for logging data of external sources, like connec
 TEST_CASE = 45
 
 debug_level = None  # means: inactive
+
+
+def set_logging_path(path):
+    global logging_path
+    logging_path = path
 
 
 def configure_debug_level():

@@ -7,6 +7,7 @@ Moler's device has 2 main responsibilities:
 import traceback
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
+from moler.config.loggers import configure_connection_logger, configure_debug_level
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -34,7 +35,7 @@ class TextualDevice(object):
     not_connected = "NOT_CONNECTED"
     connection_hops = "CONNECTION_HOPS"
 
-    def __init__(self, io_connection=None, io_type=None, variant=None, sm_params=dict()):
+    def __init__(self, name=None, io_connection=None, io_type=None, variant=None, sm_params=dict()):
         """
         Create Device communicating over io_connection
         CAUTION: Device owns (takes over ownership) of connection. It will be open when device "is born" and close when
@@ -58,7 +59,10 @@ class TextualDevice(object):
         self._state_prompts = {}
         self._prompts_events = {}
         self._configurations = dict()
+        self._name = None
+        self.data_logger = None
 
+        self.name = name
         self._prepare_transitions()
         self._prepare_state_hops()
         self._configure_state_machine(sm_params)
@@ -67,6 +71,8 @@ class TextualDevice(object):
             self.io_connection = io_connection
         else:
             self.io_connection = get_connection(io_type=io_type, variant=variant)
+
+        self.configure_connection_logger(name=self.name)
         self.io_connection.notify(callback=self.on_connection_made, when="connection_made")
         # TODO: Need test to ensure above sentence for all connection
         self.io_connection.open()
@@ -93,6 +99,13 @@ class TextualDevice(object):
             if configuration_timeout < passed_timeout:
                 command_timeout = configuration_timeout
         return command_timeout
+
+    def configure_connection_logger(self, name):
+        if not self.data_logger:
+            configure_debug_level()
+            self.data_logger = configure_connection_logger(connection_name=name)
+
+        self.io_connection.moler_connection.add_data_logger(self.data_logger)
 
     @abc.abstractmethod
     def _prepare_transitions(self):
@@ -136,7 +149,14 @@ class TextualDevice(object):
 
     @property
     def name(self):
-        return self.io_connection.moler_connection.name
+        if self._name:
+            return self._name
+        else:
+            return self.io_connection.moler_connection.name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
 
     def _set_state(self, state):
         if self.current_state != state:

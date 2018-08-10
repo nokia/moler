@@ -43,7 +43,7 @@ class DeviceFactory(object):
         if device_class and (not connection_desc):
             connection_desc = cls._try_select_device_connection_desc(device_class, connection_desc)
 
-        device = cls._create_device(device_class, connection_desc, connection_hops)
+        device = cls._create_device(name, device_class, connection_desc, connection_hops)
         if name:
             cls._devices[name] = device
         else:
@@ -73,8 +73,9 @@ class DeviceFactory(object):
         return device_class, connection_desc, connection_hops
 
     @classmethod
-    def _create_device(cls, device_class, connection_desc, connection_hops):
+    def _create_device(cls, name, device_class, connection_desc, connection_hops):
         constructor_parameters = {
+            "name": name,
             "io_type": connection_desc["io_type"],
             "variant": connection_desc["variant"],
             "sm_params": connection_hops

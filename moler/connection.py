@@ -55,6 +55,8 @@ class Connection(object):
         """
 
         super(Connection, self).__init__()
+        self.data_loggers = list()
+
         self.how2send = how2send or self._unknown_send
         self._encoder = encoder
         self._decoder = decoder
@@ -79,6 +81,13 @@ class Connection(object):
         if self._using_default_logger():
             self.logger = self._select_logger(logger_name="", connection_name=value)
         self._name = value
+
+    def add_data_logger(self, logger):
+        self.data_loggers.append(logger)
+
+    def remove_data_logger(self, logger):
+        if logger is self.data_loggers:
+            self.data_loggers.remove(logger)
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
@@ -153,6 +162,8 @@ class Connection(object):
     def _log(self, msg, level, extra=None):
         if self.logger:
             self.logger.log(level, msg, extra=extra)
+        for logger in self.data_loggers:
+            logger.log(level, msg, extra=extra)
 
 
 class ObservableConnection(Connection):
