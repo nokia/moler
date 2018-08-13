@@ -28,7 +28,8 @@ def test_userdel_returns_proper_command_string_with_option(buffer_connection):
 def test_userdel_raises_command_error(buffer_connection):
     command_output, expected_result = command_output_and_expected_result()
     buffer_connection.remote_inject_response([command_output])
-    userdel_cmd = Userdel(connection=buffer_connection.moler_connection, user='xyz', prompt=None, new_line_chars=None)
+    userdel_cmd = Userdel(connection=buffer_connection.moler_connection, options='-p', user='tmp_user', prompt=None,
+                          new_line_chars=None)
     with pytest.raises(CommandFailure):
         userdel_cmd()
 
@@ -43,7 +44,7 @@ def test_userdel_raises_command_error_with_help(buffer_connection):
 
 @pytest.fixture
 def command_output_and_expected_result():
-    data = """xyz@debian:~$ userdel xyz
+    data = """xyz@debian:~$ userdel -p tmp_user
 userdel: invalid option -- 'p'
 xyz@debian:~$"""
     result = dict()
