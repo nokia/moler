@@ -20,8 +20,7 @@ class Gunzip(GenericUnixCommand):
         self.output_file_name = output_file_name
         self.options = options
         self.overwrite = overwrite
-        self.l_option = False
-        self.ret_required = True
+        self.keys = list()
         self.current_ret['RESULT'] = list()
 
     def build_command_string(self):
@@ -60,13 +59,12 @@ class Gunzip(GenericUnixCommand):
     _re_l_option = re.compile(r"(?P<L_OPTION> compressed\s*uncompressed\s*ratio\s*uncompressed_name.*)", re.IGNORECASE)
 
     def _create_dictionary_at_l_option(self, line):
-        if self.l_option:
+        if self.keys:
             self.values = line.strip().split()
             if 'date' in self.keys:
                 self.values = self.values[:2] + ['{} {}'.format(self.values[2], self.values[3])] + self.values[4:]
             self._parse_line(dict(zip(self.keys, self.values)))
         if self._regex_helper.search_compiled(Gunzip._re_l_option, line):
-            self.l_option = True
             self.keys = line.strip().split()
             raise ParsingDone
 
