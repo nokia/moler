@@ -143,6 +143,8 @@ class ConnectionObserver(object):
         """Should be used to indicate some failure during observation"""
         self._is_done = True
         self._exception = exception
+        self.logger.log(logging.INFO,
+                        "'{}' has set exception {}.".format(self.__class__.__name__, exception.__class__.__name__))
 
     def result(self):
         """Retrieve final result of connection-observer"""
