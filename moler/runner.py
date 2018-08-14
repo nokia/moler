@@ -151,11 +151,15 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         moler_conn = connection_observer.connection
         moler_conn.unsubscribe(connection_observer.data_received)
         passed = time.time() - start_time
-        self.logger.debug("timeouted {}".format(connection_observer))
+        self.logger.debug("timed out {}".format(connection_observer))
         connection_observer.cancel()
         connection_observer_future.cancel()
         self.shutdown()
         connection_observer.on_timeout()
+        connection_observer.logger.log(logging.INFO,
+                                       "'{}.{}' has timed out after '{:.2f}' seconds.".format(
+                                           connection_observer.__class__.__module__,
+                                           connection_observer.__class__.__name__, time.time() - start_time))
         if hasattr(connection_observer, "command_string"):
             raise CommandTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
         else:

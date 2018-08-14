@@ -144,7 +144,9 @@ class ConnectionObserver(object):
         self._is_done = True
         self._exception = exception
         self.logger.log(logging.INFO,
-                        "'{}' has set exception {}.".format(self.__class__.__name__, exception.__class__.__name__))
+                        "'{}.{}' has set exception '{}.{}'.".format(self.__class__.__module__, self.__class__.__name__,
+                                                                    exception.__class__.__module__,
+                                                                    exception.__class__.__name__))
 
     def result(self):
         """Retrieve final result of connection-observer"""
