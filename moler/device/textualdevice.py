@@ -7,7 +7,7 @@ Moler's device has 2 main responsibilities:
 import traceback
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
-from moler.config.loggers import configure_connection_logger, configure_debug_level, configure_device_logger
+from moler.config.loggers import configure_connection_logger, configure_device_logger
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -102,7 +102,6 @@ class TextualDevice(object):
 
     def configure_connection_logger(self, name):
         if not self._connection_data_logger:
-            configure_debug_level()
             self._connection_data_logger = configure_connection_logger(connection_name=name)
 
         self.io_connection.moler_connection.add_data_logger(self._connection_data_logger)
@@ -125,6 +124,7 @@ class TextualDevice(object):
         return cls(io_connection=io_conn)
 
     def __del__(self):
+        self._stop_prompts_observers()
         self.io_connection.close()
 
     def _collect_cmds_for_state_machine(self):
@@ -442,6 +442,10 @@ class TextualDevice(object):
 
             prompt_event.start()
             self._prompts_events[state] = prompt_event
+
+    def _stop_prompts_observers(self):
+        for prompt_observer in self._prompts_events:
+            prompt_observer.cancel()
 
     def build_trigger_to_state(self, state):
         trigger = "GOTO_{}".format(state)

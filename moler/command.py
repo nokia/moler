@@ -55,3 +55,6 @@ class Command(ConnectionObserver):
     def get_start_desc(self):
         return "Command '{}.{}':'{}' started.".format(self.__class__.__module__, self.__class__.__name__,
                                                       self.command_string)
+
+    def get_finished_desc(self):
+        return "Command '{}.{}' finished.".format(self.__class__.__module__, self.__class__.__name__)

@@ -13,6 +13,7 @@ import os
 
 logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
 active_loggers = []  # TODO: use set()      # Active loggers created by Moler
+date_format = "%d %H:%M:%S"
 
 # new logging levels
 TRACE = 1  # highest possible debug level, may produce tons of logs, should be used for lib dev & troubleshooting
@@ -26,6 +27,11 @@ debug_level = None  # means: inactive
 def set_logging_path(path):
     global logging_path
     logging_path = path
+
+
+def set_date_format(format):
+    global date_format
+    date_format = format
 
 
 def configure_debug_level():
@@ -132,13 +138,13 @@ def create_logger(name,
 def configure_moler_main_logger():
     """Configure main logger of Moler"""
     # warning or above go to logfile
-    logger = create_logger(name='moler', log_level=TRACE)
+    logger = create_logger(name='moler', log_level=TRACE, datefmt=date_format)
     main_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(name)-30s |%(message)s"
     _add_new_file_handler(logger_name='moler',
                           log_file='moler.log',
                           log_level=logging.INFO,  # only hi-level info from library
                           formatter=logging.Formatter(fmt=main_log_format,
-                                                      datefmt="%d %H:%M:%S"))
+                                                      datefmt=date_format))
     if want_debug_details():
         debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(name)-30s %(transfer_direction)s|%(message)s"
         _add_new_file_handler(logger_name='moler',
@@ -148,7 +154,7 @@ def configure_moler_main_logger():
                               # differentiate them by logger name: "%(name)s"
                               # do we need "%(threadName)-30s" ???
                               formatter=MultilineWithDirectionFormatter(fmt=debug_log_format,
-                                                                        datefmt="%d %H:%M:%S"))
+                                                                        datefmt=date_format))
     logger.propagate = False
 
 
@@ -158,7 +164,7 @@ def configure_runner_logger(runner_name):
                   log_file='moler.runner.{}.log'.format(runner_name),
                   log_level=debug_level_or_info_level(),
                   log_format="%(asctime)s.%(msecs)03d %(levelname)-10s |%(message)s",
-                  datefmt="%d %H:%M:%S"
+                  datefmt=date_format
                   # log_format="%(asctime)s %(levelname)-10s %(subarea)-30s: |%(message)s"
                   )
 
@@ -167,8 +173,8 @@ def configure_connection_logger(connection_name):
     """Configure logger with file storing connection's log"""
     logger_name = 'moler.connection.{}'.format(connection_name)
     logger = create_logger(name=logger_name, log_level=TRACE)
-    conn_formatter = MultilineWithDirectionFormatter(fmt=None,
-                                                     datefmt="%d %H:%M:%S")
+    conn_formatter = MultilineWithDirectionFormatter(fmt="%(asctime)s.%(msecs)03d %(transfer_direction)s|%(message)s",
+                                                     datefmt=date_format)
     _add_new_file_handler(logger_name=logger_name,
                           log_file='{}.log'.format(logger_name),
                           log_level=logging.DEBUG,
@@ -188,7 +194,7 @@ def configure_device_logger(device_name):
     logger = create_logger(name=logger_name, log_level=TRACE)
     conn_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(transfer_direction)s|%(message)s"
     conn_formatter = MultilineWithDirectionFormatter(fmt=conn_log_format,
-                                                     datefmt="%d %H:%M:%S")
+                                                     datefmt=date_format)
     _add_new_file_handler(logger_name=logger_name,
                           log_file='{}.log'.format(logger_name),
                           log_level=logging.INFO,

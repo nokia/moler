@@ -38,7 +38,7 @@ class ConnectionObserver(object):
         self.runner = ThreadPoolExecutorRunner()
         self._future = None
         self.timeout = 7
-        self.logger = logging.getLogger('moler.{}'.format(connection.name))
+        self.logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
@@ -61,6 +61,12 @@ class ConnectionObserver(object):
         if started_observer:
             return started_observer.await_done(*args, **kwargs)
         # TODO: raise ConnectionObserverFailedToStart
+
+    def get_logger_name(self):
+        if self.connection and hasattr(self.connection, "name"):
+            return self.connection.name
+        else:
+            return self.__class__.__name__
 
     def start(self, timeout=None, *args, **kwargs):
         """Start background execution of connection-observer."""
@@ -99,7 +105,7 @@ class ConnectionObserver(object):
         result = self.runner.wait_for(connection_observer=self, connection_observer_future=self._future,
                                       timeout=timeout)
 
-        self.logger.log(logging.INFO, "'{}' finished.".format(self.__class__.__name__))
+        self.logger.log(logging.INFO, self.get_finished_desc())
         return result
 
     def cancel(self):
@@ -176,3 +182,6 @@ class ConnectionObserver(object):
 
     def get_start_desc(self):
         return "Observer '{}.{}' started.".format(self.__class__.__module__, self.__class__.__name__)
+
+    def get_finished_desc(self):
+        return "Observer '{}.{}' finished.".format(self.__class__.__module__, self.__class__.__name__)
