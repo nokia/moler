@@ -125,10 +125,18 @@ class Connection(object):
             return False
         return self.logger.name == "moler.connection.{}".format(self._name)
 
+    def _strip_data(self, data):
+        if type(data) is str:
+            data = data.strip()
+        else:
+            data
+
+        return data
+
     def send(self, data, timeout=30):  # TODO: should timeout be property of IO? We timeout whole connection-observer.
         """Outgoing-IO API: Send data over external-IO."""
         self._log_data(msg=data, level=logging.INFO, extra={'transfer_direction': '>'})
-        self.main_logger.log(level=logging.INFO, msg=lambda data: data.strip() or data,
+        self.main_logger.log(level=logging.INFO, msg=self._strip_data(data),
                              extra={'transfer_direction': '>', 'con_name': self.name})
         data2send = self.encode(data)
         self._log_data(msg=data2send, level=RAW_DATA, extra={'transfer_direction': '>'})
