@@ -39,6 +39,7 @@ class ConnectionObserver(object):
         self._future = None
         self.timeout = 7
         self.logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
+        self.main_logger = logging.getLogger('moler')
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
@@ -75,7 +76,7 @@ class ConnectionObserver(object):
         self._validate_start(*args, **kwargs)
         self._is_running = True
         self._future = self.runner.submit(self)
-        self.logger.log(logging.INFO, self.get_start_desc())
+        self.main_logger.log(logging.INFO, self.get_start_desc(), extra={'con_name': self.get_logger_name()})
         return self
 
     def _validate_start(self, *args, **kwargs):
@@ -105,7 +106,7 @@ class ConnectionObserver(object):
         result = self.runner.wait_for(connection_observer=self, connection_observer_future=self._future,
                                       timeout=timeout)
 
-        self.logger.log(logging.INFO, self.get_finished_desc())
+        self.main_logger.log(logging.INFO, self.get_finished_desc(), extra={'con_name': self.get_logger_name()})
         return result
 
     def cancel(self):
@@ -149,10 +150,11 @@ class ConnectionObserver(object):
         """Should be used to indicate some failure during observation"""
         self._is_done = True
         self._exception = exception
-        self.logger.log(logging.INFO,
-                        "'{}.{}' has set exception '{}.{}'.".format(self.__class__.__module__, self.__class__.__name__,
-                                                                    exception.__class__.__module__,
-                                                                    exception.__class__.__name__))
+        self.main_logger.log(logging.INFO,
+                             "'{}.{}' has set exception '{}.{}'.".format(self.__class__.__module__,
+                                                                         self.__class__.__name__,
+                                                                         exception.__class__.__module__,
+                                                                         exception.__class__.__name__))
 
     def result(self):
         """Retrieve final result of connection-observer"""
@@ -173,7 +175,7 @@ class ConnectionObserver(object):
         self.timeout = self.timeout + timedelta
         msg = "Extended timeout from %.2f with delta %.2f to %.2f" % (prev_timeout, timedelta, self.timeout)
         self.runner.timeout_change(timedelta)
-        self.logger.info(msg)
+        self.main_logger.info(msg)
 
     @ClassProperty
     def observer_name(cls):

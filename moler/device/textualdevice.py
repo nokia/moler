@@ -4,10 +4,11 @@ Moler's device has 2 main responsibilities:
 - be the factory that returns commands of that device
 - be the state machine that controls which commands may run in given state
 """
+import logging
 import traceback
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
-from moler.config.loggers import configure_connection_logger, configure_device_logger
+from moler.config.loggers import configure_connection_logger
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -45,7 +46,6 @@ class TextualDevice(object):
         :param variant: connection implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
                         (if not given then default one is taken)
         """
-        self.logger = configure_device_logger(device_name=name)
         self.states = []
         self.goto_states_triggers = []
         # Below line will modify self extending it with methods and atributes od StateMachine
@@ -72,7 +72,8 @@ class TextualDevice(object):
             self.io_connection = get_connection(io_type=io_type, variant=variant)
 
         self.io_connection.moler_connection.name = self.name
-        self.configure_connection_logger(name=self.name)
+        self.logger = logging.getLogger('moler.{}'.format(self.name))
+        self.configure_connection_logger(name=self.name, propagate=False)
         self.io_connection.notify(callback=self.on_connection_made, when="connection_made")
         # TODO: Need test to ensure above sentence for all connection
         self.io_connection.open()
@@ -100,9 +101,9 @@ class TextualDevice(object):
                 command_timeout = configuration_timeout
         return command_timeout
 
-    def configure_connection_logger(self, name):
+    def configure_connection_logger(self, name, propagate):
         if not self._connection_data_logger:
-            self._connection_data_logger = configure_connection_logger(connection_name=name)
+            self._connection_data_logger = configure_connection_logger(connection_name=name, propagate=propagate)
 
         self.io_connection.moler_connection.add_data_logger(self._connection_data_logger)
 
@@ -160,7 +161,7 @@ class TextualDevice(object):
 
     def _set_state(self, state):
         if self.current_state != state:
-            self.logger.debug("Changing state from '%s' into '%s'" % (self.current_state, state))
+            self.logger.info("Changed state from '%s' into '%s'" % (self.current_state, state))
             self.SM.set_state(state=state)
 
     def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False):
@@ -446,6 +447,7 @@ class TextualDevice(object):
     def _stop_prompts_observers(self):
         for prompt_observer in self._prompts_events:
             prompt_observer.cancel()
+            prompt_observer.remove_event_occurred_callback()
 
     def build_trigger_to_state(self, state):
         trigger = "GOTO_{}".format(state)

@@ -107,9 +107,14 @@ def load_logger_from_config(config):
             log_cfg.set_logging_path(config['LOGGER']['PATH'])
         if 'RAW_LOG' in config['LOGGER']:
             if config['LOGGER']['RAW_LOG'] is True:
+                os.environ['MOLER_DEBUG_LEVEL'] = 'RAW_DATA'
                 log_cfg.configure_debug_level()
-        if 'DATA_FORMAT' in config['LOGGER']:
-            log_cfg.set_date_format(config['LOGGER']['DATA_FORMAT'])
+        if 'TRACE' in config['LOGGER']:
+            if config['LOGGER']['TRACE'] is True:
+                log_cfg.configure_trace_level()
+        if 'DATE_FORMAT' in config['LOGGER']:
+            log_cfg.set_date_format(config['LOGGER']['DATE_FORMAT'])
+
         log_cfg.configure_moler_main_logger()
 
 

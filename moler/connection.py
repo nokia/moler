@@ -63,6 +63,7 @@ class Connection(object):
         self._name = self._use_or_generate_name(name)
         self.newline = newline
         self.logger = self._select_logger(logger_name, self._name)
+        self.main_logger = logging.getLogger('moler')
 
     @property
     def name(self):
@@ -127,6 +128,8 @@ class Connection(object):
     def send(self, data, timeout=30):  # TODO: should timeout be property of IO? We timeout whole connection-observer.
         """Outgoing-IO API: Send data over external-IO."""
         self._log_data(msg=data, level=logging.INFO, extra={'transfer_direction': '>'})
+        self.main_logger.log(level=logging.INFO, msg=lambda data: data.strip() or data,
+                             extra={'transfer_direction': '>', 'con_name': self.name})
         data2send = self.encode(data)
         self._log_data(msg=data2send, level=RAW_DATA, extra={'transfer_direction': '>'})
         self.how2send(data2send)
@@ -216,7 +219,7 @@ class ObservableConnection(Connection):
         else:
             # bytes or ascii log
             encoded_for_log = decoded_data
-        self._log_data(msg=encoded_for_log, level=logging.DEBUG, extra={'transfer_direction': '<'})
+        self._log_data(msg=encoded_for_log, level=logging.INFO, extra={'transfer_direction': '<'})
 
         self.notify_observers(decoded_data)
 
