@@ -25,14 +25,13 @@ def test_sftp_returns_proper_command_string_user(buffer_connection):
 
 def test_sftp_returns_proper_command_string_pathname(buffer_connection):
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host="myhost.com", user="fred",
-                    pathname="/home/fred/homework.txt", prompt=None, new_line_chars=None)
+                    pathname="/home/fred/homework.txt")
     assert "sftp fred@myhost.com:/home/fred/homework.txt" == sftp_cmd.command_string
 
 
 def test_sftp_returns_proper_command_string_new_pathname(buffer_connection):
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host="myhost.com", user="fred",
-                    pathname="/home/fred/homework.txt", new_pathname="/home/vivi/new_homework.txt", prompt=None,
-                    new_line_chars=None)
+                    pathname="/home/fred/homework.txt", new_pathname="/home/vivi/new_homework.txt")
     assert "sftp fred@myhost.com:/home/fred/homework.txt /home/vivi/new_homework.txt" == sftp_cmd.command_string
 
 
@@ -40,7 +39,7 @@ def test_sftp_raises_command_error(buffer_connection):
     command_output, expected_result = command_output_and_expected_result_command()
     buffer_connection.remote_inject_response([command_output])
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', pathname='cat',
-                    new_pathname='/home/xyz/Docs/cat', prompt=None, new_line_chars=None)
+                    new_pathname='/home/xyz/Docs/cat')
     with pytest.raises(CommandFailure):
         sftp_cmd()
 
@@ -49,7 +48,7 @@ def test_sftp_raises_file_error(buffer_connection):
     command_output, expected_result = command_output_and_expected_result_file()
     buffer_connection.remote_inject_response([command_output])
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', pathname='dog',
-                    new_pathname='/home/xyz/Docs/dog', prompt=None, new_line_chars=None)
+                    new_pathname='/home/xyz/Docs/dog')
     with pytest.raises(CommandFailure):
         sftp_cmd()
 
