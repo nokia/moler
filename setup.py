@@ -8,6 +8,9 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
+with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
+    requires = f.read().splitlines()
+
 setup(
     name='moler',  # Required
     version='0.0.1',  # Required
@@ -63,12 +66,7 @@ setup(
     #
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=[
-        'futures >= 3.0.0; python_version == "2.7"',
-        'ptyprocess',
-        'pyyaml',
-        'six',
-        'transitions'],  # Optional
+    install_requires=requires,  # Optional
 
     project_urls={  # Optional
         'Bug Reports': 'https://github.com/nokia/moler/issues',
