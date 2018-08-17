@@ -48,6 +48,7 @@ class Sftp(GenericUnixCommand):
                 self._confirm_connection(line)
                 self._send_password(line)
                 self._authentication_failure(line)
+                self._file_error(line)
                 self._parse_line(line)
             except ParsingDone:
                 pass
@@ -83,6 +84,16 @@ class Sftp(GenericUnixCommand):
             self.set_exception(CommandFailure(self, "ERROR: {msg}".format(msg=auth if auth else perm)))
             raise ParsingDone
 
+    _re_file_error = re.compile(r"(?P<NOT_FOUND>File.*not\sfound.*)|"
+                                r"(?P<NO_FILE>.*No\ssuch\sfile\sor\sdirectory.*)", re.I)
+
+    def _file_error(self, line):
+        if self._regex_helper.search_compiled(Sftp._re_file_error, line):
+            not_found = self._regex_helper.group("NOT_FOUND")
+            no_file = self._regex_helper.group("NO_FILE")
+            self.set_exception(CommandFailure(self, "ERROR: {msg}".format(msg=not_found if not_found else no_file)))
+            raise ParsingDone
+
     def _parse_line(self, line):
         self.current_ret['RESULT'].append(line)
         raise ParsingDone
@@ -96,7 +107,7 @@ Warning: Permanently added '192.168.0.102' (ECDSA) to the list of known hosts.
 fred@192.168.0.102's password: 
 Connected to 192.168.0.102.
 Fetching /upload/cat to /home/xyz/Docs/cat
-/upload/cat                                   100%   23    34.4KB/s   00:00    
+/upload/cat                                   100%   23    34.4KB/s   00:00
 xyz@debian:/home$"""
 COMMAND_KWARGS = {
     'host': '192.168.0.102',
@@ -106,25 +117,10 @@ COMMAND_KWARGS = {
     'password': '1234'
 }
 COMMAND_RESULT = {
-    'RESULT': []
-}
-
-
-COMMAND_OUTPUT_auth_fail = """xyz@debian:/home$ sftp fred@192.168.0.102:cat /home/xyz/Docs/cat
-fred@192.168.0.102's password: 
-Permission denied, please try again.
-fred@192.168.0.102's password: 
-Permission denied, please try again.
-fred@192.168.0.102's password: 
-Permission denied (publickey,password).
-Couldn't read packet: Connection reset by peer   
-xyz@debian:/home$"""
-COMMAND_KWARGS_auth_fail = {
-    'host': '192.168.0.102',
-    'user': 'fred',
-    'pathname': 'cat',
-    'new_pathname': '/home/xyz/Docs/cat'
-}
-COMMAND_RESULT_auth_fail = {
-    'RESULT': []
+    'RESULT': ["The authenticity of host '192.168.0.102 (192.168.0.102)' can't be established.",
+               "ECDSA key fingerprint is SHA256:ghQ3iy/gH4YTqZOggql1eJCe3EETOOpn5yANJwFeRt0.",
+               "Warning: Permanently added '192.168.0.102' (ECDSA) to the list of known hosts.",
+               "Connected to 192.168.0.102.",
+               "Fetching /upload/cat to /home/xyz/Docs/cat",
+               "/upload/cat                                   100%   23    34.4KB/s   00:00"]
 }
