@@ -8,7 +8,7 @@ __email__ = 'agnieszka.bylica@nokia.com'
 
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
-# from moler.exceptions import CommandFailure
+from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 import re
 
@@ -47,13 +47,14 @@ class Sftp(GenericUnixCommand):
             try:
                 self._confirm_connection(line)
                 self._send_password(line)
+                self._authentication_failure(line)
                 self._parse_line(line)
             except ParsingDone:
                 pass
 
         super(Sftp, self).on_new_line(line, is_full_line)
 
-    _re_confirm_connection = re.compile(r"Are\syou\ssure\syou\swant\sto\scontinue\sconnecting\s\(yes/no\)\?", re.IGNORECASE)
+    _re_confirm_connection = re.compile(r"Are\syou\ssure\syou\swant\sto\scontinue\sconnecting\s\(yes/no\)\?", re.I)
 
     def _confirm_connection(self, line):
         if self._regex_helper.search_compiled(Sftp._re_confirm_connection, line):
@@ -68,6 +69,18 @@ class Sftp(GenericUnixCommand):
     def _send_password(self, line):
         if self._regex_helper.search_compiled(Sftp._re_password, line):
             self.connection.sendline(self.password)
+            raise ParsingDone
+
+    _re_resend_password = re.compile(r"(?P<RESEND>Permission\sdenied,\splease\stry\sagain)", re.I)
+    _re_authentication = re.compile(r"(?P<AUTH>Authentication\sfailed.*)|(?P<PERM>Permission\sdenied\s.*)", re.I)
+
+    def _authentication_failure(self, line):
+        if self._regex_helper.search_compiled(Sftp._re_resend_password, line):
+            raise ParsingDone
+        elif self._regex_helper.search_compiled(Sftp._re_authentication, line):
+            auth = self._regex_helper.group("AUTH")
+            perm = self._regex_helper.group("PERM")
+            self.set_exception(CommandFailure(self, "ERROR: {msg}".format(msg=auth if auth else perm)))
             raise ParsingDone
 
     def _parse_line(self, line):
@@ -93,5 +106,25 @@ COMMAND_KWARGS = {
     'password': '1234'
 }
 COMMAND_RESULT = {
+    'RESULT': []
+}
+
+
+COMMAND_OUTPUT_auth_fail = """xyz@debian:/home$ sftp fred@192.168.0.102:cat /home/xyz/Docs/cat
+fred@192.168.0.102's password: 
+Permission denied, please try again.
+fred@192.168.0.102's password: 
+Permission denied, please try again.
+fred@192.168.0.102's password: 
+Permission denied (publickey,password).
+Couldn't read packet: Connection reset by peer   
+xyz@debian:/home$"""
+COMMAND_KWARGS_auth_fail = {
+    'host': '192.168.0.102',
+    'user': 'fred',
+    'pathname': 'cat',
+    'new_pathname': '/home/xyz/Docs/cat'
+}
+COMMAND_RESULT_auth_fail = {
     'RESULT': []
 }
