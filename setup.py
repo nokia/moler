@@ -63,11 +63,12 @@ setup(
     #
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['futures',
-                      'ptyprocess',
-                      'pyyaml',
-                      'six',
-                      'transitions'],  # Optional
+    install_requires=[
+        'futures >= 3.0.0; python_version == "2.7"',
+        'ptyprocess',
+        'pyyaml',
+        'six',
+        'transitions'],  # Optional
 
     project_urls={  # Optional
         'Bug Reports': 'https://github.com/nokia/moler/issues',
