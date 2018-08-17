@@ -19,6 +19,7 @@ setup(
     long_description_content_type='text/markdown',  # Optional (see note above)
     url='https://github.com/nokia/moler',  # Optional
     author='Nokia',  # Optional
+    license='BSD 3-Clause',
     classifiers=[  # Optional
         'Development Status :: 3 - Alpha',
 
