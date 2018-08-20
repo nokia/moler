@@ -49,7 +49,7 @@ class Socat(GenericUnixCommand):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG"))))
             raise ParsingDone
 
-    _re_info = re.compile(r'.* socat\[\d*\]\s(?P<INFO_MSG>[N|W|I|D].*)')
+    _re_info = re.compile(r'.* socat\[\d*\]\s(?P<INFO_MSG>[NWID].*)')
 
     def _parse_info_msg(self, line):
         if self._regex_helper.search_compiled(Socat._re_info, line):
