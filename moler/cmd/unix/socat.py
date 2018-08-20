@@ -49,7 +49,7 @@ class Socat(GenericUnixCommand):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG"))))
             raise ParsingDone
 
-    _re_info = re.compile(r'.* socat\[\d*\]\s[N|W|I|D]\s(?P<INFO_MSG>.*)')
+    _re_info = re.compile(r'.* socat\[\d*\]\s(?P<INFO_MSG>[N|W|I|D].*)')
 
     def _parse_info_msg(self, line):
         if self._regex_helper.search_compiled(Socat._re_info, line):
@@ -76,8 +76,8 @@ COMMAND_KWARGS_info_output = {
 }
 
 COMMAND_RESULT_info_output = {
-    'RESULT': [{'OUTPUT': [], 'INFO': ['PTY is /dev/pts/2', 'PTY is /dev/pts/4',
-               'starting data transfer loop with FDs [5,5] and [7,7]']}]
+    'RESULT': [{'OUTPUT': [], 'INFO': ['N PTY is /dev/pts/2', 'N PTY is /dev/pts/4',
+               'N starting data transfer loop with FDs [5,5] and [7,7]']}]
 }
 
 
@@ -93,4 +93,24 @@ COMMAND_KWARGS_basic_output = {
 
 COMMAND_RESULT_basic_output = {
     'RESULT': [{'OUTPUT': ['Mon Aug 20 10:37:14 CEST 2018'], 'INFO': []}]
+}
+
+
+COMMAND_OUTPUT_both_types = """
+xyz@debian:~$ socat -d - EXEC:'ssh -l userName server1.nixcraft.net.in',pty,setsid,ctty
+2018/08/20 11:14:46 socat[31539] W open("/dev/tty", O_NOCTTY, 0640): No such device or address
+ssh: Could not resolve hostname server1.nixcraft.net.in: Name or service not known
+2018/08/20 11:14:46 socat[31538] W waitpid(): child 31539 exited with status 255
+xyz@debian:~$"""
+
+COMMAND_KWARGS_both_types = {
+    'options': '-d',
+    'input_options': '-',
+    'output_options': "EXEC:'ssh -l userName server1.nixcraft.net.in',pty,setsid,ctty"
+}
+
+COMMAND_RESULT_both_types = {
+    'RESULT': [{'OUTPUT': ['ssh: Could not resolve hostname server1.nixcraft.net.in: Name or service not known'],
+                'INFO': ['W open("/dev/tty", O_NOCTTY, 0640): No such device or address',
+                         'W waitpid(): child 31539 exited with status 255']}]
 }
