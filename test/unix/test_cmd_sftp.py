@@ -34,8 +34,8 @@ def test_sftp_returns_proper_command_string_new_pathname(buffer_connection):
     assert "sftp fred@myhost.com:/home/fred/homework.txt /home/vivi/new_homework.txt" == sftp_cmd.command_string
 
 
-def test_sftp_raises_command_error(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_command()
+def test_sftp_raises_authentication_failure(buffer_connection):
+    command_output, expected_result = command_output_and_expected_result_authentication_failure()
     buffer_connection.remote_inject_response([command_output])
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', pathname='cat',
                     new_pathname='/home/xyz/Docs/cat')
@@ -62,7 +62,7 @@ def test_sftp_raises_file_error_no_such_file(buffer_connection):
 
 
 @pytest.fixture
-def command_output_and_expected_result_command():
+def command_output_and_expected_result_authentication_failure():
     data = """xyz@debian:/home$ sftp fred@192.168.0.102:cat /home/xyz/Docs/cat
 fred@192.168.0.102's password:
 Permission denied, please try again.
