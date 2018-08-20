@@ -147,12 +147,12 @@ COMMAND_RESULT = {
 
 
 COMMAND_OUTPUT_prompt = """xyz@debian:/home$ sftp fred@192.168.0.102
-fred@192.168.0.102's password: 
+fred@192.168.0.102's password:
 Connected to 192.168.0.102.
-sftp> 
+sftp>
 sftp> pwd
 Remote working directory: /upload
-sftp> 
+sftp>
 sftp> exit
 xyz@debian:/home$"""
 COMMAND_KWARGS_prompt = {
