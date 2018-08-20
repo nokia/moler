@@ -14,24 +14,27 @@ import re
 
 
 class Sftp(GenericUnixCommand):
-    def __init__(self, connection, host, user="", password="", pathname=None, new_pathname=None, batch_file=None,
-                 confirm_connection=True, prompt=None, new_line_chars=None):
+    def __init__(self, connection, host, user="", password="", pathname=None, new_pathname=None, options=None,
+                 confirm_connection=True, command=None, prompt=None, new_line_chars=None):
         super(Sftp, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
         self.host = host
         self.user = user
         self.password = password
-        self.confirm_connection = confirm_connection
-        # For command without interactive session: pathname or batch_file should be obligatory
         self.pathname = pathname
         self.new_pathname = new_pathname
-        self.batch_file = batch_file
+        self.confirm_connection = confirm_connection
+
+        self.options = options
+
+        self.command = command
+        self.ready_to_parse_line = False
         self.current_ret['RESULT'] = list()
 
     def build_command_string(self):
         cmd = "sftp"
-        if self.batch_file:
-            cmd = "{} -b {}".format(cmd, self.batch_file)
+        if self.options:
+            cmd = "{} {}".format(cmd, self.options)
         if self.user:
             cmd = "{} {}@{}".format(cmd, self.user, self.host)
         else:
@@ -49,6 +52,8 @@ class Sftp(GenericUnixCommand):
                 self._send_password(line)
                 self._authentication_failure(line)
                 self._file_error(line)
+                self._check_if_connected(line)
+                self._send_command_if_prompt(line)
                 self._parse_line(line)
             except ParsingDone:
                 pass
@@ -72,6 +77,29 @@ class Sftp(GenericUnixCommand):
             self.connection.sendline(self.password)
             raise ParsingDone
 
+    _re_connected = re.compile(r"Connected\sto\s.+", re.I)
+
+    def _check_if_connected(self, line):
+        if self._regex_helper.search_compiled(Sftp._re_connected, line):
+            self.ready_to_parse_line = True
+            raise ParsingDone
+
+    _re_prompt = re.compile(r"sftp>", re.I)
+
+    def _send_command_if_prompt(self, line):
+        if self.command and self._regex_helper.search_compiled(Sftp._re_prompt, line):
+            self.connection.sendline(self.command)
+            self.command = None
+            raise ParsingDone
+        elif not self.command and self._regex_helper.search_compiled(Sftp._re_prompt, line):
+            self.connection.sendline("exit")
+            raise ParsingDone
+
+    def _parse_line(self, line):
+        if self.ready_to_parse_line:
+            self.current_ret['RESULT'].append(line)
+        raise ParsingDone
+
     _re_resend_password = re.compile(r"(?P<RESEND>Permission\sdenied,\splease\stry\sagain)", re.I)
     _re_authentication = re.compile(r"(?P<AUTH>Authentication\sfailed.*)|(?P<PERM>Permission\sdenied\s.*)", re.I)
 
@@ -94,10 +122,6 @@ class Sftp(GenericUnixCommand):
             self.set_exception(CommandFailure(self, "ERROR: {msg}".format(msg=not_found if not_found else no_file)))
             raise ParsingDone
 
-    def _parse_line(self, line):
-        self.current_ret['RESULT'].append(line)
-        raise ParsingDone
-
 
 COMMAND_OUTPUT = """xyz@debian:/home$ sftp fred@192.168.0.102:cat /home/xyz/Docs/cat
 The authenticity of host '192.168.0.102 (192.168.0.102)' can't be established.
@@ -117,10 +141,25 @@ COMMAND_KWARGS = {
     'password': '1234'
 }
 COMMAND_RESULT = {
-    'RESULT': ["The authenticity of host '192.168.0.102 (192.168.0.102)' can't be established.",
-               "ECDSA key fingerprint is SHA256:ghQ3iy/gH4YTqZOggql1eJCe3EETOOpn5yANJwFeRt0.",
-               "Warning: Permanently added '192.168.0.102' (ECDSA) to the list of known hosts.",
-               "Connected to 192.168.0.102.",
-               "Fetching /upload/cat to /home/xyz/Docs/cat",
+    'RESULT': ["Fetching /upload/cat to /home/xyz/Docs/cat",
                "/upload/cat                                   100%   23    34.4KB/s   00:00"]
+}
+
+
+COMMAND_OUTPUT_prompt = """xyz@debian:/home$ sftp fred@192.168.0.102
+fred@192.168.0.102's password: 
+Connected to 192.168.0.102.
+sftp> 
+sftp> pwd
+Remote working directory: /upload
+sftp> 
+sftp> exit
+xyz@debian:/home$"""
+COMMAND_KWARGS_prompt = {
+    'host': '192.168.0.102',
+    'user': 'fred',
+    'password': '1234'
+}
+COMMAND_RESULT_prompt = {
+    'RESULT': ["Remote working directory: /upload"]
 }
