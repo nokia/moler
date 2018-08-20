@@ -14,7 +14,7 @@ import re
 
 
 class Socat(GenericUnixCommand):
-    def __init__(self, connection, input_options, output_options, options=None):
+    def __init__(self, connection, input_options=None, output_options=None, options=None):
         super(Socat, self).__init__(connection=connection)
         self.input_options = input_options
         self.output_options = output_options
@@ -58,7 +58,7 @@ class Socat(GenericUnixCommand):
             raise ParsingDone
 
     def _parse_output(self, line):
-        self.current_ret['RESULT'][0]['OUTPUT'].append(line)
+        self.current_ret['RESULT'][0]['OUTPUT'].append(line.strip())
         raise ParsingDone
 
 
@@ -113,4 +113,37 @@ COMMAND_RESULT_both_types = {
     'RESULT': [{'OUTPUT': ['ssh: Could not resolve hostname server1.nixcraft.net.in: Name or service not known'],
                 'INFO': ['W open("/dev/tty", O_NOCTTY, 0640): No such device or address',
                          'W waitpid(): child 31539 exited with status 255']}]
+}
+
+
+COMMAND_OUTPUT_version = """
+xyz@debian:~$ socat -V
+socat by Gerhard Rieger - see www.dest-unreach.org
+socat version 1.7.3.1 on Jul 14 2017 13:52:03
+   running on Linux version #1 SMP Debian 4.9.88-1+deb9u1 (2018-05-07), release 4.9.0-6-amd64, machine x86_64
+features:
+  #define WITH_STDIO 1
+  #define WITH_FDNUM 1
+  #define WITH_FILE 1
+  #define WITH_CREAT 1
+  #define WITH_GOPEN 1
+  #define WITH_TERMIOS 1
+  #define WITH_PIPE 1
+  #undef WITH_READLINE
+  #define WITH_MSGLEVEL 0 /*debug*/
+xyz@debian:~$"""
+
+COMMAND_KWARGS_version = {
+    'options': '-V'
+}
+
+COMMAND_RESULT_version = {
+    'RESULT': [{'OUTPUT': ['socat by Gerhard Rieger - see www.dest-unreach.org',
+                           'socat version 1.7.3.1 on Jul 14 2017 13:52:03',
+                           'running on Linux version #1 SMP Debian 4.9.88-1+deb9u1 (2018-05-07), release 4.9.0-6-amd64,'
+                           ' machine x86_64', 'features:', '#define WITH_STDIO 1', '#define WITH_FDNUM 1',
+                           '#define WITH_FILE 1', '#define WITH_CREAT 1', '#define WITH_GOPEN 1',
+                           '#define WITH_TERMIOS 1', '#define WITH_PIPE 1', '#undef WITH_READLINE',
+                           '#define WITH_MSGLEVEL 0 /*debug*/'],
+                'INFO': []}]
 }
