@@ -14,21 +14,22 @@ import re
 
 
 class Sftp(GenericUnixCommand):
-    def __init__(self, connection, host, user="", password="", pathname=None, new_pathname=None, options=None,
-                 confirm_connection=True, command=None, prompt=None, new_line_chars=None):
+    def __init__(self, connection, host, user="", password="", confirm_connection=True, pathname=None,
+                 new_pathname=None, options=None, command=None, prompt=None, new_line_chars=None):
         super(Sftp, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
         self.host = host
         self.user = user
         self.password = password
+        self.confirm_connection = confirm_connection
+        self.ready_to_parse_line = False
+
         self.pathname = pathname
         self.new_pathname = new_pathname
-        self.confirm_connection = confirm_connection
 
         self.options = options
-
         self.command = command
-        self.ready_to_parse_line = False
+
         self.current_ret['RESULT'] = list()
 
     def build_command_string(self):
@@ -52,6 +53,7 @@ class Sftp(GenericUnixCommand):
                 self._send_password(line)
                 self._authentication_failure(line)
                 self._file_error(line)
+                self._connection_error(line)
                 self._check_if_connected(line)
                 self._send_command_if_prompt(line)
                 self._parse_line(line)
@@ -122,6 +124,12 @@ class Sftp(GenericUnixCommand):
             self.set_exception(CommandFailure(self, "ERROR: {msg}".format(msg=not_found if not_found else no_file)))
             raise ParsingDone
 
+    _re_connection_error = re.compile(r"(?P<CONNECTION>Couldn't\sread\spacket:\sConnection\sreset\sby\speer)", re.I)
+
+    def _connection_error(self, line):
+        if self._regex_helper.search_compiled(Sftp._re_connection_error, line):
+            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("CONNECTION"))))
+
 
 COMMAND_OUTPUT = """xyz@debian:/home$ sftp fred@192.168.0.102:cat /home/xyz/Docs/cat
 The authenticity of host '192.168.0.102 (192.168.0.102)' can't be established.
@@ -133,6 +141,7 @@ Connected to 192.168.0.102.
 Fetching /upload/cat to /home/xyz/Docs/cat
 /upload/cat                                   100%   23    34.4KB/s   00:00
 xyz@debian:/home$"""
+
 COMMAND_KWARGS = {
     'host': '192.168.0.102',
     'user': 'fred',
@@ -155,11 +164,56 @@ Remote working directory: /upload
 sftp>
 sftp> exit
 xyz@debian:/home$"""
+
 COMMAND_KWARGS_prompt = {
     'host': '192.168.0.102',
     'user': 'fred',
-    'password': '1234'
+    'password': '1234',
+    'command': 'pwd'
 }
 COMMAND_RESULT_prompt = {
     'RESULT': ["Remote working directory: /upload"]
+}
+
+
+COMMAND_OUTPUT_upload = """xyz@debian:/home$ sftp fred@192.168.0.102
+fred@192.168.0.102's password:
+Connected to 10.0.2.15.
+sftp>
+Uploading /home/xyz/Docs/echo/special_chars.py to /upload/special_chars.py
+/home/xyz/Docs/echo/special_chars.py         100%   95   377.2KB/s   00:00
+sftp>
+xyz@debian:/home$"""
+
+COMMAND_KWARGS_upload = {
+    'host': '192.168.0.102',
+    'user': 'fred',
+    'password': '1234',
+    'command': 'put /home/xyz/Docs/echo/special_chars.py'
+}
+COMMAND_RESULT_upload = {
+    'RESULT': ["Uploading /home/xyz/Docs/echo/special_chars.py to /upload/special_chars.py",
+               "/home/xyz/Docs/echo/special_chars.py         100%   95   377.2KB/s   00:00"]
+}
+
+
+COMMAND_OUTPUT_no_result = """xyz@debian:/home$ sftp fred@192.168.0.102
+fred@192.168.0.102's password:
+Permission denied, please try again.
+fred@192.168.0.102's password:
+Connected to 192.168.0.102.
+sftp>
+sftp> mkdir animals
+sftp>
+sftp> exit
+xyz@debian:/home$"""
+
+COMMAND_KWARGS_no_result = {
+    'host': '192.168.0.102',
+    'user': 'fred',
+    'password': '1234',
+    'command': 'mkdir animals'
+}
+COMMAND_RESULT_no_result = {
+    'RESULT': []
 }
