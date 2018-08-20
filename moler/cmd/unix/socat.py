@@ -20,7 +20,7 @@ class Socat(GenericUnixCommand):
         self.output_options = output_options
         self.options = options
         self.current_ret['RESULT'] = list()
-        self.current_ret['RESULT'].extend([{'OUTPUT': list(), 'INFO': list()}])
+        self.current_ret['INFO'] = list()
 
     def build_command_string(self):
         cmd = 'socat'
@@ -54,11 +54,11 @@ class Socat(GenericUnixCommand):
     def _parse_info_msg(self, line):
         if self._regex_helper.search_compiled(Socat._re_info, line):
             info_msg = self._regex_helper.group("INFO_MSG")
-            self.current_ret['RESULT'][0]['INFO'].append(info_msg)
+            self.current_ret['INFO'].append(info_msg)
             raise ParsingDone
 
     def _parse_output(self, line):
-        self.current_ret['RESULT'][0]['OUTPUT'].append(line.strip())
+        self.current_ret['RESULT'].append(line.strip())
         raise ParsingDone
 
 
@@ -76,8 +76,8 @@ COMMAND_KWARGS_info_output = {
 }
 
 COMMAND_RESULT_info_output = {
-    'RESULT': [{'OUTPUT': [], 'INFO': ['N PTY is /dev/pts/2', 'N PTY is /dev/pts/4',
-               'N starting data transfer loop with FDs [5,5] and [7,7]']}]
+    'RESULT': [],
+    'INFO': ['N PTY is /dev/pts/2', 'N PTY is /dev/pts/4', 'N starting data transfer loop with FDs [5,5] and [7,7]']
 }
 
 
@@ -92,7 +92,8 @@ COMMAND_KWARGS_basic_output = {
 }
 
 COMMAND_RESULT_basic_output = {
-    'RESULT': [{'OUTPUT': ['Mon Aug 20 10:37:14 CEST 2018'], 'INFO': []}]
+    'RESULT': ['Mon Aug 20 10:37:14 CEST 2018'],
+    'INFO': []
 }
 
 
@@ -110,9 +111,9 @@ COMMAND_KWARGS_both_types = {
 }
 
 COMMAND_RESULT_both_types = {
-    'RESULT': [{'OUTPUT': ['ssh: Could not resolve hostname server1.nixcraft.net.in: Name or service not known'],
-                'INFO': ['W open("/dev/tty", O_NOCTTY, 0640): No such device or address',
-                         'W waitpid(): child 31539 exited with status 255']}]
+    'RESULT': ['ssh: Could not resolve hostname server1.nixcraft.net.in: Name or service not known'],
+    'INFO': ['W open("/dev/tty", O_NOCTTY, 0640): No such device or address',
+             'W waitpid(): child 31539 exited with status 255']
 }
 
 
@@ -138,12 +139,10 @@ COMMAND_KWARGS_version = {
 }
 
 COMMAND_RESULT_version = {
-    'RESULT': [{'OUTPUT': ['socat by Gerhard Rieger - see www.dest-unreach.org',
-                           'socat version 1.7.3.1 on Jul 14 2017 13:52:03',
-                           'running on Linux version #1 SMP Debian 4.9.88-1+deb9u1 (2018-05-07), release 4.9.0-6-amd64,'
-                           ' machine x86_64', 'features:', '#define WITH_STDIO 1', '#define WITH_FDNUM 1',
-                           '#define WITH_FILE 1', '#define WITH_CREAT 1', '#define WITH_GOPEN 1',
-                           '#define WITH_TERMIOS 1', '#define WITH_PIPE 1', '#undef WITH_READLINE',
-                           '#define WITH_MSGLEVEL 0 /*debug*/'],
-                'INFO': []}]
+    'RESULT': ['socat by Gerhard Rieger - see www.dest-unreach.org','socat version 1.7.3.1 on Jul 14 2017 13:52:03',
+               'running on Linux version #1 SMP Debian 4.9.88-1+deb9u1 (2018-05-07), release 4.9.0-6-amd64,'
+               ' machine x86_64', 'features:', '#define WITH_STDIO 1', '#define WITH_FDNUM 1', '#define WITH_FILE 1',
+               '#define WITH_CREAT 1', '#define WITH_GOPEN 1', '#define WITH_TERMIOS 1', '#define WITH_PIPE 1',
+               '#undef WITH_READLINE', '#define WITH_MSGLEVEL 0 /*debug*/'],
+    'INFO': []
 }
