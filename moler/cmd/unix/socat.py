@@ -25,11 +25,11 @@ class Socat(GenericUnixCommand):
     def build_command_string(self):
         cmd = 'socat'
         if self.options:
-            cmd = cmd+' '+self.options
+            cmd = cmd + ' ' + self.options
         if self.input_options:
-            cmd = cmd+' '+self.input_options
+            cmd = cmd + ' ' + self.input_options
         if self.output_options:
-            cmd = cmd+' '+self.output_options
+            cmd = cmd + ' ' + self.output_options
         return cmd
 
     def on_new_line(self, line, is_full_line):
