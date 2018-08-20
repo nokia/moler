@@ -139,7 +139,7 @@ COMMAND_KWARGS_version = {
 }
 
 COMMAND_RESULT_version = {
-    'RESULT': ['socat by Gerhard Rieger - see www.dest-unreach.org','socat version 1.7.3.1 on Jul 14 2017 13:52:03',
+    'RESULT': ['socat by Gerhard Rieger - see www.dest-unreach.org', 'socat version 1.7.3.1 on Jul 14 2017 13:52:03',
                'running on Linux version #1 SMP Debian 4.9.88-1+deb9u1 (2018-05-07), release 4.9.0-6-amd64,'
                ' machine x86_64', 'features:', '#define WITH_STDIO 1', '#define WITH_FDNUM 1', '#define WITH_FILE 1',
                '#define WITH_CREAT 1', '#define WITH_GOPEN 1', '#define WITH_TERMIOS 1', '#define WITH_PIPE 1',
