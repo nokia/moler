@@ -148,6 +148,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             if check_timeout_from_observer:
                 timeout = connection_observer.timeout
             remain_time = timeout - (time.time() - start_time)
+        moler_conn = connection_observer.connection
+        moler_conn.unsubscribe(connection_observer.data_received)
         passed = time.time() - start_time
         self.logger.debug("timeouted {}".format(connection_observer))
         connection_observer.cancel()
