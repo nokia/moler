@@ -14,7 +14,7 @@ import re
 
 
 class Sftp(GenericUnixCommand):
-    def __init__(self, connection, host, user="", password="", confirm_connection=True, pathname=None,
+    def __init__(self, connection, host, user=None, password="", confirm_connection=True, pathname=None,
                  new_pathname=None, options=None, command=None, prompt=None, new_line_chars=None):
         super(Sftp, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
@@ -49,6 +49,7 @@ class Sftp(GenericUnixCommand):
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
+                self._command_error(line)
                 self._confirm_connection(line)
                 self._send_password(line)
                 self._authentication_failure(line)
@@ -129,6 +130,17 @@ class Sftp(GenericUnixCommand):
     def _connection_error(self, line):
         if self._regex_helper.search_compiled(Sftp._re_connection_error, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("CONNECTION"))))
+
+    _re_unknown_option = re.compile(r"(?P<OPTION>(unknown|invalid)\soption\s.*)", re.I)
+    _re_help_msg = re.compile(r"(?P<HELP_MSG>usage:\ssftp\s.*)", re.I)
+
+    def _command_error(self, line):
+        if self._regex_helper.search_compiled(Sftp._re_unknown_option, line):
+            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("OPTION"))))
+            raise ParsingDone
+        elif self._regex_helper.search_compiled(Sftp._re_help_msg, line):
+            self.set_exception(CommandFailure(self, "ERROR: Invalid command syntax."))
+            raise ParsingDone
 
 
 COMMAND_OUTPUT = """xyz@debian:/home$ sftp fred@192.168.0.102:cat /home/xyz/Docs/cat

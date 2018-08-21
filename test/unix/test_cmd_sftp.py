@@ -39,6 +39,15 @@ def test_sftp_returns_proper_command_string_new_pathname(buffer_connection):
     assert "sftp fred@myhost.com:/home/fred/homework.txt /home/vivi/new_homework.txt" == sftp_cmd.command_string
 
 
+def test_sftp_returns_proper_result(buffer_connection):
+    command_output, expected_result = command_output_and_expected_result()
+    buffer_connection.remote_inject_response([command_output])
+    sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', options='-4',
+                    pathname='bear', new_pathname='/home/xyz/Docs/bear')
+    result = sftp_cmd()
+    assert result == expected_result
+
+
 def test_sftp_raises_authentication_failure(buffer_connection):
     command_output, expected_result = command_output_and_expected_result_authentication_failure()
     buffer_connection.remote_inject_response([command_output])
@@ -73,6 +82,25 @@ def test_sftp_raises_connection_error(buffer_connection):
                     options='-6', command='mkdir animal')
     with pytest.raises(CommandFailure):
         sftp_cmd()
+
+
+@pytest.fixture
+def command_output_and_expected_result():
+    data = """xyz@debian:/home$ sftp -4 fred@192.168.0.102:bear /home/xyz/Docs/bear
+The authenticity of host '192.168.0.102 (192.168.0.102)' can't be established.
+ECDSA key fingerprint is SHA256:ghQ3iy/gH4YTqZOggql1eJCe3EETOOpn5yANJwFeRt0.
+Are you sure you want to continue connecting (yes/no)?
+Warning: Permanently added '192.168.0.102' (ECDSA) to the list of known hosts.
+fred@192.168.0.102's password:
+Permission denied, please try again.
+fred@192.168.0.102's password:
+Connected to 192.168.0.102.
+Fetching /upload/bear to /home/xyz/Docs/bear
+/upload/bear                                   100%   23    34.4KB/s   00:00
+xyz@debian:/home$"""
+    result = {'RESULT': ["Fetching /upload/bear to /home/xyz/Docs/bear",
+                         "/upload/bear                                   100%   23    34.4KB/s   00:00"]}
+    return data, result
 
 
 @pytest.fixture
