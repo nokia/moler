@@ -23,7 +23,6 @@ class Top(GenericUnixCommand):
     def build_command_string(self):
         cmd = "top"
         if self.options:
-            """Top displays once and terminates."""
             cmd = cmd + " " + self.options + " n 1"
         return cmd
 
