@@ -248,7 +248,7 @@ root@debdev:/home/ute# service ssh status
 
 Jul 19 15:15:42 debdev systemd[1]: Started OpenBSD Secure Shell server.
 Jul 19 15:15:42 debdev sshd[2544]: Server listening on 0.0.0.0 port 22.
-Jul 19 15:15:43 debdev sshd[2544]: Server listening on :: port 22. 
+Jul 19 15:15:43 debdev sshd[2544]: Server listening on :: port 22.
 root@debdev:/home/ute# """
 COMMAND_KWARGS_status = {
     'options': 'ssh status',
