@@ -98,8 +98,7 @@ Connected to 192.168.0.102.
 Fetching /upload/bear to /home/xyz/Docs/bear
 /upload/bear                                   100%   23    34.4KB/s   00:00
 xyz@debian:/home$"""
-    result = {'RESULT': ["Fetching /upload/bear to /home/xyz/Docs/bear",
-                         "/upload/bear                                   100%   23    34.4KB/s   00:00"]}
+    result = {'RESULT': []}
     return data, result
 
 
