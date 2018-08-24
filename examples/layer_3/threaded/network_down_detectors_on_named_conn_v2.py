@@ -7,7 +7,7 @@ A fully-functional connection-observer using configured concurrency variant.
 
 This is Layer_3 example:
 - shows configuration phase and usage phase
-  - configure named connections via python code
+  - configure named connections via config file
 - uses Moler provided TCP connection implementation
 - usage hides implementation variant via factories
 - variant is known only during backend configuration phase
@@ -222,15 +222,11 @@ def ping_observing_task(ext_io_connection, ping_ip):
 if __name__ == '__main__':
     import os
     from moler.config import load_config
-    from moler.config import connections as conn_cfg
     # -------------------------------------------------------------------
     # Configure moler connections (backend code)
-    # 1) select variant of TCP
-    load_config(path=os.path.join(os.path.dirname(__file__), "connection_variant.yml"))
-
-    # 2) ver.1 - configure named connections by python code
-    conn_cfg.define_connection(name='net_1', io_type='tcp', host='localhost', port=5671)
-    conn_cfg.define_connection(name='net_2', io_type='tcp', host='localhost', port=5672)
+    # 1) configure variant by YAML config file
+    # 2) ver.2 - configure named connections by YAML config file
+    load_config(path=os.path.join(os.path.dirname(__file__), "..", "named_connections.yml"))
 
     # 3) take default class used to realize tcp-threaded-connection
     # -------------------------------------------------------------------
@@ -242,7 +238,7 @@ if __name__ == '__main__':
         stream=sys.stderr,
     )
     connections2observe4ip = [(('localhost', 5671), 'net_1', '10.0.2.15'),
-                              (('localhost', 5671), 'net_2', '10.0.2.16')]
+                              (('localhost', 5672), 'net_2', '10.0.2.16')]
     main(connections2observe4ip)
 
 '''
