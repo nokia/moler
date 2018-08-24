@@ -155,7 +155,7 @@ class Sftp(GenericUnixCommand):
 COMMAND_OUTPUT = """xyz@debian:/home$ sftp fred@192.168.0.102:cat /home/xyz/Docs/cat
 The authenticity of host '192.168.0.102 (192.168.0.102)' can't be established.
 ECDSA key fingerprint is SHA256:ghQ3iy/gH4YTqZOggql1eJCe3EETOOpn5yANJwFeRt0.
-Are you sure you want to continue connecting (yes/no)? yes
+Are you sure you want to continue connecting (yes/no)?
 Warning: Permanently added '192.168.0.102' (ECDSA) to the list of known hosts.
 fred@192.168.0.102's password:
 Connected to 192.168.0.102.
