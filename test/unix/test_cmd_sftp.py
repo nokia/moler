@@ -79,7 +79,16 @@ def test_sftp_raises_connection_error(buffer_connection):
     command_output, expected_result = command_output_and_expected_result_connection_error()
     buffer_connection.remote_inject_response([command_output])
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
-                    options='-6', command='mkdir animal')
+                    options='-6', command='get animals/pets/dog /root/dog')
+    with pytest.raises(CommandFailure):
+        sftp_cmd()
+
+
+def test_sftp_raises_permission_denied_error(buffer_connection):
+    command_output, expected_result = command_output_and_expected_result_permission_denied()
+    buffer_connection.remote_inject_response([command_output])
+    sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
+                    command='get animals/pets/dog /root/dog')
     with pytest.raises(CommandFailure):
         sftp_cmd()
 
@@ -112,7 +121,6 @@ fred@192.168.0.102's password:
 Permission denied, please try again.
 fred@192.168.0.102's password:
 Permission denied (publickey,password).
-Couldn't read packet: Connection reset by peer
 xyz@debian:/home$"""
     result = dict()
     return data, result
@@ -145,6 +153,20 @@ def command_output_and_expected_result_connection_error():
     data = """xyz@debian:/home$ sftp -6 fred@192.168.0.102
 ssh: Could not resolve hostname 192.168.0.102: Address family for hostname not supported
 Couldn't read packet: Connection reset by peer
+xyz@debian:/home$"""
+    result = dict()
+    return data, result
+
+
+@pytest.fixture
+def command_output_and_expected_result_permission_denied():
+    data = """xyz@debian:/home$ sftp fred@192.168.0.102
+fred@192.168.0.102's password:
+Connected to 192.168.0.102.
+sftp>
+Fetching /upload/animals/pets/dog to /root/dog
+Couldn't open local file "/root/dog" for writing: Permission denied
+sftp>
 xyz@debian:/home$"""
     result = dict()
     return data, result
