@@ -1,0 +1,5 @@
+[run]
+source = moler
+
+[report]
+omit = test/*
