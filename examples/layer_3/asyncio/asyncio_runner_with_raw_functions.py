@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-network_down_detectors_on_named_conn_asyncio.py
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+asyncio_runner_with_raw_functions.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A fully-functional connection-observer using configured concurrency variant.
 

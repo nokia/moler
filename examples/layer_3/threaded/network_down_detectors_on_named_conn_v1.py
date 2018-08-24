@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 network_down_detectors_on_named_conn_v1.py
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A fully-functional connection-observer using configured concurrency variant.
 
