@@ -20,7 +20,6 @@ import pkgutil
 import time
 import re
 import abc
-import copy
 
 from moler.connection import get_connection
 from moler.device.state_machine import StateMachine
@@ -33,6 +32,7 @@ class TextualDevice(object):
     events = "event"
 
     not_connected = "NOT_CONNECTED"
+    connection_hops = "CONNECTION_HOPS"
 
     def __init__(self, io_connection=None, io_type=None, variant=None, sm_params=dict()):
         """
@@ -78,7 +78,6 @@ class TextualDevice(object):
         self._collect_events_for_state_machine()
         self._run_prompts_observers()
         self._default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')
-        self._check_device_parameters()
 
     def calc_timeout_for_command(self, passed_timeout, configurations):
         command_timeout = None
@@ -144,17 +143,23 @@ class TextualDevice(object):
             self.logger.debug("Changing state from '%s' into '%s'" % (self.current_state, state))
             self.SM.set_state(state=state)
 
-    def goto_state(self, dest_state, timeout=-1):
+    def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False):
+        dest_state = state
+
         if self.current_state == dest_state:
             return
+
         self.logger.debug("Go to state '%s' from '%s'" % (dest_state, self.current_state))
+
         is_dest_state = False
         is_timeout = False
         start_time = time.time()
         next_stage_timeout = timeout
+
         while (not is_dest_state) and (not is_timeout):
             next_state = self._get_next_state(dest_state)
-            self._trigger_change_state(next_state=next_state, timeout=next_stage_timeout)
+            self._trigger_change_state(next_state=next_state, timeout=next_stage_timeout, rerun=rerun,
+                                       send_enter_after_changed_state=send_enter_after_changed_state)
 
             if self.current_state == dest_state:
                 is_dest_state = True
@@ -175,9 +180,11 @@ class TextualDevice(object):
 
         return next_state
 
-    def _trigger_change_state(self, next_state, timeout):
+    def _trigger_change_state(self, next_state, timeout, rerun, send_enter_after_changed_state):
         self.logger.debug("Changing state from '%s' into '%s'" % (self.current_state, next_state))
         change_state_method = None
+        entered_state = False
+        retrying = 0
         # all state triggers used by SM are methods with names starting from "GOTO_"
         # for e.g. GOTO_REMOTE, GOTO_CONNECTED
         for goto_method in self.goto_states_triggers:
@@ -185,17 +192,31 @@ class TextualDevice(object):
                 change_state_method = getattr(self, goto_method)
 
         if change_state_method:
-            try:
-                change_state_method(self.current_state, next_state, timeout=timeout)
-            except Exception as ex:
-                ex_traceback = traceback.format_exc()
-                raise DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback)
+            while (retrying <= rerun) and (not entered_state):
+                try:
+                    change_state_method(self.current_state, next_state, timeout=timeout)
+
+                    if send_enter_after_changed_state:
+                        self._send_enter_after_changed_state()
+
+                    entered_state = True
+                except Exception as ex:
+                    if retrying == rerun:
+                        ex_traceback = traceback.format_exc()
+                        raise DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback)
+                    else:
+                        retrying += 1
+                        self.logger.debug("Cannot change state into '{}'. "
+                                          "Retrying '{}' of '{}' times.".format(next_state, retrying, rerun))
+
+                        if send_enter_after_changed_state:
+                            self._send_enter_after_changed_state()
 
             self.logger.debug("Successfully enter state '{}'".format(next_state))
         else:
             raise DeviceFailure(
                 device=self.__class__.__name__,
-                message="Failed to change state. "
+                message="Failed to change state to '{}'. "
                         "Either target state does not exist in SM or there is no direct/indirect transition "
                         "towards target state. Try to change state machine definition. "
                         "Available states: {}".format(next_state, self.states))
@@ -371,7 +392,7 @@ class TextualDevice(object):
                     {'trigger': self.build_trigger_to_state(dest_state),
                      'source': source_state,
                      'dest': dest_state,
-                     'before': transitions[source_state][dest_state]["action"]},
+                     'prepare': transitions[source_state][dest_state]["action"]},
                 ]
 
                 self.SM.add_state(dest_state)
@@ -421,6 +442,7 @@ class TextualDevice(object):
         default_configurations = self._get_default_sm_configuration()
         configuration = self._update_configuration(default_configurations, sm_params)
         self._configurations = configuration
+        self._validate_device_configuration()
         self._prepare_state_prompts()
 
     def _update_configuration(self, destination, source):
@@ -435,11 +457,35 @@ class TextualDevice(object):
         return destination
 
     def _get_default_sm_configuration(self):
-        return {"CONNECTION_HOPS": {}}
+        return {TextualDevice.connection_hops: {}}
 
     def get_configurations(self, source_state, dest_state):
         if source_state and dest_state:
-            return self._configurations["CONNECTION_HOPS"][source_state][dest_state]
+            return self._configurations[TextualDevice.connection_hops][source_state][dest_state]
 
-    def _check_device_parameters(self):
-        pass
+    def _validate_device_configuration(self):
+        exception_message = ""
+        configuration = self._configurations[TextualDevice.connection_hops]
+
+        for source_state in configuration.keys():
+            for dest_state in configuration[source_state].keys():
+                if "required_command_params" in configuration[source_state][dest_state].keys():
+                    for required_command_param in configuration[source_state][dest_state]["required_command_params"]:
+                        if required_command_param not in configuration[source_state][dest_state]["command_params"]:
+                            exception_message += "\n'{}' in 'command_params' in transition from '{}' to '{}'".format(
+                                required_command_param, source_state, dest_state)
+
+        if exception_message:
+            raise DeviceFailure(device=self.__class__.__name__,
+                                message="Missing required parameter(s). There is no required parameter(s):{}".format(
+                                    exception_message))
+
+    def _send_enter_after_changed_state(self, *args, **kwargs):
+        from moler.cmd.unix.enter import Enter
+
+        try:
+            cmd_enter = Enter(connection=self.io_connection.moler_connection)
+            result = cmd_enter()
+        except Exception as ex:
+            self.logger.debug("Cannot execute command 'enter' properly: {}".format(ex))
+            pass

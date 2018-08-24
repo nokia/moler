@@ -4,8 +4,6 @@ __author__ = 'Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
-import time
-
 import pytest
 
 from moler.device.unixremote import UnixLocal

@@ -14,7 +14,7 @@ import logging
 from moler.device.unixlocal import UnixLocal
 
 
-# TODO: name, logger/logger_name  as param
+# TODO: name, logger/logger_name as param
 class UnixRemote(UnixLocal):
     unix_remote = "UNIX_REMOTE"
 
@@ -28,19 +28,22 @@ class UnixRemote(UnixLocal):
         """
         super(UnixRemote, self).__init__(io_connection=io_connection, io_type=io_type, variant=variant,
                                          sm_params=sm_params)
-        self.logger = logging.getLogger('moler.unixremote')
+        self.logger = logging.getLogger('moler.unixlocal')
 
     def _get_default_sm_configuration(self):
         config = {
-            "CONNECTION_HOPS": {
+            UnixRemote.connection_hops: {
                 UnixRemote.unix_local: {  # from
                     UnixRemote.unix_remote: {  # to
                         "execute_command": "ssh",  # using command
                         "command_params": {  # with parameters
-                            "host": "localhost",
-                            "login": "root",
-                            "expected_prompt": 'root@debdev:~#'
-                        }
+                        },
+                        "required_command_params": [
+                            "host",
+                            "login",
+                            "password",
+                            "expected_prompt"
+                        ]
                     }
                 },
                 UnixRemote.unix_remote: {  # from
@@ -48,7 +51,9 @@ class UnixRemote(UnixLocal):
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
                             "expected_prompt": r'^moler_bash#'
-                        }
+                        },
+                        "required_command_params": [
+                        ]
                     }
                 }
             }
@@ -79,10 +84,10 @@ class UnixRemote(UnixLocal):
     def _prepare_state_prompts(self):
         state_prompts = {
             UnixRemote.unix_remote:
-                self._configurations["CONNECTION_HOPS"][UnixRemote.unix_local][UnixRemote.unix_remote][
+                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_local][UnixRemote.unix_remote][
                     "command_params"]["expected_prompt"],
             UnixRemote.unix_local:
-                self._configurations["CONNECTION_HOPS"][UnixRemote.unix_remote][UnixRemote.unix_local][
+                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.unix_local][
                     "command_params"]["expected_prompt"],
         }
 
@@ -115,8 +120,8 @@ class UnixRemote(UnixLocal):
     def _connect_to_remote_host(self, source_state, dest_state, timeout=-1):
         configurations = self.get_configurations(source_state=source_state, dest_state=dest_state)
         # will be telnet or ssh
-        connection_type = configurations.pop("execute_command")
-        connection_type_parmas = configurations.pop("command_params")
+        connection_type = configurations["execute_command"]
+        connection_type_parmas = configurations["command_params"]
 
         command_timeout = self.calc_timeout_for_command(timeout, connection_type_parmas)
         establish_connection = self.get_cmd(cmd_name=connection_type, **connection_type_parmas)
@@ -125,8 +130,8 @@ class UnixRemote(UnixLocal):
     def _disconnect_from_remote_host(self, source_state, dest_state, timeout=-1):
         configurations = self.get_configurations(source_state=source_state, dest_state=dest_state)
         # will be exit
-        close_connection = configurations.pop("execute_command")
-        close_connection_params = configurations.pop("command_params")
+        close_connection = configurations["execute_command"]
+        close_connection_params = configurations["command_params"]
 
         command_timeout = self.calc_timeout_for_command(timeout, close_connection_params)
         end_connection = self.get_cmd(cmd_name=close_connection, **close_connection_params)

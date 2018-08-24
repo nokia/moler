@@ -18,6 +18,7 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 import logging
 import platform
 import weakref
+from quopri import decodestring
 from threading import Lock
 
 import six
@@ -189,9 +190,21 @@ class ObservableConnection(Connection):
         Incoming-IO API:
         external-IO should call this method when data is received
         """
-        self._log(msg=data, level=RAW_DATA, extra={'transfer_direction': '<'})
+        # log input as ascii printable (for non-ascii dump as \0x prefixed bytes)
+        printable_data = decodestring(data)
+        self._log(msg=printable_data, level=RAW_DATA, extra={'transfer_direction': '<'})
+
         decoded_data = self.decode(data)
-        self._log(msg=decoded_data, level=logging.INFO, extra={'transfer_direction': '<'})
+        # decoded data might be unicode or bytes/ascii string, logger accepts only ascii.
+        if isinstance(decoded_data, six.text_type):
+            # We create ascii logs interpretable as utf-8 bytes.
+            # Editor with utf-8 support can correctly display such logs.
+            encoded_for_log = decoded_data.encode('utf-8')
+        else:
+            # bytes or ascii log
+            encoded_for_log = decoded_data
+        self._log(msg=encoded_for_log, level=logging.INFO, extra={'transfer_direction': '<'})
+
         self.notify_observers(decoded_data)
 
     def subscribe(self, observer):
@@ -225,7 +238,7 @@ class ObservableConnection(Connection):
         current_subscribers = list(self._observers.values())
         for self_or_none, observer_function in current_subscribers:
             try:
-                self._log(msg=r'notifying {}({!r})'.format(observer_function, data), level=TRACE)
+                self._log(msg=r'notifying {}({!r})'.format(observer_function, repr(data)), level=TRACE)
                 if self_or_none is None:
                     observer_function(data)
                 else:
@@ -440,6 +453,7 @@ def _register_builtin_connections():
                               port=port, host=host)  # TODO: add name
         return io_conn
 
+    # TODO: unify passing logger to io_conn (logger/logger_name)
     ConnectionFactory.register_construction(io_type="memory",
                                             variant="threaded",
                                             constructor=mem_thd_conn)
