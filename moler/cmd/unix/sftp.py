@@ -52,15 +52,15 @@ class Sftp(GenericUnixCommand):
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
-                self._command_error(line)
-
                 self._confirm_connection(line)
                 self._send_password(line)
                 self._check_if_connected(line)
 
                 self._send_command_if_prompt(line)
                 self._parse_line_fetching_uploading(line)
+
                 self._authentication_failure(line)
+                self._command_error(line)
 
                 self._parse_line_from_prompt(line)
             except ParsingDone:
@@ -73,10 +73,8 @@ class Sftp(GenericUnixCommand):
         if self._regex_helper.search_compiled(Sftp._re_confirm_connection, line):
             if self.confirm_connection:
                 self.connection.sendline("yes")
-                print("1")
             else:
                 self.connection.sendline("no")
-                print("2")
             raise ParsingDone
 
     _re_password = re.compile(r"(?P<USER_HOST>.*)\spassword:", re.IGNORECASE)
@@ -84,7 +82,6 @@ class Sftp(GenericUnixCommand):
     def _send_password(self, line):
         if self._regex_helper.search_compiled(Sftp._re_password, line):
             self.connection.sendline(self.password)
-            print("3")
             raise ParsingDone
 
     _re_connected = re.compile(r"Connected\sto\s.+", re.I)
@@ -92,7 +89,6 @@ class Sftp(GenericUnixCommand):
     def _check_if_connected(self, line):
         if self._regex_helper.search_compiled(Sftp._re_connected, line):
             self.ready_to_parse_line = True
-            print("4")
             raise ParsingDone
 
     _re_prompt = re.compile(r"sftp>", re.I)
@@ -101,11 +97,9 @@ class Sftp(GenericUnixCommand):
         if not self.command_sent and self._regex_helper.search_compiled(Sftp._re_prompt, line):
             self.connection.sendline(self.command)
             self.command_sent = True
-            print("5: command sent " + self.command)
             raise ParsingDone
         elif self.command_sent and self._regex_helper.search_compiled(Sftp._re_prompt, line):
             self.connection.sendline("exit")
-            print("6: exit sent " + self.command)
             raise ParsingDone
 
     _re_fetching = re.compile(r"(Fetching\s.*|Uploading\s.*)", re.I)
@@ -113,26 +107,20 @@ class Sftp(GenericUnixCommand):
 
     def _parse_line_fetching_uploading(self, line):
         if self.ready_to_parse_line:
-            print("7")
             if self._regex_helper.search_compiled(Sftp._re_fetching, line):
                 self.sending_started = True
                 self.current_ret['RESULT'].append(line)
-                print("8")
                 raise ParsingDone
             elif self.sending_started and self._regex_helper.search_compiled(Sftp._re_progress_bar, line):
                 self.current_ret['RESULT'].append(line)
-                print("9")
                 raise ParsingDone
             elif self.sending_started and not self._regex_helper.search_compiled(Sftp._re_progress_bar, line):
-                print("10")
                 self.set_exception(CommandFailure(self, "ERROR: {}".format(line)))
-                print("after 10")
                 raise ParsingDone
 
     def _parse_line_from_prompt(self, line):
         if self.ready_to_parse_line:
             if self.command_sent:
-                print("11")
                 self.current_ret['RESULT'].append(line)
 
     _re_resend_password = re.compile(r"(?P<RESEND>Permission\sdenied,\splease\stry\sagain)", re.I)
@@ -140,15 +128,11 @@ class Sftp(GenericUnixCommand):
 
     def _authentication_failure(self, line):
         if self._regex_helper.search_compiled(Sftp._re_resend_password, line):
-            print("12")
             raise ParsingDone
         elif self._regex_helper.search_compiled(Sftp._re_authentication, line):
             auth = self._regex_helper.group("AUTH")
             perm = self._regex_helper.group("PERM")
-            print("13")
-            print(perm)
             self.set_exception(CommandFailure(self, "ERROR: {msg}".format(msg=auth if auth else perm)))
-            print("14")
             raise ParsingDone
 
     _error_regex_compiled = list()
@@ -165,7 +149,6 @@ class Sftp(GenericUnixCommand):
         for _re_error in Sftp._error_regex_compiled:
             if self._regex_helper.search_compiled(_re_error, line):
                 self.set_exception(CommandFailure(self, "ERROR: {}".format(line)))
-                print("15")
                 raise ParsingDone
 
 
@@ -198,7 +181,6 @@ COMMAND_OUTPUT_no_confirm_connection = """xyz@debian:/home$ sftp fred@192.168.0.
 The authenticity of host '192.168.0.102 (192.168.0.102)' can't be established.
 ECDSA key fingerprint is SHA256:ghQ3iy/gH4YTqZOggql1eJCe3EETOOpn5yANJwFeRt0.
 Are you sure you want to continue connecting (yes/no)?
-Are you sure you want to continue connecting (yes/no)? no
 Host key verification failed.
 xyz@debian:/home$"""
 
