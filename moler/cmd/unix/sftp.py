@@ -63,7 +63,7 @@ class Sftp(GenericUnixCommand):
 
                 self._check_if_connected(line)
                 self._send_command_if_prompt(line)
-                self._parse_line(line)
+                self._parse_line_fetching_uploading(line)
                 self._parse_line_from_prompt(line)
             except ParsingDone:
                 pass
@@ -104,23 +104,25 @@ class Sftp(GenericUnixCommand):
             self.connection.sendline("exit")
             raise ParsingDone
 
+    _re_fetching = re.compile(r"(Fetching\s.*|Uploading\s.*)", re.I)
+    _re_progress_bar = re.compile(r"(.+\s+\d+%\s+\d+\s+.+\s+\d+:\d+)", re.I)
+
+    def _parse_line_fetching_uploading(self, line):
+        if self.ready_to_parse_line:
+            if self._regex_helper.search_compiled(Sftp._re_fetching, line):
+                self.sending_started = True
+                self.current_ret['RESULT'].append(line)
+                raise ParsingDone
+            elif self.sending_started and self._regex_helper.search_compiled(Sftp._re_progress_bar, line):
+                self.current_ret['RESULT'].append(line)
+                raise ParsingDone
+            elif self.sending_started:
+                self.set_exception(CommandFailure(self, "ERROR: {}".format(line)))
+
     def _parse_line_from_prompt(self, line):
         if self.ready_to_parse_line:
             if self.command_sent:
                 self.current_ret['RESULT'].append(line)
-
-    _re_fetching = re.compile(r"(Fetching\s.*)", re.I)
-    _re_progress_bar = re.compile(r"(.+\s+\d+%\s+\d+\s+.+\s+\d+:\d+)", re.I)
-
-    def _parse_line(self, line):
-        if self.ready_to_parse_line:
-            if self._regex_helper.search_compiled(Sftp._re_fetching, line):
-                self.sending_started = True
-                raise ParsingDone
-            elif self.sending_started and self._regex_helper.search_compiled(Sftp._re_progress_bar, line):
-                raise ParsingDone
-            elif self.sending_started:
-                self.set_exception(CommandFailure(self, "ERROR: {}".format(line)))
 
     _re_resend_password = re.compile(r"(?P<RESEND>Permission\sdenied,\splease\stry\sagain)", re.I)
     _re_authentication = re.compile(r"(?P<AUTH>Authentication\sfailed.*)|(?P<PERM>Permission\sdenied\s.*)", re.I)
@@ -181,7 +183,8 @@ COMMAND_KWARGS = {
     'password': '1234'
 }
 COMMAND_RESULT = {
-    'RESULT': []
+    'RESULT': ["Fetching /upload/cat to /home/xyz/Docs/cat",
+               "/upload/cat                                   100%   23    34.4KB/s   00:00"]
 }
 
 
