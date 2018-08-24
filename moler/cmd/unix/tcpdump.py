@@ -19,7 +19,7 @@ class Tcpdump(GenericUnixCommand):
         super(Tcpdump, self).__init__(connection, prompt, new_line_chars)
         # Parameters defined by calling the command
         self.options = options
-        self.pckts_counter = None
+        self.pckts_counter = 0
 
         self.ret_required = False
 
@@ -32,8 +32,9 @@ class Tcpdump(GenericUnixCommand):
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
-                self._parse_packets(line)
                 self._parse_port_linktype_capture_size(line)
+                self._parse_timestamp_src_dst_details(line)
+                self._parse_packets(line)
             except ParsingDone:
                 pass
         return super(Tcpdump, self).on_new_line(line, is_full_line)
@@ -49,12 +50,25 @@ class Tcpdump(GenericUnixCommand):
             self.current_ret[self._regex_helper.group("CAPTURE")] = self._regex_helper.group("SIZE")
             raise ParsingDone
 
+    # 13:16:22.176856 IP debdev.ntp > fwdns2.vbctv.in.ntp: NTPv4, Client, length 48
+    _re_timestamp_src_dst_details = re.compile(
+        r"(?P<TIMESTAMP>\d+:\d+:\d+.\d+)\s+IP\s+(?P<SRC>\S+)\s+>\s+(?P<DEST>\S+):\s+(?P<DETAILS>.*)")
+
+    def _parse_timestamp_src_dst_details(self, line):
+        if self._regex_helper.search_compiled(Tcpdump._re_timestamp_src_dst_details, line):
+            self.pckts_counter += 1
+            self.current_ret[str(self.pckts_counter)] = {}
+            self.current_ret[str(self.pckts_counter)]['timestamp'] = self._regex_helper.group("TIMESTAMP")
+            self.current_ret[str(self.pckts_counter)]['source'] = self._regex_helper.group("SRC")
+            self.current_ret[str(self.pckts_counter)]['destination'] = self._regex_helper.group("DEST")
+            self.current_ret[str(self.pckts_counter)]['details'] = self._regex_helper.group("DETAILS")
+
     # 5 packets received by filter
-    _re_packets_captured = re.compile(
+    _re_packets = re.compile(
         r"(?P<PCKT>\d+)\s+(?P<GROUP>packets captured|packets received by filter|packets dropped by kernel)")
 
     def _parse_packets(self, line):
-        if self._regex_helper.search_compiled(Tcpdump._re_packets_captured, line):
+        if self._regex_helper.search_compiled(Tcpdump._re_packets, line):
             temp_pckt = self._regex_helper.group('PCKT')
             temp_group = self._regex_helper.group('GROUP')
             self.current_ret[temp_group] = temp_pckt
@@ -83,6 +97,22 @@ COMMAND_RESULT = {
     'listening': 'eth0',
     'link-type': 'EN10MB (Ethernet)',
     'capture size': '262144 bytes',
+    '1': {'destination': 'fwdns2.vbctv.in.ntp',
+          'details': 'NTPv4, Client, length 48',
+          'source': 'debdev.ntp',
+          'timestamp': '13:16:22.176856'},
+    '2': {'destination': 'rumcdc001.nsn-intra.net.domain',
+          'details': '34347+ PTR? 124.200.108.123.in-addr.arpa. (46)',
+          'source': 'debdev.44321',
+          'timestamp': '13:16:22.178451'},
+    '3': {'destination': 'fihedc002.emea.nsn-net.net.domain',
+          'details': '34347+ PTR? 124.200.108.123.in-addr.arpa. (46)',
+          'source': 'debdev.44321',
+          'timestamp': '13:16:22.178531'},
+    '4': {'destination': 'fihedc001.emea.nsn-net.net.domain',
+          'details': '34347+ PTR? 124.200.108.123.in-addr.arpa. (46)',
+          'source': 'debdev.44321',
+          'timestamp': '13:16:22.178545'},
 }
 
 COMMAND_OUTPUT_vv = """ute@debdev:~$ sudo tcpdump -c 4 -vv
