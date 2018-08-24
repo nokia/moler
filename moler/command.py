@@ -21,12 +21,12 @@ from moler.helpers import instance_id
 
 
 class Command(ConnectionObserver):
-    def __init__(self, connection=None):
+    def __init__(self, connection=None, runner=None):
         """
         Create instance of Command class
         :param connection: connection used to start CMD and receive its output
         """
-        super(Command, self).__init__(connection=connection)
+        super(Command, self).__init__(connection=connection, runner=runner)
         self.command_string = ''
         self.cmd_name = Command.observer_name
 
