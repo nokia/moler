@@ -19,6 +19,7 @@ class Tcpdump(GenericUnixCommand):
         super(Tcpdump, self).__init__(connection, prompt, new_line_chars)
         # Parameters defined by calling the command
         self.options = options
+        self.pckts_counter = None
 
         self.ret_required = False
 
@@ -31,21 +32,33 @@ class Tcpdump(GenericUnixCommand):
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
-                self.parse_packets(line)
+                self._parse_packets(line)
+                self._parse_port_linktype_capture_size(line)
             except ParsingDone:
                 pass
         return super(Tcpdump, self).on_new_line(line, is_full_line)
+
+    # listening on eth0, link-type EN10MB (Ethernet), capture size 262144 bytes
+    _re_port_linktype_capture_size = re.compile(
+        r"(?P<LISTENING>listening)\s+on\s+(?P<PORT>\S+),\s+(?P<LINK>link-type)\s+(?P<TYPE>.*),\s+(?P<CAPTURE>capture size)\s+(?P<SIZE>.*)")
+
+    def _parse_port_linktype_capture_size(self, line):
+        if self._regex_helper.search_compiled(Tcpdump._re_port_linktype_capture_size, line):
+            self.current_ret[self._regex_helper.group("LISTENING")] = self._regex_helper.group("PORT")
+            self.current_ret[self._regex_helper.group("LINK")] = self._regex_helper.group("TYPE")
+            self.current_ret[self._regex_helper.group("CAPTURE")] = self._regex_helper.group("SIZE")
+            raise ParsingDone
 
     # 5 packets received by filter
     _re_packets_captured = re.compile(
         r"(?P<PCKT>\d+)\s+(?P<GROUP>packets captured|packets received by filter|packets dropped by kernel)")
 
-    def parse_packets(self, line):
+    def _parse_packets(self, line):
         if self._regex_helper.search_compiled(Tcpdump._re_packets_captured, line):
             temp_pckt = self._regex_helper.group('PCKT')
             temp_group = self._regex_helper.group('GROUP')
             self.current_ret[temp_group] = temp_pckt
-
+            raise ParsingDone
 
 COMMAND_OUTPUT = """
 ute@debdev:~$ tcpdump -c 4
@@ -66,6 +79,9 @@ COMMAND_RESULT = {
     'packets captured': '4',
     'packets received by filter': '5',
     'packets dropped by kernel': '0',
+    'listening': 'eth0',
+    'link-type': 'EN10MB (Ethernet)',
+    'capture size': '262144 bytes',
 }
 
 COMMAND_OUTPUT_vv = """ute@debdev:~$ sudo tcpdump -c 4 -vv
@@ -105,4 +121,7 @@ COMMAND_RESULT_vv = {
     'packets captured': '4',
     'packets received by filter': '6',
     'packets dropped by kernel': '0',
+    'listening': 'eth0',
+    'link-type': 'EN10MB (Ethernet)',
+    'capture size': '262144 bytes',
 }
