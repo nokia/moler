@@ -37,7 +37,8 @@ class Tcpdump(GenericUnixCommand):
         return super(Tcpdump, self).on_new_line(line, is_full_line)
 
     # 5 packets received by filter
-    _re_packets_captured = re.compile(r"(?P<PCKT>\d+)\s+(?P<GROUP>packets captured|packets received by filter|packets dropped by kernel)")
+    _re_packets_captured = re.compile(
+        r"(?P<PCKT>\d+)\s+(?P<GROUP>packets captured|packets received by filter|packets dropped by kernel)")
 
     def parse_packets(self, line):
         if self._regex_helper.search_compiled(Tcpdump._re_packets_captured, line):
@@ -71,24 +72,24 @@ COMMAND_OUTPUT_vv = """ute@debdev:~$ sudo tcpdump -c 4 -vv
 tcpdump: listening on eth0, link-type EN10MB (Ethernet), capture size 262144 bytes
 13:31:33.176710 IP (tos 0xc0, ttl 64, id 4236, offset 0, flags [DF], proto UDP (17), length 76)
     debdev.ntp > ntp.wdc1.us.leaseweb.net.ntp: [bad udp cksum 0x7aab -> 0x9cd3!] NTPv4, length 48
-	Client, Leap indicator: clock unsynchronized (192), Stratum 0 (unspecified), poll 10 (1024s), precision -23
-	Root Delay: 0.000000, Root dispersion: 1.031906, Reference-ID: (unspec)
-	  Reference Timestamp:  0.000000000
-	  Originator Timestamp: 0.000000000
-	  Receive Timestamp:    0.000000000
-	  Transmit Timestamp:   3741593493.176683590 (2018/07/26 13:31:33)
-	    Originator - Receive Timestamp:  0.000000000
-	    Originator - Transmit Timestamp: 3741593493.176683590 (2018/07/26 13:31:33)
+    Client, Leap indicator: clock unsynchronized (192), Stratum 0 (unspecified), poll 10 (1024s), precision -23
+    Root Delay: 0.000000, Root dispersion: 1.031906, Reference-ID: (unspec)
+      Reference Timestamp:  0.000000000
+      Originator Timestamp: 0.000000000
+      Receive Timestamp:    0.000000000
+      Transmit Timestamp:   3741593493.176683590 (2018/07/26 13:31:33)
+        Originator - Receive Timestamp:  0.000000000
+        Originator - Transmit Timestamp: 3741593493.176683590 (2018/07/26 13:31:33)
 13d:31:36.177597 IP (tos 0xc0, ttl 64, id 37309, offset 0, flags [DF], proto UDP (17), length 76)
     debdev.ntp > dream.multitronic.fi.ntp: [ba udp cksum 0x6b9b -> 0x0677!] NTPv4, length 48
-	Client, Leap indicator: clock unsynchronized (192), Stratum 0 (unspecified), poll 10 (1024s), precision -23
-	Root Delay: 0.000000, Root dispersion: 1.031951, Reference-ID: (unspec)
-	  Reference Timestamp:  0.000000000
-	  Originator Timestamp: 0.000000000
-	  Receive Timestamp:    0.000000000
-	  Transmit Timestamp:   3741593496.177547928 (2018/07/26 13:31:36)
-	    Originator - Receive Timestamp:  0.000000000
-	    Originator - Transmit Timestamp: 3741593496.177547928 (2018/07/26 13:31:36)
+    Client, Leap indicator: clock unsynchronized (192), Stratum 0 (unspecified), poll 10 (1024s), precision -23
+    Root Delay: 0.000000, Root dispersion: 1.031951, Reference-ID: (unspec)
+      Reference Timestamp:  0.000000000
+      Originator Timestamp: 0.000000000
+      Receive Timestamp:    0.000000000
+      Transmit Timestamp:   3741593496.177547928 (2018/07/26 13:31:36)
+        Originator - Receive Timestamp:  0.000000000
+        Originator - Transmit Timestamp: 3741593496.177547928 (2018/07/26 13:31:36)
 13:31:36.178110 IP (tos 0x0, ttl 64, id 3207, offset 0, flags [DF], proto UDP (17), length 72)
     debdev.6869 > rumcdc001.nsn-intra.net.domain: [bad udp cksum 0x96f8 -> 0x405b!] 61207+ PTR? 38.138.28.213.in-addr.arpa. (44)
 13:31:36.178211 IP (tos 0x0, ttl 64, id 63672, offset 0, flags [DF], proto UDP (17), length 72)
