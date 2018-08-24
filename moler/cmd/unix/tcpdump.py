@@ -60,6 +60,7 @@ class Tcpdump(GenericUnixCommand):
             self.current_ret[temp_group] = temp_pckt
             raise ParsingDone
 
+
 COMMAND_OUTPUT = """
 ute@debdev:~$ tcpdump -c 4
 tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
