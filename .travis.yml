@@ -42,7 +42,8 @@ jobs:
     env:
     - NAME="Test"
     script:
-    - python2.7 -m pytest --mccabe --random  -s -vv moler
+    - python2.7 -m pytest --mccabe moler
+    - python2.7 -m pytest --random -s -vv test
   - stage: test
     language: python
     python: 3.6
