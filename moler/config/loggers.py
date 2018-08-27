@@ -301,7 +301,7 @@ class MultilineWithDirectionFormatter(logging.Formatter):
         if not hasattr(record, 'transfer_direction'):
             record.transfer_direction = ' '
         if not hasattr(record, 'con_name'):
-            record.con_name = '?????'
+            record.con_name = record.name
         msg_lines = record.getMessage().splitlines(True)
         base_output = super(MultilineWithDirectionFormatter, self).format(record)
         out_lines = base_output.splitlines(True)

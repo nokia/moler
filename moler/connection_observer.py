@@ -76,7 +76,7 @@ class ConnectionObserver(object):
         self._validate_start(*args, **kwargs)
         self._is_running = True
         self._future = self.runner.submit(self)
-        self.main_logger.log(logging.INFO, self.get_start_desc(), extra={'con_name': self.get_logger_name()})
+        self._log(logging.INFO, self.get_start_desc())
         return self
 
     def _validate_start(self, *args, **kwargs):
@@ -106,7 +106,7 @@ class ConnectionObserver(object):
         result = self.runner.wait_for(connection_observer=self, connection_observer_future=self._future,
                                       timeout=timeout)
 
-        self.main_logger.log(logging.INFO, self.get_finished_desc(), extra={'con_name': self.get_logger_name()})
+        self._log(logging.INFO, self.get_finished_desc())
         return result
 
     def cancel(self):
@@ -150,7 +150,7 @@ class ConnectionObserver(object):
         """Should be used to indicate some failure during observation"""
         self._is_done = True
         self._exception = exception
-        self.main_logger.log(logging.INFO,
+        self._log(logging.INFO,
                              "'{}.{}' has set exception '{}.{}'.".format(self.__class__.__module__,
                                                                          self.__class__.__name__,
                                                                          exception.__class__.__module__,
@@ -175,7 +175,7 @@ class ConnectionObserver(object):
         self.timeout = self.timeout + timedelta
         msg = "Extended timeout from %.2f with delta %.2f to %.2f" % (prev_timeout, timedelta, self.timeout)
         self.runner.timeout_change(timedelta)
-        self.main_logger.info(msg)
+        self._log(logging.INFO, msg)
 
     @ClassProperty
     def observer_name(cls):
@@ -187,3 +187,10 @@ class ConnectionObserver(object):
 
     def get_finished_desc(self):
         return "Observer '{}.{}' finished.".format(self.__class__.__module__, self.__class__.__name__)
+
+    def _log(self, lvl, msg, extra_params=None):
+        extra = {'con_name': self.get_logger_name()}
+        if extra_params:
+            extra.update(extra_params)
+
+        self.main_logger.log(lvl, msg, extra=extra)
