@@ -14,7 +14,7 @@ import re
 
 
 class Sftp(GenericUnixCommand):
-    def __init__(self, connection, host, user=None, password="", confirm_connection=True, pathname=None,
+    def __init__(self, connection, host, password, user=None, confirm_connection=True, pathname=None,
                  new_pathname=None, options=None, command=None, prompt=None, new_line_chars=None):
         super(Sftp, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
