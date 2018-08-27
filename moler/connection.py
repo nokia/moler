@@ -126,7 +126,7 @@ class Connection(object):
         return self.logger.name == "moler.connection.{}".format(self._name)
 
     def _strip_data(self, data):
-        if type(data) is str:
+        if isinstance(data, six.string_types):
             data = data.strip()
         else:
             data

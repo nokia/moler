@@ -126,7 +126,7 @@ class TextualDevice(object):
 
     def __del__(self):
         self._stop_prompts_observers()
-        self.io_connection.close()
+        # self.io_connection.close()
 
     def _collect_cmds_for_state_machine(self):
         for state in self._get_available_states():
@@ -445,9 +445,9 @@ class TextualDevice(object):
             self._prompts_events[state] = prompt_event
 
     def _stop_prompts_observers(self):
-        for prompt_observer in self._prompts_events:
-            prompt_observer.cancel()
-            prompt_observer.remove_event_occurred_callback()
+        for device_state in self._prompts_events:
+            self._prompts_events[device_state].cancel()
+            self._prompts_events[device_state].remove_event_occurred_callback()
 
     def build_trigger_to_state(self, state):
         trigger = "GOTO_{}".format(state)
