@@ -66,12 +66,17 @@ async def ping_sim_tcp_server(server_port, ping_ip, client_handling_done, reader
     ping_lines = ping_out.splitlines(True)
     for ping_line in ping_lines:
         data = ping_line.encode(encoding='utf-8')
-        writer.write(data)
         try:
+            writer.write(data)  # may raise exception if client is gone
             await writer.drain()
-        except ConnectionResetError:  # client is gone
+        except ConnectionResetError as err:  # client is gone
+            logger.info("client is gone - {}".format(err))
             break
-        except Exception:
+        except ConnectionAbortedError as err:  # client is gone
+            logger.info("client is gone - {}".format(err))
+            break
+        except Exception as err:
+            logger.error("server: {}".format(err))
             raise
         await asyncio.sleep(1)  # simulate delay between ping lines
     writer.close()
@@ -248,7 +253,7 @@ if __name__ == '__main__':
 
     asyncio.set_event_loop(asyncio.new_event_loop())
     event_loop = asyncio.get_event_loop()
-    event_loop.set_debug(enabled=True)
+    # event_loop.set_debug(enabled=True)
     try:
         event_loop.run_until_complete(main(connections2observe4ip))
     finally:
