@@ -396,9 +396,15 @@ def _try_take_named_connection_params(name, io_type, **constructor_kwargs):
         if name not in connection_cfg.named_connections:
             whats_wrong = "was not defined inside configuration"
             raise KeyError("Connection named '{}' {}".format(name, whats_wrong))
+        org_kwargs = constructor_kwargs
         io_type, constructor_kwargs = connection_cfg.named_connections[name]
         # assume connection constructor allows 'name' parameter
         constructor_kwargs['name'] = name
+        # update with kwargs directly passed and not present in named_connections
+        for argname in org_kwargs:
+            if argname not in constructor_kwargs:
+                constructor_kwargs[argname] = org_kwargs[argname]
+        # TODO: shell we overwrite named_connections kwargs with the ones from org_kwargs ???
     return io_type, constructor_kwargs
 
 
@@ -441,19 +447,19 @@ def _register_builtin_connections():
                                     decoder=lambda data: data.decode("utf-8"),
                                     name=name)
 
-    def mem_thd_conn(name=None, echo=True):
+    def mem_thd_conn(name=None, echo=True, **kwargs):  # kwargs to pass  logger_name
         mlr_conn = mlr_conn_utf8(name=name)
         io_conn = ThreadedFifoBuffer(moler_connection=mlr_conn,
-                                     echo=echo, name=name)
+                                     echo=echo, name=name, *kwargs)
         return io_conn
 
-    def tcp_thd_conn(port, host='localhost', name=None):
+    def tcp_thd_conn(port, host='localhost', name=None, **kwargs):  # kwargs to pass  receive_buffer_size and logger
         mlr_conn = mlr_conn_utf8(name=name)
         io_conn = ThreadedTcp(moler_connection=mlr_conn,
-                              port=port, host=host)  # TODO: add name
+                              port=port, host=host, **kwargs)  # TODO: add name
         return io_conn
 
-    # TODO: unify passing logger to io_conn (logger/logger_name)
+    # TODO: unify passing logger to io_conn (logger/logger_name - see above comments)
     ConnectionFactory.register_construction(io_type="memory",
                                             variant="threaded",
                                             constructor=mem_thd_conn)

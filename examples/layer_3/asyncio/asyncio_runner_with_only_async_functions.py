@@ -97,6 +97,7 @@ async def start_ping_sim_server(server_address, ping_ip):
 
 
 async def main(connections2observe4ip):
+    logger = logging.getLogger('asyncio.main')
     event_loop = asyncio.get_event_loop()
     # Starting the servers
     servers = []
@@ -114,7 +115,7 @@ async def main(connections2observe4ip):
         # Another words, all we want here is stg like:
         # "give me connection to main_dns_server"
         # ------------------------------------------------------------------
-        tcp_connection = get_connection(name=connection_name)
+        tcp_connection = get_connection(name=connection_name, logger=logger)
         tcp_connection.moler_connection.name = connection_name
         # client_task= asyncio.ensure_future(ping_observing_task(tcp_connection, ping_ip))
         connections.append(ping_observing_task(tcp_connection, ping_ip))
@@ -124,6 +125,7 @@ async def main(connections2observe4ip):
     # stop servers
     for server in servers:
         await server.wait_closed()
+    logger.debug('exiting main')
 
 
 # ===================== Moler's connection-observer usage ======================
@@ -201,7 +203,9 @@ async def ping_observing_task(ext_io_connection, ping_ip):
 
     with ext_io_connection:
         # 5. await that observer to complete
-        net_down_time = net_down_detector.await_done(timeout=10)
+        # net_down_time = net_down_detector.await_done(timeout=10)
+        # net_down_time = await net_down_detector
+        net_down_time = 8
         timestamp = time.strftime("%H:%M:%S", time.localtime(net_down_time))
         logger.debug('Network {} is down from {}'.format(ping_ip, timestamp))
 
@@ -209,10 +213,12 @@ async def ping_observing_task(ext_io_connection, ping_ip):
         info = '{} on {} using {}'.format(ping_ip, conn_addr, net_up_detector)
         logger.debug('observe ' + info)
         # using as synchronous function (so we want verb to express action)
-        detect_network_up = net_up_detector
-        net_up_time = detect_network_up()
-        timestamp = time.strftime("%H:%M:%S", time.localtime(net_up_time))
-        logger.debug('Network {} is back "up" from {}'.format(ping_ip, timestamp))
+        # detect_network_up = net_up_detector
+        # net_up_time = detect_network_up()
+        # timestamp = time.strftime("%H:%M:%S", time.localtime(net_up_time))
+        # logger.debug('Network {} is back "up" from {}'.format(ping_ip, timestamp))
+        await asyncio.sleep(2)
+    logger.debug('exiting ping_observing_task')
 
 
 # ==============================================================================
@@ -239,6 +245,7 @@ if __name__ == '__main__':
 
     asyncio.set_event_loop(asyncio.new_event_loop())
     event_loop = asyncio.get_event_loop()
+    event_loop.set_debug(enabled=True)
     try:
         event_loop.run_until_complete(main(connections2observe4ip))
     finally:
