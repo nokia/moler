@@ -35,6 +35,9 @@ class Tcpdump(GenericUnixCommand):
                 self._parse_port_linktype_capture_size(line)
                 self._parse_timestamp_src_dst_details(line)
                 self._parse_packets(line)
+                self._parse_timestamp_tos_ttl_id_offset_flags_proto_length(line)
+                self._parse_src_dst_details(line)
+                self._parse_header_timestamp_details(line)
             except ParsingDone:
                 pass
         return super(Tcpdump, self).on_new_line(line, is_full_line)
@@ -62,6 +65,17 @@ class Tcpdump(GenericUnixCommand):
             self.current_ret[str(self.pckts_counter)]['source'] = self._regex_helper.group("SRC")
             self.current_ret[str(self.pckts_counter)]['destination'] = self._regex_helper.group("DEST")
             self.current_ret[str(self.pckts_counter)]['details'] = self._regex_helper.group("DETAILS")
+            raise ParsingDone
+
+    # debdev.ntp > ntp.wdc1.us.leaseweb.net.ntp: [bad udp cksum 0x7aab -> 0x9cd3!] NTPv4, length 48
+    _re_src_dst_details = re.compile(r"(?P<SRC>\S+)\s+>\s+(?P<DST>\S+):\s+(?P<DETAILS>\S+.*\S+)")
+
+    def _parse_src_dst_details(self, line):
+        if self._regex_helper.search_compiled(Tcpdump._re_src_dst_details, line):
+            self.current_ret[str(self.pckts_counter)]['source'] = self._regex_helper.group("SRC")
+            self.current_ret[str(self.pckts_counter)]['destination'] = self._regex_helper.group("DST")
+            self.current_ret[str(self.pckts_counter)]['details'] = self._regex_helper.group("DETAILS")
+            raise ParsingDone
 
     # 5 packets received by filter
     _re_packets = re.compile(
@@ -72,6 +86,33 @@ class Tcpdump(GenericUnixCommand):
             temp_pckt = self._regex_helper.group('PCKT')
             temp_group = self._regex_helper.group('GROUP')
             self.current_ret[temp_group] = temp_pckt
+            raise ParsingDone
+
+    # 13:31:33.176710 IP (tos 0xc0, ttl 64, id 4236, offset 0, flags [DF], proto UDP (17), length 76)
+    _re_timestamp_tos_ttl_id_offset_flags_proto_length = re.compile(
+        r"(?P<TIMESTAMP>\d+:\d+:\d+.\d+)\s+IP\s+\(tos\s+(?P<TOS>\S+),\s+ttl\s+(?P<TTL>\S+),\s+id\s+(?P<ID>\S+),\s+offset\s+(?P<OFFSET>\S+),\s+flags\s+(?P<FLAGS>\S+),\s+proto\s+(?P<PROTO>\S+.*\S+),\s+length\s+(?P<LENGTH>\S+)\)")
+
+    def _parse_timestamp_tos_ttl_id_offset_flags_proto_length(self, line):
+        if self._regex_helper.search_compiled(Tcpdump._re_timestamp_tos_ttl_id_offset_flags_proto_length, line):
+            self.pckts_counter += 1
+            self.current_ret[str(self.pckts_counter)] = {}
+            self.current_ret[str(self.pckts_counter)]['timestamp'] = self._regex_helper.group("TIMESTAMP")
+            self.current_ret[str(self.pckts_counter)]['tos'] = self._regex_helper.group("TOS")
+            self.current_ret[str(self.pckts_counter)]['ttl'] = self._regex_helper.group("TTL")
+            self.current_ret[str(self.pckts_counter)]['id'] = self._regex_helper.group("ID")
+            self.current_ret[str(self.pckts_counter)]['offset'] = self._regex_helper.group("OFFSET")
+            self.current_ret[str(self.pckts_counter)]['flags'] = self._regex_helper.group("FLAGS")
+            self.current_ret[str(self.pckts_counter)]['proto'] = self._regex_helper.group("PROTO")
+            self.current_ret[str(self.pckts_counter)]['length'] = self._regex_helper.group("LENGTH")
+            raise ParsingDone
+
+    # Reference Timestamp:  0.000000000
+    _re_timestamp_header_details = re.compile(r"(?P<TIMESTAMP_HEADER>\S+.*\S+\s+Timestamp):\s+(?P<DETAILS>\S+.*\S+)")
+
+    def _parse_header_timestamp_details(self, line):
+        if self._regex_helper.search_compiled(Tcpdump._re_timestamp_header_details, line):
+            self.current_ret[str(self.pckts_counter)][
+                self._regex_helper.group("TIMESTAMP_HEADER")] = self._regex_helper.group("DETAILS")
             raise ParsingDone
 
 
@@ -127,7 +168,7 @@ tcpdump: listening on eth0, link-type EN10MB (Ethernet), capture size 262144 byt
       Transmit Timestamp:   3741593493.176683590 (2018/07/26 13:31:33)
         Originator - Receive Timestamp:  0.000000000
         Originator - Transmit Timestamp: 3741593493.176683590 (2018/07/26 13:31:33)
-13d:31:36.177597 IP (tos 0xc0, ttl 64, id 37309, offset 0, flags [DF], proto UDP (17), length 76)
+13:31:36.177597 IP (tos 0xc0, ttl 64, id 37309, offset 0, flags [DF], proto UDP (17), length 76)
     debdev.ntp > dream.multitronic.fi.ntp: [ba udp cksum 0x6b9b -> 0x0677!] NTPv4, length 48
     Client, Leap indicator: clock unsynchronized (192), Stratum 0 (unspecified), poll 10 (1024s), precision -23
     Root Delay: 0.000000, Root dispersion: 1.031951, Reference-ID: (unspec)
@@ -155,4 +196,60 @@ COMMAND_RESULT_vv = {
     'listening': 'eth0',
     'link-type': 'EN10MB (Ethernet)',
     'capture size': '262144 bytes',
+    '1': {'Originator - Receive Timestamp': '0.000000000',
+          'Originator - Transmit Timestamp': '3741593493.176683590 (2018/07/26 13:31:33)',
+          'Originator Timestamp': '0.000000000',
+          'Receive Timestamp': '0.000000000',
+          'Reference Timestamp': '0.000000000',
+          'Transmit Timestamp': '3741593493.176683590 (2018/07/26 13:31:33)',
+          'destination': 'ntp.wdc1.us.leaseweb.net.ntp',
+          'details': '[bad udp cksum 0x7aab -> 0x9cd3!] NTPv4, length 48',
+          'flags': '[DF]',
+          'id': '4236',
+          'length': '76',
+          'offset': '0',
+          'proto': 'UDP (17)',
+          'source': 'debdev.ntp',
+          'timestamp': '13:31:33.176710',
+          'tos': '0xc0',
+          'ttl': '64'},
+    '2': {'Originator - Receive Timestamp': '0.000000000',
+          'Originator - Transmit Timestamp': '3741593496.177547928 (2018/07/26 13:31:36)',
+          'Originator Timestamp': '0.000000000',
+          'Receive Timestamp': '0.000000000',
+          'Reference Timestamp': '0.000000000',
+          'Transmit Timestamp': '3741593496.177547928 (2018/07/26 13:31:36)',
+          'destination': 'dream.multitronic.fi.ntp',
+          'details': '[ba udp cksum 0x6b9b -> 0x0677!] NTPv4, length 48',
+          'flags': '[DF]',
+          'id': '37309',
+          'length': '76',
+          'offset': '0',
+          'proto': 'UDP (17)',
+          'source': 'debdev.ntp',
+          'timestamp': '13:31:36.177597',
+          'tos': '0xc0',
+          'ttl': '64'},
+    '3': {'destination': 'rumcdc001.nsn-intra.net.domain',
+          'details': '[bad udp cksum 0x96f8 -> 0x405b!] 61207+ PTR? 38.138.28.213.in-addr.arpa. (44)',
+          'flags': '[DF]',
+          'id': '3207',
+          'length': '72',
+          'offset': '0',
+          'proto': 'UDP (17)',
+          'source': 'debdev.6869',
+          'timestamp': '13:31:36.178110',
+          'tos': '0x0',
+          'ttl': '64'},
+    '4': {'destination': 'fihedc002.emea.nsn-net.net.domain',
+          'details': '[bad udp cksum 0x49fe -> 0x8d55!] 61207+ PTR? 38.138.28.213.in-addr.arpa. (44)',
+          'flags': '[DF]',
+          'id': '63672',
+          'length': '72',
+          'offset': '0',
+          'proto': 'UDP (17)',
+          'source': 'debdev.6869',
+          'timestamp': '13:31:36.178211',
+          'tos': '0x0',
+          'ttl': '64'}
 }
