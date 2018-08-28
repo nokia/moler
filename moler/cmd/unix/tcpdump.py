@@ -37,6 +37,7 @@ class Tcpdump(GenericUnixCommand):
                 self._parse_packets(line)
                 self._parse_timestamp_tos_ttl_id_offset_flags_proto_length(line)
                 self._parse_src_dst_details(line)
+                self._parse_root_delay_root_dipersion_ref_id(line)
                 self._parse_header_timestamp_details(line)
             except ParsingDone:
                 pass
@@ -113,6 +114,19 @@ class Tcpdump(GenericUnixCommand):
         if self._regex_helper.search_compiled(Tcpdump._re_timestamp_header_details, line):
             self.current_ret[str(self.pckts_counter)][
                 self._regex_helper.group("TIMESTAMP_HEADER")] = self._regex_helper.group("DETAILS")
+            raise ParsingDone
+
+    # Root Delay: 0.000000, Root dispersion: 1.031906, Reference-ID: (unspec)
+    _re_root_delay_root_dispersion_ref_id = re.compile(
+        r"(?P<ROOT>Root Delay):\s+(?P<DELAY>\S+),\s+(?P<ROOT_2>Root dispersion):\s+(?P<DISPERSION>\S+),\s+(?P<REF>Reference-ID):\s+(?P<ID>\S+)")
+
+    def _parse_root_delay_root_dipersion_ref_id(self, line):
+        if self._regex_helper.search_compiled(Tcpdump._re_root_delay_root_dispersion_ref_id, line):
+            self.current_ret[str(self.pckts_counter)][self._regex_helper.group("ROOT")] = self._regex_helper.group(
+                "DELAY")
+            self.current_ret[str(self.pckts_counter)][self._regex_helper.group("ROOT_2")] = self._regex_helper.group(
+                "DISPERSION")
+            self.current_ret[str(self.pckts_counter)][self._regex_helper.group("REF")] = self._regex_helper.group("ID")
             raise ParsingDone
 
 
@@ -201,6 +215,9 @@ COMMAND_RESULT_vv = {
           'Originator Timestamp': '0.000000000',
           'Receive Timestamp': '0.000000000',
           'Reference Timestamp': '0.000000000',
+          'Reference-ID': '(unspec)',
+          'Root Delay': '0.000000',
+          'Root dispersion': '1.031906',
           'Transmit Timestamp': '3741593493.176683590 (2018/07/26 13:31:33)',
           'destination': 'ntp.wdc1.us.leaseweb.net.ntp',
           'details': '[bad udp cksum 0x7aab -> 0x9cd3!] NTPv4, length 48',
@@ -218,6 +235,9 @@ COMMAND_RESULT_vv = {
           'Originator Timestamp': '0.000000000',
           'Receive Timestamp': '0.000000000',
           'Reference Timestamp': '0.000000000',
+          'Reference-ID': '(unspec)',
+          'Root Delay': '0.000000',
+          'Root dispersion': '1.031951',
           'Transmit Timestamp': '3741593496.177547928 (2018/07/26 13:31:36)',
           'destination': 'dream.multitronic.fi.ntp',
           'details': '[ba udp cksum 0x6b9b -> 0x0677!] NTPv4, length 48',
