@@ -34,11 +34,11 @@ class Tcpdump(GenericUnixCommand):
             try:
                 self._parse_port_linktype_capture_size(line)
                 self._parse_timestamp_src_dst_details(line)
-                self._parse_packets(line)
                 self._parse_timestamp_tos_ttl_id_offset_flags_proto_length(line)
                 self._parse_src_dst_details(line)
                 self._parse_root_delay_root_dipersion_ref_id(line)
                 self._parse_header_timestamp_details(line)
+                self._parse_packets(line)
             except ParsingDone:
                 pass
         return super(Tcpdump, self).on_new_line(line, is_full_line)
@@ -68,28 +68,8 @@ class Tcpdump(GenericUnixCommand):
             self.current_ret[str(self.pckts_counter)]['details'] = self._regex_helper.group("DETAILS")
             raise ParsingDone
 
-    # debdev.ntp > ntp.wdc1.us.leaseweb.net.ntp: [bad udp cksum 0x7aab -> 0x9cd3!] NTPv4, length 48
-    _re_src_dst_details = re.compile(r"(?P<SRC>\S+)\s+>\s+(?P<DST>\S+):\s+(?P<DETAILS>\S+.*\S+)")
-
-    def _parse_src_dst_details(self, line):
-        if self._regex_helper.search_compiled(Tcpdump._re_src_dst_details, line):
-            self.current_ret[str(self.pckts_counter)]['source'] = self._regex_helper.group("SRC")
-            self.current_ret[str(self.pckts_counter)]['destination'] = self._regex_helper.group("DST")
-            self.current_ret[str(self.pckts_counter)]['details'] = self._regex_helper.group("DETAILS")
-            raise ParsingDone
-
-    # 5 packets received by filter
-    _re_packets = re.compile(
-        r"(?P<PCKT>\d+)\s+(?P<GROUP>packets captured|packets received by filter|packets dropped by kernel)")
-
-    def _parse_packets(self, line):
-        if self._regex_helper.search_compiled(Tcpdump._re_packets, line):
-            temp_pckt = self._regex_helper.group('PCKT')
-            temp_group = self._regex_helper.group('GROUP')
-            self.current_ret[temp_group] = temp_pckt
-            raise ParsingDone
-
     # 13:31:33.176710 IP (tos 0xc0, ttl 64, id 4236, offset 0, flags [DF], proto UDP (17), length 76)
+
     _re_timestamp_tos_ttl_id_offset_flags_proto_length = re.compile(
         r"(?P<TIMESTAMP>\d+:\d+:\d+.\d+)\s+IP\s+\(tos\s+(?P<TOS>\S+),\s+ttl\s+(?P<TTL>\S+),\s+id\s+(?P<ID>\S+),\s+offset\s+(?P<OFFSET>\S+),\s+flags\s+(?P<FLAGS>\S+),\s+proto\s+(?P<PROTO>\S+.*\S+),\s+length\s+(?P<LENGTH>\S+)\)")
 
@@ -107,13 +87,14 @@ class Tcpdump(GenericUnixCommand):
             self.current_ret[str(self.pckts_counter)]['length'] = self._regex_helper.group("LENGTH")
             raise ParsingDone
 
-    # Reference Timestamp:  0.000000000
-    _re_timestamp_header_details = re.compile(r"(?P<TIMESTAMP_HEADER>\S+.*\S+\s+Timestamp):\s+(?P<DETAILS>\S+.*\S+)")
+    # debdev.ntp > ntp.wdc1.us.leaseweb.net.ntp: [bad udp cksum 0x7aab -> 0x9cd3!] NTPv4, length 48
+    _re_src_dst_details = re.compile(r"(?P<SRC>\S+)\s+>\s+(?P<DST>\S+):\s+(?P<DETAILS>\S+.*\S+)")
 
-    def _parse_header_timestamp_details(self, line):
-        if self._regex_helper.search_compiled(Tcpdump._re_timestamp_header_details, line):
-            self.current_ret[str(self.pckts_counter)][
-                self._regex_helper.group("TIMESTAMP_HEADER")] = self._regex_helper.group("DETAILS")
+    def _parse_src_dst_details(self, line):
+        if self._regex_helper.search_compiled(Tcpdump._re_src_dst_details, line):
+            self.current_ret[str(self.pckts_counter)]['source'] = self._regex_helper.group("SRC")
+            self.current_ret[str(self.pckts_counter)]['destination'] = self._regex_helper.group("DST")
+            self.current_ret[str(self.pckts_counter)]['details'] = self._regex_helper.group("DETAILS")
             raise ParsingDone
 
     # Root Delay: 0.000000, Root dispersion: 1.031906, Reference-ID: (unspec)
@@ -127,6 +108,26 @@ class Tcpdump(GenericUnixCommand):
             self.current_ret[str(self.pckts_counter)][self._regex_helper.group("ROOT_2")] = self._regex_helper.group(
                 "DISPERSION")
             self.current_ret[str(self.pckts_counter)][self._regex_helper.group("REF")] = self._regex_helper.group("ID")
+            raise ParsingDone
+
+    # Reference Timestamp:  0.000000000
+    _re_timestamp_header_details = re.compile(r"(?P<TIMESTAMP_HEADER>\S+.*\S+\s+Timestamp):\s+(?P<DETAILS>\S+.*\S+)")
+
+    def _parse_header_timestamp_details(self, line):
+        if self._regex_helper.search_compiled(Tcpdump._re_timestamp_header_details, line):
+            self.current_ret[str(self.pckts_counter)][
+                self._regex_helper.group("TIMESTAMP_HEADER")] = self._regex_helper.group("DETAILS")
+            raise ParsingDone
+
+    # 5 packets received by filter
+    _re_packets = re.compile(
+        r"(?P<PCKT>\d+)\s+(?P<GROUP>packets captured|packets received by filter|packets dropped by kernel)")
+
+    def _parse_packets(self, line):
+        if self._regex_helper.search_compiled(Tcpdump._re_packets, line):
+            temp_pckt = self._regex_helper.group('PCKT')
+            temp_group = self._regex_helper.group('GROUP')
+            self.current_ret[temp_group] = temp_pckt
             raise ParsingDone
 
 
