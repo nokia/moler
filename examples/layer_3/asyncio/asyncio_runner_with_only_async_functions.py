@@ -71,6 +71,8 @@ async def ping_sim_tcp_server(server_port, ping_ip, client_handling_done, reader
             await writer.drain()
         except ConnectionResetError:  # client is gone
             break
+        except Exception:
+            raise
         await asyncio.sleep(1)  # simulate delay between ping lines
     writer.close()
     client_handling_done.set_result(True)
@@ -115,7 +117,8 @@ async def main(connections2observe4ip):
         # Another words, all we want here is stg like:
         # "give me connection to main_dns_server"
         # ------------------------------------------------------------------
-        tcp_connection = get_connection(name=connection_name, logger=logger)
+        con_logger = logging.getLogger('tcp-thrd-io.{}'.format(connection_name))
+        tcp_connection = get_connection(name=connection_name, logger=con_logger)
         tcp_connection.moler_connection.name = connection_name
         # client_task= asyncio.ensure_future(ping_observing_task(tcp_connection, ping_ip))
         connections.append(ping_observing_task(tcp_connection, ping_ip))
