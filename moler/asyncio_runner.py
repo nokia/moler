@@ -115,20 +115,24 @@ class AsyncioRunner(ConnectionObserverRunner):
         """
         self.logger.debug("START OF feed({})".format(connection_observer))
         moler_conn = connection_observer.connection
-        while True:
-            if connection_observer.done():
-                self.logger.debug(
-                    "done & unsubscribing {!r}".format(connection_observer))
-                moler_conn.unsubscribe(connection_observer.data_received)
-                break
-            if self._in_shutdown:
-                self.logger.debug(
-                    "shutdown so cancelling {!r}".format(connection_observer))
-                connection_observer.cancel()
-            await asyncio.sleep(0.01)  # give moler_conn a chance to feed observer
-        self.logger.debug("returning result {}".format(connection_observer))
-        self.logger.debug("END   OF feed({})".format(connection_observer))
-        return connection_observer.result()
+        try:
+            while True:
+                if connection_observer.done():
+                    self.logger.debug(
+                        "done & unsubscribing {!r}".format(connection_observer))
+                    moler_conn.unsubscribe(connection_observer.data_received)
+                    break
+                if self._in_shutdown:
+                    self.logger.debug(
+                        "shutdown so cancelling {!r}".format(connection_observer))
+                    connection_observer.cancel()
+                await asyncio.sleep(0.01)  # give moler_conn a chance to feed observer
+            self.logger.debug("returning result {}".format(connection_observer))
+            self.logger.debug("END   OF feed({})".format(connection_observer))
+            return connection_observer.result()
+        except asyncio.CancelledError:
+            self.logger.debug("Cancelled {!r}.feed".format(self))
+            raise  # need to reraise to inform "I agree for cancellation"
 
     def timeout_change(self, timedelta):
         pass
