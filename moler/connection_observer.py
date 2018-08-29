@@ -217,10 +217,14 @@ def is_async_caller():
     # If there's any indication that the function object is a
     # coroutine, return True. inspect.iscoroutinefunction() should
     # be all we need, the rest are here to illustrate.
-    if any([inspect.iscoroutinefunction(f),
-            inspect.isgeneratorfunction(f),
-            inspect.iscoroutine(f), inspect.isawaitable(f),
-            inspect.isasyncgenfunction(f) , inspect.isasyncgen(f)]):
+    # inspect has different checks depending on Python2/Python3
+    iscoroutinefunction = inspect.iscoroutinefunction(f) if hasattr(inspect, "iscoroutinefunction") else False
+    iscoroutine = inspect.iscoroutine(f) if hasattr(inspect, "iscoroutine") else False
+    isawaitable = inspect.isawaitable(f) if hasattr(inspect, "isawaitable") else False
+    isasyncgenfunction = inspect.isasyncgenfunction(f) if hasattr(inspect, "isasyncgenfunction") else False
+    isasyncgen = inspect.isasyncgen(f) if hasattr(inspect, "isasyncgen") else False
+    if any([iscoroutinefunction, inspect.isgeneratorfunction(f), iscoroutine, isawaitable,
+            isasyncgenfunction, isasyncgen]):
         return True
     else:
         return False
