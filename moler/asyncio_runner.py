@@ -123,7 +123,8 @@ class AsyncioRunner(ConnectionObserverRunner):
         self.logger.debug("go foreground: {!r}".format(connection_observer))
 
         # connection_observer.start() / runner.submit(connection_observer) has already scheduled future via asyncio.ensure_future
-        yield from connection_observer_future.__await__()
+        for step in connection_observer_future.__await__():
+            yield step
         # Note: even if code is so simple we can't move it inside ConnectionObserver.__await__() since different runners
         # may provide different iterator implementing awaitable
         # Here we know, connection_observer_future is asyncio.Future (precisely asyncio.tasks.Task) and we know it has __await__() method.
