@@ -5,6 +5,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import logging
+import inspect
 from abc import abstractmethod, ABCMeta
 
 from six import add_metaclass
@@ -59,6 +60,16 @@ class ConnectionObserver(object):
             self.timeout = timeout
         started_observer = self.start(timeout, *args, **kwargs)
         if started_observer:
+            if is_async_caller():
+                print("called from async code")
+                return self
+                # TODO: rethink it
+                # hope someone is calling                await connection_observer()
+                # what if not, if it is only                   connection_observer()
+                # maybe just block it "for non-async usage" via exception
+                # and force async code to use            await connection_observer
+                # see also: https://hackernoon.com/controlling-python-async-creep-ec0a0f4b79ba
+                # where same 'def fetch()' is used inside sync and async code
             return started_observer.await_done(*args, **kwargs)
         # TODO: raise ConnectionObserverFailedToStart
 
@@ -89,6 +100,28 @@ class ConnectionObserver(object):
         if self.timeout <= 0.0:
             raise ConnectionObserverTimeout(self, self.timeout, "before run", "timeout is not positive value")
 
+    def __await__(self):
+        """
+        Await completion of connection-observer.
+
+        Allows to use Python3 'await' syntax
+
+        According to https://www.python.org/dev/peps/pep-0492/#await-expression
+        it is a SyntaxError to use await outside of an async def function.
+        :return:
+        """
+        # We may have already started connection_observer:
+        #    connection_observer = SomeObserver()
+        #    connection_observer.start()
+        # then we await it via:
+        #    result = await connection_observer
+        # but above notation in terms of Python3 async code may also mean "start it and await completion", so it may look like:
+        #    connection_observer = SomeObserver()
+        #    result = await connection_observer
+        if self._future is None:
+            self.start()
+        return self.runner.wait_for_iterator(self, self._future)
+
     def await_done(self, timeout=None):
         """Await completion of connection-observer."""
         if self.done():
@@ -101,6 +134,7 @@ class ConnectionObserver(object):
 
     def cancel(self):
         """Cancel execution of connection-observer."""
+        # TODO: call cancel on runner to stop background run of connection-observer
         if self.cancelled() or self.done():
             return False
         self._is_done = True
@@ -166,3 +200,27 @@ class ConnectionObserver(object):
     def observer_name(cls):
         name = camel_case_to_lower_case_underscore(cls.__name__)
         return name
+
+
+# https://hackernoon.com/controlling-python-async-creep-ec0a0f4b79ba
+def is_async_caller():
+    """Figure out who's calling."""
+    # Get the calling frame
+    caller = inspect.currentframe().f_back.f_back
+    # Pull the function name from FrameInfo
+    func_name = inspect.getframeinfo(caller)[2]
+    # Get the function object
+    f = caller.f_locals.get(
+        func_name,
+        caller.f_globals.get(func_name)
+    )
+    # If there's any indication that the function object is a
+    # coroutine, return True. inspect.iscoroutinefunction() should
+    # be all we need, the rest are here to illustrate.
+    if any([inspect.iscoroutinefunction(f),
+            inspect.isgeneratorfunction(f),
+            inspect.iscoroutine(f), inspect.isawaitable(f),
+            inspect.isasyncgenfunction(f) , inspect.isasyncgen(f)]):
+        return True
+    else:
+        return False
