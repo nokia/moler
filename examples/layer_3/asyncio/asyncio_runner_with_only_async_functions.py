@@ -211,8 +211,8 @@ async def ping_observing_task(ext_io_connection, ping_ip):
 
     with ext_io_connection:
         # 5. await that observer to complete
-        # net_down_time = net_down_detector.await_done(timeout=10)
-        net_down_time = await net_down_detector
+        net_down_time = await net_down_detector.await_done(timeout=10)
+        # net_down_time = await net_down_detector
         timestamp = time.strftime("%H:%M:%S", time.localtime(net_down_time))
         logger.debug('Network {} is down from {}'.format(ping_ip, timestamp))
 

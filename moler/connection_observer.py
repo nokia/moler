@@ -51,26 +51,18 @@ class ConnectionObserver(object):
             connection_str = repr(self.connection)
         return '{}, using {})'.format(cmd_str[:-1], connection_str)
 
-    def __call__(self, timeout=None, *args, **kwargs):
+    def __call__(self, timeout=None, async_context=None, *args, **kwargs):
         """
         Run connection-observer in foreground
         till it is done or timeouted
         """
+        if async_context is None:
+            async_context = is_async_caller()
         if timeout:
             self.timeout = timeout
         started_observer = self.start(timeout, *args, **kwargs)
         if started_observer:
-            if is_async_caller():
-                print("called from async code")
-                return self
-                # TODO: rethink it
-                # hope someone is calling                await connection_observer()
-                # what if not, if it is only                   connection_observer()
-                # maybe just block it "for non-async usage" via exception
-                # and force async code to use            await connection_observer
-                # see also: https://hackernoon.com/controlling-python-async-creep-ec0a0f4b79ba
-                # where same 'def fetch()' is used inside sync and async code
-            return started_observer.await_done(*args, **kwargs)
+            return started_observer.await_done(async_context=async_context, *args, **kwargs)
         # TODO: raise ConnectionObserverFailedToStart
 
     def start(self, timeout=None, *args, **kwargs):
@@ -120,10 +112,33 @@ class ConnectionObserver(object):
         #    result = await connection_observer
         if self._future is None:
             self.start()
+        assert self._future is not None
         return self.runner.wait_for_iterator(self, self._future)
 
-    def await_done(self, timeout=None):
-        """Await completion of connection-observer."""
+    def await_done(self, timeout=None, async_context=None):
+        """
+        Await completion of connection-observer.
+
+        CAUTION: if you call it from asynchronous code (async def)
+        you should await it via:
+        result = await connection_observer.await_done()
+        otherwise
+        result = connection_observer.await_done()
+        just returns awaitable - you must be aware of it
+
+        :param timeout:
+        :param async_context: True - called from async code, False - from sync code, None - try detect caller type
+        :return: observer result in sync context, observer awaitable in async context
+        """
+        # TODO: is asyncio.get_event_loop().is_running() answer to "are we called from async-call-chain"?
+        # async-call-chain means somewhere above is 'async def' even if below are 'def'
+        # below 'def's may just pass awaitable/coroutines/async-defs from bottom
+        if async_context is None:
+            async_context = is_async_caller()
+        if async_context:
+            return self  # self is awaitable
+            # TODO: awaitable with timeout via wrapping:  asyncio.wait_for(self, timeout=10)
+            # of cause shifted under AsyncioRunner
         if self.done():
             return self.result()
         if self._future is None:
@@ -219,12 +234,12 @@ def is_async_caller():
     # be all we need, the rest are here to illustrate.
     # inspect has different checks depending on Python2/Python3
     iscoroutinefunction = inspect.iscoroutinefunction(f) if hasattr(inspect, "iscoroutinefunction") else False
+    isgeneratorfunction = inspect.isgeneratorfunction(f)
     iscoroutine = inspect.iscoroutine(f) if hasattr(inspect, "iscoroutine") else False
     isawaitable = inspect.isawaitable(f) if hasattr(inspect, "isawaitable") else False
     isasyncgenfunction = inspect.isasyncgenfunction(f) if hasattr(inspect, "isasyncgenfunction") else False
     isasyncgen = inspect.isasyncgen(f) if hasattr(inspect, "isasyncgen") else False
-    if any([iscoroutinefunction, inspect.isgeneratorfunction(f), iscoroutine, isawaitable,
-            isasyncgenfunction, isasyncgen]):
+    if any([iscoroutinefunction, isgeneratorfunction, iscoroutine, isawaitable, isasyncgenfunction, isasyncgen]):
         return True
     else:
         return False
