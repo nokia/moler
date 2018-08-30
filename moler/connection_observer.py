@@ -92,6 +92,26 @@ class ConnectionObserver(object):
         if self.timeout <= 0.0:
             raise ConnectionObserverTimeout(self, self.timeout, "before run", "timeout is not positive value")
 
+    def __iter__(self):  # Python 3.4 support - do we need it?
+        """
+        Implement iterator protocol to support 'yield from' in @asyncio.coroutine
+        :return:
+        """
+        if self._future is None:
+            self.start()
+        assert self._future is not None
+        return self._future.__iter__()
+
+    def __next__(self):  # Python 3.4 support - do we need it?
+        """
+        Implement iterator protocol to support 'yield from' in @asyncio.coroutine
+        :return:
+        """
+        if self._future is None:
+            self.start()
+        assert self._future is not None
+        return self._future.__next__()
+
     def __await__(self):
         """
         Await completion of connection-observer.
