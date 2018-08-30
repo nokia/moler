@@ -157,21 +157,21 @@ def configure_moler_main_logger():
     """Configure main logger of Moler"""
     # warning or above go to logfile
     logger = create_logger(name='moler', log_level=TRACE, datefmt=date_format)
-    main_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(con_name)-30s |%(message)s"
+    main_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(log_name)-20s |%(message)s"
     _add_new_file_handler(logger_name='moler',
                           log_file='moler.log',
                           log_level=logging.INFO,  # only hi-level info from library
                           formatter=MultilineWithDirectionFormatter(fmt=main_log_format,
                                                                     datefmt=date_format))
     if want_trace_details():
-        debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(con_name)-30s %(transfer_direction)s|%(message)s"
+        trace_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(con_name)-30s %(transfer_direction)s|%(message)s"
         _add_new_file_handler(logger_name='moler',
                               log_file='moler.debug.log',
                               log_level=trace_level,
                               # entries from different components go to single file, so we need to
                               # differentiate them by logger name: "%(name)s"
                               # do we need "%(threadName)-30s" ???
-                              formatter=MultilineWithDirectionFormatter(fmt=debug_log_format,
+                              formatter=MultilineWithDirectionFormatter(fmt=trace_log_format,
                                                                         datefmt=date_format))
     elif want_debug_details():
         debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(con_name)-30s %(transfer_direction)s|%(message)s"
@@ -197,7 +197,7 @@ def configure_runner_logger(runner_name):
                   )
 
 
-def configure_connection_logger(connection_name, propagate=True):
+def configure_connection_logger(connection_name, propagate=False):
     """Configure logger with file storing connection's log"""
     logger_name = 'moler.{}'.format(connection_name)
     logger = create_logger(name=logger_name, log_level=TRACE)
@@ -302,6 +302,9 @@ class MultilineWithDirectionFormatter(logging.Formatter):
             record.transfer_direction = ' '
         if not hasattr(record, 'con_name'):
             record.con_name = record.name
+        if not hasattr(record, 'log_name'):
+            record.log_name = record.name
+
         msg_lines = record.getMessage().splitlines(True)
         base_output = super(MultilineWithDirectionFormatter, self).format(record)
         out_lines = base_output.splitlines(True)

@@ -150,11 +150,10 @@ class ConnectionObserver(object):
         """Should be used to indicate some failure during observation"""
         self._is_done = True
         self._exception = exception
-        self._log(logging.INFO,
-                             "'{}.{}' has set exception '{}.{}'.".format(self.__class__.__module__,
-                                                                         self.__class__.__name__,
-                                                                         exception.__class__.__module__,
-                                                                         exception.__class__.__name__))
+        self._log(logging.INFO, "'{}.{}' has set exception '{}.{}'.".format(self.__class__.__module__,
+                                                                            self.__class__.__name__,
+                                                                            exception.__class__.__module__,
+                                                                            exception.__class__.__name__))
 
     def result(self):
         """Retrieve final result of connection-observer"""
@@ -188,9 +187,13 @@ class ConnectionObserver(object):
     def get_finished_desc(self):
         return "Observer '{}.{}' finished.".format(self.__class__.__module__, self.__class__.__name__)
 
-    def _log(self, lvl, msg, extra_params=None):
-        extra = {'con_name': self.get_logger_name()}
-        if extra_params:
-            extra.update(extra_params)
+    def _log(self, lvl, msg, extra=None):
+        extra_params = {
+            'con_name': "moler.connection.{}".format(self.get_logger_name()),
+            'log_name': self.get_logger_name()
+        }
 
-        self.main_logger.log(lvl, msg, extra=extra)
+        if extra:
+            extra_params.update(extra)
+
+        self.main_logger.log(lvl, msg, extra=extra_params)

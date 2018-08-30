@@ -63,7 +63,6 @@ class Connection(object):
         self._name = self._use_or_generate_name(name)
         self.newline = newline
         self.logger = self._select_logger(logger_name, self._name)
-        self.main_logger = logging.getLogger('moler')
 
     @property
     def name(self):
@@ -78,7 +77,7 @@ class Connection(object):
         If connection is using default logger ("moler.connection.<name>")
         then modify logger after connection name change.
         """
-        self._log(msg=r'changing name: {} --> {}'.format(self._name, value), level=TRACE)
+        self._log(level=TRACE, msg=r'changing name: {} --> {}'.format(self._name, value))
         if self._using_default_logger():
             self.logger = self._select_logger(logger_name="", connection_name=value)
         self._name = value
@@ -136,8 +135,13 @@ class Connection(object):
     def send(self, data, timeout=30):  # TODO: should timeout be property of IO? We timeout whole connection-observer.
         """Outgoing-IO API: Send data over external-IO."""
         self._log_data(msg=data, level=logging.INFO, extra={'transfer_direction': '>'})
-        self.main_logger.log(level=logging.INFO, msg=self._strip_data(data),
-                             extra={'transfer_direction': '>', 'con_name': self.name})
+        self._log(level=logging.INFO,
+                  msg=self._strip_data(data),
+                  extra={
+                      'transfer_direction': '>',
+                      'con_name': "moler.connection.{}".format(self.name),
+                      'log_name': self.name
+                  })
         data2send = self.encode(data)
         self._log_data(msg=data2send, level=RAW_DATA, extra={'transfer_direction': '>'})
         self.how2send(data2send)
@@ -167,15 +171,23 @@ class Connection(object):
         err_msg += "\n{}: {}(how2send=external_io_send)".format("Do it either during connection construction",
                                                                 self.__class__.__name__)
         err_msg += "\nor later via attribute direct set: connection.how2send = external_io_send"
-        self._log(msg=err_msg, level=logging.ERROR)
+        self._log(level=logging.ERROR, msg=err_msg)
         raise WrongUsage(err_msg)
 
     def _log_data(self, msg, level, extra=None):
         for logger in self.data_loggers:
             logger.log(level, msg, extra=extra)
 
-    def _log(self, msg, level, extra=None):
+    def _log(self, level, msg, extra=None):
         if self.logger:
+            extra_params = {
+                'con_name': "moler.connection.{}".format(self.name),
+                'log_name': self.name
+            }
+
+            if extra:
+                extra_params.update(extra)
+
             self.logger.log(level, msg, extra=extra)
 
 
@@ -237,8 +249,9 @@ class ObservableConnection(Connection):
         :param observer: function to be called
         """
         with self._observers_lock:
-            self._log(msg="subscribe({})".format(observer), level=TRACE)
+            self._log(level=TRACE, msg="subscribe({})".format(observer))
             observer_key, value = self._get_observer_key_value(observer)
+
             if observer_key not in self._observers:
                 self._observers[observer_key] = value
 
@@ -248,13 +261,13 @@ class ObservableConnection(Connection):
         :param observer: function that was previously subscribed
         """
         with self._observers_lock:
-            self._log(msg="unsubscribe({})".format(observer), level=TRACE)
+            self._log(level=TRACE, msg="unsubscribe({})".format(observer))
             observer_key, _ = self._get_observer_key_value(observer)
             if observer_key in self._observers:
                 del self._observers[observer_key]
             else:
-                self._log(msg="{} was not subscribed".format(observer),
-                          level=logging.WARNING)
+                self._log(level=logging.WARNING,
+                          msg="{} was not subscribed".format(observer))
 
     def notify_observers(self, data):
         """Notify all subscribed observers about data received on connection"""
@@ -262,7 +275,7 @@ class ObservableConnection(Connection):
         current_subscribers = list(self._observers.values())
         for self_or_none, observer_function in current_subscribers:
             try:
-                self._log(msg=r'notifying {}({!r})'.format(observer_function, repr(data)), level=TRACE)
+                self._log(level=TRACE, msg=r'notifying {}({!r})'.format(observer_function, repr(data)))
                 if self_or_none is None:
                     observer_function(data)
                 else:
