@@ -14,6 +14,6 @@ script:
   - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then python3.6 -m coverage run --source=moler,test -m py.test --random -s -vv py3test/; fi
   - pycodestyle moler
   - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then python3.6 -m pytest --mccabe moler; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then python2 -m pytest; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then python2 -m pytest test/; fi
 after_success:
   - if [[ $TRAVIS_PYTHON_VERSION == 3.6 && $TRAVIS_OS_NAME == "linux" ]]; then coveralls; fi
