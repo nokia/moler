@@ -211,7 +211,7 @@ def ping_observing_task(ext_io_connection, ping_ip):
 
     with ext_io_connection:
         # 5. await that observer to complete
-        net_down_time = yield from net_down_detector.await_done(timeout=10)
+        net_down_time = yield from net_down_detector
         # net_down_time = await net_down_detector
         timestamp = time.strftime("%H:%M:%S", time.localtime(net_down_time))
         logger.debug('Network {} is down from {}'.format(ping_ip, timestamp))
@@ -221,7 +221,7 @@ def ping_observing_task(ext_io_connection, ping_ip):
         logger.debug('observe ' + info)
         # using as synchronous function (so we want verb to express action)
         detect_network_up = net_up_detector
-        net_up_time = yield from detect_network_up()
+        net_up_time = yield from detect_network_up
         timestamp = time.strftime("%H:%M:%S", time.localtime(net_up_time))
         logger.debug('Network {} is back "up" from {}'.format(ping_ip, timestamp))
     logger.debug('exiting ping_observing_task')

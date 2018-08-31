@@ -51,18 +51,24 @@ class ConnectionObserver(object):
             connection_str = repr(self.connection)
         return '{}, using {})'.format(cmd_str[:-1], connection_str)
 
-    def __call__(self, timeout=None, async_context=None, *args, **kwargs):
+    def __call__(self, timeout=None, *args, **kwargs):
         """
         Run connection-observer in foreground
         till it is done or timeouted
+
+        CAUTION: if you call it from asynchronous code (async def) you may block events loop for long time.
+        You should rather await it via:
+        result = await connection_observer
+        or (to have timeout)
+        result = await asyncio.wait_for(connection_observer, timeout=10)
+        or you may delegate blocking call execution to separate thread,
+        see: https://pymotw.com/3/asyncio/executors.html
         """
-        if async_context is None:
-            async_context = is_async_caller()
         if timeout:
             self.timeout = timeout
         started_observer = self.start(timeout, *args, **kwargs)
         if started_observer:
-            return started_observer.await_done(async_context=async_context, *args, **kwargs)
+            return started_observer.await_done(*args, **kwargs)
         # TODO: raise ConnectionObserverFailedToStart
 
     def start(self, timeout=None, *args, **kwargs):
@@ -135,30 +141,21 @@ class ConnectionObserver(object):
         assert self._future is not None
         return self.runner.wait_for_iterator(self, self._future)
 
-    def await_done(self, timeout=None, async_context=None):
+    def await_done(self, timeout=None):
         """
         Await completion of connection-observer.
 
-        CAUTION: if you call it from asynchronous code (async def)
-        you should await it via:
-        result = await connection_observer.await_done()
-        otherwise
-        result = connection_observer.await_done()
-        just returns awaitable - you must be aware of it
+        CAUTION: if you call it from asynchronous code (async def) you may block events loop for long time.
+        You should rather await it via:
+        result = await connection_observer
+        or (to have timeout)
+        result = await asyncio.wait_for(connection_observer, timeout=10)
+        or you may delegate blocking call execution to separate thread,
+        see: https://pymotw.com/3/asyncio/executors.html
 
         :param timeout:
-        :param async_context: True - called from async code, False - from sync code, None - try detect caller type
-        :return: observer result in sync context, observer awaitable in async context
+        :return: observer result
         """
-        # TODO: is asyncio.get_event_loop().is_running() answer to "are we called from async-call-chain"?
-        # async-call-chain means somewhere above is 'async def' even if below are 'def'
-        # below 'def's may just pass awaitable/coroutines/async-defs from bottom
-        if async_context is None:
-            async_context = is_async_caller()
-        if async_context:
-            return self  # self is awaitable
-            # TODO: awaitable with timeout via wrapping:  asyncio.wait_for(self, timeout=10)
-            # of cause shifted under AsyncioRunner
         if self.done():
             return self.result()
         if self._future is None:
@@ -235,31 +232,3 @@ class ConnectionObserver(object):
     def observer_name(cls):
         name = camel_case_to_lower_case_underscore(cls.__name__)
         return name
-
-
-# https://hackernoon.com/controlling-python-async-creep-ec0a0f4b79ba
-def is_async_caller():
-    """Figure out who's calling."""
-    # Get the calling frame
-    caller = inspect.currentframe().f_back.f_back
-    # Pull the function name from FrameInfo
-    func_name = inspect.getframeinfo(caller)[2]
-    # Get the function object
-    f = caller.f_locals.get(
-        func_name,
-        caller.f_globals.get(func_name)
-    )
-    # If there's any indication that the function object is a
-    # coroutine, return True. inspect.iscoroutinefunction() should
-    # be all we need, the rest are here to illustrate.
-    # inspect has different checks depending on Python2/Python3
-    iscoroutinefunction = inspect.iscoroutinefunction(f) if hasattr(inspect, "iscoroutinefunction") else False
-    isgeneratorfunction = inspect.isgeneratorfunction(f)
-    iscoroutine = inspect.iscoroutine(f) if hasattr(inspect, "iscoroutine") else False
-    isawaitable = inspect.isawaitable(f) if hasattr(inspect, "isawaitable") else False
-    isasyncgenfunction = inspect.isasyncgenfunction(f) if hasattr(inspect, "isasyncgenfunction") else False
-    isasyncgen = inspect.isasyncgen(f) if hasattr(inspect, "isasyncgen") else False
-    if any([iscoroutinefunction, isgeneratorfunction, iscoroutine, isawaitable, isasyncgenfunction, isasyncgen]):
-        return True
-    else:
-        return False
