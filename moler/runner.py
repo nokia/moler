@@ -12,10 +12,12 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 import atexit
 import logging
 import time
+import threading
 from abc import abstractmethod, ABCMeta
 from concurrent.futures import ThreadPoolExecutor, wait
 from moler.exceptions import ConnectionObserverTimeout
 from moler.exceptions import CommandTimeout
+from moler.exceptions import MolerException
 from six import add_metaclass
 
 # fix for concurrent.futures  v.3.0.3  to have API of v.3.1.1 or above
@@ -110,14 +112,16 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Returns Future that could be used to await for connection_observer done.
         """
         self.logger.debug("go background: {!r}".format(connection_observer))
-        # subscription for data must be done early (before feeding thread starts)
-        # to protect against threads races: connection thread may may get some data
-        # even before feeding thread starts
-        self.logger.debug("subscribing for data {!r}".format(connection_observer))
-        moler_conn = connection_observer.connection
-        moler_conn.subscribe(connection_observer.data_received)
+
         # TODO: check dependency - connection_observer.connection
-        connection_observer_future = self.executor.submit(self.feed, connection_observer)
+
+        feed_started = threading.Event()
+        connection_observer_future = self.executor.submit(self.feed, connection_observer, feed_started)
+        # await feed thread to be really started
+        start_timeout = 0.5
+        if not feed_started.wait(timeout=start_timeout):
+            err_msg = "Failed to start observer feeding thread within {} sec".format(start_timeout)
+            raise MolerException(err_msg)
         return connection_observer_future
 
     def wait_for(self, connection_observer, connection_observer_future, timeout=None):
@@ -161,12 +165,16 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         else:
             raise ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
 
-    def feed(self, connection_observer):  # active feeder - pulls for data
+    def feed(self, connection_observer, feed_started):
         """
-        Feeds connection_observer by pulling data from connection and passing it to connection_observer.
+        Feeds connection_observer by transferring data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
         moler_conn = connection_observer.connection
+        # start feeding connection_observer by establishing data-channel from connection to observer
+        self.logger.debug("subscribing for data {!r}".format(connection_observer))
+        moler_conn.subscribe(connection_observer.data_received)
+        feed_started.set()
         while True:
             if connection_observer.done():
                 self.logger.debug("done & unsubscribing {!r}".format(connection_observer))
