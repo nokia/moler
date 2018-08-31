@@ -54,7 +54,7 @@ def run_nested_until_complete(future, loop=None):
     while not task.done():
         try:
             loop._run_once()
-        except:
+        except Exception as err:
             if new_task and future.done() and not future.cancelled():
                 # The coroutine raised a BaseException. Consume the exception
                 # to not log a warning, the caller doesn't have access to the
