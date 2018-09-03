@@ -54,7 +54,7 @@ class TextualDevice(object):
 
         # Below line will modify self extending it with methods and atributes od StateMachine
         # For eg. it will add attribute self.state
-        self.SM = StateMachine(name=self.name, model=self, states=self.states, initial=TextualDevice.not_connected,
+        self.SM = StateMachine(model=self, states=self.states, initial=TextualDevice.not_connected,
                                auto_transitions=False,
                                queued=True)
 
