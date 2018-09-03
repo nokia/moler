@@ -183,7 +183,7 @@ def configure_moler_main_logger():
                               # do we need "%(threadName)-30s" ???
                               formatter=MultilineWithDirectionFormatter(fmt=debug_log_format,
                                                                         datefmt=date_format))
-    logger.propagate = False
+    logger.propagate = True
 
 
 def configure_runner_logger(runner_name):
@@ -309,6 +309,7 @@ class MultilineWithDirectionFormatter(logging.Formatter):
         base_output = super(MultilineWithDirectionFormatter, self).format(record)
         out_lines = base_output.splitlines(True)
         output = out_lines[0]
+
         if len(msg_lines) >= 1:
             empty_prefix = MultilineWithDirectionFormatter._calculate_empty_prefix(msg_lines[0], out_lines[0])
             for line in out_lines[1:]:
