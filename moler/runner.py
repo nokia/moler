@@ -192,7 +192,9 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         """
         while not connection_observer_future.done():
             yield None
-        return connection_observer_future.result()  # May raise too.
+        # return connection_observer_future.result()  # May raise too.   # Python > 3.3
+        res = connection_observer_future.result()
+        raise StopIteration(res)  # Python 2 compatibility
 
     def feed(self, connection_observer, feed_started):
         """
