@@ -10,6 +10,7 @@ import transitions
 
 forwarding_handler = None
 
+
 class StateMachine(transitions.Machine):
     def __init__(self, model='self', states=None, initial='initial', transitions=None,
                  send_event=False, auto_transitions=True,
