@@ -4,11 +4,12 @@ __author__ = 'Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
+import re
+
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import NoDetectPatternProvided, MolerException
-from moler.helpers import instance_id
 from moler.exceptions import ResultAlreadySet
-import re
+from moler.helpers import instance_id
 
 
 class Event(ConnectionObserver):
@@ -81,7 +82,7 @@ class Event(ConnectionObserver):
 
     def get_start_desc(self):
         return "Event '{}.{}':'{}' started.".format(self.__class__.__module__, self.__class__.__name__,
-                                                      self.detect_patterns)
+                                                    self.detect_patterns)
 
     def get_finished_desc(self):
         return "Event '{}.{}' finished.".format(self.__class__.__module__, self.__class__.__name__)
