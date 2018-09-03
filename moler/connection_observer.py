@@ -106,17 +106,7 @@ class ConnectionObserver(object):
         if self._future is None:
             self.start()
         assert self._future is not None
-        return self._future.__iter__()
-
-    def __next__(self):  # Python 3.4 support - do we need it?
-        """
-        Implement iterator protocol to support 'yield from' in @asyncio.coroutine
-        :return:
-        """
-        if self._future is None:
-            self.start()
-        assert self._future is not None
-        return self._future.__next__()
+        return self.runner.wait_for_iterator(self, self._future)
 
     def __await__(self):
         """
@@ -136,10 +126,7 @@ class ConnectionObserver(object):
         # but above notation in terms of Python3 async code may also mean "start it and await completion", so it may look like:
         #    connection_observer = SomeObserver()
         #    result = await connection_observer
-        if self._future is None:
-            self.start()
-        assert self._future is not None
-        return self.runner.wait_for_iterator(self, self._future)
+        return self.__iter__()
 
     def await_done(self, timeout=None):
         """
