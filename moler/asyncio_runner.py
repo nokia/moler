@@ -23,6 +23,17 @@ from moler.runner import ConnectionObserverRunner
 # https://rokups.github.io/#!pages/python3-asyncio-sync-async.md
 
 
+def _run_loop_till_condition(loop, condition_callable, timeout):
+    start_time = time.time()
+    passed = time.time() - start_time
+    while passed < timeout:
+        loop._run_once()  # let event loop do its job; havent found better way
+        if condition_callable():
+            return
+        passed = time.time() - start_time
+    raise asyncio.futures.TimeoutError()
+
+
 def run_nested_until_complete(future, loop=None):
     """Run an event loop from within an executing task.
 
@@ -55,11 +66,15 @@ def run_nested_until_complete(future, loop=None):
         try:
             loop._run_once()
         except Exception as err:
-            if new_task and future.done() and not future.cancelled():
+            # if new_task and future.done() and not future.cancelled():
+            # if future is @coroutine  like asyncio.wait_for
+            # then it has no .done()
+            if new_task and task.done() and not task.cancelled():
                 # The coroutine raised a BaseException. Consume the exception
                 # to not log a warning, the caller doesn't have access to the
                 # local task.
-                future.exception()
+                # future.exception()
+                task.exception()
             raise
     return task.result()
 
@@ -130,7 +145,8 @@ class AsyncioRunner(ConnectionObserverRunner):
 
         if event_loop.is_running():
             # ensure that feed() reached moler_conn-subscription point (feeding started)
-            run_nested_until_complete(asyncio.wait_for(feed_started.wait(), timeout=0.5))  # call asynchronous code from sync
+            # run_nested_until_complete(asyncio.wait_for(feed_started.wait(), timeout=0.5))  # call asynchronous code from sync
+            _run_loop_till_condition(event_loop, lambda: feed_started.is_set(), timeout=0.5)
         return connection_observer_future
 
     def wait_for(self, connection_observer, connection_observer_future, timeout=None):
@@ -153,13 +169,12 @@ class AsyncioRunner(ConnectionObserverRunner):
             # or we are just in synchronous code
             if event_loop.is_running():
                 # we can't use await since we are not inside async def
-                passed = time.time() - start_time
-                while passed < timeout:
-                    event_loop._run_once()  # let event loop do its job; havent found better way
-                    if connection_observer.done():
-                        return connection_observer.result()
-                    passed = time.time() - start_time
-                raise asyncio.futures.TimeoutError()
+                _run_loop_till_condition(event_loop, lambda: connection_observer.done(), timeout)
+                result = connection_observer.result()
+
+                # TODO: check:
+                # result = run_nested_until_complete(asyncio.wait_for(connection_observer_future,
+                #                                                     timeout=timeout))  # call asynchronous code from sync
             else:
                 result = event_loop.run_until_complete(asyncio.wait_for(connection_observer_future,
                                                                         timeout=timeout))
@@ -247,4 +262,4 @@ class AsyncioRunner(ConnectionObserverRunner):
         pass
 
 
-monkeypatch()
+# monkeypatch()
