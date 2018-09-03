@@ -136,17 +136,18 @@ class AsyncioRunner(ConnectionObserverRunner):
         #          wrapper that unsubscribes after observer is done
         #          SOLUTION 2 ??? - async-in-thread runner
         event_loop = asyncio.get_event_loop()
-        if not event_loop.is_running():
-            # following code ensures that feeding has started (subscription made in moler_conn)
-            event_loop.run_until_complete(self._start_feeding(connection_observer))
-
         feed_started = asyncio.Event()
+        # if not event_loop.is_running():
+        #     # following code ensures that feeding has started (subscription made in moler_conn)
+        #     event_loop.run_until_complete(self._start_feeding(connection_observer, feed_started))
+
+        self._start_feeding(connection_observer, feed_started)
         connection_observer_future = asyncio.ensure_future(self.feed(connection_observer, feed_started))
 
-        if event_loop.is_running():
-            # ensure that feed() reached moler_conn-subscription point (feeding started)
-            # run_nested_until_complete(asyncio.wait_for(feed_started.wait(), timeout=0.5))  # call asynchronous code from sync
-            _run_loop_till_condition(event_loop, lambda: feed_started.is_set(), timeout=0.5)
+        # if event_loop.is_running():
+        #     # ensure that feed() reached moler_conn-subscription point (feeding started)
+        #     # run_nested_until_complete(asyncio.wait_for(feed_started.wait(), timeout=0.5))  # call asynchronous code from sync
+        #     _run_loop_till_condition(event_loop, lambda: feed_started.is_set(), timeout=0.5)
         return connection_observer_future
 
     def wait_for(self, connection_observer, connection_observer_future, timeout=None):
@@ -219,7 +220,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         # may provide different iterator implementing awaitable
         # Here we know, connection_observer_future is asyncio.Future (precisely asyncio.tasks.Task) and we know it has __await__() method.
 
-    async def _start_feeding(self, connection_observer):
+    def _start_feeding(self, connection_observer, feed_started):
         """
         Start feeding connection_observer by establishing data-channel from connection to observer.
         """
@@ -228,6 +229,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         self.logger.debug("subscribing for data {!r}".format(connection_observer))
         moler_conn.subscribe(connection_observer.data_received)
         self.logger.debug("feeding({}) started".format(connection_observer))
+        feed_started.set()  # mark that we have passed connection-subscription-step
 
     async def feed(self, connection_observer, feed_started):
         """
@@ -235,8 +237,9 @@ class AsyncioRunner(ConnectionObserverRunner):
         Should be called from background-processing of connection observer.
         """
         self.logger.debug("START OF feed({})".format(connection_observer))
-        await self._start_feeding(connection_observer)
-        feed_started.set()  # mark that we have passed connection-subscription-step
+        if not feed_started.is_set():
+            self._start_feeding(connection_observer, feed_started)
+
         await asyncio.sleep(0.01)  # give control back before we start processing
         moler_conn = connection_observer.connection
         try:
