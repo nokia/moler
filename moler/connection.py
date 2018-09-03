@@ -174,7 +174,12 @@ class Connection(object):
         self._log(level=logging.ERROR, msg=err_msg)
         raise WrongUsage(err_msg)
 
-    def _log_data(self, msg, level, extra=None):
+    def _log_data(self, msg, level, extra=None, raw_data=None):
+        if not raw_data:
+            if isinstance(msg, bytes):
+                msg = msg.decode(encoding='UTF-8', errors='ignore')
+            else:
+                msg = msg
         for logger in self.data_loggers:
             logger.log(level, msg, extra=extra)
 

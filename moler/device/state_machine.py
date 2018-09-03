@@ -8,6 +8,7 @@ import logging
 
 import transitions
 
+forwarding_handler = None
 
 class StateMachine(transitions.Machine):
     def __init__(self, model='self', states=None, initial='initial', transitions=None,
@@ -21,7 +22,12 @@ class StateMachine(transitions.Machine):
                                            queued, prepare_event, finalize_event, **kwargs)
         self.logger = logging.getLogger('transitions')
         self.logger.propagate = False
-        self.logger.addHandler(ForwardingHandler(target_logger_name="moler.state_machine"))
+        self.logger.setLevel(1)
+
+        global forwarding_handler
+        if not forwarding_handler:
+            forwarding_handler = ForwardingHandler(target_logger_name="moler.state_machine")
+            self.logger.addHandler(forwarding_handler)
 
 
 class ForwardingHandler(logging.Handler):
@@ -30,8 +36,9 @@ class ForwardingHandler(logging.Handler):
     """
 
     def __init__(self, target_logger_name):
-        super(ForwardingHandler, self).__init__(level=logging.DEBUG)
-        self.target_logger = logging.getLogger(target_logger_name)
+        super(ForwardingHandler, self).__init__(level=1)
+        self.target_logger_name = target_logger_name
+        self.target_logger = logging.getLogger('moler')
 
     def emit(self, record):
         """
@@ -40,4 +47,10 @@ class ForwardingHandler(logging.Handler):
         Output the record to the target_logger, catering for rollover as described
         in doRollover().
         """
+        record.name = self.target_logger_name
+
+        if (record.levelno == logging.INFO) or (record.levelname == "INFO"):
+            record.levelno = logging.DEBUG
+            record.levelname = "DEBUG"
+
         self.target_logger.handle(record)

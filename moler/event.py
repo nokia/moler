@@ -78,3 +78,10 @@ class Event(ConnectionObserver):
                 pattern = re.compile(pattern)
             compiled_patterns.append(pattern)
         return compiled_patterns
+
+    def get_start_desc(self):
+        return "Event '{}.{}':'{}' started.".format(self.__class__.__module__, self.__class__.__name__,
+                                                      self.detect_patterns)
+
+    def get_finished_desc(self):
+        return "Event '{}.{}' finished.".format(self.__class__.__module__, self.__class__.__name__)

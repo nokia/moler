@@ -48,9 +48,13 @@ class TextualDevice(object):
         """
         self.states = []
         self.goto_states_triggers = []
+        self._name = None
+        self.name = name
+        self._connection_data_logger = None
+
         # Below line will modify self extending it with methods and atributes od StateMachine
         # For eg. it will add attribute self.state
-        self.SM = StateMachine(model=self, states=self.states, initial=TextualDevice.not_connected,
+        self.SM = StateMachine(name=self.name, model=self, states=self.states, initial=TextualDevice.not_connected,
                                auto_transitions=False,
                                queued=True)
 
@@ -58,10 +62,7 @@ class TextualDevice(object):
         self._state_prompts = {}
         self._prompts_events = {}
         self._configurations = dict()
-        self._name = None
-        self._connection_data_logger = None
 
-        self.name = name
         self._prepare_transitions()
         self._prepare_state_hops()
         self._configure_state_machine(sm_params)
