@@ -58,6 +58,20 @@ class ConnectionObserverRunner(object):
         pass
 
     @abstractmethod
+    def wait_for_iterator(self, connection_observer, connection_observer_future):
+        """
+        Version of wait_for() intended to be used by Python3 to implement iterable/awaitable object.
+
+        Note: we don't have timeout parameter here. If you want to await with timeout please do use timeout machinery
+        of selected parallelism.
+
+        :param connection_observer: The one we are awaiting for.
+        :param connection_observer_future: Future of connection-observer returned from submit().
+        :return: iterator
+        """
+        pass
+
+    @abstractmethod
     def feed(self, connection_observer):
         """
         Feeds connection_observer with data to let it become done.
@@ -164,6 +178,21 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             raise CommandTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
         else:
             raise ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
+
+    def wait_for_iterator(self, connection_observer, connection_observer_future):
+        """
+        Version of wait_for() intended to be used by Python3 to implement iterable/awaitable object.
+
+        Note: we don't have timeout parameter here. If you want to await with timeout please do use timeout machinery
+        of selected parallelism.
+
+        :param connection_observer: The one we are awaiting for.
+        :param connection_observer_future: Future of connection-observer returned from submit().
+        :return: iterator
+        """
+        while not connection_observer_future.done():
+            yield None
+        return connection_observer_future.result()  # May raise too.
 
     def feed(self, connection_observer, feed_started):
         """
