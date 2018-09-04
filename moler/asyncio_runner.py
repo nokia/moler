@@ -340,8 +340,8 @@ class AsyncioInThreadRunner(AsyncioRunner):
         self.logger.debug("shutting down")
         self._in_shutdown = True  # will exit from feed()
         # TODO: should we await for feed to complete?
-        # if self._loop_done:
-        #     self._loop_done.set()  # will exit from loop and holding it thread
+        if self._loop_done:
+            self._loop_done.set()  # will exit from loop and holding it thread
 
     def submit(self, connection_observer):
         """
