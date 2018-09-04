@@ -208,7 +208,6 @@ async def ping_observing_task(ext_io_connection, ping_ip):
 
     # 4. start observer (nonblocking, using as future)
     net_down_detector.start()  # should be started before we open connection
-    # net_up_detector.start()
     # to not loose first data on connection
 
     with ext_io_connection:
@@ -221,15 +220,16 @@ async def ping_observing_task(ext_io_connection, ping_ip):
         except asyncio.TimeoutError:
             logger.debug('Network down detector timed out')
         #
-        await asyncio.sleep(5)
-        # # 6. call next observer (blocking till completes)
-        # info = '{} on {} using {}'.format(ping_ip, conn_addr, net_up_detector)
-        # logger.debug('observe ' + info)
-        # # using as synchronous function (so we want verb to express action)
-        # detect_network_up = net_up_detector
-        # net_up_time = await detect_network_up
-        # timestamp = time.strftime("%H:%M:%S", time.localtime(net_up_time))
-        # logger.debug('Network {} is back "up" from {}'.format(ping_ip, timestamp))
+        # await asyncio.sleep(5)
+
+        # 6. call next observer (blocking till completes)
+        info = '{} on {} using {}'.format(ping_ip, conn_addr, net_up_detector)
+        logger.debug('observe ' + info)
+        # using as synchronous function (so we want verb to express action)
+        detect_network_up = net_up_detector
+        net_up_time = await detect_network_up
+        timestamp = time.strftime("%H:%M:%S", time.localtime(net_up_time))
+        logger.debug('Network {} is back "up" from {}'.format(ping_ip, timestamp))
     logger.debug('exiting ping_observing_task')
 
 
