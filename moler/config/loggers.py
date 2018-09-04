@@ -164,7 +164,7 @@ def configure_moler_main_logger():
                           log_file='moler.log',
                           log_level=logging.INFO,  # only hi-level info from library
                           formatter=MolerMainMultilineWithDirectionFormatter(fmt=main_log_format,
-                                                                    datefmt=date_format))
+                                                                             datefmt=date_format))
     if want_trace_details():
         trace_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(name)-30s %(transfer_direction)s|%(message)s"
         _add_new_file_handler(logger_name='moler',
@@ -314,7 +314,7 @@ class MultilineWithDirectionFormatter(logging.Formatter):
             for line in out_lines[1:]:
                 output += "{}|{}".format(empty_prefix, line)
 
-        #Remove duplicate log_name in record
+        # Remove duplicate log_name in record
         if record.log_name and "|{}".format(record.log_name) in output:
             output = output.replace("|{:<20}".format(record.log_name), "")
 
