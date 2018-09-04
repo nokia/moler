@@ -273,17 +273,6 @@ class AsyncioRunner(ConnectionObserverRunner):
 
 class AsyncioEventThreadsafe(asyncio.Event):
     def set(self):
-        logger = logging.getLogger('moler.runner.asyncio-in-thrd')
-        # Get the calling frame
-        caller = inspect.currentframe().f_back  #.f_back
-        caller_caller = inspect.currentframe().f_back.f_back
-        fr_info1 = inspect.getframeinfo(caller)
-        fr_info2 = inspect.getframeinfo(caller_caller) if caller_caller else None
-        # Pull the function name from FrameInfo
-        func_name = fr_info1[2]
-        func_name2 = fr_info2[2] if fr_info2 else "End-of-call-stack"
-
-        logger.debug("AsyncioEventThreadsafe.set() called from {}() called from {}()\n{}\n{}".format(func_name, func_name2, fr_info1, fr_info2))
         self._loop.call_soon_threadsafe(super().set)
 
     def clear(self):
