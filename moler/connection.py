@@ -193,7 +193,7 @@ class Connection(object):
             if extra:
                 extra_params.update(extra)
 
-            self.logger.log(level, msg, extra=extra)
+            self.logger.log(level, msg, extra=extra_params)
 
 
 class ObservableConnection(Connection):

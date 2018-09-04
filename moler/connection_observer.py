@@ -38,7 +38,8 @@ class ConnectionObserver(object):
         self.runner = ThreadPoolExecutorRunner()
         self._future = None
         self.timeout = 7
-        self.logger = logging.getLogger('moler.connection.{}'.format(self.get_logger_name()))
+        self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
+        self.connection_logger = logging.getLogger('moler.connection.{}'.format(self.get_logger_name()))
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
@@ -194,4 +195,5 @@ class ConnectionObserver(object):
         if extra:
             extra_params.update(extra)
 
-        self.logger.log(lvl, msg, extra=extra_params)
+        self.connection_logger.log(lvl, msg, extra=extra_params)
+        self.device_logger.log(lvl, msg, extra=extra_params)

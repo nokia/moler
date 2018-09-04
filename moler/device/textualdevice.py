@@ -4,6 +4,7 @@ Moler's device has 2 main responsibilities:
 - be the factory that returns commands of that device
 - be the state machine that controls which commands may run in given state
 """
+import logging
 import traceback
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
@@ -49,7 +50,7 @@ class TextualDevice(object):
         self.goto_states_triggers = []
         self._name = None
         self.name = name
-        self._connection_data_logger = None
+        self.device_data_logger = None
 
         # Below line will modify self extending it with methods and atributes od StateMachine
         # For eg. it will add attribute self.state
@@ -72,7 +73,7 @@ class TextualDevice(object):
             self.io_connection = get_connection(io_type=io_type, variant=variant)
 
         self.io_connection.moler_connection.name = self.name
-        self.logger = None
+        self.connection_logger = logging.getLogger('moler.connection.{}'.format(self.name))
         self.configure_logger(name=self.name, propagate=False)
         self.io_connection.notify(callback=self.on_connection_made, when="connection_made")
         # TODO: Need test to ensure above sentence for all connection
@@ -102,10 +103,10 @@ class TextualDevice(object):
         return command_timeout
 
     def configure_logger(self, name, propagate):
-        if not self.logger:
-            self.logger = configure_connection_logger(connection_name=name, propagate=propagate)
+        if not self.device_data_logger:
+            self.device_data_logger = configure_connection_logger(connection_name=name, propagate=propagate)
 
-        self.io_connection.moler_connection.add_data_logger(self.logger)
+        self.io_connection.moler_connection.add_data_logger(self.device_data_logger)
 
     @abc.abstractmethod
     def _prepare_transitions(self):
@@ -159,9 +160,22 @@ class TextualDevice(object):
     def name(self, value):
         self._name = value
 
+    def _log(self, level, msg, extra=None):
+        if self.connection_logger:
+            extra_params = {
+                'log_name': self.name
+            }
+
+            if extra:
+                extra_params.update(extra)
+
+            self.connection_logger.log(level, msg, extra=extra_params)
+
+        self.device_data_logger.log(level, msg)
+
     def _set_state(self, state):
         if self.current_state != state:
-            self.logger.info("Changed state from '%s' into '%s'" % (self.current_state, state))
+            self._log(logging.INFO, "Changed state from '%s' into '%s'" % (self.current_state, state))
             self.SM.set_state(state=state)
 
     def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False):
@@ -170,7 +184,7 @@ class TextualDevice(object):
         if self.current_state == dest_state:
             return
 
-        self.logger.debug("Go to state '%s' from '%s'" % (dest_state, self.current_state))
+        self._log(logging.DEBUG, "Go to state '%s' from '%s'" % (dest_state, self.current_state))
 
         is_dest_state = False
         is_timeout = False
@@ -202,7 +216,7 @@ class TextualDevice(object):
         return next_state
 
     def _trigger_change_state(self, next_state, timeout, rerun, send_enter_after_changed_state):
-        self.logger.debug("Changing state from '%s' into '%s'" % (self.current_state, next_state))
+        self._log(logging.DEBUG, "Changing state from '%s' into '%s'" % (self.current_state, next_state))
         change_state_method = None
         entered_state = False
         retrying = 0
@@ -227,13 +241,13 @@ class TextualDevice(object):
                         raise DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback)
                     else:
                         retrying += 1
-                        self.logger.debug("Cannot change state into '{}'. "
-                                          "Retrying '{}' of '{}' times.".format(next_state, retrying, rerun))
+                        self._log(logging.DEBUG, "Cannot change state into '{}'. "
+                                                 "Retrying '{}' of '{}' times.".format(next_state, retrying, rerun))
 
                         if send_enter_after_changed_state:
                             self._send_enter_after_changed_state()
 
-            self.logger.debug("Successfully enter state '{}'".format(next_state))
+            self._log(logging.DEBUG, "Successfully enter state '{}'".format(next_state))
         else:
             raise DeviceFailure(
                 device=self.__class__.__name__,
@@ -513,5 +527,5 @@ class TextualDevice(object):
             cmd_enter = Enter(connection=self.io_connection.moler_connection)
             result = cmd_enter()
         except Exception as ex:
-            self.logger.debug("Cannot execute command 'enter' properly: {}".format(ex))
+            self._log(logging.DEBUG, "Cannot execute command 'enter' properly: {}".format(ex))
             pass
