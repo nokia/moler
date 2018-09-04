@@ -201,21 +201,25 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Feeds connection_observer by transferring data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
+        self.logger.debug("START OF feed({})".format(connection_observer))
+        self.logger.debug("start feeding({})".format(connection_observer))
         moler_conn = connection_observer.connection
         # start feeding connection_observer by establishing data-channel from connection to observer
-        self.logger.debug("subscribing for data {!r}".format(connection_observer))
+        self.logger.debug("feed subscribing for data {!r}".format(connection_observer))
         moler_conn.subscribe(connection_observer.data_received)
+        self.logger.debug("feeding({}) started".format(connection_observer))
         feed_started.set()
         while True:
             if connection_observer.done():
-                self.logger.debug("done & unsubscribing {!r}".format(connection_observer))
+                self.logger.debug("feed done & unsubscribing {!r}".format(connection_observer))
                 moler_conn.unsubscribe(connection_observer.data_received)
                 break
             if self._in_shutdown:
-                self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))
+                self.logger.debug("feed: shutdown so cancelling {!r}".format(connection_observer))
                 connection_observer.cancel()
             time.sleep(0.01)  # give moler_conn a chance to feed observer
-        self.logger.debug("returning result {}".format(connection_observer))
+        self.logger.debug("feed returning result {}".format(connection_observer))
+        self.logger.debug("END   OF feed({})".format(connection_observer))
         return connection_observer.result()
 
     def timeout_change(self, timedelta):

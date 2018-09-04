@@ -232,7 +232,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         """
         self.logger.debug("start feeding({})".format(connection_observer))
         moler_conn = connection_observer.connection
-        self.logger.debug("subscribing for data {!r}".format(connection_observer))
+        self.logger.debug("feed subscribing for data {!r}".format(connection_observer))
         moler_conn.subscribe(connection_observer.data_received)
         self.logger.debug("feeding({}) started".format(connection_observer))
         feed_started.set()  # mark that we have passed connection-subscription-step
@@ -252,15 +252,15 @@ class AsyncioRunner(ConnectionObserverRunner):
             while True:
                 if connection_observer.done():
                     self.logger.debug(
-                        "done & unsubscribing {!r}".format(connection_observer))
+                        "feed done & unsubscribing {!r}".format(connection_observer))
                     moler_conn.unsubscribe(connection_observer.data_received)  # stop feeding
                     break
                 if self._in_shutdown:
                     self.logger.debug(
-                        "shutdown so cancelling {!r}".format(connection_observer))
+                        "feed: shutdown so cancelling {!r}".format(connection_observer))
                     connection_observer.cancel()
                 await asyncio.sleep(0.01)  # give moler_conn a chance to feed observer
-            self.logger.debug("returning result {}".format(connection_observer))
+            self.logger.debug("feed returning result {}".format(connection_observer))
             self.logger.debug("END   OF feed({})".format(connection_observer))
             return connection_observer.result()
         except asyncio.CancelledError:
