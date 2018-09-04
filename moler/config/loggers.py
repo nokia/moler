@@ -157,14 +157,16 @@ def configure_moler_main_logger():
     """Configure main logger of Moler"""
     # warning or above go to logfile
     logger = create_logger(name='moler', log_level=TRACE, datefmt=date_format)
-    main_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(log_name)-20s |%(message)s"
+    logger.propagate = True
+
+    main_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(message)s"
     _add_new_file_handler(logger_name='moler',
                           log_file='moler.log',
                           log_level=logging.INFO,  # only hi-level info from library
-                          formatter=MultilineWithDirectionFormatter(fmt=main_log_format,
+                          formatter=MolerMainMultilineWithDirectionFormatter(fmt=main_log_format,
                                                                     datefmt=date_format))
     if want_trace_details():
-        trace_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(con_name)-30s %(transfer_direction)s|%(message)s"
+        trace_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(name)-30s %(transfer_direction)s|%(message)s"
         _add_new_file_handler(logger_name='moler',
                               log_file='moler.debug.log',
                               log_level=trace_level,
@@ -174,7 +176,7 @@ def configure_moler_main_logger():
                               formatter=MultilineWithDirectionFormatter(fmt=trace_log_format,
                                                                         datefmt=date_format))
     elif want_debug_details():
-        debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(con_name)-30s %(transfer_direction)s|%(message)s"
+        debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(name)-30s %(transfer_direction)s|%(message)s"
         _add_new_file_handler(logger_name='moler',
                               log_file='moler.debug.log',
                               log_level=debug_level,
@@ -183,7 +185,6 @@ def configure_moler_main_logger():
                               # do we need "%(threadName)-30s" ???
                               formatter=MultilineWithDirectionFormatter(fmt=debug_log_format,
                                                                         datefmt=date_format))
-    logger.propagate = True
 
 
 def configure_runner_logger(runner_name):
@@ -300,10 +301,8 @@ class MultilineWithDirectionFormatter(logging.Formatter):
     def format(self, record):
         if not hasattr(record, 'transfer_direction'):
             record.transfer_direction = ' '
-        if not hasattr(record, 'con_name'):
-            record.con_name = record.name
         if not hasattr(record, 'log_name'):
-            record.log_name = record.name
+            record.log_name = ""
 
         msg_lines = record.getMessage().splitlines(True)
         base_output = super(MultilineWithDirectionFormatter, self).format(record)
@@ -311,16 +310,41 @@ class MultilineWithDirectionFormatter(logging.Formatter):
         output = out_lines[0]
 
         if len(msg_lines) >= 1:
-            empty_prefix = MultilineWithDirectionFormatter._calculate_empty_prefix(msg_lines[0], out_lines[0])
+            empty_prefix = self._calculate_empty_prefix(msg_lines[0], out_lines[0])
             for line in out_lines[1:]:
                 output += "{}|{}".format(empty_prefix, line)
+
+        #Remove duplicate log_name in record
+        if record.log_name and "|{}".format(record.log_name) in output:
+            output = output.replace("|{:<20}".format(record.log_name), "")
 
         # TODO: line completion for connection decoded data comming in chunks
         return output
 
-    @staticmethod
-    def _calculate_empty_prefix(message_first_line, output_first_line):
+    def _calculate_empty_prefix(self, message_first_line, output_first_line):
         prefix_len = output_first_line.rindex("|{}".format(message_first_line))
+        empty_prefix = " " * prefix_len
+        return empty_prefix
+
+
+class MolerMainMultilineWithDirectionFormatter(MultilineWithDirectionFormatter):
+    def __init__(self, fmt, datefmt=None):
+        if fmt is None:
+            fmt = "%(asctime)s.%(msecs)03d %(transfer_direction)s|%(message)s"
+        else:  # message should be last part of format
+            assert fmt.endswith("%(message)s")
+        super(MultilineWithDirectionFormatter, self).__init__(fmt=fmt, datefmt=datefmt)
+
+    def format(self, record):
+        if not hasattr(record, 'log_name'):
+            record.log_name = record.name
+
+        record.msg = "{:<20}|{}".format(record.log_name, record.msg)
+
+        return super(MultilineWithDirectionFormatter, self).format(record)
+
+    def _calculate_empty_prefix(self, message_first_line, output_first_line):
+        prefix_len = output_first_line.rindex("{}".format(message_first_line))
         empty_prefix = " " * prefix_len
         return empty_prefix
 

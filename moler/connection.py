@@ -83,6 +83,7 @@ class Connection(object):
         self._name = value
 
     def add_data_logger(self, logger):
+        logger.propagate = False
         self.data_loggers.append(logger)
 
     def remove_data_logger(self, logger):
@@ -113,6 +114,7 @@ class Connection(object):
         default_logger_name = "moler.connection.{}".format(connection_name)
         name = logger_name or default_logger_name
         logger = logging.getLogger(name)
+
         if logger_name and (logger_name != default_logger_name):
             msg = "using '{}' logger - not default '{}'".format(logger_name,
                                                                 default_logger_name)
@@ -139,7 +141,6 @@ class Connection(object):
                   msg=self._strip_data(data),
                   extra={
                       'transfer_direction': '>',
-                      'con_name': "moler.connection.{}".format(self.name),
                       'log_name': self.name
                   })
         data2send = self.encode(data)
@@ -186,7 +187,6 @@ class Connection(object):
     def _log(self, level, msg, extra=None):
         if self.logger:
             extra_params = {
-                'con_name': "moler.connection.{}".format(self.name),
                 'log_name': self.name
             }
 

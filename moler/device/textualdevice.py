@@ -4,7 +4,6 @@ Moler's device has 2 main responsibilities:
 - be the factory that returns commands of that device
 - be the state machine that controls which commands may run in given state
 """
-import logging
 import traceback
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
@@ -73,8 +72,8 @@ class TextualDevice(object):
             self.io_connection = get_connection(io_type=io_type, variant=variant)
 
         self.io_connection.moler_connection.name = self.name
-        self.logger = logging.getLogger('moler.{}'.format(self.name))
-        self.configure_connection_logger(name=self.name, propagate=False)
+        self.logger = None
+        self.configure_logger(name=self.name, propagate=False)
         self.io_connection.notify(callback=self.on_connection_made, when="connection_made")
         # TODO: Need test to ensure above sentence for all connection
         self.io_connection.open()
@@ -102,11 +101,11 @@ class TextualDevice(object):
                 command_timeout = configuration_timeout
         return command_timeout
 
-    def configure_connection_logger(self, name, propagate):
-        if not self._connection_data_logger:
-            self._connection_data_logger = configure_connection_logger(connection_name=name, propagate=propagate)
+    def configure_logger(self, name, propagate):
+        if not self.logger:
+            self.logger = configure_connection_logger(connection_name=name, propagate=propagate)
 
-        self.io_connection.moler_connection.add_data_logger(self._connection_data_logger)
+        self.io_connection.moler_connection.add_data_logger(self.logger)
 
     @abc.abstractmethod
     def _prepare_transitions(self):
