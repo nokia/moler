@@ -315,8 +315,7 @@ class MultilineWithDirectionFormatter(logging.Formatter):
                 output += "{}|{}".format(empty_prefix, line)
 
         # Remove duplicate log_name in record
-        if record.log_name and "|{}".format(record.log_name) in output:
-            output = output.replace("|{:<20}".format(record.log_name), "")
+        output = MultilineWithDirectionFormatter._remove_duplicate_log_name(record, output)
 
         # TODO: line completion for connection decoded data comming in chunks
         return output
@@ -325,6 +324,12 @@ class MultilineWithDirectionFormatter(logging.Formatter):
         prefix_len = output_first_line.rindex("|{}".format(message_first_line))
         empty_prefix = " " * prefix_len
         return empty_prefix
+
+    @staticmethod
+    def _remove_duplicate_log_name(record, output):
+        if record.log_name and "|{}".format(record.log_name) in output:
+            output = output.replace("|{:<20}".format(record.log_name), "")
+        return output
 
 
 class MolerMainMultilineWithDirectionFormatter(MultilineWithDirectionFormatter):
