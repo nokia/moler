@@ -208,20 +208,20 @@ async def ping_observing_task(ext_io_connection, ping_ip):
 
     # 4. start observer (nonblocking, using as future)
     net_down_detector.start()  # should be started before we open connection
-    net_up_detector.start()
+    # net_up_detector.start()
     # to not loose first data on connection
 
     with ext_io_connection:
         # 5. await that observer to complete
-        await asyncio.sleep(12)
-        # try:
-        #     # net_down_time = await net_down_detector
+        try:
+            net_down_time = await net_down_detector
         #     net_down_time = await asyncio.wait_for(net_down_detector, timeout=2)  # =10 --> no TimeoutError
-        #     timestamp = time.strftime("%H:%M:%S", time.localtime(net_down_time))
-        #     logger.debug('Network {} is down from {}'.format(ping_ip, timestamp))
-        # except asyncio.TimeoutError:
-        #     logger.debug('Network down detector timed out')
+            timestamp = time.strftime("%H:%M:%S", time.localtime(net_down_time))
+            logger.debug('Network {} is down from {}'.format(ping_ip, timestamp))
+        except asyncio.TimeoutError:
+            logger.debug('Network down detector timed out')
         #
+        await asyncio.sleep(5)
         # # 6. call next observer (blocking till completes)
         # info = '{} on {} using {}'.format(ping_ip, conn_addr, net_up_detector)
         # logger.debug('observe ' + info)
