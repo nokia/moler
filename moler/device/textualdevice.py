@@ -73,7 +73,7 @@ class TextualDevice(object):
             self.io_connection = get_connection(io_type=io_type, variant=variant)
 
         self.io_connection.moler_connection.name = self.name
-        self.connection_logger = logging.getLogger('moler.connection.{}'.format(self.name))
+        self.logger = logging.getLogger('moler.connection.{}'.format(self.name))
         self.configure_logger(name=self.name, propagate=False)
         self.io_connection.notify(callback=self.on_connection_made, when="connection_made")
         # TODO: Need test to ensure above sentence for all connection
@@ -161,7 +161,7 @@ class TextualDevice(object):
         self._name = value
 
     def _log(self, level, msg, extra=None):
-        if self.connection_logger:
+        if self.logger:
             extra_params = {
                 'log_name': self.name
             }
@@ -169,7 +169,7 @@ class TextualDevice(object):
             if extra:
                 extra_params.update(extra)
 
-            self.connection_logger.log(level, msg, extra=extra_params)
+            self.logger.log(level, msg, extra=extra_params)
 
         self.device_data_logger.log(level, msg)
 
