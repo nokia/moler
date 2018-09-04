@@ -346,7 +346,7 @@ class MolerMainMultilineWithDirectionFormatter(MultilineWithDirectionFormatter):
 
         record.msg = "{:<20}|{}".format(record.log_name, record.msg)
 
-        return super(MultilineWithDirectionFormatter, self).format(record)
+        return super(MolerMainMultilineWithDirectionFormatter, self).format(record)
 
     def _calculate_empty_prefix(self, message_first_line, output_first_line):
         prefix_len = output_first_line.rindex("{}".format(message_first_line))
