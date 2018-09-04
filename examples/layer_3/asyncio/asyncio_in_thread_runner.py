@@ -41,6 +41,7 @@ from moler.connection_observer import ConnectionObserver
 from moler.io.raw import tcp
 from moler.connection import get_connection, ConnectionFactory
 from moler.asyncio_runner import AsyncioRunner, AsyncioInThreadRunner
+from moler.exceptions import ConnectionObserverTimeout
 
 ping_output = '''
 greg@debian:~$ ping 10.0.2.15
@@ -213,12 +214,15 @@ async def ping_observing_task(ext_io_connection, ping_ip):
     with ext_io_connection:
         # 5. await that observer to complete
         try:
-            net_down_time = await net_down_detector
+            # net_down_time = await net_down_detector
+            net_down_time = net_down_detector.await_done(timeout=10)
         #     net_down_time = await asyncio.wait_for(net_down_detector, timeout=2)  # =10 --> no TimeoutError
             timestamp = time.strftime("%H:%M:%S", time.localtime(net_down_time))
             logger.debug('Network {} is down from {}'.format(ping_ip, timestamp))
         except asyncio.TimeoutError:
-            logger.debug('Network down detector timed out')
+            logger.debug('Network down detector timed out (asyncio timeout)')
+        except ConnectionObserverTimeout:
+            logger.debug('Network down detector timed out (moler timeout)')
         #
         # await asyncio.sleep(5)
 

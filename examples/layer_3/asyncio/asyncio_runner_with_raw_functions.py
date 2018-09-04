@@ -43,7 +43,7 @@ from moler.connection import ObservableConnection
 from moler.connection_observer import ConnectionObserver
 from moler.io.raw import tcp
 from moler.connection import get_connection, ConnectionFactory
-from moler.asyncio_runner import AsyncioRunner
+from moler.asyncio_runner import AsyncioRunner, AsyncioInThreadRunner
 
 ping_output = '''
 greg@debian:~$ ping 10.0.2.15
@@ -215,10 +215,12 @@ def ping_observing_task(ext_io_connection, ping_ip):
     # 3. create observers on Moler's connection
     net_down_detector = NetworkDownDetector(ping_ip,
                                             connection=ext_io_connection.moler_connection,
-                                            runner=AsyncioRunner())
+                                            runner=AsyncioInThreadRunner())
+                                            # runner=AsyncioRunner())
     net_up_detector = NetworkUpDetector(ping_ip,
                                         connection=ext_io_connection.moler_connection,
-                                        runner=AsyncioRunner())
+                                        runner=AsyncioInThreadRunner())
+                                        # runner=AsyncioRunner())
 
     info = '{} on {} using {}'.format(ping_ip, conn_addr, net_down_detector)
     logger.debug('observe ' + info)
@@ -258,7 +260,7 @@ if __name__ == '__main__':
 
     logging.basicConfig(
         level=logging.DEBUG,
-        format='%(asctime)s |%(name)-40s |%(message)s',
+        format='%(asctime)s |%(name)-45s | %(threadName)12s |%(message)s',
         datefmt='%H:%M:%S',
         stream=sys.stderr,
     )

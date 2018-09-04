@@ -16,6 +16,7 @@ import sys
 import asyncio
 import asyncio.tasks
 import asyncio.futures
+import concurrent.futures
 import threading
 from moler.io.raw import TillDoneThread
 from moler.exceptions import ConnectionObserverTimeout
@@ -377,42 +378,35 @@ class AsyncioInThreadRunner(AsyncioRunner):
         """
         self.logger.debug("go foreground: {!r} - await max. {} [sec]".format(connection_observer, timeout))
         start_time = time.time()
-        if not timeout:
-            timeout = connection_observer.timeout
-        event_loop = asyncio.get_event_loop()
-
-        try:
-            # we might be already called from within running event loop
-            # or we are just in synchronous code
-            if event_loop.is_running():
-                # we can't use await since we are not inside async def
-                _run_loop_till_condition(event_loop, lambda: connection_observer.done(), timeout)
-                result = connection_observer.result()
-
-                # TODO: check:
-                # result = run_nested_until_complete(asyncio.wait_for(connection_observer_future,
-                #                                                     timeout=timeout))  # call asynchronous code from sync
-            else:
-                result = event_loop.run_until_complete(asyncio.wait_for(connection_observer_future,
-                                                                        timeout=timeout))
-            self.logger.debug("{} returned {}".format(connection_observer, result))
-            return result
-        except asyncio.futures.CancelledError:
-            self.logger.debug("canceled {}".format(connection_observer))
-            connection_observer.cancel()
-        except asyncio.futures.TimeoutError:
-            passed = time.time() - start_time
-            self.logger.debug("timeouted {}".format(connection_observer))
-            connection_observer.on_timeout()
-            if hasattr(connection_observer, "command_string"):
-                err = CommandTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
-            else:
-                err = ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
-            connection_observer.set_exception(err)
-
+        remain_time = connection_observer.timeout
+        check_timeout_from_observer = True
+        wait_tick = 0.1
+        if timeout:
+            remain_time = timeout
+            check_timeout_from_observer = False
+            wait_tick = remain_time
+        while remain_time > 0.0:
+            done, not_done = concurrent.futures.wait([connection_observer_future], timeout=wait_tick)
+            if connection_observer_future in done:
+                self.shutdown()
+                result = connection_observer_future.result()
+                self.logger.debug("{} returned {}".format(connection_observer, result))
+                return result
+            if check_timeout_from_observer:
+                timeout = connection_observer.timeout
+            remain_time = timeout - (time.time() - start_time)
         moler_conn = connection_observer.connection
         moler_conn.unsubscribe(connection_observer.data_received)
-        return connection_observer.result()  # will reraise correct exception
+        passed = time.time() - start_time
+        self.logger.debug("timeouted {}".format(connection_observer))
+        connection_observer.cancel()
+        connection_observer_future.cancel()
+        self.shutdown()
+        connection_observer.on_timeout()
+        if hasattr(connection_observer, "command_string"):
+            raise CommandTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
+        else:
+            raise ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
 
     def wait_for_iterator(self, connection_observer, connection_observer_future):
         """
