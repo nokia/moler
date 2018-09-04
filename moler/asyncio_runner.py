@@ -10,14 +10,20 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 
 import atexit
 import logging
+import inspect
 import time
 import sys
 import asyncio
 import asyncio.tasks
 import asyncio.futures
+import threading
+from moler.io.raw import TillDoneThread
 from moler.exceptions import ConnectionObserverTimeout
 from moler.exceptions import CommandTimeout
+from moler.exceptions import MolerException
 from moler.runner import ConnectionObserverRunner
+from moler.helpers import instance_id
+
 
 # following code thanks to:
 # https://rokups.github.io/#!pages/python3-asyncio-sync-async.md
@@ -264,5 +270,159 @@ class AsyncioRunner(ConnectionObserverRunner):
     def timeout_change(self, timedelta):
         pass
 
+
+class AsyncioEventThreadsafe(asyncio.Event):
+    def set(self):
+        logger = logging.getLogger('moler.runner.asyncio-in-thrd')
+        # Get the calling frame
+        caller = inspect.currentframe().f_back  #.f_back
+        caller_caller = inspect.currentframe().f_back.f_back
+        fr_info1 = inspect.getframeinfo(caller)
+        fr_info2 = inspect.getframeinfo(caller_caller) if caller_caller else None
+        # Pull the function name from FrameInfo
+        func_name = fr_info1[2]
+        func_name2 = fr_info2[2] if fr_info2 else "End-of-call-stack"
+
+        logger.debug("AsyncioEventThreadsafe.set() called from {}() called from {}()\n{}\n{}".format(func_name, func_name2, fr_info1, fr_info2))
+        self._loop.call_soon_threadsafe(super().set)
+
+    def clear(self):
+        self._loop.call_soon_threadsafe(super().clear)
+
+
+class AsyncioInThreadRunner(AsyncioRunner):
+    def __init__(self):
+        """Create instance of AsyncioInThreadRunner class"""
+        self._in_shutdown = False
+        self._id = 0
+        self.logger = logging.getLogger('moler.runner.asyncio-in-thrd:{}'.format(self._id))
+        self._loop_thread = None
+        self._loop = None
+        self._loop_done = None  # asyncio.Event that stops loop and holding it thread
+        self.logger.debug("created")
+        atexit.register(self.shutdown)
+
+    def _start_loop_thread(self):
+        self._loop = asyncio.new_event_loop()
+        self._loop_done = AsyncioEventThreadsafe(loop=self._loop)
+        self._loop.set_debug(enabled=True)
+        self._loop_done.clear()
+        loop_started = threading.Event()
+        self._loop_thread = TillDoneThread(target=self._start_loop,
+                                           done_event=self._loop_done,
+                                           kwargs={'loop': self._loop,
+                                                   'loop_started': loop_started,
+                                                   'loop_done': self._loop_done})
+        self._loop_thread.start()
+        # await loop thread to be really started
+        start_timeout = 0.5
+        if not loop_started.wait(timeout=start_timeout):
+            err_msg = "Failed to start asyncio loop thread within {} sec".format(start_timeout)
+            self._loop_done.set()
+            raise MolerException(err_msg)
+        self.logger.info("started new asyncio-in-thrd loop ...")
+
+    def _start_loop(self, loop, loop_started, loop_done):
+        self.logger.info("starting new asyncio-in-thrd loop ...")
+        asyncio.set_event_loop(loop)
+        loop_started.set()
+        loop.run_until_complete(self._await_stop_loop(stop_event=loop_done))
+        self.logger.info("... asyncio-in-thrd loop done")
+
+    async def _await_stop_loop(self, stop_event):
+        # stop_event may be set directly via self._loop_done.set()
+        # or indirectly by TillDoneThread when python calls join on all active threads during python shutdown
+        self.logger.info("will await stop_event ...")
+        await stop_event.wait()
+        self.logger.info("... await stop_event done")
+
+    def shutdown(self):
+        self.logger.debug("shutting down")
+        self._in_shutdown = True  # will exit from feed()
+        # TODO: should we await for feed to complete?
+        # if self._loop_done:
+        #     self._loop_done.set()  # will exit from loop and holding it thread
+
+    def submit(self, connection_observer):
+        """
+        Submit connection observer to background execution.
+        Returns Future that could be used to await for connection_observer done.
+        """
+        self._id = instance_id(connection_observer)
+        self.logger = logging.getLogger('moler.runner.asyncio-in-thrd:{}'.format(self._id))
+        self.logger.debug("go background: {!r}".format(connection_observer))
+
+        # TODO: check dependency - connection_observer.connection
+
+        if self._loop_thread is None:
+            self._start_loop_thread()
+
+        feed_started = threading.Event()
+
+        # we are scheduling to other thread (so, can't use asyncio.ensure_future() )
+        connection_observer_future = asyncio.run_coroutine_threadsafe(self.feed(connection_observer, feed_started), loop=self._loop)
+        # run_coroutine_threadsafe returns future as concurrent.futures.Future() and not asyncio.Future
+        # so, we can await it with timeout inside current thread
+
+        # await feeder to be really started, feeder runs in other thread, so we await for cross-threads event
+        start_timeout = 0.5
+        if not feed_started.wait(timeout=start_timeout):
+            err_msg = "Failed to start observer feeder within {} sec".format(start_timeout)
+            exc = MolerException(err_msg)
+            connection_observer.set_exception(exception=exc)
+            self.logger.error(repr(exc))
+            # we not only store exception inside observer-as-future
+            # but we also wan't to break caller code as quickly as possible
+            raise exc
+
+        return connection_observer_future
+
+    def wait_for(self, connection_observer, connection_observer_future, timeout=None):
+        """
+        Await for connection_observer running in background or timeout.
+
+        :param connection_observer: The one we are awaiting for.
+        :param connection_observer_future: Future of connection-observer returned from submit().
+        :param timeout: Max time (in float seconds) you want to await before you give up. If None then taken from connection_observer
+        :return:
+        """
+        self.logger.debug("go foreground: {!r} - await max. {} [sec]".format(connection_observer, timeout))
+        start_time = time.time()
+        if not timeout:
+            timeout = connection_observer.timeout
+        event_loop = asyncio.get_event_loop()
+
+        try:
+            # we might be already called from within running event loop
+            # or we are just in synchronous code
+            if event_loop.is_running():
+                # we can't use await since we are not inside async def
+                _run_loop_till_condition(event_loop, lambda: connection_observer.done(), timeout)
+                result = connection_observer.result()
+
+                # TODO: check:
+                # result = run_nested_until_complete(asyncio.wait_for(connection_observer_future,
+                #                                                     timeout=timeout))  # call asynchronous code from sync
+            else:
+                result = event_loop.run_until_complete(asyncio.wait_for(connection_observer_future,
+                                                                        timeout=timeout))
+            self.logger.debug("{} returned {}".format(connection_observer, result))
+            return result
+        except asyncio.futures.CancelledError:
+            self.logger.debug("canceled {}".format(connection_observer))
+            connection_observer.cancel()
+        except asyncio.futures.TimeoutError:
+            passed = time.time() - start_time
+            self.logger.debug("timeouted {}".format(connection_observer))
+            connection_observer.on_timeout()
+            if hasattr(connection_observer, "command_string"):
+                err = CommandTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
+            else:
+                err = ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
+            connection_observer.set_exception(err)
+
+        moler_conn = connection_observer.connection
+        moler_conn.unsubscribe(connection_observer.data_received)
+        return connection_observer.result()  # will reraise correct exception
 
 # monkeypatch()

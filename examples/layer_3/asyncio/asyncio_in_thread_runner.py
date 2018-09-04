@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-asyncio_runner_with_only_async_functions.py
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+asyncio_in_thread_runner.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A fully-functional connection-observer using configured concurrency variant.
 
@@ -40,7 +40,7 @@ from moler.connection import ObservableConnection
 from moler.connection_observer import ConnectionObserver
 from moler.io.raw import tcp
 from moler.connection import get_connection, ConnectionFactory
-from moler.asyncio_runner import AsyncioRunner
+from moler.asyncio_runner import AsyncioRunner, AsyncioInThreadRunner
 
 ping_output = '''
 greg@debian:~$ ping 10.0.2.15
@@ -129,6 +129,7 @@ async def main(connections2observe4ip):
         connections.append(ping_observing_task(tcp_connection, ping_ip))
     # await observers job to be done
     completed, pending = await asyncio.wait(connections)
+    logger.debug('after all ping_observing_task')
 
     # stop servers
     for server in servers:
@@ -152,7 +153,7 @@ class NetworkToggleDetector(ConnectionObserver):
         if not self.done():
             if self.detect_pattern in data:
                 when_detected = time.time()
-                self.logger.debug("Network {} {}!".format(self.net_ip,
+                self.logger.debug("Network {} {}!!!".format(self.net_ip,
                                                           self.detected_status))
                 self.set_result(result=when_detected)
 
@@ -197,36 +198,38 @@ async def ping_observing_task(ext_io_connection, ping_ip):
     # 3. create observers on Moler's connection
     net_down_detector = NetworkDownDetector(ping_ip,
                                             connection=ext_io_connection.moler_connection,
-                                            runner=AsyncioRunner())
+                                            runner=AsyncioInThreadRunner())
     net_up_detector = NetworkUpDetector(ping_ip,
                                         connection=ext_io_connection.moler_connection,
-                                        runner=AsyncioRunner())
+                                        runner=AsyncioInThreadRunner())
 
     info = '{} on {} using {}'.format(ping_ip, conn_addr, net_down_detector)
     logger.debug('observe ' + info)
 
     # 4. start observer (nonblocking, using as future)
     net_down_detector.start()  # should be started before we open connection
+    net_up_detector.start()
     # to not loose first data on connection
 
     with ext_io_connection:
         # 5. await that observer to complete
-        try:
-            # net_down_time = await net_down_detector
-            net_down_time = await asyncio.wait_for(net_down_detector, timeout=2)  # =10 --> no TimeoutError
-            timestamp = time.strftime("%H:%M:%S", time.localtime(net_down_time))
-            logger.debug('Network {} is down from {}'.format(ping_ip, timestamp))
-        except asyncio.TimeoutError:
-            logger.debug('Network down detector timed out')
-
-        # 6. call next observer (blocking till completes)
-        info = '{} on {} using {}'.format(ping_ip, conn_addr, net_up_detector)
-        logger.debug('observe ' + info)
-        # using as synchronous function (so we want verb to express action)
-        detect_network_up = net_up_detector
-        net_up_time = await detect_network_up
-        timestamp = time.strftime("%H:%M:%S", time.localtime(net_up_time))
-        logger.debug('Network {} is back "up" from {}'.format(ping_ip, timestamp))
+        await asyncio.sleep(12)
+        # try:
+        #     # net_down_time = await net_down_detector
+        #     net_down_time = await asyncio.wait_for(net_down_detector, timeout=2)  # =10 --> no TimeoutError
+        #     timestamp = time.strftime("%H:%M:%S", time.localtime(net_down_time))
+        #     logger.debug('Network {} is down from {}'.format(ping_ip, timestamp))
+        # except asyncio.TimeoutError:
+        #     logger.debug('Network down detector timed out')
+        #
+        # # 6. call next observer (blocking till completes)
+        # info = '{} on {} using {}'.format(ping_ip, conn_addr, net_up_detector)
+        # logger.debug('observe ' + info)
+        # # using as synchronous function (so we want verb to express action)
+        # detect_network_up = net_up_detector
+        # net_up_time = await detect_network_up
+        # timestamp = time.strftime("%H:%M:%S", time.localtime(net_up_time))
+        # logger.debug('Network {} is back "up" from {}'.format(ping_ip, timestamp))
     logger.debug('exiting ping_observing_task')
 
 
@@ -245,7 +248,7 @@ if __name__ == '__main__':
 
     logging.basicConfig(
         level=logging.DEBUG,
-        format='%(asctime)s |%(name)-45s |%(message)s',
+        format='%(asctime)s |%(name)-45s | %(threadName)12s |%(message)s',
         datefmt='%H:%M:%S',
         stream=sys.stderr,
     )
