@@ -69,7 +69,8 @@ available_async_runners = []
 if is_python35_or_above():
     available_bg_runners.append('asyncio_runner.AsyncioRunner')
     available_async_runners.append('asyncio_runner.AsyncioRunner')
-
+    available_bg_runners.append('asyncio_runner.AsyncioInThreadRunner')
+    available_async_runners.append('asyncio_runner.AsyncioInThreadRunner')
 
 @pytest.yield_fixture(params=available_bg_runners)
 def observer_runner(request):
