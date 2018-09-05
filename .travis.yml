@@ -10,10 +10,10 @@ before_script:
   - python2 -V
   - python3 -V
 script:
-  - coverage run --source=moler,test -m py.test --random -s -vv test/
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then python3.6 -m coverage run --source=moler,test -m py.test --random -s -vv py3test/; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then python2 -m coverage run --source=moler,test -m py.test --random -s -vv; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then python3.6 -m coverage run --source=moler,test -m pytest -c py3pytest.ini --random -s -vv; fi
   - pycodestyle moler
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then python3.6 -m pytest --mccabe moler; fi
   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then python2 -m pytest test/; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then python3.6 -m pytest --mccabe moler; fi
 after_success:
   - if [[ $TRAVIS_PYTHON_VERSION == 3.6 && $TRAVIS_OS_NAME == "linux" ]]; then coveralls; fi
