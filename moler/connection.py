@@ -55,13 +55,12 @@ class Connection(object):
         """
 
         super(Connection, self).__init__()
-        self.data_loggers = list()
-
         self.how2send = how2send or self._unknown_send
         self._encoder = encoder
         self._decoder = decoder
         self._name = self._use_or_generate_name(name)
         self.newline = newline
+        self.data_logger = logging.getLogger('moler.{}'.format(self.name))
         self.logger = self._select_logger(logger_name, self._name)
 
     @property
@@ -82,13 +81,8 @@ class Connection(object):
             self.logger = self._select_logger(logger_name="", connection_name=value)
         self._name = value
 
-    def add_data_logger(self, logger):
-        logger.propagate = False
-        self.data_loggers.append(logger)
-
-    def remove_data_logger(self, logger):
-        if logger is self.data_loggers:
-            self.data_loggers.remove(logger)
+    def set_data_logger(self, logger):
+        self.data_logger = logger
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
@@ -181,8 +175,7 @@ class Connection(object):
                 msg = msg.decode(encoding='UTF-8', errors='ignore')
             else:
                 msg = msg
-        for logger in self.data_loggers:
-            logger.log(level, msg, extra=extra)
+        self.data_logger.log(level, msg, extra=extra)
 
     def _log(self, level, msg, extra=None):
         if self.logger:

@@ -3,9 +3,9 @@
 Testing resources for tests of AT commands.
 """
 
-__author__ = 'Grzegorz Latuszek'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 from pytest import fixture, yield_fixture
 import os
@@ -34,7 +34,7 @@ def pytest_runtest_logreport(report):
 def buffer_connection():
     from moler.io.raw.memory import ThreadedFifoBuffer
     from moler.connection import ObservableConnection
-    from moler.config.loggers import configure_connection_logger
+    from moler.config.loggers import configure_device_logger
 
     class RemoteConnection(ThreadedFifoBuffer):
         def remote_inject_response(self, input_strings, delay=0.0):
@@ -50,7 +50,7 @@ def buffer_connection():
                                       name="buffer")
     ext_io_in_memory = RemoteConnection(moler_connection=moler_conn,
                                         echo=False)  # we don't want echo on connection
-    configure_connection_logger(moler_conn.name)
+    configure_device_logger(moler_conn.name)
     # all tests assume working with already open connection
     with ext_io_in_memory:  # open it (autoclose by context-mngr)
         yield ext_io_in_memory

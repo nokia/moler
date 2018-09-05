@@ -52,7 +52,7 @@ class Command(ConnectionObserver):
             # no chance to start CMD
             raise NoCommandStringProvided(self)
 
-    def get_start_desc(self):
+    def get_started_desc(self):
         return "Command '{}.{}':'{}' started.".format(self.__class__.__module__, self.__class__.__name__,
                                                       self.command_string)
 

@@ -76,7 +76,7 @@ class ConnectionObserver(object):
         self._validate_start(*args, **kwargs)
         self._is_running = True
         self._future = self.runner.submit(self)
-        self._log(logging.INFO, self.get_start_desc())
+
         return self
 
     def _validate_start(self, *args, **kwargs):
@@ -106,7 +106,6 @@ class ConnectionObserver(object):
         result = self.runner.wait_for(connection_observer=self, connection_observer_future=self._future,
                                       timeout=timeout)
 
-        self._log(logging.INFO, self.get_finished_desc())
         return result
 
     def cancel(self):
@@ -181,7 +180,7 @@ class ConnectionObserver(object):
         name = camel_case_to_lower_case_underscore(cls.__name__)
         return name
 
-    def get_start_desc(self):
+    def get_started_desc(self):
         return "Observer '{}.{}' started.".format(self.__class__.__module__, self.__class__.__name__)
 
     def get_finished_desc(self):

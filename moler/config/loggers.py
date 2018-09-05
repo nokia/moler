@@ -3,6 +3,7 @@
 """
 Configure logging for Moler's needs
 """
+import copy
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -165,6 +166,7 @@ def configure_moler_main_logger():
                           log_level=logging.INFO,  # only hi-level info from library
                           formatter=MolerMainMultilineWithDirectionFormatter(fmt=main_log_format,
                                                                              datefmt=date_format))
+
     if want_trace_details():
         trace_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(name)-30s %(transfer_direction)s|%(message)s"
         _add_new_file_handler(logger_name='moler',
@@ -186,6 +188,8 @@ def configure_moler_main_logger():
                               formatter=MultilineWithDirectionFormatter(fmt=debug_log_format,
                                                                         datefmt=date_format))
 
+    logger.info("More logs in: {}".format(logging_path))
+
 
 def configure_runner_logger(runner_name):
     """Configure logger with file storing runner's log"""
@@ -198,7 +202,7 @@ def configure_runner_logger(runner_name):
                   )
 
 
-def configure_connection_logger(connection_name, propagate=False):
+def configure_device_logger(connection_name, propagate=False):
     """Configure logger with file storing connection's log"""
     logger_name = 'moler.{}'.format(connection_name)
     logger = create_logger(name=logger_name, log_level=TRACE)
@@ -314,9 +318,6 @@ class MultilineWithDirectionFormatter(logging.Formatter):
             for line in out_lines[1:]:
                 output += "{}|{}".format(empty_prefix, line)
 
-        # Remove duplicate log_name in record
-        output = MultilineWithDirectionFormatter._remove_duplicate_log_name(record, output)
-
         # TODO: line completion for connection decoded data comming in chunks
         return output
 
@@ -324,12 +325,6 @@ class MultilineWithDirectionFormatter(logging.Formatter):
         prefix_len = output_first_line.rindex("|{}".format(message_first_line))
         empty_prefix = " " * prefix_len
         return empty_prefix
-
-    @staticmethod
-    def _remove_duplicate_log_name(record, output):
-        if record.log_name and "|{}".format(record.log_name) in output:
-            output = output.replace("|{:<20}".format(record.log_name), "")
-        return output
 
 
 class MolerMainMultilineWithDirectionFormatter(MultilineWithDirectionFormatter):
@@ -344,12 +339,13 @@ class MolerMainMultilineWithDirectionFormatter(MultilineWithDirectionFormatter):
         if not hasattr(record, 'log_name'):
             record.log_name = record.name
 
-        record.msg = "{:<20}|{}".format(record.log_name, record.msg)
+        new_record = copy.deepcopy(record)
+        new_record.msg = "{:<20}|{}".format(new_record.log_name, new_record.msg)
 
-        return super(MolerMainMultilineWithDirectionFormatter, self).format(record)
+        return super(MolerMainMultilineWithDirectionFormatter, self).format(new_record)
 
     def _calculate_empty_prefix(self, message_first_line, output_first_line):
-        prefix_len = output_first_line.rindex("{}".format(message_first_line))
+        prefix_len = output_first_line.index("|")
         empty_prefix = " " * prefix_len
         return empty_prefix
 

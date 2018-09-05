@@ -5,9 +5,9 @@ Runner abstraction goal is to hide concurrency machinery used
 to make it exchangeable (threads, asyncio, twisted, curio)
 """
 
-__author__ = 'Grzegorz Latuszek, Marcin Usielski'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import atexit
 import logging
@@ -170,10 +170,12 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Feeds connection_observer by pulling data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
+        connection_observer._log(logging.INFO, connection_observer.get_started_desc())
         moler_conn = connection_observer.connection
         while True:
             if connection_observer.done():
                 self.logger.debug("done & unsubscribing {!r}".format(connection_observer))
+                connection_observer._log(logging.INFO, connection_observer.get_finished_desc())
                 moler_conn.unsubscribe(connection_observer.data_received)
                 break
             if self._in_shutdown:

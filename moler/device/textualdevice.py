@@ -8,7 +8,7 @@ import logging
 import traceback
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
-from moler.config.loggers import configure_connection_logger
+from moler.config.loggers import configure_device_logger
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -104,9 +104,9 @@ class TextualDevice(object):
 
     def configure_logger(self, name, propagate):
         if not self.device_data_logger:
-            self.device_data_logger = configure_connection_logger(connection_name=name, propagate=propagate)
+            self.device_data_logger = configure_device_logger(connection_name=name, propagate=propagate)
 
-        self.io_connection.moler_connection.add_data_logger(self.device_data_logger)
+        self.io_connection.moler_connection.set_data_logger(self.device_data_logger)
 
     @abc.abstractmethod
     def _prepare_transitions(self):
