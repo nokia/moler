@@ -8,9 +8,6 @@ do
     echo "*  RUNNING: $file"
     echo "*"
     echo "**********************************************************************************"
-    # OLD_PYTHONPATH
-    export PYTHONPATH=$MOLER_REPO_DIR
-    python3.6 $file
-    unset PYTHONPATH
+    (export PYTHONPATH=$MOLER_REPO_DIR:$PYTHONPATH; python3.6 $file)
     echo
 done
