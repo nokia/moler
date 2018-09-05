@@ -319,12 +319,19 @@ class MultilineWithDirectionFormatter(logging.Formatter):
                 output += "{}|{}".format(empty_prefix, line)
 
         # TODO: line completion for connection decoded data comming in chunks
+        output = MolerMainMultilineWithDirectionFormatter._remove_duplicate_log_name(record, output)
         return output
 
     def _calculate_empty_prefix(self, message_first_line, output_first_line):
         prefix_len = output_first_line.rindex("|{}".format(message_first_line))
         empty_prefix = " " * prefix_len
         return empty_prefix
+
+    @staticmethod
+    def _remove_duplicate_log_name(record, output):
+        if record.log_name and "|{}".format(record.log_name) in output:
+            output = output.replace("|{:<20}".format(record.log_name), "")
+        return output
 
 
 class MolerMainMultilineWithDirectionFormatter(MultilineWithDirectionFormatter):
@@ -340,9 +347,9 @@ class MolerMainMultilineWithDirectionFormatter(MultilineWithDirectionFormatter):
             record.log_name = record.name
 
         new_record = copy.deepcopy(record)
-        new_record.msg = "{:<20}|{}".format(new_record.log_name, new_record.msg)
+        record.msg = "{:<20}|{}".format(new_record.log_name, new_record.msg)
 
-        return super(MolerMainMultilineWithDirectionFormatter, self).format(new_record)
+        return super(MolerMainMultilineWithDirectionFormatter, self).format(record)
 
     def _calculate_empty_prefix(self, message_first_line, output_first_line):
         prefix_len = output_first_line.index("|")
