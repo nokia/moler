@@ -58,7 +58,7 @@ ping: sendmsg: Network is unreachable
 
 async def ping_sim_tcp_server(server_port, ping_ip, client_handling_done, reader, writer):
     address = writer.get_extra_info('peername')
-    _, client_port = address
+    client_port = address[1]
     logger = logging.getLogger('asyncio.ping.tcp-server({} -> {})'.format(server_port,
                                                                           client_port))
     logger.debug('connection accepted - client at tcp://{}:{}'.format(*address))
@@ -122,8 +122,10 @@ async def main(connections2observe4ip):
         # Another words, all we want here is stg like:
         # "give me connection to main_dns_server"
         # ------------------------------------------------------------------
-        con_logger = logging.getLogger('tcp-thrd-io.{}'.format(connection_name))
-        tcp_connection = get_connection(name=connection_name, logger=con_logger)
+        # con_logger = logging.getLogger('tcp-thrd-io.{}'.format(connection_name))
+        # tcp_connection = get_connection(name=connection_name, logger=con_logger)
+        con_logger = logging.getLogger('tcp-async-io.{}'.format(connection_name))
+        tcp_connection = get_connection(name=connection_name, variant='asyncio', logger=con_logger)
         tcp_connection.moler_connection.name = connection_name
         # client_task= asyncio.ensure_future(ping_observing_task(tcp_connection, ping_ip))
         connections.append(ping_observing_task(tcp_connection, ping_ip))
@@ -209,11 +211,12 @@ async def ping_observing_task(ext_io_connection, ping_ip):
     net_down_detector.start()  # should be started before we open connection
     # to not loose first data on connection
 
-    with ext_io_connection:
+    async with ext_io_connection:
+    # with ext_io_connection:
         # 5. await that observer to complete
         try:
-            # net_down_time = await net_down_detector
-            net_down_time = await asyncio.wait_for(net_down_detector, timeout=2)  # =10 --> no TimeoutError
+            net_down_time = await net_down_detector
+            # net_down_time = await asyncio.wait_for(net_down_detector, timeout=2)  # =10 --> no TimeoutError
             timestamp = time.strftime("%H:%M:%S", time.localtime(net_down_time))
             logger.debug('Network {} is down from {}'.format(ping_ip, timestamp))
         except asyncio.TimeoutError:
