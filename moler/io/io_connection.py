@@ -33,6 +33,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 from threading import Lock
+import logging
 
 
 class IOConnection(object):
@@ -49,8 +50,19 @@ class IOConnection(object):
         self._disconnect_subscribers = list()
         self._disconnect_subscribers_lock = Lock()
         self.moler_connection = moler_connection
+        self.__name = "UNNAMED_IO_CONNECTION"
+        self.logger = logging.getLogger("moler.connection.{}".format(self.__name))
         # plugin the way we output data to external world
         self.moler_connection.how2send = self.send
+
+    @property
+    def name(self):
+        return self.__name
+
+    @name.setter
+    def name(self, value):
+        self.__name = value
+        self.logger = logging.getLogger("moler.connection.{}".format(self.__name))
 
     def open(self):
         """
@@ -109,8 +121,10 @@ class IOConnection(object):
         :return: Nothing
         """
         if when == "connection_made":
+            self.logger.info("'{}' has been opened.".format(self.name))
             self.subscribe_on_connection_made(subscriber=callback)
         elif when == "connection_lost":
+            self.logger.info("'{}' has been closed.".format(self.name))
             self.subscribe_on_connection_lost(subscriber=callback)
 
     def subscribe_on_connection_made(self, subscriber):

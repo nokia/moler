@@ -29,7 +29,7 @@ class Telnet(GenericUnixCommand):
     def __init__(self, connection, host, login=None, password=None, port=0, prompt=None, expected_prompt=r'^>\s*',
                  set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono="TERM=xterm-mono", prefix=None,
                  new_line_chars=None, cmds_before_establish_connection=[], cmds_after_establish_connection=[],
-                 telnet_prompt=r"^\s*telnet>\s*"):
+                 telnet_prompt=r"^\s*telnet>\s*", encrypt_password=True):
         super(Telnet, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
         # Parameters defined by calling the command
@@ -43,6 +43,7 @@ class Telnet(GenericUnixCommand):
         self.set_prompt = set_prompt
         self.term_mono = term_mono
         self.prefix = prefix
+        self.encrypt_password = encrypt_password
         self.cmds_before_establish_connection = copy.deepcopy(cmds_before_establish_connection)
         self.cmds_after_establish_connection = copy.deepcopy(cmds_after_establish_connection)
 
@@ -135,7 +136,7 @@ class Telnet(GenericUnixCommand):
 
     def _send_password_if_requested(self, line):
         if (not self._sent_password) and self._is_password_requested(line) and self.password:
-            self.connection.sendline(self.password)
+            self.connection.sendline(self.password, encrypt=self.encrypt_password)
             self._sent_login = False
             self._sent_password = True
             raise ParsingDone()

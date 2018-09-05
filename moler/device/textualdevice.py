@@ -48,8 +48,8 @@ class TextualDevice(object):
         """
         self.states = []
         self.goto_states_triggers = []
-        self._name = None
-        self.name = name
+        self._name = name
+        #self.name = name
         self.device_data_logger = None
 
         # Below line will modify self extending it with methods and atributes od StateMachine
@@ -72,6 +72,7 @@ class TextualDevice(object):
         else:
             self.io_connection = get_connection(io_type=io_type, variant=variant)
 
+        self.io_connection.name = self.name
         self.io_connection.moler_connection.name = self.name
         self.logger = logging.getLogger('moler.connection.{}'.format(self.name))
         self.configure_logger(name=self.name, propagate=False)
