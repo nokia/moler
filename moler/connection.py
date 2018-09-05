@@ -128,7 +128,8 @@ class Connection(object):
 
         return data
 
-    def send(self, data, timeout=30, encrypt=False):  # TODO: should timeout be property of IO? We timeout whole connection-observer.
+    def send(self, data, timeout=30,
+             encrypt=False):  # TODO: should timeout be property of IO? We timeout whole connection-observer.
         """Outgoing-IO API: Send data over external-IO."""
         self._log_data(msg=data, level=logging.INFO, extra={'transfer_direction': '>'})
         self._log(level=logging.INFO,
@@ -138,10 +139,11 @@ class Connection(object):
                       'log_name': self.name
                   })
         data2send = self.encode(data)
+        msg = data2send
         if encrypt:
             length = len(data2send)
-            data2send = "*" * length
-        self._log_data(msg=data2send, level=RAW_DATA, extra={'transfer_direction': '>'})
+            msg = "*" * length
+        self._log_data(msg=msg, level=RAW_DATA, extra={'transfer_direction': '>'})
         self.how2send(data2send)
 
     def sendline(self, data, timeout=30, encrypt=False):

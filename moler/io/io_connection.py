@@ -32,8 +32,8 @@ __author__ = 'Grzegorz Latuszek, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
-from threading import Lock
 import logging
+from threading import Lock
 
 
 class IOConnection(object):
@@ -121,10 +121,8 @@ class IOConnection(object):
         :return: Nothing
         """
         if when == "connection_made":
-            self.logger.info("'{}' has been opened.".format(self.name))
             self.subscribe_on_connection_made(subscriber=callback)
         elif when == "connection_lost":
-            self.logger.info("'{}' has been closed.".format(self.name))
             self.subscribe_on_connection_lost(subscriber=callback)
 
     def subscribe_on_connection_made(self, subscriber):
@@ -166,9 +164,17 @@ class IOConnection(object):
                 subscriber(self)
 
     def _notify_on_connect(self):
+        self.logger.info(
+            msg="Connection to: '{}' has been opened.".format(self.name),
+            extra={'log_name': self.name}
+        )
         self._notify(self._connect_subscribers_lock, self._connect_subscribers)
 
     def _notify_on_disconnect(self):
+        self.logger.info(
+            msg="Connection to: '{}' has been closed.".format(self.name),
+            extra={'log_name': self.name}
+        )
         self._notify(self._disconnect_subscribers_lock, self._disconnect_subscribers)
 
     def _subscribe(self, lock, subscribers, subscriber):
