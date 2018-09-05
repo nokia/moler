@@ -346,7 +346,6 @@ class MolerMainMultilineWithDirectionFormatter(MultilineWithDirectionFormatter):
         if not hasattr(record, 'log_name'):
             record.log_name = record.name
 
-        new_record = copy.deepcopy(record)
         record.msg = "{:<20}|{}".format(new_record.log_name, new_record.msg)
 
         return super(MolerMainMultilineWithDirectionFormatter, self).format(record)
