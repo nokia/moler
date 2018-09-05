@@ -65,7 +65,7 @@ def test_can_send_data_over_connection(tcp_connection_class,
 
 
 # TODO: parametrize - different external-IO connection may have
-# TODO:               different naming for their 'rceive' method
+# TODO:               different naming for their 'receive' method
 def test_can_receive_data_from_connection(tcp_connection_class,
                                           integration_tcp_server_and_pipe):
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
