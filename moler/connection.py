@@ -17,6 +17,7 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 
 import logging
 import platform
+import sys
 import weakref
 from quopri import decodestring
 from threading import Lock
@@ -441,7 +442,6 @@ def _try_get_connection_with_name(io_type, variant, **constructor_kwargs):
 def _register_builtin_connections():
     from moler.io.raw.memory import ThreadedFifoBuffer
     from moler.io.raw.tcp import ThreadedTcp
-    from moler.io.asyncio.tcp import AsyncioTcp
 
     def mlr_conn_utf8(name):
         return ObservableConnection(encoder=lambda data: data.encode("utf-8"),
@@ -460,12 +460,6 @@ def _register_builtin_connections():
                               port=port, host=host, **kwargs)  # TODO: add name
         return io_conn
 
-    def tcp_asyncio_conn(port, host='localhost', name=None, **kwargs):  # kwargs to pass  receive_buffer_size and logger
-        mlr_conn = mlr_conn_utf8(name=name)
-        io_conn = AsyncioTcp(moler_connection=mlr_conn,
-                             port=port, host=host, **kwargs)  # TODO: add name
-        return io_conn
-
     # TODO: unify passing logger to io_conn (logger/logger_name - see above comments)
     ConnectionFactory.register_construction(io_type="memory",
                                             variant="threaded",
@@ -473,6 +467,23 @@ def _register_builtin_connections():
     ConnectionFactory.register_construction(io_type="tcp",
                                             variant="threaded",
                                             constructor=tcp_thd_conn)
+
+
+def _register_python3_builtin_connections():
+    from moler.io.asyncio.tcp import AsyncioTcp
+
+    def mlr_conn_utf8(name):
+        return ObservableConnection(encoder=lambda data: data.encode("utf-8"),
+                                    decoder=lambda data: data.decode("utf-8"),
+                                    name=name)
+
+    def tcp_asyncio_conn(port, host='localhost', name=None, **kwargs):  # kwargs to pass  receive_buffer_size and logger
+        mlr_conn = mlr_conn_utf8(name=name)
+        io_conn = AsyncioTcp(moler_connection=mlr_conn,
+                             port=port, host=host, **kwargs)  # TODO: add name
+        return io_conn
+
+    # TODO: unify passing logger to io_conn (logger/logger_name - see above comments)
     ConnectionFactory.register_construction(io_type="tcp",
                                             variant="asyncio",
                                             constructor=tcp_asyncio_conn)
@@ -500,3 +511,5 @@ def _register_builtin_unix_connections():
 _register_builtin_connections()
 if platform.system() == 'Linux':
     _register_builtin_unix_connections()
+if (sys.version_info[0]>=3) and (sys.version_info[1]>=5):
+    _register_python3_builtin_connections()
