@@ -49,7 +49,6 @@ class TextualDevice(object):
         self.states = []
         self.goto_states_triggers = []
         self._name = name
-        # self.name = name
         self.device_data_logger = None
 
         # Below line will modify self extending it with methods and atributes od StateMachine
