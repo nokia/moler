@@ -245,7 +245,7 @@ if __name__ == '__main__':
 
     logging.basicConfig(
         level=logging.DEBUG,
-        format='%(asctime)s |%(name)-45s |%(message)s',
+        format='%(asctime)s |%(name)-45s | %(threadName)12s |%(message)s',
         datefmt='%H:%M:%S',
         stream=sys.stderr,
     )
