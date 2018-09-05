@@ -135,7 +135,7 @@ async def test_can_receive_data_from_connection(tcp_connection_class,
         tcp_server_pipe.send(("send async msg", {'msg': b'data to read'}))
         await asyncio.wait_for(receiver_called.wait(), timeout=0.5)
 
-    assert 'data to read' == received_data
+    assert 'data to read' == received_data[0]
 
 
 # TODO: tests for error cases raising Exceptions
