@@ -86,4 +86,4 @@ class Event(ConnectionObserver):
 
     def get_finished_desc(self):
         return "Event '{}.{}': '{}' finished.".format(self.__class__.__module__, self.__class__.__name__,
-                                                self.detect_patterns)
+                                                      self.detect_patterns)
