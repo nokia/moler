@@ -37,7 +37,7 @@ def _register_builtin_runners(runner_factory):
         runner = ThreadPoolExecutorRunner(executor=executor)
         return runner
 
-    runner_factory.register_construction(variant="threaded",  constructor=thd_runner)
+    runner_factory.register_construction(variant="threaded", constructor=thd_runner)
 
 
 def _register_python3_builtin_runners(runner_factory):
