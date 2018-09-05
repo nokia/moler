@@ -41,6 +41,7 @@ from moler.connection_observer import ConnectionObserver
 from moler.io.raw import tcp
 from moler.connection import get_connection, ConnectionFactory
 from moler.asyncio_runner import AsyncioRunner
+from moler.runner_factory import get_runner
 
 ping_output = '''
 greg@debian:~$ ping 10.0.2.15
@@ -199,10 +200,10 @@ async def ping_observing_task(ext_io_connection, ping_ip):
     # 3. create observers on Moler's connection
     net_down_detector = NetworkDownDetector(ping_ip,
                                             connection=ext_io_connection.moler_connection,
-                                            runner=AsyncioRunner())
+                                            runner=get_runner(variant="asyncio"))
     net_up_detector = NetworkUpDetector(ping_ip,
                                         connection=ext_io_connection.moler_connection,
-                                        runner=AsyncioRunner())
+                                        runner=get_runner(variant="asyncio"))
 
     info = '{} on {} using {}'.format(ping_ip, conn_addr, net_down_detector)
     logger.debug('observe ' + info)
