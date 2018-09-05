@@ -145,8 +145,8 @@ async def test_can_receive_data_from_connection(tcp_connection_class,
 
 @pytest.fixture()
 def tcp_connection_class():
-    from moler.io.asyncio.tcp import Tcp
-    return Tcp
+    from moler.io.asyncio.tcp import AsyncioTcp
+    return AsyncioTcp
 
 
 @pytest.yield_fixture()

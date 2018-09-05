@@ -23,11 +23,11 @@ from moler.io.io_exceptions import RemoteEndpointDisconnected
 from moler.io.io_exceptions import RemoteEndpointNotConnected
 
 
-class Tcp(IOConnection):
+class AsyncioTcp(IOConnection):
     """Implementation of TCP connection using asyncio."""
     def __init__(self, moler_connection, port, host="localhost", receive_buffer_size=64 * 4096, logger=None):
         """Initialization of TCP connection."""
-        super(Tcp, self).__init__(moler_connection=moler_connection)
+        super(AsyncioTcp, self).__init__(moler_connection=moler_connection)
         self.moler_connection.how2send = self._send  # need to map synchronous methods
         # TODO: do we want connection.name?
         self.host = host
