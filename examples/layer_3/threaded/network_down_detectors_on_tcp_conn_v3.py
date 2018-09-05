@@ -225,7 +225,7 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------
     # Configure moler connections (backend code)
     # ver.3 - configure by YAML config file
-    load_config(path=os.path.join(os.path.dirname(__file__), "connections_new_variant.yml"))
+    load_config(path=os.path.join(os.path.dirname(__file__), "..", "connections_new_variant.yml"))
 
     # configure class used to realize tcp-threaded-connection
     # (default one tcp.ThreadedTcp has no logger)

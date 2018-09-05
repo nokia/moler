@@ -15,5 +15,6 @@ script:
   - pycodestyle moler
   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then python2 -m pytest test/; fi
   - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then python3.6 -m pytest --mccabe moler; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then bash examples/run_all_examples.bash; fi
 after_success:
   - if [[ $TRAVIS_PYTHON_VERSION == 3.6 && $TRAVIS_OS_NAME == "linux" ]]; then coveralls; fi
