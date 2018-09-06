@@ -50,6 +50,7 @@ def _walk_moler_python_files(path):
     :rtype: str
     """
     repo_path = abspath(join(path, '../..'))
+    print(repo_path)
 
     for (dirpath, _, filenames) in walk(path):
         for filename in filenames:
@@ -59,7 +60,6 @@ def _walk_moler_python_files(path):
                 rel_path = join(dirpath, filename)
                 abs_path = abspath(rel_path)
                 in_moler_path = relpath(abs_path, repo_path)
-                print(in_moler_path)
                 yield in_moler_path
 
 

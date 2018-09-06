@@ -9,7 +9,7 @@ __email__ = 'julia.patacz@nokia.com'
 
 import re
 
-from moler.cmd.converterhelper import ConverterHelper
+from moler.util.converterhelper import ConverterHelper
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
 
