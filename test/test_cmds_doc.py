@@ -54,7 +54,12 @@ def _load_obj(func_name):
 
 def test_documentation_exists():
     from moler.util.cmds_doc import check_if_documentation_exists
-    assert check_if_documentation_exists("moler/cmd") is True
+    from os import path
+    dir_path = path.dirname(path.realpath(__file__))
+    moler_dir_path = path.dirname(dir_path)
+    cmd_path = path.join(moler_dir_path, "moler", "cmd")
+
+    assert check_if_documentation_exists(cmd_path) is True
 
 
 def test_buffer_connection_returns_threadconnection_with_moler_conn():

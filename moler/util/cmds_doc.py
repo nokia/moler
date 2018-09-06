@@ -49,8 +49,8 @@ def _walk_moler_python_files(path):
     :type path:
     :rtype: str
     """
-    repo_path = abspath(join(dirname(__file__), '../..'))
-    path = join(__file__.partition('moler/util/cmds_doc.py')[0], path)
+    repo_path = abspath(join(path, '../..'))
+
     for (dirpath, _, filenames) in walk(path):
         for filename in filenames:
             if filename.endswith('__init__.py'):
@@ -59,6 +59,7 @@ def _walk_moler_python_files(path):
                 rel_path = join(dirpath, filename)
                 abs_path = abspath(rel_path)
                 in_moler_path = relpath(abs_path, repo_path)
+                print(in_moler_path)
                 yield in_moler_path
 
 
@@ -187,7 +188,9 @@ def check_if_documentation_exists(path2cmds):
     wrong_commands = {}
     errors_found = []
     print()
+    found_any_command = False
     for moler_module, moler_class in _walk_moler_nonabstract_commands(path=path2cmds):
+        found_any_command = True
         print("processing: {}".format(moler_class))
 
         test_data = _retrieve_command_documentation(moler_module)
@@ -229,6 +232,10 @@ def check_if_documentation_exists(path2cmds):
         print("\n".join(errors_found))
         msg = "Following commands have incorrect documentation:"
         err_msg = "{}\n    {}".format(msg, "\n    ".join(wrong_commands.keys()))
+        print(err_msg)
+        return False
+    if not found_any_command:
+        err_msg = "No tests run! Not found any command to test in path: '{}'!".format(path2cmds)
         print(err_msg)
         return False
     print("All processed commands have correct documentation")
