@@ -1,5 +1,5 @@
 from importlib import import_module
-from os import listdir, path, walk
+from os import path, walk
 from os.path import isfile, join, abspath, dirname
 
 from mock import mock
@@ -9,10 +9,7 @@ __author__ = 'Michal Plichta'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'michal.plichta@nokia.com'
 
-# dir_path = path.dirname(path.realpath(__file__))
-# moler_dir_path = path.join(path.dirname(dir_path), 'moler')
 cmd_dir_under_test = 'moler/cmd/'
-
 
 
 # --------------- helper functions ---------------
@@ -31,7 +28,6 @@ def _list_in_path(listing_type):
     abs_test_path = join(repo_path, cmd_dir_under_test)
     file_list = []
 
-
     if listing_type == 'allfiles':
         file_list = [f for root, dirs, files in walk(abs_test_path) for f in files if isfile(join(root, f))]
     elif listing_type == 'fullpath':
@@ -43,6 +39,7 @@ def _list_in_path(listing_type):
 
     return file_list
 
+
 def _load_obj(func_name):
     """
     Load instance form module.
@@ -52,6 +49,8 @@ def _load_obj(func_name):
     :rtype: type
     """
     return getattr(import_module('moler.util.cmds_doc'), func_name)
+
+
 # --------------- helper functions ---------------
 
 
@@ -205,7 +204,8 @@ def test_create_command_raise_exception_when_object_takes_no_params(fake_cmd):
     with raises(Exception) as exc:
         _create_command(fake_cmd, _buffer_connection().moler_connection, {})
 
-    assert "via FakeCommand() : object() takes no parameters" or "via FakeCommand() : this constructor takes no arguments" in str(exc.value)
+    assert "via FakeCommand() : object() takes no parameters" or "via FakeCommand() : this constructor takes no arguments" in str(
+        exc.value)
 
 
 def test_create_command_success(nice_cmd):
@@ -221,7 +221,8 @@ def test_run_command_parsing_test_success(nice_cmd):
     from moler.util.cmds_doc import _run_command_parsing_test, _buffer_connection, _get_doc_variant, _create_command
     buffer_io = _buffer_connection()
     variant = '_ver_nice'
-    test_data = {variant: {'COMMAND_OUTPUT': 'nice', 'COMMAND_KWARGS': {'nice': 'nice'}, 'COMMAND_RESULT': {'nice': 'nice'}}}
+    test_data = {
+        variant: {'COMMAND_OUTPUT': 'nice', 'COMMAND_KWARGS': {'nice': 'nice'}, 'COMMAND_RESULT': {'nice': 'nice'}}}
 
     cmd_output, cmd_kwargs, cmd_result = _get_doc_variant(test_data, variant)
     moler_cmd, creation_str = _create_command(nice_cmd, buffer_io.moler_connection, cmd_kwargs)
