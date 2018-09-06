@@ -112,7 +112,7 @@ def test_walk_moler_commands_is_generator_return_all_files_in_dir():
     for cmd, file in zip(walker, file_list):
         list_from_generator.append(cmd)
 
-        # assert file in str(cmd[0])
+        assert file in str(cmd[0])
     assert len(list_from_generator) == len(file_list)
 
 
