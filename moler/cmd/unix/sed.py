@@ -22,11 +22,11 @@ class Sed(GenericUnixCommand):
         super(Sed, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
         # Parameters defined by calling the command
-        self.options = options            # string
-        self.scripts = scripts            # list of strings
-        self.script_files = script_files  # list of strings
+        self.options = options            # string or None
+        self.scripts = scripts            # list of strings or None
+        self.script_files = script_files  # list of strings or None
         self.input_files = input_files    # list of strings
-        self.output_file = output_file    # string
+        self.output_file = output_file    # string or None
 
         self._is_input_file()
 
