@@ -77,5 +77,5 @@ COMMAND_RESULT = {   'LINES': [   u'VmallocChunk:   34359608824 kB',
                  u'ute@debdev:~$']}
 
 COMMAND_KWARGS = {
-    "path": "/proc/meminfo "
+    "path": "/proc/meminfo"
 }
