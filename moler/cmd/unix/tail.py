@@ -50,24 +50,32 @@ class Tail(GenericUnixCommand):
 
 
 COMMAND_OUTPUT = """
-root@fzm-lsp-k2:~# tail /rom/btsom/reset_reason_log.txt
-tail -n 10 /rom/btsom/reset_reason_log.txt
-Site Manager DeltaPush:2013.01.05_16.12.22:BMGR
-NetAct initiated configuration change:2013.01.05_16.45.56:BMGR
-Site Manager DeltaPush:2013.01.05_19.58.24:BMGR
-NetAct initiated configuration change:2013.01.05_20.07.31:BMGR
-NetAct initiated configuration change:2013.01.05_20.42.25:BMGR
-root@fzm-lsp-k2:~#
+ute@debdev:~$ tail /proc/meminfo 
+VmallocChunk:   34359608824 kB
+HardwareCorrupted:     0 kB
+AnonHugePages:         0 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
+DirectMap4k:       53184 kB
+DirectMap2M:     4141056 kB
+ute@debdev:~$
 """
 
-COMMAND_RESULT = {'LINES': [u'tail -n 10 /rom/btsom/reset_reason_log.txt',
-                            u'Site Manager DeltaPush:2013.01.05_16.12.22:BMGR',
-                            u'NetAct initiated configuration change:2013.01.05_16.45.56:BMGR',
-                            u'Site Manager DeltaPush:2013.01.05_19.58.24:BMGR',
-                            u'NetAct initiated configuration change:2013.01.05_20.07.31:BMGR',
-                            u'NetAct initiated configuration change:2013.01.05_20.42.25:BMGR',
-                            u'root@fzm-lsp-k2:~#']}
+COMMAND_RESULT = {   'LINES': [   u'VmallocChunk:   34359608824 kB',
+                 u'HardwareCorrupted:     0 kB',
+                 u'AnonHugePages:         0 kB',
+                 u'HugePages_Total:       0',
+                 u'HugePages_Free:        0',
+                 u'HugePages_Rsvd:        0',
+                 u'HugePages_Surp:        0',
+                 u'Hugepagesize:       2048 kB',
+                 u'DirectMap4k:       53184 kB',
+                 u'DirectMap2M:     4141056 kB',
+                 u'ute@debdev:~$']}
 
 COMMAND_KWARGS = {
-    "path": "/rom/btsom/reset_reason_log.txt"
+    "path": "/proc/meminfo "
 }
