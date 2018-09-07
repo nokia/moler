@@ -16,7 +16,7 @@ from moler.exceptions import ParsingDone
 
 
 class Useradd(GenericUnixCommand):
-    def __init__(self, connection, prompt=None, new_line_chars=None, options=None, defaults=None, user=None):
+    def __init__(self, connection, prompt=None, new_line_chars=None, options=None, defaults=False, user=None):
         super(Useradd, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
         # Parameters defined by calling the command
