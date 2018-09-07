@@ -50,7 +50,7 @@ class Tail(GenericUnixCommand):
 
 
 COMMAND_OUTPUT = """
-ute@debdev:~$ tail /proc/meminfo 
+ute@debdev:~$ tail /proc/meminfo
 VmallocChunk:   34359608824 kB
 HardwareCorrupted:     0 kB
 AnonHugePages:         0 kB
@@ -64,17 +64,17 @@ DirectMap2M:     4141056 kB
 ute@debdev:~$
 """
 
-COMMAND_RESULT = {   'LINES': [   u'VmallocChunk:   34359608824 kB',
-                 u'HardwareCorrupted:     0 kB',
-                 u'AnonHugePages:         0 kB',
-                 u'HugePages_Total:       0',
-                 u'HugePages_Free:        0',
-                 u'HugePages_Rsvd:        0',
-                 u'HugePages_Surp:        0',
-                 u'Hugepagesize:       2048 kB',
-                 u'DirectMap4k:       53184 kB',
-                 u'DirectMap2M:     4141056 kB',
-                 u'ute@debdev:~$']}
+COMMAND_RESULT = {'LINES': [u'VmallocChunk:   34359608824 kB',
+                            u'HardwareCorrupted:     0 kB',
+                            u'AnonHugePages:         0 kB',
+                            u'HugePages_Total:       0',
+                            u'HugePages_Free:        0',
+                            u'HugePages_Rsvd:        0',
+                            u'HugePages_Surp:        0',
+                            u'Hugepagesize:       2048 kB',
+                            u'DirectMap4k:       53184 kB',
+                            u'DirectMap2M:     4141056 kB',
+                            u'ute@debdev:~$']}
 
 COMMAND_KWARGS = {
     "path": "/proc/meminfo"
