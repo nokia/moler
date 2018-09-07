@@ -12,11 +12,13 @@ from moler.exceptions import ParsingDone
 
 
 class Echo(GenericUnixCommand):
-    def __init__(self, connection, options=None, text=None, output_file=None, prompt=None, new_line_chars='\n'):
+    def __init__(self, connection, options=None, text=None, write_mode=">", output_file=None, prompt=None,
+                 new_line_chars='\n'):
         super(Echo, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
         self.options = options
         self.text = text
+        self.write_mode = write_mode
         self.output_file = output_file
 
         self.current_ret['RESULT'] = list()
@@ -28,7 +30,7 @@ class Echo(GenericUnixCommand):
         if self.text:
             cmd = "{} {!r}".format(cmd, self.text)
         if self.output_file:
-            cmd = "{} > {}".format(cmd, self.output_file)
+            cmd = "{} {} {}".format(cmd, self.write_mode, self.output_file)
         return cmd
 
     def on_new_line(self, line, is_full_line):
