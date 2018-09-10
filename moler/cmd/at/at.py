@@ -92,6 +92,8 @@ class AtCmd(Command):
         elif self.operation == "read":
             self.command_string += "?"
         elif execute_params:
-            params = ",".join(str(param_value) for param_name, param_value in execute_params if param_value is not None)
+            params = ",".join(str(param_value) for param_name, param_value in execute_params if param_value or (param_value == 0))
+            # param_value == 0  may generate valid AT-cmd like:
+            # AT+CBST=0,0,0
             if params:
                 self.command_string += "=" + params
