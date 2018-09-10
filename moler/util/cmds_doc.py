@@ -10,7 +10,7 @@ __email__ = 'grzegorz.latuszek@nokia.com', 'michal.ernst@nokia.com', 'michal.pli
 from argparse import ArgumentParser
 from importlib import import_module
 from os import walk, sep
-from os.path import abspath, join, dirname, relpath, exists
+from os.path import abspath, join, relpath, exists
 from pprint import pformat
 
 from moler.command import Command
