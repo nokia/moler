@@ -22,6 +22,7 @@ class Gunzip(GenericUnixCommand):
         self.overwrite = overwrite
         self.keys = list()
         self.current_ret['RESULT'] = list()
+        self._asks_to_overwrite_send = False
 
     def build_command_string(self):
         cmd = 'gunzip'
@@ -48,12 +49,13 @@ class Gunzip(GenericUnixCommand):
     _re_overwrite = re.compile(r"gzip:\s(?P<FILE_NAME>.*already exists)", re.IGNORECASE)
 
     def _asks_to_overwrite(self, line):
-        if self._regex_helper.search_compiled(Gunzip._re_overwrite, line):
+        if self._regex_helper.search_compiled(Gunzip._re_overwrite, line) and (not self._asks_to_overwrite_send):
             if self.overwrite:
                 self.connection.sendline('y')
             else:
                 self.connection.sendline('n')
                 self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("FILE_NAME"))))
+            self._asks_to_overwrite_send = True
             raise ParsingDone
 
     _re_l_option = re.compile(r"(?P<L_OPTION> compressed\s*uncompressed\s*ratio\s*uncompressed_name.*)", re.IGNORECASE)
