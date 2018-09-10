@@ -43,9 +43,10 @@ def test_at_cmd_string_extended_with_params_when_additional_params_in_execute_mo
     from moler.cmd.at.at import AtCmd
 
     class AtCmdWithArgs(AtCmd):
-        def __init__(self, connection=None, operation="execute", context_id=None, option=None, action=''):
+        def __init__(self, connection=None, operation="execute", context_id=None, option=None, action=None):
             super(AtCmdWithArgs, self).__init__(connection, operation)
-            self.set_at_command_string(command_base_string="AT+CMD", context_id=context_id, option=option, action=action)
+            self.set_at_command_string(command_base_string="AT+CMD",
+                                       execute_params=[('context_id', context_id), ('option', option), ('action', action)])
 
         def parse_command_output(self):
             self.set_result("result")
