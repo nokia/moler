@@ -36,14 +36,13 @@ class Gunzip(GenericUnixCommand):
         return cmd
 
     def on_new_line(self, line, is_full_line):
-        if is_full_line:
-            try:
-                self._asks_to_overwrite(line)
-                self._create_dictionary_at_l_option(line)
-                self._command_failure(line)
-                self._parse_line(line)
-            except ParsingDone:
-                pass
+        try:
+            self._asks_to_overwrite(line)
+            self._create_dictionary_at_l_option(line)
+            self._command_failure(line)
+            self._parse_line(line)
+        except ParsingDone:
+            pass
         return super(Gunzip, self).on_new_line(line, is_full_line)
 
     _re_overwrite = re.compile(r"gzip:\s(?P<FILE_NAME>.*already exists)", re.IGNORECASE)
