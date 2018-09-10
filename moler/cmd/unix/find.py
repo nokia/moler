@@ -15,19 +15,19 @@ import re
 
 
 class Find(GenericUnixCommand):
-    def __init__(self, connection, path=None, options=None, operators=None):
-        super(Find, self).__init__(connection=connection)
+    def __init__(self, connection, paths=list(), prompt=None, new_line_chars=None, options=None, operators=None):
+        super(Find, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
         self.options = options
         self.operators = operators
-        self.path = path
+        self.paths = paths
         self.current_ret['RESULT'] = list()
 
     def build_command_string(self):
         cmd = "find"
         if self.options:
             cmd = cmd + " " + self.options
-        if self.path:
-            for afile in self.path:
+        if self.paths:
+            for afile in self.paths:
                 cmd = cmd + " " + afile
         if self.operators:
             cmd = cmd + " " + self.operators
