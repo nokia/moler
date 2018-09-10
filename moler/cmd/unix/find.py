@@ -49,15 +49,11 @@ class Find(GenericUnixCommand):
         if self._regex_helper.search_compiled(Find._re_permission_denied, line):
             raise ParsingDone
 
-    _re_error_find = re.compile(r"find:\s(?P<ERROR_MSG_FIND>.*)", re.IGNORECASE)
-    _re_error_bash = re.compile(r"bash:\s(?P<ERROR_MSG_BASH>.*)", re.IGNORECASE)
+    _re_error = re.compile(r"[find:|bash:]\s(?P<ERROR_MSG_FIND>.*))", re.IGNORECASE)
 
     def _command_failure(self, line):
-        if self._regex_helper.search_compiled(Find._re_error_find, line):
+        if self._regex_helper.search_compiled(Find._re_error, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG_FIND"))))
-            raise ParsingDone
-        if self._regex_helper.search_compiled(Find._re_error_bash, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG_BASH"))))
             raise ParsingDone
 
     def _parse_file(self, line):
