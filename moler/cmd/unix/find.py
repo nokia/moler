@@ -210,5 +210,4 @@ COMMAND_RESULT_permission_denied = {
                './devices/LNXSYSTM:00/LNXPWRBN:00/input/input3/power/async',
                './module/kernel', './module/kernel/parameters', './module/kernel/parameters/crash_kexec_post_notifiers',
                './module/kernel/parameters/consoleblank', './module/kernel/parameters/initcall_debug']
-
 }
