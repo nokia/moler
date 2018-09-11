@@ -21,6 +21,9 @@ class Socat(GenericUnixCommand):
         self.options = options
         self.current_ret['RESULT'] = list()
         self.current_ret['INFO'] = list()
+        self.current_ret['FEATURES'] = dict()
+        self.current_ret['FEATURES']['defined'] = dict()
+        self.current_ret['FEATURES']['undefined'] = list()
 
     def build_command_string(self):
         cmd = 'socat'
@@ -36,7 +39,10 @@ class Socat(GenericUnixCommand):
         if is_full_line:
             try:
                 self._command_failure(line)
+                self._remove_features(line)
                 self._parse_info_msg(line)
+                self._parse_info_dict_define(line)
+                self._parse_info_dict_undefined(line)
                 self._parse_output(line)
             except ParsingDone:
                 pass
@@ -49,12 +55,36 @@ class Socat(GenericUnixCommand):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG"))))
             raise ParsingDone
 
+    _re_features = re.compile(r"features:")
+
+    def _remove_features(self, line):
+        if self._regex_helper.search_compiled(Socat._re_features, line):
+            raise ParsingDone
+
     _re_info = re.compile(r'.* socat\[\d*\]\s(?P<INFO_MSG>[NWID].*)')
 
     def _parse_info_msg(self, line):
         if self._regex_helper.search_compiled(Socat._re_info, line):
             info_msg = self._regex_helper.group("INFO_MSG")
             self.current_ret['INFO'].append(info_msg)
+            raise ParsingDone
+
+    _re_define = re.compile(r"#define\s+(?P<KEY>.*_.*)\s+(?P<VALUE>\d+)")
+
+    def _parse_info_dict_define(self, line):
+        if self._regex_helper.search_compiled(Socat._re_define, line):
+            key = self._regex_helper.group("KEY")
+            value = self._regex_helper.group("VALUE")
+            row_dict = {key: value}
+            self.current_ret['FEATURES']['defined'].update(row_dict)
+            raise ParsingDone
+
+    _re_undefined = re.compile(r"#undef\s+(?P<FEATURE>.*_.*)")
+
+    def _parse_info_dict_undefined(self, line):
+        if self._regex_helper.search_compiled(Socat._re_undefined, line):
+            feature = self._regex_helper.group("FEATURE")
+            self.current_ret['FEATURES']['undefined'].append(feature)
             raise ParsingDone
 
     def _parse_output(self, line):
@@ -77,7 +107,8 @@ COMMAND_KWARGS_info_output = {
 
 COMMAND_RESULT_info_output = {
     'RESULT': [],
-    'INFO': ['N PTY is /dev/pts/2', 'N PTY is /dev/pts/4', 'N starting data transfer loop with FDs [5,5] and [7,7]']
+    'INFO': ['N PTY is /dev/pts/2', 'N PTY is /dev/pts/4', 'N starting data transfer loop with FDs [5,5] and [7,7]'],
+    'FEATURES': {'defined': {}, 'undefined': []}
 }
 
 
@@ -93,7 +124,8 @@ COMMAND_KWARGS_basic_output = {
 
 COMMAND_RESULT_basic_output = {
     'RESULT': ['Mon Aug 20 10:37:14 CEST 2018'],
-    'INFO': []
+    'INFO': [],
+    'FEATURES': {'defined': {}, 'undefined': []}
 }
 
 
@@ -113,7 +145,8 @@ COMMAND_KWARGS_both_types = {
 COMMAND_RESULT_both_types = {
     'RESULT': ['ssh: Could not resolve hostname server1.nixcraft.net.in: Name or service not known'],
     'INFO': ['W open("/dev/tty", O_NOCTTY, 0640): No such device or address',
-             'W waitpid(): child 31539 exited with status 255']
+             'W waitpid(): child 31539 exited with status 255'],
+    'FEATURES': {'defined': {}, 'undefined': []}
 }
 
 
@@ -141,8 +174,15 @@ COMMAND_KWARGS_version = {
 COMMAND_RESULT_version = {
     'RESULT': ['socat by Gerhard Rieger - see www.dest-unreach.org', 'socat version 1.7.3.1 on Jul 14 2017 13:52:03',
                'running on Linux version #1 SMP Debian 4.9.88-1+deb9u1 (2018-05-07), release 4.9.0-6-amd64,'
-               ' machine x86_64', 'features:', '#define WITH_STDIO 1', '#define WITH_FDNUM 1', '#define WITH_FILE 1',
-               '#define WITH_CREAT 1', '#define WITH_GOPEN 1', '#define WITH_TERMIOS 1', '#define WITH_PIPE 1',
-               '#undef WITH_READLINE', '#define WITH_MSGLEVEL 0 /*debug*/'],
-    'INFO': []
+               ' machine x86_64'],
+    'INFO': [],
+    'FEATURES': {'defined': {'WITH_CREAT': '1',
+                             'WITH_FDNUM': '1',
+                             'WITH_FILE': '1',
+                             'WITH_GOPEN': '1',
+                             'WITH_MSGLEVEL': '0',
+                             'WITH_PIPE': '1',
+                             'WITH_STDIO': '1',
+                             'WITH_TERMIOS': '1'},
+                 'undefined': ['WITH_READLINE']}
 }
