@@ -14,7 +14,7 @@ import time
 class EventAwaiter(object):
 
     @staticmethod
-    def wait_all(timeout, events, interval=0.001):
+    def wait_for_all(timeout, events, interval=0.001):
         """
         Wait for all events are done or timeout occurs
         :param timeout: time in seconds
@@ -36,7 +36,7 @@ class EventAwaiter(object):
         return all_done
 
     @staticmethod
-    def wait_any(timeout, events, interval=0.001):
+    def wait_for_any(timeout, events, interval=0.001):
         """
         :param timeout: time in seconds
         :param events: list of events to check
@@ -69,3 +69,12 @@ class EventAwaiter(object):
             else:
                 not_done_events.append(event)
         return [done_events, not_done_events]
+
+    @staticmethod
+    def cancel_all_events(events):
+        """
+        :param events: list of events to cancel
+        :return: nothing
+        """
+        for event in events:
+            event.cancel()
