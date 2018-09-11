@@ -37,6 +37,8 @@ class Gunzip(GenericUnixCommand):
 
     def on_new_line(self, line, is_full_line):
         try:
+
+            self._ignore_prompt(line)
             self._asks_to_overwrite(line)
             self._create_dictionary_at_l_option(line)
             self._command_failure(line)
@@ -45,16 +47,21 @@ class Gunzip(GenericUnixCommand):
             pass
         return super(Gunzip, self).on_new_line(line, is_full_line)
 
+    _re_user_prompt = re.compile(r"(?P<USER>.*@.*:)", re.IGNORECASE)
+
+    def _ignore_prompt(self, line):
+        if self._regex_helper.search_compiled(Gunzip._re_user_prompt, line):
+            raise ParsingDone
+
     _re_overwrite = re.compile(r"gzip:\s(?P<FILE_NAME>.*already exists)", re.IGNORECASE)
 
     def _asks_to_overwrite(self, line):
-        if self._regex_helper.search_compiled(Gunzip._re_overwrite, line) and (not self._asks_to_overwrite_send):
+        if self._regex_helper.search_compiled(Gunzip._re_overwrite, line):
             if self.overwrite:
                 self.connection.sendline('y')
             else:
                 self.connection.sendline('n')
                 self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("FILE_NAME"))))
-            self._asks_to_overwrite_send = True
             raise ParsingDone
 
     _re_l_option = re.compile(r"(?P<L_OPTION> compressed\s*uncompressed\s*ratio\s*uncompressed_name.*)", re.IGNORECASE)

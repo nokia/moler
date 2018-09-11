@@ -13,9 +13,16 @@ import pytest
 
 from moler.cmd.unix.ls import Ls
 from moler.cmd.unix.ping import Ping
+from moler.cmd.unix.gunzip import Gunzip
 from moler.cmd.unix.whoami import Whoami
 from moler.exceptions import CommandTimeout
 from moler.io.raw.terminal import ThreadedTerminal
+
+
+def test_terminal_cmd_gunzip(terminal_connection):
+    terminal = terminal_connection
+    gunzip_cmd = Gunzip(connection=terminal, archive_name=['new.gz'], overwrite='True')
+    assert 'gunzip new.gz' == gunzip_cmd.command_string
 
 
 def test_terminal_cmd_whoami(terminal_connection):
