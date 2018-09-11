@@ -1,102 +1,78 @@
 # -*- coding: utf-8 -*-
 """
 ps command module.
+Commad Ps is parsed to list of dictionary.
+Each dictionary in list contains all columns defined in columns printed in first line of command result
+Last column may contain more parameters while this field is responsible for process name
+Form of line result:
+{'UID' : 'avahi-a+', 'PID' : 3597, 'PPID' : 1, 'C' : 0, 'STIME' : 2017, 'TTY' : '?', 'TIME' : ' 00:00:45',
+'CMD': 'avahi-autoipd: [ens4] sleeping'}
+Each key is derived from first line of executed ps command so accessing it needs ps command with option
+result knowledge
 """
 
-__author__ = 'Dariusz Rosinski'
+__author__ = 'Rosinski Dariusz'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'dariusz.rosinski@nokia.com'
 
 import re
-
 from moler.cmd.unix.genericunix import GenericUnixCommand
+from moler.parser.table_text import TableText
 
 
 class Ps(GenericUnixCommand):
-    def __init__(self, connection=None, options=''):
-        """Commad Ps is parsed to list of dictionary.
-         Each dictionary in list contains all columns defined in columns printed in first line of command result
-         Last column may contain more parameters while this field is responsible for process name
-         Form of line result:
-         {'UID' : 'avahi-a+', 'PID' : 3597, 'PPID' : 1, 'C' : 0, 'STIME' : 2017, 'TTY' : '?', 'TIME' : ' 00:00:45',
-         'CMD': 'avahi-autoipd: [ens4] sleeping'}
-         Each key is derived from first line of executed ps command so accessing it needs ps command with option
-         result knowledge """
+
+    def __init__(self, connection=None, options='', prompt=None, new_line_chars=None):
+        self.parser = None
         self._cmd = 'ps'
         self._cmd_line_found = False
         self._column_line_found = False
         self._columns = list()
         self._space_columns = list()
-        super(Ps, self).__init__(connection)
-        self.ret = list()
-        self.set_unix_command_string(self._cmd)
+        self._options = options
+        super(Ps, self).__init__(connection, prompt=prompt, new_line_chars=new_line_chars)
+        self.current_ret = list()
 
-    def on_prepare_run(self):
-        pass
-
-#    def check_command_correctness(self, cmd):
-#        """Checking if command passed to Ps class is ps command"""
-#        if not re.match(r'\s*ps', cmd):
-#            self.set_exception(RuntimeError('Wrong command passed to ps class'))
-#            return False
-#        return True
-
-    def on_new_line(self, line):
-        """Operations executed on new line
-        columns must be found in order to correct introduce values to dictionary"""
-        parsed_line = dict()
+    def on_new_line(self, line, is_full_line):
+        '''
+        Operations executed on new line columns must be found in order to correct introduce values to dictionary
+        :param line:
+        :param is_full_line:
+        :return:
+        '''
+        if not is_full_line:
+            return super(Ps, self).on_new_line(line, is_full_line)
         # splitting columns according to column number
         splitted_columns = self.split_columns_in_line(line)
         # when columns names are set proceed with putting data to dictionary list
         if self._columns and splitted_columns is not None:
             # put correct value to specific column
-            for pos, value in enumerate(splitted_columns):
-                parsed_line[self._columns[pos]] = self.convert_data_to_type(splitted_columns[pos])
-            self.ret.append(parsed_line)
+            parsed_line = self.parser.parse(line)
+            if parsed_line is not None:
+                self.current_ret.append(parsed_line)
         # assign splitted columns to parameter in Ps class; columns are printed as first line after ps command execution
-        if not self._column_line_found and self._cmd_matched:
+        if not self._column_line_found:
             self._columns = splitted_columns
             self._column_line_found = True
+            self.parser = TableText(self._columns, self._columns)
+            self.parser.parse(line)
         # execute generic on_new_line
-        return super(Ps, self).on_new_line(line)
+        return super(Ps, self).on_new_line(line, is_full_line=True)
 
     def split_columns_in_line(self, line):
-        """Method to split line according to columns number"""
-        # remove white spaces from start and end of line
-        parsed_line = re.sub(r'^\s+', '', line)
-        parsed_line = re.sub(r'\s+$', '', parsed_line)
+        '''
+        Method to split line according to columns number
+        :param line:
+        :return:
+        '''
+        parsed_line = str.strip(str(line))
         # split with whitespaces
         parsed_line = re.split(r'\s+', parsed_line)
-        result = []
         # If no enough columns leave this line
         if len(self._columns) > len(parsed_line) or parsed_line == ['']:
             parsed_line = None
         # When data is avaliable proceed with parsing
-        if self._columns != [] and parsed_line is not None:
-            result = list()
-            # command field may contain white space so it needs to be connected correctly
-            lines_to_connect = len(parsed_line) - len(self._columns) + 1
-            column_name_number = 0
-            connected_value = ''
-            for value in parsed_line:
-                if re.match('COMMAND|CMD', self._columns[column_name_number]) and lines_to_connect:
-                    connected_value += value + ' '
-                    lines_to_connect -= 1
-                    if lines_to_connect > 0:
-                        continue
-                if connected_value:
-                    result.append(connected_value[:-1])
-                else:
-                    result.append(value)
-                column_name_number += 1
-                connected_value = ''
-            parsed_line = result
         return parsed_line
-
-    def get_cmd(self, cmd=None):
-        if cmd is None:
-            cmd = ""
-        return cmd
 
     @staticmethod
     def convert_data_to_type(data):
@@ -115,10 +91,13 @@ class Ps(GenericUnixCommand):
 
         return data
 
+    def build_command_string(self):
+        return self._cmd + " " + self._options
 
-COMMAND_OUTPUT_V1 = '''
+
+COMMAND_OUTPUT = '''
 root@DMICTRL:~# ps -o user,pid,vsz,osz,pmem,rss,cmd -e
- USER       PID    VSZ SZ %MEM   RSS COMMAND
+ USER       PID    VSZ SZ  MEM   RSS COMMAND
  root         1   1664  -  0.1   572 init [3]
  root         2      0  -  0.0     0 [ksoftirqd/0]
  root         3      0  -  0.0     0 [desched/0]
@@ -137,22 +116,24 @@ root@DMICTRL:~# ps -o user,pid,vsz,osz,pmem,rss,cmd -e
  root@DMICTRL:~#
  '''
 
-COMMAND_RESULT_V1 = [
-    {'USER': 'root', 'PID': 1, 'VSZ': 1664, 'SZ': '-', '%MEM': 0.1, 'RSS': 572, 'COMMAND': 'init [3]'},
-    {'USER': 'root', 'PID': 2, 'VSZ': 0, 'SZ': '-', '%MEM': 0.0, 'RSS': 0, 'COMMAND': '[ksoftirqd/0]'},
-    {'USER': 'root', 'PID': 3, 'VSZ': 0, 'SZ': '-', '%MEM': 0.0, 'RSS': 0, 'COMMAND': '[desched/0]'},
-    {'USER': 'root', 'PID': 4, 'VSZ': 0, 'SZ': '-', '%MEM': 0.0, 'RSS': 0, 'COMMAND': '[events/0]'},
-    {'USER': 'root', 'PID': 5, 'VSZ': 0, 'SZ': '-', '%MEM': 0.0, 'RSS': 0, 'COMMAND': '[khelper]'},
-    {'USER': 'root', 'PID': 10, 'VSZ': 0, 'SZ': '-', '%MEM': 0.0, 'RSS': 0, 'COMMAND': '[kthread]'},
-    {'USER': 'root', 'PID': 34, 'VSZ': 0, 'SZ': '-', '%MEM': 0.0, 'RSS': 0, 'COMMAND': '[kblockd/0]'},
-    {'USER': 'root', 'PID': 67, 'VSZ': 0, 'SZ': '-', '%MEM': 0.0, 'RSS': 0, 'COMMAND': '[pdflush]'},
-    {'USER': 'root', 'PID': 68, 'VSZ': 0, 'SZ': '-', '%MEM': 0.0, 'RSS': 0, 'COMMAND': '[pdflush]'},
-    {'USER': 'root', 'PID': 70, 'VSZ': 0, 'SZ': '-', '%MEM': 0.0, 'RSS': 0, 'COMMAND': '[aio/0]'},
-    {'USER': 'root', 'PID': 69, 'VSZ': 0, 'SZ': '-', '%MEM': 0.0, 'RSS': 0, 'COMMAND': '[kswapd0]'},
-    {'USER': 'root', 'PID': 665, 'VSZ': 0, 'SZ': '-', '%MEM': 0.0, 'RSS': 0, 'COMMAND': '[kjournald]'},
-    {'USER': 'bin', 'PID': 814, 'VSZ': 1908, 'SZ': '-', '%MEM': 0.1, 'RSS': 544, 'COMMAND': '/sbin/portmap'},
-    {'USER': 'root', 'PID': 847, 'VSZ': 1772, 'SZ': '-', '%MEM': 0.1, 'RSS': 712, 'COMMAND': '/sbin/syslogd -r'},
-    {'USER': 'root', 'PID': 855, 'VSZ': 1664, 'SZ': '-', '%MEM': 0.0, 'RSS': 500, 'COMMAND': '/sbin/klogd -x'}]
+COMMAND_KWARGS = {}
+
+COMMAND_RESULT = [
+    {'USER': 'root', 'PID': 1, 'VSZ': 1664, 'SZ': '-', 'MEM': 0.1, 'RSS': 572, 'COMMAND': 'init [3]'},
+    {'USER': 'root', 'PID': 2, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[ksoftirqd/0]'},
+    {'USER': 'root', 'PID': 3, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[desched/0]'},
+    {'USER': 'root', 'PID': 4, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[events/0]'},
+    {'USER': 'root', 'PID': 5, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[khelper]'},
+    {'USER': 'root', 'PID': 10, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[kthread]'},
+    {'USER': 'root', 'PID': 34, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[kblockd/0]'},
+    {'USER': 'root', 'PID': 67, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[pdflush]'},
+    {'USER': 'root', 'PID': 68, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[pdflush]'},
+    {'USER': 'root', 'PID': 70, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[aio/0]'},
+    {'USER': 'root', 'PID': 69, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[kswapd0]'},
+    {'USER': 'root', 'PID': 665, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[kjournald]'},
+    {'USER': 'bin', 'PID': 814, 'VSZ': 1908, 'SZ': '-', 'MEM': 0.1, 'RSS': 544, 'COMMAND': '/sbin/portmap'},
+    {'USER': 'root', 'PID': 847, 'VSZ': 1772, 'SZ': '-', 'MEM': 0.1, 'RSS': 712, 'COMMAND': '/sbin/syslogd -r'},
+    {'USER': 'root', 'PID': 855, 'VSZ': 1664, 'SZ': '-', 'MEM': 0.0, 'RSS': 500, 'COMMAND': '/sbin/klogd -x'}]
 
 COMMAND_OUTPUT_V2 = '''FZM-FDD-086-ws-kvm:/home/rtg # ps -ef
 UID        PID  PPID  C STIME TTY          TIME CMD
@@ -171,6 +152,8 @@ root      4648     1  0  2017 ?        00:00:00 /sbin/dhcpcd --netconfig -L -E -
 root      5823     2  0 Mar09 ?        00:00:03 [kworker/u8:2]
 FZM-FDD-086-ws-kvm:/home/rtg #
 '''
+
+COMMAND_KWARGS_V2 = {}
 
 COMMAND_RESULT_V2 = [
     {'UID': 'avahi-a+', 'PID': 3597, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:45',
@@ -218,6 +201,8 @@ root      4648     1  0  2017 ?     /sbin/dhcpcd --netconfig -L -E -HHH -c /etc/
 root      5823     2  0 Mar09 ?     [kworker/u8:2]                                                                                                      00:00:03
 FZM-FDD-086-ws-kvm:/home/rtg #
 '''
+
+COMMAND_KWARGS_V3 = {}
 
 COMMAND_RESULT_V3 = [
     {'UID': 'avahi-a+', 'PID': 3597, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:45',
