@@ -13,7 +13,7 @@ from moler.exceptions import ParsingDone
 
 class Rm(GenericUnixCommand):
     def __init__(self, connection, file, options=None, prompt=None, new_line_chars=None):
-        super(Rm, self).__init__(connection)
+        super(Rm, self).__init__(connection, prompt, new_line_chars)
 
         self.file = file
         self.options = options

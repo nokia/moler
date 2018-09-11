@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Grzegorz Latuszek, Marcin Usielski'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
 from abc import abstractmethod, ABCMeta
@@ -38,7 +38,8 @@ class ConnectionObserver(object):
         self.runner = ThreadPoolExecutorRunner()
         self._future = None
         self.timeout = 7
-        self.logger = logging.getLogger('moler.connection_observer')
+        self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
+        self.logger = logging.getLogger('moler.connection.{}'.format(self.get_logger_name()))
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
@@ -62,6 +63,12 @@ class ConnectionObserver(object):
             return started_observer.await_done(*args, **kwargs)
         # TODO: raise ConnectionObserverFailedToStart
 
+    def get_logger_name(self):
+        if self.connection and hasattr(self.connection, "name"):
+            return self.connection.name
+        else:
+            return self.__class__.__name__
+
     def start(self, timeout=None, *args, **kwargs):
         """Start background execution of connection-observer."""
         if timeout:
@@ -69,6 +76,7 @@ class ConnectionObserver(object):
         self._validate_start(*args, **kwargs)
         self._is_running = True
         self._future = self.runner.submit(self)
+
         return self
 
     def _validate_start(self, *args, **kwargs):
@@ -97,6 +105,7 @@ class ConnectionObserver(object):
             raise ConnectionObserverNotStarted(self)
         result = self.runner.wait_for(connection_observer=self, connection_observer_future=self._future,
                                       timeout=timeout)
+
         return result
 
     def cancel(self):
@@ -140,6 +149,10 @@ class ConnectionObserver(object):
         """Should be used to indicate some failure during observation"""
         self._is_done = True
         self._exception = exception
+        self._log(logging.INFO, "'{}.{}' has set exception '{}.{}'.".format(self.__class__.__module__,
+                                                                            self.__class__.__name__,
+                                                                            exception.__class__.__module__,
+                                                                            exception.__class__.__name__))
 
     def result(self):
         """Retrieve final result of connection-observer"""
@@ -160,9 +173,26 @@ class ConnectionObserver(object):
         self.timeout = self.timeout + timedelta
         msg = "Extended timeout from %.2f with delta %.2f to %.2f" % (prev_timeout, timedelta, self.timeout)
         self.runner.timeout_change(timedelta)
-        self.logger.info(msg)
+        self._log(logging.INFO, msg)
 
     @ClassProperty
     def observer_name(cls):
         name = camel_case_to_lower_case_underscore(cls.__name__)
         return name
+
+    def get_started_desc(self):
+        return "Observer '{}.{}' started.".format(self.__class__.__module__, self.__class__.__name__)
+
+    def get_finished_desc(self):
+        return "Observer '{}.{}' finished.".format(self.__class__.__module__, self.__class__.__name__)
+
+    def _log(self, lvl, msg, extra=None):
+        extra_params = {
+            'log_name': self.get_logger_name()
+        }
+
+        if extra:
+            extra_params.update(extra)
+
+        self.logger.log(lvl, msg, extra=extra_params)
+        self.device_logger.log(lvl, msg, extra=extra_params)

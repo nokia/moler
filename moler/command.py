@@ -11,9 +11,9 @@ Additionally:
 - Command - Python code automating its startup/parsing/completion
 """
 
-__author__ = 'Grzegorz Latuszek'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import NoCommandStringProvided
@@ -51,3 +51,10 @@ class Command(ConnectionObserver):
         if not self.command_string:
             # no chance to start CMD
             raise NoCommandStringProvided(self)
+
+    def get_started_desc(self):
+        return "Command '{}.{}':'{}' started.".format(self.__class__.__module__, self.__class__.__name__,
+                                                      self.command_string)
+
+    def get_finished_desc(self):
+        return "Command '{}.{}' finished.".format(self.__class__.__module__, self.__class__.__name__)

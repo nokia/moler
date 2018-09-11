@@ -13,6 +13,7 @@ from contextlib import contextmanager
 
 from . import connections as conn_cfg
 from . import devices as dev_cfg
+from . import loggers as log_cfg
 
 
 @contextmanager
@@ -57,6 +58,7 @@ def load_config(path=None, from_env_var=None, config_type='yaml'):
     assert config_type == 'yaml'  # no other format supported yet
     config = read_yaml_configfile(path)
     # TODO: check schema
+    load_logger_from_config(config)
     load_connection_from_config(config)
     load_device_from_config(config)
 
@@ -74,11 +76,16 @@ def load_connection_from_config(config):
 
 
 def load_device_from_config(config):
+    create_at_startup = False
+
     if 'DEVICES' in config:
         if 'DEFAULT_CONNECTION' in config['DEVICES']:
             default_conn = config['DEVICES'].pop('DEFAULT_CONNECTION')
             conn_desc = default_conn['CONNECTION_DESC']
             dev_cfg.set_default_connection(**conn_desc)
+
+        if 'CREATE_AT_STARTUP' in config['DEVICES']:
+            create_at_startup = config['DEVICES'].pop('CREATE_AT_STARTUP')
 
         for device_name in config['DEVICES']:
             device_def = config['DEVICES'][device_name]
@@ -88,6 +95,27 @@ def load_device_from_config(config):
                 connection_desc=device_def.get('CONNECTION_DESC', dev_cfg.default_connection),
                 connection_hops={'CONNECTION_HOPS': device_def.get('CONNECTION_HOPS', {})}
             )
+
+    if create_at_startup is True:
+        from moler.device.device import DeviceFactory
+        DeviceFactory.create_all_devices()
+
+
+def load_logger_from_config(config):
+    if 'LOGGER' in config:
+        if 'PATH' in config['LOGGER']:
+            log_cfg.set_logging_path(config['LOGGER']['PATH'])
+        if 'RAW_LOG' in config['LOGGER']:
+            if config['LOGGER']['RAW_LOG'] is True:
+                os.environ['MOLER_DEBUG_LEVEL'] = 'RAW_DATA'
+                log_cfg.configure_debug_level()
+        if 'TRACE' in config['LOGGER']:
+            if config['LOGGER']['TRACE'] is True:
+                log_cfg.configure_trace_level()
+        if 'DATE_FORMAT' in config['LOGGER']:
+            log_cfg.set_date_format(config['LOGGER']['DATE_FORMAT'])
+
+        log_cfg.configure_moler_main_logger()
 
 
 def clear():
