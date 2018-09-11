@@ -30,6 +30,8 @@ class Sftp(GenericUnixCommand):
         self.options = options
         self.command = command
 
+        self.connection_confirmed = False
+        self.password_sent = False
         self.command_sent = False
         self.sending_started = False
 
@@ -50,38 +52,37 @@ class Sftp(GenericUnixCommand):
         return cmd
 
     def on_new_line(self, line, is_full_line):
-        if is_full_line:
-            try:
-                self._confirm_connection(line)
-                self._send_password(line)
+        try:
+            self._confirm_connection(line)
+            self._send_password(line)
+            self._send_command_if_prompt(line)
+            if is_full_line:
                 self._check_if_connected(line)
-
-                self._send_command_if_prompt(line)
                 self._parse_line_fetching_uploading(line)
-
                 self._authentication_failure(line)
                 self._command_error(line)
-
                 self._parse_line_from_prompt(line)
-            except ParsingDone:
-                pass
+        except ParsingDone:
+            pass
         super(Sftp, self).on_new_line(line, is_full_line)
 
     _re_confirm_connection = re.compile(r"Are\syou\ssure\syou\swant\sto\scontinue\sconnecting\s\(yes/no\)\?", re.I)
 
     def _confirm_connection(self, line):
-        if self._regex_helper.search_compiled(Sftp._re_confirm_connection, line):
+        if not self.connection_confirmed and self._regex_helper.search_compiled(Sftp._re_confirm_connection, line):
             if self.confirm_connection:
                 self.connection.sendline("yes")
             else:
                 self.connection.sendline("no")
+            self.connection_confirmed = True
             raise ParsingDone
 
     _re_password = re.compile(r"(?P<USER_HOST>.*)\spassword:", re.IGNORECASE)
 
     def _send_password(self, line):
-        if self._regex_helper.search_compiled(Sftp._re_password, line):
-            self.connection.sendline(self.password)
+        if not self.password_sent and self._regex_helper.search_compiled(Sftp._re_password, line):
+            self.connection.sendline(self.password)  # encrypt=True
+            self.password_sent = True
             raise ParsingDone
 
     _re_connected = re.compile(r"Connected\sto\s.+", re.I)
@@ -128,6 +129,7 @@ class Sftp(GenericUnixCommand):
 
     def _authentication_failure(self, line):
         if self._regex_helper.search_compiled(Sftp._re_resend_password, line):
+            self.password_sent = False
             raise ParsingDone
         elif self._regex_helper.search_compiled(Sftp._re_authentication, line):
             auth = self._regex_helper.group("AUTH")
