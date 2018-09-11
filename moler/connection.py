@@ -26,7 +26,7 @@ import six
 import moler.config.connections as connection_cfg
 from moler.config.loggers import RAW_DATA, TRACE
 from moler.exceptions import WrongUsage
-from moler.helpers import instance_id
+from moler.helpers import instance_id, remove_escape_codes
 
 
 def identity_transformation(data):
@@ -236,7 +236,8 @@ class ObservableConnection(Connection):
         printable_data = decodestring(data)
         self._log_data(msg=printable_data, level=RAW_DATA, extra={'transfer_direction': '<'})
 
-        decoded_data = self.decode(data)
+        removed_escape_codes_data = remove_escape_codes(data)
+        decoded_data = self.decode(removed_escape_codes_data)
         # decoded data might be unicode or bytes/ascii string, logger accepts only ascii.
         if isinstance(decoded_data, six.text_type):
             # We create ascii logs interpretable as utf-8 bytes.
@@ -245,6 +246,7 @@ class ObservableConnection(Connection):
         else:
             # bytes or ascii log
             encoded_for_log = decoded_data
+
         self._log_data(msg=encoded_for_log, level=logging.INFO, extra={'transfer_direction': '<'})
 
         self.notify_observers(decoded_data)
