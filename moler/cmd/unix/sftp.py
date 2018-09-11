@@ -167,7 +167,7 @@ COMMAND_KWARGS = {
     'host': '192.168.0.102',
     'user': 'fred',
     'source_path': 'cat',
-    'dest_path': '/home/xyz/Docs/cat',
+    'destination_path': '/home/xyz/Docs/cat',
     'password': '1234'
 }
 
@@ -188,7 +188,7 @@ COMMAND_KWARGS_no_confirm_connection = {
     'host': '192.168.0.102',
     'user': 'fred',
     'source_path': 'cat',
-    'dest_path': '/home/xyz/Docs/cat',
+    'destination_path': '/home/xyz/Docs/cat',
     'confirm_connection': False,
     'password': '1234'
 }
