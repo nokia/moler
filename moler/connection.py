@@ -236,8 +236,7 @@ class ObservableConnection(Connection):
         printable_data = decodestring(data)
         self._log_data(msg=printable_data, level=RAW_DATA, extra={'transfer_direction': '<'})
 
-        removed_escape_codes_data = remove_escape_codes(data)
-        decoded_data = self.decode(removed_escape_codes_data)
+        decoded_data = self.decode(data)
         # decoded data might be unicode or bytes/ascii string, logger accepts only ascii.
         if isinstance(decoded_data, six.text_type):
             # We create ascii logs interpretable as utf-8 bytes.
