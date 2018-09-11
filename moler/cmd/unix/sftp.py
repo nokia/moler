@@ -62,6 +62,7 @@ class Sftp(GenericUnixCommand):
                 self._authentication_failure(line)
                 self._command_error(line)
                 self._parse_line_from_prompt(line)
+            print(self.current_ret)
         except ParsingDone:
             pass
         super(Sftp, self).on_new_line(line, is_full_line)
@@ -80,8 +81,10 @@ class Sftp(GenericUnixCommand):
     _re_password = re.compile(r"(?P<USER_HOST>.*)\spassword:", re.IGNORECASE)
 
     def _send_password(self, line):
+        print("before sending password")
         if not self.password_sent and self._regex_helper.search_compiled(Sftp._re_password, line):
             self.connection.sendline(self.password)  # encrypt=True
+            print("after sending password")
             self.password_sent = True
             raise ParsingDone
 
@@ -89,6 +92,7 @@ class Sftp(GenericUnixCommand):
 
     def _check_if_connected(self, line):
         if self._regex_helper.search_compiled(Sftp._re_connected, line):
+            print("connected: " + line)
             self.ready_to_parse_line = True
             raise ParsingDone
 
