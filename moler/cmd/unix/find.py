@@ -15,7 +15,7 @@ import re
 
 
 class Find(GenericUnixCommand):
-    def __init__(self, connection, paths=list(), prompt=None, new_line_chars=None, options=None, operators=None):
+    def __init__(self, connection, paths=[], prompt=None, new_line_chars=None, options=None, operators=None):
         super(Find, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
         self.options = options
         self.operators = operators
@@ -107,7 +107,7 @@ uname/uname.py
 xyz@debian:~$"""
 
 COMMAND_KWARGS_with_files = {
-    'path': ['sed', 'uname']
+    'paths': ['sed', 'uname']
 }
 
 COMMAND_RESULT_with_files = {
@@ -175,7 +175,7 @@ xyz@debian:~$ find Doc -name 'my*' -type f -print.
 xyz@debian:~$"""
 
 COMMAND_KWARGS_no_files_found = {
-    'path': ['Doc'],
+    'paths': ['Doc'],
     'operators': "-name 'my*' -type f"
 }
 
