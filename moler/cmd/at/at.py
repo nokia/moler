@@ -78,13 +78,22 @@ class AtCmd(Command):
         """Should be used to parse specific AT command output and set result"""
         pass
 
-    def set_at_command_string(self, command_base_string, **kwargs):
+    def set_at_command_string(self, command_base_string, execute_params=None):
+        """
+        Build full command-string of AT-cmd
+
+        :param command_base_string: what AT command we run
+        :param execute_params: list of (param, value) for operation 'execute'. Need list - order is important.
+        :return: None
+        """
         self.command_string = command_base_string
         if self.operation == 'test':
             self.command_string += "=?"
         elif self.operation == "read":
             self.command_string += "?"
-        elif kwargs:
-            params = ",".join(str(param) for param in kwargs.values() if param)
+        elif execute_params:
+            params = ",".join(str(param_value) for param_name, param_value in execute_params if param_value or (param_value == 0))
+            # param_value == 0  may generate valid AT-cmd like:
+            # AT+CBST=0,0,0
             if params:
                 self.command_string += "=" + params
