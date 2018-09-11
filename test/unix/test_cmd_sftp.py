@@ -29,13 +29,13 @@ def test_sftp_returns_proper_command_string_user(buffer_connection):
 
 def test_sftp_returns_proper_command_string_pathname(buffer_connection):
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host="myhost.com", user="fred", password='1234',
-                    pathname="/home/fred/homework.txt")
+                    source_path="/home/fred/homework.txt")
     assert "sftp fred@myhost.com:/home/fred/homework.txt" == sftp_cmd.command_string
 
 
 def test_sftp_returns_proper_command_string_new_pathname(buffer_connection):
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host="myhost.com", user="fred", password='1234',
-                    pathname="/home/fred/homework.txt", new_pathname="/home/vivi/new_homework.txt")
+                    source_path="/home/fred/homework.txt", destination_path="/home/vivi/new_homework.txt")
     assert "sftp fred@myhost.com:/home/fred/homework.txt /home/vivi/new_homework.txt" == sftp_cmd.command_string
 
 
@@ -43,7 +43,7 @@ def test_sftp_returns_proper_result(buffer_connection):
     command_output, expected_result = command_output_and_expected_result()
     buffer_connection.remote_inject_response([command_output])
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
-                    options='-4', pathname='bear', new_pathname='/home/xyz/Docs/bear')
+                    options='-4', source_path='bear', destination_path='/home/xyz/Docs/bear')
     result = sftp_cmd()
     assert result == expected_result
 
@@ -71,7 +71,7 @@ def test_sftp_raises_authentication_failure(buffer_connection):
     command_output, expected_result = command_output_and_expected_result_authentication_failure()
     buffer_connection.remote_inject_response([command_output])
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
-                    pathname='cat', new_pathname='/home/xyz/Docs/cat')
+                    source_path='cat', destination_path='/home/xyz/Docs/cat')
     with pytest.raises(CommandFailure):
         sftp_cmd()
 
@@ -94,7 +94,7 @@ def test_sftp_raises_file_error_file_not_found(buffer_connection):
     command_output, expected_result = command_output_and_expected_result_file_not_found()
     buffer_connection.remote_inject_response([command_output])
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
-                    pathname='dog', new_pathname='/home/xyz/Docs/dog')
+                    source_path='dog', destination_path='/home/xyz/Docs/dog')
     with pytest.raises(CommandFailure):
         sftp_cmd()
 
@@ -114,7 +114,7 @@ def test_sftp_raises_file_error_no_such_file(buffer_connection):
     command_output, expected_result = command_output_and_expected_result_no_such_file()
     buffer_connection.remote_inject_response([command_output])
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
-                    pathname='dog', new_pathname='/home/xyz/Work/dog')
+                    source_path='dog', destination_path='/home/xyz/Work/dog')
     with pytest.raises(CommandFailure):
         sftp_cmd()
 

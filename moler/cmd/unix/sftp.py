@@ -14,8 +14,8 @@ import re
 
 
 class Sftp(GenericUnixCommand):
-    def __init__(self, connection, host, password, user=None, confirm_connection=True, pathname=None,
-                 new_pathname=None, options=None, command=None, prompt=None, new_line_chars=None):
+    def __init__(self, connection, host, password, user=None, confirm_connection=True, source_path=None,
+                 destination_path=None, options=None, command=None, prompt=None, new_line_chars=None):
         super(Sftp, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
         self.host = host
@@ -24,8 +24,8 @@ class Sftp(GenericUnixCommand):
         self.confirm_connection = confirm_connection
         self.ready_to_parse_line = False
 
-        self.pathname = pathname
-        self.new_pathname = new_pathname
+        self.source_path = source_path
+        self.destination_path = destination_path
 
         self.options = options
         self.command = command
@@ -43,10 +43,10 @@ class Sftp(GenericUnixCommand):
             cmd = "{} {}@{}".format(cmd, self.user, self.host)
         else:
             cmd = "{} {}".format(cmd, self.host)
-        if self.pathname:
-            cmd = "{}:{}".format(cmd, self.pathname)
-        if self.new_pathname:
-            cmd = "{} {}".format(cmd, self.new_pathname)
+        if self.source_path:
+            cmd = "{}:{}".format(cmd, self.source_path)
+        if self.destination_path:
+            cmd = "{} {}".format(cmd, self.destination_path)
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -166,8 +166,8 @@ xyz@debian:/home$"""
 COMMAND_KWARGS = {
     'host': '192.168.0.102',
     'user': 'fred',
-    'pathname': 'cat',
-    'new_pathname': '/home/xyz/Docs/cat',
+    'source_path': 'cat',
+    'dest_path': '/home/xyz/Docs/cat',
     'password': '1234'
 }
 
@@ -187,8 +187,8 @@ xyz@debian:/home$"""
 COMMAND_KWARGS_no_confirm_connection = {
     'host': '192.168.0.102',
     'user': 'fred',
-    'pathname': 'cat',
-    'new_pathname': '/home/xyz/Docs/cat',
+    'source_path': 'cat',
+    'dest_path': '/home/xyz/Docs/cat',
     'confirm_connection': False,
     'password': '1234'
 }
@@ -258,7 +258,7 @@ COMMAND_KWARGS_mkdir = {
     'host': '192.168.0.102',
     'user': 'fred',
     'password': '1234',
-    'pathname': 'animals',
+    'source_path': 'animals',
     'command': 'mkdir pets'
 }
 
