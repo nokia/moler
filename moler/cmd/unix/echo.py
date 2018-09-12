@@ -2,9 +2,9 @@
 """
 Echo command module.
 """
-__author__ = 'Agnieszka Bylica'
+__author__ = 'Agnieszka Bylica, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'agnieszka.bylica@nokia.com'
+__email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com'
 
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
@@ -13,7 +13,7 @@ from moler.exceptions import ParsingDone
 
 class Echo(GenericUnixCommand):
     def __init__(self, connection, options=None, text=None, write_mode=">", output_file=None, prompt=None,
-                 new_line_chars='\n'):
+                 new_line_chars=None):
         super(Echo, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
         self.options = options
@@ -93,7 +93,7 @@ COMMAND_KWARGS_e_option = {
 }
 
 COMMAND_RESULT_e_option = {
-    'RESULT': ['Hello \rmy \x08beautiful \tdog!']
+    'RESULT': ['Hello ', 'my \x08beautiful \tdog!']
 }
 
 
