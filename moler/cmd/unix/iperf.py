@@ -161,30 +161,191 @@ COMMAND_KWARGS_basic_server = {
 }
 
 COMMAND_RESULT_basic_server = {
-    'CONNECTIONS':
-        {'local 10.1.1.1 port 5001 connected with 10.6.2.5 port 32781 ': [
-            {'Datagrams': '(0%)', 'Transfer': '1.17 MBytes', 'Lost/Total': '0/ 837', 'Jitter': '1.830 ms',
-             'Bandwidth': '9.84 Mbits/sec', 'Interval': '0.0- 1.0 sec'},
-            {'Datagrams': '(0.59%)', 'Transfer': '1.18 MBytes', 'Lost/Total': '5/ 850', 'Jitter': '1.846 ms',
-             'Bandwidth': '9.94 Mbits/sec', 'Interval': '1.0- 2.0 sec'},
-            {'Datagrams': '(0.24%)', 'Transfer': '1.19 MBytes', 'Lost/Total': '2/ 851', 'Jitter': '1.802 ms',
-             'Bandwidth': '9.98 Mbits/sec', 'Interval': '2.0- 3.0 sec'},
-            {'Datagrams': '(0%)', 'Transfer': '1.19 MBytes', 'Lost/Total': '0/ 850', 'Jitter': '1.830 ms',
-             'Bandwidth': '10.0 Mbits/sec', 'Interval': '3.0- 4.0 sec'},
-            {'Datagrams': '(0.12%)', 'Transfer': '1.19 MBytes', 'Lost/Total': '1/ 850', 'Jitter': '1.846 ms',
-             'Bandwidth': '9.98 Mbits/sec', 'Interval': '4.0- 5.0 sec'},
-            {'Datagrams': '(0%)', 'Transfer': '1.19 MBytes', 'Lost/Total': '0/ 851', 'Jitter': '1.806 ms',
-             'Bandwidth': '10.0 Mbits/sec', 'Interval': '5.0- 6.0 sec'},
-            {'Datagrams': '(0.13%)', 'Transfer': '1.06 MBytes', 'Lost/Total': '1/ 755', 'Jitter': '1.803 ms',
-             'Bandwidth': '8.87 Mbits/sec', 'Interval': '6.0- 7.0 sec'},
-            {'Datagrams': '(0%)', 'Transfer': '1.19 MBytes', 'Lost/Total': '0/ 850', 'Jitter': '1.831 ms',
-             'Bandwidth': '10.0 Mbits/sec', 'Interval': '7.0- 8.0 sec'},
-            {'Datagrams': '(0%)', 'Transfer': '1.19 MBytes', 'Lost/Total': '0/ 850', 'Jitter': '1.841 ms',
-             'Bandwidth': '10.0 Mbits/sec', 'Interval': '8.0- 9.0 sec'},
-            {'Datagrams': '(0%)', 'Transfer': '1.19 MBytes', 'Lost/Total': '0/ 851', 'Jitter': '1.801 ms',
-             'Bandwidth': '10.0 Mbits/sec', 'Interval': '9.0-10.0 sec'},
-            {'Datagrams': '(0.11%)', 'Transfer': '11.8 MBytes', 'Lost/Total': '9/ 8409', 'Jitter': '2.618 ms',
-             'Bandwidth': '9.86 Mbits/sec', 'Interval': '0.0-10.0 sec'}]},
+    'CONNECTIONS': {
+        'local 10.1.1.1 port 5001 connected with 10.6.2.5 port 32781': [{'Bandwidth': '9.84 Mbits/sec',
+                                                                         'Datagrams': '(0%)',
+                                                                         'Interval': '0.0- 1.0 sec',
+                                                                         'Jitter': '1.830 ms',
+                                                                         'Lost/Total': '0/ 837',
+                                                                         'Transfer': '1.17 MBytes'},
+                                                                        {'Bandwidth': '9.94 Mbits/sec',
+                                                                         'Datagrams': '(0.59%)',
+                                                                         'Interval': '1.0- 2.0 sec',
+                                                                         'Jitter': '1.846 ms',
+                                                                         'Lost/Total': '5/ 850',
+                                                                         'Transfer': '1.18 MBytes'},
+                                                                        {'Bandwidth': '9.98 Mbits/sec',
+                                                                         'Datagrams': '(0.24%)',
+                                                                         'Interval': '2.0- 3.0 sec',
+                                                                         'Jitter': '1.802 ms',
+                                                                         'Lost/Total': '2/ 851',
+                                                                         'Transfer': '1.19 MBytes'},
+                                                                        {'Bandwidth': '10.0 Mbits/sec',
+                                                                         'Datagrams': '(0%)',
+                                                                         'Interval': '3.0- 4.0 sec',
+                                                                         'Jitter': '1.830 ms',
+                                                                         'Lost/Total': '0/ 850',
+                                                                         'Transfer': '1.19 MBytes'},
+                                                                        {'Bandwidth': '9.98 Mbits/sec',
+                                                                         'Datagrams': '(0.12%)',
+                                                                         'Interval': '4.0- 5.0 sec',
+                                                                         'Jitter': '1.846 ms',
+                                                                         'Lost/Total': '1/ 850',
+                                                                         'Transfer': '1.19 MBytes'},
+                                                                        {'Bandwidth': '10.0 Mbits/sec',
+                                                                         'Datagrams': '(0%)',
+                                                                         'Interval': '5.0- 6.0 sec',
+                                                                         'Jitter': '1.806 ms',
+                                                                         'Lost/Total': '0/ 851',
+                                                                         'Transfer': '1.19 MBytes'},
+                                                                        {'Bandwidth': '8.87 Mbits/sec',
+                                                                         'Datagrams': '(0.13%)',
+                                                                         'Interval': '6.0- 7.0 sec',
+                                                                         'Jitter': '1.803 ms',
+                                                                         'Lost/Total': '1/ 755',
+                                                                         'Transfer': '1.06 MBytes'},
+                                                                        {'Bandwidth': '10.0 Mbits/sec',
+                                                                         'Datagrams': '(0%)',
+                                                                         'Interval': '7.0- 8.0 sec',
+                                                                         'Jitter': '1.831 ms',
+                                                                         'Lost/Total': '0/ 850',
+                                                                         'Transfer': '1.19 MBytes'},
+                                                                        {'Bandwidth': '10.0 Mbits/sec',
+                                                                         'Datagrams': '(0%)',
+                                                                         'Interval': '8.0- 9.0 sec',
+                                                                         'Jitter': '1.841 ms',
+                                                                         'Lost/Total': '0/ 850',
+                                                                         'Transfer': '1.19 MBytes'},
+                                                                        {'Bandwidth': '10.0 Mbits/sec',
+                                                                         'Datagrams': '(0%)',
+                                                                         'Interval': '9.0-10.0 sec',
+                                                                         'Jitter': '1.801 ms',
+                                                                         'Lost/Total': '0/ 851',
+                                                                         'Transfer': '1.19 MBytes'},
+                                                                        {'Bandwidth': '9.86 Mbits/sec',
+                                                                         'Datagrams': '(0.11%)',
+                                                                         'Interval': '0.0-10.0 sec',
+                                                                         'Jitter': '2.618 ms',
+                                                                         'Lost/Total': '9/ 8409',
+                                                                         'Transfer': '11.8 MBytes'}]},
     'INFO': ['Server listening on UDP port 5001', 'Receiving 1470 byte datagrams',
-             'UDP buffer size: 8.00 KByte (default)']
+             'UDP buffer size: 8.00 KByte (default)']}
+
+COMMAND_OUTPUT_multiple_connections = """
+xyz@debian:~$ iperf -c 192.168.0.100 -P 20
+------------------------------------------------------------
+Client connecting to 192.168.0.100, TCP port 5001
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[ 15] local 192.168.0.102 port 57258 connected with 192.168.0.100 port 5001
+[  3] local 192.168.0.102 port 57246 connected with 192.168.0.100 port 5001
+[  4] local 192.168.0.102 port 57247 connected with 192.168.0.100 port 5001
+[  5] local 192.168.0.102 port 57248 connected with 192.168.0.100 port 5001
+[  7] local 192.168.0.102 port 57250 connected with 192.168.0.100 port 5001
+[  6] local 192.168.0.102 port 57249 connected with 192.168.0.100 port 5001
+[ 10] local 192.168.0.102 port 57253 connected with 192.168.0.100 port 5001
+[  8] local 192.168.0.102 port 57251 connected with 192.168.0.100 port 5001
+[  9] local 192.168.0.102 port 57252 connected with 192.168.0.100 port 5001
+[ 16] local 192.168.0.102 port 57259 connected with 192.168.0.100 port 5001
+[ 19] local 192.168.0.102 port 57261 connected with 192.168.0.100 port 5001
+[ 18] local 192.168.0.102 port 57260 connected with 192.168.0.100 port 5001
+[ 20] local 192.168.0.102 port 57262 connected with 192.168.0.100 port 5001
+[ 17] local 192.168.0.102 port 57263 connected with 192.168.0.100 port 5001
+[ 21] local 192.168.0.102 port 57264 connected with 192.168.0.100 port 5001
+[ 11] local 192.168.0.102 port 57254 connected with 192.168.0.100 port 5001
+[ 12] local 192.168.0.102 port 57255 connected with 192.168.0.100 port 5001
+[ 13] local 192.168.0.102 port 57256 connected with 192.168.0.100 port 5001
+[ 14] local 192.168.0.102 port 57257 connected with 192.168.0.100 port 5001
+[ 22] local 192.168.0.102 port 57265 connected with 192.168.0.100 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  8]  0.0-10.6 sec  16.6 MBytes  13.1 Mbits/sec
+[ 16]  0.0-10.6 sec  16.6 MBytes  13.1 Mbits/sec
+[ 18]  0.0-10.6 sec  16.5 MBytes  13.1 Mbits/sec
+[ 17]  0.0-10.7 sec  16.6 MBytes  13.0 Mbits/sec
+[ 21]  0.0-10.7 sec  15.6 MBytes  12.3 Mbits/sec
+[ 12]  0.0-10.7 sec  17.5 MBytes  13.7 Mbits/sec
+[ 22]  0.0-10.7 sec  16.6 MBytes  13.0 Mbits/sec
+[ 15]  0.0-10.8 sec  17.8 MBytes  13.8 Mbits/sec
+[  3]  0.0-10.7 sec  18.5 MBytes  14.5 Mbits/sec
+[  4]  0.0-10.8 sec  18.1 MBytes  14.1 Mbits/sec
+[  5]  0.0-10.7 sec  17.6 MBytes  13.9 Mbits/sec
+[  7]  0.0-10.8 sec  18.4 MBytes  14.3 Mbits/sec
+[  6]  0.0-10.8 sec  17.0 MBytes  13.2 Mbits/sec
+[ 10]  0.0-10.8 sec  16.8 MBytes  13.1 Mbits/sec
+[  9]  0.0-10.8 sec  16.8 MBytes  13.0 Mbits/sec
+[ 19]  0.0-10.6 sec  16.5 MBytes  13.0 Mbits/sec
+[ 20]  0.0-10.7 sec  16.5 MBytes  12.9 Mbits/sec
+[ 11]  0.0-10.7 sec  18.0 MBytes  14.0 Mbits/sec
+[ 13]  0.0-10.7 sec  17.8 MBytes  13.9 Mbits/sec
+[ 14]  0.0-10.8 sec  18.2 MBytes  14.1 Mbits/sec
+[SUM]  0.0-10.8 sec   344 MBytes   266 Mbits/sec
+xyz@debian:~$"""
+
+COMMAND_KWARGS_multiple_connections = {
+    'options': '-c 192.168.0.100 -P 20'
 }
+
+COMMAND_RESULT_multiple_connections = {
+    'CONNECTIONS': {
+        'local 192.168.0.102 port 57246 connected with 192.168.0.100 port 5001': [{'Bandwidth': '14.5 Mbits/sec',
+                                                                                   'Interval': '0.0-10.7 sec',
+                                                                                   'Transfer': '18.5 MBytes'}],
+        'local 192.168.0.102 port 57247 connected with 192.168.0.100 port 5001': [{'Bandwidth': '14.1 Mbits/sec',
+                                                                                   'Interval': '0.0-10.8 sec',
+                                                                                   'Transfer': '18.1 MBytes'}],
+        'local 192.168.0.102 port 57248 connected with 192.168.0.100 port 5001': [{'Bandwidth': '13.9 Mbits/sec',
+                                                                                   'Interval': '0.0-10.7 sec',
+                                                                                   'Transfer': '17.6 MBytes'}],
+        'local 192.168.0.102 port 57249 connected with 192.168.0.100 port 5001': [{'Bandwidth': '13.2 Mbits/sec',
+                                                                                   'Interval': '0.0-10.8 sec',
+                                                                                   'Transfer': '17.0 MBytes'}],
+        'local 192.168.0.102 port 57250 connected with 192.168.0.100 port 5001': [{'Bandwidth': '14.3 Mbits/sec',
+                                                                                   'Interval': '0.0-10.8 sec',
+                                                                                   'Transfer': '18.4 MBytes'}],
+        'local 192.168.0.102 port 57251 connected with 192.168.0.100 port 5001': [{'Bandwidth': '13.1 Mbits/sec',
+                                                                                   'Interval': '0.0-10.6 sec',
+                                                                                   'Transfer': '16.6 MBytes'}],
+        'local 192.168.0.102 port 57252 connected with 192.168.0.100 port 5001': [{'Bandwidth': '13.0 Mbits/sec',
+                                                                                   'Interval': '0.0-10.8 sec',
+                                                                                   'Transfer': '16.8 MBytes'}],
+        'local 192.168.0.102 port 57253 connected with 192.168.0.100 port 5001': [{'Bandwidth': '13.1 Mbits/sec',
+                                                                                   'Interval': '0.0-10.8 sec',
+                                                                                   'Transfer': '16.8 MBytes'}],
+        'local 192.168.0.102 port 57254 connected with 192.168.0.100 port 5001': [{'Bandwidth': '14.0 Mbits/sec',
+                                                                                   'Interval': '0.0-10.7 sec',
+                                                                                   'Transfer': '18.0 MBytes'}],
+        'local 192.168.0.102 port 57255 connected with 192.168.0.100 port 5001': [{'Bandwidth': '13.7 Mbits/sec',
+                                                                                   'Interval': '0.0-10.7 sec',
+                                                                                   'Transfer': '17.5 MBytes'}],
+        'local 192.168.0.102 port 57256 connected with 192.168.0.100 port 5001': [{'Bandwidth': '13.9 Mbits/sec',
+                                                                                   'Interval': '0.0-10.7 sec',
+                                                                                   'Transfer': '17.8 MBytes'}],
+        'local 192.168.0.102 port 57257 connected with 192.168.0.100 port 5001': [{'Bandwidth': '14.1 Mbits/sec',
+                                                                                   'Interval': '0.0-10.8 sec',
+                                                                                   'Transfer': '18.2 MBytes'}],
+        'local 192.168.0.102 port 57258 connected with 192.168.0.100 port 5001': [{'Bandwidth': '13.8 Mbits/sec',
+                                                                                   'Interval': '0.0-10.8 sec',
+                                                                                   'Transfer': '17.8 MBytes'}],
+        'local 192.168.0.102 port 57259 connected with 192.168.0.100 port 5001': [{'Bandwidth': '13.1 Mbits/sec',
+                                                                                   'Interval': '0.0-10.6 sec',
+                                                                                   'Transfer': '16.6 MBytes'}],
+        'local 192.168.0.102 port 57260 connected with 192.168.0.100 port 5001': [{'Bandwidth': '13.1 Mbits/sec',
+                                                                                   'Interval': '0.0-10.6 sec',
+                                                                                   'Transfer': '16.5 MBytes'}],
+        'local 192.168.0.102 port 57261 connected with 192.168.0.100 port 5001': [{'Bandwidth': '13.0 Mbits/sec',
+                                                                                   'Interval': '0.0-10.6 sec',
+                                                                                   'Transfer': '16.5 MBytes'}],
+        'local 192.168.0.102 port 57262 connected with 192.168.0.100 port 5001': [{'Bandwidth': '12.9 Mbits/sec',
+                                                                                   'Interval': '0.0-10.7 sec',
+                                                                                   'Transfer': '16.5 MBytes'}],
+        'local 192.168.0.102 port 57263 connected with 192.168.0.100 port 5001': [{'Bandwidth': '13.0 Mbits/sec',
+                                                                                   'Interval': '0.0-10.7 sec',
+                                                                                   'Transfer': '16.6 MBytes'}],
+        'local 192.168.0.102 port 57264 connected with 192.168.0.100 port 5001': [{'Bandwidth': '12.3 Mbits/sec',
+                                                                                   'Interval': '0.0-10.7 sec',
+                                                                                   'Transfer': '15.6 MBytes'}],
+        'local 192.168.0.102 port 57265 connected with 192.168.0.100 port 5001': [{'Bandwidth': '13.0 Mbits/sec',
+                                                                                   'Interval': '0.0-10.7 sec',
+                                                                                   'Transfer': '16.6 MBytes'}]},
+    'INFO': ['Client connecting to 192.168.0.100, TCP port 5001', 'TCP window size: 16.0 KByte (default)',
+             '[SUM]  0.0-10.8 sec   344 MBytes   266 Mbits/sec']}
