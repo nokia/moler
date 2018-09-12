@@ -11,7 +11,7 @@ Each key is derived from first line of executed ps command so accessing it needs
 result knowledge
 """
 
-__author__ = 'Rosinski Dariusz'
+__author__ = 'Dariusz Rosinski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'dariusz.rosinski@nokia.com'
 
