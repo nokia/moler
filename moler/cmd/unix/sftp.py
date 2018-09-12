@@ -55,7 +55,7 @@ class Sftp(GenericUnixCommand):
 
     def on_new_line(self, line, is_full_line):
         try:
-            print(line)
+            print("line:" + line)
             self._catch_useless_line(line)
             self._send_command_if_prompt(line)
             self._confirm_connection(line)
@@ -100,7 +100,7 @@ class Sftp(GenericUnixCommand):
             self.ready_to_parse_line = True
             raise ParsingDone
 
-    _re_prompt = re.compile(r"sftp>\s", re.I)
+    _re_prompt = re.compile(r"sftp>", re.I)
 
     def _send_command_if_prompt(self, line):
         if not self.command_sent and self._regex_helper.match_compiled(Sftp._re_prompt, line):
@@ -124,13 +124,13 @@ class Sftp(GenericUnixCommand):
 
     def _catch_useless_line(self, line):
         if not line:
-            print("useless...1")
+            print("useless...1" + line)
             raise ParsingDone
         elif not line.strip():
-            print("useless...2")
+            print("useless...2" + line)
             raise ParsingDone
         elif self._regex_helper.search_compiled(Sftp._re_prompt_with_command, line):
-            print("useless...3")
+            print("useless...3" + line)
             raise ParsingDone
 
     _re_fetching = re.compile(r"(Fetching\s.*|Uploading\s.*)", re.I)
@@ -154,6 +154,7 @@ class Sftp(GenericUnixCommand):
             elif line != "sftp>" and self.sending_started and line is not None and line.strip() is not None:
                 print("fetching error... \'{}\'".format(line))
                 self.set_exception(CommandFailure(self, "ERROR: {}".format(line)))
+                print("after fetching error " + line)
                 raise ParsingDone
 
     def _parse_line_from_prompt(self, line):
@@ -244,9 +245,9 @@ COMMAND_OUTPUT_prompt = """xyz@debian:/home$ sftp fred@192.168.0.102
 bla bla bla
 fred@192.168.0.102's password:
 Connected to 192.168.0.102.!!!!
-sftp> 
+sftp>
 Remote working directory: /upload
-sftp> 
+sftp>
 xyz@debian:/home$"""
 
 COMMAND_KWARGS_prompt = {
@@ -269,7 +270,7 @@ Uploading /home/xyz/Docs/echo/special_chars.py to /upload/special_chars.py
 /home/xyz/Docs/echo/special_chars.py         100%   95   377.2KB/s   00:00
 Uploading /home/xyz/Docs/echo/special_chars2.py to /upload/special_chars2.py
 /home/xyz/Docs/echo/special_chars2.py         100%   26   17.2KB/s   00:00
-sftp> 
+sftp>
 xyz@debian:/home$"""
 
 COMMAND_KWARGS_upload = {
@@ -293,8 +294,8 @@ Permission denied, please try again.
 fred@192.168.0.102's password:
 Connected to 192.168.0.102.
 Changing to: /upload/animals
-sftp> 
-sftp> 
+sftp>
+sftp>
 xyz@debian:/home$"""
 
 COMMAND_KWARGS_mkdir = {
