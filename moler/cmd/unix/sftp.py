@@ -33,9 +33,11 @@ class Sftp(GenericUnixCommand):
         self.connection_confirmed = False
         self.password_sent = False
         self.command_sent = False
+        self.exit_sent = False
         self.sending_started = False
 
         self.current_ret['RESULT'] = list()
+        print("INIT")
 
     def build_command_string(self):
         cmd = "sftp"
@@ -53,24 +55,25 @@ class Sftp(GenericUnixCommand):
 
     def on_new_line(self, line, is_full_line):
         try:
+            self._catch_useless_line(line)
+            self._send_command_if_prompt(line)
             self._confirm_connection(line)
             self._send_password(line)
-            self._send_command_if_prompt(line)
             if is_full_line:
                 self._check_if_connected(line)
                 self._parse_line_fetching_uploading(line)
                 self._authentication_failure(line)
                 self._command_error(line)
                 self._parse_line_from_prompt(line)
-            print(self.current_ret)
         except ParsingDone:
-            pass
+            print("current_ret: " + str(self.current_ret))
         super(Sftp, self).on_new_line(line, is_full_line)
 
     _re_confirm_connection = re.compile(r"Are\syou\ssure\syou\swant\sto\scontinue\sconnecting\s\(yes/no\)\?", re.I)
 
     def _confirm_connection(self, line):
         if not self.connection_confirmed and self._regex_helper.search_compiled(Sftp._re_confirm_connection, line):
+            print("confirmed:.... " + line)
             if self.confirm_connection:
                 self.connection.sendline("yes")
             else:
@@ -81,8 +84,8 @@ class Sftp(GenericUnixCommand):
     _re_password = re.compile(r"(?P<USER_HOST>.*)\spassword:", re.IGNORECASE)
 
     def _send_password(self, line):
-        print("before sending password")
         if not self.password_sent and self._regex_helper.search_compiled(Sftp._re_password, line):
+            print("before sending password")
             self.connection.sendline(self.password)  # encrypt=True
             print("after sending password")
             self.password_sent = True
@@ -92,34 +95,60 @@ class Sftp(GenericUnixCommand):
 
     def _check_if_connected(self, line):
         if self._regex_helper.search_compiled(Sftp._re_connected, line):
-            print("connected: " + line)
+            print("connected:******* " + line)
             self.ready_to_parse_line = True
             raise ParsingDone
 
-    _re_prompt = re.compile(r"sftp>", re.I)
+    _re_prompt = re.compile(r"sftp>\s", re.I)
 
     def _send_command_if_prompt(self, line):
-        if not self.command_sent and self._regex_helper.search_compiled(Sftp._re_prompt, line):
+        if not self.command_sent and self._regex_helper.match_compiled(Sftp._re_prompt, line):
+            print("line in send_command_if_prompt: " + line)
             self.connection.sendline(self.command)
+            print("command {} sent".format(self.command))
             self.command_sent = True
             raise ParsingDone
-        elif self.command_sent and self._regex_helper.search_compiled(Sftp._re_prompt, line):
+        elif not self.exit_sent and self.command_sent and self._regex_helper.match_compiled(Sftp._re_prompt, line):
+            print("line in send_command_if_prompt: " + line)
+            print("!!! EXIT !!!")
             self.connection.sendline("exit")
+            self.exit_sent = True
+            raise ParsingDone
+        elif self._regex_helper.match_compiled(Sftp._re_prompt, line):
+            print("line in send_command_if_prompt: " + line)
+            print("sftp prompt")
+            raise ParsingDone
+
+    _re_prompt_with_command = re.compile(r"sftp>\s\w+", re.I)
+
+    def _catch_useless_line(self, line):
+        if not line:
+            raise ParsingDone
+        elif not line.strip():
+            raise ParsingDone
+        elif self._regex_helper.search_compiled(Sftp._re_prompt_with_command, line):
             raise ParsingDone
 
     _re_fetching = re.compile(r"(Fetching\s.*|Uploading\s.*)", re.I)
-    _re_progress_bar = re.compile(r"(.+\s+\d+%\s+\d+\s+.+/s\s+\d+:\d+)", re.I)
+    _re_progress_bar = re.compile(r"(.+\s+\d{1,2}%\s+\d+\s+.+/s\s+--:--\sETA)", re.I)
+    _re_success_bar = re.compile(r"(.+\s+100%\s+\d+\s+.+/s\s+\d+:\d+)", re.I)
 
     def _parse_line_fetching_uploading(self, line):
         if self.ready_to_parse_line:
             if self._regex_helper.search_compiled(Sftp._re_fetching, line):
                 self.sending_started = True
                 self.current_ret['RESULT'].append(line)
+                print("fetching:... " + line)
+                raise ParsingDone
+            elif self.sending_started and self._regex_helper.search_compiled(Sftp._re_success_bar, line):
+                self.current_ret['RESULT'].append(line)
+                print("success bar... " + line)
                 raise ParsingDone
             elif self.sending_started and self._regex_helper.search_compiled(Sftp._re_progress_bar, line):
-                self.current_ret['RESULT'].append(line)
+                print("progress bar... " + line)
                 raise ParsingDone
-            elif self.sending_started and not self._regex_helper.search_compiled(Sftp._re_progress_bar, line):
+            elif line != "sftp>" and self.sending_started and line is not None and line.strip() is not None:
+                print("fetching error... \'{}\'".format(line))
                 self.set_exception(CommandFailure(self, "ERROR: {}".format(line)))
                 raise ParsingDone
 
@@ -147,6 +176,7 @@ class Sftp(GenericUnixCommand):
     _error_regex_compiled.append(re.compile(r"(?P<CONNECTION>Couldn't\sread\spacket:"
                                             r"\sConnection\sreset\sby\speer)", re.I))
     _error_regex_compiled.append(re.compile(r"(?P<OPTION>(unknown|invalid)\soption\s.*)", re.I))
+    _error_regex_compiled.append(re.compile(r"(?P<SSH_ERROR>ssh:.+)", re.I))
     _re_help = re.compile(r"(?P<HELP_MSG>usage:\ssftp\s.*)", re.I)
 
     def _command_error(self, line):
@@ -206,7 +236,7 @@ COMMAND_RESULT_no_confirm_connection = {
 
 COMMAND_OUTPUT_prompt = """xyz@debian:/home$ sftp fred@192.168.0.102
 fred@192.168.0.102's password:
-Connected to 192.168.0.102.
+Connected to 192.168.0.102.!!!!
 sftp>
 Remote working directory: /upload
 sftp>
@@ -231,7 +261,7 @@ sftp>
 Uploading /home/xyz/Docs/echo/special_chars.py to /upload/special_chars.py
 /home/xyz/Docs/echo/special_chars.py         100%   95   377.2KB/s   00:00
 Uploading /home/xyz/Docs/echo/special_chars2.py to /upload/special_chars2.py
-/home/xyz/Docs/echo/special_chars.py         100%   26   17.2KB/s   00:00
+/home/xyz/Docs/echo/special_chars2.py         100%   26   17.2KB/s   00:00
 sftp>
 xyz@debian:/home$"""
 
@@ -246,7 +276,7 @@ COMMAND_RESULT_upload = {
     'RESULT': ["Uploading /home/xyz/Docs/echo/special_chars.py to /upload/special_chars.py",
                "/home/xyz/Docs/echo/special_chars.py         100%   95   377.2KB/s   00:00",
                "Uploading /home/xyz/Docs/echo/special_chars2.py to /upload/special_chars2.py",
-               "/home/xyz/Docs/echo/special_chars.py         100%   26   17.2KB/s   00:00"]
+               "/home/xyz/Docs/echo/special_chars2.py         100%   26   17.2KB/s   00:00"]
 }
 
 
