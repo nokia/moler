@@ -55,6 +55,7 @@ class Sftp(GenericUnixCommand):
 
     def on_new_line(self, line, is_full_line):
         try:
+            print(line)
             self._catch_useless_line(line)
             self._send_command_if_prompt(line)
             self._confirm_connection(line)
@@ -123,10 +124,13 @@ class Sftp(GenericUnixCommand):
 
     def _catch_useless_line(self, line):
         if not line:
+            print("useless...1")
             raise ParsingDone
         elif not line.strip():
+            print("useless...2")
             raise ParsingDone
         elif self._regex_helper.search_compiled(Sftp._re_prompt_with_command, line):
+            print("useless...3")
             raise ParsingDone
 
     _re_fetching = re.compile(r"(Fetching\s.*|Uploading\s.*)", re.I)
@@ -153,9 +157,11 @@ class Sftp(GenericUnixCommand):
                 raise ParsingDone
 
     def _parse_line_from_prompt(self, line):
+        print("in parse line, command sent" + str(self.command_sent))
         if self.ready_to_parse_line:
             if self.command_sent:
                 self.current_ret['RESULT'].append(line)
+                print("inside parse from prompt" + str(self.current_ret))
 
     _re_resend_password = re.compile(r"(?P<RESEND>Permission\sdenied,\splease\stry\sagain)", re.I)
     _re_authentication = re.compile(r"(?P<AUTH>Authentication\sfailed.*)|(?P<PERM>.*Permission\sdenied.*)", re.I)
@@ -235,11 +241,12 @@ COMMAND_RESULT_no_confirm_connection = {
 
 
 COMMAND_OUTPUT_prompt = """xyz@debian:/home$ sftp fred@192.168.0.102
+bla bla bla
 fred@192.168.0.102's password:
 Connected to 192.168.0.102.!!!!
-sftp>
+sftp> 
 Remote working directory: /upload
-sftp>
+sftp> 
 xyz@debian:/home$"""
 
 COMMAND_KWARGS_prompt = {
@@ -262,7 +269,7 @@ Uploading /home/xyz/Docs/echo/special_chars.py to /upload/special_chars.py
 /home/xyz/Docs/echo/special_chars.py         100%   95   377.2KB/s   00:00
 Uploading /home/xyz/Docs/echo/special_chars2.py to /upload/special_chars2.py
 /home/xyz/Docs/echo/special_chars2.py         100%   26   17.2KB/s   00:00
-sftp>
+sftp> 
 xyz@debian:/home$"""
 
 COMMAND_KWARGS_upload = {
@@ -286,8 +293,8 @@ Permission denied, please try again.
 fred@192.168.0.102's password:
 Connected to 192.168.0.102.
 Changing to: /upload/animals
-sftp>
-sftp>
+sftp> 
+sftp> 
 xyz@debian:/home$"""
 
 COMMAND_KWARGS_mkdir = {
