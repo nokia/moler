@@ -180,11 +180,11 @@ class ConnectionObserver(object):
         name = camel_case_to_lower_case_underscore(cls.__name__)
         return name
 
-    def get_started_desc(self):
-        return "Observer '{}.{}' started.".format(self.__class__.__module__, self.__class__.__name__)
+    def get_long_desc(self):
+        return "Observer '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)
 
-    def get_finished_desc(self):
-        return "Observer '{}.{}' finished.".format(self.__class__.__module__, self.__class__.__name__)
+    def get_short_desc(self):
+        return "Observer '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)
 
     def _log(self, lvl, msg, extra=None):
         extra_params = {

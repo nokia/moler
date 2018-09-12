@@ -170,12 +170,12 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Feeds connection_observer by pulling data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
-        connection_observer._log(logging.INFO, connection_observer.get_started_desc())
+        connection_observer._log(logging.INFO, "{} started.".format(connection_observer.get_long_desc()))
         moler_conn = connection_observer.connection
         while True:
             if connection_observer.done():
                 self.logger.debug("done & unsubscribing {!r}".format(connection_observer))
-                connection_observer._log(logging.INFO, connection_observer.get_finished_desc())
+                connection_observer._log(logging.INFO, "{} finished.".format(connection_observer.get_short_desc()))
                 moler_conn.unsubscribe(connection_observer.data_received)
                 break
             if self._in_shutdown:

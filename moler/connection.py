@@ -26,7 +26,7 @@ import six
 import moler.config.connections as connection_cfg
 from moler.config.loggers import RAW_DATA, TRACE
 from moler.exceptions import WrongUsage
-from moler.helpers import instance_id, remove_escape_codes
+from moler.helpers import instance_id
 
 
 def identity_transformation(data):
@@ -123,8 +123,6 @@ class Connection(object):
     def _strip_data(self, data):
         if isinstance(data, six.string_types):
             data = data.strip()
-        else:
-            data
 
         return data
 
@@ -145,7 +143,7 @@ class Connection(object):
                   })
 
         encoded_data = self.encode(data)
-        self._log_data(msg=msg, level=RAW_DATA, extra={'transfer_direction': '>'})
+        self._log_data(msg=msg, level=RAW_DATA, extra={'transfer_direction': '>'}, raw_data=True)
 
         self.how2send(encoded_data)
 
@@ -177,13 +175,19 @@ class Connection(object):
         self._log(level=logging.ERROR, msg=err_msg)
         raise WrongUsage(err_msg)
 
-    def _log_data(self, msg, level, extra=None, raw_data=None):
+    def _log_data(self, msg, level, extra=None, raw_data=False):
+
         if not raw_data:
             if isinstance(msg, bytes):
-                msg = msg.decode(encoding='UTF-8', errors='ignore')
+                printable_data = msg.decode(encoding='UTF-8', errors='ignore')
+                printable_data = decodestring(printable_data)
             else:
-                msg = msg
-        self.data_logger.log(level, msg, extra=extra)
+                printable_data = msg
+        else:
+            # log input as ascii printable (for non-ascii dump as \0x prefixed bytes)
+            printable_data = decodestring(msg)
+
+        self.data_logger.log(level, printable_data, extra=extra)
 
     def _log(self, level, msg, extra=None):
         if self.logger:
@@ -232,9 +236,7 @@ class ObservableConnection(Connection):
         Incoming-IO API:
         external-IO should call this method when data is received
         """
-        # log input as ascii printable (for non-ascii dump as \0x prefixed bytes)
-        printable_data = decodestring(data)
-        self._log_data(msg=printable_data, level=RAW_DATA, extra={'transfer_direction': '<'})
+        self._log_data(msg=data, level=RAW_DATA, extra={'transfer_direction': '<'}, raw_data=True)
 
         decoded_data = self.decode(data)
         # decoded data might be unicode or bytes/ascii string, logger accepts only ascii.

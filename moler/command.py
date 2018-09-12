@@ -52,9 +52,9 @@ class Command(ConnectionObserver):
             # no chance to start CMD
             raise NoCommandStringProvided(self)
 
-    def get_started_desc(self):
-        return "Command '{}.{}':'{}' started.".format(self.__class__.__module__, self.__class__.__name__,
+    def get_long_desc(self):
+        return "Command '{}.{}':'{}'".format(self.__class__.__module__, self.__class__.__name__,
                                                       self.command_string)
 
-    def get_finished_desc(self):
-        return "Command '{}.{}' finished.".format(self.__class__.__module__, self.__class__.__name__)
+    def get_short_desc(self):
+        return "Command '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)

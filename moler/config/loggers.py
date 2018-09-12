@@ -23,7 +23,7 @@ RAW_DATA = 4  # should be used for logging data of external sources, like connec
 TEST_CASE = 45
 
 debug_level = None  # means: inactive
-trace_level = None  # means: inactive
+raw_logs_active = False
 
 
 def set_logging_path(path):
@@ -36,7 +36,7 @@ def set_date_format(format):
     date_format = format
 
 
-def configure_debug_level():
+def configure_debug_level(level=None):
     """
     Configure debug_level based on environment variable MOLER_DEBUG_LEVEL
 
@@ -44,25 +44,17 @@ def configure_debug_level():
     since debug level is intended also for troubleshooting
     """
     global debug_level
-    level_name = os.getenv('MOLER_DEBUG_LEVEL', 'not_found').upper()
-    allowed = {'TRACE': TRACE, 'RAW_DATA': RAW_DATA, 'DEBUG': logging.DEBUG}
+    if level:
+        level_name = level
+    else:
+        level_name = os.getenv('MOLER_DEBUG_LEVEL', 'not_found').upper()
+
+    allowed = {'TRACE': TRACE, 'DEBUG': logging.DEBUG}
+
     if level_name in allowed:
         debug_level = allowed[level_name]
     else:
-        # TODO: take it from MOLER_CONFIG
-        # debug_level = allowed['TRACE']
-        pass
-
-
-def configure_trace_level():
-    """
-    Configure debug_level based on environment variable MOLER_DEBUG_LEVEL
-
-    We use additional env variable besides MOLER_CONFIG to allow for quick/temporary change
-    since debug level is intended also for troubleshooting
-    """
-    global trace_level
-    trace_level = TRACE
+        debug_level = logging.INFO
 
 
 def want_debug_details():
@@ -70,10 +62,8 @@ def want_debug_details():
     return debug_level is not None
 
 
-def want_trace_details():
-    """Check if we want to have trace details inside logs"""
-    return trace_level is not None
-
+def want_raw_logs():
+    return raw_logs_active
 
 def debug_level_or_info_level():
     """
@@ -167,17 +157,7 @@ def configure_moler_main_logger():
                           formatter=MolerMainMultilineWithDirectionFormatter(fmt=main_log_format,
                                                                              datefmt=date_format))
 
-    if want_trace_details():
-        trace_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(name)-30s %(transfer_direction)s|%(message)s"
-        _add_new_file_handler(logger_name='moler',
-                              log_file='moler.debug.log',
-                              log_level=trace_level,
-                              # entries from different components go to single file, so we need to
-                              # differentiate them by logger name: "%(name)s"
-                              # do we need "%(threadName)-30s" ???
-                              formatter=MultilineWithDirectionFormatter(fmt=trace_log_format,
-                                                                        datefmt=date_format))
-    elif want_debug_details():
+    if want_debug_details():
         debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(name)-30s %(transfer_direction)s|%(message)s"
         _add_new_file_handler(logger_name='moler',
                               log_file='moler.debug.log',
@@ -213,19 +193,13 @@ def configure_device_logger(connection_name, propagate=False):
                           log_file='{}.log'.format(logger_name),
                           log_level=logging.INFO,
                           formatter=conn_formatter)
-    if want_debug_details():
+    if want_raw_logs():
         _add_new_file_handler(logger_name=logger_name,
                               log_file='{}.raw.log'.format(logger_name),
                               log_level=RAW_DATA,
                               formatter=conn_formatter,
                               filter=SpecificLevelFilter(RAW_DATA))
 
-    if want_trace_details():
-        _add_new_file_handler(logger_name=logger_name,
-                              log_file='{}.trace.log'.format(logger_name),
-                              log_level=TRACE,
-                              formatter=conn_formatter,
-                              filter=SpecificLevelFilter(TRACE))
     return logger
 
 
@@ -316,7 +290,7 @@ class MultilineWithDirectionFormatter(logging.Formatter):
         if len(msg_lines) >= 1:
             empty_prefix = self._calculate_empty_prefix(msg_lines[0], out_lines[0])
             for line in out_lines[1:]:
-                output += "{}|{}".format(empty_prefix, line)
+                output += u"{}|{}".format(empty_prefix, line)
 
         # TODO: line completion for connection decoded data comming in chunks
         output = MolerMainMultilineWithDirectionFormatter._remove_duplicate_log_name(record, output)
@@ -346,7 +320,7 @@ class MolerMainMultilineWithDirectionFormatter(MultilineWithDirectionFormatter):
         if not hasattr(record, 'log_name'):
             record.log_name = record.name
 
-        record.msg = "{:<20}|{}".format(record.log_name, record.msg)
+        record.msg = u"{:<20}|{}".format(record.log_name, record.msg)
 
         return super(MolerMainMultilineWithDirectionFormatter, self).format(record)
 
