@@ -119,17 +119,17 @@ COMMAND_KWARGS_basic_client = {
 COMMAND_RESULT_basic_client = {
     'CONNECTIONS':
         {'local 192.168.0.102 port 49597 connected with 192.168.0.100 port 5001': [
-              {'Bandwidth': '240 Mbits/sec', 'Transfer': '28.6 MBytes', 'Interval': '0.0- 1.0 sec'},
-              {'Bandwidth': '217 Mbits/sec', 'Transfer': '25.9 MBytes', 'Interval': '1.0- 2.0 sec'},
-              {'Bandwidth': '222 Mbits/sec', 'Transfer': '26.5 MBytes', 'Interval': '2.0- 3.0 sec'},
-              {'Bandwidth': '223 Mbits/sec', 'Transfer': '26.6 MBytes', 'Interval': '3.0- 4.0 sec'},
-              {'Bandwidth': '218 Mbits/sec', 'Transfer': '26.0 MBytes', 'Interval': '4.0- 5.0 sec'},
-              {'Bandwidth': '220 Mbits/sec', 'Transfer': '26.2 MBytes', 'Interval': '5.0- 6.0 sec'},
-              {'Bandwidth': '224 Mbits/sec', 'Transfer': '26.8 MBytes', 'Interval': '6.0- 7.0 sec'},
-              {'Bandwidth': '218 Mbits/sec', 'Transfer': '26.0 MBytes', 'Interval': '7.0- 8.0 sec'},
-              {'Bandwidth': '216 Mbits/sec', 'Transfer': '25.8 MBytes', 'Interval': '8.0- 9.0 sec'},
-              {'Bandwidth': '221 Mbits/sec', 'Transfer': '26.4 MBytes', 'Interval': '9.0-10.0 sec'},
-              {'Bandwidth': '222 Mbits/sec', 'Transfer': '265 MBytes', 'Interval': '0.0-10.0 sec'}]},
+            {'Bandwidth': '240 Mbits/sec', 'Transfer': '28.6 MBytes', 'Interval': '0.0- 1.0 sec'},
+            {'Bandwidth': '217 Mbits/sec', 'Transfer': '25.9 MBytes', 'Interval': '1.0- 2.0 sec'},
+            {'Bandwidth': '222 Mbits/sec', 'Transfer': '26.5 MBytes', 'Interval': '2.0- 3.0 sec'},
+            {'Bandwidth': '223 Mbits/sec', 'Transfer': '26.6 MBytes', 'Interval': '3.0- 4.0 sec'},
+            {'Bandwidth': '218 Mbits/sec', 'Transfer': '26.0 MBytes', 'Interval': '4.0- 5.0 sec'},
+            {'Bandwidth': '220 Mbits/sec', 'Transfer': '26.2 MBytes', 'Interval': '5.0- 6.0 sec'},
+            {'Bandwidth': '224 Mbits/sec', 'Transfer': '26.8 MBytes', 'Interval': '6.0- 7.0 sec'},
+            {'Bandwidth': '218 Mbits/sec', 'Transfer': '26.0 MBytes', 'Interval': '7.0- 8.0 sec'},
+            {'Bandwidth': '216 Mbits/sec', 'Transfer': '25.8 MBytes', 'Interval': '8.0- 9.0 sec'},
+            {'Bandwidth': '221 Mbits/sec', 'Transfer': '26.4 MBytes', 'Interval': '9.0-10.0 sec'},
+            {'Bandwidth': '222 Mbits/sec', 'Transfer': '265 MBytes', 'Interval': '0.0-10.0 sec'}]},
     'INFO': ['Client connecting to 10.1.1.1, TCP port 5001', 'TCP window size: 16384 Byte (default)']
 }
 
