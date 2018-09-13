@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2018 Nokia
 """
 Configure logging for Moler's needs
 """
-import copy
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'

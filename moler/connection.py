@@ -10,7 +10,6 @@ Connection responsibilities:
 - perform data encoding/decoding to let external IO use pure bytes
 - have a means allowing multiple observers to get it's received data (data dispatching)
 """
-import sys
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -19,7 +18,6 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 import logging
 import platform
 import weakref
-from quopri import decodestring
 from threading import Lock
 
 import six
