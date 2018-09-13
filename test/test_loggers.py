@@ -76,7 +76,7 @@ def test_multiline_formatter_puts_direction_info_into_direction_area():
     assert output == "01 19:36:09.823  |just log"
 
 
-def test_raw_log_handler_appends_binary_message_into_logfile():
+def test_RawFileHandler_appends_binary_message_into_logfile():
     import os
     import os.path
     from moler.config.loggers import RAW_DATA, RawFileHandler
@@ -94,3 +94,21 @@ def test_raw_log_handler_appends_binary_message_into_logfile():
         content = logfh.read()
         assert content == binary_msg
     os.remove(logfile_full_path)
+
+
+def test_RawDataFormatter_uses_encoder_of_log_record():
+    from moler.config.loggers import RAW_DATA, RawDataFormatter
+    from functools import partial
+    raw_formatter = RawDataFormatter()
+    binary_msg = b"1 0.000000000    127.0.0.1 \xe2\x86\x92 127.0.0.1    ICMP 98 Echo (ping) request  id=0x693b, seq=48/12288, ttl=64"
+    decoded_msg = binary_msg.decode(encoding='utf-8')
+    record = logging.LogRecord(name=None, level=RAW_DATA, pathname="", lineno=0,
+                               msg=decoded_msg,         # this is used - not bytes data
+                               args=(), exc_info=None)
+    record.encoder = lambda data: data.encode('utf-8')  # must be combined with encoder
+    # Raw logger (and its formatter) may get already decoded data
+    # but it must produce bytes
+    # so, it converts back decoded data into bytes using encoder
+    # that must come in record together with data
+    raw_msg = raw_formatter.format(record=record)
+    assert raw_msg == binary_msg

@@ -254,6 +254,10 @@ class RawDataFormatter(object):
     def format(self, record):
         """We want to take data from log_record.msg as bytes"""
         raw_bytes = record.msg
+        if not isinstance(raw_bytes, bytes):
+            err_msg = "Log record directed for raw-logs must have encoder if record.msg is not bytes (it is {})".format(type(record.msg))
+            assert hasattr(record, "encoder"), err_msg
+            raw_bytes = record.encoder(record.msg)
         return raw_bytes
 
 
