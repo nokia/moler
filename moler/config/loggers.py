@@ -133,6 +133,24 @@ def _add_raw_file_handler(logger_name, log_file):
     logger.addHandler(rfh)
 
 
+def _add_raw_trace_file_handler(logger_name, log_file):
+    """
+    Add raw-info file writer into Logger
+
+    :param logger_name: Logger name
+    :param log_file: Path to logfile. Final logfile location is logging_path + log_file
+    :return: None
+    """
+    logfile_full_path = os.path.join(logging_path, log_file)
+    _prepare_logs_folder(logfile_full_path)
+    logger = logging.getLogger(logger_name)
+    trace_rfh = RawFileHandler(filename=logfile_full_path, mode='w')
+    # exchange Formatter
+    raw_trace_formatter = RawTraceFormatter()
+    trace_rfh.setFormatter(raw_trace_formatter)
+    logger.addHandler(trace_rfh)
+
+
 def create_logger(name,
                   log_file=None, log_level=TRACE,
                   log_format="%(asctime)s %(levelname)-10s: |%(message)s",
@@ -211,6 +229,8 @@ def configure_device_logger(connection_name, propagate=False):
                           formatter=conn_formatter)
     if want_raw_logs():
         _add_raw_file_handler(logger_name=logger_name, log_file='{}.raw.log'.format(logger_name))
+        if debug_level == TRACE:
+            _add_raw_trace_file_handler(logger_name=logger_name, log_file='{}.raw.trace.log'.format(logger_name))
 
     return logger
 
@@ -273,6 +293,27 @@ class RawDataFormatter(object):
             raw_bytes = record.encoder(record.msg)
             print("RawDataFormatter: converted {} -> {}".format(type(record.msg), type(raw_bytes)))
         return raw_bytes
+
+
+class RawTraceFormatter(RawDataFormatter):
+    def __init__(self):
+        self.date_formatter = logging.Formatter(fmt="%(asctime)s.%(msecs)03d", datefmt=date_format)
+        self.total_bytesize = 0
+
+    def format(self, record):
+        """We want to see info about binary data log-record"""
+        raw_bytes = super(RawTraceFormatter, self).format(record)
+        bytesize = len(raw_bytes)
+        timestamp = self.date_formatter.format(record)
+        direction = record.transfer_direction if hasattr(record, 'transfer_direction') else '.'
+        offset = self.total_bytesize
+        self.total_bytesize += bytesize
+        # make it look like YAML implicit document record:
+        # - 1536862639.4494998: {time: '20:17:19.449', direction: <, bytesize: 17, offset: 17}
+        # see:   https://pyyaml.org/wiki/PyYAMLDocumentation
+        # but we don't use yaml library since we want predictable order
+        raw_trace_record = "- %s: {time: '%s', direction: %s, bytesize: %s, offset: %s}\n" % (record.created, timestamp, direction, bytesize, offset)
+        return raw_trace_record
 
 
 class RawFileHandler(logging.FileHandler):
