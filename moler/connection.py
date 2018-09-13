@@ -327,13 +327,13 @@ class ObservableConnection(Connection):
             self_or_none = None
 
         try:
-            function = six.get_method_function(observer)
+            func = six.get_method_function(observer)
         except AttributeError:
-            function = observer
-        function_id = instance_id(function)
+            func = observer
+        function_id = instance_id(func)
 
         observer_key = (self_id, function_id)
-        observer_value = (self_or_none, weakref.proxy(function))
+        observer_value = (self_or_none, weakref.proxy(func))
         return observer_key, observer_value
 
 
