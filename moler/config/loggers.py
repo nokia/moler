@@ -313,7 +313,7 @@ class MolerMainMultilineWithDirectionFormatter(MultilineWithDirectionFormatter):
             fmt = "%(asctime)s.%(msecs)03d %(transfer_direction)s|%(message)s"
         else:  # message should be last part of format
             assert fmt.endswith("%(message)s")
-        super(MolerMainMultilineWithDirectionFormatter, self).__init__(fmt=fmt, datefmt=datefmt)
+        super(MultilineWithDirectionFormatter, self).__init__(fmt=fmt, datefmt=datefmt)
 
     def format(self, record):
         if not hasattr(record, 'log_name'):
