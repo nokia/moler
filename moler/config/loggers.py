@@ -65,6 +65,7 @@ def want_debug_details():
 def want_raw_logs():
     return raw_logs_active
 
+
 def debug_level_or_info_level():
     """
     If debugging is active we want to have details inside logs

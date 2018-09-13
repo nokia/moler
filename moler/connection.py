@@ -177,7 +177,7 @@ class Connection(object):
         raise WrongUsage(err_msg)
 
     def _log_data(self, msg, level, extra=None):
-        print("MSG type:{}, level:{}".format(type(msg),level))
+        print("MSG type:{}, level:{}".format(type(msg), level))
         print(msg)
         print("-----------------------------------")
         if isinstance(msg, bytes):
@@ -185,7 +185,7 @@ class Connection(object):
         else:
             printable_data = msg
 
-        print("PRINTABLE type:{}, level:{}".format(type(printable_data),level))
+        print("PRINTABLE type:{}, level:{}".format(type(printable_data), level))
         print("*************************************")
         self.data_logger.log(level, printable_data, extra=extra)
 

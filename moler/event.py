@@ -81,9 +81,7 @@ class Event(ConnectionObserver):
         return compiled_patterns
 
     def get_long_desc(self):
-        return "Event '{}.{}':'{}'".format(self.__class__.__module__, self.__class__.__name__,
-                                                    self.detect_patterns)
+        return "Event '{}.{}':'{}'".format(self.__class__.__module__, self.__class__.__name__, self.detect_patterns)
 
     def get_short_desc(self):
-        return "Event '{}.{}': '{}'".format(self.__class__.__module__, self.__class__.__name__,
-                                                      self.detect_patterns)
+        return "Event '{}.{}': '{}'".format(self.__class__.__module__, self.__class__.__name__, self.detect_patterns)
