@@ -150,9 +150,13 @@ def test_raw_logger_can_log_binary_raw_data():
     cwd = os.getcwd()
     logfile_full_path = os.path.join(cwd, "moler.UNIX_1.raw.log")
     binary_msg = b"1 0.000000000    127.0.0.1 \xe2\x86\x92 127.0.0.1    ICMP 98 Echo (ping) request  id=0x693b, seq=48/12288, ttl=64"
+    buffer = bytearray()
+    buffer.extend(binary_msg)
+    size2read = len(buffer)
+    data = buffer[:size2read]  # should work well with bytes  and  bytearray
     m_logger.raw_logs_active = True
     device_data_logger = m_logger.configure_device_logger(connection_name='UNIX_1', propagate=False)
-    device_data_logger.log(level=m_logger.RAW_DATA, msg=binary_msg, extra={'transfer_direction': '<'})
+    device_data_logger.log(level=m_logger.RAW_DATA, msg=data, extra={'transfer_direction': '<'})
     for hndl in device_data_logger.handlers:
         hndl.close()
     with open(logfile_full_path, mode='rb') as logfh:
