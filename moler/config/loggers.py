@@ -84,6 +84,7 @@ def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filt
     :param log_level: logging level
     :param log_filename: path to log file
     :param formatter: formatter for file logger
+    :param filter: filter for file logger
     :return:  logging.FileHandler object
     """
     logger = logging.getLogger(logger_name)
@@ -105,6 +106,7 @@ def _add_new_file_handler(logger_name,
     :param log_file: Path to logfile. Final logfile location is logging_path + log_file
     :param log_level: only log records with equal and greater level will be accepted for storage in log
     :param formatter: formatter for file logger
+    :param filter: filter for file logger
     :return: None
     """
     logfile_full_path = os.path.join(logging_path, log_file)
@@ -114,6 +116,21 @@ def _add_new_file_handler(logger_name,
                            log_filename=logfile_full_path,
                            formatter=formatter,
                            filter=filter)
+
+
+def _add_raw_file_handler(logger_name, log_file):
+    """
+    Add raw/binary file writer into Logger
+
+    :param logger_name: Logger name
+    :param log_file: Path to logfile. Final logfile location is logging_path + log_file
+    :return: None
+    """
+    logfile_full_path = os.path.join(logging_path, log_file)
+    _prepare_logs_folder(logfile_full_path)
+    logger = logging.getLogger(logger_name)
+    rfh = RawFileHandler(filename=logfile_full_path, mode='wb')
+    logger.addHandler(rfh)
 
 
 def create_logger(name,
@@ -193,11 +210,7 @@ def configure_device_logger(connection_name, propagate=False):
                           log_level=logging.INFO,
                           formatter=conn_formatter)
     if want_raw_logs():
-        _add_new_file_handler(logger_name=logger_name,
-                              log_file='{}.raw.log'.format(logger_name),
-                              log_level=RAW_DATA,
-                              formatter=conn_formatter,
-                              filter=SpecificLevelFilter(RAW_DATA))
+        _add_raw_file_handler(logger_name=logger_name, log_file='{}.raw.log'.format(logger_name))
 
     return logger
 
@@ -263,10 +276,13 @@ class RawDataFormatter(object):
 
 class RawFileHandler(logging.FileHandler):
     def __init__(self, *args, **kwargs):
-        """RawFileHandler must use RawDataFormatter"""
+        """RawFileHandler must use RawDataFormatter and level == RAW_DATA only"""
         super(RawFileHandler, self).__init__(*args, **kwargs)
         raw_formatter = RawDataFormatter()
         self.setFormatter(raw_formatter)
+        self.setLevel(RAW_DATA)
+        raw_records_only_filter = SpecificLevelFilter(RAW_DATA)
+        self.addFilter(raw_records_only_filter)
 
     def emit(self, record):
         """

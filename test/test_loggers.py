@@ -82,8 +82,7 @@ def test_RawFileHandler_appends_binary_message_into_logfile():
     from moler.config.loggers import RAW_DATA, RawFileHandler
     cwd = os.getcwd()
     logfile_full_path = os.path.join(cwd, "tmp.raw.log")
-    raw_handler = RawFileHandler(logfile_full_path, 'wb')
-    raw_handler.setLevel(RAW_DATA)
+    raw_handler = RawFileHandler(filename=logfile_full_path, mode='wb')
     binary_msg = b"1 0.000000000    127.0.0.1 \xe2\x86\x92 127.0.0.1    ICMP 98 Echo (ping) request  id=0x693b, seq=48/12288, ttl=64"
     record = logging.LogRecord(name=None, level=RAW_DATA, pathname="", lineno=0,
                                msg=binary_msg,  # only this is used
@@ -112,3 +111,32 @@ def test_RawDataFormatter_uses_encoder_of_log_record():
     # that must come in record together with data
     raw_msg = raw_formatter.format(record=record)
     assert raw_msg == binary_msg
+
+
+def test_RawFileHandler_logs_only_records_with_level_equal_to_RAW_DATA():
+    import os
+    import os.path
+    from moler.config.loggers import RAW_DATA, TRACE, RawFileHandler
+    cwd = os.getcwd()
+    logfile_full_path = os.path.join(cwd, "tmp.raw.log")
+    raw_handler = RawFileHandler(filename=logfile_full_path, mode='wb')
+    binary_msg1 = b"1 0.000000000    127.0.0.1 \xe2\x86\x92 127.0.0.1    ICMP 98 Echo (ping) request  id=0x693b, seq=48/12288, ttl=64"
+    binary_msg2 = b"2 0.000000000    127.0.0.1 \xe2\x86\x92 127.0.0.1    ICMP 98 Echo (ping) request  id=0x693b, seq=48/12288, ttl=64"
+    binary_msg3 = b"3 0.000000000    127.0.0.1 \xe2\x86\x92 127.0.0.1    ICMP 98 Echo (ping) request  id=0x693b, seq=48/12288, ttl=64"
+    record1 = logging.LogRecord(name=None, pathname="", lineno=0,
+                                msg=binary_msg1, level=TRACE,          # too low level
+                                args=(), exc_info=None)
+    record2 = logging.LogRecord(name=None, pathname="", lineno=0,
+                                msg=binary_msg2, level=RAW_DATA,       # expected level
+                                args=(), exc_info=None)
+    record3 = logging.LogRecord(name=None, pathname="", lineno=0,
+                                msg=binary_msg3, level=logging.DEBUG,  # too high level
+                                args=(), exc_info=None)
+    raw_handler.handle(record=record1)
+    raw_handler.handle(record=record2)
+    raw_handler.handle(record=record3)
+    raw_handler.close()
+    with open(logfile_full_path, mode='rb') as logfh:
+        content = logfh.read()
+        assert content == binary_msg2
+    os.remove(logfile_full_path)
