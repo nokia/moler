@@ -250,6 +250,39 @@ class TracedIn(object):
         return _traced_method
 
 
+class RawDataFormatter(object):
+    def format(self, record):
+        """We want to take data from log_record.msg as bytes"""
+        raw_bytes = record.msg
+        return raw_bytes
+
+
+class RawFileHandler(logging.FileHandler):
+    def __init__(self, *args, **kwargs):
+        """RawFileHandler must use RawDataFormatter"""
+        super(RawFileHandler, self).__init__(*args, **kwargs)
+        raw_formatter = RawDataFormatter()
+        self.setFormatter(raw_formatter)
+
+    def emit(self, record):
+        """
+        Emit a record.
+
+        We don't want base class implementation since we don't want to do:
+        stream.write(self.terminator)
+        We are not adding any \n to bytes-message from record.
+        """
+        if self.stream is None:
+            self.stream = self._open()
+        try:
+            msg = self.format(record)
+            stream = self.stream
+            stream.write(msg)
+            self.flush()
+        except Exception:
+            self.handleError(record)
+
+
 class MultilineWithDirectionFormatter(logging.Formatter):
     """
     We want logs to have non-overlapping areas
