@@ -44,12 +44,3 @@ connect failed: Connection refused
 xyz@debian:"""
     result = dict()
     return output, result
-
-
-@pytest.fixture
-def command_output_and_expected_result_on_iperf_problem():
-    output = """xyz@debian:iperf -i
-iperf: option requires an argument -- i 
-xyz@debian:"""
-    result = dict()
-    return output, result
