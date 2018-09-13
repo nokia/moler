@@ -60,7 +60,7 @@ class Connection(object):
         self._name = self._use_or_generate_name(name)
         self.newline = newline
         self.data_logger = logging.getLogger('moler.{}'.format(self.name))
-        self.logger = self._select_logger(logger_name, self._name)
+        self.logger = Connection._select_logger(logger_name, self._name)
 
     @property
     def name(self):
@@ -77,7 +77,7 @@ class Connection(object):
         """
         self._log(level=TRACE, msg=r'changing name: {} --> {}'.format(self._name, value))
         if self._using_default_logger():
-            self.logger = self._select_logger(logger_name="", connection_name=value)
+            self.logger = Connection._select_logger(logger_name="", connection_name=value)
         self._name = value
 
     def set_data_logger(self, logger):
@@ -109,8 +109,7 @@ class Connection(object):
         logger = logging.getLogger(name)
 
         if logger_name and (logger_name != default_logger_name):
-            msg = "using '{}' logger - not default '{}'".format(logger_name,
-                                                                default_logger_name)
+            msg = "using '{}' logger - not default '{}'".format(logger_name, default_logger_name)
             logger.log(level=logging.WARNING, msg=msg)
         return logger
 
@@ -119,11 +118,9 @@ class Connection(object):
             return False
         return self.logger.name == "moler.connection.{}".format(self._name)
 
-    def _strip_data(self, data):
-        if isinstance(data, six.string_types):
-            data = data.strip()
-
-        return data
+    @staticmethod
+    def _strip_data(data):
+        return data.strip() if isinstance(data, six.string_types) else data
 
     # TODO: should timeout be property of IO? We timeout whole connection-observer.
     def send(self, data, timeout=30, encrypt=False):
@@ -135,7 +132,7 @@ class Connection(object):
 
         self._log_data(msg=msg, level=logging.INFO, extra={'transfer_direction': '>'})
         self._log(level=logging.INFO,
-                  msg=self._strip_data(msg),
+                  msg=Connection._strip_data(msg),
                   extra={
                       'transfer_direction': '>',
                       'log_name': self.name
