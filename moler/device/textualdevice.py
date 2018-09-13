@@ -127,7 +127,6 @@ class TextualDevice(object):
 
     def __del__(self):
         self._stop_prompts_observers()
-        # self.io_connection.close()
 
     def _collect_cmds_for_state_machine(self):
         for state in self._get_available_states():

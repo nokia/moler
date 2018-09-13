@@ -10,6 +10,7 @@ Connection responsibilities:
 - perform data encoding/decoding to let external IO use pure bytes
 - have a means allowing multiple observers to get it's received data (data dispatching)
 """
+import sys
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -143,7 +144,7 @@ class Connection(object):
                   })
 
         encoded_data = self.encode(data)
-        self._log_data(msg=msg, level=RAW_DATA, extra={'transfer_direction': '>'}, raw_data=True)
+        self._log_data(msg=encoded_data, level=RAW_DATA, extra={'transfer_direction': '>'})
 
         self.how2send(encoded_data)
 
@@ -175,18 +176,17 @@ class Connection(object):
         self._log(level=logging.ERROR, msg=err_msg)
         raise WrongUsage(err_msg)
 
-    def _log_data(self, msg, level, extra=None, raw_data=False):
-
-        if not raw_data:
-            if isinstance(msg, bytes):
-                printable_data = msg.decode(encoding='UTF-8', errors='ignore')
-                printable_data = decodestring(printable_data)
-            else:
-                printable_data = msg
+    def _log_data(self, msg, level, extra=None):
+        print("MSG type:{}, level:{}".format(type(msg),level))
+        print(msg)
+        print("-----------------------------------")
+        if isinstance(msg, bytes):
+            printable_data = msg.decode(encoding='unicode_escape', errors='replace')
         else:
-            # log input as ascii printable (for non-ascii dump as \0x prefixed bytes)
-            printable_data = decodestring(msg)
+            printable_data = msg
 
+        print("PRINTABLE type:{}, level:{}".format(type(printable_data),level))
+        print("*************************************")
         self.data_logger.log(level, printable_data, extra=extra)
 
     def _log(self, level, msg, extra=None):
@@ -236,9 +236,11 @@ class ObservableConnection(Connection):
         Incoming-IO API:
         external-IO should call this method when data is received
         """
-        self._log_data(msg=data, level=RAW_DATA, extra={'transfer_direction': '<'}, raw_data=True)
+        print("BEFORE LOG_DATA_RAW_DATA: {}".format(type(data)))
+        self._log_data(msg=data, level=RAW_DATA, extra={'transfer_direction': '<'})
 
         decoded_data = self.decode(data)
+        print("DECODE_DATA: {}".format(type(decoded_data)))
         # decoded data might be unicode or bytes/ascii string, logger accepts only ascii.
         if isinstance(decoded_data, six.text_type):
             # We create ascii logs interpretable as utf-8 bytes.
@@ -248,6 +250,7 @@ class ObservableConnection(Connection):
             # bytes or ascii log
             encoded_for_log = decoded_data
 
+        print("BEFORE LOG_INFO: {}".format(type(encoded_for_log)))
         self._log_data(msg=encoded_for_log, level=logging.INFO, extra={'transfer_direction': '<'})
 
         self.notify_observers(decoded_data)
