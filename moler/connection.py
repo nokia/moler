@@ -171,7 +171,7 @@ class Connection(object):
         self._log(level=logging.ERROR, msg=err_msg)
         raise WrongUsage(err_msg)
 
-    def _log_data(self, msg, level, extra=None):
+    def _log_data(self, msg, level, extra=None, encoder=None):
         print("MSG type:{}, level:{}".format(type(msg), level))
         print(msg)
         print("-----------------------------------")
@@ -181,6 +181,7 @@ class Connection(object):
             printable_data = msg
 
         print("PRINTABLE type:{}, level:{}".format(type(printable_data), level))
+        print(msg)
         print("*************************************")
         self.data_logger.log(level, printable_data, extra=extra)
 
@@ -231,22 +232,12 @@ class ObservableConnection(Connection):
         Incoming-IO API:
         external-IO should call this method when data is received
         """
-        print("BEFORE LOG_DATA_RAW_DATA: {}".format(type(data)))
+        print("DATA_AS_IT_COMES: {}".format(type(data)))
         self._log_data(msg=data, level=RAW_DATA, extra={'transfer_direction': '<'})
 
         decoded_data = self.decode(data)
-        print("DECODE_DATA: {}".format(type(decoded_data)))
-        # decoded data might be unicode or bytes/ascii string, logger accepts only ascii.
-        if isinstance(decoded_data, six.text_type):
-            # We create ascii logs interpretable as utf-8 bytes.
-            # Editor with utf-8 support can correctly display such logs.
-            encoded_for_log = decoded_data.encode('utf-8')
-        else:
-            # bytes or ascii log
-            encoded_for_log = decoded_data
-
-        print("BEFORE LOG_INFO: {}".format(type(encoded_for_log)))
-        self._log_data(msg=encoded_for_log, level=logging.INFO, extra={'transfer_direction': '<'})
+        print("DECODED_DATA: {}".format(type(decoded_data)))
+        self._log_data(msg=decoded_data, level=logging.INFO, extra={'transfer_direction': '<'}, encoder=self.encode)
 
         self.notify_observers(decoded_data)
 

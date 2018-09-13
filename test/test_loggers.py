@@ -140,3 +140,45 @@ def test_RawFileHandler_logs_only_records_with_level_equal_to_RAW_DATA():
         content = logfh.read()
         assert content == binary_msg2
     os.remove(logfile_full_path)
+
+
+def test_raw_logger_can_log_binary_raw_data():
+    import os
+    import os.path
+    import moler.config.loggers as m_logger
+
+    cwd = os.getcwd()
+    logfile_full_path = os.path.join(cwd, "moler.UNIX_1.raw.log")
+    binary_msg = b"1 0.000000000    127.0.0.1 \xe2\x86\x92 127.0.0.1    ICMP 98 Echo (ping) request  id=0x693b, seq=48/12288, ttl=64"
+    m_logger.raw_logs_active = True
+    device_data_logger = m_logger.configure_device_logger(connection_name='UNIX_1', propagate=False)
+    device_data_logger.log(level=m_logger.RAW_DATA, msg=binary_msg, extra={'transfer_direction': '<'})
+    for hndl in device_data_logger.handlers:
+        hndl.close()
+    with open(logfile_full_path, mode='rb') as logfh:
+        content = logfh.read()
+        assert content == binary_msg
+    os.remove(logfile_full_path)
+
+
+def test_raw_logger_can_log_decoded_binary_raw_data():
+    import os
+    import os.path
+    import moler.config.loggers as m_logger
+
+    cwd = os.getcwd()
+    logfile_full_path = os.path.join(cwd, "moler.UNIX_1.raw.log")
+    binary_msg = b"1 0.000000000    127.0.0.1 \xe2\x86\x92 127.0.0.1    ICMP 98 Echo (ping) request  id=0x693b, seq=48/12288, ttl=64"
+    decoded_msg = binary_msg.decode(encoding='utf-8')
+    m_logger.raw_logs_active = True
+    device_data_logger = m_logger.configure_device_logger(connection_name='UNIX_1', propagate=False)
+    device_data_logger.log(level=m_logger.RAW_DATA, msg=decoded_msg,
+                           extra={'transfer_direction': '<',
+                                  # decoded_msg must be combined with encoder
+                                  'encoder': lambda data: data.encode('utf-8')})
+    for hndl in device_data_logger.handlers:
+        hndl.close()
+    with open(logfile_full_path, mode='rb') as logfh:
+        content = logfh.read()
+        assert content == binary_msg
+    os.remove(logfile_full_path)
