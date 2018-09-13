@@ -35,12 +35,3 @@ Usage:
 xyz@debian:"""
     result = dict()
     return output, result
-
-
-@pytest.fixture
-def command_output_and_expected_result_on_connect_failed():
-    output = """xyz@debian:iperf -c 10.156.236.132
-connect failed: Connection refused
-xyz@debian:"""
-    result = dict()
-    return output, result
