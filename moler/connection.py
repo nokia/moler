@@ -174,10 +174,11 @@ class Connection(object):
         raise WrongUsage(err_msg)
 
     def _log_data(self, msg, level, extra=None):
-        print("MSG type:{}, level:{}, extra:{}".format(type(msg), level, extra))
-        print(msg)
-        print("*************************************")
-        self.data_logger.log(level, msg, extra=extra)
+        print("_log_data - MSG type:{}, level:{}, extra:{}".format(type(msg), level, extra))
+        try:
+            self.data_logger.log(level, msg, extra=extra)
+        except Exception as err:
+            print(err)  # logging errors should not propagate
 
     def _log(self, level, msg, extra=None):
         if self.logger:
@@ -187,8 +188,10 @@ class Connection(object):
 
             if extra:
                 extra_params.update(extra)
-
-            self.logger.log(level, msg, extra=extra_params)
+            try:
+                self.logger.log(level, msg, extra=extra_params)
+            except Exception as err:
+                print(err)  # logging errors should not propagate
 
 
 class ObservableConnection(Connection):

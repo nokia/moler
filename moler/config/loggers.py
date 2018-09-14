@@ -9,14 +9,16 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 
 import logging
 import os
+import codecs
+import sys
 
 logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
 active_loggers = []  # TODO: use set()      # Active loggers created by Moler
 date_format = "%d %H:%M:%S"
 
 # new logging levels
-TRACE = 1  # highest possible debug level, may produce tons of logs, should be used for lib dev & troubleshooting
-RAW_DATA = 4  # should be used for logging data of external sources, like connection's data send/received
+RAW_DATA = 1  # should be used for logging data of external sources, like connection's data send/received
+TRACE = 4     # may produce tons of logs, should be used for lib dev & troubleshooting
 # (above ERROR = 40, below CRITICAL = 50)
 TEST_CASE = 45
 
@@ -228,6 +230,9 @@ def configure_device_logger(connection_name, propagate=False):
                           log_level=logging.INFO,
                           formatter=conn_formatter)
     if want_raw_logs():
+        # RAW_LOGS is lowest log-level so we need to change log-level of logger
+        # to make it pass data into raw-log-handler
+        logger.setLevel(min(RAW_DATA, TRACE))
         _add_raw_file_handler(logger_name=logger_name, log_file='{}.raw.log'.format(logger_name))
         if debug_level == TRACE:
             _add_raw_trace_file_handler(logger_name=logger_name, log_file='{}.raw.trace.log'.format(logger_name))
@@ -384,9 +389,17 @@ class MultilineWithDirectionFormatter(logging.Formatter):
         if len(msg_lines) >= 1:
             empty_prefix = self._calculate_empty_prefix(msg_lines[0], out_lines[0])
             for line in out_lines[1:]:
-                output += u"{}|{}".format(empty_prefix, line)
+                try:
+                    output += u"{}|{}".format(empty_prefix, line)
+                except UnicodeDecodeError as err:
+                    if hasattr(err, "encoding"):
+                        encoding = err.encoding
+                    else:
+                        encoding = sys.getdefaultencoding()
+                    decoded_line = codecs.decode(line, encoding, 'replace')
+                    output += u"{}|{}".format(empty_prefix, decoded_line)
 
-        # TODO: line completion for connection decoded data comming in chunks
+                    # TODO: line completion for connection decoded data comming in chunks
         output = MolerMainMultilineWithDirectionFormatter._remove_duplicate_log_name(record, output)
         return output
 
