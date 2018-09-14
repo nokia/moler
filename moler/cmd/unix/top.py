@@ -32,7 +32,12 @@ class Top(GenericUnixCommand):
         if is_full_line:
             try:
                 self._command_failure(line)
-                self._parse_line(line)
+                self._parse_top_row(line)
+                self._parse_task_row(line)
+                self._parse_cpu_row(line)
+                self._parse_memory_rows(line)
+                self._parse_processes_list_headers(line)
+                self._parse_processes_list(line)
             except ParsingDone:
                 pass
         return super(Top, self).on_new_line(line, is_full_line)
@@ -47,75 +52,73 @@ class Top(GenericUnixCommand):
     _re_top_row = re.compile(r'(?P<TOP_ROW>.*)\s-\s(?P<TIME>\d*:\d*:\d*)\sup\s(?P<UP_TIME>.*,.*),\s*(?P<USERS>.*)user'
                              r'.*load average:(?P<LOAD_AVE> .*)')
 
+    def _parse_top_row(self, line):
+        if self._regex_helper.search_compiled(Top._re_top_row, line):
+            command_name = self._regex_helper.group("TOP_ROW")
+            current_time = self._regex_helper.group("TIME")
+            up_time = self._regex_helper.group("UP_TIME").replace(", ", ",")
+            users = int(self._regex_helper.group("USERS"))
+            load_ave = self._regex_helper.group("LOAD_AVE").split()
+            load_ave = [float(ave.strip(',')) for ave in load_ave]
+            top_row_dict = {'current time': current_time, 'up time': up_time, 'users': users, 'load average': load_ave}
+            self.current_ret.update({command_name: top_row_dict})
+            raise ParsingDone
+
     _re_task_row = re.compile(r'(?P<TASK_ROW>Tasks):\s*(?P<TOTAL>\d*)\s*total,\s*(?P<RUN>\d*)\s*running,\s*'
                               r'(?P<SLEEP>\d*)\s*sleeping,\s*(?P<STOP>\d*)\s*stopped, \s*(?P<ZOMBIE>\d*)\s*zombie')
+
+    def _parse_task_row(self, line):
+        if self._regex_helper.search_compiled(Top._re_task_row, line):
+            total = int(self._regex_helper.group("TOTAL"))
+            running = int(self._regex_helper.group("RUN"))
+            sleeping = int(self._regex_helper.group("SLEEP"))
+            stopped = int(self._regex_helper.group("STOP"))
+            zombie = int(self._regex_helper.group("ZOMBIE"))
+            task_row_dict = {'total': total, 'running': running, 'sleeping': sleeping, 'stopped': stopped, 'zombie': zombie}
+            self.current_ret.update({'tasks': task_row_dict})
+            raise ParsingDone
 
     _re_cpu_row = re.compile(r'.*(?P<CPU_ROW>Cpu).*:\s*(?P<US>\d*.\d*).*us,\s*(?P<SY>\d*.\d*).*sy,\s*(?P<NI>\d*.\d*)'
                              r'.*ni,\s*(?P<ID>\d*.\d*).*id,\s*(?P<WA>\d*.\d*).*wa,\s*(?P<HI>\d*.\d*)'
                              r'.*hi,\s*(?P<SI>\d*.\d*).*si,\s*(?P<ST>\d*.\d*).*st')
 
+    def _parse_cpu_row(self, line):
+        if self._regex_helper.search_compiled(Top._re_cpu_row, line):
+            user_processed = float(self._regex_helper.group("US"))
+            system_processes = float(self._regex_helper.group("SY"))
+            upgraded_nice = float(self._regex_helper.group("NI"))
+            not_used = float(self._regex_helper.group("ID"))
+            io_operations = float(self._regex_helper.group("WA"))
+            hardware_interrupts = float(self._regex_helper.group("HI"))
+            software_interrupts = float(self._regex_helper.group("SI"))
+            steal_time = float(self._regex_helper.group("ST"))
+            cpu_row_dict = {'user processes': user_processed, 'system processes': system_processes, 'not used': not_used,
+                            'upgraded nice': upgraded_nice, 'steal time': steal_time, 'IO operations': io_operations,
+                            'hardware interrupts': hardware_interrupts, 'software interrupts': software_interrupts}
+            self.current_ret.update({'%Cpu': cpu_row_dict})
+            raise ParsingDone
+
     _re_memory_rows = re.compile(r'(?P<MEM>.*):\s*(?P<TOTAL_MEM>\d*)(?P<UNIT>.)\s*total,\s*(?P<FREE>\d*)\s*free,\s*'
                                  r'(?P<USED>\d*)\s*used[,.]\s*(?P<OTHER>\d*)\s*')
 
+    def _parse_memory_rows(self, line):
+        if self._regex_helper.search_compiled(Top._re_memory_rows, line):
+            mem_type = self._regex_helper.group("MEM")
+            mem_total = float(self._regex_helper.group("TOTAL_MEM"))
+            used = float(self._regex_helper.group("USED"))
+            free = float(self._regex_helper.group("FREE"))
+            cached = float(self._regex_helper.group("OTHER"))
+            mem_row_dict = {'total': mem_total, 'used': used, 'free': free, 'cached': cached}
+            self.current_ret.update({mem_type: mem_row_dict})
+            raise ParsingDone
+
     _re_processes_header = re.compile(r'(?P<HEADER> .*PID.*)')
 
-    def _parse_line(self, line):
-        if self._regex_helper.search_compiled(Top._re_top_row, line):
-            self._parse_top_row()
-        elif self._regex_helper.search_compiled(Top._re_task_row, line):
-            self._parse_task_row()
-        elif self._regex_helper.search_compiled(Top._re_cpu_row, line):
-            self._parse_cpu_row()
-        elif self._regex_helper.search_compiled(Top._re_memory_rows, line):
-            self._parse_memory_rows()
-        elif self._regex_helper.search_compiled(Top._re_processes_header, line) and not self._processes_list_headers:
+    def _parse_processes_list_headers(self, line):
+        if self._regex_helper.search_compiled(Top._re_processes_header, line) and not self._processes_list_headers:
             self._processes_list_headers.extend(line.strip().split())
             self.current_ret.update({'processes': list()})
-        else:
-            self._parse_processes_list(line)
-        raise ParsingDone
-
-    def _parse_top_row(self):
-        command_name = self._regex_helper.group("TOP_ROW")
-        current_time = self._regex_helper.group("TIME")
-        up_time = self._regex_helper.group("UP_TIME").replace(", ", ",")
-        users = int(self._regex_helper.group("USERS"))
-        load_ave = self._regex_helper.group("LOAD_AVE").split()
-        load_ave = [float(ave.strip(',')) for ave in load_ave]
-        top_row_dict = {'current time': current_time, 'up time': up_time, 'users': users, 'load average': load_ave}
-        self.current_ret.update({command_name: top_row_dict})
-
-    def _parse_task_row(self):
-        total = int(self._regex_helper.group("TOTAL"))
-        running = int(self._regex_helper.group("RUN"))
-        sleeping = int(self._regex_helper.group("SLEEP"))
-        stopped = int(self._regex_helper.group("STOP"))
-        zombie = int(self._regex_helper.group("ZOMBIE"))
-        task_row_dict = {'total': total, 'running': running, 'sleeping': sleeping, 'stopped': stopped, 'zombie': zombie}
-        self.current_ret.update({'tasks': task_row_dict})
-
-    def _parse_cpu_row(self):
-        user_processed = float(self._regex_helper.group("US"))
-        system_processes = float(self._regex_helper.group("SY"))
-        upgraded_nice = float(self._regex_helper.group("NI"))
-        not_used = float(self._regex_helper.group("ID"))
-        io_operations = float(self._regex_helper.group("WA"))
-        hardware_interrupts = float(self._regex_helper.group("HI"))
-        software_interrupts = float(self._regex_helper.group("SI"))
-        steal_time = float(self._regex_helper.group("ST"))
-        cpu_row_dict = {'user processes': user_processed, 'system processes': system_processes, 'not used': not_used,
-                        'upgraded nice': upgraded_nice, 'steal time': steal_time, 'IO operations': io_operations,
-                        'hardware interrupts': hardware_interrupts, 'software interrupts': software_interrupts}
-        self.current_ret.update({'%Cpu': cpu_row_dict})
-
-    def _parse_memory_rows(self):
-        mem_type = self._regex_helper.group("MEM")
-        mem_total = float(self._regex_helper.group("TOTAL_MEM"))
-        used = float(self._regex_helper.group("USED"))
-        free = float(self._regex_helper.group("FREE"))
-        cached = float(self._regex_helper.group("OTHER"))
-        mem_row_dict = {'total': mem_total, 'used': used, 'free': free, 'cached': cached}
-        self.current_ret.update({mem_type: mem_row_dict})
+            raise ParsingDone
 
     def _parse_processes_list(self, line):
         if self._processes_list_headers:
