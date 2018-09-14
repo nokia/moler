@@ -20,7 +20,6 @@ def test_calling_chmod_raises_exception_command_failure(param, filename, error, 
     from moler.cmd.unix.chown import Chown
     from moler.exceptions import CommandFailure
     output_data, result = command_output_and_expected_result(param, filename, error)
-    print(output_data)
     buffer_connection.remote_inject_response([output_data])
     chown_cmd = Chown(connection=buffer_connection.moler_connection, param=param, filename=filename)
     with pytest.raises(CommandFailure):

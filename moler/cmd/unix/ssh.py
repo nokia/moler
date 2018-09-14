@@ -26,7 +26,7 @@ class Ssh(GenericUnixCommand):
 
     def __init__(self, connection, login, password, host, prompt=None, expected_prompt='>', port=0,
                  known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
-                 term_mono="TERM=xterm-mono", new_line_chars=None):
+                 term_mono="TERM=xterm-mono", new_line_chars=None, encrypt_password=True):
 
         super(Ssh, self).__init__(connection, prompt, new_line_chars)
 
@@ -40,6 +40,7 @@ class Ssh(GenericUnixCommand):
         self.set_timeout = set_timeout
         self.set_prompt = set_prompt
         self.term_mono = term_mono
+        self.encrypt_password = encrypt_password
 
         self.ret_required = False
 
@@ -93,7 +94,7 @@ class Ssh(GenericUnixCommand):
 
     def send_password_if_requested(self, line):
         if (not self._sent_password) and self.is_password_requested(line):
-            self.connection.sendline(self.password)
+            self.connection.sendline(self.password, encrypt=self.encrypt_password)
             self._sent_password = True
         elif self._sent_password and self._regex_helper.search_compiled(Ssh._re_permission_denied, line):
             self._sent_password = False

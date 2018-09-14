@@ -32,6 +32,7 @@ __author__ = 'Grzegorz Latuszek, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
+import logging
 from threading import Lock
 
 
@@ -49,8 +50,19 @@ class IOConnection(object):
         self._disconnect_subscribers = list()
         self._disconnect_subscribers_lock = Lock()
         self.moler_connection = moler_connection
+        self.__name = "UNNAMED_IO_CONNECTION"
+        self.logger = logging.getLogger("moler.connection.{}".format(self.__name))
         # plugin the way we output data to external world
         self.moler_connection.how2send = self.send
+
+    @property
+    def name(self):
+        return self.__name
+
+    @name.setter
+    def name(self, value):
+        self.__name = value
+        self.logger = logging.getLogger("moler.connection.{}".format(self.__name))
 
     def open(self):
         """
@@ -152,9 +164,17 @@ class IOConnection(object):
                 subscriber(self)
 
     def _notify_on_connect(self):
+        self.logger.info(
+            msg="Connection to: '{}' has been opened.".format(self.name),
+            extra={'log_name': self.name}
+        )
         self._notify(self._connect_subscribers_lock, self._connect_subscribers)
 
     def _notify_on_disconnect(self):
+        self.logger.info(
+            msg="Connection to: '{}' has been closed.".format(self.name),
+            extra={'log_name': self.name}
+        )
         self._notify(self._disconnect_subscribers_lock, self._disconnect_subscribers)
 
     def _subscribe(self, lock, subscribers, subscriber):
