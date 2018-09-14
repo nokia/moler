@@ -64,6 +64,7 @@ class ThreadedTerminal(IOConnection):
     def send(self, data):
         """Write data into ThreadedTerminal connection."""
         self._terminal.write(data)
+        print("SENDING: {}".format(data))
 
     def pull_data(self, pulling_done):
         """Pull data from ThreadedTerminal connection."""
@@ -74,6 +75,7 @@ class ThreadedTerminal(IOConnection):
             if self._terminal.fd in reads:
                 try:
                     data = self._terminal.read(self._read_buffer_size)
+                    print("RECEIVED: {}".format(data))
                     if self._shell_operable.is_set():
                         self.data_received(data)
                     else:

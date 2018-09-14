@@ -78,7 +78,7 @@ Proxy request sent, awaiting response... 200 OK
 Length: 3648 (3.6K) [text/html]
 Saving to: ‘users.student.com/lesson01/character.html’
 
-users.student.com/lesson01/character.htm 100%[=============================================>]   3.56K  --.-KB/s    in 0s      
+users.student.com/lesson01/character.htm 100%[=============================================>]   3.56K  --.-KB/s    in 0s
 
 2018-09-14 13:06:20 (210 MB/s) - ‘users.student.com/lesson01/character.html’ saved [3648/3648]
 
