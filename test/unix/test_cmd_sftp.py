@@ -219,3 +219,42 @@ usage: sftp [-1246aCfpqrv] [-B buffer_size] [-b batchfile] [-c cipher]
 xyz@debian:/home$"""
     result = dict()
     return data, result
+
+
+def test_sftp_raises_ssh_error(buffer_connection):
+    command_output, expected_result = command_output_and_expected_result_ssh_error()
+    buffer_connection.remote_inject_response([command_output])
+    sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.103', user='fred', password='1234')
+    with pytest.raises(CommandFailure):
+        sftp_cmd()
+
+
+@pytest.fixture
+def command_output_and_expected_result_ssh_error():
+    data = """sftp fred@192.168.0.103
+ssh: connect to host 192.168.0.103 port 22: No route to host
+Couldn't read packet: Connection reset by peer"""
+    result = dict()
+    return data, result
+
+
+def test_sftp_raises_not_confirmed_error(buffer_connection):
+    command_output, expected_result = command_output_and_expected_result_not_confirmed()
+    buffer_connection.remote_inject_response([command_output])
+    sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
+                    source_path="cat", destination_path="/home/xyz/Docs/cat")
+    with pytest.raises(CommandFailure):
+        sftp_cmd()
+
+
+@pytest.fixture
+def command_output_and_expected_result_not_confirmed():
+    data = """xyz@debian:/home$ sftp fred@192.168.0.102:cat /home/xyz/Docs/cat
+The authenticity of host '192.168.0.102 (192.168.0.102)' can't be established.
+ECDSA key fingerprint is SHA256:ghQ3iy/gH4YTqZOggql1eJCe3EETOOpn5yANJwFeRt0.
+Are you sure you want to continue connecting (yes/no)?
+Host key verification failed.
+xyz@debian:/home$"""
+
+    result = dict()
+    return data, result
