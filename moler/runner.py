@@ -5,9 +5,9 @@ Runner abstraction goal is to hide concurrency machinery used
 to make it exchangeable (threads, asyncio, twisted, curio)
 """
 
-__author__ = 'Grzegorz Latuszek, Marcin Usielski'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import atexit
 import logging
@@ -151,11 +151,15 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         moler_conn = connection_observer.connection
         moler_conn.unsubscribe(connection_observer.data_received)
         passed = time.time() - start_time
-        self.logger.debug("timeouted {}".format(connection_observer))
+        self.logger.debug("timed out {}".format(connection_observer))
         connection_observer.cancel()
         connection_observer_future.cancel()
         self.shutdown()
         connection_observer.on_timeout()
+        connection_observer.logger.log(logging.INFO,
+                                       "'{}.{}' has timed out after '{:.2f}' seconds.".format(
+                                           connection_observer.__class__.__module__,
+                                           connection_observer.__class__.__name__, time.time() - start_time))
         if hasattr(connection_observer, "command_string"):
             raise CommandTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
         else:
@@ -166,10 +170,12 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Feeds connection_observer by pulling data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
+        connection_observer._log(logging.INFO, "{} started.".format(connection_observer.get_long_desc()))
         moler_conn = connection_observer.connection
         while True:
             if connection_observer.done():
                 self.logger.debug("done & unsubscribing {!r}".format(connection_observer))
+                connection_observer._log(logging.INFO, "{} finished.".format(connection_observer.get_short_desc()))
                 moler_conn.unsubscribe(connection_observer.data_received)
                 break
             if self._in_shutdown:

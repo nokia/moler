@@ -10,7 +10,7 @@ before_script:
   - python2 -V
   - python3 -V
 script:
-  - coverage run --source=moler,test -m py.test --random -s -vv
+  - coverage run --source=moler,test -m py.test --random
   - pycodestyle moler
   - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then python3.6 -m pytest --mccabe moler; fi
   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then python2 -m pytest --mccabe moler; fi
