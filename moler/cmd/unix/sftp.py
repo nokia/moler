@@ -18,11 +18,11 @@ class Sftp(GenericUnixCommand):
                  destination_path=None, options=None, command=None, no_result=False, prompt=None, new_line_chars=None):
         super(Sftp, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
+        # Attributes defined by calling the command
         self.host = host
         self.user = user
         self.password = password
         self.confirm_connection = confirm_connection
-        self.ready_to_parse_line = False
 
         self.source_path = source_path
         self.destination_path = destination_path
@@ -30,13 +30,18 @@ class Sftp(GenericUnixCommand):
         self.options = options
         self.command = command
         self.no_result = no_result
+
+        # Internal variables
         self._re_command_sent = re.compile(r"sftp> {}".format(self.command), re.I)
+
+        # Flags
+        self.ready_to_parse_line = False
         self.connection_confirmed = False
         self.password_sent = False
+        self.sending_started = False
         self.command_entered = False
         self.command_sent = False
         self.exit_sent = False
-        self.sending_started = False
         print("INIT")
 
     def build_command_string(self):
@@ -58,7 +63,7 @@ class Sftp(GenericUnixCommand):
             print("line:" + line)
             if is_full_line:
                 self._check_if_command_sent(line)
-            self._ignore_empty_or_repeated_line(line)
+                self._ignore_empty_or_repeated_line(line)
             self._confirm_connection(line)
             self._send_password(line)
             self._send_command_if_prompt(line)
@@ -73,6 +78,15 @@ class Sftp(GenericUnixCommand):
             print("in line {} ,current_ret: {}".format(line, str(self.current_ret)))
         super(Sftp, self).on_new_line(line, is_full_line)
 
+    def _check_if_command_sent(self, line):
+        print("enter command_sent")
+        if self.command_entered and self._regex_helper.match_compiled(self._re_command_sent, line):
+            self.command_sent = True
+            print("!!!!!!!!!!!!!!!!!!! command {} sent !!!!!!!!!!!!!!!!!".format(self.command))
+            if self.no_result:
+                self.ret_required = False
+            raise ParsingDone
+
     _re_prompt_with_command = re.compile(r"sftp>\s\w+", re.I)
 
     def _ignore_empty_or_repeated_line(self, line):
@@ -81,6 +95,8 @@ class Sftp(GenericUnixCommand):
             raise ParsingDone
         elif not line.strip():
             print("useless...2 " + line)
+            raise ParsingDone
+        elif line == self.command:
             raise ParsingDone
 
     _re_confirm_connection = re.compile(r"Are\syou\ssure\syou\swant\sto\scontinue\sconnecting\s\(yes/no\)\?", re.I)
@@ -103,13 +119,6 @@ class Sftp(GenericUnixCommand):
             self.connection.sendline(self.password)  # encrypt=True
             print("after sending password")
             self.password_sent = True
-            raise ParsingDone
-
-    def _check_if_command_sent(self, line):
-        print("enter command_sent")
-        if self.command_entered and self._regex_helper.match_compiled(self._re_command_sent, line):
-            self.command_sent = True
-            print("!!!!!!!!!!!!!!!!!!! command {} sent !!!!!!!!!!!!!!!!!".format(self.command))
             raise ParsingDone
 
     _re_prompt = re.compile(r"sftp>", re.I)
@@ -166,18 +175,6 @@ class Sftp(GenericUnixCommand):
                 print("after fetching error " + line)
                 raise ParsingDone
 
-    def _parse_line_from_prompt(self, line):
-        print("in parse line, command sent: " + str(self.command_sent))
-        if self.ready_to_parse_line:
-            if self.command_sent:
-                if self.no_result:
-                    self.set_result({})
-                if 'RESULT' not in self.current_ret:
-                    self.current_ret['RESULT'] = list()
-                self.current_ret['RESULT'].append(line)
-                print("inside parse from prompt" + str(self.current_ret))
-                raise ParsingDone
-
     _re_resend_password = re.compile(r"(?P<RESEND>Permission\sdenied,\splease\stry\sagain)", re.I)
     _re_authentication = re.compile(r"(?P<AUTH>Authentication\sfailed.*)|(?P<PERM>.*Permission\sdenied.*)", re.I)
 
@@ -199,17 +196,28 @@ class Sftp(GenericUnixCommand):
                                             r"\sConnection\sreset\sby\speer)", re.I))
     _error_regex_compiled.append(re.compile(r"(?P<OPTION>(unknown|invalid)\soption\s.*)", re.I))
     _error_regex_compiled.append(re.compile(r"(?P<SSH_ERROR>ssh:.+)", re.I))
+    _error_regex_compiled.append(re.compile(r"(?P<NOT_CONFIRMED>Host\skey\sverification\sfailed)", re.I))
     _re_help = re.compile(r"(?P<HELP_MSG>usage:\ssftp\s.*)", re.I)
 
     def _command_error(self, line):
         if self._regex_helper.search_compiled(Sftp._re_help, line):
-            self.set_exception(CommandFailure(self, "ERROR: invalid command"))
+            self.set_exception(CommandFailure(self, "ERROR: invalid command syntax"))
             print("ERROR")
             raise ParsingDone
         for _re_error in Sftp._error_regex_compiled:
             if self._regex_helper.search_compiled(_re_error, line):
                 self.set_exception(CommandFailure(self, "ERROR: {}".format(line)))
                 print("ERROR")
+                raise ParsingDone
+
+    def _parse_line_from_prompt(self, line):
+        print("in parse line, command sent: " + str(self.command_sent))
+        if self.ready_to_parse_line:
+            if self.command_sent:
+                if 'RESULT' not in self.current_ret:
+                    self.current_ret['RESULT'] = list()
+                self.current_ret['RESULT'].append(line)
+                print("inside parse from prompt" + str(self.current_ret))
                 raise ParsingDone
 
 
@@ -235,27 +243,6 @@ COMMAND_KWARGS = {
 COMMAND_RESULT = {
     'RESULT': ["Fetching /upload/cat to /home/xyz/Docs/cat",
                "/upload/cat                                   100%   23    34.4KB/s   00:00"]
-}
-
-
-COMMAND_OUTPUT_no_confirm_connection = """xyz@debian:/home$ sftp fred@192.168.0.102:cat /home/xyz/Docs/cat
-The authenticity of host '192.168.0.102 (192.168.0.102)' can't be established.
-ECDSA key fingerprint is SHA256:ghQ3iy/gH4YTqZOggql1eJCe3EETOOpn5yANJwFeRt0.
-Are you sure you want to continue connecting (yes/no)?
-Host key verification failed.
-xyz@debian:/home$"""
-
-COMMAND_KWARGS_no_confirm_connection = {
-    'host': '192.168.0.102',
-    'user': 'fred',
-    'source_path': 'cat',
-    'destination_path': '/home/xyz/Docs/cat',
-    'confirm_connection': False,
-    'password': '1234',
-    'no_result': True
-}
-
-COMMAND_RESULT_no_confirm_connection = {
 }
 
 
