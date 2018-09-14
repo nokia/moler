@@ -8,9 +8,9 @@ __email__ = 'agnieszka.bylica@nokia.com'
 
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
-# from moler.exceptions import CommandFailure
+from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
-# import re
+import re
 
 
 class Wget(GenericUnixCommand):
@@ -27,10 +27,18 @@ class Wget(GenericUnixCommand):
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
+                self._command_error(line)
                 self._parse_line(line)
             except ParsingDone:
                 pass
         super(Wget, self).on_new_line(line, is_full_line)
+
+    _re_connection_failure = re.compile(r"(?P<CONNECTION>Connecting\sto\s.*\sfailed:.*)", re.I)
+
+    def _command_error(self, line):
+        if self._regex_helper.search_compiled(Wget._re_connection_failure, line):
+            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("CONNECTION"))))
+            raise ParsingDone
 
     def _parse_line(self, line):
         self.current_ret['RESULT'].append(line)
