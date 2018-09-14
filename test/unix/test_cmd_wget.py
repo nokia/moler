@@ -12,5 +12,6 @@ import pytest
 
 
 def test_wget_returns_proper_command_string(buffer_connection):
-    wget_cmd = Wget(connection=buffer_connection.moler_connection)
-    assert "wget" == wget_cmd.command_string
+    wget_cmd = Wget(connection=buffer_connection.moler_connection,
+                    options='http://ftp.gnu.org/gnu/wget/wget-1.5.3.tar.gz')
+    assert "wget http://ftp.gnu.org/gnu/wget/wget-1.5.3.tar.gz" == wget_cmd.command_string
