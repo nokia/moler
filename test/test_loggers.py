@@ -241,10 +241,6 @@ def test_raw_logger_can_create_both_raw_logs(monkeypatch):
     with open(raw_trace_logfile_full_path, mode='r') as logfh:
         content = logfh.read()
         assert 'direction: <, bytesize: 17, offset: 0}\n' in content
-    import yaml
-    with open(raw_trace_logfile_full_path, mode='r') as logfh:
-        out = yaml.load(logfh)
-        print(out)
     for filename in created_files:
         os.remove(filename)
 

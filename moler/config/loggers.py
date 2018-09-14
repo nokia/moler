@@ -296,7 +296,6 @@ class RawDataFormatter(object):
             err_msg = "Log record directed for raw-logs must have encoder if record.msg is not bytes (it is {})".format(type(record.msg))
             assert hasattr(record, "encoder"), err_msg
             raw_bytes = record.encoder(record.msg)
-            print("RawDataFormatter: converted {} -> {}".format(type(record.msg), type(raw_bytes)))
         return raw_bytes
 
 

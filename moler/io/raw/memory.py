@@ -172,7 +172,6 @@ class FifoBuffer(IOConnection):
             size2read = len(self.buffer)
         if size2read > 0:
             data = self.buffer[:size2read]
-            print("MEMORY_READ: {}".format(type(data)))
             self.buffer = self.buffer[size2read:]
             self.data_received(data)
             return data

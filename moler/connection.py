@@ -130,7 +130,6 @@ class Connection(object):
             length = len(data)
             msg = "*" * length
 
-        print("DATA_AS_WE_SEND: {}".format(type(msg)))
         self._log_data(msg=msg, level=logging.INFO, extra={'transfer_direction': '>', 'encoder': lambda data: data.encode('utf-8')})
         self._log(level=logging.INFO,
                   msg=Connection._strip_data(msg),
@@ -140,7 +139,6 @@ class Connection(object):
                   })
 
         encoded_data = self.encode(data)
-        print("DATA_ENCODED_4_IO_SEND: {}".format(type(encoded_data)))
         self._log_data(msg=encoded_data, level=RAW_DATA, extra={'transfer_direction': '>', 'encoder': lambda data: data.encode('utf-8')})
 
         self.how2send(encoded_data)
@@ -174,7 +172,6 @@ class Connection(object):
         raise WrongUsage(err_msg)
 
     def _log_data(self, msg, level, extra=None):
-        print("_log_data - MSG type:{}, level:{}, extra:{}".format(type(msg), level, extra))
         try:
             self.data_logger.log(level, msg, extra=extra)
         except Exception as err:
@@ -229,11 +226,9 @@ class ObservableConnection(Connection):
         Incoming-IO API:
         external-IO should call this method when data is received
         """
-        print("DATA_AS_IT_COMES: {}".format(type(data)))
         self._log_data(msg=data, level=RAW_DATA, extra={'transfer_direction': '<', 'encoder': lambda data: data.encode('utf-8')})
 
         decoded_data = self.decode(data)
-        print("DECODED_DATA: {}".format(type(decoded_data)))
         self._log_data(msg=decoded_data, level=logging.INFO, extra={'transfer_direction': '<', 'encoder': lambda data: data.encode('utf-8')})
 
         self.notify_observers(decoded_data)
