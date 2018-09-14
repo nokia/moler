@@ -3,9 +3,9 @@
 Rm command module.
 """
 
-__author__ = 'Bartosz Odziomek'
+__author__ = 'Bartosz Odziomek, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'bartosz.odziomek@nokia.com'
+__email__ = 'bartosz.odziomek@nokia.com, marcin.usielski@nokia.com'
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
@@ -13,7 +13,7 @@ from moler.exceptions import ParsingDone
 
 class Rm(GenericUnixCommand):
     def __init__(self, connection, file, options=None, prompt=None, new_line_chars=None):
-        super(Rm, self).__init__(connection)
+        super(Rm, self).__init__(connection, prompt=prompt, new_line_chars=new_line_chars)
 
         self.file = file
         self.options = options
