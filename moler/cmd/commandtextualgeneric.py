@@ -3,13 +3,13 @@
 Generic Unix/Linux module
 """
 
-__author__ = 'Marcin Usielski'
+__author__ = 'Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
-import logging
 import re
+
 import six
 
 from moler.cmd import RegexHelper
@@ -27,7 +27,6 @@ class CommandTextualGeneric(Command):
         :param new_line_chars:  new line chars on device
         """
         super(CommandTextualGeneric, self).__init__(connection)
-        self.logger = logging.getLogger('moler.conn-observer')
         self.__command_string = None  # String representing command on device
         self.current_ret = dict()  # Placeholder for result as-it-grows, before final write into self._result
         self._cmd_escaped = None  # Escaped regular expression string with command

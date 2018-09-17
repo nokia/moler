@@ -4,11 +4,12 @@ __author__ = 'Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
-from moler.connection_observer import ConnectionObserver
-from moler.exceptions import NoDetectPatternProvided
-from moler.helpers import instance_id
-from moler.exceptions import ResultAlreadySet
 import re
+
+from moler.connection_observer import ConnectionObserver
+from moler.exceptions import NoDetectPatternProvided, MolerException
+from moler.exceptions import ResultAlreadySet
+from moler.helpers import instance_id
 
 
 class Event(ConnectionObserver):
@@ -47,15 +48,17 @@ class Event(ConnectionObserver):
             raise NoDetectPatternProvided(self)
 
     def add_event_occurred_callback(self, callback):
-        self.callback = callback
+        if not self.callback:
+            self.callback = callback
+        else:
+            raise MolerException("Cannot assign already assigned 'self.callback'.")
 
     def remove_event_occurred_callback(self):
-        if not (self.callback_params is None):
-            self.callback = None
-            self.callback_params = dict()
+        self.callback = None
 
     def notify(self):
-        self.callback()
+        if self.callback:
+            self.callback()
 
     def event_occurred(self, event_data):
         """Should be used to set final result"""
@@ -76,3 +79,9 @@ class Event(ConnectionObserver):
                 pattern = re.compile(pattern)
             compiled_patterns.append(pattern)
         return compiled_patterns
+
+    def get_long_desc(self):
+        return "Event '{}.{}':'{}'".format(self.__class__.__module__, self.__class__.__name__, self.detect_patterns)
+
+    def get_short_desc(self):
+        return "Event '{}.{}': '{}'".format(self.__class__.__module__, self.__class__.__name__, self.detect_patterns)
