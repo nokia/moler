@@ -32,7 +32,9 @@ class Sftp(GenericUnixCommand):
         self.no_result = no_result
 
         # Internal variables
-        self._re_command_sent = re.compile(r"sftp> {}".format(self.command), re.I)
+        if self.command:
+            self.command = self.command.strip()
+            self._re_command_sent = re.compile(r"sftp> {}".format(re.escape(self.command)), re.I)
 
         # Flags
         self.ready_to_parse_line = False
@@ -42,7 +44,6 @@ class Sftp(GenericUnixCommand):
         self.command_entered = False
         self.command_sent = False
         self.exit_sent = False
-        print("INIT")
 
     def build_command_string(self):
         cmd = "sftp"
@@ -60,7 +61,6 @@ class Sftp(GenericUnixCommand):
 
     def on_new_line(self, line, is_full_line):
         try:
-            print("line:" + line)
             if is_full_line:
                 self._check_if_command_sent(line)
                 self._ignore_empty_or_repeated_line(line)
@@ -73,16 +73,13 @@ class Sftp(GenericUnixCommand):
                 self._authentication_failure(line)
                 self._command_error(line)
                 self._parse_line_from_prompt(line)
-            print("On_new_line end, line not parsed: {}".format(line))
         except ParsingDone:
-            print("in line {} ,current_ret: {}".format(line, str(self.current_ret)))
+            pass
         super(Sftp, self).on_new_line(line, is_full_line)
 
     def _check_if_command_sent(self, line):
-        print("enter command_sent")
         if self.command_entered and self._regex_helper.match_compiled(self._re_command_sent, line):
             self.command_sent = True
-            print("!!!!!!!!!!!!!!!!!!! command {} sent !!!!!!!!!!!!!!!!!".format(self.command))
             if self.no_result:
                 self.ret_required = False
             raise ParsingDone
@@ -91,19 +88,16 @@ class Sftp(GenericUnixCommand):
 
     def _ignore_empty_or_repeated_line(self, line):
         if not line:
-            print("useless...1 " + line)
             raise ParsingDone
         elif not line.strip():
-            print("useless...2 " + line)
             raise ParsingDone
-        elif line == self.command:
+        elif line.strip() == self.command:
             raise ParsingDone
 
     _re_confirm_connection = re.compile(r"Are\syou\ssure\syou\swant\sto\scontinue\sconnecting\s\(yes/no\)\?", re.I)
 
     def _confirm_connection(self, line):
         if not self.connection_confirmed and self._regex_helper.search_compiled(Sftp._re_confirm_connection, line):
-            print("confirmed:.... " + line)
             if self.confirm_connection:
                 self.connection.sendline("yes")
             else:
@@ -115,9 +109,7 @@ class Sftp(GenericUnixCommand):
 
     def _send_password(self, line):
         if not self.password_sent and self._regex_helper.search_compiled(Sftp._re_password, line):
-            print("before sending password")
-            self.connection.sendline(self.password)  # encrypt=True
-            print("after sending password")
+            self.connection.sendline(self.password, encrypt=True)
             self.password_sent = True
             raise ParsingDone
 
@@ -125,27 +117,20 @@ class Sftp(GenericUnixCommand):
 
     def _send_command_if_prompt(self, line):
         if not self.command_sent and self._regex_helper.match_compiled(Sftp._re_prompt, line):
-            print("line in send_command_if_prompt: " + line)
             self.connection.sendline(self.command)
             self.command_entered = True
-            print("command {} entered".format(self.command))
             raise ParsingDone
         elif not self.exit_sent and self.command_sent and self._regex_helper.match_compiled(Sftp._re_prompt, line):
-            print("line in send_command_if_prompt: " + line)
-            print("!!! EXIT !!!")
             self.connection.sendline("exit")
             self.exit_sent = True
             raise ParsingDone
         elif self._regex_helper.match_compiled(Sftp._re_prompt, line):
-            print("line in send_command_if_prompt: " + line)
-            print("sftp prompt")
             raise ParsingDone
 
     _re_connected = re.compile(r"Connected\sto\s.+", re.I)
 
     def _check_if_connected(self, line):
         if self._regex_helper.search_compiled(Sftp._re_connected, line):
-            print("connected:******* " + line)
             self.ready_to_parse_line = True
             raise ParsingDone
 
@@ -160,19 +145,14 @@ class Sftp(GenericUnixCommand):
                     self.current_ret['RESULT'] = list()
                 self.sending_started = True
                 self.current_ret['RESULT'].append(line)
-                print("fetching:... " + line)
                 raise ParsingDone
             elif self.sending_started and self._regex_helper.search_compiled(Sftp._re_success_bar, line):
                 self.current_ret['RESULT'].append(line)
-                print("success bar... " + line)
                 raise ParsingDone
             elif self.sending_started and self._regex_helper.search_compiled(Sftp._re_progress_bar, line):
-                print("progress bar... " + line)
                 raise ParsingDone
             elif self.sending_started:
-                print("fetching error... \'{}\'".format(line))
                 self.set_exception(CommandFailure(self, "ERROR: {}".format(line)))
-                print("after fetching error " + line)
                 raise ParsingDone
 
     _re_resend_password = re.compile(r"(?P<RESEND>Permission\sdenied,\splease\stry\sagain)", re.I)
@@ -186,7 +166,6 @@ class Sftp(GenericUnixCommand):
             auth = self._regex_helper.group("AUTH")
             perm = self._regex_helper.group("PERM")
             self.set_exception(CommandFailure(self, "ERROR: {msg}".format(msg=auth if auth else perm)))
-            print("AUTH ERROR")
             raise ParsingDone
 
     _error_regex_compiled = list()
@@ -202,22 +181,18 @@ class Sftp(GenericUnixCommand):
     def _command_error(self, line):
         if self._regex_helper.search_compiled(Sftp._re_help, line):
             self.set_exception(CommandFailure(self, "ERROR: invalid command syntax"))
-            print("ERROR")
             raise ParsingDone
         for _re_error in Sftp._error_regex_compiled:
             if self._regex_helper.search_compiled(_re_error, line):
                 self.set_exception(CommandFailure(self, "ERROR: {}".format(line)))
-                print("ERROR")
                 raise ParsingDone
 
     def _parse_line_from_prompt(self, line):
-        print("in parse line, command sent: " + str(self.command_sent))
         if self.ready_to_parse_line:
             if self.command_sent:
                 if 'RESULT' not in self.current_ret:
                     self.current_ret['RESULT'] = list()
                 self.current_ret['RESULT'].append(line)
-                print("inside parse from prompt" + str(self.current_ret))
                 raise ParsingDone
 
 
@@ -296,14 +271,13 @@ COMMAND_RESULT_upload = {
 
 
 COMMAND_OUTPUT_mkdir = """xyz@debian:/home$ sftp fred@192.168.0.102:animals
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 fred@192.168.0.102's password:
 Permission denied, please try again.
 fred@192.168.0.102's password:
 Connected to 192.168.0.102.
 Changing to: /upload/animals
 sftp>
-sftp> mkdir pets
+sftp> mkdir pets/cats/small
 sftp>
 xyz@debian:/home$"""
 
@@ -312,7 +286,7 @@ COMMAND_KWARGS_mkdir = {
     'user': 'fred',
     'password': '1234',
     'source_path': 'animals',
-    'command': 'mkdir pets',
+    'command': 'mkdir pets/cats/small',
     'no_result': True
 }
 
