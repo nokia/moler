@@ -266,11 +266,14 @@ class ObservableConnection(Connection):
         for self_or_none, observer_function in current_subscribers:
             try:
                 self._log(level=TRACE, msg=r'notifying {}({!r})'.format(observer_function, repr(data)))
-                if self_or_none is None:
-                    observer_function(data)
-                else:
-                    observer_self = self_or_none
-                    observer_function(observer_self, data)
+                try:
+                    if self_or_none is None:
+                        observer_function(data)
+                    else:
+                        observer_self = self_or_none
+                        observer_function(observer_self, data)
+                except Exception:
+                    self.logger.exception(msg=r'Exception inside: {}({!r})'.format(observer_function, repr(data)))
             except ReferenceError:
                 pass  # ignore: weakly-referenced object no longer exists
 
