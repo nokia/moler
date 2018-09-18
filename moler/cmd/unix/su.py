@@ -3,9 +3,9 @@
 Su command module.
 """
 
-__author__ = 'Agnieszka Bylica'
+__author__ = 'Agnieszka Bylica, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'agnieszka.bylica@nokia.com'
+__email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com'
 
 import re
 
@@ -18,7 +18,7 @@ from moler.exceptions import ParsingDone
 class Su(GenericUnixCommand):
 
     def __init__(self, connection, user=None, options=None, password=None, prompt=None, expected_prompt=None,
-                 new_line_chars=None):
+                 new_line_chars=None, encrypt_password=True):
         super(Su, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
         # Parameters defined by calling the command
@@ -27,6 +27,7 @@ class Su(GenericUnixCommand):
         self.user = user
         self.options = options
         self.password = password
+        self.encrypt_password = encrypt_password
 
         # Internal variables
         self._password_sent = False
@@ -90,7 +91,7 @@ class Su(GenericUnixCommand):
 
     def _send_password_if_requested(self, line):
         if (not self._password_sent) and self._is_password_requested(line) and self.password:
-            self.connection.sendline(self.password)
+            self.connection.sendline(self.password, encrypt=self.encrypt_password)
             self._password_sent = True
             raise ParsingDone
         elif (not self._password_sent) and self._is_password_requested(line) and (not self.password):

@@ -9,8 +9,6 @@ __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
-import logging
-
 from moler.device.unixlocal import UnixLocal
 
 
@@ -18,7 +16,7 @@ from moler.device.unixlocal import UnixLocal
 class UnixRemote(UnixLocal):
     unix_remote = "UNIX_REMOTE"
 
-    def __init__(self, io_connection=None, io_type=None, variant=None, sm_params=dict()):
+    def __init__(self, name=None, io_connection=None, io_type=None, variant=None, sm_params=dict()):
         """
         Create Unix device communicating over io_connection
 
@@ -26,9 +24,8 @@ class UnixRemote(UnixLocal):
         :param io_type: External-IO connection connection type
         :param variant: External-IO connection variant
         """
-        super(UnixRemote, self).__init__(io_connection=io_connection, io_type=io_type, variant=variant,
+        super(UnixRemote, self).__init__(name=name, io_connection=io_connection, io_type=io_type, variant=variant,
                                          sm_params=sm_params)
-        self.logger = logging.getLogger('moler.unixlocal')
 
     def _get_default_sm_configuration(self):
         config = {
