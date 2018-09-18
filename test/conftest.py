@@ -19,11 +19,13 @@ from moler.helpers import instance_id
 
 def pytest_runtest_protocol(item, nextitem):
     logger = logging.getLogger("moler")
+    logger.propagate = False
     logger.log(level=moler.config.loggers.TEST_CASE, msg=item.nodeid)
 
 
 def pytest_runtest_logreport(report):
     logger = logging.getLogger("moler")
+    logger.propagate = False
     logger.log(level=moler.config.loggers.TEST_CASE,
                msg="TC {} [{}]".format(str(report.when).upper(),
                                        str(report.outcome).upper()))
