@@ -1,5 +1,5 @@
 from importlib import import_module
-from os import listdir
+from os import path, walk
 from os.path import isfile, join, abspath, dirname
 
 from mock import mock
@@ -9,8 +9,7 @@ __author__ = 'Michal Plichta'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'michal.plichta@nokia.com'
 
-
-cmd_dir_under_test = 'moler/cmd/at/'
+cmd_dir_under_test = 'moler/cmd/'
 
 
 # --------------- helper functions ---------------
@@ -30,13 +29,14 @@ def _list_in_path(listing_type):
     file_list = []
 
     if listing_type == 'allfiles':
-        file_list = [f for f in listdir(abs_test_path) if isfile(join(abs_test_path, f))]
+        file_list = [f for root, dirs, files in walk(abs_test_path) for f in files if isfile(join(root, f))]
     elif listing_type == 'fullpath':
-        file_list = ['{}{}'.format(cmd_dir_under_test, f) for f in listdir(abs_test_path)
-                     if isfile(join(abs_test_path, f)) and '__init__' not in f and '.pyc' not in f]
+        file_list = [path.join(cmd_dir_under_test, path.basename(root), f) for root, dirs, files in walk(abs_test_path)
+                     for f in files if isfile(join(root, f)) and '__init__' not in f and '.pyc' not in f]
     elif listing_type == 'only_py':
-        file_list = [f for f in listdir(abs_test_path)
-                     if isfile(join(abs_test_path, f)) and '__init__' not in f and '.pyc' not in f]
+        file_list = [f for root, dirs, files in walk(abs_test_path)
+                     for f in files if isfile(join(root, f)) and '__init__' not in f and '.pyc' not in f]
+
     return file_list
 
 
@@ -49,12 +49,19 @@ def _load_obj(func_name):
     :rtype: type
     """
     return getattr(import_module('moler.util.cmds_doc'), func_name)
+
+
 # --------------- helper functions ---------------
 
 
 def test_documentation_exists():
     from moler.util.cmds_doc import check_if_documentation_exists
-    assert check_if_documentation_exists("moler/cmd") is True
+
+    dir_path = path.dirname(path.realpath(__file__))
+    moler_dir_path = path.dirname(dir_path)
+    cmd_path = path.join(moler_dir_path, "moler", "cmd")
+
+    assert check_if_documentation_exists(cmd_path) is True
 
 
 def test_buffer_connection_returns_threadconnection_with_moler_conn():
@@ -103,6 +110,7 @@ def test_walk_moler_commands_is_generator_return_all_files_in_dir():
     list_from_generator = []
     for cmd, file in zip(walker, file_list):
         list_from_generator.append(cmd)
+
         assert file in str(cmd[0])
     assert len(list_from_generator) == len(file_list)
 
@@ -196,7 +204,8 @@ def test_create_command_raise_exception_when_object_takes_no_params(fake_cmd):
     with raises(Exception) as exc:
         _create_command(fake_cmd, _buffer_connection().moler_connection, {})
 
-    assert "via FakeCommand() : object() takes no parameters" or "via FakeCommand() : this constructor takes no arguments" in str(exc.value)
+    assert "via FakeCommand() : object() takes no parameters" or "via FakeCommand() : this constructor takes no arguments" in str(
+        exc.value)
 
 
 def test_create_command_success(nice_cmd):
@@ -212,7 +221,8 @@ def test_run_command_parsing_test_success(nice_cmd):
     from moler.util.cmds_doc import _run_command_parsing_test, _buffer_connection, _get_doc_variant, _create_command
     buffer_io = _buffer_connection()
     variant = '_ver_nice'
-    test_data = {variant: {'COMMAND_OUTPUT': 'nice', 'COMMAND_KWARGS': {'nice': 'nice'}, 'COMMAND_RESULT': {'nice': 'nice'}}}
+    test_data = {
+        variant: {'COMMAND_OUTPUT': 'nice', 'COMMAND_KWARGS': {'nice': 'nice'}, 'COMMAND_RESULT': {'nice': 'nice'}}}
 
     cmd_output, cmd_kwargs, cmd_result = _get_doc_variant(test_data, variant)
     moler_cmd, creation_str = _create_command(nice_cmd, buffer_io.moler_connection, cmd_kwargs)

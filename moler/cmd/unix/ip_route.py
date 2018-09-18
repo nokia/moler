@@ -10,7 +10,7 @@ __email__ = 'snackwell.yang@nokia-sbell.com, marcin.usielski@nokia.com, grzegorz
 import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
-from moler.cmd.converterhelper import ConverterHelper
+from moler.util.converterhelper import ConverterHelper
 from moler.exceptions import ParsingDone
 
 
