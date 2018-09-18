@@ -1,4 +1,11 @@
+LOGGER:
+  PATH: /tmp/
+  RAW_LOG: True
+  DATE_FORMAT: '%d %H:%M:%S'
+
 DEVICES:
+  CREATE_AT_STARTUP: True
+
   DEFAULT_CONNECTION:
     CONNECTION_DESC:
       io_type: terminal

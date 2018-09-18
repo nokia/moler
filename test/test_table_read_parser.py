@@ -23,7 +23,6 @@ def test_tabletext_command_command_field_in_the_middle():
             result.append(z)
 
     assert result == table_text.COMMAND_RESULT
-    pass
 
 
 def test_tabletext_command_command_field_in_the_middle_different_split():
@@ -42,7 +41,6 @@ def test_tabletext_command_command_field_in_the_middle_different_split():
             result.append(z)
 
     assert result == table_text.COMMAND_RESULT_V2
-    pass
 
 
 def test_tabletext_output_from_epcsim():
@@ -61,7 +59,6 @@ def test_tabletext_output_from_epcsim():
             result.append(z)
 
     assert result == table_text.COMMAND_RESULT_V3
-    pass
 
 
 def test_tabletext_for_emty_value_field():
@@ -78,7 +75,5 @@ def test_tabletext_for_emty_value_field():
         z = t_text.parse(i)
         if z is not None:
             result.append(z)
-    print(result)
 
     assert result == table_text.COMMAND_RESULT_V4
-    pass
