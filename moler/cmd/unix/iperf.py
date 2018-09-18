@@ -22,7 +22,7 @@ class Iperf(GenericUnixCommand):
         self.current_ret['CONNECTIONS'] = dict()
         self.current_ret['INFO'] = list()
 
-        #private values
+        # private values
         self._connection_dict = dict()
         self._list_of_connections = dict()
         self._converter_helper = ConverterHelper()
@@ -131,7 +131,7 @@ COMMAND_KWARGS_basic_client = {
 COMMAND_RESULT_basic_client = {
     'CONNECTIONS':
         {'local 192.168.0.102 port 49597 connected with 192.168.0.100 port 5001': [
-            {'Bandwidth': '240 Mbits/sec','Bandwidth Raw': 251658240, 'Transfer': '28.6 MBytes',
+            {'Bandwidth': '240 Mbits/sec', 'Bandwidth Raw': 251658240, 'Transfer': '28.6 MBytes',
              'Transfer Raw': 29989273, 'Interval': '0.0- 1.0 sec'},
             {'Bandwidth': '217 Mbits/sec', 'Bandwidth Raw': 227540992, 'Transfer': '25.9 MBytes',
              'Transfer Raw': 27158118, 'Interval': '1.0- 2.0 sec'},
