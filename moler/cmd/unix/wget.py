@@ -50,7 +50,7 @@ class Wget(GenericUnixCommand):
                 self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
                 raise ParsingDone
 
-    _re_progress_bar = re.compile(r"(?P<BAR>\S+\s+(?P<PERCENT>\d{1,2})%\[=+>\]\s+\S+\s+\S+\s+in\s\d+s)", re.I)
+    _re_progress_bar = re.compile(r"(?P<BAR>\S+\s+(?P<PERCENT>\d{1,2})%\s\[[=+>]+\s*\]\s+\S+\s+\S+\s+in\s+[^s]+s)", re.I)
 
     def _parse_line_progress_bar(self, line):
         if self._regex_helper.search_compiled(Wget._re_progress_bar, line):
@@ -77,11 +77,8 @@ Connecting to ftp.gnu.org|208.118.235.20|:80... connected.
 HTTP request sent, awaiting response... 200 OK
 Length: 446966 (436K) [application/x-gzip]
 Saving to: wget-1.5.3.tar.gz
-9%[===================================================================================>] 446,966     60.0K/s   in 7.4s
-20%[===================================================================================>] 446,966     60.0K/s   in 7.4s
-27%[===================================================================================>] 446,966     60.0K/s   in 7.4s
-60%[===================================================================================>] 446,966     60.0K/s   in 7.4s
-89%[===================================================================================>] 446,966     60.0K/s   in 7.4s
+users.student.com/lesson01/character.html 10% [=============================================>]   3.56K  --.-KB/s    in 0s
+users.student.com/lesson01/character.html 25% [=============================================>]   3.56K  --.-KB/s    in 0s
 100%[===================================================================================>] 446,966     60.0K/s   in 7.4s
 2012-10-02 11:28:38 (58.9 KB/s) - wget-1.5.3.tar.gz
 moler@debian:~$"""
@@ -103,7 +100,7 @@ Proxy request sent, awaiting response... 200 OK
 Length: 3648 (3.6K) [text/html]
 Saving to: 'users.student.com/lesson01/character.html'
 
-users.student.com/lesson01/character.htm 100%[=============================================>]   3.56K  --.-KB/s    in 0s
+users.student.com/lesson01/character.html 100%[=============================================>]   3.56K  --.-KB/s    in 0s
 
 2018-09-14 13:06:20 (210 MB/s) - 'users.student.com/lesson01/character.html' saved [3648/3648]
 
