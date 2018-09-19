@@ -14,11 +14,16 @@ import re
 
 
 class Wget(GenericUnixCommand):
-    def __init__(self, connection, options, prompt=None, new_line_chars=None):
+    def __init__(self, connection, options, log_progress_bar=False, prompt=None, new_line_chars=None):
         super(Wget, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
         self.options = options  # should contain URLs
+        self.log_progress_bar = log_progress_bar
+        self.next_percent = 0
+        self.last_change_time = 0
         self.current_ret['RESULT'] = list()
+        if self.log_progress_bar:
+            self.current_ret['PROGRESS_LOG'] = list()
 
     def build_command_string(self):
         cmd = "wget " + self.options
@@ -28,7 +33,9 @@ class Wget(GenericUnixCommand):
         if is_full_line:
             try:
                 self._command_error(line)
-                self._parse_line(line)
+                if self.log_progress_bar:
+                    self._parse_line_progress_bar(line)
+                self._parse_line_complete(line)
             except ParsingDone:
                 pass
         super(Wget, self).on_new_line(line, is_full_line)
@@ -43,9 +50,21 @@ class Wget(GenericUnixCommand):
                 self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
                 raise ParsingDone
 
+    _re_progress_bar = re.compile(r"(?P<BAR>\S+\s+(?P<PERCENT>\d{1,2})%\[=+>\]\s+\S+\s+\S+\s+in\s\d+s)", re.I)
+
+    def _parse_line_progress_bar(self, line):
+        if self._regex_helper.search_compiled(Wget._re_progress_bar, line):
+            current_percent = int(self._regex_helper.group("PERCENT"))
+            if self.next_percent == 0:
+                self.next_percent = current_percent + 9
+                self.current_ret['PROGRESS_LOG'].append(self._regex_helper.group("BAR"))
+            elif current_percent > self.next_percent:
+                self.next_percent = current_percent + 9
+                self.current_ret['PROGRESS_LOG'].append(self._regex_helper.group("BAR"))
+
     _re_file_saved = re.compile(r"(?P<SAVED>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d\s\(\d+.\d+\s\w\w/s\)\s-\s.*)", re.I)
 
-    def _parse_line(self, line):
+    def _parse_line_complete(self, line):
         if self._regex_helper.search_compiled(Wget._re_file_saved, line):
             self.current_ret['RESULT'].append(self._regex_helper.group("SAVED"))
             raise ParsingDone
@@ -58,12 +77,18 @@ Connecting to ftp.gnu.org|208.118.235.20|:80... connected.
 HTTP request sent, awaiting response... 200 OK
 Length: 446966 (436K) [application/x-gzip]
 Saving to: wget-1.5.3.tar.gz
+9%[===================================================================================>] 446,966     60.0K/s   in 7.4s
+20%[===================================================================================>] 446,966     60.0K/s   in 7.4s
+27%[===================================================================================>] 446,966     60.0K/s   in 7.4s
+60%[===================================================================================>] 446,966     60.0K/s   in 7.4s
+89%[===================================================================================>] 446,966     60.0K/s   in 7.4s
 100%[===================================================================================>] 446,966     60.0K/s   in 7.4s
 2012-10-02 11:28:38 (58.9 KB/s) - wget-1.5.3.tar.gz
 moler@debian:~$"""
 
 COMMAND_KWARGS = {
-    'options': 'http://ftp.gnu.org/gnu/wget/wget-1.5.3.tar.gz'
+    'options': 'http://ftp.gnu.org/gnu/wget/wget-1.5.3.tar.gz',
+    'log_progress_bar': True
 }
 
 COMMAND_RESULT = {
