@@ -82,7 +82,6 @@ def test_connection_observer_with_unhandled_exception_is_made_done_with_exceptio
     moler_conn = ObservableConnection()
     connection_observer = FailingObserver(connection=moler_conn)
     connection_observer_future = observer_runner.submit(connection_observer)
-    time.sleep(0.1)  # allow runner thread to start
     assert connection_observer_future.running()
     try:
         moler_conn.data_received("data")  # will route to data_received() of observer
@@ -93,6 +92,22 @@ def test_connection_observer_with_unhandled_exception_is_made_done_with_exceptio
         assert connection_observer._exception is not None
     finally:  # test cleanup
         connection_observer_future.cancel()
+
+
+def test_gets_all_data_of_connection_after_it_is_started(observer_runner):
+    from moler.connection import ObservableConnection
+
+    for n in range(20):  # need to test multiple times because of thread races
+        moler_conn = ObservableConnection()
+        net_down_detector = NetworkDownDetector(connection=moler_conn, runner=observer_runner)
+        connection = net_down_detector.connection
+        net_down_detector.start()
+
+        connection.data_received("61 bytes")
+        connection.data_received("62 bytes")
+        connection.data_received("ping: Network is unreachable")
+
+        assert net_down_detector.all_data_received == ["61 bytes", "62 bytes", "ping: Network is unreachable"]
 
 
 # TODO: tests for error cases
@@ -110,8 +125,9 @@ def observer_runner():
 
 
 class NetworkDownDetector(ConnectionObserver):
-    def __init__(self, connection=None):
-        super(NetworkDownDetector, self).__init__(connection=connection)
+    def __init__(self, connection=None, runner=None):
+        super(NetworkDownDetector, self).__init__(connection=connection, runner=runner)
+        self.all_data_received = []
 
     def data_received(self, data):
         """
@@ -119,6 +135,7 @@ class NetworkDownDetector(ConnectionObserver):
         64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms
         ping: sendmsg: Network is unreachable
         """
+        self.all_data_received.append(data)
         if not self.done():
             if "Network is unreachable" in data:
                 when_detected = time.time()
