@@ -359,17 +359,17 @@ class TextualDevice(object):
             observer._validate_start = validate_device_state_before_observer_start
         return observer
 
-    def get_cmd(self, cmd_name, check_state=True, **kwargs):
-        if "prompt" not in kwargs:
-            kwargs["prompt"] = self.get_prompt()
+    def get_cmd(self, cmd_name, cmd_params={}, check_state=True):
+        if "prompt" not in cmd_params:
+            cmd_params["prompt"] = self.get_prompt()
         cmd = self.get_observer(observer_name=cmd_name, observer_type=TextualDevice.cmds,
-                                observer_exception=CommandWrongState, check_state=check_state, **kwargs)
+                                observer_exception=CommandWrongState, check_state=check_state, **cmd_params)
         assert isinstance(cmd, CommandTextualGeneric)
         return cmd
 
-    def get_event(self, event_name, check_state=True, **kwargs):
+    def get_event(self, event_name, event_params={}, check_state=True):
         event = self.get_observer(observer_name=event_name, observer_type=TextualDevice.events,
-                                  observer_exception=EventWrongState, check_state=check_state, **kwargs)
+                                  observer_exception=EventWrongState, check_state=check_state, **event_params)
 
         return event
 
@@ -447,9 +447,13 @@ class TextualDevice(object):
 
     def _run_prompts_observers(self):
         for state in self._state_prompts.keys():
-            prompt_event = self.get_event(event_name="wait4prompt",
-                                          prompt=self._state_prompts[state],
-                                          till_occurs_times=-1)
+            prompt_event = self.get_event(
+                event_name="wait4prompt",
+                event_params={
+                    "prompt": self._state_prompts[state],
+                    "till_occurs_times": -1
+                }
+            )
 
             prompt_event_callback = functools.partial(self._prompt_observer_callback, event=prompt_event, state=state)
             prompt_event.add_event_occurred_callback(callback=prompt_event_callback)
