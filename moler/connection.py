@@ -138,9 +138,10 @@ class Connection(object):
                       'log_name': self.name
                   })
 
-        encoded_data = self.encode(data)
-        self._log_data(msg=encoded_data, level=RAW_DATA, extra={'transfer_direction': '>', 'encoder': lambda data: data.encode('utf-8')})
+        encoded_msg = self.encode(msg)
+        self._log_data(msg=encoded_msg, level=RAW_DATA, extra={'transfer_direction': '>', 'encoder': lambda data: data.encode('utf-8')})
 
+        encoded_data = self.encode(data)
         self.how2send(encoded_data)
 
     def sendline(self, data, timeout=30, encrypt=False):
