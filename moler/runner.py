@@ -14,6 +14,7 @@ import logging
 import time
 import threading
 from abc import abstractmethod, ABCMeta
+import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor, wait
 from moler.exceptions import ConnectionObserverTimeout
 from moler.exceptions import CommandTimeout
@@ -81,6 +82,50 @@ class ConnectionObserverRunner(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.shutdown()
         return False  # exceptions (if any) should be reraised
+
+
+class CancellableFuture(object):
+    def __init__(self, future, is_started, stop_running, is_done, stop_timeout=0.5):
+        """
+        Wrapper to allow cancelling already running concurrent.futures.Future
+
+        Assumes that executor submitted function with following parameters
+        fun(is_started, stop_running, is_done)
+        and that such function correctly handles that events (threading.Event)
+
+        :param future: wrapped instance of concurrent.futures.Future
+        :param is_started: set when function started to run in thread
+        :param stop_running: set externally to finish thread execution of function
+        :param is_done: set when function finished running in thread
+        :param stop_timeout: timeout to await is_done after setting stop_running
+        """
+        self._future = future
+        self._is_started = is_started
+        self._stop_running = stop_running
+        self._stop_timeout = stop_timeout
+        self._is_done = is_done
+
+    def __getattr__(self, attr):
+        """Make it proxy to embedded future"""
+        attribute = getattr(self._future, attr)
+        return attribute
+
+    def cancel(self):
+        if self.running():
+            self._stop_running.set()  # force threaded-function to exit
+            if not self._is_done.wait(timeout=self._stop_timeout):
+                err_msg = "Failed to stop observer feeding thread within {} sec".format(self._stop_timeout)
+                # TODO: should we break current thread or just set this exception inside connection-observer
+                #       (is it symetric to failed-start ?)
+                # may cause leaking resources - no call to moler_conn.unsubscribe()
+                raise MolerException(err_msg)
+                # return False
+
+            # after exiting threaded-function future.state == FINISHED
+            # we need to change it to PENDING to allow for correct cancel via concurrent.futures.Future
+            with self._condition:
+                self._future._state = concurrent.futures._base.PENDING
+        return self._future.cancel()
 
 
 class ThreadPoolExecutorRunner(ConnectionObserverRunner):
@@ -164,6 +209,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                                        "'{}.{}' has timed out after '{:.2f}' seconds.".format(
                                            connection_observer.__class__.__module__,
                                            connection_observer.__class__.__name__, time.time() - start_time))
+        # TODO: rethink - on timeout we raise while on other exceptions we expect observers
+        #       just to call  observer.set_exception() - so, no raise before calling observer.result()
         if hasattr(connection_observer, "command_string"):
             raise CommandTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
         else:
