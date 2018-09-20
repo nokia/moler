@@ -58,21 +58,6 @@ def buffer_connection():
         yield ext_io_in_memory
 
 
-@fixture
-def at_cmd_test_class():
-    from moler.cmd.at.at import AtCmd
-
-    class AtCmdTest(AtCmd):
-        def __init__(self, connection=None, operation="execute"):
-            super(AtCmdTest, self).__init__(connection, operation)
-            self.set_at_command_string("AT+CMD")
-
-        def parse_command_output(self):
-            self.set_result("result")
-
-    return AtCmdTest
-
-
 # actions during import:
 os.environ['MOLER_DEBUG_LEVEL'] = 'TRACE'  # to have all debug details of tests
 moler.config.loggers.raw_logs_active = True
