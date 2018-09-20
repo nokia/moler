@@ -10,17 +10,22 @@ __email__ = 'agnieszka.bylica@nokia.com'
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
+import time
+import random
 import re
 
 
 class Wget(GenericUnixCommand):
-    def __init__(self, connection, options, log_progress_bar=False, prompt=None, new_line_chars=None):
+    def __init__(self, connection, options, log_progress_bar=False, timeout=60, prompt=None, new_line_chars=None):
         super(Wget, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
 
         self.options = options  # should contain URLs
         self.log_progress_bar = log_progress_bar
+        self.extend_timeout(timeout)
+        self.current_percent = 0
         self.next_percent = 0
         self.last_change_time = 0
+        self.time_difference = 0
         self.current_ret['RESULT'] = list()
         if self.log_progress_bar:
             self.current_ret['PROGRESS_LOG'] = list()
@@ -40,6 +45,11 @@ class Wget(GenericUnixCommand):
                 pass
         super(Wget, self).on_new_line(line, is_full_line)
 
+    def on_timeout(self):
+        print("Command timeout in {}% progress after waiting {}s for next "
+              "update".format(self.current_percent, time.clock() - self.last_change_time))
+        super(Wget, self).on_timeout()
+
     _re_command_error = list()
     _re_command_error.append(re.compile(r"(?P<ERROR>Connecting\sto\s.*\sfailed:.*)", re.I))
     _re_command_error.append(re.compile(r"wget:\s(?P<ERROR>.*)", re.I))
@@ -50,17 +60,32 @@ class Wget(GenericUnixCommand):
                 self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
                 raise ParsingDone
 
-    _re_progress_bar = re.compile(r"(?P<BAR>\S+\s+(?P<PERCENT>\d{1,2})%\s\[[=+>]+\s*\]\s+\S+\s+\S+\s+in\s+[^s]+s)", re.I)
+    _re_progress_bar = re.compile(r"(?P<BAR>\S+\s+(?P<PERCENT>\d{1,2})%\s\[\s*[=+>]+\s*\]\s+\S+\s+\S+\s+in\s+[^s]+s)", re.I)
 
     def _parse_line_progress_bar(self, line):
         if self._regex_helper.search_compiled(Wget._re_progress_bar, line):
-            current_percent = int(self._regex_helper.group("PERCENT"))
-            if self.next_percent == 0:
-                self.next_percent = current_percent + 9
+            rand = random.randrange(1, 5, 1)
+            print(rand)
+            print("last change time: " + str(self.last_change_time))
+            time.sleep(rand)
+            self.current_percent = int(self._regex_helper.group("PERCENT"))
+            if self.last_change_time == 0:
+                self.next_percent = self.current_percent + 9
+                self.last_change_time = time.clock()
                 self.current_ret['PROGRESS_LOG'].append(self._regex_helper.group("BAR"))
-            elif current_percent > self.next_percent:
-                self.next_percent = current_percent + 9
+            elif self.current_percent > self.next_percent:
+                self.next_percent = self.current_percent + 9
+                current_time = time.clock()
+                print("current: " + str(current_time))
+                self.time_difference = current_time - self.last_change_time
+                self.last_change_time = current_time
                 self.current_ret['PROGRESS_LOG'].append(self._regex_helper.group("BAR"))
+            else:
+                current_time = time.clock()
+                print("current no % : " + str(current_time))
+                self.time_difference = current_time - self.last_change_time
+                self.last_change_time = current_time
+            print("current difference time: " + str(self.time_difference))
 
     _re_file_saved = re.compile(r"(?P<SAVED>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d\s\(\d+.\d+\s\w\w/s\)\s-\s.*)", re.I)
 
@@ -77,19 +102,35 @@ Connecting to ftp.gnu.org|208.118.235.20|:80... connected.
 HTTP request sent, awaiting response... 200 OK
 Length: 446966 (436K) [application/x-gzip]
 Saving to: wget-1.5.3.tar.gz
-users.student.com/lesson01/character.html 10% [=============================================>]   3.56K  --.-KB/s    in 0s
-users.student.com/lesson01/character.html 25% [=============================================>]   3.56K  --.-KB/s    in 0s
+users.student.com/lesson01/character.html 10% [============================================>]   3.56K  --.-KB/s    in 0s
+users.student.com/lesson01/character.html 14% [============================================>]   3.56K  --.-KB/s    in 2s
+users.student.com/lesson01/character.html 18% [============================================>]   3.56K  --.-KB/s    in 2s
+users.student.com/lesson01/character.html 25% [============================================>]   3.56K  --.-KB/s    in 3s
+users.student.com/lesson01/character.html 30% [============================================>]   3.56K  --.-KB/s    in 3s
+users.student.com/lesson01/character.html 37% [============================================>]   3.56K  --.-KB/s    in 3s
+users.student.com/lesson01/character.html 38% [============================================>]   3.56K  --.-KB/s    in 3s
+users.student.com/lesson01/character.html 42% [============================================>]   3.56K  --.-KB/s    in 3s
+users.student.com/lesson01/character.html 50% [============================================>]   3.56K  --.-KB/s    in 3s
+users.student.com/lesson01/character.html 51% [============================================>]   3.56K  --.-KB/s    in 3s
+users.student.com/lesson01/character.html 56% [============================================>]   3.56K  --.-KB/s    in 3s
+users.student.com/lesson01/character.html 59% [============================================>]   3.56K  --.-KB/s    in 3s
+users.student.com/lesson01/character.html 61% [============================================>]   3.56K  --.-KB/s    in 3s
+users.student.com/lesson01/character.html 64% [============================================>]   3.56K  --.-KB/s    in 3s
+users.student.com/lesson01/character.html 78% [============================================>]   3.56K  --.-KB/s    in 3s
+users.student.com/lesson01/character.html 99% [============================================>]   3.56K  --.-KB/s    in 3s
 100%[===================================================================================>] 446,966     60.0K/s   in 7.4s
 2012-10-02 11:28:38 (58.9 KB/s) - wget-1.5.3.tar.gz
 moler@debian:~$"""
 
 COMMAND_KWARGS = {
     'options': 'http://ftp.gnu.org/gnu/wget/wget-1.5.3.tar.gz',
-    'log_progress_bar': True
+    'log_progress_bar': True,
+    'timeout': 20
 }
 
 COMMAND_RESULT = {
-    'RESULT': ['2012-10-02 11:28:38 (58.9 KB/s) - wget-1.5.3.tar.gz']
+    'RESULT': ['2012-10-02 11:28:38 (58.9 KB/s) - wget-1.5.3.tar.gz'],
+    'PROGRESS_LOG': []
 }
 
 
@@ -100,7 +141,7 @@ Proxy request sent, awaiting response... 200 OK
 Length: 3648 (3.6K) [text/html]
 Saving to: 'users.student.com/lesson01/character.html'
 
-users.student.com/lesson01/character.html 100%[=============================================>]   3.56K  --.-KB/s    in 0s
+users.student.com/lesson01/character.html 100%[============================================>]   3.56K  --.-KB/s    in 0s
 
 2018-09-14 13:06:20 (210 MB/s) - 'users.student.com/lesson01/character.html' saved [3648/3648]
 
