@@ -198,7 +198,6 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             done, not_done = wait([connection_observer_future], timeout=wait_tick)
             if connection_observer_future in done:
                 connection_observer_future._stop()
-                ### self.shutdown()
                 result = connection_observer_future.result()
                 self.logger.debug("{} returned {}".format(connection_observer, result))
                 return result
@@ -211,7 +210,6 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         self.logger.debug("timed out {}".format(connection_observer))
         connection_observer_future.cancel()
         connection_observer.cancel()  # TODO: should call connection_observer_future.cancel() via runner
-        ### self.shutdown()
         connection_observer.on_timeout()
         connection_observer.logger.log(logging.INFO,
                                        "'{}.{}' has timed out after '{:.2f}' seconds.".format(
