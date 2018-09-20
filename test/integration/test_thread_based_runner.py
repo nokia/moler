@@ -108,9 +108,10 @@ def test_can_await_connection_observer_to_timeout(connection_observer,
 def test_connection_observer_with_unhandled_exception_is_made_done_with_exception_stored(observer_runner):
     from moler.connection import ObservableConnection
 
+    fail_exc = Exception("Fail inside observer")
     class FailingObserver(ConnectionObserver):
         def data_received(self, data):
-            raise Exception("Fail inside observer")
+            raise fail_exc
 
     moler_conn = ObservableConnection()
     connection_observer = FailingObserver(connection=moler_conn)
@@ -119,10 +120,11 @@ def test_connection_observer_with_unhandled_exception_is_made_done_with_exceptio
     try:
         moler_conn.data_received("data")  # will route to data_received() of observer
 
+        assert connection_observer.done()
+        assert connection_observer._exception is fail_exc
+        time.sleep(0.1)  # let feeder exit on observer.done, let future realize this
         assert not connection_observer_future.running()
         assert connection_observer_future.done()
-        assert connection_observer.done()
-        assert connection_observer._exception is not None
     finally:  # test cleanup
         connection_observer_future.cancel()
 
