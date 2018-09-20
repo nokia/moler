@@ -11,14 +11,13 @@ Connection responsibilities:
 - have a means allowing multiple observers to get it's received data (data dispatching)
 """
 
-__author__ = 'Grzegorz Latuszek'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
 import platform
 import weakref
-from quopri import decodestring
 from threading import Lock
 
 import six
@@ -60,7 +59,8 @@ class Connection(object):
         self._decoder = decoder
         self._name = self._use_or_generate_name(name)
         self.newline = newline
-        self.logger = self._select_logger(logger_name, self._name)
+        self.data_logger = logging.getLogger('moler.{}'.format(self.name))
+        self.logger = Connection._select_logger(logger_name, self._name)
 
     @property
     def name(self):
@@ -75,10 +75,13 @@ class Connection(object):
         If connection is using default logger ("moler.connection.<name>")
         then modify logger after connection name change.
         """
-        self._log(msg=r'changing name: {} --> {}'.format(self._name, value), level=TRACE)
+        self._log(level=TRACE, msg=r'changing name: {} --> {}'.format(self._name, value))
         if self._using_default_logger():
-            self.logger = self._select_logger(logger_name="", connection_name=value)
+            self.logger = Connection._select_logger(logger_name="", connection_name=value)
         self._name = value
+
+    def set_data_logger(self, logger):
+        self.data_logger = logger
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
@@ -104,9 +107,9 @@ class Connection(object):
         default_logger_name = "moler.connection.{}".format(connection_name)
         name = logger_name or default_logger_name
         logger = logging.getLogger(name)
+
         if logger_name and (logger_name != default_logger_name):
-            msg = "using '{}' logger - not default '{}'".format(logger_name,
-                                                                default_logger_name)
+            msg = "using '{}' logger - not default '{}'".format(logger_name, default_logger_name)
             logger.log(level=logging.WARNING, msg=msg)
         return logger
 
@@ -115,17 +118,36 @@ class Connection(object):
             return False
         return self.logger.name == "moler.connection.{}".format(self._name)
 
-    def send(self, data, timeout=30):  # TODO: should timeout be property of IO? We timeout whole connection-observer.
-        """Outgoing-IO API: Send data over external-IO."""
-        self._log(msg=data, level=logging.INFO, extra={'transfer_direction': '>'})
-        data2send = self.encode(data)
-        self._log(msg=data2send, level=RAW_DATA, extra={'transfer_direction': '>'})
-        self.how2send(data2send)
+    @staticmethod
+    def _strip_data(data):
+        return data.strip() if isinstance(data, six.string_types) else data
 
-    def sendline(self, data, timeout=30):
+    # TODO: should timeout be property of IO? We timeout whole connection-observer.
+    def send(self, data, timeout=30, encrypt=False):
+        """Outgoing-IO API: Send data over external-IO."""
+        msg = data
+        if encrypt:
+            length = len(data)
+            msg = "*" * length
+
+        self._log_data(msg=msg, level=logging.INFO, extra={'transfer_direction': '>', 'encoder': lambda data: data.encode('utf-8')})
+        self._log(level=logging.INFO,
+                  msg=Connection._strip_data(msg),
+                  extra={
+                      'transfer_direction': '>',
+                      'log_name': self.name
+                  })
+
+        encoded_msg = self.encode(msg)
+        self._log_data(msg=encoded_msg, level=RAW_DATA, extra={'transfer_direction': '>', 'encoder': lambda data: data.encode('utf-8')})
+
+        encoded_data = self.encode(data)
+        self.how2send(encoded_data)
+
+    def sendline(self, data, timeout=30, encrypt=False):
         """Outgoing-IO API: Send data line over external-IO."""
         line = data + self.newline
-        self.send(data=line, timeout=timeout)
+        self.send(data=line, timeout=timeout, encrypt=encrypt)
 
     def data_received(self, data):
         """Incoming-IO API: external-IO should call this method when data is received"""
@@ -147,12 +169,27 @@ class Connection(object):
         err_msg += "\n{}: {}(how2send=external_io_send)".format("Do it either during connection construction",
                                                                 self.__class__.__name__)
         err_msg += "\nor later via attribute direct set: connection.how2send = external_io_send"
-        self._log(msg=err_msg, level=logging.ERROR)
+        self._log(level=logging.ERROR, msg=err_msg)
         raise WrongUsage(err_msg)
 
-    def _log(self, msg, level, extra=None):
+    def _log_data(self, msg, level, extra=None):
+        try:
+            self.data_logger.log(level, msg, extra=extra)
+        except Exception as err:
+            print(err)  # logging errors should not propagate
+
+    def _log(self, level, msg, extra=None):
         if self.logger:
-            self.logger.log(level, msg, extra=extra)
+            extra_params = {
+                'log_name': self.name
+            }
+
+            if extra:
+                extra_params.update(extra)
+            try:
+                self.logger.log(level, msg, extra=extra_params)
+            except Exception as err:
+                print(err)  # logging errors should not propagate
 
 
 class ObservableConnection(Connection):
@@ -190,20 +227,10 @@ class ObservableConnection(Connection):
         Incoming-IO API:
         external-IO should call this method when data is received
         """
-        # log input as ascii printable (for non-ascii dump as \0x prefixed bytes)
-        printable_data = decodestring(data)
-        self._log(msg=printable_data, level=RAW_DATA, extra={'transfer_direction': '<'})
+        self._log_data(msg=data, level=RAW_DATA, extra={'transfer_direction': '<', 'encoder': lambda data: data.encode('utf-8')})
 
         decoded_data = self.decode(data)
-        # decoded data might be unicode or bytes/ascii string, logger accepts only ascii.
-        if isinstance(decoded_data, six.text_type):
-            # We create ascii logs interpretable as utf-8 bytes.
-            # Editor with utf-8 support can correctly display such logs.
-            encoded_for_log = decoded_data.encode('utf-8')
-        else:
-            # bytes or ascii log
-            encoded_for_log = decoded_data
-        self._log(msg=encoded_for_log, level=logging.INFO, extra={'transfer_direction': '<'})
+        self._log_data(msg=decoded_data, level=logging.INFO, extra={'transfer_direction': '<', 'encoder': lambda data: data.encode('utf-8')})
 
         self.notify_observers(decoded_data)
 
@@ -213,8 +240,9 @@ class ObservableConnection(Connection):
         :param observer: function to be called
         """
         with self._observers_lock:
-            self._log(msg="subscribe({})".format(observer), level=TRACE)
+            self._log(level=TRACE, msg="subscribe({})".format(observer))
             observer_key, value = self._get_observer_key_value(observer)
+
             if observer_key not in self._observers:
                 self._observers[observer_key] = value
 
@@ -224,13 +252,13 @@ class ObservableConnection(Connection):
         :param observer: function that was previously subscribed
         """
         with self._observers_lock:
-            self._log(msg="unsubscribe({})".format(observer), level=TRACE)
+            self._log(level=TRACE, msg="unsubscribe({})".format(observer))
             observer_key, _ = self._get_observer_key_value(observer)
             if observer_key in self._observers:
                 del self._observers[observer_key]
             else:
-                self._log(msg="{} was not subscribed".format(observer),
-                          level=logging.WARNING)
+                self._log(level=logging.WARNING,
+                          msg="{} was not subscribed".format(observer))
 
     def notify_observers(self, data):
         """Notify all subscribed observers about data received on connection"""
@@ -238,12 +266,15 @@ class ObservableConnection(Connection):
         current_subscribers = list(self._observers.values())
         for self_or_none, observer_function in current_subscribers:
             try:
-                self._log(msg=r'notifying {}({!r})'.format(observer_function, repr(data)), level=TRACE)
-                if self_or_none is None:
-                    observer_function(data)
-                else:
-                    observer_self = self_or_none
-                    observer_function(observer_self, data)
+                self._log(level=TRACE, msg=r'notifying {}({!r})'.format(observer_function, repr(data)))
+                try:
+                    if self_or_none is None:
+                        observer_function(data)
+                    else:
+                        observer_self = self_or_none
+                        observer_function(observer_self, data)
+                except Exception:
+                    self.logger.exception(msg=r'Exception inside: {}({!r})'.format(observer_function, repr(data)))
             except ReferenceError:
                 pass  # ignore: weakly-referenced object no longer exists
 
@@ -283,13 +314,13 @@ class ObservableConnection(Connection):
             self_or_none = None
 
         try:
-            function = six.get_method_function(observer)
+            func = six.get_method_function(observer)
         except AttributeError:
-            function = observer
-        function_id = instance_id(function)
+            func = observer
+        function_id = instance_id(func)
 
         observer_key = (self_id, function_id)
-        observer_value = (self_or_none, weakref.proxy(function))
+        observer_value = (self_or_none, weakref.proxy(func))
         return observer_key, observer_value
 
 

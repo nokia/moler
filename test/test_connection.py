@@ -393,7 +393,6 @@ def test_single_unsubscription_doesnt_impact_other_subscribers():
     callable2 = TheCallableClass()
 
     moler_conn = ObservableConnection()
-    print("---")
     moler_conn.subscribe(observer1.on_new_data)
     moler_conn.subscribe(observer2.on_new_data)
     moler_conn.subscribe(observer2.on_new_data)
