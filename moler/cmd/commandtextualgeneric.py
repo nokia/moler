@@ -8,6 +8,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
+import logging
 import re
 
 import six
@@ -111,8 +112,8 @@ class CommandTextualGeneric(Command):
                 if not self.done():
                     self.set_result(self.current_ret)
             else:
-                self.logger.debug(
-                    "Found candidate for final prompt but current ret is None or empty, required not None nor empty.")
+                self._log(lvl=logging.DEBUG,
+                          msg="Found candidate for final prompt but current ret is None or empty, required not None nor empty.")
 
     def is_end_of_cmd_output(self, line):
         if self._regex_helper.search_compiled(self._re_prompt, line):

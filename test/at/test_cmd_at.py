@@ -17,7 +17,7 @@ def test_at_cmd_completes_cmd_output_received_in_chunks(buffer_connection, at_cm
     chunks = ["at+cimi\n", "\n\n", "4434", "55\n", "OK\n"]
     buffer_connection.remote_inject_response(chunks)
     at_cmd = at_cmd_test_class(connection=buffer_connection.moler_connection)
-    at_cmd(timeout=0.1)
+    at_cmd(timeout=0.2)
 
     assert at_cmd.command_output == "".join(chunks)
 
@@ -83,3 +83,21 @@ def test_at_cmd_raises_AtCommandModeNotSupported_when_instantiated_in_incorrect_
     from moler.cmd.at.at import AtCommandModeNotSupported
     with pytest.raises(AtCommandModeNotSupported) as error:
         at_cmd_test_class(operation="magic_mode")
+
+
+# --------------------------- resources ---------------------------
+
+
+@pytest.fixture
+def at_cmd_test_class():
+    from moler.cmd.at.at import AtCmd
+
+    class AtCmdTest(AtCmd):
+        def __init__(self, connection=None, operation="execute"):
+            super(AtCmdTest, self).__init__(connection, operation)
+            self.set_at_command_string("AT+CMD")
+
+        def parse_command_output(self):
+            self.set_result("result")
+
+    return AtCmdTest

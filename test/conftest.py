@@ -19,11 +19,13 @@ from moler.helpers import instance_id
 
 def pytest_runtest_protocol(item, nextitem):
     logger = logging.getLogger("moler")
+    logger.propagate = False
     logger.log(level=moler.config.loggers.TEST_CASE, msg=item.nodeid)
 
 
 def pytest_runtest_logreport(report):
     logger = logging.getLogger("moler")
+    logger.propagate = False
     logger.log(level=moler.config.loggers.TEST_CASE,
                msg="TC {} [{}]".format(str(report.when).upper(),
                                        str(report.outcome).upper()))
@@ -54,21 +56,6 @@ def buffer_connection():
     # all tests assume working with already open connection
     with ext_io_in_memory:  # open it (autoclose by context-mngr)
         yield ext_io_in_memory
-
-
-@fixture
-def at_cmd_test_class():
-    from moler.cmd.at.at import AtCmd
-
-    class AtCmdTest(AtCmd):
-        def __init__(self, connection=None, operation="execute"):
-            super(AtCmdTest, self).__init__(connection, operation)
-            self.set_at_command_string("AT+CMD")
-
-        def parse_command_output(self):
-            self.set_result("result")
-
-    return AtCmdTest
 
 
 # actions during import:
