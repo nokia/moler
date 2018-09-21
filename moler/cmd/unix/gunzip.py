@@ -37,20 +37,19 @@ class Gunzip(GenericUnixCommand):
 
     def on_new_line(self, line, is_full_line):
         try:
-
-            self._ignore_prompt(line)
+            self._parse_info_output(line)
             self._asks_to_overwrite(line)
             self._create_dictionary_at_l_option(line)
             self._command_failure(line)
-            self._parse_line(line)
         except ParsingDone:
             pass
         return super(Gunzip, self).on_new_line(line, is_full_line)
 
-    _re_user_prompt = re.compile(r"(?P<USER>.*@.*:)", re.IGNORECASE)
+    _re_info_output = re.compile(r" -- replaced with")
 
-    def _ignore_prompt(self, line):
-        if self._regex_helper.search_compiled(Gunzip._re_user_prompt, line):
+    def _parse_info_output(self, line):
+        if self._regex_helper.search_compiled(Gunzip._re_info_output, line):
+            self.current_ret['RESULT'].append(line)
             raise ParsingDone
 
     _re_overwrite = re.compile(r"gzip:\s(?P<FILE_NAME>.*already exists)", re.IGNORECASE)
@@ -67,14 +66,19 @@ class Gunzip(GenericUnixCommand):
     _re_l_option = re.compile(r"(?P<L_OPTION> compressed\s*uncompressed\s*ratio\s*uncompressed_name.*)", re.IGNORECASE)
 
     def _create_dictionary_at_l_option(self, line):
-        if self.keys:
+        if self.keys and not self.current_ret['RESULT']:
             self.values = line.strip().split()
             if 'date' in self.keys:
                 self.values = self.values[:2] + ['{} {}'.format(self.values[2], self.values[3])] + self.values[4:]
-            self._parse_line(dict(zip(self.keys, self.values)))
+            self.current_ret['RESULT'].append(dict(zip(self.keys, self.values)))
+            raise ParsingDone
         if self._regex_helper.search_compiled(Gunzip._re_l_option, line):
             self.keys = line.strip().split()
             raise ParsingDone
+
+    def _parse_line(self, line):
+        self.current_ret['RESULT'].append(line)
+        raise ParsingDone
 
     _re_error = re.compile(r"gzip:\s(?P<ERROR_MSG>.*)", re.IGNORECASE)
 
@@ -82,10 +86,6 @@ class Gunzip(GenericUnixCommand):
         if self._regex_helper.search_compiled(Gunzip._re_error, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG"))))
             raise ParsingDone
-
-    def _parse_line(self, line):
-        self.current_ret['RESULT'].append(line)
-        raise ParsingDone
 
 
 COMMAND_OUTPUT_without_options = """
