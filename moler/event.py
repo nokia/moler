@@ -14,8 +14,8 @@ from moler.helpers import instance_id
 
 class Event(ConnectionObserver):
 
-    def __init__(self, connection=None, till_occurs_times=-1):
-        super(Event, self).__init__(connection=connection)
+    def __init__(self, connection=None, till_occurs_times=-1, runner=None):
+        super(Event, self).__init__(connection=connection, runner=runner)
         self.detect_pattern = ''
         self.detect_patterns = []
         self.callback = None

@@ -24,7 +24,7 @@ from moler.runner import ThreadPoolExecutorRunner
 @add_metaclass(ABCMeta)
 class ConnectionObserver(object):
 
-    def __init__(self, connection=None):
+    def __init__(self, connection=None, runner=None):
         """
         Create instance of ConnectionObserver class
         :param connection: connection used to receive data awaited for
@@ -35,7 +35,7 @@ class ConnectionObserver(object):
         self._is_cancelled = False
         self._result = None
         self._exception = None
-        self.runner = ThreadPoolExecutorRunner()
+        self.runner = runner if runner else ThreadPoolExecutorRunner()
         self._future = None
         self.timeout = 7
         self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
