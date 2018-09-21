@@ -76,10 +76,6 @@ class Gunzip(GenericUnixCommand):
             self.keys = line.strip().split()
             raise ParsingDone
 
-    def _parse_line(self, line):
-        self.current_ret['RESULT'].append(line)
-        raise ParsingDone
-
     _re_error = re.compile(r"gzip:\s(?P<ERROR_MSG>.*)", re.IGNORECASE)
 
     def _command_failure(self, line):
