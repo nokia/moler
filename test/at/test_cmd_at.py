@@ -17,7 +17,7 @@ def test_at_cmd_completes_cmd_output_received_in_chunks(buffer_connection, at_cm
     chunks = ["at+cimi\n", "\n\n", "4434", "55\n", "OK\n"]
     buffer_connection.remote_inject_response(chunks)
     at_cmd = at_cmd_test_class(connection=buffer_connection.moler_connection)
-    at_cmd(timeout=0.2)
+    at_cmd(timeout=2)
 
     assert at_cmd.command_output == "".join(chunks)
 
