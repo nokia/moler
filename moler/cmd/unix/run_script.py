@@ -14,9 +14,9 @@ from moler.exceptions import CommandFailure
 
 
 class RunScript(GenericUnixCommand):
-    
-    def __init__(self, connection, script_command, error_regex=re.compile("error", re.I), prompt=None, new_line_chars=None):
-        super(RunScript, self).__init__(connection, prompt, new_line_chars)
+
+    def __init__(self, connection, script_command, error_regex=re.compile("error", re.I), prompt=None, new_line_chars=None, runner=None):
+        super(RunScript, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
         self.script_command = script_command
         self.error_regex = error_regex
         self.ret_required = False
@@ -25,7 +25,7 @@ class RunScript(GenericUnixCommand):
         return self.script_command
 
     def on_new_line(self, line, is_full_line):
-        if self._regex_helper.search_compiled(self.error_regex, line):
+        if self.error_regex and self._regex_helper.search_compiled(self.error_regex, line):
             self.set_exception(CommandFailure(self.command_string, "Found error regex in line '{}'".format(line)))
         return super(RunScript, self).on_new_line(line, is_full_line)
 
