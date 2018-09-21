@@ -35,7 +35,7 @@ def test_run_script_not_raise_exception(buffer_connection):
 
 @pytest.fixture
 def command_output_and_expected_result():
-    data = """ute@debdev:~$ ./myscript.sh
+    data = """ute@debdev:~$ ./myScript.sh
 ERROR: wrong data
 ute@debdev:~$"""
     result = dict()
