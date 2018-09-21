@@ -28,7 +28,15 @@ def test_device_unix_can_return_cd_command(configure_net_1_connection):
 
     ux = UnixLocal.from_named_connection(connection_name='net_1')
     assert hasattr(ux, 'get_cmd')
-    assert isinstance(ux.get_cmd(cmd_name='cd', path="/home/user/"), Cd)
+    assert isinstance(
+        ux.get_cmd(
+            cmd_name='cd',
+            cmd_params={
+                "path": "/home/user/"
+            }
+        ),
+        Cd
+    )
 
 
 # --------------------------- resources ---------------------------
