@@ -19,6 +19,7 @@ from moler.helpers import ClassProperty
 from moler.helpers import camel_case_to_lower_case_underscore
 from moler.helpers import instance_id
 from moler.runner import ThreadPoolExecutorRunner
+import time
 
 
 @add_metaclass(ABCMeta)
@@ -35,6 +36,8 @@ class ConnectionObserver(object):
         self._is_cancelled = False
         self._result = None
         self._exception = None
+        self._exception_time = 0
+        self._needed_exception_raise = False
         self.runner = runner if runner else ThreadPoolExecutorRunner()
         self._future = None
         self.timeout = 7
@@ -149,6 +152,8 @@ class ConnectionObserver(object):
         """Should be used to indicate some failure during observation"""
         self._is_done = True
         self._exception = exception
+        self._exception_time = time.time()
+        self._needed_exception_raise = True
         self._log(logging.INFO, "'{}.{}' has set exception '{}.{}'.".format(self.__class__.__module__,
                                                                             self.__class__.__name__,
                                                                             exception.__class__.__module__,

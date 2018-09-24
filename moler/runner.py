@@ -218,9 +218,11 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         # TODO: rethink - on timeout we raise while on other exceptions we expect observers
         #       just to call  observer.set_exception() - so, no raise before calling observer.result()
         if hasattr(connection_observer, "command_string"):
-            raise CommandTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
+            exception = CommandTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
         else:
-            raise ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
+            exception = ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
+        connection_observer.set_exception(exception)
+        raise exception
 
     def feed(self, connection_observer, feed_started, stop_feeding, feed_done):
         """
