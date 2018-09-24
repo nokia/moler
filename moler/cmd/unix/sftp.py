@@ -61,13 +61,13 @@ class Sftp(GenericUnixCommand):
 
     def on_new_line(self, line, is_full_line):
         try:
-            if is_full_line:
+            if not is_full_line:
+                self._confirm_connection(line)
+                self._send_password(line)
+                self._send_command_if_prompt(line)
+            elif is_full_line:
                 self._check_if_command_sent(line)
                 self._ignore_empty_or_repeated_line(line)
-            self._confirm_connection(line)
-            self._send_password(line)
-            self._send_command_if_prompt(line)
-            if is_full_line:
                 self._check_if_connected(line)
                 self._parse_line_fetching_uploading(line)
                 self._authentication_failure(line)
@@ -76,23 +76,6 @@ class Sftp(GenericUnixCommand):
         except ParsingDone:
             pass
         super(Sftp, self).on_new_line(line, is_full_line)
-
-    def _check_if_command_sent(self, line):
-        if self.command_entered and self._regex_helper.match_compiled(self._re_command_sent, line):
-            self.command_sent = True
-            if self.no_result:
-                self.ret_required = False
-            raise ParsingDone
-
-    _re_prompt_with_command = re.compile(r"sftp>\s\w+", re.I)
-
-    def _ignore_empty_or_repeated_line(self, line):
-        if not line:
-            raise ParsingDone
-        elif not line.strip():
-            raise ParsingDone
-        elif line.strip() == self.command:
-            raise ParsingDone
 
     _re_confirm_connection = re.compile(r"Are\syou\ssure\syou\swant\sto\scontinue\sconnecting\s\(yes/no\)\?", re.I)
 
@@ -123,6 +106,25 @@ class Sftp(GenericUnixCommand):
         elif not self.exit_sent and self.command_sent and self._regex_helper.match_compiled(Sftp._re_prompt, line):
             self.connection.sendline("exit")
             self.exit_sent = True
+            raise ParsingDone
+        elif self._regex_helper.match_compiled(Sftp._re_prompt, line):
+            raise ParsingDone
+
+    def _check_if_command_sent(self, line):
+        if self.command_entered and self._regex_helper.match_compiled(self._re_command_sent, line):
+            self.command_sent = True
+            if self.no_result:
+                self.ret_required = False
+            raise ParsingDone
+
+    _re_prompt_with_command = re.compile(r"sftp>\s\w+", re.I)
+
+    def _ignore_empty_or_repeated_line(self, line):
+        if not line:
+            raise ParsingDone
+        elif not line.strip():
+            raise ParsingDone
+        elif line.strip() == self.command:
             raise ParsingDone
         elif self._regex_helper.match_compiled(Sftp._re_prompt, line):
             raise ParsingDone
@@ -221,28 +223,6 @@ COMMAND_RESULT = {
 }
 
 
-COMMAND_OUTPUT_prompt = """xyz@debian:/home$ sftp fred@192.168.0.102
-fred@192.168.0.102's password:
-Connected to 192.168.0.102.
-sftp>
-sftp> pwd
-Remote working directory: /upload
-sftp>
-sftp> exit
-xyz@debian:/home$"""
-
-COMMAND_KWARGS_prompt = {
-    'host': '192.168.0.102',
-    'user': 'fred',
-    'password': '1234',
-    'command': 'pwd'
-}
-
-COMMAND_RESULT_prompt = {
-    'RESULT': ["Remote working directory: /upload"]
-}
-
-
 COMMAND_OUTPUT_upload = """xyz@debian:/home$ sftp fred@192.168.0.102
 fred@192.168.0.102's password:
 Connected to 10.0.2.15.
@@ -267,28 +247,4 @@ COMMAND_RESULT_upload = {
                "/home/xyz/Docs/echo/special_chars.py         100%   95   377.2KB/s   00:00",
                "Uploading /home/xyz/Docs/echo/special_chars2.py to /upload/special_chars2.py",
                "/home/xyz/Docs/echo/special_chars2.py         100%   26   17.2KB/s   00:00"]
-}
-
-
-COMMAND_OUTPUT_mkdir = """xyz@debian:/home$ sftp fred@192.168.0.102:animals
-fred@192.168.0.102's password:
-Permission denied, please try again.
-fred@192.168.0.102's password:
-Connected to 192.168.0.102.
-Changing to: /upload/animals
-sftp>
-sftp> mkdir pets/cats/small
-sftp>
-xyz@debian:/home$"""
-
-COMMAND_KWARGS_mkdir = {
-    'host': '192.168.0.102',
-    'user': 'fred',
-    'password': '1234',
-    'source_path': 'animals',
-    'command': 'mkdir pets/cats/small',
-    'no_result': True
-}
-
-COMMAND_RESULT_mkdir = {
 }
