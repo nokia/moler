@@ -166,6 +166,9 @@ class ConnectionObserver(object):
         if self.cancelled():
             raise NoResultSinceCancelCalled(self)
         if self._exception:
+            if self._needed_exception_raise:
+                ConnectionObserver.change_exception_to_raised(self._exception, self._exception_time)
+                self._needed_exception_raise = False
             raise self._exception
         if not self.done():
             raise ResultNotAvailableYet(self)
@@ -209,7 +212,7 @@ class ConnectionObserver(object):
             exp_obj = exp_dict["exception"]
             exp_time = exp_dict["time"]
             if exception == exp_obj and exception_time == exp_time:
-                exp_dict = {{'exception': exp_obj, 'time': exception_time, "was_raised": True}}
+                exp_dict = {'exception': exp_obj, 'time': exception_time, "was_raised": True}
                 ConnectionObserver.list_of_exceptions[i] = exp_dict
                 break
             i += 1
