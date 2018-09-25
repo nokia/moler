@@ -24,6 +24,7 @@ import time
 
 @add_metaclass(ABCMeta)
 class ConnectionObserver(object):
+    list_of_exceptions = list()  # list of dict: "exception" and "time"
 
     def __init__(self, connection=None, runner=None):
         """
@@ -154,6 +155,7 @@ class ConnectionObserver(object):
         self._exception = exception
         self._exception_time = time.time()
         self._needed_exception_raise = True
+        ConnectionObserver.append_active_exceptions(exception, self._exception_time)
         self._log(logging.INFO, "'{}.{}' has set exception '{}.{}'.".format(self.__class__.__module__,
                                                                             self.__class__.__name__,
                                                                             exception.__class__.__module__,
@@ -164,6 +166,7 @@ class ConnectionObserver(object):
         if self.cancelled():
             raise NoResultSinceCancelCalled(self)
         if self._exception:
+
             raise self._exception
         if not self.done():
             raise ResultNotAvailableYet(self)
@@ -184,6 +187,33 @@ class ConnectionObserver(object):
     def observer_name(cls):
         name = camel_case_to_lower_case_underscore(cls.__name__)
         return name
+
+    @ClassProperty
+    def get_active_exceptions_in_time(cls, start_time, end_time=time.time()):
+        list_of_active_exceptions = list()
+        for exc_dict in cls.list_of_exceptions:
+            exc_was_raised = exc_dict["was_raised"]
+            exc_time = exc_dict["time"]
+            if exc_was_raised and exc_time >= start_time and exc_time <= end_time:
+                list_of_active_exceptions.append(exc_dict["exception"])
+        return list_of_active_exceptions
+
+    @ClassProperty
+    def append_active_exceptions(cls, exception, exception_time):
+        cls.list_of_exceptions.append({'exception': exception, 'time': exception_time, "was_raised": False})
+
+    @ClassProperty
+    def change_exception_to_raised(cls, exception, exception_time):
+        i = 0
+        while i < len(cls.list_of_exceptions):
+            exp_dict = cls.list_of_exceptions[i]
+            exp_obj = exp_dict["exception"]
+            exp_time = exp_dict["time"]
+            if exception == exp_obj and exception_time == exp_time:
+                exp_dict = {{'exception': exp_obj, 'time': exception_time, "was_raised": True}}
+                cls.list_of_exceptions[i] = exp_dict
+                break
+            i += 1
 
     def get_long_desc(self):
         return "Observer '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)
