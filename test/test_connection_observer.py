@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Grzegorz Latuszek'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import importlib
 import time
@@ -381,6 +381,27 @@ def test_connection_observer_parses_data_inside_data_received_in_order_to_produc
     assert disk_usage_observer.done()
     disk_usage_parsed_output = {'size': 7538128, 'path': '/home/greg'}
     assert disk_usage_observer.result() == disk_usage_parsed_output
+
+
+def test_connection_observer_one_exception():
+    so_far_nr_of_exceptions = len(ConnectionObserver.get_active_exceptions_in_time(0))
+    start_time = time.time()
+    time.sleep(0.1)
+    from moler.cmd.unix.ls import Ls
+    from moler.exceptions import CommandTimeout
+    cmd = Ls(None)
+    none_exceptions = ConnectionObserver.get_active_exceptions_in_time(start_time)
+    assert so_far_nr_of_exceptions == len(none_exceptions)
+    cmd.set_exception(CommandTimeout(cmd, 0.1))
+    active_exceptions = ConnectionObserver.get_active_exceptions_in_time(start_time, time.time())
+    assert 1 + so_far_nr_of_exceptions == len(active_exceptions)
+    try:
+        cmd.result()
+    except CommandTimeout:
+        pass
+    none_exceptions = ConnectionObserver.get_active_exceptions_in_time(start_time, time.time())
+    assert so_far_nr_of_exceptions == len(none_exceptions)
+
 
 # --------------------------- resources ---------------------------
 

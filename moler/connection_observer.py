@@ -196,7 +196,7 @@ class ConnectionObserver(object):
         for exc_dict in ConnectionObserver._list_of_exceptions:
             exc_was_raised = exc_dict["was_raised"]
             exc_time = exc_dict["time"]
-            if exc_was_raised and exc_time >= start_time and exc_time <= end_time:
+            if not exc_was_raised and exc_time >= start_time and exc_time <= end_time:
                 list_of_active_exceptions.append(exc_dict["exception"])
         return list_of_active_exceptions
 
