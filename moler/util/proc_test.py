@@ -8,9 +8,8 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'michal.ernst@nokia.com'
 
 import datetime
-
-from types import FunctionType
 from functools import wraps
+from types import FunctionType
 
 
 def wrapper(method):
@@ -45,4 +44,3 @@ class MetaProcTest(type):
 
 class ProcTest(MetaProcTest('ProcTest', (object,), {})):
     pass
-
