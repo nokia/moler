@@ -7,11 +7,13 @@ __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
+import logging
 import time
 from functools import wraps
 from types import FunctionType
+
 from moler.connection_observer import ConnectionObserver
-import logging
+from moler.exceptions import MolerException
 
 
 class MolerTest(object):
@@ -25,9 +27,11 @@ class MolerTest(object):
         MolerTest._was_steps_end = True
 
     @staticmethod
-    def log_error(msg):
+    def log_error(msg, raise_exception=False):
         MolerTest._was_error = True
         MolerTest._logger.error(msg)
+        if raise_exception:
+            raise MolerException(msg)
 
     @staticmethod
     def log(msg):
