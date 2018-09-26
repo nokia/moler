@@ -54,12 +54,12 @@ class MolerTest(object):
 def wrapper(method):
     @wraps(method)
     def wrapped(*args, **kwrds):
-        #class_name = args[0].__class__.__name__
-        #method_name = method.__name__
+        # class_name = args[0].__class__.__name__
+        # method_name = method.__name__
         MolerTest.steps_start()
-        #start_time = datetime.datetime.now()
+        # start_time = datetime.datetime.now()
         result = method(*args, **kwrds)
-        #stop_time = datetime.datetime.now()
+        # stop_time = datetime.datetime.now()
         MolerTest.final_check()
         return result
 
