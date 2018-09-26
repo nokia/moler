@@ -80,9 +80,3 @@ class MolerTest(object):
             return result
 
         return wrapped
-
-
-
-
-
-
