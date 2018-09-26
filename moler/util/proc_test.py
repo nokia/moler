@@ -51,18 +51,6 @@ class MolerTest(object):
         assert was_error_in_last_execution is False
 
 
-def log_error(msg):
-    MolerTest.log_error(msg)
-
-
-def log(msg):
-    MolerTest.log(msg)
-
-
-def steps_end():
-    MolerTest.steps_end()
-
-
 def wrapper(method):
     @wraps(method)
     def wrapped(*args, **kwrds):
