@@ -16,18 +16,23 @@ from functools import wraps
 def wrapper(method):
     @wraps(method)
     def wrapped(*args, **kwrds):
+        class_name = args[0].__class__.__name__
+        method_name = method.__name__
+
         start_time = datetime.datetime.now()
-        print("Method: {} started: {}".format(method.__name__, start_time))
+        print("START Method: {}.{} -> {}".format(class_name, method_name, start_time))
+
         result = method(*args, **kwrds)
+
         stop_time = datetime.datetime.now()
-        print("End: {}".format(stop_time))
+        print("END Method: {}.{} -> {}".format(class_name, method_name, stop_time))
 
         return result
 
     return wrapped
 
 
-class MetaTMgr(type):
+class MetaProcTest(type):
     def __new__(meta, class_name, bases, classDict):
         newClassDict = {}
         for attributeName, attribute in classDict.items():
@@ -38,6 +43,6 @@ class MetaTMgr(type):
         return type.__new__(meta, class_name, bases, newClassDict)
 
 
-class ProcTest(MetaTMgr('ProcTest', (object,), {})):
+class ProcTest(MetaProcTest('ProcTest', (object,), {})):
     pass
 
