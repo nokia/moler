@@ -3,9 +3,9 @@
 Utility/common code of library.
 """
 
-__author__ = 'Michal Ernst'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'michal.ernst@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import datetime
 from functools import wraps
