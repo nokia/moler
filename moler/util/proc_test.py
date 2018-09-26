@@ -30,6 +30,7 @@ class MolerTest(object):
     def log_error(msg, raise_exception=False):
         MolerTest._was_error = True
         MolerTest._logger.error(msg)
+
         if raise_exception:
             raise MolerException(msg)
 
