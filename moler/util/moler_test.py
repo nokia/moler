@@ -39,11 +39,11 @@ class MolerTest(object):
         MolerTest._logger.info(msg)
 
     @staticmethod
-    def steps_start():
+    def _steps_start():
         MolerTest._was_steps_end = False
 
     @staticmethod
-    def final_check():
+    def _final_check():
         # Checks exceptions since last call final_check
         final_check_time = time.time()
         exceptions = ConnectionObserver.get_active_exceptions_in_time(MolerTest._last_check_time)
@@ -55,28 +55,34 @@ class MolerTest(object):
         assert MolerTest._was_steps_end is True
         assert was_error_in_last_execution is False
 
+    @staticmethod
+    def moler_test_status():
+        def decorate(cls):
+            for attributeName, attribute in cls.__dict__.items():
+                if attributeName.startswith("test"):
+                    if isinstance(attribute, FunctionType):
+                        setattr(cls, attributeName, MolerTest.wrapper(attribute))
+            return cls
 
-def wrapper(method):
-    @wraps(method)
-    def wrapped(*args, **kwrds):
-        # class_name = args[0].__class__.__name__
-        # method_name = method.__name__
-        MolerTest.steps_start()
-        # start_time = datetime.datetime.now()
-        result = method(*args, **kwrds)
-        # stop_time = datetime.datetime.now()
-        MolerTest.final_check()
-        return result
+        return decorate
 
-    return wrapped
+    @staticmethod
+    def wrapper(method):
+        @wraps(method)
+        def wrapped(*args, **kwrds):
+            # class_name = args[0].__class__.__name__
+            # method_name = method.__name__
+            MolerTest._steps_start()
+            # start_time = datetime.datetime.now()
+            result = method(*args, **kwrds)
+            # stop_time = datetime.datetime.now()
+            MolerTest._final_check()
+            return result
+
+        return wrapped
 
 
-def moler_test_status():
-    def decorate(cls):
-        for attributeName, attribute in cls.__dict__.items():
-            if attributeName.startswith("test"):
-                if isinstance(attribute, FunctionType):
-                    setattr(cls, attributeName, wrapper(attribute))
-        return cls
 
-    return decorate
+
+
+
