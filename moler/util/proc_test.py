@@ -15,52 +15,53 @@ from moler.connection_observer import ConnectionObserver
 import logging
 
 
-class ProcTestWrapper(object):
-    start_time = 0
+class ProcTest(object):
+    last_check_time = 0
     was_error = False
     was_steps_end = False
     logger = logging.getLogger("moler")
 
     @staticmethod
     def steps_start():
-        ProcTestWrapper.was_steps_end = False
+        ProcTest.was_steps_end = False
 
     @staticmethod
     def steps_end():
-        ProcTestWrapper.was_steps_end = True
+        ProcTest.was_steps_end = True
 
     @staticmethod
     def final_check():
         # Checks exceptions since last call final_check
-        exceptions = ConnectionObserver.get_active_exceptions_in_time(ProcTestWrapper.start_time)
+        final_check_time = time.time()
+        exceptions = ConnectionObserver.get_active_exceptions_in_time(ProcTest.last_check_time)
         for exception in exceptions:
-            ProcTestWrapper.log_error("Unhandled exception: '{}'".format(exception))
-        ProcTestWrapper.start_time = time.time()
-        was_error_in_last_execution = ProcTestWrapper.was_error
-        ProcTestWrapper.was_error = False
-        assert ProcTestWrapper.was_steps_end is True
+            ProcTest.log_error("Unhandled exception: '{}'".format(exception))
+        ProcTest.last_check_time = final_check_time
+        was_error_in_last_execution = ProcTest.was_error
+        ProcTest.was_error = False
+        assert ProcTest.was_steps_end is True
         assert was_error_in_last_execution is False
 
     @staticmethod
     def log_error(msg):
-        ProcTestWrapper.status = False
-        ProcTestWrapper.logger.error(msg)
+        ProcTest.was_error = True
+        ProcTest.logger.error(msg)
 
     @staticmethod
     def log(msg):
-        ProcTestWrapper.logger.info(msg)
+        ProcTest.logger.info(msg)
 
 
 def log_error(msg):
-    ProcTestWrapper.log_error(msg)
+    ProcTest.log_error(msg)
 
 
 def log(msg):
-    ProcTestWrapper.log(msg)
+    ProcTest.log(msg)
 
 
 def steps_end():
-    ProcTestWrapper.steps_end()
+    ProcTest.steps_end()
 
 
 def wrapper(method):
@@ -68,35 +69,23 @@ def wrapper(method):
     def wrapped(*args, **kwrds):
         class_name = args[0].__class__.__name__
         method_name = method.__name__
-
-
-        ProcTestWrapper.steps_start()
+        ProcTest.steps_start()
         start_time = datetime.datetime.now()
-        print("START Method: {}.{} -> {}".format(class_name, method_name, start_time))
-
         result = method(*args, **kwrds)
-
         stop_time = datetime.datetime.now()
-        print("END Method: {}.{} -> {}".format(class_name, method_name, stop_time))
-        ProcTestWrapper.final_check()
 
+        ProcTest.final_check()
         return result
-
 
     return wrapped
 
 
-class MetaProcTest(type):
-    def __new__(meta, class_name, bases, classDict):
-        newClassDict = {}
-        for attributeName, attribute in classDict.items():
+def moler_test_status():
+    def decorate(cls):
+        for attributeName, attribute in cls.__dict__.items():
             if attributeName.startswith("test"):
                 if isinstance(attribute, FunctionType):
-                    # replace it with a wrapped version
-                    attribute = wrapper(attribute)
-            newClassDict[attributeName] = attribute
-        return type.__new__(meta, class_name, bases, newClassDict)
+                    setattr(cls, attributeName, wrapper(attribute))
+        return cls
 
-
-class ProcTest(MetaProcTest('ProcTest', (object,), {})):
-    pass
+    return decorate
