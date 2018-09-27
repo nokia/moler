@@ -20,11 +20,13 @@ from moler.helpers import camel_case_to_lower_case_underscore
 from moler.helpers import instance_id
 from moler.runner import ThreadPoolExecutorRunner
 import time
+import threading
 
 
 @add_metaclass(ABCMeta)
 class ConnectionObserver(object):
-    _list_of_exceptions = list()  # list of dict: "exception" and "time"
+    _not_raised_exceptions = list()  # list of dict: "exception" and "time"
+    _exceptions_lock = threading.Lock()
 
     def __init__(self, connection=None, runner=None):
         """
@@ -167,7 +169,7 @@ class ConnectionObserver(object):
             raise NoResultSinceCancelCalled(self)
         if self._exception:
             if self._needed_exception_raise:
-                ConnectionObserver._change_exception_to_raised(self._exception, self._exception_time)
+                ConnectionObserver._change_exception_to_raised(self._exception)
                 self._needed_exception_raise = False
             raise self._exception
         if not self.done():
@@ -191,30 +193,40 @@ class ConnectionObserver(object):
         return name
 
     @staticmethod
-    def get_active_exceptions_in_time(start_time, end_time=time.time()):
-        list_of_active_exceptions = list()
-        for exc_dict in ConnectionObserver._list_of_exceptions:
-            exc_was_raised = exc_dict["was_raised"]
-            exc_time = exc_dict["time"]
-            if not exc_was_raised and exc_time >= start_time and exc_time <= end_time:
-                list_of_active_exceptions.append(exc_dict["exception"])
-        return list_of_active_exceptions
+    def get_active_exceptions_in_time(start_time, end_time=time.time(), remove=False):
+        list_of_active_exceptions_in_time = list()
+        list_of_remaining_exceptions = list()
+        i = 0
+        with ConnectionObserver._exceptions_lock:
+            while i < len(ConnectionObserver._not_raised_exceptions):
+                for exc_dict in ConnectionObserver._not_raised_exceptions:
+                    exc_time = exc_dict["time"]
+                    if exc_time >= start_time and exc_time <= end_time:
+                        list_of_active_exceptions_in_time.append(exc_dict["exception"])
+                        if not remove:
+                            list_of_remaining_exceptions.append(exc_dict)
+                    else:
+                        list_of_remaining_exceptions.append(exc_dict)
+            ConnectionObserver._not_raised_exceptions = list_of_remaining_exceptions
+
+        return list_of_active_exceptions_in_time
 
     @staticmethod
     def _append_active_exception(exception, exception_time):
-        ConnectionObserver._list_of_exceptions.append({'exception': exception, 'time': exception_time, "was_raised": False})
+        with ConnectionObserver._exceptions_lock:
+            ConnectionObserver._not_raised_exceptions.append({'exception': exception, 'time': exception_time})
 
     @staticmethod
-    def _change_exception_to_raised(exception, exception_time):
+    def _change_exception_to_raised(exception):
         i = 0
-        while i < len(ConnectionObserver._list_of_exceptions):
-            exp_dict = ConnectionObserver._list_of_exceptions[i]
-            exp_obj = exp_dict["exception"]
-            exp_time = exp_dict["time"]
-            if exception == exp_obj and exception_time == exp_time:
-                exp_dict = {'exception': exp_obj, 'time': exception_time, "was_raised": True}
-                ConnectionObserver._list_of_exceptions[i] = exp_dict
-                break
+        exceptions_still_not_raised = list()
+        with ConnectionObserver._exceptions_lock:
+            while i < len(ConnectionObserver._not_raised_exceptions):
+                exp_dict = ConnectionObserver._not_raised_exceptions.pop()
+                exp_obj = exp_dict["exception"]
+                if exception != exp_obj:
+                    exceptions_still_not_raised.append(exp_dict)
+            ConnectionObserver._not_raised_exceptions = exceptions_still_not_raised
             i += 1
 
     def get_long_desc(self):

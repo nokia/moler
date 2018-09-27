@@ -43,7 +43,7 @@ class MolerTest(object):
         MolerTest._was_steps_end = False
 
     @staticmethod
-    def _final_check(caught_exception=None):
+    def _final_check(caught_exception=None, check_steps_end=True):
         # Checks exceptions since last call final_check
         final_check_time = time.time()
         exceptions = ConnectionObserver.get_active_exceptions_in_time(MolerTest._last_check_time)
@@ -52,23 +52,34 @@ class MolerTest(object):
         MolerTest._last_check_time = final_check_time
         was_error_in_last_execution = MolerTest._was_error
         MolerTest._was_error = False
-        assert MolerTest._was_steps_end is True
+        if check_steps_end:
+            assert MolerTest._was_steps_end is True
         assert was_error_in_last_execution is False
         assert caught_exception is None
 
     @staticmethod
-    def moler_test_status():
+    def moler_raise_background_exceptions():
         def decorate(cls):
             for attributeName, attribute in cls.__dict__.items():
                 if attributeName.startswith("test"):
                     if isinstance(attribute, (FunctionType, MethodType)):
-                        setattr(cls, attributeName, MolerTest.wrapper(attribute))
+                        setattr(cls, attributeName, MolerTest.wrapper(attribute, False))
+            return cls
+        return decorate
+
+    @staticmethod
+    def moler_raise_background_exceptions_steps_end():
+        def decorate(cls):
+            for attributeName, attribute in cls.__dict__.items():
+                if attributeName.startswith("test"):
+                    if isinstance(attribute, (FunctionType, MethodType)):
+                        setattr(cls, attributeName, MolerTest.wrapper(attribute, True))
             return cls
 
         return decorate
 
     @staticmethod
-    def wrapper(method):
+    def wrapper(method, check_steps_end):
         if hasattr(method, '_already_decorated') and method._already_decorated:
             return method
 
@@ -82,8 +93,7 @@ class MolerTest(object):
             except Exception as exc:
                 caught_exception = exc
             finally:
-                MolerTest._final_check(caught_exception)
-
+                MolerTest._final_check(caught_exception, check_steps_end)
             return result
 
         wrapped._already_decorated = True
