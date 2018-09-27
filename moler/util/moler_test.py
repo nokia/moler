@@ -61,13 +61,13 @@ class MolerTest(object):
             for attributeName, attribute in cls.__dict__.items():
                 if attributeName.startswith("test"):
                     if isinstance(attribute, (FunctionType, MethodType)):
-                        setattr(cls, attributeName, MolerTest.wrapper(attribute, cls))
+                        setattr(cls, attributeName, MolerTest.wrapper(attribute))
             return cls
 
         return decorate
 
     @staticmethod
-    def wrapper(method, cls):
+    def wrapper(method):
         @wraps(method)
         def wrapped(*args, **kwargs):
             MolerTest._steps_start()
