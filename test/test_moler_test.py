@@ -13,6 +13,11 @@ def test_moler_test_not_raise_exception_when_steps_end(moler_test):
     moler_test.test_not_raise_exception_when_steps_end()
 
 
+def test_moler_test_test_raise_exception_when_not_call_steps_end(moler_test):
+    with pytest.raises(AssertionError):
+        moler_test.test_raise_exception_when_not_call_steps_end()
+
+
 def test_moler_test_raise_exception_when_log_error(moler_test):
     with pytest.raises(AssertionError):
         moler_test.test_raise_exception_when_log_error()
@@ -21,11 +26,6 @@ def test_moler_test_raise_exception_when_log_error(moler_test):
 def test_moler_test_raise_exception_when_log_error_raise_exception_set(moler_test):
     with pytest.raises(MolerException):
         moler_test.test_raise_exception_when_log_error_raise_exception_set()
-
-
-def test_moler_test_test_raise_exception_when_not_call_steps_end(moler_test):
-    with pytest.raises(AssertionError):
-        moler_test.test_raise_exception_when_not_call_steps_end()
 
 
 # --------------------------- resources ---------------------------
