@@ -6,8 +6,6 @@ __email__ = 'michal.ernst@nokia.com'
 
 import pytest
 
-from moler.exceptions import MolerException
-
 
 def test_moler_test_not_raise_exception_when_steps_end(moler_test):
     moler_test.test_not_raise_exception_when_steps_end()
@@ -24,7 +22,7 @@ def test_moler_test_raise_exception_when_log_error(moler_test):
 
 
 def test_moler_test_raise_exception_when_log_error_raise_exception_set(moler_test):
-    with pytest.raises(MolerException):
+    with pytest.raises(AssertionError):
         moler_test.test_raise_exception_when_log_error_raise_exception_set()
 
 
@@ -50,5 +48,4 @@ def moler_test():
         def test_raise_exception_when_log_error_raise_exception_set(self):
             MolerTest.log_error("Start MolerTest test with log_error and raise_exception", raise_exception=True)
 
-    moler_test = MolerTestExample()
-    yield moler_test
+    yield MolerTestExample()

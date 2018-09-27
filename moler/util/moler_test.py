@@ -43,7 +43,7 @@ class MolerTest(object):
         MolerTest._was_steps_end = False
 
     @staticmethod
-    def _final_check():
+    def _final_check(caught_exception=None):
         # Checks exceptions since last call final_check
         final_check_time = time.time()
         exceptions = ConnectionObserver.get_active_exceptions_in_time(MolerTest._last_check_time)
@@ -54,6 +54,7 @@ class MolerTest(object):
         MolerTest._was_error = False
         assert MolerTest._was_steps_end is True
         assert was_error_in_last_execution is False
+        assert caught_exception is None
 
     @staticmethod
     def moler_test_status():
@@ -74,10 +75,15 @@ class MolerTest(object):
         @wraps(method)
         def wrapped(*args, **kwargs):
             MolerTest._steps_start()
+            caught_exception = None
 
-            result = method(*args, **kwargs)
+            try:
+                result = method(*args, **kwargs)
+            except Exception as exc:
+                caught_exception = exc
+            finally:
+                MolerTest._final_check(caught_exception)
 
-            MolerTest._final_check()
             return result
 
         wrapped._already_decorated = True
