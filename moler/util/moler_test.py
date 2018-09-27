@@ -10,7 +10,7 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 import logging
 import time
 from functools import wraps
-from types import FunctionType
+from types import FunctionType, MethodType
 
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import MolerException
@@ -60,22 +60,20 @@ class MolerTest(object):
         def decorate(cls):
             for attributeName, attribute in cls.__dict__.items():
                 if attributeName.startswith("test"):
-                    if isinstance(attribute, FunctionType):
-                        setattr(cls, attributeName, MolerTest.wrapper(attribute))
+                    if isinstance(attribute, (FunctionType, MethodType)):
+                        setattr(cls, attributeName, MolerTest.wrapper(attribute, cls))
             return cls
 
         return decorate
 
     @staticmethod
-    def wrapper(method):
+    def wrapper(method, cls):
         @wraps(method)
-        def wrapped(*args, **kwrds):
-            # class_name = args[0].__class__.__name__
-            # method_name = method.__name__
+        def wrapped(*args, **kwargs):
             MolerTest._steps_start()
-            # start_time = datetime.datetime.now()
-            result = method(*args, **kwrds)
-            # stop_time = datetime.datetime.now()
+
+            result = method(*args, **kwargs)
+
             MolerTest._final_check()
             return result
 
