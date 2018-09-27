@@ -46,7 +46,7 @@ class MolerTest(object):
     def _final_check(caught_exception=None, check_steps_end=True):
         # Checks exceptions since last call final_check
         final_check_time = time.time()
-        exceptions = ConnectionObserver.get_active_exceptions_in_time(MolerTest._last_check_time)
+        exceptions = ConnectionObserver.get_active_exceptions_in_time(MolerTest._last_check_time, time.time(), True)
         for exception in exceptions:
             MolerTest.log_error("Unhandled exception: '{}'".format(exception))
         MolerTest._last_check_time = final_check_time

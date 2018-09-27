@@ -193,7 +193,7 @@ class ConnectionObserver(object):
         return name
 
     @staticmethod
-    def get_active_exceptions_in_time(start_time, end_time=time.time(), remove=False):
+    def get_active_exceptions_in_time(start_time, end_time, remove=False):
         list_of_active_exceptions_in_time = list()
         list_of_remaining_exceptions = list()
         i = 0
@@ -207,6 +207,7 @@ class ConnectionObserver(object):
                             list_of_remaining_exceptions.append(exc_dict)
                     else:
                         list_of_remaining_exceptions.append(exc_dict)
+                i += 1
             ConnectionObserver._not_raised_exceptions = list_of_remaining_exceptions
 
         return list_of_active_exceptions_in_time
