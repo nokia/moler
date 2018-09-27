@@ -68,6 +68,9 @@ class MolerTest(object):
 
     @staticmethod
     def wrapper(method):
+        if hasattr(method, '_already_decorated') and method._already_decorated:
+            return method
+
         @wraps(method)
         def wrapped(*args, **kwargs):
             MolerTest._steps_start()
@@ -77,4 +80,5 @@ class MolerTest(object):
             MolerTest._final_check()
             return result
 
+        wrapped._already_decorated = True
         return wrapped
