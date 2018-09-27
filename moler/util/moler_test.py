@@ -29,8 +29,8 @@ class MolerTest(object):
     @staticmethod
     def log_error(msg, raise_exception=False):
         MolerTest._was_error = True
+        print("log_error: '{}'".format(msg))
         MolerTest._logger.error(msg)
-
         if raise_exception:
             raise MolerException(msg)
 
@@ -44,7 +44,7 @@ class MolerTest(object):
 
     @staticmethod
     def _final_check(caught_exception=None, check_steps_end=True):
-        print("_final_check")
+        print("_final_check start {}:{}:'{}'".format(check_steps_end, MolerTest._was_error, caught_exception))
         # Checks exceptions since last call final_check
         final_check_time = time.time()
         exceptions = ConnectionObserver.get_active_exceptions_in_time(MolerTest._last_check_time, time.time(), True)
@@ -57,6 +57,7 @@ class MolerTest(object):
             assert MolerTest._was_steps_end is True
         assert was_error_in_last_execution is False
         assert caught_exception is None
+        print("Leaving _final_check: {}".format(MolerTest._was_error))
 
     @staticmethod
     def moler_raise_background_exceptions():
