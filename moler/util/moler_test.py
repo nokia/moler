@@ -44,7 +44,7 @@ class MolerTest(object):
 
     @staticmethod
     def _final_check(caught_exception=None, check_steps_end=True):
-        print ("_final_check")
+        print("_final_check")
         # Checks exceptions since last call final_check
         final_check_time = time.time()
         exceptions = ConnectionObserver.get_active_exceptions_in_time(MolerTest._last_check_time, time.time(), True)
