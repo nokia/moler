@@ -155,6 +155,24 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_cl
         MyTest().method_using_observer()
 
 
+def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_derived_class(do_nothing_connection_observer, ObserverExceptionClass):
+    from moler.util.moler_test import MolerTest
+    exc = ObserverExceptionClass("some error inside observer")
+
+    class MyTestBase(object):
+        def method_using_observer(self):
+            observer = do_nothing_connection_observer
+            observer.set_exception(exc)
+
+    @MolerTest.moler_raise_background_exceptions()
+    class MyTest(MyTestBase):
+        def method_of_derived_class(self):
+            pass
+
+    with pytest.raises(ObserverExceptionClass) as err:
+        MyTest().method_using_observer()
+
+
 # --------------------------- resources ---------------------------
 
 @pytest.yield_fixture
