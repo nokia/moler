@@ -54,7 +54,9 @@ class MolerTest(object):
         was_error_in_last_execution = MolerTest._was_error
         MolerTest._was_error = False
         print("_final_check before asserts")
-        print("Leaving _final_check1: {}".format(MolerTest._was_error))
+        print("Leaving _final_check1: .was_error{}, check_steps_end:{}, _was_steps_end:{}".format(MolerTest._was_error,
+                                                                                                  check_steps_end,
+                                                                                                  MolerTest._was_steps_end))
         if check_steps_end:
             assert MolerTest._was_steps_end is True
         print("Leaving _final_check2: {}".format(MolerTest._was_error))
@@ -70,6 +72,7 @@ class MolerTest(object):
                     if isinstance(attribute, (FunctionType, MethodType)):
                         setattr(cls, attributeName, MolerTest.wrapper(attribute, False))
             return cls
+
         return decorate
 
     @staticmethod
