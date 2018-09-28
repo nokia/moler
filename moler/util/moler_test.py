@@ -53,7 +53,7 @@ class MolerTest(object):
         MolerTest._last_check_time = final_check_time
         was_error_in_last_execution = MolerTest._was_error
         MolerTest._was_error = False
-        print ("_final_check before asserts")
+        print("_final_check before asserts")
         if check_steps_end:
             assert MolerTest._was_steps_end is True
         assert was_error_in_last_execution is False
