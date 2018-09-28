@@ -51,8 +51,8 @@ def test_moler_test_raise_exception_when_no_steps_end_for_global_method():
 # However, in all such cases connection observer stores exception via conn_obs.set_exception()
 
 
-def test_exception_in_observer_is_raised_when_result_is_called_after_set_exception(do_nothing_connection_observer):
-    exc = Exception("some error inside observer")
+def test_exception_in_observer_is_raised_when_result_is_called_after_set_exception(do_nothing_connection_observer, ObserverExceptionClass):
+    exc = ObserverExceptionClass("some error inside observer")
 
     def function_using_observer():
         observer = do_nothing_connection_observer
@@ -61,31 +61,99 @@ def test_exception_in_observer_is_raised_when_result_is_called_after_set_excepti
         observer.set_exception(exc)
         print(observer.result())
 
-    with pytest.raises(Exception) as err:
+    with pytest.raises(ObserverExceptionClass) as err:
         function_using_observer()
     assert err.value == exc
 
 
-def test_exception_in_observer_is_ignored_if_no_result_called_nor_decorator_on_function(do_nothing_connection_observer):
+def test_exception_in_observer_is_ignored_if_no_result_called_nor_decorator_on_function(do_nothing_connection_observer,
+                                                                                        ObserverExceptionClass):
     def function_using_observer():
         observer = do_nothing_connection_observer
-        observer.set_exception(Exception("some error inside observer"))
+        observer.set_exception(ObserverExceptionClass("some error inside observer"))
 
     function_using_observer()  # should not raise so test should pass
 
 
-def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_function(do_nothing_connection_observer):
+def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_function(do_nothing_connection_observer,
+                                                                                       ObserverExceptionClass):
     from moler.util.moler_test import MolerTest
-    exc = Exception("some error inside observer")
+    exc = ObserverExceptionClass("some error inside observer")
 
     @MolerTest.moler_raise_background_exceptions()
     def function_using_observer():
         observer = do_nothing_connection_observer
         observer.set_exception(exc)
 
-    with pytest.raises(Exception) as err:
+    with pytest.raises(ObserverExceptionClass) as err:
         function_using_observer()
-    assert err.value == exc  # raises MolerStatusException instead of that single Exception
+    assert err.value == exc  # raises MolerStatusException instead of that single ObserverExceptionClass
+
+
+# TODO: test on multiple exceptions - result should be MolerStatusException wrapping both
+
+
+def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_method(do_nothing_connection_observer, ObserverExceptionClass):
+    from moler.util.moler_test import MolerTest
+    exc = ObserverExceptionClass("some error inside observer")
+
+    class MyTest(object):
+        @MolerTest.moler_raise_background_exceptions()
+        # @MolerTest.moler_raise_background_exceptions  # doesn't work since it is created by python and given class as first argument
+        #                                               # compare with syntax of @pytest.fixture  @pytest.yield_fixture
+        def method_using_observer(self):
+            observer = do_nothing_connection_observer
+            observer.set_exception(exc)
+
+    with pytest.raises(ObserverExceptionClass) as err:
+        MyTest().method_using_observer()
+
+
+def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_classmethod(do_nothing_connection_observer,
+                                                                                          ObserverExceptionClass):
+    from moler.util.moler_test import MolerTest
+    exc = ObserverExceptionClass("some error inside observer")
+
+    class MyTest(object):
+        @MolerTest.moler_raise_background_exceptions()
+        @classmethod
+        def method_using_observer(cls):
+            observer = do_nothing_connection_observer
+            observer.set_exception(exc)
+
+    with pytest.raises(ObserverExceptionClass) as err:
+        MyTest.method_using_observer()
+
+
+def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_staticmethod(do_nothing_connection_observer,
+                                                                                           ObserverExceptionClass):
+    from moler.util.moler_test import MolerTest
+    exc = ObserverExceptionClass("some error inside observer")
+
+    class MyTest(object):
+        @MolerTest.moler_raise_background_exceptions()
+        @staticmethod
+        def method_using_observer():
+            observer = do_nothing_connection_observer
+            observer.set_exception(exc)
+
+    with pytest.raises(ObserverExceptionClass) as err:
+        MyTest.method_using_observer()
+
+
+def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_class(do_nothing_connection_observer, ObserverExceptionClass):
+    from moler.util.moler_test import MolerTest
+    exc = ObserverExceptionClass("some error inside observer")
+
+    @MolerTest.moler_raise_background_exceptions()
+    class MyTest(object):
+        def method_using_observer(self):
+            observer = do_nothing_connection_observer
+            observer.set_exception(exc)
+
+    with pytest.raises(ObserverExceptionClass) as err:
+        MyTest().method_using_observer()
+
 
 # --------------------------- resources ---------------------------
 
@@ -138,3 +206,10 @@ def do_nothing_connection_observer():
             pass  # ignore incoming data
     observer = DoNothingObserver()
     return observer
+
+
+@pytest.fixture
+def ObserverExceptionClass():
+    class ObserverException(Exception):
+        pass
+    return ObserverException
