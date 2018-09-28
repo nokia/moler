@@ -30,7 +30,6 @@ class MolerTest(object):
     @staticmethod
     def log_error(msg, raise_exception=False):
         MolerTest._was_error = True
-        print("log_error: '{}'".format(msg))
         MolerTest._logger.error(msg)
         if raise_exception:
             raise MolerException(msg)
@@ -68,23 +67,31 @@ class MolerTest(object):
 
     @staticmethod
     def moler_raise_background_exceptions():
-        def decorate(cls):
-            for attributeName, attribute in cls.__dict__.items():
-                if attributeName.startswith("test"):
-                    if isinstance(attribute, (FunctionType, MethodType)):
-                        setattr(cls, attributeName, MolerTest.wrapper(attribute, False))
-            return cls
+        def decorate(obj):
+            if obj.__dict__.items():
+                for attributeName, attribute in obj.__dict__.items():
+                    if attributeName.startswith("test"):
+                        if isinstance(attribute, (FunctionType, MethodType)):
+                            setattr(obj, attributeName, MolerTest.wrapper(attribute, False))
+            else:
+                obj = MolerTest.wrapper(obj, False)
+
+            return obj
 
         return decorate
 
     @staticmethod
     def moler_raise_background_exceptions_steps_end():
-        def decorate(cls):
-            for attributeName, attribute in cls.__dict__.items():
-                if attributeName.startswith("test"):
-                    if isinstance(attribute, (FunctionType, MethodType)):
-                        setattr(cls, attributeName, MolerTest.wrapper(attribute, True))
-            return cls
+        def decorate(obj):
+            if obj.__dict__.items():
+                for attributeName, attribute in obj.__dict__.items():
+                    if attributeName.startswith("test"):
+                        if isinstance(attribute, (FunctionType, MethodType)):
+                            setattr(obj, attributeName, MolerTest.wrapper(attribute, True))
+            else:
+                obj = MolerTest.wrapper(obj, True)
+
+            return obj
 
         return decorate
 

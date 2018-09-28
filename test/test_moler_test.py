@@ -7,6 +7,7 @@ __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 import pytest
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import MolerStatusException
+from moler.util.moler_test import MolerTest
 import time
 
 
@@ -36,6 +37,11 @@ def test_moler_test_raise_exception_when_log_error_raise_exception_set(moler_tes
 def test_moler_test_not_raise_exception_when_no_steps_end(moler_test):
     ConnectionObserver.get_active_exceptions_in_time(0, time.time())
     moler_test.test_not_raise_exception_when_no_steps_end()
+
+
+def test_moler_test_raise_exception_when_no_steps_end_for_global_method():
+    with pytest.raises(MolerStatusException):
+        moler_test_raise_exception_when_no_steps_end_for_global_method()
 
 # --------------------------- resources ---------------------------
 
@@ -72,3 +78,7 @@ def moler_test():
             MolerTest.log("Start MolerTest test with log and steps_end")
 
     yield MolerTestExample()
+
+@MolerTest.moler_raise_background_exceptions_steps_end()
+def moler_test_raise_exception_when_no_steps_end_for_global_method():
+    MolerTest.log("Start global method with log and without steps_end")
