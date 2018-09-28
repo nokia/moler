@@ -70,6 +70,9 @@ class MolerTest(object):
         def decorate(obj):
             if obj.__dict__.items():
                 for attributeName, attribute in obj.__dict__.items():
+                    if attributeName == "_already_decorated":
+                        break;
+
                     if attributeName.startswith("test"):
                         if isinstance(attribute, (FunctionType, MethodType)):
                             setattr(obj, attributeName, MolerTest.wrapper(attribute, False))
@@ -85,6 +88,9 @@ class MolerTest(object):
         def decorate(obj):
             if obj.__dict__.items():
                 for attributeName, attribute in obj.__dict__.items():
+                    if attributeName == "_already_decorated":
+                        break;
+
                     if attributeName.startswith("test"):
                         if isinstance(attribute, (FunctionType, MethodType)):
                             setattr(obj, attributeName, MolerTest.wrapper(attribute, True))
