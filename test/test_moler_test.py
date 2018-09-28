@@ -74,6 +74,19 @@ def test_exception_in_observer_is_ignored_if_no_result_called_nor_decorator_on_f
     function_using_observer()  # should not raise so test should pass
 
 
+def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_function(do_nothing_connection_observer):
+    from moler.util.moler_test import MolerTest
+    exc = Exception("some error inside observer")
+
+    @MolerTest.moler_raise_background_exceptions()
+    def function_using_observer():
+        observer = do_nothing_connection_observer
+        observer.set_exception(exc)
+
+    with pytest.raises(Exception) as err:
+        function_using_observer()
+    assert err.value == exc  # raises MolerStatusException instead of that single Exception
+
 # --------------------------- resources ---------------------------
 
 @pytest.yield_fixture
