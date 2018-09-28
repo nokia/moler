@@ -163,6 +163,7 @@ class ConnectionObserver(object):
                 exception.__class__.__module__,
                 exception.__class__.__name__
             ))
+            ConnectionObserver._change_exception_to_raised(self._exception)
         self._exception = exception
         self._exception_time = time.time()
         self._needed_exception_raise = True
