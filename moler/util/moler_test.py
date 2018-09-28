@@ -59,7 +59,7 @@ class MolerTest(object):
         print("_final_check before asserts")
         print("Leaving _final_check1: .was_error{}, check_steps_end:{}, _was_steps_end:{}".format(MolerTest._was_error,
                                                                                                   check_steps_end,
-                                                                                              MolerTest._was_steps_end))
+                                                                                                  MolerTest._was_steps_end))
         err_msg = ""
         if check_steps_end and not MolerTest._was_steps_end:
             # assert MolerTest._was_steps_end is True
@@ -67,7 +67,7 @@ class MolerTest(object):
         print("Leaving _final_check2: {}".format(MolerTest._was_error))
         if was_error_in_last_execution:
             err_msg += "There were error messages in Moler execution. Please check Moler logs for details.\n"
-        #assert was_error_in_last_execution is False
+        # assert was_error_in_last_execution is False
         # assert caught_exception is None
         print("Leaving _final_check3: {}".format(MolerTest._was_error))
         if len(unhandled_exceptions) > 0:
