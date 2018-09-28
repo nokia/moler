@@ -54,11 +54,13 @@ class MolerTest(object):
         was_error_in_last_execution = MolerTest._was_error
         MolerTest._was_error = False
         print("_final_check before asserts")
+        print("Leaving _final_check1: {}".format(MolerTest._was_error))
         if check_steps_end:
             assert MolerTest._was_steps_end is True
+        print("Leaving _final_check2: {}".format(MolerTest._was_error))
         assert was_error_in_last_execution is False
         # assert caught_exception is None
-        print("Leaving _final_check: {}".format(MolerTest._was_error))
+        print("Leaving _final_check3: {}".format(MolerTest._was_error))
 
     @staticmethod
     def moler_raise_background_exceptions():
