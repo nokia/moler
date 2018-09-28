@@ -71,7 +71,7 @@ class MolerTest(object):
             if obj.__dict__.items():
                 for attributeName, attribute in obj.__dict__.items():
                     if attributeName == "_already_decorated":
-                        break;
+                        break
 
                     if attributeName.startswith("test"):
                         if isinstance(attribute, (FunctionType, MethodType)):
@@ -89,7 +89,7 @@ class MolerTest(object):
             if obj.__dict__.items():
                 for attributeName, attribute in obj.__dict__.items():
                     if attributeName == "_already_decorated":
-                        break;
+                        break
 
                     if attributeName.startswith("test"):
                         if isinstance(attribute, (FunctionType, MethodType)):
