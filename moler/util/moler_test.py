@@ -45,31 +45,22 @@ class MolerTest(object):
 
     @staticmethod
     def _final_check(caught_exception=None, check_steps_end=True):
-        print("_final_check start {}:{}:'{}'".format(check_steps_end, MolerTest._was_error, caught_exception))
-        # Checks exceptions since last call final_check
         final_check_time = time.time()
         exceptions = ConnectionObserver.get_active_exceptions_in_time(MolerTest._last_check_time, time.time(), True)
         unhandled_exceptions = list()
         for exception in exceptions:
             unhandled_exceptions.append(exception)
             MolerTest.log_error("Unhandled exception: '{}'".format(exception))
+        if caught_exception:
+            unhandled_exceptions.append(caught_exception)
         MolerTest._last_check_time = final_check_time
         was_error_in_last_execution = MolerTest._was_error
         MolerTest._was_error = False
-        print("_final_check before asserts")
-        print("Leaving _final_check1: .was_error{}, check_steps_end:{}, _was_steps_end:{}".format(MolerTest._was_error,
-                                                                                                  check_steps_end,
-                                                                                                  MolerTest._was_steps_end))
         err_msg = ""
         if check_steps_end and not MolerTest._was_steps_end:
-            # assert MolerTest._was_steps_end is True
             err_msg += "Method steps_end() was not called.\n"
-        print("Leaving _final_check2: {}".format(MolerTest._was_error))
         if was_error_in_last_execution:
             err_msg += "There were error messages in Moler execution. Please check Moler logs for details.\n"
-        # assert was_error_in_last_execution is False
-        # assert caught_exception is None
-        print("Leaving _final_check3: {}".format(MolerTest._was_error))
         if len(unhandled_exceptions) > 0:
             err_msg += "There were unhandled exceptions in Moler.\n"
         if err_msg or len(unhandled_exceptions) > 0:
@@ -104,7 +95,6 @@ class MolerTest(object):
 
         @wraps(method)
         def wrapped(*args, **kwargs):
-            print("\nStart of wrapped...{}".format(method))
             MolerTest._steps_start()
             caught_exception = None
             try:
