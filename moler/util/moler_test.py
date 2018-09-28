@@ -14,6 +14,7 @@ from types import FunctionType, MethodType
 
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import MolerException
+from moler.exceptions import MolerStatusException
 
 
 class MolerTest(object):
@@ -48,7 +49,9 @@ class MolerTest(object):
         # Checks exceptions since last call final_check
         final_check_time = time.time()
         exceptions = ConnectionObserver.get_active_exceptions_in_time(MolerTest._last_check_time, time.time(), True)
+        unhandled_exceptions = list()
         for exception in exceptions:
+            unhandled_exceptions.append(exception)
             MolerTest.log_error("Unhandled exception: '{}'".format(exception))
         MolerTest._last_check_time = final_check_time
         was_error_in_last_execution = MolerTest._was_error
@@ -56,13 +59,21 @@ class MolerTest(object):
         print("_final_check before asserts")
         print("Leaving _final_check1: .was_error{}, check_steps_end:{}, _was_steps_end:{}".format(MolerTest._was_error,
                                                                                                   check_steps_end,
-                                                                                                  MolerTest._was_steps_end))
-        if check_steps_end:
-            assert MolerTest._was_steps_end is True
+                                                                                              MolerTest._was_steps_end))
+        err_msg = ""
+        if check_steps_end and not MolerTest._was_steps_end:
+            # assert MolerTest._was_steps_end is True
+            err_msg += "Method steps_end() was not called.\n"
         print("Leaving _final_check2: {}".format(MolerTest._was_error))
-        assert was_error_in_last_execution is False
+        if was_error_in_last_execution:
+            err_msg += "There were error messages in Moler execution. Please check Moler logs for details.\n"
+        #assert was_error_in_last_execution is False
         # assert caught_exception is None
         print("Leaving _final_check3: {}".format(MolerTest._was_error))
+        if len(unhandled_exceptions) > 0:
+            err_msg += "There were unhandled exceptions in Moler.\n"
+        if err_msg or len(unhandled_exceptions) > 0:
+            raise MolerStatusException(err_msg, unhandled_exceptions)
 
     @staticmethod
     def moler_raise_background_exceptions():

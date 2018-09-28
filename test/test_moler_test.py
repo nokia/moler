@@ -6,6 +6,7 @@ __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
 from moler.connection_observer import ConnectionObserver
+from moler.exceptions import MolerStatusException
 import time
 
 
@@ -16,19 +17,19 @@ def test_moler_test_not_raise_exception_when_steps_end(moler_test_se):
 
 def test_moler_test_test_raise_exception_when_not_call_steps_end(moler_test_se):
     ConnectionObserver.get_active_exceptions_in_time(0, time.time())
-    with pytest.raises(AssertionError):
+    with pytest.raises(MolerStatusException):
         moler_test_se.test_raise_exception_when_not_call_steps_end()
 
 
 def test_moler_test_raise_exception_when_log_error(moler_test_se):
     ConnectionObserver.get_active_exceptions_in_time(0, time.time())
-    with pytest.raises(AssertionError):
+    with pytest.raises(MolerStatusException):
         moler_test_se.test_raise_exception_when_log_error()
 
 
 def test_moler_test_raise_exception_when_log_error_raise_exception_set(moler_test_se):
     ConnectionObserver.get_active_exceptions_in_time(0, time.time())
-    with pytest.raises(AssertionError):
+    with pytest.raises(MolerStatusException):
         moler_test_se.test_raise_exception_when_log_error_raise_exception_set()
 
 
