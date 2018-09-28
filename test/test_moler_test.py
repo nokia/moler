@@ -5,28 +5,35 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
+from moler.connection_observer import ConnectionObserver
+import time
 
 
 def test_moler_test_not_raise_exception_when_steps_end(moler_test_se):
+    ConnectionObserver.get_active_exceptions_in_time(0, time.time())
     moler_test_se.test_not_raise_exception_when_steps_end()
 
 
 def test_moler_test_test_raise_exception_when_not_call_steps_end(moler_test_se):
+    ConnectionObserver.get_active_exceptions_in_time(0, time.time())
     with pytest.raises(AssertionError):
         moler_test_se.test_raise_exception_when_not_call_steps_end()
 
 
 def test_moler_test_raise_exception_when_log_error(moler_test_se):
+    ConnectionObserver.get_active_exceptions_in_time(0, time.time())
     with pytest.raises(AssertionError):
         moler_test_se.test_raise_exception_when_log_error()
 
 
 def test_moler_test_raise_exception_when_log_error_raise_exception_set(moler_test_se):
+    ConnectionObserver.get_active_exceptions_in_time(0, time.time())
     with pytest.raises(AssertionError):
         moler_test_se.test_raise_exception_when_log_error_raise_exception_set()
 
 
 def test_moler_test_not_raise_exception_when_no_steps_end(moler_test):
+    ConnectionObserver.get_active_exceptions_in_time(0, time.time())
     moler_test.test_not_raise_exception_when_no_steps_end()
 
 # --------------------------- resources ---------------------------
