@@ -56,7 +56,7 @@ class MolerTest(object):
         if check_steps_end:
             assert MolerTest._was_steps_end is True
         assert was_error_in_last_execution is False
-        #assert caught_exception is None
+        # assert caught_exception is None
         print("Leaving _final_check: {}".format(MolerTest._was_error))
 
     @staticmethod
