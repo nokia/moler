@@ -155,7 +155,7 @@ class ConnectionObserver(object):
         """Should be used to indicate some failure during observation"""
         self._is_done = True
         if self._exception:
-            self._log(logging.INFO, "'{}.{}' has overwritten exception. From '{}.{}' to '{}.{}'.".format(
+            self._log(logging.DEBUG, "'{}.{}' has overwritten exception. From '{}.{}' to '{}.{}'.".format(
                 self.__class__.__module__,
                 self.__class__.__name__,
                 self.exception.__class__.__module__,
