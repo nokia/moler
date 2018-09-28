@@ -156,12 +156,12 @@ class ConnectionObserver(object):
         self._is_done = True
         if self._exception:
             self._log(logging.INFO, "'{}.{}' has overwritten exception. From '{}.{}' to '{}.{}'.".format(
-                                                                                self.__class__.__module__,
-                                                                                self.__class__.__name__,
-                                                                                self.exception.__class__.__module__,
-                                                                                self.exception.__class__.__name__,
-                                                                                exception.__class__.__module__,
-                                                                                exception.__class__.__name__
+                self.__class__.__module__,
+                self.__class__.__name__,
+                self.exception.__class__.__module__,
+                self.exception.__class__.__name__,
+                exception.__class__.__module__,
+                exception.__class__.__name__
             ))
         self._exception = exception
         self._exception_time = time.time()
