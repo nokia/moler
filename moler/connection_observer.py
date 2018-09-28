@@ -154,6 +154,15 @@ class ConnectionObserver(object):
     def set_exception(self, exception):
         """Should be used to indicate some failure during observation"""
         self._is_done = True
+        if self._exception:
+            self._log(logging.INFO, "'{}.{}' has overwritten exception. From '{}.{}' to '{}.{}'.".format(
+                                                                                self.__class__.__module__,
+                                                                                self.__class__.__name__,
+                                                                                self.exception.__class__.__module__,
+                                                                                self.exception.__class__.__name__,
+                                                                                exception.__class__.__module__,
+                                                                                exception.__class__.__name__
+            ))
         self._exception = exception
         self._exception_time = time.time()
         self._needed_exception_raise = True
@@ -227,8 +236,8 @@ class ConnectionObserver(object):
                 exp_obj = exp_dict["exception"]
                 if exception != exp_obj:
                     exceptions_still_not_raised.append(exp_dict)
+                i += 1
             ConnectionObserver._not_raised_exceptions = exceptions_still_not_raised
-            i += 1
 
     def get_long_desc(self):
         return "Observer '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)
