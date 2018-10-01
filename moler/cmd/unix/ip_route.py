@@ -16,8 +16,9 @@ from moler.exceptions import ParsingDone
 
 class IpRoute(GenericUnixCommand):
 
-    def __init__(self, connection, prompt=None, new_line_chars=None, is_ipv6=False, addr_get=None, addr_from=None):
-        super(IpRoute, self).__init__(connection, prompt, new_line_chars)
+    def __init__(self, connection, prompt=None, new_line_chars=None, runner=None, is_ipv6=False, addr_get=None,
+                 addr_from=None):
+        super(IpRoute, self).__init__(connection, prompt, new_line_chars, runner=runner)
         self._converter_helper = ConverterHelper()
         # Parameters defined by calling the command
         self.is_ipv6 = is_ipv6

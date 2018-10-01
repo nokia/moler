@@ -13,8 +13,8 @@ __email__ = 'sylwester.golonka@nokia.com'
 
 
 class Tail(GenericUnixCommand):
-    def __init__(self, connection, path, options=None, prompt=None, new_line_chars=None):
-        super(Tail, self).__init__(connection, prompt=prompt, new_line_chars=new_line_chars)
+    def __init__(self, connection, path, options=None, prompt=None, new_line_chars=None, runner=None):
+        super(Tail, self).__init__(connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
         self.path = path
         self.options = options
         self.current_ret["LINES"] = []

@@ -15,8 +15,8 @@ from moler.exceptions import ParsingDone
 
 class Nmap(GenericUnixCommand):
 
-    def __init__(self, connection, ip, is_ping=False, option=None, prompt=None, new_line_chars=None):
-        super(Nmap, self).__init__(connection, prompt, new_line_chars)
+    def __init__(self, connection, ip, is_ping=False, option=None, prompt=None, new_line_chars=None, runner=None):
+        super(Nmap, self).__init__(connection, prompt, new_line_chars, runner=runner)
         self.option = option
         self.ip = ip
         self.is_ping = is_ping

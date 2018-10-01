@@ -15,7 +15,7 @@ import re
 
 
 class Chgrp(GenericUnixCommand):
-    def __init__(self, connection, files, group, options=None, prompt=None, new_line_chars=None):
+    def __init__(self, connection, files, group, options=None, prompt=None, new_line_chars=None, runner=None):
         super(Chgrp, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
         self.options = options
         self.files = files

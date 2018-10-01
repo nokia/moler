@@ -16,8 +16,8 @@ from moler.exceptions import ParsingDone
 
 
 class Userdel(GenericUnixCommand):
-    def __init__(self, connection, prompt=None, new_line_chars=None, options=None, user=None):
-        super(Userdel, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
+    def __init__(self, connection, prompt=None, new_line_chars=None, runner=None, options=None, user=None):
+        super(Userdel, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
 
         self.options = options
         self.user = user

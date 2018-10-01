@@ -13,8 +13,8 @@ from moler.exceptions import ParsingDone
 
 
 class Ntpq(GenericUnixCommand):
-    def __init__(self, connection, options=None, prompt=None, new_line_chars=None):
-        super(Ntpq, self).__init__(connection, prompt, new_line_chars)
+    def __init__(self, connection, options=None, prompt=None, new_line_chars=None, runner=None):
+        super(Ntpq, self).__init__(connection, prompt, new_line_chars, runner=runner)
         self.options = options
         self.headers = []
         self.row_nr = 0

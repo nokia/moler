@@ -14,8 +14,8 @@ from moler.exceptions import ParsingDone
 
 
 class Iptables(GenericUnixCommand):
-    def __init__(self, connection, options=None, v6=None, prompt=None, new_line_chars=None):
-        super(Iptables, self).__init__(connection, prompt, new_line_chars)
+    def __init__(self, connection, options=None, v6=None, prompt=None, new_line_chars=None, runner=None):
+        super(Iptables, self).__init__(connection, prompt, new_line_chars, runner=runner)
         self.options = options
         self.v6 = v6
         self.ret_required = False
