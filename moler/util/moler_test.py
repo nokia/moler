@@ -10,6 +10,7 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 import logging
 import time
 from functools import wraps
+from functools import partial
 from types import FunctionType, MethodType
 
 from moler.connection_observer import ConnectionObserver
@@ -66,43 +67,35 @@ class MolerTest(object):
             raise MolerStatusException(err_msg, unhandled_exceptions)
 
     @staticmethod
-    def moler_raise_background_exceptions():
-        def decorate(obj):
+    def raise_background_exceptions(decorated="function", check_steps_end=False):
+        if callable(decorated):
+            # direct decoration
+            return MolerTest._decorate(decorated, check_steps_end=check_steps_end)
+        else:
+            return partial(MolerTest._decorate, check_steps_end=check_steps_end)
+
+    @staticmethod
+    def _decorate(obj, check_steps_end):
+        if hasattr(obj, "__dict__"):
             if obj.__dict__.items():
-                for attributeName, attribute in obj.__dict__.items():
+                for attributeName in dir(obj):
                     if attributeName == "_already_decorated":
                         break
 
-                    if attributeName.startswith("test"):
+                    attribute = getattr(obj, attributeName)
+
+                    if not attributeName.startswith("_"):
                         if isinstance(attribute, (FunctionType, MethodType)):
-                            setattr(obj, attributeName, MolerTest.wrapper(attribute, False))
+                            setattr(obj, attributeName, MolerTest._wrapper(attribute, check_steps_end))
             else:
-                obj = MolerTest.wrapper(obj, False)
+                obj = MolerTest._wrapper(obj, True)
+        else:
+            raise MolerStatusException("No '__dict__' in decorated object.", [MolerException()])
 
-            return obj
-
-        return decorate
+        return obj
 
     @staticmethod
-    def moler_raise_background_exceptions_steps_end():
-        def decorate(obj):
-            if obj.__dict__.items():
-                for attributeName, attribute in obj.__dict__.items():
-                    if attributeName == "_already_decorated":
-                        break
-
-                    if attributeName.startswith("test"):
-                        if isinstance(attribute, (FunctionType, MethodType)):
-                            setattr(obj, attributeName, MolerTest.wrapper(attribute, True))
-            else:
-                obj = MolerTest.wrapper(obj, True)
-
-            return obj
-
-        return decorate
-
-    @staticmethod
-    def wrapper(method, check_steps_end):
+    def _wrapper(method, check_steps_end):
         if hasattr(method, '_already_decorated') and method._already_decorated:
             return method
 
