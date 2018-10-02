@@ -1,0 +1,29 @@
+LOGGER:
+  PATH: /home/ute/auto/moler/logs
+  RAW_LOG: True
+  DEBUG_LEVEL: TRACE
+  DATE_FORMAT: "%d %H:%M:%S"
+
+DEVICES:
+  CREATE_AT_STARTUP: False  #True
+  DEFAULT_CONNECTION:
+    CONNECTION_DESC:
+      io_type: terminal
+      variant: threaded
+
+  MyMachine:
+    DEVICE_CLASS: moler.device.unixremote.UnixLocal
+
+  RebexTestMachine:
+    DEVICE_CLASS: moler.device.unixremote.UnixRemote
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        UNIX_REMOTE:
+          command_params:
+            expected_prompt: $
+            host: test.rebex.net
+            login: demo
+            password: password
+          execute_command: ssh
+
+
