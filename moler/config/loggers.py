@@ -318,7 +318,7 @@ class RawTraceFormatter(RawDataFormatter):
         # see:   https://pyyaml.org/wiki/PyYAMLDocumentation
         # but we don't use yaml library since we want predictable order
         raw_trace_record = "- %s: {time: '%s', direction: %s, bytesize: %s, offset: %s}\n" % (
-        record.created, timestamp, direction, bytesize, offset)
+            record.created, timestamp, direction, bytesize, offset)
         return raw_trace_record
 
 
