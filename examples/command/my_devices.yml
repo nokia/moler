@@ -1,5 +1,5 @@
 LOGGER:
-  PATH: /home/ute/auto/moler/logs
+  PATH: ./logs
   RAW_LOG: True
   DEBUG_LEVEL: TRACE
   DATE_FORMAT: "%d %H:%M:%S"
