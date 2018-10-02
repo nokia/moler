@@ -39,7 +39,6 @@ class ConnectionObserver(object):
         self._is_cancelled = False
         self._result = None
         self._exception = None
-        self._exception_time = 0
         self._needed_exception_raise = False
         self.runner = runner if runner else ThreadPoolExecutorRunner()
         self._future = None
@@ -165,9 +164,8 @@ class ConnectionObserver(object):
             ))
             ConnectionObserver._change_exception_to_raised(self._exception)
         self._exception = exception
-        self._exception_time = time.time()
         self._needed_exception_raise = True
-        ConnectionObserver._append_active_exception(exception, self._exception_time)
+        ConnectionObserver._append_active_exception(exception)
         self._log(logging.INFO, "'{}.{}' has set exception '{}.{}'.".format(self.__class__.__module__,
                                                                             self.__class__.__name__,
                                                                             exception.__class__.__module__,
@@ -204,37 +202,24 @@ class ConnectionObserver(object):
 
     @staticmethod
     def get_unraised_exceptions(remove=True):
-        list_of_active_exceptions_in_time = list()
         list_of_remaining_exceptions = list()
-        i = 0
         with ConnectionObserver._exceptions_lock:
-            while i < len(ConnectionObserver._not_raised_exceptions):
-                for exc_dict in ConnectionObserver._not_raised_exceptions:
-                    list_of_active_exceptions_in_time.append(exc_dict["exception"])
-                    if not remove:
-                        list_of_remaining_exceptions.append(exc_dict)
-                i += 1
+            if not remove:
+                list_of_remaining_exceptions = ConnectionObserver._not_raised_exceptions.copy()
+            list_of_active_exceptions = ConnectionObserver._not_raised_exceptions
             ConnectionObserver._not_raised_exceptions = list_of_remaining_exceptions
-
-        return list_of_active_exceptions_in_time
+            return list_of_active_exceptions
 
     @staticmethod
-    def _append_active_exception(exception, exception_time):
+    def _append_active_exception(exception):
         with ConnectionObserver._exceptions_lock:
-            ConnectionObserver._not_raised_exceptions.append({'exception': exception, 'time': exception_time})
+            ConnectionObserver._not_raised_exceptions.append(exception)
 
     @staticmethod
     def _change_exception_to_raised(exception):
-        i = 0
-        exceptions_still_not_raised = list()
         with ConnectionObserver._exceptions_lock:
-            while i < len(ConnectionObserver._not_raised_exceptions):
-                exp_dict = ConnectionObserver._not_raised_exceptions.pop()
-                exp_obj = exp_dict["exception"]
-                if exception != exp_obj:
-                    exceptions_still_not_raised.append(exp_dict)
-                i += 1
-            ConnectionObserver._not_raised_exceptions = exceptions_still_not_raised
+            if exception in ConnectionObserver._not_raised_exceptions:
+                ConnectionObserver._not_raised_exceptions.remove(exception)
 
     def get_long_desc(self):
         return "Observer '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)
