@@ -9,8 +9,8 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 
 import logging
 import time
-from functools import wraps
 from functools import partial
+from functools import wraps
 from types import FunctionType, MethodType
 
 from moler.connection_observer import ConnectionObserver
@@ -75,7 +75,12 @@ class MolerTest(object):
             return partial(MolerTest._decorate, check_steps_end=check_steps_end)
 
     @staticmethod
-    def _decorate(obj, check_steps_end):
+    def _decorate(obj=None, check_steps_end=False):
+        # check that decorated function is not statimethod or classmethod
+        if not obj:
+            raise MolerStatusException("Decorator for 'staticmethod' or 'classmethod' not implemented yet.",
+                                       [MolerException()])
+
         if hasattr(obj, "__dict__"):
             if obj.__dict__.items():
                 for attributeName in dir(obj):
