@@ -203,19 +203,15 @@ class ConnectionObserver(object):
         return name
 
     @staticmethod
-    def get_active_exceptions_in_time(start_time, end_time, remove=True):
+    def get_active_exceptions_in_time(remove=True):
         list_of_active_exceptions_in_time = list()
         list_of_remaining_exceptions = list()
         i = 0
         with ConnectionObserver._exceptions_lock:
             while i < len(ConnectionObserver._not_raised_exceptions):
                 for exc_dict in ConnectionObserver._not_raised_exceptions:
-                    exc_time = exc_dict["time"]
-                    if exc_time >= start_time and exc_time <= end_time:
-                        list_of_active_exceptions_in_time.append(exc_dict["exception"])
-                        if not remove:
-                            list_of_remaining_exceptions.append(exc_dict)
-                    else:
+                    list_of_active_exceptions_in_time.append(exc_dict["exception"])
+                    if not remove:
                         list_of_remaining_exceptions.append(exc_dict)
                 i += 1
             ConnectionObserver._not_raised_exceptions = list_of_remaining_exceptions
