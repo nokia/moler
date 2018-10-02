@@ -8,6 +8,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'agnieszka.bylica@nokia.com'
 
 import pytest
+
 from moler.cmd.unix.su import Su
 
 
@@ -16,27 +17,28 @@ def test_su_returns_proper_command_string(buffer_connection):
     assert "su -p xyz" == telnet_cmd.command_string
 
 
-def test_su_catches_authentication_failure(buffer_connection):
+def test_su_catches_authentication_failure(buffer_connection, command_output_and_expected_result_auth):
     from moler.exceptions import CommandFailure
-    command_output, expected_result = command_output_and_expected_result_auth()
+    command_output, expected_result = command_output_and_expected_result_auth
     buffer_connection.remote_inject_response([command_output])
     su_cmd = Su(connection=buffer_connection.moler_connection)
     with pytest.raises(CommandFailure):
         su_cmd()
 
 
-def test_su_catches_command_format_failure(buffer_connection):
+def test_su_catches_command_format_failure(buffer_connection,
+                                           command_output_and_expected_result_command_format_failure):
     from moler.exceptions import CommandFailure
-    command_output, expected_result = command_output_and_expected_result_command_format_failure()
+    command_output, expected_result = command_output_and_expected_result_command_format_failure
     buffer_connection.remote_inject_response([command_output])
     su_cmd = Su(connection=buffer_connection.moler_connection)
     with pytest.raises(CommandFailure):
         su_cmd()
 
 
-def test_su_catches_username_failure(buffer_connection):
+def test_su_catches_username_failure(buffer_connection, command_output_and_expected_result_username_failure):
     from moler.exceptions import CommandFailure
-    command_output, expected_result = command_output_and_expected_result_username_failure()
+    command_output, expected_result = command_output_and_expected_result_username_failure
     buffer_connection.remote_inject_response([command_output])
     su_cmd = Su(connection=buffer_connection.moler_connection)
     with pytest.raises(CommandFailure):

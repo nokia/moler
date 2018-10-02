@@ -6,10 +6,10 @@ __author__ = 'Adrianna Pienkowska '
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'adrianna.pienkowska@nokia.com'
 
-
-from moler.exceptions import CommandFailure
-from moler.cmd.unix.find import Find
 import pytest
+
+from moler.cmd.unix.find import Find
+from moler.exceptions import CommandFailure
 
 
 def test_find_returns_proper_command_string(buffer_connection):
@@ -17,32 +17,34 @@ def test_find_returns_proper_command_string(buffer_connection):
     assert "find -H sed uname" == find_cmd.command_string
 
 
-def test_find_on_no_file_found(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_on_no_file_found()
+def test_find_on_no_file_found(buffer_connection, command_output_and_expected_result_on_no_file_found):
+    command_output, expected_result = command_output_and_expected_result_on_no_file_found
     buffer_connection.remote_inject_response([command_output])
-    find_cmd = Find(connection=buffer_connection.moler_connection, paths=["Doc"], operators="-name 'my*' -type f -print")
+    find_cmd = Find(connection=buffer_connection.moler_connection, paths=["Doc"],
+                    operators="-name 'my*' -type f -print")
     with pytest.raises(CommandFailure):
         find_cmd()
 
 
-def test_find_on_unknown_predicate(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_on_unknown_predicate()
+def test_find_on_unknown_predicate(buffer_connection, command_output_and_expected_result_on_unknown_predicate):
+    command_output, expected_result = command_output_and_expected_result_on_unknown_predicate
     buffer_connection.remote_inject_response([command_output])
     find_cmd = Find(connection=buffer_connection.moler_connection, paths=["Doc"], options="-b")
     with pytest.raises(CommandFailure):
         find_cmd()
 
 
-def test_find_on_operator_invalid_expression(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_on_operator_invalid_expression()
+def test_find_on_operator_invalid_expression(buffer_connection,
+                                             command_output_and_expected_result_on_operator_invalid_expression):
+    command_output, expected_result = command_output_and_expected_result_on_operator_invalid_expression
     buffer_connection.remote_inject_response([command_output])
     find_cmd = Find(connection=buffer_connection.moler_connection, paths=["."], operators="-a")
     with pytest.raises(CommandFailure):
         find_cmd()
 
 
-def test_find_on_bash_failure(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_on__bash_failure()
+def test_find_on_bash_failure(buffer_connection, command_output_and_expected_result_on__bash_failure):
+    command_output, expected_result = command_output_and_expected_result_on__bash_failure
     buffer_connection.remote_inject_response([command_output])
     find_cmd = Find(connection=buffer_connection.moler_connection, paths=["~"],
                     operators="( -iname 'jpeg' -o -iname 'jpg' )")
