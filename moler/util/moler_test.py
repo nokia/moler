@@ -31,7 +31,7 @@ class MolerTest(object):
     @staticmethod
     def log_error(msg, raise_exception=False):
         MolerTest._was_error = True
-        MolerTest._logger.error(msg)
+        MolerTest._logger.error(msg, extra={'moler_error': True})
         if raise_exception:
             raise MolerException(msg)
 
@@ -64,6 +64,7 @@ class MolerTest(object):
         if len(unhandled_exceptions) > 0:
             err_msg += "There were unhandled exceptions in Moler.\n"
         if err_msg or len(unhandled_exceptions) > 0:
+            MolerTest.log_error(err_msg)
             raise MolerStatusException(err_msg, unhandled_exceptions)
 
     @staticmethod

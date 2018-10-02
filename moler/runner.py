@@ -211,7 +211,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         connection_observer_future.cancel()
         connection_observer.cancel()  # TODO: should call connection_observer_future.cancel() via runner
         connection_observer.on_timeout()
-        connection_observer.logger.log(logging.INFO,
+        connection_observer._log(logging.INFO,
                                        "'{}.{}' has timed out after '{:.2f}' seconds.".format(
                                            connection_observer.__class__.__module__,
                                            connection_observer.__class__.__name__, time.time() - start_time))
