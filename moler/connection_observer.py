@@ -81,7 +81,8 @@ class ConnectionObserver(object):
         self._validate_start(*args, **kwargs)
         self._is_running = True
         self._future = self.runner.submit(self)
-
+        if self._future is None:
+            self._is_running = False
         return self
 
     def _validate_start(self, *args, **kwargs):

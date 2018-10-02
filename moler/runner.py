@@ -172,7 +172,10 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         start_timeout = 0.5
         if not feed_started.wait(timeout=start_timeout):
             err_msg = "Failed to start observer feeding thread within {} sec".format(start_timeout)
-            raise MolerException(err_msg)
+            self.logger.error(err_msg)
+            MolerException(err_msg)
+            connection_observer.set_exception(err_msg)
+            return None
         c_future = CancellableFuture(connection_observer_future, feed_started, stop_feeding, feed_done)
         return c_future
 
