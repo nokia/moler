@@ -217,9 +217,9 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         connection_observer.cancel()  # TODO: should call connection_observer_future.cancel() via runner
         connection_observer.on_timeout()
         connection_observer._log(logging.INFO,
-                                       "'{}.{}' has timed out after '{:.2f}' seconds.".format(
-                                           connection_observer.__class__.__module__,
-                                           connection_observer.__class__.__name__, time.time() - start_time))
+                                 "'{}.{}' has timed out after '{:.2f}' seconds.".format(
+                                     connection_observer.__class__.__module__,
+                                     connection_observer.__class__.__name__, time.time() - start_time))
         # TODO: rethink - on timeout we raise while on other exceptions we expect observers
         #       just to call  observer.set_exception() - so, no raise before calling observer.result()
         if hasattr(connection_observer, "command_string"):
