@@ -130,7 +130,8 @@ class Connection(object):
             length = len(data)
             msg = "*" * length
 
-        self._log_data(msg=msg, level=logging.INFO, extra={'transfer_direction': '>', 'encoder': lambda data: data.encode('utf-8')})
+        self._log_data(msg=msg, level=logging.INFO,
+                       extra={'transfer_direction': '>', 'encoder': lambda data: data.encode('utf-8')})
         self._log(level=logging.INFO,
                   msg=Connection._strip_data(msg),
                   extra={
@@ -139,7 +140,8 @@ class Connection(object):
                   })
 
         encoded_msg = self.encode(msg)
-        self._log_data(msg=encoded_msg, level=RAW_DATA, extra={'transfer_direction': '>', 'encoder': lambda data: data.encode('utf-8')})
+        self._log_data(msg=encoded_msg, level=RAW_DATA,
+                       extra={'transfer_direction': '>', 'encoder': lambda data: data.encode('utf-8')})
 
         encoded_data = self.encode(data)
         self.how2send(encoded_data)
@@ -227,10 +229,12 @@ class ObservableConnection(Connection):
         Incoming-IO API:
         external-IO should call this method when data is received
         """
-        self._log_data(msg=data, level=RAW_DATA, extra={'transfer_direction': '<', 'encoder': lambda data: data.encode('utf-8')})
+        self._log_data(msg=data, level=RAW_DATA,
+                       extra={'transfer_direction': '<', 'encoder': lambda data: data.encode('utf-8')})
 
         decoded_data = self.decode(data)
-        self._log_data(msg=decoded_data, level=logging.INFO, extra={'transfer_direction': '<', 'encoder': lambda data: data.encode('utf-8')})
+        self._log_data(msg=decoded_data, level=logging.INFO,
+                       extra={'transfer_direction': '<', 'encoder': lambda data: data.encode('utf-8')})
 
         self.notify_observers(decoded_data)
 
@@ -324,6 +328,11 @@ class ObservableConnection(Connection):
         return observer_key, observer_value
 
 
+def _moler_logger_log(level, msg):
+    logger = logging.getLogger('moler')
+    logger.log(level, msg)
+
+
 class ConnectionFactory(object):
     """
     ConnectionFactory creates plugin-system: external code can register
@@ -357,8 +366,9 @@ class ConnectionFactory(object):
         :return: None
         """
         if not callable(constructor):
-            raise ValueError(
-                "constructor must be callable not {}".format(constructor))
+            err_msg = "constructor must be callable not {}".format(constructor)
+            _moler_logger_log(level=logging.DEBUG, msg=err_msg)
+            raise ValueError(err_msg)
         cls._constructors_registry[(io_type, variant)] = constructor
 
     @classmethod
@@ -373,8 +383,9 @@ class ConnectionFactory(object):
         """
         key = (io_type, variant)
         if key not in cls._constructors_registry:
-            raise KeyError(
-                "No constructor registered for [{}] connection".format(key))
+            err_msg = "No constructor registered for [{}] connection".format(key)
+            _moler_logger_log(level=logging.DEBUG, msg=err_msg)
+            raise KeyError(err_msg)
         constructor = cls._constructors_registry[key]
         connection = constructor(**constructor_kwargs)
         # TODO: enhance error reporting:
@@ -412,9 +423,13 @@ def get_connection(name=None, io_type=None, variant=None, **constructor_kwargs):
     If variant is not given then it is taken from configuration.
     """
     if (not name) and (not io_type):
-        raise AssertionError("Provide either 'name' or 'io_type' parameter (none given)")
+        err_msg = "Provide either 'name' or 'io_type' parameter (none given)"
+        _moler_logger_log(level=logging.DEBUG, msg=err_msg)
+        raise AssertionError(err_msg)
     if name and io_type:
-        raise AssertionError("Use either 'name' or 'io_type' parameter (not both)")
+        err_msg = "Use either 'name' or 'io_type' parameter (not both)"
+        _moler_logger_log(level=logging.DEBUG, msg=err_msg)
+        raise AssertionError(err_msg)
     io_type, constructor_kwargs = _try_take_named_connection_params(name, io_type, **constructor_kwargs)
     variant = _try_select_io_type_variant(io_type, variant)
 
@@ -426,7 +441,9 @@ def _try_take_named_connection_params(name, io_type, **constructor_kwargs):
     if name:
         if name not in connection_cfg.named_connections:
             whats_wrong = "was not defined inside configuration"
-            raise KeyError("Connection named '{}' {}".format(name, whats_wrong))
+            err_msg = "Connection named '{}' {}".format(name, whats_wrong)
+            _moler_logger_log(level=logging.DEBUG, msg=err_msg)
+            raise KeyError(err_msg)
         io_type, constructor_kwargs = connection_cfg.named_connections[name]
         # assume connection constructor allows 'name' parameter
         constructor_kwargs['name'] = name
@@ -440,14 +457,18 @@ def _try_select_io_type_variant(io_type, variant):
     if variant is None:
         whats_wrong = "No variant selected"
         selection_method = "directly or via configuration"
-        raise KeyError("{} ({}) for '{}' connection".format(whats_wrong,
-                                                            selection_method,
-                                                            io_type))
+        err_msg = "{} ({}) for '{}' connection".format(whats_wrong,
+                                                       selection_method,
+                                                       io_type)
+        _moler_logger_log(level=logging.DEBUG, msg=err_msg)
+        raise KeyError(err_msg)
     if variant not in ConnectionFactory.available_variants(io_type):
         whats_wrong = "is not registered inside ConnectionFactory"
-        raise KeyError("'{}' variant of '{}' connection {}".format(variant,
-                                                                   io_type,
-                                                                   whats_wrong))
+        err_msg = "'{}' variant of '{}' connection {}".format(variant,
+                                                              io_type,
+                                                              whats_wrong)
+        _moler_logger_log(level=logging.DEBUG, msg=err_msg)
+        raise KeyError(err_msg)
     return variant
 
 
@@ -460,6 +481,7 @@ def _try_get_connection_with_name(io_type, variant, **constructor_kwargs):
             del constructor_kwargs['name']
             return ConnectionFactory.get_connection(io_type, variant,
                                                     **constructor_kwargs)
+        _moler_logger_log(level=logging.DEBUG, msg=err)
         raise
 
 
