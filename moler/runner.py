@@ -10,16 +10,18 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import atexit
-import logging
-import time
-import threading
-from abc import abstractmethod, ABCMeta
 import concurrent.futures
+import logging
+import threading
+import time
+from abc import abstractmethod, ABCMeta
 from concurrent.futures import ThreadPoolExecutor, wait
-from moler.exceptions import ConnectionObserverTimeout
-from moler.exceptions import CommandTimeout
-from moler.exceptions import MolerException
+
 from six import add_metaclass
+
+from moler.exceptions import CommandTimeout
+from moler.exceptions import ConnectionObserverTimeout
+from moler.exceptions import MolerException
 
 # fix for concurrent.futures  v.3.0.3  to have API of v.3.1.1 or above
 try:
