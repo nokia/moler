@@ -109,10 +109,10 @@ class ConnectionObserver(object):
             return self.result()
         if self._future is None:
             raise ConnectionObserverNotStarted(self)
-        result = self.runner.wait_for(connection_observer=self, connection_observer_future=self._future,
+        self.runner.wait_for(connection_observer=self, connection_observer_future=self._future,
                                       timeout=timeout)
 
-        return result
+        return self.result()
 
     def cancel(self):
         """Cancel execution of connection-observer."""
@@ -175,13 +175,13 @@ class ConnectionObserver(object):
 
     def result(self):
         """Retrieve final result of connection-observer"""
-        if self.cancelled():
-            raise NoResultSinceCancelCalled(self)
         if self._exception:
             if self._needed_exception_raise:
                 ConnectionObserver._change_exception_to_raised(self._exception)
                 self._needed_exception_raise = False
             raise self._exception
+        if self.cancelled():
+            raise NoResultSinceCancelCalled(self)
         if not self.done():
             raise ResultNotAvailableYet(self)
         return self._result

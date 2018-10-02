@@ -98,6 +98,7 @@ def test_can_await_connection_observer_to_timeout(connection_observer,
             observer_runner.wait_for(connection_observer,
                                      connection_observer_future,
                                      timeout=0.5)
+            connection_observer.result()
         assert not connection_observer_future.running()
         assert connection_observer_future.done()
         assert connection_observer.done()

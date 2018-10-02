@@ -222,7 +222,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         else:
             exception = ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
         connection_observer.set_exception(exception)
-        raise exception
+        # raise exception
 
     def feed(self, connection_observer, feed_started, stop_feeding, feed_done):
         """
