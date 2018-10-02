@@ -110,7 +110,7 @@ class ConnectionObserver(object):
         if self._future is None:
             raise ConnectionObserverNotStarted(self)
         self.runner.wait_for(connection_observer=self, connection_observer_future=self._future,
-                                      timeout=timeout)
+                             timeout=timeout)
 
         return self.result()
 
