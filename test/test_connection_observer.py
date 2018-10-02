@@ -384,23 +384,23 @@ def test_connection_observer_parses_data_inside_data_received_in_order_to_produc
 
 
 def test_connection_observer_one_exception():
-    ConnectionObserver.get_active_exceptions_in_time(True)
+    ConnectionObserver.get_unraised_exceptions(True)
     time.sleep(0.1)
     from moler.cmd.unix.ls import Ls
     from moler.exceptions import CommandTimeout
     cmd = Ls(None)
-    none_exceptions = ConnectionObserver.get_active_exceptions_in_time(True)
+    none_exceptions = ConnectionObserver.get_unraised_exceptions(True)
     assert 0 == len(none_exceptions)
     cmd.set_exception(CommandTimeout(cmd, 0.1))
-    active_exceptions = ConnectionObserver.get_active_exceptions_in_time(True)
+    active_exceptions = ConnectionObserver.get_unraised_exceptions(True)
     assert 1 == len(active_exceptions)
     try:
         cmd.result()
     except CommandTimeout:
         pass
-    none_exceptions = ConnectionObserver.get_active_exceptions_in_time(True)
+    none_exceptions = ConnectionObserver.get_unraised_exceptions(True)
     assert 0 == len(none_exceptions)
-    none_exceptions = ConnectionObserver.get_active_exceptions_in_time(True)
+    none_exceptions = ConnectionObserver.get_unraised_exceptions(True)
     assert 0 == len(none_exceptions)
 
 # --------------------------- resources ---------------------------

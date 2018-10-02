@@ -46,7 +46,7 @@ class MolerTest(object):
     @staticmethod
     def _final_check(caught_exception=None, check_steps_end=True):
         final_check_time = time.time()
-        exceptions = ConnectionObserver.get_active_exceptions_in_time(True)
+        exceptions = ConnectionObserver.get_unraised_exceptions(True)
         unhandled_exceptions = list()
         for exception in exceptions:
             unhandled_exceptions.append(exception)
