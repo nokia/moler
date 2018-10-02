@@ -16,7 +16,7 @@ from moler.exceptions import ParsingDone
 
 class Route(GenericUnixCommand):
     def __init__(self, connection, prompt=None, new_line_chars=None, options=None, runner=None):
-        super(Route, self).__init__(connection, prompt, new_line_chars, runner=runner)
+        super(Route, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
         self.options = options
         self.headers = []
         self.values = []

@@ -12,7 +12,7 @@ __email__ = 'sylwester.golonka@nokia.com'
 
 class Dmesg(GenericUnixCommand):
     def __init__(self, connection, options=None, prompt=None, new_line_chars=None, runner=None):
-        super(Dmesg, self).__init__(connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+        super(Dmesg, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
         self.options = options
         self.current_ret["LINES"] = []
 

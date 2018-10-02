@@ -16,7 +16,7 @@ from moler.exceptions import ParsingDone
 class Export(GenericUnixCommand):
 
     def __init__(self, connection, prompt=None, new_line_chars=None, ps1_param=None, set_param=None, runner=None):
-        super(Export, self).__init__(connection, prompt, new_line_chars, runner=runner)
+        super(Export, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
         if ps1_param or set_param:
             self.ret_required = False
         else:

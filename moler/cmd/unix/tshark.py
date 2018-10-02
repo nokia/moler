@@ -16,7 +16,7 @@ from moler.exceptions import ParsingDone
 class Tshark(GenericUnixCommand):
 
     def __init__(self, connection, options=None, prompt=None, new_line_chars=None, runner=None):
-        super(Tshark, self).__init__(connection, prompt, new_line_chars, runner=runner)
+        super(Tshark, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
         # Parameters defined by calling the command
         self.options = options
         self.pckt_count = None

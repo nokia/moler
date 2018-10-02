@@ -14,7 +14,7 @@ from moler.cmd.unix.genericunix import GenericUnixCommand
 class Bash(GenericUnixCommand):
 
     def __init__(self, connection, prompt=None, new_line_chars=None, runner=None, bash="TERM=xterm-mono bash"):
-        super(Bash, self).__init__(connection, prompt, new_line_chars, runner=runner)
+        super(Bash, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
         self.bash = bash
         self.ret_required = False
 

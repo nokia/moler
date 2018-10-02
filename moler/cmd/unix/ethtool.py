@@ -16,7 +16,8 @@ from moler.exceptions import ParsingDone
 class Ethtool(GenericUnixCommand):
 
     def __init__(self, connection, interface, prompt=None, new_line_chars=None, options=None, runner=None):
-        super(Ethtool, self).__init__(connection, prompt, new_line_chars, runner=runner)
+        super(Ethtool, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars,
+                                      runner=runner)
         self.interface = interface
         self.options = options
         self.ret_required = False

@@ -15,7 +15,7 @@ __email__ = 'snackwell.yang@nokia-sbell.com'
 class Pwd(GenericUnixCommand):
 
     def __init__(self, connection, prompt=None, new_line_chars=None, runner=None):
-        super(Pwd, self).__init__(connection, prompt, new_line_chars, runner=runner)
+        super(Pwd, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
         self.ret_required = True
 
     def build_command_string(self):

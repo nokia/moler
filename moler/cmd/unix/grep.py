@@ -17,7 +17,7 @@ from moler.exceptions import ParsingDone
 class Grep(GenericUnixCommand):
 
     def __init__(self, connection, options, prompt=None, new_line_chars=None, runner=None):
-        super(Grep, self).__init__(connection, prompt, new_line_chars, runner=runner)
+        super(Grep, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
         self._convert_helper = ConverterHelper()
         # Parameters defined by calling the command
         self.options = options

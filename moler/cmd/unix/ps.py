@@ -30,7 +30,7 @@ class Ps(GenericUnixCommand):
         self._columns = list()
         self._space_columns = list()
         self._options = options
-        super(Ps, self).__init__(connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+        super(Ps, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
         self.current_ret = list()
 
     def on_new_line(self, line, is_full_line):

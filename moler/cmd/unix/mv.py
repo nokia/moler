@@ -13,7 +13,7 @@ from moler.exceptions import CommandFailure, ParsingDone
 
 class Mv(GenericUnixCommand):
     def __init__(self, connection, src, dst, options=None, prompt=None, new_line_chars=None, runner=None):
-        super(Mv, self).__init__(connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+        super(Mv, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
 
         self.src = src
         self.dst = dst

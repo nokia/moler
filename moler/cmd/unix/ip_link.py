@@ -15,7 +15,7 @@ from moler.exceptions import ParsingDone
 
 class IpLink(GenericUnixCommand):
     def __init__(self, connection, action, prompt=None, new_line_chars=None, options=None, runner=None):
-        super(IpLink, self).__init__(connection, prompt, new_line_chars, runner=runner)
+        super(IpLink, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
         self.ret_required = False
         self.action = action
         self.options = options

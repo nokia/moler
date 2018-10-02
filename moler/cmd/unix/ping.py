@@ -16,7 +16,7 @@ from moler.exceptions import ParsingDone
 class Ping(GenericUnixCommand):
 
     def __init__(self, connection, destination, options=None, prompt=None, new_line_chars=None, runner=None):
-        super(Ping, self).__init__(connection, prompt, new_line_chars, runner=runner)
+        super(Ping, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
         # Parameters defined by calling the command
         self.options = options
         self.destination = destination
