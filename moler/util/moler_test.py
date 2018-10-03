@@ -19,7 +19,6 @@ from moler.exceptions import MolerStatusException
 
 
 class MolerTest(object):
-    _last_check_time = 0
     _was_error = False
     _was_steps_end = False
     _logger = logging.getLogger("moler")
@@ -45,7 +44,6 @@ class MolerTest(object):
 
     @staticmethod
     def _final_check(caught_exception=None, check_steps_end=True):
-        final_check_time = time.time()
         exceptions = ConnectionObserver.get_unraised_exceptions(True)
         unhandled_exceptions = list()
         for exception in exceptions:
@@ -53,10 +51,10 @@ class MolerTest(object):
             MolerTest.log_error("Unhandled exception: '{}'".format(exception))
         if caught_exception:
             unhandled_exceptions.append(caught_exception)
-        MolerTest._last_check_time = final_check_time
+
         was_error_in_last_execution = MolerTest._was_error
-        MolerTest._was_error = False
         err_msg = ""
+
         if check_steps_end and not MolerTest._was_steps_end:
             err_msg += "Method steps_end() was not called.\n"
         if was_error_in_last_execution:
