@@ -19,7 +19,6 @@ from moler.helpers import ClassProperty
 from moler.helpers import camel_case_to_lower_case_underscore
 from moler.helpers import instance_id
 from moler.runner import ThreadPoolExecutorRunner
-import time
 import threading
 
 
