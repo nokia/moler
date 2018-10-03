@@ -8,7 +8,6 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
-import time
 from functools import partial
 from functools import wraps
 from types import FunctionType, MethodType
