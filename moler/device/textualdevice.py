@@ -237,7 +237,9 @@ class TextualDevice(object):
                 except Exception as ex:
                     if retrying == rerun:
                         ex_traceback = traceback.format_exc()
-                        raise DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback)
+                        exc = DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback)
+                        self._log(logging.ERROR, exc)
+                        raise exc
                     else:
                         retrying += 1
                         self._log(logging.DEBUG, "Cannot change state into '{}'. "
@@ -248,12 +250,14 @@ class TextualDevice(object):
 
             self._log(logging.DEBUG, "Successfully enter state '{}'".format(next_state))
         else:
-            raise DeviceFailure(
+            exc = DeviceFailure(
                 device=self.__class__.__name__,
                 message="Failed to change state to '{}'. "
                         "Either target state does not exist in SM or there is no direct/indirect transition "
                         "towards target state. Try to change state machine definition. "
                         "Available states: {}".format(next_state, self.states))
+            self._log(logging.ERROR, exc)
+            raise exc
 
     def on_connection_made(self, connection):
         self._set_state(TextualDevice.connected)
@@ -318,11 +322,13 @@ class TextualDevice(object):
 
             return observer
 
-        raise DeviceFailure(
+        exc = DeviceFailure(
             device=self.__class__.__name__,
-            message="Failed to create {}-object for '{}' {}. '{}' {} is unknown for state '{}' of device '{}'.".format(
+            message="Failed to create {}-object for '{}' {}. '{}' {} is unknown for state '{}' of device '{}'. Available names: {}".format(
                 observer_type, observer_name, observer_type, observer_name, observer_type, self.current_state,
-                self.__class__.__name__))
+                self.__class__.__name__, available_observer_names))
+        self._log(logging.ERROR, exc)
+        raise exc
 
     def _create_cmd_instance(self, cmd_name, **kwargs):
         """
@@ -354,22 +360,24 @@ class TextualDevice(object):
                     ret = original_fun(*args, **kargs)
                     return ret
                 else:
-                    raise observer_exception(observer, creation_state, current_state)
+                    exc = observer_exception(observer, creation_state, current_state)
+                    self._log(logging.ERROR, exc)
+                    raise exc
 
             observer._validate_start = validate_device_state_before_observer_start
         return observer
 
-    def get_cmd(self, cmd_name, check_state=True, **kwargs):
-        if "prompt" not in kwargs:
-            kwargs["prompt"] = self.get_prompt()
+    def get_cmd(self, cmd_name, cmd_params={}, check_state=True):
+        if "prompt" not in cmd_params:
+            cmd_params["prompt"] = self.get_prompt()
         cmd = self.get_observer(observer_name=cmd_name, observer_type=TextualDevice.cmds,
-                                observer_exception=CommandWrongState, check_state=check_state, **kwargs)
+                                observer_exception=CommandWrongState, check_state=check_state, **cmd_params)
         assert isinstance(cmd, CommandTextualGeneric)
         return cmd
 
-    def get_event(self, event_name, check_state=True, **kwargs):
+    def get_event(self, event_name, event_params={}, check_state=True):
         event = self.get_observer(observer_name=event_name, observer_type=TextualDevice.events,
-                                  observer_exception=EventWrongState, check_state=check_state, **kwargs)
+                                  observer_exception=EventWrongState, check_state=check_state, **event_params)
 
         return event
 
@@ -447,9 +455,13 @@ class TextualDevice(object):
 
     def _run_prompts_observers(self):
         for state in self._state_prompts.keys():
-            prompt_event = self.get_event(event_name="wait4prompt",
-                                          prompt=self._state_prompts[state],
-                                          till_occurs_times=-1)
+            prompt_event = self.get_event(
+                event_name="wait4prompt",
+                event_params={
+                    "prompt": self._state_prompts[state],
+                    "till_occurs_times": -1
+                }
+            )
 
             prompt_event_callback = functools.partial(self._prompt_observer_callback, event=prompt_event, state=state)
             prompt_event.add_event_occurred_callback(callback=prompt_event_callback)
@@ -515,9 +527,11 @@ class TextualDevice(object):
                                 required_command_param, source_state, dest_state)
 
         if exception_message:
-            raise DeviceFailure(device=self.__class__.__name__,
+            exc = DeviceFailure(device=self.__class__.__name__,
                                 message="Missing required parameter(s). There is no required parameter(s):{}".format(
                                     exception_message))
+            self._log(logging.ERROR, exc)
+            raise exc
 
     def _send_enter_after_changed_state(self, *args, **kwargs):
         from moler.cmd.unix.enter import Enter

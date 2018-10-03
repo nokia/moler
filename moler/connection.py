@@ -138,9 +138,10 @@ class Connection(object):
                       'log_name': self.name
                   })
 
-        encoded_data = self.encode(data)
-        self._log_data(msg=encoded_data, level=RAW_DATA, extra={'transfer_direction': '>', 'encoder': lambda data: data.encode('utf-8')})
+        encoded_msg = self.encode(msg)
+        self._log_data(msg=encoded_msg, level=RAW_DATA, extra={'transfer_direction': '>', 'encoder': lambda data: data.encode('utf-8')})
 
+        encoded_data = self.encode(data)
         self.how2send(encoded_data)
 
     def sendline(self, data, timeout=30, encrypt=False):
@@ -266,11 +267,14 @@ class ObservableConnection(Connection):
         for self_or_none, observer_function in current_subscribers:
             try:
                 self._log(level=TRACE, msg=r'notifying {}({!r})'.format(observer_function, repr(data)))
-                if self_or_none is None:
-                    observer_function(data)
-                else:
-                    observer_self = self_or_none
-                    observer_function(observer_self, data)
+                try:
+                    if self_or_none is None:
+                        observer_function(data)
+                    else:
+                        observer_self = self_or_none
+                        observer_function(observer_self, data)
+                except Exception:
+                    self.logger.exception(msg=r'Exception inside: {}({!r})'.format(observer_function, repr(data)))
             except ReferenceError:
                 pass  # ignore: weakly-referenced object no longer exists
 
