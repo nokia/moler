@@ -29,8 +29,8 @@ class Telnet(GenericUnixCommand):
     def __init__(self, connection, host, login=None, password=None, port=0, prompt=None, expected_prompt=r'^>\s*',
                  set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono="TERM=xterm-mono", prefix=None,
                  new_line_chars=None, cmds_before_establish_connection=[], cmds_after_establish_connection=[],
-                 telnet_prompt=r"^\s*telnet>\s*", encrypt_password=True):
-        super(Telnet, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
+                 telnet_prompt=r"^\s*telnet>\s*", encrypt_password=True, runner=None):
+        super(Telnet, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
 
         # Parameters defined by calling the command
         self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(expected_prompt)  # Expected prompt on device

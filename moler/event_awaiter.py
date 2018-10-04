@@ -32,6 +32,8 @@ class EventAwaiter(object):
                 if not event.done():
                     all_done = False
                     break
+            if all_done:
+                break
             timeout = grand_timeout - (time.time() - start_time)
         return all_done
 
