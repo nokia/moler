@@ -26,9 +26,9 @@ class Ssh(GenericUnixCommand):
 
     def __init__(self, connection, login, password, host, prompt=None, expected_prompt='>', port=0,
                  known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
-                 term_mono="TERM=xterm-mono", new_line_chars=None, encrypt_password=True):
+                 term_mono="TERM=xterm-mono", new_line_chars=None, encrypt_password=True, runner=None):
 
-        super(Ssh, self).__init__(connection, prompt, new_line_chars)
+        super(Ssh, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
 
         # Parameters defined by calling the command
         self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(expected_prompt)  # Expected prompt on device

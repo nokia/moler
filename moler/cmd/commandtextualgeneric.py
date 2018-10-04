@@ -8,6 +8,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
+import logging
 import re
 
 import six
@@ -20,13 +21,13 @@ class CommandTextualGeneric(Command):
     _re_default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')  # When user provides no prompt
     _default_new_line_chars = ("\n", "\r")  # New line chars on device, not system with script!
 
-    def __init__(self, connection, prompt=None, new_line_chars=None):
+    def __init__(self, connection, prompt=None, new_line_chars=None, runner=None):
         """
         :param connection: connection to device
         :param prompt: expected prompt sending by device after command execution. Maybe String or compiled re
         :param new_line_chars:  new line chars on device
         """
-        super(CommandTextualGeneric, self).__init__(connection)
+        super(CommandTextualGeneric, self).__init__(connection=connection, runner=runner)
         self.__command_string = None  # String representing command on device
         self.current_ret = dict()  # Placeholder for result as-it-grows, before final write into self._result
         self._cmd_escaped = None  # Escaped regular expression string with command
@@ -111,8 +112,8 @@ class CommandTextualGeneric(Command):
                 if not self.done():
                     self.set_result(self.current_ret)
             else:
-                self.logger.debug(
-                    "Found candidate for final prompt but current ret is None or empty, required not None nor empty.")
+                self._log(lvl=logging.DEBUG,
+                          msg="Found candidate for final prompt but current ret is None or empty, required not None nor empty.")
 
     def is_end_of_cmd_output(self, line):
         if self._regex_helper.search_compiled(self._re_prompt, line):
