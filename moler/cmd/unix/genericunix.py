@@ -18,7 +18,8 @@ class GenericUnixCommand(CommandTextualGeneric):
     _re_fail = re.compile(r'command not found|No such file or directory|running it may require superuser privileges')
 
     def __init__(self, connection, prompt=None, new_line_chars=None, runner=None):
-        super(GenericUnixCommand, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+        super(GenericUnixCommand, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars,
+                                                 runner=runner)
         self.remove_colors_from_terminal_output = True
 
     def on_new_line(self, line, is_full_line):

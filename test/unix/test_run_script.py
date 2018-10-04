@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Which command test module.
+RunScript command test module.
 """
 
 __author__ = 'Marcin Usielski'

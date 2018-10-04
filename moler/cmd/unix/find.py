@@ -15,8 +15,9 @@ import re
 
 
 class Find(GenericUnixCommand):
-    def __init__(self, connection, paths=[], prompt=None, new_line_chars=None, options=None, operators=None):
-        super(Find, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
+    def __init__(self, connection, paths=[], prompt=None, new_line_chars=None, options=None, operators=None,
+                 runner=None):
+        super(Find, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
         self.options = options
         self.operators = operators
         self.paths = paths

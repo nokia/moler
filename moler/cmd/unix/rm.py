@@ -12,8 +12,8 @@ from moler.exceptions import ParsingDone
 
 
 class Rm(GenericUnixCommand):
-    def __init__(self, connection, file, options=None, prompt=None, new_line_chars=None):
-        super(Rm, self).__init__(connection, prompt=prompt, new_line_chars=new_line_chars)
+    def __init__(self, connection, file, options=None, prompt=None, new_line_chars=None, runner=None):
+        super(Rm, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
 
         self.file = file
         self.options = options
