@@ -14,8 +14,9 @@ import re
 
 
 class Wget(GenericUnixCommand):
-    def __init__(self, connection, options, log_progress_bar=False, timeout=60, prompt=None, new_line_chars=None):
-        super(Wget, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
+    def __init__(self, connection, options, log_progress_bar=False, timeout=60, prompt=None, new_line_chars=None,
+                 runner=None):
+        super(Wget, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
 
         self.options = options  # should contain URLs
         self.log_progress_bar = log_progress_bar
