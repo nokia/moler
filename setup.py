@@ -32,7 +32,6 @@ setup(
 
         'License :: OSI Approved :: BSD License',
 
-        'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',
         'Operating System :: Unix',
 
