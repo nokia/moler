@@ -16,8 +16,8 @@ import re
 
 
 class Iperf(GenericUnixCommand):
-    def __init__(self, connection, options, prompt=None, new_line_chars=None):
-        super(Iperf, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
+    def __init__(self, connection, options, prompt=None, new_line_chars=None, runner=None):
+        super(Iperf, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
         self.options = options
         self.current_ret['CONNECTIONS'] = dict()
         self.current_ret['INFO'] = list()
