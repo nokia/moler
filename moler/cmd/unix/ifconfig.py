@@ -14,8 +14,9 @@ from moler.exceptions import ParsingDone
 
 
 class Ifconfig(GenericUnixCommand):
-    def __init__(self, connection, options=None, prompt=None, new_line_chars=None):
-        super(Ifconfig, self).__init__(connection, prompt, new_line_chars)
+    def __init__(self, connection, options=None, prompt=None, new_line_chars=None, runner=None):
+        super(Ifconfig, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars,
+                                       runner=runner)
         # Parameters defined by calling the command
         self.ret_required = False
         self.if_name = None
