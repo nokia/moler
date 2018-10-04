@@ -2,6 +2,6 @@ component_depth: 1
 languages:
   - python
 exclude:
-  - /Docs/
-  - /examples/
-  - /images/
+  - Docs/
+  - examples/
+  - images/
