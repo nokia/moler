@@ -1,14 +1,14 @@
-from io import open
+import io
 from os.path import abspath, dirname, join
 
 from setuptools import setup, find_packages
 
 here = abspath(dirname(__file__))
 
-with open(join(here, 'README.md'), encoding='utf-8') as f:
+with io.open(join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
-with open(join(here, 'requirements.txt'), encoding='utf-8') as f:
+with io.open(join(here, 'requirements.txt'), encoding='utf-8') as f:
     requires = f.read().splitlines()
 
 setup(
