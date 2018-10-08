@@ -5,7 +5,6 @@ LOGGER:
   DATE_FORMAT: "%d %H:%M:%S"
 
 DEVICES:
-  CREATE_AT_STARTUP: False  #True
   DEFAULT_CONNECTION:
     CONNECTION_DESC:
       io_type: terminal
@@ -16,14 +15,20 @@ DEVICES:
 
   RebexTestMachine:
     DEVICE_CLASS: moler.device.unixremote.UnixRemote
-    CONNECTION_HOPS:
+    STATE_PARAMS:                # modify defaults
       UNIX_LOCAL:
-        UNIX_REMOTE:
-          command_params:
-            expected_prompt: $
+        newline: \n              # default (may be skipped)
+      UNIX_REMOTE:
+        newline: \r\n
+    CONNECTION_HOPS:
+      UNIX_LOCAL:                # from state
+        UNIX_REMOTE:             # to state
+          execute_command: ssh   # via command
+          command_params:        # with params
+            expected_prompt: demo@
             host: test.rebex.net
             login: demo
             password: password
-          execute_command: ssh
+            set_timeout: False   # remote doesn't support: export TMOUT
 
 
