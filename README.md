@@ -9,7 +9,7 @@ Moler is Python library that helps in building automated tests. [name origin](#m
 
 Example use case is to find PIDs of all python processes.
 
-.. code-block:: python
+```python
 
     from moler.config import load_config
     from moler.device.device import DeviceFactory
@@ -22,20 +22,22 @@ Example use case is to find PIDs of all python processes.
     for proc in processes:
         if 'python' in proc['CMD']:
         print("PID: {} CMD: {}".format(proc['PID'], proc['CMD']))
+```
 
 * To have command we ask device "give me such command".
 * To run command we just call it as function (command object is callable)
 
 Above code displays
 
-.. code-block:: bash
+```bash
 
     PID: 1817 CMD: /usr/bin/python /usr/share/system-config-printer/applet.py
     PID: 21825 CMD: /usr/bin/python /home/gl/moler/examples/command/unix_ps.py
+```
 
 How does it know what `'MyMachine'` means? Code loads definition from `my_devices.yml` configuration file
 
-.. code-block:: yaml
+```yaml
 
     DEVICES:
 
@@ -54,11 +56,12 @@ How does it know what `'MyMachine'` means? Code loads definition from `my_device
                 login: demo
                 password: password
                 set_timeout: False   # remote doesn't support: export TMOUT
+```
 
 We have remote machine in our config. Let's check if there is 'readme.txt' file
 on that remote (and some info about the file).
 
-.. code-block:: python
+```python
 
     my_unix = DeviceFactory.get_device(name='RebexTestMachine')
     my_unix.goto_state(state="UNIX_REMOTE")
@@ -73,6 +76,7 @@ on that remote (and some info about the file).
         readme_file_info = remote_files['files']['readme.txt']
         for attr in readme_file_info:
             print("  {:<18}: {}".format(attr, readme_file_info[attr]))
+```
 
 As you may noticed device is state machine. State transitions are defined inside
 configuration file under `CONNECTION_HOPS`. Please note, that it is only config file who
@@ -81,7 +85,7 @@ Thanks to that you can exchange "how to reach remote" without any change in main
 
 Above code displays
 
-.. code-block:: bash
+```bash
 
     readme.txt file:
       permissions       : -rw-------
@@ -92,12 +96,13 @@ Above code displays
       size_bytes        : 403
       date              : Apr 08  2014
       name              : readme.txt
+```
 
 Above examples ask device to create command. We can also create command ourselves
 giving it connection to operate on.
 
 
-.. code-block:: python
+```python
 
     import time
     from moler.cmd.unix.ping import Ping
@@ -118,17 +123,18 @@ giving it connection to operate on.
                                                   'time_avg',
                                                   ping_stats['time_avg'],
                                                   ping_stats['time_unit']))
+```
 
 Besides being callable command-object works as "Future" (result promise).
 You can start it in background and later await till it is done to grab result.
 
 
-.. code-block:: bash
+```bash
 
     Start pinging www.google.com ...
     Doing other stuff while pinging www.google.com ...
     ping www.google.com: packet_loss=0, time_avg=50.000 [ms]
-
+```
 
 # Table of Contents
 1. [Moler](#moler)
