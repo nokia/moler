@@ -12,5 +12,5 @@ for proc in processes:
 
 """
 PID: 1817 CMD: /usr/bin/python /usr/share/system-config-printer/applet.py
-PID: 21825 CMD: /opt/ute/python3/bin/python3 /home/ute/auto/moler/moler/examples/command/unix_ps.py
+PID: 21825 CMD: /usr/bin/python /home/gl/moler/examples/command/unix_ps.py
 """

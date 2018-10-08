@@ -17,6 +17,7 @@ if 'readme.txt' in remote_files['files']:
     for attr in readme_file_info:
         print("  {:<18}: {}".format(attr, readme_file_info[attr]))
 
+# result:
 """
 readme.txt file:
   permissions       : -rw-------
