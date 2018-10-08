@@ -7,7 +7,7 @@
 # Moler
 Moler is Python library that helps in building automated tests. [name origin](#moler-name-origin)
 
-Example use case is to find PIDs of all python processes.
+Example use case is to find PIDs of all python processes:
 
 ```python
 
@@ -21,13 +21,14 @@ Example use case is to find PIDs of all python processes.
     processes = ps_cmd()
     for proc in processes:
         if 'python' in proc['CMD']:
-        print("PID: {} CMD: {}".format(proc['PID'], proc['CMD']))
+            print("PID: {} CMD: {}".format(proc['PID'], proc['CMD']))
 ```
 
 * To have command we ask device "give me such command".
 * To run command we just call it as function (command object is callable)
+* What command returns is usually dict or list of dicts - easy to process
 
-Above code displays
+Above code displays:
 
 ```bash
 
@@ -35,7 +36,7 @@ Above code displays
     PID: 21825 CMD: /usr/bin/python /home/gl/moler/examples/command/unix_ps.py
 ```
 
-How does it know what `'MyMachine'` means? Code loads definition from `my_devices.yml` configuration file
+How does it know what `'MyMachine'` means? Code loads definition from `my_devices.yml` configuration file:
 
 ```yaml
 
@@ -59,7 +60,7 @@ How does it know what `'MyMachine'` means? Code loads definition from `my_device
 ```
 
 We have remote machine in our config. Let's check if there is 'readme.txt' file
-on that remote (and some info about the file).
+on that machine (and some info about the file):
 
 ```python
 
@@ -83,7 +84,7 @@ configuration file under `CONNECTION_HOPS`. Please note, that it is only config 
 knows "I need to use ssh to be on remote" - client code just says "go to remote".
 Thanks to that you can exchange "how to reach remote" without any change in main code.
 
-Above code displays
+Above code displays:
 
 ```bash
 
@@ -98,8 +99,8 @@ Above code displays
       name              : readme.txt
 ```
 
-Above examples ask device to create command. We can also create command ourselves
-giving it connection to operate on.
+Prevoius examples ask device to create command. We can also create command ourselves
+giving it connection to operate on:
 
 
 ```python
@@ -127,6 +128,7 @@ giving it connection to operate on.
 
 Besides being callable command-object works as "Future" (result promise).
 You can start it in background and later await till it is done to grab result.
+Please note also that connection is context manager doing open/close actions.
 
 
 ```bash
