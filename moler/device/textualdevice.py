@@ -542,3 +542,7 @@ class TextualDevice(object):
         except Exception as ex:
             self._log(logging.DEBUG, "Cannot execute command 'enter' properly: {}".format(ex))
             pass
+
+    def _get_endline_chars(self):
+        return "\n"
+

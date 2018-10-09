@@ -26,7 +26,8 @@ class Ssh(GenericUnixCommand):
 
     def __init__(self, connection, login, password, host, prompt=None, expected_prompt='>', port=0,
                  known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
-                 term_mono="TERM=xterm-mono", new_line_chars=None, encrypt_password=True, runner=None):
+                 term_mono="TERM=xterm-mono", new_line_chars=None, encrypt_password=True, runner=None,
+                 end_line_source="\n", end_line_target="\n"):
 
         super(Ssh, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
 
@@ -41,6 +42,8 @@ class Ssh(GenericUnixCommand):
         self.set_prompt = set_prompt
         self.term_mono = term_mono
         self.encrypt_password = encrypt_password
+        self.end_line_target = end_line_target
+        self.end_line_source = end_line_source
 
         self.ret_required = False
 
@@ -101,9 +104,11 @@ class Ssh(GenericUnixCommand):
 
     def handle_failed_host_key_verification(self):
         if "rm" == self.known_hosts_on_failure:
-            self.connection.sendline("\nrm -f " + self._hosts_file)
+            self.connection.send("{}rm -f {}{}".format(self.end_line_source, self._hosts_file, self.end_line_source))
+            # self.connection.sendline("\nrm -f " + self._hosts_file)
         elif "keygen" == self.known_hosts_on_failure:
-            self.connection.sendline("\nssh-keygen -R " + self.host)
+            self.connection.send("{}ssh-keygen -R {}{}".format(self.end_line_source, self.host, self.end_line_source))
+            # self.connection.sendline("\nssh-keygen -R " + self.host)
         else:
             self.set_exception(
                 CommandFailure(self,
@@ -115,7 +120,8 @@ class Ssh(GenericUnixCommand):
         self._sent_prompt = False
         self._sent_timeout = False
         self._sent_password = False
-        self.connection.sendline(self.command_string)
+        #self.connection.sendline(self.command_string)
+        self.connection.send("{}{}".format(self.command_string, self.end_line_source))
 
     def send_after_login_settings(self, line):
         if self.is_target_prompt(line):
@@ -141,14 +147,16 @@ class Ssh(GenericUnixCommand):
         return self.set_timeout and not self._sent_timeout
 
     def send_timeout_set(self):
-        self.connection.sendline("\n" + self.set_timeout)
+        # self.connection.sendline("\n" + self.set_timeout)
+        self.connection.send("{}{}{}".format(self.end_line_target, self.set_timeout, self.end_line_target))
         self._sent_timeout = True
 
     def prompt_set_needed(self):
         return self.set_prompt and not self._sent_prompt
 
     def send_prompt_set(self):
-        self.connection.sendline("\n" + self.set_prompt)
+        # self.connection.sendline("\n" + self.set_prompt)
+        self.connection.send("{}{}{}".format(self.end_line_target, self.set_prompt, self.end_line_target))
         self._sent_prompt = True
 
     def is_failure_indication(self, line):
