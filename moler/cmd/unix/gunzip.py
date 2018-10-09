@@ -56,7 +56,7 @@ class Gunzip(GenericUnixCommand):
             self.current_ret['RESULT'].append(line)
             raise ParsingDone
 
-    _re_overwrite = re.compile(r"gzip:\s(?P<FILE_NAME>.*)\salready exists", re.IGNORECASE)
+    _re_overwrite = re.compile(r"gzip:\s+(?P<FILE_NAME>.*)\s+already exists", re.IGNORECASE)
 
     def _asks_to_overwrite(self, line):
         if self._regex_helper.search_compiled(Gunzip._re_overwrite, line):
