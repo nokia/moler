@@ -99,6 +99,72 @@ Above code displays:
       name              : readme.txt
 ```
 
+If we enhance our configuration with logging related info:
+
+```yaml
+    LOGGER:
+      PATH: ./logs
+      DATE_FORMAT: "%H:%M:%S"
+```
+
+then above code will automatically create log per each device (here `moler.RebexTestMachine.log`):
+
+```log
+18:35:32.052  |Changed state from 'NOT_CONNECTED' into 'UNIX_LOCAL'
+18:35:32.052 <|
+18:35:32.155  |Event 'moler.events.unix.wait4prompt.Wait4prompt':'[re.compile('demo@')]' started.
+18:35:32.157  |Event 'moler.events.unix.wait4prompt.Wait4prompt':'[re.compile('^moler_bash#')]' started.
+18:35:32.159  |Command 'moler.cmd.unix.ssh.Ssh':'TERM=xterm-mono ssh -l demo test.rebex.net' started.
+18:35:32.159 >|TERM=xterm-mono ssh -l demo test.rebex.net
+
+18:35:32.166 <|TERM=xterm-mono ssh -l demo test.rebex.net
+
+18:35:33.149 <|Password:
+18:35:33.149 >|*********
+18:35:33.150 <|
+
+18:35:33.456 <|Welcome to Rebex Virtual Shell!
+              |For a list of supported commands, type 'help'.
+              |demo@ETNA:/$
+18:35:33.457  |Changed state from 'UNIX_LOCAL' into 'UNIX_REMOTE'
+18:35:33.462  |Command 'moler.cmd.unix.ssh.Ssh' finished.
+18:35:33.464  |Command 'moler.cmd.unix.ls.Ls':'ls -l' started.
+18:35:33.465 >|ls -l
+
+18:35:33.589 <|ls -l
+              |drwx------ 2 demo users          0 Jul 26  2017 .
+
+18:35:33.600 <|drwx------ 2 demo users          0 Jul 26  2017 ..
+              |drwx------ 2 demo users          0 Dec 03  2015 aspnet_client
+              |drwx------ 2 demo users          0 Oct 27  2015 pub
+              |-rw------- 1 demo users        403 Apr 08  2014 readme.txt
+              |demo@ETNA:/$
+18:35:33.608  |Command 'moler.cmd.unix.ls.Ls' finished.
+18:35:33.629  |Event 'moler.events.unix.wait4prompt.Wait4prompt': '[re.compile('^moler_bash#')]' finished.
+18:35:33.652  |Event 'moler.events.unix.wait4prompt.Wait4prompt': '[re.compile('demo@')]' finished.
+```
+
+and Molers' main log (`moler.log`) combining view from all devices but seen from higher abstraction level - data
+on connections are not visible, just activity of commands running on devices:
+
+```log
+18:35:32.021 INFO       moler               |More logs in: ./logs
+18:35:32.052 INFO       RebexTestMachine    |Connection to: 'RebexTestMachine' has been opened.
+18:35:32.052 INFO       RebexTestMachine    |Changed state from 'NOT_CONNECTED' into 'UNIX_LOCAL'
+18:35:32.154 INFO       RebexTestMachine    |Event 'moler.events.unix.wait4prompt.Wait4prompt':'[re.compile('demo@')]' started.
+18:35:32.156 INFO       RebexTestMachine    |Event 'moler.events.unix.wait4prompt.Wait4prompt':'[re.compile('^moler_bash#')]' started.
+18:35:32.158 INFO       RebexTestMachine    |Command 'moler.cmd.unix.ssh.Ssh':'TERM=xterm-mono ssh -l demo test.rebex.net' started.
+18:35:32.159 INFO       RebexTestMachine    |TERM=xterm-mono ssh -l demo test.rebex.net
+18:35:33.150 INFO       RebexTestMachine    |*********
+18:35:33.457 INFO       RebexTestMachine    |Changed state from 'UNIX_LOCAL' into 'UNIX_REMOTE'
+18:35:33.462 INFO       RebexTestMachine    |Command 'moler.cmd.unix.ssh.Ssh' finished.
+18:35:33.464 INFO       RebexTestMachine    |Command 'moler.cmd.unix.ls.Ls':'ls -l' started.
+18:35:33.465 INFO       RebexTestMachine    |ls -l
+18:35:33.608 INFO       RebexTestMachine    |Command 'moler.cmd.unix.ls.Ls' finished.
+18:35:33.629 INFO       RebexTestMachine    |Event 'moler.events.unix.wait4prompt.Wait4prompt': '[re.compile('^moler_bash#')]' finished.
+18:35:33.652 INFO       RebexTestMachine    |Event 'moler.events.unix.wait4prompt.Wait4prompt': '[re.compile('demo@')]' finished.
+```
+
 Prevoius examples ask device to create command. We can also create command ourselves
 giving it connection to operate on:
 
