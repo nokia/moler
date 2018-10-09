@@ -163,7 +163,7 @@ class ConnectionObserver(object):
             ))
             ConnectionObserver._remove_from_not_raised_exceptions(self._exception)
         self._exception = exception
-        ConnectionObserver._append_active_exception(exception)
+        ConnectionObserver._append_to_not_raised_exceptions(exception)
         self._log(logging.INFO, "'{}.{}' has set exception '{}.{}'.".format(self.__class__.__module__,
                                                                             self.__class__.__name__,
                                                                             exception.__class__.__module__,
@@ -209,7 +209,7 @@ class ConnectionObserver(object):
                 return list_of_exceptions
 
     @staticmethod
-    def _append_active_exception(exception):
+    def _append_to_not_raised_exceptions(exception):
         with ConnectionObserver._exceptions_lock:
             ConnectionObserver._not_raised_exceptions.append(exception)
 
