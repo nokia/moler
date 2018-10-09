@@ -44,6 +44,28 @@ def test_gunzip_raise_error_on_cannot_overwrite(buffer_connection):
         gunzip_cmd()
 
 
+def test_gunzip_raise_error_on_cannot_overwrite_multiple_files(buffer_connection):
+    gunzip_cmd = Gunzip(connection=buffer_connection.moler_connection, archive_name=["new5.gz", "new.gz"])
+    assert 'gunzip new5.gz new.gz' == gunzip_cmd.command_string
+    gunzip_cmd.start()
+    command_output, expected_result = command_output_and_expected_result_on_cannot_overwrite_multiple_files()
+    for output in command_output:
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    with pytest.raises(CommandFailure):
+        gunzip_cmd()
+
+
+def test_gunzip_raise_error_on_cannot_multiple_files(buffer_connection):
+    gunzip_cmd = Gunzip(connection=buffer_connection.moler_connection,
+                        archive_name=["new5.gz", "new.gz"], overwrite=True)
+    assert 'gunzip new5.gz new.gz' == gunzip_cmd.command_string
+    gunzip_cmd.start()
+    command_output, expected_result = command_output_and_expected_result_on_overwrite_multiple_files()
+    for output in command_output:
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    assert gunzip_cmd.done() is True
+
+
 @pytest.fixture
 def command_output_and_expected_result_on_wrong_option():
     output = """xyz@debian:~/Dokumenty/sed$ gunzip -b old.gz
@@ -66,7 +88,25 @@ xyz@debian:~/Dokumenty/sed$ """
 @pytest.fixture
 def command_output_and_expected_result_on_cannot_overwrite():
     output = """xyz@debian:~/Dokumenty/sed$ gunzip new5.gz
-gzip: new5 already exists; do you wish to overwrite (y or n)? 
-xyz@debian:~/Dokumenty/sed$ """
+gzip: new5 already exists; do you wish to overwrite (y or n)? xyz@debian:~/Dokumenty/sed$"""
     result = dict()
     return output, result
+
+@pytest.fixture
+def command_output_and_expected_result_on_cannot_overwrite_multiple_files():
+    output = """xyz@debian:~/Dokumenty/sed$ gunzip new5.gz new.gz
+gzip: new5 already exists; do you wish to overwrite (y or n)?"""
+    output2 = """
+gzip: new already exists; do you wish to overwrite (y or n)? xyz@debian:~/Dokumenty/sed$"""
+    result = dict()
+    return [output, output2], result
+
+
+@pytest.fixture
+def command_output_and_expected_result_on_overwrite_multiple_files():
+    output = """xyz@debian:~/Dokumenty/sed$ gunzip new5.gz new.gz
+gzip: new5 already exists; do you wish to overwrite (y or n)?"""
+    output2 = """
+gzip: new already exists; do you wish to overwrite (y or n)? xyz@debian:~/Dokumenty/sed$"""
+    result = dict()
+    return [output, output2], result

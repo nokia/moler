@@ -16,13 +16,16 @@ import re
 class Gunzip(GenericUnixCommand):
     def __init__(self, connection, archive_name, output_file_name=None, options=None, overwrite=False,
                  prompt=None, new_line_chars=None, runner=None):
-        super(Gunzip, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+        super(Gunzip, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
         self.archive_name = archive_name
         self.output_file_name = output_file_name
         self.options = options
         self.overwrite = overwrite
         self.keys = list()
         self.current_ret['RESULT'] = list()
+
+        # private variables
+        self._answered_file = None
         self._asks_to_overwrite_send = False
 
     def build_command_string(self):
@@ -53,15 +56,18 @@ class Gunzip(GenericUnixCommand):
             self.current_ret['RESULT'].append(line)
             raise ParsingDone
 
-    _re_overwrite = re.compile(r"gzip:\s(?P<FILE_NAME>.*already exists)", re.IGNORECASE)
+    _re_overwrite = re.compile(r"gzip:\s(?P<FILE_NAME>.*)\salready exists", re.IGNORECASE)
 
     def _asks_to_overwrite(self, line):
         if self._regex_helper.search_compiled(Gunzip._re_overwrite, line):
-            if self.overwrite:
-                self.connection.sendline('y')
-            else:
-                self.connection.sendline('n')
-                self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("FILE_NAME"))))
+            current_file = self._regex_helper.group("FILE_NAME")
+            if current_file != self._answered_file:
+                if self.overwrite:
+                    self.connection.sendline('y')
+                else:
+                    self.connection.sendline('n')
+                    self.set_exception(CommandFailure(self, "ERROR: {} already exists".format(current_file)))
+                self._answered_file = current_file
             raise ParsingDone
 
     _re_l_option = re.compile(r"(?P<L_OPTION> compressed\s*uncompressed\s*ratio\s*uncompressed_name.*)", re.IGNORECASE)
@@ -115,8 +121,7 @@ COMMAND_RESULT_loud_options = {
 
 COMMAND_OUTPUT_overwrite = """
 xyz@debian:~$ gunzip new.gz
-gzip: new already exists; do you wish to overwrite (y or n)?
-xyz@debian:~$"""
+gzip: new already exists; do you wish to overwrite (y or n)? xyz@debian:~$"""
 
 COMMAND_KWARGS_overwrite = {
     'archive_name': ['new.gz'],
