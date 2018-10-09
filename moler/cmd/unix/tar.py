@@ -12,8 +12,8 @@ __email__ = 'snackwell.yang@nokia-sbell.com'
 
 class Tar(GenericUnixCommand):
 
-    def __init__(self, connection, options, file, prompt=None, new_line_chars=None):
-        super(Tar, self).__init__(connection, prompt, new_line_chars)
+    def __init__(self, connection, options, file, prompt=None, new_line_chars=None, runner=None):
+        super(Tar, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
         # Parameters defined by calling the command
         self.options = options
         self.file = file
