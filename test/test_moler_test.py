@@ -287,18 +287,18 @@ def moler_test_se():
     @MolerTest.raise_background_exceptions(check_steps_end=True)
     class MolerTestExampleSE(object):
         def test_not_raise_exception_when_steps_end(self):
-            MolerTest.log("Start MolerTest test with log and steps_end")
+            MolerTest.info("Start MolerTest test with log and steps_end")
 
             MolerTest.steps_end()
 
         def test_raise_exception_when_not_call_steps_end(self):
-            MolerTest.log("Start MolerTest test with log and without steps_end")
+            MolerTest.info("Start MolerTest test with log and without steps_end")
 
         def test_raise_exception_when_log_error(self):
-            MolerTest.log_error("Start MolerTest test with log_error")
+            MolerTest.error("Start MolerTest test with log_error")
 
         def test_raise_exception_when_log_error_raise_exception_set(self):
-            MolerTest.log_error("Start MolerTest test with log_error and raise_exception", raise_exception=True)
+            MolerTest.error("Start MolerTest test with log_error and raise_exception", raise_exception=True)
 
     yield MolerTestExampleSE()
 
@@ -310,14 +310,14 @@ def moler_test():
     @MolerTest.raise_background_exceptions()
     class MolerTestExample(object):
         def test_not_raise_exception_when_no_steps_end(self):
-            MolerTest.log("Start MolerTest test with log and steps_end")
+            MolerTest.info("Start MolerTest test with log and steps_end")
 
     yield MolerTestExample()
 
 
 @MolerTest.raise_background_exceptions(check_steps_end=True)
 def moler_test_raise_exception_when_no_steps_end_for_global_method():
-    MolerTest.log("Start global method with log and without steps_end")
+    MolerTest.info("Start global method with log and without steps_end")
 
 
 @pytest.yield_fixture

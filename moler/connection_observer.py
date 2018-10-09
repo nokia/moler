@@ -38,7 +38,6 @@ class ConnectionObserver(object):
         self._is_cancelled = False
         self._result = None
         self._exception = None
-        self._needed_exception_raise = False
         self.runner = runner if runner else ThreadPoolExecutorRunner()
         self._future = None
         self.timeout = 7
@@ -162,10 +161,9 @@ class ConnectionObserver(object):
                 exception.__class__.__module__,
                 exception.__class__.__name__
             ))
-            ConnectionObserver._change_exception_to_raised(self._exception)
+            ConnectionObserver._remove_from_not_raised_exceptions(self._exception)
         self._exception = exception
-        self._needed_exception_raise = True
-        ConnectionObserver._append_active_exception(exception)
+        ConnectionObserver._append_to_not_raised_exceptions(exception)
         self._log(logging.INFO, "'{}.{}' has set exception '{}.{}'.".format(self.__class__.__module__,
                                                                             self.__class__.__name__,
                                                                             exception.__class__.__module__,
@@ -174,9 +172,8 @@ class ConnectionObserver(object):
     def result(self):
         """Retrieve final result of connection-observer"""
         if self._exception:
-            if self._needed_exception_raise:
-                ConnectionObserver._change_exception_to_raised(self._exception)
-                self._needed_exception_raise = False
+            if self._exception:
+                ConnectionObserver._remove_from_not_raised_exceptions(self._exception)
             raise self._exception
         if self.cancelled():
             raise NoResultSinceCancelCalled(self)
@@ -202,21 +199,22 @@ class ConnectionObserver(object):
 
     @staticmethod
     def get_unraised_exceptions(remove=True):
-        list_of_remaining_exceptions = list()
         with ConnectionObserver._exceptions_lock:
-            if not remove:
-                list_of_remaining_exceptions = ConnectionObserver._not_raised_exceptions.copy()
-            list_of_active_exceptions = ConnectionObserver._not_raised_exceptions
-            ConnectionObserver._not_raised_exceptions = list_of_remaining_exceptions
-            return list_of_active_exceptions
+            if remove:
+                list_of_exceptions = ConnectionObserver._not_raised_exceptions
+                ConnectionObserver._not_raised_exceptions = list()
+                return list_of_exceptions
+            else:
+                list_of_exceptions = ConnectionObserver._not_raised_exceptions.copy()
+                return list_of_exceptions
 
     @staticmethod
-    def _append_active_exception(exception):
+    def _append_to_not_raised_exceptions(exception):
         with ConnectionObserver._exceptions_lock:
             ConnectionObserver._not_raised_exceptions.append(exception)
 
     @staticmethod
-    def _change_exception_to_raised(exception):
+    def _remove_from_not_raised_exceptions(exception):
         with ConnectionObserver._exceptions_lock:
             if exception in ConnectionObserver._not_raised_exceptions:
                 ConnectionObserver._not_raised_exceptions.remove(exception)
