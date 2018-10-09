@@ -205,7 +205,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 connection_observer_future._stop()
                 result = connection_observer_future.result()
                 self.logger.debug("{} returned {}".format(connection_observer, result))
-                return result
+                return None
             if check_timeout_from_observer:
                 timeout = connection_observer.timeout
             remain_time = timeout - (time.time() - start_time)
@@ -227,7 +227,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         else:
             exception = ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
         connection_observer.set_exception(exception)
-        # raise exception
+        return None
 
     def feed(self, connection_observer, feed_started, stop_feeding, feed_done):
         """

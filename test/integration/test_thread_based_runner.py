@@ -43,13 +43,13 @@ def test_can_await_connection_observer_to_complete(observer_and_awaited_data,
     ext_io = threading.Thread(target=inject_data)
     try:
         ext_io.start()
-        result = observer_runner.wait_for(conn_observer,
+        observer_runner.wait_for(conn_observer,
                                           connection_observer_future,
                                           timeout=1.0)
         assert not connection_observer_future.running()
         assert connection_observer_future.done()
         assert conn_observer.done()
-        assert result == connection_observer_future.result()
+        assert connection_observer_future.result() is not None
     finally:  # test cleanup
         ext_io.join()
         connection_observer_future.cancel()
