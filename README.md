@@ -4,6 +4,140 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/355afc9110f34d549b7c08c33961827c)](https://www.codacy.com/app/mplichta/moler?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=nokia/moler&amp;utm_campaign=Badge_Grade)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](./LICENSE)
 
+# Moler
+Moler is Python library that helps in building automated tests. [name origin](#moler-name-origin)
+
+Example use case is to find PIDs of all python processes:
+
+```python
+
+    from moler.config import load_config
+    from moler.device.device import DeviceFactory
+
+    load_config(path='my_devices.yml')
+    my_unix = DeviceFactory.get_device(name='MyMachine')
+    ps_cmd = my_unix.get_cmd(cmd_name="ps", cmd_params={"options": "-ef"})
+
+    processes = ps_cmd()
+    for proc in processes:
+        if 'python' in proc['CMD']:
+            print("PID: {} CMD: {}".format(proc['PID'], proc['CMD']))
+```
+
+* To have command we ask device "give me such command".
+* To run command we just call it as function (command object is callable)
+* What command returns is usually dict or list of dicts - easy to process
+
+Above code displays:
+
+```bash
+
+    PID: 1817 CMD: /usr/bin/python /usr/share/system-config-printer/applet.py
+    PID: 21825 CMD: /usr/bin/python /home/gl/moler/examples/command/unix_ps.py
+```
+
+How does it know what `'MyMachine'` means? Code loads definition from `my_devices.yml` configuration file:
+
+```yaml
+
+    DEVICES:
+
+      MyMachine:
+        DEVICE_CLASS: moler.device.unixremote.UnixLocal
+
+      RebexTestMachine:
+        DEVICE_CLASS: moler.device.unixremote.UnixRemote
+        CONNECTION_HOPS:
+          UNIX_LOCAL:                # from state
+            UNIX_REMOTE:             # to state
+              execute_command: ssh   # via command
+              command_params:        # with params
+                expected_prompt: demo@
+                host: test.rebex.net
+                login: demo
+                password: password
+                set_timeout: False   # remote doesn't support: export TMOUT
+```
+
+We have remote machine in our config. Let's check if there is 'readme.txt' file
+on that machine (and some info about the file):
+
+```python
+
+    my_unix = DeviceFactory.get_device(name='RebexTestMachine')
+    my_unix.goto_state(state="UNIX_REMOTE")
+
+    ls_cmd = my_unix.get_cmd(cmd_name="ls", cmd_params={"options": "-l"})
+    ls_cmd.connection.newline = '\r\n'  # tweak since remote console uses such one
+
+    remote_files = ls_cmd()
+
+    if 'readme.txt' in remote_files['files']:
+        print("readme.txt file:")
+        readme_file_info = remote_files['files']['readme.txt']
+        for attr in readme_file_info:
+            print("  {:<18}: {}".format(attr, readme_file_info[attr]))
+```
+
+As you may noticed device is state machine. State transitions are defined inside
+configuration file under `CONNECTION_HOPS`. Please note, that it is only config file who
+knows "I need to use ssh to be on remote" - client code just says "go to remote".
+Thanks to that you can exchange "how to reach remote" without any change in main code.
+
+Above code displays:
+
+```bash
+
+    readme.txt file:
+      permissions       : -rw-------
+      hard_links_count  : 1
+      owner             : demo
+      group             : users
+      size_raw          : 403
+      size_bytes        : 403
+      date              : Apr 08  2014
+      name              : readme.txt
+```
+
+Prevoius examples ask device to create command. We can also create command ourselves
+giving it connection to operate on:
+
+
+```python
+
+    import time
+    from moler.cmd.unix.ping import Ping
+    from moler.connection import get_connection
+
+    host = 'www.google.com'
+    terminal = get_connection(io_type='terminal', variant='threaded')
+    with terminal:
+        ping_cmd = Ping(connection=terminal.moler_connection,
+                        destination=host, options="-w 6")
+        print("Start pinging {} ...".format(host))
+        ping_cmd.start()
+        print("Doing other stuff while pinging {} ...".format(host))
+        time.sleep(3)
+        ping_stats = ping_cmd.await_done(timeout=4)
+        print("ping {}: {}={}, {}={} [{}]".format(host,'packet_loss',
+                                                  ping_stats['packet_loss'],
+                                                  'time_avg',
+                                                  ping_stats['time_avg'],
+                                                  ping_stats['time_unit']))
+```
+
+Besides being callable command-object works as "Future" (result promise).
+You can start it in background and later await till it is done to grab result.
+Please note also that connection is context manager doing open/close actions.
+
+
+```bash
+
+    Start pinging www.google.com ...
+    Doing other stuff while pinging www.google.com ...
+    ping www.google.com: packet_loss=0, time_avg=50.000 [ms]
+```
+
 # Table of Contents
 1. [Moler](#moler)
    * [Moler key features](#moler-key-features)
@@ -15,8 +149,8 @@
    * [Fundamental difference of command](#fundamental-difference-of-command)
 3. [Designed API](#designed-api)
 
-# Moler
-Moler is library to help in building automated tests. Name is coined by Grzegorz Latuszek with high impact of Bartosz Odziomek, Michał Ernst and Mateusz Smet.
+# Moler name origin
+Name is coined by Grzegorz Latuszek with high impact of Bartosz Odziomek, Michał Ernst and Mateusz Smet.
 
 Moler comes from:
 ![moler_origin](https://github.com/nokia/moler/blob/master/images/moler_origin.png)
