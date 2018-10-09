@@ -481,7 +481,7 @@ def _try_get_connection_with_name(io_type, variant, **constructor_kwargs):
             del constructor_kwargs['name']
             return ConnectionFactory.get_connection(io_type, variant,
                                                     **constructor_kwargs)
-        _moler_logger_log(level=logging.DEBUG, msg=err)
+        _moler_logger_log(level=logging.DEBUG, msg=repr(err))
         raise
 
 

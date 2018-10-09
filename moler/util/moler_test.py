@@ -27,14 +27,14 @@ class MolerTest(object):
         MolerTest._was_steps_end = True
 
     @staticmethod
-    def log_error(msg, raise_exception=False):
+    def error(msg, raise_exception=False):
         MolerTest._was_error = True
         MolerTest._logger.error(msg, extra={'moler_error': True})
         if raise_exception:
             raise MolerException(msg)
 
     @staticmethod
-    def log(msg):
+    def info(msg):
         MolerTest._logger.info(msg)
 
     @staticmethod
@@ -47,7 +47,7 @@ class MolerTest(object):
         unhandled_exceptions = list()
         for exception in exceptions:
             unhandled_exceptions.append(exception)
-            MolerTest.log_error("Unhandled exception: '{}'".format(exception))
+            MolerTest.error("Unhandled exception: '{}'".format(exception))
         if caught_exception:
             unhandled_exceptions.append(caught_exception)
 
@@ -61,7 +61,7 @@ class MolerTest(object):
         if len(unhandled_exceptions) > 0:
             err_msg += "There were unhandled exceptions in Moler.\n"
         if err_msg or len(unhandled_exceptions) > 0:
-            MolerTest.log_error(err_msg)
+            MolerTest.error(err_msg)
             MolerTest._was_error = False
             raise MolerStatusException(err_msg, unhandled_exceptions)
 
