@@ -16,7 +16,7 @@ import re
 class Gunzip(GenericUnixCommand):
     def __init__(self, connection, archive_name, output_file_name=None, options=None, overwrite=False,
                  prompt=None, new_line_chars=None, runner=None):
-        super(Gunzip, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
+        super(Gunzip, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
         self.archive_name = archive_name
         self.output_file_name = output_file_name
         self.options = options
