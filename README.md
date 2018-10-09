@@ -64,10 +64,10 @@ on that machine (and some info about the file):
 
 ```python
 
-    my_unix = DeviceFactory.get_device(name='RebexTestMachine')
-    my_unix.goto_state(state="UNIX_REMOTE")
+    remote_unix = DeviceFactory.get_device(name='RebexTestMachine')
+    remote_unix.goto_state(state="UNIX_REMOTE")
 
-    ls_cmd = my_unix.get_cmd(cmd_name="ls", cmd_params={"options": "-l"})
+    ls_cmd = remote_unix.get_cmd(cmd_name="ls", cmd_params={"options": "-l"})
     ls_cmd.connection.newline = '\r\n'  # tweak since remote console uses such one
 
     remote_files = ls_cmd()
@@ -99,6 +99,45 @@ Above code displays:
       name              : readme.txt
 ```
 
+How about doing multiple things in parallel. Let's ping google
+while asking test.rebex.net about readme.txt file:
+
+```python
+my_unix = DeviceFactory.get_device(name='MyMachine')
+host = 'www.google.com'
+ping_cmd = my_unix.get_cmd(cmd_name="ping", cmd_params={"destination": host, "options": "-w 6"})
+
+remote_unix = DeviceFactory.get_device(name='RebexTestMachine')
+remote_unix.goto_state(state="UNIX_REMOTE")
+ls_cmd = remote_unix.get_cmd(cmd_name="ls", cmd_params={"options": "-l"})
+ls_cmd.connection.newline = '\r\n'  # tweak since remote console uses such one
+
+print("Start pinging {} ...".format(host))
+ping_cmd.start()
+print("Let's check readme.txt at {} while pinging {} ...".format(remote_unix.name, host))
+
+remote_files = ls_cmd()
+file_info = remote_files['files']['readme.txt']
+print("readme.txt file: owner={fi[owner]}, size={fi[size_bytes]}".format(fi=file_info))
+
+ping_stats = ping_cmd.await_done(timeout=6)
+print("ping {}: {}={}, {}={} [{}]".format(host,'packet_loss',
+                                          ping_stats['packet_loss'],
+                                          'time_avg',
+                                          ping_stats['time_avg'],
+                                          ping_stats['time_unit']))
+```
+
+```log
+Start pinging www.google.com ...
+Let's check readme.txt at RebexTestMachine while pinging www.google.com ...
+readme.txt file: owner=demo, size=403
+ping www.google.com: packet_loss=0, time_avg=35.251 [ms]
+```
+
+Besides being callable command-object works as "Future" (result promise).
+You can start it in background and later await till it is done to grab result.
+
 If we enhance our configuration with logging related info:
 
 ```yaml
@@ -107,62 +146,112 @@ If we enhance our configuration with logging related info:
       DATE_FORMAT: "%H:%M:%S"
 ```
 
-then above code will automatically create log per each device (here `moler.RebexTestMachine.log`):
+then above code will automatically create Molers' main log (`moler.log`)
+which shows activity on all devices:
 
 ```log
-18:35:32.052  |Changed state from 'NOT_CONNECTED' into 'UNIX_LOCAL'
-18:35:32.052 <|
-18:35:32.155  |Event 'moler.events.unix.wait4prompt.Wait4prompt':'[re.compile('demo@')]' started.
-18:35:32.157  |Event 'moler.events.unix.wait4prompt.Wait4prompt':'[re.compile('^moler_bash#')]' started.
-18:35:32.159  |Command 'moler.cmd.unix.ssh.Ssh':'TERM=xterm-mono ssh -l demo test.rebex.net' started.
-18:35:32.159 >|TERM=xterm-mono ssh -l demo test.rebex.net
+22:30:19.723 INFO       moler               |More logs in: ./logs
+22:30:19.747 INFO       MyMachine           |Connection to: 'MyMachine' has been opened.
+22:30:19.748 INFO       MyMachine           |Changed state from 'NOT_CONNECTED' into 'UNIX_LOCAL'
+22:30:19.866 INFO       MyMachine           |Event 'moler.events.unix.wait4prompt.Wait4prompt':'[re.compile('^moler_bash#')]' started.
+22:30:19.901 INFO       RebexTestMachine    |Connection to: 'RebexTestMachine' has been opened.
+22:30:19.901 INFO       RebexTestMachine    |Changed state from 'NOT_CONNECTED' into 'UNIX_LOCAL'
+22:30:19.919 INFO       RebexTestMachine    |Event 'moler.events.unix.wait4prompt.Wait4prompt':'[re.compile('demo@')]' started.
+22:30:19.920 INFO       RebexTestMachine    |Event 'moler.events.unix.wait4prompt.Wait4prompt':'[re.compile('^moler_bash#')]' started.
+22:30:19.921 INFO       RebexTestMachine    |Command 'moler.cmd.unix.ssh.Ssh':'TERM=xterm-mono ssh -l demo test.rebex.net' started.
+22:30:19.921 INFO       RebexTestMachine    |TERM=xterm-mono ssh -l demo test.rebex.net
+22:30:20.763 INFO       RebexTestMachine    |*********
+22:30:20.909 INFO       RebexTestMachine    |Changed state from 'UNIX_LOCAL' into 'UNIX_REMOTE'
+22:30:20.917 INFO       RebexTestMachine    |Command 'moler.cmd.unix.ssh.Ssh' finished.
+22:30:20.919 INFO       MyMachine           |Command 'moler.cmd.unix.ping.Ping':'ping www.google.com -w 6' started.
+22:30:20.920 INFO       MyMachine           |ping www.google.com -w 6
+22:30:20.920 INFO       RebexTestMachine    |Command 'moler.cmd.unix.ls.Ls':'ls -l' started.
+22:30:20.922 INFO       RebexTestMachine    |ls -l
+22:30:20.985 INFO       RebexTestMachine    |Command 'moler.cmd.unix.ls.Ls' finished.
+22:30:26.968 INFO       MyMachine           |Command 'moler.cmd.unix.ping.Ping' finished.
+22:30:26.992 INFO       RebexTestMachine    |Event 'moler.events.unix.wait4prompt.Wait4prompt': '[re.compile('^moler_bash#')]' finished.
+22:30:27.011 INFO       RebexTestMachine    |Event 'moler.events.unix.wait4prompt.Wait4prompt': '[re.compile('demo@')]' finished.
+22:30:27.032 INFO       MyMachine           |Event 'moler.events.unix.wait4prompt.Wait4prompt': '[re.compile('^moler_bash#')]' finished.
 
-18:35:32.166 <|TERM=xterm-mono ssh -l demo test.rebex.net
+```
 
-18:35:33.149 <|Password:
-18:35:33.149 >|*********
-18:35:33.150 <|
+As you may noticed main log shows code progress from high-level view - data
+on connections are not visible, just activity of commands running on devices.
 
-18:35:33.456 <|Welcome to Rebex Virtual Shell!
+If you want to see in details what has happened on each device - you have it in device logs.
+Moler creates log per each device
+`moler.RebexTestMachine.log`:
+
+```log
+22:30:19.901  |Changed state from 'NOT_CONNECTED' into 'UNIX_LOCAL'
+22:30:19.902 <|
+22:30:19.919  |Event 'moler.events.unix.wait4prompt.Wait4prompt':'[re.compile('demo@')]' started.
+22:30:19.920  |Event 'moler.events.unix.wait4prompt.Wait4prompt':'[re.compile('^moler_bash#')]' started.
+22:30:19.921  |Command 'moler.cmd.unix.ssh.Ssh':'TERM=xterm-mono ssh -l demo test.rebex.net' started.
+22:30:19.921 >|TERM=xterm-mono ssh -l demo test.rebex.net
+
+22:30:19.924 <|TERM=xterm-mono ssh -l demo test.rebex.net
+
+22:30:20.762 <|Password:
+22:30:20.763 >|*********
+22:30:20.763 <|
+
+22:30:20.908 <|Welcome to Rebex Virtual Shell!
               |For a list of supported commands, type 'help'.
               |demo@ETNA:/$
-18:35:33.457  |Changed state from 'UNIX_LOCAL' into 'UNIX_REMOTE'
-18:35:33.462  |Command 'moler.cmd.unix.ssh.Ssh' finished.
-18:35:33.464  |Command 'moler.cmd.unix.ls.Ls':'ls -l' started.
-18:35:33.465 >|ls -l
+22:30:20.909  |Changed state from 'UNIX_LOCAL' into 'UNIX_REMOTE'
+22:30:20.917  |Command 'moler.cmd.unix.ssh.Ssh' finished.
+22:30:20.920  |Command 'moler.cmd.unix.ls.Ls':'ls -l' started.
+22:30:20.922 >|ls -l
 
-18:35:33.589 <|ls -l
-              |drwx------ 2 demo users          0 Jul 26  2017 .
+22:30:20.974 <|ls -l
 
-18:35:33.600 <|drwx------ 2 demo users          0 Jul 26  2017 ..
+22:30:20.978 <|drwx------ 2 demo users          0 Jul 26  2017 .
+
+22:30:20.979 <|drwx------ 2 demo users          0 Jul 26  2017 ..
               |drwx------ 2 demo users          0 Dec 03  2015 aspnet_client
               |drwx------ 2 demo users          0 Oct 27  2015 pub
               |-rw------- 1 demo users        403 Apr 08  2014 readme.txt
               |demo@ETNA:/$
-18:35:33.608  |Command 'moler.cmd.unix.ls.Ls' finished.
-18:35:33.629  |Event 'moler.events.unix.wait4prompt.Wait4prompt': '[re.compile('^moler_bash#')]' finished.
-18:35:33.652  |Event 'moler.events.unix.wait4prompt.Wait4prompt': '[re.compile('demo@')]' finished.
+22:30:20.985  |Command 'moler.cmd.unix.ls.Ls' finished.
+22:30:26.992  |Event 'moler.events.unix.wait4prompt.Wait4prompt': '[re.compile('^moler_bash#')]' finished.
+22:30:27.011  |Event 'moler.events.unix.wait4prompt.Wait4prompt': '[re.compile('demo@')]' finished.
 ```
 
-and Molers' main log (`moler.log`) combining view from all devices but seen from higher abstraction level - data
-on connections are not visible, just activity of commands running on devices:
+and `moler.MyMachine.log`:
 
 ```log
-18:35:32.021 INFO       moler               |More logs in: ./logs
-18:35:32.052 INFO       RebexTestMachine    |Connection to: 'RebexTestMachine' has been opened.
-18:35:32.052 INFO       RebexTestMachine    |Changed state from 'NOT_CONNECTED' into 'UNIX_LOCAL'
-18:35:32.154 INFO       RebexTestMachine    |Event 'moler.events.unix.wait4prompt.Wait4prompt':'[re.compile('demo@')]' started.
-18:35:32.156 INFO       RebexTestMachine    |Event 'moler.events.unix.wait4prompt.Wait4prompt':'[re.compile('^moler_bash#')]' started.
-18:35:32.158 INFO       RebexTestMachine    |Command 'moler.cmd.unix.ssh.Ssh':'TERM=xterm-mono ssh -l demo test.rebex.net' started.
-18:35:32.159 INFO       RebexTestMachine    |TERM=xterm-mono ssh -l demo test.rebex.net
-18:35:33.150 INFO       RebexTestMachine    |*********
-18:35:33.457 INFO       RebexTestMachine    |Changed state from 'UNIX_LOCAL' into 'UNIX_REMOTE'
-18:35:33.462 INFO       RebexTestMachine    |Command 'moler.cmd.unix.ssh.Ssh' finished.
-18:35:33.464 INFO       RebexTestMachine    |Command 'moler.cmd.unix.ls.Ls':'ls -l' started.
-18:35:33.465 INFO       RebexTestMachine    |ls -l
-18:35:33.608 INFO       RebexTestMachine    |Command 'moler.cmd.unix.ls.Ls' finished.
-18:35:33.629 INFO       RebexTestMachine    |Event 'moler.events.unix.wait4prompt.Wait4prompt': '[re.compile('^moler_bash#')]' finished.
-18:35:33.652 INFO       RebexTestMachine    |Event 'moler.events.unix.wait4prompt.Wait4prompt': '[re.compile('demo@')]' finished.
+22:30:19.748  |Changed state from 'NOT_CONNECTED' into 'UNIX_LOCAL'
+22:30:19.748 <|
+22:30:19.866  |Event 'moler.events.unix.wait4prompt.Wait4prompt':'[re.compile('^moler_bash#')]' started.
+22:30:20.919  |Command 'moler.cmd.unix.ping.Ping':'ping www.google.com -w 6' started.
+22:30:20.920 >|ping www.google.com -w 6
+
+22:30:20.921 <|ping www.google.com -w 6
+
+22:30:20.959 <|PING www.google.com (216.58.215.68) 56(84) bytes of data.
+22:30:20.960 <|
+
+22:30:21.000 <|64 bytes from waw02s16-in-f4.1e100.net (216.58.215.68): icmp_seq=1 ttl=51 time=40.1 ms
+22:30:21.001 <|
+
+22:30:21.992 <|64 bytes from waw02s16-in-f4.1e100.net (216.58.215.68): icmp_seq=2 ttl=51 time=31.0 ms
+
+22:30:22.999 <|64 bytes from waw02s16-in-f4.1e100.net (216.58.215.68): icmp_seq=3 ttl=51 time=36.5 ms
+
+22:30:23.996 <|64 bytes from waw02s16-in-f4.1e100.net (216.58.215.68): icmp_seq=4 ttl=51 time=31.4 ms
+
+22:30:24.996 <|64 bytes from waw02s16-in-f4.1e100.net (216.58.215.68): icmp_seq=5 ttl=51 time=29.8 ms
+
+22:30:26.010 <|64 bytes from waw02s16-in-f4.1e100.net (216.58.215.68): icmp_seq=6 ttl=51 time=42.4 ms
+
+22:30:26.960 <|
+              |--- www.google.com ping statistics ---
+              |6 packets transmitted, 6 received, 0% packet loss, time 5007ms
+              |rtt min/avg/max/mdev = 29.888/35.251/42.405/4.786 ms
+              |moler_bash#
+22:30:26.968  |Command 'moler.cmd.unix.ping.Ping' finished.
+22:30:27.032  |Event 'moler.events.unix.wait4prompt.Wait4prompt': '[re.compile('^moler_bash#')]' finished.
 ```
 
 Prevoius examples ask device to create command. We can also create command ourselves
@@ -192,8 +281,6 @@ giving it connection to operate on:
                                                   ping_stats['time_unit']))
 ```
 
-Besides being callable command-object works as "Future" (result promise).
-You can start it in background and later await till it is done to grab result.
 Please note also that connection is context manager doing open/close actions.
 
 
