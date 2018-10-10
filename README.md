@@ -11,7 +11,8 @@
 4. [Designed API](#designed-api)
 
 # Moler
-Moler ([name origin](#moler-name-origin)) is Python library that provides "bricks" for building  automated tests.
+Moler ([name origin](https://github.com/nokia/moler/wiki#moler-name-origin)) is Python library
+that provides "bricks" for building  automated tests.
 All these "bricks" have clearly defined responsibilities, have similar API,
 follow same construction pattern (so new ones are easy to create).
 
@@ -327,19 +328,6 @@ Library gives you freedom which part you want to reuse. We are fan's of "take wh
    terminal_connection = ThreadedTerminal(moler_connection=ObservableConnection())
    ```
 * You can even install your own implementation in place of default implementation per connection type
-
-# Moler name origin
-Name is coined by Grzegorz Latuszek with high impact of Bartosz Odziomek, Michał Ernst and Mateusz Smet.
-
-Moler comes from:
-![moler_origin](https://github.com/nokia/moler/blob/master/images/moler_origin.png)
-* **Mole** :gb:
-   * has tunnel-connections to search for data (:bug:) it is processing
-   * can detect different bugs hidden under ground
-   * **as we want this library to search/detect bugs in tested software**
-* **Moler** in spanish :es: means:
-   * grind, reduce to powder
-   * **as this library should grind tested software to find it's bugs**
 
 # API design reasoning
 The main goal of command is its usage simplicity: just run it and give me back its result.
