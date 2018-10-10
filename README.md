@@ -4,24 +4,45 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/355afc9110f34d549b7c08c33961827c)](https://www.codacy.com/app/mplichta/moler?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=nokia/moler&amp;utm_campaign=Badge_Grade)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](./LICENSE)
 
-# Moler
-Moler is Python library that helps in building automated tests. [name origin](#moler-name-origin)
+# Table of Contents
+1. [Moler info and usage](#moler)
+2. [API design reasoning](#api-design-reasoning)
+3. [Designed API](#designed-api)
 
-Example use case is to find PIDs of all python processes:
+# Moler
+Moler ([name origin](#moler-name-origin)) is Python library that provides "bricks" for building  automated tests.
+All these "bricks" have clearly defined responsibilities, have similar API,
+follow same construction pattern (so new ones are easy to create).
+
+Here they are:
+* Commands as self-reliant object
+  * to allow for command triggering and parsing encapsulated in single object (lower maintenance cost)
+* Event observers & callbacks (alarms are events example)
+  * to allow for online reaction (not offline postprocessing)
+* Run observers/commands in the background
+  * to allow for test logic decomposition into multiple commands running in parallel
+  * to allow for handling unexpected system behavior (reboots, alarms)
+* State machines -> automatic auto-connecting after dropped connection
+  * to increase framework auto-recovery and help in troubleshooting "what went wrong"
+* Automatic logging of all connections towards devices used by tests
+  * to decrease investigation time by having logs focused on different parts of system under test
+
+Let's see Moler in action. Here is hypothetical use case: "find PIDs of all python processes":
 
 ```python
 
     from moler.config import load_config
     from moler.device.device import DeviceFactory
 
-    load_config(path='my_devices.yml')
-    my_unix = DeviceFactory.get_device(name='MyMachine')
-    ps_cmd = my_unix.get_cmd(cmd_name="ps", cmd_params={"options": "-ef"})
+    load_config(path='my_devices.yml')                      # description of available devices
+    my_unix = DeviceFactory.get_device(name='MyMachine')    # take specific device out of available ones
+    ps_cmd = my_unix.get_cmd(cmd_name="ps",                 # take command of that device
+                             cmd_params={"options": "-ef"})
 
-    processes = ps_cmd()
-    for proc in processes:
-        if 'python' in proc['CMD']:
-            print("PID: {} CMD: {}".format(proc['PID'], proc['CMD']))
+    processes_info = ps_cmd()                               # run the command, it returns result
+    for proc_info in processes_info:
+        if 'python' in proc_info['CMD']:
+            print("PID: {info[PID]} CMD: {info[CMD]}".format(info=proc_info))
 ```
 
 * To have command we ask device "give me such command".
@@ -64,11 +85,11 @@ on that machine (and some info about the file):
 
 ```python
 
-    remote_unix = DeviceFactory.get_device(name='RebexTestMachine')
-    remote_unix.goto_state(state="UNIX_REMOTE")
+    remote_unix = DeviceFactory.get_device(name='RebexTestMachine')  # it starts in local shell
+    remote_unix.goto_state(state="UNIX_REMOTE")                      # make it go to remote shell
 
     ls_cmd = remote_unix.get_cmd(cmd_name="ls", cmd_params={"options": "-l"})
-    ls_cmd.connection.newline = '\r\n'  # tweak since remote console uses such one
+    ls_cmd.connection.newline = '\r\n'           # tweak since rebex remote console uses such one
 
     remote_files = ls_cmd()
 
@@ -113,14 +134,14 @@ ls_cmd = remote_unix.get_cmd(cmd_name="ls", cmd_params={"options": "-l"})
 ls_cmd.connection.newline = '\r\n'  # tweak since remote console uses such one
 
 print("Start pinging {} ...".format(host))
-ping_cmd.start()
+ping_cmd.start()                                # run command in background
 print("Let's check readme.txt at {} while pinging {} ...".format(remote_unix.name, host))
 
 remote_files = ls_cmd()
 file_info = remote_files['files']['readme.txt']
 print("readme.txt file: owner={fi[owner]}, size={fi[size_bytes]}".format(fi=file_info))
 
-ping_stats = ping_cmd.await_done(timeout=6)
+ping_stats = ping_cmd.await_done(timeout=6)     # await background command
 print("ping {}: {}={}, {}={} [{}]".format(host,'packet_loss',
                                           ping_stats['packet_loss'],
                                           'time_avg',
@@ -291,17 +312,6 @@ Please note also that connection is context manager doing open/close actions.
     ping www.google.com: packet_loss=0, time_avg=50.000 [ms]
 ```
 
-# Table of Contents
-1. [Moler](#moler)
-   * [Moler key features](#moler-key-features)
-   * [Library content](#library-content)
-2. [API design reasoning](#api-design-reasoning)
-   * [Command as future](#command-as-future)
-   * [Command vs. Connection-observer](#command-vs-connection-observer)
-   * [Most well known Python's futures are](#most-well-known-pythons-futures)
-   * [Fundamental difference of command](#fundamental-difference-of-command)
-3. [Designed API](#designed-api)
-
 # Moler name origin
 Name is coined by Grzegorz Latuszek with high impact of Bartosz Odziomek, Michał Ernst and Mateusz Smet.
 
@@ -314,25 +324,6 @@ Moler comes from:
 * **Moler** in spanish :es: means:
    * grind, reduce to powder
    * **as this library should grind tested software to find it's bugs**
-
-## Moler key features
-* Event observers & callbacks (alarms are events example)
-  * to allow for online reaction (not offline postprocessing)
-* Commands as self-reliant object
-  * to allow for command triggering and parsing encapsulated in single object (lower maintenance cost)
-* Run observers/commands in the background
-  * to allow for test logic decomposition into multiple commands running in parallel
-  * to allow for handling unexpected system behavior (reboots, alarms)
-* State machines -> automatic auto-connecting after dropped connection
-  * to increase framework auto-recovery and help in troubleshooting "what went wrong"
-* Automatic logging of all connections towards devices used by tests
-  * to decrease investigation time by having logs focused on different parts of system under test
-
-## Library content
-Library provides "bricks" for building automated tests:
-* have clearly defined responsibilities
-* have similar API
-* follow same construction pattern (so new ones are easy to create)
 
 # API design reasoning
 The main goal of command is its usage simplicity: just run it and give me back its result.
