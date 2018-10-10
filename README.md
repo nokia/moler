@@ -133,13 +133,13 @@ ping_cmd = my_unix.get_cmd(cmd_name="ping", cmd_params={"destination": host, "op
 remote_unix = DeviceFactory.get_device(name='RebexTestMachine')
 remote_unix.goto_state(state="UNIX_REMOTE")
 ls_cmd = remote_unix.get_cmd(cmd_name="ls", cmd_params={"options": "-l"})
-ls_cmd.connection.newline = '\r\n'  # tweak since remote console uses such one
+ls_cmd.connection.newline = '\r\n'              # tweak since rebex remote console uses such one
 
 print("Start pinging {} ...".format(host))
 ping_cmd.start()                                # run command in background
 print("Let's check readme.txt at {} while pinging {} ...".format(remote_unix.name, host))
 
-remote_files = ls_cmd()
+remote_files = ls_cmd()                         # foreground "run in the meantime"
 file_info = remote_files['files']['readme.txt']
 print("readme.txt file: owner={fi[owner]}, size={fi[size_bytes]}".format(fi=file_info))
 
@@ -288,7 +288,7 @@ giving it connection to operate on:
     from moler.connection import get_connection
 
     host = 'www.google.com'
-    terminal = get_connection(io_type='terminal', variant='threaded')
+    terminal = get_connection(io_type='terminal', variant='threaded')  # take connection
     with terminal:
         ping_cmd = Ping(connection=terminal.moler_connection,
                         destination=host, options="-w 6")
@@ -313,6 +313,20 @@ Please note also that connection is context manager doing open/close actions.
     Doing other stuff while pinging www.google.com ...
     ping www.google.com: packet_loss=0, time_avg=50.000 [ms]
 ```
+
+## Reuse freedom
+Library gives you freedom which part you want to reuse. We are fan's of "take what you need only".
+* You may use configuration files or configure things by Python calls.
+* You may use devices or create commands manually
+* You can take connection or build it yourself:
+
+   ```python
+   from moler.connection import ObservableConnection
+   from moler.io.raw.terminal import ThreadedTerminal
+
+   terminal_connection = ThreadedTerminal(moler_connection=ObservableConnection())
+   ```
+* You can even install your own implementation in place of default implementation per connection type
 
 # Moler name origin
 Name is coined by Grzegorz Latuszek with high impact of Bartosz Odziomek, Michał Ernst and Mateusz Smet.
