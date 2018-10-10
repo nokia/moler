@@ -27,7 +27,7 @@ class Ssh(GenericUnixCommand):
     def __init__(self, connection, login, password, host, prompt=None, expected_prompt='>', port=0,
                  known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
                  term_mono="TERM=xterm-mono", new_line_chars=None, encrypt_password=True, runner=None,
-                 end_line_source="\n", end_line_target="\n"):
+                 target_newline="\n"):
 
         super(Ssh, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
 
@@ -42,8 +42,7 @@ class Ssh(GenericUnixCommand):
         self.set_prompt = set_prompt
         self.term_mono = term_mono
         self.encrypt_password = encrypt_password
-        self.end_line_target = end_line_target
-        self.end_line_source = end_line_source
+        self.end_line_target = target_newline
 
         self.ret_required = False
 

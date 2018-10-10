@@ -61,10 +61,12 @@ class TextualDevice(object):
         self._state_prompts = {}
         self._prompts_events = {}
         self._configurations = dict()
+        self._newline_chars = dict()  # key is state, value is chars to send as newline
 
         self._prepare_transitions()
         self._prepare_state_hops()
         self._configure_state_machine(sm_params)
+        self._prepare_newline_chars()
 
         if io_connection:
             self.io_connection = io_connection
@@ -114,6 +116,10 @@ class TextualDevice(object):
 
     @abc.abstractmethod
     def _prepare_state_prompts(self):
+        pass
+
+    @abc.abstractmethod
+    def _prepare_newline_chars(self):
         pass
 
     @abc.abstractmethod
@@ -229,10 +235,6 @@ class TextualDevice(object):
             while (retrying <= rerun) and (not entered_state):
                 try:
                     change_state_method(self.current_state, next_state, timeout=timeout)
-
-                    if send_enter_after_changed_state:
-                        self._send_enter_after_changed_state()
-
                     entered_state = True
                 except Exception as ex:
                     if retrying == rerun:
@@ -244,10 +246,11 @@ class TextualDevice(object):
                         retrying += 1
                         self._log(logging.DEBUG, "Cannot change state into '{}'. "
                                                  "Retrying '{}' of '{}' times.".format(next_state, retrying, rerun))
-
                         if send_enter_after_changed_state:
                             self._send_enter_after_changed_state()
-
+            self.io_connection.moler_connection.change_newline_seq(self._get_newline(state=next_state))
+            if send_enter_after_changed_state:
+                self._send_enter_after_changed_state()
             self._log(logging.DEBUG, "Successfully enter state '{}'".format(next_state))
         else:
             exc = DeviceFailure(
@@ -367,7 +370,9 @@ class TextualDevice(object):
             observer._validate_start = validate_device_state_before_observer_start
         return observer
 
-    def get_cmd(self, cmd_name, cmd_params={}, check_state=True):
+    def get_cmd(self, cmd_name, cmd_params=None, check_state=True):
+        if cmd_params is None:
+            cmd_params = {}
         if "prompt" not in cmd_params:
             cmd_params["prompt"] = self.get_prompt()
         cmd = self.get_observer(observer_name=cmd_name, observer_type=TextualDevice.cmds,
@@ -538,11 +543,14 @@ class TextualDevice(object):
 
         try:
             cmd_enter = Enter(connection=self.io_connection.moler_connection)
-            result = cmd_enter()
+            cmd_enter()
         except Exception as ex:
             self._log(logging.DEBUG, "Cannot execute command 'enter' properly: {}".format(ex))
             pass
 
-    def _get_endline_chars(self):
+    def _get_newline(self, state=None):
+        if not state:
+            state = self.current_state
+        if state and state in self._newline_chars:
+            return self._newline_chars[state]
         return "\n"
-

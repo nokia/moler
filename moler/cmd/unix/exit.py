@@ -13,7 +13,7 @@ from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 
 
 class Exit(GenericUnixCommand):
-    def __init__(self, connection, prompt=None, expected_prompt='>', new_line_chars=None, runner=None):
+    def __init__(self, connection, prompt=None, expected_prompt='>', new_line_chars=None, runner=None, target_newline="\n"):
         """
         :param connection:
         :param prompt: Prompt of the starting shell
@@ -22,6 +22,7 @@ class Exit(GenericUnixCommand):
         """
         super(Exit, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
         self.ret_required = False
+        self.target_newline = target_newline
 
         # Parameters defined by calling the command
         self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(expected_prompt)  # Expected prompt on device

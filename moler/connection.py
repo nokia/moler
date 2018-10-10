@@ -144,6 +144,23 @@ class Connection(object):
         encoded_data = self.encode(data)
         self.how2send(encoded_data)
 
+    def change_newline_seq(self, newline_seq="\n"):
+        """
+        Method to change newline char(s). Useful when connect from one point to another if newline chars change (i.e. "\n", "\r\n")
+        :param newline_seq: Sequence of chars to send as new line char(s)
+        :return: Nothing
+        """
+        stro = ""
+        strn = ""
+        for l in self.newline:
+            o = ord(l)
+            stro = "{}'{}'".format(stro, o)
+        for l in newline_seq:
+            o = ord(l)
+            strn = "{}'{}'".format(strn, o)
+        self._log(logging.DEBUG, "changing newline seq old '{}' -> new '{}'".format(stro, strn))
+        self.newline = newline_seq
+
     def sendline(self, data, timeout=30, encrypt=False):
         """Outgoing-IO API: Send data line over external-IO."""
         line = data + self.newline
