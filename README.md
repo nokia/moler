@@ -5,9 +5,10 @@
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](./LICENSE)
 
 # Table of Contents
-1. [Moler info and usage](#moler)
-2. [API design reasoning](#api-design-reasoning)
-3. [Designed API](#designed-api)
+1. [Moler info](#moler)
+2. [Moler usage examples](#moler-usage-examples)
+3. [API design reasoning](#api-design-reasoning)
+4. [Designed API](#designed-api)
 
 # Moler
 Moler ([name origin](#moler-name-origin)) is Python library that provides "bricks" for building  automated tests.
@@ -27,6 +28,7 @@ Here they are:
 * Automatic logging of all connections towards devices used by tests
   * to decrease investigation time by having logs focused on different parts of system under test
 
+# Moler usage examples
 Let's see Moler in action. Here is hypothetical use case: "find PIDs of all python processes":
 
 ```python
