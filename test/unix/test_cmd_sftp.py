@@ -258,3 +258,46 @@ xyz@debian:/home$"""
 
     result = dict()
     return data, result
+
+
+def test_sftp_with_simulated_terminal(buffer_connection):
+
+    sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
+                    command='pwd')
+    assert "sftp fred@192.168.0.102" == sftp_cmd.command_string
+    command_output, expected_result = command_output_and_expected_result_simulated_terminal()
+    sftp_cmd.start()
+    for output in command_output:
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    print("current_ret: ", sftp_cmd.current_ret)
+    assert sftp_cmd.current_ret == expected_result
+    sftp_cmd.await_done()
+    assert sftp_cmd.done() is True
+
+
+@pytest.fixture
+def command_output_and_expected_result_simulated_terminal():
+    output1 = """xyz@debian:/home$ sftp fred@192.168.0.102
+        The authenticity of host '192.168.0.102 (192.168.0.102)' can't be established.
+        ECDSA key fingerprint is SHA256:ghQ3iy/gH4YTqZOggql1eJCe3EETOOpn5yANJwFeRt0.
+        Are you sure you want to continue connecting (yes/no)?"""
+    output2 = """Are you sure you want to continue connecting (yes/no)? yes
+        Warning: Permanently added '192.168.0.102' (ECDSA) to the list of known hosts.
+        fred@192.168.0.102's password:"""
+    output3 = """fred@192.168.0.102's password:
+        Connected to 192.168.0.102.
+        sftp>"""
+    output4 = """\n"""
+    output5 = """sftp> pwd"""
+    output6 = """\n"""
+    output7 = """Remote working directory: /upload
+        sftp>"""
+    output8 = """sftp>"""
+    output9 = """sftp> exit
+    """
+    output10 = """xyz@debian:/home$"""
+
+    outputs = [output1, output2, output3, output4, output5, output6, output7, output8, output9, output10]
+
+    result = {'RESULT': ["Remote working directory: /upload"]}
+    return outputs, result
