@@ -238,34 +238,42 @@ Couldn't read packet: Connection reset by peer"""
     return data, result
 
 
-def test_sftp_raises_not_confirmed_error(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_not_confirmed()
-    buffer_connection.remote_inject_response([command_output])
+def test_sftp_raise_not_confirmed_connection(buffer_connection):
+
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
-                    source_path="cat", destination_path="/home/xyz/Docs/cat")
+                    confirm_connection=False, command="mkdir", no_result=True)
+    assert "sftp fred@192.168.0.102" == sftp_cmd.command_string
+    command_output, expected_result = command_output_and_expected_result_not_confirmed()
+    sftp_cmd.start()
+    for output in command_output:
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    print("current_ret: ", sftp_cmd.current_ret)
     with pytest.raises(CommandFailure):
         sftp_cmd()
 
 
 @pytest.fixture
 def command_output_and_expected_result_not_confirmed():
-    data = """xyz@debian:/home$ sftp fred@192.168.0.102:cat /home/xyz/Docs/cat
+    output1 = """xyz@debian:/home$ sftp fred@192.168.0.102:cat /home/xyz/Docs/cat
 The authenticity of host '192.168.0.102 (192.168.0.102)' can't be established.
 ECDSA key fingerprint is SHA256:ghQ3iy/gH4YTqZOggql1eJCe3EETOOpn5yANJwFeRt0.
-Are you sure you want to continue connecting (yes/no)?
+Are you sure you want to continue connecting (yes/no)?"""
+    output2 = """Are you sure you want to continue connecting (yes/no)? no
 Host key verification failed.
 xyz@debian:/home$"""
 
-    result = dict()
-    return data, result
+    outputs = [output1, output2]
+
+    result = {}
+    return outputs, result
 
 
-def test_sftp_with_simulated_terminal(buffer_connection):
+def test_sftp_returns_result_pwd_in_prompt(buffer_connection):
 
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
                     command='pwd')
     assert "sftp fred@192.168.0.102" == sftp_cmd.command_string
-    command_output, expected_result = command_output_and_expected_result_simulated_terminal()
+    command_output, expected_result = command_output_and_expected_result_pwd_in_prompt()
     sftp_cmd.start()
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
@@ -276,7 +284,7 @@ def test_sftp_with_simulated_terminal(buffer_connection):
 
 
 @pytest.fixture
-def command_output_and_expected_result_simulated_terminal():
+def command_output_and_expected_result_pwd_in_prompt():
     output1 = """xyz@debian:/home$ sftp fred@192.168.0.102
 The authenticity of host '192.168.0.102 (192.168.0.102)' can't be established.
 ECDSA key fingerprint is SHA256:ghQ3iy/gH4YTqZOggql1eJCe3EETOOpn5yANJwFeRt0.
