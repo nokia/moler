@@ -29,6 +29,23 @@ class Ssh(GenericUnixCommand):
                  term_mono="TERM=xterm-mono", new_line_chars=None, encrypt_password=True, runner=None,
                  target_newline="\n"):
 
+        """
+        :param connection: moler connection to device, terminal when command is executed
+        :param login: ssh login
+        :param password: ssh password
+        :param host: host to ssh
+        :param prompt: start prompt (on system where command ssh starts)
+        :param expected_prompt: final prompt (on system where command ssh connects)
+        :param port: port to ssh connect
+        :param known_hosts_on_failure: "rm" or "keygen" how to deal with error. If empty then ssh fails.
+        :param set_timeout: Command to set timeout after ssh connects
+        :param set_prompt: Command to set prompt after ssh connects
+        :param term_mono: Params to set ssh mono connection (useful in script)
+        :param new_line_chars: Characters to split lines
+        :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text
+        :param runner: Runner to run command
+        :param target_newline: newline chars on remote system where ssh connects
+        """
         super(Ssh, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
 
         # Parameters defined by calling the command
@@ -143,16 +160,16 @@ class Ssh(GenericUnixCommand):
         return self.set_timeout and not self._sent_timeout
 
     def send_timeout_set(self):
-        # self.connection.sendline("\n" + self.set_timeout)
-        self.connection.send("{}{}{}".format(self.target_newline, self.set_timeout, self.target_newline))
+        cmd = "{}{}{}".format(self.target_newline, self.set_timeout, self.target_newline)
+        self.connection.send(cmd)
         self._sent_timeout = True
 
     def prompt_set_needed(self):
         return self.set_prompt and not self._sent_prompt
 
     def send_prompt_set(self):
-        # self.connection.sendline("\n" + self.set_prompt)
-        self.connection.send("{}{}{}".format(self.target_newline, self.set_prompt, self.target_newline))
+        cmd = "{}{}{}".format(self.target_newline, self.set_prompt, self.target_newline)
+        self.connection.send(cmd)
         self._sent_prompt = True
 
     def is_failure_indication(self, line):
