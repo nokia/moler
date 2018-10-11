@@ -7,6 +7,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'haili.guo@nokia-sbell.com'
 
 import pytest
+
 from moler.exceptions import CommandFailure
 
 
@@ -16,9 +17,9 @@ def test_zip_returns_proper_command_string(buffer_connection):
     assert "zip -r test.zip test.txt" == zip_cmd.command_string
 
 
-def test_calling_zip_raise_exception_wrong_command_string(buffer_connection):
+def test_calling_zip_raise_exception_wrong_command_string(buffer_connection, command_output_and_expected_result_file_not_exist):
     from moler.cmd.unix.zip import Zip
-    command_output, expected_result = command_output_and_expected_result_file_not_exist()
+    command_output, expected_result = command_output_and_expected_result_file_not_exist
     buffer_connection.remote_inject_response([command_output])
     zip_cmd = Zip(connection=buffer_connection.moler_connection, options="", zip_file="test.zip", file_name="test.txt")
     with pytest.raises(CommandFailure, match=r"Command failed 'zip test.zip test.txt' with ERROR: "r'zip error: Nothing to do! \(test.zip\)'):
@@ -31,9 +32,9 @@ def test_zip_raise_exception_wrong_command_string(buffer_connection):
         Zip(buffer_connection, options="").command_string
 
 
-def test_calling_zip_timeout(buffer_connection):
+def test_calling_zip_timeout(buffer_connection, command_output_and_expected_result_timeout):
     from moler.cmd.unix.zip import Zip
-    command_output, expected_result = command_output_and_expected_result_timeout()
+    command_output, expected_result = command_output_and_expected_result_timeout
     buffer_connection.remote_inject_response([command_output])
     zip_cmd = Zip(connection=buffer_connection.moler_connection, options="", zip_file="test.zip", file_name="test.txt")
     from moler.exceptions import CommandTimeout

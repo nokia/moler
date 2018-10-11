@@ -17,16 +17,16 @@ def test_uname_returns_proper_command_string(buffer_connection):
     assert "uname -a" == uname_cmd.command_string
 
 
-def test_uname_raise_exception_wrong_option(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_option()
+def test_uname_raise_exception_wrong_option(buffer_connection, command_output_and_expected_result_option):
+    command_output, expected_result = command_output_and_expected_result_option
     buffer_connection.remote_inject_response([command_output])
     uname_cmd = Uname(connection=buffer_connection.moler_connection, options="-pk")
     with pytest.raises(CommandFailure):
         uname_cmd()
 
 
-def test_uname_raise_exception_wrong_command(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_command()
+def test_uname_raise_exception_wrong_command(buffer_connection, command_output_and_expected_result_command):
+    command_output, expected_result = command_output_and_expected_result_command
     buffer_connection.remote_inject_response([command_output])
     uname_cmd = Uname(connection=buffer_connection.moler_connection, options="gh")
     with pytest.raises(CommandFailure):

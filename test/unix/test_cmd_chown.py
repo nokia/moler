@@ -16,7 +16,8 @@ __email__ = 'yuping.sang@nokia-sbell.com'
     ("ute", "/root/test.txt", "chown: cannot access test.txt: No such file or director"),
     ("ute", "/root/test.txt", "chown: changing ownership of test.txt: Operation not Permitted")
 ])
-def test_calling_chmod_raises_exception_command_failure(param, filename, error, buffer_connection, command_output_and_expected_result):
+def test_calling_chmod_raises_exception_command_failure(param, filename, error, buffer_connection,
+                                                        command_output_and_expected_result):
     from moler.cmd.unix.chown import Chown
     from moler.exceptions import CommandFailure
     output_data, result = command_output_and_expected_result(param, filename, error)
@@ -44,4 +45,3 @@ def command_output_and_expected_result():
         return data.format(param, filename, error), result
 
     return output_data
-

@@ -64,12 +64,6 @@ class TextualDevice(object):
         self._prompts_events = {}
         self._configurations = dict()
         self._newline_chars = dict()  # key is state, value is chars to send as newline
-
-        self._prepare_transitions()
-        self._prepare_state_hops()
-        self._configure_state_machine(sm_params)
-        self._prepare_newline_chars()
-
         if io_connection:
             self.io_connection = io_connection
         else:
@@ -79,6 +73,12 @@ class TextualDevice(object):
         self.io_connection.moler_connection.name = self.name
         self.logger = logging.getLogger('moler.connection.{}'.format(self.name))
         self.configure_logger(name=self.name, propagate=False)
+
+        self._prepare_transitions()
+        self._prepare_state_hops()
+        self._configure_state_machine(sm_params)
+        self._prepare_newline_chars()
+
         self.io_connection.notify(callback=self.on_connection_made, when="connection_made")
         # TODO: Need test to ensure above sentence for all connection
         self.io_connection.open()
