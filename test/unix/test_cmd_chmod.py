@@ -15,7 +15,8 @@ __email__ = 'yuping.sang@nokia.com'
     ("777", "/root/test1.txt", "chmod: cannot access /root/test1.txt:  No such file or director'"),
     ("777", "/root/test.txt", "chmod: WARNING: can't change"),
 ])
-def test_calling_chmod_raises_exception_command_failure(permission, filename, error, buffer_connection, command_output_and_expected_result):
+def test_calling_chmod_raises_exception_command_failure(permission, filename, error, buffer_connection,
+                                                        command_output_and_expected_result):
     from moler.cmd.unix.chmod import Chmod
     from moler.exceptions import CommandFailure
     output_data, result = command_output_and_expected_result(permission, filename, error)

@@ -42,17 +42,18 @@ class Su(GenericUnixCommand):
         return cmd
 
     def on_new_line(self, line, is_full_line):
-        if is_full_line:
-            try:
+        try:
+            self._send_password_if_requested(line)
+            if is_full_line:
                 self._command_failure(line)
                 self._authentication_failure(line)
-                self._send_password_if_requested(line)
                 self._parse(line)
-            except ParsingDone:
-                pass
-        elif self._is_prompt(line):
-            if not self.done():
-                self.set_result({})
+            elif self._is_prompt(line):
+                if not self.done():
+                    self.set_result({})
+        except ParsingDone:
+            pass
+
         return super(Su, self).on_new_line(line, is_full_line)
 
     _re_authentication_fail = re.compile(r"su:\sAuthentication\sfailure(?P<AUTH>.*)"

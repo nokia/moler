@@ -10,9 +10,9 @@ from moler.exceptions import CommandFailure
 import pytest
 
 
-def test_calling_pkill_returns_result_no_permit(buffer_connection):
+def test_calling_pkill_returns_result_no_permit(buffer_connection, command_output_and_expected_result_no_permit):
     from moler.cmd.unix.pkill import Pkill
-    command_output, expected_result = command_output_and_expected_result_no_permit()
+    command_output, expected_result = command_output_and_expected_result_no_permit
     buffer_connection.remote_inject_response([command_output])
     pkill_cmd = Pkill(connection=buffer_connection.moler_connection, name="ping")
     with pytest.raises(CommandFailure, match=r'Command failed \'pkill ping\' with ERROR: Operation not permitted'):

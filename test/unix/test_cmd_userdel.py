@@ -25,8 +25,8 @@ def test_userdel_returns_proper_command_string_with_option(buffer_connection):
     assert "userdel -R CHROOT_DIR xyz" == userdel_cmd.command_string
 
 
-def test_userdel_raises_command_error(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result()
+def test_userdel_raises_command_error(buffer_connection, command_output_and_expected_result):
+    command_output, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
     userdel_cmd = Userdel(connection=buffer_connection.moler_connection, options='-p', user='tmp_user', prompt=None,
                           new_line_chars=None)
@@ -34,8 +34,8 @@ def test_userdel_raises_command_error(buffer_connection):
         userdel_cmd()
 
 
-def test_userdel_raises_command_error_with_help(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_help()
+def test_userdel_raises_command_error_with_help(buffer_connection, command_output_and_expected_result_help):
+    command_output, expected_result = command_output_and_expected_result_help
     buffer_connection.remote_inject_response([command_output])
     userdel_cmd = Userdel(connection=buffer_connection.moler_connection, options='-f', prompt=None, new_line_chars=None)
     with pytest.raises(CommandFailure):

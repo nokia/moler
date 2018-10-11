@@ -10,16 +10,18 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import atexit
-import logging
-import time
-import threading
-from abc import abstractmethod, ABCMeta
 import concurrent.futures
+import logging
+import threading
+import time
+from abc import abstractmethod, ABCMeta
 from concurrent.futures import ThreadPoolExecutor, wait
-from moler.exceptions import ConnectionObserverTimeout
-from moler.exceptions import CommandTimeout
-from moler.exceptions import MolerException
+
 from six import add_metaclass
+
+from moler.exceptions import CommandTimeout
+from moler.exceptions import ConnectionObserverTimeout
+from moler.exceptions import MolerException
 
 # fix for concurrent.futures  v.3.0.3  to have API of v.3.1.1 or above
 try:
@@ -172,7 +174,10 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         start_timeout = 0.5
         if not feed_started.wait(timeout=start_timeout):
             err_msg = "Failed to start observer feeding thread within {} sec".format(start_timeout)
-            raise MolerException(err_msg)
+            self.logger.error(err_msg)
+            MolerException(err_msg)
+            connection_observer.set_exception(err_msg)
+            return None
         c_future = CancellableFuture(connection_observer_future, feed_started, stop_feeding, feed_done)
         return c_future
 
@@ -200,7 +205,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 connection_observer_future._stop()
                 result = connection_observer_future.result()
                 self.logger.debug("{} returned {}".format(connection_observer, result))
-                return result
+                return None
             if check_timeout_from_observer:
                 timeout = connection_observer.timeout
             remain_time = timeout - (time.time() - start_time)
@@ -211,16 +216,18 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         connection_observer_future.cancel()
         connection_observer.cancel()  # TODO: should call connection_observer_future.cancel() via runner
         connection_observer.on_timeout()
-        connection_observer.logger.log(logging.INFO,
-                                       "'{}.{}' has timed out after '{:.2f}' seconds.".format(
-                                           connection_observer.__class__.__module__,
-                                           connection_observer.__class__.__name__, time.time() - start_time))
+        connection_observer._log(logging.INFO,
+                                 "'{}.{}' has timed out after '{:.2f}' seconds.".format(
+                                     connection_observer.__class__.__module__,
+                                     connection_observer.__class__.__name__, time.time() - start_time))
         # TODO: rethink - on timeout we raise while on other exceptions we expect observers
         #       just to call  observer.set_exception() - so, no raise before calling observer.result()
         if hasattr(connection_observer, "command_string"):
-            raise CommandTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
+            exception = CommandTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
         else:
-            raise ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
+            exception = ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
+        connection_observer.set_exception(exception)
+        return None
 
     def feed(self, connection_observer, feed_started, stop_feeding, feed_done):
         """

@@ -11,8 +11,8 @@ from moler.cmd.unix.ssh import Ssh
 import pytest
 
 
-def test_calling_ssh_returns_result_parsed_from_command_output(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result()
+def test_calling_ssh_returns_result_parsed_from_command_output(buffer_connection, command_output_and_expected_result):
+    command_output, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
 
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
