@@ -278,26 +278,27 @@ def test_sftp_with_simulated_terminal(buffer_connection):
 @pytest.fixture
 def command_output_and_expected_result_simulated_terminal():
     output1 = """xyz@debian:/home$ sftp fred@192.168.0.102
-        The authenticity of host '192.168.0.102 (192.168.0.102)' can't be established.
-        ECDSA key fingerprint is SHA256:ghQ3iy/gH4YTqZOggql1eJCe3EETOOpn5yANJwFeRt0.
-        Are you sure you want to continue connecting (yes/no)?"""
+The authenticity of host '192.168.0.102 (192.168.0.102)' can't be established.
+ECDSA key fingerprint is SHA256:ghQ3iy/gH4YTqZOggql1eJCe3EETOOpn5yANJwFeRt0.
+Are you sure you want to continue connecting (yes/no)?"""
     output2 = """Are you sure you want to continue connecting (yes/no)? yes
-        Warning: Permanently added '192.168.0.102' (ECDSA) to the list of known hosts.
-        fred@192.168.0.102's password:"""
+Warning: Permanently added '192.168.0.102' (ECDSA) to the list of known hosts.
+fred@192.168.0.102's password:"""
     output3 = """fred@192.168.0.102's password:
-        Connected to 192.168.0.102.
-        sftp>"""
+Connected to 192.168.0.102.
+sftp>"""
     output4 = """\n"""
     output5 = """sftp> pwd"""
     output6 = """\n"""
-    output7 = """Remote working directory: /upload
-        sftp>"""
-    output8 = """sftp>"""
-    output9 = """sftp> exit
-    """
-    output10 = """xyz@debian:/home$"""
+    output7 = """Remote working directory: /upload\nsftp>"""
+    output8 = """\n"""
+    output9 = """sftp>"""
+    output10 = """\n"""
+    output11 = """sftp> exit\n"""
+    output12 = """xyz@debian:/home$"""
 
-    outputs = [output1, output2, output3, output4, output5, output6, output7, output8, output9, output10]
+    outputs = [output1, output2, output3, output4, output5, output6, output7, output8, output9, output10, output11,
+               output12]
 
     result = {'RESULT': ["Remote working directory: /upload"]}
     return outputs, result
