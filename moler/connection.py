@@ -37,7 +37,7 @@ class Connection(object):
     """Connection API required by ConnectionObservers."""
 
     def __init__(self, how2send=None, encoder=identity_transformation, decoder=identity_transformation,
-                 name=None, newline='\n', logger_name=""):
+                 name=None, newline='\r\n', logger_name=""):
         """
         Create Connection via registering external-IO
 

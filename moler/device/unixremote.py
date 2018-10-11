@@ -36,7 +36,7 @@ class UnixRemote(UnixLocal):
                     UnixRemote.unix_remote: {  # to
                         "execute_command": "ssh",  # using command
                         "command_params": {  # with parameters
-                            "target_newline": "\n"
+                            "target_newline": "\r\n"
                         },
                         "required_command_params": [
                             "host",
@@ -51,7 +51,7 @@ class UnixRemote(UnixLocal):
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
                             "expected_prompt": r'^moler_bash#',
-                            "target_newline": "\n"
+                            "target_newline": "\r\n"
                         },
                         "required_command_params": [
                         ]
