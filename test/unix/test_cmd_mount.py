@@ -18,8 +18,8 @@ def test_mount_returns_proper_command_string(buffer_connection):
     assert "mount -t ext3 /tmp/disk.img /mnt" == mount_cmd.command_string
 
 
-def test_mount_raise_exception_only_root(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_only_root_error()
+def test_mount_raise_exception_only_root(buffer_connection, command_output_and_expected_result_only_root_error):
+    command_output, expected_result = command_output_and_expected_result_only_root_error
     buffer_connection.remote_inject_response([command_output])
     mount_cmd = Mount(connection=buffer_connection.moler_connection, options='-t ext3', device='/tmp/disk.img',
                       directory='/mnt')
@@ -27,8 +27,8 @@ def test_mount_raise_exception_only_root(buffer_connection):
         mount_cmd()
 
 
-def test_mount_raise_exception_write_protected(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_write_protected_error()
+def test_mount_raise_exception_write_protected(buffer_connection, command_output_and_expected_result_write_protected_error):
+    command_output, expected_result = command_output_and_expected_result_write_protected_error
     buffer_connection.remote_inject_response([command_output])
     mount_cmd = Mount(connection=buffer_connection.moler_connection, options='-t iso9660', device='virtio-win.iso',
                       directory='/mnt')

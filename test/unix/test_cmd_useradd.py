@@ -7,11 +7,10 @@ __author__ = 'Agnieszka Bylica'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'agnieszka.bylica@nokia.com'
 
-
 import pytest
 
-from moler.exceptions import CommandFailure
 from moler.cmd.unix.useradd import Useradd
+from moler.exceptions import CommandFailure
 
 
 def test_useradd_returns_proper_command_string_user(buffer_connection):
@@ -26,8 +25,8 @@ def test_useradd_returns_proper_command_string_defaults(buffer_connection):
     assert "useradd -D -e 2018-08-01" == useradd_cmd.command_string
 
 
-def test_useradd_raise_command_error(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_error()
+def test_useradd_raise_command_error(buffer_connection, command_output_and_expected_result_error):
+    command_output, expected_result = command_output_and_expected_result_error
     buffer_connection.remote_inject_response([command_output])
     useradd_cmd = Useradd(connection=buffer_connection.moler_connection,
                           defaults=True, options='-p', prompt=None, new_line_chars=None)
@@ -36,8 +35,8 @@ def test_useradd_raise_command_error(buffer_connection):
         useradd_cmd()
 
 
-def test_useradd_raise_command_error_with_help(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_error_help()
+def test_useradd_raise_command_error_with_help(buffer_connection, command_output_and_expected_result_error_help):
+    command_output, expected_result = command_output_and_expected_result_error_help
     buffer_connection.remote_inject_response([command_output])
     useradd_cmd = Useradd(connection=buffer_connection.moler_connection,
                           user='xyz', options='-p', prompt=None, new_line_chars=None)
