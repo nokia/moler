@@ -3,11 +3,11 @@ from moler.device.device import DeviceFactory
 
 load_config(path='my_devices.yml')
 
-my_unix = DeviceFactory.get_device(name='RebexTestMachine')
-my_unix.goto_state(state="UNIX_REMOTE")
+remote_unix = DeviceFactory.get_device(name='RebexTestMachine')  # it starts in local shell
+remote_unix.goto_state(state="UNIX_REMOTE")                      # make it go to remote shell
 
-ls_cmd = my_unix.get_cmd(cmd_name="ls", cmd_params={"options": "-l"})
-ls_cmd.connection.newline = '\r\n'  # tweak since remote console uses such one
+ls_cmd = remote_unix.get_cmd(cmd_name="ls", cmd_params={"options": "-l"})
+ls_cmd.connection.newline = '\r\n'           # tweak since rebex remote console uses such one
 
 remote_files = ls_cmd()
 
