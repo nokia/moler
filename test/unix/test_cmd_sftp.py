@@ -310,3 +310,45 @@ sftp>"""
 
     result = {'RESULT': ["Remote working directory: /upload"]}
     return outputs, result
+
+
+def test_sftp_no_result(buffer_connection):
+
+    sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
+                    command="mkdir pet", no_result=True)
+    assert "sftp fred@192.168.0.102" == sftp_cmd.command_string
+    command_output, expected_result = command_output_and_expected_result_no_result()
+    sftp_cmd.start()
+    for output in command_output:
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    print("current_ret: ", sftp_cmd.current_ret)
+    assert sftp_cmd.current_ret == expected_result
+    sftp_cmd.await_done()
+    assert sftp_cmd.done() is True
+
+
+@pytest.fixture
+def command_output_and_expected_result_no_result():
+    output1 = """xyz@debian:/home$ sftp fred@192.168.0.102
+fred@192.168.0.102's password:"""
+    output2 = """fred@192.168.0.102's password:
+Connected to 192.168.0.102.
+sftp>"""
+    output3 = "\n"
+    output4 = ""
+    output5 = "\n"
+    output6 = "sftp> mkdir pet\n"
+    output7 = " mkdir pet\n"
+    output8 = "\t \t"
+    output9 = "\n"
+    output10 = "sftp>"
+    output11 = "\n"
+    output12 = "sftp> exit\n"
+    output13 = "sftp> exit\n"
+    output14 = "xyz@debian:/home$"
+
+    outputs = [output1, output2, output3, output4, output5, output6, output7, output8, output9, output10, output11,
+               output12, output13, output14]
+
+    result = {}
+    return outputs, result
