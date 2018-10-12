@@ -4,7 +4,6 @@ Moler's device has 2 main responsibilities:
 - be the factory that returns commands of that device
 - be the state machine that controls which commands may run in given state
 """
-import copy
 import logging
 import traceback
 
@@ -370,18 +369,16 @@ class TextualDevice(object):
         return observer
 
     def get_cmd(self, cmd_name, cmd_params={}, check_state=True):
-        cmd_params_copy = copy.copy(cmd_params)
-        if "prompt" not in cmd_params_copy:
-            cmd_params_copy["prompt"] = self.get_prompt()
+        if "prompt" not in cmd_params:
+            cmd_params["prompt"] = self.get_prompt()
         cmd = self.get_observer(observer_name=cmd_name, observer_type=TextualDevice.cmds,
-                                observer_exception=CommandWrongState, check_state=check_state, **cmd_params_copy)
+                                observer_exception=CommandWrongState, check_state=check_state, **cmd_params)
         assert isinstance(cmd, CommandTextualGeneric)
         return cmd
 
     def get_event(self, event_name, event_params={}, check_state=True):
-        event_params_copy = copy.copy(event_params)
         event = self.get_observer(observer_name=event_name, observer_type=TextualDevice.events,
-                                  observer_exception=EventWrongState, check_state=check_state, **event_params_copy)
+                                  observer_exception=EventWrongState, check_state=check_state, **event_params)
 
         return event
 
