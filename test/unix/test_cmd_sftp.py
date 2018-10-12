@@ -353,7 +353,8 @@ sftp>"""
 
 def test_sftp_returns_result_of_fetching_file_with_progress_bar(buffer_connection):
 
-    sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234', source_path="debian-9.5.0-i386-netinst.iso")
+    sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
+                    source_path="debian-9.5.0-i386-netinst.iso")
     assert "sftp fred@192.168.0.102:debian-9.5.0-i386-netinst.iso" == sftp_cmd.command_string
     command_output, expected_result = command_output_and_expected_result_progress_bar()
     sftp_cmd.start()
