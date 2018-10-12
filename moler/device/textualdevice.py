@@ -35,7 +35,7 @@ class TextualDevice(object):
     not_connected = "NOT_CONNECTED"
     connection_hops = "CONNECTION_HOPS"
 
-    def __init__(self, name=None, io_connection=None, io_type=None, variant=None, sm_params=None):
+    def __init__(self, name=None, io_connection=None, io_type=None, variant=None, sm_params=dict()):
         """
         Create Device communicating over io_connection
         CAUTION: Device owns (takes over ownership) of connection. It will be open when device "is born" and close when
@@ -46,8 +46,7 @@ class TextualDevice(object):
         :param variant: connection implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
                         (if not given then default one is taken)
         """
-        if sm_params is None:
-            sm_params = dict()
+        sm_params = sm_params.copy()
         self.states = []
         self.goto_states_triggers = []
         self._name = name
@@ -372,9 +371,8 @@ class TextualDevice(object):
             observer._validate_start = validate_device_state_before_observer_start
         return observer
 
-    def get_cmd(self, cmd_name, cmd_params=None, check_state=True):
-        if cmd_params is None:
-            cmd_params = dict()
+    def get_cmd(self, cmd_name, cmd_params=dict(), check_state=True):
+        cmd_params = cmd_params.copy()
         if "prompt" not in cmd_params:
             cmd_params["prompt"] = self.get_prompt()
         cmd = self.get_observer(observer_name=cmd_name, observer_type=TextualDevice.cmds,
@@ -382,9 +380,8 @@ class TextualDevice(object):
         assert isinstance(cmd, CommandTextualGeneric)
         return cmd
 
-    def get_event(self, event_name, event_params=None, check_state=True):
-        if event_params is None:
-            event_params = dict()
+    def get_event(self, event_name, event_params=dict(), check_state=True):
+        event_params = event_params.copy()
         event = self.get_observer(observer_name=event_name, observer_type=TextualDevice.events,
                                   observer_exception=EventWrongState, check_state=check_state, **event_params)
 
