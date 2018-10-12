@@ -37,7 +37,7 @@ class Connection(object):
     """Connection API required by ConnectionObservers."""
 
     def __init__(self, how2send=None, encoder=identity_transformation, decoder=identity_transformation,
-                 name=None, newline='\n', logger_name=""):
+                 name=None, newline='\r\n', logger_name=""):
         """
         Create Connection via registering external-IO
 
@@ -145,6 +145,21 @@ class Connection(object):
 
         encoded_data = self.encode(data)
         self.how2send(encoded_data)
+
+    def change_newline_seq(self, newline_seq="\n"):
+        """
+        Method to change newline char(s). Useful when connect from one point to another if newline chars change (i.e. "\n", "\r\n")
+        :param newline_seq: Sequence of chars to send as new line char(s)
+        :return: Nothing
+        """
+
+        characters = [ord(char) for char in self.newline]
+        newline_old = "0x" + ''.join("'{:02X}'".format(a) for a in characters)
+        characters = [ord(char) for char in newline_seq]
+        newline_new = "0x" + ''.join("'{:02X}'".format(a) for a in characters)
+        # 11 15:30:32.855 DEBUG        moler.connection.UnixRemote1    |changing newline seq old '0x'0D''0A'' -> new '0x'0A''
+        self._log(logging.DEBUG, "changing newline seq old '{}' -> new '{}'".format(newline_old, newline_new))
+        self.newline = newline_seq
 
     def sendline(self, data, timeout=30, encrypt=False):
         """Outgoing-IO API: Send data line over external-IO."""
