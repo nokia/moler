@@ -247,7 +247,6 @@ def test_sftp_raise_not_confirmed_connection(buffer_connection):
     sftp_cmd.start()
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
-    print("current_ret: ", sftp_cmd.current_ret)
     with pytest.raises(CommandFailure):
         sftp_cmd()
 
@@ -277,7 +276,6 @@ def test_sftp_returns_result_pwd_in_prompt(buffer_connection):
     sftp_cmd.start()
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
-    print("current_ret: ", sftp_cmd.current_ret)
     assert sftp_cmd.current_ret == expected_result
     sftp_cmd.await_done()
     assert sftp_cmd.done() is True
@@ -321,7 +319,6 @@ def test_sftp_no_result(buffer_connection):
     sftp_cmd.start()
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
-    print("current_ret: ", sftp_cmd.current_ret)
     assert sftp_cmd.current_ret == expected_result
     sftp_cmd.await_done()
     assert sftp_cmd.done() is True
@@ -351,4 +348,48 @@ sftp>"""
                output12, output13, output14]
 
     result = {}
+    return outputs, result
+
+
+def test_sftp_returns_result_of_fetching_file_with_progress_bar(buffer_connection):
+
+    sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234', source_path="debian-9.5.0-i386-netinst.iso")
+    assert "sftp fred@192.168.0.102:debian-9.5.0-i386-netinst.iso" == sftp_cmd.command_string
+    command_output, expected_result = command_output_and_expected_result_progress_bar()
+    sftp_cmd.start()
+    for output in command_output:
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    assert sftp_cmd.current_ret == expected_result
+    sftp_cmd.await_done()
+    assert sftp_cmd.done() is True
+
+
+@pytest.fixture
+def command_output_and_expected_result_progress_bar():
+    output1 = """xyz@debian:/home$ sftp fred@192.168.0.102:debian-9.5.0-i386-netinst.iso
+fred@192.168.0.102's password:"""
+    output2 = """fred@192.168.0.102's password:
+Connected to 192.168.0.102.
+Fetching /upload/debian-9.5.0-i386-netinst.iso to /home/debian-9.5.0-i386-netinst.iso
+
+/upload/debian-9.5.0-i386-netinst.iso                                                    0%    0     0.0KB/s   --:-- ETA
+/upload/debian-9.5.0-i386-netinst.iso                                                   10%   38MB  37.7MB/s   00:08 ETA
+/upload/debian-9.5.0-i386-netinst.iso                                                   18%   69MB  37.1MB/s   00:08 ETA
+/upload/debian-9.5.0-i386-netinst.iso                                                   26%  102MB  36.6MB/s   00:07 ETA
+/upload/debian-9.5.0-i386-netinst.iso                                                   34%  130MB  35.8MB/s   00:06 ETA
+/upload/debian-9.5.0-i386-netinst.iso                                                   42%  159MB  35.1MB/s   00:06 ETA
+/upload/debian-9.5.0-i386-netinst.iso                                                   50%  191MB  34.8MB/s   00:05 ETA
+/upload/debian-9.5.0-i386-netinst.iso                                                   58%  219MB  34.2MB/s   00:04 ETA
+/upload/debian-9.5.0-i386-netinst.iso                                                   66%  252MB  34.0MB/s   00:03 ETA
+/upload/debian-9.5.0-i386-netinst.iso                                                   74%  282MB  33.6MB/s   00:02 ETA
+/upload/debian-9.5.0-i386-netinst.iso                                                   83%  313MB  33.4MB/s   00:01 ETA
+/upload/debian-9.5.0-i386-netinst.iso                                                   90%  341MB  32.8MB/s   00:01 ETA
+/upload/debian-9.5.0-i386-netinst.iso                                                   97%  367MB  32.1MB/s   00:00 ETA
+/upload/debian-9.5.0-i386-netinst.iso                                                   100%  377MB  30.4MB/s   00:12
+xyz@debian:/home$"""
+
+    outputs = [output1, output2]
+
+    result = {'RESULT': ['Fetching /upload/debian-9.5.0-i386-netinst.iso to /home/debian-9.5.0-i386-netinst.iso',
+                         '/upload/debian-9.5.0-i386-netinst.iso                                                   100%  377MB  30.4MB/s   00:12']}
     return outputs, result

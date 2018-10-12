@@ -16,7 +16,7 @@ import re
 class Sftp(GenericUnixCommand):
     def __init__(self, connection, host, password, user=None, confirm_connection=True, source_path=None,
                  destination_path=None, options=None, command=None, no_result=False, prompt=None, new_line_chars=None,
-                 runner=None):
+                 timeout=60, runner=None):
         super(Sftp, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
 
         # Attributes defined by calling the command
@@ -31,6 +31,7 @@ class Sftp(GenericUnixCommand):
         self.options = options
         self.command = command
         self.no_result = no_result
+        self.extend_timeout(timeout)
 
         # Internal variables
         if self.command:
@@ -138,8 +139,8 @@ class Sftp(GenericUnixCommand):
             raise ParsingDone
 
     _re_fetching = re.compile(r"(Fetching\s.*|Uploading\s.*)", re.I)
-    _re_progress_bar = re.compile(r"(.+\s+\d{1,2}%\s+\d+\s+.+/s\s+(\d+:\d+)?--:--\sETA)", re.I)
-    _re_success_bar = re.compile(r"(.+\s+100%\s+\d+\s+.+/s\s+\d+:\d+)", re.I)
+    _re_progress_bar = re.compile(r"(.+\s+\d{1,2}%\s+\d+(\w+)?\s+.+/s\s+((\d+:\d+)|(--:--))\sETA)", re.I)
+    _re_success_bar = re.compile(r"(.+\s+100%\s+\d+(\w+)?\s+.+/s\s+\d+:\d+)", re.I)
 
     def _parse_line_fetching_uploading(self, line):
         if self.ready_to_parse_line:
