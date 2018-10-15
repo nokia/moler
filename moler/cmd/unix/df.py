@@ -16,8 +16,8 @@ from moler.exceptions import ParsingDone
 
 class Df(GenericUnixCommand):
 
-    def __init__(self, connection, prompt=None, new_line_chars=None, runner=None):
-        super(Df, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+    def __init__(self, connection, prompt=None, newline_chars=None, runner=None):
+        super(Df, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self._converter_helper = ConverterHelper()
 
     def build_command_string(self):

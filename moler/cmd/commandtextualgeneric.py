@@ -19,13 +19,13 @@ from moler.command import Command
 
 class CommandTextualGeneric(Command):
     _re_default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')  # When user provides no prompt
-    _default_new_line_chars = ("\n", "\r")  # New line chars on device, not system with script!
+    _default_newline_chars = ("\n", "\r")  # New line chars on device, not system with script!
 
-    def __init__(self, connection, prompt=None, new_line_chars=None, runner=None):
+    def __init__(self, connection, prompt=None, newline_chars=None, runner=None):
         """
         :param connection: connection to device
         :param prompt: expected prompt sending by device after command execution. Maybe String or compiled re
-        :param new_line_chars:  new line chars on device
+        :param newline_chars:  new line chars on device
         """
         super(CommandTextualGeneric, self).__init__(connection=connection, runner=runner)
         self.__command_string = None  # String representing command on device
@@ -37,9 +37,9 @@ class CommandTextualGeneric(Command):
         self.break_on_timeout = True  # If True then Ctrl+c on timeout
         self._last_not_full_line = None  # Part of line
         self._re_prompt = CommandTextualGeneric._calculate_prompt(prompt)  # Expected prompt on device
-        self._new_line_chars = new_line_chars  # New line characters on device
-        if not self._new_line_chars:
-            self._new_line_chars = CommandTextualGeneric._default_new_line_chars
+        self._newline_chars = newline_chars  # New line characters on device
+        if not self._newline_chars:
+            self._newline_chars = CommandTextualGeneric._default_newline_chars
 
     @property
     def command_string(self):
@@ -67,7 +67,7 @@ class CommandTextualGeneric(Command):
         :param line: String to check
         :return: True if any new line char was found, False otherwise
         """
-        if line.endswith(self._new_line_chars):
+        if line.endswith(self._newline_chars):
             return True
         return False
 
@@ -125,7 +125,7 @@ class CommandTextualGeneric(Command):
         :param line: line from device
         :return: line without new lines chars
         """
-        for char in self._new_line_chars:
+        for char in self._newline_chars:
             line = line.rstrip(char)
         return line
 

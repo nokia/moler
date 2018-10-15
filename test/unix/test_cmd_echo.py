@@ -25,7 +25,7 @@ def test_echo_returns_proper_command_string_with_text(buffer_connection):
     assert "echo 'Hello my  beautiful   code!'" == echo_cmd.command_string
 
 
-def test_echo_returns_proper_command_string_with_new_line_chars(buffer_connection):
+def test_echo_returns_proper_command_string_with_newline_chars(buffer_connection):
     echo_cmd = Echo(connection=buffer_connection.moler_connection, options='-e', text='Hello \nmy \nbeautiful \ncode!')
     assert "echo -e 'Hello \\nmy \\nbeautiful \\ncode!'" == echo_cmd.command_string
 

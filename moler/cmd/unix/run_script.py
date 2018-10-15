@@ -15,8 +15,8 @@ from moler.exceptions import CommandFailure
 
 class RunScript(GenericUnixCommand):
 
-    def __init__(self, connection, script_command, error_regex=re.compile("error", re.I), prompt=None, new_line_chars=None, runner=None):
-        super(RunScript, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars,
+    def __init__(self, connection, script_command, error_regex=re.compile("error", re.I), prompt=None, newline_chars=None, runner=None):
+        super(RunScript, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                         runner=runner)
         self.script_command = script_command
         self.error_regex = error_regex

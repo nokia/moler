@@ -13,9 +13,9 @@ from moler.cmd.unix.telnet import Telnet
 from moler.exceptions import CommandFailure
 
 
-def test_calling_telnet_returns_result_parsed_from_command_output(buffer_connection):
+def test_calling_telnet_returns_result_parsed_from_command_output(buffer_connection, command_output_and_expected_result):
     from moler.config.loggers import configure_device_logger
-    command_output, expected_result = command_output_and_expected_result()
+    command_output, expected_result = command_output_and_expected_result
     configure_device_logger(connection_name="host")
     buffer_connection.name = "host-name"  # just to have log named as we want
     buffer_connection.remote_inject_response([command_output])
@@ -38,8 +38,8 @@ def test_calling_telnet_raise_exception_command_failure(buffer_connection):
         telnet_cmd()
 
 
-def test_calling_telnet_timeout(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_timeout()
+def test_calling_telnet_timeout(buffer_connection, command_output_and_expected_result_timeout):
+    command_output, expected_result = command_output_and_expected_result_timeout
     buffer_connection.remote_inject_response([command_output])
     telnet_cmd = Telnet(connection=buffer_connection.moler_connection, login="user", password="english", port=1500,
                         host="host.domain.net", expected_prompt="host:.*#")
@@ -85,6 +85,7 @@ def test_telnet_with_additional_commands(buffer_connection):
     assert telnet_cmd.done() is True
 
 
+@pytest.fixture
 def command_output_and_expected_result():
     lines = [
         'user@client:~>',
@@ -107,6 +108,7 @@ def command_output_and_expected_result():
     return data, result
 
 
+@pytest.fixture
 def command_output_and_expected_result_timeout():
     lines = [
         'user@client:~>',

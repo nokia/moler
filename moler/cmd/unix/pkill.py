@@ -16,8 +16,8 @@ from moler.exceptions import ParsingDone
 
 class Pkill(GenericUnixCommand):
 
-    def __init__(self, connection, name, prompt=None, new_line_chars=None, runner=None):
-        super(Pkill, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+    def __init__(self, connection, name, prompt=None, newline_chars=None, runner=None):
+        super(Pkill, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.name = name
         self.ret_required = False
 

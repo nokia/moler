@@ -18,29 +18,29 @@ def test_socat_returns_proper_command_string(buffer_connection):
     assert "socat TCP4-LISTEN:1234,reuseaddr,fork gopen:/home/capture,seek-end=,append" == socat_cmd.command_string
 
 
-def test_socat_raise_connection_refused(buffer_connection):
+def test_socat_raise_connection_refused(buffer_connection, command_output_and_expected_result_on_connection_refused):
     socat_cmd = Socat(connection=buffer_connection.moler_connection, input_options='STDIO',
                       output_options='tcp:localhost:3334', options='-d')
-    command_output, expected_result = command_output_and_expected_result_on_connection_refused()
+    command_output, expected_result = command_output_and_expected_result_on_connection_refused
     buffer_connection.remote_inject_response([command_output])
     assert 'socat -d STDIO tcp:localhost:3334' == socat_cmd.command_string
     with pytest.raises(CommandFailure):
         socat_cmd()
 
 
-def test_socat_raise_device_unknown(buffer_connection):
+def test_socat_raise_device_unknown(buffer_connection, command_output_and_expected_result_on_device_unknown):
     socat_cmd = Socat(connection=buffer_connection.moler_connection,
                       input_options='READLINE,history=$HOME/.cmd_history', output_options='/dev/ttyS0,raw,echo=0,crnl')
-    command_output, expected_result = command_output_and_expected_result_on_device_unknown()
+    command_output, expected_result = command_output_and_expected_result_on_device_unknown
     buffer_connection.remote_inject_response([command_output])
     assert 'socat READLINE,history=$HOME/.cmd_history /dev/ttyS0,raw,echo=0,crnl' == socat_cmd.command_string
     with pytest.raises(CommandFailure):
         socat_cmd()
 
 
-def test_socat_raise_address_required(buffer_connection):
+def test_socat_raise_address_required(buffer_connection, command_output_and_expected_result_on_address_required):
     socat_cmd = Socat(connection=buffer_connection.moler_connection)
-    command_output, expected_result = command_output_and_expected_result_on_address_required()
+    command_output, expected_result = command_output_and_expected_result_on_address_required
     buffer_connection.remote_inject_response([command_output])
     assert 'socat' == socat_cmd.command_string
     with pytest.raises(CommandFailure):

@@ -7,10 +7,10 @@ __author__ = 'Agnieszka Bylica'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'agnieszka.bylica@nokia.com'
 
-
-from moler.exceptions import CommandFailure
-from moler.cmd.unix.sed import Sed
 import pytest
+
+from moler.cmd.unix.sed import Sed
+from moler.exceptions import CommandFailure
 
 
 def test_sed_returns_proper_command_string(buffer_connection):
@@ -31,24 +31,27 @@ def test_sed_returns_proper_command_string_with_script_file(buffer_connection):
     assert "sed -f script old old2 > new" == sed_cmd.command_string
 
 
-def test_sed_catches_command_failure(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_command_failure()
+def test_sed_catches_command_failure(buffer_connection, command_output_and_expected_result_command_failure):
+    command_output, expected_result = command_output_and_expected_result_command_failure
     buffer_connection.remote_inject_response([command_output])
     sed_cmd = Sed(connection=buffer_connection.moler_connection, input_files=["old", "old2"], scripts=["s/a/A"])
     with pytest.raises(CommandFailure):
         sed_cmd()
 
 
-def test_sed_catches_command_failure_empty_input_file(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_command_failure_empty_input_file()
+def test_sed_catches_command_failure_empty_input_file(
+        buffer_connection,
+        command_output_and_expected_result_command_failure_empty_input_file):
+    command_output, expected_result = command_output_and_expected_result_command_failure_empty_input_file
     buffer_connection.remote_inject_response([command_output])
     sed_cmd = Sed(connection=buffer_connection.moler_connection, input_files=["", " "], scripts=["s/a/A/"])
     with pytest.raises(CommandFailure):
         sed_cmd()
 
 
-def test_sed_catches_command_failure_no_script(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_command_failure_no_script()
+def test_sed_catches_command_failure_no_script(buffer_connection,
+                                               command_output_and_expected_result_command_failure_no_script):
+    command_output, expected_result = command_output_and_expected_result_command_failure_no_script
     buffer_connection.remote_inject_response([command_output])
     sed_cmd = Sed(connection=buffer_connection.moler_connection, input_files=["old"],
                   scripts=["", " "], script_files=[" ", " "])
@@ -57,8 +60,8 @@ def test_sed_catches_command_failure_no_script(buffer_connection):
         sed_cmd()
 
 
-def test_sed_catches_option_error(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_option_error()
+def test_sed_catches_option_error(buffer_connection, command_output_and_expected_result_option_error):
+    command_output, expected_result = command_output_and_expected_result_option_error
     buffer_connection.remote_inject_response([command_output])
     sed_cmd = Sed(connection=buffer_connection.moler_connection, input_files=["old", "old2"], options="-h",
                   scripts=["s/a/A/"])
@@ -66,8 +69,8 @@ def test_sed_catches_option_error(buffer_connection):
         sed_cmd()
 
 
-def test_sed_catches_file_error(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_file_error()
+def test_sed_catches_file_error(buffer_connection, command_output_and_expected_result_file_error):
+    command_output, expected_result = command_output_and_expected_result_file_error
     buffer_connection.remote_inject_response([command_output])
     sed_cmd = Sed(connection=buffer_connection.moler_connection, input_files=["old", "old3"], scripts=["s/a/A/"])
     with pytest.raises(CommandFailure):

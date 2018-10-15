@@ -17,16 +17,16 @@ def test_run_script_cmd_returns_proper_command_string(buffer_connection):
     assert "./myScript.sh" == cmd.command_string
 
 
-def test_run_script_raise_exception(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result()
+def test_run_script_raise_exception(buffer_connection, command_output_and_expected_result):
+    command_output, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
     cmd = RunScript(connection=buffer_connection.moler_connection, script_command="./myScript.sh")
     with pytest.raises(CommandFailure):
         cmd()
 
 
-def test_run_script_not_raise_exception(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result()
+def test_run_script_not_raise_exception(buffer_connection, command_output_and_expected_result):
+    command_output, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
     cmd = RunScript(connection=buffer_connection.moler_connection, script_command="./myScript.sh", error_regex=None)
     result = cmd()
