@@ -15,9 +15,9 @@ import copy
 
 
 class Find(GenericUnixCommand):
-    def __init__(self, connection, paths=[], prompt=None, new_line_chars=None, options=None, operators=None,
+    def __init__(self, connection, paths=[], prompt=None, newline_chars=None, options=None, operators=None,
                  runner=None):
-        super(Find, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+        super(Find, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.options = options
         self.operators = operators
         self.paths = copy.copy(paths)

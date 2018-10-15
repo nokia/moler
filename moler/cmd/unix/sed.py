@@ -17,9 +17,9 @@ from moler.exceptions import ParsingDone
 
 class Sed(GenericUnixCommand):
 
-    def __init__(self, connection, input_files, prompt=None, new_line_chars=None, runner=None, options=None,
+    def __init__(self, connection, input_files, prompt=None, newline_chars=None, runner=None, options=None,
                  scripts=None, script_files=None, output_file=None):
-        super(Sed, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+        super(Sed, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
         # Parameters defined by calling the command
         self.options = options            # string or None

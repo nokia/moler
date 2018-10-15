@@ -13,9 +13,9 @@ __email__ = 'sylwester.golonka@nokia.com, marcin.usielski@nokia.com'
 
 
 class Scp(GenericUnixCommand):
-    def __init__(self, connection, source, dest, password="", prompt=None, new_line_chars=None,
+    def __init__(self, connection, source, dest, password="", prompt=None, newline_chars=None,
                  known_hosts_on_failure='keygen', encrypt_password=True, runner=None):
-        super(Scp, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+        super(Scp, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.source = source
         self.dest = dest
         self.password = password

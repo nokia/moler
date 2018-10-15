@@ -26,7 +26,7 @@ class Ssh(GenericUnixCommand):
 
     def __init__(self, connection, login, password, host, prompt=None, expected_prompt='>', port=0,
                  known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
-                 term_mono="TERM=xterm-mono", new_line_chars=None, encrypt_password=True, runner=None,
+                 term_mono="TERM=xterm-mono", newline_chars=None, encrypt_password=True, runner=None,
                  target_newline="\n"):
 
         """
@@ -41,12 +41,12 @@ class Ssh(GenericUnixCommand):
         :param set_timeout: Command to set timeout after ssh connects
         :param set_prompt: Command to set prompt after ssh connects
         :param term_mono: Params to set ssh mono connection (useful in script)
-        :param new_line_chars: Characters to split lines
+        :param newline_chars: Characters to split lines
         :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text
         :param runner: Runner to run command
         :param target_newline: newline chars on remote system where ssh connects
         """
-        super(Ssh, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+        super(Ssh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
         # Parameters defined by calling the command
         self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(expected_prompt)  # Expected prompt on device
