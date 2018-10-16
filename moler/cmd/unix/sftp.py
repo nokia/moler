@@ -109,8 +109,6 @@ class Sftp(GenericUnixCommand):
             self.connection.sendline("exit")
             self.exit_sent = True
             raise ParsingDone
-        elif self._regex_helper.match_compiled(Sftp._re_prompt, line):
-            raise ParsingDone
 
     def _check_if_command_sent(self, line):
         if self.command_entered and self._regex_helper.match_compiled(self._re_command_sent, line):
@@ -118,8 +116,6 @@ class Sftp(GenericUnixCommand):
             if self.no_result:
                 self.ret_required = False
             raise ParsingDone
-
-    _re_prompt_with_command = re.compile(r"sftp>\s\w+", re.I)
 
     def _ignore_empty_or_repeated_line(self, line):
         if not line:

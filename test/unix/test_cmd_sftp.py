@@ -293,18 +293,17 @@ fred@192.168.0.102's password:"""
     output3 = """fred@192.168.0.102's password:
 Connected to 192.168.0.102.
 sftp>"""
-    output4 = """\n"""
-    output5 = """sftp> pwd"""
-    output6 = """\n"""
-    output7 = """Remote working directory: /upload\nsftp>"""
-    output8 = """\n"""
-    output9 = """sftp>"""
-    output10 = """\n"""
-    output11 = """sftp> exit\n"""
-    output12 = """xyz@debian:/home$"""
+    output4 = """
+sftp> pwd
+Remote working directory: /upload
+sftp>"""
+    output5 = """
+sftp>
+sftp> exit"""
+    output6 = """sftp> exit
+xyz@debian:/home$"""
 
-    outputs = [output1, output2, output3, output4, output5, output6, output7, output8, output9, output10, output11,
-               output12]
+    outputs = [output1, output2, output3, output4, output5, output6]
 
     result = {'RESULT': ["Remote working directory: /upload"]}
     return outputs, result
@@ -392,5 +391,6 @@ xyz@debian:/home$"""
     outputs = [output1, output2]
 
     result = {'RESULT': ['Fetching /upload/debian-9.5.0-i386-netinst.iso to /home/debian-9.5.0-i386-netinst.iso',
-                         '/upload/debian-9.5.0-i386-netinst.iso                                                   100%  377MB  30.4MB/s   00:12']}
+                         '/upload/debian-9.5.0-i386-netinst.iso                                                   100%'
+                         '  377MB  30.4MB/s   00:12']}
     return outputs, result
