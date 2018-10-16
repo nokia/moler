@@ -318,6 +318,11 @@ Please note also that connection is context manager doing open/close actions.
 ## Reuse freedom
 Library gives you freedom which part you want to reuse. We are fan's of "take what you need only".
 * You may use configuration files or configure things by Python calls.
+
+   ```python
+   load_config(config={'DEVICES': {'MyMachine': {'DEVICE_CLASS': 'moler.device.unixremote.UnixLocal'}}},
+               config_type='dict')
+   ```
 * You may use devices or create commands manually
 * You can take connection or build it yourself:
 

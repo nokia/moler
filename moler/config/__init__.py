@@ -9,6 +9,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import yaml
+import six
 from contextlib import contextmanager
 
 from . import connections as conn_cfg
@@ -58,6 +59,7 @@ def load_config(config=None, from_env_var=None, config_type='yaml'):
         path = os.environ[from_env_var]
         config = read_yaml_configfile(path)
     elif config_type == 'yaml':
+        assert isinstance(config, six.string_types)
         path = config
         config = read_yaml_configfile(path)
     elif config_type == 'dict':
