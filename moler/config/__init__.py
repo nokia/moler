@@ -49,15 +49,19 @@ def load_config(config=None, from_env_var=None, config_type='yaml'):
     :param config_type: 'dict' ('config' param is dict) or 'yaml' ('config' is filename of file with YAML content)
     :return: None
     """
-    path = config
-    if (not path) and (not from_env_var):
-        raise AssertionError("Provide either 'config' or 'from_env_var' parameter (none given)")
-    if (not path):
+    assert (config_type == 'dict') or (config_type == 'yaml')  # no other format supported yet
+    if not config:
+        if not from_env_var:
+            raise AssertionError("Provide either 'config' or 'from_env_var' parameter (none given)")
         if from_env_var not in os.environ:
             raise KeyError("Environment variable '{}' is not set".format(from_env_var))
         path = os.environ[from_env_var]
-    assert config_type == 'yaml'  # no other format supported yet
-    config = read_yaml_configfile(path)
+        config = read_yaml_configfile(path)
+    elif config_type == 'yaml':
+        path = config
+        config = read_yaml_configfile(path)
+    elif config_type == 'dict':
+        assert isinstance(config, dict)
     # TODO: check schema
     load_logger_from_config(config)
     load_connection_from_config(config)
