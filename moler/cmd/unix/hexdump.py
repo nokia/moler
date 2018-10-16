@@ -14,8 +14,8 @@ import re
 
 
 class Hexdump(GenericUnixCommand):
-    def __init__(self, connection, files, options=None, prompt=None, new_line_chars=None, runner=None):
-        super(Hexdump, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars,
+    def __init__(self, connection, files, options=None, prompt=None, newline_chars=None, runner=None):
+        super(Hexdump, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                       runner=runner)
         self.options = options
         self.files = files

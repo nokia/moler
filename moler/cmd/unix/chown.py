@@ -13,8 +13,8 @@ from moler.exceptions import ParsingDone
 
 
 class Chown(GenericUnixCommand):
-    def __init__(self, connection, param, filename, options=None, prompt=None, new_line_chars=None, runner=None):
-        super(Chown, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+    def __init__(self, connection, param, filename, options=None, prompt=None, newline_chars=None, runner=None):
+        super(Chown, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.param = param
         self.filename = filename
         self.options = options

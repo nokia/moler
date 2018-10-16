@@ -15,8 +15,8 @@ import re
 
 class Socat(GenericUnixCommand):
     def __init__(self, connection, input_options=None, output_options=None, options=None, prompt=None,
-                 new_line_chars=None, runner=None):
-        super(Socat, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+                 newline_chars=None, runner=None):
+        super(Socat, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.input_options = input_options
         self.output_options = output_options
         self.options = options

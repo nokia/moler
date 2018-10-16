@@ -16,8 +16,8 @@ from moler.exceptions import ParsingDone
 
 class Mpstat(GenericUnixCommand):
 
-    def __init__(self, connection, options=None, prompt=None, new_line_chars=None, runner=None):
-        super(Mpstat, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+    def __init__(self, connection, options=None, prompt=None, newline_chars=None, runner=None):
+        super(Mpstat, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         # Parameters defined by calling the command
         self.options = options
         self.ret_required = False

@@ -16,9 +16,9 @@ from moler.exceptions import CommandFailure, ParsingDone
 
 class Zip(GenericUnixCommand):
 
-    def __init__(self, connection, options, file_name, zip_file, timeout=60, prompt=None, new_line_chars=None,
+    def __init__(self, connection, options, file_name, zip_file, timeout=60, prompt=None, newline_chars=None,
                  runner=None):
-        super(Zip, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+        super(Zip, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         # Parameters defined by calling the command
         self.options = options
         self.file_name = file_name

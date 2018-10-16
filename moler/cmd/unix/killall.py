@@ -16,8 +16,8 @@ from moler.exceptions import ParsingDone
 
 class Killall(GenericUnixCommand):
 
-    def __init__(self, connection, name, is_verbose=False, prompt=None, new_line_chars=None, runner=None):
-        super(Killall, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars,
+    def __init__(self, connection, name, is_verbose=False, prompt=None, newline_chars=None, runner=None):
+        super(Killall, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                       runner=runner)
         self.is_verbose = is_verbose
         self.name = name

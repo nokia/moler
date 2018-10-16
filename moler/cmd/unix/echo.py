@@ -13,8 +13,8 @@ from moler.exceptions import ParsingDone
 
 class Echo(GenericUnixCommand):
     def __init__(self, connection, options=None, text=None, write_mode=">", output_file=None, prompt=None,
-                 new_line_chars=None, runner=None):
-        super(Echo, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+                 newline_chars=None, runner=None):
+        super(Echo, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
         self.options = options
         self.text = text

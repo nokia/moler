@@ -7,20 +7,20 @@ __author__ = 'Adrianna Pienkowska'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'adrianna.pienkowska@nokia.com'
 
-
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 import re
+import copy
 
 
 class Find(GenericUnixCommand):
-    def __init__(self, connection, paths=[], prompt=None, new_line_chars=None, options=None, operators=None,
+    def __init__(self, connection, paths=[], prompt=None, newline_chars=None, options=None, operators=None,
                  runner=None):
-        super(Find, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+        super(Find, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.options = options
         self.operators = operators
-        self.paths = paths
+        self.paths = copy.copy(paths)
         self.current_ret['RESULT'] = list()
 
     def build_command_string(self):
@@ -89,7 +89,6 @@ COMMAND_RESULT_without_arguments = {
                './uname/uname.py']
 }
 
-
 COMMAND_OUTPUT_with_files = """
 xyz@debian:~$ find sed uname
 sed
@@ -116,7 +115,6 @@ COMMAND_RESULT_with_files = {
                'sed/test', 'sed/old', 'sed/file2.sed', 'sed/file1.sed', 'uname', 'uname/uname_trash.py',
                'uname/uname.py']
 }
-
 
 COMMAND_OUTPUT_with_options = """
 xyz@debian:~$ find -L
@@ -148,7 +146,6 @@ COMMAND_RESULT_with_options = {
                './uname/uname_trash.py', './uname/uname.py']
 }
 
-
 COMMAND_OUTPUT_with_operators = """
 xyz@debian:~$ find -name 'my*' -type f
 ./Pobrane/pycharm-community-2018.1.4/helpers/typeshed/third_party/2and3/mypy_extensions.pyi
@@ -170,7 +167,6 @@ COMMAND_RESULT_with_operators = {
                './.config/libreoffice/4/user/autotext/mytexts.bau']
 }
 
-
 COMMAND_OUTPUT_no_files_found = """
 xyz@debian:~$ find Doc -name 'my*' -type f -print.
 xyz@debian:~$"""
@@ -183,7 +179,6 @@ COMMAND_KWARGS_no_files_found = {
 COMMAND_RESULT_no_files_found = {
     'RESULT': []
 }
-
 
 COMMAND_OUTPUT_permission_denied = """
 xyz@debian:~$ find

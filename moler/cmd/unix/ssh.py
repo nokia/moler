@@ -26,9 +26,27 @@ class Ssh(GenericUnixCommand):
 
     def __init__(self, connection, login, password, host, prompt=None, expected_prompt='>', port=0,
                  known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
-                 term_mono="TERM=xterm-mono", new_line_chars=None, encrypt_password=True, runner=None):
+                 term_mono="TERM=xterm-mono", newline_chars=None, encrypt_password=True, runner=None,
+                 target_newline="\n"):
 
-        super(Ssh, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+        """
+        :param connection: moler connection to device, terminal when command is executed
+        :param login: ssh login
+        :param password: ssh password
+        :param host: host to ssh
+        :param prompt: start prompt (on system where command ssh starts)
+        :param expected_prompt: final prompt (on system where command ssh connects)
+        :param port: port to ssh connect
+        :param known_hosts_on_failure: "rm" or "keygen" how to deal with error. If empty then ssh fails.
+        :param set_timeout: Command to set timeout after ssh connects
+        :param set_prompt: Command to set prompt after ssh connects
+        :param term_mono: Params to set ssh mono connection (useful in script)
+        :param newline_chars: Characters to split lines
+        :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text
+        :param runner: Runner to run command
+        :param target_newline: newline chars on remote system where ssh connects
+        """
+        super(Ssh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
         # Parameters defined by calling the command
         self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(expected_prompt)  # Expected prompt on device
@@ -41,6 +59,7 @@ class Ssh(GenericUnixCommand):
         self.set_prompt = set_prompt
         self.term_mono = term_mono
         self.encrypt_password = encrypt_password
+        self.target_newline = target_newline
 
         self.ret_required = False
 
@@ -141,14 +160,16 @@ class Ssh(GenericUnixCommand):
         return self.set_timeout and not self._sent_timeout
 
     def send_timeout_set(self):
-        self.connection.sendline("\n" + self.set_timeout)
+        cmd = "{}{}{}".format(self.target_newline, self.set_timeout, self.target_newline)
+        self.connection.send(cmd)
         self._sent_timeout = True
 
     def prompt_set_needed(self):
         return self.set_prompt and not self._sent_prompt
 
     def send_prompt_set(self):
-        self.connection.sendline("\n" + self.set_prompt)
+        cmd = "{}{}{}".format(self.target_newline, self.set_prompt, self.target_newline)
+        self.connection.send(cmd)
         self._sent_prompt = True
 
     def is_failure_indication(self, line):

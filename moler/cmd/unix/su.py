@@ -18,8 +18,8 @@ from moler.exceptions import ParsingDone
 class Su(GenericUnixCommand):
 
     def __init__(self, connection, user=None, options=None, password=None, prompt=None, expected_prompt=None,
-                 new_line_chars=None, encrypt_password=True, runner=None):
-        super(Su, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+                 newline_chars=None, encrypt_password=True, runner=None):
+        super(Su, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
         # Parameters defined by calling the command
         self.expected_prompt = expected_prompt
