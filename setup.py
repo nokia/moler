@@ -13,7 +13,7 @@ with io.open(join(here, 'requirements.txt'), encoding='utf-8') as f:
 
 setup(
     name='moler',  # Required
-    version='0.5.0',  # Required
+    version='0.5.1',  # Required
     description='Moler is library to help in building automated tests',  # Required
     long_description=long_description,  # Optional
     long_description_content_type='text/markdown',  # Optional (see note above)
@@ -59,6 +59,8 @@ setup(
     #   py_modules=["my_module"],
     #
     packages=find_packages(exclude=['docs', 'examples', 'images', 'test']),  # Required
+
+    package_data={'moler': ['config/bash_config']},
 
     # This field lists other packages that your project depends on to run.
     # Any package you put here will be installed by pip when your project is
