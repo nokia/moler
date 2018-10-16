@@ -1,7 +1,7 @@
 from moler.config import load_config
 from moler.device.device import DeviceFactory
 
-load_config(path='my_devices.yml')
+load_config(config='my_devices.yml')
 
 remote_unix = DeviceFactory.get_device(name='RebexTestMachine')  # it starts in local shell
 remote_unix.goto_state(state="UNIX_REMOTE")                      # make it go to remote shell
