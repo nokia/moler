@@ -6,8 +6,6 @@ load_config(config={'DEVICES': {'DEFAULT_CONNECTION':
                                     {'CONNECTION_DESC': {'io_type': 'terminal', 'variant': 'threaded'}},
                                 'RebexTestMachine':
                                     {'DEVICE_CLASS': 'moler.device.unixremote.UnixRemote',
-                                     'STATE_PARAMS': {'UNIX_LOCAL': {'newline': '\\n'},
-                                                      'UNIX_REMOTE': {'newline': '\\r\\n'}},
                                      'CONNECTION_HOPS': {'UNIX_LOCAL':
                                                              {'UNIX_REMOTE':
                                                                   {'execute_command': 'ssh',
