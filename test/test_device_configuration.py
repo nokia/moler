@@ -111,7 +111,7 @@ def test_cannot_select_device_by_nonexisting_name(device_factory):
 
 def test_can_select_device_loaded_from_config_file(moler_config, device_factory):
     conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
-    moler_config.load_config(path=conn_config, config_type='yaml')
+    moler_config.load_config(config=conn_config, config_type='yaml')
 
     device = device_factory.get_device(name='UNIX')
 
@@ -121,7 +121,7 @@ def test_can_select_device_loaded_from_config_file(moler_config, device_factory)
 
 def test_can_select_all_devices_loaded_from_config_file(moler_config, device_factory):
     conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
-    moler_config.load_config(path=conn_config, config_type='yaml')
+    moler_config.load_config(config=conn_config, config_type='yaml')
 
     device_factory.create_all_devices()
 
@@ -151,7 +151,7 @@ def test_load_config_checks_env_variable_existence(moler_config):
 
 def test_return_created_device_when_call_another_time_for_same_named_device(moler_config, device_factory):
     conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
-    moler_config.load_config(path=conn_config, config_type='yaml')
+    moler_config.load_config(config=conn_config, config_type='yaml')
 
     device = device_factory.get_device(name='UNIX')
     same_device = device_factory.get_device(name='UNIX')
@@ -197,7 +197,7 @@ def test_cannot_load_config_from_when_path_or_from_env_var_not_provide(moler_con
     with pytest.raises(AssertionError) as err:
         moler_config.load_config()
 
-    assert "Provide either 'path' or 'from_env_var' parameter (none given)" in str(err.value)
+    assert "Provide either 'config' or 'from_env_var' parameter (none given)" in str(err.value)
 
 
 # --------------------------- resources ---------------------------

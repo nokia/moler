@@ -15,11 +15,6 @@ DEVICES:
 
   RebexTestMachine:
     DEVICE_CLASS: moler.device.unixremote.UnixRemote
-    STATE_PARAMS:                # modify defaults
-      UNIX_LOCAL:
-        newline: \n              # default (may be skipped)
-      UNIX_REMOTE:
-        newline: \r\n
     CONNECTION_HOPS:
       UNIX_LOCAL:                # from state
         UNIX_REMOTE:             # to state

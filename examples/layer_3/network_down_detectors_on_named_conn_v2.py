@@ -226,7 +226,7 @@ if __name__ == '__main__':
     # Configure moler connections (backend code)
     # 1) configure variant by YAML config file
     # 2) ver.2 - configure named connections by YAML config file
-    load_config(path=os.path.join(os.path.dirname(__file__), "named_connections.yml"))
+    load_config(config=os.path.join(os.path.dirname(__file__), "named_connections.yml"))
 
     # 3) take default class used to realize tcp-threaded-connection
     # -------------------------------------------------------------------
