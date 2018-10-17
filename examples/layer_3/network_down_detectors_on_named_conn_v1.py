@@ -226,7 +226,7 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------
     # Configure moler connections (backend code)
     # 1) select variant of TCP
-    load_config(path=os.path.join(os.path.dirname(__file__), "connection_variant.yml"))
+    load_config(config=os.path.join(os.path.dirname(__file__), "connection_variant.yml"))
 
     # 2) ver.1 - configure named connections by python code
     conn_cfg.define_connection(name='net_1', io_type='tcp', host='localhost', port=5671)
