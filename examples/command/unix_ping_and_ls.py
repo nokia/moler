@@ -10,7 +10,6 @@ ping_cmd = my_unix.get_cmd(cmd_name="ping", cmd_params={"destination": host, "op
 remote_unix = DeviceFactory.get_device(name='RebexTestMachine')
 remote_unix.goto_state(state="UNIX_REMOTE")
 ls_cmd = remote_unix.get_cmd(cmd_name="ls", cmd_params={"options": "-l"})
-ls_cmd.connection.newline = '\r\n'              # tweak since rebex remote console uses such one
 
 print("Start pinging {} ...".format(host))
 ping_cmd.start()                                # run command in background

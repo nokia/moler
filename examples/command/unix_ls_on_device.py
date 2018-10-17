@@ -15,14 +15,13 @@ load_config(config={'DEVICES': {'DEFAULT_CONNECTION':
                                                                                       'host': 'test.rebex.net',
                                                                                       'login': 'demo',
                                                                                       'password': 'password',
-                                                                                      'set_timeout': False}}}}}}},
+                                                                                      'set_timeout': None}}}}}}},
             config_type='dict')
 
 remote_unix = DeviceFactory.get_device(name='RebexTestMachine')  # it starts in local shell
 remote_unix.goto_state(state="UNIX_REMOTE")                      # make it go to remote shell
 
 ls_cmd = remote_unix.get_cmd(cmd_name="ls", cmd_params={"options": "-l"})
-ls_cmd.connection.newline = '\r\n'           # tweak since rebex remote console uses such one
 
 remote_files = ls_cmd()
 
