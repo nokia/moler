@@ -15,8 +15,8 @@ from moler.exceptions import ParsingDone
 
 
 class Kill(GenericUnixCommand):
-    def __init__(self, connection, pid, options=None, prompt=None, new_line_chars=None, runner=None):
-        super(Kill, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+    def __init__(self, connection, pid, options=None, prompt=None, newline_chars=None, runner=None):
+        super(Kill, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.pid = pid
         self.options = options
         self.ret_required = False

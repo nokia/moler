@@ -24,6 +24,7 @@ class UnixRemote(UnixLocal):
         :param io_type: External-IO connection connection type
         :param variant: External-IO connection variant
         """
+        sm_params = sm_params.copy()
         super(UnixRemote, self).__init__(name=name, io_connection=io_connection, io_type=io_type, variant=variant,
                                          sm_params=sm_params)
 
@@ -34,6 +35,7 @@ class UnixRemote(UnixLocal):
                     UnixRemote.unix_remote: {  # to
                         "execute_command": "ssh",  # using command
                         "command_params": {  # with parameters
+                            "target_newline": "\r\n"
                         },
                         "required_command_params": [
                             "host",
@@ -47,7 +49,8 @@ class UnixRemote(UnixLocal):
                     UnixRemote.unix_local: {  # to
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
-                            "expected_prompt": r'^moler_bash#'
+                            "expected_prompt": r'^moler_bash#',
+                            "target_newline": "\r\n"
                         },
                         "required_command_params": [
                         ]
@@ -90,6 +93,18 @@ class UnixRemote(UnixLocal):
 
         self._state_prompts.update(state_prompts)
         super(UnixRemote, self)._prepare_state_prompts()
+
+    def _prepare_newline_chars(self):
+        newline_chars = {
+            UnixRemote.unix_remote:
+                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_local][UnixRemote.unix_remote][
+                    "command_params"]["target_newline"],
+            UnixRemote.unix_local:
+                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.unix_local][
+                    "command_params"]["target_newline"],
+        }
+        self._newline_chars.update(newline_chars)
+        super(UnixRemote, self)._prepare_newline_chars()
 
     def _prepare_state_hops(self):
         state_hops = {

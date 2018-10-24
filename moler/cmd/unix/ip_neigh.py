@@ -14,8 +14,8 @@ from moler.exceptions import ParsingDone
 
 
 class IpNeigh(GenericUnixCommand):
-    def __init__(self, connection, options=None, prompt=None, new_line_chars=None, runner=None):
-        super(IpNeigh, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars,
+    def __init__(self, connection, options=None, prompt=None, newline_chars=None, runner=None):
+        super(IpNeigh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                       runner=runner)
         self.options = options
         self.ret_required = False

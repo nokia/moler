@@ -19,10 +19,13 @@ from moler.helpers import ClassProperty
 from moler.helpers import camel_case_to_lower_case_underscore
 from moler.helpers import instance_id
 from moler.runner import ThreadPoolExecutorRunner
+import threading
 
 
 @add_metaclass(ABCMeta)
 class ConnectionObserver(object):
+    _not_raised_exceptions = list()  # list of dict: "exception" and "time"
+    _exceptions_lock = threading.Lock()
 
     def __init__(self, connection=None, runner=None):
         """
@@ -76,7 +79,8 @@ class ConnectionObserver(object):
         self._validate_start(*args, **kwargs)
         self._is_running = True
         self._future = self.runner.submit(self)
-
+        if self._future is None:
+            self._is_running = False
         return self
 
     def _validate_start(self, *args, **kwargs):
@@ -103,10 +107,10 @@ class ConnectionObserver(object):
             return self.result()
         if self._future is None:
             raise ConnectionObserverNotStarted(self)
-        result = self.runner.wait_for(connection_observer=self, connection_observer_future=self._future,
-                                      timeout=timeout)
+        self.runner.wait_for(connection_observer=self, connection_observer_future=self._future,
+                             timeout=timeout)
 
-        return result
+        return self.result()
 
     def cancel(self):
         """Cancel execution of connection-observer."""
@@ -148,7 +152,18 @@ class ConnectionObserver(object):
     def set_exception(self, exception):
         """Should be used to indicate some failure during observation"""
         self._is_done = True
+        if self._exception:
+            self._log(logging.DEBUG, "'{}.{}' has overwritten exception. From '{}.{}' to '{}.{}'.".format(
+                self.__class__.__module__,
+                self.__class__.__name__,
+                self.exception.__class__.__module__,
+                self.exception.__class__.__name__,
+                exception.__class__.__module__,
+                exception.__class__.__name__
+            ))
+            ConnectionObserver._remove_from_not_raised_exceptions(self._exception)
         self._exception = exception
+        ConnectionObserver._append_to_not_raised_exceptions(exception)
         self._log(logging.INFO, "'{}.{}' has set exception '{}.{}'.".format(self.__class__.__module__,
                                                                             self.__class__.__name__,
                                                                             exception.__class__.__module__,
@@ -156,10 +171,12 @@ class ConnectionObserver(object):
 
     def result(self):
         """Retrieve final result of connection-observer"""
+        if self._exception:
+            if self._exception:
+                ConnectionObserver._remove_from_not_raised_exceptions(self._exception)
+            raise self._exception
         if self.cancelled():
             raise NoResultSinceCancelCalled(self)
-        if self._exception:
-            raise self._exception
         if not self.done():
             raise ResultNotAvailableYet(self)
         return self._result
@@ -179,6 +196,28 @@ class ConnectionObserver(object):
     def observer_name(cls):
         name = camel_case_to_lower_case_underscore(cls.__name__)
         return name
+
+    @staticmethod
+    def get_unraised_exceptions(remove=True):
+        with ConnectionObserver._exceptions_lock:
+            if remove:
+                list_of_exceptions = ConnectionObserver._not_raised_exceptions
+                ConnectionObserver._not_raised_exceptions = list()
+                return list_of_exceptions
+            else:
+                list_of_exceptions = ConnectionObserver._not_raised_exceptions.copy()
+                return list_of_exceptions
+
+    @staticmethod
+    def _append_to_not_raised_exceptions(exception):
+        with ConnectionObserver._exceptions_lock:
+            ConnectionObserver._not_raised_exceptions.append(exception)
+
+    @staticmethod
+    def _remove_from_not_raised_exceptions(exception):
+        with ConnectionObserver._exceptions_lock:
+            if exception in ConnectionObserver._not_raised_exceptions:
+                ConnectionObserver._not_raised_exceptions.remove(exception)
 
     def get_long_desc(self):
         return "Observer '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)

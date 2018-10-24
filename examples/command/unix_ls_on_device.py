@@ -1,13 +1,25 @@
 from moler.config import load_config
 from moler.device.device import DeviceFactory
 
-load_config(path='my_devices.yml')
+# configure library directly from dict
+load_config(config={'DEVICES': {'DEFAULT_CONNECTION':
+                                    {'CONNECTION_DESC': {'io_type': 'terminal', 'variant': 'threaded'}},
+                                'RebexTestMachine':
+                                    {'DEVICE_CLASS': 'moler.device.unixremote.UnixRemote',
+                                     'CONNECTION_HOPS': {'UNIX_LOCAL':
+                                                             {'UNIX_REMOTE':
+                                                                  {'execute_command': 'ssh',
+                                                                   'command_params': {'expected_prompt': 'demo@',
+                                                                                      'host': 'test.rebex.net',
+                                                                                      'login': 'demo',
+                                                                                      'password': 'password',
+                                                                                      'set_timeout': None}}}}}}},
+            config_type='dict')
 
-my_unix = DeviceFactory.get_device(name='RebexTestMachine')
-my_unix.goto_state(state="UNIX_REMOTE")
+remote_unix = DeviceFactory.get_device(name='RebexTestMachine')  # it starts in local shell
+remote_unix.goto_state(state="UNIX_REMOTE")                      # make it go to remote shell
 
-ls_cmd = my_unix.get_cmd(cmd_name="ls", cmd_params={"options": "-l"})
-ls_cmd.connection.newline = '\r\n'  # tweak since remote console uses such one
+ls_cmd = remote_unix.get_cmd(cmd_name="ls", cmd_params={"options": "-l"})
 
 remote_files = ls_cmd()
 

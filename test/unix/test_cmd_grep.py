@@ -12,48 +12,58 @@ import pytest
 from moler.cmd.unix.grep import Grep
 
 
-def test_calling_grep_returns_result_parsed_from_command_output_with_path_and_lines_number_and_bytes(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_with_path_and_lines_number_and_bytes()
+def test_calling_grep_returns_result_parsed_from_command_output_with_path_and_lines_number_and_bytes(
+        buffer_connection,
+        command_output_and_expected_result_with_path_and_lines_number_and_bytes):
+    command_output, expected_result = command_output_and_expected_result_with_path_and_lines_number_and_bytes
     buffer_connection.remote_inject_response([command_output])
     grep_cmd = Grep(connection=buffer_connection.moler_connection, options='-bnH PREROUTING /etc/iptables/rules.v4')
     result = grep_cmd()
     assert expected_result == result
 
 
-def test_calling_grep_returns_result_parsed_from_command_output_with_path_and_lines_number(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_with_path_and_lines_number()
+def test_calling_grep_returns_result_parsed_from_command_output_with_path_and_lines_number(
+        buffer_connection,
+        command_output_and_expected_result_with_path_and_lines_number):
+    command_output, expected_result = command_output_and_expected_result_with_path_and_lines_number
     buffer_connection.remote_inject_response([command_output])
     grep_cmd = Grep(connection=buffer_connection.moler_connection, options='-nH PREROUTING /etc/iptables/rules.v4')
     result = grep_cmd()
     assert expected_result == result
 
 
-def test_calling_grep_returns_result_parsed_from_command_output_with_path(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_with_path()
+def test_calling_grep_returns_result_parsed_from_command_output_with_path(
+        buffer_connection,
+        command_output_and_expected_result_with_path):
+    command_output, expected_result = command_output_and_expected_result_with_path
     buffer_connection.remote_inject_response([command_output])
     grep_cmd = Grep(connection=buffer_connection.moler_connection, options='-H PREROUTING /etc/iptables/rules.v4')
     result = grep_cmd()
     assert expected_result == result
 
 
-def test_calling_grep_returns_result_parsed_from_command_output_with_lines_number_and_bytes(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_with_lines_number_and_bytes()
+def test_calling_grep_returns_result_parsed_from_command_output_with_lines_number_and_bytes(
+        buffer_connection,
+        command_output_and_expected_result_with_lines_number_and_bytes):
+    command_output, expected_result = command_output_and_expected_result_with_lines_number_and_bytes
     buffer_connection.remote_inject_response([command_output])
     grep_cmd = Grep(connection=buffer_connection.moler_connection, options='-bn PREROUTING /etc/iptables/rules.v4')
     result = grep_cmd()
     assert expected_result == result
 
 
-def test_calling_grep_returns_result_parsed_from_command_output_with_lines_number(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_with_lines_number()
+def test_calling_grep_returns_result_parsed_from_command_output_with_lines_number(
+        buffer_connection,
+        command_output_and_expected_result_with_lines_number):
+    command_output, expected_result = command_output_and_expected_result_with_lines_number
     buffer_connection.remote_inject_response([command_output])
     grep_cmd = Grep(connection=buffer_connection.moler_connection, options='-n PREROUTING /etc/iptables/rules.v4')
     result = grep_cmd()
     assert expected_result == result
 
 
-def test_calling_grep_returns_result_parsed_from_command_output(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result()
+def test_calling_grep_returns_result_parsed_from_command_output(buffer_connection, command_output_and_expected_result):
+    command_output, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
     grep_cmd = Grep(connection=buffer_connection.moler_connection, options='Mode debconf.conf')
     result = grep_cmd()

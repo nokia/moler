@@ -18,8 +18,8 @@ from moler.exceptions import ParsingDone
 class Su(GenericUnixCommand):
 
     def __init__(self, connection, user=None, options=None, password=None, prompt=None, expected_prompt=None,
-                 new_line_chars=None, encrypt_password=True, runner=None):
-        super(Su, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+                 newline_chars=None, encrypt_password=True, runner=None):
+        super(Su, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
         # Parameters defined by calling the command
         self.expected_prompt = expected_prompt
@@ -42,17 +42,18 @@ class Su(GenericUnixCommand):
         return cmd
 
     def on_new_line(self, line, is_full_line):
-        if is_full_line:
-            try:
+        try:
+            self._send_password_if_requested(line)
+            if is_full_line:
                 self._command_failure(line)
                 self._authentication_failure(line)
-                self._send_password_if_requested(line)
                 self._parse(line)
-            except ParsingDone:
-                pass
-        elif self._is_prompt(line):
-            if not self.done():
-                self.set_result({})
+            elif self._is_prompt(line):
+                if not self.done():
+                    self.set_result({})
+        except ParsingDone:
+            pass
+
         return super(Su, self).on_new_line(line, is_full_line)
 
     _re_authentication_fail = re.compile(r"su:\sAuthentication\sfailure(?P<AUTH>.*)"

@@ -17,27 +17,27 @@ def test_iperf_returns_proper_command_string(buffer_connection):
      assert "iperf -c 10.1.1.1 -M 1300 -m" == iperf_cmd.command_string
 
 
-def test_iperf_raise_error_on_bind_failed(buffer_connection):
+def test_iperf_raise_error_on_bind_failed(buffer_connection, command_output_and_expected_result_on_bind_failed):
     iperf_cmd = Iperf(connection=buffer_connection.moler_connection, options='-s')
-    command_output, expected_result = command_output_and_expected_result_on_bind_failed()
+    command_output, expected_result = command_output_and_expected_result_on_bind_failed
     buffer_connection.remote_inject_response([command_output])
     assert 'iperf -s' == iperf_cmd.command_string
     with pytest.raises(CommandFailure):
         iperf_cmd()
 
 
-def test_iperf_raise_error_on_no_such_file(buffer_connection):
+def test_iperf_raise_error_on_no_such_file(buffer_connection, command_output_and_expected_result_on_connect_failed):
     iperf_cmd = Iperf(connection=buffer_connection.moler_connection, options='-c 10.156.236.132')
-    command_output, expected_result = command_output_and_expected_result_on_connect_failed()
+    command_output, expected_result = command_output_and_expected_result_on_connect_failed
     buffer_connection.remote_inject_response([command_output])
     assert 'iperf -c 10.156.236.132' == iperf_cmd.command_string
     with pytest.raises(CommandFailure):
         iperf_cmd()
 
 
-def test_gunzip_raise_error_on_iperf_problem(buffer_connection):
+def test_gunzip_raise_error_on_iperf_problem(buffer_connection, command_output_and_expected_result_on_iperf_problem):
     iperf_cmd = Iperf(connection=buffer_connection.moler_connection, options='-i')
-    command_output, expected_result = command_output_and_expected_result_on_iperf_problem()
+    command_output, expected_result = command_output_and_expected_result_on_iperf_problem
     buffer_connection.remote_inject_response([command_output])
     assert 'iperf -i' == iperf_cmd.command_string
     with pytest.raises(CommandFailure):

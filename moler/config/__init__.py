@@ -9,6 +9,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import yaml
+import six
 from contextlib import contextmanager
 
 from . import connections as conn_cfg
@@ -40,23 +41,29 @@ def read_yaml_configfile(path):
         return yaml.load(content)
 
 
-def load_config(path=None, from_env_var=None, config_type='yaml'):
+def load_config(config=None, from_env_var=None, config_type='yaml'):
     """
     Load Moler's configuration from config file
 
-    :param path: config filename directly provided (overwrites 'from_env_var' if both given)
+    :param config: either dict or config filename directly provided (overwrites 'from_env_var' if both given)
     :param from_env_var: name of environment variable storing config filename
-    :param config_type: 'yaml' (the only one supported now)
+    :param config_type: 'dict' ('config' param is dict) or 'yaml' ('config' is filename of file with YAML content)
     :return: None
     """
-    if (not path) and (not from_env_var):
-        raise AssertionError("Provide either 'path' or 'from_env_var' parameter (none given)")
-    if (not path):
+    assert (config_type == 'dict') or (config_type == 'yaml')  # no other format supported yet
+    if not config:
+        if not from_env_var:
+            raise AssertionError("Provide either 'config' or 'from_env_var' parameter (none given)")
         if from_env_var not in os.environ:
             raise KeyError("Environment variable '{}' is not set".format(from_env_var))
         path = os.environ[from_env_var]
-    assert config_type == 'yaml'  # no other format supported yet
-    config = read_yaml_configfile(path)
+        config = read_yaml_configfile(path)
+    elif config_type == 'yaml':
+        assert isinstance(config, six.string_types)
+        path = config
+        config = read_yaml_configfile(path)
+    elif config_type == 'dict':
+        assert isinstance(config, dict)
     # TODO: check schema
     load_logger_from_config(config)
     load_connection_from_config(config)

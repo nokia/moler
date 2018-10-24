@@ -22,7 +22,7 @@ from moler.parser.table_text import TableText
 
 class Ps(GenericUnixCommand):
 
-    def __init__(self, connection=None, options='', prompt=None, new_line_chars=None, runner=None):
+    def __init__(self, connection=None, options='', prompt=None, newline_chars=None, runner=None):
         self.parser = None
         self._cmd = 'ps'
         self._cmd_line_found = False
@@ -30,7 +30,7 @@ class Ps(GenericUnixCommand):
         self._columns = list()
         self._space_columns = list()
         self._options = options
-        super(Ps, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+        super(Ps, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.current_ret = list()
 
     def on_new_line(self, line, is_full_line):

@@ -7,9 +7,9 @@ __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
+import codecs
 import logging
 import os
-import codecs
 import sys
 
 logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
@@ -18,7 +18,7 @@ date_format = "%d %H:%M:%S"
 
 # new logging levels
 RAW_DATA = 1  # should be used for logging data of external sources, like connection's data send/received
-TRACE = 4     # may produce tons of logs, should be used for lib dev & troubleshooting
+TRACE = 4  # may produce tons of logs, should be used for lib dev & troubleshooting
 # (above ERROR = 40, below CRITICAL = 50)
 TEST_CASE = 45
 
@@ -186,7 +186,7 @@ def configure_moler_main_logger():
     logger = create_logger(name='moler', log_level=TRACE, datefmt=date_format)
     logger.propagate = True
 
-    main_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(message)s"
+    main_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(message)s"
     _add_new_file_handler(logger_name='moler',
                           log_file='moler.log',
                           log_level=logging.INFO,  # only hi-level info from library
@@ -194,7 +194,7 @@ def configure_moler_main_logger():
                                                                              datefmt=date_format))
 
     if want_debug_details():
-        debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-10s %(name)-30s %(transfer_direction)s|%(message)s"
+        debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(name)-30s %(transfer_direction)s|%(message)s"
         _add_new_file_handler(logger_name='moler',
                               log_file='moler.debug.log',
                               log_level=debug_level,
@@ -293,7 +293,8 @@ class RawDataFormatter(object):
         """We want to take data from log_record.msg as bytes"""
         raw_bytes = record.msg
         if not isinstance(raw_bytes, (bytes, bytearray)):
-            err_msg = "Log record directed for raw-logs must have encoder if record.msg is not bytes (it is {})".format(type(record.msg))
+            err_msg = "Log record directed for raw-logs must have encoder if record.msg is not bytes (it is {})".format(
+                type(record.msg))
             assert hasattr(record, "encoder"), err_msg
             raw_bytes = record.encoder(record.msg)
         return raw_bytes
@@ -316,7 +317,8 @@ class RawTraceFormatter(RawDataFormatter):
         # - 1536862639.4494998: {time: '20:17:19.449', direction: <, bytesize: 17, offset: 17}
         # see:   https://pyyaml.org/wiki/PyYAMLDocumentation
         # but we don't use yaml library since we want predictable order
-        raw_trace_record = "- %s: {time: '%s', direction: %s, bytesize: %s, offset: %s}\n" % (record.created, timestamp, direction, bytesize, offset)
+        raw_trace_record = "- %s: {time: '%s', direction: %s, bytesize: %s, offset: %s}\n" % (
+            record.created, timestamp, direction, bytesize, offset)
         return raw_trace_record
 
 
@@ -425,6 +427,9 @@ class MolerMainMultilineWithDirectionFormatter(MultilineWithDirectionFormatter):
     def format(self, record):
         if not hasattr(record, 'log_name'):
             record.log_name = record.name
+
+        if hasattr(record, 'moler_error'):
+            record.levelname = "MOLER_ERROR"
 
         record.msg = u"{:<20}|{}".format(record.log_name, record.msg)
 

@@ -1,27 +1,53 @@
+[![image](https://img.shields.io/badge/pypi-v0.5.2-blue.svg)](https://pypi.org/project/moler/)
+[![image](https://img.shields.io/badge/python-2.7%20%7C%203.5%20%7C%203.6%20%7C%203.7-blue.svg)](https://pypi.org/project/moler/)
 [![Build Status](https://travis-ci.org/nokia/moler.svg?branch=master)](https://travis-ci.org/nokia/moler)
 [![Coverage Status](https://coveralls.io/repos/github/nokia/moler/badge.svg?branch=master)](https://coveralls.io/github/nokia/moler?branch=master)
 [![BCH compliance](https://bettercodehub.com/edge/badge/nokia/moler?branch=master)](https://bettercodehub.com/)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/355afc9110f34d549b7c08c33961827c)](https://www.codacy.com/app/mplichta/moler?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=nokia/moler&amp;utm_campaign=Badge_Grade)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](./LICENSE)
 
-# Moler
-Moler is Python library that helps in building automated tests. [name origin](#moler-name-origin)
+# Table of Contents
+1. [Moler info](#moler)
+2. [Moler usage examples](#moler-usage-examples)
+3. [API design reasoning](#api-design-reasoning)
+4. [Designed API](#designed-api)
 
-Example use case is to find PIDs of all python processes:
+# Moler
+Moler ([name origin](https://github.com/nokia/moler/wiki#moler-name-origin)) is Python library
+that provides "bricks" for building  automated tests.
+All these "bricks" have clearly defined responsibilities, have similar API,
+follow same construction pattern (so new ones are easy to create).
+
+Here they are:
+* Commands as self-reliant object
+  * to allow for command triggering and parsing encapsulated in single object (lower maintenance cost)
+* Event observers & callbacks (alarms are events example)
+  * to allow for online reaction (not offline postprocessing)
+* Run observers/commands in the background
+  * to allow for test logic decomposition into multiple commands running in parallel
+  * to allow for handling unexpected system behavior (reboots, alarms)
+* State machines -> automatic auto-connecting after dropped connection
+  * to increase framework auto-recovery and help in troubleshooting "what went wrong"
+* Automatic logging of all connections towards devices used by tests
+  * to decrease investigation time by having logs focused on different parts of system under test
+
+# Moler usage examples
+Let's see Moler in action. Here is hypothetical use case: "find PIDs of all python processes":
 
 ```python
 
     from moler.config import load_config
     from moler.device.device import DeviceFactory
 
-    load_config(path='my_devices.yml')
-    my_unix = DeviceFactory.get_device(name='MyMachine')
-    ps_cmd = my_unix.get_cmd(cmd_name="ps", cmd_params={"options": "-ef"})
+    load_config(path='my_devices.yml')                      # description of available devices
+    my_unix = DeviceFactory.get_device(name='MyMachine')    # take specific device out of available ones
+    ps_cmd = my_unix.get_cmd(cmd_name="ps",                 # take command of that device
+                             cmd_params={"options": "-ef"})
 
-    processes = ps_cmd()
-    for proc in processes:
-        if 'python' in proc['CMD']:
-            print("PID: {} CMD: {}".format(proc['PID'], proc['CMD']))
+    processes_info = ps_cmd()                               # run the command, it returns result
+    for proc_info in processes_info:
+        if 'python' in proc_info['CMD']:
+            print("PID: {info[PID]} CMD: {info[CMD]}".format(info=proc_info))
 ```
 
 * To have command we ask device "give me such command".
@@ -64,11 +90,10 @@ on that machine (and some info about the file):
 
 ```python
 
-    my_unix = DeviceFactory.get_device(name='RebexTestMachine')
-    my_unix.goto_state(state="UNIX_REMOTE")
+    remote_unix = DeviceFactory.get_device(name='RebexTestMachine')  # it starts in local shell
+    remote_unix.goto_state(state="UNIX_REMOTE")                      # make it go to remote shell
 
-    ls_cmd = my_unix.get_cmd(cmd_name="ls", cmd_params={"options": "-l"})
-    ls_cmd.connection.newline = '\r\n'  # tweak since remote console uses such one
+    ls_cmd = remote_unix.get_cmd(cmd_name="ls", cmd_params={"options": "-l"})
 
     remote_files = ls_cmd()
 
@@ -99,6 +124,160 @@ Above code displays:
       name              : readme.txt
 ```
 
+How about doing multiple things in parallel. Let's ping google
+while asking test.rebex.net about readme.txt file:
+
+```python
+my_unix = DeviceFactory.get_device(name='MyMachine')
+host = 'www.google.com'
+ping_cmd = my_unix.get_cmd(cmd_name="ping", cmd_params={"destination": host, "options": "-w 6"})
+
+remote_unix = DeviceFactory.get_device(name='RebexTestMachine')
+remote_unix.goto_state(state="UNIX_REMOTE")
+ls_cmd = remote_unix.get_cmd(cmd_name="ls", cmd_params={"options": "-l"})
+
+print("Start pinging {} ...".format(host))
+ping_cmd.start()                                # run command in background
+print("Let's check readme.txt at {} while pinging {} ...".format(remote_unix.name, host))
+
+remote_files = ls_cmd()                         # foreground "run in the meantime"
+file_info = remote_files['files']['readme.txt']
+print("readme.txt file: owner={fi[owner]}, size={fi[size_bytes]}".format(fi=file_info))
+
+ping_stats = ping_cmd.await_done(timeout=6)     # await background command
+print("ping {}: {}={}, {}={} [{}]".format(host,'packet_loss',
+                                          ping_stats['packet_loss'],
+                                          'time_avg',
+                                          ping_stats['time_avg'],
+                                          ping_stats['time_unit']))
+```
+
+```log
+Start pinging www.google.com ...
+Let's check readme.txt at RebexTestMachine while pinging www.google.com ...
+readme.txt file: owner=demo, size=403
+ping www.google.com: packet_loss=0, time_avg=35.251 [ms]
+```
+
+Besides being callable command-object works as "Future" (result promise).
+You can start it in background and later await till it is done to grab result.
+
+If we enhance our configuration with logging related info:
+
+```yaml
+    LOGGER:
+      PATH: ./logs
+      DATE_FORMAT: "%H:%M:%S"
+```
+
+then above code will automatically create Molers' main log (`moler.log`)
+which shows activity on all devices:
+
+```log
+22:30:19.723 INFO       moler               |More logs in: ./logs
+22:30:19.747 INFO       MyMachine           |Connection to: 'MyMachine' has been opened.
+22:30:19.748 INFO       MyMachine           |Changed state from 'NOT_CONNECTED' into 'UNIX_LOCAL'
+22:30:19.866 INFO       MyMachine           |Event 'moler.events.unix.wait4prompt.Wait4prompt':'[re.compile('^moler_bash#')]' started.
+22:30:19.901 INFO       RebexTestMachine    |Connection to: 'RebexTestMachine' has been opened.
+22:30:19.901 INFO       RebexTestMachine    |Changed state from 'NOT_CONNECTED' into 'UNIX_LOCAL'
+22:30:19.919 INFO       RebexTestMachine    |Event 'moler.events.unix.wait4prompt.Wait4prompt':'[re.compile('demo@')]' started.
+22:30:19.920 INFO       RebexTestMachine    |Event 'moler.events.unix.wait4prompt.Wait4prompt':'[re.compile('^moler_bash#')]' started.
+22:30:19.921 INFO       RebexTestMachine    |Command 'moler.cmd.unix.ssh.Ssh':'TERM=xterm-mono ssh -l demo test.rebex.net' started.
+22:30:19.921 INFO       RebexTestMachine    |TERM=xterm-mono ssh -l demo test.rebex.net
+22:30:20.763 INFO       RebexTestMachine    |*********
+22:30:20.909 INFO       RebexTestMachine    |Changed state from 'UNIX_LOCAL' into 'UNIX_REMOTE'
+22:30:20.917 INFO       RebexTestMachine    |Command 'moler.cmd.unix.ssh.Ssh' finished.
+22:30:20.919 INFO       MyMachine           |Command 'moler.cmd.unix.ping.Ping':'ping www.google.com -w 6' started.
+22:30:20.920 INFO       MyMachine           |ping www.google.com -w 6
+22:30:20.920 INFO       RebexTestMachine    |Command 'moler.cmd.unix.ls.Ls':'ls -l' started.
+22:30:20.922 INFO       RebexTestMachine    |ls -l
+22:30:20.985 INFO       RebexTestMachine    |Command 'moler.cmd.unix.ls.Ls' finished.
+22:30:26.968 INFO       MyMachine           |Command 'moler.cmd.unix.ping.Ping' finished.
+22:30:26.992 INFO       RebexTestMachine    |Event 'moler.events.unix.wait4prompt.Wait4prompt': '[re.compile('^moler_bash#')]' finished.
+22:30:27.011 INFO       RebexTestMachine    |Event 'moler.events.unix.wait4prompt.Wait4prompt': '[re.compile('demo@')]' finished.
+22:30:27.032 INFO       MyMachine           |Event 'moler.events.unix.wait4prompt.Wait4prompt': '[re.compile('^moler_bash#')]' finished.
+
+```
+
+As you may noticed main log shows code progress from high-level view - data
+on connections are not visible, just activity of commands running on devices.
+
+If you want to see in details what has happened on each device - you have it in device logs.
+Moler creates log per each device
+`moler.RebexTestMachine.log`:
+
+```log
+22:30:19.901  |Changed state from 'NOT_CONNECTED' into 'UNIX_LOCAL'
+22:30:19.902 <|
+22:30:19.919  |Event 'moler.events.unix.wait4prompt.Wait4prompt':'[re.compile('demo@')]' started.
+22:30:19.920  |Event 'moler.events.unix.wait4prompt.Wait4prompt':'[re.compile('^moler_bash#')]' started.
+22:30:19.921  |Command 'moler.cmd.unix.ssh.Ssh':'TERM=xterm-mono ssh -l demo test.rebex.net' started.
+22:30:19.921 >|TERM=xterm-mono ssh -l demo test.rebex.net
+
+22:30:19.924 <|TERM=xterm-mono ssh -l demo test.rebex.net
+
+22:30:20.762 <|Password:
+22:30:20.763 >|*********
+22:30:20.763 <|
+
+22:30:20.908 <|Welcome to Rebex Virtual Shell!
+              |For a list of supported commands, type 'help'.
+              |demo@ETNA:/$
+22:30:20.909  |Changed state from 'UNIX_LOCAL' into 'UNIX_REMOTE'
+22:30:20.917  |Command 'moler.cmd.unix.ssh.Ssh' finished.
+22:30:20.920  |Command 'moler.cmd.unix.ls.Ls':'ls -l' started.
+22:30:20.922 >|ls -l
+
+22:30:20.974 <|ls -l
+
+22:30:20.978 <|drwx------ 2 demo users          0 Jul 26  2017 .
+
+22:30:20.979 <|drwx------ 2 demo users          0 Jul 26  2017 ..
+              |drwx------ 2 demo users          0 Dec 03  2015 aspnet_client
+              |drwx------ 2 demo users          0 Oct 27  2015 pub
+              |-rw------- 1 demo users        403 Apr 08  2014 readme.txt
+              |demo@ETNA:/$
+22:30:20.985  |Command 'moler.cmd.unix.ls.Ls' finished.
+22:30:26.992  |Event 'moler.events.unix.wait4prompt.Wait4prompt': '[re.compile('^moler_bash#')]' finished.
+22:30:27.011  |Event 'moler.events.unix.wait4prompt.Wait4prompt': '[re.compile('demo@')]' finished.
+```
+
+and `moler.MyMachine.log`:
+
+```log
+22:30:19.748  |Changed state from 'NOT_CONNECTED' into 'UNIX_LOCAL'
+22:30:19.748 <|
+22:30:19.866  |Event 'moler.events.unix.wait4prompt.Wait4prompt':'[re.compile('^moler_bash#')]' started.
+22:30:20.919  |Command 'moler.cmd.unix.ping.Ping':'ping www.google.com -w 6' started.
+22:30:20.920 >|ping www.google.com -w 6
+
+22:30:20.921 <|ping www.google.com -w 6
+
+22:30:20.959 <|PING www.google.com (216.58.215.68) 56(84) bytes of data.
+22:30:20.960 <|
+
+22:30:21.000 <|64 bytes from waw02s16-in-f4.1e100.net (216.58.215.68): icmp_seq=1 ttl=51 time=40.1 ms
+22:30:21.001 <|
+
+22:30:21.992 <|64 bytes from waw02s16-in-f4.1e100.net (216.58.215.68): icmp_seq=2 ttl=51 time=31.0 ms
+
+22:30:22.999 <|64 bytes from waw02s16-in-f4.1e100.net (216.58.215.68): icmp_seq=3 ttl=51 time=36.5 ms
+
+22:30:23.996 <|64 bytes from waw02s16-in-f4.1e100.net (216.58.215.68): icmp_seq=4 ttl=51 time=31.4 ms
+
+22:30:24.996 <|64 bytes from waw02s16-in-f4.1e100.net (216.58.215.68): icmp_seq=5 ttl=51 time=29.8 ms
+
+22:30:26.010 <|64 bytes from waw02s16-in-f4.1e100.net (216.58.215.68): icmp_seq=6 ttl=51 time=42.4 ms
+
+22:30:26.960 <|
+              |--- www.google.com ping statistics ---
+              |6 packets transmitted, 6 received, 0% packet loss, time 5007ms
+              |rtt min/avg/max/mdev = 29.888/35.251/42.405/4.786 ms
+              |moler_bash#
+22:30:26.968  |Command 'moler.cmd.unix.ping.Ping' finished.
+22:30:27.032  |Event 'moler.events.unix.wait4prompt.Wait4prompt': '[re.compile('^moler_bash#')]' finished.
+```
+
 Prevoius examples ask device to create command. We can also create command ourselves
 giving it connection to operate on:
 
@@ -110,7 +289,7 @@ giving it connection to operate on:
     from moler.connection import get_connection
 
     host = 'www.google.com'
-    terminal = get_connection(io_type='terminal', variant='threaded')
+    terminal = get_connection(io_type='terminal', variant='threaded')  # take connection
     with terminal:
         ping_cmd = Ping(connection=terminal.moler_connection,
                         destination=host, options="-w 6")
@@ -126,8 +305,6 @@ giving it connection to operate on:
                                                   ping_stats['time_unit']))
 ```
 
-Besides being callable command-object works as "Future" (result promise).
-You can start it in background and later await till it is done to grab result.
 Please note also that connection is context manager doing open/close actions.
 
 
@@ -138,48 +315,24 @@ Please note also that connection is context manager doing open/close actions.
     ping www.google.com: packet_loss=0, time_avg=50.000 [ms]
 ```
 
-# Table of Contents
-1. [Moler](#moler)
-   * [Moler key features](#moler-key-features)
-   * [Library content](#library-content)
-2. [API design reasoning](#api-design-reasoning)
-   * [Command as future](#command-as-future)
-   * [Command vs. Connection-observer](#command-vs-connection-observer)
-   * [Most well known Python's futures are](#most-well-known-pythons-futures)
-   * [Fundamental difference of command](#fundamental-difference-of-command)
-3. [Designed API](#designed-api)
+## Reuse freedom
+Library gives you freedom which part you want to reuse. We are fan's of "take what you need only".
+* You may use configuration files or configure things by Python calls.
 
-# Moler name origin
-Name is coined by Grzegorz Latuszek with high impact of Bartosz Odziomek, Michał Ernst and Mateusz Smet.
+   ```python
+   load_config(config={'DEVICES': {'MyMachine': {'DEVICE_CLASS': 'moler.device.unixremote.UnixLocal'}}},
+               config_type='dict')
+   ```
+* You may use devices or create commands manually
+* You can take connection or build it yourself:
 
-Moler comes from:
-![moler_origin](https://github.com/nokia/moler/blob/master/images/moler_origin.png)
-* **Mole** :gb:
-   * has tunnel-connections to search for data (:bug:) it is processing
-   * can detect different bugs hidden under ground
-   * **as we want this library to search/detect bugs in tested software**
-* **Moler** in spanish :es: means:
-   * grind, reduce to powder
-   * **as this library should grind tested software to find it's bugs**
+   ```python
+   from moler.connection import ObservableConnection
+   from moler.io.raw.terminal import ThreadedTerminal
 
-## Moler key features
-* Event observers & callbacks (alarms are events example)
-  * to allow for online reaction (not offline postprocessing)
-* Commands as self-reliant object
-  * to allow for command triggering and parsing encapsulated in single object (lower maintenance cost)
-* Run observers/commands in the background
-  * to allow for test logic decomposition into multiple commands running in parallel
-  * to allow for handling unexpected system behavior (reboots, alarms)
-* State machines -> automatic auto-connecting after dropped connection
-  * to increase framework auto-recovery and help in troubleshooting "what went wrong"
-* Automatic logging of all connections towards devices used by tests
-  * to decrease investigation time by having logs focused on different parts of system under test
-
-## Library content
-Library provides "bricks" for building automated tests:
-* have clearly defined responsibilities
-* have similar API
-* follow same construction pattern (so new ones are easy to create)
+   terminal_connection = ThreadedTerminal(moler_connection=ObservableConnection())
+   ```
+* You can even install your own implementation in place of default implementation per connection type
 
 # API design reasoning
 The main goal of command is its usage simplicity: just run it and give me back its result.

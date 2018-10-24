@@ -28,9 +28,9 @@ class Telnet(GenericUnixCommand):
 
     def __init__(self, connection, host, login=None, password=None, port=0, prompt=None, expected_prompt=r'^>\s*',
                  set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono="TERM=xterm-mono", prefix=None,
-                 new_line_chars=None, cmds_before_establish_connection=[], cmds_after_establish_connection=[],
-                 telnet_prompt=r"^\s*telnet>\s*", encrypt_password=True, runner=None):
-        super(Telnet, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars, runner=runner)
+                 newline_chars=None, cmds_before_establish_connection=[], cmds_after_establish_connection=[],
+                 telnet_prompt=r"^\s*telnet>\s*", encrypt_password=True, runner=None, target_newline="\n"):
+        super(Telnet, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
         # Parameters defined by calling the command
         self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(expected_prompt)  # Expected prompt on device
@@ -46,6 +46,7 @@ class Telnet(GenericUnixCommand):
         self.encrypt_password = encrypt_password
         self.cmds_before_establish_connection = copy.deepcopy(cmds_before_establish_connection)
         self.cmds_after_establish_connection = copy.deepcopy(cmds_after_establish_connection)
+        self.target_newline = target_newline
 
         # Internal variables
         self._sent_timeout = False
@@ -99,7 +100,7 @@ class Telnet(GenericUnixCommand):
 
     def _just_connected(self, line):
         if self._regex_helper.search_compiled(Telnet._re_has_just_connected, line):
-            self.connection.sendline("")
+            self.connection.send(self.target_newline)
             raise ParsingDone()
 
     def _send_telnet_commands(self, line, is_full_line, commands):
@@ -118,7 +119,7 @@ class Telnet(GenericUnixCommand):
     def _send_commands_after_establish_connection_if_requested(self, line, is_full_line):
         if self._telnet_command_mode:
             if self._send_telnet_commands(line, is_full_line, self.cmds_after_establish_connection):
-                self.connection.sendline("")
+                self.connection.send(self.target_newline)
                 self._telnet_command_mode = False
                 raise ParsingDone()
 
@@ -129,14 +130,14 @@ class Telnet(GenericUnixCommand):
 
     def _send_login_if_requested(self, line):
         if (not self._sent_login) and self._is_login_requested(line) and self.login:
-            self.connection.sendline(self.login)
+            self.connection.send("{}{}".format(self.login, self.target_newline))
             self._sent_login = True
             self._sent_password = False
             raise ParsingDone()
 
     def _send_password_if_requested(self, line):
         if (not self._sent_password) and self._is_password_requested(line) and self.password:
-            self.connection.sendline(self.password, encrypt=self.encrypt_password)
+            self.connection.send("{}{}".format(self.password, self.target_newline), encrypt=self.encrypt_password)
             self._sent_login = False
             self._sent_password = True
             raise ParsingDone()

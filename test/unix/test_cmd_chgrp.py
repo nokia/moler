@@ -17,9 +17,9 @@ def test_chgrp_returns_proper_command_string(buffer_connection):
     assert "chgrp test new" == chgrp_cmd.command_string
 
 
-def test_chgrp_raise_error(buffer_connection):
+def test_chgrp_raise_error(buffer_connection, command_output_and_expected_result):
     chgrp_cmd = Chgrp(connection=buffer_connection.moler_connection, options='-abc', files=["new"], group="test")
-    command_output, expected_result = command_output_and_expected_result()
+    command_output, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
     assert "chgrp -abc test new" == chgrp_cmd.command_string
     with pytest.raises(CommandFailure):
