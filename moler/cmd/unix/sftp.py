@@ -15,9 +15,9 @@ import re
 
 class Sftp(GenericUnixCommand):
     def __init__(self, connection, host, password, user=None, confirm_connection=True, source_path=None,
-                 destination_path=None, options=None, command=None, no_result=False, prompt=None, new_line_chars=None,
+                 destination_path=None, options=None, command=None, no_result=False, prompt=None, newline_chars=None,
                  timeout=60, runner=None):
-        super(Sftp, self).__init__(connection=connection, prompt=prompt, newline_chars=new_line_chars, runner=runner)
+        super(Sftp, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
         # Attributes defined by calling the command
         self.host = host
