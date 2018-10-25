@@ -18,8 +18,8 @@ def test_wget_returns_proper_command_string(buffer_connection):
     assert "wget http://ftp.gnu.org/gnu/wget/wget-1.5.3.tar.gz" == wget_cmd.command_string
 
 
-def test_wget_raises_connection_failure(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_connection_failure()
+def test_wget_raises_connection_failure(buffer_connection, command_output_and_expected_result_connection_failure):
+    command_output, expected_result = command_output_and_expected_result_connection_failure
     buffer_connection.remote_inject_response([command_output])
     wget_cmd = Wget(connection=buffer_connection.moler_connection, options="https://moler.google.com")
     with pytest.raises(CommandFailure):
@@ -38,8 +38,8 @@ moler@debian:~$"""
     return data, result
 
 
-def test_wget_raises_command_error(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_command_error()
+def test_wget_raises_command_error(buffer_connection, command_output_and_expected_result_command_error):
+    command_output, expected_result = command_output_and_expected_result_command_error
     buffer_connection.remote_inject_response([command_output])
     wget_cmd = Wget(connection=buffer_connection.moler_connection, options="-m", timeout=30)
     with pytest.raises(CommandFailure):
