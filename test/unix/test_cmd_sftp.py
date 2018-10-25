@@ -39,8 +39,8 @@ def test_sftp_returns_proper_command_string_new_pathname(buffer_connection):
     assert "sftp fred@myhost.com:/home/fred/homework.txt /home/vivi/new_homework.txt" == sftp_cmd.command_string
 
 
-def test_sftp_returns_proper_result(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result()
+def test_sftp_returns_proper_result(buffer_connection, command_output_and_expected_result):
+    command_output, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
                     options='-4', source_path='bear', destination_path='/home/xyz/Docs/bear')
@@ -67,8 +67,9 @@ xyz@debian:/home$"""
     return data, result
 
 
-def test_sftp_raises_authentication_failure(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_authentication_failure()
+def test_sftp_raises_authentication_failure(buffer_connection,
+                                            command_output_and_expected_result_authentication_failure):
+    command_output, expected_result = command_output_and_expected_result_authentication_failure
     buffer_connection.remote_inject_response([command_output])
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
                     source_path='cat', destination_path='/home/xyz/Docs/cat')
@@ -90,8 +91,8 @@ xyz@debian:/home$"""
     return data, result
 
 
-def test_sftp_raises_file_error_file_not_found(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_file_not_found()
+def test_sftp_raises_file_error_file_not_found(buffer_connection, command_output_and_expected_result_file_not_found):
+    command_output, expected_result = command_output_and_expected_result_file_not_found
     buffer_connection.remote_inject_response([command_output])
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
                     source_path='dog', destination_path='/home/xyz/Docs/dog')
@@ -110,8 +111,8 @@ xyz@debian:/home$"""
     return data, result
 
 
-def test_sftp_raises_file_error_no_such_file(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_no_such_file()
+def test_sftp_raises_file_error_no_such_file(buffer_connection, command_output_and_expected_result_no_such_file):
+    command_output, expected_result = command_output_and_expected_result_no_such_file
     buffer_connection.remote_inject_response([command_output])
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
                     source_path='dog', destination_path='/home/xyz/Work/dog')
@@ -130,8 +131,8 @@ xyz@debian:/home$"""
     return data, result
 
 
-def test_sftp_raises_connection_error(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_connection_error()
+def test_sftp_raises_connection_error(buffer_connection, command_output_and_expected_result_connection_error):
+    command_output, expected_result = command_output_and_expected_result_connection_error
     buffer_connection.remote_inject_response([command_output])
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
                     options='-6', command='get animals/pets/dog /root/dog')
@@ -149,8 +150,8 @@ xyz@debian:/home$"""
     return data, result
 
 
-def test_sftp_raises_permission_denied_error(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_permission_denied()
+def test_sftp_raises_permission_denied_error(buffer_connection, command_output_and_expected_result_permission_denied):
+    command_output, expected_result = command_output_and_expected_result_permission_denied
     buffer_connection.remote_inject_response([command_output])
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
                     command='get animals/pets/dog /root/dog')
@@ -172,8 +173,8 @@ xyz@debian:/home$"""
     return data, result
 
 
-def test_sftp_raises_invalid_command_error(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_invalid_command()
+def test_sftp_raises_invalid_command_error(buffer_connection, command_output_and_expected_result_invalid_command):
+    command_output, expected_result = command_output_and_expected_result_invalid_command
     buffer_connection.remote_inject_response([command_output])
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
                     options='-i')
@@ -196,8 +197,8 @@ xyz@debian:/home$"""
     return data, result
 
 
-def test_sftp_raises_invalid_option_error(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_invalid_option()
+def test_sftp_raises_invalid_option_error(buffer_connection, command_output_and_expected_result_invalid_option):
+    command_output, expected_result = command_output_and_expected_result_invalid_option
     buffer_connection.remote_inject_response([command_output])
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
                     options='-d')
@@ -221,8 +222,8 @@ xyz@debian:/home$"""
     return data, result
 
 
-def test_sftp_raises_ssh_error(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result_ssh_error()
+def test_sftp_raises_ssh_error(buffer_connection, command_output_and_expected_result_ssh_error):
+    command_output, expected_result = command_output_and_expected_result_ssh_error
     buffer_connection.remote_inject_response([command_output])
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.103', user='fred', password='1234')
     with pytest.raises(CommandFailure):
@@ -238,12 +239,12 @@ Couldn't read packet: Connection reset by peer"""
     return data, result
 
 
-def test_sftp_raise_not_confirmed_connection(buffer_connection):
+def test_sftp_raise_not_confirmed_connection(buffer_connection, command_output_and_expected_result_not_confirmed):
 
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
                     confirm_connection=False, command="mkdir", no_result=True)
     assert "sftp fred@192.168.0.102" == sftp_cmd.command_string
-    command_output, expected_result = command_output_and_expected_result_not_confirmed()
+    command_output, expected_result = command_output_and_expected_result_not_confirmed
     sftp_cmd.start()
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
@@ -267,12 +268,12 @@ xyz@debian:/home$"""
     return outputs, result
 
 
-def test_sftp_returns_result_pwd_in_prompt(buffer_connection):
+def test_sftp_returns_result_pwd_in_prompt(buffer_connection, command_output_and_expected_result_pwd_in_prompt):
 
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
                     command='pwd')
     assert "sftp fred@192.168.0.102" == sftp_cmd.command_string
-    command_output, expected_result = command_output_and_expected_result_pwd_in_prompt()
+    command_output, expected_result = command_output_and_expected_result_pwd_in_prompt
     sftp_cmd.start()
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
@@ -309,12 +310,12 @@ xyz@debian:/home$"""
     return outputs, result
 
 
-def test_sftp_no_result(buffer_connection):
+def test_sftp_no_result(buffer_connection, command_output_and_expected_result_no_result):
 
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
                     command="mkdir pet", no_result=True)
     assert "sftp fred@192.168.0.102" == sftp_cmd.command_string
-    command_output, expected_result = command_output_and_expected_result_no_result()
+    command_output, expected_result = command_output_and_expected_result_no_result
     sftp_cmd.start()
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
@@ -350,12 +351,13 @@ sftp>"""
     return outputs, result
 
 
-def test_sftp_returns_result_of_fetching_file_with_progress_bar(buffer_connection):
+def test_sftp_returns_result_of_fetching_file_with_progress_bar(buffer_connection,
+                                                                command_output_and_expected_result_progress_bar):
 
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
                     source_path="debian-9.5.0-i386-netinst.iso")
     assert "sftp fred@192.168.0.102:debian-9.5.0-i386-netinst.iso" == sftp_cmd.command_string
-    command_output, expected_result = command_output_and_expected_result_progress_bar()
+    command_output, expected_result = command_output_and_expected_result_progress_bar
     sftp_cmd.start()
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
