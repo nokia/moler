@@ -29,7 +29,7 @@ class Sudo(GenericUnixCommand):
             params["connection"] = connection
             params['prompt'] = prompt
             params["newline_chars"] = newline_chars
-            #params["runner"] = runner
+            # params["runner"] = runner
         if not self.cmd_object:
             self.set_exception(CommandFailure("Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor. Please specific parameter."))
 
