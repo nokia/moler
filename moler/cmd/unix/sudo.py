@@ -56,8 +56,6 @@ class Sudo(GenericUnixCommand):
             line = "{}{}".format(line, self.newline_seq)
         self.cmd_object.data_received(line)
         self.current_ret = self.cmd_object.current_ret
-        if self.cmd_object.done():
-            self.set_result(self.current_ret)
 
     _re_sudo_command_not_found = re.compile(r"sudo:.*command not found")
 
