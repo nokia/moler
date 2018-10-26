@@ -41,9 +41,22 @@ class Sudo(GenericUnixCommand):
         try:
             self._parse_sudo_password(line)
             self._parse_command_not_found(line)
+            self._process_embedded_command(line, is_full_line)
         except ParsingDone:
             pass
         super(Sudo, self).on_new_line(line, is_full_line)
+
+    def _process_embedded_command(self, line, is_full_line):
+        if not self._sent_command_string:
+            self._sent_command_string = True
+            cs = "{}\n".format(self.cmd_object.command_string)
+            self.cmd_object.data_received(cs)
+        if is_full_line:
+            line = "{}{}".format(line, "\n")
+        self.cmd_object.data_received(line)
+        self.current_ret = self.cmd_object.current_ret
+        if self.cmd_object.done():
+            self.set_result(self.current_ret)
 
     _re_sudo_command_not_found = re.compile(r"sudo:.*command not found")
 
