@@ -40,9 +40,17 @@ class Sudo(GenericUnixCommand):
     def on_new_line(self, line, is_full_line):
         try:
             self._parse_sudo_password(line)
+            self._parse_command_not_found(line)
         except ParsingDone:
             pass
         super(Sudo, self).on_new_line(line, is_full_line)
+
+    _re_sudo_command_not_found = re.compile(r"sudo:.*command not found")
+
+    def _parse_command_not_found(self, line):
+        if re.search(Sudo._re_sudo_command_not_found, line):
+            self.set_exception(CommandFailure(self, "Command not found in line '{}'".format(line)))
+            raise ParsingDone
 
     _re_sudo_password = re.compile(r"\[sudo\] password for.*:", re.I)
 
