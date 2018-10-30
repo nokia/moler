@@ -65,6 +65,7 @@ jobs:
     python: 3.6
     install:
     - pip install -U pip
+    - pip install -U twisted curio
     before_script:
     - pip install -Ur requirements.txt
     - python3 -V
