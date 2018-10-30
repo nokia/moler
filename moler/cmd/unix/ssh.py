@@ -91,24 +91,36 @@ class Ssh(GenericUnixCommand):
             self._get_hosts_file_if_displayed(line)
             self._push_yes_if_needed(line)
             self._send_password_if_requested(line)
+            self._id_dsa(line)
+            self._host_key_verification(line)
+            self._commands_after_established(line, is_full_line)
         except ParsingDone:
             pass
+        if is_full_line:
+            self._sent_password = False  # Clear flag for multi passwords connections
 
-        if Ssh._re_id_dsa.search(line):
-            self.connection.sendlineline("")
-        elif self._regex_helper.search_compiled(Ssh._re_host_key_verification_failed, line):
+    def _commands_after_established(self, line, is_full_line):
+        sent = self._send_after_login_settings(line)
+        if sent:
+            raise ParsingDone()
+        if (not sent) and self._is_target_prompt(line) and (not is_full_line):
+            if self._all_after_login_settings_sent() or self._no_after_login_settings_needed():
+                if not self.done():
+                    self.set_result({})
+                raise ParsingDone()
+
+    def _host_key_verification(self, line):
+        if self._regex_helper.search_compiled(Ssh._re_host_key_verification_failed, line):
             if self._hosts_file:
                 self._handle_failed_host_key_verification()
             else:
                 self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
-        else:
-            sent = self._send_after_login_settings(line)
-            if (not sent) and self._is_target_prompt(line) and (not is_full_line):
-                if self._all_after_login_settings_sent() or self._no_after_login_settings_needed():
-                    if not self.done():
-                        self.set_result({})
-        if is_full_line:
-            self._sent_password = False  # Clear flag for multi passwords connections
+            raise ParsingDone()
+
+    def _id_dsa(self, line):
+        if Ssh._re_id_dsa.search(line):
+            self.connection.sendlineline("")
+            raise ParsingDone()
 
     def _check_if_failure(self, line):
         if self.is_failure_indication(line):
