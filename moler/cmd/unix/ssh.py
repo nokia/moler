@@ -18,7 +18,7 @@ from moler.exceptions import ParsingDone
 
 class Ssh(GenericUnixCommand):
     # Compiled regexp
-    _re_host_key = re.compile(r"Add correct host key in (\\S+) to get rid of this message.*\\n$", re.IGNORECASE)
+    _re_host_key = re.compile(r"Add correct host key in (\S+) to get rid of this message", re.IGNORECASE)
     _re_yes_no = re.compile(r"\(yes/no\)\?|'yes' or 'no':", re.IGNORECASE)
     _re_id_dsa = re.compile(r"id_dsa:", re.IGNORECASE)
     _re_password = re.compile(r"password:", re.IGNORECASE)
@@ -233,6 +233,40 @@ COMMAND_KWARGS = {
 }
 
 COMMAND_RESULT = {}
+
+COMMAND_OUTPUT_rm_keygen = """
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+It is also possible that a host key has just been changed.
+The fingerprint for the RSA key sent by the remote host is
+[...].
+Please contact your system administrator.
+Add correct host key in /home/you/.ssh/known_hosts to get rid of this message.
+Offending RSA key in /home/you/.ssh/known_hosts:86
+RSA host key for host.domain.net has changed and you have requested strict checking.
+Host key verification failed.
+client:~/>rm /home/you/.ssh/known_hosts
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+To edit this message please edit /etc/ssh_banner
+You may put information to /etc/ssh_banner who is owner of this PC
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+host:~ #
+host:~ # export TMOUT="2678400"
+host:~ #"""
+
+COMMAND_KWARGS_rm_keygen = {
+    "login": "user", "password": "english", "known_hosts_on_failure": "rm",
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
+}
+
+COMMAND_RESULT_rm_keygen = {}
+
 
 COMMAND_OUTPUT_2_passwords = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
