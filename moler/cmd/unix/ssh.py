@@ -157,9 +157,9 @@ class Ssh(GenericUnixCommand):
 
     def _handle_failed_host_key_verification(self):
         if "rm" == self.known_hosts_on_failure:
-            self.connection.sendline("\nrm -f " + self._hosts_file)
+            self.connection.sendline("\nrm -f {}".format(self._hosts_file))
         elif "keygen" == self.known_hosts_on_failure:
-            self.connection.sendline("\nssh-keygen -R " + self.host)
+            self.connection.sendline("\nssh-keygen -R {}".format(self.host))
         else:
             self.set_exception(
                 CommandFailure(self,
