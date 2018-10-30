@@ -88,37 +88,37 @@ class Ssh(GenericUnixCommand):
         if self.is_failure_indication(line):
             self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
             return
-        self.get_hosts_file_if_displayed(line)
-        self.push_yes_if_needed(line)
-        self.send_password_if_requested(line)
+        self._get_hosts_file_if_displayed(line)
+        self._push_yes_if_needed(line)
+        self._send_password_if_requested(line)
 
         if Ssh._re_id_dsa.search(line):
             self.connection.sendlineline("")
         elif self._regex_helper.search_compiled(Ssh._re_host_key_verification_failed, line):
             if self._hosts_file:
-                self.handle_failed_host_key_verification()
+                self._handle_failed_host_key_verification()
             else:
                 self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
         else:
-            sent = self.send_after_login_settings(line)
-            if (not sent) and self.is_target_prompt(line) and (not is_full_line):
-                if self.all_after_login_settings_sent() or self.no_after_login_settings_needed():
+            sent = self._send_after_login_settings(line)
+            if (not sent) and self._is_target_prompt(line) and (not is_full_line):
+                if self._all_after_login_settings_sent() or self._no_after_login_settings_needed():
                     if not self.done():
                         self.set_result({})
         if is_full_line:
             self._sent_password = False  # Clear flag for multi passwords connections
 
-    def get_hosts_file_if_displayed(self, line):
+    def _get_hosts_file_if_displayed(self, line):
         if (self.known_hosts_on_failure is not None) and self._regex_helper.search_compiled(Ssh._re_host_key, line):
             self._hosts_file = self._regex_helper.group(1)
 
-    def push_yes_if_needed(self, line):
+    def _push_yes_if_needed(self, line):
         if (not self._sent_continue_connecting) and self._regex_helper.search_compiled(Ssh._re_yes_no, line):
             self.connection.sendline('yes')
             self._sent_continue_connecting = True
 
-    def send_password_if_requested(self, line):
-        if (not self._sent_password) and self.is_password_requested(line):
+    def _send_password_if_requested(self, line):
+        if (not self._sent_password) and self._is_password_requested(line):
             password = ""
             try:
                 password = self._passwords.pop(0)
@@ -129,7 +129,7 @@ class Ssh(GenericUnixCommand):
         elif self._sent_password and self._regex_helper.search_compiled(Ssh._re_permission_denied, line):
             self._sent_password = False
 
-    def handle_failed_host_key_verification(self):
+    def _handle_failed_host_key_verification(self):
         if "rm" == self.known_hosts_on_failure:
             self.connection.sendline("\nrm -f " + self._hosts_file)
         elif "keygen" == self.known_hosts_on_failure:
@@ -147,38 +147,38 @@ class Ssh(GenericUnixCommand):
         self._sent_password = False
         self.connection.sendline(self.command_string)
 
-    def send_after_login_settings(self, line):
-        if self.is_target_prompt(line):
-            if self.timeout_set_needed():
-                self.send_timeout_set()
+    def _send_after_login_settings(self, line):
+        if self._is_target_prompt(line):
+            if self._timeout_set_needed():
+                self._send_timeout_set()
                 return True  # just sent
-            elif self.prompt_set_needed():
-                self.send_prompt_set()
+            elif self._prompt_set_needed():
+                self._send_prompt_set()
                 return True  # just sent
         return False  # nothing sent
 
-    def all_after_login_settings_sent(self):
+    def _all_after_login_settings_sent(self):
         both_requested = self.set_prompt and self.set_timeout
         both_sent = self._sent_prompt and self._sent_timeout
         single_req_and_sent1 = self.set_prompt and self._sent_prompt
         single_req_and_sent2 = self.set_timeout and self._sent_timeout
         return (both_requested and both_sent) or single_req_and_sent1 or single_req_and_sent2
 
-    def no_after_login_settings_needed(self):
+    def _no_after_login_settings_needed(self):
         return (not self.set_prompt) and (not self.set_timeout)
 
-    def timeout_set_needed(self):
+    def _timeout_set_needed(self):
         return self.set_timeout and not self._sent_timeout
 
-    def send_timeout_set(self):
+    def _send_timeout_set(self):
         cmd = "{}{}{}".format(self.target_newline, self.set_timeout, self.target_newline)
         self.connection.send(cmd)
         self._sent_timeout = True
 
-    def prompt_set_needed(self):
+    def _prompt_set_needed(self):
         return self.set_prompt and not self._sent_prompt
 
-    def send_prompt_set(self):
+    def _send_prompt_set(self):
         cmd = "{}{}{}".format(self.target_newline, self.set_prompt, self.target_newline)
         self.connection.send(cmd)
         self._sent_prompt = True
@@ -186,10 +186,10 @@ class Ssh(GenericUnixCommand):
     def is_failure_indication(self, line):
         return self._regex_helper.search_compiled(Ssh._re_failed_strings, line)
 
-    def is_password_requested(self, line):
+    def _is_password_requested(self, line):
         return self._regex_helper.search_compiled(Ssh._re_password, line)
 
-    def is_target_prompt(self, line):
+    def _is_target_prompt(self, line):
         return self._regex_helper.search_compiled(self._re_expected_prompt, line)
 
 
