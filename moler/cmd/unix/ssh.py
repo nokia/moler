@@ -99,6 +99,9 @@ class Ssh(GenericUnixCommand):
         if is_full_line:
             self._sent_password = False  # Clear flag for multi passwords connections
 
+    def is_failure_indication(self, line):
+        return self._regex_helper.search_compiled(Ssh._re_failed_strings, line)
+
     def _commands_after_established(self, line, is_full_line):
         sent = self._send_after_login_settings(line)
         if sent:
@@ -205,9 +208,6 @@ class Ssh(GenericUnixCommand):
         cmd = "{}{}{}".format(self.target_newline, self.set_prompt, self.target_newline)
         self.connection.send(cmd)
         self._sent_prompt = True
-
-    def is_failure_indication(self, line):
-        return self._regex_helper.search_compiled(Ssh._re_failed_strings, line)
 
     def _is_password_requested(self, line):
         return self._regex_helper.search_compiled(Ssh._re_password, line)
