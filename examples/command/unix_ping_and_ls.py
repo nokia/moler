@@ -1,7 +1,8 @@
+import os
 from moler.config import load_config
 from moler.device.device import DeviceFactory
 
-load_config(config='my_devices.yml')
+load_config(config=os.path.join(os.path.dirname(__file__), 'my_devices.yml'))
 
 my_unix = DeviceFactory.get_device(name='MyMachine')
 host = 'www.google.com'
