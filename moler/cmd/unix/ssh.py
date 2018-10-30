@@ -210,3 +210,30 @@ COMMAND_KWARGS = {
 }
 
 COMMAND_RESULT = {}
+
+COMMAND_OUTPUT_2_passwords = """
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+You are about to access a private system. This system is for the use of
+authorized users only. All connections are logged to the extent and by means
+acceptable by the local legislation. Any unauthorized access or access attempts
+may be punished to the fullest extent possible under the applicable local
+legislation.
+Password: 
+This account is used as a fallback account. The only thing it provides is
+the ability to switch to the root account.
+
+Please enter the root password
+Password: 
+
+USAGE OF THE ROOT ACCOUNT AND THE FULL BASH IS RECOMMENDED ONLY FOR LIMITED USE. PLEASE USE A NON-ROOT ACCOUNT AND THE SCLI SHELL (fsclish) AND/OR LIMITED BASH SHELL.
+
+host:~ #
+host:~ # export TMOUT="2678400"
+host:~ #"""
+
+COMMAND_KWARGS_2_passwords = {
+    "login": "user", "password": ["english", "englishroot"],
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
+}
+
+COMMAND_RESULT_2_passwords = {}
