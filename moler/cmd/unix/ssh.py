@@ -77,11 +77,11 @@ class Ssh(GenericUnixCommand):
     def build_command_string(self):
         cmd = ""
         if self.term_mono:
-            cmd = self.term_mono + " "
+            cmd = "{} ".format(self.term_mono)
         cmd += "ssh"
         if self.port:
-            cmd += " -p " + str(self.port)
-        cmd += " -l " + self.login + " " + self.host
+            cmd = "{} -p {}".format(cmd, self.port)
+        cmd = "{} -l {} {}".format(cmd, self.login, self.host)
         return cmd
 
     def on_new_line(self, line, is_full_line):
