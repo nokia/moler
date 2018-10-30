@@ -88,12 +88,11 @@ class Ssh(GenericUnixCommand):
     def on_new_line(self, line, is_full_line):
         try:
             self._check_if_failure(line)
+            self._get_hosts_file_if_displayed(line)
+            self._push_yes_if_needed(line)
+            self._send_password_if_requested(line)
         except ParsingDone:
             pass
-
-        self._get_hosts_file_if_displayed(line)
-        self._push_yes_if_needed(line)
-        self._send_password_if_requested(line)
 
         if Ssh._re_id_dsa.search(line):
             self.connection.sendlineline("")
@@ -119,11 +118,13 @@ class Ssh(GenericUnixCommand):
     def _get_hosts_file_if_displayed(self, line):
         if (self.known_hosts_on_failure is not None) and self._regex_helper.search_compiled(Ssh._re_host_key, line):
             self._hosts_file = self._regex_helper.group(1)
+            raise ParsingDone()
 
     def _push_yes_if_needed(self, line):
         if (not self._sent_continue_connecting) and self._regex_helper.search_compiled(Ssh._re_yes_no, line):
             self.connection.sendline('yes')
             self._sent_continue_connecting = True
+            raise ParsingDone()
 
     def _send_password_if_requested(self, line):
         if (not self._sent_password) and self._is_password_requested(line):
@@ -134,8 +135,10 @@ class Ssh(GenericUnixCommand):
                 self.set_exception(CommandFailure(self, "Password was requested but no more passwords provided."))
             self.connection.sendline(password, encrypt=self.encrypt_password)
             self._sent_password = True
+            raise ParsingDone()
         elif self._sent_password and self._regex_helper.search_compiled(Ssh._re_permission_denied, line):
             self._sent_password = False
+            raise ParsingDone()
 
     def _handle_failed_host_key_verification(self):
         if "rm" == self.known_hosts_on_failure:
