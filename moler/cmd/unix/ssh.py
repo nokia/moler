@@ -13,6 +13,7 @@ import six
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
+from moler.exceptions import ParsingDone
 
 
 class Ssh(GenericUnixCommand):
@@ -85,9 +86,11 @@ class Ssh(GenericUnixCommand):
         return cmd
 
     def on_new_line(self, line, is_full_line):
-        if self.is_failure_indication(line):
-            self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
-            return
+        try:
+            self._check_if_failure(line)
+        except ParsingDone:
+            pass
+
         self._get_hosts_file_if_displayed(line)
         self._push_yes_if_needed(line)
         self._send_password_if_requested(line)
@@ -107,6 +110,11 @@ class Ssh(GenericUnixCommand):
                         self.set_result({})
         if is_full_line:
             self._sent_password = False  # Clear flag for multi passwords connections
+
+    def _check_if_failure(self, line):
+        if self.is_failure_indication(line):
+            self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+            raise ParsingDone()
 
     def _get_hosts_file_if_displayed(self, line):
         if (self.known_hosts_on_failure is not None) and self._regex_helper.search_compiled(Ssh._re_host_key, line):
