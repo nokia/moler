@@ -8,7 +8,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
-
+import importlib
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
@@ -55,9 +55,22 @@ class Sudo(GenericUnixCommand):
         if is_full_line:
             line = "{}{}".format(line, self.newline_seq)
         self.cmd_object.data_received(line)
-        self.current_ret = self.cmd_object.current_ret
+        self.current_ret["cmd_ret"] = self.cmd_object.current_ret
+        if self.cmd_object.done():
+            self.cmd_object.
 
-    _re_sudo_command_not_found = re.compile(r"sudo:.*command not found")
+
+    _re_sudo_command_not_found = re.compile(r"sudo:.*command not found", re.I)
+
+    def _create_object_from_name(self, full_class_name, **kwargs):
+        name_splitted = full_class_name.split('.')
+        module_name = ".".join(name_splitted[:-1])
+        class_name = name_splitted[-1]
+
+        imported_module = importlib.import_module(module_name)
+        class_imported = getattr(imported_module, class_name)
+        obj = class_imported(connection=self.connection, **kwargs)
+        return obj
 
     def _parse_command_not_found(self, line):
         if re.search(Sudo._re_sudo_command_not_found, line):
