@@ -11,9 +11,9 @@ import pytest
 from moler.exceptions import CommandFailure
 
 
-def test_calling_kill_returns_result_no_permit(buffer_connection):
+def test_calling_kill_returns_result_no_permit(buffer_connection, command_output_and_expected_result_no_permit):
     from moler.cmd.unix.kill import Kill
-    command_output, expected_result = command_output_and_expected_result_no_permit()
+    command_output, expected_result = command_output_and_expected_result_no_permit
     buffer_connection.remote_inject_response([command_output])
     kill_cmd = Kill(connection=buffer_connection.moler_connection, options="-9", pid="46911")
     with pytest.raises(CommandFailure, match=r'Command failed \'kill -9 46911\' with ERROR: Operation not permitted'):

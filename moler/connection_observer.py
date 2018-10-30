@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Grzegorz Latuszek, Marcin Usielski'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
 import inspect
@@ -20,10 +20,13 @@ from moler.helpers import ClassProperty
 from moler.helpers import camel_case_to_lower_case_underscore
 from moler.helpers import instance_id
 from moler.runner import ThreadPoolExecutorRunner
+import threading
 
 
 @add_metaclass(ABCMeta)
 class ConnectionObserver(object):
+    _not_raised_exceptions = list()  # list of dict: "exception" and "time"
+    _exceptions_lock = threading.Lock()
 
     def __init__(self, connection=None, runner=None):
         """
@@ -39,7 +42,8 @@ class ConnectionObserver(object):
         self.runner = runner if runner else ThreadPoolExecutorRunner()
         self._future = None
         self.timeout = 7
-        self.logger = logging.getLogger('moler.connection_observer')
+        self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
+        self.logger = logging.getLogger('moler.connection.{}'.format(self.get_logger_name()))
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
@@ -71,6 +75,12 @@ class ConnectionObserver(object):
             return started_observer.await_done(*args, **kwargs)
         # TODO: raise ConnectionObserverFailedToStart
 
+    def get_logger_name(self):
+        if self.connection and hasattr(self.connection, "name"):
+            return self.connection.name
+        else:
+            return self.__class__.__name__
+
     def start(self, timeout=None, *args, **kwargs):
         """Start background execution of connection-observer."""
         if timeout:
@@ -78,6 +88,8 @@ class ConnectionObserver(object):
         self._validate_start(*args, **kwargs)
         self._is_running = True
         self._future = self.runner.submit(self)
+        if self._future is None:
+            self._is_running = False
         return self
 
     def _validate_start(self, *args, **kwargs):
@@ -147,9 +159,10 @@ class ConnectionObserver(object):
             return self.result()
         if self._future is None:
             raise ConnectionObserverNotStarted(self)
-        result = self.runner.wait_for(connection_observer=self, connection_observer_future=self._future,
-                                      timeout=timeout)
-        return result
+        self.runner.wait_for(connection_observer=self, connection_observer_future=self._future,
+                             timeout=timeout)
+
+        return self.result()
 
     def cancel(self):
         """Cancel execution of connection-observer."""
@@ -192,14 +205,31 @@ class ConnectionObserver(object):
     def set_exception(self, exception):
         """Should be used to indicate some failure during observation"""
         self._is_done = True
+        if self._exception:
+            self._log(logging.DEBUG, "'{}.{}' has overwritten exception. From '{}.{}' to '{}.{}'.".format(
+                self.__class__.__module__,
+                self.__class__.__name__,
+                self.exception.__class__.__module__,
+                self.exception.__class__.__name__,
+                exception.__class__.__module__,
+                exception.__class__.__name__
+            ))
+            ConnectionObserver._remove_from_not_raised_exceptions(self._exception)
         self._exception = exception
+        ConnectionObserver._append_to_not_raised_exceptions(exception)
+        self._log(logging.INFO, "'{}.{}' has set exception '{}.{}'.".format(self.__class__.__module__,
+                                                                            self.__class__.__name__,
+                                                                            exception.__class__.__module__,
+                                                                            exception.__class__.__name__))
 
     def result(self):
         """Retrieve final result of connection-observer"""
+        if self._exception:
+            if self._exception:
+                ConnectionObserver._remove_from_not_raised_exceptions(self._exception)
+            raise self._exception
         if self.cancelled():
             raise NoResultSinceCancelCalled(self)
-        if self._exception:
-            raise self._exception
         if not self.done():
             raise ResultNotAvailableYet(self)
         return self._result
@@ -213,9 +243,48 @@ class ConnectionObserver(object):
         self.timeout = self.timeout + timedelta
         msg = "Extended timeout from %.2f with delta %.2f to %.2f" % (prev_timeout, timedelta, self.timeout)
         self.runner.timeout_change(timedelta)
-        self.logger.info(msg)
+        self._log(logging.INFO, msg)
 
     @ClassProperty
     def observer_name(cls):
         name = camel_case_to_lower_case_underscore(cls.__name__)
         return name
+
+    @staticmethod
+    def get_unraised_exceptions(remove=True):
+        with ConnectionObserver._exceptions_lock:
+            if remove:
+                list_of_exceptions = ConnectionObserver._not_raised_exceptions
+                ConnectionObserver._not_raised_exceptions = list()
+                return list_of_exceptions
+            else:
+                list_of_exceptions = ConnectionObserver._not_raised_exceptions.copy()
+                return list_of_exceptions
+
+    @staticmethod
+    def _append_to_not_raised_exceptions(exception):
+        with ConnectionObserver._exceptions_lock:
+            ConnectionObserver._not_raised_exceptions.append(exception)
+
+    @staticmethod
+    def _remove_from_not_raised_exceptions(exception):
+        with ConnectionObserver._exceptions_lock:
+            if exception in ConnectionObserver._not_raised_exceptions:
+                ConnectionObserver._not_raised_exceptions.remove(exception)
+
+    def get_long_desc(self):
+        return "Observer '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)
+
+    def get_short_desc(self):
+        return "Observer '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)
+
+    def _log(self, lvl, msg, extra=None):
+        extra_params = {
+            'log_name': self.get_logger_name()
+        }
+
+        if extra:
+            extra_params.update(extra)
+
+        self.logger.log(lvl, msg, extra=extra_params)
+        self.device_logger.log(lvl, msg, extra=extra_params)

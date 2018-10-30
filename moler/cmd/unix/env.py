@@ -15,8 +15,8 @@ from moler.exceptions import ParsingDone
 
 class Env(GenericUnixCommand):
 
-    def __init__(self, connection, prompt=None, new_line_chars=None):
-        super(Env, self).__init__(connection, prompt, new_line_chars)
+    def __init__(self, connection, prompt=None, newline_chars=None, runner=None):
+        super(Env, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.ret_required = True
 
     def build_command_string(self):

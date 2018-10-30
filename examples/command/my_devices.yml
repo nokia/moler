@@ -1,0 +1,29 @@
+LOGGER:
+  PATH: ./logs
+  RAW_LOG: True
+  DEBUG_LEVEL: TRACE
+  DATE_FORMAT: "%d %H:%M:%S"
+
+DEVICES:
+  DEFAULT_CONNECTION:
+    CONNECTION_DESC:
+      io_type: terminal
+      variant: threaded
+
+  MyMachine:
+    DEVICE_CLASS: moler.device.unixremote.UnixLocal
+
+  RebexTestMachine:
+    DEVICE_CLASS: moler.device.unixremote.UnixRemote
+    CONNECTION_HOPS:
+      UNIX_LOCAL:                # from state
+        UNIX_REMOTE:             # to state
+          execute_command: ssh   # via command
+          command_params:        # with params
+            expected_prompt: demo@
+            host: test.rebex.net
+            login: demo
+            password: password
+            set_timeout: False   # remote doesn't support: export TMOUT
+
+

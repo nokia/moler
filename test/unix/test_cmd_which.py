@@ -22,8 +22,8 @@ def test_which_returns_proper_command_string_show_all(buffer_connection):
     assert "which -a man" == which_cmd.command_string
 
 
-def test_which_raise_exception_empty_name(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result()
+def test_which_raise_exception_empty_name(buffer_connection, command_output_and_expected_result):
+    command_output, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
     which_cmd = Which(connection=buffer_connection.moler_connection, names=["abc", ""])
     with pytest.raises(CommandFailure):
