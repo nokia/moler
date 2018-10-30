@@ -8,6 +8,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
+import six
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.cmd.unix.genericunix import GenericUnixCommand
@@ -32,7 +33,7 @@ class Ssh(GenericUnixCommand):
         """
         :param connection: moler connection to device, terminal when command is executed
         :param login: ssh login
-        :param password: ssh password
+        :param password: ssh password or list of passwords for multi passwords connection
         :param host: host to ssh
         :param prompt: start prompt (on system where command ssh starts)
         :param expected_prompt: final prompt (on system where command ssh connects)
@@ -51,7 +52,10 @@ class Ssh(GenericUnixCommand):
         # Parameters defined by calling the command
         self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(expected_prompt)  # Expected prompt on device
         self.login = login
-        self.password = password
+        if isinstance(password, six.string_types):
+            self._passwords = [password]
+        else:
+            self._passwords = list(password)  # copy of list of passwords to modify
         self.host = host
         self.port = port
         self.known_hosts_on_failure = known_hosts_on_failure
@@ -101,6 +105,8 @@ class Ssh(GenericUnixCommand):
                 if self.all_after_login_settings_sent() or self.no_after_login_settings_needed():
                     if not self.done():
                         self.set_result({})
+        if is_full_line:
+            self._sent_password = False  # Clear flag for multi passwords connections
 
     def get_hosts_file_if_displayed(self, line):
         if (self.known_hosts_on_failure is not None) and self._regex_helper.search_compiled(Ssh._re_host_key, line):
@@ -113,7 +119,12 @@ class Ssh(GenericUnixCommand):
 
     def send_password_if_requested(self, line):
         if (not self._sent_password) and self.is_password_requested(line):
-            self.connection.sendline(self.password, encrypt=self.encrypt_password)
+            password = ""
+            try:
+                password = self._passwords.pop(0)
+            except IndexError:
+                self.set_exception(CommandFailure(self, "Password was requested but no more passwords provided."))
+            self.connection.sendline(password, encrypt=self.encrypt_password)
             self._sent_password = True
         elif self._sent_password and self._regex_helper.search_compiled(Ssh._re_permission_denied, line):
             self._sent_password = False
@@ -186,7 +197,6 @@ COMMAND_OUTPUT = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
 To edit this message please edit /etc/ssh_banner
 You may put information to /etc/ssh_banner who is owner of this PC
-Password:
 Password:
 Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
 Have a lot of fun...
