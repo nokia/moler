@@ -234,7 +234,7 @@ COMMAND_KWARGS = {
 
 COMMAND_RESULT = {}
 
-COMMAND_OUTPUT_rm_keygen = """
+COMMAND_OUTPUT_rm = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 @    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
@@ -260,12 +260,46 @@ host:~ #
 host:~ # export TMOUT="2678400"
 host:~ #"""
 
-COMMAND_KWARGS_rm_keygen = {
+COMMAND_KWARGS_rm = {
     "login": "user", "password": "english", "known_hosts_on_failure": "rm",
     "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
 }
 
-COMMAND_RESULT_rm_keygen = {}
+COMMAND_RESULT_rm = {}
+
+
+COMMAND_OUTPUT_keygen = """
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+It is also possible that a host key has just been changed.
+The fingerprint for the RSA key sent by the remote host is
+[...].
+Please contact your system administrator.
+Add correct host key in /home/you/.ssh/known_hosts to get rid of this message.
+Offending RSA key in /home/you/.ssh/known_hosts:86
+RSA host key for host.domain.net has changed and you have requested strict checking.
+Host key verification failed.
+client:~/>sh-keygen -R host.domain.net
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+To edit this message please edit /etc/ssh_banner
+You may put information to /etc/ssh_banner who is owner of this PC
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+host:~ #
+host:~ # export TMOUT="2678400"
+host:~ #"""
+
+COMMAND_KWARGS_keygen = {
+    "login": "user", "password": "english", "known_hosts_on_failure": "keygen",
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
+}
+
+COMMAND_RESULT_keygen = {}
 
 
 COMMAND_OUTPUT_2_passwords = """
