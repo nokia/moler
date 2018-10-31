@@ -24,6 +24,7 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 
 import logging
 import sys
+import os
 import time
 from functools import partial
 
@@ -106,8 +107,8 @@ def start_tcp_connection(address, forward_data):
 
 
 def main(reactor, address):
-    # Starting the server
-    start_ping_sim_server(address)
+    # # Starting the server
+    # start_ping_sim_server(address)
     # Starting the client
     processing_done_deferred = ping_observing_task(address)
     return processing_done_deferred
@@ -161,7 +162,14 @@ def ping_observing_task(address):
 
 
 # ==============================================================================
+
+
+# ==============================================================================
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))  # allow finding modules in examples/
+
 if __name__ == '__main__':
+    from threaded_ping_server import start_ping_servers, stop_ping_servers
+
     logging.basicConfig(
         level=logging.DEBUG,
         format='%(asctime)s |%(name)25s |%(message)s',
@@ -169,7 +177,11 @@ if __name__ == '__main__':
         stream=sys.stderr,
     )
     address = ('localhost', 5670)
-    task.react(main, argv=[address])
+    servers = start_ping_servers([(address, '10.0.2.15')])
+    try:
+        task.react(main, argv=[address])
+    finally:
+        stop_ping_servers(servers)
 
 '''
 LOG OUTPUT
