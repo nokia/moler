@@ -6,9 +6,9 @@ from moler.io.raw.terminal import ThreadedTerminal
 # moler_conn = ObservableConnection()
 # terminal = ThreadedTerminal(moler_connection=moler_conn)
 # v.2 - let factory combine
-# terminal = get_connection(io_type='terminal', variant='threaded')
+terminal = get_connection(io_type='terminal', variant='threaded')
 # v.3 - let factory select default variant
-terminal = get_connection(io_type='terminal')
+# terminal = get_connection(io_type='terminal')
 terminal.open()
 ps_cmd = Ps(connection=terminal.moler_connection, options="-ef")
 
