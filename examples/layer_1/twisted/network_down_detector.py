@@ -32,86 +32,7 @@ from moler.connection import ObservableConnection
 from moler.connection_observer import ConnectionObserver
 from twisted.internet import reactor, task
 from twisted.internet.defer import Deferred
-from twisted.internet.protocol import Protocol, Factory, ClientFactory
-
-ping_output = '''
-greg@debian:~$ ping 10.0.2.15
-PING 10.0.2.15 (10.0.2.15) 56(84) bytes of data.
-64 bytes from 10.0.2.15: icmp_req=1 ttl=64 time=0.080 ms
-64 bytes from 10.0.2.15: icmp_req=2 ttl=64 time=0.037 ms
-64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms
-ping: sendmsg: Network is unreachable
-ping: sendmsg: Network is unreachable
-ping: sendmsg: Network is unreachable
-64 bytes from 10.0.2.15: icmp_req=7 ttl=64 time=0.123 ms
-64 bytes from 10.0.2.15: icmp_req=8 ttl=64 time=0.056 ms
-'''
-
-
-class PingSimTcpServer(Protocol):
-    def __init__(self):
-        self.logger = logging.getLogger('twisted.ping.tcp-server')
-        self.ping_lines = ping_output.splitlines(True)
-
-    def connectionMade(self):
-        client_info = 'client at tcp://{}:{}'.format(*self.transport.client)
-        self.logger.debug('connection accepted - ' + client_info)
-        self.send_ping_line()
-
-    def connectionLost(self, reason):
-        self.logger.debug("Connection closed")
-
-    def send_ping_line(self):
-        if self.ping_lines:
-            ping_line = self.ping_lines.pop(0)
-            data = ping_line.encode(encoding='utf-8')
-            self.transport.write(data)
-            # simulate delay between ping lines
-            reactor.callLater(1, self.send_ping_line)
-
-
-def start_ping_sim_server(server_address):
-    """Run server simulating ping command output, this is one-shot server"""
-    logger = logging.getLogger('twisted.ping.tcp-server')
-    host, port = server_address
-    factory = Factory()
-    factory.protocol = PingSimTcpServer
-    reactor.listenTCP(port, factory)
-
-    logger.debug("Ping Sim started at tcp://{}:{}".format(*server_address))
-    logger.debug("WARNING - I'll be tired too much just after first client!")
-
-
-class TcpConnection(Protocol):
-    def __init__(self, forward_data):
-        self.forward_data = forward_data
-        self.logger = logging.getLogger('twisted.tcp-connection')
-
-    def connectionMade(self):
-        conn_info = 'tcp://{}:{}'.format(*self.transport.realAddress)
-        self.logger.debug('... connected to ' + conn_info)
-
-    def connectionLost(self, reason):
-        self.logger.debug("... closed")
-
-    def dataReceived(self, data):
-        self.logger.debug('<<< {!r}'.format(data))
-        self.forward_data(data)
-
-
-def start_tcp_connection(address, forward_data):
-    host, port = address
-    factory = ClientFactory()
-    factory.protocol=partial(TcpConnection, forward_data)
-    reactor.connectTCP(host, port, factory)
-
-
-def main(reactor, address):
-    # # Starting the server
-    # start_ping_sim_server(address)
-    # Starting the client
-    processing_done_deferred = ping_observing_task(address)
-    return processing_done_deferred
+from twisted.internet.protocol import Protocol, ClientFactory
 
 
 # ===================== Moler's connection-observer usage ======================
@@ -162,6 +83,34 @@ def ping_observing_task(address):
 
 
 # ==============================================================================
+class TcpConnection(Protocol):
+    def __init__(self, forward_data):
+        self.forward_data = forward_data
+        self.logger = logging.getLogger('twisted.tcp-connection')
+
+    def connectionMade(self):
+        conn_info = 'tcp://{}:{}'.format(*self.transport.realAddress)
+        self.logger.debug('... connected to ' + conn_info)
+
+    def connectionLost(self, reason):
+        self.logger.debug("... closed")
+
+    def dataReceived(self, data):
+        self.logger.debug('<<< {!r}'.format(data))
+        self.forward_data(data)
+
+
+def start_tcp_connection(address, forward_data):
+    host, port = address
+    factory = ClientFactory()
+    factory.protocol=partial(TcpConnection, forward_data)
+    reactor.connectTCP(host, port, factory)
+
+
+def main(reactor, address):
+    # Starting the client
+    processing_done_deferred = ping_observing_task(address)
+    return processing_done_deferred
 
 
 # ==============================================================================
@@ -172,7 +121,7 @@ if __name__ == '__main__':
 
     logging.basicConfig(
         level=logging.DEBUG,
-        format='%(asctime)s |%(name)25s |%(message)s',
+        format='%(asctime)s |%(name)40s |%(message)s',
         datefmt='%H:%M:%S',
         stream=sys.stderr,
     )
@@ -186,20 +135,30 @@ if __name__ == '__main__':
 '''
 LOG OUTPUT
 
-16:58:39 |  twisted.ping.tcp-server |Ping Sim started at tcp://localhost:5670
-16:58:39 |  twisted.ping.tcp-server |WARNING - I'll be tired too much just after first client!
-16:58:39 |      moler.user.app-code |waiting for data to observe
-16:58:39 |  twisted.ping.tcp-server |connection accepted - client at tcp://127.0.0.1:56592
-16:58:39 |   twisted.tcp-connection |... connected to tcp://127.0.0.1:5670
-16:58:39 |   twisted.tcp-connection |<<< b'\n'
-16:58:40 |   twisted.tcp-connection |<<< b'greg@debian:~$ ping 10.0.2.15\n'
-16:58:41 |   twisted.tcp-connection |<<< b'PING 10.0.2.15 (10.0.2.15) 56(84) bytes of data.\n'
-16:58:42 |   twisted.tcp-connection |<<< b'64 bytes from 10.0.2.15: icmp_req=1 ttl=64 time=0.080 ms\n'
-16:58:43 |   twisted.tcp-connection |<<< b'64 bytes from 10.0.2.15: icmp_req=2 ttl=64 time=0.037 ms\n'
-16:58:44 |   twisted.tcp-connection |<<< b'64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms\n'
-16:58:45 |   twisted.tcp-connection |<<< b'ping: sendmsg: Network is unreachable\n'
-16:58:45 |  moler.net-down-detector |Network is down!
-16:58:45 |      moler.user.app-code |Network is down from 16:58:45
-16:58:45 |   twisted.tcp-connection |... closed
-16:58:45 |  twisted.ping.tcp-server |Connection closed
+10:53:39 |         threaded.ping.tcp-server(5670) |Ping Sim started at tcp://localhost:5670
+10:53:39 |               moler.runner.thread-pool |created
+10:53:39 |               moler.runner.thread-pool |created own executor <concurrent.futures.thread.ThreadPoolExecutor object at 0x7fde953e93c8>
+10:53:39 |                    moler.user.app-code |waiting for data to observe
+10:53:39 |                 twisted.tcp-connection |... connected to tcp://127.0.0.1:5670
+10:53:39 |threaded.ping.tcp-server(5670 -> 35996) |connection accepted - client at tcp://127.0.0.1:35996
+10:53:39 |                 twisted.tcp-connection |<<< b'\n'
+10:53:39 |                     moler.7fde953e95c0 |
+10:53:40 |                 twisted.tcp-connection |<<< b'greg@debian:~$ ping 10.0.2.15\n'
+10:53:40 |                     moler.7fde953e95c0 |greg@debian:~$ ping 10.0.2.15
+10:53:41 |                 twisted.tcp-connection |<<< b'PING 10.0.2.15 (10.0.2.15) 56(84) bytes of data.\n'
+10:53:41 |                     moler.7fde953e95c0 |PING 10.0.2.15 (10.0.2.15) 56(84) bytes of data.
+10:53:42 |                 twisted.tcp-connection |<<< b'64 bytes from 10.0.2.15: icmp_req=1 ttl=64 time=0.080 ms\n'
+10:53:42 |                     moler.7fde953e95c0 |64 bytes from 10.0.2.15: icmp_req=1 ttl=64 time=0.080 ms
+10:53:43 |                 twisted.tcp-connection |<<< b'64 bytes from 10.0.2.15: icmp_req=2 ttl=64 time=0.037 ms\n'
+10:53:43 |                     moler.7fde953e95c0 |64 bytes from 10.0.2.15: icmp_req=2 ttl=64 time=0.037 ms
+10:53:44 |                 twisted.tcp-connection |<<< b'64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms\n'
+10:53:44 |                     moler.7fde953e95c0 |64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms
+10:53:45 |                 twisted.tcp-connection |<<< b'ping: sendmsg: Network is unreachable\n'
+10:53:45 |                     moler.7fde953e95c0 |ping: sendmsg: Network is unreachable
+10:53:45 |                moler.net-down-detector |Network is down!
+10:53:45 |                    moler.user.app-code |Network is down from 10:53:45
+10:53:45 |                 twisted.tcp-connection |... closed
+10:53:45 |         threaded.ping.tcp-server(5670) |Ping Sim: ... bye
+10:53:47 |threaded.ping.tcp-server(5670 -> 35996) |Connection closed
+10:53:47 |               moler.runner.thread-pool |shutting down
 '''
