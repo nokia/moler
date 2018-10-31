@@ -28,114 +28,13 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
 import logging
-import select
-import socket
 import sys
+import os
 import threading
 import time
-from contextlib import closing
 
-from moler.connection import ObservableConnection
 from moler.connection_observer import ConnectionObserver
-from moler.io.raw import tcp
-from moler.connection import get_connection, ConnectionFactory
-
-ping_output = '''
-greg@debian:~$ ping 10.0.2.15
-PING 10.0.2.15 (10.0.2.15) 56(84) bytes of data.
-64 bytes from 10.0.2.15: icmp_req=1 ttl=64 time=0.080 ms
-64 bytes from 10.0.2.15: icmp_req=2 ttl=64 time=0.037 ms
-64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms
-ping: sendmsg: Network is unreachable
-ping: sendmsg: Network is unreachable
-ping: sendmsg: Network is unreachable
-64 bytes from 10.0.2.15: icmp_req=7 ttl=64 time=0.123 ms
-64 bytes from 10.0.2.15: icmp_req=8 ttl=64 time=0.056 ms
-'''
-
-
-def ping_sim_tcp_server(server_port, ping_ip, client, address):
-    _, client_port = address
-    logger = logging.getLogger('threaded.ping.tcp-server({} -> {})'.format(server_port,
-                                                                           client_port))
-    logger.debug('connection accepted - client at tcp://{}:{}'.format(*address))
-    ping_out = ping_output.replace("10.0.2.15", ping_ip)
-    ping_lines = ping_out.splitlines(True)
-    with closing(client):
-        for ping_line in ping_lines:
-            data = ping_line.encode(encoding='utf-8')
-            try:
-                client.sendall(data)
-            except socket.error:  # client is gone
-                break
-            time.sleep(1)  # simulate delay between ping lines
-    logger.info('Connection closed')
-
-
-def server_loop(server_port, server_socket, ping_ip, done_event):
-    logger = logging.getLogger('threaded.ping.tcp-server({})'.format(server_port))
-    while not done_event.is_set():
-        # without select we can't break loop from outside (via done_event)
-        # since .accept() is blocking
-        read_sockets, _, _ = select.select([server_socket], [], [], 0.1)
-        if not read_sockets:
-            continue
-        client_socket, client_addr = server_socket.accept()
-        client_socket.setblocking(1)
-        client_thread = threading.Thread(target=ping_sim_tcp_server,
-                                         args=(server_port, ping_ip,
-                                               client_socket, client_addr))
-        client_thread.start()
-    logger.debug("Ping Sim: ... bye")
-
-
-def start_ping_sim_server(server_address, ping_ip):
-    """Run server simulating ping command output, this is one-shot server"""
-    _, server_port = server_address
-    logger = logging.getLogger('threaded.ping.tcp-server({})'.format(server_port))
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server_socket.bind(server_address)
-    server_socket.listen(1)
-    logger.debug("Ping Sim started at tcp://{}:{}".format(*server_address))
-    done_event = threading.Event()
-    server_thread = threading.Thread(target=server_loop,
-                                     args=(server_port, server_socket, ping_ip,
-                                           done_event))
-    server_thread.start()
-    return server_thread, done_event
-
-
-def main(connections2observe4ip):
-    # Starting the servers
-    servers = []
-    for address, _, ping_ip in connections2observe4ip:
-        # simulate pinging given IP
-        server_thread, server_done = start_ping_sim_server(address, ping_ip)
-        servers.append((server_thread, server_done))
-    # Starting the clients
-    connections = []
-    for _, connection_name, ping_ip in connections2observe4ip:
-        # ------------------------------------------------------------------
-        # This front-end code hides all details of connection.
-        # We just use its name - such name should be meaningful for user.
-        # like: "main_dns_server", "backup_ntp_server", ...
-        # Another words, all we want here is stg like:
-        # "give me connection to main_dns_server"
-        # ------------------------------------------------------------------
-        tcp_connection = get_connection(name=connection_name)
-        tcp_connection.moler_connection.name = connection_name
-        client_thread = threading.Thread(target=ping_observing_task,
-                                         args=(tcp_connection, ping_ip))
-        client_thread.start()
-        connections.append(client_thread)
-    # await observers job to be done
-    for client_thread in connections:
-        client_thread.join()
-    # stop servers
-    for server_thread, server_done in servers:
-        server_done.set()
-        server_thread.join()
+from moler.connection import get_connection
 
 
 # ===================== Moler's connection-observer usage ======================
@@ -219,14 +118,39 @@ def ping_observing_task(ext_io_connection, ping_ip):
 
 
 # ==============================================================================
+def main(connections2observe4ip):
+    # Starting the clients
+    connections = []
+    for _, connection_name, ping_ip in connections2observe4ip:
+        # ------------------------------------------------------------------
+        # This front-end code hides all details of connection.
+        # We just use its name - such name should be meaningful for user.
+        # like: "main_dns_server", "backup_ntp_server", ...
+        # Another words, all we want here is stg like:
+        # "give me connection to main_dns_server"
+        # ------------------------------------------------------------------
+        tcp_connection = get_connection(name=connection_name)
+        tcp_connection.moler_connection.name = connection_name
+        client_thread = threading.Thread(target=ping_observing_task,
+                                         args=(tcp_connection, ping_ip))
+        client_thread.start()
+        connections.append(client_thread)
+    # await observers job to be done
+    for client_thread in connections:
+        client_thread.join()
+
+
+# ==============================================================================
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))  # allow finding modules in examples/
+
 if __name__ == '__main__':
-    import os
+    from threaded_ping_server import start_ping_servers, stop_ping_servers
     from moler.config import load_config
     from moler.config import connections as conn_cfg
     # -------------------------------------------------------------------
     # Configure moler connections (backend code)
     # 1) select variant of TCP
-    load_config(path=os.path.join(os.path.dirname(__file__), "..", "connection_variant.yml"))
+    load_config(config=os.path.join(os.path.dirname(__file__), "..", "connection_variant.yml"))
 
     # 2) ver.1 - configure named connections by python code
     conn_cfg.define_connection(name='net_1', io_type='tcp', host='localhost', port=5671)
@@ -241,9 +165,13 @@ if __name__ == '__main__':
         datefmt='%H:%M:%S',
         stream=sys.stderr,
     )
+    connections2serve = [(('localhost', 5671), '10.0.2.15'),
+                         (('localhost', 5672), '10.0.2.16')]
     connections2observe4ip = [(('localhost', 5671), 'net_1', '10.0.2.15'),
                               (('localhost', 5672), 'net_2', '10.0.2.16')]
+    servers = start_ping_servers(connections2serve)
     main(connections2observe4ip)
+    stop_ping_servers(servers)
 
 '''
 LOG OUTPUT
