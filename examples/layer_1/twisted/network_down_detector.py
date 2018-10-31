@@ -29,25 +29,15 @@ import time
 from functools import partial
 
 from moler.connection import ObservableConnection
-from moler.connection_observer import ConnectionObserver
 from twisted.internet import reactor, task
 from twisted.internet.defer import Deferred
 from twisted.internet.protocol import Protocol, ClientFactory
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))  # allow finding modules in examples/
+
+from network_toggle_observers import NetworkDownDetector
 
 # ===================== Moler's connection-observer usage ======================
-
-class NetworkDownDetector(ConnectionObserver):
-    def __init__(self):
-        super(NetworkDownDetector, self).__init__()
-        self.logger = logging.getLogger('moler.net-down-detector')
-
-    def data_received(self, data):
-        if not self.done():
-            if "Network is unreachable" in data:  # observer operates on strings
-                when_network_down_detected = time.time()
-                self.logger.debug("Network is down!")
-                self.set_result(result=when_network_down_detected)
 
 
 def ping_observing_task(address):
@@ -56,7 +46,7 @@ def ping_observing_task(address):
 
     # Lowest layer of Moler's usage (you manually glue all elements):
     # 1. create observer
-    net_down_detector = NetworkDownDetector()
+    net_down_detector = NetworkDownDetector('10.0.2.15')
     # 2. ObservableConnection is a proxy-glue between observer (speaks str)
     #                                   and twisted-connection (speaks bytes)
     moler_conn = ObservableConnection(decoder=lambda data: data.decode("utf-8"))
@@ -114,8 +104,6 @@ def main(reactor, address):
 
 
 # ==============================================================================
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))  # allow finding modules in examples/
-
 if __name__ == '__main__':
     from threaded_ping_server import start_ping_servers, stop_ping_servers
 

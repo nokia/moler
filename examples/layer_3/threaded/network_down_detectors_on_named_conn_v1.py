@@ -33,50 +33,14 @@ import os
 import threading
 import time
 
-from moler.connection_observer import ConnectionObserver
 from moler.connection import get_connection
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))  # allow finding modules in examples/
+
+from network_toggle_observers import NetworkDownDetector, NetworkUpDetector
 
 
 # ===================== Moler's connection-observer usage ======================
-class NetworkToggleDetector(ConnectionObserver):
-    def __init__(self, net_ip, detect_pattern, detected_status):
-        super(NetworkToggleDetector, self).__init__()
-        self.net_ip = net_ip
-        self.detect_pattern = detect_pattern
-        self.detected_status = detected_status
-        self.logger = logging.getLogger('moler.{}'.format(self))
-
-    def data_received(self, data):
-        """Awaiting ping output change"""
-        if not self.done():
-            if self.detect_pattern in data:
-                when_detected = time.time()
-                self.logger.debug("Network {} {}!".format(self.net_ip,
-                                                          self.detected_status))
-                self.set_result(result=when_detected)
-
-
-class NetworkDownDetector(NetworkToggleDetector):
-    """
-    Awaiting change like:
-    64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms
-    ping: sendmsg: Network is unreachable
-    """
-    def __init__(self, net_ip):
-        detect_pattern = "Network is unreachable"
-        detected_status = "is down"
-        super(NetworkDownDetector, self).__init__(net_ip,
-                                                  detect_pattern,
-                                                  detected_status)
-
-
-class NetworkUpDetector(NetworkToggleDetector):
-    def __init__(self, net_ip):
-        detect_pattern = "bytes from {}".format(net_ip)
-        detected_status = "is up"
-        super(NetworkUpDetector, self).__init__(net_ip,
-                                                detect_pattern,
-                                                detected_status)
 
 
 def ping_observing_task(ext_io_connection, ping_ip):
@@ -141,8 +105,6 @@ def main(connections2observe4ip):
 
 
 # ==============================================================================
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))  # allow finding modules in examples/
-
 if __name__ == '__main__':
     from threaded_ping_server import start_ping_servers, stop_ping_servers
     from moler.config import load_config

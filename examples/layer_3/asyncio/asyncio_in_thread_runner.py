@@ -32,158 +32,20 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 
 import logging
 import sys
-import functools
+import os
 import time
 import asyncio
 
-from moler.connection import ObservableConnection
-from moler.connection_observer import ConnectionObserver
-from moler.io.raw import tcp
-from moler.connection import get_connection, ConnectionFactory
-from moler.asyncio_runner import AsyncioRunner, AsyncioInThreadRunner
+from moler.connection import get_connection
+from moler.asyncio_runner import AsyncioInThreadRunner
 from moler.exceptions import ConnectionObserverTimeout
 
-ping_output = '''
-greg@debian:~$ ping 10.0.2.15
-PING 10.0.2.15 (10.0.2.15) 56(84) bytes of data.
-64 bytes from 10.0.2.15: icmp_req=1 ttl=64 time=0.080 ms
-64 bytes from 10.0.2.15: icmp_req=2 ttl=64 time=0.037 ms
-64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms
-ping: sendmsg: Network is unreachable
-ping: sendmsg: Network is unreachable
-ping: sendmsg: Network is unreachable
-64 bytes from 10.0.2.15: icmp_req=7 ttl=64 time=0.123 ms
-64 bytes from 10.0.2.15: icmp_req=8 ttl=64 time=0.056 ms
-'''
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))  # allow finding modules in examples/
 
-
-async def ping_sim_tcp_server(server_port, ping_ip, client_handling_done, reader, writer):
-    address = writer.get_extra_info('peername')
-    _, client_port = address
-    logger = logging.getLogger('asyncio.ping.tcp-server({} -> {})'.format(server_port,
-                                                                          client_port))
-    logger.debug('connection accepted - client at tcp://{}:{}'.format(*address))
-    ping_out = ping_output.replace("10.0.2.15", ping_ip)
-    ping_lines = ping_out.splitlines(True)
-    for ping_line in ping_lines:
-        data = ping_line.encode(encoding='utf-8')
-        try:
-            writer.write(data)  # may raise exception if client is gone
-            await writer.drain()
-        except ConnectionResetError as err:  # client is gone
-            logger.info("client is gone - {}".format(err))
-            break
-        except ConnectionAbortedError as err:  # client is gone
-            logger.info("client is gone - {}".format(err))
-            break
-        except Exception as err:
-            logger.error("server: {}".format(err))
-            raise
-        await asyncio.sleep(1)  # simulate delay between ping lines
-    writer.close()
-    client_handling_done.set_result(True)
-    logger.info('Connection tcp://{}:{} closed'.format(*address))
-
-
-async def start_ping_sim_server(server_address, ping_ip):
-    """Run server simulating ping command output, this is one-shot server"""
-    _, server_port = server_address
-    logger = logging.getLogger('asyncio.ping.tcp-server({})'.format(server_port))
-    client_handling_done = asyncio.Future()
-    handle_client = functools.partial(ping_sim_tcp_server, server_port,
-                                      ping_ip, client_handling_done)
-    factory = asyncio.start_server(handle_client, *server_address)
-    server = await factory
-    logger.debug("Ping Sim started at tcp://{}:{}".format(*server_address))
-
-    def shutdown_server(client_done_future):
-        logger.debug("Ping Sim: I'm tired after this client ... will do sepuku")
-        server.close()
-    client_handling_done.add_done_callback(shutdown_server)
-    logger.debug("WARNING - I'll be tired too much just after first client!")
-    return server
-
-
-async def main(connections2observe4ip):
-    logger = logging.getLogger('asyncio.main')
-    event_loop = asyncio.get_event_loop()
-    # Starting the servers
-    servers = []
-    for address, _, ping_ip in connections2observe4ip:
-        # simulate pinging given IP
-        server = await start_ping_sim_server(address, ping_ip)
-        servers.append(server)
-    # Starting the clients
-    connections = []
-    for _, connection_name, ping_ip in connections2observe4ip:
-        # ------------------------------------------------------------------
-        # This front-end code hides all details of connection.
-        # We just use its name - such name should be meaningful for user.
-        # like: "main_dns_server", "backup_ntp_server", ...
-        # Another words, all we want here is stg like:
-        # "give me connection to main_dns_server"
-        # ------------------------------------------------------------------
-        con_logger = logging.getLogger('tcp-thrd-io.{}'.format(connection_name))
-        tcp_connection = get_connection(name=connection_name, logger=con_logger)
-        tcp_connection.moler_connection.name = connection_name
-        # client_task= asyncio.ensure_future(ping_observing_task(tcp_connection, ping_ip))
-        connections.append(ping_observing_task(tcp_connection, ping_ip))
-    # await observers job to be done
-    completed, pending = await asyncio.wait(connections)
-    logger.debug('after all ping_observing_task')
-
-    # stop servers
-    for server in servers:
-        await server.wait_closed()
-    logger.debug('exiting main')
+from network_toggle_observers import NetworkDownDetector, NetworkUpDetector
 
 
 # ===================== Moler's connection-observer usage ======================
-class NetworkToggleDetector(ConnectionObserver):
-    def __init__(self, net_ip, detect_pattern, detected_status,
-                 connection=None, runner=None):
-        super(NetworkToggleDetector, self).__init__(connection=connection,
-                                                    runner=runner)
-        self.net_ip = net_ip
-        self.detect_pattern = detect_pattern
-        self.detected_status = detected_status
-        self.logger = logging.getLogger('moler.{}'.format(self))
-
-    def data_received(self, data):
-        """Awaiting ping output change"""
-        if not self.done():
-            if self.detect_pattern in data:
-                when_detected = time.time()
-                self.logger.debug("Network {} {}!!!".format(self.net_ip,
-                                                          self.detected_status))
-                self.set_result(result=when_detected)
-
-
-class NetworkDownDetector(NetworkToggleDetector):
-    """
-    Awaiting change like:
-    64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms
-    ping: sendmsg: Network is unreachable
-    """
-    def __init__(self, net_ip, connection=None, runner=None):
-        detect_pattern = "Network is unreachable"
-        detected_status = "is down"
-        super(NetworkDownDetector, self).__init__(net_ip,
-                                                  detect_pattern,
-                                                  detected_status,
-                                                  connection=connection,
-                                                  runner=runner)
-
-
-class NetworkUpDetector(NetworkToggleDetector):
-    def __init__(self, net_ip, connection=None, runner=None):
-        detect_pattern = "bytes from {}".format(net_ip)
-        detected_status = "is up"
-        super(NetworkUpDetector, self).__init__(net_ip,
-                                                detect_pattern,
-                                                detected_status,
-                                                connection=connection,
-                                                runner=runner)
 
 
 async def ping_observing_task(ext_io_connection, ping_ip):
@@ -238,7 +100,33 @@ async def ping_observing_task(ext_io_connection, ping_ip):
 
 
 # ==============================================================================
+async def main(connections2observe4ip):
+    logger = logging.getLogger('asyncio.main')
+    event_loop = asyncio.get_event_loop()
+
+    # Starting the clients
+    connections = []
+    for _, connection_name, ping_ip in connections2observe4ip:
+        # ------------------------------------------------------------------
+        # This front-end code hides all details of connection.
+        # We just use its name - such name should be meaningful for user.
+        # like: "main_dns_server", "backup_ntp_server", ...
+        # Another words, all we want here is stg like:
+        # "give me connection to main_dns_server"
+        # ------------------------------------------------------------------
+        con_logger = logging.getLogger('tcp-thrd-io.{}'.format(connection_name))
+        tcp_connection = get_connection(name=connection_name, logger=con_logger)
+        tcp_connection.moler_connection.name = connection_name
+        # client_task= asyncio.ensure_future(ping_observing_task(tcp_connection, ping_ip))
+        connections.append(ping_observing_task(tcp_connection, ping_ip))
+    # await observers job to be done
+    completed, pending = await asyncio.wait(connections)
+    logger.debug('after all ping_observing_task')
+
+
+# ==============================================================================
 if __name__ == '__main__':
+    from threaded_ping_server import start_ping_servers, stop_ping_servers
     import os
     from moler.config import load_config
     # -------------------------------------------------------------------
@@ -257,9 +145,11 @@ if __name__ == '__main__':
         stream=sys.stderr,
     )
     logger = logging.getLogger('asyncio.main')
+    connections2serve = [(('localhost', 5671), '10.0.2.15'),
+                         (('localhost', 5672), '10.0.2.16')]
     connections2observe4ip = [(('localhost', 5671), 'net_1', '10.0.2.15'),
                               (('localhost', 5672), 'net_2', '10.0.2.16')]
-
+    servers = start_ping_servers(connections2serve)
     asyncio.set_event_loop(asyncio.new_event_loop())
     event_loop = asyncio.get_event_loop()
     # event_loop.set_debug(enabled=True)
@@ -282,6 +172,7 @@ if __name__ == '__main__':
         # while not remaining_tasks.done() and not event_loop.is_closed():
         #     event_loop.run_forever()
     finally:
+        stop_ping_servers(servers)
         logger.info("closing events loop ...")
         event_loop.close()
         logger.info("... events loop closed")
