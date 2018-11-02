@@ -13,18 +13,18 @@ import pytest
 
 
 def test_calling_ssh_returns_result_parsed_from_command_output(buffer_connection, command_output_and_expected_result):
-    command_output, expected_result = command_output_and_expected_result
+    command_output = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
 
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
                   host="host.domain.net", expected_prompt="host:.*#")
     assert "TERM=xterm-mono ssh -l user host.domain.net" == ssh_cmd.command_string
     result = ssh_cmd()
-    assert result == expected_result
+    assert result == dict()
 
 
 def test_ssh_failed_with_multiple_passwords(buffer_connection, command_output_2_passwords):
-    command_output, expected_result = command_output_2_passwords
+    command_output = command_output_2_passwords
     buffer_connection.remote_inject_response([command_output])
 
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
@@ -35,7 +35,7 @@ def test_ssh_failed_with_multiple_passwords(buffer_connection, command_output_2_
 
 
 def test_ssh_failed_host_key_verification(buffer_connection, command_output_failed_host_key_verification):
-    command_output, expected_result = command_output_failed_host_key_verification
+    command_output = command_output_failed_host_key_verification
     buffer_connection.remote_inject_response([command_output])
 
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
@@ -46,7 +46,7 @@ def test_ssh_failed_host_key_verification(buffer_connection, command_output_fail
 
 
 def test_ssh_failed_permission_denied(buffer_connection, command_output_permission_denied):
-    command_output, expected_result = command_output_permission_denied
+    command_output = command_output_permission_denied
     buffer_connection.remote_inject_response([command_output])
 
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
@@ -57,7 +57,7 @@ def test_ssh_failed_permission_denied(buffer_connection, command_output_permissi
 
 
 def test_ssh_failed_known_hosts(buffer_connection, command_output_failed_known_hosts):
-    command_output, expected_result = command_output_failed_known_hosts
+    command_output = command_output_failed_known_hosts
     buffer_connection.remote_inject_response([command_output])
 
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
@@ -79,8 +79,7 @@ def command_output_failed_host_key_verification():
 Host key verification failed
 host:~ #
 """
-    result = dict()
-    return data, result
+    return data
 
 
 @pytest.fixture
@@ -101,7 +100,7 @@ id_dsa:
 RSA host key for host.domain.net has changed and you have requested strict checking.
 Host key verification failed.
 client:~ #"""
-    return data, dict()
+    return data
 
 
 @pytest.fixture
@@ -110,7 +109,7 @@ def command_output_permission_denied():
 Password:
 Permission denied.
 clinet:~ #"""
-    return data, dict()
+    return data
 
 
 @pytest.fixture
@@ -132,9 +131,7 @@ def command_output_2_passwords():
     data = ""
     for line in lines:
         data = data + line
-
-    result = dict()
-    return data, result
+    return data
 
 
 @pytest.fixture
@@ -155,6 +152,4 @@ def command_output_and_expected_result():
     data = ""
     for line in lines:
         data = data + line
-
-    result = dict()
-    return data, result
+    return data
