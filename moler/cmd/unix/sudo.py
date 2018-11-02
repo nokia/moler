@@ -114,10 +114,11 @@ lrwxrwxrwx  1 root root      10 Mar 20  2015 logsremote -> /mnt/logs/
 user@client:~/moler$ """
 
 COMMAND_RESULT_ls = {
-    "cmd_ret": {"total": {
-        "raw": "8",
-        "bytes": 8,
-    },
+    "cmd_ret": {
+        "total": {
+            "raw": "8",
+            "bytes": 8,
+        },
 
         "files": {
             "bin": {"permissions": "drwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root",
