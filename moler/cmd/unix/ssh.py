@@ -122,7 +122,7 @@ class Ssh(GenericUnixCommand):
 
     def _id_dsa(self, line):
         if Ssh._re_id_dsa.search(line):
-            self.connection.sendlineline("")
+            self.connection.sendline("")
             raise ParsingDone()
 
     def _check_if_failure(self, line):
@@ -236,6 +236,7 @@ COMMAND_RESULT = {}
 
 COMMAND_OUTPUT_prompt = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
+Do you want to continue (yes/no)? yes
 To edit this message please edit /etc/ssh_banner
 You may put information to /etc/ssh_banner who is owner of this PC
 Password:
@@ -265,6 +266,7 @@ The fingerprint for the RSA key sent by the remote host is
 Please contact your system administrator.
 Add correct host key in /home/you/.ssh/known_hosts to get rid of this message.
 Offending RSA key in /home/you/.ssh/known_hosts:86
+id_dsa:
 RSA host key for host.domain.net has changed and you have requested strict checking.
 Host key verification failed.
 client:~/>rm /home/you/.ssh/known_hosts
