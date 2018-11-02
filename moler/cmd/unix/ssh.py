@@ -142,12 +142,11 @@ class Ssh(GenericUnixCommand):
 
     def _send_password_if_requested(self, line):
         if (not self._sent_password) and self._is_password_requested(line):
-            pwd = ""
             try:
                 pwd = self._passwords.pop(0)
+                self.connection.sendline(pwd, encrypt=self.encrypt_password)
             except IndexError:
                 self.set_exception(CommandFailure(self, "Password was requested but no more passwords provided."))
-            self.connection.sendline(pwd, encrypt=self.encrypt_password)
             self._sent_password = True
             raise ParsingDone()
 
