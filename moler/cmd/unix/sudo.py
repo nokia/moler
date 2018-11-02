@@ -16,7 +16,8 @@ from moler.exceptions import ParsingDone
 
 class Sudo(GenericUnixCommand):
 
-    def __init__(self, connection, sudo_password, cmd_object=None, cmd_class_name=None, cmd_params=None, prompt=None, newline_chars=None, runner=None):
+    def __init__(self, connection, sudo_password, cmd_object=None, cmd_class_name=None, cmd_params=None, prompt=None,
+                 newline_chars=None, runner=None):
         super(Sudo, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.sudo_password = sudo_password
         self.cmd_object = cmd_object
@@ -32,7 +33,8 @@ class Sudo(GenericUnixCommand):
             params["newline_chars"] = newline_chars
             self.cmd_object = self._create_object_from_name(cmd_class_name, params)
         if not self.cmd_object:
-            self.set_exception(CommandFailure("Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor. Please specific parameter."))
+            self.set_exception(CommandFailure(
+                "Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor. Please specific parameter."))
 
     def build_command_string(self):
         cmd = "sudo {}".format(self.cmd_object.command_string)
@@ -88,7 +90,7 @@ COMMAND_OUTPUT_whoami = """
 user@client:~/moler$ sudo whoami
 [sudo] password for user:
 root
-ute@debdev:~/moler$ """
+user@client:~/moler$ """
 
 COMMAND_RESULT_whoami = {
     "cmd_ret": {"USER": "root"}
@@ -96,6 +98,52 @@ COMMAND_RESULT_whoami = {
 
 COMMAND_KWARGS_whoami = {
     "cmd_class_name": "moler.cmd.unix.whoami.Whoami",
+    "sudo_password": "pass",
+}
+
+COMMAND_OUTPUT_ls = """
+user@client:~/moler$ sudo ls -l
+[sudo] password for user:
+total 8
+drwxr-xr-x  2 root root    4096 Sep 25  2014 bin
+drwxr-xr-x  5 root root    4096 Mar 20  2015 btslog2
+-rw-r--r--  1 root root      51 Dec 15 10:48 getfzmip.txt
+-rw-r--r--  1 root root      24 Dec 15 10:48 getfzmip.txt-old.20171215-104858.txt
+lrwxrwxrwx  1 root root       4 Mar 20  2015 bcn -> /bcn
+lrwxrwxrwx  1 root root      10 Mar 20  2015 logsremote -> /mnt/logs/
+user@client:~/moler$ """
+
+COMMAND_RESULT_ls = {
+    "cmd_ret": {"total": {
+        "raw": "8",
+        "bytes": 8,
+    },
+
+        "files": {
+            "bin": {"permissions": "drwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root",
+                    "size_bytes": 4096, "size_raw": "4096", "date": "Sep 25  2014", "name": "bin", },
+            "btslog2": {"permissions": "drwxr-xr-x", "hard_links_count": 5, "owner": "root", "group": "root",
+                        "size_bytes": 4096, "size_raw": "4096", "date": "Mar 20  2015", "name": "btslog2", },
+            "getfzmip.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1, "owner": "root", "group": "root",
+                             "size_bytes": 51, "size_raw": "51", "date": "Dec 15 10:48", "name": "getfzmip.txt", },
+            "getfzmip.txt-old.20171215-104858.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1,
+                                                     "owner": "root",
+                                                     "group": "root", "size_bytes": 24, "size_raw": "24",
+                                                     "date": "Dec 15 10:48",
+                                                     "name": "getfzmip.txt-old.20171215-104858.txt", },
+            "bcn": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root",
+                    "size_bytes": 4,
+                    "size_raw": "4", "date": "Mar 20  2015", "name": "bcn", "link": "/bcn"},
+            "logsremote": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root",
+                           "size_bytes": 10, "size_raw": "10", "date": "Mar 20  2015", "name": "logsremote",
+                           "link": "/mnt/logs/"},
+        },
+    },
+}
+
+COMMAND_KWARGS_ls = {
+    "cmd_class_name": "moler.cmd.unix.ls.Ls",
+    "cmd_params": {"options": "-l"},
     "sudo_password": "pass",
 
 }
