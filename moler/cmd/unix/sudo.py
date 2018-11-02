@@ -32,7 +32,7 @@ class Sudo(GenericUnixCommand):
             params["connection"] = connection
             params['prompt'] = prompt
             params["newline_chars"] = newline_chars
-            self.cmd_object = self._create_object_from_name(cmd_class_name, params)
+            self.cmd_object = create_object_from_name(cmd_class_name, cmd_params)
         if not self.cmd_object:
             self.set_exception(CommandFailure(
                 "Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor. Please specific parameter."))
@@ -66,9 +66,6 @@ class Sudo(GenericUnixCommand):
                 self.set_exception(ex)
 
     _re_sudo_command_not_found = re.compile(r"sudo:.*command not found", re.I)
-
-    def _create_object_from_name(self, full_class_name, constructor_params):
-        create_object_from_name(full_class_name, constructor_params)
 
     def _parse_command_not_found(self, line):
         if re.search(Sudo._re_sudo_command_not_found, line):
