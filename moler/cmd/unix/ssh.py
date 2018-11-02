@@ -234,6 +234,24 @@ COMMAND_KWARGS = {
 
 COMMAND_RESULT = {}
 
+COMMAND_OUTPUT_prompt = """
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+To edit this message please edit /etc/ssh_banner
+You may put information to /etc/ssh_banner who is owner of this PC
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+host:~ #
+host:~ # export PS1="\\u$"
+user$"""
+
+COMMAND_KWARGS_prompt = {
+    "login": "user", "password": "english", "set_prompt": r'export PS1="\\u$"',
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": r"host.*#|user\$"
+}
+
+COMMAND_RESULT_prompt = {}
+
 COMMAND_OUTPUT_rm = """
 client:~/>TERM=xterm-mono ssh -p 25 -l user host.domain.net
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
