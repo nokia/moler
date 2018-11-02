@@ -9,7 +9,9 @@ __email__ = 'marcin.usielski@nokia.com'
 
 from moler.cmd.unix.sudo import Sudo
 from moler.cmd.unix.pwd import Pwd
+from moler.cmd.unix.cp import Cp
 from moler.exceptions import CommandTimeout
+from moler.exceptions import CommandFailure
 import pytest
 
 
@@ -31,6 +33,15 @@ def test_failing_with_timeout(buffer_connection, command_output_and_expected_res
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection, sudo_password="pass", cmd_object=cmd_pwd)
     with pytest.raises(CommandTimeout):
         cmd_sudo(timeout=0.1)
+
+
+def test_failing_with_embedded_command_fails(buffer_connection, command_output_cp_fails):
+    command_output = command_output_cp_fails
+    buffer_connection.remote_inject_response([command_output])
+    cmd_cp = Cp(connection=buffer_connection.moler_connection, src="src.txt", dst="dst.txt")
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, sudo_password="pass", cmd_object=cmd_cp)
+    with pytest.raises(CommandFailure):
+        cmd_sudo()
 
 
 @pytest.fixture()
@@ -59,3 +70,12 @@ def command_output_and_expected_result_timeout():
         'path_to_current': '/home/user'
     }}
     return output, result
+
+
+@pytest.fixture()
+def command_output_cp_fails():
+    output = """sudo cp src.txt dst.txt
+[sudo] password for user: 
+cp: cannot access
+ute@debdev:~/moler$ """
+    return output
