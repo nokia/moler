@@ -146,5 +146,4 @@ COMMAND_KWARGS_ls = {
     "cmd_class_name": "moler.cmd.unix.ls.Ls",
     "cmd_params": {"options": "-l"},
     "sudo_password": "pass",
-
 }
