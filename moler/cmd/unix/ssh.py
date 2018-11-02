@@ -22,7 +22,6 @@ class Ssh(GenericUnixCommand):
     _re_yes_no = re.compile(r"\(yes/no\)\?|'yes' or 'no':", re.IGNORECASE)
     _re_id_dsa = re.compile(r"id_dsa:", re.IGNORECASE)
     _re_password = re.compile(r"password:", re.IGNORECASE)
-    _re_permission_denied = re.compile(r"Permission denied, please try again", re.IGNORECASE)
     _re_failed_strings = re.compile(r"Permission denied|No route to host|ssh: Could not", re.IGNORECASE)
     _re_host_key_verification_failed = re.compile(r"Host key verification failed", re.IGNORECASE)
 
@@ -143,16 +142,13 @@ class Ssh(GenericUnixCommand):
 
     def _send_password_if_requested(self, line):
         if (not self._sent_password) and self._is_password_requested(line):
-            password = ""
+            pwd = ""
             try:
-                password = self._passwords.pop(0)
+                pwd = self._passwords.pop(0)
             except IndexError:
                 self.set_exception(CommandFailure(self, "Password was requested but no more passwords provided."))
-            self.connection.sendline(password, encrypt=self.encrypt_password)
+            self.connection.sendline(pwd, encrypt=self.encrypt_password)
             self._sent_password = True
-            raise ParsingDone()
-        elif self._sent_password and self._regex_helper.search_compiled(Ssh._re_permission_denied, line):
-            self._sent_password = False
             raise ParsingDone()
 
     def _handle_failed_host_key_verification(self):
