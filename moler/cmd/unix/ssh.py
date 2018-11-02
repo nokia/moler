@@ -256,13 +256,11 @@ You may put information to /etc/ssh_banner who is owner of this PC
 Password:
 Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
 Have a lot of fun...
-host:~ #
-host:~ # export TMOUT="2678400"
 host:~ #"""
 
 COMMAND_KWARGS_rm = {
     "login": "user", "password": "english", "known_hosts_on_failure": "rm", "port": 25,
-    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#", "set_timeout": None,
 }
 
 COMMAND_RESULT_rm = {}
