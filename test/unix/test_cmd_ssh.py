@@ -56,6 +56,17 @@ def test_ssh_failed_permission_denied(buffer_connection, command_output_permissi
         ssh_cmd()
 
 
+def test_ssh_failed_known_hosts(buffer_connection, command_output_failed_known_hosts):
+    command_output, expected_result = command_output_failed_known_hosts
+    buffer_connection.remote_inject_response([command_output])
+
+    ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
+                  host="host.domain.net", expected_prompt="host:.*#", known_hosts_on_failure='badvalue')
+    assert "TERM=xterm-mono ssh -l user host.domain.net" == ssh_cmd.command_string
+    with pytest.raises(CommandFailure):
+        ssh_cmd()
+
+
 def test_ssh_returns_proper_command_string(buffer_connection):
     ssh_cmd = Ssh(buffer_connection, login="user", password="english",
                   host="host.domain.net", expected_prompt="host:.*#")
@@ -73,14 +84,33 @@ host:~ #
 
 
 @pytest.fixture
+def command_output_failed_known_hosts():
+    data = """TERM=xterm-mono ssh -l user host.domain.net
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+It is also possible that a host key has just been changed.
+The fingerprint for the RSA key sent by the remote host is
+[...].
+Please contact your system administrator.
+Add correct host key in /home/you/.ssh/known_hosts to get rid of this message.
+Offending RSA key in /home/you/.ssh/known_hosts:86
+id_dsa:
+RSA host key for host.domain.net has changed and you have requested strict checking.
+Host key verification failed.
+client:~ #"""
+    return data, dict()
+
+
+@pytest.fixture
 def command_output_permission_denied():
     data = """TERM=xterm-mono ssh -l user host.domain.net
 Password:
 Permission denied.
-clinet:~ #
-"""
-    result = dict()
-    return data, result
+clinet:~ #"""
+    return data, dict()
 
 
 @pytest.fixture
