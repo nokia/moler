@@ -19,8 +19,7 @@ def test_calling_ssh_returns_result_parsed_from_command_output(buffer_connection
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
                   host="host.domain.net", expected_prompt="host:.*#")
     assert "TERM=xterm-mono ssh -l user host.domain.net" == ssh_cmd.command_string
-    result = ssh_cmd()
-    assert result == dict()
+    assert ssh_cmd() is not None
 
 
 def test_ssh_failed_with_multiple_passwords(buffer_connection, command_output_2_passwords):
