@@ -27,7 +27,7 @@ def test_calling_by_command_object(buffer_connection, command_output_and_expecte
 
 
 def test_failing_with_timeout(buffer_connection, command_output_and_expected_result_timeout):
-    command_output, expected_result = command_output_and_expected_result_timeout
+    command_output = command_output_and_expected_result_timeout
     buffer_connection.remote_inject_response([command_output])
     cmd_pwd = Pwd(connection=buffer_connection.moler_connection)
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection, sudo_password="pass", cmd_object=cmd_pwd)
@@ -79,12 +79,7 @@ def command_output_and_expected_result_timeout():
 [sudo] password for user: 
 /home/user/moler
 """
-    result = {"cmd_ret": {
-        'current_path': 'moler',
-        'full_path': '/home/user/moler',
-        'path_to_current': '/home/user'
-    }}
-    return output, result
+    return output
 
 
 @pytest.fixture()
