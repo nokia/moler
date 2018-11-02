@@ -45,6 +45,17 @@ def test_ssh_failed_host_key_verification(buffer_connection, command_output_fail
         ssh_cmd()
 
 
+def test_ssh_failed_permission_denied(buffer_connection, command_output_permission_denied):
+    command_output, expected_result = command_output_permission_denied
+    buffer_connection.remote_inject_response([command_output])
+
+    ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
+                  host="host.domain.net", expected_prompt="host:.*#")
+    assert "TERM=xterm-mono ssh -l user host.domain.net" == ssh_cmd.command_string
+    with pytest.raises(CommandFailure):
+        ssh_cmd()
+
+
 def test_ssh_returns_proper_command_string(buffer_connection):
     ssh_cmd = Ssh(buffer_connection, login="user", password="english",
                   host="host.domain.net", expected_prompt="host:.*#")
@@ -60,6 +71,16 @@ host:~ #
     result = dict()
     return data, result
 
+
+@pytest.fixture
+def command_output_permission_denied():
+    data = """TERM=xterm-mono ssh -l user host.domain.net
+Password:
+Permission denied.
+clinet:~ #
+"""
+    result = dict()
+    return data, result
 
 
 @pytest.fixture
