@@ -33,7 +33,6 @@ def test_failing_with_timeout(buffer_connection, command_output_and_expected_res
         cmd_sudo(timeout=0.1)
 
 
-
 @pytest.fixture()
 def command_output_and_expected_result():
     output = """user@client:~/moler$ sudo pwd
