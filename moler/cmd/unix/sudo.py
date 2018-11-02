@@ -30,15 +30,18 @@ class Sudo(GenericUnixCommand):
             params["connection"] = connection
             params['prompt'] = prompt
             params["newline_chars"] = newline_chars
+            self.cmd_object = self._create_object_from_name(cmd_class_name, params)
             # params["runner"] = runner
         if not self.cmd_object:
             self.set_exception(CommandFailure("Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor. Please specific parameter."))
 
     def build_command_string(self):
         cmd = "sudo {}".format(self.cmd_object.command_string)
+        print ("command string: '{}'".format(cmd))
         return cmd
 
     def on_new_line(self, line, is_full_line):
+        print ("Line {}: '{}'".format(is_full_line, line))
         try:
             self._parse_sudo_password(line)
             self._parse_command_not_found(line)
@@ -56,20 +59,17 @@ class Sudo(GenericUnixCommand):
             line = "{}{}".format(line, self.newline_seq)
         self.cmd_object.data_received(line)
         self.current_ret["cmd_ret"] = self.cmd_object.current_ret
-        if self.cmd_object.done():
-            self.cmd_object.
-
 
     _re_sudo_command_not_found = re.compile(r"sudo:.*command not found", re.I)
 
-    def _create_object_from_name(self, full_class_name, **kwargs):
+    def _create_object_from_name(self, full_class_name, constructor_params):
         name_splitted = full_class_name.split('.')
         module_name = ".".join(name_splitted[:-1])
         class_name = name_splitted[-1]
 
         imported_module = importlib.import_module(module_name)
         class_imported = getattr(imported_module, class_name)
-        obj = class_imported(connection=self.connection, **kwargs)
+        obj = class_imported(constructor_params)
         return obj
 
     def _parse_command_not_found(self, line):
@@ -85,3 +85,20 @@ class Sudo(GenericUnixCommand):
                 self.connection.sendline(self.sudo_password)
                 self._sent_sudo_password = True
             raise ParsingDone()
+
+
+COMMAND_OUTPUT_whoami = """
+user@client:~/moler$ sudo whoami
+[sudo] password for user: 
+root
+ute@debdev:~/moler$ """
+
+COMMAND_RESULT_whoami = {
+    "cmd_ret": {"USER": "root"}
+}
+
+COMMAND_KWARGS_whoami = {
+    "cmd_class_name": "moler.cmd.unix.whoami.Whoami",
+    "sudo_password": "pass",
+
+}
