@@ -18,7 +18,7 @@ from moler.exceptions import ParsingDone
 
 class Ssh(GenericUnixCommand):
     # Compiled regexp
-    _re_host_key = re.compile(r"Add correct host key in (\S+) to get rid of this message", re.IGNORECASE)
+    _re_host_key = re.compile(r"Add correct host key in (?P<HOSTS_FILE>\S+) to get rid of this message", re.IGNORECASE)
     _re_yes_no = re.compile(r"\(yes/no\)\?|'yes' or 'no':", re.IGNORECASE)
     _re_id_dsa = re.compile(r"id_dsa:", re.IGNORECASE)
     _re_password = re.compile(r"password:", re.IGNORECASE)
@@ -131,7 +131,7 @@ class Ssh(GenericUnixCommand):
 
     def _get_hosts_file_if_displayed(self, line):
         if (self.known_hosts_on_failure is not None) and self._regex_helper.search_compiled(Ssh._re_host_key, line):
-            self._hosts_file = self._regex_helper.group(1)
+            self._hosts_file = self._regex_helper.group("HOSTS_FILE")
             raise ParsingDone()
 
     def _push_yes_if_needed(self, line):
