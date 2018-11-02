@@ -34,7 +34,7 @@ class Sudo(GenericUnixCommand):
             self.cmd_object = create_object_from_name(cmd_class_name, cmd_params)
         if not self.cmd_object:
             self.set_exception(CommandFailure(self,
-                "Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor. Please specific parameter."))
+                                              "Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor. Please specific parameter."))
 
     def build_command_string(self):
         cmd = "sudo"
