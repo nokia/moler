@@ -35,6 +35,15 @@ def test_failing_with_timeout(buffer_connection, command_output_and_expected_res
         cmd_sudo(timeout=0.1)
 
 
+def test_command_not_found(buffer_connection, command_output_command_not_found):
+    command_output = command_output_command_not_found
+    buffer_connection.remote_inject_response([command_output])
+    cmd_pwd = Pwd(connection=buffer_connection.moler_connection)
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, sudo_password="pass", cmd_object=cmd_pwd)
+    with pytest.raises(CommandFailure):
+        cmd_sudo()
+
+
 def test_no_parameters(buffer_connection):
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection, sudo_password="pass")
     with pytest.raises(CommandFailure):
@@ -83,5 +92,14 @@ def command_output_cp_fails():
     output = """sudo cp src.txt dst.txt
 [sudo] password for user: 
 cp: cannot access
+ute@debdev:~/moler$ """
+    return output
+
+
+@pytest.fixture()
+def command_output_command_not_found():
+    output = """sudo pwd
+[sudo] password for ute: 
+sudo: pwd: command not found
 ute@debdev:~/moler$ """
     return output
