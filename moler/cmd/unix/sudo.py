@@ -31,17 +31,14 @@ class Sudo(GenericUnixCommand):
             params['prompt'] = prompt
             params["newline_chars"] = newline_chars
             self.cmd_object = self._create_object_from_name(cmd_class_name, params)
-            # params["runner"] = runner
         if not self.cmd_object:
             self.set_exception(CommandFailure("Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor. Please specific parameter."))
 
     def build_command_string(self):
         cmd = "sudo {}".format(self.cmd_object.command_string)
-        print ("command string: '{}'".format(cmd))
         return cmd
 
     def on_new_line(self, line, is_full_line):
-        print ("Line {}: '{}'".format(is_full_line, line))
         try:
             self._parse_sudo_password(line)
             self._parse_command_not_found(line)
