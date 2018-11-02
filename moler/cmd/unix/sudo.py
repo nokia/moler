@@ -86,7 +86,7 @@ class Sudo(GenericUnixCommand):
 
 COMMAND_OUTPUT_whoami = """
 user@client:~/moler$ sudo whoami
-[sudo] password for user: 
+[sudo] password for user:
 root
 ute@debdev:~/moler$ """
 
