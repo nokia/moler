@@ -33,11 +33,13 @@ class Sudo(GenericUnixCommand):
             params["newline_chars"] = newline_chars
             self.cmd_object = create_object_from_name(cmd_class_name, cmd_params)
         if not self.cmd_object:
-            self.set_exception(CommandFailure(
+            self.set_exception(CommandFailure(self,
                 "Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor. Please specific parameter."))
 
     def build_command_string(self):
-        cmd = "sudo {}".format(self.cmd_object.command_string)
+        cmd = "sudo"
+        if self.cmd_object:
+            cmd = "sudo {}".format(self.cmd_object.command_string)
         return cmd
 
     def on_new_line(self, line, is_full_line):
