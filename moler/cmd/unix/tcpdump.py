@@ -3,9 +3,9 @@
 Tcpdump command module.
 """
 
-__author__ = 'Julia Patacz'
+__author__ = 'Julia Patacz, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'julia.patacz@nokia.com'
+__email__ = 'julia.patacz@nokia.com, michal.ernst@nokia.com'
 
 import re
 
@@ -15,11 +15,11 @@ from moler.exceptions import ParsingDone
 
 class Tcpdump(GenericUnixCommand):
 
-    def __init__(self, connection, options=None, prompt=None, new_line_chars=None):
-        super(Tcpdump, self).__init__(connection, prompt, new_line_chars)
+    def __init__(self, connection, options=None, prompt=None, newline_chars=None, runner=None):
+        super(Tcpdump, self).__init__(connection, prompt, newline_chars, runner)
         # Parameters defined by calling the command
         self.options = options
-        self.pckts_counter = 0
+        self.packets_counter = 0
 
         self.ret_required = False
 
@@ -60,12 +60,12 @@ class Tcpdump(GenericUnixCommand):
 
     def _parse_timestamp_src_dst_details(self, line):
         if self._regex_helper.search_compiled(Tcpdump._re_timestamp_src_dst_details, line):
-            self.pckts_counter += 1
-            self.current_ret[str(self.pckts_counter)] = {}
-            self.current_ret[str(self.pckts_counter)]['timestamp'] = self._regex_helper.group("TIMESTAMP")
-            self.current_ret[str(self.pckts_counter)]['source'] = self._regex_helper.group("SRC")
-            self.current_ret[str(self.pckts_counter)]['destination'] = self._regex_helper.group("DEST")
-            self.current_ret[str(self.pckts_counter)]['details'] = self._regex_helper.group("DETAILS")
+            self.packets_counter += 1
+            self.current_ret[str(self.packets_counter)] = {}
+            self.current_ret[str(self.packets_counter)]['timestamp'] = self._regex_helper.group("TIMESTAMP")
+            self.current_ret[str(self.packets_counter)]['source'] = self._regex_helper.group("SRC")
+            self.current_ret[str(self.packets_counter)]['destination'] = self._regex_helper.group("DEST")
+            self.current_ret[str(self.packets_counter)]['details'] = self._regex_helper.group("DETAILS")
             raise ParsingDone
 
     # 13:31:33.176710 IP (tos 0xc0, ttl 64, id 4236, offset 0, flags [DF], proto UDP (17), length 76)
@@ -75,16 +75,16 @@ class Tcpdump(GenericUnixCommand):
 
     def _parse_timestamp_tos_ttl_id_offset_flags_proto_length(self, line):
         if self._regex_helper.search_compiled(Tcpdump._re_timestamp_tos_ttl_id_offset_flags_proto_length, line):
-            self.pckts_counter += 1
-            self.current_ret[str(self.pckts_counter)] = {}
-            self.current_ret[str(self.pckts_counter)]['timestamp'] = self._regex_helper.group("TIMESTAMP")
-            self.current_ret[str(self.pckts_counter)]['tos'] = self._regex_helper.group("TOS")
-            self.current_ret[str(self.pckts_counter)]['ttl'] = self._regex_helper.group("TTL")
-            self.current_ret[str(self.pckts_counter)]['id'] = self._regex_helper.group("ID")
-            self.current_ret[str(self.pckts_counter)]['offset'] = self._regex_helper.group("OFFSET")
-            self.current_ret[str(self.pckts_counter)]['flags'] = self._regex_helper.group("FLAGS")
-            self.current_ret[str(self.pckts_counter)]['proto'] = self._regex_helper.group("PROTO")
-            self.current_ret[str(self.pckts_counter)]['length'] = self._regex_helper.group("LENGTH")
+            self.packets_counter += 1
+            self.current_ret[str(self.packets_counter)] = {}
+            self.current_ret[str(self.packets_counter)]['timestamp'] = self._regex_helper.group("TIMESTAMP")
+            self.current_ret[str(self.packets_counter)]['tos'] = self._regex_helper.group("TOS")
+            self.current_ret[str(self.packets_counter)]['ttl'] = self._regex_helper.group("TTL")
+            self.current_ret[str(self.packets_counter)]['id'] = self._regex_helper.group("ID")
+            self.current_ret[str(self.packets_counter)]['offset'] = self._regex_helper.group("OFFSET")
+            self.current_ret[str(self.packets_counter)]['flags'] = self._regex_helper.group("FLAGS")
+            self.current_ret[str(self.packets_counter)]['proto'] = self._regex_helper.group("PROTO")
+            self.current_ret[str(self.packets_counter)]['length'] = self._regex_helper.group("LENGTH")
             raise ParsingDone
 
     # debdev.ntp > ntp.wdc1.us.leaseweb.net.ntp: [bad udp cksum 0x7aab -> 0x9cd3!] NTPv4, length 48
@@ -92,9 +92,9 @@ class Tcpdump(GenericUnixCommand):
 
     def _parse_src_dst_details(self, line):
         if self._regex_helper.search_compiled(Tcpdump._re_src_dst_details, line):
-            self.current_ret[str(self.pckts_counter)]['source'] = self._regex_helper.group("SRC")
-            self.current_ret[str(self.pckts_counter)]['destination'] = self._regex_helper.group("DST")
-            self.current_ret[str(self.pckts_counter)]['details'] = self._regex_helper.group("DETAILS")
+            self.current_ret[str(self.packets_counter)]['source'] = self._regex_helper.group("SRC")
+            self.current_ret[str(self.packets_counter)]['destination'] = self._regex_helper.group("DST")
+            self.current_ret[str(self.packets_counter)]['details'] = self._regex_helper.group("DETAILS")
             raise ParsingDone
 
     # Root Delay: 0.000000, Root dispersion: 1.031906, Reference-ID: (unspec)
@@ -103,11 +103,11 @@ class Tcpdump(GenericUnixCommand):
 
     def _parse_root_delay_root_dipersion_ref_id(self, line):
         if self._regex_helper.search_compiled(Tcpdump._re_root_delay_root_dispersion_ref_id, line):
-            self.current_ret[str(self.pckts_counter)][self._regex_helper.group("ROOT")] = self._regex_helper.group(
+            self.current_ret[str(self.packets_counter)][self._regex_helper.group("ROOT")] = self._regex_helper.group(
                 "DELAY")
-            self.current_ret[str(self.pckts_counter)][self._regex_helper.group("ROOT_2")] = self._regex_helper.group(
+            self.current_ret[str(self.packets_counter)][self._regex_helper.group("ROOT_2")] = self._regex_helper.group(
                 "DISPERSION")
-            self.current_ret[str(self.pckts_counter)][self._regex_helper.group("REF")] = self._regex_helper.group("ID")
+            self.current_ret[str(self.packets_counter)][self._regex_helper.group("REF")] = self._regex_helper.group("ID")
             raise ParsingDone
 
     # Reference Timestamp:  0.000000000
@@ -115,7 +115,7 @@ class Tcpdump(GenericUnixCommand):
 
     def _parse_header_timestamp_details(self, line):
         if self._regex_helper.search_compiled(Tcpdump._re_timestamp_header_details, line):
-            self.current_ret[str(self.pckts_counter)][
+            self.current_ret[str(self.packets_counter)][
                 self._regex_helper.group("TIMESTAMP_HEADER")] = self._regex_helper.group("DETAILS")
             raise ParsingDone
 
