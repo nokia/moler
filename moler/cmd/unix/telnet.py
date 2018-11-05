@@ -29,7 +29,7 @@ class Telnet(GenericUnixCommand):
     def __init__(self, connection, host, login=None, password=None, port=0, prompt=None, expected_prompt=r'^>\s*',
                  set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono="TERM=xterm-mono", prefix=None,
                  newline_chars=None, cmds_before_establish_connection=[], cmds_after_establish_connection=[],
-                 telnet_prompt=r"^\s*telnet>\s*", encrypt_password=True, runner=None, target_newline="\n"):
+                 telnet_prompt=r"^\s*telnet>\s*", encrypt_password=True, runner=None, target_newline="\r\n"):
         super(Telnet, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
         # Parameters defined by calling the command
@@ -177,14 +177,14 @@ class Telnet(GenericUnixCommand):
         return self.set_timeout and not self._sent_timeout
 
     def _send_timeout_set(self):
-        self.connection.sendline("\n" + self.set_timeout)
+        self.connection.sendline("{}{}".format(self.target_newline, self.set_timeout))
         self._sent_timeout = True
 
     def _prompt_set_needed(self):
         return self.set_prompt and not self._sent_prompt
 
     def _send_prompt_set(self):
-        self.connection.sendline("\n" + self.set_prompt)
+        self.connection.sendline("{}{}".format(self.target_newline, self.set_prompt))
         self._sent_prompt = True
 
     def is_failure_indication(self, line):
