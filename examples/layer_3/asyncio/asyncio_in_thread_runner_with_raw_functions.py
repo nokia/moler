@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-asyncio_runner_with_raw_functions.py
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+asyncio_in_thread_runner_with_raw_functions.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A fully-functional connection-observer using configured concurrency variant.
 
@@ -39,6 +39,7 @@ import time
 import asyncio
 
 from moler.connection import get_connection
+from moler.exceptions import ConnectionObserverTimeout
 from moler.runner_factory import get_runner
 from moler.asyncio_runner import AsyncioInThreadRunner
 
@@ -55,10 +56,6 @@ def ping_observing_task(ext_io_connection, ping_ip):
     Here external-IO connection is abstract - we don't know its type.
     What we know is just that it has .moler_connection attribute.
     """
-    # asyncio's policy:
-    # You must create an event loop explicitly for each thread
-    asyncio.set_event_loop(asyncio.new_event_loop())
-
     logger = logging.getLogger('moler.user.app-code')
     conn_addr = str(ext_io_connection)
 
@@ -80,18 +77,22 @@ def ping_observing_task(ext_io_connection, ping_ip):
 
     with ext_io_connection:
         # 5. await that observer to complete
-        net_down_time = net_down_detector.await_done(timeout=10)
-        timestamp = time.strftime("%H:%M:%S", time.localtime(net_down_time))
-        logger.debug('Network {} is down from {}'.format(ping_ip, timestamp))
+        try:
+            net_down_time = net_down_detector.await_done(timeout=10)  # =2 --> TimeoutError
+            timestamp = time.strftime("%H:%M:%S", time.localtime(net_down_time))
+            logger.debug('Network {} is down from {}'.format(ping_ip, timestamp))
+        except ConnectionObserverTimeout:
+            logger.debug('Network down detector timed out')
 
         # 6. call next observer (blocking till completes)
         info = '{} on {} using {}'.format(ping_ip, conn_addr, net_up_detector)
         logger.debug('observe ' + info)
         # using as synchronous function (so we want verb to express action)
         detect_network_up = net_up_detector
-        net_up_time = detect_network_up()
+        net_up_time = detect_network_up()  # if you want timeout - see code above
         timestamp = time.strftime("%H:%M:%S", time.localtime(net_up_time))
         logger.debug('Network {} is back "up" from {}'.format(ping_ip, timestamp))
+    logger.debug('exiting ping_observing_task({})'.format(ping_ip))
 
 
 # ==============================================================================
@@ -108,10 +109,9 @@ def main(connections2observe4ip):
         # Another words, all we want here is stg like:
         # "give me connection to main_dns_server"
         # ------------------------------------------------------------------
-        tcp_connection = get_connection(name=connection_name)
         # con_logger = logging.getLogger('tcp-async_in_thrd-io.{}'.format(connection_name))
         # tcp_connection = get_connection(name=connection_name, variant='asyncio-in-thread', logger=con_logger)
-        tcp_connection.moler_connection.name = connection_name
+        tcp_connection = get_connection(name=connection_name)
         client_thread = threading.Thread(target=ping_observing_task,
                                          args=(tcp_connection, ping_ip))
         client_thread.start()
