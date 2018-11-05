@@ -13,8 +13,8 @@ from moler.cmd.unix.genericunix import GenericUnixCommand
 
 class Bash(GenericUnixCommand):
 
-    def __init__(self, connection, prompt=None, new_line_chars=None, bash="TERM=xterm-mono bash"):
-        super(Bash, self).__init__(connection, prompt, new_line_chars)
+    def __init__(self, connection, prompt=None, newline_chars=None, runner=None, bash="TERM=xterm-mono bash"):
+        super(Bash, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.bash = bash
         self.ret_required = False
 

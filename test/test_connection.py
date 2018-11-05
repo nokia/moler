@@ -333,6 +333,30 @@ def test_notified_observer_may_stop_subscription_of_data_comming_from_external_i
     assert b"data 2" not in moler_received_data  # because of unsubscription during notification
 
 
+def test_exception_in_observer_doesnt_break_connection_nor_other_observers(buffer_transport_class):
+    from moler.connection import ObservableConnection
+
+    moler_conn = ObservableConnection()
+    moler_received_data = []
+
+    def failing_observer(data):
+        raise Exception("Fail inside observer")
+
+    def one_time_observer(data):
+        moler_received_data.append(data)
+        moler_conn.unsubscribe(one_time_observer)
+
+    moler_conn.subscribe(failing_observer)
+    moler_conn.subscribe(one_time_observer)
+
+    used_io = buffer_transport_class(moler_connection=moler_conn)  # external-IO internally sets .how2send
+    used_io.write(input_bytes=b"data 1")  # inject to buffer for next line read
+    used_io.read()
+    moler_conn.unsubscribe(failing_observer)
+
+    assert b"data 1" in moler_received_data
+
+
 def test_repeated_unsubscription_does_nothing_but_logs_warning(buffer_transport_class):
     """
     Because of possible different concurrency models (and their races)
@@ -393,7 +417,6 @@ def test_single_unsubscription_doesnt_impact_other_subscribers():
     callable2 = TheCallableClass()
 
     moler_conn = ObservableConnection()
-    print("---")
     moler_conn.subscribe(observer1.on_new_data)
     moler_conn.subscribe(observer2.on_new_data)
     moler_conn.subscribe(observer2.on_new_data)

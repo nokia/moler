@@ -98,7 +98,7 @@ def test_can_select_connection_loaded_from_config_file(moler_config):
     from moler.connection import get_connection
 
     conn_config = os.path.join(os.path.dirname(__file__), "resources", "www_servers_connections.yml")
-    moler_config.load_config(path=conn_config, config_type='yaml')
+    moler_config.load_config(config=conn_config, config_type='yaml')
 
     conn = get_connection(name='www_server_1')
     assert conn.__module__ == 'moler.io.raw.tcp'
@@ -119,6 +119,22 @@ def test_can_select_connection_loaded_from_env_variable(moler_config, monkeypatc
     assert conn.__class__.__name__ == 'ThreadedTcp'
     assert conn.host == 'localhost'
     assert conn.port == 2345
+
+
+def test_can_select_connection_loaded_from_dict(moler_config):
+    from moler.connection import get_connection
+
+    configuration_in_dict = {'NAMED_CONNECTIONS':
+                                 {'www_server_1': {'io_type': 'tcp', 'host': 'localhost', 'port': 2344}},
+                             'IO_TYPES':
+                                 {'default_variant': {'tcp': 'threaded'}}}
+    moler_config.load_config(config=configuration_in_dict, config_type='dict')
+
+    conn = get_connection(name='www_server_1')
+    assert conn.__module__ == 'moler.io.raw.tcp'
+    assert conn.__class__.__name__ == 'ThreadedTcp'
+    assert conn.host == 'localhost'
+    assert conn.port == 2344
 
 
 def test_load_config_checks_env_variable_existence(moler_config):

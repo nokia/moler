@@ -10,7 +10,7 @@ __email__ = 'grzegorz.latuszek@nokia.com', 'michal.ernst@nokia.com', 'michal.pli
 from argparse import ArgumentParser
 from importlib import import_module
 from os import walk, sep
-from os.path import abspath, join, dirname, relpath, exists
+from os.path import abspath, join, relpath, exists
 from pprint import pformat
 
 from moler.command import Command
@@ -49,8 +49,9 @@ def _walk_moler_python_files(path):
     :type path:
     :rtype: str
     """
-    repo_path = abspath(join(dirname(__file__), '../..'))
-    path = join(__file__.partition('moler/util/cmds_doc.py')[0], path)
+    repo_path = abspath(join(path, '..', '..'))
+    print("Processing commands test from path: '{}'".format(repo_path))
+
     for (dirpath, _, filenames) in walk(path):
         for filename in filenames:
             if filename.endswith('__init__.py'):
@@ -187,7 +188,9 @@ def check_if_documentation_exists(path2cmds):
     wrong_commands = {}
     errors_found = []
     print()
+    number_of_command_found = 0
     for moler_module, moler_class in _walk_moler_nonabstract_commands(path=path2cmds):
+        number_of_command_found += 1
         print("processing: {}".format(moler_class))
 
         test_data = _retrieve_command_documentation(moler_module)
@@ -231,7 +234,11 @@ def check_if_documentation_exists(path2cmds):
         err_msg = "{}\n    {}".format(msg, "\n    ".join(wrong_commands.keys()))
         print(err_msg)
         return False
-    print("All processed commands have correct documentation")
+    if number_of_command_found == 0:
+        err_msg = "No tests run! Not found any command to test in path: '{}'!".format(path2cmds)
+        print(err_msg)
+        return False
+    print("All of {} processed commands have correct documentation".format(number_of_command_found))
     return True
 
 

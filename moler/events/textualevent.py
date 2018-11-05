@@ -8,12 +8,12 @@ from moler.event import Event
 
 
 class TextualEvent(Event):
-    _default_new_line_chars = ("\n", "\r")  # New line chars on device, not system with script!
+    _default_newline_chars = ("\n", "\r")  # New line chars on device, not system with script!
 
     def __init__(self, connection=None, till_occurs_times=-1):
         super(TextualEvent, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
         self._last_not_full_line = None
-        self._new_line_chars = TextualEvent._default_new_line_chars
+        self._newline_chars = TextualEvent._default_newline_chars
 
     def event_occurred(self, event_data):
         self._consume_already_parsed_fragment()
@@ -53,7 +53,7 @@ class TextualEvent(Event):
         :param line: String to check
         :return: True if any new line char was found, False otherwise
         """
-        if line.endswith(self._new_line_chars):
+        if line.endswith(self._newline_chars):
             return True
         return False
 
@@ -62,7 +62,7 @@ class TextualEvent(Event):
         :param line: line from device
         :return: line without new lines chars
         """
-        for char in self._new_line_chars:
+        for char in self._newline_chars:
             line = line.rstrip(char)
         return line
 

@@ -13,8 +13,8 @@ from moler.cmd.unix.genericunix import GenericUnixCommand
 
 class Enter(GenericUnixCommand):
 
-    def __init__(self, connection, prompt=None, new_line_chars=None):
-        super(Enter, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
+    def __init__(self, connection, prompt=None, newline_chars=None, runner=None):
+        super(Enter, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.ret_required = False
 
     def build_command_string(self):

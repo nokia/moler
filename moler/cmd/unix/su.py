@@ -3,9 +3,9 @@
 Su command module.
 """
 
-__author__ = 'Agnieszka Bylica'
+__author__ = 'Agnieszka Bylica, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'agnieszka.bylica@nokia.com'
+__email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com'
 
 import re
 
@@ -18,8 +18,8 @@ from moler.exceptions import ParsingDone
 class Su(GenericUnixCommand):
 
     def __init__(self, connection, user=None, options=None, password=None, prompt=None, expected_prompt=None,
-                 new_line_chars=None):
-        super(Su, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
+                 newline_chars=None, encrypt_password=True, runner=None):
+        super(Su, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
         # Parameters defined by calling the command
         self.expected_prompt = expected_prompt
@@ -27,6 +27,7 @@ class Su(GenericUnixCommand):
         self.user = user
         self.options = options
         self.password = password
+        self.encrypt_password = encrypt_password
 
         # Internal variables
         self._password_sent = False
@@ -41,17 +42,18 @@ class Su(GenericUnixCommand):
         return cmd
 
     def on_new_line(self, line, is_full_line):
-        if is_full_line:
-            try:
+        try:
+            self._send_password_if_requested(line)
+            if is_full_line:
                 self._command_failure(line)
                 self._authentication_failure(line)
-                self._send_password_if_requested(line)
                 self._parse(line)
-            except ParsingDone:
-                pass
-        elif self._is_prompt(line):
-            if not self.done():
-                self.set_result({})
+            elif self._is_prompt(line):
+                if not self.done():
+                    self.set_result({})
+        except ParsingDone:
+            pass
+
         return super(Su, self).on_new_line(line, is_full_line)
 
     _re_authentication_fail = re.compile(r"su:\sAuthentication\sfailure(?P<AUTH>.*)"
@@ -90,7 +92,7 @@ class Su(GenericUnixCommand):
 
     def _send_password_if_requested(self, line):
         if (not self._password_sent) and self._is_password_requested(line) and self.password:
-            self.connection.sendline(self.password)
+            self.connection.sendline(self.password, encrypt=self.encrypt_password)
             self._password_sent = True
             raise ParsingDone
         elif (not self._password_sent) and self._is_password_requested(line) and (not self.password):

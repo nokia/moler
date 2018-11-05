@@ -13,8 +13,8 @@ from moler.exceptions import ParsingDone
 
 
 class Chmod(GenericUnixCommand):
-    def __init__(self, connection, permission, filename, options=None, prompt=None, new_line_chars=None):
-        super(Chmod, self).__init__(connection, prompt=prompt, new_line_chars=new_line_chars)
+    def __init__(self, connection, permission, filename, options=None, prompt=None, newline_chars=None, runner=None):
+        super(Chmod, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.permission = permission
         self.filename = filename
         self.options = options

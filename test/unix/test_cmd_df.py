@@ -9,9 +9,9 @@ __email__ = 'yeshu.yang@nokia.com'
 
 import pytest
 
-def test_calling_df_returns_result(buffer_connection):
+def test_calling_df_returns_result(buffer_connection, command_output_and_expected_result):
     from moler.cmd.unix.df import Df
-    command_output, expected_result = command_output_and_expected_result()
+    command_output, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
     df_cmd = Df(connection=buffer_connection.moler_connection)
     result = df_cmd()

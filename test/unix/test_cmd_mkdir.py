@@ -16,11 +16,11 @@ def test_mkdir_returns_proper_command_string(buffer_connection):
     assert "mkdir /home/ute/test" == mkdir_cmd.command_string
 
 
-def test_mkdir_raise_exception_wrong_path(buffer_connection):
-    command_output, expected_result = command_output_and_expected_result()
+def test_mkdir_raise_exception_wrong_path(buffer_connection, command_output_and_expected_result):
+    command_output, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
     mkdir_cmd = Mkdir(connection=buffer_connection.moler_connection, path="/home/test/test")
-    with pytest.raises(CommandFailure, match=r'Command failed \'mkdir /home/test/test\' with command failed in line \'mkdir: cannot create directory /home/test/test: No such file or directory\''):
+    with pytest.raises(CommandFailure):
         mkdir_cmd()
 
 

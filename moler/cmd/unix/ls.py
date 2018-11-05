@@ -10,7 +10,7 @@ __email__ = 'marcin.usielski@nokia.com'
 import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
-from moler.cmd.converterhelper import ConverterHelper
+from moler.util.converterhelper import ConverterHelper
 from moler.exceptions import ResultNotAvailableYet
 
 
@@ -20,8 +20,8 @@ class Ls(GenericUnixCommand):
     _re_long = re.compile(r"([\w-]{10})\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S.*\S)\s+(\S+)\s*$")
     _re_long_links = re.compile(r"([\w-]{10})\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S.*\S)\s+(\S+)\s+->\s+(\S+)\s*$")
 
-    def __init__(self, connection, prompt=None, new_line_chars=None, options=None):
-        super(Ls, self).__init__(connection, prompt, new_line_chars)
+    def __init__(self, connection, prompt=None, newline_chars=None, options=None, runner=None):
+        super(Ls, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self._converter_helper = ConverterHelper()
         # Parameters defined by calling the command
         self.options = options

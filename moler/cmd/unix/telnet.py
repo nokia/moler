@@ -24,13 +24,13 @@ class Telnet(GenericUnixCommand):
         r"Permission denied|closed by foreign host|telnet:.*Name or service not known|"
         "is not a typo you can use command-not-found to lookup the package|command not found",
         re.IGNORECASE)
-    _re_has_just_connected = re.compile(r"/has just connected|\{bash_history,ssh\}|Escape character is", re.IGNORECASE)
+    _re_has_just_connected = re.compile(r"has just connected|\{bash_history,ssh\}|Escape character is", re.IGNORECASE)
 
     def __init__(self, connection, host, login=None, password=None, port=0, prompt=None, expected_prompt=r'^>\s*',
                  set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono="TERM=xterm-mono", prefix=None,
-                 new_line_chars=None, cmds_before_establish_connection=[], cmds_after_establish_connection=[],
-                 telnet_prompt=r"^\s*telnet>\s*"):
-        super(Telnet, self).__init__(connection=connection, prompt=prompt, new_line_chars=new_line_chars)
+                 newline_chars=None, cmds_before_establish_connection=[], cmds_after_establish_connection=[],
+                 telnet_prompt=r"^\s*telnet>\s*", encrypt_password=True, runner=None, target_newline="\r\n"):
+        super(Telnet, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
         # Parameters defined by calling the command
         self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(expected_prompt)  # Expected prompt on device
@@ -43,8 +43,10 @@ class Telnet(GenericUnixCommand):
         self.set_prompt = set_prompt
         self.term_mono = term_mono
         self.prefix = prefix
+        self.encrypt_password = encrypt_password
         self.cmds_before_establish_connection = copy.deepcopy(cmds_before_establish_connection)
         self.cmds_after_establish_connection = copy.deepcopy(cmds_after_establish_connection)
+        self.target_newline = target_newline
 
         # Internal variables
         self._sent_timeout = False
@@ -56,17 +58,17 @@ class Telnet(GenericUnixCommand):
     def build_command_string(self):
         cmd = ""
         if self.term_mono:
-            cmd = self.term_mono + " "
-        cmd = cmd + "telnet"
+            cmd = "{} ".format(self.term_mono)
+        cmd = "{}telnet".format(cmd)
         if self.prefix:
-            cmd = cmd + " " + self.prefix
+            cmd = "{} {}".format(cmd, self.prefix)
         host_port_cmd = self.host
         if self.port:
-            host_port_cmd = host_port_cmd + " " + str(self.port)
+            host_port_cmd = "{} {}".format(host_port_cmd, self.port)
         if 0 == len(self.cmds_before_establish_connection):
-            cmd = cmd + " " + host_port_cmd
+            cmd = "{} {}".format(cmd, host_port_cmd)
         else:
-            self.cmds_before_establish_connection.append("open " + host_port_cmd)
+            self.cmds_before_establish_connection.append("open {}".format(host_port_cmd))
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -98,7 +100,7 @@ class Telnet(GenericUnixCommand):
 
     def _just_connected(self, line):
         if self._regex_helper.search_compiled(Telnet._re_has_just_connected, line):
-            self.connection.sendline("")
+            self.connection.send(self.target_newline)
             raise ParsingDone()
 
     def _send_telnet_commands(self, line, is_full_line, commands):
@@ -117,7 +119,7 @@ class Telnet(GenericUnixCommand):
     def _send_commands_after_establish_connection_if_requested(self, line, is_full_line):
         if self._telnet_command_mode:
             if self._send_telnet_commands(line, is_full_line, self.cmds_after_establish_connection):
-                self.connection.sendline("")
+                self.connection.send(self.target_newline)
                 self._telnet_command_mode = False
                 raise ParsingDone()
 
@@ -128,14 +130,14 @@ class Telnet(GenericUnixCommand):
 
     def _send_login_if_requested(self, line):
         if (not self._sent_login) and self._is_login_requested(line) and self.login:
-            self.connection.sendline(self.login)
+            self.connection.send("{}{}".format(self.login, self.target_newline))
             self._sent_login = True
             self._sent_password = False
             raise ParsingDone()
 
     def _send_password_if_requested(self, line):
         if (not self._sent_password) and self._is_password_requested(line) and self.password:
-            self.connection.sendline(self.password)
+            self.connection.send("{}{}".format(self.password, self.target_newline), encrypt=self.encrypt_password)
             self._sent_login = False
             self._sent_password = True
             raise ParsingDone()
@@ -175,14 +177,14 @@ class Telnet(GenericUnixCommand):
         return self.set_timeout and not self._sent_timeout
 
     def _send_timeout_set(self):
-        self.connection.sendline("\n" + self.set_timeout)
+        self.connection.sendline("{}{}".format(self.target_newline, self.set_timeout))
         self._sent_timeout = True
 
     def _prompt_set_needed(self):
         return self.set_prompt and not self._sent_prompt
 
     def _send_prompt_set(self):
-        self.connection.sendline("\n" + self.set_prompt)
+        self.connection.sendline("{}{}".format(self.target_newline, self.set_prompt))
         self._sent_prompt = True
 
     def is_failure_indication(self, line):
@@ -205,6 +207,7 @@ Login:user
 Password:
 Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
 Have a lot of fun...
+CLIENT5 [] has just connected!
 host:~ #
 export TMOUT="2678400",
 host:~ #"""
@@ -238,3 +241,39 @@ COMMAND_KWARGS_prompt = {
 }
 
 COMMAND_RESULT_prompt = {}
+
+
+COMMAND_OUTPUT_no_settings = """
+user@host01:~> TERM=xterm-mono telnet host.domain.net 1500
+Login:
+Login:user
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+CLIENT5 [] has just connected!
+host:~ #"""
+
+COMMAND_KWARGS_no_settings = {
+    "login": "user", "password": "english", "port": "1500", 'set_timeout': None,
+    "host": "host.domain.net", "expected_prompt": "host:.*#",
+}
+
+COMMAND_RESULT_no_settings = {}
+
+
+COMMAND_OUTPUT_prefix = """
+user@host01:~> TERM=xterm-mono telnet -4 host.domain.net 1500
+Login:
+Login:user
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+CLIENT5 [] has just connected!
+host:~ #"""
+
+COMMAND_KWARGS_prefix = {
+    "login": "user", "password": "english", "port": "1500", 'set_timeout': None,
+    "host": "host.domain.net", "expected_prompt": "host:.*#", 'prefix': "-4",
+}
+
+COMMAND_RESULT_prefix = {}

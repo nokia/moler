@@ -17,7 +17,7 @@ def test_at_cmd_completes_cmd_output_received_in_chunks(buffer_connection, at_cm
     chunks = ["at+cimi\n", "\n\n", "4434", "55\n", "OK\n"]
     buffer_connection.remote_inject_response(chunks)
     at_cmd = at_cmd_test_class(connection=buffer_connection.moler_connection)
-    at_cmd(timeout=0.1)
+    at_cmd(timeout=2)
 
     assert at_cmd.command_output == "".join(chunks)
 
@@ -39,13 +39,14 @@ def test_at_cmd_string_extended_with_operation_sign_when_instantiated_in_no_defa
     assert at_cmd_test_class(operation=cmd_mode).command_string == expected_cmd_string
 
 
-def test_at_cmd_string_extended_with_params_when_additional_kwargs_in_execute_mode_provided():
+def test_at_cmd_string_extended_with_params_when_additional_params_in_execute_mode_provided():
     from moler.cmd.at.at import AtCmd
 
     class AtCmdWithArgs(AtCmd):
-        def __init__(self, connection=None, operation="execute", context_id=None, option=None):
+        def __init__(self, connection=None, operation="execute", context_id=None, option=None, action=None):
             super(AtCmdWithArgs, self).__init__(connection, operation)
-            self.set_at_command_string(command_base_string="AT+CMD", context_id=context_id, option=option)
+            self.set_at_command_string(command_base_string="AT+CMD",
+                                       execute_params=[('context_id', context_id), ('option', option), ('action', action)])
 
         def parse_command_output(self):
             self.set_result("result")
@@ -56,8 +57,8 @@ def test_at_cmd_string_extended_with_params_when_additional_kwargs_in_execute_mo
     at_cmd = AtCmdWithArgs(context_id=5)
     assert at_cmd.command_string == "AT+CMD=5"
 
-    at_cmd = AtCmdWithArgs(context_id=2, option="off")
-    assert at_cmd.command_string == "AT+CMD=2,off"
+    at_cmd = AtCmdWithArgs(context_id=2, option="off", action='reset')
+    assert at_cmd.command_string == "AT+CMD=2,off,reset"
 
 
 def test_calling_at_cmd_raises_AtCommandFailure_when_regular_ERROR_in_at_cmd_output_occurred(buffer_connection, at_cmd_test_class):
@@ -82,3 +83,21 @@ def test_at_cmd_raises_AtCommandModeNotSupported_when_instantiated_in_incorrect_
     from moler.cmd.at.at import AtCommandModeNotSupported
     with pytest.raises(AtCommandModeNotSupported) as error:
         at_cmd_test_class(operation="magic_mode")
+
+
+# --------------------------- resources ---------------------------
+
+
+@pytest.fixture
+def at_cmd_test_class():
+    from moler.cmd.at.at import AtCmd
+
+    class AtCmdTest(AtCmd):
+        def __init__(self, connection=None, operation="execute"):
+            super(AtCmdTest, self).__init__(connection, operation)
+            self.set_at_command_string("AT+CMD")
+
+        def parse_command_output(self):
+            self.set_result("result")
+
+    return AtCmdTest

@@ -7,19 +7,20 @@ from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 import re
 
-__author__ = 'Sylwester Golonka'
+__author__ = 'Sylwester Golonka, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'sylwester.golonka@nokia.com'
+__email__ = 'sylwester.golonka@nokia.com, marcin.usielski@nokia.com'
 
 
 class Scp(GenericUnixCommand):
-    def __init__(self, connection, source, dest, password="", prompt=None, new_line_chars=None,
-                 known_hosts_on_failure='keygen'):
-        super(Scp, self).__init__(connection, prompt, new_line_chars)
+    def __init__(self, connection, source, dest, password="", prompt=None, newline_chars=None,
+                 known_hosts_on_failure='keygen', encrypt_password=True, runner=None):
+        super(Scp, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.source = source
         self.dest = dest
         self.password = password
         self.known_hosts_on_failure = known_hosts_on_failure
+        self.encrypt_password = encrypt_password
         self.ret_required = True
         # Iternal variables
         self._sent_password = False
@@ -63,11 +64,11 @@ class Scp(GenericUnixCommand):
 
     def _parse_sent_password(self, line):
         if (not self._sent_ldap_password) and self._is_ldap_password_requested(line):
-            self.connection.sendline(self.password)
+            self.connection.sendline(self.password, encrypt=self.encrypt_password)
             self._sent_ldap_password = True
             raise ParsingDone
         elif (not self._sent_password) and self._is_password_requested(line):
-            self.connection.sendline(self.password)
+            self.connection.sendline(self.password, encrypt=self.encrypt_password)
             self._sent_password = True
             raise ParsingDone
         elif (self._sent_password or self._sent_ldap_password) and self._regex_helper.search_compiled(
