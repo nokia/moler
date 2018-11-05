@@ -24,6 +24,7 @@ Shows following concepts:
 
 Shows how to use connection observers inside raw 'def xxx()' functions and
 how to mix it with threads.
+Best choice here is to use 'asyncio-in-thread' runner.
 """
 
 __author__ = 'Grzegorz Latuszek'
@@ -38,6 +39,7 @@ import time
 import asyncio
 
 from moler.connection import get_connection
+from moler.runner_factory import get_runner
 from moler.asyncio_runner import AsyncioInThreadRunner
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))  # allow finding modules in examples/
@@ -64,12 +66,10 @@ def ping_observing_task(ext_io_connection, ping_ip):
     # 3. create observers on Moler's connection
     net_down_detector = NetworkDownDetector(ping_ip,
                                             connection=ext_io_connection.moler_connection,
-                                            runner=AsyncioInThreadRunner())
-                                            # runner=AsyncioRunner())
+                                            runner=AsyncioInThreadRunner())  # get_runner(variant="asyncio-in-thread"))
     net_up_detector = NetworkUpDetector(ping_ip,
                                         connection=ext_io_connection.moler_connection,
-                                        runner=AsyncioInThreadRunner())
-                                        # runner=AsyncioRunner())
+                                        runner=AsyncioInThreadRunner())  # get_runner(variant="asyncio-in-thread"))
 
     info = '{} on {} using {}'.format(ping_ip, conn_addr, net_down_detector)
     logger.debug('observe ' + info)
@@ -96,8 +96,10 @@ def ping_observing_task(ext_io_connection, ping_ip):
 
 # ==============================================================================
 def main(connections2observe4ip):
+    logger = logging.getLogger('asyncio.main')
+    logger.debug('starting jobs observing connections')
     # Starting the clients
-    connections = []
+    jobs_on_connections = []
     for _, connection_name, ping_ip in connections2observe4ip:
         # ------------------------------------------------------------------
         # This front-end code hides all details of connection.
@@ -107,14 +109,17 @@ def main(connections2observe4ip):
         # "give me connection to main_dns_server"
         # ------------------------------------------------------------------
         tcp_connection = get_connection(name=connection_name)
+        # con_logger = logging.getLogger('tcp-async_in_thrd-io.{}'.format(connection_name))
+        # tcp_connection = get_connection(name=connection_name, variant='asyncio-in-thread', logger=con_logger)
         tcp_connection.moler_connection.name = connection_name
         client_thread = threading.Thread(target=ping_observing_task,
                                          args=(tcp_connection, ping_ip))
         client_thread.start()
-        connections.append(client_thread)
+        jobs_on_connections.append(client_thread)
     # await observers job to be done
-    for client_thread in connections:
+    for client_thread in jobs_on_connections:
         client_thread.join()
+    logger.debug('all jobs observing connections are done')
 
 
 # ==============================================================================
