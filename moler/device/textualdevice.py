@@ -212,9 +212,6 @@ class TextualDevice(object):
     def _get_next_state(self, dest_state):
         next_state = None
         if self.current_state in self._state_hops.keys():
-            # print("{} {}".format(self.current_state, self._state_hops[self.current_state].keys()))
-            # import json
-            # print(json.dumps(self._state_hops, indent=4))
             if dest_state in self._state_hops[self.current_state].keys():
                 next_state = self._state_hops[self.current_state][dest_state]
 
