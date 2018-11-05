@@ -48,7 +48,7 @@ class UnixLocal(TextualDevice):
         state_prompts = {
             UnixLocal.unix_local: r'^moler_bash#',
         }
-        self._update_dict(state_prompts, self._state_prompts)
+        self._update_dict(self._state_prompts, state_prompts)
 
     def _prepare_state_hops(self):
         # both state are directly connected, no hops needed
