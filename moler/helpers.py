@@ -65,10 +65,10 @@ def create_object_from_name(full_class_name, constructor_params):
     return obj
 
 
-def update_dict(destination, source):
-    for key, value in source.items():
-        if (key in destination and isinstance(destination[key], dict) and isinstance(source[key],
-                                                                                     collections.Mapping)):
-            update_dict(destination[key], source[key])
+def update_dict(source, destination):
+    for key, value in destination.items():
+        if (key in source and isinstance(source[key], dict) and isinstance(destination[key],
+                                                                           collections.Mapping)):
+            update_dict(source[key], destination[key])
         else:
-            destination[key] = source[key]
+            source[key] = destination[key]
