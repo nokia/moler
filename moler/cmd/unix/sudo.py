@@ -60,21 +60,21 @@ class Sudo(GenericUnixCommand):
         super(Sudo, self).on_new_line(line, is_full_line)
 
     def _process_embedded_command(self, line, is_full_line):
-        if not self.cmd_object:
+        if self.cmd_object:
+            if not self._sent_command_string:
+                self._sent_command_string = True
+                cs = "{}{}".format(self.cmd_object.command_string, self.newline_seq)
+                self.cmd_object.data_received(cs)
+            if is_full_line:
+                line = "{}{}".format(line, self.newline_seq)
+            self.cmd_object.data_received(line)
+            self.current_ret["cmd_ret"] = self.cmd_object.current_ret
+            if self.cmd_object.done():
+                try:
+                    self.cmd_object.result()
+                except Exception as ex:
+                    self.set_exception(ex)
             raise ParsingDone()
-        if not self._sent_command_string:
-            self._sent_command_string = True
-            cs = "{}{}".format(self.cmd_object.command_string, self.newline_seq)
-            self.cmd_object.data_received(cs)
-        if is_full_line:
-            line = "{}{}".format(line, self.newline_seq)
-        self.cmd_object.data_received(line)
-        self.current_ret["cmd_ret"] = self.cmd_object.current_ret
-        if self.cmd_object.done():
-            try:
-                self.cmd_object.result()
-            except Exception as ex:
-                self.set_exception(ex)
 
     _re_sudo_command_not_found = re.compile(r"sudo:.*command not found", re.I)
 
