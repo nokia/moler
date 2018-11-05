@@ -28,7 +28,7 @@ class Ssh(GenericUnixCommand):
     def __init__(self, connection, login, password, host, prompt=None, expected_prompt='>', port=0,
                  known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
                  term_mono="TERM=xterm-mono", newline_chars=None, encrypt_password=True, runner=None,
-                 target_newline="\r\n", allowed_newline_after_prompt = False):
+                 target_newline="\r\n", allowed_newline_after_prompt=False):
 
         """
         :param connection: moler connection to device, terminal when command is executed
