@@ -123,6 +123,7 @@ async def main(connections2observe4ip):
 # ==============================================================================
 if __name__ == '__main__':
     from threaded_ping_server import start_ping_servers, stop_ping_servers
+    from asyncio_common import run_via_asyncio
     import os
     from moler.config import load_config
     # -------------------------------------------------------------------
@@ -140,39 +141,18 @@ if __name__ == '__main__':
         datefmt='%H:%M:%S',
         stream=sys.stderr,
     )
-    logger = logging.getLogger('asyncio.main')
+
     connections2serve = [(('localhost', 5671), '10.0.2.15'),
                          (('localhost', 5672), '10.0.2.16')]
     connections2observe4ip = [(('localhost', 5671), 'net_1', '10.0.2.15'),
                               (('localhost', 5672), 'net_2', '10.0.2.16')]
     servers = start_ping_servers(connections2serve)
 
-    asyncio.set_event_loop(asyncio.new_event_loop())
-    event_loop = asyncio.get_event_loop()
-    # event_loop.set_debug(enabled=True)
     try:
-        event_loop.run_until_complete(main(connections2observe4ip))
+        run_via_asyncio(main(connections2observe4ip))
 
-        # https://stackoverflow.com/questions/30765606/whats-the-correct-way-to-clean-up-after-an-interrupted-event-loop
-        # https://medium.com/python-pandemonium/asyncio-coroutine-patterns-beyond-await-a6121486656f
-        # Handle shutdown gracefully by waiting for all tasks to be cancelled
-        logger.info("cancelling all remaining tasks")
-        # NOTE: following code cancels all tasks - possibly not ours as well
-        not_done_tasks = [task for task in asyncio.Task.all_tasks() if not task.done()]
-        remaining_tasks = asyncio.gather(*not_done_tasks, return_exceptions=True)
-        remaining_tasks.add_done_callback(lambda t: event_loop.stop())
-        remaining_tasks.cancel()
-
-        # Keep the event loop running until it is either destroyed or all
-        # tasks have really terminated
-        event_loop.run_until_complete(remaining_tasks)
-        # while not remaining_tasks.done() and not event_loop.is_closed():
-        #     event_loop.run_forever()
     finally:
         stop_ping_servers(servers)
-        logger.info("closing events loop ...")
-        event_loop.close()
-        logger.info("... events loop closed")
 
 '''
 LOG OUTPUT

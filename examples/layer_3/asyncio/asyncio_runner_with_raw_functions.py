@@ -54,7 +54,7 @@ def ping_observing_task(ext_io_connection, ping_ip):
     What we know is just that it has .moler_connection attribute.
     """
     # asyncio's policy:
-    # You must either create an event loop explicitly for each thread
+    # You must create an event loop explicitly for each thread
     asyncio.set_event_loop(asyncio.new_event_loop())
 
     logger = logging.getLogger('moler.user.app-code')

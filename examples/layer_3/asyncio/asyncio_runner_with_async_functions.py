@@ -110,6 +110,7 @@ async def main(connections2observe4ip):
 # ==============================================================================
 if __name__ == '__main__':
     from threaded_ping_server import start_ping_servers, stop_ping_servers
+    from asyncio_common import run_via_asyncio
     import os
     from moler.config import load_config
     # -------------------------------------------------------------------
@@ -123,28 +124,22 @@ if __name__ == '__main__':
 
     logging.basicConfig(
         level=logging.DEBUG,
-        format='%(asctime)s |%(name)-40s |%(message)s',
+        format='%(asctime)s |%(name)-45s |%(message)s',
         datefmt='%H:%M:%S',
         stream=sys.stderr,
     )
+
     connections2serve = [(('localhost', 5671), '10.0.2.15'),
                          (('localhost', 5672), '10.0.2.16')]
     connections2observe4ip = [(('localhost', 5671), 'net_1', '10.0.2.15'),
                               (('localhost', 5672), 'net_2', '10.0.2.16')]
     servers = start_ping_servers(connections2serve)
 
-    # asyncio's policy which Tornado has inherited in 5.0. :
-    # You must either create an event loop explicitly for each thread
-    # or use AnyThreadEventLoopPolicy.
-    # (class tornado.platform.asyncio.AnyThreadEventLoopPolicy)
-
-    asyncio.set_event_loop(asyncio.new_event_loop())
-    event_loop = asyncio.get_event_loop()
     try:
-        event_loop.run_until_complete(main(connections2observe4ip))
+        run_via_asyncio(main(connections2observe4ip))
+
     finally:
         stop_ping_servers(servers)
-        event_loop.close()
 
 '''
 LOG OUTPUT
