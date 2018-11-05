@@ -58,17 +58,17 @@ class Telnet(GenericUnixCommand):
     def build_command_string(self):
         cmd = ""
         if self.term_mono:
-            cmd = self.term_mono + " "
-        cmd = cmd + "telnet"
+            cmd = "{} ".format(self.term_mono)
+        cmd = "{}telnet".format(cmd)
         if self.prefix:
-            cmd = cmd + " " + self.prefix
+            cmd = "{} {}".format(cmd, self.prefix)
         host_port_cmd = self.host
         if self.port:
-            host_port_cmd = host_port_cmd + " " + str(self.port)
+            host_port_cmd = "{} {}".format(host_port_cmd, self.port)
         if 0 == len(self.cmds_before_establish_connection):
-            cmd = cmd + " " + host_port_cmd
+            cmd = "{} {}".format(cmd, host_port_cmd)
         else:
-            self.cmds_before_establish_connection.append("open " + host_port_cmd)
+            self.cmds_before_establish_connection.append("open {}".format(host_port_cmd))
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -207,6 +207,7 @@ Login:user
 Password:
 Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
 Have a lot of fun...
+CLIENT5 [] has just connected!
 host:~ #
 export TMOUT="2678400",
 host:~ #"""
@@ -240,3 +241,39 @@ COMMAND_KWARGS_prompt = {
 }
 
 COMMAND_RESULT_prompt = {}
+
+
+COMMAND_OUTPUT_no_settings = """
+user@host01:~> TERM=xterm-mono telnet host.domain.net 1500
+Login:
+Login:user
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+CLIENT5 [] has just connected!
+host:~ #"""
+
+COMMAND_KWARGS_no_settings = {
+    "login": "user", "password": "english", "port": "1500", 'set_timeout': None,
+    "host": "host.domain.net", "expected_prompt": "host:.*#",
+}
+
+COMMAND_RESULT_no_settings = {}
+
+
+COMMAND_OUTPUT_prefix = """
+user@host01:~> TERM=xterm-mono telnet -4 host.domain.net 1500
+Login:
+Login:user
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+CLIENT5 [] has just connected!
+host:~ #"""
+
+COMMAND_KWARGS_prefix = {
+    "login": "user", "password": "english", "port": "1500", 'set_timeout': None,
+    "host": "host.domain.net", "expected_prompt": "host:.*#", 'prefix': "-4",
+}
+
+COMMAND_RESULT_prefix = {}
