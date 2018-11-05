@@ -512,8 +512,8 @@ class TextualDevice(object):
 
         return destination
 
-    def _update_dict(self, destination, source):
-        update_dict(destination, source)
+    def _update_dict(self, target_dict, expand_dict):
+        update_dict(target_dict, expand_dict)
 
     def _get_default_sm_configuration(self):
         return {TextualDevice.connection_hops: {}}
