@@ -92,7 +92,7 @@ class UnixRemote(UnixLocal):
                 self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.unix_local][
                     "command_params"]["expected_prompt"],
         }
-        self._update_dict(state_prompts, self._state_prompts)
+        self._update_dict(self._state_prompts, state_prompts)
 
     def _prepare_newline_chars(self):
         super(UnixRemote, self)._prepare_newline_chars()
@@ -105,7 +105,7 @@ class UnixRemote(UnixLocal):
                 self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.unix_local][
                     "command_params"]["target_newline"],
         }
-        self._update_dict(newline_chars, self._newline_chars)
+        self._update_dict(self._newline_chars, newline_chars)
 
     def _prepare_state_hops(self):
         super(UnixRemote, self)._prepare_state_hops()
@@ -118,7 +118,7 @@ class UnixRemote(UnixLocal):
                 UnixLocal.not_connected: UnixLocal.unix_local
             }
         }
-        self._update_dict(state_hops, self._state_hops)
+        self._update_dict(self._state_hops, state_hops)
 
     def _get_packages_for_state(self, state, observer):
         if state == UnixLocal.unix_local:
