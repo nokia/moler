@@ -59,6 +59,24 @@ def test_failing_with_embedded_command_fails(buffer_connection, command_output_c
         cmd_sudo()
 
 
+def test_failing_with_no_command_created(buffer_connection, command_output_cp_fails):
+    command_output = command_output_cp_fails
+    buffer_connection.remote_inject_response([command_output])
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, cmd_class_name="no_existing_package.NoExistingClass", sudo_password="pass")
+    with pytest.raises(ImportError):
+        cmd_sudo()
+
+
+def test_failing_with_both_parameters(buffer_connection, command_output_cp_fails):
+    command_output = command_output_cp_fails
+    buffer_connection.remote_inject_response([command_output])
+    cmd_cp = Cp(connection=buffer_connection.moler_connection, src="src.txt", dst="dst.txt")
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, cmd_class_name="moler.cmd.unix.cp.Cp",
+                    cmd_object=cmd_cp, sudo_password="pass")
+    with pytest.raises(CommandFailure):
+        cmd_sudo()
+
+
 @pytest.fixture()
 def command_output_and_expected_result():
     output = """user@client:~/moler$ sudo pwd

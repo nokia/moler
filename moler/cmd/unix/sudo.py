@@ -24,6 +24,10 @@ class Sudo(GenericUnixCommand):
         self._sent_sudo_password = False
         self._sent_command_string = False
         self.newline_seq = "\r\n"
+        if cmd_object and cmd_class_name:
+            self.set_exception(CommandFailure(self, "both 'cmd_object' and 'cmd_class_name' parameters provided. Please specify only one. "))
+            return
+
         if cmd_class_name:
             params = dict()
             if cmd_params is not None:
@@ -31,10 +35,14 @@ class Sudo(GenericUnixCommand):
             params["connection"] = connection
             params['prompt'] = prompt
             params["newline_chars"] = newline_chars
-            self.cmd_object = create_object_from_name(cmd_class_name, cmd_params)
-        if not self.cmd_object:
-            self.set_exception(CommandFailure(self,
-                                              "Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor. Please specific parameter."))
+            try:
+                self.cmd_object = create_object_from_name(cmd_class_name, cmd_params)
+            except Exception as ex:
+                self.set_exception(ex)
+        else:
+            if not self.cmd_object:
+                self.set_exception(CommandFailure(self,
+                                                  "Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor. Please specific parameter."))
 
     def build_command_string(self):
         cmd = "sudo"
@@ -52,6 +60,8 @@ class Sudo(GenericUnixCommand):
         super(Sudo, self).on_new_line(line, is_full_line)
 
     def _process_embedded_command(self, line, is_full_line):
+        if not self.cmd_object:
+            raise ParsingDone()
         if not self._sent_command_string:
             self._sent_command_string = True
             cs = "{}{}".format(self.cmd_object.command_string, self.newline_seq)

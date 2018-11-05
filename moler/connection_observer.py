@@ -156,8 +156,8 @@ class ConnectionObserver(object):
             self._log(logging.DEBUG, "'{}.{}' has overwritten exception. From '{}.{}' to '{}.{}'.".format(
                 self.__class__.__module__,
                 self.__class__.__name__,
-                self.exception.__class__.__module__,
-                self.exception.__class__.__name__,
+                self._exception.__class__.__module__,
+                self._exception.__class__.__name__,
                 exception.__class__.__module__,
                 exception.__class__.__name__
             ))
