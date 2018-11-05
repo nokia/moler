@@ -28,7 +28,7 @@ class Ssh(GenericUnixCommand):
     def __init__(self, connection, login, password, host, prompt=None, expected_prompt='>', port=0,
                  known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
                  term_mono="TERM=xterm-mono", newline_chars=None, encrypt_password=True, runner=None,
-                 target_newline="\n"):
+                 target_newline="\r\n", allowed_newline_after_prompt = False):
 
         """
         :param connection: moler connection to device, terminal when command is executed
@@ -46,6 +46,7 @@ class Ssh(GenericUnixCommand):
         :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text
         :param runner: Runner to run command
         :param target_newline: newline chars on remote system where ssh connects
+        ;param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt
         """
         super(Ssh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
@@ -64,6 +65,7 @@ class Ssh(GenericUnixCommand):
         self.term_mono = term_mono
         self.encrypt_password = encrypt_password
         self.target_newline = target_newline
+        self.allowed_newline_after_prompt = allowed_newline_after_prompt
 
         self.ret_required = False
 
@@ -105,11 +107,12 @@ class Ssh(GenericUnixCommand):
         sent = self._send_after_login_settings(line)
         if sent:
             raise ParsingDone()
-        if (not sent) and self._is_target_prompt(line) and (not is_full_line):
-            if self._all_after_login_settings_sent() or self._no_after_login_settings_needed():
-                if not self.done():
-                    self.set_result({})
-                raise ParsingDone()
+        if (not sent) and self._is_target_prompt(line):
+            if not is_full_line or self.allowed_newline_after_prompt:
+                if self._all_after_login_settings_sent() or self._no_after_login_settings_needed():
+                    if not self.done():
+                        self.set_result({})
+                    raise ParsingDone()
 
     def _host_key_verification(self, line):
         if self._regex_helper.search_compiled(Ssh._re_host_key_verification_failed, line):
