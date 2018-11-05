@@ -83,7 +83,9 @@ class Ssh(GenericUnixCommand):
         cmd += "ssh"
         if self.port:
             cmd = "{} -p {}".format(cmd, self.port)
-        cmd = "{} -l {} {}".format(cmd, self.login, self.host)
+        if self.login:
+            cmd = "{} -l {}".format(cmd, self.login)
+        cmd = "{} {}".format(cmd, self.host)
         return cmd
 
     def on_new_line(self, line, is_full_line):
