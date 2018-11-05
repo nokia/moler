@@ -11,7 +11,18 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
 import logging
+import sys
 import asyncio
+
+
+def configure_logging():
+    logging.basicConfig(
+        level=logging.DEBUG,
+        # format='%(asctime)s |%(name)-45s | %(threadName)12s |%(message)s',
+        format=' |%(name)-45s | %(threadName)12s |%(message)s',
+        datefmt='%H:%M:%S',
+        stream=sys.stderr,
+    )
 
 
 def run_via_asyncio(async_to_run, debug_event_loop=False):
