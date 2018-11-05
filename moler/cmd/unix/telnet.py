@@ -24,7 +24,7 @@ class Telnet(GenericUnixCommand):
         r"Permission denied|closed by foreign host|telnet:.*Name or service not known|"
         "is not a typo you can use command-not-found to lookup the package|command not found",
         re.IGNORECASE)
-    _re_has_just_connected = re.compile(r"/has just connected|\{bash_history,ssh\}|Escape character is", re.IGNORECASE)
+    _re_has_just_connected = re.compile(r"has just connected|\{bash_history,ssh\}|Escape character is", re.IGNORECASE)
 
     def __init__(self, connection, host, login=None, password=None, port=0, prompt=None, expected_prompt=r'^>\s*',
                  set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono="TERM=xterm-mono", prefix=None,
