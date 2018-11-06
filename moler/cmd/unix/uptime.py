@@ -10,10 +10,31 @@ __email__ = 'marcin.usielski@nokia.com'
 import re
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
+from moler.exceptions import ParsingDone
 
 
 class Uptime(GenericUnixCommand):
     # Compiled regexp
+
+    def __init__(self, connection, options=None, prompt=None, newline_chars=None, runner=None):
+        super(Uptime, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+        # Parameters defined by calling the command
+        self.options = options
+
+    def build_command_string(self):
+        cmd = "uptime"
+        if self.options:
+            cmd = "{} {}".format(cmd, self.options)
+        return cmd
+
+    def on_new_line(self, line, is_full_line):
+        if is_full_line:
+            try:
+                self._parse_uptime(line)
+                self._parse_since(line)
+            except ParsingDone:
+                pass
+        return super(Uptime, self).on_new_line(line, is_full_line)
 
     # Linux:
     # 10:38am  up 3 days  2:14,  29 users,  load average: 0.09, 0.10, 0.07
@@ -34,44 +55,36 @@ class Uptime(GenericUnixCommand):
     # 18 min
     _re_minutes = re.compile(r"(?P<MINS>\d+) min")
 
+    def _parse_uptime(self, line):
+        if self._regex_helper.search_compiled(Uptime._re_uptime_line, line):
+            val = self._regex_helper.group("UPTIME_VAL")
+            users = int(self._regex_helper.group("USERS"))
+            uptime_seconds = 0
+            if self._regex_helper.search_compiled(Uptime._re_days, val):
+                uptime_seconds = 24 * 3600 * int(self._regex_helper.group("DAYS")) + 3600 * int(
+                    self._regex_helper.group("HRS")) + 60 * int(self._regex_helper.group("MINS"))
+            elif self._regex_helper.search_compiled(Uptime._re_days_minutes, val):
+                uptime_seconds = 24 * 3600 * int(self._regex_helper.group("DAYS")) + 3600 * int(
+                    self._regex_helper.group("MINS"))
+            elif self._regex_helper.search_compiled(Uptime._re_hours_minutes, val):
+                uptime_seconds = 3600 * int(self._regex_helper.group("HRS")) + 60 * int(self._regex_helper.group("MINS"))
+            elif self._regex_helper.search_compiled(self._re_minutes, val):
+                uptime_seconds = 60 * int(self._regex_helper.group("MINS"))
+            else:
+                self.set_exception(CommandFailure(self, "Unsupported string format in line '{}'".format(line)))
+            self.current_ret["UPTIME"] = val
+            self.current_ret["UPTIME_SECONDS"] = uptime_seconds
+            self.current_ret["USERS"] = users
+            raise ParsingDone()
+
+    # 2018-11-06 13:41:00
     _re_date_time = re.compile(r"(?P<DATE>\d{4}-\d{2}-\d{2})\s+(?P<TIME>\d{1,2}:\d{1,2}:\d{1,2})")
 
-    def __init__(self, connection, options=None, prompt=None, newline_chars=None, runner=None):
-        super(Uptime, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
-        # Parameters defined by calling the command
-        self.options = options
-
-    def build_command_string(self):
-        cmd = "uptime"
-        if self.options:
-            cmd = "{} {}".format(cmd, self.options)
-        return cmd
-
-    def on_new_line(self, line, is_full_line):
-        if is_full_line:
-            if self._regex_helper.search_compiled(Uptime._re_uptime_line, line):
-                val = self._regex_helper.group("UPTIME_VAL")
-                users = int(self._regex_helper.group("USERS"))
-                uptime_seconds = 0
-                if self._regex_helper.search_compiled(Uptime._re_days, val):
-                    uptime_seconds = 24 * 3600 * int(self._regex_helper.group("DAYS")) + 3600 * int(
-                        self._regex_helper.group("HRS")) + 60 * int(self._regex_helper.group("MINS"))
-                elif self._regex_helper.search_compiled(Uptime._re_days_minutes, val):
-                    uptime_seconds = 24 * 3600 * int(self._regex_helper.group("DAYS")) + 3600 * int(self._regex_helper.group("MINS"))
-                elif self._regex_helper.search_compiled(Uptime._re_hours_minutes, val):
-                    uptime_seconds = 3600 * int(self._regex_helper.group("HRS")) + 60 * int(self._regex_helper.group("MINS"))
-                elif self._regex_helper.search_compiled(self._re_minutes, val):
-                    uptime_seconds = 60 * int(self._regex_helper.group("MINS"))
-                else:
-                    self.set_exception(CommandFailure(self, "Unsupported string format in line '{}'".format(line)))
-                self.current_ret["UPTIME"] = val
-                self.current_ret["UPTIME_SECONDS"] = uptime_seconds
-                self.current_ret["USERS"] = users
-            elif self._regex_helper.search_compiled(Uptime._re_date_time, line):
-                self.current_ret["date"] = self._regex_helper.group("DATE")
-                self.current_ret["time"] = self._regex_helper.group("TIME")
-        return super(Uptime, self).on_new_line(line, is_full_line)
-
+    def _parse_since(self, line):
+        if self._regex_helper.search_compiled(Uptime._re_date_time, line):
+            self.current_ret["date"] = self._regex_helper.group("DATE")
+            self.current_ret["time"] = self._regex_helper.group("TIME")
+            raise ParsingDone()
 
 # -----------------------------------------------------------------------------
 # Following documentation is required for library CI.
