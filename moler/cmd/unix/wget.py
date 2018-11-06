@@ -2,9 +2,9 @@
 """
 Wget command module.
 """
-__author__ = 'Agnieszka Bylica'
+__author__ = 'Agnieszka Bylica, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'agnieszka.bylica@nokia.com'
+__email__ = 'agnieszka.bylica@nokia.com, michal.ernst@nokia.com'
 
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
@@ -28,7 +28,7 @@ class Wget(GenericUnixCommand):
             self.current_ret['PROGRESS_LOG'] = list()
 
     def build_command_string(self):
-        cmd = "wget " + self.options
+        cmd = "wget {}".format(self.options)
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -59,7 +59,7 @@ class Wget(GenericUnixCommand):
             self.current_ret['PROGRESS_LOG'].append(self._regex_helper.group("BAR"))
             raise ParsingDone
 
-    _re_file_saved = re.compile(r"(?P<SAVED>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d\s\(\d+.\d+\s\w\w/s\)\s-\s.*)", re.I)
+    _re_file_saved = re.compile(r"(?P<SAVED>\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s\(\d+.\d+\s\w{2}/s\)\s-\s.*)", re.I)
 
     def _parse_line_complete(self, line):
         if self._regex_helper.search_compiled(Wget._re_file_saved, line):
