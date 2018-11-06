@@ -35,6 +35,6 @@ host:~ #"""
     result = {
         "UPTIME": '3 days  2:14',
         "UPTIME_SECONDS": 8040,
-        "USERS": '29',
+        "USERS": 29,
     }
     return data, result
