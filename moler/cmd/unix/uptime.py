@@ -86,11 +86,10 @@ class Uptime(GenericUnixCommand):
             self.current_ret["time"] = self._regex_helper.group("TIME")
             raise ParsingDone()
 
+
 # -----------------------------------------------------------------------------
 # Following documentation is required for library CI.
 # It is used to perform command self-test.
-# Parameters:
-# file is Optional.File for Unix uptime command
 # -----------------------------------------------------------------------------
 
 COMMAND_OUTPUT_days_hours_minutes = """
