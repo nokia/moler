@@ -347,7 +347,12 @@ class AsyncioInThreadRunner(AsyncioRunner):
         # TODO: check dependency - connection_observer.connection
 
         if self._loop_thread is None:
-            self._start_loop_thread()
+            try:
+                self._start_loop_thread()
+            except MolerException as err_msg:
+                self.logger.error(err_msg)
+                connection_observer.set_exception(err_msg)
+                return None
 
         feed_started = threading.Event()
 
@@ -360,9 +365,10 @@ class AsyncioInThreadRunner(AsyncioRunner):
         start_timeout = 0.5
         if not feed_started.wait(timeout=start_timeout):
             err_msg = "Failed to start observer feeder within {} sec".format(start_timeout)
+            self.logger.error(err_msg)
             exc = MolerException(err_msg)
             connection_observer.set_exception(exception=exc)
-            self.logger.error(repr(exc))
+
             # we not only store exception inside observer-as-future
             # but we also wan't to break caller code as quickly as possible
             raise exc
