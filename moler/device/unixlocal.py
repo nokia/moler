@@ -22,6 +22,8 @@ class UnixLocal(TextualDevice):
                                         sm_params=sm_params)
 
     def _prepare_transitions(self):
+        super(UnixLocal, self)._prepare_transitions()
+
         transitions = {
             UnixLocal.unix_local: {
                 UnixLocal.not_connected: {
@@ -38,19 +40,19 @@ class UnixLocal(TextualDevice):
                 },
             }
         }
-
         self._add_transitions(transitions=transitions)
 
     def _prepare_state_prompts(self):
+        super(UnixLocal, self)._prepare_state_prompts()
+
         state_prompts = {
             UnixLocal.unix_local: r'^moler_bash#',
         }
-
-        self._state_prompts.update(state_prompts)
+        self._update_dict(self._state_prompts, state_prompts)
 
     def _prepare_state_hops(self):
         # both state are directly connected, no hops needed
-        pass
+        super(UnixLocal, self)._prepare_state_hops()
 
     def _get_packages_for_state(self, state, observer):
         if state == UnixLocal.unix_local:
