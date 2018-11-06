@@ -34,6 +34,8 @@ class Uptime(GenericUnixCommand):
     # 18 min
     _re_minutes = re.compile(r"(?P<MINS>\d+) min")
 
+    _re_date_time = re.compile(r"(?P<DATE>\d{4}-\d{2}-\d{2})\s+(?P<TIME>\d{1,2}:\d{1,2}:\d{1,2})")
+
     def __init__(self, connection, options=None, prompt=None, newline_chars=None, runner=None):
         super(Uptime, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         # Parameters defined by calling the command
@@ -65,6 +67,9 @@ class Uptime(GenericUnixCommand):
                 self.current_ret["UPTIME"] = val
                 self.current_ret["UPTIME_SECONDS"] = uptime_seconds
                 self.current_ret["USERS"] = users
+            elif self._regex_helper.search_compiled(Uptime._re_date_time, line):
+                self.current_ret["date"] = self._regex_helper.group("DATE")
+                self.current_ret["time"] = self._regex_helper.group("TIME")
         return super(Uptime, self).on_new_line(line, is_full_line)
 
 
@@ -128,7 +133,7 @@ COMMAND_RESULT_hours_minutes = {
 }
 
 COMMAND_OUTPUT_since = """
-host:~ # uptime
+host:~ # uptime -s
   2018-11-06 13:41:00
 host:~ #"""
 
