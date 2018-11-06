@@ -27,7 +27,11 @@ class Uptime(GenericUnixCommand):
 
     # 2 day(s), 3 min
     _re_days_minutes = re.compile(r"(?P<DAYS>\d+) day(.*),\s+(?P<MINS>\d+)\s+min")
+
+    # 1:24
     _re_hours_minutes = re.compile(r"(?P<HRS>\d+):(?P<MINS>\d+)")
+
+    # 18 min
     _re_minutes = re.compile(r"(?P<MINS>\d+) min")
 
     def __init__(self, connection, options=None, prompt=None, newline_chars=None, runner=None):
@@ -43,26 +47,20 @@ class Uptime(GenericUnixCommand):
 
     def on_new_line(self, line, is_full_line):
         if is_full_line:
-            print("Line '{}'".format(line))
             if self._regex_helper.search_compiled(Uptime._re_uptime_line, line):
                 val = self._regex_helper.group("UPTIME_VAL")
                 users = int(self._regex_helper.group("USERS"))
-                print("Matched val:'{}' users:'{}'".format(val, users))
                 uptime_seconds = 0
                 if self._regex_helper.search_compiled(Uptime._re_days, val):
                     uptime_seconds = 24 * 3600 * int(self._regex_helper.group("DAYS")) + 3600 * int(
                         self._regex_helper.group("HRS")) + 60 * int(self._regex_helper.group("MINS"))
                 elif self._regex_helper.search_compiled(Uptime._re_days_minutes, val):
-                    print("2")
-                    uptime_seconds = 24 * 3600 * int(self._regex_helper.group(1)) + 3600 * int(self._regex_helper.group(2))
+                    uptime_seconds = 24 * 3600 * int(self._regex_helper.group("DAYS")) + 3600 * int(self._regex_helper.group("MINS"))
                 elif self._regex_helper.search_compiled(Uptime._re_hours_minutes, val):
-                    print("3")
-                    uptime_seconds = 3600 * int(self._regex_helper.group(1)) + 60 * int(self._regex_helper.group(2))
+                    uptime_seconds = 3600 * int(self._regex_helper.group("HRS")) + 60 * int(self._regex_helper.group("MINS"))
                 elif self._regex_helper.search_compiled(self._re_minutes, val):
-                    print("4")
                     uptime_seconds = 60 * int(self._regex_helper.group("MINS"))
                 else:
-                    print("5")
                     self.set_exception(CommandFailure(self, "Unsupported string format in line '{}'".format(line)))
                 self.current_ret["UPTIME"] = val
                 self.current_ret["UPTIME_SECONDS"] = uptime_seconds
@@ -93,8 +91,6 @@ COMMAND_RESULT_days_hours_minutes = {
 COMMAND_OUTPUT_sunos = """
 [host] ~ > uptime
   1:16am  up 137 day(s), 19:07,  1 user,  load average: 0.27, 0.27, 0.27
-  1:16am  up 137 day(s), 19:07,  1 user,  load average: 0.27, 0.27, 0.27
-  1:16am  up 137 day(s), 19:07,  1 user,  load average: 0.27, 0.27, 0.27
 [host] ~ >"""
 
 COMMAND_KWARGS_sunos = {}
@@ -107,13 +103,26 @@ COMMAND_RESULT_sunos = {
 
 COMMAND_OUTPUT_minutes = """
 host:~ # uptime
-10:38am  up 4 minutes,  29 users,  load average: 0.09, 0.10, 0.07
+ 11:50:35 up 18 min,  1 user,  load average: 0.00, 0.02, 0.04
 host:~ #"""
 
 COMMAND_KWARGS_minutes = {}
 
 COMMAND_RESULT_minutes = {
-    "UPTIME": '4 minutes',
-    "UPTIME_SECONDS": 240,
-    "USERS": 29
+    "UPTIME": '18 min',
+    "UPTIME_SECONDS": 1080,
+    "USERS": 1
+}
+
+COMMAND_OUTPUT_hours_minutes = """
+host:~ # uptime
+  12:57:01 up  1:24,  1 user,  load average: 0.00, 0.00, 0.00
+host:~ #"""
+
+COMMAND_KWARGS_hours_minutes = {}
+
+COMMAND_RESULT_hours_minutes = {
+    "UPTIME": '1:24',
+    "UPTIME_SECONDS": 5040,
+    "USERS": 1
 }
