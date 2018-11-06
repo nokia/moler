@@ -36,12 +36,10 @@ import sys
 import os
 import threading
 import time
-import asyncio
 
 from moler.connection import get_connection
 from moler.exceptions import ConnectionObserverTimeout
 from moler.runner_factory import get_runner
-from moler.asyncio_runner import AsyncioInThreadRunner
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))  # allow finding modules in examples/
 
@@ -63,10 +61,10 @@ def ping_observing_task(ext_io_connection, ping_ip):
     # 3. create observers on Moler's connection
     net_down_detector = NetworkDownDetector(ping_ip,
                                             connection=ext_io_connection.moler_connection,
-                                            runner=AsyncioInThreadRunner())  # get_runner(variant="asyncio-in-thread"))
+                                            runner=get_runner(variant="asyncio-in-thread"))
     net_up_detector = NetworkUpDetector(ping_ip,
                                         connection=ext_io_connection.moler_connection,
-                                        runner=AsyncioInThreadRunner())  # get_runner(variant="asyncio-in-thread"))
+                                        runner=get_runner(variant="asyncio-in-thread"))
 
     info = '{} on {} using {}'.format(ping_ip, conn_addr, net_down_detector)
     logger.debug('observe ' + info)
@@ -101,7 +99,7 @@ def main(connections2observe4ip):
     logger.debug('starting jobs observing connections')
     # Starting the clients
     jobs_on_connections = []
-    for _, connection_name, ping_ip in connections2observe4ip:
+    for connection_name, ping_ip in connections2observe4ip:
         # ------------------------------------------------------------------
         # This front-end code hides all details of connection.
         # We just use its name - such name should be meaningful for user.
@@ -139,10 +137,12 @@ if __name__ == '__main__':
 
     configure_logging()
 
-    connections2serve = [(('localhost', 5671), '10.0.2.15'),
-                         (('localhost', 5672), '10.0.2.16')]
-    connections2observe4ip = [(('localhost', 5671), 'net_1', '10.0.2.15'),
-                              (('localhost', 5672), 'net_2', '10.0.2.16')]
+    net_1 = ('localhost', 5671)
+    net_2 = ('localhost', 5672)
+    connections2serve = [(net_1, '10.0.2.15'),
+                         (net_2, '10.0.2.16')]
+    connections2observe4ip = [('net_1', '10.0.2.15'),
+                              ('net_2', '10.0.2.16')]
     servers = start_ping_servers(connections2serve)
     try:
         main(connections2observe4ip)
