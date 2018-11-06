@@ -64,7 +64,7 @@ class Uptime(GenericUnixCommand):
                 uptime_seconds = 24 * 3600 * int(self._regex_helper.group("DAYS")) + 3600 * int(
                     self._regex_helper.group("HRS")) + 60 * int(self._regex_helper.group("MINS"))
             elif self._regex_helper.search_compiled(Uptime._re_days_minutes, val):
-                uptime_seconds = 24 * 3600 * int(self._regex_helper.group("DAYS")) + 3600 * int(
+                uptime_seconds = 24 * 3600 * int(self._regex_helper.group("DAYS")) + 60 * int(
                     self._regex_helper.group("MINS"))
             elif self._regex_helper.search_compiled(Uptime._re_hours_minutes, val):
                 uptime_seconds = 3600 * int(self._regex_helper.group("HRS")) + 60 * int(self._regex_helper.group("MINS"))
@@ -141,6 +141,19 @@ COMMAND_KWARGS_hours_minutes = {}
 COMMAND_RESULT_hours_minutes = {
     "UPTIME": '1:24',
     "UPTIME_SECONDS": 5040,
+    "USERS": 1
+}
+
+COMMAND_OUTPUT_days_minutes = """
+host:~ # uptime
+  12:57:01 up 2 days, 4 minutes,  1 user,  load average: 0.00, 0.00, 0.00
+host:~ #"""
+
+COMMAND_KWARGS_days_minutes = {}
+
+COMMAND_RESULT_days_minutes = {
+    "UPTIME": '2 days, 4 minutes',
+    "UPTIME_SECONDS": 173040,
     "USERS": 1
 }
 
