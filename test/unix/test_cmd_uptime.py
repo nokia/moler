@@ -7,6 +7,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import pytest
+from  moler.exceptions import CommandFailure
 
 
 def test_calling_uptime_returns_result_parsed_from_command_output(buffer_connection,
@@ -17,6 +18,15 @@ def test_calling_uptime_returns_result_parsed_from_command_output(buffer_connect
     uptime_cmd = Uptime(connection=buffer_connection.moler_connection)
     result = uptime_cmd()
     assert result == expected_result
+
+
+def test_calling_uptime_fails_unsupported_format(buffer_connection, command_unsupported_output):
+    from moler.cmd.unix.uptime import Uptime
+    command_output = command_unsupported_output
+    buffer_connection.remote_inject_response([command_output])
+    uptime_cmd = Uptime(connection=buffer_connection.moler_connection)
+    with pytest.raises(CommandFailure):
+        uptime_cmd()
 
 
 def test_uptime_returns_proper_command_string(buffer_connection):
@@ -38,3 +48,13 @@ host:~ #"""
         "USERS": 29,
     }
     return data, result
+
+
+@pytest.fixture
+def command_unsupported_output():
+    data = """
+host:~ # uptime
+ 10:38am  up UNSUPPORTED FORMAT,  29 users,  load average: 0.09, 0.10, 0.07
+host:~ #"""
+
+    return data
