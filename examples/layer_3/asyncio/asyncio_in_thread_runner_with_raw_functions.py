@@ -152,152 +152,137 @@ if __name__ == '__main__':
 '''
 LOG OUTPUT
 
- |threaded.ping.tcp-server(5671)                |   MainThread |Ping Sim started at tcp://localhost:5671
- |threaded.ping.tcp-server(5672)                |   MainThread |Ping Sim started at tcp://localhost:5672
- |asyncio                                       |     Thread-3 |Using selector: EpollSelector
- |moler.runner.asyncio-in-thrd:0                |     Thread-3 |created
- |moler.runner.asyncio-in-thrd:0                |     Thread-3 |created
- |moler.user.app-code                           |     Thread-3 |observe 10.0.2.15 on tcp://localhost:5671 using NetworkDownDetector(id:7f2a774fb358)
- |moler.runner.asyncio-in-thrd:7f2a774fb358     |     Thread-3 |go background: NetworkDownDetector(id:7f2a774fb358, using ObservableConnection(id:7f2a774e9be0)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f2a774e9e48>>])
- |asyncio                                       |     Thread-3 |Using selector: EpollSelector
- |asyncio                                       |     Thread-4 |Using selector: EpollSelector
- |moler.runner.asyncio-in-thrd:7f2a774fb358     |     Thread-5 |starting new asyncio-in-thrd loop ...
- |moler.runner.asyncio-in-thrd:7f2a774fb358     |     Thread-3 |started new asyncio-in-thrd loop ...
- |moler.runner.asyncio-in-thrd:0                |     Thread-4 |created
- |moler.runner.asyncio-in-thrd:0                |     Thread-4 |created
- |moler.user.app-code                           |     Thread-4 |observe 10.0.2.16 on tcp://localhost:5672 using NetworkDownDetector(id:7f2a7131f0b8)
- |moler.runner.asyncio-in-thrd:7f2a7131f0b8     |     Thread-4 |go background: NetworkDownDetector(id:7f2a7131f0b8, using ObservableConnection(id:7f2a774fb588)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f2a774fb5c0>>])
- |asyncio                                       |     Thread-4 |Using selector: EpollSelector
- |moler.runner.asyncio-in-thrd:7f2a774fb358     |     Thread-5 |will await stop_event ...
- |moler.runner.asyncio-in-thrd:7f2a774fb358     |     Thread-5 |START OF feed(NetworkDownDetector(id:7f2a774fb358))
- |moler.runner.asyncio-in-thrd:7f2a774fb358     |     Thread-5 |start feeding(NetworkDownDetector(id:7f2a774fb358))
- |moler.runner.asyncio-in-thrd:7f2a774fb358     |     Thread-5 |feed subscribing for data NetworkDownDetector(id:7f2a774fb358, using ObservableConnection(id:7f2a774e9be0)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f2a774e9e48>>])
- |moler.runner.asyncio-in-thrd:7f2a774fb358     |     Thread-5 |feeding(NetworkDownDetector(id:7f2a774fb358)) started
- |threaded.ping.tcp-server(5671 -> 49439)       |     Thread-7 |connection accepted - client at tcp://127.0.0.1:49439
- |moler.runner.asyncio-in-thrd:7f2a7131f0b8     |     Thread-6 |starting new asyncio-in-thrd loop ...
- |moler.runner.asyncio-in-thrd:7f2a7131f0b8     |     Thread-6 |will await stop_event ...
- |moler.runner.asyncio-in-thrd:7f2a7131f0b8     |     Thread-4 |started new asyncio-in-thrd loop ...
- |moler.runner.asyncio-in-thrd:7f2a7131f0b8     |     Thread-6 |START OF feed(NetworkDownDetector(id:7f2a7131f0b8))
- |moler.runner.asyncio-in-thrd:7f2a7131f0b8     |     Thread-6 |start feeding(NetworkDownDetector(id:7f2a7131f0b8))
- |moler.runner.asyncio-in-thrd:7f2a7131f0b8     |     Thread-6 |feed subscribing for data NetworkDownDetector(id:7f2a7131f0b8, using ObservableConnection(id:7f2a774fb588)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f2a774fb5c0>>])
- |moler.runner.asyncio-in-thrd:7f2a7131f0b8     |     Thread-6 |feeding(NetworkDownDetector(id:7f2a7131f0b8)) started
- |moler.net_1                                   |     Thread-8 |
+15:28:23 |threaded.ping.tcp-server(5671)                |   MainThread |Ping Sim started at tcp://localhost:5671
+15:28:23 |threaded.ping.tcp-server(5672)                |   MainThread |Ping Sim started at tcp://localhost:5672
+15:28:23 |asyncio.main                                  |   MainThread |starting jobs observing connections
+15:28:23 |moler.runner.asyncio-in-thrd:0                |     Thread-3 |created AsyncioInThreadRunner:139990601181112
+15:28:23 |moler.user.app-code                           |     Thread-3 |observe 10.0.2.15 on tcp://localhost:5671 using NetworkDownDetector(id:7f521a0e27f0)
+15:28:23 |moler.runner.asyncio-in-thrd:7f521a0e27f0     |     Thread-3 |go background: NetworkDownDetector(id:7f521a0e27f0, using ObservableConnection(id:7f521a0e2470)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f521a0e2630>>])
+15:28:23 |asyncio                                       |     Thread-3 |Using selector: EpollSelector
+15:28:23 |moler.runner.asyncio-in-thrd:7f521a0e27f0     |     Thread-3 |created loop 4 thread: 139990601182008:<_UnixSelectorEventLoop running=False closed=False debug=False>
+15:28:23 |moler.runner.asyncio-in-thrd:7f521a0e27f0     |     Thread-3 |created thread <TillDoneThread(Thread-5, initial)> with loop 139990601182008:<_UnixSelectorEventLoop running=False closed=False debug=True>
+15:28:23 |moler.runner.asyncio-in-thrd:7f521a0e27f0     |     Thread-5 |starting new asyncio-in-thrd loop ...
+15:28:23 |moler.runner.asyncio-in-thrd:7f521a0e27f0     |     Thread-3 |started new asyncio-in-thrd loop ...
+15:28:23 |moler.user.app-code                           |     Thread-4 |observe 10.0.2.16 on tcp://localhost:5672 using NetworkDownDetector(id:7f521a0d6710)
+15:28:23 |moler.runner.asyncio-in-thrd:7f521a0d6710     |     Thread-4 |go background: NetworkDownDetector(id:7f521a0d6710, using ObservableConnection(id:7f521a0e2780)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f521a0e2978>>])
+15:28:23 |moler.runner.asyncio-in-thrd:7f521a0d6710     |     Thread-5 |will await stop_event ...
+15:28:23 |moler.NetworkDownDetector(id:7f521a0d6710)    |     Thread-5 |Observer 'network_toggle_observers.NetworkDownDetector' started.
+15:28:23 |moler.net_2                                   |     Thread-5 |Observer 'network_toggle_observers.NetworkDownDetector' started.
+15:28:23 |moler.runner.asyncio-in-thrd:7f521a0d6710     |     Thread-5 |START OF feed(NetworkDownDetector(id:7f521a0d6710))
+15:28:23 |moler.runner.asyncio-in-thrd:7f521a0d6710     |     Thread-5 |start feeding(NetworkDownDetector(id:7f521a0d6710))
+15:28:23 |moler.runner.asyncio-in-thrd:7f521a0d6710     |     Thread-5 |feed subscribing for data NetworkDownDetector(id:7f521a0d6710, using ObservableConnection(id:7f521a0e2780)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f521a0e2978>>])
+15:28:23 |moler.runner.asyncio-in-thrd:7f521a0d6710     |     Thread-5 |feeding(NetworkDownDetector(id:7f521a0d6710)) started
+15:28:23 |moler.NetworkDownDetector(id:7f521a0e27f0)    |     Thread-5 |Observer 'network_toggle_observers.NetworkDownDetector' started.
+15:28:23 |moler.net_1                                   |     Thread-5 |Observer 'network_toggle_observers.NetworkDownDetector' started.
+15:28:23 |moler.runner.asyncio-in-thrd:7f521a0d6710     |     Thread-5 |START OF feed(NetworkDownDetector(id:7f521a0e27f0))
+15:28:23 |moler.runner.asyncio-in-thrd:7f521a0d6710     |     Thread-5 |start feeding(NetworkDownDetector(id:7f521a0e27f0))
+15:28:23 |moler.runner.asyncio-in-thrd:7f521a0d6710     |     Thread-5 |feed subscribing for data NetworkDownDetector(id:7f521a0e27f0, using ObservableConnection(id:7f521a0e2470)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f521a0e2630>>])
+15:28:23 |moler.runner.asyncio-in-thrd:7f521a0d6710     |     Thread-5 |feeding(NetworkDownDetector(id:7f521a0e27f0)) started
+15:28:23 |threaded.ping.tcp-server(5672 -> 43373)       |     Thread-6 |connection accepted - client at tcp://127.0.0.1:43373
+15:28:23 |moler.runner.asyncio-in-thrd:7f521a0d6710     |     Thread-4 |go foreground: NetworkDownDetector(id:7f521a0d6710, using ObservableConnection(id:7f521a0e2780)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f521a0e2978>>]) - await max. 10 [sec]
+15:28:23 |moler.net_2                                   |     Thread-7 |
 
- |moler.runner.asyncio-in-thrd:7f2a774fb358     |     Thread-3 |go foreground: NetworkDownDetector(id:7f2a774fb358, using ObservableConnection(id:7f2a774e9be0)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f2a774e9e48>>]) - await max. 10 [sec]
- |threaded.ping.tcp-server(5672 -> 43243)       |    Thread-10 |connection accepted - client at tcp://127.0.0.1:43243
- |moler.runner.asyncio-in-thrd:7f2a7131f0b8     |     Thread-4 |go foreground: NetworkDownDetector(id:7f2a7131f0b8, using ObservableConnection(id:7f2a774fb588)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f2a774fb5c0>>]) - await max. 10 [sec]
- |moler.net_2                                   |     Thread-9 |
+15:28:23 |threaded.ping.tcp-server(5671 -> 49571)       |     Thread-8 |connection accepted - client at tcp://127.0.0.1:49571
+15:28:23 |moler.runner.asyncio-in-thrd:7f521a0d6710     |     Thread-3 |go foreground: NetworkDownDetector(id:7f521a0e27f0, using ObservableConnection(id:7f521a0e2470)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f521a0e2630>>]) - await max. 10 [sec]
+15:28:23 |moler.net_1                                   |     Thread-9 |
 
- |moler.net_1                                   |     Thread-8 |greg@debian:~$ ping 10.0.2.15
+15:28:24 |moler.net_2                                   |     Thread-7 |greg@debian:~$ ping 10.0.2.16
 
- |moler.net_2                                   |     Thread-9 |greg@debian:~$ ping 10.0.2.16
+15:28:24 |moler.net_1                                   |     Thread-9 |greg@debian:~$ ping 10.0.2.15
 
- |moler.net_1                                   |     Thread-8 |PING 10.0.2.15 (10.0.2.15) 56(84) bytes of data.
+15:28:25 |moler.net_2                                   |     Thread-7 |PING 10.0.2.16 (10.0.2.16) 56(84) bytes of data.
 
- |moler.net_2                                   |     Thread-9 |PING 10.0.2.16 (10.0.2.16) 56(84) bytes of data.
+15:28:25 |moler.net_1                                   |     Thread-9 |PING 10.0.2.15 (10.0.2.15) 56(84) bytes of data.
 
- |moler.net_1                                   |     Thread-8 |64 bytes from 10.0.2.15: icmp_req=1 ttl=64 time=0.080 ms
+15:28:26 |moler.net_2                                   |     Thread-7 |64 bytes from 10.0.2.16: icmp_req=1 ttl=64 time=0.080 ms
 
- |moler.net_2                                   |     Thread-9 |64 bytes from 10.0.2.16: icmp_req=1 ttl=64 time=0.080 ms
+15:28:26 |moler.net_1                                   |     Thread-9 |64 bytes from 10.0.2.15: icmp_req=1 ttl=64 time=0.080 ms
 
- |moler.net_1                                   |     Thread-8 |64 bytes from 10.0.2.15: icmp_req=2 ttl=64 time=0.037 ms
+15:28:27 |moler.net_2                                   |     Thread-7 |64 bytes from 10.0.2.16: icmp_req=2 ttl=64 time=0.037 ms
 
- |moler.net_2                                   |     Thread-9 |64 bytes from 10.0.2.16: icmp_req=2 ttl=64 time=0.037 ms
+15:28:27 |moler.net_1                                   |     Thread-9 |64 bytes from 10.0.2.15: icmp_req=2 ttl=64 time=0.037 ms
 
- |moler.net_1                                   |     Thread-8 |64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms
+15:28:28 |moler.net_2                                   |     Thread-7 |64 bytes from 10.0.2.16: icmp_req=3 ttl=64 time=0.045 ms
 
- |moler.net_2                                   |     Thread-9 |64 bytes from 10.0.2.16: icmp_req=3 ttl=64 time=0.045 ms
+15:28:28 |moler.net_1                                   |     Thread-9 |64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms
 
- |moler.net_1                                   |     Thread-8 |ping: sendmsg: Network is unreachable
+15:28:29 |moler.net_2                                   |     Thread-7 |ping: sendmsg: Network is unreachable
 
- |moler.NetworkDownDetector(id:7f2a774fb358)    |     Thread-8 |Network 10.0.2.15 is down!
- |moler.net_2                                   |     Thread-9 |ping: sendmsg: Network is unreachable
+15:28:29 |moler.NetworkDownDetector(id:7f521a0d6710)    |     Thread-7 |Network 10.0.2.16 is down!
+15:28:29 |moler.net_1                                   |     Thread-9 |ping: sendmsg: Network is unreachable
 
- |moler.NetworkDownDetector(id:7f2a7131f0b8)    |     Thread-9 |Network 10.0.2.16 is down!
- |moler.runner.asyncio-in-thrd:7f2a7131f0b8     |     Thread-6 |feed done & unsubscribing NetworkDownDetector(id:7f2a7131f0b8, using ObservableConnection(id:7f2a774fb588)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f2a774fb5c0>>])
- |moler.runner.asyncio-in-thrd:7f2a7131f0b8     |     Thread-6 |feed returning result NetworkDownDetector(id:7f2a7131f0b8)
- |moler.runner.asyncio-in-thrd:7f2a7131f0b8     |     Thread-6 |END   OF feed(NetworkDownDetector(id:7f2a7131f0b8))
- |moler.runner.asyncio-in-thrd:7f2a7131f0b8     |     Thread-4 |shutting down
- |moler.runner.asyncio-in-thrd:7f2a7131f0b8     |     Thread-4 |NetworkDownDetector(id:7f2a7131f0b8) returned 1541419711.0872927
- |moler.user.app-code                           |     Thread-4 |Network 10.0.2.16 is down from 13:08:31
- |moler.user.app-code                           |     Thread-4 |observe 10.0.2.16 on tcp://localhost:5672 using NetworkUpDetector(id:7f2a7131f160)
- |moler.runner.asyncio-in-thrd:7f2a7131f160     |     Thread-4 |go background: NetworkUpDetector(id:7f2a7131f160, using ObservableConnection(id:7f2a774fb588)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f2a774fb5c0>>])
- |asyncio                                       |     Thread-4 |Using selector: EpollSelector
- |asyncio                                       |     Thread-6 |poll took 1.135 ms: 1 events
- |moler.runner.asyncio-in-thrd:7f2a7131f0b8     |     Thread-6 |... await stop_event done
- |moler.runner.asyncio-in-thrd:7f2a7131f0b8     |     Thread-6 |... asyncio-in-thrd loop done
- |moler.runner.asyncio-in-thrd:7f2a774fb358     |     Thread-5 |feed done & unsubscribing NetworkDownDetector(id:7f2a774fb358, using ObservableConnection(id:7f2a774e9be0)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f2a774e9e48>>])
- |moler.runner.asyncio-in-thrd:7f2a774fb358     |     Thread-5 |feed returning result NetworkDownDetector(id:7f2a774fb358)
- |moler.runner.asyncio-in-thrd:7f2a774fb358     |     Thread-5 |END   OF feed(NetworkDownDetector(id:7f2a774fb358))
- |moler.runner.asyncio-in-thrd:7f2a774fb358     |     Thread-3 |shutting down
- |moler.runner.asyncio-in-thrd:7f2a774fb358     |     Thread-3 |NetworkDownDetector(id:7f2a774fb358) returned 1541419711.087151
- |moler.user.app-code                           |     Thread-3 |Network 10.0.2.15 is down from 13:08:31
- |moler.user.app-code                           |     Thread-3 |observe 10.0.2.15 on tcp://localhost:5671 using NetworkUpDetector(id:7f2a774fb208)
- |moler.runner.asyncio-in-thrd:7f2a774fb208     |     Thread-3 |go background: NetworkUpDetector(id:7f2a774fb208, using ObservableConnection(id:7f2a774e9be0)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f2a774e9e48>>])
- |asyncio                                       |     Thread-3 |Using selector: EpollSelector
- |asyncio                                       |     Thread-5 |poll took 1.268 ms: 1 events
- |moler.runner.asyncio-in-thrd:7f2a7131f160     |    Thread-11 |starting new asyncio-in-thrd loop ...
- |moler.runner.asyncio-in-thrd:7f2a7131f160     |    Thread-11 |will await stop_event ...
- |moler.runner.asyncio-in-thrd:7f2a7131f160     |     Thread-4 |started new asyncio-in-thrd loop ...
- |asyncio                                       |    Thread-11 |poll took 0.428 ms: 1 events
- |moler.runner.asyncio-in-thrd:7f2a774fb358     |     Thread-5 |... await stop_event done
- |moler.runner.asyncio-in-thrd:7f2a7131f160     |    Thread-11 |START OF feed(NetworkUpDetector(id:7f2a7131f160))
- |moler.runner.asyncio-in-thrd:7f2a7131f160     |    Thread-11 |start feeding(NetworkUpDetector(id:7f2a7131f160))
- |moler.runner.asyncio-in-thrd:7f2a7131f160     |    Thread-11 |feed subscribing for data NetworkUpDetector(id:7f2a7131f160, using ObservableConnection(id:7f2a774fb588)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f2a774fb5c0>>])
- |moler.runner.asyncio-in-thrd:7f2a7131f160     |    Thread-11 |feeding(NetworkUpDetector(id:7f2a7131f160)) started
- |moler.runner.asyncio-in-thrd:7f2a7131f160     |     Thread-4 |go foreground: NetworkUpDetector(id:7f2a7131f160, using ObservableConnection(id:7f2a774fb588)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f2a774fb5c0>>]) - await max. None [sec]
- |moler.runner.asyncio-in-thrd:7f2a774fb358     |     Thread-5 |... asyncio-in-thrd loop done
- |moler.runner.asyncio-in-thrd:7f2a774fb208     |    Thread-12 |starting new asyncio-in-thrd loop ...
- |moler.runner.asyncio-in-thrd:7f2a774fb208     |    Thread-12 |will await stop_event ...
- |moler.runner.asyncio-in-thrd:7f2a774fb208     |     Thread-3 |started new asyncio-in-thrd loop ...
- |asyncio                                       |    Thread-12 |poll took 0.317 ms: 1 events
- |moler.runner.asyncio-in-thrd:7f2a774fb208     |    Thread-12 |START OF feed(NetworkUpDetector(id:7f2a774fb208))
- |moler.runner.asyncio-in-thrd:7f2a774fb208     |    Thread-12 |start feeding(NetworkUpDetector(id:7f2a774fb208))
- |moler.runner.asyncio-in-thrd:7f2a774fb208     |    Thread-12 |feed subscribing for data NetworkUpDetector(id:7f2a774fb208, using ObservableConnection(id:7f2a774e9be0)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f2a774e9e48>>])
- |moler.runner.asyncio-in-thrd:7f2a774fb208     |    Thread-12 |feeding(NetworkUpDetector(id:7f2a774fb208)) started
- |moler.runner.asyncio-in-thrd:7f2a774fb208     |     Thread-3 |go foreground: NetworkUpDetector(id:7f2a774fb208, using ObservableConnection(id:7f2a774e9be0)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f2a774e9e48>>]) - await max. None [sec]
- |moler.net_1                                   |     Thread-8 |ping: sendmsg: Network is unreachable
+15:28:29 |moler.NetworkDownDetector(id:7f521a0e27f0)    |     Thread-9 |Network 10.0.2.15 is down!
+15:28:29 |moler.runner.asyncio-in-thrd:7f521a0d6710     |     Thread-5 |feed done & unsubscribing NetworkDownDetector(id:7f521a0d6710, using ObservableConnection(id:7f521a0e2780)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f521a0e2978>>])
+15:28:29 |moler.runner.asyncio-in-thrd:7f521a0d6710     |     Thread-5 |END   OF feed(NetworkDownDetector(id:7f521a0d6710))
+15:28:29 |moler.runner.asyncio-in-thrd:7f521a0d6710     |     Thread-5 |feed returning result: 1541514509.3102295
+15:28:29 |moler.NetworkDownDetector(id:7f521a0d6710)    |     Thread-5 |Observer 'network_toggle_observers.NetworkDownDetector' finished.
+15:28:29 |moler.net_2                                   |     Thread-5 |Observer 'network_toggle_observers.NetworkDownDetector' finished.
+15:28:29 |moler.runner.asyncio-in-thrd:7f521a0d6710     |     Thread-5 |feed done & unsubscribing NetworkDownDetector(id:7f521a0e27f0, using ObservableConnection(id:7f521a0e2470)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f521a0e2630>>])
+15:28:29 |moler.runner.asyncio-in-thrd:7f521a0d6710     |     Thread-5 |END   OF feed(NetworkDownDetector(id:7f521a0e27f0))
+15:28:29 |moler.runner.asyncio-in-thrd:7f521a0d6710     |     Thread-5 |feed returning result: 1541514509.311799
+15:28:29 |moler.NetworkDownDetector(id:7f521a0e27f0)    |     Thread-5 |Observer 'network_toggle_observers.NetworkDownDetector' finished.
+15:28:29 |moler.net_1                                   |     Thread-5 |Observer 'network_toggle_observers.NetworkDownDetector' finished.
+15:28:29 |moler.runner.asyncio-in-thrd:7f521a0d6710     |     Thread-3 |NetworkDownDetector(id:7f521a0e27f0) returned 1541514509.311799
+15:28:29 |moler.user.app-code                           |     Thread-3 |Network 10.0.2.15 is down from 15:28:29
+15:28:29 |moler.user.app-code                           |     Thread-3 |observe 10.0.2.15 on tcp://localhost:5671 using NetworkUpDetector(id:7f521a0e2ba8)
+15:28:29 |moler.runner.asyncio-in-thrd:7f521a0e2ba8     |     Thread-3 |go background: NetworkUpDetector(id:7f521a0e2ba8, using ObservableConnection(id:7f521a0e2470)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f521a0e2630>>])
+15:28:29 |moler.runner.asyncio-in-thrd:7f521a0e2ba8     |     Thread-4 |NetworkDownDetector(id:7f521a0d6710) returned 1541514509.3102295
+15:28:29 |moler.user.app-code                           |     Thread-4 |Network 10.0.2.16 is down from 15:28:29
+15:28:29 |moler.user.app-code                           |     Thread-4 |observe 10.0.2.16 on tcp://localhost:5672 using NetworkUpDetector(id:7f521a0d6860)
+15:28:29 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Thread-4 |go background: NetworkUpDetector(id:7f521a0d6860, using ObservableConnection(id:7f521a0e2780)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f521a0e2978>>])
+15:28:29 |asyncio                                       |     Thread-5 |poll took 1.560 ms: 1 events
+15:28:29 |moler.NetworkUpDetector(id:7f521a0e2ba8)      |     Thread-5 |Observer 'network_toggle_observers.NetworkUpDetector' started.
+15:28:29 |moler.net_1                                   |     Thread-5 |Observer 'network_toggle_observers.NetworkUpDetector' started.
+15:28:29 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Thread-5 |START OF feed(NetworkUpDetector(id:7f521a0e2ba8))
+15:28:29 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Thread-5 |start feeding(NetworkUpDetector(id:7f521a0e2ba8))
+15:28:29 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Thread-5 |feed subscribing for data NetworkUpDetector(id:7f521a0e2ba8, using ObservableConnection(id:7f521a0e2470)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f521a0e2630>>])
+15:28:29 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Thread-5 |feeding(NetworkUpDetector(id:7f521a0e2ba8)) started
+15:28:29 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Thread-3 |go foreground: NetworkUpDetector(id:7f521a0e2ba8, using ObservableConnection(id:7f521a0e2470)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f521a0e2630>>]) - await max. None [sec]
+15:28:29 |moler.NetworkUpDetector(id:7f521a0d6860)      |     Thread-5 |Observer 'network_toggle_observers.NetworkUpDetector' started.
+15:28:29 |moler.net_2                                   |     Thread-5 |Observer 'network_toggle_observers.NetworkUpDetector' started.
+15:28:29 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Thread-5 |START OF feed(NetworkUpDetector(id:7f521a0d6860))
+15:28:29 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Thread-5 |start feeding(NetworkUpDetector(id:7f521a0d6860))
+15:28:29 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Thread-5 |feed subscribing for data NetworkUpDetector(id:7f521a0d6860, using ObservableConnection(id:7f521a0e2780)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f521a0e2978>>])
+15:28:29 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Thread-5 |feeding(NetworkUpDetector(id:7f521a0d6860)) started
+15:28:29 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Thread-4 |go foreground: NetworkUpDetector(id:7f521a0d6860, using ObservableConnection(id:7f521a0e2780)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f521a0e2978>>]) - await max. None [sec]
+15:28:30 |moler.net_2                                   |     Thread-7 |ping: sendmsg: Network is unreachable
 
- |moler.net_2                                   |     Thread-9 |ping: sendmsg: Network is unreachable
+15:28:30 |moler.net_1                                   |     Thread-9 |ping: sendmsg: Network is unreachable
 
- |moler.net_1                                   |     Thread-8 |ping: sendmsg: Network is unreachable
+15:28:31 |moler.net_2                                   |     Thread-7 |ping: sendmsg: Network is unreachable
 
- |moler.net_2                                   |     Thread-9 |ping: sendmsg: Network is unreachable
+15:28:31 |moler.net_1                                   |     Thread-9 |ping: sendmsg: Network is unreachable
 
- |moler.net_1                                   |     Thread-8 |64 bytes from 10.0.2.15: icmp_req=7 ttl=64 time=0.123 ms
+15:28:32 |moler.net_1                                   |     Thread-9 |64 bytes from 10.0.2.15: icmp_req=7 ttl=64 time=0.123 ms
 
- |moler.NetworkUpDetector(id:7f2a774fb208)      |     Thread-8 |Network 10.0.2.15 is up!
- |moler.net_2                                   |     Thread-9 |64 bytes from 10.0.2.16: icmp_req=7 ttl=64 time=0.123 ms
+15:28:32 |moler.NetworkUpDetector(id:7f521a0e2ba8)      |     Thread-9 |Network 10.0.2.15 is up!
+15:28:32 |moler.net_2                                   |     Thread-7 |64 bytes from 10.0.2.16: icmp_req=7 ttl=64 time=0.123 ms
 
- |moler.NetworkUpDetector(id:7f2a7131f160)      |     Thread-9 |Network 10.0.2.16 is up!
- |moler.runner.asyncio-in-thrd:7f2a7131f160     |    Thread-11 |feed done & unsubscribing NetworkUpDetector(id:7f2a7131f160, using ObservableConnection(id:7f2a774fb588)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f2a774fb5c0>>])
- |moler.runner.asyncio-in-thrd:7f2a7131f160     |    Thread-11 |feed returning result NetworkUpDetector(id:7f2a7131f160)
- |moler.runner.asyncio-in-thrd:7f2a7131f160     |    Thread-11 |END   OF feed(NetworkUpDetector(id:7f2a7131f160))
- |moler.runner.asyncio-in-thrd:7f2a774fb208     |    Thread-12 |feed done & unsubscribing NetworkUpDetector(id:7f2a774fb208, using ObservableConnection(id:7f2a774e9be0)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f2a774e9e48>>])
- |moler.runner.asyncio-in-thrd:7f2a774fb208     |    Thread-12 |feed returning result NetworkUpDetector(id:7f2a774fb208)
- |moler.runner.asyncio-in-thrd:7f2a774fb208     |    Thread-12 |END   OF feed(NetworkUpDetector(id:7f2a774fb208))
- |moler.runner.asyncio-in-thrd:7f2a774fb208     |     Thread-3 |shutting down
- |moler.runner.asyncio-in-thrd:7f2a774fb208     |     Thread-3 |NetworkUpDetector(id:7f2a774fb208) returned 1541419714.092892
- |moler.user.app-code                           |     Thread-3 |Network 10.0.2.15 is back "up" from 13:08:34
- |asyncio                                       |    Thread-12 |poll took 0.486 ms: 1 events
- |moler.runner.asyncio-in-thrd:7f2a774fb208     |    Thread-12 |... await stop_event done
- |moler.runner.asyncio-in-thrd:7f2a774fb208     |    Thread-12 |... asyncio-in-thrd loop done
- |moler.runner.asyncio-in-thrd:7f2a7131f160     |     Thread-4 |shutting down
- |moler.runner.asyncio-in-thrd:7f2a7131f160     |     Thread-4 |NetworkUpDetector(id:7f2a7131f160) returned 1541419714.0949519
- |moler.user.app-code                           |     Thread-4 |Network 10.0.2.16 is back "up" from 13:08:34
- |asyncio                                       |    Thread-11 |poll took 3.366 ms: 1 events
- |moler.runner.asyncio-in-thrd:7f2a7131f160     |    Thread-11 |... await stop_event done
- |moler.runner.asyncio-in-thrd:7f2a7131f160     |    Thread-11 |... asyncio-in-thrd loop done
- |threaded.ping.tcp-server(5671)                |     Thread-1 |Ping Sim: ... bye
- |threaded.ping.tcp-server(5672)                |     Thread-2 |Ping Sim: ... bye
- |threaded.ping.tcp-server(5671 -> 49439)       |     Thread-7 |Connection closed
- |threaded.ping.tcp-server(5672 -> 43243)       |    Thread-10 |Connection closed
- |moler.runner.asyncio-in-thrd:7f2a7131f160     |     Dummy-13 |shutting down
- |moler.runner.asyncio-in-thrd:7f2a7131f0b8     |     Dummy-13 |shutting down
- |moler.runner.asyncio-in-thrd:7f2a774fb208     |     Dummy-13 |shutting down
- |moler.runner.asyncio-in-thrd:7f2a774fb358     |     Dummy-13 |shutting down
- |asyncio                                       |     Dummy-13 |Close <_UnixSelectorEventLoop running=False closed=False debug=True>
- |asyncio                                       |     Dummy-13 |Close <_UnixSelectorEventLoop running=False closed=False debug=True>
- |asyncio                                       |     Dummy-13 |Close <_UnixSelectorEventLoop running=False closed=False debug=True>
- |asyncio                                       |     Dummy-13 |Close <_UnixSelectorEventLoop running=False closed=False debug=True>
+15:28:32 |moler.NetworkUpDetector(id:7f521a0d6860)      |     Thread-7 |Network 10.0.2.16 is up!
+15:28:32 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Thread-5 |feed done & unsubscribing NetworkUpDetector(id:7f521a0e2ba8, using ObservableConnection(id:7f521a0e2470)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f521a0e2630>>])
+15:28:32 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Thread-5 |END   OF feed(NetworkUpDetector(id:7f521a0e2ba8))
+15:28:32 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Thread-5 |feed returning result: 1541514512.3170855
+15:28:32 |moler.NetworkUpDetector(id:7f521a0e2ba8)      |     Thread-5 |Observer 'network_toggle_observers.NetworkUpDetector' finished.
+15:28:32 |moler.net_1                                   |     Thread-5 |Observer 'network_toggle_observers.NetworkUpDetector' finished.
+15:28:32 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Thread-5 |feed done & unsubscribing NetworkUpDetector(id:7f521a0d6860, using ObservableConnection(id:7f521a0e2780)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x7f521a0e2978>>])
+15:28:32 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Thread-5 |END   OF feed(NetworkUpDetector(id:7f521a0d6860))
+15:28:32 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Thread-5 |feed returning result: 1541514512.3174996
+15:28:32 |moler.NetworkUpDetector(id:7f521a0d6860)      |     Thread-5 |Observer 'network_toggle_observers.NetworkUpDetector' finished.
+15:28:32 |moler.net_2                                   |     Thread-5 |Observer 'network_toggle_observers.NetworkUpDetector' finished.
+15:28:32 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Thread-3 |NetworkUpDetector(id:7f521a0e2ba8) returned 1541514512.3170855
+15:28:32 |moler.user.app-code                           |     Thread-3 |Network 10.0.2.15 is back "up" from 15:28:32
+15:28:32 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Thread-4 |NetworkUpDetector(id:7f521a0d6860) returned 1541514512.3174996
+15:28:32 |moler.user.app-code                           |     Thread-4 |Network 10.0.2.16 is back "up" from 15:28:32
+15:28:32 |moler.user.app-code                           |     Thread-3 |exiting ping_observing_task(10.0.2.15)
+15:28:32 |moler.user.app-code                           |     Thread-4 |exiting ping_observing_task(10.0.2.16)
+15:28:32 |asyncio.main                                  |   MainThread |all jobs observing connections are done
+15:28:32 |threaded.ping.tcp-server(5671)                |     Thread-1 |Ping Sim: ... bye
+15:28:32 |threaded.ping.tcp-server(5672)                |     Thread-2 |Ping Sim: ... bye
+15:28:32 |asyncio                                       |     Thread-5 |poll took 255.669 ms: 1 events
+15:28:32 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Thread-5 |... await stop_event done
+15:28:32 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Thread-5 |... asyncio-in-thrd loop done
+15:28:34 |threaded.ping.tcp-server(5672 -> 43373)       |     Thread-6 |Connection closed
+15:28:34 |threaded.ping.tcp-server(5671 -> 49571)       |     Thread-8 |Connection closed
+15:28:34 |moler.runner.asyncio-in-thrd:7f521a0d6860     |     Dummy-10 |shutting down
+15:28:34 |asyncio                                       |     Dummy-10 |Close <_UnixSelectorEventLoop running=False closed=False debug=True>
 '''
