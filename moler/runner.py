@@ -99,6 +99,19 @@ class ConnectionObserverRunner(object):
         return False  # exceptions (if any) should be reraised
 
 
+def result_for_runners(connection_observer):
+    """
+    When runner takes result from connection-observer it should not
+    modify ConnectionObserver._not_raised_exceptions
+
+    :param connection_observer: observer to get result from
+    :return: result or raised exception
+    """
+    if connection_observer._exception:
+        raise connection_observer._exception
+    return connection_observer.result()
+
+
 class CancellableFuture(object):
     def __init__(self, future, is_started, stop_running, is_done, stop_timeout=0.5):
         """
@@ -216,8 +229,11 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             done, not_done = wait([connection_observer_future], timeout=wait_tick)
             if connection_observer_future in done:
                 connection_observer_future._stop()
-                result = connection_observer_future.result()
-                self.logger.debug("{} returned {}".format(connection_observer, result))
+                try:
+                    result = result_for_runners(connection_observer_future)
+                    self.logger.debug("{} returned {}".format(connection_observer, result))
+                except Exception as err:
+                    self.logger.debug("{} raised {!r}".format(connection_observer, err))
                 return None
             if check_timeout_from_observer:
                 timeout = connection_observer.timeout
@@ -253,8 +269,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         """
         while not connection_observer_future.done():
             yield None
-        # return connection_observer_future.result()  # May raise too.   # Python > 3.3
-        res = connection_observer_future.result()
+        # return result_for_runners(connection_observer_future)  # May raise too.   # Python > 3.3
+        res = result_for_runners(connection_observer_future)
         raise StopIteration(res)  # Python 2 compatibility
 
     def feed(self, connection_observer, feed_started, stop_feeding, feed_done):
@@ -293,8 +309,13 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         feed_done.set()
 
         connection_observer._log(logging.INFO, "{} finished.".format(connection_observer.get_short_desc()))
-        self.logger.debug("returning result {}".format(connection_observer))
-        return connection_observer.result()
+        try:
+            result = result_for_runners(connection_observer)
+            self.logger.debug("{} returning result: {}".format(connection_observer, result))
+            return result
+        except Exception as err:
+            self.logger.debug("{} raising: {!r}".format(connection_observer, err))
+            raise
 
     def timeout_change(self, timedelta):
         pass
