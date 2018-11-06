@@ -41,7 +41,7 @@ moler@debian:~$"""
 def test_wget_raises_command_error(buffer_connection, command_output_and_expected_result_command_error):
     command_output, expected_result = command_output_and_expected_result_command_error
     buffer_connection.remote_inject_response([command_output])
-    wget_cmd = Wget(connection=buffer_connection.moler_connection, options="-m", timeout=30)
+    wget_cmd = Wget(connection=buffer_connection.moler_connection, options="-m")
     with pytest.raises(CommandFailure):
         wget_cmd()
 

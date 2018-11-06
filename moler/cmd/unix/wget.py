@@ -6,23 +6,20 @@ __author__ = 'Agnieszka Bylica, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'agnieszka.bylica@nokia.com, michal.ernst@nokia.com'
 
+import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
-import re
 
 
 class Wget(GenericUnixCommand):
-    def __init__(self, connection, options, log_progress_bar=False, timeout=60, prompt=None, newline_chars=None,
-                 runner=None):
+    def __init__(self, connection, options, log_progress_bar=False, prompt=None, newline_chars=None, runner=None):
         super(Wget, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
         self.options = options  # should contain URLs
         self.log_progress_bar = log_progress_bar
-        self.extend_timeout(timeout)
         self.current_percent = 0
-        self.next_percent = 0
         self.current_ret['RESULT'] = list()
         if self.log_progress_bar:
             self.current_ret['PROGRESS_LOG'] = list()
@@ -181,13 +178,11 @@ moler@debian:~$"""
 COMMAND_KWARGS = {
     'options': 'http://ftp.gnu.org/gnu/wget/wget-1.5.3.tar.gz',
     'log_progress_bar': False,
-    'timeout': 10
 }
 
 COMMAND_RESULT = {
     'RESULT': ['2012-10-02 11:28:38 (58.9 KB/s) - wget-1.5.3.tar.gz'],
 }
-
 
 COMMAND_OUTPUT_2 = """moler@debian:~$ wget -m http://users.student.com/lesson01/character.html
 --2018-09-14 13:06:20--  http://users.student.com/lesson01/character.html
