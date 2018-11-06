@@ -126,3 +126,15 @@ COMMAND_RESULT_hours_minutes = {
     "UPTIME_SECONDS": 5040,
     "USERS": 1
 }
+
+COMMAND_OUTPUT_since = """
+host:~ # uptime
+  2018-11-06 13:41:00
+host:~ #"""
+
+COMMAND_KWARGS_since = {'options': '-s'}
+
+COMMAND_RESULT_since = {
+    "date": "2018-11-06",
+    "time": "13:41:00"
+}
