@@ -7,9 +7,13 @@ __author__ = 'Grzegorz Latuszek, Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
-import collections
 import importlib
 import re
+
+try:
+    import collections.abc as collections
+except ImportError:
+    import collections
 
 
 class ClassProperty(property):
