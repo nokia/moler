@@ -289,11 +289,12 @@ class AsyncioInThreadRunner(AsyncioRunner):
         self._loop_thread = None
         self._loop = None
         self._loop_done = None  # asyncio.Event that stops loop and holding it thread
-        self.logger.debug("created")
+        self.logger.debug("created AsyncioInThreadRunner:{}".format(id(self)))
         atexit.register(self.shutdown)
 
     def _start_loop_thread(self):
         self._loop = asyncio.new_event_loop()
+        self.logger.debug("created loop 4 thread: {}:{}".format(id(self._loop), self._loop))
         self._loop_done = AsyncioEventThreadsafe(loop=self._loop)
         self._loop.set_debug(enabled=True)
         self._loop_done.clear()
@@ -303,6 +304,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
                                            kwargs={'loop': self._loop,
                                                    'loop_started': loop_started,
                                                    'loop_done': self._loop_done})
+        self.logger.debug("created thread {} with loop {}:{}".format(self._loop_thread, id(self._loop), self._loop))
         self._loop_thread.start()
         # await loop thread to be really started
         start_timeout = 0.5
@@ -388,7 +390,6 @@ class AsyncioInThreadRunner(AsyncioRunner):
         while remain_time > 0.0:
             done, not_done = concurrent.futures.wait([connection_observer_future], timeout=wait_tick)
             if connection_observer_future in done:
-                self.shutdown()
                 result = connection_observer_future.result()
                 self.logger.debug("{} returned {}".format(connection_observer, result))
                 return result
@@ -401,7 +402,6 @@ class AsyncioInThreadRunner(AsyncioRunner):
         self.logger.debug("timeouted {}".format(connection_observer))
         connection_observer.cancel()
         connection_observer_future.cancel()
-        self.shutdown()
         connection_observer.on_timeout()
         if hasattr(connection_observer, "command_string"):
             raise CommandTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
