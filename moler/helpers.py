@@ -7,8 +7,13 @@ __author__ = 'Grzegorz Latuszek, Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
-import re
 import importlib
+import re
+
+try:
+    import collections.abc as collections
+except ImportError:
+    import collections
 
 
 class ClassProperty(property):
@@ -54,11 +59,20 @@ def remove_escape_codes(line):
 
 
 def create_object_from_name(full_class_name, constructor_params):
-        name_splitted = full_class_name.split('.')
-        module_name = ".".join(name_splitted[:-1])
-        class_name = name_splitted[-1]
+    name_splitted = full_class_name.split('.')
+    module_name = ".".join(name_splitted[:-1])
+    class_name = name_splitted[-1]
 
-        imported_module = importlib.import_module(module_name)
-        class_imported = getattr(imported_module, class_name)
-        obj = class_imported(constructor_params)
-        return obj
+    imported_module = importlib.import_module(module_name)
+    class_imported = getattr(imported_module, class_name)
+    obj = class_imported(constructor_params)
+    return obj
+
+
+def update_dict(target_dict, expand_dict):
+    for key, value in expand_dict.items():
+        if (key in target_dict and isinstance(target_dict[key], dict) and isinstance(expand_dict[key],
+                                                                                     collections.Mapping)):
+            update_dict(target_dict[key], expand_dict[key])
+        else:
+            target_dict[key] = expand_dict[key]

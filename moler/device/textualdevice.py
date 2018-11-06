@@ -4,27 +4,26 @@ Moler's device has 2 main responsibilities:
 - be the factory that returns commands of that device
 - be the state machine that controls which commands may run in given state
 """
-import logging
-import traceback
-
-from moler.cmd.commandtextualgeneric import CommandTextualGeneric
-from moler.config.loggers import configure_device_logger
-
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
+import abc
 import functools
 import importlib
 import inspect
+import logging
 import pkgutil
-import time
 import re
-import abc
+import time
+import traceback
 
+from moler.cmd.commandtextualgeneric import CommandTextualGeneric
+from moler.config.loggers import configure_device_logger
 from moler.connection import get_connection
 from moler.device.state_machine import StateMachine
 from moler.exceptions import CommandWrongState, DeviceFailure, EventWrongState, DeviceChangeStateFailure
+from moler.helpers import update_dict
 
 
 # TODO: name, logger/logger_name as param
@@ -512,6 +511,9 @@ class TextualDevice(object):
                 destination[key] = value
 
         return destination
+
+    def _update_dict(self, target_dict, expand_dict):
+        update_dict(target_dict, expand_dict)
 
     def _get_default_sm_configuration(self):
         return {TextualDevice.connection_hops: {}}
