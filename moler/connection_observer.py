@@ -225,8 +225,7 @@ class ConnectionObserver(object):
     def result(self):
         """Retrieve final result of connection-observer"""
         if self._exception:
-            if self._exception:
-                ConnectionObserver._remove_from_not_raised_exceptions(self._exception)
+            ConnectionObserver._remove_from_not_raised_exceptions(self._exception)
             raise self._exception
         if self.cancelled():
             raise NoResultSinceCancelCalled(self)
