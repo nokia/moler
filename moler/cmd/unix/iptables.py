@@ -28,7 +28,7 @@ class Iptables(GenericUnixCommand):
         if self.v6:
             cmd = "ip6tables"
         if self.options:
-            cmd = cmd + " " + self.options
+            cmd = "{} {}".format(cmd, self.options)
         return cmd
 
     def on_new_line(self, line, is_full_line):
