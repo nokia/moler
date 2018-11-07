@@ -43,22 +43,22 @@ class MolerTest(object):
 
     @staticmethod
     def _check_exceptions_occured(caught_exception=None):
-        exceptions = ConnectionObserver.get_unraised_exceptions(True)
-        unhandled_exceptions = list()
-        for exception in exceptions:
-            unhandled_exceptions.append(exception)
-            MolerTest.error("Unhandled exception: '{}'".format(exception))
+        unraised_exceptions = ConnectionObserver.get_unraised_exceptions(True)
+        occured_exceptions = list()
+        for unraised_exception in unraised_exceptions:
+            occured_exceptions.append(unraised_exception)
+            MolerTest.error("Unhandled exception: '{}'".format(unraised_exception))
         if caught_exception:
-            unhandled_exceptions.append(caught_exception)
+            occured_exceptions.append(caught_exception)
 
         was_error_in_last_execution = MolerTest._was_error
         err_msg = ""
 
         if was_error_in_last_execution:
             err_msg += "There were error messages in Moler execution. Please check Moler logs for details.\n"
-        if len(unhandled_exceptions) > 0:
+        if len(occured_exceptions) > 0:
             err_msg += "There were unhandled exceptions in Moler.\n"
-            for exc in unhandled_exceptions:
+            for exc in occured_exceptions:
                 try:
                     import traceback
                     exc_traceback = ' '.join(traceback.format_tb(exc.__traceback__))
@@ -68,7 +68,7 @@ class MolerTest(object):
         if err_msg:
             MolerTest.error(err_msg)
             MolerTest._was_error = False
-            raise MolerStatusException(err_msg)
+            raise MolerStatusException(err_msg, occured_exceptions)
 
     @staticmethod
     def _check_steps_end():
