@@ -42,28 +42,41 @@ class MolerTest(object):
         MolerTest._was_steps_end = False
 
     @staticmethod
-    def _final_check(caught_exception=None, check_steps_end=True):
-        exceptions = ConnectionObserver.get_unraised_exceptions(True)
-        unhandled_exceptions = list()
-        for exception in exceptions:
-            unhandled_exceptions.append(exception)
-            MolerTest.error("Unhandled exception: '{}'".format(exception))
+    def _check_exceptions_occured(caught_exception=None):
+        unraised_exceptions = ConnectionObserver.get_unraised_exceptions(True)
+        occured_exceptions = list()
+        for unraised_exception in unraised_exceptions:
+            occured_exceptions.append(unraised_exception)
+            MolerTest.error("Unhandled exception: '{}'".format(unraised_exception))
         if caught_exception:
-            unhandled_exceptions.append(caught_exception)
+            occured_exceptions.append(caught_exception)
 
         was_error_in_last_execution = MolerTest._was_error
         err_msg = ""
 
-        if check_steps_end and not MolerTest._was_steps_end:
-            err_msg += "Method steps_end() was not called.\n"
         if was_error_in_last_execution:
             err_msg += "There were error messages in Moler execution. Please check Moler logs for details.\n"
-        if len(unhandled_exceptions) > 0:
+        if len(occured_exceptions) > 0:
             err_msg += "There were unhandled exceptions in Moler.\n"
-        if err_msg or len(unhandled_exceptions) > 0:
+            for exc in occured_exceptions:
+                try:
+                    import traceback
+                    exc_traceback = ' '.join(traceback.format_tb(exc.__traceback__))
+                    err_msg += "{}{}".format(exc_traceback, repr(exc))
+                except AttributeError:
+                    err_msg += repr(exc)
+        if err_msg:
             MolerTest.error(err_msg)
             MolerTest._was_error = False
-            raise MolerStatusException(err_msg, unhandled_exceptions)
+            raise MolerStatusException(err_msg, occured_exceptions)
+
+    @staticmethod
+    def _check_steps_end():
+        if not MolerTest._was_steps_end:
+            err_msg = "Method steps_end() was not called.\n"
+            MolerTest.error(err_msg)
+            MolerTest._was_error = False
+            raise MolerStatusException(err_msg)
 
     @staticmethod
     def raise_background_exceptions(decorated="function", check_steps_end=False):
@@ -112,7 +125,9 @@ class MolerTest(object):
             except Exception as exc:
                 caught_exception = exc
             finally:
-                MolerTest._final_check(caught_exception, check_steps_end)
+                MolerTest._check_exceptions_occured(caught_exception)
+                if check_steps_end:
+                    MolerTest._check_steps_end()
             return result
 
         wrapped._already_decorated = True

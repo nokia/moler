@@ -126,7 +126,7 @@ class EventWrongState(MolerException):
 
 
 class MolerStatusException(MolerException):
-    def __init__(self, msg, exceptions):
+    def __init__(self, msg, exceptions=None):
         self.exceptions = exceptions
         err_msg = msg
         if exceptions:
