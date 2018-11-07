@@ -46,7 +46,7 @@ class TextualDevice(object):
                         (if not given then default one is taken)
         """
         sm_params = sm_params.copy()
-        self.states = []
+        self.states = [TextualDevice.not_connected]
         self.goto_states_triggers = []
         self._name = name
         self.device_data_logger = None
@@ -442,11 +442,11 @@ class TextualDevice(object):
                      'prepare': transitions[source_state][dest_state]["action"]},
                 ]
 
-                self.SM.add_state(dest_state)
                 self.SM.add_transitions(single_transition)
 
     def _update_SM_states(self, state):
         if state not in self.states:
+            self.SM.add_state(state)
             self.states.append(state)
 
     def _open_connection(self, source_state, dest_state, timeout):
