@@ -552,3 +552,4 @@ def _register_builtin_unix_connections():
 _register_builtin_connections()
 if platform.system() == 'Linux':
     _register_builtin_unix_connections()
+    connection_cfg.set_default_variant(io_type="terminal", variant="threaded")
