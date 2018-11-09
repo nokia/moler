@@ -11,7 +11,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
 import time
-
+import importlib
 import pytest
 
 
@@ -83,11 +83,12 @@ def test_can_receive_data_from_connection(tcp_connection_class,
 # --------------------------- resources ---------------------------
 
 
-@pytest.fixture()
-def tcp_connection_class():
-    from moler.io.raw.tcp import Tcp
-    return Tcp
-
+@pytest.fixture(params=['io.raw.tcp.Tcp'])
+def tcp_connection_class(request):
+    module_name, class_name = request.param.rsplit('.', 1)
+    module = importlib.import_module('moler.{}'.format(module_name))
+    connection_class = getattr(module, class_name)
+    return connection_class
 
 @pytest.yield_fixture()
 def integration_tcp_server_and_pipe():
