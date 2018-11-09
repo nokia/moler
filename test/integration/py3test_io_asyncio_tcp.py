@@ -11,6 +11,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
 import time
+import importlib
 import asyncio
 import pytest
 
@@ -143,10 +144,12 @@ async def test_can_receive_data_from_connection(tcp_connection_class,
 # --------------------------- resources ---------------------------
 
 
-@pytest.fixture()
-def tcp_connection_class():
-    from moler.io.asyncio.tcp import AsyncioTcp
-    return AsyncioTcp
+@pytest.fixture(params=['io.asyncio.tcp.AsyncioTcp'])
+def tcp_connection_class(request):
+    module_name, class_name = request.param.rsplit('.', 1)
+    module = importlib.import_module('moler.{}'.format(module_name))
+    connection_class = getattr(module, class_name)
+    return connection_class
 
 
 @pytest.yield_fixture()
