@@ -19,6 +19,7 @@ class IpAddr(GenericUnixCommand):
         # Parameters defined by calling the command
         self.if_name = None
         self.options = options
+        self.ret_required = False
 
     def build_command_string(self):
         cmd = "ip addr"
