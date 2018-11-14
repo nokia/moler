@@ -61,7 +61,7 @@ def ping_observing_task(ext_io_connection, ping_ip):
     net_down_detector.start()  # should be started before we open connection
     # to not loose first data on connection
 
-    with ext_io_connection:
+    with ext_io_connection.open():
         # 5. await that observer to complete
         net_down_time = net_down_detector.await_done(timeout=10)
         timestamp = time.strftime("%H:%M:%S", time.localtime(net_down_time))

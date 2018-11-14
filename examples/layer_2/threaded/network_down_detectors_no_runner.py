@@ -61,7 +61,7 @@ def ping_observing_task(ext_io_connection, ping_ip):
     info = '{} on {} using {}'.format(ping_ip, conn_addr, net_down_detector)
     logger.debug('observe ' + info)
 
-    with ext_io_connection:
+    with ext_io_connection.open():
         observing_timeout = 10
         start_time = time.time()
         while time.time() < start_time + observing_timeout:

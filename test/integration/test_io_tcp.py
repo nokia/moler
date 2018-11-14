@@ -44,7 +44,7 @@ def test_can_open_and_close_connection_as_context_manager(tcp_connection_class,
 
     moler_conn = ObservableConnection()
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
-    with connection:
+    with connection.open():
         pass
     time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
     tcp_server_pipe.send(("get history", {}))
@@ -63,7 +63,7 @@ def test_can_send_binary_data_over_connection(tcp_connection_class,
 
     moler_conn = ObservableConnection()  # no decoder, just pass bytes 1:1
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
-    with connection:
+    with connection.open():
         moler_conn.send(data=b'data to be send')
         time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
         tcp_server_pipe.send(("get history", {}))
@@ -89,7 +89,7 @@ def test_can_receive_binary_data_from_connection(tcp_connection_class,
     moler_conn = ObservableConnection()  # no decoder, just pass bytes 1:1
     moler_conn.subscribe(receiver)       # build forwarding path
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
-    with connection:
+    with connection.open():
         time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
         tcp_server_pipe.send(("send async msg", {'msg': b'data to read'}))
         receiver_called.wait(timeout=0.5)
