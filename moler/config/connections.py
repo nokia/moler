@@ -84,7 +84,7 @@ def _register_builtin_connections(connection_factory, moler_conn_class):
 
 
 def _register_python3_builtin_connections(connection_factory, moler_conn_class):
-    from moler.io.asyncio.tcp import AsyncioTcp
+    from moler.io.asyncio.tcp import AsyncioTcp, AsyncioInThreadTcp
 
     def mlr_conn_utf8(name):
         return moler_conn_class(encoder=lambda data: data.encode("utf-8"),
@@ -97,11 +97,19 @@ def _register_python3_builtin_connections(connection_factory, moler_conn_class):
                              port=port, host=host, **kwargs)  # TODO: add name
         return io_conn
 
+    def tcp_asyncio_in_thrd_conn(port, host='localhost', name=None, **kwargs):  # kwargs to pass  receive_buffer_size and logger
+        mlr_conn = mlr_conn_utf8(name=name)
+        io_conn = AsyncioInThreadTcp(moler_connection=mlr_conn,
+                                     port=port, host=host, **kwargs)  # TODO: add name
+        return io_conn
+
     # TODO: unify passing logger to io_conn (logger/logger_name - see above comments)
     connection_factory.register_construction(io_type="tcp",
                                              variant="asyncio",
                                              constructor=tcp_asyncio_conn)
-
+    connection_factory.register_construction(io_type="tcp",
+                                             variant="asyncio-in-thread",
+                                             constructor=tcp_asyncio_in_thrd_conn)
 
 def _register_builtin_unix_connections(connection_factory, moler_conn_class):
     from moler.io.raw.terminal import ThreadedTerminal

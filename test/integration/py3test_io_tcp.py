@@ -67,7 +67,7 @@ async def test_can_send_binary_data_over_connection(tcp_connection_class,
     moler_conn = ObservableConnection()  # no decoder, just pass bytes 1:1
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     async with connection:
-        moler_conn.send(data=b'data to be send')
+        moler_conn.send(data=b'data to be send')  # TODO: await moler_conn.send(data=b'data to be send') ???
         time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
         tcp_server_pipe.send(("get history", {}))
         dialog_with_server = tcp_server_pipe.recv()
@@ -96,7 +96,7 @@ async def test_can_receive_binary_data_from_connection(tcp_connection_class,
     moler_conn = ObservableConnection()  # no decoder, just pass bytes 1:1
     moler_conn.subscribe(receiver)       # build forwarding path
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
-    async with connection:
+    async with connection:  # TODO: async with connection.open():
         time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
         tcp_server_pipe.send(("send async msg", {'msg': b'data to read'}))
         await asyncio.wait_for(receiver_called.wait(), timeout=0.5)

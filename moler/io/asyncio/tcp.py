@@ -101,3 +101,16 @@ class AsyncioTcp(IOConnection):
     def _debug(self, msg):  # TODO: refactor to class decorator or so
         if self.logger:
             self.logger.debug(msg)
+
+
+class AsyncioInThreadTcp(IOConnection):
+    """Implementation of TCP connection using asyncio running in dedicated thread."""
+    def __init__(self, moler_connection, port, host="localhost", receive_buffer_size=64 * 4096, logger=None):
+        """Initialization of TCP connection."""
+        super(AsyncioInThreadTcp, self).__init__(moler_connection=moler_connection)
+        # self.moler_connection.how2send = self._send  # need to map synchronous methods
+        # TODO: do we want connection.name?
+        self.host = host
+        self.port = port
+        self.receive_buffer_size = receive_buffer_size
+        self.logger = logger  # TODO: build default logger if given is None?
