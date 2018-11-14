@@ -99,9 +99,9 @@ def load_device_from_config(config):
             dev_cfg.define_device(
                 name=device_name,
                 device_class=device_def['DEVICE_CLASS'],
-                initial_state=device_def.get('INITIAL_STATE', None),
                 connection_desc=device_def.get('CONNECTION_DESC', dev_cfg.default_connection),
-                connection_hops={'CONNECTION_HOPS': device_def.get('CONNECTION_HOPS', {})}
+                connection_hops={'CONNECTION_HOPS': device_def.get('CONNECTION_HOPS', {})},
+                initial_state=device_def.get('INITIAL_STATE', None),
             )
 
     if create_at_startup is True:

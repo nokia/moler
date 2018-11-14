@@ -16,12 +16,12 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 class UnixLocal(TextualDevice):
     unix_local = "UNIX_LOCAL"
 
-    def __init__(self, sm_params=dict(), initial_state=None, name=None, io_connection=None, io_type=None, variant=None):
+    def __init__(self, sm_params=dict(), name=None, io_connection=None, io_type=None, variant=None, initial_state=None):
         sm_params = sm_params.copy()
         initial_state = initial_state if initial_state is not None else UnixLocal.unix_local
-        super(UnixLocal, self).__init__(sm_params=sm_params, initial_state=initial_state, name=name,
+        super(UnixLocal, self).__init__(sm_params=sm_params, name=name,
                                         io_connection=io_connection, io_type=io_type,
-                                        variant=variant)
+                                        variant=variant, initial_state=initial_state)
 
     def _prepare_transitions(self):
         super(UnixLocal, self)._prepare_transitions()
