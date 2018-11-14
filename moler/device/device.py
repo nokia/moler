@@ -19,12 +19,13 @@ class DeviceFactory(object):
             cls.get_device(name=device_name)
 
     @classmethod
-    def get_device(cls, name=None, device_class=None, connection_desc=None, connection_hops=None):
+    def get_device(cls, name=None, device_class=None, initial_state=None, connection_desc=None, connection_hops=None):
         """
         Return connection instance of given io_type/variant
 
         :param name: name of device defined in configuration
         :param device_class: 'moler.device.unixlocal', 'moler.device.unixremote', ...
+        :param initial_state: initial state for device e.g. UNIX_REMOTE
         :param connection_desc: 'io_type' and 'variant' of device connection
         :param connection_hops: connection hops to create device SM
         :return: requested device
@@ -37,17 +38,22 @@ class DeviceFactory(object):
         if name in cls._devices.keys():
             return cls._devices[name]
 
-        device_class, connection_desc, connection_hops = cls._try_take_named_device_params(name, device_class,
-                                                                                           connection_desc,
-                                                                                           connection_hops)
+        device_class, initial_state, connection_desc, connection_hops = cls._try_take_named_device_params(name,
+                                                                                                          device_class,
+                                                                                                          initial_state,
+                                                                                                          connection_desc,
+                                                                                                          connection_hops)
         if device_class and (not connection_desc):
             connection_desc = cls._try_select_device_connection_desc(device_class, connection_desc)
 
-        device = cls._create_device(name, device_class, connection_desc, connection_hops)
+        device = cls._create_device(name, device_class, initial_state, connection_desc, connection_hops)
+        device.goto_state(state=device.initial_state)
+
         if name:
             cls._devices[name] = device
         else:
             cls._devices[device.name] = device
+
         return device
 
     @classmethod
@@ -63,22 +69,23 @@ class DeviceFactory(object):
         return connection_desc
 
     @classmethod
-    def _try_take_named_device_params(cls, name, device_class, connection_desc, connection_hops):
+    def _try_take_named_device_params(cls, name, device_class, initial_state, connection_desc, connection_hops):
         if name:
             if name not in devices_config.named_devices:
                 whats_wrong = "was not defined inside configuration"
                 raise KeyError("Device named '{}' {}".format(name, whats_wrong))
-            device_class, connection_desc, connection_hops = devices_config.named_devices[name]
+            device_class, initial_state, connection_desc, connection_hops = devices_config.named_devices[name]
 
-        return device_class, connection_desc, connection_hops
+        return device_class, initial_state, connection_desc, connection_hops
 
     @classmethod
-    def _create_device(cls, name, device_class, connection_desc, connection_hops):
+    def _create_device(cls, name, device_class, initial_state, connection_desc, connection_hops):
         constructor_parameters = {
             "name": name,
             "io_type": connection_desc["io_type"],
             "variant": connection_desc["variant"],
-            "sm_params": connection_hops
+            "sm_params": connection_hops,
+            "initial_state": initial_state
         }
         device = create_instance_from_class_fullname(class_fullname=device_class,
                                                      constructor_parameters=constructor_parameters)

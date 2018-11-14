@@ -34,7 +34,7 @@ class TextualDevice(object):
     not_connected = "NOT_CONNECTED"
     connection_hops = "CONNECTION_HOPS"
 
-    def __init__(self, sm_params=dict(), name=None, io_connection=None, io_type=None, variant=None):
+    def __init__(self, sm_params=dict(), initial_state=None, name=None, io_connection=None, io_type=None, variant=None):
         """
         Create Device communicating over io_connection
         CAUTION: Device owns (takes over ownership) of connection. It will be open when device "is born" and close when
@@ -46,6 +46,7 @@ class TextualDevice(object):
                         (if not given then default one is taken)
         """
         sm_params = sm_params.copy()
+        self.initial_state = initial_state if initial_state is not None else TextualDevice.not_connected
         self.states = [TextualDevice.not_connected]
         self.goto_states_triggers = []
         self._name = name
