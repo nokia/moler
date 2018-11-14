@@ -34,6 +34,7 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import logging
 from threading import Lock
+import contextlib
 
 
 class IOConnection(object):
@@ -68,8 +69,10 @@ class IOConnection(object):
         """
         Take 'how to establish connection' info from constructor
         and open that connection.
+
+        Return context manager to allow for:  with connection.open() as conn:
         """
-        pass
+        return contextlib.closing(self)
 
     def close(self):
         """Close established connection."""

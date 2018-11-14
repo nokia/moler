@@ -42,7 +42,7 @@ def _list_in_path(listing_type):
 
 def _load_obj(func_name):
     """
-    Load instance form module.
+    Load instance from module.
 
     :param func_name: function name as string
     :return: object instance

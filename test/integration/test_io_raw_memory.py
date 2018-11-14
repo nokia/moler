@@ -147,7 +147,7 @@ def test_can_send_and_receive_data_from_connection(memory_connection_without_dec
         received_data.extend(data)
 
     moler_conn.subscribe(receiver)
-    with connection:
+    with connection.open():
         connection.write(b"command to be echoed")
         connection.read()
         assert b'command to be echoed' == received_data
@@ -168,7 +168,7 @@ def test_will_not_receive_data_from_connection_when_echo_is_off(memory_connectio
         received_data.extend(data)
 
     moler_conn.subscribe(receiver)
-    with connection:
+    with connection.open():
         connection.write(b"command to be echoed")
         connection.read()
         assert b'' == received_data
@@ -188,7 +188,7 @@ def test_can_inject_data_with_specified_delay(memory_connection_without_decoder)
             assert (duration > 0.7) and (duration < 0.8)
 
     moler_conn.subscribe(receiver)
-    with connection:
+    with connection.open():
         connection.inject(input_bytes=[b"msg1\n", b"msg2\n", b"msg3\n"],
                           delay=0.25)
         connection.read()
@@ -203,7 +203,7 @@ def test_inject_response_awaits_nearest_write_before_responding(memory_connectio
         received_data.extend(data)
 
     moler_conn.subscribe(receiver)
-    with connection:
+    with connection.open():
         connection.inject_response(input_bytes=[b'response\n'])
         connection.read()
         assert b'' == received_data  # injection not active yet
@@ -220,7 +220,7 @@ def test_can_receive_data_from_ext_io_into_moler_connection(memory_connection):
         received_data['data'] += data
 
     connection.moler_connection.subscribe(receiver)
-    with connection:
+    with connection.open():
         connection.write(b"command to be echoed")
         connection.read()
         assert 'command to be echoed' == received_data['data']
@@ -240,7 +240,7 @@ def test_can_send_data_into_ext_io_from_moler_connection(memory_connection_witho
         received_data.extend(data)
 
     moler_conn.subscribe(receiver)
-    with connection:
+    with connection.open():
         moler_conn.send("command to be echoed")
         connection.read()
         assert b'command to be echoed' == received_data

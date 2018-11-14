@@ -146,7 +146,7 @@ def test_calling_command_sends_command_string_over_connection(do_nothing_command
     ext_io = connection_to_remote
     ping = QuickCmd(connection=ext_io.moler_connection)
     ping.command_string = 'ping localhost'
-    with ext_io:
+    with ext_io.open():
         try:
             ping()  # call the command-future (foreground run)
         except ConnectionObserverTimeout:
@@ -165,7 +165,7 @@ def test_calling_start_on_command_sends_command_string_over_connection(do_nothin
     ext_io = connection_to_remote
     ping = QuickCmd(connection=ext_io.moler_connection)
     ping.command_string = 'ping localhost'
-    with ext_io:
+    with ext_io.open():
         ping.start()  # start background-run of command-future
         assert b'ping localhost' in ext_io.remote_endpoint()
 

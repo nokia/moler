@@ -54,7 +54,7 @@ def buffer_connection():
                                         echo=False)  # we don't want echo on connection
     configure_device_logger(moler_conn.name)
     # all tests assume working with already open connection
-    with ext_io_in_memory:  # open it (autoclose by context-mngr)
+    with ext_io_in_memory.open():  # open it (autoclose by context-mngr)
         yield ext_io_in_memory
 
 

@@ -163,7 +163,7 @@ def _create_command(moler_class, moler_connection, cmd_kwargs):
 
 
 def _run_command_parsing_test(moler_cmd, creation_str, buffer_io, cmd_output, cmd_result, variant):
-    with buffer_io:  # open it (autoclose by context-mngr)
+    with buffer_io.open():  # open it (autoclose by context-mngr)
         buffer_io.remote_inject_response([cmd_output])
         result = moler_cmd()
         if result != cmd_result:
