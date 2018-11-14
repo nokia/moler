@@ -9,14 +9,13 @@ from moler.io.raw.terminal import ThreadedTerminal
 terminal = get_connection(io_type='terminal', variant='threaded')
 # v.3 - let factory select default variant
 # terminal = get_connection(io_type='terminal')
-terminal.open()
-ps_cmd = Ps(connection=terminal.moler_connection, options="-ef")
+with terminal.open():
+    ps_cmd = Ps(connection=terminal.moler_connection, options="-ef")
 
-processes = ps_cmd()
-for proc in processes:
-    if 'python' in proc['CMD']:
-        print("PID: {} CMD: {}".format(proc['PID'], proc['CMD']))
-terminal.close()
+    processes = ps_cmd()
+    for proc in processes:
+        if 'python' in proc['CMD']:
+            print("PID: {} CMD: {}".format(proc['PID'], proc['CMD']))
 
 # result:
 """

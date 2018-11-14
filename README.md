@@ -290,7 +290,7 @@ giving it connection to operate on:
 
     host = 'www.google.com'
     terminal = get_connection(io_type='terminal', variant='threaded')  # take connection
-    with terminal:
+    with terminal.open():
         ping_cmd = Ping(connection=terminal.moler_connection,
                         destination=host, options="-w 6")
         print("Start pinging {} ...".format(host))

@@ -61,5 +61,5 @@ def terminal_connection():
     moler_conn = ObservableConnection()
     terminal = ThreadedTerminal(moler_connection=moler_conn)
 
-    with terminal as connection:
+    with terminal.open() as connection:
         yield connection.moler_connection
