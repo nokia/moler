@@ -19,6 +19,7 @@ import select
 import socket
 import sys
 import threading
+import contextlib
 
 from moler.io.io_exceptions import ConnectionTimeout
 from moler.io.io_exceptions import RemoteEndpointDisconnected
@@ -66,7 +67,7 @@ class Tcp(object):
         self._debug('connecting to {}'.format(self))
         self.socket.connect((self.host, self.port))
         self._debug('connection {} is open'.format(self))
-        return self  # context manager
+        return contextlib.closing(self)
 
     def close(self):
         """
