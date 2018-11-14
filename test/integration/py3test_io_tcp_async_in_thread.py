@@ -111,6 +111,39 @@ def test_can_get_connection():
 
 # TODO: tests for error cases raising Exceptions
 
+
+# --------------------------- test implementation -----------------
+def test_connection_has_running_thread_and_loop_after_open(tcp_connection_class,
+                                                           integration_tcp_server_and_pipe):
+    from moler.connection import ObservableConnection
+    from moler.io.raw import TillDoneThread
+    (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
+
+    moler_conn = ObservableConnection()
+    connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
+    connection.open()
+    assert hasattr(connection._loop, "run_until_complete")
+    assert isinstance(connection._loop_thread, TillDoneThread)
+    assert connection._loop_thread.is_alive()
+    assert connection._loop.is_running()
+
+
+def test_connection_has_stopped_thread_and_loop_after_close(tcp_connection_class,
+                                                            integration_tcp_server_and_pipe):
+    from moler.connection import ObservableConnection
+    from moler.io.raw import TillDoneThread
+    (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
+
+    moler_conn = ObservableConnection()
+    connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
+    connection.open()
+    connection.close()
+    assert hasattr(connection._loop, "run_until_complete")
+    assert isinstance(connection._loop_thread, TillDoneThread)
+    assert not connection._loop_thread.is_alive()
+    assert not connection._loop.is_running()
+
+
 # --------------------------- resources ---------------------------
 
 

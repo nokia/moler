@@ -16,11 +16,15 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
 import asyncio
+import threading
 
 from moler.io.io_connection import IOConnection
 from moler.io.io_exceptions import ConnectionTimeout
 from moler.io.io_exceptions import RemoteEndpointDisconnected
 from moler.io.io_exceptions import RemoteEndpointNotConnected
+from moler.asyncio_runner import AsyncioEventThreadsafe
+from moler.io.raw import TillDoneThread
+from moler.exceptions import MolerException
 
 
 class AsyncioTcp(IOConnection):
@@ -114,3 +118,64 @@ class AsyncioInThreadTcp(IOConnection):
         self.port = port
         self.receive_buffer_size = receive_buffer_size
         self.logger = logger  # TODO: build default logger if given is None?
+        self._loop_thread = None
+        self._loop = None
+        self._loop_done = None
+
+    def _start_loop_thread(self):
+        self._loop = asyncio.new_event_loop()
+        # self.logger.debug("created loop 4 thread: {}:{}".format(id(self._loop), self._loop))
+        self._loop_done = AsyncioEventThreadsafe(loop=self._loop)
+        self._loop.set_debug(enabled=True)
+        self._loop_done.clear()
+        loop_started = threading.Event()
+        self._loop_thread = TillDoneThread(target=self._start_loop,
+                                           done_event=self._loop_done,
+                                           kwargs={'loop': self._loop,
+                                                   'loop_started': loop_started,
+                                                   'loop_done': self._loop_done})
+        # self.logger.debug("created thread {} with loop {}:{}".format(self._loop_thread, id(self._loop), self._loop))
+        self._loop_thread.start()
+        # # await loop thread to be really started
+        start_timeout = 0.5
+        if not loop_started.wait(timeout=start_timeout):
+            err_msg = "Failed to start asyncio loop thread within {} sec".format(start_timeout)
+            self._loop_done.set()
+            raise MolerException(err_msg)
+        # self.logger.info("started new asyncio-in-thrd loop ...")
+
+    def _start_loop(self, loop, loop_started, loop_done):
+        # self.logger.info("starting new asyncio-in-thrd loop ...")
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(self._await_stop_loop(loop_started=loop_started, stop_event=loop_done))
+        # self.logger.info("... asyncio-in-thrd loop done")
+
+    async def _await_stop_loop(self, loop_started, stop_event):
+        # stop_event may be set directly via self._loop_done.set()
+        # or indirectly by TillDoneThread when python calls join on all active threads during python shutdown
+        # self.logger.info("will await stop_event ...")
+        loop_started.set()
+        await stop_event.wait()
+        # self.logger.info("... await stop_event done")
+
+    def open(self):
+        """Open TCP connection."""
+        ### self._debug('connecting to {}'.format(self))
+        # If a task is canceled while it is waiting for another concurrent operation,
+        # the task is notified of its cancellation by having a CancelledError exception
+        # raised at the point where it is waiting
+        if self._loop_thread is None:
+            try:
+                self._start_loop_thread()
+            except Exception as err_msg:
+                # self.logger.error(err_msg)
+                raise
+
+    def close(self):
+        """Close TCP connection."""
+        # self._debug('closing {}'.format(self))
+        if self._loop_done:
+            self._loop_done.set()  # will exit from loop and holding it thread
+        # await till finish of thread
+        self._loop_thread.join(timeout=1.0)
+        # self._debug('connection {} is closed'.format(self))
