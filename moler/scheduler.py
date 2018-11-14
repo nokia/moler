@@ -32,6 +32,11 @@ class Scheduler(object):
         job = Job(job_internal)
         return job
 
+    @staticmethod
+    def change_kind(kind):
+        instance = Scheduler._get_instance()
+        instance.kind = kind
+
 
 class Job(object):
 
