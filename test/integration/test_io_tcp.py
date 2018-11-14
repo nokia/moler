@@ -13,6 +13,7 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 import time
 import importlib
 import pytest
+import threading
 
 
 def test_can_open_and_close_connection(tcp_connection_class,
@@ -22,9 +23,11 @@ def test_can_open_and_close_connection(tcp_connection_class,
     - it is integration tests
     - anyway open needs close as cleanup to not have resources leaking in tests
     """
+    from moler.connection import ObservableConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
-    connection = tcp_connection_class(port=tcp_server.port, host=tcp_server.host)
+    moler_conn = ObservableConnection()
+    connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     connection.open()
     connection.close()
     time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
@@ -36,9 +39,11 @@ def test_can_open_and_close_connection(tcp_connection_class,
 
 def test_can_open_and_close_connection_as_context_manager(tcp_connection_class,
                                                           integration_tcp_server_and_pipe):
+    from moler.connection import ObservableConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
-    connection = tcp_connection_class(port=tcp_server.port, host=tcp_server.host)
+    moler_conn = ObservableConnection()
+    connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     with connection:
         pass
     time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
@@ -48,34 +53,47 @@ def test_can_open_and_close_connection_as_context_manager(tcp_connection_class,
     assert 'Client disconnected' in dialog_with_server
 
 
-# TODO: parametrize - different external-IO connection may have
-# TODO:               different naming for their 'send' method
-def test_can_send_data_over_connection(tcp_connection_class,
-                                       integration_tcp_server_and_pipe):
+# Note: different external-IO connection may have different naming for their 'send' method
+# however, they are uniformed via glueing with moler_connection.send()
+# external-IO 'send' method works on bytes; moler_connection performs encoding
+def test_can_send_binary_data_over_connection(tcp_connection_class,
+                                              integration_tcp_server_and_pipe):
+    from moler.connection import ObservableConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
-    connection = tcp_connection_class(port=tcp_server.port, host=tcp_server.host)
-    connection.open()
-    connection.send(data=b'data to be send')
-    time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
-    tcp_server_pipe.send(("get history", {}))
-    dialog_with_server = tcp_server_pipe.recv()
-    assert ['Received data:', b'data to be send'] == dialog_with_server[-1]
-    connection.close()
+    moler_conn = ObservableConnection()  # no decoder, just pass bytes 1:1
+    connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
+    with connection:
+        moler_conn.send(data=b'data to be send')
+        time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
+        tcp_server_pipe.send(("get history", {}))
+        dialog_with_server = tcp_server_pipe.recv()
+        assert ['Received data:', b'data to be send'] == dialog_with_server[-1]
 
 
-# TODO: parametrize - different external-IO connection may have
-# TODO:               different naming for their 'receive' method
-def test_can_receive_data_from_connection(tcp_connection_class,
-                                          integration_tcp_server_and_pipe):
+# Note: different external-IO connection may have different naming for their 'receive' method
+# however, they are uniformed via glueing with moler_connection.data_received()
+# so, external-IO forwards data to moler_connection.data_received()
+# and moler-connection forwards it to anyone subscribed
+def test_can_receive_binary_data_from_connection(tcp_connection_class,
+                                                 integration_tcp_server_and_pipe):
+    from moler.connection import ObservableConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
+    received_data = bytearray()
+    receiver_called = threading.Event()
 
-    connection = tcp_connection_class(port=tcp_server.port, host=tcp_server.host)
-    connection.open()
-    time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
-    tcp_server_pipe.send(("send async msg", {'msg': b'data to read'}))
-    received_data = connection.receive()
-    connection.close()
+    def receiver(data):
+        received_data.extend(data)
+        receiver_called.set()
+
+    moler_conn = ObservableConnection()  # no decoder, just pass bytes 1:1
+    moler_conn.subscribe(receiver)       # build forwarding path
+    connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
+    with connection:
+        time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
+        tcp_server_pipe.send(("send async msg", {'msg': b'data to read'}))
+        receiver_called.wait(timeout=0.5)
+
     assert b'data to read' == received_data
 
 
@@ -83,7 +101,7 @@ def test_can_receive_data_from_connection(tcp_connection_class,
 # --------------------------- resources ---------------------------
 
 
-@pytest.fixture(params=['io.raw.tcp.Tcp'])
+@pytest.fixture(params=['io.raw.tcp.ThreadedTcp'])
 def tcp_connection_class(request):
     module_name, class_name = request.param.rsplit('.', 1)
     module = importlib.import_module('moler.{}'.format(module_name))
