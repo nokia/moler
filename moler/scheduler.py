@@ -27,7 +27,7 @@ class Scheduler(object):
     @staticmethod
     def get_job(fun, interval, fun_params=None):
         instance = Scheduler._get_instance()
-        job_internal = instance.add_job(fun, instance.kind, seconds=interval, kwargs=fun_params)
+        job_internal = instance.scheduler.add_job(fun, instance.kind, seconds=interval, kwargs=fun_params)
         job_internal.pause()
         job = Job(job_internal)
         return job
