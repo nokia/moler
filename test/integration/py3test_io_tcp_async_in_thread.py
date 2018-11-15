@@ -160,11 +160,57 @@ def test_connection_has_stopped_thread_and_loop_after_close(tcp_connection_class
     assert not connection._loop.is_running()
 
 
+def test_connections_use_same_thread_and_loop(tcp_connection_class,
+                                              integration_tcp_server_and_pipe,
+                                              integration_second_tcp_server_and_pipe):
+    from moler.connection import ObservableConnection
+    from functools import partial
+    (tcp_server0, tcp_server0_pipe) = integration_tcp_server_and_pipe
+    (tcp_server1, tcp_server1_pipe) = integration_second_tcp_server_and_pipe
+    received_data = [bytearray(), bytearray()]
+    receiver_called = [threading.Event(), threading.Event()]
 
-# def test_connections_use_same_thread_and_loop(tcp_connection_class,
-#                                               integration_tcp_server_and_pipe):
-#     assert 0 == 1
-#     #TODO: for now all in single thread
+    def receiver(connection_idx, data):
+        received_data[connection_idx].extend(data)
+        receiver_called[connection_idx].set()
+
+    receiver0 = partial(receiver, connection_idx=0)  # partial objects don't work with moler_conn.subscribe()
+    receiver1 = partial(receiver, connection_idx=1)
+
+    def receiver0(data):
+        received_data[0].extend(data)
+        receiver_called[0].set()
+
+    def receiver1(data):
+        received_data[1].extend(data)
+        receiver_called[1].set()
+
+    moler_conn0 = ObservableConnection()
+    moler_conn0.subscribe(receiver0)
+    moler_conn1 = ObservableConnection()
+    moler_conn1.subscribe(receiver1)
+    connection0 = tcp_connection_class(moler_connection=moler_conn0, port=tcp_server0.port, host=tcp_server0.host)
+    connection1 = tcp_connection_class(moler_connection=moler_conn1, port=tcp_server1.port, host=tcp_server1.host)
+    with connection0.open():
+        with connection1.open():
+
+            moler_conn0.send(data=b'data to server 0')
+            moler_conn1.send(data=b'data to server 1')
+            time.sleep(0.1)
+            tcp_server0_pipe.send(("get history", {}))
+            tcp_server1_pipe.send(("get history", {}))
+            dialog_with_server0 = tcp_server0_pipe.recv()
+            dialog_with_server1 = tcp_server1_pipe.recv()
+            assert ['Received data:', b'data to server 0'] == dialog_with_server0[-1]
+            assert ['Received data:', b'data to server 1'] == dialog_with_server1[-1]
+
+            time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
+            tcp_server0_pipe.send(("send async msg", {'msg': b'data from server 0'}))
+            tcp_server1_pipe.send(("send async msg", {'msg': b'data from server 1'}))
+            assert receiver_called[0].wait(timeout=0.5)
+            assert receiver_called[1].wait(timeout=0.5)
+            assert b'data from server 0' == received_data[0]
+            assert b'data from server 1' == received_data[1]
 # --------------------------- resources ---------------------------
 
 
@@ -179,6 +225,14 @@ def tcp_connection_class(request):
 @pytest.yield_fixture()
 def integration_tcp_server_and_pipe():
     from moler.io.raw.tcpserverpiped import tcp_server_piped
-    with tcp_server_piped(use_stderr_logger=True) as server_and_pipe:
+    with tcp_server_piped(port=19543, use_stderr_logger=True) as server_and_pipe:
+        (server, svr_ctrl_pipe) = server_and_pipe
+        yield (server, svr_ctrl_pipe)
+
+
+@pytest.yield_fixture()
+def integration_second_tcp_server_and_pipe():
+    from moler.io.raw.tcpserverpiped import tcp_server_piped
+    with tcp_server_piped(port=19544, use_stderr_logger=True) as server_and_pipe:
         (server, svr_ctrl_pipe) = server_and_pipe
         yield (server, svr_ctrl_pipe)
