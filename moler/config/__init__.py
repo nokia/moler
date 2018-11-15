@@ -17,9 +17,6 @@ from . import devices as dev_cfg
 from . import loggers as log_cfg
 
 
-_config_loaded = False
-
-
 @contextmanager
 def read_configfile(path):
     """
@@ -53,11 +50,6 @@ def load_config(config=None, from_env_var=None, config_type='yaml'):
     :param config_type: 'dict' ('config' param is dict) or 'yaml' ('config' is filename of file with YAML content)
     :return: None
     """
-    global _config_loaded
-
-    if _config_loaded:
-        return
-
     assert (config_type == 'dict') or (config_type == 'yaml')  # no other format supported yet
     if not config:
         if not from_env_var:
@@ -76,8 +68,6 @@ def load_config(config=None, from_env_var=None, config_type='yaml'):
     load_logger_from_config(config)
     load_connection_from_config(config)
     load_device_from_config(config)
-
-    _config_loaded = True
 
 
 def load_connection_from_config(config):
