@@ -7,7 +7,9 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 from moler.scheduler import Scheduler
+from moler.exceptions import WrongUsage
 from time import sleep
+import pytest
 
 try:
     import asyncio
@@ -16,7 +18,7 @@ except ImportError:  # pragma: nocover
         import trollius as asyncio
     except ImportError:
         raise ImportError(
-            'Support for asyncio requires either Python 3.4 or the asyncio package installed or trollius installed')
+            'Support for asyncio requires either Python 3.4 or the asyncio package installed or trollius installed for python 2.7')
 
 
 def test_job():
@@ -26,6 +28,22 @@ def test_job():
     sleep(0.22)
     job.stop()
     assert(2 == values['number'])
+
+
+def test_wrong_usage():
+    with pytest.raises(WrongUsage):
+        Scheduler.change_kind('wrong_kind')
+
+
+def test_job_callback_as_method():
+    values = {'number': 0}
+    obj = TestCallback()
+    job = Scheduler.get_job(obj.callback_method, 0.1, {'param_dict': values})
+    job.start()
+    sleep(0.22)
+    job.stop()
+    assert(2 == values['number'])
+    assert(2 == obj.counter)
 
 
 def test_2_jobs_concurrently():
@@ -57,3 +75,13 @@ def test_asyncio_test_job():
 
 def callback(param_dict):
     param_dict['number'] += 1
+
+
+class TestCallback(object):
+    def __init__(self):
+        super(TestCallback, self).__init__()
+        self.counter = 0
+
+    def callback_method(self, param_dict):
+        param_dict['number'] += 1
+        self.counter += 1
