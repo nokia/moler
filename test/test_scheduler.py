@@ -8,7 +8,15 @@ __email__ = 'marcin.usielski@nokia.com'
 
 from moler.scheduler import Scheduler
 from time import sleep
-import asyncio
+
+try:
+    import asyncio
+except ImportError:  # pragma: nocover
+    try:
+        import trollius as asyncio
+    except ImportError:
+        raise ImportError(
+            'Support for asyncio requires either Python 3.4 or the asyncio package installed or trollius installed')
 
 
 def test_job():
