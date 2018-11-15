@@ -8,6 +8,7 @@ __email__ = 'marcin.usielski@nokia.com'
 
 from moler.scheduler import Scheduler
 from time import sleep
+import asyncio
 
 
 def test_job():
@@ -31,6 +32,19 @@ def test_2_jobs_concurrently():
     job2.stop()
     assert (2 == values_2['number'])
     assert (4 == values_1['number'])
+
+
+def test_asyncio_test_job():
+    loop = asyncio.get_event_loop()
+    Scheduler.change_kind("asyncio")
+    values = {'number': 0}
+    job = Scheduler.get_job(callback, 0.1, {'param_dict': values})
+    job.start()
+    loop.run_until_complete(asyncio.sleep(0.23))
+    job.stop()
+    loop.stop()
+    assert (2 == values['number'])
+    Scheduler.change_kind("thread")
 
 
 def callback(param_dict):
