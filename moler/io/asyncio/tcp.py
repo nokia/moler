@@ -184,14 +184,15 @@ class AsyncioInThreadTcp(IOConnection):
 
     def open(self):
         """Open TCP connection."""
+        ret = super(AsyncioInThreadTcp, self).open()
         if self._loop_thread is None:
             try:
                 self._start_loop_thread()
             except Exception as err_msg:
                 # self.logger.error(err_msg)
                 raise
-        ret = self._run_in_dedicated_thread(self._async_tcp.open(), timeout=0.5)
-        return None
+        self._run_in_dedicated_thread(self._async_tcp.open(), timeout=0.5)
+        return ret
 
     def close(self):
         """Close TCP connection."""
