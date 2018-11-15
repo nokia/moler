@@ -66,6 +66,7 @@ def test_asyncio_test_job():
     values = {'number': 0}
     job = Scheduler.get_job(callback, 0.1, {'param_dict': values})
     job.start()
+    job.start()
     loop.run_until_complete(asyncio.sleep(0.23))
     job.stop()
     loop.stop()
