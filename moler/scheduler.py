@@ -12,22 +12,17 @@ from moler.exceptions import WrongUsage
 
 
 class Scheduler(object):
-    _object = None
-
-    def __init__(self, scheduler_type='thread'):
-        super(Scheduler, self).__init__()
-        self._scheduler_type = None
-        self._scheduler = None
-        self._swap_scheduler(scheduler_type)
-
-    @staticmethod
-    def _get_instance():
-        if Scheduler._object is None:
-            Scheduler._object = Scheduler()
-        return Scheduler._object
 
     @staticmethod
     def get_job(fun, interval, fun_params=None):
+        """
+        Static method to create job.
+        :param fun: Reference to callable object (i.e. function, method)
+        :param interval: time in float seconds when fun is called
+        :param fun_params: dict of params of fun
+        :return: Instance of Job.
+        """
+
         instance = Scheduler._get_instance()
         job_internal = instance._scheduler.add_job(fun, 'interval', seconds=interval, kwargs=fun_params)
         job_internal.pause()
@@ -36,14 +31,47 @@ class Scheduler(object):
 
     @staticmethod
     def change_kind(scheduler_type):
+        """
+        Static method to change type of scheduler
+        :param scheduler_type: type of new scheduler. Allowed thread (default) or asyncio
+        :return: Nothing. If scheduler_type is not supported then it raises object of type moler.exceptions.WrongUsage
+        """
         instance = Scheduler._get_instance()
         instance._swap_scheduler(scheduler_type)
 
+    @staticmethod
+    def _get_instance():
+        """
+        :return: Instance of scheduler
+        """
+        if Scheduler._object is None:
+            Scheduler._object = Scheduler()
+        return Scheduler._object
+
+    _object = None
+
+    def __init__(self, scheduler_type='thread'):
+        """
+        :param scheduler_type: 'thread' or 'asyncio'
+        """
+        super(Scheduler, self).__init__()
+        self._scheduler_type = None
+        self._scheduler = None
+        self._swap_scheduler(scheduler_type)
+
     def _swap_scheduler(self, new_scheduler_type):
+        """
+        :param new_scheduler_type: type of new scheduler. 'thread' or 'asyncio'
+        :return: Nothing
+        """
         self._scheduler = self._create_scheduler(new_scheduler_type)
         self._scheduler_type = new_scheduler_type
 
     def _create_scheduler(self, scheduler_type):
+        """
+        :param scheduler_type: type of new scheduler: 'thread' or 'asyncio'
+        :return: instance of scheduler
+        """
         scheduler = self._scheduler
         if self._scheduler_type != scheduler_type:
             if scheduler_type == 'thread':
@@ -60,13 +88,21 @@ class Job(object):
 
     def __init__(self, job):
         super(Job, self).__init__()
-        self.job = job
+        self._job = job
 
     def start(self):
+        """
+        Method to start the job.
+        :return: Nothing
+        """
         try:
-            self.job.resume()
+            self._job.resume()
         except SchedulerNotRunningError:
             pass
 
     def stop(self):
-        self.job.pause()
+        """
+        Method to stop the job
+        :return: Nothing
+        """
+        self._job.pause()
