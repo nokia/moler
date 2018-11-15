@@ -22,25 +22,25 @@ def test_can_get_connection():
     assert tcp_connection is not None
 
 
-# def test_can_open_and_close_connection(tcp_connection_class,
-#                                              integration_tcp_server_and_pipe):
-#     """
-#     Not so atomic test (checks 2 things) but:
-#     - it is integration tests
-#     - anyway open needs close as cleanup to not have resources leaking in tests
-#     """
-#     from moler.connection import ObservableConnection
-#     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
-#
-#     moler_conn = ObservableConnection()
-#     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
-#     await connection.open()
-#     await connection.close()
-#     time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
-#     tcp_server_pipe.send(("get history", {}))
-#     dialog_with_server = tcp_server_pipe.recv()
-#     assert 'Client connected' in dialog_with_server
-#     assert 'Client disconnected' in dialog_with_server
+def test_can_open_and_close_connection(tcp_connection_class,
+                                             integration_tcp_server_and_pipe):
+    """
+    Not so atomic test (checks 2 things) but:
+    - it is integration tests
+    - anyway open needs close as cleanup to not have resources leaking in tests
+    """
+    from moler.connection import ObservableConnection
+    (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
+
+    moler_conn = ObservableConnection()
+    connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
+    connection.open()
+    connection.close()
+    time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
+    tcp_server_pipe.send(("get history", {}))
+    dialog_with_server = tcp_server_pipe.recv()
+    assert 'Client connected' in dialog_with_server
+    assert 'Client disconnected' in dialog_with_server
 #
 #
 # @pytest.mark.asyncio
@@ -144,6 +144,11 @@ def test_connection_has_stopped_thread_and_loop_after_close(tcp_connection_class
     assert not connection._loop.is_running()
 
 
+
+# def test_connections_use_same_thread_and_loop(tcp_connection_class,
+#                                               integration_tcp_server_and_pipe):
+#     assert 0 == 1
+#     #TODO: for now all in single thread
 # --------------------------- resources ---------------------------
 
 

@@ -15,8 +15,10 @@ __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
+import atexit
 import asyncio
 import threading
+import concurrent.futures
 
 from moler.io.io_connection import IOConnection
 from moler.io.io_exceptions import ConnectionTimeout
@@ -40,7 +42,7 @@ class AsyncioTcp(IOConnection):
         self.logger = logger  # TODO: build default logger if given is None?
         self._stream_reader = None
         self._stream_writer = None
-        self.connection_lost = asyncio.Future()
+        self.connection_lost = None
 
     async def forward_connection_read_data(self):
         while True:
@@ -66,6 +68,7 @@ class AsyncioTcp(IOConnection):
             # TODO: stop child task of asyncio.open_connection
             raise
         else:
+            self.connection_lost = asyncio.Future()  # delayed to be created in same loop as open()
             asyncio.ensure_future(self.forward_connection_read_data())
         self._debug('connection {} is open'.format(self))
 
@@ -73,7 +76,8 @@ class AsyncioTcp(IOConnection):
         """Close TCP connection."""
         self._debug('closing {}'.format(self))
         self._stream_writer.close()
-        await self.connection_lost
+        if self.connection_lost:
+            await self.connection_lost
         self._debug('connection {} is closed'.format(self))
 
     async def __aenter__(self):
@@ -86,7 +90,7 @@ class AsyncioTcp(IOConnection):
 
     def _send(self, data):
         self._debug('> {}'.format(data))
-        self._stream_writer.write(data)
+        self._stream_writer.write(data)  # TODO: check if we have writer (if open)
 
     async def send(self, data):
         """
@@ -121,8 +125,11 @@ class AsyncioInThreadTcp(IOConnection):
         self._loop_thread = None
         self._loop = None
         self._loop_done = None
+        self._async_tcp = AsyncioTcp(moler_connection=moler_connection, port=port, host=host,
+                                     receive_buffer_size=receive_buffer_size, logger=logger)
 
     def _start_loop_thread(self):
+        atexit.register(self.shutdown)
         self._loop = asyncio.new_event_loop()
         # self.logger.debug("created loop 4 thread: {}:{}".format(id(self._loop), self._loop))
         self._loop_done = AsyncioEventThreadsafe(loop=self._loop)
@@ -158,24 +165,40 @@ class AsyncioInThreadTcp(IOConnection):
         await stop_event.wait()
         # self.logger.info("... await stop_event done")
 
+    def shutdown(self):
+        # self.logger.debug("shutting down")
+        if self._loop_done:
+            self._loop_done.set()  # will exit from loop and holding it thread
+
+    def _run_in_dedicated_thread(self, coroutine_to_run, timeout):
+        # we are scheduling to other thread (so, can't use asyncio.ensure_future() )
+        coro_future = asyncio.run_coroutine_threadsafe(coroutine_to_run, loop=self._loop)
+        # run_coroutine_threadsafe returns future as concurrent.futures.Future() and not asyncio.Future
+        # so, we can await it with timeout inside current thread
+        try:
+            return coro_future.result(timeout=timeout)
+        except concurrent.futures.TimeoutError as err:
+            raise  # TODO: convert to Moler's timeout
+        except concurrent.futures.CancelledError as err:
+            raise
+
     def open(self):
         """Open TCP connection."""
-        ### self._debug('connecting to {}'.format(self))
-        # If a task is canceled while it is waiting for another concurrent operation,
-        # the task is notified of its cancellation by having a CancelledError exception
-        # raised at the point where it is waiting
         if self._loop_thread is None:
             try:
                 self._start_loop_thread()
             except Exception as err_msg:
                 # self.logger.error(err_msg)
                 raise
+        ret = self._run_in_dedicated_thread(self._async_tcp.open(), timeout=0.5)
+        return None
 
     def close(self):
         """Close TCP connection."""
         # self._debug('closing {}'.format(self))
-        if self._loop_done:
-            self._loop_done.set()  # will exit from loop and holding it thread
+        ret = self._run_in_dedicated_thread(self._async_tcp.close(), timeout=0.5)
+        self.shutdown()
         # await till finish of thread
-        self._loop_thread.join(timeout=1.0)
+        if self._loop_thread:
+            self._loop_thread.join(timeout=1.0)
         # self._debug('connection {} is closed'.format(self))
