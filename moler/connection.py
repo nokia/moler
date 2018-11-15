@@ -16,7 +16,6 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
-import platform
 import weakref
 from threading import Lock
 
@@ -500,55 +499,6 @@ def _try_get_connection_with_name(io_type, variant, **constructor_kwargs):
         raise
 
 
-def _register_builtin_connections():
-    from moler.io.raw.memory import ThreadedFifoBuffer
-    from moler.io.raw.tcp import ThreadedTcp
-
-    def mlr_conn_utf8(name):
-        return ObservableConnection(encoder=lambda data: data.encode("utf-8"),
-                                    decoder=lambda data: data.decode("utf-8"),
-                                    name=name)
-
-    def mem_thd_conn(name=None, echo=True):
-        mlr_conn = mlr_conn_utf8(name=name)
-        io_conn = ThreadedFifoBuffer(moler_connection=mlr_conn,
-                                     echo=echo, name=name)
-        return io_conn
-
-    def tcp_thd_conn(port, host='localhost', name=None):
-        mlr_conn = mlr_conn_utf8(name=name)
-        io_conn = ThreadedTcp(moler_connection=mlr_conn,
-                              port=port, host=host)  # TODO: add name
-        return io_conn
-
-    # TODO: unify passing logger to io_conn (logger/logger_name)
-    ConnectionFactory.register_construction(io_type="memory",
-                                            variant="threaded",
-                                            constructor=mem_thd_conn)
-    ConnectionFactory.register_construction(io_type="tcp",
-                                            variant="threaded",
-                                            constructor=tcp_thd_conn)
-
-
-def _register_builtin_unix_connections():
-    from moler.io.raw.terminal import ThreadedTerminal
-
-    def mlr_conn_no_encoding(name):
-        return ObservableConnection(name=name)
-
-    def terminal_thd_conn(name=None):
-        # ThreadedTerminal works on unicode so moler_connection must do no encoding
-        mlr_conn = mlr_conn_no_encoding(name=name)
-        io_conn = ThreadedTerminal(moler_connection=mlr_conn)  # TODO: add name, logger
-        return io_conn
-
-    # TODO: unify passing logger to io_conn (logger/logger_name)
-    ConnectionFactory.register_construction(io_type="terminal",
-                                            variant="threaded",
-                                            constructor=terminal_thd_conn)
-
-
 # actions during import
-_register_builtin_connections()
-if platform.system() == 'Linux':
-    _register_builtin_unix_connections()
+connection_cfg.register_builtin_connections(ConnectionFactory, ObservableConnection)
+connection_cfg.set_defaults()
