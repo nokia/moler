@@ -16,7 +16,7 @@ from moler.device.unixlocal import UnixLocal
 class UnixRemote(UnixLocal):
     unix_remote = "UNIX_REMOTE"
 
-    def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None):
+    def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, initial_state=None):
         """
         Create Unix device communicating over io_connection
 
@@ -25,8 +25,10 @@ class UnixRemote(UnixLocal):
         :param variant: External-IO connection variant
         """
         sm_params = sm_params.copy()
-        super(UnixRemote, self).__init__(name=name, io_connection=io_connection, io_type=io_type, variant=variant,
-                                         sm_params=sm_params)
+        initial_state = initial_state if initial_state is not None else UnixRemote.unix_remote
+        super(UnixRemote, self).__init__(name=name, io_connection=io_connection,
+                                         io_type=io_type, variant=variant,
+                                         sm_params=sm_params, initial_state=initial_state)
 
     def _get_default_sm_configuration(self):
         config = {
