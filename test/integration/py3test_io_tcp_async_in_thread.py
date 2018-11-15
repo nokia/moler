@@ -14,6 +14,7 @@ import time
 import importlib
 import asyncio
 import pytest
+import threading
 
 
 def test_can_get_connection():
@@ -23,7 +24,7 @@ def test_can_get_connection():
 
 
 def test_can_open_and_close_connection(tcp_connection_class,
-                                             integration_tcp_server_and_pipe):
+                                       integration_tcp_server_and_pipe):
     """
     Not so atomic test (checks 2 things) but:
     - it is integration tests
@@ -43,8 +44,26 @@ def test_can_open_and_close_connection(tcp_connection_class,
     assert 'Client disconnected' in dialog_with_server
 
 
+def test_closing_closed_connection_does_nothing(tcp_connection_class,
+                                                integration_tcp_server_and_pipe):
+    from moler.connection import ObservableConnection
+    (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
+
+    moler_conn = ObservableConnection()
+    connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
+    connection.open()
+    connection.close()
+    connection.close()
+    time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
+    tcp_server_pipe.send(("get history", {}))
+    dialog_with_server = tcp_server_pipe.recv()
+    assert 'Client connected' in dialog_with_server
+    assert 'Client disconnected' in dialog_with_server
+    assert dialog_with_server[-2] != 'Client disconnected'  # not closed twice
+
+
 def test_can_open_and_close_connection_as_context_manager(tcp_connection_class,
-                                                                integration_tcp_server_and_pipe):
+                                                          integration_tcp_server_and_pipe):
     from moler.connection import ObservableConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
@@ -62,15 +81,14 @@ def test_can_open_and_close_connection_as_context_manager(tcp_connection_class,
 # # Note: different external-IO connection may have different naming for their 'send' method
 # # however, they are uniformed via glueing with moler_connection.send()
 # # external-IO 'send' method works on bytes; moler_connection performs encoding
-# @pytest.mark.asyncio
-# async def test_can_send_binary_data_over_connection(tcp_connection_class,
-#                                                     integration_tcp_server_and_pipe):
+# def test_can_send_binary_data_over_connection(tcp_connection_class,
+#                                               integration_tcp_server_and_pipe):
 #     from moler.connection import ObservableConnection
 #     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 #
 #     moler_conn = ObservableConnection()  # no decoder, just pass bytes 1:1
 #     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
-#     async with connection:
+#     with connection.open():
 #         moler_conn.send(data=b'data to be send')  # TODO: await moler_conn.send(data=b'data to be send') ???
 #         time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
 #         tcp_server_pipe.send(("get history", {}))
@@ -85,13 +103,12 @@ def test_can_open_and_close_connection_as_context_manager(tcp_connection_class,
 # # however, they are uniformed via glueing with moler_connection.data_received()
 # # so, external-IO forwards data to moler_connection.data_received()
 # # and moler-connection forwards it to anyone subscribed
-# @pytest.mark.asyncio
-# async def test_can_receive_binary_data_from_connection(tcp_connection_class,
-#                                                        integration_tcp_server_and_pipe):
+# def test_can_receive_binary_data_from_connection(tcp_connection_class,
+#                                                  integration_tcp_server_and_pipe):
 #     from moler.connection import ObservableConnection
 #     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 #     received_data = bytearray()
-#     receiver_called = asyncio.Event()
+#     receiver_called = threading.Event()
 #
 #     def receiver(data):
 #         received_data.extend(data)
@@ -100,10 +117,10 @@ def test_can_open_and_close_connection_as_context_manager(tcp_connection_class,
 #     moler_conn = ObservableConnection()  # no decoder, just pass bytes 1:1
 #     moler_conn.subscribe(receiver)       # build forwarding path
 #     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
-#     async with connection:  # TODO: async with connection.open():
+#     with connection.open():  # TODO: async with connection.open():
 #         time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
 #         tcp_server_pipe.send(("send async msg", {'msg': b'data to read'}))
-#         await asyncio.wait_for(receiver_called.wait(), timeout=0.5)
+#         receiver_called.wait(timeout=0.5)
 #
 #     assert b'data to read' == received_data
 

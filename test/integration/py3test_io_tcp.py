@@ -39,6 +39,25 @@ async def test_can_open_and_close_connection(tcp_connection_class,
 
 
 @pytest.mark.asyncio
+async def test_closing_closed_connection_does_nothing(tcp_connection_class,
+                                                      integration_tcp_server_and_pipe):
+    from moler.connection import ObservableConnection
+    (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
+
+    moler_conn = ObservableConnection()
+    connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
+    await connection.open()
+    await connection.close()
+    await connection.close()
+    time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
+    tcp_server_pipe.send(("get history", {}))
+    dialog_with_server = tcp_server_pipe.recv()
+    assert 'Client connected' in dialog_with_server
+    assert 'Client disconnected' in dialog_with_server
+    assert  dialog_with_server[-2] != 'Client disconnected'  # not closed twice
+
+
+@pytest.mark.asyncio
 async def test_can_open_and_close_connection_as_context_manager(tcp_connection_class,
                                                                 integration_tcp_server_and_pipe):
     from moler.connection import ObservableConnection

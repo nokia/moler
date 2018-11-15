@@ -73,15 +73,24 @@ class AsyncioTcp(IOConnection):
         self._debug('connection {} is open'.format(self))
 
     async def close(self):
-        """Close TCP connection."""
-        self._debug('closing {}'.format(self))
-        self._stream_writer.close()
-        if self.connection_lost:
-            await self.connection_lost
+        """
+        Close TCP connection.
+
+        Connection should allow for calling close on closed/not-open connection.
+        """
+        if self._stream_writer:
+            self._debug('closing {}'.format(self))
+            self._stream_writer.close()
+            if self.connection_lost:
+                await self.connection_lost
+            self._stream_reader = None
+            self._stream_writer = None
+            self.connection_lost = None
         self._debug('connection {} is closed'.format(self))
 
     async def __aenter__(self):
-        await self.open()
+        if self._stream_reader is None:
+            await self.open()
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -195,11 +204,16 @@ class AsyncioInThreadTcp(IOConnection):
         return ret
 
     def close(self):
-        """Close TCP connection."""
-        # self._debug('closing {}'.format(self))
-        ret = self._run_in_dedicated_thread(self._async_tcp.close(), timeout=0.5)
-        self.shutdown()
-        # await till finish of thread
-        if self._loop_thread:
-            self._loop_thread.join(timeout=1.0)
+        """
+        Close TCP connection.
+
+        Connection should allow for calling close on closed/not-open connection.
+        """
+        if self._async_tcp._stream_writer:
+            # self._debug('closing {}'.format(self))
+            ret = self._run_in_dedicated_thread(self._async_tcp.close(), timeout=0.5)
+            self.shutdown()
+            # await till finish of thread
+            if self._loop_thread:
+                self._loop_thread.join(timeout=1.0)
         # self._debug('connection {} is closed'.format(self))
