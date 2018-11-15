@@ -95,10 +95,7 @@ class Job(object):
         Method to start the job.
         :return: Nothing
         """
-        try:
-            self._job.resume()
-        except SchedulerNotRunningError:
-            pass
+        self._job.resume()
 
     def stop(self):
         """
