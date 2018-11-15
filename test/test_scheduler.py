@@ -51,6 +51,7 @@ def test_2_jobs_concurrently():
     values_2 = {'number': 0}
     job1 = Scheduler.get_job(callback, 0.05, {'param_dict': values_1})
     job2 = Scheduler.get_job(callback, 0.10, {'param_dict': values_2})
+    job1.stop()
     job1.start()
     job1.start()
     job2.start()
