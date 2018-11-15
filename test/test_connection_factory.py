@@ -3,9 +3,9 @@
 Testing factory responsible for returning "requested" connection
 """
 
-__author__ = 'Grzegorz Latuszek'
+__author__ = 'Grzegorz Latuszek, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com'
 
 import pytest
 
