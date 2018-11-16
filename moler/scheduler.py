@@ -7,7 +7,6 @@ __email__ = 'marcin.usielski@nokia.com'
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.schedulers import SchedulerNotRunningError
 from moler.exceptions import WrongUsage
 
 
