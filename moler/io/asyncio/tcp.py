@@ -15,18 +15,15 @@ __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
-import atexit
 import asyncio
-import threading
+import atexit
 import concurrent.futures
+import threading
 
-from moler.io.io_connection import IOConnection
-from moler.io.io_exceptions import ConnectionTimeout
-from moler.io.io_exceptions import RemoteEndpointDisconnected
-from moler.io.io_exceptions import RemoteEndpointNotConnected
 from moler.asyncio_runner import AsyncioEventThreadsafe
-from moler.io.raw import TillDoneThread
 from moler.exceptions import MolerException
+from moler.io.io_connection import IOConnection
+from moler.io.raw import TillDoneThread
 
 
 class AsyncioTcp(IOConnection):
@@ -193,9 +190,9 @@ class AsyncioInThreadTcp(IOConnection):
         # so, we can await it with timeout inside current thread
         try:
             return coro_future.result(timeout=timeout)
-        except concurrent.futures.TimeoutError as err:
+        except concurrent.futures.TimeoutError:
             raise  # TODO: convert to Moler's timeout
-        except concurrent.futures.CancelledError as err:
+        except concurrent.futures.CancelledError:
             raise
 
     def open(self):
@@ -204,7 +201,7 @@ class AsyncioInThreadTcp(IOConnection):
         if AsyncioInThreadTcp._loop_thread is None:
             try:
                 AsyncioInThreadTcp._start_loop_thread()
-            except Exception as err_msg:
+            except Exception:
                 # self.logger.error(err_msg)
                 raise
         AsyncioInThreadTcp._run_in_dedicated_thread(self._async_tcp.open(), timeout=0.5)

@@ -5,7 +5,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
-import inspect
+import threading
 from abc import abstractmethod, ABCMeta
 
 from six import add_metaclass
@@ -20,7 +20,6 @@ from moler.helpers import ClassProperty
 from moler.helpers import camel_case_to_lower_case_underscore
 from moler.helpers import instance_id
 from moler.runner import ThreadPoolExecutorRunner
-import threading
 
 
 @add_metaclass(ABCMeta)

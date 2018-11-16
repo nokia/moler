@@ -16,8 +16,6 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
-import platform
-import sys
 import weakref
 from threading import Lock
 
