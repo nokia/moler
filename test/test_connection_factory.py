@@ -3,9 +3,9 @@
 Testing factory responsible for returning "requested" connection
 """
 
-__author__ = 'Grzegorz Latuszek'
+__author__ = 'Grzegorz Latuszek, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com'
 
 import pytest
 
@@ -85,6 +85,8 @@ def builtin_io_type_example(request):
 @pytest.yield_fixture
 def builtin_connection_factories():
     import moler.connection  # installs builtin ones
+    import moler.config.connections as connection_cfg
     yield
     # restore since tests may overwrite builtins
-    moler.connection._register_builtin_connections()
+    connection_cfg.register_builtin_connections(moler.connection.ConnectionFactory,
+                                                moler.connection.ObservableConnection)

@@ -32,12 +32,30 @@ def test_can_select_device_by_name(device_config, device_factory):
             "io_type": "terminal",
             "variant": "threaded"
         },
-        connection_hops={}
+        connection_hops={},
     )
     device = device_factory.get_device(name='UNIX')
 
     assert device.__module__ == 'moler.device.unixlocal'
     assert device.__class__.__name__ == 'UnixLocal'
+
+
+def test_can_select_device_by_name_with_initial_state_set(device_config, device_factory):
+    device_config.define_device(
+        name="UNIX",
+        device_class='moler.device.unixlocal.UnixLocal',
+        connection_desc={
+            "io_type": "terminal",
+            "variant": "threaded"
+        },
+        connection_hops={},
+        initial_state="NOT_CONNECTED"
+    )
+    device = device_factory.get_device(name='UNIX')
+
+    assert device.__module__ == 'moler.device.unixlocal'
+    assert device.__class__.__name__ == 'UnixLocal'
+    assert device.current_state == "NOT_CONNECTED"
 
 
 def test_can_select_device_by_description(device_factory):

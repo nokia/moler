@@ -13,3 +13,4 @@ DEVICES:
 
   UNIX:
     DEVICE_CLASS: moler.device.unixremote.UnixLocal
+    INITIAL_STATE: UNIX_LOCAL
