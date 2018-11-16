@@ -72,8 +72,8 @@ def test_asyncio_test_job():
     loop.run_until_complete(asyncio.sleep(0.23))
     job.stop()
     loop.stop()
-    assert (2 == values['number'])
     Scheduler.change_kind("thread")
+    assert (2 == values['number'])
 
 
 def callback(param_dict):
