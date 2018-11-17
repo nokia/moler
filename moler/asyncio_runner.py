@@ -509,3 +509,14 @@ class AsyncioLoopThread(TillDoneThread):
                                passed_time=passed)
         except concurrent.futures.CancelledError as err:
             raise
+
+
+_asyncio_loop_thread = None
+
+
+def get_asyncio_loop_thread():
+    global _asyncio_loop_thread
+    if _asyncio_loop_thread is None:
+        _asyncio_loop_thread = AsyncioLoopThread()
+        _asyncio_loop_thread.start()
+    return _asyncio_loop_thread

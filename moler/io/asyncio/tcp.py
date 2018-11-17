@@ -26,6 +26,7 @@ from moler.io.io_exceptions import RemoteEndpointDisconnected
 from moler.io.io_exceptions import RemoteEndpointNotConnected
 from moler.asyncio_runner import AsyncioEventThreadsafe
 from moler.io.raw import TillDoneThread
+from moler.asyncio_runner import get_asyncio_loop_thread
 from moler.exceptions import MolerException
 
 
@@ -131,9 +132,9 @@ class AsyncioInThreadTcp(IOConnection):
         super(AsyncioInThreadTcp, self).__init__(moler_connection=moler_connection)
         # self.moler_connection.how2send = self._send  # need to map synchronous methods
         # TODO: do we want connection.name?
-        self.logger = logger  # TODO: build default logger if given is None?
+        # self.logger = logger  # TODO: build default logger if given is None?
         self._async_tcp = AsyncioTcp(moler_connection=moler_connection, port=port, host=host,
-                                     receive_buffer_size=receive_buffer_size, logger=logger)
+                                     receive_buffer_size=receive_buffer_size, logger=self.logger)
 
     @classmethod
     def _start_loop_thread(cls):

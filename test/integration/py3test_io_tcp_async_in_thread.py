@@ -232,6 +232,22 @@ def test_asyncio_thread_can_timeout_async_function():
 # TODO - do we want thread4async.start_async_coroutine to let it run in background (returning future)
 
 
+def test_can_get_same_asyncio_loop_thread():
+    from moler.asyncio_runner import get_asyncio_loop_thread
+
+    async_thrd_1 = get_asyncio_loop_thread()
+    async_thrd_2 = get_asyncio_loop_thread()
+    assert async_thrd_1 == async_thrd_2
+
+
+def test_get_asyncio_loop_thread_returns_running_thread_and_loop():
+    from moler.asyncio_runner import get_asyncio_loop_thread
+
+    async_thrd = get_asyncio_loop_thread()
+    assert async_thrd.is_alive()
+    assert async_thrd.ev_loop.is_running()
+
+
 def test_connection_has_running_thread_and_loop_after_open(tcp_connection_class,
                                                            integration_tcp_server_and_pipe):
     from moler.connection import ObservableConnection
