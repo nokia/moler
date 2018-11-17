@@ -248,40 +248,34 @@ def test_get_asyncio_loop_thread_returns_running_thread_and_loop():
     assert async_thrd.ev_loop.is_running()
 
 
-def test_connection_has_running_thread_and_loop_after_open(tcp_connection_class,
-                                                           integration_tcp_server_and_pipe):
+def test_connection_has_running_loop_after_open(tcp_connection_class,
+                                                integration_tcp_server_and_pipe):
     from moler.connection import ObservableConnection
-    from moler.io.raw import TillDoneThread
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
     moler_conn = ObservableConnection()
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     connection.open()
-    assert hasattr(connection._loop, "run_until_complete")
-    assert isinstance(connection._loop_thread, TillDoneThread)
-    assert connection._loop_thread.is_alive()
-    assert connection._loop.is_running()
+    assert connection._async_tcp._stream_reader._loop.is_running()
 
 
-def test_connection_has_not_stopped_thread_nor_loop_after_close(tcp_connection_class,
-                                                                integration_tcp_server_and_pipe):
+def test_connection_has_not_stopped_loop_after_close(tcp_connection_class,
+                                                     integration_tcp_server_and_pipe):
     from moler.connection import ObservableConnection
-    from moler.io.raw import TillDoneThread
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
     moler_conn = ObservableConnection()
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     connection.open()
+    async_loop_of_connection = connection._async_tcp._stream_reader._loop
     connection.close()
-    assert hasattr(connection._loop, "run_until_complete")
-    assert isinstance(connection._loop_thread, TillDoneThread)
-    assert connection._loop_thread.is_alive()
-    assert connection._loop.is_running()
+    assert async_loop_of_connection.is_running()
 
 
-def test_connections_use_same_thread_and_loop(tcp_connection_class,
-                                              integration_tcp_server_and_pipe,
-                                              integration_second_tcp_server_and_pipe):
+def test_connections_use_same_loop(tcp_connection_class,
+                                   integration_tcp_server_and_pipe,
+                                   integration_second_tcp_server_and_pipe):
+    # same loop means also same thread since asyncio has one loop in thread
     from moler.connection import ObservableConnection
     (tcp_server0, tcp_server0_pipe) = integration_tcp_server_and_pipe
     (tcp_server1, tcp_server1_pipe) = integration_second_tcp_server_and_pipe
@@ -293,8 +287,10 @@ def test_connections_use_same_thread_and_loop(tcp_connection_class,
     with connection0.open():
         with connection1.open():
             # loop and thread appear after open()
-            assert connection0._loop == connection1._loop
-            assert connection0._loop_thread == connection1._loop_thread
+            async_loop_of_connection0 = connection0._async_tcp._stream_reader._loop
+            async_loop_of_connection1 = connection0._async_tcp._stream_reader._loop
+
+            assert async_loop_of_connection0 == async_loop_of_connection1
 
 # --------------------------- resources ---------------------------
 

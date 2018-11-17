@@ -123,9 +123,6 @@ class AsyncioTcp(IOConnection):
 
 class AsyncioInThreadTcp(IOConnection):
     """Implementation of TCP connection using asyncio running in dedicated thread."""
-    _loop_thread = None
-    _loop = None
-    _loop_done = None
 
     def __init__(self, moler_connection, port, host="localhost", receive_buffer_size=64 * 4096, logger=None):
         """Initialization of TCP connection."""
@@ -136,79 +133,11 @@ class AsyncioInThreadTcp(IOConnection):
         self._async_tcp = AsyncioTcp(moler_connection=moler_connection, port=port, host=host,
                                      receive_buffer_size=receive_buffer_size, logger=self.logger)
 
-    @classmethod
-    def _start_loop_thread(cls):
-        atexit.register(cls.shutdown)
-        ev_loop = asyncio.new_event_loop()
-        ev_loop.set_debug(enabled=True)
-
-        # self.logger.debug("created loop 4 thread: {}:{}".format(id(ev_loop), ev_loop))
-        ev_loop_done = AsyncioEventThreadsafe(loop=ev_loop)
-        ev_loop_done.clear()
-
-        loop_started = threading.Event()
-        cls._loop_thread = TillDoneThread(target=cls._start_loop,
-                                           done_event=ev_loop_done,
-                                           kwargs={'loop': ev_loop,
-                                                   'loop_started': loop_started,
-                                                   'loop_done': ev_loop_done})
-        # self.logger.debug("created thread {} with loop {}:{}".format(self._loop_thread, id(ev_loop), ev_loop))
-        cls._loop = ev_loop
-        cls._loop_done = ev_loop_done
-        cls._loop_thread.start()
-        # # await loop thread to be really started
-        start_timeout = 0.5
-        if not loop_started.wait(timeout=start_timeout):
-            err_msg = "Failed to start asyncio loop thread within {} sec".format(start_timeout)
-            cls._loop_done.set()
-            raise MolerException(err_msg)
-        # self.logger.info("started new asyncio-in-thrd loop ...")
-
-    @classmethod
-    def _start_loop(cls, loop, loop_started, loop_done):
-        # self.logger.info("starting new asyncio-in-thrd loop ...")
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(cls._await_stop_loop(loop_started=loop_started, stop_event=loop_done))
-        # self.logger.info("... asyncio-in-thrd loop done")
-
-    @classmethod
-    async def _await_stop_loop(cls, loop_started, stop_event):
-        # stop_event may be set directly via self._loop_done.set()
-        # or indirectly by TillDoneThread when python calls join on all active threads during python shutdown
-        # self.logger.info("will await stop_event ...")
-        loop_started.set()
-        await stop_event.wait()
-        # self.logger.info("... await stop_event done")
-
-    @classmethod
-    def shutdown(cls):
-        # self.logger.debug("shutting down")
-        if cls._loop_done:
-            cls._loop_done.set()  # will exit from loop and holding it thread
-
-    @classmethod
-    def _run_in_dedicated_thread(cls, coroutine_to_run, timeout):
-        # we are scheduling to other thread (so, can't use asyncio.ensure_future() )
-        coro_future = asyncio.run_coroutine_threadsafe(coroutine_to_run, loop=cls._loop)
-        # run_coroutine_threadsafe returns future as concurrent.futures.Future() and not asyncio.Future
-        # so, we can await it with timeout inside current thread
-        try:
-            return coro_future.result(timeout=timeout)
-        except concurrent.futures.TimeoutError as err:
-            raise  # TODO: convert to Moler's timeout
-        except concurrent.futures.CancelledError as err:
-            raise
-
     def open(self):
         """Open TCP connection."""
         ret = super(AsyncioInThreadTcp, self).open()
-        if AsyncioInThreadTcp._loop_thread is None:
-            try:
-                AsyncioInThreadTcp._start_loop_thread()
-            except Exception as err_msg:
-                # self.logger.error(err_msg)
-                raise
-        AsyncioInThreadTcp._run_in_dedicated_thread(self._async_tcp.open(), timeout=0.5)
+        thread4async = get_asyncio_loop_thread()
+        thread4async.run_async_coroutine(self._async_tcp.open(), timeout=0.5)
         return ret
 
     def close(self):
@@ -217,7 +146,8 @@ class AsyncioInThreadTcp(IOConnection):
 
         Connection should allow for calling close on closed/not-open connection.
         """
-        if self._async_tcp._stream_writer:
+        if self._async_tcp._stream_writer:  # change it to coro is_open() checked inside async-thread
             # self._debug('closing {}'.format(self))
-            ret = AsyncioInThreadTcp._run_in_dedicated_thread(self._async_tcp.close(), timeout=0.5)
+            thread4async = get_asyncio_loop_thread()
+            ret = thread4async.run_async_coroutine(self._async_tcp.close(), timeout=0.5)
         # self._debug('connection {} is closed'.format(self))
