@@ -63,6 +63,16 @@ class ResultAlreadySet(InvalidStateError):
         self.connection_observer = connection_observer
 
 
+class MolerTimeout(MolerException):
+    def __init__(self, timeout, kind='run', passed_time=''):
+        """Create instance of MolerTimeout exception"""
+        if passed_time:
+            passed_time = '{:.2f} '.format(passed_time)
+        err_msg = '{} time {}>= {:.2f} sec'.format(kind, passed_time, timeout)
+        super(MolerTimeout, self).__init__(err_msg + ' timeout')
+        self.timeout = timeout
+
+
 class ConnectionObserverTimeout(MolerException):
     def __init__(self, connection_observer, timeout,
                  kind='run', passed_time=''):

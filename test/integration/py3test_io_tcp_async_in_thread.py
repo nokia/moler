@@ -181,6 +181,57 @@ def test_can_work_with_multiple_connections(tcp_connection_class,
 
 
 # --------------------------- test implementation -----------------
+def test_asyncio_thread_has_running_thread_and_loop_after_start():
+    from moler.asyncio_runner import AsyncioLoopThread
+
+    thread4async = AsyncioLoopThread()
+    thread4async.start()
+    assert thread4async.is_alive()
+    assert thread4async.ev_loop.is_running()
+
+
+def test_asyncio_thread_has_stopped_thread_and_loop_after_join():
+    from moler.asyncio_runner import AsyncioLoopThread
+
+    thread4async = AsyncioLoopThread()
+    thread4async.start()
+    thread4async.join()
+    assert not thread4async.ev_loop.is_running()
+    assert not thread4async.is_alive()
+
+
+def test_asyncio_thread_can_run_async_function():
+    from moler.asyncio_runner import AsyncioLoopThread
+
+    thread4async = AsyncioLoopThread()
+    thread4async.start()
+
+    async def my_coro(param):
+        await asyncio.sleep(0.1)
+        return "called with param={}".format(param)
+
+    assert "called with param=2" == thread4async.run_async_coroutine(my_coro(param=2), timeout=0.2)
+
+
+def test_asyncio_thread_can_timeout_async_function():
+    from moler.asyncio_runner import AsyncioLoopThread
+    from moler.exceptions import MolerTimeout
+
+    thread4async = AsyncioLoopThread()
+    thread4async.start()
+
+    async def my_coro(param):
+        await asyncio.sleep(0.2)
+        return "called with param={}".format(param)
+
+    with pytest.raises(MolerTimeout):
+        thread4async.run_async_coroutine(my_coro(param=2), timeout=0.1)
+
+# TODO - test cancel of async_function in asyncio_thread
+
+# TODO - do we want thread4async.start_async_coroutine to let it run in background (returning future)
+
+
 def test_connection_has_running_thread_and_loop_after_open(tcp_connection_class,
                                                            integration_tcp_server_and_pipe):
     from moler.connection import ObservableConnection
