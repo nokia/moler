@@ -3,6 +3,7 @@
 Package Open Source functionality of Moler.
 """
 import time
+from moler.util.moler_test import MolerTest
 
 __author__ = 'Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -19,4 +20,5 @@ class Sleep(object):
         :param seconds: Time to sleep (in seconds)
         :return:
         """
+        MolerTest.info("Sleep for {} seconds.".format(seconds))
         time.sleep(seconds)

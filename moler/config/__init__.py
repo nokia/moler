@@ -18,7 +18,7 @@ from . import connections as conn_cfg
 from . import devices as dev_cfg
 from . import loggers as log_cfg
 
-loaded_config = ""
+loaded_config = "NOT_LOADED_YET"
 
 
 @contextmanager
@@ -56,7 +56,7 @@ def load_config(config=None, from_env_var=None, config_type='yaml'):
     """
     global loaded_config
 
-    if loaded_config == "":
+    if loaded_config == "NOT_LOADED_YET":
         loaded_config = config
     elif loaded_config == config:
         return
