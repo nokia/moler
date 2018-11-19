@@ -471,7 +471,7 @@ class AsyncioLoopThread(TillDoneThread):
         self.ev_loop = asyncio.new_event_loop()
         self.ev_loop.set_debug(enabled=True)
 
-        self.logger.debug("created loop 4 thread: {}:{}".format(id(self.ev_loop), self.ev_loop))
+        self.logger.debug("created asyncio loop: {}:{}".format(id(self.ev_loop), self.ev_loop))
         self.ev_loop_done = AsyncioEventThreadsafe(loop=self.ev_loop)
         self.ev_loop_done.clear()
         self.ev_loop_started = threading.Event()
@@ -481,10 +481,10 @@ class AsyncioLoopThread(TillDoneThread):
                                                 kwargs={'loop': self.ev_loop,
                                                         'loop_started': self.ev_loop_started,
                                                         'loop_done': self.ev_loop_done})
-        self.logger.debug("created {} thread {} 4 loop: {}:{}".format(self.name, self, id(self.ev_loop), self.ev_loop))
         # Thread-3  -->  [Thread, 3]
         name_parts = self.name.split('-')
         self.name = "{}-{}".format(name, name_parts[-1])
+        self.logger.debug("created thread {} for asyncio loop".format(self))
 
     def start(self):
         """
@@ -539,9 +539,17 @@ _asyncio_loop_thread_lock = threading.Lock()
 
 
 def get_asyncio_loop_thread():
-    global _asyncio_loop_thread
-    if _asyncio_loop_thread is None:
-        with _asyncio_loop_thread_lock:
-            _asyncio_loop_thread = AsyncioLoopThread()
-            _asyncio_loop_thread.start()
+    logger = logging.getLogger('moler.asyncio-loop-thrd')
+    with _asyncio_loop_thread_lock:
+        global _asyncio_loop_thread
+        if _asyncio_loop_thread is None:
+            logger.debug(">>> >>> found _asyncio_loop_thread as {}".format(_asyncio_loop_thread))
+
+            logger.debug(">>> >>> will create thread {}".format(_asyncio_loop_thread))
+            new_loop_thread = AsyncioLoopThread()
+            logger.debug(">>> >>> AsyncioLoopThread() --> {}".format(new_loop_thread))
+            new_loop_thread.start()
+            logger.debug(">>> >>> started {}".format(new_loop_thread))
+            _asyncio_loop_thread = new_loop_thread
+    logger.debug(">>> >>> returning {}".format(_asyncio_loop_thread))
     return _asyncio_loop_thread
