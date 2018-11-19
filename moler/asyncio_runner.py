@@ -466,7 +466,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
 
 
 class AsyncioLoopThread(TillDoneThread):
-    def __init__(self, name=None):
+    def __init__(self, name="Asyncio"):
         self.logger = logging.getLogger('moler.asyncio-loop-thrd')
         self.ev_loop = asyncio.new_event_loop()
         self.ev_loop.set_debug(enabled=True)
@@ -481,6 +481,10 @@ class AsyncioLoopThread(TillDoneThread):
                                                 kwargs={'loop': self.ev_loop,
                                                         'loop_started': self.ev_loop_started,
                                                         'loop_done': self.ev_loop_done})
+        self.logger.debug("created {} thread {} 4 loop: {}:{}".format(self.name, self, id(self.ev_loop), self.ev_loop))
+        # Thread-3  -->  [Thread, 3]
+        name_parts = self.name.split('-')
+        self.name = "{}-{}".format(name, name_parts[-1])
 
     def start(self):
         """
