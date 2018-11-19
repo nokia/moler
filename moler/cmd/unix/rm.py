@@ -19,7 +19,6 @@ class Rm(GenericUnixCommand):
         :param options: Unix options of rm command.
         :param prompt: prompt (on system where command runs).
         :param newline_chars: Characters to split lines - list.
-        :param options: Options of unix ls command
         :param runner: Runner to run command.
         """
         super(Rm, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
