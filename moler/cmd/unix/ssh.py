@@ -77,6 +77,10 @@ class Ssh(GenericUnixCommand):
         self._sent_continue_connecting = False
 
     def build_command_string(self):
+        """
+        Builds command string from parameters passed to object.
+        :return: String representation of command to send over connection to device.
+        """
         cmd = ""
         if self.term_mono:
             cmd = "{} ".format(self.term_mono)
@@ -89,6 +93,12 @@ class Ssh(GenericUnixCommand):
         return cmd
 
     def on_new_line(self, line, is_full_line):
+        """
+        Put your parsing code here.
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: Nothing
+        """
         try:
             self._check_if_failure(line)
             self._get_hosts_file_if_displayed(line)
@@ -103,6 +113,11 @@ class Ssh(GenericUnixCommand):
             self._sent_password = False  # Clear flag for multi passwords connections
 
     def is_failure_indication(self, line):
+        """
+        Detects fail from command output.
+        :param line: Line from device
+        :return: Match object if matches, None otherwise
+        """
         return self._regex_helper.search_compiled(Ssh._re_failed_strings, line)
 
     def _commands_after_established(self, line, is_full_line):

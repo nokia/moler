@@ -39,11 +39,11 @@ class RunScript(GenericUnixCommand):
 
     def on_new_line(self, line, is_full_line):
         """
-       Put your parsing code here.
-       :param line: Line to process, can be only part of line. New line chars are removed from line.
-       :param is_full_line: True if line had new line chars, False otherwise
-       :return: Nothing
-       """
+        Put your parsing code here.
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: Nothing
+        """
         if self.error_regex and self._regex_helper.search_compiled(self.error_regex, line):
             self.set_exception(CommandFailure(self, "Found error regex in line '{}'".format(line)))
         return super(RunScript, self).on_new_line(line, is_full_line)
