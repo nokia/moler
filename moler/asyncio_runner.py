@@ -370,6 +370,21 @@ class AsyncioInThreadRunner(AsyncioRunner):
 
         feed_started = threading.Event()
 
+        # async def start_feeder():
+        #     feed_started = asyncio.Event()
+        #     self.logger.debug("scheduling feed()")
+        #     connection_observer_future = asyncio.ensure_future(self.feed(connection_observer, feed_started))
+        #     self.logger.debug("scheduled feed() - future: {}".format(connection_observer_future))
+        #     await feed_started.wait()
+        #     self.logger.debug("feed() started - future: {}".format(connection_observer_future))
+        #     return connection_observer_future
+        #
+        # thread4async = get_asyncio_loop_thread()
+        # start_timeout = 0.5
+        # try:
+        #     connection_observer_future = thread4async.run_async_coroutine(start_feeder(), timeout=start_timeout)
+        # except MolerTimeout:
+
         # we are scheduling to other thread (so, can't use asyncio.ensure_future() )
         connection_observer_future = asyncio.run_coroutine_threadsafe(self.feed(connection_observer, feed_started), loop=self._loop)
         # run_coroutine_threadsafe returns future as concurrent.futures.Future() and not asyncio.Future
@@ -452,10 +467,11 @@ class AsyncioInThreadRunner(AsyncioRunner):
 
 class AsyncioLoopThread(TillDoneThread):
     def __init__(self, name=None):
+        self.logger = logging.getLogger('moler.asyncio-loop-thrd')
         self.ev_loop = asyncio.new_event_loop()
         self.ev_loop.set_debug(enabled=True)
 
-        # self.logger.debug("created loop 4 thread: {}:{}".format(id(ev_loop), ev_loop))
+        self.logger.debug("created loop 4 thread: {}:{}".format(id(self.ev_loop), self.ev_loop))
         self.ev_loop_done = AsyncioEventThreadsafe(loop=self.ev_loop)
         self.ev_loop_done.clear()
         self.ev_loop_started = threading.Event()
@@ -478,30 +494,33 @@ class AsyncioLoopThread(TillDoneThread):
             err_msg = "Failed to start asyncio loop thread within {} sec".format(start_timeout)
             self.ev_loop_done.set()
             raise MolerException(err_msg)
-        # self.logger.info("started new asyncio-in-thrd loop ...")
+        self.logger.info("started new asyncio-loop-thrd ...")
 
     def _start_loop(self, loop, loop_started, loop_done):
-        # self.logger.info("starting new asyncio-in-thrd loop ...")
+        self.logger.info("starting new asyncio loop ...")
         asyncio.set_event_loop(loop)
         loop.run_until_complete(self._await_stop_loop(loop_started=loop_started, stop_event=loop_done))
-        # self.logger.info("... asyncio-in-thrd loop done")
+        self.logger.info("... asyncio loop done")
 
     async def _await_stop_loop(self, loop_started, stop_event):
         # stop_event may be set directly via self._loop_done.set()
         # or indirectly by TillDoneThread when python calls join on all active threads during python shutdown
-        # self.logger.info("will await stop_event ...")
+        self.logger.info("will await loop stop_event ...")
         loop_started.set()
         await stop_event.wait()
-        # self.logger.info("... await stop_event done")
+        self.logger.info("... await loop stop_event done")
 
     def run_async_coroutine(self, coroutine_to_run, timeout):
         start_time = time.time()
         # we are scheduling to other thread (so, can't use asyncio.ensure_future() )
+        self.logger.debug("scheduling {} into {}".format(coroutine_to_run, self.ev_loop))
         coro_future = asyncio.run_coroutine_threadsafe(coroutine_to_run, loop=self.ev_loop)
         # run_coroutine_threadsafe returns future as concurrent.futures.Future() and not asyncio.Future
         # so, we can await it with timeout inside current thread
         try:
-            return coro_future.result(timeout=timeout)
+            coro_result = coro_future.result(timeout=timeout)
+            self.logger.debug("scheduled {} returned {}".format(coroutine_to_run, coro_result))
+            return coro_result
         except concurrent.futures.TimeoutError:
             passed = time.time() - start_time
             raise MolerTimeout(timeout=timeout,
@@ -512,11 +531,13 @@ class AsyncioLoopThread(TillDoneThread):
 
 
 _asyncio_loop_thread = None
+_asyncio_loop_thread_lock = threading.Lock()
 
 
 def get_asyncio_loop_thread():
     global _asyncio_loop_thread
     if _asyncio_loop_thread is None:
-        _asyncio_loop_thread = AsyncioLoopThread()
-        _asyncio_loop_thread.start()
+        with _asyncio_loop_thread_lock:
+            _asyncio_loop_thread = AsyncioLoopThread()
+            _asyncio_loop_thread.start()
     return _asyncio_loop_thread
