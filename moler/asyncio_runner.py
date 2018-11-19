@@ -8,23 +8,23 @@ __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
-import atexit
-import logging
-import inspect
-import time
-import sys
 import asyncio
-import asyncio.tasks
 import asyncio.futures
+import asyncio.tasks
+import atexit
 import concurrent.futures
+import logging
+import sys
 import threading
-from moler.io.raw import TillDoneThread
-from moler.exceptions import ConnectionObserverTimeout
+import time
+
 from moler.exceptions import CommandTimeout
 from moler.exceptions import MolerTimeout
+from moler.exceptions import ConnectionObserverTimeout
 from moler.exceptions import MolerException
-from moler.runner import ConnectionObserverRunner, result_for_runners
 from moler.helpers import instance_id
+from moler.io.raw import TillDoneThread
+from moler.runner import ConnectionObserverRunner, result_for_runners
 
 
 # following code thanks to:
@@ -73,7 +73,7 @@ def run_nested_until_complete(future, loop=None):
     while not task.done():
         try:
             loop._run_once()
-        except Exception as err:
+        except Exception:
             # if new_task and future.done() and not future.cancelled():
             # if future is @coroutine  like asyncio.wait_for
             # then it has no .done()
@@ -404,7 +404,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
             check_timeout_from_observer = False
             wait_tick = remain_time
         while remain_time > 0.0:
-            done, not_done = concurrent.futures.wait([connection_observer_future], timeout=wait_tick)
+            done, _ = concurrent.futures.wait([connection_observer_future], timeout=wait_tick)
             if connection_observer_future in done:
                 try:
                     result = result_for_runners(connection_observer_future)
@@ -507,7 +507,7 @@ class AsyncioLoopThread(TillDoneThread):
             raise MolerTimeout(timeout=timeout,
                                kind="run_async_coroutine({})".format(coroutine_to_run),
                                passed_time=passed)
-        except concurrent.futures.CancelledError as err:
+        except concurrent.futures.CancelledError:
             raise
 
 

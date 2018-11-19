@@ -15,19 +15,10 @@ __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
-import atexit
 import asyncio
-import threading
-import concurrent.futures
 
-from moler.io.io_connection import IOConnection
-from moler.io.io_exceptions import ConnectionTimeout
-from moler.io.io_exceptions import RemoteEndpointDisconnected
-from moler.io.io_exceptions import RemoteEndpointNotConnected
-from moler.asyncio_runner import AsyncioEventThreadsafe
-from moler.io.raw import TillDoneThread
 from moler.asyncio_runner import get_asyncio_loop_thread
-from moler.exceptions import MolerException
+from moler.io.io_connection import IOConnection
 
 
 class AsyncioTcp(IOConnection):
