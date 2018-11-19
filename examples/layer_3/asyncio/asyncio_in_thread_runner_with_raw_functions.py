@@ -109,7 +109,7 @@ def main(connections2observe4ip):
         # ------------------------------------------------------------------
         # con_logger = logging.getLogger('tcp-async_in_thrd-io.{}'.format(connection_name))
         # tcp_connection = get_connection(name=connection_name, variant='asyncio-in-thread', logger=con_logger)
-        tcp_connection = get_connection(name=connection_name)
+        tcp_connection = get_connection(name=connection_name, variant='asyncio-in-thread')
         client_thread = threading.Thread(target=ping_observing_task,
                                          args=(tcp_connection, ping_ip))
         client_thread.start()
