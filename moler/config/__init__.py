@@ -20,6 +20,7 @@ from . import loggers as log_cfg
 
 loaded_config = ""
 
+
 @contextmanager
 def read_configfile(path):
     """
