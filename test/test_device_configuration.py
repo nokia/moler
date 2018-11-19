@@ -223,6 +223,7 @@ def test_cannot_load_config_from_when_path_or_from_env_var_not_provide(moler_con
 @pytest.yield_fixture
 def moler_config():
     import moler.config as moler_cfg
+    moler_cfg.loaded_config = ''
     yield moler_cfg
     # restore since tests may change configuration
     moler_cfg.clear()
