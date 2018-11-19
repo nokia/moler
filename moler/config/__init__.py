@@ -4,6 +4,8 @@ Moler related configuration
 """
 import os
 
+from moler.util.moler_test import MolerTest
+
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
@@ -16,6 +18,7 @@ from . import connections as conn_cfg
 from . import devices as dev_cfg
 from . import loggers as log_cfg
 
+loaded_config = ""
 
 @contextmanager
 def read_configfile(path):
@@ -50,6 +53,18 @@ def load_config(config=None, from_env_var=None, config_type='yaml'):
     :param config_type: 'dict' ('config' param is dict) or 'yaml' ('config' is filename of file with YAML content)
     :return: None
     """
+    global loaded_config
+
+    if loaded_config == "":
+        loaded_config = config
+    elif loaded_config == config:
+        return
+    else:
+        MolerTest.error("Try to load '{}' config when '{}' config already loaded.\n"
+                        "Reload configuration under one Moler execution not supported!".format(config,
+                                                                                               loaded_config),
+                        raise_exception=True)
+
     assert (config_type == 'dict') or (config_type == 'yaml')  # no other format supported yet
     if not config:
         if not from_env_var:
