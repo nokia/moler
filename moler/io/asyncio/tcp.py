@@ -28,6 +28,8 @@ class AsyncioTcp(IOConnection):
         super(AsyncioTcp, self).__init__(moler_connection=moler_connection)
         self.moler_connection.how2send = self._send  # need to map synchronous methods
         # TODO: do we want connection.name?
+        self.name = moler_connection.name
+
         self.host = host
         self.port = port
         self.receive_buffer_size = receive_buffer_size
@@ -118,6 +120,7 @@ class AsyncioInThreadTcp(IOConnection):
     def __init__(self, moler_connection, port, host="localhost", receive_buffer_size=64 * 4096, logger=None):
         """Initialization of TCP connection."""
         super(AsyncioInThreadTcp, self).__init__(moler_connection=moler_connection)
+        self.name = moler_connection.name
         # self.moler_connection.how2send = self._send  # need to map synchronous methods
         # TODO: do we want connection.name?
         # self.logger = logger  # TODO: build default logger if given is None?
