@@ -64,7 +64,7 @@ def load_config(config=None, from_env_var=None, config_type='yaml'):
     elif loaded_config == config:
         return
     else:
-        #TODO: raise exception or no?
+        # TODO: raise exception or no?
         MolerTest.error("Try to load '{}' config when '{}' config already loaded.\n"
                         "Reload configuration under one Moler execution not supported!".format(config,
                                                                                                loaded_config))
