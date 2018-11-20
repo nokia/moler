@@ -121,6 +121,12 @@ class Ssh(GenericUnixCommand):
         return self._regex_helper.search_compiled(Ssh._re_failed_strings, line)
 
     def _commands_after_established(self, line, is_full_line):
+        """
+        Performs commands after ssh connection is established and user is logged in.
+        :param line: Line from device.
+        :param is_full_line: True is line contained new line chars, False otherwise.
+        :return: Nothing but raises ParsingDone if all required commands are sent.
+        """
         sent = self._send_after_login_settings(line)
         if sent:
             raise ParsingDone()
@@ -132,6 +138,11 @@ class Ssh(GenericUnixCommand):
                     raise ParsingDone()
 
     def _host_key_verification(self, line):
+        """
+        Checks regex host key verification.
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches.
+        """
         if self._regex_helper.search_compiled(Ssh._re_host_key_verification_failed, line):
             if self._hosts_file:
                 self._handle_failed_host_key_verification()
@@ -140,27 +151,52 @@ class Ssh(GenericUnixCommand):
             raise ParsingDone()
 
     def _id_dsa(self, line):
+        """
+        Checks id dsa.
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches.
+        """
         if Ssh._re_id_dsa.search(line):
             self.connection.sendline("")
             raise ParsingDone()
 
     def _check_if_failure(self, line):
+        """
+        Checks if line from device has information about failed ssh.
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches.
+        """
         if self.is_failure_indication(line):
             self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
             raise ParsingDone()
 
     def _get_hosts_file_if_displayed(self, line):
+        """
+        Checks if line from device has info about hosts file.
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches.
+        """
         if (self.known_hosts_on_failure is not None) and self._regex_helper.search_compiled(Ssh._re_host_key, line):
             self._hosts_file = self._regex_helper.group("HOSTS_FILE")
             raise ParsingDone()
 
     def _push_yes_if_needed(self, line):
+        """
+        Checks if line from device has information about waiting for sent yes/no.
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches.
+        """
         if (not self._sent_continue_connecting) and self._regex_helper.search_compiled(Ssh._re_yes_no, line):
             self.connection.sendline('yes')
             self._sent_continue_connecting = True
             raise ParsingDone()
 
     def _send_password_if_requested(self, line):
+        """
+        Checks if line from device has information about waiting for password.
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches.
+        """
         if (not self._sent_password) and self._is_password_requested(line):
             try:
                 pwd = self._passwords.pop(0)
@@ -171,6 +207,10 @@ class Ssh(GenericUnixCommand):
             raise ParsingDone()
 
     def _handle_failed_host_key_verification(self):
+        """
+        Handles situation when failed host key verification.
+        :return: Nothing.
+        """
         if "rm" == self.known_hosts_on_failure:
             self.connection.sendline("\nrm -f {}".format(self._hosts_file))
         elif "keygen" == self.known_hosts_on_failure:
@@ -189,6 +229,11 @@ class Ssh(GenericUnixCommand):
         self.connection.sendline(self.command_string)
 
     def _send_after_login_settings(self, line):
+        """
+        Sends information about timeout and prompt.
+        :param line: Line from device.
+        :return: True if anything was sent, False otherwise.
+        """
         if self._is_target_prompt(line):
             if self._timeout_set_needed():
                 self._send_timeout_set()
@@ -199,6 +244,10 @@ class Ssh(GenericUnixCommand):
         return False  # nothing sent
 
     def _all_after_login_settings_sent(self):
+        """
+        Checks if all requested commands are sent.
+        :return: True if all commands after ssh connection establishing are sent, False otherwise
+        """
         both_requested = self.set_prompt and self.set_timeout
         both_sent = self._sent_prompt and self._sent_timeout
         single_req_and_sent1 = self.set_prompt and self._sent_prompt
@@ -206,28 +255,58 @@ class Ssh(GenericUnixCommand):
         return (both_requested and both_sent) or single_req_and_sent1 or single_req_and_sent2
 
     def _no_after_login_settings_needed(self):
+        """
+        Checks if any commands after logged in are requested.
+        :return: True if no commands are awaited, False if any.
+        """
         return (not self.set_prompt) and (not self.set_timeout)
 
     def _timeout_set_needed(self):
+        """
+        Checks if command for timeout is awaited.
+        :return: True if command is set and not sent. False otherwise.
+        """
         return self.set_timeout and not self._sent_timeout
 
     def _send_timeout_set(self):
+        """
+        Sends command to set timeout.
+        :return: Nothing.
+        """
         cmd = "{}{}{}".format(self.target_newline, self.set_timeout, self.target_newline)
         self.connection.send(cmd)
         self._sent_timeout = True
 
     def _prompt_set_needed(self):
+        """
+        Checks if command for prompt is awaited.
+        :return: True if command is set and not sent. False otherwise.
+        """
         return self.set_prompt and not self._sent_prompt
 
     def _send_prompt_set(self):
+        """
+        Sends command to set prompt.
+        :return: Nothing.
+        """
         cmd = "{}{}{}".format(self.target_newline, self.set_prompt, self.target_newline)
         self.connection.send(cmd)
         self._sent_prompt = True
 
     def _is_password_requested(self, line):
+        """
+        Checks if password is requested by device.
+        :param line: Line from device.
+        :return: Match object if regex matches, None otherwise.
+        """
         return self._regex_helper.search_compiled(Ssh._re_password, line)
 
     def _is_target_prompt(self, line):
+        """
+        Checks if device sends prompt from target system.
+        :param line: Line from device.
+        :return: Match object if regex matches, None otherwise.
+        """
         return self._regex_helper.search_compiled(self._re_expected_prompt, line)
 
 
