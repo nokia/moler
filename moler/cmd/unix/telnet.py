@@ -28,7 +28,7 @@ class Telnet(GenericUnixCommand):
 
     def __init__(self, connection, host, login=None, password=None, port=0, prompt=None, expected_prompt=r'^>\s*',
                  set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono="TERM=xterm-mono", prefix=None,
-                 newline_chars=None, cmds_before_establish_connection=[], cmds_after_establish_connection=[],
+                 newline_chars=None, cmds_before_establish_connection=None, cmds_after_establish_connection=None,
                  telnet_prompt=r"^\s*telnet>\s*", encrypt_password=True, runner=None, target_newline="\r\n"):
         """
         :param connection: moler connection to device, terminal when command is executed
@@ -64,7 +64,11 @@ class Telnet(GenericUnixCommand):
         self.term_mono = term_mono
         self.prefix = prefix
         self.encrypt_password = encrypt_password
+        if cmds_before_establish_connection is None:
+            cmds_before_establish_connection = []
         self.cmds_before_establish_connection = copy.deepcopy(cmds_before_establish_connection)
+        if cmds_after_establish_connection is None:
+            cmds_after_establish_connection = []
         self.cmds_after_establish_connection = copy.deepcopy(cmds_after_establish_connection)
         self.target_newline = target_newline
 
