@@ -340,6 +340,7 @@ class Telnet(GenericUnixCommand):
             return []
         return src.copy()
 
+
 COMMAND_OUTPUT = """
 user@host01:~> TERM=xterm-mono telnet host.domain.net 1500
 Login:
