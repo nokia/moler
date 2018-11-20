@@ -208,6 +208,18 @@ def test_return_created_device_when_call_another_time_for_same_named_device(mole
     assert device == same_device
 
 
+def test_raise_exception_when_not_abs_path_for_configuation_path_was_used(moler_config, device_factory):
+    conn_config = os.path.join("resources", "device_config.yml")
+
+    from moler.exceptions import MolerException
+
+    with pytest.raises(MolerException) as err:
+        moler_config.load_config(config=conn_config, config_type='yaml')
+
+    assert "For configuration file path: '{}' was used but absolute path is needed!".format(conn_config) in str(
+        err.value)
+
+
 def test_return_new_device_when_call_another_time_same_desc_device(device_factory):
     device = device_factory.get_device(
         device_class='moler.device.unixlocal.UnixLocal',
