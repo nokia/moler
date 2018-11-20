@@ -34,8 +34,7 @@ def read_configfile(path):
             content = config_file.read()
             yield content
     else:
-        MolerTest.error("For configuration file path: '{}' was used but absolute path is needed!".format(path),
-                        raise_exception=True)
+        MolerTest.error("For configuration file path: '{}' was used but absolute path is needed!".format(path))
 
 
 def read_yaml_configfile(path):
@@ -65,10 +64,11 @@ def load_config(config=None, from_env_var=None, config_type='yaml'):
     elif loaded_config == config:
         return
     else:
+        #TODO: raise exception or no?
         MolerTest.error("Try to load '{}' config when '{}' config already loaded.\n"
                         "Reload configuration under one Moler execution not supported!".format(config,
-                                                                                               loaded_config),
-                        raise_exception=True)
+                                                                                               loaded_config))
+        return
 
     assert (config_type == 'dict') or (config_type == 'yaml')  # no other format supported yet
     if not config:
