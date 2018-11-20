@@ -14,20 +14,36 @@ from moler.exceptions import ParsingDone
 
 
 class Uptime(GenericUnixCommand):
-    # Compiled regexp
 
     def __init__(self, connection, options=None, prompt=None, newline_chars=None, runner=None):
+        """
+        :param connection: Moler connection to device, terminal when command is executed.
+        :param options: uptime unix command options
+        :param prompt: prompt (on system where command runs).
+        :param newline_chars: Characters to split lines - list.
+        :param runner: Runner to run command.
+        """
         super(Uptime, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         # Parameters defined by calling the command
         self.options = options
 
     def build_command_string(self):
+        """
+        Builds command string from parameters passed to object.
+        :return: String representation of command to send over connection to device.
+        """
         cmd = "uptime"
         if self.options:
             cmd = "{} {}".format(cmd, self.options)
         return cmd
 
     def on_new_line(self, line, is_full_line):
+        """
+        Put your parsing code here.
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: Nothing
+        """
         if is_full_line:
             try:
                 self._parse_uptime(line)
@@ -43,6 +59,11 @@ class Uptime(GenericUnixCommand):
     _re_uptime_line = re.compile(r"\s+up\s+(?P<UPTIME_VAL>\S.*\S),\s+(?P<USERS>\d+)\s+user.*", re.IGNORECASE)
 
     def _parse_uptime(self, line):
+        """
+        Parses uptime from device.
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if line matches regex.
+        """
         if self._regex_helper.search_compiled(Uptime._re_uptime_line, line):
             val = self._regex_helper.group("UPTIME_VAL")
             users = int(self._regex_helper.group("USERS"))
@@ -66,6 +87,12 @@ class Uptime(GenericUnixCommand):
     _re_minutes = re.compile(r"(?P<MINS>\d+) min")
 
     def _calculate_seconds(self, val_str, line):
+        """
+        Calculates seconds from fragment of output with time.
+        :param val_str: Fragment with time.
+        :param line: Line from device.
+        :return: Int of seconds, converted from passed time.
+        """
         seconds = 0
         if self._regex_helper.search_compiled(Uptime._re_days, val_str):
             seconds = 24 * 3600 * int(self._regex_helper.group("DAYS")) + 3600 * int(
@@ -85,6 +112,11 @@ class Uptime(GenericUnixCommand):
     _re_date_time = re.compile(r"(?P<DATE>\d{4}-\d{2}-\d{2})\s+(?P<TIME>\d{1,2}:\d{1,2}:\d{1,2})")
 
     def _parse_since(self, line):
+        """
+        Parses date and time from line since when system has started.
+        :param line: Line from device
+        :return: Nothing but raises ParsingDone if regex matches.
+        """
         if self._regex_helper.search_compiled(Uptime._re_date_time, line):
             self.current_ret["date"] = self._regex_helper.group("DATE")
             self.current_ret["time"] = self._regex_helper.group("TIME")
