@@ -263,35 +263,71 @@ class Telnet(GenericUnixCommand):
 
     def _no_after_login_settings_needed(self):
         """
-        
-        :return: True if commands for login and timeout
+        Checks if prompt and timeout commands are sent.
+        :return: True if commands for login nor timeout are no needed.
         """
         return (not self.set_prompt) and (not self.set_timeout)
 
     def _timeout_set_needed(self):
+        """
+        Checks if command to set timeout is still needed.
+        :return: True if command to set timeout is needed, otherwise (sent or not requested) False
+        """
         return self.set_timeout and not self._sent_timeout
 
     def _send_timeout_set(self):
+        """
+        Sends command to set timeout
+        :return: Nothing
+        """
         self.connection.sendline("{}{}".format(self.target_newline, self.set_timeout))
         self._sent_timeout = True
 
     def _prompt_set_needed(self):
+        """
+        Checks if command to set prompt is still needed.
+        :return: True if command to set prompt is needed, otherwise (sent or not requested) False
+        """
         return self.set_prompt and not self._sent_prompt
 
     def _send_prompt_set(self):
+        """
+        Sends command to set prompt
+        :return: Nothing
+        """
         self.connection.sendline("{}{}".format(self.target_newline, self.set_prompt))
         self._sent_prompt = True
 
     def is_failure_indication(self, line):
+        """
+        Checks if line contains information that command fails
+        :param line: Line from device
+        :return: Match object or None
+        """
         return self._regex_helper.search_compiled(Telnet._re_failed_strings, line)
 
     def _is_login_requested(self, line):
+        """
+        Checks if line contains information that commands waits for login
+        :param line: Line from device
+        :return: Match object or None
+        """
         return self._regex_helper.search_compiled(Telnet._re_login, line)
 
     def _is_password_requested(self, line):
+        """
+        Checks if line contains information that commands waits for password
+        :param line: Line from device
+        :return: Match object or None
+        """
         return self._regex_helper.search_compiled(Telnet._re_password, line)
 
     def _is_target_prompt(self, line):
+        """
+        Checks if line contains prompt on target system
+        :param line: Line from device
+        :return: Match object or None
+        """
         return self._regex_helper.search_compiled(self._re_expected_prompt, line)
 
 
