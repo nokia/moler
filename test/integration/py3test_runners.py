@@ -59,14 +59,14 @@ async def test_observer_gets_all_data_after_async_runner_submit_from_running_loo
 
 # --------------------------- resources ---------------------------
 
-def is_python35_or_above():
+def is_python36_or_above():
     (ver_major, ver_minor, _) = platform.python_version().split('.')
-    return (ver_major == '3') and (int(ver_minor) >= 5)
+    return (ver_major == '3') and (int(ver_minor) >= 6)
 
 
 available_bg_runners = ['runner.ThreadPoolExecutorRunner']
 available_async_runners = []
-if is_python35_or_above():
+if is_python36_or_above():
     available_bg_runners.append('asyncio_runner.AsyncioRunner')
     available_async_runners.append('asyncio_runner.AsyncioRunner')
     available_bg_runners.append('asyncio_runner.AsyncioInThreadRunner')

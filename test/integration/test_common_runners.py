@@ -39,13 +39,13 @@ def test_observer_gets_all_data_of_connection_after_it_is_submitted_to_backgroun
 
 # --------------------------- resources ---------------------------
 
-def is_python35_or_above():
+def is_python36_or_above():
     (ver_major, ver_minor, _) = platform.python_version().split('.')
-    return (ver_major == '3') and (int(ver_minor) >= 5)
+    return (ver_major == '3') and (int(ver_minor) >= 6)
 
 
 available_bg_runners = ['runner.ThreadPoolExecutorRunner']
-if is_python35_or_above():
+if is_python36_or_above():
     available_bg_runners.append('asyncio_runner.AsyncioRunner')
 
 
