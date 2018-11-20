@@ -53,6 +53,8 @@ class Scheduler(object):
         """
         :param scheduler_type: 'thread' or 'asyncio'
         """
+        if Scheduler._object:
+            raise WrongUsage("Scheduler object already created. Cannot create more than one instance.")
         super(Scheduler, self).__init__()
         self._scheduler_type = None
         self._scheduler = None

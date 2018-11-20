@@ -76,6 +76,11 @@ def test_asyncio_test_job():
     assert (2 == values['number'])
 
 
+def test_cannot_create_more_objects():
+    with pytest.raises(WrongUsage):
+        Scheduler()
+        Scheduler()
+
 def callback(param_dict):
     param_dict['number'] += 1
 
