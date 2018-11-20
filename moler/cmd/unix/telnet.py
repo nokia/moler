@@ -30,6 +30,26 @@ class Telnet(GenericUnixCommand):
                  set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono="TERM=xterm-mono", prefix=None,
                  newline_chars=None, cmds_before_establish_connection=[], cmds_after_establish_connection=[],
                  telnet_prompt=r"^\s*telnet>\s*", encrypt_password=True, runner=None, target_newline="\r\n"):
+        """
+        :param connection: moler connection to device, terminal when command is executed
+        :param host: address of telnet server.
+        :param login: login to telnet server.
+        :param password: password to telnet server.
+        :param port: port to listen on server.
+        :param prompt: prompt on start system (where command telnet starts).
+        :param expected_prompt: prompt on server (where command telnet connects).
+        :param set_timeout: Command to set timeout after telnet connects.
+        :param set_prompt: Command to set prompt after telnet connects.
+        :param term_mono: Params to set ssh mono connection (useful in script).
+        :param prefix: prefix telnet command.
+        :param newline_chars: characters to split lines.
+        :param cmds_before_establish_connection: list of commands to execute by telnet command before open.
+        :param cmds_after_establish_connection: list of commands to execute by telnet commands after establishing.
+        :param telnet_prompt: prompt for telnet commands.
+        :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text
+        :param runner: Runner to run command
+        :param target_newline: newline chars on remote system where ssh connects
+        """
         super(Telnet, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
         # Parameters defined by calling the command
@@ -56,6 +76,10 @@ class Telnet(GenericUnixCommand):
         self._telnet_command_mode = False
 
     def build_command_string(self):
+        """
+        Builds command string from parameters passed to object.
+        :return: String representation of command to send over connection to device.
+        """
         cmd = ""
         if self.term_mono:
             cmd = "{} ".format(self.term_mono)
@@ -72,6 +96,12 @@ class Telnet(GenericUnixCommand):
         return cmd
 
     def on_new_line(self, line, is_full_line):
+        """
+        Put your parsing code here.
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: Nothing
+        """
         try:
             self._parse_failure_indication(line)
             self._send_commands_before_establish_connection_if_requested(line, is_full_line)
@@ -84,11 +114,21 @@ class Telnet(GenericUnixCommand):
             pass
 
     def _parse_failure_indication(self, line):
+        """
+        Detects fail from command output.
+        :param line: Line from device
+        :return: Match object if matches, None otherwise
+        """
         if self.is_failure_indication(line):
             self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
             raise ParsingDone()
 
     def _settings_after_login(self, line, is_full_line):
+        """
+        :param line: Line from device.
+        :param is_full_line: True if line had new line chars, False otherwise.
+        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        """
         sent = self._send_after_login_settings(line)
         if sent:
             raise ParsingDone()
@@ -99,11 +139,23 @@ class Telnet(GenericUnixCommand):
                     raise ParsingDone()
 
     def _just_connected(self, line):
+        """
+        Checks if line contains has just connected
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        """
         if self._regex_helper.search_compiled(Telnet._re_has_just_connected, line):
             self.connection.send(self.target_newline)
             raise ParsingDone()
 
     def _send_telnet_commands(self, line, is_full_line, commands):
+        """
+        Sends telnet commands.
+        :param line: Line from device.
+        :param is_full_line: True if line had new line chars, False otherwise.
+        :param commands: list of commands to send.
+        :return: if any command was sent then True, otherwise False.
+        """
         len_cmds = len(commands)
         match_telnet_prompt = re.search(self._re_telnet_prompt, line)
         if not is_full_line and (len_cmds > 0) and match_telnet_prompt:
@@ -113,10 +165,22 @@ class Telnet(GenericUnixCommand):
         return False
 
     def _send_commands_before_establish_connection_if_requested(self, line, is_full_line):
+        """
+        Sends commands before open connection to telnet server.
+        :param line: Line from device.
+        :param is_full_line: True if line had new line chars, False otherwise.
+        :return: Nothing but raises ParsingDone if any command was sent by this method.
+        """
         if self._send_telnet_commands(line, is_full_line, self.cmds_before_establish_connection):
             raise ParsingDone()
 
     def _send_commands_after_establish_connection_if_requested(self, line, is_full_line):
+        """
+        Sends commands after connection (after login and password) to telnet server.
+        :param line: Line from device.
+        :param is_full_line: True if line had new line chars, False otherwise.
+        :return: Nothing but raises ParsingDone if any command was sent by this method.
+        """
         if self._telnet_command_mode:
             if self._send_telnet_commands(line, is_full_line, self.cmds_after_establish_connection):
                 self.connection.send(self.target_newline)
@@ -124,11 +188,20 @@ class Telnet(GenericUnixCommand):
                 raise ParsingDone()
 
     def _change_telnet_to_setting_commands(self):
+        """
+        Changes telnet mode to enter telnet commands not information from server.
+        :return: Nothing
+        """
         if not self._telnet_command_mode:
             self.connection.send(chr(0x1D))  # ctrl + ]
             self._telnet_command_mode = True
 
     def _send_login_if_requested(self, line):
+        """
+        Sends login if requested by server.
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if login was sent.
+        """
         if (not self._sent_login) and self._is_login_requested(line) and self.login:
             self.connection.send("{}{}".format(self.login, self.target_newline))
             self._sent_login = True
@@ -136,6 +209,11 @@ class Telnet(GenericUnixCommand):
             raise ParsingDone()
 
     def _send_password_if_requested(self, line):
+        """
+        Sends server if requested by server.
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if password was sent.
+        """
         if (not self._sent_password) and self._is_password_requested(line) and self.password:
             self.connection.send("{}{}".format(self.password, self.target_newline), encrypt=self.encrypt_password)
             self._sent_login = False
@@ -143,6 +221,11 @@ class Telnet(GenericUnixCommand):
             raise ParsingDone()
 
     def _send_after_login_settings(self, line):
+        """
+        Sends commands to set timeout and to change prompt.
+        :param line: Line from device.
+        :return: True if any command was sent, False if no command was sent.
+        """
         if self._is_target_prompt(line):
             if self._cmds_after_establish_connection_needed():
                 self._change_telnet_to_setting_commands()
@@ -156,12 +239,20 @@ class Telnet(GenericUnixCommand):
         return False  # nothing sent
 
     def _cmds_after_establish_connection_needed(self):
+        """
+        Checks if any command is requested to be sent to telnet command after establishing connection.
+        :return: True if there is at least one command to execute. False is there is no command to execute.
+        """
         ret = False
         if len(self.cmds_after_establish_connection) > 0:
             ret = True
         return ret
 
     def _all_after_login_settings_sent(self):
+        """
+        Checks if all commands were sent by telnet command.
+        :return: True if all requested commands were sent, False if at least one left.
+        """
         telnet_cmds_sent = (0 == len(self.cmds_after_establish_connection))
         both_requested = self.set_prompt and self.set_timeout
         both_sent = self._sent_prompt and self._sent_timeout
@@ -171,6 +262,10 @@ class Telnet(GenericUnixCommand):
         return terminal_cmds_sent and telnet_cmds_sent
 
     def _no_after_login_settings_needed(self):
+        """
+        
+        :return: True if commands for login and timeout
+        """
         return (not self.set_prompt) and (not self.set_timeout)
 
     def _timeout_set_needed(self):
@@ -244,7 +339,7 @@ COMMAND_RESULT_prompt = {}
 
 
 COMMAND_OUTPUT_no_settings = """
-user@host01:~> TERM=xterm-mono telnet host.domain.net 1500
+userl@host01:~> TERM=xterm-mono telnet host.domain.net 1500
 Login:
 Login:user
 Password:
