@@ -137,6 +137,30 @@ def test_can_select_device_loaded_from_config_file(moler_config, device_factory)
     assert device.__class__.__name__ == 'UnixLocal'
 
 
+def test_cannot_load_configuration_when_already_loaded_from_another_file(moler_config):
+    conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
+    conn_config2 = os.path.join(os.path.dirname(__file__), "resources", "device_config2.yml")
+    moler_config.load_config(config=conn_config, config_type='yaml')
+
+    from moler.exceptions import MolerException
+
+    with pytest.raises(MolerException) as err:
+        moler_config.load_config(config=conn_config2, config_type='yaml')
+
+    assert "Reload configuration under one Moler execution not supported!" in str(err.value)
+
+
+def test_can_load_configuration_when_already_loaded_from_same_file(moler_config, device_factory):
+    conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
+    moler_config.load_config(config=conn_config, config_type='yaml')
+    moler_config.load_config(config=conn_config, config_type='yaml')
+
+    device = device_factory.get_device(name='UNIX')
+
+    assert device.__module__ == 'moler.device.unixlocal'
+    assert device.__class__.__name__ == 'UnixLocal'
+
+
 def test_can_select_all_devices_loaded_from_config_file(moler_config, device_factory):
     conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
     moler_config.load_config(config=conn_config, config_type='yaml')
