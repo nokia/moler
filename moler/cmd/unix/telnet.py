@@ -64,12 +64,8 @@ class Telnet(GenericUnixCommand):
         self.term_mono = term_mono
         self.prefix = prefix
         self.encrypt_password = encrypt_password
-        if cmds_before_establish_connection is None:
-            cmds_before_establish_connection = []
-        self.cmds_before_establish_connection = copy.deepcopy(cmds_before_establish_connection)
-        if cmds_after_establish_connection is None:
-            cmds_after_establish_connection = []
-        self.cmds_after_establish_connection = copy.deepcopy(cmds_after_establish_connection)
+        self.cmds_before_establish_connection = self._copy_list(cmds_before_establish_connection)
+        self.cmds_after_establish_connection = self._copy_list(cmds_after_establish_connection)
         self.target_newline = target_newline
 
         # Internal variables
@@ -334,6 +330,15 @@ class Telnet(GenericUnixCommand):
         """
         return self._regex_helper.search_compiled(self._re_expected_prompt, line)
 
+    def _copy_list(self, src):
+        """
+        Copies list, if None then returns empty list
+        :param src: List to copy
+        :return: Copied list
+        """
+        if src is None:
+            return []
+        return src.copy()
 
 COMMAND_OUTPUT = """
 user@host01:~> TERM=xterm-mono telnet host.domain.net 1500
