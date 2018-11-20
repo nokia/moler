@@ -24,9 +24,9 @@ copyright = '2018, Nokia'
 author = 'Nokia'
 
 # The short X.Y version
-version = ''
+version = '0.5.2'
 # The full version, including alpha/beta/rc tags
-release = ''
+release = 'alpha'
 
 
 # -- General configuration ---------------------------------------------------
