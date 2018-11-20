@@ -338,7 +338,7 @@ class Telnet(GenericUnixCommand):
         """
         if src is None:
             return []
-        return src.copy()
+        return list(src)
 
 
 COMMAND_OUTPUT = """
