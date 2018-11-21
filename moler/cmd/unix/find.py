@@ -3,9 +3,9 @@
 Find command module.
 """
 
-__author__ = 'Adrianna Pienkowska'
+__author__ = 'Adrianna Pienkowska, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'adrianna.pienkowska@nokia.com'
+__email__ = 'adrianna.pienkowska@nokia.com, marcin.usielski@nokia.com'
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
@@ -17,6 +17,15 @@ import re
 class Find(GenericUnixCommand):
     def __init__(self, connection, paths=None, prompt=None, newline_chars=None, options=None, operators=None,
                  runner=None):
+        """
+        :param connection: moler connection to device, terminal when command is executed
+        :param paths: list of paths to find
+        :param prompt: prompt on start system (where command find starts).
+        :param newline_chars: characters to split lines.
+        :param options: unix find command options
+        :param operators: operators of unix command find
+        :param runner: Runner to run command
+        """
         super(Find, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.options = options
         self.operators = operators
@@ -24,17 +33,27 @@ class Find(GenericUnixCommand):
         self.current_ret['RESULT'] = list()
 
     def build_command_string(self):
+        """
+        Builds command string from parameters passed to object.
+        :return: String representation of command to send over connection to device.
+        """
         cmd = "find"
         if self.options:
-            cmd = cmd + " " + self.options
+            cmd = "{} {}".format(cmd, self.options)
         if self.paths:
             for afile in self.paths:
-                cmd = cmd + " " + afile
+                cmd = "{} {}".format(cmd, afile)
         if self.operators:
-            cmd = cmd + " " + self.operators
+            cmd = "{} {}".format(cmd, self.operators)
         return cmd
 
     def on_new_line(self, line, is_full_line):
+        """
+        Put your parsing code here.
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: Nothing
+        """
         if is_full_line:
             try:
                 self._ignore_permission_denied(line)
@@ -47,19 +66,34 @@ class Find(GenericUnixCommand):
     _re_permission_denied = re.compile(r"find:\s(?P<PERMISSION_DENIED>.*Permission denied)", re.IGNORECASE)
 
     def _ignore_permission_denied(self, line):
+        """
+        Checks if line contains information about permission denied
+        :param line: Line from device
+        :return: Nothing but raises ParsingDone if regex matches.
+        """
         if self._regex_helper.search_compiled(Find._re_permission_denied, line):
-            raise ParsingDone
+            raise ParsingDone()
 
     _re_error = re.compile(r"(find|bash):\s(?P<ERROR_MSG_FIND>.*)", re.IGNORECASE)
 
     def _command_failure(self, line):
+        """
+        Checks if line contains information about failure of command
+        :param line: Line from device
+        :return: Nothing but raises ParsingDone if regex matches.
+        """
         if self._regex_helper.search_compiled(Find._re_error, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG_FIND"))))
-            raise ParsingDone
+            raise ParsingDone()
 
     def _parse_file(self, line):
+        """
+        Add line to value returning by the command
+        :param line: Line from device
+        :return: Nothing but raises ParsingDone
+        """
         self.current_ret['RESULT'].append(line)
-        raise ParsingDone
+        raise ParsingDone()
 
 
 COMMAND_OUTPUT_without_arguments = """
