@@ -185,9 +185,9 @@ def test_return_created_device_when_call_another_time_for_same_named_device(mole
     assert device == same_device
 
 
-def test_log_error_when_not_abs_path_for_configuation_path_was_used(moler_config):
+def test_log_error_when_not_abs_path_for_configuration_path_was_used(moler_config):
     @MolerTest.raise_background_exceptions(check_steps_end=True)
-    def log_error_when_not_abs_path_for_configuation_path_was_used(moler_config):
+    def log_error_when_not_abs_path_for_configuration_path_was_used(moler_config):
         conn_config = os.path.join("resources", "device_config.yml")
 
         moler_config.load_config(config=conn_config, config_type='yaml')
@@ -197,9 +197,9 @@ def test_log_error_when_not_abs_path_for_configuation_path_was_used(moler_config
     from moler.exceptions import MolerStatusException
 
     with pytest.raises(MolerStatusException) as err:
-        log_error_when_not_abs_path_for_configuation_path_was_used(moler_config)
+        log_error_when_not_abs_path_for_configuration_path_was_used(moler_config)
 
-    assert "generator didn't yield" in str(err.value)
+    assert "There were error messages in Moler execution." in str(err.value)
 
 
 def test_return_new_device_when_call_another_time_same_desc_device(device_factory):

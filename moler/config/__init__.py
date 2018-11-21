@@ -29,12 +29,10 @@ def read_configfile(path):
     :param path: location of configuration file
     :return: configuration file content as string
     """
-    if os.path.isabs(path):
-        with open(path, 'r') as config_file:
-            content = config_file.read()
-            yield content
-    else:
-        MolerTest.error("For configuration file path: '{}' was used but absolute path is needed!".format(path))
+
+    with open(path, 'r') as config_file:
+        content = config_file.read()
+        yield content
 
 
 def read_yaml_configfile(path):
@@ -44,8 +42,12 @@ def read_yaml_configfile(path):
     :param path: location of yaml file
     :return: configuration as a python dictionary
     """
-    with read_configfile(path) as content:
-        return yaml.load(content)
+    if os.path.isabs(path):
+        with read_configfile(path) as content:
+            return yaml.load(content)
+    else:
+        MolerTest.error("For configuration file path: '{}' was used but absolute path is needed!".format(path))
+        return {}
 
 
 def load_config(config=None, from_env_var=None, config_type='yaml'):
