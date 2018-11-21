@@ -8,12 +8,12 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
-import copy
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
+from moler.helpers import copy_list
 
 
 class Telnet(GenericUnixCommand):
@@ -64,8 +64,8 @@ class Telnet(GenericUnixCommand):
         self.term_mono = term_mono
         self.prefix = prefix
         self.encrypt_password = encrypt_password
-        self.cmds_before_establish_connection = self._copy_list(cmds_before_establish_connection)
-        self.cmds_after_establish_connection = self._copy_list(cmds_after_establish_connection)
+        self.cmds_before_establish_connection = copy_list(cmds_before_establish_connection)
+        self.cmds_after_establish_connection = copy_list(cmds_after_establish_connection)
         self.target_newline = target_newline
 
         # Internal variables
@@ -329,16 +329,6 @@ class Telnet(GenericUnixCommand):
         :return: Match object or None
         """
         return self._regex_helper.search_compiled(self._re_expected_prompt, line)
-
-    def _copy_list(self, src):
-        """
-        Copies list, if None then returns empty list
-        :param src: List to copy
-        :return: Copied list
-        """
-        if src is None:
-            return []
-        return list(src)
 
 
 COMMAND_OUTPUT = """
