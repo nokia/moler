@@ -8,6 +8,7 @@ __email__ = 'marcin.usielski@nokia.com'
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from moler.exceptions import WrongUsage
+import threading
 
 
 class Scheduler(object):
@@ -48,17 +49,20 @@ class Scheduler(object):
         return Scheduler._object
 
     _object = None
+    _lock = threading.Lock()
 
     def __init__(self, scheduler_type='thread'):
         """
         :param scheduler_type: 'thread' or 'asyncio'
         """
-        if Scheduler._object:
-            raise WrongUsage("Scheduler object already created. Cannot create more than one instance.")
-        super(Scheduler, self).__init__()
-        self._scheduler_type = None
-        self._scheduler = None
-        self._swap_scheduler(scheduler_type)
+        with Scheduler._lock:
+            if Scheduler._object:
+                raise WrongUsage("Scheduler object already created. Cannot create more than one instance.")
+            super(Scheduler, self).__init__()
+            self._scheduler_type = None
+            self._scheduler = None
+            self._swap_scheduler(scheduler_type)
+            Scheduler._object = self
 
     def _swap_scheduler(self, new_scheduler_type):
         """
