@@ -222,8 +222,6 @@ def test_cannot_load_config_from_when_path_or_from_env_var_not_provide(moler_con
 
 
 def test_log_error_when_not_abs_path_for_configuation_path_was_used(moler_config):
-    ConnectionObserver.get_unraised_exceptions()
-
     @MolerTest.raise_background_exceptions(check_steps_end=True)
     def log_error_when_not_abs_path_for_configuation_path_was_used(moler_config):
         conn_config = os.path.join("resources", "device_config.yml")
@@ -241,8 +239,6 @@ def test_log_error_when_not_abs_path_for_configuation_path_was_used(moler_config
 
 
 def test_can_select_device_loaded_from_config_dict(moler_config, device_factory):
-    ConnectionObserver.get_unraised_exceptions()
-
     @MolerTest.raise_background_exceptions(check_steps_end=True)
     def can_select_device_loaded_from_config_dict(moler_config, device_factory):
         conn_config = {
@@ -271,8 +267,6 @@ def test_can_select_device_loaded_from_config_dict(moler_config, device_factory)
 
 
 def test_can_load_configuration_when_already_loaded_from_same_dict(moler_config, device_factory):
-    ConnectionObserver.get_unraised_exceptions()
-
     @MolerTest.raise_background_exceptions(check_steps_end=True)
     def can_load_configuration_when_already_loaded_from_same_dict(moler_config, device_factory):
         conn_config = {
@@ -302,8 +296,6 @@ def test_can_load_configuration_when_already_loaded_from_same_dict(moler_config,
 
 
 def test_cannot_load_configuration_when_already_loaded_from_another_dict(moler_config):
-    ConnectionObserver.get_unraised_exceptions()
-
     @MolerTest.raise_background_exceptions(check_steps_end=True)
     def cannot_load_configuration_when_already_loaded_from_another_dict(moler_config):
         conn_config = {
@@ -345,8 +337,6 @@ def test_cannot_load_configuration_when_already_loaded_from_another_dict(moler_c
 
 
 def test_cannot_load_configuration_when_already_loaded_from_another_file(moler_config):
-    ConnectionObserver.get_unraised_exceptions()
-
     @MolerTest.raise_background_exceptions(check_steps_end=True)
     def cannot_load_configuration_when_already_loaded_from_another_file(moler_config):
         conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
@@ -364,8 +354,6 @@ def test_cannot_load_configuration_when_already_loaded_from_another_file(moler_c
 
 
 def test_can_load_configuration_when_already_loaded_from_same_file(moler_config, device_factory):
-    ConnectionObserver.get_unraised_exceptions()
-
     @MolerTest.raise_background_exceptions(check_steps_end=True)
     def can_load_configuration_when_already_loaded_from_same_file(moler_config, device_factory):
         conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
@@ -388,9 +376,9 @@ def test_can_load_configuration_when_already_loaded_from_same_file(moler_config,
 def moler_config():
     import moler.config as moler_cfg
     moler_cfg.loaded_config = "NOT_LOADED_YET"
-    ConnectionObserver.get_unraised_exceptions()
+    ConnectionObserver.get_unraised_exceptions(remove=True)
     yield moler_cfg
-    ConnectionObserver.get_unraised_exceptions()
+    ConnectionObserver.get_unraised_exceptions(remove=True)
     # restore since tests may change configuration
     moler_cfg.clear()
 
@@ -398,9 +386,9 @@ def moler_config():
 @pytest.yield_fixture
 def device_config():
     import moler.config.devices as dev_cfg
-    ConnectionObserver.get_unraised_exceptions()
+    ConnectionObserver.get_unraised_exceptions(remove=True)
     yield dev_cfg
-    ConnectionObserver.get_unraised_exceptions()
+    ConnectionObserver.get_unraised_exceptions(remove=True)
     # restore since tests may change configuration
     dev_cfg.clear()
 
@@ -408,8 +396,8 @@ def device_config():
 @pytest.yield_fixture
 def device_factory():
     from moler.device.device import DeviceFactory as dev_factory
-    ConnectionObserver.get_unraised_exceptions()
+    ConnectionObserver.get_unraised_exceptions(remove=True)
     yield dev_factory
-    ConnectionObserver.get_unraised_exceptions()
+    ConnectionObserver.get_unraised_exceptions(remove=True)
     # restore since tests may change configuration
     dev_factory._clear()
