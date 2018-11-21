@@ -388,7 +388,9 @@ def test_can_load_configuration_when_already_loaded_from_same_file(moler_config,
 def moler_config():
     import moler.config as moler_cfg
     moler_cfg.loaded_config = "NOT_LOADED_YET"
+    ConnectionObserver.get_unraised_exceptions()
     yield moler_cfg
+    ConnectionObserver.get_unraised_exceptions()
     # restore since tests may change configuration
     moler_cfg.clear()
 
@@ -396,7 +398,9 @@ def moler_config():
 @pytest.yield_fixture
 def device_config():
     import moler.config.devices as dev_cfg
+    ConnectionObserver.get_unraised_exceptions()
     yield dev_cfg
+    ConnectionObserver.get_unraised_exceptions()
     # restore since tests may change configuration
     dev_cfg.clear()
 
@@ -404,6 +408,8 @@ def device_config():
 @pytest.yield_fixture
 def device_factory():
     from moler.device.device import DeviceFactory as dev_factory
+    ConnectionObserver.get_unraised_exceptions()
     yield dev_factory
+    ConnectionObserver.get_unraised_exceptions()
     # restore since tests may change configuration
     dev_factory._clear()
