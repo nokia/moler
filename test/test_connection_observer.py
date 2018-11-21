@@ -8,7 +8,6 @@ import importlib
 import time
 
 import pytest
-
 from moler.connection import ObservableConnection
 from moler.connection_observer import ConnectionObserver
 from moler.helpers import instance_id
@@ -39,7 +38,6 @@ def test_str_conversion_of_connection_observer_object():
     String conversion shows class of connection_observer object
     and id to allow for differentiating between multiple instances of same connection_observer
     """
-
     class TransferCounter(ConnectionObserver):
         def __init__(self, connection=None):
             super(TransferCounter, self).__init__(connection=connection)
@@ -59,7 +57,6 @@ def test_repr_conversion_of_connection_observer_object():
     repr() conversion shows same output as str()
     plus embedded connection used by connection_observer
     """
-
     class SshConnection(object):
         def __init__(self, target_host):
             self.target_host = target_host
@@ -92,8 +89,7 @@ def test_connection_observer_stores_connection_it_is_operating_on(do_nothing_con
     assert hasattr(connection_observer_instance, "connection")
 
 
-def test_connection_observer_can_be_given_connection_it_is_operating_on(
-        do_nothing_connection_observer_class__for_major_base_class):
+def test_connection_observer_can_be_given_connection_it_is_operating_on(do_nothing_connection_observer_class__for_major_base_class):
     """We want ability to set it during construction time or later via direct member set"""
     connection_observer_class = do_nothing_connection_observer_class__for_major_base_class
 
@@ -139,8 +135,7 @@ def test_connection_observer_is_not_running_after_it_is_done(do_nothing_connecti
     assert not connection_observer.running()
 
 
-def test_connection_observer_call_passes_positional_arguments_to_start(
-        do_nothing_connection_observer_class__for_major_base_class):
+def test_connection_observer_call_passes_positional_arguments_to_start(do_nothing_connection_observer_class__for_major_base_class):
     called_with_params = []
 
     class ParametrizedObserver(do_nothing_connection_observer_class__for_major_base_class):
@@ -155,8 +150,7 @@ def test_connection_observer_call_passes_positional_arguments_to_start(
     assert called_with_params == [23, "foo"]
 
 
-def test_connection_observer_call_passes_keyword_arguments_to_start(
-        do_nothing_connection_observer_class__for_major_base_class):
+def test_connection_observer_call_passes_keyword_arguments_to_start(do_nothing_connection_observer_class__for_major_base_class):
     called_with_params = []
 
     class ParametrizedObserver(do_nothing_connection_observer_class__for_major_base_class):
@@ -232,8 +226,7 @@ def test_cancel_returns_false_if_connection_observer_is_done(do_nothing_connecti
     assert connection_observer.cancel() == False
 
 
-def test_cancel_returns_true_if_connection_observer_is_not_cancelled_nor_done(
-        do_nothing_connection_observer__for_major_base_class):
+def test_cancel_returns_true_if_connection_observer_is_not_cancelled_nor_done(do_nothing_connection_observer__for_major_base_class):
     connection_observer = do_nothing_connection_observer__for_major_base_class
     # We start feeding connection-observer with data coming from connection
     # but before it finds what it is waiting for
@@ -241,8 +234,7 @@ def test_cancel_returns_true_if_connection_observer_is_not_cancelled_nor_done(
     assert connection_observer.cancel() == True
 
 
-def test_can_retrieve_connection_observer_result_after_setting_result(
-        do_nothing_connection_observer__for_major_base_class):
+def test_can_retrieve_connection_observer_result_after_setting_result(do_nothing_connection_observer__for_major_base_class):
     connection_observer = do_nothing_connection_observer__for_major_base_class
     # We start feeding connection-observer with data coming from connection
     # till it decides "ok, I've found what I was looking for"
@@ -251,8 +243,7 @@ def test_can_retrieve_connection_observer_result_after_setting_result(
     assert connection_observer.result() == 14361
 
 
-def test_setting_result_multiple_times_raises_CommandResultAlreadySet(
-        do_nothing_connection_observer__for_major_base_class):
+def test_setting_result_multiple_times_raises_CommandResultAlreadySet(do_nothing_connection_observer__for_major_base_class):
     connection_observer = do_nothing_connection_observer__for_major_base_class
     from moler.exceptions import ResultAlreadySet
     # We start feeding connection-observer with data coming from connection
@@ -266,8 +257,7 @@ def test_setting_result_multiple_times_raises_CommandResultAlreadySet(
     assert str(error.value) == 'for {}'.format(str(connection_observer))
 
 
-def test_calling_result_on_cancelled_connection_observer_raises_NoResultSinceCommandCancelled(
-        do_nothing_connection_observer__for_major_base_class):
+def test_calling_result_on_cancelled_connection_observer_raises_NoResultSinceCommandCancelled(do_nothing_connection_observer__for_major_base_class):
     connection_observer = do_nothing_connection_observer__for_major_base_class
     from moler.exceptions import NoResultSinceCancelCalled
     # We start feeding connection-observer with data coming from connection
@@ -281,8 +271,7 @@ def test_calling_result_on_cancelled_connection_observer_raises_NoResultSinceCom
     assert str(error.value) == 'for {}'.format(str(connection_observer))
 
 
-def test_calling_result_on_exception_broken_connection_observer_raises_that_exception(
-        do_nothing_connection_observer__for_major_base_class):
+def test_calling_result_on_exception_broken_connection_observer_raises_that_exception(do_nothing_connection_observer__for_major_base_class):
     connection_observer = do_nothing_connection_observer__for_major_base_class
     # We start feeding connection-observer with data coming from connection
     # till it decides "ok, I've found something what indicates error-condition"
@@ -295,8 +284,7 @@ def test_calling_result_on_exception_broken_connection_observer_raises_that_exce
     assert error.value == index_err
 
 
-def test_calling_result_while_result_is_yet_not_available_raises_CommandResultNotAvailableYet(
-        do_nothing_connection_observer__for_major_base_class):
+def test_calling_result_while_result_is_yet_not_available_raises_CommandResultNotAvailableYet(do_nothing_connection_observer__for_major_base_class):
     connection_observer = do_nothing_connection_observer__for_major_base_class
     from moler.exceptions import ResultNotAvailableYet
     # We start feeding connection-observer with data coming from connection
@@ -308,8 +296,7 @@ def test_calling_result_while_result_is_yet_not_available_raises_CommandResultNo
     assert str(error.value) == 'for {}'.format(str(connection_observer))
 
 
-def test_awaiting_done_on_already_done_connection_observer_immediately_returns_result(
-        do_nothing_connection_observer__for_major_base_class):
+def test_awaiting_done_on_already_done_connection_observer_immediately_returns_result(do_nothing_connection_observer__for_major_base_class):
     connection_observer = do_nothing_connection_observer__for_major_base_class
     # We start feeding connection-observer with data coming from connection
     # till it decides "ok, I've found what I was looking for"
@@ -320,8 +307,7 @@ def test_awaiting_done_on_already_done_connection_observer_immediately_returns_r
     assert time.time() - result_set_time < 0.01  # our immediately ;-)
 
 
-def test_awaiting_done_on_not_running_connection_observer_raises_ConnectionObserverNotStarted(
-        do_nothing_connection_observer__for_major_base_class):
+def test_awaiting_done_on_not_running_connection_observer_raises_ConnectionObserverNotStarted(do_nothing_connection_observer__for_major_base_class):
     from moler.exceptions import ConnectionObserverNotStarted
     connection_observer = do_nothing_connection_observer__for_major_base_class
     with pytest.raises(ConnectionObserverNotStarted) as error:
@@ -338,8 +324,7 @@ def test_connection_observer_has_data_received_api(connection_observer_major_bas
     # only derived ones can have logic "what to do with incoming data"
     with pytest.raises(TypeError) as error:
         hasattr(connection_observer_class(), "data_received")
-    assert "Can't instantiate abstract class {} with abstract methods".format(
-        connection_observer_class.__name__) in str(error.value)
+    assert "Can't instantiate abstract class {} with abstract methods".format(connection_observer_class.__name__) in str(error.value)
     assert "data_received" in str(error.value)
 
     # example of derived connection_observer implementing it's "data consumption logic"
@@ -347,12 +332,10 @@ def test_connection_observer_has_data_received_api(connection_observer_major_bas
         def data_received(self, data):
             if not self.done():
                 self.set_result(result=data)  # any first call to data_received sets result of connection_observer
-
     assert hasattr(AnyResponseObserver(), "data_received")
 
 
-def test_connection_observer_consumes_data_via_data_received_in_order_to_produce_result(
-        connection_observer_major_base_class):
+def test_connection_observer_consumes_data_via_data_received_in_order_to_produce_result(connection_observer_major_base_class):
     # any feeder of any runner should use .data_received() to let observer consume data of connection:
     def feeder(observer):
         #            example output of 'du -s /home/greg'
@@ -373,8 +356,7 @@ def test_connection_observer_consumes_data_via_data_received_in_order_to_produce
     assert disk_usage_observer.result() == '7538128    /home/greg'
 
 
-def test_connection_observer_parses_data_inside_data_received_in_order_to_produce_result(
-        connection_observer_major_base_class):
+def test_connection_observer_parses_data_inside_data_received_in_order_to_produce_result(connection_observer_major_base_class):
     # any observer should do its parsing (if any needed) inside .data_received() or it should be called from within .data_received()
     def feeder(observer):
         for line in ['7538128    /home/greg', 'greg@debian:~$']:
@@ -421,7 +403,6 @@ def test_connection_observer_one_exception():
     none_exceptions = ConnectionObserver.get_unraised_exceptions(True)
     assert 0 == len(none_exceptions)
 
-
 # --------------------------- resources ---------------------------
 
 
@@ -435,11 +416,9 @@ def connection_observer_major_base_class(request):
 
 def do_nothing_connection_observer_class(base_class):
     """Observer class that can be instantiated (overwritten abstract methods); uses different base class"""
-
     class DoNothingObserver(base_class):
         def data_received(self, data):  # we need to overwrite it since it is @abstractmethod
             pass  # ignore incoming data
-
     return DoNothingObserver
 
 
