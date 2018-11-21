@@ -115,6 +115,8 @@ def test_connection_is_required_to_start_connection_observer(do_nothing_connecti
     with pytest.raises(NoConnectionProvided):
         connection_observer.start()  # start background-run of connection_observer-future
 
+    ConnectionObserver.get_unraised_exceptions()
+
 
 def test_connection_observer_is_running_after_it_calls_start(do_nothing_connection_observer__for_major_base_class,
                                                              connection_to_remote):
@@ -256,6 +258,8 @@ def test_setting_result_multiple_times_raises_CommandResultAlreadySet(do_nothing
     assert error.value.connection_observer == connection_observer
     assert str(error.value) == 'for {}'.format(str(connection_observer))
 
+    ConnectionObserver.get_unraised_exceptions()
+
 
 def test_calling_result_on_cancelled_connection_observer_raises_NoResultSinceCommandCancelled(do_nothing_connection_observer__for_major_base_class):
     connection_observer = do_nothing_connection_observer__for_major_base_class
@@ -270,6 +274,8 @@ def test_calling_result_on_cancelled_connection_observer_raises_NoResultSinceCom
     assert error.value.connection_observer == connection_observer
     assert str(error.value) == 'for {}'.format(str(connection_observer))
 
+    ConnectionObserver.get_unraised_exceptions()
+
 
 def test_calling_result_on_exception_broken_connection_observer_raises_that_exception(do_nothing_connection_observer__for_major_base_class):
     connection_observer = do_nothing_connection_observer__for_major_base_class
@@ -283,6 +289,8 @@ def test_calling_result_on_exception_broken_connection_observer_raises_that_exce
         connection_observer.result()
     assert error.value == index_err
 
+    ConnectionObserver.get_unraised_exceptions()
+
 
 def test_calling_result_while_result_is_yet_not_available_raises_CommandResultNotAvailableYet(do_nothing_connection_observer__for_major_base_class):
     connection_observer = do_nothing_connection_observer__for_major_base_class
@@ -294,6 +302,8 @@ def test_calling_result_while_result_is_yet_not_available_raises_CommandResultNo
 
     assert error.value.connection_observer == connection_observer
     assert str(error.value) == 'for {}'.format(str(connection_observer))
+
+    ConnectionObserver.get_unraised_exceptions()
 
 
 def test_awaiting_done_on_already_done_connection_observer_immediately_returns_result(do_nothing_connection_observer__for_major_base_class):
@@ -315,6 +325,8 @@ def test_awaiting_done_on_not_running_connection_observer_raises_ConnectionObser
     assert error.value.connection_observer == connection_observer
     assert str(error.value) == 'for {}'.format(str(connection_observer))
 
+    ConnectionObserver.get_unraised_exceptions()
+
 
 def test_connection_observer_has_data_received_api(connection_observer_major_base_class):
     connection_observer_class = connection_observer_major_base_class
@@ -333,6 +345,8 @@ def test_connection_observer_has_data_received_api(connection_observer_major_bas
             if not self.done():
                 self.set_result(result=data)  # any first call to data_received sets result of connection_observer
     assert hasattr(AnyResponseObserver(), "data_received")
+
+    ConnectionObserver.get_unraised_exceptions()
 
 
 def test_connection_observer_consumes_data_via_data_received_in_order_to_produce_result(connection_observer_major_base_class):
