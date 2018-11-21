@@ -148,5 +148,7 @@ def load_logger_from_config(config):
 
 def clear():
     """Cleanup Moler's configuration"""
+    global loaded_config
+    loaded_config = "NOT_LOADED_YET"
     conn_cfg.clear()
     dev_cfg.clear()

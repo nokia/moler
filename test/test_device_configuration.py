@@ -2,12 +2,14 @@
 """
 Testing possibilities to configure devices
 """
+from moler.util.moler_test import MolerTest
 
 __author__ = 'Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'michal.ernst@nokia.com'
 
 import os
+
 import pytest
 
 
@@ -183,6 +185,23 @@ def test_return_created_device_when_call_another_time_for_same_named_device(mole
     assert device == same_device
 
 
+def test_log_error_when_not_abs_path_for_configuation_path_was_used(moler_config):
+    @MolerTest.raise_background_exceptions(check_steps_end=True)
+    def log_error_when_not_abs_path_for_configuation_path_was_used(moler_config):
+        conn_config = os.path.join("resources", "device_config.yml")
+
+        moler_config.load_config(config=conn_config, config_type='yaml')
+
+        MolerTest.steps_end()
+
+    from moler.exceptions import MolerStatusException
+
+    with pytest.raises(MolerStatusException) as err:
+        log_error_when_not_abs_path_for_configuation_path_was_used(moler_config)
+
+    assert "There were error messages in Moler execution. Please check Moler logs for details." in str(err.value)
+
+
 def test_return_new_device_when_call_another_time_same_desc_device(device_factory):
     device = device_factory.get_device(
         device_class='moler.device.unixlocal.UnixLocal',
@@ -216,6 +235,138 @@ def test_cannot_load_config_from_when_path_or_from_env_var_not_provide(moler_con
         moler_config.load_config()
 
     assert "Provide either 'config' or 'from_env_var' parameter (none given)" in str(err.value)
+
+
+def test_can_select_device_loaded_from_config_dict(moler_config, device_factory):
+    @MolerTest.raise_background_exceptions(check_steps_end=True)
+    def can_select_device_loaded_from_config_dict(moler_config, device_factory):
+        conn_config = {
+            'LOGGER': {
+                'PATH': '/tmp/',
+                'RAW_LOG': True,
+                'DATE_FORMAT': '%d %H:%M:%S'
+            },
+            'DEVICES': {
+                'UNIX': {
+                    'DEVICE_CLASS': 'moler.device.unixremote.UnixLocal',
+                    'INITIAL_STATE': 'UNIX_LOCAL'
+                }
+            }
+        }
+        moler_config.load_config(config=conn_config, config_type='dict')
+
+        device = device_factory.get_device(name='UNIX')
+
+        assert device.__module__ == 'moler.device.unixlocal'
+        assert device.__class__.__name__ == 'UnixLocal'
+
+        MolerTest.steps_end()
+
+    can_select_device_loaded_from_config_dict(moler_config, device_factory)
+
+
+def test_can_load_configuration_when_already_loaded_from_same_dict(moler_config, device_factory):
+    @MolerTest.raise_background_exceptions(check_steps_end=True)
+    def can_load_configuration_when_already_loaded_from_same_dict(moler_config, device_factory):
+        conn_config = {
+            'LOGGER': {
+                'PATH': '/tmp/',
+                'RAW_LOG': True,
+                'DATE_FORMAT': '%d %H:%M:%S'
+            },
+            'DEVICES': {
+                'UNIX': {
+                    'DEVICE_CLASS': 'moler.device.unixremote.UnixLocal',
+                    'INITIAL_STATE': 'UNIX_LOCAL'
+                }
+            }
+        }
+        moler_config.load_config(config=conn_config, config_type='dict')
+        moler_config.load_config(config=conn_config, config_type='dict')
+
+        device = device_factory.get_device(name='UNIX')
+
+        assert device.__module__ == 'moler.device.unixlocal'
+        assert device.__class__.__name__ == 'UnixLocal'
+
+        MolerTest.steps_end()
+
+    can_load_configuration_when_already_loaded_from_same_dict(moler_config, device_factory)
+
+
+def test_cannot_load_configuration_when_already_loaded_from_another_dict(moler_config):
+    @MolerTest.raise_background_exceptions(check_steps_end=True)
+    def cannot_load_configuration_when_already_loaded_from_another_dict(moler_config):
+        conn_config = {
+            'LOGGER': {
+                'PATH': '/tmp/',
+                'RAW_LOG': True,
+                'DATE_FORMAT': '%d %H:%M:%S'
+            },
+            'DEVICES': {
+                'UNIX': {
+                    'DEVICE_CLASS': 'moler.device.unixlocal.UnixLocal',
+                    'INITIAL_STATE': 'UNIX_LOCAL'
+                }
+            }
+        }
+
+        new_conn_config = {
+            'LOGGER': {
+                'PATH': '/tmp/',
+                'RAW_LOG': True,
+                'DATE_FORMAT': '%d %H:%M:%S'
+            },
+            'DEVICES': {
+                'UNIX': {
+                    'DEVICE_CLASS': 'moler.device.unixremote.UnixRemote',
+                    'INITIAL_STATE': 'UNIX_REMOTE'
+                }
+            }
+        }
+        moler_config.load_config(config=conn_config, config_type='dict')
+        moler_config.load_config(config=new_conn_config, config_type='dict')
+
+        MolerTest.steps_end()
+
+    from moler.exceptions import MolerStatusException
+
+    with pytest.raises(MolerStatusException) as err:
+        cannot_load_configuration_when_already_loaded_from_another_dict(moler_config)
+
+
+def test_cannot_load_configuration_when_already_loaded_from_another_file(moler_config):
+    @MolerTest.raise_background_exceptions(check_steps_end=True)
+    def cannot_load_configuration_when_already_loaded_from_another_file(moler_config):
+        conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
+        conn_config2 = os.path.join(os.path.dirname(__file__), "resources", "device_config2.yml")
+        moler_config.load_config(config=conn_config, config_type='yaml')
+
+        moler_config.load_config(config=conn_config2, config_type='yaml')
+
+        MolerTest.steps_end()
+
+    from moler.exceptions import MolerStatusException
+
+    with pytest.raises(MolerStatusException) as err:
+        cannot_load_configuration_when_already_loaded_from_another_file(moler_config)
+
+
+def test_can_load_configuration_when_already_loaded_from_same_file(moler_config, device_factory):
+    @MolerTest.raise_background_exceptions(check_steps_end=True)
+    def can_load_configuration_when_already_loaded_from_same_file(moler_config, device_factory):
+        conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
+        moler_config.load_config(config=conn_config, config_type='yaml')
+        moler_config.load_config(config=conn_config, config_type='yaml')
+
+        device = device_factory.get_device(name='UNIX')
+
+        assert device.__module__ == 'moler.device.unixlocal'
+        assert device.__class__.__name__ == 'UnixLocal'
+
+        MolerTest.steps_end()
+
+    can_load_configuration_when_already_loaded_from_same_file(moler_config, device_factory)
 
 
 # --------------------------- resources ---------------------------
