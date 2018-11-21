@@ -9,6 +9,7 @@ __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielsk
 
 import importlib
 import re
+import copy
 
 try:
     import collections.abc as collections
@@ -19,6 +20,35 @@ except ImportError:
 class ClassProperty(property):
     def __get__(self, cls, owner):
         return classmethod(self.fget).__get__(None, owner)()
+
+
+def copy_list(src, deep_copy=False):
+    """
+    Copies list, if None then returns empty list
+    :param src: List to copy
+    :param deep_copy: if False then shallow copy, if True then deep copy
+    :return: Copied list
+    """
+    if src is None:
+        return list()
+    if deep_copy:
+        return copy.deepcopy(src)
+    return list(src)
+
+
+def copy_dict(src, deep_copy=False):
+    """
+    Copies dict, if None then returns empty dict
+    :param src: List to copy
+    :param deep_copy: if False then shallow copy, if True then deep copy
+    :return: Copied dict
+    """
+    if src is None:
+        return dict()
+    if deep_copy:
+        return copy.deepcopy(src)
+    return dict(src)
+
 
 
 def instance_id(instance):
