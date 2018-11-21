@@ -10,17 +10,17 @@ __email__ = 'adrianna.pienkowska@nokia.com'
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
+from moler.helpers import copy_list
 import re
-import copy
 
 
 class Find(GenericUnixCommand):
-    def __init__(self, connection, paths=[], prompt=None, newline_chars=None, options=None, operators=None,
+    def __init__(self, connection, paths=None, prompt=None, newline_chars=None, options=None, operators=None,
                  runner=None):
         super(Find, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.options = options
         self.operators = operators
-        self.paths = copy.copy(paths)
+        self.paths = copy_list(paths)
         self.current_ret['RESULT'] = list()
 
     def build_command_string(self):
