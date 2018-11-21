@@ -116,6 +116,7 @@ available_bg_runners = ['runner.ThreadPoolExecutorRunner']
 # async_runners may be called only from 'async def' functions and require already running events-loop
 available_async_runners = []
 if is_python36_or_above():
+    available_bg_runners.append('asyncio_runner.AsyncioRunner')
     available_async_runners.append('asyncio_runner.AsyncioRunner')
     available_bg_runners.append('asyncio_runner.AsyncioInThreadRunner')
     available_async_runners.append('asyncio_runner.AsyncioInThreadRunner')
