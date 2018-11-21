@@ -375,27 +375,37 @@ def test_can_load_configuration_when_already_loaded_from_same_file(moler_config,
 def moler_config():
     import moler.config as moler_cfg
     # restore since tests may change configuration
-    moler_cfg.clear()
+    clear_all_cfg()
     yield moler_cfg
     # restore since tests may change configuration
-    moler_cfg.clear()
+    clear_all_cfg()
 
 
 @pytest.yield_fixture
 def device_config():
     import moler.config.devices as dev_cfg
     # restore since tests may change configuration
-    dev_cfg.clear()
+    clear_all_cfg()
     yield dev_cfg
     # restore since tests may change configuration
-    dev_cfg.clear()
+    clear_all_cfg()
 
 
 @pytest.yield_fixture
 def device_factory():
     from moler.device.device import DeviceFactory as dev_factory
     # restore since tests may change configuration
-    dev_factory._clear()
+    clear_all_cfg()
     yield dev_factory
     # restore since tests may change configuration
+    clear_all_cfg()
+
+
+def clear_all_cfg():
+    import moler.config as moler_cfg
+    import moler.config.devices as dev_cfg
+    from moler.device.device import DeviceFactory as dev_factory
+
+    moler_cfg.clear()
+    dev_cfg.clear()
     dev_factory._clear()
