@@ -283,6 +283,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
         def secure_data_received(data):
             try:
+                if connection_observer.done():
+                    return  # even not unsubscribed secure_data_received() won't pass data to done observer
                 connection_observer.data_received(data)
             except Exception as exc:  # TODO: handling stacktrace
                 connection_observer.set_exception(exc)
