@@ -111,12 +111,12 @@ def is_python36_or_above():
     (ver_major, ver_minor, _) = platform.python_version().split('.')
     return (ver_major == '3') and (int(ver_minor) >= 6)
 
-
-available_bg_runners = [] #['runner.ThreadPoolExecutorRunner']
+# bg_runners may be called from both 'async def' and raw 'def' functions
+available_bg_runners = ['runner.ThreadPoolExecutorRunner']
+# async_runners may be called only from 'async def' functions and require already running events-loop
 available_async_runners = []
 if is_python36_or_above():
-    # available_bg_runners.append('asyncio_runner.AsyncioRunner')
-    # available_async_runners.append('asyncio_runner.AsyncioRunner')
+    available_async_runners.append('asyncio_runner.AsyncioRunner')
     available_bg_runners.append('asyncio_runner.AsyncioInThreadRunner')
     available_async_runners.append('asyncio_runner.AsyncioInThreadRunner')
 
