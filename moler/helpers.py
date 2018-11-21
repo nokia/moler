@@ -50,7 +50,6 @@ def copy_dict(src, deep_copy=False):
     return dict(src)
 
 
-
 def instance_id(instance):
     """
     Return id of instance in hex form.
