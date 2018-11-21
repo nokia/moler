@@ -2,6 +2,7 @@
 """
 Testing possibilities to configure devices
 """
+from moler.connection_observer import ConnectionObserver
 from moler.util.moler_test import MolerTest
 
 __author__ = 'Michal Ernst'
@@ -186,6 +187,7 @@ def test_return_created_device_when_call_another_time_for_same_named_device(mole
 
 
 def test_log_error_when_not_abs_path_for_configuration_path_was_used(moler_config):
+    ConnectionObserver.get_unraised_exceptions()
     @MolerTest.raise_background_exceptions(check_steps_end=True)
     def log_error_when_not_abs_path_for_configuration_path_was_used(moler_config):
         conn_config = os.path.join("resources", "device_config.yml")
@@ -238,6 +240,7 @@ def test_cannot_load_config_from_when_path_or_from_env_var_not_provide(moler_con
 
 
 def test_can_select_device_loaded_from_config_dict(moler_config, device_factory):
+    ConnectionObserver.get_unraised_exceptions()
     @MolerTest.raise_background_exceptions(check_steps_end=True)
     def can_select_device_loaded_from_config_dict(moler_config, device_factory):
         conn_config = {
@@ -266,6 +269,7 @@ def test_can_select_device_loaded_from_config_dict(moler_config, device_factory)
 
 
 def test_can_load_configuration_when_already_loaded_from_same_dict(moler_config, device_factory):
+    ConnectionObserver.get_unraised_exceptions()
     @MolerTest.raise_background_exceptions(check_steps_end=True)
     def can_load_configuration_when_already_loaded_from_same_dict(moler_config, device_factory):
         conn_config = {
@@ -295,6 +299,7 @@ def test_can_load_configuration_when_already_loaded_from_same_dict(moler_config,
 
 
 def test_cannot_load_configuration_when_already_loaded_from_another_dict(moler_config):
+    ConnectionObserver.get_unraised_exceptions()
     @MolerTest.raise_background_exceptions(check_steps_end=True)
     def cannot_load_configuration_when_already_loaded_from_another_dict(moler_config):
         conn_config = {
@@ -336,6 +341,7 @@ def test_cannot_load_configuration_when_already_loaded_from_another_dict(moler_c
 
 
 def test_cannot_load_configuration_when_already_loaded_from_another_file(moler_config):
+    ConnectionObserver.get_unraised_exceptions()
     @MolerTest.raise_background_exceptions(check_steps_end=True)
     def cannot_load_configuration_when_already_loaded_from_another_file(moler_config):
         conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
@@ -353,6 +359,7 @@ def test_cannot_load_configuration_when_already_loaded_from_another_file(moler_c
 
 
 def test_can_load_configuration_when_already_loaded_from_same_file(moler_config, device_factory):
+    ConnectionObserver.get_unraised_exceptions()
     @MolerTest.raise_background_exceptions(check_steps_end=True)
     def can_load_configuration_when_already_loaded_from_same_file(moler_config, device_factory):
         conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
