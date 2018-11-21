@@ -45,7 +45,7 @@ class Scheduler(object):
         :return: Instance of scheduler
         """
         if Scheduler._object is None:
-            Scheduler._object = Scheduler()
+            Scheduler()
         return Scheduler._object
 
     _object = None
