@@ -355,8 +355,12 @@ class AsyncioInThreadRunner(AsyncioRunner):
 
         async def wait_for_connection_observer_done():
             # result = await asyncio.wait_for(connection_observer_future, timeout=timeout)
-            result_of_future = await connection_observer_future
-            self.logger.debug("{} returned {}".format(connection_observer_future, result_of_future))
+            try:
+                result_of_future = await connection_observer_future
+                self.logger.debug("{} returned {}".format(connection_observer_future, result_of_future))
+            except Exception as exc:
+                self.logger.debug("{} raised {!r}".format(connection_observer_future, exc))
+                raise
             return result_of_future
 
         thread4async = get_asyncio_loop_thread()
@@ -403,6 +407,77 @@ class AsyncioInThreadRunner(AsyncioRunner):
         # return result_for_runners(connection_observer_future)  # May raise too.   # Python > 3.3
         res = result_for_runners(connection_observer_future)
         raise StopIteration(res)  # Python 2 compatibility
+
+    async def feed(self, connection_observer, feed_started):
+        """
+        Feeds connection_observer by transferring data from connection and passing it to connection_observer.
+        Should be called from background-processing of connection observer.
+        """
+        connection_observer._log(logging.INFO, "{} started.".format(connection_observer.get_long_desc()))
+        moler_conn = connection_observer.connection
+
+        stop_feeding = asyncio.Event()  # TODO: move to external world - a way to stop feeder
+        feeding_completed = asyncio.Event()
+        subscribed = [False]
+
+        def secure_data_received(data):
+            try:
+                connection_observer.data_received(data)
+                if connection_observer.done():
+                    self.logger.debug("done {!r}".format(connection_observer))
+                    feeding_completed.set()
+            except Exception as exc:  # TODO: handling stacktrace
+                # observers should not raise exceptions during data parsing
+                # but if they do so - we fix it
+                connection_observer.set_exception(exc)
+                feeding_completed.set()
+            finally:
+                if feeding_completed.is_set():
+                    unsubscribe_from_connection()
+
+        def subscribe_for_connection_data():
+            self.logger.debug("subscribing for data {!r}".format(connection_observer))
+            moler_conn.subscribe(secure_data_received)
+            subscribed[0] = True
+
+        def unsubscribe_from_connection():
+            self.logger.debug("unsubscribing {!r}".format(connection_observer))
+            moler_conn.unsubscribe(secure_data_received)
+            subscribed[0] = False
+
+        # start feeding connection_observer by establishing data-channel from connection to observer
+        subscribe_for_connection_data()
+        feed_started.set()
+
+        await asyncio.sleep(0.01)  # give control back before we start processing
+
+        try:
+            #     if self._in_shutdown: # TODO: change to event to allow notify multiple feeds
+            #         self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))
+            #         connection_observer.cancel()
+
+            await asyncio.wait({feeding_completed.wait(), stop_feeding.wait()},
+                               return_when=asyncio.FIRST_COMPLETED)
+            # if stop_feeding.is_set():  # external world requests to stop feeder
+            #     self.logger.debug("stopped {!r}".format(connection_observer))
+            if subscribed[0]:
+                unsubscribe_from_connection()
+
+            ## feed_done.set()
+
+            connection_observer._log(logging.INFO, "{} finished.".format(connection_observer.get_short_desc()))
+            try:
+                result = result_for_runners(connection_observer)
+                self.logger.debug("{} returning result: {}".format(connection_observer, result))
+                return result
+            except Exception as err:
+                self.logger.debug("{} raising: {!r}".format(connection_observer, err))
+                raise
+
+        except asyncio.CancelledError:
+            self.logger.debug("Cancelled {!r}.feed".format(self))
+            raise  # need to reraise to inform "I agree for cancellation"
+
 
 # monkeypatch()
 

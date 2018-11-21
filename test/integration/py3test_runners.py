@@ -54,8 +54,56 @@ async def test_observer_gets_all_data_after_async_runner_submit_from_running_loo
         assert net_down_detector.all_data_received == ["61 bytes", "62 bytes", "ping: Network is unreachable"]
 
 
-# TODO: tests for error cases
+@pytest.mark.asyncio
+async def test_runner_doesnt_break_on_exception_raised_inside_observer(event_loop, async_runner):
+    """Runner should be secured against 'wrongly written' connection-observer"""
+    from moler.connection import ObservableConnection
 
+    class FailingNetworkDownDetector(NetworkDownDetector):
+        def data_received(self, data):
+            if data == "zero bytes":
+                raise Exception("unknown format")
+            return super(FailingNetworkDownDetector, self).data_received(data)
+
+    moler_conn = ObservableConnection()
+    net_down_detector = FailingNetworkDownDetector(connection=moler_conn)
+    connection = net_down_detector.connection
+    async_runner.submit(net_down_detector)
+
+    connection.data_received("61 bytes")
+    connection.data_received("zero bytes")
+    connection.data_received("ping: Network is unreachable")
+
+    assert net_down_detector.all_data_received == ["61 bytes"]
+
+
+@pytest.mark.asyncio
+async def test_runner_sets_observer_exception_result_for_exception_raised_inside_observer(event_loop, async_runner):
+    """Runner should correct behaviour of 'wrongly written' connection-observer"""
+    from moler.connection import ObservableConnection
+
+    unknown_format_exception = Exception("unknown format")
+
+    class FailingNetworkDownDetector(NetworkDownDetector):
+        def data_received(self, data):
+            if data == "zero bytes":
+                raise unknown_format_exception
+            return super(FailingNetworkDownDetector, self).data_received(data)
+
+    moler_conn = ObservableConnection()
+    net_down_detector = FailingNetworkDownDetector(connection=moler_conn)
+    connection = net_down_detector.connection
+    async_runner.submit(net_down_detector)
+
+    connection.data_received("61 bytes")
+    connection.data_received("zero bytes")
+    connection.data_received("ping: Network is unreachable")
+
+    assert net_down_detector._exception is unknown_format_exception
+
+
+# TODO: tests for error cases
+# TODO: handling not awaited futures (infinite background observer, timeouting observer but "failing path stopped"
 
 # --------------------------- resources ---------------------------
 
@@ -64,13 +112,14 @@ def is_python36_or_above():
     return (ver_major == '3') and (int(ver_minor) >= 6)
 
 
-available_bg_runners = ['runner.ThreadPoolExecutorRunner']
+available_bg_runners = [] #['runner.ThreadPoolExecutorRunner']
 available_async_runners = []
 if is_python36_or_above():
-    available_bg_runners.append('asyncio_runner.AsyncioRunner')
-    available_async_runners.append('asyncio_runner.AsyncioRunner')
+    # available_bg_runners.append('asyncio_runner.AsyncioRunner')
+    # available_async_runners.append('asyncio_runner.AsyncioRunner')
     available_bg_runners.append('asyncio_runner.AsyncioInThreadRunner')
     available_async_runners.append('asyncio_runner.AsyncioInThreadRunner')
+
 
 @pytest.yield_fixture(params=available_bg_runners)
 def observer_runner(request):
