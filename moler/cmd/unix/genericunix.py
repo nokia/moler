@@ -18,6 +18,12 @@ class GenericUnixCommand(CommandTextualGeneric):
     _re_fail = re.compile(r'command not found|No such file or directory|running it may require superuser privileges')
 
     def __init__(self, connection, prompt=None, newline_chars=None, runner=None):
+        """
+        :param connection: Moler connection to device, terminal when command is executed.
+        :param prompt: prompt (on system where command runs).
+        :param newline_chars: Characters to split lines - list.
+        :param runner: Runner to run command.
+        """
         super(GenericUnixCommand, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                                  runner=runner)
         self.remove_colors_from_terminal_output = True
@@ -35,9 +41,19 @@ class GenericUnixCommand(CommandTextualGeneric):
         return super(GenericUnixCommand, self).on_new_line(line, is_full_line)
 
     def is_failure_indication(self, line):
+        """
+        Method to detect if passed line contains part indicating failure of command
+        :param line: Line from command output on device
+        :return: True if command should fail, False otherwise
+        """
         return self._regex_helper.search_compiled(GenericUnixCommand._re_fail, line)
 
     def _strip_new_lines_chars(self, line):
+        """
+        Method to delete new line chars and other chars we don not need to parse in on_new_line (color escape character)
+        :param line: Line with special chars, raw string from device
+        :return: line without special chars.
+        """
         line = super(GenericUnixCommand, self)._strip_new_lines_chars(line)
         if self.remove_colors_from_terminal_output:
             line = remove_escape_codes(line)

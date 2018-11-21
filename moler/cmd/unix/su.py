@@ -19,6 +19,17 @@ class Su(GenericUnixCommand):
 
     def __init__(self, connection, user=None, options=None, password=None, prompt=None, expected_prompt=None,
                  newline_chars=None, encrypt_password=True, runner=None):
+        """
+        :param connection: moler connection to device, terminal when command is executed
+        :param user: user name
+        :param options: su unix command options
+        :param password: password
+        :param prompt: start prompt
+        :param expected_prompt: final prompt
+        :param newline_chars: Characters to split lines
+        :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text
+        :param runner: Runner to run command
+        """
         super(Su, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
         # Parameters defined by calling the command
@@ -34,6 +45,10 @@ class Su(GenericUnixCommand):
         self.current_ret['RESULT'] = list()
 
     def build_command_string(self):
+        """
+        Builds command string from parameters passed to object.
+        :return: String representation of command to send over connection to device.
+        """
         cmd = "su"
         if self.options:
             cmd = cmd + " " + self.options
@@ -42,6 +57,12 @@ class Su(GenericUnixCommand):
         return cmd
 
     def on_new_line(self, line, is_full_line):
+        """
+        Put your parsing code here.
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: Nothing
+        """
         try:
             self._send_password_if_requested(line)
             if is_full_line:
@@ -61,6 +82,11 @@ class Su(GenericUnixCommand):
                                          r"|su:\sincorrect password\s(?P<PASS>.*)", re.IGNORECASE)
 
     def _authentication_failure(self, line):
+        """
+        Checks if line has info about authentication failure.
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches.
+        """
         if self._regex_helper.search_compiled(Su._re_authentication_fail, line):
             self.set_exception(CommandFailure(self, "ERROR: {}, {}, {}".format(self._regex_helper.group("AUTH"),
                                                                                self._regex_helper.group("PERM"),
@@ -72,6 +98,11 @@ class Su(GenericUnixCommand):
     _re_wrong_username = re.compile(r"No\spasswd\sentry\sfor\suser\s(?P<USERNAME>.*)", re.IGNORECASE)
 
     def _command_failure(self, line):
+        """
+        Checks if line has info about command failure.
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches.
+        """
         if self._regex_helper.search_compiled(Su._re_command_fail, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("OPTION"))))
             raise ParsingDone
@@ -82,15 +113,30 @@ class Su(GenericUnixCommand):
     _re_password = re.compile(r"Password:", re.IGNORECASE)
 
     def _is_password_requested(self, line):
+        """
+        Checks if device waits for password.
+        :param line: Line from device.
+        :return: Match object if regex matches, None otherwise.
+        """
         return self._regex_helper.search_compiled(Su._re_password, line)
 
     def _is_prompt(self, line):
+        """
+        Checks if device sends final prompt.
+        :param line: Line from device.
+        :return: Match object if regex matches, None otherwise
+        """
         if self.expected_prompt:
             self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(self.expected_prompt)
             return self._regex_helper.search_compiled(self._re_expected_prompt, line)
-        return False
+        return None
 
     def _send_password_if_requested(self, line):
+        """
+        Sends password.
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches.
+        """
         if (not self._password_sent) and self._is_password_requested(line) and self.password:
             self.connection.sendline(self.password, encrypt=self.encrypt_password)
             self._password_sent = True
@@ -100,6 +146,11 @@ class Su(GenericUnixCommand):
             raise ParsingDone
 
     def _parse(self, line):
+        """
+        Add output to result.
+        :param line: Line from device
+        :return: Nothing but raises ParsingDone
+        """
         self.current_ret['RESULT'].append(line)
         raise ParsingDone
 
