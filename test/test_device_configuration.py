@@ -378,8 +378,9 @@ def moler_config():
     moler_cfg.loaded_config = "NOT_LOADED_YET"
     ConnectionObserver.get_unraised_exceptions(remove=True)
     yield moler_cfg
-    ConnectionObserver.get_unraised_exceptions(remove=True)
     # restore since tests may change configuration
+    ConnectionObserver.get_unraised_exceptions(remove=True)
+    moler_cfg.loaded_config = "NOT_LOADED_YET"
     moler_cfg.clear()
 
 
