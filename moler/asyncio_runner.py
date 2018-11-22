@@ -139,7 +139,6 @@ class AsyncioRunner(ConnectionObserverRunner):
         #     # run_nested_until_complete(asyncio.wait_for(feed_started.wait(), timeout=0.5))  # async code from sync
         #     _run_loop_till_condition(event_loop, lambda: feed_started.is_set(), timeout=0.5)
 
-
         # returned future is in reality task (task is derived from future)
         # moreover, such task is already scheduled for execution
         # CAUTION: If event loop is not running ensure_future() will mean nothing
@@ -179,8 +178,6 @@ class AsyncioRunner(ConnectionObserverRunner):
         connection_observer_future = asyncio.ensure_future(self.feed(connection_observer,
                                                                      feed_started, feeding_completed,
                                                                      subscribed_data_receiver))
-
-
         return connection_observer_future
 
     def wait_for(self, connection_observer, connection_observer_future, timeout=None):
