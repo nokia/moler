@@ -89,6 +89,43 @@ def test_runner_secures_observer_against_additional_data_after_runner_shutdown(o
     assert net_down_detector2.all_data_received == ["61 bytes"]
 
 
+def test_runner_unsubscribes_from_connection_after_runner_shutdown(standalone_runner):
+    from moler.connection import ObservableConnection
+
+    moler_conn = ObservableConnection()
+    # check if shutdown unsubscribes all observers running inside given runner
+    net_down_detector1 = NetworkDownDetector(connection=moler_conn)
+    net_down_detector2 = NetworkDownDetector(connection=moler_conn)
+    connection = moler_conn
+    assert len(moler_conn._observers) == 0
+    standalone_runner.submit(net_down_detector1)
+    standalone_runner.submit(net_down_detector2)
+    assert len(moler_conn._observers) == 2
+
+    standalone_runner.shutdown()
+    time.sleep(0.1)
+    assert len(moler_conn._observers) == 0
+
+
+@pytest.mark.asyncio
+async def test_runner_unsubscribes_from_connection_after_runner_shutdown_from_running_loop(observer_runner):
+    from moler.connection import ObservableConnection
+
+    moler_conn = ObservableConnection()
+    # check if shutdown unsubscribes all observers running inside given runner
+    net_down_detector1 = NetworkDownDetector(connection=moler_conn)
+    net_down_detector2 = NetworkDownDetector(connection=moler_conn)
+    connection = moler_conn
+    assert len(moler_conn._observers) == 0
+    observer_runner.submit(net_down_detector1)
+    observer_runner.submit(net_down_detector2)
+    assert len(moler_conn._observers) == 2
+
+    observer_runner.shutdown()
+    await asyncio.sleep(0.1)
+    assert len(moler_conn._observers) == 0
+
+
 @pytest.mark.asyncio
 async def test_observer_gets_all_data_after_async_runner_submit_from_running_loop(event_loop, async_runner):
     from moler.connection import ObservableConnection
@@ -163,8 +200,11 @@ def is_python36_or_above():
     (ver_major, ver_minor, _) = platform.python_version().split('.')
     return (ver_major == '3') and (int(ver_minor) >= 6)
 
+
 # bg_runners may be called from both 'async def' and raw 'def' functions
 available_bg_runners = ['runner.ThreadPoolExecutorRunner']
+# standalone_runners may run without giving up control to some event loop (since they create own thread(s))
+available_standalone_runners = ['runner.ThreadPoolExecutorRunner']
 # async_runners may be called only from 'async def' functions and require already running events-loop
 available_async_runners = []
 if is_python36_or_above():
@@ -172,6 +212,7 @@ if is_python36_or_above():
     available_async_runners.append('asyncio_runner.AsyncioRunner')
     available_bg_runners.append('asyncio_runner.AsyncioInThreadRunner')
     available_async_runners.append('asyncio_runner.AsyncioInThreadRunner')
+    available_standalone_runners.append('asyncio_runner.AsyncioInThreadRunner')
 
 
 @pytest.yield_fixture(params=available_bg_runners)
@@ -181,6 +222,16 @@ def observer_runner(request):
     runner_class = getattr(module, class_name)
     runner = runner_class()
     # NOTE: AsyncioRunner given here will start without running event loop
+    yield runner
+    runner.shutdown()
+
+
+@pytest.yield_fixture(params=available_standalone_runners)
+def standalone_runner(request):
+    module_name, class_name = request.param.rsplit('.', 1)
+    module = importlib.import_module('moler.{}'.format(module_name))
+    runner_class = getattr(module, class_name)
+    runner = runner_class()
     yield runner
     runner.shutdown()
 

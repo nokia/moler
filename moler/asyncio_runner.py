@@ -112,14 +112,14 @@ def monkeypatch():
 class AsyncioRunner(ConnectionObserverRunner):
     def __init__(self):
         """Create instance of AsyncioRunner class"""
-        self._in_shutdown = False
+        self._in_shutdown = asyncio.Event()
         self.logger = logging.getLogger('moler.runner.asyncio')
         self.logger.debug("created")
         atexit.register(self.shutdown)
 
     def shutdown(self):
         self.logger.debug("shutting down")
-        self._in_shutdown = True  # will exit from feed()
+        self._in_shutdown.set()  # will exit from feed()
 
     def submit(self, connection_observer):
         """
@@ -264,7 +264,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         """
         def secure_data_received(data):
             try:
-                if connection_observer.done() or self._in_shutdown:
+                if connection_observer.done() or self._in_shutdown.is_set():
                     feeding_completed.set()
                     return  # even not unsubscribed secure_data_received() won't pass data to done observer
                 connection_observer.data_received(data)
@@ -298,7 +298,7 @@ class AsyncioRunner(ConnectionObserverRunner):
             while True:
                 if feeding_completed.is_set():
                     break
-                if self._in_shutdown:
+                if self._in_shutdown.is_set():
                     self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))
                     connection_observer.cancel()
                     break
@@ -337,7 +337,7 @@ class AsyncioEventThreadsafe(asyncio.Event):
 class AsyncioInThreadRunner(AsyncioRunner):
     def __init__(self):
         """Create instance of AsyncioInThreadRunner class"""
-        self._in_shutdown = False
+        self._in_shutdown = asyncio.Event()
         self._id = instance_id(self)
         self.logger = logging.getLogger('moler.runner.asyncio-in-thrd:{}'.format(self._id))
         self.logger.debug("created AsyncioInThreadRunner:{}".format(self._id))
@@ -345,7 +345,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
 
     def shutdown(self):
         self.logger.debug("shutting down")
-        self._in_shutdown = True  # will exit from feed()
+        self._in_shutdown.set()  # will exit from feed()
         # TODO: should we await for feed to complete?
 
     def submit(self, connection_observer):
@@ -467,7 +467,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
         # 6) runner is in shutdown state
         def secure_data_received(data):
             try:
-                if connection_observer.done() or self._in_shutdown:
+                if connection_observer.done() or self._in_shutdown.is_set():
                     feeding_completed.set()
                     return  # even not unsubscribed secure_data_received() won't pass data to done observer
                 connection_observer.data_received(data)
@@ -503,12 +503,12 @@ class AsyncioInThreadRunner(AsyncioRunner):
         await asyncio.sleep(0.01)  # give control back before we start processing
 
         try:
-            #     if self._in_shutdown: # TODO: change to event to allow notify multiple feeds
-            #         self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))
-            #         connection_observer.cancel()
-
-            await asyncio.wait({feeding_completed.wait(), stop_feeding.wait()},
+            await asyncio.wait({feeding_completed.wait(), stop_feeding.wait(), self._in_shutdown.wait()},
                                return_when=asyncio.FIRST_COMPLETED)
+
+            if self._in_shutdown.is_set():
+                self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))
+                connection_observer.cancel()
             # if stop_feeding.is_set():  # external world requests to stop feeder
             #     self.logger.debug("stopped {!r}".format(connection_observer))
             self.logger.debug("unsubscribing {!r}".format(connection_observer))
