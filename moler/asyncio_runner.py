@@ -110,11 +110,12 @@ def monkeypatch():
 
 
 class AsyncioRunner(ConnectionObserverRunner):
-    def __init__(self):
+    def __init__(self, logger_name='moler.runner.asyncio'):
         """Create instance of AsyncioRunner class"""
         self._in_shutdown = asyncio.Event()
-        self.logger = logging.getLogger('moler.runner.asyncio')
-        self.logger.debug("created")
+        self._id = instance_id(self)
+        self.logger = logging.getLogger('{}:{}'.format(logger_name, self._id))
+        self.logger.debug("created {}:{}".format(self.__class__.__name__, self._id))
         atexit.register(self.shutdown)
 
     def shutdown(self):
@@ -262,6 +263,13 @@ class AsyncioRunner(ConnectionObserverRunner):
         """
         Start feeding connection_observer by establishing data-channel from connection to observer.
         """
+        # we have following ending conditions:
+        # 1) connection observer consuming data sets result      -> .done() == True
+        # 2) connection observer consuming data sets exception   -> .done() == True
+        # 3) connection observer is cancelled                    -> .done() == True
+        # 4) connection observer times out                  ------> NOT HANDLED HERE (yet?)
+        # 5) connection observer consuming data raises exception -> secured to .set_exception() here
+        # 6) runner is in shutdown state
         def secure_data_received(data):
             try:
                 if connection_observer.done() or self._in_shutdown.is_set():
@@ -303,6 +311,8 @@ class AsyncioRunner(ConnectionObserverRunner):
             if self._in_shutdown.is_set():
                 self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))
                 connection_observer.cancel()
+            # if stop_feeding.is_set():  # external world requests to stop feeder
+            #     self.logger.debug("stopped {!r}".format(connection_observer))
 
             self.logger.debug("unsubscribing {!r}".format(connection_observer))
             moler_conn.unsubscribe(subscribed_data_receiver)  # stop feeding
@@ -337,16 +347,7 @@ class AsyncioEventThreadsafe(asyncio.Event):
 class AsyncioInThreadRunner(AsyncioRunner):
     def __init__(self):
         """Create instance of AsyncioInThreadRunner class"""
-        self._in_shutdown = asyncio.Event()
-        self._id = instance_id(self)
-        self.logger = logging.getLogger('moler.runner.asyncio-in-thrd:{}'.format(self._id))
-        self.logger.debug("created AsyncioInThreadRunner:{}".format(self._id))
-        atexit.register(self.shutdown)
-
-    def shutdown(self):
-        self.logger.debug("shutting down")
-        self._in_shutdown.set()  # will exit from feed()
-        # TODO: should we await for feed to complete?
+        super(AsyncioInThreadRunner, self).__init__(logger_name='moler.runner.asyncio-in-thrd')
 
     def submit(self, connection_observer):
         """
@@ -453,81 +454,6 @@ class AsyncioInThreadRunner(AsyncioRunner):
         # return result_for_runners(connection_observer_future)  # May raise too.   # Python > 3.3
         res = result_for_runners(connection_observer_future)
         raise StopIteration(res)  # Python 2 compatibility
-
-    def _start_feeding(self, connection_observer, feed_started, feeding_completed):
-        """
-        Start feeding connection_observer by establishing data-channel from connection to observer.
-        """
-        # we have following ending conditions:
-        # 1) connection observer consuming data sets result      -> .done() == True
-        # 2) connection observer consuming data sets exception   -> .done() == True
-        # 3) connection observer is cancelled                    -> .done() == True
-        # 4) connection observer times out                  ------> NOT HANDLED HERE (yet?)
-        # 5) connection observer consuming data raises exception -> secured to .set_exception() here
-        # 6) runner is in shutdown state
-        def secure_data_received(data):
-            try:
-                if connection_observer.done() or self._in_shutdown.is_set():
-                    feeding_completed.set()
-                    return  # even not unsubscribed secure_data_received() won't pass data to done observer
-                connection_observer.data_received(data)
-                if connection_observer.done():
-                    self.logger.debug("done {!r}".format(connection_observer))
-                    feeding_completed.set()
-            except Exception as exc:  # TODO: handling stacktrace
-                # observers should not raise exceptions during data parsing
-                # but if they do so - we fix it
-                connection_observer.set_exception(exc)
-                feeding_completed.set()
-
-        moler_conn = connection_observer.connection
-        self.logger.debug("subscribing for data {!r}".format(connection_observer))
-        moler_conn.subscribe(secure_data_received)
-        feed_started.set()  # mark that we have passed connection-subscription-step
-        return secure_data_received  # to know what to unsubscribe
-
-    async def feed(self, connection_observer, feed_started, feeding_completed, subscribed_data_receiver):
-        """
-        Feeds connection_observer by transferring data from connection and passing it to connection_observer.
-        Should be called from background-processing of connection observer.
-        """
-        connection_observer._log(logging.INFO, "{} started.".format(connection_observer.get_long_desc()))
-        if not feed_started.is_set():
-            subscribed_data_receiver = self._start_feeding(connection_observer, feed_started, feeding_completed)
-
-        moler_conn = connection_observer.connection
-
-        stop_feeding = asyncio.Event()  # TODO: move to external world - a way to stop feeder
-        feeding_completed = asyncio.Event()
-
-        await asyncio.sleep(0.01)  # give control back before we start processing
-
-        try:
-            await asyncio.wait({feeding_completed.wait(), stop_feeding.wait(), self._in_shutdown.wait()},
-                               return_when=asyncio.FIRST_COMPLETED)
-
-            if self._in_shutdown.is_set():
-                self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))
-                connection_observer.cancel()
-            # if stop_feeding.is_set():  # external world requests to stop feeder
-            #     self.logger.debug("stopped {!r}".format(connection_observer))
-            self.logger.debug("unsubscribing {!r}".format(connection_observer))
-            moler_conn.unsubscribe(subscribed_data_receiver)
-
-            # feed_done.set()
-
-            connection_observer._log(logging.INFO, "{} finished.".format(connection_observer.get_short_desc()))
-            try:
-                result = result_for_runners(connection_observer)
-                self.logger.debug("{} returning result: {}".format(connection_observer, result))
-                return result
-            except Exception as err:
-                self.logger.debug("{} raising: {!r}".format(connection_observer, err))
-                raise
-
-        except asyncio.CancelledError:
-            self.logger.debug("Cancelled {!r}.feed".format(self))
-            raise  # need to reraise to inform "I agree for cancellation"
 
 
 # monkeypatch()
