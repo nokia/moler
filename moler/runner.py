@@ -273,26 +273,43 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         res = result_for_runners(connection_observer_future)
         raise StopIteration(res)  # Python 2 compatibility
 
+    def _start_feeding(self, connection_observer, feed_started, feeding_completed):
+        """
+        Start feeding connection_observer by establishing data-channel from connection to observer.
+        """
+        def secure_data_received(data):
+            try:
+                if connection_observer.done() or self._in_shutdown:
+                    feeding_completed.set()
+                    return  # even not unsubscribed secure_data_received() won't pass data to done observer
+                connection_observer.data_received(data)
+                if connection_observer.done():
+                    self.logger.debug("done {!r}".format(connection_observer))
+                    feeding_completed.set()
+            except Exception as exc:  # TODO: handling stacktrace
+                # observers should not raise exceptions during data parsing
+                # but if they do so - we fix it
+                connection_observer.set_exception(exc)
+                feeding_completed.set()
+
+        moler_conn = connection_observer.connection
+        self.logger.debug("subscribing for data {!r}".format(connection_observer))
+        moler_conn.subscribe(secure_data_received)
+        feed_started.set()  # mark that we have passed connection-subscription-step
+        return secure_data_received  # to know what to unsubscribe
+
     def feed(self, connection_observer, feed_started, stop_feeding, feed_done):
         """
         Feeds connection_observer by transferring data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
         connection_observer._log(logging.INFO, "{} started.".format(connection_observer.get_long_desc()))
+        feeding_completed = threading.Event()
+        if not feed_started.is_set():
+            subscribed_data_receiver = self._start_feeding(connection_observer, feed_started, feeding_completed)
+
+        time.sleep(0.01)  # give control back before we start processing
         moler_conn = connection_observer.connection
-
-        def secure_data_received(data):
-            try:
-                if connection_observer.done():
-                    return  # even not unsubscribed secure_data_received() won't pass data to done observer
-                connection_observer.data_received(data)
-            except Exception as exc:  # TODO: handling stacktrace
-                connection_observer.set_exception(exc)
-
-        # start feeding connection_observer by establishing data-channel from connection to observer
-        self.logger.debug("subscribing for data {!r}".format(connection_observer))
-        moler_conn.subscribe(secure_data_received)
-        feed_started.set()
 
         while True:
             if stop_feeding.is_set():
@@ -307,7 +324,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             time.sleep(0.01)  # give moler_conn a chance to feed observer
 
         self.logger.debug("unsubscribing {!r}".format(connection_observer))
-        moler_conn.unsubscribe(secure_data_received)
+        moler_conn.unsubscribe(subscribed_data_receiver)
         feed_done.set()
 
         connection_observer._log(logging.INFO, "{} finished.".format(connection_observer.get_short_desc()))
