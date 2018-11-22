@@ -257,7 +257,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         self.logger.debug("subscribing for data {!r}".format(connection_observer))
         moler_conn.subscribe(secure_data_received)
         feed_started.set()  # mark that we have passed connection-subscription-step
-        return secure_data_received  # to know what to unsibscribe
+        return secure_data_received  # to know what to unsubscribe
 
     async def feed(self, connection_observer, feed_started, feeding_completed, subscribed_data_receiver):
         """
@@ -332,11 +332,15 @@ class AsyncioInThreadRunner(AsyncioRunner):
         self.logger.debug("go background: {!r}".format(connection_observer))
 
         # TODO: check dependency - connection_observer.connection
+        feed_started = asyncio.Event()
+        feeding_completed = asyncio.Event()
+        subscribed_data_receiver = self._start_feeding(connection_observer, feed_started, feeding_completed)
 
         async def start_feeder():
-            feed_started = asyncio.Event()
             self.logger.debug("scheduling feed()")
-            conn_observer_future = asyncio.ensure_future(self.feed(connection_observer, feed_started))
+            conn_observer_future = asyncio.ensure_future(self.feed(connection_observer,
+                                                                   feed_started, feeding_completed,
+                                                                   subscribed_data_receiver))
             self.logger.debug("scheduled feed() - future: {}".format(conn_observer_future))
             await feed_started.wait()
             self.logger.debug("feed() started - future: {}:{}".format(instance_id(conn_observer_future), conn_observer_future))
@@ -424,20 +428,14 @@ class AsyncioInThreadRunner(AsyncioRunner):
         res = result_for_runners(connection_observer_future)
         raise StopIteration(res)  # Python 2 compatibility
 
-    async def feed(self, connection_observer, feed_started):
+    def _start_feeding(self, connection_observer, feed_started, feeding_completed):
         """
-        Feeds connection_observer by transferring data from connection and passing it to connection_observer.
-        Should be called from background-processing of connection observer.
+        Start feeding connection_observer by establishing data-channel from connection to observer.
         """
-        connection_observer._log(logging.INFO, "{} started.".format(connection_observer.get_long_desc()))
-        moler_conn = connection_observer.connection
-
-        stop_feeding = asyncio.Event()  # TODO: move to external world - a way to stop feeder
-        feeding_completed = asyncio.Event()
-        subscribed = [False]
-
         def secure_data_received(data):
             try:
+                if connection_observer.done():
+                    return  # even not unsubscribed secure_data_received() won't pass data to done observer
                 connection_observer.data_received(data)
                 if connection_observer.done():
                     self.logger.debug("done {!r}".format(connection_observer))
@@ -447,23 +445,26 @@ class AsyncioInThreadRunner(AsyncioRunner):
                 # but if they do so - we fix it
                 connection_observer.set_exception(exc)
                 feeding_completed.set()
-            finally:
-                if feeding_completed.is_set():
-                    unsubscribe_from_connection()
 
-        def subscribe_for_connection_data():
-            self.logger.debug("subscribing for data {!r}".format(connection_observer))
-            moler_conn.subscribe(secure_data_received)
-            subscribed[0] = True
+        moler_conn = connection_observer.connection
+        self.logger.debug("subscribing for data {!r}".format(connection_observer))
+        moler_conn.subscribe(secure_data_received)
+        feed_started.set()  # mark that we have passed connection-subscription-step
+        return secure_data_received  # to know what to unsubscribe
 
-        def unsubscribe_from_connection():
-            self.logger.debug("unsubscribing {!r}".format(connection_observer))
-            moler_conn.unsubscribe(secure_data_received)
-            subscribed[0] = False
+    async def feed(self, connection_observer, feed_started, feeding_completed, subscribed_data_receiver):
+        """
+        Feeds connection_observer by transferring data from connection and passing it to connection_observer.
+        Should be called from background-processing of connection observer.
+        """
+        connection_observer._log(logging.INFO, "{} started.".format(connection_observer.get_long_desc()))
+        if not feed_started.is_set():
+            subscribed_data_receiver = self._start_feeding(connection_observer, feed_started, feeding_completed)
 
-        # start feeding connection_observer by establishing data-channel from connection to observer
-        subscribe_for_connection_data()
-        feed_started.set()
+        moler_conn = connection_observer.connection
+
+        stop_feeding = asyncio.Event()  # TODO: move to external world - a way to stop feeder
+        feeding_completed = asyncio.Event()
 
         await asyncio.sleep(0.01)  # give control back before we start processing
 
@@ -476,8 +477,8 @@ class AsyncioInThreadRunner(AsyncioRunner):
                                return_when=asyncio.FIRST_COMPLETED)
             # if stop_feeding.is_set():  # external world requests to stop feeder
             #     self.logger.debug("stopped {!r}".format(connection_observer))
-            if subscribed[0]:
-                unsubscribe_from_connection()
+            self.logger.debug("unsubscribing {!r}".format(connection_observer))
+            moler_conn.unsubscribe(subscribed_data_receiver)
 
             ## feed_done.set()
 
