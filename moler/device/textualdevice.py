@@ -41,7 +41,7 @@ class TextualDevice(object):
         CAUTION: Device owns (takes over ownership) of connection. It will be open when device "is born" and close when
         device "dies".
 
-        :param sm_params: parameter of state machine for device
+        :param sm_params: dict with parameters of state machine for device
         :param name: name of device
         :param io_connection: External-IO connection having embedded moler-connection
         :param io_type: type of connection - tcp, udp, ssh, telnet, ...
@@ -49,7 +49,7 @@ class TextualDevice(object):
                         (if not given then default one is taken)
         :param initial_state: name of initial state. State machine tries to enter this state just after creation.
         """
-        sm_params = copy_dict(sm_params)
+        sm_params = copy_dict(sm_params, deep_copy=True)
         self.initial_state = initial_state if initial_state is not None else "NOT_CONNECTED"
         self.states = [TextualDevice.not_connected]
         self.goto_states_triggers = []
