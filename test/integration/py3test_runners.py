@@ -24,17 +24,22 @@ from moler.connection_observer import ConnectionObserver
 def test_observer_gets_all_data_of_connection_after_it_is_submitted_to_background(observer_runner):
     from moler.connection import ObservableConnection
 
+    durations = []
     for n in range(20):  # need to test multiple times to ensure there are no thread races
         moler_conn = ObservableConnection()
         net_down_detector = NetworkDownDetector(connection=moler_conn)
         connection = net_down_detector.connection
+        start_time = time.time()
         observer_runner.submit(net_down_detector)
+        durations.append(time.time() - start_time)
 
         connection.data_received("61 bytes")
         connection.data_received("62 bytes")
         connection.data_received("ping: Network is unreachable")
 
         assert net_down_detector.all_data_received == ["61 bytes", "62 bytes", "ping: Network is unreachable"]
+    print("\n{}.submit() duration == {}".format(observer_runner.__class__.__name__,
+                                                float(sum(durations))/len(durations)))
 
 
 def test_runner_secures_observer_against_additional_data_after_observer_is_done(observer_runner):
@@ -48,17 +53,22 @@ def test_runner_secures_observer_against_additional_data_after_observer_is_done(
     # This test checks if runners secure wrong-written-observers with missing 'if not self.done():'
     from moler.connection import ObservableConnection
 
+    durations = []
     for n in range(20):  # need to test multiple times to ensure there are no thread races
         moler_conn = ObservableConnection()
         net_down_detector = NetworkDownDetector(connection=moler_conn)
         connection = net_down_detector.connection
+        start_time = time.time()
         observer_runner.submit(net_down_detector)
+        durations.append(time.time() - start_time)
 
         connection.data_received("61 bytes")
         connection.data_received("ping: Network is unreachable")
         connection.data_received("62 bytes")
 
         assert net_down_detector.all_data_received == ["61 bytes", "ping: Network is unreachable"]
+    print("\n{}.submit() duration == {}".format(observer_runner.__class__.__name__,
+                                                float(sum(durations))/len(durations)))
 
 
 @pytest.mark.asyncio
