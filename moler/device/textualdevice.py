@@ -41,10 +41,13 @@ class TextualDevice(object):
         CAUTION: Device owns (takes over ownership) of connection. It will be open when device "is born" and close when
         device "dies".
 
+        :param sm_params: parameter of state machine for device
+        :param name: name of device
         :param io_connection: External-IO connection having embedded moler-connection
         :param io_type: type of connection - tcp, udp, ssh, telnet, ...
         :param variant: connection implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
                         (if not given then default one is taken)
+        :param initial_state: name of initial state. State machine tries to enter this state just after creation.
         """
         sm_params = copy_dict(sm_params)
         self.initial_state = initial_state if initial_state is not None else "NOT_CONNECTED"
@@ -373,6 +376,14 @@ class TextualDevice(object):
         return observer
 
     def get_cmd(self, cmd_name, cmd_params=None, check_state=True):
+        """
+        Returns instance of command connected with the device.
+        :param cmd_name: name of commands, name of class (without package), for example "cd".
+        :param cmd_params: dict with command parameters.
+        :param check_state: if True then before execute of command the state of device will be check if the same
+         as when command was created. If False the device state is not checked.
+        :return: Instance of command
+        """
         cmd_params = copy_dict(cmd_params)
         if "prompt" not in cmd_params:
             cmd_params["prompt"] = self.get_prompt()
@@ -382,6 +393,14 @@ class TextualDevice(object):
         return cmd
 
     def get_event(self, event_name, event_params=None, check_state=True):
+        """
+        Return instance of event connected with the device.
+        :param event_name: name of event, name of class (without package).
+        :param event_params: dict with event parameters.
+        :param check_state: if True then before execute of event the state of device will be check if the same
+         as when event was created. If False the device state is not checked.
+        :return:
+        """
         event_params = copy_dict(event_params)
         event = self.get_observer(observer_name=event_name, observer_type=TextualDevice.events,
                                   observer_exception=EventWrongState, check_state=check_state, **event_params)
