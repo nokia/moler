@@ -53,22 +53,40 @@ def test_runner_secures_observer_against_additional_data_after_observer_is_done(
     # This test checks if runners secure wrong-written-observers with missing 'if not self.done():'
     from moler.connection import ObservableConnection
 
-    durations = []
     for n in range(20):  # need to test multiple times to ensure there are no thread races
         moler_conn = ObservableConnection()
         net_down_detector = NetworkDownDetector(connection=moler_conn)
         connection = net_down_detector.connection
-        start_time = time.time()
         observer_runner.submit(net_down_detector)
-        durations.append(time.time() - start_time)
 
         connection.data_received("61 bytes")
         connection.data_received("ping: Network is unreachable")
         connection.data_received("62 bytes")
 
         assert net_down_detector.all_data_received == ["61 bytes", "ping: Network is unreachable"]
-    print("\n{}.submit() duration == {}".format(observer_runner.__class__.__name__,
-                                                float(sum(durations))/len(durations)))
+
+
+def test_runner_secures_observer_against_additional_data_after_runner_shutdown(observer_runner):
+    """In-shutdown runner should not pass data to observer even before unsubscribe from moler-connection"""
+    # Even without running background feeder
+    # we can use correctly constructed secure_data_received(data)
+    # to block passing data from connection to observer while runner is in-shutdown state
+    from moler.connection import ObservableConnection
+
+    moler_conn = ObservableConnection()
+    # check if shutdown stops all observers running inside given runner
+    net_down_detector1 = NetworkDownDetector(connection=moler_conn)
+    net_down_detector2 = NetworkDownDetector(connection=moler_conn)
+    connection = moler_conn
+    observer_runner.submit(net_down_detector1)
+    observer_runner.submit(net_down_detector2)
+
+    connection.data_received("61 bytes")
+    observer_runner.shutdown()
+    connection.data_received("62 bytes")
+
+    assert net_down_detector1.all_data_received == ["61 bytes"]
+    assert net_down_detector2.all_data_received == ["61 bytes"]
 
 
 @pytest.mark.asyncio

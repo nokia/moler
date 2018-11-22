@@ -241,7 +241,8 @@ class AsyncioRunner(ConnectionObserverRunner):
         """
         def secure_data_received(data):
             try:
-                if connection_observer.done():
+                if connection_observer.done() or self._in_shutdown:
+                    feeding_completed.set()
                     return  # even not unsubscribed secure_data_received() won't pass data to done observer
                 connection_observer.data_received(data)
                 if connection_observer.done():
@@ -432,9 +433,17 @@ class AsyncioInThreadRunner(AsyncioRunner):
         """
         Start feeding connection_observer by establishing data-channel from connection to observer.
         """
+        # we have following ending conditions:
+        # 1) connection observer consuming data sets result      -> .done() == True
+        # 2) connection observer consuming data sets exception   -> .done() == True
+        # 3) connection observer is cancelled                    -> .done() == True
+        # 4) connection observer times out                  ------> NOT HANDLED HERE (yet?)
+        # 5) connection observer consuming data raises exception -> secured to .set_exception() here
+        # 6) runner is in shutdown state
         def secure_data_received(data):
             try:
-                if connection_observer.done():
+                if connection_observer.done() or self._in_shutdown:
+                    feeding_completed.set()
                     return  # even not unsubscribed secure_data_received() won't pass data to done observer
                 connection_observer.data_received(data)
                 if connection_observer.done():
