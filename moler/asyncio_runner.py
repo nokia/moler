@@ -293,16 +293,16 @@ class AsyncioRunner(ConnectionObserverRunner):
             subscribed_data_receiver = self._start_feeding(connection_observer, feed_started, feeding_completed)
 
         await asyncio.sleep(0.01)  # give control back before we start processing
+
+        stop_feeding = asyncio.Event()  # TODO: move to external world - a way to stop feeder
         moler_conn = connection_observer.connection
         try:
-            while True:
-                if feeding_completed.is_set():
-                    break
-                if self._in_shutdown.is_set():
-                    self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))
-                    connection_observer.cancel()
-                    break
-                await asyncio.sleep(0.01)  # give moler_conn a chance to feed observer
+            await asyncio.wait({feeding_completed.wait(), stop_feeding.wait(), self._in_shutdown.wait()},
+                               return_when=asyncio.FIRST_COMPLETED)
+
+            if self._in_shutdown.is_set():
+                self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))
+                connection_observer.cancel()
 
             self.logger.debug("unsubscribing {!r}".format(connection_observer))
             moler_conn.unsubscribe(subscribed_data_receiver)  # stop feeding
