@@ -157,7 +157,7 @@ class AsyncioRunner(ConnectionObserverRunner):
 
         # if event_loop.is_running():
         #     # ensure that feed() reached moler_conn-subscription point (feeding started)
-        #     # run_nested_until_complete(asyncio.wait_for(feed_started.wait(), timeout=0.5))  # call asynchronous code from sync
+        #     # run_nested_until_complete(asyncio.wait_for(feed_started.wait(), timeout=0.5))  # async code from sync
         #     _run_loop_till_condition(event_loop, lambda: feed_started.is_set(), timeout=0.5)
         return connection_observer_future
 
@@ -167,7 +167,7 @@ class AsyncioRunner(ConnectionObserverRunner):
 
         :param connection_observer: The one we are awaiting for.
         :param connection_observer_future: Future of connection-observer returned from submit().
-        :param timeout: Max time (in float seconds) you want to await before you give up. If None then taken from connection_observer
+        :param timeout: Max time (in float seconds) to await before give up. If None then taken from connection_observer
         :return:
         """
         self.logger.debug("go foreground: {!r} - await max. {} [sec]".format(connection_observer, timeout))
@@ -187,7 +187,7 @@ class AsyncioRunner(ConnectionObserverRunner):
 
                 # TODO: check:
                 # result = run_nested_until_complete(asyncio.wait_for(connection_observer_future,
-                #                                                     timeout=timeout))  # call asynchronous code from sync
+                #                                                     timeout=timeout))  # call async code from sync
             else:
                 result = event_loop.run_until_complete(asyncio.wait_for(connection_observer_future,
                                                                         timeout=timeout))
@@ -227,13 +227,15 @@ class AsyncioRunner(ConnectionObserverRunner):
         """
         self.logger.debug("go foreground: {!r}".format(connection_observer))
 
-        # assuming that connection_observer.start() / runner.submit(connection_observer) has already scheduled future via asyncio.ensure_future
+        # assuming that connection_observer.start() / runner.submit(connection_observer)
+        # has already scheduled future via asyncio.ensure_future
         assert asyncio.futures.isfuture(connection_observer_future)
 
         return connection_observer_future.__iter__()
         # Note: even if code is so simple we can't move it inside ConnectionObserver.__await__() since different runners
         # may provide different iterator implementing awaitable
-        # Here we know, connection_observer_future is asyncio.Future (precisely asyncio.tasks.Task) and we know it has __await__() method.
+        # Here we know, connection_observer_future is asyncio.Future (precisely asyncio.tasks.Task)
+        # and we know it has __await__() method.
 
     def _start_feeding(self, connection_observer, feed_started, feeding_completed):
         """
@@ -284,7 +286,7 @@ class AsyncioRunner(ConnectionObserverRunner):
             self.logger.debug("unsubscribing {!r}".format(connection_observer))
             moler_conn.unsubscribe(subscribed_data_receiver)  # stop feeding
 
-            ## feed_done.set()
+            # feed_done.set()
 
             connection_observer._log(logging.INFO, "{} finished.".format(connection_observer.get_short_desc()))
             try:
@@ -344,7 +346,8 @@ class AsyncioInThreadRunner(AsyncioRunner):
                                                                    subscribed_data_receiver))
             self.logger.debug("scheduled feed() - future: {}".format(conn_observer_future))
             await feed_started.wait()
-            self.logger.debug("feed() started - future: {}:{}".format(instance_id(conn_observer_future), conn_observer_future))
+            self.logger.debug("feed() started - future: {}:{}".format(instance_id(conn_observer_future),
+                                                                      conn_observer_future))
             return conn_observer_future
 
         thread4async = get_asyncio_loop_thread()
@@ -357,7 +360,8 @@ class AsyncioInThreadRunner(AsyncioRunner):
             exc = MolerException(err_msg)
             connection_observer.set_exception(exception=exc)
             return None
-        self.logger.debug("runner submit() returning - future: {}:{}".format(instance_id(connection_observer_future), connection_observer_future))
+        self.logger.debug("runner submit() returning - future: {}:{}".format(instance_id(connection_observer_future),
+                                                                             connection_observer_future))
         return connection_observer_future
 
     def wait_for(self, connection_observer, connection_observer_future, timeout=None):
@@ -366,7 +370,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
 
         :param connection_observer: The one we are awaiting for.
         :param connection_observer_future: Future of connection-observer returned from submit().
-        :param timeout: Max time (in float seconds) you want to await before you give up. If None then taken from connection_observer
+        :param timeout: Max time (in float seconds) to await before give up. If None then taken from connection_observer
         :return:
         """
         self.logger.debug("go foreground: {!r} - await max. {} [sec]".format(connection_observer, timeout))
@@ -489,7 +493,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
             self.logger.debug("unsubscribing {!r}".format(connection_observer))
             moler_conn.unsubscribe(subscribed_data_receiver)
 
-            ## feed_done.set()
+            # feed_done.set()
 
             connection_observer._log(logging.INFO, "{} finished.".format(connection_observer.get_short_desc()))
             try:
