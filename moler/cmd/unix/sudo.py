@@ -12,6 +12,7 @@ from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 from moler.helpers import create_object_from_name
+from moler.helpers import copy_dict
 
 
 class Sudo(GenericUnixCommand):
@@ -39,14 +40,12 @@ class Sudo(GenericUnixCommand):
             return
 
         if cmd_class_name:
-            params = dict()
-            if cmd_params is not None:
-                params = cmd_params.copy()
+            params = copy_dict(cmd_params)
             params["connection"] = connection
             params['prompt'] = prompt
             params["newline_chars"] = newline_chars
             try:
-                self.cmd_object = create_object_from_name(cmd_class_name, cmd_params)
+                self.cmd_object = create_object_from_name(cmd_class_name, params)
             except Exception as ex:
                 self.set_exception(ex)
         else:
