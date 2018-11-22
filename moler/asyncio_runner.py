@@ -129,6 +129,15 @@ class AsyncioRunner(ConnectionObserverRunner):
         self.logger.debug("go background: {!r}".format(connection_observer))
 
         # TODO: check dependency - connection_observer.connection
+        # old code to analyze and remove/protect:
+        # if not event_loop.is_running():
+        #     # following code ensures that feeding has started (subscription made in moler_conn)
+        #     event_loop.run_until_complete(self._start_feeding(connection_observer, feed_started))
+        # if event_loop.is_running():
+        #     # ensure that feed() reached moler_conn-subscription point (feeding started)
+        #     # run_nested_until_complete(asyncio.wait_for(feed_started.wait(), timeout=0.5))  # async code from sync
+        #     _run_loop_till_condition(event_loop, lambda: feed_started.is_set(), timeout=0.5)
+
 
         # returned future is in reality task (task is derived from future)
         # moreover, such task is already scheduled for execution
@@ -146,19 +155,31 @@ class AsyncioRunner(ConnectionObserverRunner):
         event_loop = asyncio.get_event_loop()
         feed_started = asyncio.Event()
         feeding_completed = asyncio.Event()
-        # if not event_loop.is_running():
-        #     # following code ensures that feeding has started (subscription made in moler_conn)
-        #     event_loop.run_until_complete(self._start_feeding(connection_observer, feed_started))
 
+        # Our submit consists of two steps:
+        # 1. _start_feeding() which establishes data path from connection to observer
+        # 2. starting "background feed" task handling native future bound to connection_observer
+        #                               native future here is asyncio.Task
+        # We could await here (before returning from submit()) for "background feed" to be really started.
+        # However, for asyncio runner it is technically impossible (or possible but tricky)
+        # since to be able to await for 'feed_started' asyncio.Event we need to give control back to events loop.
+        # And the only way to do it is to return from this method since it is raw method (not 'async def' which
+        # would allow for 'await' syntax)
+        #
+        # But by using the code of _start_feeding() we ensure that after submit() connection data could reach
+        # data_received() of observer - as it would be "virtually running in background"
+        # so, no data will be lost-for-observer between runner.submit() and runner.feed() really running
+        #
+        # Moreover, not waiting for "background feed" to be running (assuming tricky code) is in line
+        # with generic scheme of any async-code: methods should be as quick as possible. Because async frameworks
+        # operate inside single thread being inside method means "nothing else could happen". Nothing here may
+        # mean for example "handling data of other connections", "handling other observers".
         subscribed_data_receiver = self._start_feeding(connection_observer, feed_started, feeding_completed)
         connection_observer_future = asyncio.ensure_future(self.feed(connection_observer,
                                                                      feed_started, feeding_completed,
                                                                      subscribed_data_receiver))
 
-        # if event_loop.is_running():
-        #     # ensure that feed() reached moler_conn-subscription point (feeding started)
-        #     # run_nested_until_complete(asyncio.wait_for(feed_started.wait(), timeout=0.5))  # async code from sync
-        #     _run_loop_till_condition(event_loop, lambda: feed_started.is_set(), timeout=0.5)
+
         return connection_observer_future
 
     def wait_for(self, connection_observer, connection_observer_future, timeout=None):
