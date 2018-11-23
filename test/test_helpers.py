@@ -3,9 +3,9 @@
 Tests for helpers functions/classes.
 """
 
-__author__ = 'Grzegorz Latuszek'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import mock
 
@@ -36,3 +36,21 @@ def test_converterhelper_m():
     assert 300000 == bytes_value
     assert 0.3 == value_in_units
     assert 'm' == unit
+
+
+def test_copy_list():
+    from moler.helpers import copy_list
+    src = [1]
+    dst = copy_list(src, deep_copy=True)
+    assert src == dst
+    dst[0] = 2
+    assert src != dst
+
+
+def test_copy_dict():
+    from moler.helpers import copy_dict
+    src = {'a': 1}
+    dst = copy_dict(src, deep_copy=True)
+    assert src == dst
+    dst['a'] = 2
+    assert src != dst
