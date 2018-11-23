@@ -426,6 +426,27 @@ def test_connection_observer_one_exception():
     assert 0 == len(none_exceptions)
 
 
+def test_connection_observer_exception_do_not_remove():
+    ConnectionObserver.get_unraised_exceptions(True)
+    time.sleep(0.1)
+    from moler.cmd.unix.ls import Ls
+    from moler.exceptions import CommandTimeout
+    cmd = Ls(None)
+    none_exceptions = ConnectionObserver.get_unraised_exceptions(True)
+    assert 0 == len(none_exceptions)
+    cmd.set_exception(CommandTimeout(cmd, 0.1))
+    active_exceptions = ConnectionObserver.get_unraised_exceptions(False)
+    assert 1 == len(active_exceptions)
+    cmd = Ls(None)
+    cmd.set_exception(CommandTimeout(cmd, 0.1))
+    active_exceptions = ConnectionObserver.get_unraised_exceptions(False)
+    assert 2 == len(active_exceptions)
+    active_exceptions = ConnectionObserver.get_unraised_exceptions(True)
+    assert 2 == len(active_exceptions)
+    none_exceptions = ConnectionObserver.get_unraised_exceptions(True)
+    assert 0 == len(none_exceptions)
+
+
 # --------------------------- resources ---------------------------
 
 

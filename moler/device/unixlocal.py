@@ -16,8 +16,16 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 class UnixLocal(TextualDevice):
     unix_local = "UNIX_LOCAL"
 
-    def __init__(self, sm_params=dict(), name=None, io_connection=None, io_type=None, variant=None, initial_state=None):
-        sm_params = sm_params.copy()
+    def __init__(self, sm_params=None, name=None, io_connection=None, io_type=None, variant=None, initial_state=None):
+        """
+        :param sm_params: dict with parameters of state machine for device
+        :param name: name of device
+        :param io_connection: External-IO connection having embedded moler-connection
+        :param io_type: type of connection - tcp, udp, ssh, telnet, ...
+        :param variant: connection implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
+                        (if not given then default one is taken)
+        :param initial_state: name of initial state. State machine tries to enter this state just after creation.
+        """
         initial_state = initial_state if initial_state is not None else UnixLocal.unix_local
         super(UnixLocal, self).__init__(sm_params=sm_params, name=name,
                                         io_connection=io_connection, io_type=io_type,

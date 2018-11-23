@@ -19,12 +19,14 @@ class UnixRemote(UnixLocal):
     def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, initial_state=None):
         """
         Create Unix device communicating over io_connection
-
+        :param sm_params: dict with parameters of state machine for device
+        :param name: name of device
         :param io_connection: External-IO connection having embedded moler-connection
-        :param io_type: External-IO connection connection type
-        :param variant: External-IO connection variant
+        :param io_type: type of connection - tcp, udp, ssh, telnet, ...
+        :param variant: connection implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
+            (if not given then default one is taken)
+        :param initial_state: name of initial state. State machine tries to enter this state just after creation.
         """
-        sm_params = sm_params.copy()
         initial_state = initial_state if initial_state is not None else UnixRemote.unix_remote
         super(UnixRemote, self).__init__(name=name, io_connection=io_connection,
                                          io_type=io_type, variant=variant,
