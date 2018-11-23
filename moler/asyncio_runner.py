@@ -377,7 +377,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
         # operate inside single thread blocking call means "nothing else could happen". Nothing here may
         # mean for example "handling data of other connections", "handling other observers".
         # So, if we put observer with AsyncioInThreadRunner inside some event loop then that loop will block
-        # for duration of submit() which is measured as arround 0.01sec (depends on machine).
+        # for duration of submit() which is measured as around 0.01sec (depends on machine).
         #
         # That 0.01sec price we want to pay since we gain another benefit for that price.
         # If anything goes wrong and start_feeder() can't be completed in 0.5sec we will be at least notified

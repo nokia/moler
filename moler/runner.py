@@ -191,6 +191,28 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
         # TODO: check dependency - connection_observer.connection
 
+        # Our submit consists of single step:
+        # 1. scheduling "background feed" via executor.submit()
+        #    - internally it calls _start_feeding() which sets feed_started event
+        #
+        # Moreover, we await here (before returning from submit()) for "background feed" to be really started.
+        # That is realized by 0.5sec timeout and awaiting for feed_started threading.Event.
+        # It ensures that feed() method is already running inside dedicated thread.
+        #
+        # By using the code of _start_feeding() we ensure that after submit() connection data could reach
+        # data_received() of observer. Another words, no data will be lost-for-observer after runner.submit().
+        #
+        # Consequence of waiting for "background feed" to be running is that submit is blocking call till feed() start.
+        # Generic scheme of any async-code is: methods should be as quick as possible. Because async frameworks
+        # operate inside single thread blocking call means "nothing else could happen". Nothing here may
+        # mean for example "handling data of other connections", "handling other observers".
+        # So, if we put observer with ThreadPoolExecutorRunner inside some event loop then that loop will block
+        # for duration of submit() which is measured as around 0.002sec (depends on machine).
+        #
+        # That 0.002sec price we want to pay since we gain another benefit for that price.
+        # If anything goes wrong and thread for feed() won't start in 0.5sec we will be at least notified
+        # by MolerException.
+
         feed_started = threading.Event()
         stop_feeding = threading.Event()
         feed_done = threading.Event()
