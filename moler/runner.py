@@ -295,24 +295,20 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         res = result_for_runners(connection_observer_future)
         raise StopIteration(res)  # Python 2 compatibility
 
-    def _start_feeding(self, connection_observer, feed_started, feeding_completed):
+    def _start_feeding(self, connection_observer, feed_started):
         """
         Start feeding connection_observer by establishing data-channel from connection to observer.
         """
         def secure_data_received(data):
             try:
                 if connection_observer.done() or self._in_shutdown:
-                    feeding_completed.set()
                     return  # even not unsubscribed secure_data_received() won't pass data to done observer
                 connection_observer.data_received(data)
-                if connection_observer.done():
-                    self.logger.debug("done {!r}".format(connection_observer))
-                    feeding_completed.set()
+
             except Exception as exc:  # TODO: handling stacktrace
                 # observers should not raise exceptions during data parsing
                 # but if they do so - we fix it
                 connection_observer.set_exception(exc)
-                feeding_completed.set()
 
         moler_conn = connection_observer.connection
         self.logger.debug("subscribing for data {!r}".format(connection_observer))
@@ -326,11 +322,11 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Should be called from background-processing of connection observer.
         """
         connection_observer._log(logging.INFO, "{} started.".format(connection_observer.get_long_desc()))
-        feeding_completed = threading.Event()
         if not feed_started.is_set():
-            subscribed_data_receiver = self._start_feeding(connection_observer, feed_started, feeding_completed)
+            subscribed_data_receiver = self._start_feeding(connection_observer, feed_started)
 
-        time.sleep(0.01)  # give control back before we start processing
+        time.sleep(0.005)  # give control back before we start processing
+
         moler_conn = connection_observer.connection
 
         while True:
@@ -343,7 +339,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             if self._in_shutdown:
                 self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))
                 connection_observer.cancel()
-            time.sleep(0.01)  # give moler_conn a chance to feed observer
+            time.sleep(0.005)  # give moler_conn a chance to feed observer
 
         self.logger.debug("unsubscribing {!r}".format(connection_observer))
         moler_conn.unsubscribe(subscribed_data_receiver)

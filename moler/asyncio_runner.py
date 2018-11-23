@@ -174,6 +174,8 @@ class AsyncioRunner(ConnectionObserverRunner):
         # with generic scheme of any async-code: methods should be as quick as possible. Because async frameworks
         # operate inside single thread being inside method means "nothing else could happen". Nothing here may
         # mean for example "handling data of other connections", "handling other observers".
+        #
+        # duration of submit() is measured as around 0.0007sec (depends on machine).
 
         subscribed_data_receiver = self._start_feeding(connection_observer, feed_started, feeding_completed)
         self.logger.debug("scheduling feed({})".format(connection_observer))
