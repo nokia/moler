@@ -65,6 +65,31 @@ def test_exception_in_observer_is_raised_when_result_is_called_after_set_excepti
     assert err.value == exc
 
 
+def test_exception_in_observer_is_raised_when_result_is_called_after_set_exception2(do_nothing_connection_observer,
+                                                                                   ObserverExceptionClass):
+    exc = ObserverExceptionClass("some error inside observer")
+
+    def function_using_observer_and_set_exception():
+        observer = do_nothing_connection_observer
+        # for real usage observer should be started to run background thread that will set_exception()
+        # but for unit tests we just call it (simulating background thread)
+        observer.set_exception(exc)
+
+    @MolerTest.raise_background_exceptions(check_steps_end=True)
+    def function_using_observer():
+        observer = do_nothing_connection_observer
+        # for real usage observer should be started to run background thread that will set_exception()
+        # but for unit tests we just call it (simulating background thread)
+        print(observer.result())
+        MolerTest.steps_end()
+
+    function_using_observer_and_set_exception()
+
+    with pytest.raises(MolerStatusException) as err:
+        function_using_observer()
+    assert "some error inside observer" in str(err.value)
+
+
 def test_exception_in_observer_is_ignored_if_no_result_called_nor_decorator_on_function(do_nothing_connection_observer,
                                                                                         ObserverExceptionClass):
     def function_using_observer():
