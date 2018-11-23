@@ -174,10 +174,14 @@ class AsyncioRunner(ConnectionObserverRunner):
         # with generic scheme of any async-code: methods should be as quick as possible. Because async frameworks
         # operate inside single thread being inside method means "nothing else could happen". Nothing here may
         # mean for example "handling data of other connections", "handling other observers".
+
         subscribed_data_receiver = self._start_feeding(connection_observer, feed_started, feeding_completed)
+        self.logger.debug("scheduling feed({})".format(connection_observer))
         connection_observer_future = asyncio.ensure_future(self.feed(connection_observer,
                                                                      feed_started, feeding_completed,
                                                                      subscribed_data_receiver))
+        self.logger.debug("runner submit() returning - future: {}:{}".format(instance_id(connection_observer_future),
+                                                                             connection_observer_future))
         return connection_observer_future
 
     def wait_for(self, connection_observer, connection_observer_future, timeout=None):
@@ -354,15 +358,38 @@ class AsyncioInThreadRunner(AsyncioRunner):
         self.logger.debug("go background: {!r}".format(connection_observer))
 
         # TODO: check dependency - connection_observer.connection
-        feed_started = asyncio.Event()
-        feeding_completed = asyncio.Event()
-        subscribed_data_receiver = self._start_feeding(connection_observer, feed_started, feeding_completed)
+
+        # Our submit consists of two steps:
+        # 1. scheduling start_feeder() in asyncio dedicated thread via run_async_coroutine()
+        # 2. scheduling "background feed" via asyncio.ensure_future()
+        #    - internally it calls _start_feeding() which sets feed_started event
+        #
+        # Moreover, we await here (before returning from submit()) for "background feed" to be really started.
+        # That is realized by 0.5sec timeout and awaiting for feed_started asyncio.Event.
+        # It ensures that feed() coroutine is already running inside asyncio loop.
+        # Such functionality is possible thanks to using thread.
+        #
+        # By using the code of _start_feeding() we ensure that after submit() connection data could reach
+        # data_received() of observer. Another words, no data will be lost-for-observer after runner.submit().
+        #
+        # Consequence of waiting for "background feed" to be running is that submit is blocking call till feed() start.
+        # Generic scheme of any async-code is: methods should be as quick as possible. Because async frameworks
+        # operate inside single thread blocking call means "nothing else could happen". Nothing here may
+        # mean for example "handling data of other connections", "handling other observers".
+        # So, if we put observer with AsyncioInThreadRunner inside some event loop then that loop will block
+        # for duration of submit() which is measured as arround 0.01sec (depends on machine).
+        #
+        # That 0.01sec price we want to pay since we gain another benefit for that price.
+        # If anything goes wrong and start_feeder() can't be completed in 0.5sec we will be at least notified
+        # by MolerException.
 
         async def start_feeder():
-            self.logger.debug("scheduling feed()")
+            feed_started = asyncio.Event()
+            feeding_completed = asyncio.Event()
+            self.logger.debug("scheduling feed({})".format(connection_observer))
             conn_observer_future = asyncio.ensure_future(self.feed(connection_observer,
                                                                    feed_started, feeding_completed,
-                                                                   subscribed_data_receiver))
+                                                                   subscribed_data_receiver=None))
             self.logger.debug("scheduled feed() - future: {}".format(conn_observer_future))
             await feed_started.wait()
             self.logger.debug("feed() started - future: {}:{}".format(instance_id(conn_observer_future),
