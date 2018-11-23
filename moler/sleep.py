@@ -20,5 +20,5 @@ class Sleep(object):
         :param seconds: Time to sleep (in seconds)
         :return:
         """
-        MolerTest.info("Sleep for {} seconds.".format(seconds))
+        MolerTest.info("Sleep for {:.2f} seconds.".format(seconds))
         time.sleep(seconds)
