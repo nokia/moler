@@ -112,7 +112,7 @@ def monkeypatch():
 class AsyncioRunner(ConnectionObserverRunner):
     def __init__(self, logger_name='moler.runner.asyncio'):
         """Create instance of AsyncioRunner class"""
-        self._in_shutdown = asyncio.Event()
+        self._in_shutdown = False
         self._id = instance_id(self)
         self.logger = logging.getLogger('{}:{}'.format(logger_name, self._id))
         self.logger.debug("created {}:{}".format(self.__class__.__name__, self._id))
@@ -120,7 +120,7 @@ class AsyncioRunner(ConnectionObserverRunner):
 
     def shutdown(self):
         self.logger.debug("shutting down")
-        self._in_shutdown.set()  # will exit from feed()
+        self._in_shutdown = True  # will exit from feed()
 
     def submit(self, connection_observer):
         """
@@ -275,7 +275,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         # 6) runner is in shutdown state
         def secure_data_received(data):
             try:
-                if connection_observer.done() or self._in_shutdown.is_set():
+                if connection_observer.done() or self._in_shutdown:
                     feeding_completed.set()
                     return  # even not unsubscribed secure_data_received() won't pass data to done observer
                 connection_observer.data_received(data)
@@ -315,14 +315,11 @@ class AsyncioRunner(ConnectionObserverRunner):
                 if connection_observer.done():
                     self.logger.debug("done {!r}".format(connection_observer))
                     break
-                if self._in_shutdown.is_set():
+                if self._in_shutdown:
                     self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))
                     connection_observer.cancel()
                 await asyncio.sleep(0.005)  # give moler_conn a chance to feed observer
 
-            if self._in_shutdown.is_set():
-                self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))
-                connection_observer.cancel()
             # if stop_feeding.is_set():  # external world requests to stop feeder
             #     self.logger.debug("stopped {!r}".format(connection_observer))
 
