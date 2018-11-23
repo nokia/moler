@@ -154,7 +154,6 @@ class AsyncioRunner(ConnectionObserverRunner):
         #          SOLUTION 2 ??? - async-in-thread runner
         event_loop = asyncio.get_event_loop()
         feed_started = asyncio.Event()
-        feeding_completed = asyncio.Event()
 
         # Our submit consists of two steps:
         # 1. _start_feeding() which establishes data path from connection to observer
@@ -177,10 +176,10 @@ class AsyncioRunner(ConnectionObserverRunner):
         #
         # duration of submit() is measured as around 0.0007sec (depends on machine).
 
-        subscribed_data_receiver = self._start_feeding(connection_observer, feed_started, feeding_completed)
+        subscribed_data_receiver = self._start_feeding(connection_observer, feed_started)
         self.logger.debug("scheduling feed({})".format(connection_observer))
         connection_observer_future = asyncio.ensure_future(self.feed(connection_observer,
-                                                                     feed_started, feeding_completed,
+                                                                     feed_started,
                                                                      subscribed_data_receiver))
         self.logger.debug("runner submit() returning - future: {}:{}".format(instance_id(connection_observer_future),
                                                                              connection_observer_future))
@@ -262,7 +261,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         # Here we know, connection_observer_future is asyncio.Future (precisely asyncio.tasks.Task)
         # and we know it has __await__() method.
 
-    def _start_feeding(self, connection_observer, feed_started, feeding_completed):
+    def _start_feeding(self, connection_observer, feed_started):
         """
         Start feeding connection_observer by establishing data-channel from connection to observer.
         """
@@ -276,17 +275,13 @@ class AsyncioRunner(ConnectionObserverRunner):
         def secure_data_received(data):
             try:
                 if connection_observer.done() or self._in_shutdown:
-                    feeding_completed.set()
                     return  # even not unsubscribed secure_data_received() won't pass data to done observer
                 connection_observer.data_received(data)
-                if connection_observer.done():
-                    self.logger.debug("done {!r}".format(connection_observer))
-                    feeding_completed.set()
+
             except Exception as exc:  # TODO: handling stacktrace
                 # observers should not raise exceptions during data parsing
                 # but if they do so - we fix it
                 connection_observer.set_exception(exc)
-                feeding_completed.set()
 
         moler_conn = connection_observer.connection
         self.logger.debug("subscribing for data {!r}".format(connection_observer))
@@ -294,14 +289,14 @@ class AsyncioRunner(ConnectionObserverRunner):
         feed_started.set()  # mark that we have passed connection-subscription-step
         return secure_data_received  # to know what to unsubscribe
 
-    async def feed(self, connection_observer, feed_started, feeding_completed, subscribed_data_receiver):
+    async def feed(self, connection_observer, feed_started, subscribed_data_receiver):
         """
         Feeds connection_observer by transferring data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
         connection_observer._log(logging.INFO, "{} started.".format(connection_observer.get_long_desc()))
         if not feed_started.is_set():
-            subscribed_data_receiver = self._start_feeding(connection_observer, feed_started, feeding_completed)
+            subscribed_data_receiver = self._start_feeding(connection_observer, feed_started)
 
         await asyncio.sleep(0.005)  # give control back before we start processing
 
@@ -393,10 +388,9 @@ class AsyncioInThreadRunner(AsyncioRunner):
 
         async def start_feeder():
             feed_started = asyncio.Event()
-            feeding_completed = asyncio.Event()
             self.logger.debug("scheduling feed({})".format(connection_observer))
             conn_observer_future = asyncio.ensure_future(self.feed(connection_observer,
-                                                                   feed_started, feeding_completed,
+                                                                   feed_started,
                                                                    subscribed_data_receiver=None))
             self.logger.debug("scheduled feed() - future: {}".format(conn_observer_future))
             await feed_started.wait()
