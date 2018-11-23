@@ -334,6 +334,8 @@ def test_cannot_load_configuration_when_already_loaded_from_another_dict(moler_c
     with pytest.raises(MolerStatusException) as err:
         cannot_load_configuration_when_already_loaded_from_another_dict(moler_config)
 
+    assert "There were error messages in Moler execution. Please check Moler logs for details." in str(err.value)
+
 
 def test_cannot_load_configuration_when_already_loaded_from_another_file(moler_config):
     @MolerTest.raise_background_exceptions(check_steps_end=True)
@@ -350,6 +352,8 @@ def test_cannot_load_configuration_when_already_loaded_from_another_file(moler_c
 
     with pytest.raises(MolerStatusException) as err:
         cannot_load_configuration_when_already_loaded_from_another_file(moler_config)
+
+    assert "There were error messages in Moler execution. Please check Moler logs for details." in str(err.value)
 
 
 def test_can_load_configuration_when_already_loaded_from_same_file(moler_config, device_factory):
