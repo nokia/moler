@@ -30,10 +30,11 @@ class Scheduler(object):
         return job
 
     @staticmethod
-    def change_kind(scheduler_type):
+    def change_kind(scheduler_type=None):
         """
         Static method to change type of scheduler
-        :param scheduler_type: type of new scheduler. Allowed thread (default) or asyncio
+        :param scheduler_type: type of new scheduler. Allowed thread (default) or asyncio. If None then default multi
+            threading model will be used.
         :return: Nothing. If scheduler_type is not supported then it raises object of type moler.exceptions.WrongUsage
         """
         instance = Scheduler._get_instance()
@@ -51,7 +52,7 @@ class Scheduler(object):
     _object = None
     _lock = threading.Lock()
 
-    def __init__(self, scheduler_type='thread'):
+    def __init__(self, scheduler_type=None):
         """
         :param scheduler_type: 'thread' or 'asyncio'
         """
@@ -66,9 +67,12 @@ class Scheduler(object):
 
     def _swap_scheduler(self, new_scheduler_type):
         """
-        :param new_scheduler_type: type of new scheduler. 'thread' or 'asyncio'
+        :param new_scheduler_type: type of new scheduler. 'thread' or 'asyncio'. If None then default multi threading
+            Moler model will be used.
         :return: Nothing
         """
+        if new_scheduler_type is None:
+            new_scheduler_type = 'thread'  # TODO: call method to detect default type of multi threading Moler model.
         self._scheduler = self._create_scheduler(new_scheduler_type)
         self._scheduler_type = new_scheduler_type
 
@@ -84,7 +88,7 @@ class Scheduler(object):
             elif scheduler_type == 'asyncio':
                 scheduler = AsyncIOScheduler()
             else:
-                raise WrongUsage("Wrong value of 'scheduler_type': '{}'. Allowed are 'thread' or 'asyncio'")
+                raise WrongUsage("Wrong value of 'scheduler_type': '{}'. Allowed are 'thread' or 'asyncio'".format(scheduler_type))
         scheduler.start()
         return scheduler
 
