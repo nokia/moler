@@ -5,9 +5,9 @@ Testing command specific API
 Event is a type of ConnectionObserver.
 """
 
-__author__ = 'Michal Ernst'
+__author__ = 'Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'michal.ernst@nokia.com'
+__email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import importlib
 
@@ -60,6 +60,18 @@ def test_event_is_running(do_nothing_command__for_major_base_class):
     wait4.detect_pattern = 'Connection lose'
     assert not wait4.running()
     wait4.start()  # start the event-future
+
+
+def test_event_output_in_parts(buffer_connection):
+    from moler.events.unix.wait4prompt import Wait4prompt
+    outputs = ["ba", "sh\n"]
+    event = Wait4prompt(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
+    event.start(timeout=0.1)
+    for output in outputs:
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+
+    event.await_done()
+    assert event.done() is True
 
 
 # --------------------------- resources ---------------------------
