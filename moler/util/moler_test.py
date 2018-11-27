@@ -29,9 +29,13 @@ class MolerTest(object):
 
     @staticmethod
     def error(msg, raise_exception=False):
+        MolerTest._list_of_errors.append(msg)
+        MolerTest._error(msg, raise_exception)
+
+    @staticmethod
+    def _error(msg, raise_exception=False):
         MolerTest._was_error = True
         MolerTest._logger.error(msg, extra={'moler_error': True})
-        MolerTest._list_of_errors.append(msg)
         if raise_exception:
             raise MolerException(msg)
 
@@ -45,12 +49,12 @@ class MolerTest(object):
         if MolerTest._list_of_errors:
             err_msg = "There were errors in previous Moler test. Please check Moler logs for details. List of them:\n"
             for msg in MolerTest._list_of_errors:
-                MolerTest.error("    {}".format(msg))
+                MolerTest._error("    {}".format(msg))
         if unraised_exceptions:
             err_msg = "There were unhandled exceptions in previous Moler test. Please check Moler logs for details.\n"
             for unraised_exception in unraised_exceptions:
                 err_msg = "    {}{}\n".format(err_msg, unraised_exception)
-            MolerTest.error(err_msg)
+            MolerTest._error(err_msg)
         MolerTest._list_of_errors = list()  # clean the list for new test
 
         MolerTest._was_steps_end = False
@@ -61,7 +65,7 @@ class MolerTest(object):
         occured_exceptions = list()
         for unraised_exception in unraised_exceptions:
             occured_exceptions.append(unraised_exception)
-            MolerTest.error("Unhandled exception: '{}'".format(unraised_exception))
+            MolerTest._error("Unhandled exception: '{}'".format(unraised_exception))
         if caught_exception:
             occured_exceptions.append(caught_exception)
 
@@ -79,12 +83,12 @@ class MolerTest(object):
                     err_msg += "{}{}".format(exc_traceback, repr(exc))
                 except AttributeError:
                     err_msg += repr(exc)
-        if len(MolerTest._list_of_erros) > 0:
+        if len(MolerTest._list_of_errors) > 0:
             err_msg += "There were error messages in Moler execution."
         if err_msg:
-            MolerTest.error(err_msg)
+            MolerTest._error(err_msg)
             MolerTest._was_error = False
-            error_msgs = MolerTest._list_of_erros
+            error_msgs = MolerTest._list_of_errors
             MolerTest._list_of_errors = list()
             raise MolerStatusException(err_msg, occured_exceptions, error_msgs)
 
@@ -92,7 +96,7 @@ class MolerTest(object):
     def _check_steps_end():
         if not MolerTest._was_steps_end:
             err_msg = "Method steps_end() was not called.\n"
-            MolerTest.error(err_msg)
+            MolerTest._error(err_msg)
             MolerTest._was_error = False
             raise MolerStatusException(err_msg)
 
