@@ -50,7 +50,7 @@ class MolerTest(object):
         if MolerTest._list_of_errors:
             err_msg += "There were errors in previous Moler test. Please check Moler logs for details. List of them:\n"
             for msg in MolerTest._list_of_errors:
-                MolerTest._error("    {}".format(msg))
+                MolerTest._error("    {}\n".format(msg))
         if unraised_exceptions:
             err_msg += "There were unhandled exceptions in previous Moler test. Please check Moler logs for details.\n"
             for unraised_exception in unraised_exceptions:
