@@ -74,6 +74,15 @@ def test_event_output_in_parts(buffer_connection):
     assert event.done() is True
 
 
+def test_event_whole_output(buffer_connection):
+    from moler.events.unix.wait4prompt import Wait4prompt
+    output = "bash\n"
+    event = Wait4prompt(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
+    event.start(timeout=0.1)
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    event.await_done()
+    assert event.done() is True
+
 # --------------------------- resources ---------------------------
 
 
