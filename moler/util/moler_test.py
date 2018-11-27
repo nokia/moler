@@ -45,13 +45,14 @@ class MolerTest(object):
 
     @staticmethod
     def _steps_start():
+        err_msg = ""
         unraised_exceptions = ConnectionObserver.get_unraised_exceptions(True)
         if MolerTest._list_of_errors:
-            err_msg = "There were errors in previous Moler test. Please check Moler logs for details. List of them:\n"
+            err_msg += "There were errors in previous Moler test. Please check Moler logs for details. List of them:\n"
             for msg in MolerTest._list_of_errors:
                 MolerTest._error("    {}".format(msg))
         if unraised_exceptions:
-            err_msg = "There were unhandled exceptions in previous Moler test. Please check Moler logs for details.\n"
+            err_msg += "There were unhandled exceptions in previous Moler test. Please check Moler logs for details.\n"
             for unraised_exception in unraised_exceptions:
                 err_msg = "    {}{}\n".format(err_msg, unraised_exception)
             MolerTest._error(err_msg)
