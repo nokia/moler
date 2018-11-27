@@ -199,7 +199,8 @@ def test_log_error_when_not_abs_path_for_configuation_path_was_used(moler_config
     with pytest.raises(MolerStatusException) as err:
         log_error_when_not_abs_path_for_configuation_path_was_used(moler_config)
 
-    assert "There were error messages in Moler execution. Please check Moler logs for details." in str(err.value)
+    assert "For configuration file path: 'resources/device_config.yml' was used but absolute path is needed!" in str(
+        err.value)
 
 
 def test_return_new_device_when_call_another_time_same_desc_device(device_factory):
@@ -334,7 +335,7 @@ def test_cannot_load_configuration_when_already_loaded_from_another_dict(moler_c
     with pytest.raises(MolerStatusException) as err:
         cannot_load_configuration_when_already_loaded_from_another_dict(moler_config)
 
-    assert "There were error messages in Moler execution. Please check Moler logs for details." in str(err.value)
+    assert "Reload configuration under one Moler execution not supported!" in str(err.value)
 
 
 def test_cannot_load_configuration_when_already_loaded_from_another_file(moler_config):
@@ -353,7 +354,9 @@ def test_cannot_load_configuration_when_already_loaded_from_another_file(moler_c
     with pytest.raises(MolerStatusException) as err:
         cannot_load_configuration_when_already_loaded_from_another_file(moler_config)
 
-    assert "There were error messages in Moler execution. Please check Moler logs for details." in str(err.value)
+    assert "Try to load '/home/ute/auto/github/test/resources/device_config2.yml' config " \
+           "when '/home/ute/auto/github/test/resources/device_config.yml' config already loaded.\n" \
+           "Reload configuration under one Moler execution not supported!" in str(err.value)
 
 
 def test_can_load_configuration_when_already_loaded_from_same_file(moler_config, device_factory):
