@@ -296,10 +296,11 @@ class AsyncioRunner(ConnectionObserverRunner):
                 # but if they do so - we fix it
                 connection_observer.set_exception(exc)
             finally:
-                if connection_observer._exception:
-                    self.logger.debug("{} raised: {!r}".format(connection_observer, connection_observer._exception))
-                elif connection_observer.done() and not connection_observer.cancelled():
-                    self.logger.debug("{} returned result: {}".format(connection_observer, self._result))
+                if connection_observer.done() and not connection_observer.cancelled():
+                    if connection_observer._exception:
+                        self.logger.debug("{} raised: {!r}".format(connection_observer, connection_observer._exception))
+                    else:
+                        self.logger.debug("{} returned: {}".format(connection_observer, self._result))
 
         moler_conn = connection_observer.connection
         self.logger.debug("subscribing for data {!r}".format(connection_observer))
@@ -515,8 +516,8 @@ class AsyncioInThreadRunner(AsyncioRunner):
         self.logger.debug("returning iterator for {}".format(connection_observer))
         while not connection_observer_future.done():
             yield None
-        # return result_for_runners(connection_observer_future)  # May raise too.   # Python > 3.3
-        res = result_for_runners(connection_observer_future)
+        # return result_for_runners(connection_observer)  # May raise too.   # Python > 3.3
+        res = result_for_runners(connection_observer)
         raise StopIteration(res)  # Python 2 compatibility
 
 

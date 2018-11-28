@@ -251,11 +251,6 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             done, not_done = wait([connection_observer_future], timeout=wait_tick)
             if connection_observer_future in done:
                 connection_observer_future._stop()
-                try:
-                    result = result_for_runners(connection_observer_future)
-                    self.logger.debug("{} returned {}".format(connection_observer, result))
-                except Exception as err:
-                    self.logger.debug("{} raised {!r}".format(connection_observer, err))
                 return None
             if check_timeout_from_observer:
                 timeout = connection_observer.timeout
@@ -291,8 +286,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         """
         while not connection_observer_future.done():
             yield None
-        # return result_for_runners(connection_observer_future)  # May raise too.   # Python > 3.3
-        res = result_for_runners(connection_observer_future)
+        # return result_for_runners(connection_observer)  # May raise too.   # Python > 3.3
+        res = result_for_runners(connection_observer)
         raise StopIteration(res)  # Python 2 compatibility
 
     def _start_feeding(self, connection_observer, feed_started):
@@ -309,6 +304,12 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 # observers should not raise exceptions during data parsing
                 # but if they do so - we fix it
                 connection_observer.set_exception(exc)
+            finally:
+                if connection_observer.done() and not connection_observer.cancelled():
+                    if connection_observer._exception:
+                        self.logger.debug("{} raised: {!r}".format(connection_observer, connection_observer._exception))
+                    else:
+                        self.logger.debug("{} returned: {}".format(connection_observer, self._result))
 
         moler_conn = connection_observer.connection
         self.logger.debug("subscribing for data {!r}".format(connection_observer))
@@ -346,13 +347,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         feed_done.set()
 
         connection_observer._log(logging.INFO, "{} finished.".format(connection_observer.get_short_desc()))
-        try:
-            result = result_for_runners(connection_observer)
-            self.logger.debug("{} returning result: {}".format(connection_observer, result))
-            return result
-        except Exception as err:
-            self.logger.debug("{} raising: {!r}".format(connection_observer, err))
-            raise
+        return None
 
     def timeout_change(self, timedelta):
         pass
