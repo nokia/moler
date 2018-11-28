@@ -116,11 +116,18 @@ class AsyncioRunner(ConnectionObserverRunner):
         self._id = instance_id(self)
         self.logger = logging.getLogger('{}:{}'.format(logger_name, self._id))
         self.logger.debug("created {}:{}".format(self.__class__.__name__, self._id))
+        self._submitted_futures = []
         atexit.register(self.shutdown)
 
     def shutdown(self):
         self.logger.debug("shutting down")
         self._in_shutdown = True  # will exit from feed()
+        # event_loop = asyncio.get_event_loop()
+        # if not event_loop.is_closed():
+        #     remaining_tasks = asyncio.gather(*self._submitted_futures, return_exceptions=True)
+        #     remaining_tasks.cancel()
+        #     # cleanup_selected_tasks(tasks2cancel=self._submitted_futures, loop=event_loop, logger=self.logger)
+        self._submitted_futures = []
 
     def submit(self, connection_observer):
         """
@@ -183,6 +190,7 @@ class AsyncioRunner(ConnectionObserverRunner):
                                                                      subscribed_data_receiver))
         self.logger.debug("runner submit() returning - future: {}:{}".format(instance_id(connection_observer_future),
                                                                              connection_observer_future))
+        self._submitted_futures.append(connection_observer_future)
         return connection_observer_future
 
     def wait_for(self, connection_observer, connection_observer_future, timeout=None):
@@ -235,6 +243,8 @@ class AsyncioRunner(ConnectionObserverRunner):
         finally:
             moler_conn = connection_observer.connection
             moler_conn.unsubscribe(connection_observer.data_received)
+        if connection_observer_future in self._submitted_futures:
+            self._submitted_futures.remove(connection_observer_future)
         return None
 
     # https://stackoverflow.com/questions/51029111/python-how-to-implement-a-c-function-as-awaitable-coroutine
@@ -272,6 +282,9 @@ class AsyncioRunner(ConnectionObserverRunner):
         # 4) connection observer times out                  ------> NOT HANDLED HERE (yet?)
         # 5) connection observer consuming data raises exception -> secured to .set_exception() here
         # 6) runner is in shutdown state
+        #
+        # main purpose of secure_data_received() is to progress observer-life by data
+        #
         def secure_data_received(data):
             try:
                 if connection_observer.done() or self._in_shutdown:
@@ -318,19 +331,35 @@ class AsyncioRunner(ConnectionObserverRunner):
             # if stop_feeding.is_set():  # external world requests to stop feeder
             #     self.logger.debug("stopped {!r}".format(connection_observer))
 
+            #
+            # main purpose of feed() is to progress observer-life by time
+            #             firing timeout should do: observer.set_exception(Timeout)
+            #
+            # second responsibility: subscribe, unsubscribe observer from connection (build/break data path)
+            # third responsibility: react on external stop request via observer.cancel() or runner.shutdown()
+
             self.logger.debug("unsubscribing {!r}".format(connection_observer))
             moler_conn.unsubscribe(subscribed_data_receiver)  # stop feeding
 
             # feed_done.set()
 
             connection_observer._log(logging.INFO, "{} finished.".format(connection_observer.get_short_desc()))
+            # There is no need to put observer's result/exception into future:
+            # Future's goal is to feed observer (by data or time) - exiting future here means observer is already fed.
+            #
+            # Moreover, putting observer's exception here, in future, causes problem at asyncio shutdown:
+            # we get logs like: "Task exception was never retrieved" with bunch of stacktraces.
+            # That is correct behaviour of asyncio to not exit silently when future/task has gone wrong.
+            # However, feed() task worked fine since it correctly handled observer's exception.
+            # Another words - it is not feed's exception but observer's exception so, it should not be raised here.
+            #
             try:
                 result = result_for_runners(connection_observer)
-                self.logger.debug("{} returning result: {}".format(connection_observer, result))
+                self.logger.debug("{} returned result: {}".format(connection_observer, result))
                 return result
             except Exception as err:
-                self.logger.debug("{} raising: {!r}".format(connection_observer, err))
-                raise
+                self.logger.debug("{} raised: {!r}".format(connection_observer, err))
+                return None
 
         except asyncio.CancelledError:
             self.logger.debug("Cancelled {!r}.feed".format(self))
@@ -352,6 +381,16 @@ class AsyncioInThreadRunner(AsyncioRunner):
     def __init__(self):
         """Create instance of AsyncioInThreadRunner class"""
         super(AsyncioInThreadRunner, self).__init__(logger_name='moler.runner.asyncio-in-thrd')
+
+    def shutdown(self):
+        self.logger.debug("shutting down")
+        self._in_shutdown = True  # will exit from feed()
+        # event_loop = asyncio.get_event_loop()
+        # if not event_loop.is_closed():
+        #     remaining_tasks = asyncio.gather(*self._submitted_futures, return_exceptions=True)
+        #     remaining_tasks.cancel()
+        #     # cleanup_selected_tasks(tasks2cancel=self._submitted_futures, loop=event_loop, logger=self.logger)
+        #     self._submitted_futures = []
 
     def submit(self, connection_observer):
         """
@@ -491,6 +530,31 @@ class AsyncioInThreadRunner(AsyncioRunner):
 # TODO:   if used as   'conn-observer.await_done(timeout=10)'   then use  AsyncioInThreadRunner.wait_for()
 # so the last one is not blocking even if used inside  async def? - not true, blocks inside run_async_coroutine()
 
+
+def cleanup_remaining_tasks(loop, logger):
+    # https://stackoverflow.com/questions/30765606/whats-the-correct-way-to-clean-up-after-an-interrupted-event-loop
+    # https://medium.com/python-pandemonium/asyncio-coroutine-patterns-beyond-await-a6121486656f
+    # Handle shutdown gracefully by waiting for all tasks to be cancelled
+    all_tasks = [task for task in asyncio.Task.all_tasks(loop=loop)]
+    not_done_tasks = [task for task in asyncio.Task.all_tasks(loop=loop) if not task.done()]
+    if not_done_tasks:
+        logger.info("cancelling all remaining tasks")
+        # NOTE: following code cancels all tasks - possibly not ours as well
+
+        cleanup_selected_tasks(tasks2cancel=not_done_tasks, loop=loop, logger=logger)
+
+
+def cleanup_selected_tasks(tasks2cancel, loop, logger):
+    logger.debug("tasks to cancel: {}".format(tasks2cancel))
+    remaining_tasks = asyncio.gather(*tasks2cancel, loop=loop, return_exceptions=True)
+    remaining_tasks.add_done_callback(lambda t: loop.stop())
+    remaining_tasks.cancel()
+
+    # Keep the event loop running until it is either destroyed or all
+    # tasks have really terminated
+    loop.run_until_complete(remaining_tasks)
+
+
 class AsyncioLoopThread(TillDoneThread):
     def __init__(self, name="Asyncio"):
         self.logger = logging.getLogger('moler.asyncio-loop-thrd')
@@ -527,10 +591,15 @@ class AsyncioLoopThread(TillDoneThread):
         self.logger.info("started new asyncio-loop-thrd ...")
 
     def _start_loop(self, loop, loop_started, loop_done):
-        self.logger.info("starting new asyncio loop ...")
         asyncio.set_event_loop(loop)
-        loop.run_until_complete(self._await_stop_loop(loop_started=loop_started, stop_event=loop_done))
-        self.logger.info("... asyncio loop done")
+        try:
+            self.logger.info("starting new asyncio loop ...")
+            loop.run_until_complete(self._await_stop_loop(loop_started=loop_started, stop_event=loop_done))
+            # cleanup_remaining_tasks(loop=loop, logger=self.logger)
+        finally:
+            self.logger.info("closing events loop ...")
+            loop.close()
+            self.logger.info("... asyncio loop done")
 
     async def _await_stop_loop(self, loop_started, stop_event):
         # stop_event may be set directly via self._loop_done.set()
