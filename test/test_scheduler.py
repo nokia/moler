@@ -8,7 +8,8 @@ __email__ = 'marcin.usielski@nokia.com'
 
 from moler.scheduler import Scheduler
 from moler.exceptions import WrongUsage
-from time import sleep
+import time
+import moler.sleep
 import pytest
 
 try:
@@ -25,7 +26,7 @@ def test_job():
     values = {'number': 0}
     job = Scheduler.get_job(callback, 0.1, {'param_dict': values})
     job.start()
-    sleep(0.22)
+    moler.sleep.Sleep.sleep(0.22)
     job.stop()
     assert(2 == values['number'])
 
@@ -40,7 +41,7 @@ def test_job_callback_as_method():
     obj = TestCallback()
     job = Scheduler.get_job(obj.callback_method, 0.1, {'param_dict': values})
     job.start()
-    sleep(0.22)
+    moler.sleep.Sleep.sleep(0.22)
     job.stop()
     assert(2 == values['number'])
     assert(2 == obj.counter)
@@ -55,12 +56,23 @@ def test_2_jobs_concurrently():
     job1.start()
     job1.start()
     job2.start()
-    sleep(0.23)
+    moler.sleep.Sleep.sleep(0.23)
     job1.stop()
     job1.stop()
     job2.stop()
     assert (2 == values_2['number'])
     assert (4 == values_1['number'])
+
+
+def test_thread_test_job():
+    Scheduler.change_kind("thread")
+    values = {'number': 0}
+    job = Scheduler.get_job(callback, 0.1, {'param_dict': values})
+    job.start()
+    time.sleep(0.33)
+    job.stop()
+    Scheduler.change_kind()  # Set the default
+    assert (3 == values['number'])
 
 
 def test_asyncio_test_job():
@@ -72,7 +84,7 @@ def test_asyncio_test_job():
     loop.run_until_complete(asyncio.sleep(0.23))
     job.stop()
     loop.stop()
-    Scheduler.change_kind("thread")
+    Scheduler.change_kind()  # Set the default
     assert (2 == values['number'])
 
 
@@ -80,6 +92,7 @@ def test_cannot_create_more_objects():
     with pytest.raises(WrongUsage):
         Scheduler()
         Scheduler()
+
 
 def callback(param_dict):
     param_dict['number'] += 1
