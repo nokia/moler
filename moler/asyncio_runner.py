@@ -295,6 +295,11 @@ class AsyncioRunner(ConnectionObserverRunner):
                 # observers should not raise exceptions during data parsing
                 # but if they do so - we fix it
                 connection_observer.set_exception(exc)
+            finally:
+                if connection_observer._exception:
+                    self.logger.debug("{} raised: {!r}".format(connection_observer, connection_observer._exception))
+                elif connection_observer.done() and not connection_observer.cancelled():
+                    self.logger.debug("{} returned result: {}".format(connection_observer, self._result))
 
         moler_conn = connection_observer.connection
         self.logger.debug("subscribing for data {!r}".format(connection_observer))
@@ -353,13 +358,7 @@ class AsyncioRunner(ConnectionObserverRunner):
             # However, feed() task worked fine since it correctly handled observer's exception.
             # Another words - it is not feed's exception but observer's exception so, it should not be raised here.
             #
-            try:
-                result = result_for_runners(connection_observer)
-                self.logger.debug("{} returned result: {}".format(connection_observer, result))
-                return result
-            except Exception as err:
-                self.logger.debug("{} raised: {!r}".format(connection_observer, err))
-                return None
+            return None
 
         except asyncio.CancelledError:
             self.logger.debug("Cancelled {!r}.feed".format(self))

@@ -212,6 +212,23 @@ async def test_future_is_not_exception_broken_when_observer_is_exception_broken(
 
     assert future.exception() is None
 
+
+@pytest.mark.asyncio
+async def test_future_doesnt_return_result_of_observer(event_loop, async_runner):
+    """Future just returns None when it is done"""
+    from moler.connection import ObservableConnection
+
+    moler_conn = ObservableConnection()
+    net_down_detector = NetworkDownDetector(connection=moler_conn)
+    connection = net_down_detector.connection
+    future = async_runner.submit(net_down_detector)
+
+    connection.data_received("61 bytes")
+    connection.data_received("ping: Network is unreachable")
+    await asyncio.sleep(0.2)
+
+    assert future.result() is None
+
 # TODO: tests for error cases
 # TODO: handling not awaited futures (infinite background observer, timeouting observer but "failing path stopped"
 
