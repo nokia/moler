@@ -25,6 +25,24 @@ def configure_logging():
     )
 
 
+def _cleanup_remaining_tasks(loop, logger):
+    # https://stackoverflow.com/questions/30765606/whats-the-correct-way-to-clean-up-after-an-interrupted-event-loop
+    # https://medium.com/python-pandemonium/asyncio-coroutine-patterns-beyond-await-a6121486656f
+    # Handle shutdown gracefully by waiting for all tasks to be cancelled
+    not_done_tasks = [task for task in asyncio.Task.all_tasks(loop=loop) if not task.done()]
+    if not_done_tasks:
+        logger.info("cancelling all remaining tasks")
+        # NOTE: following code cancels all tasks - possibly not ours as well
+        remaining_tasks = asyncio.gather(*not_done_tasks, loop=loop, return_exceptions=True)
+        remaining_tasks.add_done_callback(lambda t: loop.stop())
+        logger.debug("remaining tasks = {}".format(not_done_tasks))
+        remaining_tasks.cancel()
+
+        # Keep the event loop running until it is either destroyed or all
+        # tasks have really terminated
+        loop.run_until_complete(remaining_tasks)
+
+
 def run_via_asyncio(async_to_run, debug_event_loop=False):
     logger = logging.getLogger('asyncio.main')
 
@@ -35,19 +53,7 @@ def run_via_asyncio(async_to_run, debug_event_loop=False):
         logger.info("starting events loop ...")
         event_loop.run_until_complete(async_to_run)
 
-        # https://stackoverflow.com/questions/30765606/whats-the-correct-way-to-clean-up-after-an-interrupted-event-loop
-        # https://medium.com/python-pandemonium/asyncio-coroutine-patterns-beyond-await-a6121486656f
-        # Handle shutdown gracefully by waiting for all tasks to be cancelled
-        logger.info("cancelling all remaining tasks")
-        # NOTE: following code cancels all tasks - possibly not ours as well
-        not_done_tasks = [task for task in asyncio.Task.all_tasks() if not task.done()]
-        remaining_tasks = asyncio.gather(*not_done_tasks, return_exceptions=True)
-        remaining_tasks.add_done_callback(lambda t: event_loop.stop())
-        remaining_tasks.cancel()
-
-        # Keep the event loop running until it is either destroyed or all
-        # tasks have really terminated
-        event_loop.run_until_complete(remaining_tasks)
+        _cleanup_remaining_tasks(loop=event_loop, logger=logger)
 
     finally:
         logger.info("closing events loop ...")
