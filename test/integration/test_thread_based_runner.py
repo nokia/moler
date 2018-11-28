@@ -44,12 +44,12 @@ def test_can_await_connection_observer_to_complete(observer_and_awaited_data,
     try:
         ext_io.start()
         observer_runner.wait_for(conn_observer,
-                                          connection_observer_future,
-                                          timeout=1.0)
+                                 connection_observer_future,
+                                 timeout=1.0)
         assert not connection_observer_future.running()
-        assert connection_observer_future.done()
         assert conn_observer.done()
-        assert connection_observer_future.result() is not None
+        assert connection_observer_future.done()
+        assert connection_observer_future.result() is None
     finally:  # test cleanup
         ext_io.join()
         connection_observer_future.cancel()
