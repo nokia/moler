@@ -300,7 +300,7 @@ class AsyncioRunner(ConnectionObserverRunner):
                     if connection_observer._exception:
                         self.logger.debug("{} raised: {!r}".format(connection_observer, connection_observer._exception))
                     else:
-                        self.logger.debug("{} returned: {}".format(connection_observer, self._result))
+                        self.logger.debug("{} returned: {}".format(connection_observer, connection_observer._result))
 
         moler_conn = connection_observer.connection
         self.logger.debug("subscribing for data {!r}".format(connection_observer))
