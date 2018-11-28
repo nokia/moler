@@ -73,7 +73,11 @@ class Scheduler(object):
         """
         if new_scheduler_type is None:
             new_scheduler_type = 'thread'  # TODO: call method to detect default type of multi threading Moler model.
-        self._scheduler = self._create_scheduler(new_scheduler_type)
+        scheduler = self._create_scheduler(new_scheduler_type)
+        if self._scheduler:
+            self._scheduler.remove_all_jobs()
+            self._scheduler.shutdown()
+        self._scheduler = scheduler
         self._scheduler_type = new_scheduler_type
 
     def _create_scheduler(self, scheduler_type):
@@ -81,14 +85,12 @@ class Scheduler(object):
         :param scheduler_type: type of new scheduler: 'thread' or 'asyncio'
         :return: instance of scheduler
         """
-        scheduler = self._scheduler
-        if self._scheduler_type != scheduler_type:
-            if scheduler_type == 'thread':
-                scheduler = BackgroundScheduler()
-            elif scheduler_type == 'asyncio':
-                scheduler = AsyncIOScheduler()
-            else:
-                raise WrongUsage("Wrong value of 'scheduler_type': '{}'. Allowed are 'thread' or 'asyncio'".format(scheduler_type))
+        if scheduler_type == 'thread':
+            scheduler = BackgroundScheduler()
+        elif scheduler_type == 'asyncio':
+            scheduler = AsyncIOScheduler()
+        else:
+            raise WrongUsage("Wrong value of 'scheduler_type': '{}'. Allowed are 'thread' or 'asyncio'".format(scheduler_type))
         scheduler.start()
         return scheduler
 
