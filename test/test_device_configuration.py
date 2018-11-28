@@ -199,7 +199,8 @@ def test_log_error_when_not_abs_path_for_configuation_path_was_used(moler_config
     with pytest.raises(MolerStatusException) as err:
         log_error_when_not_abs_path_for_configuation_path_was_used(moler_config)
 
-    assert "There were error messages in Moler execution. Please check Moler logs for details." in str(err.value)
+    assert "For configuration file path: 'resources/device_config.yml' was used but absolute path is needed!" in str(
+        err.value)
 
 
 def test_return_new_device_when_call_another_time_same_desc_device(device_factory):
@@ -334,14 +335,15 @@ def test_cannot_load_configuration_when_already_loaded_from_another_dict(moler_c
     with pytest.raises(MolerStatusException) as err:
         cannot_load_configuration_when_already_loaded_from_another_dict(moler_config)
 
-    assert "There were error messages in Moler execution. Please check Moler logs for details." in str(err.value)
+    assert "Reload configuration under one Moler execution not supported!" in str(err.value)
 
 
 def test_cannot_load_configuration_when_already_loaded_from_another_file(moler_config):
+    conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
+    conn_config2 = os.path.join(os.path.dirname(__file__), "resources", "device_config2.yml")
+
     @MolerTest.raise_background_exceptions(check_steps_end=True)
-    def cannot_load_configuration_when_already_loaded_from_another_file(moler_config):
-        conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
-        conn_config2 = os.path.join(os.path.dirname(__file__), "resources", "device_config2.yml")
+    def cannot_load_configuration_when_already_loaded_from_another_file(moler_config, conn_config, conn_config2):
         moler_config.load_config(config=conn_config, config_type='yaml')
 
         moler_config.load_config(config=conn_config2, config_type='yaml')
@@ -351,9 +353,11 @@ def test_cannot_load_configuration_when_already_loaded_from_another_file(moler_c
     from moler.exceptions import MolerStatusException
 
     with pytest.raises(MolerStatusException) as err:
-        cannot_load_configuration_when_already_loaded_from_another_file(moler_config)
+        cannot_load_configuration_when_already_loaded_from_another_file(moler_config, conn_config, conn_config2)
 
-    assert "There were error messages in Moler execution. Please check Moler logs for details." in str(err.value)
+    assert "Try to load '{}' config when '{}' config already loaded.\n" \
+           "Reload configuration under one Moler execution not supported!".format(conn_config2, conn_config) in str(
+            err.value)
 
 
 def test_can_load_configuration_when_already_loaded_from_same_file(moler_config, device_factory):
