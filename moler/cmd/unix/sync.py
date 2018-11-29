@@ -4,6 +4,7 @@ Sync command module.
 """
 
 __author__ = 'Julia Patacz'
+__author__= 'Bartosz Odziomek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'julia.patacz@nokia.com'
 
