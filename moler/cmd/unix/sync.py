@@ -3,10 +3,9 @@
 Sync command module.
 """
 
-__author__ = 'Julia Patacz'
-__author__= 'Bartosz Odziomek'
+__author__ = 'Julia Patacz, Bartosz Odziomek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'julia.patacz@nokia.com'
+__email__ = 'julia.patacz@nokia.com, bartosz.odziomek@nokia.com'
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 
