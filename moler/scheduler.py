@@ -74,7 +74,7 @@ class Scheduler(object):
         if new_scheduler_type is None:
             new_scheduler_type = 'thread'  # TODO: call method to detect default type of multi threading Moler model.
         scheduler = self._create_scheduler(new_scheduler_type)
-        if self._scheduler:
+        if self._scheduler and (self._scheduler != scheduler):
             self._scheduler.remove_all_jobs()
             self._scheduler.shutdown()
         self._scheduler = scheduler
@@ -85,6 +85,8 @@ class Scheduler(object):
         :param scheduler_type: type of new scheduler: 'thread' or 'asyncio'
         :return: instance of scheduler
         """
+        if self._scheduler_type == scheduler_type:
+            return self._scheduler
         if scheduler_type == 'thread':
             scheduler = BackgroundScheduler()
         elif scheduler_type == 'asyncio':
