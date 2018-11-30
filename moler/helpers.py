@@ -3,14 +3,51 @@
 Utility/common code of library.
 """
 
-__author__ = 'Grzegorz Latuszek, Michal Ernst'
+__author__ = 'Grzegorz Latuszek, Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
+
+import importlib
+import re
+import copy
+
+try:
+    import collections.abc as collections
+except ImportError:
+    import collections
 
 
 class ClassProperty(property):
     def __get__(self, cls, owner):
         return classmethod(self.fget).__get__(None, owner)()
+
+
+def copy_list(src, deep_copy=False):
+    """
+    Copies list, if None then returns empty list
+    :param src: List to copy
+    :param deep_copy: if False then shallow copy, if True then deep copy
+    :return: Copied list
+    """
+    if src is None:
+        return list()
+    if deep_copy:
+        return copy.deepcopy(src)
+    return list(src)
+
+
+def copy_dict(src, deep_copy=False):
+    """
+    Copies dict, if None then returns empty dict
+    :param src: List to copy
+    :param deep_copy: if False then shallow copy, if True then deep copy
+    :return: Copied dict
+    """
+    if src is None:
+        return dict()
+    if deep_copy:
+        return copy.deepcopy(src)
+    return dict(src)
 
 
 def instance_id(instance):
@@ -36,3 +73,35 @@ def camel_case_to_lower_case_underscore(string):
             from_char_position = current_char_position
     words.append(string[from_char_position:].lower())
     return '_'.join(words)
+
+
+_re_escape_codes = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")  # Regex to remove color codes from command output
+
+
+def remove_escape_codes(line):
+    """
+    :param line: line from terminal
+    :return: line without terminal escape codes
+    """
+    line = re.sub(_re_escape_codes, "", line)
+    return line
+
+
+def create_object_from_name(full_class_name, constructor_params):
+    name_splitted = full_class_name.split('.')
+    module_name = ".".join(name_splitted[:-1])
+    class_name = name_splitted[-1]
+
+    imported_module = importlib.import_module(module_name)
+    class_imported = getattr(imported_module, class_name)
+    obj = class_imported(constructor_params)
+    return obj
+
+
+def update_dict(target_dict, expand_dict):
+    for key, value in expand_dict.items():
+        if (key in target_dict and isinstance(target_dict[key], dict) and isinstance(expand_dict[key],
+                                                                                     collections.Mapping)):
+            update_dict(target_dict[key], expand_dict[key])
+        else:
+            target_dict[key] = expand_dict[key]

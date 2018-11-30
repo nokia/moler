@@ -3,14 +3,15 @@
 Generic Unix/Linux module
 """
 
-__author__ = 'Marcin Usielski'
+__author__ = 'Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
 import logging
 import re
-import sys
+
+import six
 
 from moler.cmd import RegexHelper
 from moler.command import Command
@@ -18,16 +19,15 @@ from moler.command import Command
 
 class CommandTextualGeneric(Command):
     _re_default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')  # When user provides no prompt
-    _default_new_line_chars = ("\n", "\r")  # New line chars on device, not system with script!
+    _default_newline_chars = ("\n", "\r")  # New line chars on device, not system with script!
 
-    def __init__(self, connection, prompt=None, new_line_chars=None):
+    def __init__(self, connection, prompt=None, newline_chars=None, runner=None):
         """
         :param connection: connection to device
         :param prompt: expected prompt sending by device after command execution. Maybe String or compiled re
-        :param new_line_chars:  new line chars on device
+        :param newline_chars:  new line chars on device
         """
-        super(CommandTextualGeneric, self).__init__(connection)
-        self.logger = logging.getLogger('moler.conn-observer')
+        super(CommandTextualGeneric, self).__init__(connection=connection, runner=runner)
         self.__command_string = None  # String representing command on device
         self.current_ret = dict()  # Placeholder for result as-it-grows, before final write into self._result
         self._cmd_escaped = None  # Escaped regular expression string with command
@@ -37,9 +37,9 @@ class CommandTextualGeneric(Command):
         self.break_on_timeout = True  # If True then Ctrl+c on timeout
         self._last_not_full_line = None  # Part of line
         self._re_prompt = CommandTextualGeneric._calculate_prompt(prompt)  # Expected prompt on device
-        self._new_line_chars = new_line_chars  # New line characters on device
-        if not self._new_line_chars:
-            self._new_line_chars = CommandTextualGeneric._default_new_line_chars
+        self._newline_chars = newline_chars  # New line characters on device
+        if not self._newline_chars:
+            self._newline_chars = CommandTextualGeneric._default_newline_chars
 
     @property
     def command_string(self):
@@ -57,21 +57,17 @@ class CommandTextualGeneric(Command):
     def _calculate_prompt(prompt):
         if not prompt:
             prompt = CommandTextualGeneric._re_default_prompt
-        if sys.version_info >= (3, 0):
-            if isinstance(prompt, str):
-                prompt = re.compile(prompt)
-        else:
-            if isinstance(prompt, basestring):
-                prompt = re.compile(prompt)
+        if isinstance(prompt, six.string_types):
+            prompt = re.compile(prompt)
         return prompt
 
-    def is_new_line(self, line):  # TODO: change to has_endline_char()
+    def has_endline_char(self, line):
         """
         Method to check if line has chars of new line at the right side
         :param line: String to check
         :return: True if any new line char was found, False otherwise
         """
-        if line.endswith(self._new_line_chars):
+        if line.endswith(self._newline_chars):
             return True
         return False
 
@@ -86,7 +82,7 @@ class CommandTextualGeneric(Command):
             if self._last_not_full_line is not None:
                 line = self._last_not_full_line + line
                 self._last_not_full_line = None
-            is_full_line = self.is_new_line(line)
+            is_full_line = self.has_endline_char(line)
             if is_full_line:
                 line = self._strip_new_lines_chars(line)
             else:
@@ -116,8 +112,8 @@ class CommandTextualGeneric(Command):
                 if not self.done():
                     self.set_result(self.current_ret)
             else:
-                self.logger.debug(
-                    "Found candidate for final prompt but current ret is None or empty, required not None nor empty.")
+                self._log(lvl=logging.DEBUG,
+                          msg="Found candidate for final prompt but current ret is None or empty, required not None nor empty.")
 
     def is_end_of_cmd_output(self, line):
         if self._regex_helper.search_compiled(self._re_prompt, line):
@@ -129,7 +125,7 @@ class CommandTextualGeneric(Command):
         :param line: line from device
         :return: line without new lines chars
         """
-        for char in self._new_line_chars:
+        for char in self._newline_chars:
             line = line.rstrip(char)
         return line
 

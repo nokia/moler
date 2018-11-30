@@ -125,6 +125,20 @@ class EventWrongState(MolerException):
         super(EventWrongState, self).__init__(err_msg)
 
 
+class MolerStatusException(MolerException):
+    def __init__(self, msg, exceptions=None, messages=None):
+        self.exceptions = exceptions
+        self.messages = messages
+        err_msg = msg
+        if self.exceptions:
+            for exception in self.exceptions:
+                err_msg = "{}\n{}".format(err_msg, exception)
+        if self.messages:
+            for message in self.messages:
+                err_msg = "{}\n{}".format(err_msg, message)
+        super(MolerStatusException, self).__init__(err_msg)
+
+
 class CommandTimeout(ConnectionObserverTimeout):
     pass
 

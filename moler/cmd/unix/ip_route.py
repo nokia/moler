@@ -10,14 +10,25 @@ __email__ = 'snackwell.yang@nokia-sbell.com, marcin.usielski@nokia.com, grzegorz
 import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
-from moler.cmd.converterhelper import ConverterHelper
+from moler.util.converterhelper import ConverterHelper
 from moler.exceptions import ParsingDone
 
 
 class IpRoute(GenericUnixCommand):
 
-    def __init__(self, connection, prompt=None, new_line_chars=None, is_ipv6=False, addr_get=None, addr_from=None):
-        super(IpRoute, self).__init__(connection, prompt, new_line_chars)
+    def __init__(self, connection, prompt=None, newline_chars=None, runner=None, is_ipv6=False, addr_get=None,
+                 addr_from=None):
+        """
+        :param connection: Moler connection to device, terminal when command is executed.
+        :param prompt: prompt (on system where command runs).
+        :param newline_chars: Characters to split lines - list.
+        :param runner: Runner to run command.
+        :param is_ipv6: Set True if IP v6 or False for IP v4
+        :param addr_get: Address get, parameter of unix ip route command
+        :param addr_from: From address, parameter of unix ip route command
+        """
+        super(IpRoute, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
+                                      runner=runner)
         self._converter_helper = ConverterHelper()
         # Parameters defined by calling the command
         self.is_ipv6 = is_ipv6
@@ -28,6 +39,10 @@ class IpRoute(GenericUnixCommand):
         self.current_ret["ADDRESS"] = dict()
 
     def build_command_string(self):
+        """
+        Builds command string from parameters passed to object.
+        :return: String representation of command to send over connection to device.
+        """
         cmd = "ip route"
         if self.is_ipv6:
             cmd = "ip -6 route"
@@ -38,6 +53,12 @@ class IpRoute(GenericUnixCommand):
         return cmd
 
     def on_new_line(self, line, is_full_line):
+        """
+        Put your parsing code here.
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: Nothing
+        """
         if is_full_line:
             try:
                 self._parse_via_dev_proto_metric(line)
@@ -56,6 +77,10 @@ class IpRoute(GenericUnixCommand):
         return super(IpRoute, self).on_new_line(line, is_full_line)
 
     def get_default_route(self):
+        """
+        Helpful method to find default route from command output
+        :return: Default route or None
+        """
         def_route = None
         if "VIA" in self.current_ret:
             if "default" in self.current_ret["VIA"]:
@@ -75,6 +100,12 @@ class IpRoute(GenericUnixCommand):
         return def_route
 
     def _process_line_address_all(self, line, regexp):
+        """
+        Method to process line
+        :param line: Line from device.
+        :param regexp: Regexp to match.
+        :return: Nothing but raises ParsingDone if regex matches
+        """
         if self._regex_helper.search_compiled(regexp, line):
             _ret = dict()
             _key_addr = self._regex_helper.group("ADDRESS")
@@ -84,6 +115,12 @@ class IpRoute(GenericUnixCommand):
             raise ParsingDone
 
     def _process_line_via_all(self, line, regexp):
+        """
+        Method to process line
+        :param line: Line from device.
+        :param regexp: Regexp to match.
+        :return: Nothing but raises ParsingDone if regex matches
+        """
         if self._regex_helper.search_compiled(regexp, line):
             _ret = dict()
             _key_addr = self._regex_helper.group("ADDRESS")
@@ -99,6 +136,11 @@ class IpRoute(GenericUnixCommand):
                                                         r"mtu\s+(?P<MTU>\S+)\s+hoplimit\s+(?P<HOPLIMIT>\S+)$")
 
     def _parse_via_dev_proto_expires_mtu_hoplimit(self, line):
+        """
+        Method to process line
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches
+        """
         return self._process_line_via_all(line, IpRoute._re_via_dev_proto_expires_mtu_hoplimit)
 
     # default via 10.83.225.254 dev eth0  proto none  metric 1
@@ -106,6 +148,11 @@ class IpRoute(GenericUnixCommand):
                                           r"proto\s+(?P<PROTO>\S+)\s+metric\s+(?P<METRIC>\S+)\s*$")
 
     def _parse_via_dev_proto_metric(self, line):
+        """
+        Method to process line
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches
+        """
         return self._process_line_via_all(line, IpRoute._re_via_dev_proto_metric)
 
     # default via 2a00:8a00:6000:7000:1000:4100:151:2 dev br0  metric 1  mtu 1500
@@ -113,6 +160,11 @@ class IpRoute(GenericUnixCommand):
                                         r"metric\s+(?P<METRIC>\S+)\s+mtu\s+(?P<MTU>\S+)\s*$")
 
     def _parse_via_dev_metric_mtu(self, line):
+        """
+        Method to process line
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches
+        """
         return self._process_line_via_all(line, IpRoute._re_via_dev_metric_mtu)
 
     # default via 2a00:8a00:6000:7000:a00:7900:3:0 dev br0.2605  metric 1
@@ -120,12 +172,22 @@ class IpRoute(GenericUnixCommand):
                                     r"metric\s+(?P<METRIC>\S+)\s*$")
 
     def _parse_via_dev_metric(self, line):
+        """
+        Method to process line
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches
+        """
         return self._process_line_via_all(line, IpRoute._re_via_dev_metric)
 
     # default via 2a00:8a00:6000:7000:1000:4100:151:2 dev br0
     _re_via_dev = re.compile(r"^\s*(?P<ADDRESS>\S+)\s+via\s+(?P<VIA>\S+)\s+dev\s+(?P<DEV>\S+).*$")
 
     def _parse_via_dev(self, line):
+        """
+        Method to process line
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches
+        """
         return self._process_line_via_all(line, IpRoute._re_via_dev)
 
     # 10.83.224.0/23 dev eth0  proto kernel  scope link  src 10.83.225.103
@@ -133,6 +195,11 @@ class IpRoute(GenericUnixCommand):
                                          r"proto\s+(?P<PROTO>\S+)\s+scope\s+(?P<SCOPE>\S+)\s+src\s+(?P<SRC>\S+)\s*$")
 
     def _parse_dev_proto_scope_src(self, line):
+        """
+        Method to process line
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches
+        """
         return self._process_line_address_all(line, IpRoute._re_dev_proto_scope_src)
 
     # fe80::/64 dev br0  proto kernel  metric 256  mtu 1632
@@ -140,6 +207,11 @@ class IpRoute(GenericUnixCommand):
                                           r"metric\s+(?P<METRIC>\S+)\s+mtu\s+(?P<MTU>\S+)")
 
     def _parse_dev_proto_metric_mtu(self, line):
+        """
+        Method to process line
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches
+        """
         return self._process_line_address_all(line, IpRoute._re_dev_proto_metric_mtu)
 
     # 2a00:8a00:6000:7000:a00:3900::/96 dev br0.2607  proto kernel  metric 256
@@ -147,6 +219,11 @@ class IpRoute(GenericUnixCommand):
                                       r"metric\s+(?P<METRIC>\S+)")
 
     def _parse_dev_proto_metric(self, line):
+        """
+        Method to process line
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches
+        """
         return self._process_line_address_all(line, IpRoute._re_dev_proto_metric)
 
     # 2000::2011 from :: dev eth3  src 2000::2012  metric 0
@@ -154,6 +231,11 @@ class IpRoute(GenericUnixCommand):
                                      r"src\s+(?P<SRC>\S+)\s+metric\s+(?P<METRIC>\d+)")
 
     def _parse_from_src_metric(self, line):
+        """
+        Method to process line
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches
+        """
         return self._process_line_address_all(line, IpRoute._re_from_src_metric)
 
     # ip route get 99.99.99.99 from 10.0.0.249
@@ -161,12 +243,22 @@ class IpRoute(GenericUnixCommand):
     _re_from_via_dev = re.compile(r"(?P<ADDRESS>\S+)\s+from\s+(?P<FROM>\S+)\s+via\s+(?P<VIA>\S+)\s+dev\s+(?P<DEV>\S+)")
 
     def _parse_from_via_dev(self, line):
+        """
+        Method to process line
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches
+        """
         return self._process_line_address_all(line, IpRoute._re_from_via_dev)
 
     # 10.0.0.249 dev eth3  src 10.0.0.2
     _re_dev_src = re.compile(r"(?P<ADDRESS>\S+)\s+dev\s+(?P<DEV>\S+)\s+src\s+(?P<SRC>\S+)")
 
     def _parse_dev_src(self, line):
+        """
+        Method to process line
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches
+        """
         return self._process_line_address_all(line, IpRoute._re_dev_src)
 
 

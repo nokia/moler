@@ -3,9 +3,9 @@
 Testing possibilities to configure connections
 """
 
-__author__ = 'Grzegorz Latuszek'
+__author__ = 'Grzegorz Latuszek, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com'
 
 import os
 import pytest
@@ -98,7 +98,7 @@ def test_can_select_connection_loaded_from_config_file(moler_config):
     from moler.connection import get_connection
 
     conn_config = os.path.join(os.path.dirname(__file__), "resources", "www_servers_connections.yml")
-    moler_config.load_config(path=conn_config, config_type='yaml')
+    moler_config.load_config(config=conn_config, config_type='yaml')
 
     conn = get_connection(name='www_server_1')
     assert conn.__module__ == 'moler.io.raw.tcp'
@@ -121,6 +121,22 @@ def test_can_select_connection_loaded_from_env_variable(moler_config, monkeypatc
     assert conn.port == 2345
 
 
+def test_can_select_connection_loaded_from_dict(moler_config):
+    from moler.connection import get_connection
+
+    configuration_in_dict = {'NAMED_CONNECTIONS':
+                                 {'www_server_1': {'io_type': 'tcp', 'host': 'localhost', 'port': 2344}},
+                             'IO_TYPES':
+                                 {'default_variant': {'tcp': 'threaded'}}}
+    moler_config.load_config(config=configuration_in_dict, config_type='dict')
+
+    conn = get_connection(name='www_server_1')
+    assert conn.__module__ == 'moler.io.raw.tcp'
+    assert conn.__class__.__name__ == 'ThreadedTcp'
+    assert conn.host == 'localhost'
+    assert conn.port == 2344
+
+
 def test_load_config_checks_env_variable_existence(moler_config):
     with pytest.raises(KeyError) as err:
         moler_config.load_config(from_env_var="MOLER_CONFIG", config_type='yaml')
@@ -133,6 +149,7 @@ def test_load_config_checks_env_variable_existence(moler_config):
 @pytest.yield_fixture
 def moler_config():
     import moler.config as moler_cfg
+    moler_cfg.loaded_config = "NOT_LOADED_YET"
     yield moler_cfg
     # restore since tests may change configuration
     moler_cfg.clear()
@@ -149,6 +166,8 @@ def connections_config():
 @pytest.yield_fixture
 def builtin_connection_factories():
     import moler.connection  # installs builtin ones
+    import moler.config.connections as connection_cfg
     yield
     # restore since tests may overwrite builtins
-    moler.connection._register_builtin_connections()
+    connection_cfg.register_builtin_connections(moler.connection.ConnectionFactory,
+                                                moler.connection.ObservableConnection)

@@ -15,8 +15,8 @@ from moler.exceptions import ParsingDone
 
 class Whoami(GenericUnixCommand):
 
-    def __init__(self, connection, prompt=None, new_line_chars=None):
-        super(Whoami, self).__init__(connection, prompt, new_line_chars)
+    def __init__(self, connection, prompt=None, newline_chars=None, runner=None):
+        super(Whoami, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
     def build_command_string(self):
         cmd = "whoami"

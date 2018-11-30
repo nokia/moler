@@ -10,7 +10,7 @@ __email__ = 'marcin.usielski@nokia.com'
 import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
-from moler.cmd.converterhelper import ConverterHelper
+from moler.util.converterhelper import ConverterHelper
 from moler.exceptions import ResultNotAvailableYet
 
 
@@ -20,20 +20,36 @@ class Ls(GenericUnixCommand):
     _re_long = re.compile(r"([\w-]{10})\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S.*\S)\s+(\S+)\s*$")
     _re_long_links = re.compile(r"([\w-]{10})\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S.*\S)\s+(\S+)\s+->\s+(\S+)\s*$")
 
-    def __init__(self, connection, prompt=None, new_line_chars=None, options=None):
-        super(Ls, self).__init__(connection, prompt, new_line_chars)
+    def __init__(self, connection, prompt=None, newline_chars=None, options=None, runner=None):
+        """
+        :param connection: Moler connection to device, terminal when command is executed.
+        :param prompt: prompt (on system where command runs).
+        :param newline_chars: Characters to split lines - list.
+        :param options: Options of unix ls command
+        :param runner: Runner to run command.
+        """
+        super(Ls, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self._converter_helper = ConverterHelper()
         # Parameters defined by calling the command
         self.options = options
-        self.matched = 0
 
     def build_command_string(self):
+        """
+        Builds command string from parameters passed to object.
+        :return: String representation of command to send over connection to device.
+        """
         cmd = "ls"
         if self.options:
             cmd = cmd + " " + self.options
         return cmd
 
     def on_new_line(self, line, is_full_line):
+        """
+        Put your parsing code here.
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: Nothing
+        """
         if not is_full_line:
             return super(Ls, self).on_new_line(line, is_full_line)
         if self._regex_helper.search_compiled(Ls._re_total, line):
@@ -55,6 +71,11 @@ class Ls(GenericUnixCommand):
         return super(Ls, self).on_new_line(line, is_full_line)
 
     def _add_new_file_long(self, islink):
+        """
+        Method to add parsed output to command ret.
+        :param islink: True if parsed output is link or False otherwise.
+        :return: Nothing.
+        """
         filename = self._regex_helper.group(7)
         if "files" not in self.current_ret:
             self.current_ret["files"] = dict()
@@ -72,6 +93,11 @@ class Ls(GenericUnixCommand):
             self.current_ret["files"][filename]["link"] = self._regex_helper.group(8)
 
     def _get_types(self, requested_type):
+        """
+        Method to return only object of specific type.
+        :param requested_type: Type of object. Available values: 'd', 'l', '-'
+        :return: Dict of files
+        """
         if not self.done():
             raise ResultNotAvailableYet("Command not executed already")
         requested_type = requested_type.lower()
@@ -87,12 +113,24 @@ class Ls(GenericUnixCommand):
         return ret
 
     def get_dirs(self):
+        """
+        Returns only directories (folders) from command output
+        :return: Dict, key is item, value is parsed information about item
+        """
         return self._get_types('d')
 
     def get_links(self):
+        """
+        Returns only links from command output
+        :return: Dict, key is item, value is parsed information about item
+        """
         return self._get_types('l')
 
     def get_files(self):
+        """
+        Returns only files from command output
+        :return: Dict, key is item, value is parsed information about item
+        """
         return self._get_types('-')
 
 

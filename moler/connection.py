@@ -11,12 +11,11 @@ Connection responsibilities:
 - have a means allowing multiple observers to get it's received data (data dispatching)
 """
 
-__author__ = 'Grzegorz Latuszek'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
-import platform
 import weakref
 from threading import Lock
 
@@ -37,7 +36,7 @@ class Connection(object):
     """Connection API required by ConnectionObservers."""
 
     def __init__(self, how2send=None, encoder=identity_transformation, decoder=identity_transformation,
-                 name=None, newline='\n', logger_name=""):
+                 name=None, newline='\r\n', logger_name=""):
         """
         Create Connection via registering external-IO
 
@@ -59,7 +58,8 @@ class Connection(object):
         self._decoder = decoder
         self._name = self._use_or_generate_name(name)
         self.newline = newline
-        self.logger = self._select_logger(logger_name, self._name)
+        self.data_logger = logging.getLogger('moler.{}'.format(self.name))
+        self.logger = Connection._select_logger(logger_name, self._name)
 
     @property
     def name(self):
@@ -74,10 +74,13 @@ class Connection(object):
         If connection is using default logger ("moler.connection.<name>")
         then modify logger after connection name change.
         """
-        self._log(msg=r'changing name: {} --> {}'.format(self._name, value), level=TRACE)
+        self._log(level=TRACE, msg=r'changing name: {} --> {}'.format(self._name, value))
         if self._using_default_logger():
-            self.logger = self._select_logger(logger_name="", connection_name=value)
+            self.logger = Connection._select_logger(logger_name="", connection_name=value)
         self._name = value
+
+    def set_data_logger(self, logger):
+        self.data_logger = logger
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
@@ -103,9 +106,9 @@ class Connection(object):
         default_logger_name = "moler.connection.{}".format(connection_name)
         name = logger_name or default_logger_name
         logger = logging.getLogger(name)
+
         if logger_name and (logger_name != default_logger_name):
-            msg = "using '{}' logger - not default '{}'".format(logger_name,
-                                                                default_logger_name)
+            msg = "using '{}' logger - not default '{}'".format(logger_name, default_logger_name)
             logger.log(level=logging.WARNING, msg=msg)
         return logger
 
@@ -114,17 +117,53 @@ class Connection(object):
             return False
         return self.logger.name == "moler.connection.{}".format(self._name)
 
-    def send(self, data, timeout=30):  # TODO: should timeout be property of IO? We timeout whole connection-observer.
-        """Outgoing-IO API: Send data over external-IO."""
-        self._log(msg=data, level=logging.INFO, extra={'transfer_direction': '>'})
-        data2send = self.encode(data)
-        self._log(msg=data2send, level=RAW_DATA, extra={'transfer_direction': '>'})
-        self.how2send(data2send)
+    @staticmethod
+    def _strip_data(data):
+        return data.strip() if isinstance(data, six.string_types) else data
 
-    def sendline(self, data, timeout=30):
+    # TODO: should timeout be property of IO? We timeout whole connection-observer.
+    def send(self, data, timeout=30, encrypt=False):
+        """Outgoing-IO API: Send data over external-IO."""
+        msg = data
+        if encrypt:
+            length = len(data)
+            msg = "*" * length
+
+        self._log_data(msg=msg, level=logging.INFO,
+                       extra={'transfer_direction': '>', 'encoder': lambda data: data.encode('utf-8')})
+        self._log(level=logging.INFO,
+                  msg=Connection._strip_data(msg),
+                  extra={
+                      'transfer_direction': '>',
+                      'log_name': self.name
+                  })
+
+        encoded_msg = self.encode(msg)
+        self._log_data(msg=encoded_msg, level=RAW_DATA,
+                       extra={'transfer_direction': '>', 'encoder': lambda data: data.encode('utf-8')})
+
+        encoded_data = self.encode(data)
+        self.how2send(encoded_data)
+
+    def change_newline_seq(self, newline_seq="\n"):
+        """
+        Method to change newline char(s). Useful when connect from one point to another if newline chars change (i.e. "\n", "\r\n")
+        :param newline_seq: Sequence of chars to send as new line char(s)
+        :return: Nothing
+        """
+
+        characters = [ord(char) for char in self.newline]
+        newline_old = "0x" + ''.join("'{:02X}'".format(a) for a in characters)
+        characters = [ord(char) for char in newline_seq]
+        newline_new = "0x" + ''.join("'{:02X}'".format(a) for a in characters)
+        # 11 15:30:32.855 DEBUG        moler.connection.UnixRemote1    |changing newline seq old '0x'0D''0A'' -> new '0x'0A''
+        self._log(logging.DEBUG, "changing newline seq old '{}' -> new '{}'".format(newline_old, newline_new))
+        self.newline = newline_seq
+
+    def sendline(self, data, timeout=30, encrypt=False):
         """Outgoing-IO API: Send data line over external-IO."""
         line = data + self.newline
-        self.send(data=line, timeout=timeout)
+        self.send(data=line, timeout=timeout, encrypt=encrypt)
 
     def data_received(self, data):
         """Incoming-IO API: external-IO should call this method when data is received"""
@@ -146,12 +185,27 @@ class Connection(object):
         err_msg += "\n{}: {}(how2send=external_io_send)".format("Do it either during connection construction",
                                                                 self.__class__.__name__)
         err_msg += "\nor later via attribute direct set: connection.how2send = external_io_send"
-        self._log(msg=err_msg, level=logging.ERROR)
+        self._log(level=logging.ERROR, msg=err_msg)
         raise WrongUsage(err_msg)
 
-    def _log(self, msg, level, extra=None):
+    def _log_data(self, msg, level, extra=None):
+        try:
+            self.data_logger.log(level, msg, extra=extra)
+        except Exception as err:
+            print(err)  # logging errors should not propagate
+
+    def _log(self, level, msg, extra=None):
         if self.logger:
-            self.logger.log(level, msg, extra=extra)
+            extra_params = {
+                'log_name': self.name
+            }
+
+            if extra:
+                extra_params.update(extra)
+            try:
+                self.logger.log(level, msg, extra=extra_params)
+            except Exception as err:
+                print(err)  # logging errors should not propagate
 
 
 class ObservableConnection(Connection):
@@ -189,9 +243,13 @@ class ObservableConnection(Connection):
         Incoming-IO API:
         external-IO should call this method when data is received
         """
-        self._log(msg=data, level=RAW_DATA, extra={'transfer_direction': '<'})
+        self._log_data(msg=data, level=RAW_DATA,
+                       extra={'transfer_direction': '<', 'encoder': lambda data: data.encode('utf-8')})
+
         decoded_data = self.decode(data)
-        self._log(msg=decoded_data, level=logging.INFO, extra={'transfer_direction': '<'})
+        self._log_data(msg=decoded_data, level=logging.INFO,
+                       extra={'transfer_direction': '<', 'encoder': lambda data: data.encode('utf-8')})
+
         self.notify_observers(decoded_data)
 
     def subscribe(self, observer):
@@ -200,8 +258,9 @@ class ObservableConnection(Connection):
         :param observer: function to be called
         """
         with self._observers_lock:
-            self._log(msg="subscribe({})".format(observer), level=TRACE)
+            self._log(level=TRACE, msg="subscribe({})".format(observer))
             observer_key, value = self._get_observer_key_value(observer)
+
             if observer_key not in self._observers:
                 self._observers[observer_key] = value
 
@@ -211,13 +270,13 @@ class ObservableConnection(Connection):
         :param observer: function that was previously subscribed
         """
         with self._observers_lock:
-            self._log(msg="unsubscribe({})".format(observer), level=TRACE)
+            self._log(level=TRACE, msg="unsubscribe({})".format(observer))
             observer_key, _ = self._get_observer_key_value(observer)
             if observer_key in self._observers:
                 del self._observers[observer_key]
             else:
-                self._log(msg="{} was not subscribed".format(observer),
-                          level=logging.WARNING)
+                self._log(level=logging.WARNING,
+                          msg="{} was not subscribed".format(observer))
 
     def notify_observers(self, data):
         """Notify all subscribed observers about data received on connection"""
@@ -225,12 +284,15 @@ class ObservableConnection(Connection):
         current_subscribers = list(self._observers.values())
         for self_or_none, observer_function in current_subscribers:
             try:
-                self._log(msg=r'notifying {}({!r})'.format(observer_function, data), level=TRACE)
-                if self_or_none is None:
-                    observer_function(data)
-                else:
-                    observer_self = self_or_none
-                    observer_function(observer_self, data)
+                self._log(level=TRACE, msg=r'notifying {}({!r})'.format(observer_function, repr(data)))
+                try:
+                    if self_or_none is None:
+                        observer_function(data)
+                    else:
+                        observer_self = self_or_none
+                        observer_function(observer_self, data)
+                except Exception:
+                    self.logger.exception(msg=r'Exception inside: {}({!r})'.format(observer_function, repr(data)))
             except ReferenceError:
                 pass  # ignore: weakly-referenced object no longer exists
 
@@ -270,14 +332,19 @@ class ObservableConnection(Connection):
             self_or_none = None
 
         try:
-            function = six.get_method_function(observer)
+            func = six.get_method_function(observer)
         except AttributeError:
-            function = observer
-        function_id = instance_id(function)
+            func = observer
+        function_id = instance_id(func)
 
         observer_key = (self_id, function_id)
-        observer_value = (self_or_none, weakref.proxy(function))
+        observer_value = (self_or_none, weakref.proxy(func))
         return observer_key, observer_value
+
+
+def _moler_logger_log(level, msg):
+    logger = logging.getLogger('moler')
+    logger.log(level, msg)
 
 
 class ConnectionFactory(object):
@@ -313,8 +380,9 @@ class ConnectionFactory(object):
         :return: None
         """
         if not callable(constructor):
-            raise ValueError(
-                "constructor must be callable not {}".format(constructor))
+            err_msg = "constructor must be callable not {}".format(constructor)
+            _moler_logger_log(level=logging.DEBUG, msg=err_msg)
+            raise ValueError(err_msg)
         cls._constructors_registry[(io_type, variant)] = constructor
 
     @classmethod
@@ -329,8 +397,9 @@ class ConnectionFactory(object):
         """
         key = (io_type, variant)
         if key not in cls._constructors_registry:
-            raise KeyError(
-                "No constructor registered for [{}] connection".format(key))
+            err_msg = "No constructor registered for [{}] connection".format(key)
+            _moler_logger_log(level=logging.DEBUG, msg=err_msg)
+            raise KeyError(err_msg)
         constructor = cls._constructors_registry[key]
         connection = constructor(**constructor_kwargs)
         # TODO: enhance error reporting:
@@ -368,9 +437,13 @@ def get_connection(name=None, io_type=None, variant=None, **constructor_kwargs):
     If variant is not given then it is taken from configuration.
     """
     if (not name) and (not io_type):
-        raise AssertionError("Provide either 'name' or 'io_type' parameter (none given)")
+        err_msg = "Provide either 'name' or 'io_type' parameter (none given)"
+        _moler_logger_log(level=logging.DEBUG, msg=err_msg)
+        raise AssertionError(err_msg)
     if name and io_type:
-        raise AssertionError("Use either 'name' or 'io_type' parameter (not both)")
+        err_msg = "Use either 'name' or 'io_type' parameter (not both)"
+        _moler_logger_log(level=logging.DEBUG, msg=err_msg)
+        raise AssertionError(err_msg)
     io_type, constructor_kwargs = _try_take_named_connection_params(name, io_type, **constructor_kwargs)
     variant = _try_select_io_type_variant(io_type, variant)
 
@@ -382,7 +455,9 @@ def _try_take_named_connection_params(name, io_type, **constructor_kwargs):
     if name:
         if name not in connection_cfg.named_connections:
             whats_wrong = "was not defined inside configuration"
-            raise KeyError("Connection named '{}' {}".format(name, whats_wrong))
+            err_msg = "Connection named '{}' {}".format(name, whats_wrong)
+            _moler_logger_log(level=logging.DEBUG, msg=err_msg)
+            raise KeyError(err_msg)
         io_type, constructor_kwargs = connection_cfg.named_connections[name]
         # assume connection constructor allows 'name' parameter
         constructor_kwargs['name'] = name
@@ -396,14 +471,18 @@ def _try_select_io_type_variant(io_type, variant):
     if variant is None:
         whats_wrong = "No variant selected"
         selection_method = "directly or via configuration"
-        raise KeyError("{} ({}) for '{}' connection".format(whats_wrong,
-                                                            selection_method,
-                                                            io_type))
+        err_msg = "{} ({}) for '{}' connection".format(whats_wrong,
+                                                       selection_method,
+                                                       io_type)
+        _moler_logger_log(level=logging.DEBUG, msg=err_msg)
+        raise KeyError(err_msg)
     if variant not in ConnectionFactory.available_variants(io_type):
         whats_wrong = "is not registered inside ConnectionFactory"
-        raise KeyError("'{}' variant of '{}' connection {}".format(variant,
-                                                                   io_type,
-                                                                   whats_wrong))
+        err_msg = "'{}' variant of '{}' connection {}".format(variant,
+                                                              io_type,
+                                                              whats_wrong)
+        _moler_logger_log(level=logging.DEBUG, msg=err_msg)
+        raise KeyError(err_msg)
     return variant
 
 
@@ -416,57 +495,10 @@ def _try_get_connection_with_name(io_type, variant, **constructor_kwargs):
             del constructor_kwargs['name']
             return ConnectionFactory.get_connection(io_type, variant,
                                                     **constructor_kwargs)
+        _moler_logger_log(level=logging.DEBUG, msg=repr(err))
         raise
 
 
-def _register_builtin_connections():
-    from moler.io.raw.memory import ThreadedFifoBuffer
-    from moler.io.raw.tcp import ThreadedTcp
-
-    def mlr_conn_utf8(name):
-        return ObservableConnection(encoder=lambda data: data.encode("utf-8"),
-                                    decoder=lambda data: data.decode("utf-8"),
-                                    name=name)
-
-    def mem_thd_conn(name=None, echo=True):
-        mlr_conn = mlr_conn_utf8(name=name)
-        io_conn = ThreadedFifoBuffer(moler_connection=mlr_conn,
-                                     echo=echo, name=name)
-        return io_conn
-
-    def tcp_thd_conn(port, host='localhost', name=None):
-        mlr_conn = mlr_conn_utf8(name=name)
-        io_conn = ThreadedTcp(moler_connection=mlr_conn,
-                              port=port, host=host)  # TODO: add name
-        return io_conn
-
-    ConnectionFactory.register_construction(io_type="memory",
-                                            variant="threaded",
-                                            constructor=mem_thd_conn)
-    ConnectionFactory.register_construction(io_type="tcp",
-                                            variant="threaded",
-                                            constructor=tcp_thd_conn)
-
-
-def _register_builtin_unix_connections():
-    from moler.io.raw.terminal import ThreadedTerminal
-
-    def mlr_conn_no_encoding(name):
-        return ObservableConnection(name=name)
-
-    def terminal_thd_conn(name=None):
-        # ThreadedTerminal works on unicode so moler_connection must do no encoding
-        mlr_conn = mlr_conn_no_encoding(name=name)
-        io_conn = ThreadedTerminal(moler_connection=mlr_conn)  # TODO: add name, logger
-        return io_conn
-
-    # TODO: unify passing logger to io_conn (logger/logger_name)
-    ConnectionFactory.register_construction(io_type="terminal",
-                                            variant="threaded",
-                                            constructor=terminal_thd_conn)
-
-
 # actions during import
-_register_builtin_connections()
-if platform.system() == 'Linux':
-    _register_builtin_unix_connections()
+connection_cfg.register_builtin_connections(ConnectionFactory, ObservableConnection)
+connection_cfg.set_defaults()

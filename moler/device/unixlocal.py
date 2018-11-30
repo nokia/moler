@@ -4,7 +4,6 @@ Moler's device has 2 main responsibilities:
 - be the factory that returns commands of that device
 - be the state machine that controls which commands may run in given state
 """
-import logging
 
 from moler.device.textualdevice import TextualDevice
 
@@ -17,12 +16,24 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 class UnixLocal(TextualDevice):
     unix_local = "UNIX_LOCAL"
 
-    def __init__(self, io_connection=None, io_type=None, variant=None, sm_params=dict()):
-        super(UnixLocal, self).__init__(io_connection=io_connection, io_type=io_type, variant=variant,
-                                        sm_params=sm_params)
-        self.logger = logging.getLogger('moler.unixlocal')
+    def __init__(self, sm_params=None, name=None, io_connection=None, io_type=None, variant=None, initial_state=None):
+        """
+        :param sm_params: dict with parameters of state machine for device
+        :param name: name of device
+        :param io_connection: External-IO connection having embedded moler-connection
+        :param io_type: type of connection - tcp, udp, ssh, telnet, ...
+        :param variant: connection implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
+                        (if not given then default one is taken)
+        :param initial_state: name of initial state. State machine tries to enter this state just after creation.
+        """
+        initial_state = initial_state if initial_state is not None else UnixLocal.unix_local
+        super(UnixLocal, self).__init__(sm_params=sm_params, name=name,
+                                        io_connection=io_connection, io_type=io_type,
+                                        variant=variant, initial_state=initial_state)
 
     def _prepare_transitions(self):
+        super(UnixLocal, self)._prepare_transitions()
+
         transitions = {
             UnixLocal.unix_local: {
                 UnixLocal.not_connected: {
@@ -39,19 +50,19 @@ class UnixLocal(TextualDevice):
                 },
             }
         }
-
         self._add_transitions(transitions=transitions)
 
     def _prepare_state_prompts(self):
+        super(UnixLocal, self)._prepare_state_prompts()
+
         state_prompts = {
             UnixLocal.unix_local: r'^moler_bash#',
         }
-
-        self._state_prompts.update(state_prompts)
+        self._update_dict(self._state_prompts, state_prompts)
 
     def _prepare_state_hops(self):
         # both state are directly connected, no hops needed
-        pass
+        super(UnixLocal, self)._prepare_state_hops()
 
     def _get_packages_for_state(self, state, observer):
         if state == UnixLocal.unix_local:

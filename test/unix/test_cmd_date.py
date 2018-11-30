@@ -6,16 +6,19 @@ __author__ = 'Tomasz Krol'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'tomasz.krol@nokia.com'
 
+import pytest
 
-def test_calling_date_returns_result_parsed_from_command_output(buffer_connection):
+
+def test_calling_date_returns_result_parsed_from_command_output(buffer_connection, command_output_and_expected_result):
     from moler.cmd.unix.date import Date
-    command_output, expected_result = command_output_and_expected_result()
+    command_output, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
     date_cmd = Date(connection=buffer_connection.moler_connection)
     result = date_cmd()
     assert result == expected_result
 
 
+@pytest.fixture
 def command_output_and_expected_result():
     data = """
 user@host:~> date '+DATE:%t%t%d-%m-%Y%nTIME:%t%t%H:%M:%S%nZONE:%t%t%z %Z%nEPOCH:%t%t%s%nWEEK_NUMBER:%t%-V%nDAY_OF_YEAR:%t%-j%nDAY_OF_WEEK:%t%u (%A)%nMONTH:%t%t%-m (%B)'

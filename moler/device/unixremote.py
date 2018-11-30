@@ -9,46 +9,55 @@ __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
-import logging
-
 from moler.device.unixlocal import UnixLocal
 
 
-# TODO: name, logger/logger_name  as param
+# TODO: name, logger/logger_name as param
 class UnixRemote(UnixLocal):
     unix_remote = "UNIX_REMOTE"
 
-    def __init__(self, io_connection=None, io_type=None, variant=None, sm_params=dict()):
+    def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, initial_state=None):
         """
         Create Unix device communicating over io_connection
-
+        :param sm_params: dict with parameters of state machine for device
+        :param name: name of device
         :param io_connection: External-IO connection having embedded moler-connection
-        :param io_type: External-IO connection connection type
-        :param variant: External-IO connection variant
+        :param io_type: type of connection - tcp, udp, ssh, telnet, ...
+        :param variant: connection implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
+            (if not given then default one is taken)
+        :param initial_state: name of initial state. State machine tries to enter this state just after creation.
         """
-        super(UnixRemote, self).__init__(io_connection=io_connection, io_type=io_type, variant=variant,
-                                         sm_params=sm_params)
-        self.logger = logging.getLogger('moler.unixremote')
+        initial_state = initial_state if initial_state is not None else UnixRemote.unix_remote
+        super(UnixRemote, self).__init__(name=name, io_connection=io_connection,
+                                         io_type=io_type, variant=variant,
+                                         sm_params=sm_params, initial_state=initial_state)
 
     def _get_default_sm_configuration(self):
         config = {
-            "CONNECTION_HOPS": {
+            UnixRemote.connection_hops: {
                 UnixRemote.unix_local: {  # from
                     UnixRemote.unix_remote: {  # to
                         "execute_command": "ssh",  # using command
                         "command_params": {  # with parameters
-                            "host": "localhost",
-                            "login": "root",
-                            "expected_prompt": 'root@debdev:~#'
-                        }
+                            "target_newline": "\r\n"
+                        },
+                        "required_command_params": [
+                            "host",
+                            "login",
+                            "password",
+                            "expected_prompt"
+                        ]
                     }
                 },
                 UnixRemote.unix_remote: {  # from
                     UnixRemote.unix_local: {  # to
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
-                            "expected_prompt": r'^moler_bash#'
-                        }
+                            "expected_prompt": r'^moler_bash#',
+                            "target_newline": "\r\n"
+                        },
+                        "required_command_params": [
+                        ]
                     }
                 }
             }
@@ -79,15 +88,27 @@ class UnixRemote(UnixLocal):
     def _prepare_state_prompts(self):
         state_prompts = {
             UnixRemote.unix_remote:
-                self._configurations["CONNECTION_HOPS"][UnixRemote.unix_local][UnixRemote.unix_remote][
+                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_local][UnixRemote.unix_remote][
                     "command_params"]["expected_prompt"],
             UnixRemote.unix_local:
-                self._configurations["CONNECTION_HOPS"][UnixRemote.unix_remote][UnixRemote.unix_local][
+                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.unix_local][
                     "command_params"]["expected_prompt"],
         }
 
-        self._state_prompts.update(state_prompts)
+        self._update_dict(self._state_prompts, state_prompts)
         super(UnixRemote, self)._prepare_state_prompts()
+
+    def _prepare_newline_chars(self):
+        newline_chars = {
+            UnixRemote.unix_remote:
+                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_local][UnixRemote.unix_remote][
+                    "command_params"]["target_newline"],
+            UnixRemote.unix_local:
+                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.unix_local][
+                    "command_params"]["target_newline"],
+        }
+        self._update_dict(self._newline_chars, newline_chars)
+        super(UnixRemote, self)._prepare_newline_chars()
 
     def _prepare_state_hops(self):
         state_hops = {
@@ -98,7 +119,7 @@ class UnixRemote(UnixLocal):
                 UnixLocal.not_connected: UnixLocal.unix_local
             }
         }
-        self._state_hops.update(state_hops)
+        self._update_dict(self._state_hops, state_hops)
         super(UnixRemote, self)._prepare_state_hops()
 
     def _get_packages_for_state(self, state, observer):
@@ -115,19 +136,19 @@ class UnixRemote(UnixLocal):
     def _connect_to_remote_host(self, source_state, dest_state, timeout=-1):
         configurations = self.get_configurations(source_state=source_state, dest_state=dest_state)
         # will be telnet or ssh
-        connection_type = configurations.pop("execute_command")
-        connection_type_parmas = configurations.pop("command_params")
+        connection_type = configurations["execute_command"]
+        connection_type_parmas = configurations["command_params"]
 
         command_timeout = self.calc_timeout_for_command(timeout, connection_type_parmas)
-        establish_connection = self.get_cmd(cmd_name=connection_type, **connection_type_parmas)
+        establish_connection = self.get_cmd(cmd_name=connection_type, cmd_params=connection_type_parmas)
         establish_connection(timeout=command_timeout)
 
     def _disconnect_from_remote_host(self, source_state, dest_state, timeout=-1):
         configurations = self.get_configurations(source_state=source_state, dest_state=dest_state)
         # will be exit
-        close_connection = configurations.pop("execute_command")
-        close_connection_params = configurations.pop("command_params")
+        close_connection = configurations["execute_command"]
+        close_connection_params = configurations["command_params"]
 
         command_timeout = self.calc_timeout_for_command(timeout, close_connection_params)
-        end_connection = self.get_cmd(cmd_name=close_connection, **close_connection_params)
+        end_connection = self.get_cmd(cmd_name=close_connection, cmd_params=close_connection_params)
         end_connection(timeout=command_timeout)

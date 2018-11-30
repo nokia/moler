@@ -4,27 +4,27 @@ Moler's device has 2 main responsibilities:
 - be the factory that returns commands of that device
 - be the state machine that controls which commands may run in given state
 """
-import traceback
-
-from moler.cmd.commandtextualgeneric import CommandTextualGeneric
-
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
+import abc
 import functools
 import importlib
 import inspect
 import logging
 import pkgutil
-import time
 import re
-import abc
-import copy
+import time
+import traceback
 
+from moler.cmd.commandtextualgeneric import CommandTextualGeneric
+from moler.config.loggers import configure_device_logger
 from moler.connection import get_connection
 from moler.device.state_machine import StateMachine
 from moler.exceptions import CommandWrongState, DeviceFailure, EventWrongState, DeviceChangeStateFailure
+from moler.helpers import update_dict
+from moler.helpers import copy_dict
 
 
 # TODO: name, logger/logger_name as param
@@ -33,21 +33,29 @@ class TextualDevice(object):
     events = "event"
 
     not_connected = "NOT_CONNECTED"
+    connection_hops = "CONNECTION_HOPS"
 
-    def __init__(self, io_connection=None, io_type=None, variant=None, sm_params=dict()):
+    def __init__(self, sm_params=None, name=None, io_connection=None, io_type=None, variant=None, initial_state=None):
         """
         Create Device communicating over io_connection
         CAUTION: Device owns (takes over ownership) of connection. It will be open when device "is born" and close when
         device "dies".
 
+        :param sm_params: dict with parameters of state machine for device
+        :param name: name of device
         :param io_connection: External-IO connection having embedded moler-connection
         :param io_type: type of connection - tcp, udp, ssh, telnet, ...
         :param variant: connection implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
                         (if not given then default one is taken)
+        :param initial_state: name of initial state. State machine tries to enter this state just after creation.
         """
-        self.logger = logging.getLogger('moler.textualdevice')
-        self.states = []
+        sm_params = copy_dict(sm_params, deep_copy=True)
+        self.initial_state = initial_state if initial_state is not None else "NOT_CONNECTED"
+        self.states = [TextualDevice.not_connected]
         self.goto_states_triggers = []
+        self._name = name
+        self.device_data_logger = None
+
         # Below line will modify self extending it with methods and atributes od StateMachine
         # For eg. it will add attribute self.state
         self.SM = StateMachine(model=self, states=self.states, initial=TextualDevice.not_connected,
@@ -58,15 +66,22 @@ class TextualDevice(object):
         self._state_prompts = {}
         self._prompts_events = {}
         self._configurations = dict()
-
-        self._prepare_transitions()
-        self._prepare_state_hops()
-        self._configure_state_machine(sm_params)
-
+        self._newline_chars = dict()  # key is state, value is chars to send as newline
         if io_connection:
             self.io_connection = io_connection
         else:
             self.io_connection = get_connection(io_type=io_type, variant=variant)
+
+        self.io_connection.name = self.name
+        self.io_connection.moler_connection.name = self.name
+        self.logger = logging.getLogger('moler.connection.{}'.format(self.name))
+        self.configure_logger(name=self.name, propagate=False)
+
+        self._prepare_transitions()
+        self._prepare_state_hops()
+        self._configure_state_machine(sm_params)
+        self._prepare_newline_chars()
+
         self.io_connection.notify(callback=self.on_connection_made, when="connection_made")
         # TODO: Need test to ensure above sentence for all connection
         self.io_connection.open()
@@ -78,7 +93,6 @@ class TextualDevice(object):
         self._collect_events_for_state_machine()
         self._run_prompts_observers()
         self._default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')
-        self._check_device_parameters()
 
     def calc_timeout_for_command(self, passed_timeout, configurations):
         command_timeout = None
@@ -95,12 +109,22 @@ class TextualDevice(object):
                 command_timeout = configuration_timeout
         return command_timeout
 
+    def configure_logger(self, name, propagate):
+        if not self.device_data_logger:
+            self.device_data_logger = configure_device_logger(connection_name=name, propagate=propagate)
+
+        self.io_connection.moler_connection.set_data_logger(self.device_data_logger)
+
     @abc.abstractmethod
     def _prepare_transitions(self):
         pass
 
     @abc.abstractmethod
     def _prepare_state_prompts(self):
+        pass
+
+    @abc.abstractmethod
+    def _prepare_newline_chars(self):
         pass
 
     @abc.abstractmethod
@@ -113,7 +137,7 @@ class TextualDevice(object):
         return cls(io_connection=io_conn)
 
     def __del__(self):
-        self.io_connection.close()
+        self._stop_prompts_observers()
 
     def _collect_cmds_for_state_machine(self):
         for state in self._get_available_states():
@@ -137,24 +161,50 @@ class TextualDevice(object):
 
     @property
     def name(self):
-        return self.io_connection.moler_connection.name
+        if self._name:
+            return self._name
+        else:
+            return self.io_connection.moler_connection.name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
+
+    def _log(self, level, msg, extra=None):
+        if self.logger:
+            extra_params = {
+                'log_name': self.name
+            }
+
+            if extra:
+                extra_params.update(extra)
+
+            self.logger.log(level, msg, extra=extra_params)
+
+        self.device_data_logger.log(level, msg)
 
     def _set_state(self, state):
         if self.current_state != state:
-            self.logger.debug("Changing state from '%s' into '%s'" % (self.current_state, state))
+            self._log(logging.INFO, "Changed state from '%s' into '%s'" % (self.current_state, state))
             self.SM.set_state(state=state)
 
-    def goto_state(self, dest_state, timeout=-1):
+    def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False):
+        dest_state = state
+
         if self.current_state == dest_state:
             return
-        self.logger.debug("Go to state '%s' from '%s'" % (dest_state, self.current_state))
+
+        self._log(logging.DEBUG, "Go to state '%s' from '%s'" % (dest_state, self.current_state))
+
         is_dest_state = False
         is_timeout = False
         start_time = time.time()
         next_stage_timeout = timeout
+
         while (not is_dest_state) and (not is_timeout):
             next_state = self._get_next_state(dest_state)
-            self._trigger_change_state(next_state=next_state, timeout=next_stage_timeout)
+            self._trigger_change_state(next_state=next_state, timeout=next_stage_timeout, rerun=rerun,
+                                       send_enter_after_changed_state=send_enter_after_changed_state)
 
             if self.current_state == dest_state:
                 is_dest_state = True
@@ -175,9 +225,11 @@ class TextualDevice(object):
 
         return next_state
 
-    def _trigger_change_state(self, next_state, timeout):
-        self.logger.debug("Changing state from '%s' into '%s'" % (self.current_state, next_state))
+    def _trigger_change_state(self, next_state, timeout, rerun, send_enter_after_changed_state):
+        self._log(logging.DEBUG, "Changing state from '%s' into '%s'" % (self.current_state, next_state))
         change_state_method = None
+        entered_state = False
+        retrying = 0
         # all state triggers used by SM are methods with names starting from "GOTO_"
         # for e.g. GOTO_REMOTE, GOTO_CONNECTED
         for goto_method in self.goto_states_triggers:
@@ -185,20 +237,35 @@ class TextualDevice(object):
                 change_state_method = getattr(self, goto_method)
 
         if change_state_method:
-            try:
-                change_state_method(self.current_state, next_state, timeout=timeout)
-            except Exception as ex:
-                ex_traceback = traceback.format_exc()
-                raise DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback)
-
-            self.logger.debug("Successfully enter state '{}'".format(next_state))
+            while (retrying <= rerun) and (not entered_state):
+                try:
+                    change_state_method(self.current_state, next_state, timeout=timeout)
+                    entered_state = True
+                except Exception as ex:
+                    if retrying == rerun:
+                        ex_traceback = traceback.format_exc()
+                        exc = DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback)
+                        self._log(logging.ERROR, exc)
+                        raise exc
+                    else:
+                        retrying += 1
+                        self._log(logging.DEBUG, "Cannot change state into '{}'. "
+                                                 "Retrying '{}' of '{}' times.".format(next_state, retrying, rerun))
+                        if send_enter_after_changed_state:
+                            self._send_enter_after_changed_state()
+            self.io_connection.moler_connection.change_newline_seq(self._get_newline(state=next_state))
+            if send_enter_after_changed_state:
+                self._send_enter_after_changed_state()
+            self._log(logging.DEBUG, "Successfully enter state '{}'".format(next_state))
         else:
-            raise DeviceFailure(
+            exc = DeviceFailure(
                 device=self.__class__.__name__,
-                message="Failed to change state. "
+                message="Failed to change state to '{}'. "
                         "Either target state does not exist in SM or there is no direct/indirect transition "
                         "towards target state. Try to change state machine definition. "
                         "Available states: {}".format(next_state, self.states))
+            self._log(logging.ERROR, exc)
+            raise exc
 
     def on_connection_made(self, connection):
         self._set_state(TextualDevice.connected)
@@ -263,11 +330,13 @@ class TextualDevice(object):
 
             return observer
 
-        raise DeviceFailure(
+        exc = DeviceFailure(
             device=self.__class__.__name__,
-            message="Failed to create {}-object for '{}' {}. '{}' {} is unknown for state '{}' of device '{}'.".format(
+            message="Failed to create {}-object for '{}' {}. '{}' {} is unknown for state '{}' of device '{}'. Available names: {}".format(
                 observer_type, observer_name, observer_type, observer_name, observer_type, self.current_state,
-                self.__class__.__name__))
+                self.__class__.__name__, available_observer_names))
+        self._log(logging.ERROR, exc)
+        raise exc
 
     def _create_cmd_instance(self, cmd_name, **kwargs):
         """
@@ -299,22 +368,42 @@ class TextualDevice(object):
                     ret = original_fun(*args, **kargs)
                     return ret
                 else:
-                    raise observer_exception(observer, creation_state, current_state)
+                    exc = observer_exception(observer, creation_state, current_state)
+                    self._log(logging.ERROR, exc)
+                    raise exc
 
             observer._validate_start = validate_device_state_before_observer_start
         return observer
 
-    def get_cmd(self, cmd_name, check_state=True, **kwargs):
-        if "prompt" not in kwargs:
-            kwargs["prompt"] = self.get_prompt()
+    def get_cmd(self, cmd_name, cmd_params=None, check_state=True):
+        """
+        Returns instance of command connected with the device.
+        :param cmd_name: name of commands, name of class (without package), for example "cd".
+        :param cmd_params: dict with command parameters.
+        :param check_state: if True then before execute of command the state of device will be check if the same
+         as when command was created. If False the device state is not checked.
+        :return: Instance of command
+        """
+        cmd_params = copy_dict(cmd_params)
+        if "prompt" not in cmd_params:
+            cmd_params["prompt"] = self.get_prompt()
         cmd = self.get_observer(observer_name=cmd_name, observer_type=TextualDevice.cmds,
-                                observer_exception=CommandWrongState, check_state=check_state, **kwargs)
+                                observer_exception=CommandWrongState, check_state=check_state, **cmd_params)
         assert isinstance(cmd, CommandTextualGeneric)
         return cmd
 
-    def get_event(self, event_name, check_state=True, **kwargs):
+    def get_event(self, event_name, event_params=None, check_state=True):
+        """
+        Return instance of event connected with the device.
+        :param event_name: name of event, name of class (without package).
+        :param event_params: dict with event parameters.
+        :param check_state: if True then before execute of event the state of device will be check if the same
+         as when event was created. If False the device state is not checked.
+        :return:
+        """
+        event_params = copy_dict(event_params)
         event = self.get_observer(observer_name=event_name, observer_type=TextualDevice.events,
-                                  observer_exception=EventWrongState, check_state=check_state, **kwargs)
+                                  observer_exception=EventWrongState, check_state=check_state, **event_params)
 
         return event
 
@@ -371,14 +460,14 @@ class TextualDevice(object):
                     {'trigger': self.build_trigger_to_state(dest_state),
                      'source': source_state,
                      'dest': dest_state,
-                     'before': transitions[source_state][dest_state]["action"]},
+                     'prepare': transitions[source_state][dest_state]["action"]},
                 ]
 
-                self.SM.add_state(dest_state)
                 self.SM.add_transitions(single_transition)
 
     def _update_SM_states(self, state):
         if state not in self.states:
+            self.SM.add_state(state)
             self.states.append(state)
 
     def _open_connection(self, source_state, dest_state, timeout):
@@ -392,15 +481,24 @@ class TextualDevice(object):
 
     def _run_prompts_observers(self):
         for state in self._state_prompts.keys():
-            prompt_event = self.get_event(event_name="wait4prompt",
-                                          prompt=self._state_prompts[state],
-                                          till_occurs_times=-1)
+            prompt_event = self.get_event(
+                event_name="wait4prompt",
+                event_params={
+                    "prompt": self._state_prompts[state],
+                    "till_occurs_times": -1
+                }
+            )
 
             prompt_event_callback = functools.partial(self._prompt_observer_callback, event=prompt_event, state=state)
             prompt_event.add_event_occurred_callback(callback=prompt_event_callback)
 
             prompt_event.start()
             self._prompts_events[state] = prompt_event
+
+    def _stop_prompts_observers(self):
+        for device_state in self._prompts_events:
+            self._prompts_events[device_state].cancel()
+            self._prompts_events[device_state].remove_event_occurred_callback()
 
     def build_trigger_to_state(self, state):
         trigger = "GOTO_{}".format(state)
@@ -421,6 +519,7 @@ class TextualDevice(object):
         default_configurations = self._get_default_sm_configuration()
         configuration = self._update_configuration(default_configurations, sm_params)
         self._configurations = configuration
+        self._validate_device_configuration()
         self._prepare_state_prompts()
 
     def _update_configuration(self, destination, source):
@@ -434,12 +533,48 @@ class TextualDevice(object):
 
         return destination
 
+    def _update_dict(self, target_dict, expand_dict):
+        update_dict(target_dict, expand_dict)
+
     def _get_default_sm_configuration(self):
-        return {"CONNECTION_HOPS": {}}
+        return {TextualDevice.connection_hops: {}}
 
     def get_configurations(self, source_state, dest_state):
         if source_state and dest_state:
-            return self._configurations["CONNECTION_HOPS"][source_state][dest_state]
+            return self._configurations[TextualDevice.connection_hops][source_state][dest_state]
 
-    def _check_device_parameters(self):
-        pass
+    def _validate_device_configuration(self):
+        exception_message = ""
+        configuration = self._configurations[TextualDevice.connection_hops]
+
+        for source_state in configuration.keys():
+            for dest_state in configuration[source_state].keys():
+                if "required_command_params" in configuration[source_state][dest_state].keys():
+                    for required_command_param in configuration[source_state][dest_state]["required_command_params"]:
+                        if required_command_param not in configuration[source_state][dest_state]["command_params"]:
+                            exception_message += "\n'{}' in 'command_params' in transition from '{}' to '{}'".format(
+                                required_command_param, source_state, dest_state)
+
+        if exception_message:
+            exc = DeviceFailure(device=self.__class__.__name__,
+                                message="Missing required parameter(s). There is no required parameter(s):{}".format(
+                                    exception_message))
+            self._log(logging.ERROR, exc)
+            raise exc
+
+    def _send_enter_after_changed_state(self, *args, **kwargs):
+        from moler.cmd.unix.enter import Enter
+
+        try:
+            cmd_enter = Enter(connection=self.io_connection.moler_connection)
+            cmd_enter()
+        except Exception as ex:
+            self._log(logging.DEBUG, "Cannot execute command 'enter' properly: {}".format(ex))
+            pass
+
+    def _get_newline(self, state=None):
+        if not state:
+            state = self.current_state
+        if state and state in self._newline_chars:
+            return self._newline_chars[state]
+        return "\r\n"
