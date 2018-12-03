@@ -73,17 +73,17 @@ class MolerTimeout(MolerException):
         self.timeout = timeout
 
 
-class ConnectionObserverTimeout(MolerException):
-    def __init__(self, connection_observer, timeout,
-                 kind='run', passed_time=''):
+class ConnectionObserverTimeout(MolerTimeout):
+    def __init__(self, connection_observer, timeout, kind='run', passed_time=''):
         """Create instance of ConnectionObserverTimeout exception"""
-        if passed_time:
-            passed_time = '{:.2f} '.format(passed_time)
-        err_msg = '{} {} time {}>= {:.2f} sec'.format(connection_observer, kind,
-                                                      passed_time, timeout)
-        super(ConnectionObserverTimeout, self).__init__(err_msg + ' timeout')
+        super(ConnectionObserverTimeout, self).__init__(timeout=timeout,
+                                                        kind='{} {}'.format(connection_observer, kind),
+                                                        passed_time=passed_time)
         self.connection_observer = connection_observer
-        self.timeout = timeout
+
+
+class CommandTimeout(ConnectionObserverTimeout):
+    pass
 
 
 class NoCommandStringProvided(MolerException):
@@ -143,10 +143,6 @@ class MolerStatusException(MolerException):
             for exception in exceptions:
                 err_msg = "{}\n{}".format(err_msg, exception)
         super(MolerStatusException, self).__init__(err_msg)
-
-
-class CommandTimeout(ConnectionObserverTimeout):
-    pass
 
 
 class DeviceFailure(MolerException):
