@@ -88,6 +88,7 @@ def test_CancellableFuture_can_be_cancelled_while_it_is_running(observer_runner)
     finally:
         stop_running.set()
 
+
 def test_can_await_connection_observer_to_timeout(connection_observer,
                                                   observer_runner):
     from moler.exceptions import ConnectionObserverTimeout

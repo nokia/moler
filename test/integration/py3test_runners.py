@@ -267,7 +267,7 @@ async def test_asyncfuture_doesnt_return_result_of_observer(event_loop, async_ru
     assert future.result() is None
 
 
-def test_future_timeouts_after_timeout_of_observer(standalone_runner):
+def test_future_timeouts_after_timeout_of_observer________def_usage(standalone_runner):
     """Observer has .timeout member"""
     from moler.connection import ObservableConnection
     from moler.exceptions import ResultNotAvailableYet, MolerTimeout
@@ -284,7 +284,7 @@ def test_future_timeouts_after_timeout_of_observer(standalone_runner):
 
 
 @pytest.mark.asyncio
-async def test_asyncfuture_timeouts_after_timeout_of_observer(event_loop, async_runner):
+async def test_future_timeouts_after_timeout_of_observer__async_def_usage(event_loop, observer_runner):
     """Observer has .timeout member"""
     from moler.connection import ObservableConnection
     from moler.exceptions import ResultNotAvailableYet, MolerTimeout
@@ -292,11 +292,97 @@ async def test_asyncfuture_timeouts_after_timeout_of_observer(event_loop, async_
     moler_conn = ObservableConnection()
     net_down_detector = NetworkDownDetector(connection=moler_conn)
     net_down_detector.timeout = 0.1
-    async_runner.submit(net_down_detector)
+    observer_runner.submit(net_down_detector)
     with pytest.raises(ResultNotAvailableYet):
         net_down_detector.result()
     await asyncio.sleep(0.2)
     with pytest.raises(MolerTimeout):
+        net_down_detector.result()
+
+
+def test_future_accomodates_to_extending_timeout_of_observer________def_usage(standalone_runner):
+    """Observer has .timeout member"""
+    from moler.connection import ObservableConnection
+    from moler.exceptions import ResultNotAvailableYet, MolerTimeout
+
+    moler_conn = ObservableConnection()
+    net_down_detector = NetworkDownDetector(connection=moler_conn)
+    net_down_detector.timeout = 0.1
+    standalone_runner.submit(net_down_detector)
+    with pytest.raises(ResultNotAvailableYet):  # not timed out yet
+        net_down_detector.result()
+    time.sleep(0.08)
+    with pytest.raises(ResultNotAvailableYet):  # not timed out yet
+        net_down_detector.result()
+    net_down_detector.timeout = 0.15
+    time.sleep(0.05)
+    with pytest.raises(ResultNotAvailableYet):  # not timed out yet
+        net_down_detector.result()
+    time.sleep(0.04)
+    with pytest.raises(MolerTimeout):  # should time out
+        net_down_detector.result()
+
+
+@pytest.mark.asyncio
+async def test_future_accomodates_to_extending_timeout_of_observer__async_def_usage(event_loop, observer_runner):
+    """Observer has .timeout member"""
+    from moler.connection import ObservableConnection
+    from moler.exceptions import ResultNotAvailableYet, MolerTimeout
+
+    moler_conn = ObservableConnection()
+    net_down_detector = NetworkDownDetector(connection=moler_conn)
+    net_down_detector.timeout = 0.1
+    observer_runner.submit(net_down_detector)
+    with pytest.raises(ResultNotAvailableYet):  # not timed out yet
+        net_down_detector.result()
+    await asyncio.sleep(0.08)
+    with pytest.raises(ResultNotAvailableYet):  # not timed out yet
+        net_down_detector.result()
+    net_down_detector.timeout = 0.15
+    await asyncio.sleep(0.05)
+    with pytest.raises(ResultNotAvailableYet):  # not timed out yet
+        net_down_detector.result()
+    await asyncio.sleep(0.04)
+    with pytest.raises(MolerTimeout):  # should time out
+        net_down_detector.result()
+
+
+def test_future_accomodates_to_shortening_timeout_of_observer________def_usage(standalone_runner):
+    from moler.connection import ObservableConnection
+    from moler.exceptions import ResultNotAvailableYet, MolerTimeout
+
+    moler_conn = ObservableConnection()
+    net_down_detector = NetworkDownDetector(connection=moler_conn)
+    net_down_detector.timeout = 0.2
+    standalone_runner.submit(net_down_detector)
+    with pytest.raises(ResultNotAvailableYet):  # not timed out yet
+        net_down_detector.result()
+    time.sleep(0.08)
+    with pytest.raises(ResultNotAvailableYet):  # not timed out yet
+        net_down_detector.result()
+    net_down_detector.timeout = 0.1
+    time.sleep(0.04)
+    with pytest.raises(MolerTimeout):  # should time out
+        net_down_detector.result()
+
+
+@pytest.mark.asyncio
+async def test_future_accomodates_to_shortening_timeout_of_observer__async_def_usage(event_loop, observer_runner):
+    from moler.connection import ObservableConnection
+    from moler.exceptions import ResultNotAvailableYet, MolerTimeout
+
+    moler_conn = ObservableConnection()
+    net_down_detector = NetworkDownDetector(connection=moler_conn)
+    net_down_detector.timeout = 0.2
+    observer_runner.submit(net_down_detector)
+    with pytest.raises(ResultNotAvailableYet):  # not timed out yet
+        net_down_detector.result()
+    await asyncio.sleep(0.08)
+    with pytest.raises(ResultNotAvailableYet):  # not timed out yet
+        net_down_detector.result()
+    net_down_detector.timeout = 0.1
+    await asyncio.sleep(0.04)
+    with pytest.raises(MolerTimeout):  # should time out
         net_down_detector.result()
 
 # TODO: tests for error cases
