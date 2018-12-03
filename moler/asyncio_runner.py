@@ -320,13 +320,9 @@ class AsyncioRunner(ConnectionObserverRunner):
         await asyncio.sleep(0.005)  # give control back before we start processing
         start_time = time.time()
 
-        stop_feeding = asyncio.Event()  # TODO: move to external world - a way to stop feeder
         moler_conn = connection_observer.connection
         try:
             while True:
-                if stop_feeding.is_set():
-                    self.logger.debug("stopped {!r}".format(connection_observer))
-                    break
                 if connection_observer.done():
                     self.logger.debug("done {!r}".format(connection_observer))
                     break
@@ -334,6 +330,7 @@ class AsyncioRunner(ConnectionObserverRunner):
                 # we need to check connection_observer.timeout at each round since timeout may change
                 # during lifetime of connection_observer
                 if (connection_observer.timeout is not None) and (run_duration >= connection_observer.timeout):
+                    self.logger.debug("timed out {!r}".format(connection_observer))
                     time_out_observer(connection_observer,
                                       timeout=connection_observer.timeout,
                                       passed_time=run_duration)
@@ -342,10 +339,6 @@ class AsyncioRunner(ConnectionObserverRunner):
                     self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))
                     connection_observer.cancel()
                 await asyncio.sleep(0.005)  # give moler_conn a chance to feed observer
-
-            # if stop_feeding.is_set():  # external world requests to stop feeder
-            #     self.logger.debug("stopped {!r}".format(connection_observer))
-
             #
             # main purpose of feed() is to progress observer-life by time
             #             firing timeout should do: observer.set_exception(Timeout)
@@ -353,12 +346,6 @@ class AsyncioRunner(ConnectionObserverRunner):
             # second responsibility: subscribe, unsubscribe observer from connection (build/break data path)
             # third responsibility: react on external stop request via observer.cancel() or runner.shutdown()
 
-            self.logger.debug("unsubscribing {!r}".format(connection_observer))
-            moler_conn.unsubscribe(subscribed_data_receiver)  # stop feeding
-
-            # feed_done.set()
-
-            connection_observer._log(logging.INFO, "{} finished.".format(connection_observer.get_short_desc()))
             # There is no need to put observer's result/exception into future:
             # Future's goal is to feed observer (by data or time) - exiting future here means observer is already fed.
             #
@@ -371,8 +358,14 @@ class AsyncioRunner(ConnectionObserverRunner):
             return None
 
         except asyncio.CancelledError:
-            self.logger.debug("Cancelled {!r}.feed".format(self))
+            self.logger.debug("cancelled {!r}.feed".format(self))
             raise  # need to reraise to inform "I agree for cancellation"
+
+        finally:
+            self.logger.debug("unsubscribing {!r}".format(connection_observer))
+            moler_conn.unsubscribe(subscribed_data_receiver)  # stop feeding
+            # feed_done.set()
+            connection_observer._log(logging.INFO, "{} finished.".format(connection_observer.get_short_desc()))
 
     def timeout_change(self, timedelta):
         pass
@@ -476,32 +469,36 @@ class AsyncioInThreadRunner(AsyncioRunner):
 
         async def wait_for_connection_observer_done():
             # result = await asyncio.wait_for(connection_observer_future, timeout=timeout)
-            try:
-                result_of_future = await connection_observer_future
-                self.logger.debug("{} returned {}".format(connection_observer_future, result_of_future))
-            except Exception as exc:
-                self.logger.debug("{} raised {!r}".format(connection_observer_future, exc))
-                raise
+            result_of_future = await connection_observer_future  # feed() always returns None
             return result_of_future
 
         thread4async = get_asyncio_loop_thread()
         try:
-            result = thread4async.run_async_coroutine(wait_for_connection_observer_done(), timeout=timeout)
-            self.logger.debug("{} returned {}".format(connection_observer, result))
-            return None  # real result should be already in connection_observer.result()
+            # We have concurrent.futures and asyncio race here - race about timeouts.
+            thread4async.run_async_coroutine(wait_for_connection_observer_done(), timeout=timeout)
+            # If feed() inside asyncio-loop handles timeout as first - we exit here.
+            return None
         except MolerTimeout:
-            pass  # to reach following code that handles timeouts
+            # If run_async_coroutine() times out - we follow from here.
+            pass
         except concurrent.futures.CancelledError:
             connection_observer.cancel()
             return None
         except Exception as err:
-            self.logger.debug("{} raised {!r}".format(connection_observer, err))
+            # TODO: check if this path can happen (now future doesn't carry observer's exception)
+            err_msg = "{} raised {!r}".format(connection_observer, err)
+            self.logger.debug(err_msg)
             return None  # will be reraised during call to connection_observer.result()
+        finally:
+            # protect against leaking coroutines
+            if not connection_observer_future.done():
+                async def conn_observer_fut_cancel():
+                    connection_observer_future.cancel()
+                thread4async.start_async_coroutine(conn_observer_fut_cancel())
 
+        # handle timeout
         passed = time.time() - start_time
         self.logger.debug("timed out {}".format(connection_observer))
-        connection_observer_future.cancel()
-        connection_observer.cancel()  # TODO: should call connection_observer_future.cancel() via runner
         connection_observer.on_timeout()
         # TODO: connection_observer._log(" has timed out after ...")
         if hasattr(connection_observer, "command_string"):
@@ -619,10 +616,9 @@ class AsyncioLoopThread(TillDoneThread):
         self.logger.info("... await loop stop_event done")
 
     def run_async_coroutine(self, coroutine_to_run, timeout):
+        """Start coroutine in dedicated thread and await its result with timeout"""
         start_time = time.time()
-        # we are scheduling to other thread (so, can't use asyncio.ensure_future() )
-        self.logger.debug("scheduling {} into {}".format(coroutine_to_run, self.ev_loop))
-        coro_future = asyncio.run_coroutine_threadsafe(coroutine_to_run, loop=self.ev_loop)
+        coro_future = self.start_async_coroutine(coroutine_to_run)
         # run_coroutine_threadsafe returns future as concurrent.futures.Future() and not asyncio.Future
         # so, we can await it with timeout inside current thread
         try:
@@ -636,6 +632,13 @@ class AsyncioLoopThread(TillDoneThread):
                                passed_time=passed)
         except concurrent.futures.CancelledError:
             raise
+
+    def start_async_coroutine(self, coroutine_to_run):
+        """Start coroutine in dedicated thread, don't await its result"""
+        # we are scheduling to other thread (so, can't use asyncio.ensure_future() )
+        self.logger.debug("scheduling {} into {}".format(coroutine_to_run, self.ev_loop))
+        coro_future = asyncio.run_coroutine_threadsafe(coroutine_to_run, loop=self.ev_loop)
+        return coro_future
 
 
 _asyncio_loop_thread = None

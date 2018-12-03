@@ -269,21 +269,35 @@ async def test_future_accomodates_to_shortening_timeout_of_observer(event_loop, 
         net_down_detector.result()
 
 
-@pytest.mark.asyncio
-async def test_can_await_connection_observer_to_timeout_on_constructor_timeout(observer_runner):
-    # see - Raw 'def' usage note
+def test_can_wait_for_connection_observer_to_timeout_on_constructor_timeout(standalone_runner):
     from moler.connection import ObservableConnection
     from moler.exceptions import MolerTimeout
 
     moler_conn = ObservableConnection()
     net_down_detector = NetworkDownDetector(connection=moler_conn)
     net_down_detector.timeout = 0.2
-    future = observer_runner.submit(net_down_detector)
+    future = standalone_runner.submit(net_down_detector)
     with pytest.raises(MolerTimeout):
-        # TODO: we should not allow 'wait_for()' inside 'async def' since it blocks asyncio-loop
-        observer_runner.wait_for(net_down_detector, future,
-                                 timeout=None)  # means: use .timeout of observer
+        standalone_runner.wait_for(net_down_detector, future,
+                                   timeout=None)  # means: use .timeout of observer
         net_down_detector.result()  # should raise Timeout
+
+
+# @pytest.mark.asyncio
+# async def test_can_await_connection_observer_to_timeout_on_constructor_timeout(observer_runner):
+#     # see - Raw 'def' usage note
+#     from moler.connection import ObservableConnection
+#     from moler.exceptions import MolerTimeout
+#
+#     moler_conn = ObservableConnection()
+#     net_down_detector = NetworkDownDetector(connection=moler_conn)
+#     net_down_detector.timeout = 0.2
+#     future = observer_runner.submit(net_down_detector)
+#     with pytest.raises(MolerTimeout):
+#         # TODO: we should not allow 'wait_for()' inside 'async def' since it blocks asyncio-loop
+#         observer_runner.wait_for(net_down_detector, future,
+#                                  timeout=None)  # means: use .timeout of observer
+#         net_down_detector.result()  # should raise Timeout
 
 
 # TODO: tests for error cases
@@ -303,11 +317,11 @@ available_standalone_runners = ['runner.ThreadPoolExecutorRunner']
 # async_runners may be called only from 'async def' functions and require already running events-loop
 available_async_runners = []
 if is_python36_or_above():
-    # available_bg_runners.append('asyncio_runner.AsyncioRunner')
+    available_bg_runners.append('asyncio_runner.AsyncioRunner')
     available_async_runners.append('asyncio_runner.AsyncioRunner')
-    # available_bg_runners.append('asyncio_runner.AsyncioInThreadRunner')
+    available_bg_runners.append('asyncio_runner.AsyncioInThreadRunner')
     available_async_runners.append('asyncio_runner.AsyncioInThreadRunner')
-    # available_standalone_runners.append('asyncio_runner.AsyncioInThreadRunner')
+    available_standalone_runners.append('asyncio_runner.AsyncioInThreadRunner')
 
 
 @pytest.yield_fixture(params=available_bg_runners)

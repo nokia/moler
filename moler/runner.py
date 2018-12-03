@@ -346,6 +346,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
         while True:
             if stop_feeding.is_set():
+                # TODO: should it be renamed to 'cancelled' to be in sync with initial action?
                 self.logger.debug("stopped {!r}".format(connection_observer))
                 break
             if connection_observer.done():
