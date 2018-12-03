@@ -191,7 +191,7 @@ async def test_runner_sets_observer_exception_result_for_exception_raised_inside
     assert net_down_detector._exception is unknown_format_exception
 
 
-def test_future_is_not_exception_broken_when_observer_is_exception_broken(standalone_runner):
+def test_future_is_not_exception_broken_when_observer_is_exception_broken________def_usage(standalone_runner):
     from moler.connection import ObservableConnection
 
     class FailingNetworkDownDetector(NetworkDownDetector):
@@ -213,7 +213,8 @@ def test_future_is_not_exception_broken_when_observer_is_exception_broken(standa
 
 
 @pytest.mark.asyncio
-async def test_asyncfuture_is_not_exception_broken_when_observer_is_exception_broken(event_loop, async_runner):
+async def test_future_is_not_exception_broken_when_observer_is_exception_broken__async_def_usage(event_loop,
+                                                                                                 observer_runner):
     from moler.connection import ObservableConnection
 
     class FailingNetworkDownDetector(NetworkDownDetector):
@@ -225,7 +226,7 @@ async def test_asyncfuture_is_not_exception_broken_when_observer_is_exception_br
     moler_conn = ObservableConnection()
     net_down_detector = FailingNetworkDownDetector(connection=moler_conn)
     connection = net_down_detector.connection
-    future = async_runner.submit(net_down_detector)
+    future = observer_runner.submit(net_down_detector)
 
     connection.data_received("61 bytes")
     connection.data_received("zero bytes")
@@ -234,7 +235,7 @@ async def test_asyncfuture_is_not_exception_broken_when_observer_is_exception_br
     assert future.exception() is None
 
 
-def test_future_doesnt_return_result_of_observer(standalone_runner):
+def test_future_doesnt_return_result_of_observer________def_usage(standalone_runner):
     """Future just returns None when it is done"""
     from moler.connection import ObservableConnection
 
@@ -251,14 +252,14 @@ def test_future_doesnt_return_result_of_observer(standalone_runner):
 
 
 @pytest.mark.asyncio
-async def test_asyncfuture_doesnt_return_result_of_observer(event_loop, async_runner):
+async def test_future_doesnt_return_result_of_observer__async_def_usage(event_loop, observer_runner):
     """Future just returns None when it is done"""
     from moler.connection import ObservableConnection
 
     moler_conn = ObservableConnection()
     net_down_detector = NetworkDownDetector(connection=moler_conn)
     connection = net_down_detector.connection
-    future = async_runner.submit(net_down_detector)
+    future = observer_runner.submit(net_down_detector)
 
     connection.data_received("61 bytes")
     connection.data_received("ping: Network is unreachable")
