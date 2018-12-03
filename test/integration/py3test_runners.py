@@ -277,11 +277,52 @@ def test_can_wait_for_connection_observer_to_timeout_on_constructor_timeout(stan
     net_down_detector = NetworkDownDetector(connection=moler_conn)
     net_down_detector.timeout = 0.2
     future = standalone_runner.submit(net_down_detector)
+    start_time = time.time()
     with pytest.raises(MolerTimeout):
         standalone_runner.wait_for(net_down_detector, future,
                                    timeout=None)  # means: use .timeout of observer
         net_down_detector.result()  # should raise Timeout
+    duration = time.time() - start_time
+    assert duration >= 0.2
+    assert duration < 0.25
 
+
+def test_can_wait_for_connection_observer_to_timeout_on_specified_timeout(standalone_runner):
+    from moler.connection import ObservableConnection
+    from moler.exceptions import MolerTimeout
+
+    moler_conn = ObservableConnection()
+    net_down_detector = NetworkDownDetector(connection=moler_conn)
+    net_down_detector.timeout = 0.4
+    future = standalone_runner.submit(net_down_detector)
+    start_time = time.time()
+    with pytest.raises(MolerTimeout):
+        standalone_runner.wait_for(net_down_detector, future,
+                                   timeout=0.2)  # means: use timeout of wait_for (shorter then initial one)
+        net_down_detector.result()  # should raise Timeout
+    duration = time.time() - start_time
+    assert duration >= 0.2
+    assert duration < 0.25
+
+
+def test_wait_for_connection_observer_to_timeout_finishes_on_earlier_timeout(standalone_runner):
+    from moler.connection import ObservableConnection
+    from moler.exceptions import MolerTimeout
+
+    moler_conn = ObservableConnection()
+    net_down_detector = NetworkDownDetector(connection=moler_conn)
+    net_down_detector.timeout = 0.3
+    future = standalone_runner.submit(net_down_detector)
+    start_time = time.time()
+    with pytest.raises(MolerTimeout):
+        standalone_runner.wait_for(net_down_detector, future,
+                                   timeout=0.5)  # means: timeout of wait_for longer then initial one
+        net_down_detector.result()  # should raise Timeout
+    duration = time.time() - start_time
+    assert duration >= 0.3
+    assert duration < 0.35
+
+# TODO: test wait_for with observer modifying its timeout during observer's lifetime
 
 # @pytest.mark.asyncio
 # async def test_can_await_connection_observer_to_timeout_on_constructor_timeout(observer_runner):
