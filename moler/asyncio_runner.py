@@ -24,7 +24,7 @@ from moler.exceptions import ConnectionObserverTimeout
 from moler.exceptions import MolerException
 from moler.helpers import instance_id
 from moler.io.raw import TillDoneThread
-from moler.runner import ConnectionObserverRunner, result_for_runners
+from moler.runner import ConnectionObserverRunner, result_for_runners, time_out_observer
 
 
 # following code thanks to:
@@ -318,6 +318,7 @@ class AsyncioRunner(ConnectionObserverRunner):
             subscribed_data_receiver = self._start_feeding(connection_observer, feed_started)
 
         await asyncio.sleep(0.005)  # give control back before we start processing
+        start_time = time.time()
 
         stop_feeding = asyncio.Event()  # TODO: move to external world - a way to stop feeder
         moler_conn = connection_observer.connection
@@ -328,6 +329,14 @@ class AsyncioRunner(ConnectionObserverRunner):
                     break
                 if connection_observer.done():
                     self.logger.debug("done {!r}".format(connection_observer))
+                    break
+                run_duration = time.time() - start_time
+                # we need to check connection_observer.timeout at each round since timeout may change
+                # during lifetime of connection_observer
+                if (connection_observer.timeout is not None) and (run_duration >= connection_observer.timeout):
+                    time_out_observer(connection_observer,
+                                      timeout=connection_observer.timeout,
+                                      passed_time=run_duration)
                     break
                 if self._in_shutdown:
                     self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))

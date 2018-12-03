@@ -99,6 +99,26 @@ class ConnectionObserverRunner(object):
         return False  # exceptions (if any) should be reraised
 
 
+def time_out_observer(connection_observer, timeout, passed_time, kind="background_run"):
+    """Set connection_observer status to timed-out"""
+    connection_observer.on_timeout()
+
+    observer_info = "'{}.{}'".format(connection_observer.__class__.__module__,
+                                     connection_observer.__class__.__name__)
+    timeout_msg = "{} has timed out after {:.2f} seconds.".format(observer_info, passed_time)
+    connection_observer._log(logging.INFO, timeout_msg)
+
+    if hasattr(connection_observer, "command_string"):
+        exception = CommandTimeout(connection_observer=connection_observer,
+                                   timeout=timeout, kind=kind, passed_time=passed_time)
+    else:
+        exception = ConnectionObserverTimeout(connection_observer=connection_observer,
+                                              timeout=timeout, kind=kind, passed_time=passed_time)
+    # TODO: secure_data_received() may change status of connection_observer
+    # TODO: and if secure_data_received() runs inside threaded connection - we have race
+    connection_observer.set_exception(exception)
+
+
 def result_for_runners(connection_observer):
     """
     When runner takes result from connection-observer it should not
@@ -259,18 +279,11 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         # code below is for timed out observer
         passed = time.time() - start_time
         self.logger.debug("timed out {}".format(connection_observer))
+        # TODO: no need to cancel since time_out_observer() calls set_exception() which makes it done
         connection_observer_future.cancel()
         connection_observer.cancel()  # TODO: should call connection_observer_future.cancel() via runner
-        connection_observer.on_timeout()
-        connection_observer._log(logging.INFO,
-                                 "'{}.{}' has timed out after '{:.2f}' seconds.".format(
-                                     connection_observer.__class__.__module__,
-                                     connection_observer.__class__.__name__, time.time() - start_time))
-        if hasattr(connection_observer, "command_string"):
-            exception = CommandTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
-        else:
-            exception = ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
-        connection_observer.set_exception(exception)
+        time_out_observer(connection_observer=connection_observer,
+                          timeout=timeout, passed_time=passed, kind="await_done")
         return None
 
     def wait_for_iterator(self, connection_observer, connection_observer_future):
@@ -327,6 +340,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             subscribed_data_receiver = self._start_feeding(connection_observer, feed_started)
 
         time.sleep(0.005)  # give control back before we start processing
+        start_time = time.time()
 
         moler_conn = connection_observer.connection
 
@@ -336,6 +350,14 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 break
             if connection_observer.done():
                 self.logger.debug("done {!r}".format(connection_observer))
+                break
+            run_duration = time.time() - start_time
+            # we need to check connection_observer.timeout at each round since timeout may change
+            # during lifetime of connection_observer
+            if (connection_observer.timeout is not None) and (run_duration >= connection_observer.timeout):
+                time_out_observer(connection_observer,
+                                  timeout=connection_observer.timeout,
+                                  passed_time=run_duration)
                 break
             if self._in_shutdown:
                 self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))

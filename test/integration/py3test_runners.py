@@ -42,6 +42,23 @@ def test_observer_gets_all_data_of_connection_after_it_is_submitted_to_backgroun
                                                 float(sum(durations))/len(durations)))
 
 
+@pytest.mark.asyncio
+async def test_observer_gets_all_data_after_async_runner_submit_from_running_loop(event_loop, async_runner):
+    from moler.connection import ObservableConnection
+
+    for n in range(1):  # need to test multiple times because of thread races
+        moler_conn = ObservableConnection()
+        net_down_detector = NetworkDownDetector(connection=moler_conn)
+        connection = net_down_detector.connection
+        async_runner.submit(net_down_detector)
+
+        connection.data_received("61 bytes")
+        connection.data_received("62 bytes")
+        connection.data_received("ping: Network is unreachable")
+
+        assert net_down_detector.all_data_received == ["61 bytes", "62 bytes", "ping: Network is unreachable"]
+
+
 def test_runner_secures_observer_against_additional_data_after_observer_is_done(observer_runner):
     """Done observer should not get data even before unsubscribe from moler-connection"""
     # correctly written observer looks like:
@@ -124,23 +141,6 @@ async def test_runner_unsubscribes_from_connection_after_runner_shutdown_from_ru
     observer_runner.shutdown()
     await asyncio.sleep(0.1)
     assert len(moler_conn._observers) == 0
-
-
-@pytest.mark.asyncio
-async def test_observer_gets_all_data_after_async_runner_submit_from_running_loop(event_loop, async_runner):
-    from moler.connection import ObservableConnection
-
-    for n in range(1):  # need to test multiple times because of thread races
-        moler_conn = ObservableConnection()
-        net_down_detector = NetworkDownDetector(connection=moler_conn)
-        connection = net_down_detector.connection
-        async_runner.submit(net_down_detector)
-
-        connection.data_received("61 bytes")
-        connection.data_received("62 bytes")
-        connection.data_received("ping: Network is unreachable")
-
-        assert net_down_detector.all_data_received == ["61 bytes", "62 bytes", "ping: Network is unreachable"]
 
 
 @pytest.mark.asyncio
@@ -265,6 +265,39 @@ async def test_asyncfuture_doesnt_return_result_of_observer(event_loop, async_ru
     await asyncio.sleep(0.2)
 
     assert future.result() is None
+
+
+def test_future_timeouts_after_timeout_of_observer(standalone_runner):
+    """Observer has .timeout member"""
+    from moler.connection import ObservableConnection
+    from moler.exceptions import ResultNotAvailableYet, MolerTimeout
+
+    moler_conn = ObservableConnection()
+    net_down_detector = NetworkDownDetector(connection=moler_conn)
+    net_down_detector.timeout = 0.1
+    standalone_runner.submit(net_down_detector)
+    with pytest.raises(ResultNotAvailableYet):
+        net_down_detector.result()
+    time.sleep(0.2)
+    with pytest.raises(MolerTimeout):
+        net_down_detector.result()
+
+
+@pytest.mark.asyncio
+async def test_asyncfuture_timeouts_after_timeout_of_observer(event_loop, async_runner):
+    """Observer has .timeout member"""
+    from moler.connection import ObservableConnection
+    from moler.exceptions import ResultNotAvailableYet, MolerTimeout
+
+    moler_conn = ObservableConnection()
+    net_down_detector = NetworkDownDetector(connection=moler_conn)
+    net_down_detector.timeout = 0.1
+    async_runner.submit(net_down_detector)
+    with pytest.raises(ResultNotAvailableYet):
+        net_down_detector.result()
+    await asyncio.sleep(0.2)
+    with pytest.raises(MolerTimeout):
+        net_down_detector.result()
 
 # TODO: tests for error cases
 # TODO: handling not awaited futures (infinite background observer, timeouting observer but "failing path stopped"
