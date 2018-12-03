@@ -69,7 +69,7 @@ def test_thread_test_job():
     values = {'number': 0}
     job = Scheduler.get_job(fun=callback, interval=0.1, fun_params={'param_dict': values})
     job.start()
-    time.sleep(0.33)
+    time.sleep(0.32)
     job.stop()
     Scheduler.change_kind()  # Set the default
     assert (3 == values['number'])
