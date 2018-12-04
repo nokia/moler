@@ -119,67 +119,42 @@ async def test_runner_unsubscribes_from_connection_after_runner_shutdown(observe
 async def test_runner_doesnt_break_on_exception_raised_inside_observer(observer_runner):
     """Runner should be secured against 'wrongly written' connection-observer"""
     # see - Raw 'def' usage note
-    from moler.connection import ObservableConnection
-
-    class FailingNetworkDownDetector(NetworkDownDetector):
-        def data_received(self, data):
-            if data == "zero bytes":
-                raise Exception("unknown format")
-            return super(FailingNetworkDownDetector, self).data_received(data)
-
-    moler_conn = ObservableConnection()
-    net_down_detector = FailingNetworkDownDetector(connection=moler_conn)
-    connection = net_down_detector.connection
-    observer_runner.submit(net_down_detector)
+    conn_observer = failing_net_down_detector(fail_on_data="zero bytes",
+                                              fail_by_raising=Exception("unknown format"))
+    connection = conn_observer.connection
+    observer_runner.submit(conn_observer)
 
     connection.data_received("61 bytes")
     connection.data_received("zero bytes")
     connection.data_received("ping: Network is unreachable")
 
-    assert net_down_detector.all_data_received == ["61 bytes"]
+    assert conn_observer.all_data_received == ["61 bytes"]
 
 
 @pytest.mark.asyncio
 async def test_runner_sets_observer_exception_result_for_exception_raised_inside_observer(observer_runner):
     """Runner should correct behaviour of 'wrongly written' connection-observer"""
     # see - Raw 'def' usage note
-    from moler.connection import ObservableConnection
-
     unknown_format_exception = Exception("unknown format")
-
-    class FailingNetworkDownDetector(NetworkDownDetector):
-        def data_received(self, data):
-            if data == "zero bytes":
-                raise unknown_format_exception
-            return super(FailingNetworkDownDetector, self).data_received(data)
-
-    moler_conn = ObservableConnection()
-    net_down_detector = FailingNetworkDownDetector(connection=moler_conn)
-    connection = net_down_detector.connection
-    observer_runner.submit(net_down_detector)
+    conn_observer = failing_net_down_detector(fail_on_data="zero bytes",
+                                              fail_by_raising=unknown_format_exception)
+    connection = conn_observer.connection
+    observer_runner.submit(conn_observer)
 
     connection.data_received("61 bytes")
     connection.data_received("zero bytes")
     connection.data_received("ping: Network is unreachable")
 
-    assert net_down_detector._exception is unknown_format_exception
+    assert conn_observer._exception is unknown_format_exception
 
 
 @pytest.mark.asyncio
 async def test_future_is_not_exception_broken_when_observer_is_exception_broken(observer_runner):
     # see - Raw 'def' usage note
-    from moler.connection import ObservableConnection
-
-    class FailingNetworkDownDetector(NetworkDownDetector):
-        def data_received(self, data):
-            if data == "zero bytes":
-                raise Exception("unknown format")
-            return super(FailingNetworkDownDetector, self).data_received(data)
-
-    moler_conn = ObservableConnection()
-    net_down_detector = FailingNetworkDownDetector(connection=moler_conn)
-    connection = net_down_detector.connection
-    future = observer_runner.submit(net_down_detector)
+    conn_observer = failing_net_down_detector(fail_on_data="zero bytes",
+                                              fail_by_raising=Exception("unknown format"))
+    connection = conn_observer.connection
+    future = observer_runner.submit(conn_observer)
 
     connection.data_received("61 bytes")
     connection.data_received("zero bytes")
@@ -189,13 +164,11 @@ async def test_future_is_not_exception_broken_when_observer_is_exception_broken(
 
 
 @pytest.mark.asyncio
-async def test_future_doesnt_return_result_of_observer(observer_runner):
+async def test_future_doesnt_return_result_of_observer(observer_runner, net_down_detector):
     """Future just returns None when it is done"""
     # see - Raw 'def' usage note
     from moler.connection import ObservableConnection
 
-    moler_conn = ObservableConnection()
-    net_down_detector = NetworkDownDetector(connection=moler_conn)
     connection = net_down_detector.connection
     future = observer_runner.submit(net_down_detector)
 
@@ -207,117 +180,99 @@ async def test_future_doesnt_return_result_of_observer(observer_runner):
 
 
 @pytest.mark.asyncio
-async def test_future_timeouts_after_timeout_of_observer(observer_runner):
+async def test_future_timeouts_after_timeout_of_observer(observer_runner, connection_observer):
     """Observer has .timeout member"""
     # see - Raw 'def' usage note
-    from moler.connection import ObservableConnection
     from moler.exceptions import ResultNotAvailableYet, MolerTimeout
 
-    moler_conn = ObservableConnection()
-    net_down_detector = NetworkDownDetector(connection=moler_conn)
-    net_down_detector.timeout = 0.1
-    observer_runner.submit(net_down_detector)
+    connection_observer.timeout = 0.1
+    observer_runner.submit(connection_observer)
     with pytest.raises(ResultNotAvailableYet):
-        net_down_detector.result()
+        connection_observer.result()
     await asyncio.sleep(0.2)
     with pytest.raises(MolerTimeout):
-        net_down_detector.result()
+        connection_observer.result()
 
 
 @pytest.mark.asyncio
-async def test_future_accomodates_to_extending_timeout_of_observer(observer_runner):
+async def test_future_accomodates_to_extending_timeout_of_observer(observer_runner, connection_observer):
     # see - Raw 'def' usage note
-    from moler.connection import ObservableConnection
     from moler.exceptions import ResultNotAvailableYet, MolerTimeout
 
-    moler_conn = ObservableConnection()
-    net_down_detector = NetworkDownDetector(connection=moler_conn)
-    net_down_detector.timeout = 0.1
-    observer_runner.submit(net_down_detector)
+    connection_observer.timeout = 0.1
+    observer_runner.submit(connection_observer)
     with pytest.raises(ResultNotAvailableYet):  # not timed out yet
-        net_down_detector.result()
+        connection_observer.result()
     await asyncio.sleep(0.08)
     with pytest.raises(ResultNotAvailableYet):  # not timed out yet
-        net_down_detector.result()
-    net_down_detector.timeout = 0.15
+        connection_observer.result()
+    connection_observer.timeout = 0.15  # EXTEND
     await asyncio.sleep(0.05)
     with pytest.raises(ResultNotAvailableYet):  # not timed out yet
-        net_down_detector.result()
+        connection_observer.result()
     await asyncio.sleep(0.04)
     with pytest.raises(MolerTimeout):  # should time out
-        net_down_detector.result()
+        connection_observer.result()
 
 
 @pytest.mark.asyncio
-async def test_future_accomodates_to_shortening_timeout_of_observer(observer_runner):
+async def test_future_accomodates_to_shortening_timeout_of_observer(observer_runner, connection_observer):
     # see - Raw 'def' usage note
-    from moler.connection import ObservableConnection
     from moler.exceptions import ResultNotAvailableYet, MolerTimeout
 
-    moler_conn = ObservableConnection()
-    net_down_detector = NetworkDownDetector(connection=moler_conn)
-    net_down_detector.timeout = 0.2
-    observer_runner.submit(net_down_detector)
+    connection_observer.timeout = 0.2
+    observer_runner.submit(connection_observer)
     with pytest.raises(ResultNotAvailableYet):  # not timed out yet
-        net_down_detector.result()
+        connection_observer.result()
     await asyncio.sleep(0.08)
     with pytest.raises(ResultNotAvailableYet):  # not timed out yet
-        net_down_detector.result()
-    net_down_detector.timeout = 0.1
+        connection_observer.result()
+    connection_observer.timeout = 0.1  # SHORTEN
     await asyncio.sleep(0.04)
     with pytest.raises(MolerTimeout):  # should time out
-        net_down_detector.result()
+        connection_observer.result()
 
 
-def test_can_wait_for_connection_observer_to_timeout_on_constructor_timeout(standalone_runner):
-    from moler.connection import ObservableConnection
+def test_can_wait_for_connection_observer_to_timeout_on_constructor_timeout(standalone_runner, connection_observer):
     from moler.exceptions import MolerTimeout
 
-    moler_conn = ObservableConnection()
-    net_down_detector = NetworkDownDetector(connection=moler_conn)
-    net_down_detector.timeout = 0.2
-    future = standalone_runner.submit(net_down_detector)
+    connection_observer.timeout = 0.2
+    future = standalone_runner.submit(connection_observer)
     start_time = time.time()
     with pytest.raises(MolerTimeout):
-        standalone_runner.wait_for(net_down_detector, future,
+        standalone_runner.wait_for(connection_observer, future,
                                    timeout=None)  # means: use .timeout of observer
-        net_down_detector.result()  # should raise Timeout
+        connection_observer.result()  # should raise Timeout
     duration = time.time() - start_time
     assert duration >= 0.2
     assert duration < 0.25
 
 
-def test_can_wait_for_connection_observer_to_timeout_on_specified_timeout(standalone_runner):
-    from moler.connection import ObservableConnection
+def test_can_wait_for_connection_observer_to_timeout_on_specified_timeout(standalone_runner, connection_observer):
     from moler.exceptions import MolerTimeout
 
-    moler_conn = ObservableConnection()
-    net_down_detector = NetworkDownDetector(connection=moler_conn)
-    net_down_detector.timeout = 0.4
-    future = standalone_runner.submit(net_down_detector)
+    connection_observer.timeout = 0.4
+    future = standalone_runner.submit(connection_observer)
     start_time = time.time()
     with pytest.raises(MolerTimeout):
-        standalone_runner.wait_for(net_down_detector, future,
+        standalone_runner.wait_for(connection_observer, future,
                                    timeout=0.2)  # means: use timeout of wait_for (shorter then initial one)
-        net_down_detector.result()  # should raise Timeout
+        connection_observer.result()  # should raise Timeout
     duration = time.time() - start_time
     assert duration >= 0.2
     assert duration < 0.25
 
 
-def test_wait_for_connection_observer_to_timeout_finishes_on_earlier_timeout(standalone_runner):
-    from moler.connection import ObservableConnection
+def test_wait_for_connection_observer_to_timeout_finishes_on_earlier_timeout(standalone_runner, connection_observer):
     from moler.exceptions import MolerTimeout
 
-    moler_conn = ObservableConnection()
-    net_down_detector = NetworkDownDetector(connection=moler_conn)
-    net_down_detector.timeout = 0.3
-    future = standalone_runner.submit(net_down_detector)
+    connection_observer.timeout = 0.3
+    future = standalone_runner.submit(connection_observer)
     start_time = time.time()
     with pytest.raises(MolerTimeout):
-        standalone_runner.wait_for(net_down_detector, future,
+        standalone_runner.wait_for(connection_observer, future,
                                    timeout=0.5)  # means: timeout of wait_for longer then initial one
-        net_down_detector.result()  # should raise Timeout
+        connection_observer.result()  # should raise Timeout
     duration = time.time() - start_time
     assert duration >= 0.3
     assert duration < 0.35
@@ -420,6 +375,25 @@ def connection_observer():
     moler_conn = ObservableConnection()
     observer = NetworkDownDetector(connection=moler_conn)
     return observer
+
+
+@pytest.fixture()
+def net_down_detector(connection_observer):  # let name say what type of observer it is
+    return connection_observer
+
+
+def failing_net_down_detector(fail_on_data, fail_by_raising):
+    from moler.connection import ObservableConnection
+
+    class FailingNetworkDownDetector(NetworkDownDetector):
+        def data_received(self, data):
+            if data == fail_on_data:
+                raise fail_by_raising
+            return super(FailingNetworkDownDetector, self).data_received(data)
+
+    moler_conn = ObservableConnection()
+    failing_detector = FailingNetworkDownDetector(connection=moler_conn)
+    return failing_detector
 
 
 @pytest.fixture()
