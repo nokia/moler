@@ -277,6 +277,28 @@ def test_wait_for__times_out_on_earlier_timeout(standalone_runner, connection_ob
     assert duration >= 0.3
     assert duration < 0.35
 
+
+def test_wait_for__tracks_changes_of_observer_timeout__extension(standalone_runner, connection_observer):
+    from moler.exceptions import MolerTimeout
+
+    connection_observer.timeout = 0.2
+    future = standalone_runner.submit(connection_observer)
+    start_time = time.time()
+
+    def modify_observer_timeout():
+        time.sleep(0.15)
+        connection_observer.timeout = 0.35  # extend
+    threading.Thread(target=modify_observer_timeout).start()
+
+    with pytest.raises(MolerTimeout):
+        standalone_runner.wait_for(connection_observer, future,
+                                   timeout=None)
+        connection_observer.result()  # should raise Timeout
+    duration = time.time() - start_time
+    assert duration >= 0.35
+    assert duration < 0.4
+
+
 # TODO: test wait_for with observer modifying its timeout during observer's lifetime
 
 # @pytest.mark.asyncio
