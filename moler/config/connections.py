@@ -50,7 +50,7 @@ def set_defaults():
 
 def register_builtin_connections(connection_factory, moler_conn_class):
     _register_builtin_connections(connection_factory, moler_conn_class)
-    if platform.system() in ['Linux', "FreeBSD"]:
+    if platform.system() in ['Linux', "FreeBSD", "Darwin"]:
         _register_builtin_unix_connections(connection_factory, moler_conn_class)
 
 
