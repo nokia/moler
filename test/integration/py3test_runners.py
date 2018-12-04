@@ -22,7 +22,7 @@ from moler.connection_observer import ConnectionObserver
 
 
 @pytest.mark.asyncio
-async def test_observer_gets_all_data_of_connection_after_it_is_submitted_to_background(event_loop, observer_runner):
+async def test_observer_gets_all_data_of_connection_after_it_is_submitted_to_background(observer_runner):
     # Raw 'def' usage note:
     # This functionality works as well when runner is used inside raw def function
     # since it only uses runner.submit() + awaiting time
@@ -116,7 +116,7 @@ async def test_runner_unsubscribes_from_connection_after_runner_shutdown(observe
 
 
 @pytest.mark.asyncio
-async def test_runner_doesnt_break_on_exception_raised_inside_observer(event_loop, observer_runner):
+async def test_runner_doesnt_break_on_exception_raised_inside_observer(observer_runner):
     """Runner should be secured against 'wrongly written' connection-observer"""
     # see - Raw 'def' usage note
     from moler.connection import ObservableConnection
@@ -140,7 +140,7 @@ async def test_runner_doesnt_break_on_exception_raised_inside_observer(event_loo
 
 
 @pytest.mark.asyncio
-async def test_runner_sets_observer_exception_result_for_exception_raised_inside_observer(event_loop, observer_runner):
+async def test_runner_sets_observer_exception_result_for_exception_raised_inside_observer(observer_runner):
     """Runner should correct behaviour of 'wrongly written' connection-observer"""
     # see - Raw 'def' usage note
     from moler.connection import ObservableConnection
@@ -166,7 +166,7 @@ async def test_runner_sets_observer_exception_result_for_exception_raised_inside
 
 
 @pytest.mark.asyncio
-async def test_future_is_not_exception_broken_when_observer_is_exception_broken(event_loop, observer_runner):
+async def test_future_is_not_exception_broken_when_observer_is_exception_broken(observer_runner):
     # see - Raw 'def' usage note
     from moler.connection import ObservableConnection
 
@@ -189,7 +189,7 @@ async def test_future_is_not_exception_broken_when_observer_is_exception_broken(
 
 
 @pytest.mark.asyncio
-async def test_future_doesnt_return_result_of_observer(event_loop, observer_runner):
+async def test_future_doesnt_return_result_of_observer(observer_runner):
     """Future just returns None when it is done"""
     # see - Raw 'def' usage note
     from moler.connection import ObservableConnection
@@ -207,7 +207,7 @@ async def test_future_doesnt_return_result_of_observer(event_loop, observer_runn
 
 
 @pytest.mark.asyncio
-async def test_future_timeouts_after_timeout_of_observer(event_loop, observer_runner):
+async def test_future_timeouts_after_timeout_of_observer(observer_runner):
     """Observer has .timeout member"""
     # see - Raw 'def' usage note
     from moler.connection import ObservableConnection
@@ -225,7 +225,7 @@ async def test_future_timeouts_after_timeout_of_observer(event_loop, observer_ru
 
 
 @pytest.mark.asyncio
-async def test_future_accomodates_to_extending_timeout_of_observer(event_loop, observer_runner):
+async def test_future_accomodates_to_extending_timeout_of_observer(observer_runner):
     # see - Raw 'def' usage note
     from moler.connection import ObservableConnection
     from moler.exceptions import ResultNotAvailableYet, MolerTimeout
@@ -249,7 +249,7 @@ async def test_future_accomodates_to_extending_timeout_of_observer(event_loop, o
 
 
 @pytest.mark.asyncio
-async def test_future_accomodates_to_shortening_timeout_of_observer(event_loop, observer_runner):
+async def test_future_accomodates_to_shortening_timeout_of_observer(observer_runner):
     # see - Raw 'def' usage note
     from moler.connection import ObservableConnection
     from moler.exceptions import ResultNotAvailableYet, MolerTimeout
