@@ -459,22 +459,24 @@ class AsyncioInThreadRunner(AsyncioRunner):
 
         :param connection_observer: The one we are awaiting for.
         :param connection_observer_future: Future of connection-observer returned from submit().
-        :param timeout: Max time (in float seconds) to await before give up. If None then taken from connection_observer
+        :param timeout: Max time (in float seconds) to await before give up. None - use connection_observer.timeout
         :return:
         """
         self.logger.debug("go foreground: {!r} - await max. {} [sec]".format(connection_observer, timeout))
         start_time = time.time()
-        timeout = timeout if timeout else connection_observer.timeout
-        # TODO: if check_timeout_from_observer: - updating from dynamic-timeout-of-observer
 
         async def wait_for_connection_observer_done():
-            # result = await asyncio.wait_for(connection_observer_future, timeout=timeout)
             result_of_future = await connection_observer_future  # feed() always returns None
             return result_of_future
 
         thread4async = get_asyncio_loop_thread()
         try:
-            # We have concurrent.futures and asyncio race here - race about timeouts.
+            # If we have have timeout=None then concurrent.futures will wait infinitely
+            # and feed() inside asyncio-loop will work on connection_observer.timeout
+            #
+            # If timeout is given then it defines max timeout (from "now") that concurrent.futures
+            # may use to shorten lifetime of feed().
+            # In such case we have concurrent.futures and asyncio race here - race about timeouts.
             thread4async.run_async_coroutine(wait_for_connection_observer_done(), timeout=timeout)
             # If feed() inside asyncio-loop handles timeout as first - we exit here.
             return None
