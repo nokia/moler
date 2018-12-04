@@ -233,7 +233,7 @@ async def test_future_accomodates_to_shortening_timeout_of_observer(observer_run
         connection_observer.result()
 
 
-def test_can_wait_for_connection_observer_to_timeout_on_constructor_timeout(standalone_runner, connection_observer):
+def test_wait_for__times_out_on_constructor_timeout(standalone_runner, connection_observer):
     from moler.exceptions import MolerTimeout
 
     connection_observer.timeout = 0.2
@@ -248,7 +248,7 @@ def test_can_wait_for_connection_observer_to_timeout_on_constructor_timeout(stan
     assert duration < 0.25
 
 
-def test_can_wait_for_connection_observer_to_timeout_on_specified_timeout(standalone_runner, connection_observer):
+def test_wait_for__times_out_on_specified_timeout(standalone_runner, connection_observer):
     from moler.exceptions import MolerTimeout
 
     connection_observer.timeout = 0.4
@@ -263,7 +263,7 @@ def test_can_wait_for_connection_observer_to_timeout_on_specified_timeout(standa
     assert duration < 0.25
 
 
-def test_wait_for_connection_observer_to_timeout_finishes_on_earlier_timeout(standalone_runner, connection_observer):
+def test_wait_for__times_out_on_earlier_timeout(standalone_runner, connection_observer):
     from moler.exceptions import MolerTimeout
 
     connection_observer.timeout = 0.3
