@@ -342,22 +342,42 @@ def test_wait_for__direct_timeout_takes_precedence_over_extended_observer_timeou
     assert duration < 0.3
 
 
+@pytest.mark.asyncio
+async def test_wait_for__is_prohibited_inside_async_def(async_runner, connection_observer):
+    # can't raise in generic runner since why non-async-runner should bother about being used inside 'async def'
+    # using them in such case is end-user error the same way as using time.sleep(2.41) inside 'async def'
+    from moler.exceptions import WrongUsage
 
-# @pytest.mark.asyncio
-# async def test_can_await_connection_observer_to_timeout_on_constructor_timeout(observer_runner):
-#     # see - Raw 'def' usage note
-#     from moler.connection import ObservableConnection
-#     from moler.exceptions import MolerTimeout
-#
-#     moler_conn = ObservableConnection()
-#     net_down_detector = NetworkDownDetector(connection=moler_conn)
-#     net_down_detector.timeout = 0.2
-#     future = observer_runner.submit(net_down_detector)
-#     with pytest.raises(MolerTimeout):
-#         # TODO: we should not allow 'wait_for()' inside 'async def' since it blocks asyncio-loop
-#         observer_runner.wait_for(net_down_detector, future,
-#                                  timeout=None)  # means: use .timeout of observer
-#         net_down_detector.result()  # should raise Timeout
+    # TODO: can we confidently check "called from async def"
+    # https://stackoverflow.com/questions/30155138/how-can-i-write-asyncio-coroutines-that-optionally-act-as-regular-functions
+    # "magically_determine_if_being_yielded_from() is actually event_loop.is_running()"
+    # but that works for asyncio and not for curio/trio
+    #
+    # maybe we should just WARN - wait_for() is blocking, you should not use it inside 'async def'
+    # as right now any user may use time.sleep(12) inside 'async def'
+    # Any way to treat wait_for() as awaitable?
+    #
+    # If asyncio detects "slow/blocking" callback it logs it (asyncio/base_events.py def _run_once()):
+    #     if dt >= self.slow_callback_duration:
+    #         logger.warning('Executing %s took %.3f seconds',_format_handle(handle), dt)
+    #
+    # self.slow_callback_duration = 0.1 sec
+    #
+    # self._clock_resolution = 1e-09 = 0.000000001 s = 0.000001 ms = 0.001 us = 1ns (used by event loop scheduling)
+    #
+    # _run_once() realnie wola schedulowane funkcje. Wola je przez handle._run()
+    # gdzie handle to TaskStepMethWrapper  ktory oddaje sterowanie do coroutyn
+    # TaskStepMethWrapper to obiekt w C tworzony wewnatrz base_events.py def create_task()
+    #     task = tasks.Task(coro, loop=self)  wola call_soon(TaskStepMethWrapper)
+    #     opakowuje to jeszcze w events.Handle i opakowanego scheduluje: self._ready.append(handle)
+    # wiec przypuszczenie ze ten wrapper wola .send() na generatorze/coroutynie i odbiera wynik z yielda
+    future = async_runner.submit(connection_observer)
+    with pytest.raises(WrongUsage) as err:
+        # TODO: we should not allow 'wait_for()' inside 'async def' since it blocks asyncio-loop
+        async_runner.wait_for(connection_observer, future)
+        connection_observer.result()  # should raise WrongUsage
+    print("\n")
+    print(err.value)
 
 
 # TODO: tests for error cases

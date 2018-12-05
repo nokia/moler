@@ -22,6 +22,7 @@ from moler.exceptions import CommandTimeout
 from moler.exceptions import MolerTimeout
 from moler.exceptions import ConnectionObserverTimeout
 from moler.exceptions import MolerException
+from moler.exceptions import WrongUsage
 from moler.helpers import instance_id
 from moler.io.raw import TillDoneThread
 from moler.runner import ConnectionObserverRunner, result_for_runners, time_out_observer
@@ -212,17 +213,16 @@ class AsyncioRunner(ConnectionObserverRunner):
             # we might be already called from within running event loop
             # or we are just in synchronous code
             if event_loop.is_running():
-                # we can't use await since we are not inside async def
-                _run_loop_till_condition(event_loop, lambda: connection_observer.done(), timeout)
+                # wait_for() should not be called from 'async def'
+                self._raise_wrong_usage_of_wait_for(connection_observer)
 
-                result = result_for_runners(connection_observer)
-
-                # TODO: check:
-                # result = run_nested_until_complete(asyncio.wait_for(connection_observer_future,
+                # TODO: remove code:
+                # _run_loop_till_condition(event_loop, lambda: connection_observer.done(), timeout)
+                # run_nested_until_complete(asyncio.wait_for(connection_observer_future,
                 #                                                     timeout=timeout))  # call async code from sync
             else:
-                result = event_loop.run_until_complete(asyncio.wait_for(connection_observer_future,
-                                                                        timeout=timeout))
+                event_loop.run_until_complete(asyncio.wait_for(connection_observer_future,
+                                                               timeout=timeout))
         except asyncio.futures.CancelledError:
             self.logger.debug("canceled {}".format(connection_observer))
             connection_observer.cancel()
@@ -241,11 +241,24 @@ class AsyncioRunner(ConnectionObserverRunner):
         else:
             self.logger.debug("{} returned {}".format(connection_observer, result))
         finally:
-            moler_conn = connection_observer.connection
-            moler_conn.unsubscribe(connection_observer.data_received)
+            connection_observer_future.cancel()
+
         if connection_observer_future in self._submitted_futures:
             self._submitted_futures.remove(connection_observer_future)
         return None
+
+    def _raise_wrong_usage_of_wait_for(self, connection_observer):
+        # TODO: check if called from observer.await_done() and let exception speak more
+        # TODO:   in observer API not runner API since user uses observers-API (runner is hidden)
+        err_msg = "Can't call wait_for() from 'async def' - it is blocking call"
+        err_msg += "\n    observer = {}()".format(connection_observer.__class__.__name__)
+        err_msg += "\n    observer.start()"
+        err_msg += "\nconsider using:"
+        err_msg += "\n    await observer"
+        err_msg += "\ninstead of:"
+        err_msg += "\n    observer.await_done()"
+        self.logger.error(msg=err_msg)
+        raise WrongUsage(err_msg)
 
     # https://stackoverflow.com/questions/51029111/python-how-to-implement-a-c-function-as-awaitable-coroutine
     def wait_for_iterator(self, connection_observer, connection_observer_future):
@@ -471,6 +484,10 @@ class AsyncioInThreadRunner(AsyncioRunner):
 
         thread4async = get_asyncio_loop_thread()
         try:
+            if asyncio.get_event_loop().is_running():
+                # wait_for() should not be called from 'async def'
+                self._raise_wrong_usage_of_wait_for(connection_observer)
+
             # If we have have timeout=None then concurrent.futures will wait infinitely
             # and feed() inside asyncio-loop will work on connection_observer.timeout
             #
@@ -487,9 +504,10 @@ class AsyncioInThreadRunner(AsyncioRunner):
             connection_observer.cancel()
             return None
         except Exception as err:
-            # TODO: check if this path can happen (now future doesn't carry observer's exception)
             err_msg = "{} raised {!r}".format(connection_observer, err)
             self.logger.debug(err_msg)
+            if connection_observer._exception != err:
+                connection_observer.set_exception(err)
             return None  # will be reraised during call to connection_observer.result()
         finally:
             # protect against leaking coroutines
