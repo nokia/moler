@@ -90,10 +90,10 @@ def _register_builtin_unix_connections(connection_factory, moler_conn_class):
     def mlr_conn_no_encoding(name):
         return moler_conn_class(name=name)
 
-    def terminal_thd_conn(name=None):
+    def terminal_thd_conn(name=None, **constructor_kwargs):
         # ThreadedTerminal works on unicode so moler_connection must do no encoding
         mlr_conn = mlr_conn_no_encoding(name=name)
-        io_conn = ThreadedTerminal(moler_connection=mlr_conn)  # TODO: add name, logger
+        io_conn = ThreadedTerminal(moler_connection=mlr_conn, **constructor_kwargs)  # TODO: add name, logger
         return io_conn
 
     # TODO: unify passing logger to io_conn (logger/logger_name)
