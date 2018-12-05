@@ -11,11 +11,21 @@ from moler.cmd.unix.genericunix import GenericUnixCommand
 
 
 class Sync(GenericUnixCommand):
-    def __init__(self, connection, prompt=None, new_line_chars=None):
-        super(Sync, self).__init__(connection, prompt, new_line_chars)
+    def __init__(self, connection, prompt=None, newline_chars=None, runner=None):
+        """
+        :param connection: moler connection to device, terminal when command is executed
+        :param prompt: prompt on start system (where command telnet starts).
+        :param newline_chars: characters to split lines.
+        :param runner: Runner to run command
+        """
+        super(Sync, self).__init__(connection, prompt, newline_chars, runner=runner)
         self.ret_required = False
 
     def build_command_string(self):
+        """
+        Builds command string from parameters passed to object.
+        :return: String representation of command to send over connection to device.
+        """
         return "sync"
 
 
