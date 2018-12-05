@@ -27,7 +27,7 @@ def test_job():
     job = Scheduler.get_job(fun=callback, interval=0.1, fun_params={'param_dict': values})
     job.start()
     moler.sleep.Sleep.sleep(seconds=0.22)
-    job.stop()
+    job.cancel()
     assert(2 == values['number'])
 
 
@@ -42,7 +42,7 @@ def test_job_callback_as_method():
     job = Scheduler.get_job(fun=obj.callback_method, interval=0.1, fun_params={'param_dict': values})
     job.start()
     moler.sleep.Sleep.sleep(seconds=0.22)
-    job.stop()
+    job.cancel()
     assert(2 == values['number'])
     assert(2 == obj.counter)
 
@@ -52,14 +52,14 @@ def test_2_jobs_concurrently():
     values_2 = {'number': 0}
     job1 = Scheduler.get_job(fun=callback, interval=0.05, fun_params={'param_dict': values_1})
     job2 = Scheduler.get_job(fun=callback, interval=0.10, fun_params={'param_dict': values_2})
-    job1.stop()
+    job1.cancel()
     job1.start()
     job1.start()
     job2.start()
     moler.sleep.Sleep.sleep(seconds=0.23)
-    job1.stop()
-    job1.stop()
-    job2.stop()
+    job1.cancel()
+    job1.cancel()
+    job2.cancel()
     assert (2 == values_2['number'])
     assert (4 == values_1['number'])
 
@@ -70,7 +70,7 @@ def test_thread_test_job():
     job = Scheduler.get_job(fun=callback, interval=0.1, fun_params={'param_dict': values})
     job.start()
     time.sleep(0.32)
-    job.stop()
+    job.cancel()
     Scheduler.change_kind()  # Set the default
     assert (3 == values['number'])
 
@@ -82,7 +82,7 @@ def test_asyncio_test_job():
     job = Scheduler.get_job(fun=callback, interval=0.1, fun_params={'param_dict': values})
     job.start()
     loop.run_until_complete(asyncio.sleep(0.23))
-    job.stop()
+    job.cancel()
     loop.stop()
     Scheduler.change_kind()  # Set the default
     assert (2 == values['number'])

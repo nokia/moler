@@ -110,7 +110,7 @@ class Job(object):
         """
         self._job.resume()
 
-    def stop(self):
+    def cancel(self):
         """
         Method to stop the job
         :return: Nothing
