@@ -24,7 +24,7 @@ except ImportError:  # pragma: nocover
 
 def test_job():
     values = {'number': 0}
-    job = Scheduler.get_job(callback=callback, interval=0.1, fun_params={'param_dict': values})
+    job = Scheduler.get_job(callback=callback, interval=0.1, callback_params={'param_dict': values})
     job.start()
     moler.sleep.Sleep.sleep(seconds=0.22)
     job.cancel()
@@ -39,7 +39,7 @@ def test_wrong_usage():
 def test_job_callback_as_method():
     values = {'number': 0}
     obj = TestCallback()
-    job = Scheduler.get_job(callback=obj.callback_method, interval=0.1, fun_params={'param_dict': values})
+    job = Scheduler.get_job(callback=obj.callback_method, interval=0.1, callback_params={'param_dict': values})
     job.start()
     moler.sleep.Sleep.sleep(seconds=0.22)
     job.cancel()
@@ -50,8 +50,8 @@ def test_job_callback_as_method():
 def test_2_jobs_concurrently():
     values_1 = {'number': 0}
     values_2 = {'number': 0}
-    job1 = Scheduler.get_job(callback=callback, interval=0.05, fun_params={'param_dict': values_1})
-    job2 = Scheduler.get_job(callback=callback, interval=0.10, fun_params={'param_dict': values_2})
+    job1 = Scheduler.get_job(callback=callback, interval=0.05, callback_params={'param_dict': values_1})
+    job2 = Scheduler.get_job(callback=callback, interval=0.10, callback_params={'param_dict': values_2})
     job1.cancel()
     job1.start()
     job1.start()
@@ -67,7 +67,7 @@ def test_2_jobs_concurrently():
 def test_thread_test_job():
     Scheduler.change_kind("thread")
     values = {'number': 0}
-    job = Scheduler.get_job(callback=callback, interval=0.1, fun_params={'param_dict': values})
+    job = Scheduler.get_job(callback=callback, interval=0.1, callback_params={'param_dict': values})
     job.start()
     time.sleep(0.32)
     job.cancel()
@@ -79,7 +79,7 @@ def test_asyncio_test_job():
     loop = asyncio.get_event_loop()
     Scheduler.change_kind("asyncio")
     values = {'number': 0}
-    job = Scheduler.get_job(callback=callback, interval=0.1, fun_params={'param_dict': values})
+    job = Scheduler.get_job(callback=callback, interval=0.1, callback_params={'param_dict': values})
     job.start()
     loop.run_until_complete(asyncio.sleep(0.23))
     job.cancel()

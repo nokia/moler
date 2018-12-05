@@ -14,17 +14,17 @@ import threading
 class Scheduler(object):
 
     @staticmethod
-    def get_job(callback, interval, fun_params=None):
+    def get_job(callback, interval, callback_params=None):
         """
         Static method to create job.
         :param callback: Reference to callable object (i.e. function, method)
         :param interval: time in float seconds when fun is called
-        :param fun_params: dict of params of fun
+        :param callback_params: dict of params of fun
         :return: Instance of Job.
         """
 
         instance = Scheduler._get_instance()
-        job_internal = instance._scheduler.add_job(callback, 'interval', seconds=interval, kwargs=fun_params)
+        job_internal = instance._scheduler.add_job(callback, 'interval', seconds=interval, kwargs=callback_params)
         job_internal.pause()
         job = Job(job_internal)
         return job
