@@ -31,13 +31,22 @@ def test_job():
     assert(2 == values['number'])
 
 
-def test_exception_in_job():
+def test_exception_in_job_canceled():
     values = {'number': 0}
     job = Scheduler.get_job(callback=callback_exception, interval=0.1, callback_params={'param_dict': values}, cancel_on_exception=True)
     job.start()
     moler.sleep.Sleep.sleep(seconds=0.32)
     job.cancel()
     assert(2 == values['number'])
+
+
+def test_exception_in_job_not_canceled():
+    values = {'number': 0}
+    job = Scheduler.get_job(callback=callback_exception, interval=0.1, callback_params={'param_dict': values}, cancel_on_exception=False)
+    job.start()
+    moler.sleep.Sleep.sleep(seconds=0.32)
+    job.cancel()
+    assert(3 == values['number'])
 
 
 def test_wrong_usage():
@@ -110,7 +119,7 @@ def callback(param_dict):
 def callback_exception(param_dict):
     param_dict['number'] += 1
     if param_dict['number'] == 2:
-        raise WrongUsage()
+        return 2/0
 
 
 class CallbackTest(object):
