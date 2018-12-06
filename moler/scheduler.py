@@ -31,7 +31,7 @@ class Scheduler(object):
 
         instance = Scheduler._get_instance()
         decorated = DecoratedCallable(callback, cancel_on_exception)
-        job_internal = instance._scheduler.add_job(decorated.callback, 'interval', seconds=interval, kwargs=callback_params)
+        job_internal = instance._scheduler.add_job(decorated.call, 'interval', seconds=interval, kwargs=callback_params)
         job_internal.pause()
         job = Job(job_internal)
         decorated.job = job
