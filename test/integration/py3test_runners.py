@@ -16,6 +16,7 @@ import time
 import platform
 import importlib
 import asyncio
+import mock
 
 import pytest
 from moler.connection_observer import ConnectionObserver
@@ -233,9 +234,6 @@ async def test_future_accomodates_to_shortening_timeout_of_observer(observer_run
         connection_observer.result()
 
 
-# TODO: if we call observer.on_timeout() when timeout, just before setting Timeout exception in observer
-
-
 def test_wait_for__times_out_on_constructor_timeout(observer_runner, connection_observer):
     from moler.exceptions import MolerTimeout
 
@@ -381,6 +379,19 @@ async def test_wait_for__is_prohibited_inside_async_def(async_runner, connection
         connection_observer.result()  # should raise WrongUsage
     print("\n")
     print(err.value)
+
+
+def test_observer__on_timeout__is_called_once_at_timeout(observer_runner, connection_observer):
+    from moler.exceptions import MolerTimeout
+
+    connection_observer.timeout = 0.33
+    future = observer_runner.submit(connection_observer)
+    with mock.patch.object(connection_observer, "on_timeout") as timeout_callback:
+        with pytest.raises(MolerTimeout):
+            observer_runner.wait_for(connection_observer, future,
+                                     timeout=0.33)  # means: timeout of wait_for longer then initial one
+            connection_observer.result()  # should raise Timeout
+        timeout_callback.assert_called_once()
 
 
 # TODO: tests for error cases

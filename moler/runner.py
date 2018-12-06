@@ -101,22 +101,23 @@ class ConnectionObserverRunner(object):
 
 def time_out_observer(connection_observer, timeout, passed_time, kind="background_run"):
     """Set connection_observer status to timed-out"""
-    connection_observer.on_timeout()
+    if not connection_observer.done():
+        connection_observer.on_timeout()
 
-    observer_info = "'{}.{}'".format(connection_observer.__class__.__module__,
-                                     connection_observer.__class__.__name__)
-    timeout_msg = "{} has timed out after {:.2f} seconds.".format(observer_info, passed_time)
-    connection_observer._log(logging.INFO, timeout_msg)
+        observer_info = "'{}.{}'".format(connection_observer.__class__.__module__,
+                                         connection_observer.__class__.__name__)
+        timeout_msg = "{} has timed out after {:.2f} seconds.".format(observer_info, passed_time)
+        connection_observer._log(logging.INFO, timeout_msg)
 
-    if hasattr(connection_observer, "command_string"):
-        exception = CommandTimeout(connection_observer=connection_observer,
-                                   timeout=timeout, kind=kind, passed_time=passed_time)
-    else:
-        exception = ConnectionObserverTimeout(connection_observer=connection_observer,
-                                              timeout=timeout, kind=kind, passed_time=passed_time)
-    # TODO: secure_data_received() may change status of connection_observer
-    # TODO: and if secure_data_received() runs inside threaded connection - we have race
-    connection_observer.set_exception(exception)
+        if hasattr(connection_observer, "command_string"):
+            exception = CommandTimeout(connection_observer=connection_observer,
+                                       timeout=timeout, kind=kind, passed_time=passed_time)
+        else:
+            exception = ConnectionObserverTimeout(connection_observer=connection_observer,
+                                                  timeout=timeout, kind=kind, passed_time=passed_time)
+        # TODO: secure_data_received() may change status of connection_observer
+        # TODO: and if secure_data_received() runs inside threaded connection - we have race
+        connection_observer.set_exception(exception)
 
 
 def result_for_runners(connection_observer):
@@ -279,9 +280,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         # code below is for timed out observer
         passed = time.time() - start_time
         self.logger.debug("timed out {}".format(connection_observer))
-        # TODO: no need to cancel since time_out_observer() calls set_exception() which makes it done
         connection_observer_future.cancel()
-        connection_observer.cancel()  # TODO: should call connection_observer_future.cancel() via runner
         time_out_observer(connection_observer=connection_observer,
                           timeout=timeout, passed_time=passed, kind="await_done")
         return None
