@@ -38,13 +38,13 @@ def test_wrong_usage():
 
 def test_job_callback_as_method():
     values = {'number': 0}
-    obj = TestCallback()
+    obj = CallbackTest()
     job = Scheduler.get_job(callback=obj.callback_method, interval=0.1, callback_params={'param_dict': values})
     job.start()
     moler.sleep.Sleep.sleep(seconds=0.22)
     job.cancel()
     assert(2 == values['number'])
-    assert(2 == obj.counter)
+    assert(6 == obj.counter)
 
 
 def test_2_jobs_concurrently():
@@ -98,11 +98,11 @@ def callback(param_dict):
     param_dict['number'] += 1
 
 
-class TestCallback(object):
+class CallbackTest(object):
     def __init__(self):
-        super(TestCallback, self).__init__()
+        super(CallbackTest, self).__init__()
         self.counter = 0
 
     def callback_method(self, param_dict):
         param_dict['number'] += 1
-        self.counter += 1
+        self.counter += 3
