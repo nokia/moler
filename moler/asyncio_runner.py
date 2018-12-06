@@ -18,9 +18,7 @@ import sys
 import threading
 import time
 
-from moler.exceptions import CommandTimeout
 from moler.exceptions import MolerTimeout
-from moler.exceptions import ConnectionObserverTimeout
 from moler.exceptions import MolerException
 from moler.exceptions import WrongUsage
 from moler.helpers import instance_id
@@ -226,13 +224,9 @@ class AsyncioRunner(ConnectionObserverRunner):
             connection_observer.cancel()
         except asyncio.futures.TimeoutError:
             passed = time.time() - start_time
-            self.logger.debug("timed out {}".format(connection_observer))
-            connection_observer.on_timeout()
-            if hasattr(connection_observer, "command_string"):
-                err = CommandTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
-            else:
-                err = ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
-            connection_observer.set_exception(err)
+            fired_timeout = timeout if timeout else connection_observer.timeout
+            time_out_observer(connection_observer=connection_observer,
+                              timeout=fired_timeout, passed_time=passed, kind="await_done")
         except Exception as err:
             self.logger.debug("{} raised {!r}".format(connection_observer, err))
             connection_observer.set_exception(err)
@@ -514,14 +508,9 @@ class AsyncioInThreadRunner(AsyncioRunner):
 
         # handle timeout
         passed = time.time() - start_time
-        self.logger.debug("timed out {}".format(connection_observer))
-        connection_observer.on_timeout()
-        # TODO: connection_observer._log(" has timed out after ...")
-        if hasattr(connection_observer, "command_string"):
-            exception = CommandTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
-        else:
-            exception = ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
-        connection_observer.set_exception(exception)
+        fired_timeout = timeout if timeout else connection_observer.timeout
+        time_out_observer(connection_observer=connection_observer,
+                          timeout=fired_timeout, passed_time=passed, kind="await_done")
         return None
 
     def wait_for_iterator(self, connection_observer, connection_observer_future):

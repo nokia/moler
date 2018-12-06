@@ -233,7 +233,7 @@ class ConnectionObserver(object):
         return self._result
 
     def on_timeout(self):
-        """ It's callback called by framework just before raise exception for Timeout """
+        """Callback called when observer times out"""
         pass
 
     def extend_timeout(self, timedelta):
