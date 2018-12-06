@@ -34,13 +34,13 @@ class ThreadedTerminal(IOConnection):
         self.dimensions = dimensions
         self.first_prompt = first_prompt
         self.target_prompt = target_prompt
-        self._bash_cmd = [cmd]
+        self._cmd = [cmd]
         self.set_prompt_cmd = "{}\n".format(set_prompt_cmd)
 
     def open(self):
         """Open ThreadedTerminal connection & start thread pulling data from it."""
         if not self._terminal:
-            self._terminal = PtyProcessUnicode.spawn(self._bash_cmd, dimensions=self.dimensions)
+            self._terminal = PtyProcessUnicode.spawn(self._cmd, dimensions=self.dimensions)
 
             done = Event()
             self.pulling_thread = TillDoneThread(target=self.pull_data,
