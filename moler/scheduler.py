@@ -9,7 +9,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from moler.exceptions import WrongUsage
 import threading
-
+import logging
 
 class Scheduler(object):
 
@@ -109,13 +109,15 @@ class DecoratedCallable(object):
         self.callback = callback
         self.cancel_on_exception = cancel_on_exception
         self.job = None
+        self.logger = logging.getLogger("moler")
 
     def call(self, **kwargs):
         try:
             self.callback(**kwargs)
-        except:
+        except Exception as ex:
             if self.cancel_on_exception:
                 if self.job:
+                    self.logger.warning(ex)
                     self.job.cancel()
             else:
                 pass
