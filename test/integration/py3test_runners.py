@@ -233,56 +233,59 @@ async def test_future_accomodates_to_shortening_timeout_of_observer(observer_run
         connection_observer.result()
 
 
-def test_wait_for__times_out_on_constructor_timeout(standalone_runner, connection_observer):
+# TODO: if we call observer.on_timeout() when timeout, just before setting Timeout exception in observer
+
+
+def test_wait_for__times_out_on_constructor_timeout(observer_runner, connection_observer):
     from moler.exceptions import MolerTimeout
 
     connection_observer.timeout = 0.2
-    future = standalone_runner.submit(connection_observer)
+    future = observer_runner.submit(connection_observer)
     start_time = time.time()
     with pytest.raises(MolerTimeout):
-        standalone_runner.wait_for(connection_observer, future,
-                                   timeout=None)  # means: use .timeout of observer
+        observer_runner.wait_for(connection_observer, future,
+                                 timeout=None)  # means: use .timeout of observer
         connection_observer.result()  # should raise Timeout
     duration = time.time() - start_time
     assert duration >= 0.2
     assert duration < 0.25
 
 
-def test_wait_for__times_out_on_specified_timeout(standalone_runner, connection_observer):
+def test_wait_for__times_out_on_specified_timeout(observer_runner, connection_observer):
     from moler.exceptions import MolerTimeout
 
     connection_observer.timeout = 0.4
-    future = standalone_runner.submit(connection_observer)
+    future = observer_runner.submit(connection_observer)
     start_time = time.time()
     with pytest.raises(MolerTimeout):
-        standalone_runner.wait_for(connection_observer, future,
-                                   timeout=0.2)  # means: use timeout of wait_for (shorter then initial one)
+        observer_runner.wait_for(connection_observer, future,
+                                 timeout=0.2)  # means: use timeout of wait_for (shorter then initial one)
         connection_observer.result()  # should raise Timeout
     duration = time.time() - start_time
     assert duration >= 0.2
     assert duration < 0.25
 
 
-def test_wait_for__times_out_on_earlier_timeout(standalone_runner, connection_observer):
+def test_wait_for__times_out_on_earlier_timeout(observer_runner, connection_observer):
     from moler.exceptions import MolerTimeout
 
     connection_observer.timeout = 0.3
-    future = standalone_runner.submit(connection_observer)
+    future = observer_runner.submit(connection_observer)
     start_time = time.time()
     with pytest.raises(MolerTimeout):
-        standalone_runner.wait_for(connection_observer, future,
-                                   timeout=0.5)  # means: timeout of wait_for longer then initial one
+        observer_runner.wait_for(connection_observer, future,
+                                 timeout=0.5)  # means: timeout of wait_for longer then initial one
         connection_observer.result()  # should raise Timeout
     duration = time.time() - start_time
     assert duration >= 0.3
     assert duration < 0.35
 
 
-def test_wait_for__tracks_changes_of_observer_timeout__extension(standalone_runner, connection_observer):
+def test_wait_for__tracks_changes_of_observer_timeout__extension(observer_runner, connection_observer):
     from moler.exceptions import MolerTimeout
 
     connection_observer.timeout = 0.2
-    future = standalone_runner.submit(connection_observer)
+    future = observer_runner.submit(connection_observer)
     start_time = time.time()
 
     def modify_observer_timeout():
@@ -291,19 +294,19 @@ def test_wait_for__tracks_changes_of_observer_timeout__extension(standalone_runn
     threading.Thread(target=modify_observer_timeout).start()
 
     with pytest.raises(MolerTimeout):
-        standalone_runner.wait_for(connection_observer, future,
-                                   timeout=None)
+        observer_runner.wait_for(connection_observer, future,
+                                 timeout=None)
         connection_observer.result()  # should raise Timeout
     duration = time.time() - start_time
     assert duration >= 0.35
     assert duration < 0.4
 
 
-def test_wait_for__tracks_changes_of_observer_timeout__shortening(standalone_runner, connection_observer):
+def test_wait_for__tracks_changes_of_observer_timeout__shortening(observer_runner, connection_observer):
     from moler.exceptions import MolerTimeout
 
     connection_observer.timeout = 0.35
-    future = standalone_runner.submit(connection_observer)
+    future = observer_runner.submit(connection_observer)
     start_time = time.time()
 
     def modify_observer_timeout():
@@ -312,20 +315,20 @@ def test_wait_for__tracks_changes_of_observer_timeout__shortening(standalone_run
     threading.Thread(target=modify_observer_timeout).start()
 
     with pytest.raises(MolerTimeout):
-        standalone_runner.wait_for(connection_observer, future,
-                                   timeout=None)
+        observer_runner.wait_for(connection_observer, future,
+                                 timeout=None)
         connection_observer.result()  # should raise Timeout
     duration = time.time() - start_time
     assert duration >= 0.2
     assert duration < 0.25
 
 
-def test_wait_for__direct_timeout_takes_precedence_over_extended_observer_timeout(standalone_runner,
+def test_wait_for__direct_timeout_takes_precedence_over_extended_observer_timeout(observer_runner,
                                                                                   connection_observer):
     from moler.exceptions import MolerTimeout
 
     connection_observer.timeout = 0.2
-    future = standalone_runner.submit(connection_observer)
+    future = observer_runner.submit(connection_observer)
     start_time = time.time()
 
     def modify_observer_timeout():
@@ -334,8 +337,8 @@ def test_wait_for__direct_timeout_takes_precedence_over_extended_observer_timeou
     threading.Thread(target=modify_observer_timeout).start()
 
     with pytest.raises(MolerTimeout):
-        standalone_runner.wait_for(connection_observer, future,
-                                   timeout=0.25)  # should take precedence, means: 0.25 sec from now
+        observer_runner.wait_for(connection_observer, future,
+                                 timeout=0.25)  # should take precedence, means: 0.25 sec from now
         connection_observer.result()  # should raise Timeout
     duration = time.time() - start_time
     assert duration >= 0.25

@@ -205,8 +205,6 @@ class AsyncioRunner(ConnectionObserverRunner):
         """
         self.logger.debug("go foreground: {!r} - await max. {} [sec]".format(connection_observer, timeout))
         start_time = time.time()
-        if not timeout:
-            timeout = connection_observer.timeout
         event_loop = asyncio.get_event_loop()
 
         try:
@@ -238,8 +236,6 @@ class AsyncioRunner(ConnectionObserverRunner):
         except Exception as err:
             self.logger.debug("{} raised {!r}".format(connection_observer, err))
             connection_observer.set_exception(err)
-        else:
-            self.logger.debug("{} returned {}".format(connection_observer, result))
         finally:
             connection_observer_future.cancel()
 
