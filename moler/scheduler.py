@@ -11,6 +11,7 @@ from moler.exceptions import WrongUsage
 import threading
 import logging
 
+
 class Scheduler(object):
 
     @staticmethod
