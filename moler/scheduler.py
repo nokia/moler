@@ -14,19 +14,26 @@ import threading
 class Scheduler(object):
 
     @staticmethod
-    def get_job(callback, interval, callback_params=None):
+    def get_job(callback, interval, callback_params=None, cancel_on_exception=False):
         """
         Static method to create job.
         :param callback: Reference to callable object (i.e. function, method)
-        :param interval: time in float seconds when fun is called
+        :param interval: time in float seconds when fun is called. If time of one execution is longer than interval then
+         some callbacks are missed. For example: interval is 2s and time of execution is 3s then callback will be called
+         when job ios created after 2s,  after 4s will not be executed because still the first excection is running,
+         then after 6s of is called.
         :param callback_params: dict of params of fun
+        :param cancel_on_exception: set True if you want to break next execution of this callback if previous raises an
+         exception
         :return: Instance of Job.
         """
 
         instance = Scheduler._get_instance()
-        job_internal = instance._scheduler.add_job(callback, 'interval', seconds=interval, kwargs=callback_params)
+        decorated = DecoratedCallable(callback, cancel_on_exception)
+        job_internal = instance._scheduler.add_job(decorated.callback, 'interval', seconds=interval, kwargs=callback_params)
         job_internal.pause()
         job = Job(job_internal)
+        decorated.job = job
         return job
 
     @staticmethod
@@ -95,6 +102,23 @@ class Scheduler(object):
             raise WrongUsage("Wrong value of 'scheduler_type': '{}'. Allowed are 'thread' or 'asyncio'".format(scheduler_type))
         scheduler.start()
         return scheduler
+
+
+class DecoratedCallable(object):
+    def __init__(self, callback, cancel_on_exception):
+        self.callback = callback
+        self.cancel_on_exception = cancel_on_exception
+        self.job = None
+
+    def call(self, **kwargs):
+        try:
+            self.callback(**kwargs)
+        except:
+            if self.cancel_on_exception:
+                if self.job:
+                    self.job.cancel()
+            else:
+                pass
 
 
 class Job(object):
