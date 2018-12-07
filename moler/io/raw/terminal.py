@@ -45,7 +45,7 @@ class ThreadedTerminal(IOConnection):
         self.first_prompt = first_prompt
         self.target_prompt = target_prompt
         self._cmd = [cmd]
-        self.set_prompt_cmd = "{}\n".format(set_prompt_cmd)
+        self.set_prompt_cmd = "{}\r\n".format(set_prompt_cmd)
 
     def open(self):
         """Open ThreadedTerminal connection & start thread pulling data from it."""
