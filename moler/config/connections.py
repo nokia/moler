@@ -8,6 +8,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com'
 
 import platform
+from moler.exceptions import MolerException
 
 default_variant = {}
 named_connections = {}
@@ -50,8 +51,13 @@ def set_defaults():
 
 def register_builtin_connections(connection_factory, moler_conn_class):
     _register_builtin_connections(connection_factory, moler_conn_class)
-    if platform.system() in ['Linux', "FreeBSD", "Darwin", "SunOS"]:
+    supported_systems = ['Linux', "FreeBSD", "Darwin", "SunOS"]
+
+    if platform.system() in supported_systems:
         _register_builtin_unix_connections(connection_factory, moler_conn_class)
+    else:
+        err_msg = "Unsupported system {} detected! Supported systems: {}".format(platform.system(), supported_systems)
+        raise MolerException(err_msg)
 
 
 def _register_builtin_connections(connection_factory, moler_conn_class):
