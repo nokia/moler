@@ -8,6 +8,7 @@ __email__ = 'marcin.usielski@nokia.com'
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from moler.exceptions import WrongUsage
+from moler.device.state_machine import ForwardingHandler
 import threading
 import logging
 
@@ -149,12 +150,26 @@ moler_scheduler = "moler.scheduler"
 
 
 class MolerThreadScheduler(BackgroundScheduler):
+    forwarding_handler = None
+
     def _configure(self, config):
         super(MolerThreadScheduler, self)._configure(config)
-        self._logger = logging.getLogger(moler_scheduler)
+        if not MolerThreadScheduler.forwarding_handler:
+            self._logger.propagate = False
+            self._logger.setLevel(1)
+            MolerThreadScheduler.forwarding_handler = ForwardingHandler(target_logger_name=moler_scheduler)
+            self._logger.addHandler(MolerThreadScheduler.forwarding_handler)
+        # self._logger = logging.getLogger(moler_scheduler)
 
 
 class MolerAsyncioScheduler(AsyncIOScheduler):
+    forwarding_handler = None
+
     def _configure(self, config):
         super(MolerAsyncioScheduler, self)._configure(config)
-        self._logger = logging.getLogger(moler_scheduler)
+        if not MolerAsyncioScheduler.forwarding_handler:
+            self._logger.propagate = False
+            self._logger.setLevel(1)
+            MolerAsyncioScheduler.forwarding_handler = ForwardingHandler(target_logger_name=moler_scheduler)
+            self._logger.addHandler(MolerAsyncioScheduler.forwarding_handler)
+        #self._logger = logging.getLogger(moler_scheduler)
