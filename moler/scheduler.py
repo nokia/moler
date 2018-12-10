@@ -96,10 +96,8 @@ class Scheduler(object):
         if self._scheduler_type == scheduler_type:
             return self._scheduler
         if scheduler_type == 'thread':
-            # scheduler = BackgroundScheduler()
             scheduler = MolerThreadScheduler()
         elif scheduler_type == 'asyncio':
-            # scheduler = AsyncIOScheduler()
             scheduler = MolerAsyncioScheduler()
         else:
             raise WrongUsage("Wrong value of 'scheduler_type': '{}'. Allowed are 'thread' or 'asyncio'".format(scheduler_type))
