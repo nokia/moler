@@ -10,6 +10,8 @@ __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielsk
 import importlib
 import re
 import copy
+import logging
+
 
 try:
     import collections.abc as collections
@@ -105,3 +107,29 @@ def update_dict(target_dict, expand_dict):
             update_dict(target_dict[key], expand_dict[key])
         else:
             target_dict[key] = expand_dict[key]
+
+
+class ForwardingHandler(logging.Handler):
+    """
+    Take log record and pass it to target_logger
+    """
+
+    def __init__(self, target_logger_name):
+        super(ForwardingHandler, self).__init__(level=1)
+        self.target_logger_name = target_logger_name
+        self.target_logger = logging.getLogger('moler')
+
+    def emit(self, record):
+        """
+        Emit a record.
+
+        Output the record to the target_logger, catering for rollover as described
+        in doRollover().
+        """
+        record.name = self.target_logger_name
+
+        if (record.levelno == logging.INFO) or (record.levelname == "INFO"):
+            record.levelno = logging.DEBUG
+            record.levelname = "DEBUG"
+
+        self.target_logger.handle(record)
