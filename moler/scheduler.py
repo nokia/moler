@@ -96,9 +96,11 @@ class Scheduler(object):
         if self._scheduler_type == scheduler_type:
             return self._scheduler
         if scheduler_type == 'thread':
-            scheduler = BackgroundScheduler()
+            # scheduler = BackgroundScheduler()
+            scheduler = MolerThreadScheduler()
         elif scheduler_type == 'asyncio':
-            scheduler = AsyncIOScheduler()
+            # scheduler = AsyncIOScheduler()
+            scheduler = MolerAsyncioScheduler()
         else:
             raise WrongUsage("Wrong value of 'scheduler_type': '{}'. Allowed are 'thread' or 'asyncio'".format(scheduler_type))
         scheduler.start()
@@ -143,3 +145,15 @@ class Job(object):
         :return: Nothing
         """
         self._job.pause()
+
+
+class MolerThreadScheduler(BackgroundScheduler):
+    def _configure(self, config):
+        super(MolerThreadScheduler, self)._configure(config)
+        self._logger = logging.getLogger("moler")
+
+
+class MolerAsyncioScheduler(AsyncIOScheduler):
+    def _configure(self, config):
+        super(MolerAsyncioScheduler, self)._configure(config)
+        self._logger = logging.getLogger("moler")
