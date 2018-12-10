@@ -49,6 +49,15 @@ def test_exception_in_job_not_canceled():
     assert(3 == values['number'])
 
 
+def test_long_job():
+    values = {'number': 0}
+    job = Scheduler.get_job(callback=callback_long, interval=0.1, callback_params={'param_dict': values}, cancel_on_exception=True)
+    job.start()
+    moler.sleep.Sleep.sleep(seconds=0.45)
+    job.cancel()
+    assert(2 == values['number'])
+
+
 def test_wrong_usage():
     with pytest.raises(WrongUsage):
         Scheduler.change_kind('wrong_kind')
@@ -114,6 +123,11 @@ def test_cannot_create_more_objects():
 
 def callback(param_dict):
     param_dict['number'] += 1
+
+
+def callback_long(param_dict):
+    param_dict['number'] += 1
+    moler.sleep.Sleep.sleep(seconds=0.12)
 
 
 def callback_exception(param_dict):
