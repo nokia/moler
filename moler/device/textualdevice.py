@@ -23,8 +23,8 @@ from moler.config.loggers import configure_device_logger
 from moler.connection import get_connection
 from moler.device.state_machine import StateMachine
 from moler.exceptions import CommandWrongState, DeviceFailure, EventWrongState, DeviceChangeStateFailure
-from moler.helpers import update_dict
 from moler.helpers import copy_dict
+from moler.helpers import update_dict
 
 
 # TODO: name, logger/logger_name as param
@@ -35,7 +35,8 @@ class TextualDevice(object):
     not_connected = "NOT_CONNECTED"
     connection_hops = "CONNECTION_HOPS"
 
-    def __init__(self, sm_params=None, name=None, io_connection=None, io_type=None, variant=None, initial_state=None):
+    def __init__(self, sm_params=None, name=None, io_connection=None, io_type=None, variant=None,
+                 io_constructor_kwargs={}, initial_state=None):
         """
         Create Device communicating over io_connection
         CAUTION: Device owns (takes over ownership) of connection. It will be open when device "is born" and close when
@@ -47,9 +48,12 @@ class TextualDevice(object):
         :param io_type: type of connection - tcp, udp, ssh, telnet, ...
         :param variant: connection implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
                         (if not given then default one is taken)
+        :param io_constructor_kwargs: additional parameter into constructor of selected connection type
+                        (if not given then default one is taken)
         :param initial_state: name of initial state. State machine tries to enter this state just after creation.
         """
         sm_params = copy_dict(sm_params, deep_copy=True)
+        io_constructor_kwargs = copy_dict(io_constructor_kwargs, deep_copy=True)
         self.initial_state = initial_state if initial_state is not None else "NOT_CONNECTED"
         self.states = [TextualDevice.not_connected]
         self.goto_states_triggers = []
@@ -70,7 +74,7 @@ class TextualDevice(object):
         if io_connection:
             self.io_connection = io_connection
         else:
-            self.io_connection = get_connection(io_type=io_type, variant=variant)
+            self.io_connection = get_connection(io_type=io_type, variant=variant, **io_constructor_kwargs)
 
         self.io_connection.name = self.name
         self.io_connection.moler_connection.name = self.name

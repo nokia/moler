@@ -16,7 +16,8 @@ from moler.device.unixlocal import UnixLocal
 class UnixRemote(UnixLocal):
     unix_remote = "UNIX_REMOTE"
 
-    def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, initial_state=None):
+    def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, io_constructor_kwargs={},
+                 initial_state=None):
         """
         Create Unix device communicating over io_connection
         :param sm_params: dict with parameters of state machine for device
@@ -24,12 +25,15 @@ class UnixRemote(UnixLocal):
         :param io_connection: External-IO connection having embedded moler-connection
         :param io_type: type of connection - tcp, udp, ssh, telnet, ...
         :param variant: connection implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
-            (if not given then default one is taken)
+                        (if not given then default one is taken)
+        :param io_constructor_kwargs: additional parameter into constructor of selected connection type
+                        (if not given then default one is taken)
         :param initial_state: name of initial state. State machine tries to enter this state just after creation.
         """
         initial_state = initial_state if initial_state is not None else UnixRemote.unix_remote
         super(UnixRemote, self).__init__(name=name, io_connection=io_connection,
                                          io_type=io_type, variant=variant,
+                                         io_constructor_kwargs=io_constructor_kwargs,
                                          sm_params=sm_params, initial_state=initial_state)
 
     def _get_default_sm_configuration(self):
