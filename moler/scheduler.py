@@ -147,6 +147,7 @@ class Job(object):
 
 moler_scheduler = "moler.scheduler"
 
+
 class MolerThreadScheduler(BackgroundScheduler):
     def _configure(self, config):
         super(MolerThreadScheduler, self)._configure(config)
