@@ -145,13 +145,15 @@ class Job(object):
         self._job.pause()
 
 
+moler_scheduler = "moler.scheduler"
+
 class MolerThreadScheduler(BackgroundScheduler):
     def _configure(self, config):
         super(MolerThreadScheduler, self)._configure(config)
-        self._logger = logging.getLogger("moler")
+        self._logger = logging.getLogger(moler_scheduler)
 
 
 class MolerAsyncioScheduler(AsyncIOScheduler):
     def _configure(self, config):
         super(MolerAsyncioScheduler, self)._configure(config)
-        self._logger = logging.getLogger("moler")
+        self._logger = logging.getLogger(moler_scheduler)
