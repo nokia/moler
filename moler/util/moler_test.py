@@ -61,9 +61,9 @@ class MolerTest(object):
         """
         Decorates the function, method or class.
         :param decorated: Function, method or class to decorate.
-        :param check_steps_end: If True then check if steps_end was called before return the method. If False then do
+        :param check_steps_end: If True then check if steps_end was called before return the method, if False then do
          not check
-        :return: Decorated callable/
+        :return: Decorated callable
         """
         if callable(decorated):
             # direct decoration
