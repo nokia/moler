@@ -18,19 +18,65 @@ from moler.exceptions import MolerStatusException
 
 
 class MolerTest(object):
-    _was_error = False
-    _was_steps_end = False
-    _logger = logging.getLogger("moler")
-    _list_of_errors = list()
 
     @staticmethod
     def steps_end():
+        """
+        You should call this function at the end of your test code with Moler.
+        :return: Nothing
+        """
         MolerTest._was_steps_end = True
 
     @staticmethod
     def error(msg, raise_exception=False):
+        """
+        Makes an error (fail the test) and (optional) continue the test flow.
+        :param msg: Message to show.
+        :param raise_exception: If True then raise an exception, if False then only show msg and mark error in logs.
+        :return: Nothing.
+        """
         MolerTest._list_of_errors.append(msg)
         MolerTest._error(msg, raise_exception)
+
+    @staticmethod
+    def info(msg):
+        """
+        Shows the message
+        :param msg: Message to show.
+        :return: Nothing.
+        """
+        MolerTest._logger.info(msg)
+
+    @staticmethod
+    def warning(msg):
+        """
+        Shows the message as warning.
+        :param msg: Message to show.
+        :return: Nothing
+        """
+        MolerTest._logger.warning(msg)
+
+    @staticmethod
+    def raise_background_exceptions(decorated="function", check_steps_end=False):
+        """
+        Decorates the function, method or class.
+        :param decorated: Function, method or class to decorate.
+        :param check_steps_end: If True then check if steps_end was called before return the method. If False then do
+         not check
+        :return: Decorated callable/
+        """
+        if callable(decorated):
+            # direct decoration
+            return MolerTest._decorate(decorated, check_steps_end=check_steps_end)
+        else:
+            return partial(MolerTest._decorate, check_steps_end=check_steps_end)
+
+    # No public methods and fields below:
+
+    _was_error = False
+    _was_steps_end = False
+    _logger = logging.getLogger("moler")
+    _list_of_errors = list()
 
     @staticmethod
     def _error(msg, raise_exception=False):
@@ -38,10 +84,6 @@ class MolerTest(object):
         MolerTest._logger.error(msg, extra={'moler_error': True})
         if raise_exception:
             raise MolerException(msg)
-
-    @staticmethod
-    def info(msg):
-        MolerTest._logger.info(msg)
 
     @staticmethod
     def _steps_start():
@@ -100,14 +142,6 @@ class MolerTest(object):
             MolerTest._error(err_msg)
             MolerTest._was_error = False
             raise MolerStatusException(err_msg)
-
-    @staticmethod
-    def raise_background_exceptions(decorated="function", check_steps_end=False):
-        if callable(decorated):
-            # direct decoration
-            return MolerTest._decorate(decorated, check_steps_end=check_steps_end)
-        else:
-            return partial(MolerTest._decorate, check_steps_end=check_steps_end)
 
     @staticmethod
     def _decorate(obj=None, check_steps_end=False):
