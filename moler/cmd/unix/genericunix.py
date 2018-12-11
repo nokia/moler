@@ -15,7 +15,7 @@ from moler.helpers import remove_escape_codes
 
 
 class GenericUnixCommand(CommandTextualGeneric):
-    _re_fail = re.compile(r'command not found|No such file or directory|running it may require superuser privileges')
+    _re_fail = re.compile(r'command not found|No such file or directory|running it may require superuser privileges', re.I)
 
     def __init__(self, connection, prompt=None, newline_chars=None, runner=None):
         """
