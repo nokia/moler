@@ -11,6 +11,11 @@ from moler.exceptions import MolerStatusException
 from moler.util.moler_test import MolerTest
 
 
+def test_moler_test_warn():
+    ConnectionObserver.get_unraised_exceptions()
+    MolerTest.warning("Warning test")
+
+
 def test_moler_test_not_raise_exception_when_steps_end(moler_test_se):
     ConnectionObserver.get_unraised_exceptions()
     moler_test_se.test_not_raise_exception_when_steps_end()
