@@ -483,7 +483,7 @@ Nmap done: 16 IP addresses (16 hosts up) scanned in 209.25 seconds
 root@cp19-nj:/home/ute# """
 
 COMMAND_KWARGS = {'options': '-d1 -p- --host-timeout 100',
-                            'ip': '10.9.134.0/28'}
+                  'ip': '10.9.134.0/28'}
 
 COMMAND_RESULT = {
     'RAW_PACKETS': {
