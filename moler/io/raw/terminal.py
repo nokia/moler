@@ -30,7 +30,7 @@ class ThreadedTerminal(IOConnection):
         :param read_buffer_size: buffer for reading data from terminal
         :param first_prompt: default terminal prompt on host where Moler is starting
         :param target_prompt: new prompt which will be set on terminal
-        :param set_prompt_cmd: command to change prompt
+        :param set_prompt_cmd: command to change prompt with new line char on the end of string
         :param dimensions: dimensions of the psuedoterminal
         """
         super(ThreadedTerminal, self).__init__(moler_connection=moler_connection)
