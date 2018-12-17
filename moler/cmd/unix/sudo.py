@@ -34,7 +34,7 @@ class Sudo(GenericUnixCommand):
         self.cmd_object = cmd_object
         self._sent_sudo_password = False
         self._sent_command_string = False
-        self.newline_seq = "\r\n"
+        self.newline_seq = "\n"
         if cmd_object and cmd_class_name:
             self.set_exception(CommandFailure(self, "both 'cmd_object' and 'cmd_class_name' parameters provided. Please specify only one. "))
             return

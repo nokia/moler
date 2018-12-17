@@ -581,4 +581,4 @@ class TextualDevice(object):
             state = self.current_state
         if state and state in self._newline_chars:
             return self._newline_chars[state]
-        return "\r\n"
+        return "\n"

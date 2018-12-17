@@ -22,7 +22,7 @@ class ThreadedTerminal(IOConnection):
 
     def __init__(self, moler_connection, cmd="/bin/bash", select_timeout=0.002,
                  read_buffer_size=4096, first_prompt=r'[%$#]+', target_prompt=r'^moler_bash#',
-                 set_prompt_cmd='export PS1="moler_bash# "', dimensions=(100, 300)):
+                 set_prompt_cmd='export PS1="moler_bash# "\n', dimensions=(100, 300)):
         """
         :param moler_connection: Moler's connection to join with
         :param cmd: command to run terminal
@@ -45,7 +45,7 @@ class ThreadedTerminal(IOConnection):
         self.first_prompt = first_prompt
         self.target_prompt = target_prompt
         self._cmd = [cmd]
-        self.set_prompt_cmd = "{}\r\n".format(set_prompt_cmd)
+        self.set_prompt_cmd = set_prompt_cmd
 
     def open(self):
         """Open ThreadedTerminal connection & start thread pulling data from it."""
@@ -73,6 +73,7 @@ class ThreadedTerminal(IOConnection):
 
     def send(self, data):
         """Write data into ThreadedTerminal connection."""
+        print( ">> '{}'".format(data))
         self._terminal.write(data)
 
     def pull_data(self, pulling_done):
@@ -84,6 +85,7 @@ class ThreadedTerminal(IOConnection):
             if self._terminal.fd in reads:
                 try:
                     data = self._terminal.read(self._read_buffer_size)
+                    print("<< '{}'".format(data))
 
                     if self._shell_operable.is_set():
                         self.data_received(data)
