@@ -18,13 +18,14 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 import logging
 import weakref
 from threading import Lock
-
+import time
 import six
 
 import moler.config.connections as connection_cfg
 from moler.config.loggers import RAW_DATA, TRACE
 from moler.exceptions import WrongUsage
 from moler.helpers import instance_id
+import moler.sleep
 
 
 def identity_transformation(data):
@@ -60,6 +61,9 @@ class Connection(object):
         self.newline = newline
         self.data_logger = logging.getLogger('moler.{}'.format(self.name))
         self.logger = Connection._select_logger(logger_name, self._name)
+        self._command_lock = Lock()
+        self._commands_queue = list()
+        self._command_executing = None
 
     @property
     def name(self):
@@ -206,6 +210,34 @@ class Connection(object):
                 self.logger.log(level, msg, extra=extra_params)
             except Exception as err:
                 print(err)  # logging errors should not propagate
+
+    def add_command_to_connection(self, cmd):
+        with self._command_lock:
+            if self._command_executing is None:
+                self._command_executing = cmd
+                cmd.runner.submit(cmd)
+                return
+            else:
+                self._commands_queue.append(cmd)
+        start_time = time.time()
+        while(time.time() - start_time) > cmd.timeout:
+            moler.sleep.Sleep.sleep(seconds=0.05)
+            with self._command_lock:
+                if cmd == self._commands_queue[0]:
+                    self._commands_queue.pop(0)
+                    self._command_executing = cmd
+                    cmd.runner.submit(cmd)
+                    return
+        else:
+            with self._command_lock:
+                index = self._commands_queue.index(cmd)
+                self._commands_queue.pop(index)
+
+    def remove_command_from_connection(self, cmd):
+        with self._command_lock:
+            if self._command_executing == cmd:
+                self._command_executing = None
+
 
 
 class ObservableConnection(Connection):
