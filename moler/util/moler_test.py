@@ -8,6 +8,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
+import time
 from functools import partial
 from functools import wraps
 from types import FunctionType, MethodType
@@ -55,6 +56,17 @@ class MolerTest(object):
         :return: Nothing
         """
         MolerTest._logger.warning(msg)
+
+    @staticmethod
+    def sleep(seconds):
+        """
+        Add sleep functionality
+        TODO: add support to asyncio when runner ready
+        :param seconds: Time to sleep (in seconds)
+        :return:
+        """
+        MolerTest.info("Sleep for {:.2f} seconds.".format(seconds))
+        time.sleep(seconds)
 
     @staticmethod
     def raise_background_exceptions(decorated="function", check_steps_end=False):
