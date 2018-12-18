@@ -16,14 +16,14 @@ DEVICES:
   RebexTestMachine:
     DEVICE_CLASS: moler.device.unixremote.UnixRemote
     CONNECTION_HOPS:
-      UNIX_LOCAL:                # from state
-        UNIX_REMOTE:             # to state
-          execute_command: ssh   # via command
-          command_params:        # with params
+      UNIX_LOCAL:                   # from state
+        UNIX_REMOTE:                # to state
+          execute_command: ssh      # via command
+          command_params:           # with params
             expected_prompt: demo@
             host: test.rebex.net
             login: demo
             password: password
-            set_timeout: False   # remote doesn't support: export TMOUT
-
+            set_timeout: False      # remote doesn't support: export TMOUT
+            target_newline: "\r\n"  # remote host need \r\n as line end
 
