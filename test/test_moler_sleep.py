@@ -9,14 +9,14 @@ __email__ = 'michal.ernst@nokia.com'
 
 import time
 
-from moler.sleep import Sleep
+from moler.util.moler_test import MolerTest
 
 
 def test_sleep_for_threaded_variant():
     sleep_time = 1
     start_time = time.time()
 
-    Sleep.sleep(sleep_time)
+    MolerTest.sleep(sleep_time)
 
     stop_time = time.time()
     elapsed = stop_time - start_time
