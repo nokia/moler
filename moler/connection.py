@@ -222,7 +222,7 @@ class Connection(object):
                 self._commands_queue.append(cmd)
         start_time = cmd.start_time
         while cmd.timeout > (time.time() - start_time):
-            MolerTest.sleep(seconds=0.001)
+            MolerTest.sleep(seconds=0.001, quiet=True)
             with self._command_lock:
                 if self._command_executing is None and cmd == self._commands_queue[0]:
                     self._commands_queue.pop(0)
