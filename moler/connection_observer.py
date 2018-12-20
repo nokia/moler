@@ -186,6 +186,29 @@ class ConnectionObserver(object):
         """ It's callback called by framework just before raise exception for Timeout """
         pass
 
+    def add_command_to_connection(self):
+        """
+        Adds blocking ConnectionObserver object (command object) to connection. If ConnectionObserver object is not
+         blocking then immediately returns True
+        :return: True if ConnectionObserver was added to connection or adding is not required. False if cannot add ConnectionObserver
+         to connection
+        """
+        return True
+
+    def remove_command_from_connection(self):
+        """
+        Remove blocking ConnectionObserver object (command object) from connection. If Connection observer is not blocking
+         then does nothing
+        :return: Nothing
+        """
+        pass
+
+    def is_blocking_observer(self):
+        """
+        :return: True if instance of ConnectionObserver is a blocking one (a command). False if not blocking.
+        """
+        return False
+
     def extend_timeout(self, timedelta):
         prev_timeout = self.timeout
         self.timeout = self.timeout + timedelta
