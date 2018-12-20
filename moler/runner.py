@@ -162,9 +162,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Returns Future that could be used to await for connection_observer done.
         """
         self.logger.debug("go background: {!r}".format(connection_observer))
-
         # TODO: check dependency - connection_observer.connection
-
         feed_started = threading.Event()
         stop_feeding = threading.Event()
         feed_done = threading.Event()
@@ -205,6 +203,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 connection_observer_future._stop()
                 result = connection_observer_future.result()
                 self.logger.debug("{} returned {}".format(connection_observer, result))
+                connection_observer.remove_command_from_connection()
                 return None
             if check_timeout_from_observer:
                 timeout = connection_observer.timeout
@@ -227,6 +226,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         else:
             exception = ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
         connection_observer.set_exception(exception)
+        connection_observer.remove_command_from_connection()
         return None
 
     def feed(self, connection_observer, feed_started, stop_feeding, feed_done):
@@ -234,6 +234,10 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Feeds connection_observer by transferring data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
+        feed_started.set()
+        if not connection_observer.add_command_to_connection():
+            feed_done.set()
+            return connection_observer.result()
         connection_observer._log(logging.INFO, "{} started.".format(connection_observer.get_long_desc()))
         moler_conn = connection_observer.connection
 
@@ -246,7 +250,9 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         # start feeding connection_observer by establishing data-channel from connection to observer
         self.logger.debug("subscribing for data {!r}".format(connection_observer))
         moler_conn.subscribe(secure_data_received)
-        feed_started.set()
+
+        if connection_observer.is_blocking_observer():
+            connection_observer.connection.sendline(connection_observer.command_string)
 
         while True:
             if stop_feeding.is_set():
@@ -261,6 +267,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             time.sleep(0.01)  # give moler_conn a chance to feed observer
 
         self.logger.debug("unsubscribing {!r}".format(connection_observer))
+        connection_observer.remove_command_from_connection()
         moler_conn.unsubscribe(secure_data_received)
         feed_done.set()
 
