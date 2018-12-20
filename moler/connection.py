@@ -215,29 +215,31 @@ class Connection(object):
         with self._command_lock:
             if self._command_executing is None:
                 self._command_executing = cmd
-                cmd.runner.submit(cmd)
-                return
+                self._log(logging.DEBUG, ">'{}' Connection.add_command_to_connection '{}' added.".format(cmd, cmd.command_string))
+                return True
             else:
+                self._log(logging.DEBUG, ">'{}' Connection.add_command_to_connection '{}' added to queue.".format(cmd, cmd.command_string))
                 self._commands_queue.append(cmd)
         start_time = time.time()
-        while(time.time() - start_time) > cmd.timeout:
-            moler.sleep.Sleep.sleep(seconds=0.05)
+        while cmd.timeout > (time.time() - start_time):
+            moler.sleep.Sleep.sleep(seconds=0.001)
             with self._command_lock:
-                if cmd == self._commands_queue[0]:
+                if self._command_executing is None and cmd == self._commands_queue[0]:
                     self._commands_queue.pop(0)
                     self._command_executing = cmd
-                    cmd.runner.submit(cmd)
-                    return
-        else:
-            with self._command_lock:
-                index = self._commands_queue.index(cmd)
-                self._commands_queue.pop(index)
+                    self._log(logging.DEBUG, ">'{}' Connection.add_command_to_connection '{}' added cmd from  queue.".format(cmd, cmd.command_string))
+                    return True
+        with self._command_lock:
+            index = self._commands_queue.index(cmd)
+            self._commands_queue.pop(index)
+            return False
 
     def remove_command_from_connection(self, cmd):
+        self._log(logging.DEBUG, "{} Trying to remove command.".format(cmd))
         with self._command_lock:
             if self._command_executing == cmd:
+                self._log(logging.DEBUG, "{} removed.".format(cmd))
                 self._command_executing = None
-
 
 
 class ObservableConnection(Connection):
