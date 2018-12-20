@@ -234,10 +234,12 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Feeds connection_observer by transferring data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
-        feed_started.set()
-        if not connection_observer.add_command_to_connection():
-            feed_done.set()
-            return connection_observer.result()
+
+        if connection_observer.is_blocking_observer():
+            feed_started.set()  # commands 'start' here because they have to wait to finish other commands on connection
+            if not connection_observer.add_command_to_connection():
+                feed_done.set()
+                return connection_observer.result()
         connection_observer._log(logging.INFO, "{} started.".format(connection_observer.get_long_desc()))
         moler_conn = connection_observer.connection
 
@@ -253,6 +255,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
         if connection_observer.is_blocking_observer():
             connection_observer.connection.sendline(connection_observer.command_string)
+        else:
+            feed_started.set()  # Events start here because they do not have to wait to finish other events.
 
         while True:
             if stop_feeding.is_set():
