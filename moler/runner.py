@@ -234,14 +234,10 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Feeds connection_observer by transferring data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
-
-        if connection_observer.is_blocking_observer():
-            feed_started.set()  # commands 'start' here because they have to wait to finish other commands on connection
-            if not connection_observer.add_command_to_connection():
-                feed_done.set()
-                return connection_observer.result()
         connection_observer._log(logging.INFO, "{} started.".format(connection_observer.get_long_desc()))
         moler_conn = connection_observer.connection
+        if not self._wait_for_blocking_observer(connection_observer, feed_started, feed_done):
+            return connection_observer.result()
 
         def secure_data_received(data):
             try:
@@ -281,3 +277,12 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
     def timeout_change(self, timedelta):
         pass
+
+    def _wait_for_blocking_observer(self, connection_observer, feed_started, feed_done):
+        if connection_observer.is_blocking_observer():
+            feed_started.set()  # commands 'start' here because they have to wait to finish other commands on connection
+            # and they do not have output before command was sent
+            if not connection_observer.add_command_to_connection():
+                feed_done.set()
+                return False
+        return True
