@@ -29,7 +29,7 @@ class Telnet(GenericUnixCommand):
     def __init__(self, connection, host, login=None, password=None, port=0, prompt=None, expected_prompt=r'^>\s*',
                  set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono="TERM=xterm-mono", prefix=None,
                  newline_chars=None, cmds_before_establish_connection=None, cmds_after_establish_connection=None,
-                 telnet_prompt=r"^\s*telnet>\s*", encrypt_password=True, runner=None, target_newline="\r\n"):
+                 telnet_prompt=r"^\s*telnet>\s*", encrypt_password=True, runner=None, target_newline="\n"):
         """
         :param connection: moler connection to device, terminal when command is executed
         :param host: address of telnet server.

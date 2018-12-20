@@ -13,6 +13,7 @@ load_config(config={'DEVICES': {'DEFAULT_CONNECTION':
                                                                                       'host': 'test.rebex.net',
                                                                                       'login': 'demo',
                                                                                       'password': 'password',
+                                                                                      'target_newline': "\r\n",
                                                                                       'set_timeout': None}}}}}}},
             config_type='dict')
 

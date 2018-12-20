@@ -8,8 +8,8 @@ __email__ = 'marcin.usielski@nokia.com'
 
 from moler.scheduler import Scheduler
 from moler.exceptions import WrongUsage
+from moler.util.moler_test import MolerTest
 import time
-import moler.sleep
 import pytest
 
 try:
@@ -26,7 +26,7 @@ def test_job():
     values = {'number': 0}
     job = Scheduler.get_job(callback=callback, interval=0.1, callback_params={'param_dict': values})
     job.start()
-    moler.sleep.Sleep.sleep(seconds=0.22)
+    MolerTest.sleep(seconds=0.22)
     job.cancel()
     assert(2 == values['number'])
 
@@ -35,7 +35,7 @@ def test_exception_in_job_canceled():
     values = {'number': 0}
     job = Scheduler.get_job(callback=callback_exception, interval=0.1, callback_params={'param_dict': values}, cancel_on_exception=True)
     job.start()
-    moler.sleep.Sleep.sleep(seconds=0.32)
+    MolerTest.sleep(seconds=0.32)
     job.cancel()
     assert(2 == values['number'])
 
@@ -44,7 +44,7 @@ def test_exception_in_job_not_canceled():
     values = {'number': 0}
     job = Scheduler.get_job(callback=callback_exception, interval=0.1, callback_params={'param_dict': values}, cancel_on_exception=False)
     job.start()
-    moler.sleep.Sleep.sleep(seconds=0.32)
+    MolerTest.sleep(seconds=0.32)
     job.cancel()
     assert(3 == values['number'])
 
@@ -53,7 +53,7 @@ def test_long_job():
     values = {'number': 0}
     job = Scheduler.get_job(callback=callback_long, interval=0.1, callback_params={'param_dict': values}, cancel_on_exception=True)
     job.start()
-    moler.sleep.Sleep.sleep(seconds=0.45)
+    MolerTest.sleep(seconds=0.45)
     job.cancel()
     assert(2 == values['number'])
 
@@ -68,7 +68,7 @@ def test_job_callback_as_method():
     obj = CallbackTest()
     job = Scheduler.get_job(callback=obj.callback_method, interval=0.1, callback_params={'param_dict': values})
     job.start()
-    moler.sleep.Sleep.sleep(seconds=0.22)
+    MolerTest.sleep(seconds=0.22)
     job.cancel()
     assert(2 == values['number'])
     assert(6 == obj.counter)
@@ -83,7 +83,7 @@ def test_2_jobs_concurrently():
     job1.start()
     job1.start()
     job2.start()
-    moler.sleep.Sleep.sleep(seconds=0.23)
+    MolerTest.sleep(seconds=0.23)
     job1.cancel()
     job1.cancel()
     job2.cancel()
@@ -127,7 +127,7 @@ def callback(param_dict):
 
 def callback_long(param_dict):
     param_dict['number'] += 1
-    moler.sleep.Sleep.sleep(seconds=0.12)
+    MolerTest.sleep(seconds=0.12)
 
 
 def callback_exception(param_dict):
