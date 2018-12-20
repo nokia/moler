@@ -5,6 +5,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
+import time
 from abc import abstractmethod, ABCMeta
 
 from six import add_metaclass
@@ -42,6 +43,7 @@ class ConnectionObserver(object):
         self.runner = runner if runner else ThreadPoolExecutorRunner()
         self._future = None
         self.timeout = 7
+        self.start_time = -1
         self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
         self.logger = logging.getLogger('moler.connection.{}'.format(self.get_logger_name()))
 
@@ -79,6 +81,7 @@ class ConnectionObserver(object):
             self.timeout = timeout
         self._validate_start(*args, **kwargs)
         self._is_running = True
+        self.start_time = time.time()
         self._future = self.runner.submit(self)
         if self._future is None:
             self._is_running = False

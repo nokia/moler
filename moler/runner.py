@@ -190,7 +190,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         :return:
         """
         self.logger.debug("go foreground: {!r} - await max. {} [sec]".format(connection_observer, timeout))
-        start_time = time.time()
+        start_time = connection_observer.start_time
         remain_time = connection_observer.timeout
         check_timeout_from_observer = True
         wait_tick = 0.1

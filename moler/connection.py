@@ -220,7 +220,7 @@ class Connection(object):
             else:
                 self._log(logging.DEBUG, ">'{}' Connection.add_command_to_connection '{}' added to queue.".format(cmd, cmd.command_string))
                 self._commands_queue.append(cmd)
-        start_time = time.time()
+        start_time = cmd.start_time
         while cmd.timeout > (time.time() - start_time):
             MolerTest.sleep(seconds=0.001)
             with self._command_lock:
@@ -229,6 +229,7 @@ class Connection(object):
                     self._command_executing = cmd
                     self._log(logging.DEBUG, ">'{}' Connection.add_command_to_connection '{}' added cmd from  queue.".format(cmd, cmd.command_string))
                     return True
+        # If we are here it means command timeout before it really starts
         with self._command_lock:
             index = self._commands_queue.index(cmd)
             self._commands_queue.pop(index)
