@@ -9,6 +9,7 @@ __email__ = 'marcin.usielski@nokia.com'
 import pytest
 import time
 from moler.event_awaiter import EventAwaiter
+from moler.exceptions import CommandTimeout
 
 
 def test_two_commands_uptime_whoami(buffer_connection, command_output_and_expected_result_uptime_whoami):
@@ -44,6 +45,58 @@ def test_two_commands_uptime(buffer_connection, command_output_and_expected_resu
     uptime2_ret = uptime2_cmd.result()
     assert uptime1_ret == expected_result[0]
     assert uptime2_ret == expected_result[1]
+
+
+def test_timeout_before_command_sent(buffer_connection, command_output_and_expected_result_ping):
+    from moler.cmd.unix.uptime import Uptime
+    from moler.cmd.unix.ping import Ping
+    command_output, expected_result = command_output_and_expected_result_ping
+    ping_cmd = Ping(connection=buffer_connection.moler_connection, prompt="host:.*#", destination="localhost",
+                    options="-w 5")
+    uptime_cmd = Uptime(connection=buffer_connection.moler_connection, prompt="host:.*#")
+    ping_cmd.start(timeout=2)
+    time.sleep(0.05)
+    buffer_connection.moler_connection.data_received(command_output[0].encode("utf-8"))
+    with pytest.raises(CommandTimeout):
+        uptime_cmd(timeout=0.2)
+    buffer_connection.moler_connection.data_received(command_output[1].encode("utf-8"))
+    ping_cmd.await_done(timeout=0.2)
+    ping_ret = ping_cmd.result()
+    assert ping_ret == expected_result
+
+
+@pytest.fixture
+def command_output_and_expected_result_ping():
+    data = (
+        """host:~ # ping localhost -w 5
+PING localhost (127.0.0.1) 56(84) bytes of data.
+64 bytes from localhost (127.0.0.1): icmp_seq=1 ttl=64 time=0.047 ms
+64 bytes from localhost (127.0.0.1): icmp_seq=2 ttl=64 time=0.039 ms
+64 bytes from localhost (127.0.0.1): icmp_seq=3 ttl=64 time=0.041 ms
+""",
+        """
+64 bytes from localhost (127.0.0.1): icmp_seq=4 ttl=64 time=0.035 ms
+64 bytes from localhost (127.0.0.1): icmp_seq=5 ttl=64 time=0.051 ms
+64 bytes from localhost (127.0.0.1): icmp_seq=6 ttl=64 time=0.062 ms
+
+--- localhost ping statistics ---
+6 packets transmitted, 6 received, 0% packet loss, time 4996ms
+rtt min/avg/max/mdev = 0.035/0.045/0.062/0.012 ms
+host:~ # """
+    )
+
+    result = {
+        'packets_transmitted': '6',
+        'packets_received': '6',
+        'packet_loss': '0',
+        'time': '4996ms',
+        'time_min': '0.035',
+        'time_avg': '0.045',
+        'time_max': '0.062',
+        'time_mdev': '0.012',
+        'time_unit': 'ms',
+    }
+    return data, result
 
 
 @pytest.fixture
