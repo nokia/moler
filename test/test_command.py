@@ -17,7 +17,6 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 import importlib
 
 import pytest
-import time
 from moler.command import Command
 from moler.connection import ObservableConnection
 from moler.helpers import instance_id
@@ -168,7 +167,6 @@ def test_calling_start_on_command_sends_command_string_over_connection(do_nothin
     ping.command_string = 'ping localhost'
     with ext_io:
         ping.start()  # start background-run of command-future
-        time.sleep(0.2)
         assert b'ping localhost' in ext_io.remote_endpoint()
 
 
