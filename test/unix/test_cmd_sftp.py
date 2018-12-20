@@ -244,23 +244,23 @@ def test_sftp_raise_not_confirmed_connection(buffer_connection, command_output_a
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
                     confirm_connection=False, command="mkdir", no_result=True)
     assert "sftp fred@192.168.0.102" == sftp_cmd.command_string
-    command_output, expected_result = command_output_and_expected_result_not_confirmed
     sftp_cmd.start()
+    command_output, expected_result = command_output_and_expected_result_not_confirmed
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
     with pytest.raises(CommandFailure):
-        sftp_cmd()
+        sftp_cmd.await_done(timeout=2)
 
 
 @pytest.fixture
 def command_output_and_expected_result_not_confirmed():
-    output1 = """xyz@debian:/home$ sftp fred@192.168.0.102:cat /home/xyz/Docs/cat
+    output1 = """xyz@debian:/home$ sftp fred@192.168.0.102
 The authenticity of host '192.168.0.102 (192.168.0.102)' can't be established.
 ECDSA key fingerprint is SHA256:ghQ3iy/gH4YTqZOggql1eJCe3EETOOpn5yANJwFeRt0.
 Are you sure you want to continue connecting (yes/no)?"""
     output2 = """Are you sure you want to continue connecting (yes/no)? no
 Host key verification failed.
-xyz@debian:/home$"""
+xyz@debian:/home$ """
 
     outputs = [output1, output2]
 
