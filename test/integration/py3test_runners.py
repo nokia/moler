@@ -412,6 +412,52 @@ def test_observer__on_timeout__is_called_once_at_timeout(observer_runner, connec
 
 
 # --------------------------------------------------------------------
+# Testing wait_for() API
+#
+# (timeouts inside wait_for are covered above)
+# Should exit from blocking call when expected data comes.
+# Future should be done as well.
+# --------------------------------------------------------------------
+
+def test_can_await_connection_observer_to_complete(observer_runner, observer_and_awaited_data):
+    connection_observer, awaited_data = observer_and_awaited_data
+    future = observer_runner.submit(connection_observer)
+
+    def inject_data():
+        time.sleep(0.5)
+        moler_conn = connection_observer.connection
+        moler_conn.data_received(awaited_data)
+
+    ext_io = threading.Thread(target=inject_data)
+    ext_io.start()
+    observer_runner.wait_for(connection_observer, future,
+                             timeout=1.0)
+    assert connection_observer.done()
+    assert future.done()
+    assert future.result() is None
+
+
+# @pytest.mark.asyncio
+# async def test_can_async_await_connection_observer_to_complete(observer_runner, observer_and_awaited_data):
+#     connection_observer, awaited_data = observer_and_awaited_data
+#     future = observer_runner.submit(connection_observer)
+#
+#     def inject_data():
+#         time.sleep(0.5)
+#         moler_conn = connection_observer.connection
+#         moler_conn.data_received(awaited_data)
+#
+#     ext_io = threading.Thread(target=inject_data)
+#     ext_io.start()
+#     # TODO: why not fails for asyncio_runner.AsyncioInThreadRunner
+#     observer_runner.wait_for(connection_observer, future,
+#                              timeout=1.0)
+#     assert connection_observer.done()
+#     assert future.done()
+#     assert future.result() is None
+
+
+# --------------------------------------------------------------------
 # Testing correct usage
 #
 # We want to be helpful for users. Even if some usage is 'user fault'
