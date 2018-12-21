@@ -436,9 +436,22 @@ async def test_wait_for__is_prohibited_inside_async_def(async_runner, connection
     with pytest.raises(WrongUsage) as err:
         async_runner.wait_for(connection_observer, future)
         connection_observer.result()  # should raise WrongUsage
-    # TODO: check if called from observer.await_done() and let exception speak more
-    # TODO:   in observer API not runner API since user uses observers-API (runner is hidden)
-    # assert "Can't call wait_for() from 'async def' - it is blocking call" in str(err.value)
+
+    assert "Can't call wait_for() from 'async def' - it is blocking call" in str(err.value)
+    # check "fix-hint" inside exception
+    assert re.findall(r'consider using:\s+await observer\s+instead of:\s+observer.await_done()', str(err.value))
+
+
+@pytest.mark.asyncio
+async def test_wait_for__prohibited_inside_async_def_speaks_in_observer_API(async_runner, connection_observer):
+    from moler.exceptions import WrongUsage
+
+    connection_observer.runner = async_runner
+    connection_observer.start()  # internally calls async_runner.submit()
+    future = async_runner.submit(connection_observer)
+    with pytest.raises(WrongUsage) as err:
+        connection_observer.await_done()  # internally calls async_runner.wait_for() + connection_observer.result()
+
     assert "Can't call await_done() from 'async def' - it is blocking call" in str(err.value)
     # check "fix-hint" inside exception
     assert re.findall(r'consider using:\s+await observer\s+instead of:\s+observer.await_done()', str(err.value))

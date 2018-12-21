@@ -238,9 +238,12 @@ class AsyncioRunner(ConnectionObserverRunner):
         return None
 
     def _raise_wrong_usage_of_wait_for(self, connection_observer):
-        # TODO: check if called from observer.await_done() and let exception speak more
-        # TODO:   in observer API not runner API since user uses observers-API (runner is hidden)
-        err_msg = "Can't call wait_for() from 'async def' - it is blocking call"
+        import inspect  # don't import if never raising this exception
+        (_, _, _, caller_name, _, _) = inspect.stack()[1]
+        (_, _, _, caller_caller_name, _, _) = inspect.stack()[2]
+        # Prefer to speak in observer API not runner API since user uses observers-API (runner is hidden)
+        user_call_name = caller_caller_name if caller_caller_name == 'await_done' else caller_name
+        err_msg = "Can't call {}() from 'async def' - it is blocking call".format(user_call_name)
         err_msg += "\n    observer = {}()".format(connection_observer.__class__.__name__)
         err_msg += "\n    observer.start()"
         err_msg += "\nconsider using:"
