@@ -14,7 +14,6 @@ import asyncio.tasks
 import atexit
 import concurrent.futures
 import logging
-import sys
 import threading
 import time
 
@@ -24,88 +23,6 @@ from moler.exceptions import WrongUsage
 from moler.helpers import instance_id
 from moler.io.raw import TillDoneThread
 from moler.runner import ConnectionObserverRunner, result_for_runners, time_out_observer
-
-
-# following code thanks to:
-# https://rokups.github.io/#!pages/python3-asyncio-sync-async.md
-
-
-def _run_loop_till_condition(loop, condition_callable, timeout):
-    start_time = time.time()
-    passed = time.time() - start_time
-    while passed < timeout:
-        loop._run_once()  # let event loop do its job; havent found better way
-        if condition_callable():
-            return
-        passed = time.time() - start_time
-    raise asyncio.futures.TimeoutError()
-
-
-def run_nested_until_complete(future, loop=None):
-    """Run an event loop from within an executing task.
-
-    This method will execute a nested event loop, and will not
-    return until the passed future has completed execution. The
-    nested loop shares the data structures of the main event loop,
-    so tasks and events scheduled on the main loop will still
-    execute while the nested loop is running.
-
-    Semantically, this method is very similar to `yield from
-    asyncio.wait_for(future)`, and where possible, that is the
-    preferred way to block until a future is complete. The
-    difference is that this method can be called from a
-    non-coroutine function, even if that function was itself
-    invoked from within a coroutine.
-    """
-    if loop is None:
-        loop = asyncio.get_event_loop()
-
-    loop._check_closed()
-    if not loop.is_running():
-        raise RuntimeError('Event loop is not running.')
-    new_task = not isinstance(future, asyncio.futures.Future)
-    task = asyncio.tasks.ensure_future(future, loop=loop)
-    if new_task:
-        # An exception is raised if the future didn't complete, so there
-        # is no need to log the "destroy pending task" message
-        task._log_destroy_pending = False
-    while not task.done():
-        try:
-            loop._run_once()
-        except Exception:
-            # if new_task and future.done() and not future.cancelled():
-            # if future is @coroutine  like asyncio.wait_for
-            # then it has no .done()
-            if new_task and task.done() and not task.cancelled():
-                # The coroutine raised a BaseException. Consume the exception
-                # to not log a warning, the caller doesn't have access to the
-                # local task.
-                # future.exception()
-                task.exception()
-            raise
-    return task.result()
-
-
-def __reentrant_step(self, exc=None):
-    containing_task = self.__class__._current_tasks.get(self._loop, None)
-    try:
-        __task_step(self, exc)
-    finally:
-        if containing_task:
-            self.__class__._current_tasks[self._loop] = containing_task
-
-
-def monkeypatch():
-    global __task_step
-    # Replace native Task, Future and _asyncio module implementations with pure-python ones. This is required in order
-    # to access internal data structures of these classes.
-    sys.modules['_asyncio'] = sys.modules['asyncio']
-    asyncio.Task = asyncio.tasks._CTask = asyncio.tasks.Task = asyncio.tasks._PyTask
-    asyncio.Future = asyncio.futures._CFuture = asyncio.futures.Future = asyncio.futures._PyFuture
-
-    # Replace Task._step with reentrant version.
-    __task_step = asyncio.tasks.Task._step
-    asyncio.tasks.Task._step = __reentrant_step
 
 
 class AsyncioRunner(ConnectionObserverRunner):
@@ -136,29 +53,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         self.logger.debug("go background: {!r}".format(connection_observer))
 
         # TODO: check dependency - connection_observer.connection
-        # old code to analyze and remove/protect:
-        # if not event_loop.is_running():
-        #     # following code ensures that feeding has started (subscription made in moler_conn)
-        #     event_loop.run_until_complete(self._start_feeding(connection_observer, feed_started))
-        # if event_loop.is_running():
-        #     # ensure that feed() reached moler_conn-subscription point (feeding started)
-        #     # run_nested_until_complete(asyncio.wait_for(feed_started.wait(), timeout=0.5))  # async code from sync
-        #     _run_loop_till_condition(event_loop, lambda: feed_started.is_set(), timeout=0.5)
 
-        # returned future is in reality task (task is derived from future)
-        # moreover, such task is already scheduled for execution
-        # CAUTION: If event loop is not running ensure_future() will mean nothing
-        #          since there will be no one to start that scheduled coro.
-        #          There will be just hope that someone will call wait_for() or event_loop.run_until_complete()
-        #          but that might be too late - data from connection might be lost?
-        #          NOT! since we have above subscription and data will pass into observer
-        #          Not started feed async will just mean "there is no one to stop connection from
-        #          feeding observer, connection will keep calling observer.data_received()
-        #          so, either derived-observer.data_received() must have logic to ignore data after done
-        #          or we should put moler_conn.subscribe() to small wrapper around observer.data_received()
-        #          wrapper that unsubscribes after observer is done
-        #          SOLUTION 2 ??? - async-in-thread runner
-        event_loop = asyncio.get_event_loop()
         feed_started = asyncio.Event()
 
         # Our submit consists of two steps:
@@ -211,11 +106,6 @@ class AsyncioRunner(ConnectionObserverRunner):
             if event_loop.is_running():
                 # wait_for() should not be called from 'async def'
                 self._raise_wrong_usage_of_wait_for(connection_observer)
-
-                # TODO: remove code:
-                # _run_loop_till_condition(event_loop, lambda: connection_observer.done(), timeout)
-                # run_nested_until_complete(asyncio.wait_for(connection_observer_future,
-                #                                                     timeout=timeout))  # call async code from sync
             else:
                 event_loop.run_until_complete(asyncio.wait_for(connection_observer_future,
                                                                timeout=timeout))
@@ -533,16 +423,6 @@ class AsyncioInThreadRunner(AsyncioRunner):
         # return result_for_runners(connection_observer)  # May raise too.   # Python > 3.3
         res = result_for_runners(connection_observer)
         raise StopIteration(res)  # Python 2 compatibility
-
-
-# monkeypatch()
-
-
-# TODO: rethink idea:
-# TODO:   if used as   'await conn-observer'                    then use  AsyncioRunner.wait_for_iterator()
-# TODO:   if used as   'conn-observer.start()'                  then use  AsyncioInThreadRunner.submit()
-# TODO:   if used as   'conn-observer.await_done(timeout=10)'   then use  AsyncioInThreadRunner.wait_for()
-# so the last one is not blocking even if used inside  async def? - not true, blocks inside run_async_coroutine()
 
 
 def cleanup_remaining_tasks(loop, logger):
