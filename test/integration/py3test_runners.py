@@ -230,7 +230,10 @@ async def test_future_timeouts_after_timeout_of_observer(observer_runner, connec
     await asyncio.sleep(0.2)
     with pytest.raises(MolerTimeout):
         connection_observer.result()   # we should have exception in connection_observer
-    assert future.exception() is None  # but not inside future itself
+
+    assert future.done()
+    if not future.cancelled():  # future for timeouted observer should be either cancelled
+        assert future.exception() is None  # or done with no exception inside future itself
 
 
 @pytest.mark.asyncio
@@ -294,7 +297,9 @@ def test_wait_for__times_out_on_constructor_timeout(observer_runner, connection_
     duration = time.time() - start_time
     assert duration >= 0.2
     assert duration < 0.25
-    assert future.exception() is None  # but no exception inside future itself
+    assert future.done()
+    if not future.cancelled():  # future for timeouted observer should be either cancelled
+        assert future.exception() is None  # or done with no exception inside future itself
 
 
 def test_wait_for__times_out_on_specified_timeout(observer_runner, connection_observer):
