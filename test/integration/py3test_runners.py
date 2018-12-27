@@ -424,37 +424,51 @@ def test_can_await_connection_observer_to_complete(observer_runner, observer_and
     future = observer_runner.submit(connection_observer)
 
     def inject_data():
-        time.sleep(0.5)
+        time.sleep(0.1)
         moler_conn = connection_observer.connection
         moler_conn.data_received(awaited_data)
 
     ext_io = threading.Thread(target=inject_data)
     ext_io.start()
     observer_runner.wait_for(connection_observer, future,
-                             timeout=1.0)
-    assert connection_observer.done()
+                             timeout=0.3)
+    assert connection_observer.done()  # done but success or failure?
+    assert connection_observer.result() is not None  # it should be success
     assert future.done()
     assert future.result() is None
 
 
-# @pytest.mark.asyncio
-# async def test_can_async_await_connection_observer_to_complete(observer_runner, observer_and_awaited_data):
-#     connection_observer, awaited_data = observer_and_awaited_data
-#     future = observer_runner.submit(connection_observer)
+# --------------------------------------------------------------------
+# Testing wait_for_iterator() API
 #
-#     def inject_data():
-#         time.sleep(0.5)
-#         moler_conn = connection_observer.connection
-#         moler_conn.data_received(awaited_data)
-#
-#     ext_io = threading.Thread(target=inject_data)
-#     ext_io.start()
-#     # TODO: why not fails for asyncio_runner.AsyncioInThreadRunner
-#     observer_runner.wait_for(connection_observer, future,
-#                              timeout=1.0)
-#     assert connection_observer.done()
-#     assert future.done()
-#     assert future.result() is None
+# Should exit from blocking call when expected data comes.
+# Future should be done as well.
+# --------------------------------------------------------------------
+
+@pytest.mark.asyncio
+async def test_can_async_await_connection_observer_to_complete(observer_runner, observer_and_awaited_data):
+    connection_observer, awaited_data = observer_and_awaited_data
+    future = observer_runner.submit(connection_observer)
+    connection_observer.timeout = 0.3
+
+    def inject_data():
+        time.sleep(0.1)
+        moler_conn = connection_observer.connection
+        moler_conn.data_received(awaited_data)
+
+    ext_io = threading.Thread(target=inject_data)
+    ext_io.start()
+
+    connection_observer._future = future
+    connection_observer.runner = observer_runner
+    # connection_observer.__await__ calls connection_observer.runner.wait_for_iterator(connection_observer,
+    #                                                                                  connection_observer._future)
+    await connection_observer
+
+    assert connection_observer.done()  # done but success or failure?
+    assert connection_observer.result() is not None  # it should be success
+    assert future.done()
+    assert future.result() is None
 
 
 # --------------------------------------------------------------------
