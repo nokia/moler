@@ -51,25 +51,32 @@ def register_builtin_connections(connection_factory, moler_conn_class):
         _register_builtin_unix_connections(connection_factory, moler_conn_class)
     if (sys.version_info[0] >= 3) and (sys.version_info[1] >= 5):
         _register_python3_builtin_connections(connection_factory, moler_conn_class)
+        if platform.system() == 'Linux':
+            _register_builtin_py3_unix_connections(connection_factory, moler_conn_class)
+
+
+def mlr_conn_no_encoding(moler_conn_class, name):
+    return moler_conn_class(name=name)
+
+
+def mlr_conn_utf8(moler_conn_class, name):
+    return moler_conn_class(encoder=lambda data: data.encode("utf-8"),
+                            decoder=lambda data: data.decode("utf-8"),
+                            name=name)
 
 
 def _register_builtin_connections(connection_factory, moler_conn_class):
     from moler.io.raw.memory import ThreadedFifoBuffer
     from moler.io.raw.tcp import ThreadedTcp
 
-    def mlr_conn_utf8(name):
-        return moler_conn_class(encoder=lambda data: data.encode("utf-8"),
-                                decoder=lambda data: data.decode("utf-8"),
-                                name=name)
-
     def mem_thd_conn(name=None, echo=True, **kwargs):  # kwargs to pass  logger_name
-        mlr_conn = mlr_conn_utf8(name=name)
+        mlr_conn = mlr_conn_utf8(moler_conn_class, name=name)
         io_conn = ThreadedFifoBuffer(moler_connection=mlr_conn,
                                      echo=echo, name=name, *kwargs)
         return io_conn
 
     def tcp_thd_conn(port, host='localhost', name=None, **kwargs):  # kwargs to pass  receive_buffer_size and logger
-        mlr_conn = mlr_conn_utf8(name=name)
+        mlr_conn = mlr_conn_utf8(moler_conn_class, name=name)
         io_conn = ThreadedTcp(moler_connection=mlr_conn,
                               port=port, host=host, **kwargs)  # TODO: add name
         return io_conn
@@ -86,19 +93,14 @@ def _register_builtin_connections(connection_factory, moler_conn_class):
 def _register_python3_builtin_connections(connection_factory, moler_conn_class):
     from moler.io.asyncio.tcp import AsyncioTcp, AsyncioInThreadTcp
 
-    def mlr_conn_utf8(name):
-        return moler_conn_class(encoder=lambda data: data.encode("utf-8"),
-                                decoder=lambda data: data.decode("utf-8"),
-                                name=name)
-
     def tcp_asyncio_conn(port, host='localhost', name=None, **kwargs):  # kwargs to pass  receive_buffer_size and logger
-        mlr_conn = mlr_conn_utf8(name=name)
+        mlr_conn = mlr_conn_utf8(moler_conn_class, name=name)
         io_conn = AsyncioTcp(moler_connection=mlr_conn,
                              port=port, host=host, **kwargs)  # TODO: add name
         return io_conn
 
     def tcp_asyncio_in_thrd_conn(port, host='localhost', name=None, **kwargs):  # kwargs to pass  receive_buffer_size and logger
-        mlr_conn = mlr_conn_utf8(name=name)
+        mlr_conn = mlr_conn_utf8(moler_conn_class, name=name)
         io_conn = AsyncioInThreadTcp(moler_connection=mlr_conn,
                                      port=port, host=host, **kwargs)  # TODO: add name
         return io_conn
@@ -115,12 +117,9 @@ def _register_python3_builtin_connections(connection_factory, moler_conn_class):
 def _register_builtin_unix_connections(connection_factory, moler_conn_class):
     from moler.io.raw.terminal import ThreadedTerminal
 
-    def mlr_conn_no_encoding(name):
-        return moler_conn_class(name=name)
-
     def terminal_thd_conn(name=None):
         # ThreadedTerminal works on unicode so moler_connection must do no encoding
-        mlr_conn = mlr_conn_no_encoding(name=name)
+        mlr_conn = mlr_conn_no_encoding(moler_conn_class, name=name)
         io_conn = ThreadedTerminal(moler_connection=mlr_conn)  # TODO: add name, logger
         return io_conn
 
@@ -128,3 +127,25 @@ def _register_builtin_unix_connections(connection_factory, moler_conn_class):
     connection_factory.register_construction(io_type="terminal",
                                              variant="threaded",
                                              constructor=terminal_thd_conn)
+
+
+def _register_builtin_py3_unix_connections(connection_factory, moler_conn_class):
+    from moler.io.asyncio.terminal import AsyncioTerminal, AsyncioInThreadTerminal
+
+    def terminal_asyncio_conn(name=None):
+        mlr_conn = mlr_conn_utf8(moler_conn_class, name=name)
+        io_conn = AsyncioTerminal(moler_connection=mlr_conn)  # TODO: add name, logger
+        return io_conn
+
+    def terminal_asyncio_in_thrd_conn(name=None):
+        mlr_conn = mlr_conn_utf8(moler_conn_class, name=name)
+        io_conn = AsyncioInThreadTerminal(moler_connection=mlr_conn)  # TODO: add name, logger
+        return io_conn
+
+    # TODO: unify passing logger to io_conn (logger/logger_name)
+    connection_factory.register_construction(io_type="terminal",
+                                             variant="asyncio",
+                                             constructor=terminal_asyncio_conn)
+    connection_factory.register_construction(io_type="terminal",
+                                             variant="asyncio-in-thread",
+                                             constructor=terminal_asyncio_in_thrd_conn)
