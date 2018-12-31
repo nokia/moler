@@ -11,6 +11,9 @@ The only 3 requirements for these connections are:
 (3) forward IO received data into self.moler_connection.data_received(data)
 """
 import re
+import struct
+import termios
+import fcntl
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -224,6 +227,17 @@ class PtySubprocessProtocol(asyncio.SubprocessProtocol):
         os.write(self.pty_fd, data)
 
 
+def _setwinsize(fd, rows, cols):
+    # Some very old platforms have a bug that causes the value for
+    # termios.TIOCSWINSZ to be truncated. There was a hack here to work
+    # around this, but it caused problems with newer platforms so has been
+    # removed. For details see https://github.com/pexpect/pexpect/issues/39
+    TIOCSWINSZ = getattr(termios, 'TIOCSWINSZ', -2146929561)
+    # Note, assume ws_xpixel and ws_ypixel are zero.
+    s = struct.pack('HHHH', rows, cols, 0, 0)
+    fcntl.ioctl(fd, TIOCSWINSZ, s)
+
+
 async def async_execute_process(protocol_class, cmd=None, cwd=None, env=None):
     loop = asyncio.get_event_loop()
     # Create the PTY's
@@ -231,6 +245,8 @@ async def async_execute_process(protocol_class, cmd=None, cwd=None, env=None):
     # master is used in client code to read/write into subprocess
     # moreover, inside subprocess we redirect stderr into stdout
     master, slave = pty.openpty()
+    _setwinsize(master, 100, 300)  # without this you get newline after each character
+    _setwinsize(slave, 100, 300)
 
     def protocol_factory():
         return protocol_class(master)
