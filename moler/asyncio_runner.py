@@ -453,6 +453,20 @@ class AsyncioLoopThread(TillDoneThread):
     def __init__(self, name="Asyncio"):
         self.logger = logging.getLogger('moler.asyncio-loop-thrd')
         self.ev_loop = asyncio.new_event_loop()
+
+        # to allow subprocesses running in "subthread"
+        # otherwise we get error:
+        # RuntimeError: Cannot add child handler, the child watcher does not have a loop attached
+        # This is because unix watchers embed signal handles used to stop subprocesses
+        #
+        # https://stackoverflow.com/questions/28915607/does-asyncio-support-running-a-subprocess-from-a-non-main-thread/28917653#28917653
+        #   When asyncio starts subprocess it need to be notified by subproc finish event.
+        #   Unfortunately in Unix systems the generic way to do it is catching SIG_CHLD signal.
+        #   Python interpreter can process signals only in main thread.
+        # answer by: https://stackoverflow.com/users/3454879/andrew-svetlov
+        #
+        asyncio.get_child_watcher().attach_loop(self.ev_loop)
+
         self.ev_loop.set_debug(enabled=True)
 
         self.logger.debug("created asyncio loop: {}:{}".format(id(self.ev_loop), self.ev_loop))
