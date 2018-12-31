@@ -312,7 +312,7 @@ async def terminal_io_test():
             cmd2send = cmds[cmd_idx[0]]
             if (cmd2send == 'password') and ('Password' not in data):
                 return
-            moler_conn.send(data=cmd2send+'\n')
+            moler_conn.send(data=cmd2send + '\n')
             cmd_idx[0] += 1
 
     moler_conn.subscribe(data_observer)
@@ -334,14 +334,8 @@ async def run_command(cmd, cwd):
 
 
 if __name__ == '__main__':
-
-    cmd = ['git', '-c', 'color.status=always', 'status']
-    cmd = ['ssh', 'demo@test.rebex.net']
-    cmd = ["/bin/bash", "-i"]
-
     loop = asyncio.get_event_loop()
 
     loop.run_until_complete(terminal_io_test())
     loop.close()
     print("ls done")
-
