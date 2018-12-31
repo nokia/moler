@@ -20,6 +20,7 @@ from moler.helpers import ClassProperty
 from moler.helpers import camel_case_to_lower_case_underscore
 from moler.helpers import instance_id
 from moler.runner import ThreadPoolExecutorRunner
+from moler.runner_factory import get_runner
 
 
 @add_metaclass(ABCMeta)
@@ -38,7 +39,7 @@ class ConnectionObserver(object):
         self._is_cancelled = False
         self._result = None
         self._exception = None
-        self.runner = runner if runner else ThreadPoolExecutorRunner()
+        self.runner = runner if runner else get_runner()
         self._future = None
         self.timeout = 7
         self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))

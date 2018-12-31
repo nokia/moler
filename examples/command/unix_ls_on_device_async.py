@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import sys
+import moler.config.runners
 from moler.config import load_config
 from moler.device.device import DeviceFactory
 
@@ -8,7 +9,7 @@ from moler.device.device import DeviceFactory
 def configure_logging():
     logging.basicConfig(
         level=logging.DEBUG,
-        format='%(asctime)s |%(name)-45s | %(threadName)12s |%(message)s',
+        format='%(asctime)s |%(name)-45s | %(threadName)22s |%(message)s',
         # format=' |%(name)-45s | %(threadName)12s |%(message)s',
         datefmt='%H:%M:%S',
         stream=sys.stderr,
@@ -67,6 +68,7 @@ load_config(config={'DEVICES': {'DEFAULT_CONNECTION':
             config_type='dict')
 
 configure_logging()
+moler.config.runners.set_default_variant(variant='asyncio-in-thread')
 
 
 # TODO: problem for {'CONNECTION_DESC': {'io_type': 'terminal', 'variant': 'asyncio'}},
