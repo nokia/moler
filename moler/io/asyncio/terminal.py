@@ -98,6 +98,7 @@ class AsyncioTerminal(IOConnection):
         """
         if not self._shell_operable.done():
             decoded_data = self.moler_connection.decode(data)
+            self.logger.debug("<|{}".format(data))
             assert isinstance(decoded_data, str)
             self.read_buffer += decoded_data
             if re.search(self.prompt, self.read_buffer, re.MULTILINE):
@@ -109,6 +110,7 @@ class AsyncioTerminal(IOConnection):
                 data = self.moler_connection.encode(data_str)
             else:
                 return
+        self.logger.debug("<|{}".format(data))
         super(AsyncioTerminal, self).data_received(data)
 
     def __str__(self):
@@ -118,6 +120,51 @@ class AsyncioTerminal(IOConnection):
     def __repr__(self):
         address = 'terminal:{}'.format(self._cmd)
         return address
+
+
+class AsyncioInThreadTerminal(IOConnection):
+    """Implementation of Terminal connection using asyncio running in dedicated thread."""
+
+    def __init__(self, moler_connection, cmd=None, first_prompt=None, dimensions=(100, 300), logger=None):
+        """Initialization of Terminal connection."""
+        super(AsyncioInThreadTerminal, self).__init__(moler_connection=moler_connection)
+        self.name = moler_connection.name
+        # self.moler_connection.how2send = self._send  # need to map synchronous methods
+        # TODO: do we want connection.name?
+        # self.logger = logger  # TODO: build default logger if given is None?
+        self._async_terminal = AsyncioTerminal(moler_connection=moler_connection, cmd=cmd, first_prompt=first_prompt,
+                                               dimensions=dimensions, logger=self.logger)
+
+    def open(self):
+        """Open TCP connection."""
+        ret = super(AsyncioInThreadTerminal, self).open()
+        thread4async = get_asyncio_loop_thread()
+        thread4async.run_async_coroutine(self._async_terminal.open(), timeout=600.5)  # await initial prompt may be longer
+        # no need for 'def send()' in this class since sending goes via moler connection
+        # after open() here, moler connection will be bound to data path running inside dedicated thread
+        # same for 'def data_received()' - will get data from self._async_terminal
+        return ret
+
+    def close(self):
+        """
+        Close TCP connection.
+
+        Connection should allow for calling close on closed/not-open connection.
+        """
+        if self._async_terminal._transport:  # change it to coro is_open() checked inside async-thread
+            # self._debug('closing {}'.format(self))
+            thread4async = get_asyncio_loop_thread()
+            ret = thread4async.run_async_coroutine(self._async_terminal.close(), timeout=0.5)
+        # self._debug('connection {} is closed'.format(self))
+
+    def notify(self, callback, when):
+        """
+        Adds subscriber to list of functions to call
+        :param callback: reference to function to call when connection is open/established
+        :param when: connection state change
+        :return: Nothing
+        """
+        self._async_terminal.notify(callback, when)
 
 
 class PtySubprocessProtocol(asyncio.SubprocessProtocol):
