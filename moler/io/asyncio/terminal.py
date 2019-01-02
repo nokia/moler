@@ -68,9 +68,9 @@ class AsyncioTerminal(IOConnection):
         if not self._transport:
             self._shell_operable = asyncio.Future()
             # TODO: pass self.dimensions into pty construction
-            transport, protocol = await async_execute_process(protocol_class=PtySubprocessProtocol,
-                                                              cmd=self._cmd, cwd=None,
-                                                              dimensions=self.dimensions)
+            transport, protocol = await start_subprocess_in_terminal(protocol_class=PtySubprocessProtocol,
+                                                                     cmd=self._cmd, cwd=None,
+                                                                     dimensions=self.dimensions)
             self._transport = transport
             self._protocol = protocol
             self._protocol.forward_data = self.data_received  # build forwarding path
@@ -251,44 +251,15 @@ class PtySubprocessProtocol(asyncio.SubprocessProtocol):
         os.write(self.pty_fd, data)
 
 
-def _setwinsize(fd, rows, cols):
-    # Some very old platforms have a bug that causes the value for
-    # termios.TIOCSWINSZ to be truncated. There was a hack here to work
-    # around this, but it caused problems with newer platforms so has been
-    # removed. For details see https://github.com/pexpect/pexpect/issues/39
-    TIOCSWINSZ = getattr(termios, 'TIOCSWINSZ', -2146929561)
-    # Note, assume ws_xpixel and ws_ypixel are zero.
-    s = struct.pack('HHHH', rows, cols, 0, 0)
-    fcntl.ioctl(fd, TIOCSWINSZ, s)
+async def start_reading_pty(protocol, pty_fd):
+    """
+    Make asyncio to read file descriptor of Pty
 
-
-async def async_execute_process(protocol_class, cmd=None, cwd=None, env=None, dimensions=(100, 300)):
+    :param protocol: protocol of subprocess speaking via Pty
+    :param pty_fd: file descriptor of Pty (dialog with subprocess goes that way)
+    :return:
+    """
     loop = asyncio.get_event_loop()
-    # Create the PTY's
-    # slave is used by cmd(bash) running in subprocess
-    # master is used in client code to read/write into subprocess
-    # moreover, inside subprocess we redirect stderr into stdout
-    master, slave = pty.openpty()
-    _setwinsize(master, dimensions[0], dimensions[1])  # without this you get newline after each character
-    _setwinsize(slave, dimensions[0], dimensions[1])
-
-    def protocol_factory():
-        return protocol_class(master)
-
-    # bash requires stdin and preexec_fn as follows
-    # otherwise we get error like:
-    #   bash: cannot set terminal process group (10790): Inappropriate ioctl for device
-    #   bash: no job control in this shell
-
-    # Start the subprocess (without shell since our cmd is shell - bash as default)
-    libc = ctypes.CDLL('libc.so.6')
-
-    transport, protocol = await loop.subprocess_exec(protocol_factory, *cmd, cwd=cwd, env=env,
-                                                     stdin=slave, stdout=slave, stderr=slave,
-                                                     close_fds=False, preexec_fn=libc.setsid)
-    # Close our copy of slave,
-    # the child's copy of the slave remain open until it terminates
-    os.close(slave)
 
     # Create Protocol classes
     class PtyFdProtocol(asyncio.Protocol):
@@ -308,9 +279,76 @@ async def async_execute_process(protocol_class, cmd=None, cwd=None, env=None, di
     # Also store the transport, protocol tuple for each call to
     # connect_read_pipe, to prevent the destruction of the protocol
     # class instance, otherwise no data is received.
-    fd_transport, fd_protocol = await loop.connect_read_pipe(PtyFdProtocol, os.fdopen(master, 'rb', 0))
+    fd_transport, fd_protocol = await loop.connect_read_pipe(PtyFdProtocol, os.fdopen(pty_fd, 'rb', 0))
     protocol.pty_fd_transport = fd_transport
     protocol.pty_fd_protocol = fd_protocol
+
+
+def open_terminal(dimensions):
+    """
+    Open pseudo-Terminal and configure it's dimensions
+
+    :param dimensions: terminal dimensions (rows, columns)
+    :return: (master, slave) file descriptors of Pty
+    """
+    master, slave = pty.openpty()
+    _setwinsize(master, dimensions[0], dimensions[1])  # without this you get newline after each character
+    _setwinsize(slave, dimensions[0], dimensions[1])
+    return master, slave
+
+
+def _setwinsize(fd, rows, cols):
+    # Some very old platforms have a bug that causes the value for
+    # termios.TIOCSWINSZ to be truncated. There was a hack here to work
+    # around this, but it caused problems with newer platforms so has been
+    # removed. For details see https://github.com/pexpect/pexpect/issues/39
+    TIOCSWINSZ = getattr(termios, 'TIOCSWINSZ', -2146929561)
+    # Note, assume ws_xpixel and ws_ypixel are zero.
+    s = struct.pack('HHHH', rows, cols, 0, 0)
+    fcntl.ioctl(fd, TIOCSWINSZ, s)
+
+
+async def start_subprocess_in_terminal(protocol_class, cmd=None, cwd=None, env=None, dimensions=(100, 300)):
+    """
+    Start subprocess that will run cmd inside terminal.
+
+    Some commands run differently when they detect "I'm running at terminal"
+    (stdin/stdout/stderr are bound to terminal device)
+    They assume human interaction so, for example they display "Password:" prompt.
+
+    :param protocol_class:
+    :param cmd: command to be run at terminal
+    :param cwd: working directory when to start that command
+    :param env: environment for command
+    :param dimensions: terminal dimensions (rows, columns)
+    :return:
+    """
+    loop = asyncio.get_event_loop()
+    # Create the PTY's
+    # slave is used by cmd(bash) running in subprocess
+    # master is used in client code to read/write into subprocess
+    # moreover, inside subprocess we redirect stderr into stdout
+    master, slave = open_terminal(dimensions)
+
+    def protocol_factory():
+        return protocol_class(master)
+
+    # bash requires stdin and preexec_fn as follows
+    # otherwise we get error like:
+    #   bash: cannot set terminal process group (10790): Inappropriate ioctl for device
+    #   bash: no job control in this shell
+
+    # Start the subprocess (without shell since our cmd is shell - bash as default)
+    libc = ctypes.CDLL('libc.so.6')
+
+    transport, protocol = await loop.subprocess_exec(protocol_factory, *cmd, cwd=cwd, env=env,
+                                                     stdin=slave, stdout=slave, stderr=slave,
+                                                     close_fds=False, preexec_fn=libc.setsid)
+    # Close our copy of slave,
+    # the child's copy of the slave remain open until it terminates
+    os.close(slave)
+
+    await start_reading_pty(protocol=protocol, pty_fd=master)
 
     # Return the protocol and transport
     return transport, protocol
@@ -352,7 +390,7 @@ async def run_command(cmd, cwd):
     def create_protocol(pty_fd):
         return PtySubprocessProtocol(pty_fd=pty_fd)
 
-    transport, protocol = await async_execute_process(protocol_class=create_protocol, cmd=cmd, cwd=cwd)
+    transport, protocol = await start_subprocess_in_terminal(protocol_class=create_protocol, cmd=cmd, cwd=cwd)
     returncode = await protocol.complete
     return returncode
 
