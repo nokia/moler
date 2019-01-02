@@ -14,6 +14,7 @@ import re
 import struct
 import termios
 import fcntl
+import logging
 
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -116,6 +117,15 @@ class AsyncioTerminal(IOConnection):
         self.logger.debug("<|{}".format(data))
         super(AsyncioTerminal, self).data_received(data)
 
+    @property
+    def name(self):
+        return self.__name
+
+    @name.setter
+    def name(self, value):
+        self.__name = value
+        self.logger = logging.getLogger("moler.connection.{}.io".format(self.__name))
+
     def __str__(self):
         address = 'terminal:{}'.format(self._cmd[0])
         return address
@@ -130,13 +140,9 @@ class AsyncioInThreadTerminal(IOConnection):
 
     def __init__(self, moler_connection, cmd=None, first_prompt=None, dimensions=(100, 300), logger=None):
         """Initialization of Terminal connection."""
-        super(AsyncioInThreadTerminal, self).__init__(moler_connection=moler_connection)
-        self.name = moler_connection.name
-        # self.moler_connection.how2send = self._send  # need to map synchronous methods
-        # TODO: do we want connection.name?
-        # self.logger = logger  # TODO: build default logger if given is None?
         self._async_terminal = AsyncioTerminal(moler_connection=moler_connection, cmd=cmd, first_prompt=first_prompt,
-                                               dimensions=dimensions, logger=self.logger)
+                                               dimensions=dimensions, logger=logger)
+        super(AsyncioInThreadTerminal, self).__init__(moler_connection=moler_connection)
 
     def open(self):
         """Open TCP connection."""
@@ -168,6 +174,22 @@ class AsyncioInThreadTerminal(IOConnection):
         :return: Nothing
         """
         self._async_terminal.notify(callback, when)
+
+    @property
+    def name(self):
+        return self._async_terminal.name
+
+    @name.setter
+    def name(self, value):
+        self._async_terminal.name = value
+
+    @property
+    def logger(self):
+        return self._async_terminal.logger
+
+    @logger.setter
+    def logger(self, value):
+        self._async_terminal.logger = value
 
 
 class PtySubprocessProtocol(asyncio.SubprocessProtocol):
