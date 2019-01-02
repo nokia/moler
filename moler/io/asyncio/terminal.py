@@ -68,7 +68,9 @@ class AsyncioTerminal(IOConnection):
         if not self._transport:
             self._shell_operable = asyncio.Future()
             # TODO: pass self.dimensions into pty construction
-            transport, protocol = await async_execute_process(protocol_class=PtySubprocessProtocol, cmd=self._cmd, cwd=None)
+            transport, protocol = await async_execute_process(protocol_class=PtySubprocessProtocol,
+                                                              cmd=self._cmd, cwd=None,
+                                                              dimensions=self.dimensions)
             self._transport = transport
             self._protocol = protocol
             self._protocol.forward_data = self.data_received  # build forwarding path
@@ -260,15 +262,15 @@ def _setwinsize(fd, rows, cols):
     fcntl.ioctl(fd, TIOCSWINSZ, s)
 
 
-async def async_execute_process(protocol_class, cmd=None, cwd=None, env=None):
+async def async_execute_process(protocol_class, cmd=None, cwd=None, env=None, dimensions=(100, 300)):
     loop = asyncio.get_event_loop()
     # Create the PTY's
     # slave is used by cmd(bash) running in subprocess
     # master is used in client code to read/write into subprocess
     # moreover, inside subprocess we redirect stderr into stdout
     master, slave = pty.openpty()
-    _setwinsize(master, 100, 300)  # without this you get newline after each character
-    _setwinsize(slave, 100, 300)
+    _setwinsize(master, dimensions[0], dimensions[1])  # without this you get newline after each character
+    _setwinsize(slave, dimensions[0], dimensions[1])
 
     def protocol_factory():
         return protocol_class(master)
