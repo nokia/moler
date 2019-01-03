@@ -254,7 +254,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         self.logger.debug("subscribing for data {!r}".format(connection_observer))
         moler_conn.subscribe(secure_data_received)
 
-        if connection_observer.is_blocking_observer():
+        if connection_observer.is_command():
             connection_observer.connection.sendline(connection_observer.command_string)
         if set_start:
             feed_started.set()  # Events start here because they do not have to wait to finish other events.
@@ -274,7 +274,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         pass
 
     def _wait_for_blocking_observer(self, connection_observer, feed_started, feed_done, do_now_wait):
-        if connection_observer.is_blocking_observer():
+        if connection_observer.is_command():
             if connection_observer.add_command_to_connection(do_not_wait=True):
                 return True
             if do_now_wait:

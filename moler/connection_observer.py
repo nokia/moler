@@ -206,7 +206,7 @@ class ConnectionObserver(object):
         """
         pass
 
-    def is_blocking_observer(self):
+    def is_command(self):
         """
         :return: True if instance of ConnectionObserver is a blocking one (a command). False if not blocking.
         """
