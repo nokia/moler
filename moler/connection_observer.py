@@ -194,6 +194,8 @@ class ConnectionObserver(object):
         """
         Adds blocking ConnectionObserver object (command object) to connection. If ConnectionObserver object is not
          blocking then immediately returns True.
+        :param do_no_wait: If True then returns immediately from method, if False then wait till the connection is available
+        to execute another command or timeout occurred.
         :return: True if ConnectionObserver was added to connection or adding is not required. False if cannot add ConnectionObserver
          to connection
         """
