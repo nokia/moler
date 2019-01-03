@@ -237,8 +237,12 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         """
         connection_observer._log(logging.INFO, "{} started.".format(connection_observer.get_long_desc()))
         moler_conn = connection_observer.connection
-        if not self._wait_for_blocking_observer(connection_observer, feed_started, feed_done):
-            return connection_observer.result()
+        set_start = True
+        if not self._wait_for_blocking_observer(connection_observer, feed_started, feed_done, True):
+            set_start = False
+        if not set_start:
+            if not self._wait_for_blocking_observer(connection_observer, feed_started, feed_done, False):
+                return connection_observer.result()
 
         def secure_data_received(data):
             try:
@@ -252,7 +256,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
         if connection_observer.is_blocking_observer():
             connection_observer.connection.sendline(connection_observer.command_string)
-        else:
+        if set_start:
             feed_started.set()  # Events start here because they do not have to wait to finish other events.
 
         while True:
@@ -279,11 +283,15 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
     def timeout_change(self, timedelta):
         pass
 
-    def _wait_for_blocking_observer(self, connection_observer, feed_started, feed_done):
+    def _wait_for_blocking_observer(self, connection_observer, feed_started, feed_done, do_now_wait=False):
         if connection_observer.is_blocking_observer():
+            if connection_observer.add_command_to_connection(do_not_wait=True):
+                return True
+            if do_now_wait:
+                return False
             feed_started.set()  # commands 'start' here because they have to wait to finish other commands on connection
             # and they do not have output before command was sent
-            if not connection_observer.add_command_to_connection():
+            if not connection_observer.add_command_to_connection(do_not_wait=False):
                 feed_done.set()
                 return False
         return True
