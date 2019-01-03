@@ -42,6 +42,7 @@ class ConnectionObserver(object):
         self._exception = None
         self.runner = runner if runner else ThreadPoolExecutorRunner()
         self._future = None
+        self._is_command = None
         self.timeout = 7
         self.start_time = -1
         self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
@@ -208,9 +209,11 @@ class ConnectionObserver(object):
 
     def is_command(self):
         """
-        :return: True if instance of ConnectionObserver is a blocking one (a command). False if not blocking.
+        :return: True if instance of ConnectionObserver is a command. False if not a command.
         """
-        return False
+        if self._is_command is None:
+            self._is_command = hasattr(self, "command_string")
+        return self._is_command
 
     def extend_timeout(self, timedelta):
         prev_timeout = self.timeout

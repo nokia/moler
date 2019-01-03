@@ -59,12 +59,6 @@ class Command(ConnectionObserver):
         """
         self.connection.remove_command_from_connection(cmd=self)
 
-    def is_command(self):
-        """
-        :return: True if instance of ConnectionObserver is a blocking one (a command). False if not blocking.
-        """
-        return True
-
     def _validate_start(self, *args, **kwargs):
         # check base class invariants first
         super(Command, self)._validate_start(*args, **kwargs)
