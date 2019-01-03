@@ -193,7 +193,7 @@ class ConnectionObserver(object):
     def add_command_to_connection(self, do_no_wait):
         """
         Adds blocking ConnectionObserver object (command object) to connection. If ConnectionObserver object is not
-         blocking then immediately returns True
+         blocking then immediately returns True.
         :return: True if ConnectionObserver was added to connection or adding is not required. False if cannot add ConnectionObserver
          to connection
         """
@@ -202,7 +202,7 @@ class ConnectionObserver(object):
     def remove_command_from_connection(self):
         """
         Remove blocking ConnectionObserver object (command object) from connection. If Connection observer is not blocking
-         then does nothing
+         then does nothing.
         :return: Nothing
         """
         pass
