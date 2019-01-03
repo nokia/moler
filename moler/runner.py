@@ -259,17 +259,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         if set_start:
             feed_started.set()  # Events start here because they do not have to wait to finish other events.
 
-        while True:
-            if stop_feeding.is_set():
-                self.logger.debug("stopped {!r}".format(connection_observer))
-                break
-            if connection_observer.done():
-                self.logger.debug("done {!r}".format(connection_observer))
-                break
-            if self._in_shutdown:
-                self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))
-                connection_observer.cancel()
-            time.sleep(0.01)  # give moler_conn a chance to feed observer
+        self._feed_loop(connection_observer, stop_feeding)
 
         self.logger.debug("unsubscribing {!r}".format(connection_observer))
         connection_observer.remove_command_from_connection()
@@ -283,7 +273,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
     def timeout_change(self, timedelta):
         pass
 
-    def _wait_for_blocking_observer(self, connection_observer, feed_started, feed_done, do_now_wait=False):
+    def _wait_for_blocking_observer(self, connection_observer, feed_started, feed_done, do_now_wait):
         if connection_observer.is_blocking_observer():
             if connection_observer.add_command_to_connection(do_not_wait=True):
                 return True
@@ -293,5 +283,19 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             # and they do not have output before command was sent
             if not connection_observer.add_command_to_connection(do_not_wait=False):
                 feed_done.set()
+                self.logger.debug("Command '{}' has no chance to start.".format(connection_observer))
                 return False
         return True
+
+    def _feed_loop(self, connection_observer, stop_feeding):
+        while True:
+            if stop_feeding.is_set():
+                self.logger.debug("stopped {!r}".format(connection_observer))
+                break
+            if connection_observer.done():
+                self.logger.debug("done {!r}".format(connection_observer))
+                break
+            if self._in_shutdown:
+                self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))
+                connection_observer.cancel()
+            time.sleep(0.01)  # give moler_conn a chance to feed observer
