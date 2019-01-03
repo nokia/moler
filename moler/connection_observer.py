@@ -189,7 +189,7 @@ class ConnectionObserver(object):
         """ It's callback called by framework just before raise exception for Timeout """
         pass
 
-    def add_command_to_connection(self):
+    def add_command_to_connection(self, do_no_wait):
         """
         Adds blocking ConnectionObserver object (command object) to connection. If ConnectionObserver object is not
          blocking then immediately returns True
