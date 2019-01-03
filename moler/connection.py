@@ -211,13 +211,15 @@ class Connection(object):
             except Exception as err:
                 print(err)  # logging errors should not propagate
 
-    def add_command_to_connection(self, cmd):
+    def add_command_to_connection(self, cmd, do_not_wait=False):
         with self._command_lock:
             if self._command_executing is None:
                 self._command_executing = cmd
                 self._log(logging.DEBUG, ">'{}' Connection.add_command_to_connection '{}' added.".format(cmd, cmd.command_string))
                 return True
             else:
+                if do_not_wait:
+                    return False
                 self._log(logging.DEBUG, ">'{}' Connection.add_command_to_connection '{}' added to queue.".format(cmd, cmd.command_string))
                 self._commands_queue.append(cmd)
         start_time = cmd.start_time
