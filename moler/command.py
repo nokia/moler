@@ -43,12 +43,12 @@ class Command(ConnectionObserver):
         self._is_running = True  # when it sends - real CMD starts running
         return ret
 
-    def add_command_to_connection(self):
+    def add_command_to_connection(self, do_not_wait):
         """
         Adds Command object to connection.
         :return: True if ConnectionObserver was added to connection. False if cannot add Command to connection in timeout.
         """
-        if self.connection.add_command_to_connection(cmd=self):
+        if self.connection.add_command_to_connection(cmd=self, do_not_wait=do_not_wait):
             return True
         return False
 
