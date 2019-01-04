@@ -527,6 +527,12 @@ class TextualDevice(object):
         self._prepare_state_prompts()
 
     def _prepare_sm_configuration(self, default_sm_configurations, sm_params):
+        """
+        Prepare SM configuration by update default SM configuration with SM params read from config dict/file
+        :param default_sm_configurations: Default SM configuration for specific device
+        :param sm_params: SM configuration read from dict/file
+        :return: prepared SM configuration for specific device
+        """
         sm_configuration = {}
         self._update_dict(sm_configuration, default_sm_configurations)
         self._update_dict(sm_configuration, sm_params)
@@ -580,6 +586,12 @@ class TextualDevice(object):
         return "\n"
 
     def _is_proxy_pc_in_sm_params(self, sm_params, proxy):
+        """
+        Check that specific SM state is inside sm configuration
+        :param sm_params: sm configuration
+        :param proxy: specific sm state
+        :return: True when specific state exist, otherwise False
+        """
         if proxy in sm_params:
             return True
 
