@@ -520,22 +520,24 @@ class TextualDevice(object):
         return prompt
 
     def _configure_state_machine(self, sm_params):
-        default_configurations = self._get_default_sm_configuration()
-        configuration = self._update_configuration(default_configurations, sm_params)
+        default_sm_configurations = self._get_default_sm_configuration()
+        configuration = self._prepare_sm_configuration(default_sm_configurations, sm_params)
         self._configurations = configuration
         self._validate_device_configuration()
         self._prepare_state_prompts()
 
-    def _update_configuration(self, destination, source):
-        for key, value in source.items():
-            if isinstance(value, dict):
-                # get node or create one
-                node = destination.setdefault(key, {})
-                self._update_configuration(value, node)
-            else:
-                destination[key] = value
+    def _prepare_sm_configuration(self, default_sm_configurations, sm_params):
+        """
+        Prepare SM configuration by update default SM configuration with SM params read from config dict/file
+        :param default_sm_configurations: Default SM configuration for specific device
+        :param sm_params: SM configuration read from dict/file
+        :return: prepared SM configuration for specific device
+        """
+        sm_configuration = {}
+        self._update_dict(sm_configuration, default_sm_configurations)
+        self._update_dict(sm_configuration, sm_params)
 
-        return destination
+        return sm_configuration
 
     def _update_dict(self, target_dict, expand_dict):
         update_dict(target_dict, expand_dict)
@@ -582,3 +584,21 @@ class TextualDevice(object):
         if state and state in self._newline_chars:
             return self._newline_chars[state]
         return "\n"
+
+    def _is_proxy_pc_in_sm_params(self, sm_params, proxy):
+        """
+        Check that specific SM state is inside sm configuration
+        :param sm_params: sm configuration
+        :param proxy: specific sm state
+        :return: True when specific state exist, otherwise False
+        """
+        if proxy in sm_params:
+            return True
+
+        for key, value in sm_params.items():
+            if isinstance(value, dict):
+                item = self._is_proxy_pc_in_sm_params(value, proxy)
+                if item is not None:
+                    return item
+
+        return False
