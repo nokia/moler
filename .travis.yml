@@ -56,7 +56,7 @@ jobs:
     env:
     - NAME="Test"
     script:
-    - python3.6 -m pytest moler
+    - python3.6 -m pytest --mccabe moler
     - coverage run -m pytest -c py3pytest.ini --random  -s -vv
     after_success:
     - coveralls
