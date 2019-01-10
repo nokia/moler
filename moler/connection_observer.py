@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019 Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
@@ -154,17 +154,18 @@ class ConnectionObserver(object):
         """Should be used to indicate some failure during observation"""
         self._is_done = True
         if self._exception:
-            self._log(logging.DEBUG, "'{}.{}' has overwritten exception. From '{}.{}' to '{}.{}'.".format(
+            self._log(logging.DEBUG, "'{}.{}' has overwritten exception. From '{}.{}' () to '{}.{}' ().".format(
                 self.__class__.__module__,
                 self.__class__.__name__,
                 self._exception.__class__.__module__,
                 self._exception.__class__.__name__,
+                self._exception,
                 exception.__class__.__module__,
-                exception.__class__.__name__
+                exception.__class__.__name__,
+                exception,
             ))
-            ConnectionObserver._remove_from_not_raised_exceptions(self._exception)
+        ConnectionObserver._swap_unraised_exception(old_exception=self._exception, new_exception=exception)
         self._exception = exception
-        ConnectionObserver._append_to_not_raised_exceptions(exception)
         self._log(logging.INFO, "'{}.{}' has set exception '{}.{}'.".format(self.__class__.__module__,
                                                                             self.__class__.__name__,
                                                                             exception.__class__.__module__,
@@ -210,15 +211,17 @@ class ConnectionObserver(object):
                 return list_of_exceptions
 
     @staticmethod
-    def _append_to_not_raised_exceptions(exception):
-        with ConnectionObserver._exceptions_lock:
-            ConnectionObserver._not_raised_exceptions.append(exception)
-
-    @staticmethod
     def _remove_from_not_raised_exceptions(exception):
         with ConnectionObserver._exceptions_lock:
             if exception in ConnectionObserver._not_raised_exceptions:
                 ConnectionObserver._not_raised_exceptions.remove(exception)
+
+    @staticmethod
+    def _swap_unraised_exception(old_exception, new_exception):
+        with ConnectionObserver._exceptions_lock:
+            if old_exception and old_exception in ConnectionObserver._not_raised_exceptions:
+                ConnectionObserver._not_raised_exceptions.remove(old_exception)
+            ConnectionObserver._not_raised_exceptions.append(new_exception)
 
     def get_long_desc(self):
         return "Observer '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)
