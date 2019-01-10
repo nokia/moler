@@ -9,7 +9,7 @@ __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
-import moler.config.runners as runner_cfg
+from moler.config import runners as runner_cfg
 
 
 def get_runner(variant=None, reuse_last=True, **constructor_kwargs):
