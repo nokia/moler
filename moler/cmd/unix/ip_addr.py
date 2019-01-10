@@ -19,6 +19,7 @@ class IpAddr(GenericUnixCommand):
         # Parameters defined by calling the command
         self.if_name = None
         self.options = options
+        self.ret_required = False
 
     def build_command_string(self):
         cmd = "ip addr"
@@ -75,7 +76,7 @@ class IpAddr(GenericUnixCommand):
     def _parse_link(self, line):
         return self._process_line(line, IpAddr._re_link, IpAddr._key_link, "LINK")
 
-    _re_interface = re.compile(r"^\d+:\s(?P<INTERFACE>[a-z\d.]+):.*$")
+    _re_interface = re.compile(r"^\d+:\s(?P<INTERFACE>[a-z@\-\d.]+):.*$")
 
     def _parse_interface(self, line):
         if self._regex_helper.search_compiled(IpAddr._re_interface, line):
@@ -98,7 +99,7 @@ COMMAND_OUTPUT = """
          valid_lft forever preferred_lft forever
       inet6 fe80::216:3eff:fe71:7b5d/64 scope link
          valid_lft forever preferred_lft forever
-3: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1600 qdisc pfifo_fast state UNKNOWN group default qlen 5000
+3: eth1@internal: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1600 qdisc pfifo_fast state UNKNOWN group default qlen 5000
       link/ether 00:16:3e:86:4a:3a brd ff:ff:ff:ff:ff:ff
       inet 192.168.255.126/24 scope global eth1
          valid_lft forever preferred_lft forever
@@ -106,7 +107,7 @@ COMMAND_OUTPUT = """
          valid_lft forever preferred_lft forever
       inet6 fe80::216:3eff:fe86:4a3a/64 scope link
          valid_lft forever preferred_lft forever
-4: eth2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UNKNOWN group default qlen 1000
+4: nbcmpcrl-eth: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UNKNOWN group default qlen 1000
       link/ether 00:16:3e:04:35:15 brd ff:ff:ff:ff:ff:ff
       inet 192.168.255.25/24 brd 192.168.255.255 scope global eth2
          valid_lft forever preferred_lft forever
@@ -116,55 +117,32 @@ COMMAND_OUTPUT = """
       link/ether 00:16:3e:04:35:15 brd ff:ff:ff:ff:ff:ff
   root@fzm-lsp-k2:~# """
 COMMAND_KWARGS = {'options': 'show'}
-COMMAND_RESULT = {
-    'eth0': {
-        'IPV4': [{
-            'BRD': '10.83.207.255',
-            'IP': '10.83.206.42',
-            'MASK': '21'}],
-        'IPV6': [{
-            'IP': 'fe80::216:3eff:fe71:7b5d',
-            'MASK': '64'}],
-        'LINK': [{
-            'BRD': 'ff:ff:ff:ff:ff:ff',
-            'MAC': '00:16:3e:71:7b:5d'}]},
-    'eth1': {
-        'IPV4': [{
-            'IP': '192.168.255.126',
-            'MASK': '24'}, {
-            'IP': '10.0.0.3',
-            'MASK': '24'}],
-        'IPV6': [{
-            'IP': 'fe80::216:3eff:fe86:4a3a',
-            'MASK': '64'}],
-        'LINK': [
-            {
-                'BRD': 'ff:ff:ff:ff:ff:ff',
-                'MAC': '00:16:3e:86:4a:3a'}]},
-    'eth2': {
-        'IPV4': [{
-            'BRD': '192.168.255.255',
-            'IP': '192.168.255.25',
-            'MASK': '24'}],
-        'IPV6': [{
-            'IP': 'fe80::216:3eff:fe04:3515',
-            'MASK': '64'}],
-        'LINK': [{
-            'BRD': 'ff:ff:ff:ff:ff:ff',
-            'MAC': '00:16:3e:04:35:15'}]},
-    'eth3': {
-        'IPV4': [{}],
-        'IPV6': [{}],
-        'LINK': [{
-            'BRD': 'ff:ff:ff:ff:ff:ff',
-            'MAC': '00:16:3e:04:35:15'}]},
-    'lo': {
-        'IPV4': [{
-            'IP': '127.0.0.1',
-            'MASK': '8'}],
-        'IPV6': [{
-            'IP': '::1',
-            'MASK': '128'}],
-        'LINK': [{
-            'BRD': '00:00:00:00:00:00',
-            'MAC': '00:00:00:00:00:00'}]}}
+COMMAND_RESULT = {u'eth0': {'IPV4': [{'BRD': u'10.83.207.255',
+                                      'IP': u'10.83.206.42',
+                                      'MASK': u'21'}],
+                            'IPV6': [{'IP': u'fe80::216:3eff:fe71:7b5d',
+                                      'MASK': u'64'}],
+                            'LINK': [{'BRD': u'ff:ff:ff:ff:ff:ff',
+                                      'MAC': u'00:16:3e:71:7b:5d'}]},
+                  u'eth1@internal': {'IPV4': [{'IP': u'192.168.255.126',
+                                               'MASK': u'24'},
+                                              {'IP': u'10.0.0.3', 'MASK': u'24'}],
+                                     'IPV6': [{'IP': u'fe80::216:3eff:fe86:4a3a',
+                                               'MASK': u'64'}],
+                                     'LINK': [{'BRD': u'ff:ff:ff:ff:ff:ff',
+                                               'MAC': u'00:16:3e:86:4a:3a'}]},
+                  u'eth3': {'IPV4': [{}],
+                            'IPV6': [{}],
+                            'LINK': [{'BRD': u'ff:ff:ff:ff:ff:ff',
+                                      'MAC': u'00:16:3e:04:35:15'}]},
+                  u'lo': {'IPV4': [{'IP': u'127.0.0.1', 'MASK': u'8'}],
+                          'IPV6': [{'IP': u'::1', 'MASK': u'128'}],
+                          'LINK': [{'BRD': u'00:00:00:00:00:00',
+                                    'MAC': u'00:00:00:00:00:00'}]},
+                  u'nbcmpcrl-eth': {'IPV4': [{'BRD': u'192.168.255.255',
+                                              'IP': u'192.168.255.25',
+                                              'MASK': u'24'}],
+                                    'IPV6': [{'IP': u'fe80::216:3eff:fe04:3515',
+                                              'MASK': u'64'}],
+                                    'LINK': [{'BRD': u'ff:ff:ff:ff:ff:ff',
+                                              'MAC': u'00:16:3e:04:35:15'}]}}

@@ -3,3 +3,5 @@ ptyprocess
 pyyaml
 six
 transitions
+apscheduler
+trollius; python_version < '3'

@@ -4,27 +4,27 @@ Moler's device has 2 main responsibilities:
 - be the factory that returns commands of that device
 - be the state machine that controls which commands may run in given state
 """
-import logging
-import traceback
-
-from moler.cmd.commandtextualgeneric import CommandTextualGeneric
-from moler.config.loggers import configure_device_logger
-
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
+import abc
 import functools
 import importlib
 import inspect
+import logging
 import pkgutil
-import time
 import re
-import abc
+import time
+import traceback
 
+from moler.cmd.commandtextualgeneric import CommandTextualGeneric
+from moler.config.loggers import configure_device_logger
 from moler.connection import get_connection
 from moler.device.state_machine import StateMachine
 from moler.exceptions import CommandWrongState, DeviceFailure, EventWrongState, DeviceChangeStateFailure
+from moler.helpers import copy_dict
+from moler.helpers import update_dict
 
 
 # TODO: name, logger/logger_name as param
@@ -35,19 +35,27 @@ class TextualDevice(object):
     not_connected = "NOT_CONNECTED"
     connection_hops = "CONNECTION_HOPS"
 
-    def __init__(self, name=None, io_connection=None, io_type=None, variant=None, sm_params=dict()):
+    def __init__(self, sm_params=None, name=None, io_connection=None, io_type=None, variant=None,
+                 io_constructor_kwargs={}, initial_state=None):
         """
         Create Device communicating over io_connection
         CAUTION: Device owns (takes over ownership) of connection. It will be open when device "is born" and close when
         device "dies".
 
+        :param sm_params: dict with parameters of state machine for device
+        :param name: name of device
         :param io_connection: External-IO connection having embedded moler-connection
         :param io_type: type of connection - tcp, udp, ssh, telnet, ...
         :param variant: connection implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
                         (if not given then default one is taken)
+        :param io_constructor_kwargs: additional parameter into constructor of selected connection type
+                        (if not given then default one is taken)
+        :param initial_state: name of initial state. State machine tries to enter this state just after creation.
         """
-        sm_params = sm_params.copy()
-        self.states = []
+        sm_params = copy_dict(sm_params, deep_copy=True)
+        io_constructor_kwargs = copy_dict(io_constructor_kwargs, deep_copy=True)
+        self.initial_state = initial_state if initial_state is not None else "NOT_CONNECTED"
+        self.states = [TextualDevice.not_connected]
         self.goto_states_triggers = []
         self._name = name
         self.device_data_logger = None
@@ -66,7 +74,7 @@ class TextualDevice(object):
         if io_connection:
             self.io_connection = io_connection
         else:
-            self.io_connection = get_connection(io_type=io_type, variant=variant)
+            self.io_connection = get_connection(io_type=io_type, variant=variant, **io_constructor_kwargs)
 
         self.io_connection.name = self.name
         self.io_connection.moler_connection.name = self.name
@@ -371,8 +379,16 @@ class TextualDevice(object):
             observer._validate_start = validate_device_state_before_observer_start
         return observer
 
-    def get_cmd(self, cmd_name, cmd_params=dict(), check_state=True):
-        cmd_params = cmd_params.copy()
+    def get_cmd(self, cmd_name, cmd_params=None, check_state=True):
+        """
+        Returns instance of command connected with the device.
+        :param cmd_name: name of commands, name of class (without package), for example "cd".
+        :param cmd_params: dict with command parameters.
+        :param check_state: if True then before execute of command the state of device will be check if the same
+         as when command was created. If False the device state is not checked.
+        :return: Instance of command
+        """
+        cmd_params = copy_dict(cmd_params)
         if "prompt" not in cmd_params:
             cmd_params["prompt"] = self.get_prompt()
         cmd = self.get_observer(observer_name=cmd_name, observer_type=TextualDevice.cmds,
@@ -380,8 +396,16 @@ class TextualDevice(object):
         assert isinstance(cmd, CommandTextualGeneric)
         return cmd
 
-    def get_event(self, event_name, event_params=dict(), check_state=True):
-        event_params = event_params.copy()
+    def get_event(self, event_name, event_params=None, check_state=True):
+        """
+        Return instance of event connected with the device.
+        :param event_name: name of event, name of class (without package).
+        :param event_params: dict with event parameters.
+        :param check_state: if True then before execute of event the state of device will be check if the same
+         as when event was created. If False the device state is not checked.
+        :return:
+        """
+        event_params = copy_dict(event_params)
         event = self.get_observer(observer_name=event_name, observer_type=TextualDevice.events,
                                   observer_exception=EventWrongState, check_state=check_state, **event_params)
 
@@ -443,11 +467,11 @@ class TextualDevice(object):
                      'prepare': transitions[source_state][dest_state]["action"]},
                 ]
 
-                self.SM.add_state(dest_state)
                 self.SM.add_transitions(single_transition)
 
     def _update_SM_states(self, state):
         if state not in self.states:
+            self.SM.add_state(state)
             self.states.append(state)
 
     def _open_connection(self, source_state, dest_state, timeout):
@@ -496,22 +520,27 @@ class TextualDevice(object):
         return prompt
 
     def _configure_state_machine(self, sm_params):
-        default_configurations = self._get_default_sm_configuration()
-        configuration = self._update_configuration(default_configurations, sm_params)
+        default_sm_configurations = self._get_default_sm_configuration()
+        configuration = self._prepare_sm_configuration(default_sm_configurations, sm_params)
         self._configurations = configuration
         self._validate_device_configuration()
         self._prepare_state_prompts()
 
-    def _update_configuration(self, destination, source):
-        for key, value in source.items():
-            if isinstance(value, dict):
-                # get node or create one
-                node = destination.setdefault(key, {})
-                self._update_configuration(value, node)
-            else:
-                destination[key] = value
+    def _prepare_sm_configuration(self, default_sm_configurations, sm_params):
+        """
+        Prepare SM configuration by update default SM configuration with SM params read from config dict/file
+        :param default_sm_configurations: Default SM configuration for specific device
+        :param sm_params: SM configuration read from dict/file
+        :return: prepared SM configuration for specific device
+        """
+        sm_configuration = {}
+        self._update_dict(sm_configuration, default_sm_configurations)
+        self._update_dict(sm_configuration, sm_params)
 
-        return destination
+        return sm_configuration
+
+    def _update_dict(self, target_dict, expand_dict):
+        update_dict(target_dict, expand_dict)
 
     def _get_default_sm_configuration(self):
         return {TextualDevice.connection_hops: {}}
@@ -554,4 +583,22 @@ class TextualDevice(object):
             state = self.current_state
         if state and state in self._newline_chars:
             return self._newline_chars[state]
-        return "\r\n"
+        return "\n"
+
+    def _is_proxy_pc_in_sm_params(self, sm_params, proxy):
+        """
+        Check that specific SM state is inside sm configuration
+        :param sm_params: sm configuration
+        :param proxy: specific sm state
+        :return: True when specific state exist, otherwise False
+        """
+        if proxy in sm_params:
+            return True
+
+        for key, value in sm_params.items():
+            if isinstance(value, dict):
+                item = self._is_proxy_pc_in_sm_params(value, proxy)
+                if item is not None:
+                    return item
+
+        return False

@@ -14,6 +14,16 @@ from moler.exceptions import ParsingDone
 class Echo(GenericUnixCommand):
     def __init__(self, connection, options=None, text=None, write_mode=">", output_file=None, prompt=None,
                  newline_chars=None, runner=None):
+        """
+        :param connection: Moler connection to device, terminal when command is executed.
+        :param options: Options of command echo
+        :param text: Text to echo
+        :param write_mode: mode of write: '>' for truncate or '>>' for append
+        :param output_file: path to file to write to
+        :param prompt: prompt (on system where command runs).
+        :param newline_chars: Characters to split lines - list.
+        :param runner: Runner to run command.
+        """
         super(Echo, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
         self.options = options
@@ -24,6 +34,9 @@ class Echo(GenericUnixCommand):
         self.current_ret['RESULT'] = list()
 
     def build_command_string(self):
+        """
+        :return: String representation of command to send over connection to device.
+        """
         cmd = "echo"
         if self.options:
             cmd = "{} {}".format(cmd, self.options)
@@ -34,6 +47,12 @@ class Echo(GenericUnixCommand):
         return cmd
 
     def on_new_line(self, line, is_full_line):
+        """
+        Put your parsing code here.
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: Nothing
+        """
         if is_full_line:
             try:
                 self._parse_line(line)
@@ -42,6 +61,10 @@ class Echo(GenericUnixCommand):
         return super(Echo, self).on_new_line(line, is_full_line)
 
     def _parse_line(self, line):
+        """
+        :param line: string to append to RESULT
+        :return: Nothing but raises ParsingDone
+        """
         self.current_ret["RESULT"].append(line)
         raise ParsingDone
 

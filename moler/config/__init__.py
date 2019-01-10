@@ -4,6 +4,8 @@ Moler related configuration
 """
 import os
 
+from moler.util.moler_test import MolerTest
+
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
@@ -16,6 +18,8 @@ from . import connections as conn_cfg
 from . import devices as dev_cfg
 from . import loggers as log_cfg
 
+loaded_config = "NOT_LOADED_YET"
+
 
 @contextmanager
 def read_configfile(path):
@@ -25,6 +29,7 @@ def read_configfile(path):
     :param path: location of configuration file
     :return: configuration file content as string
     """
+
     with open(path, 'r') as config_file:
         content = config_file.read()
         yield content
@@ -37,8 +42,12 @@ def read_yaml_configfile(path):
     :param path: location of yaml file
     :return: configuration as a python dictionary
     """
-    with read_configfile(path) as content:
-        return yaml.load(content)
+    if os.path.isabs(path):
+        with read_configfile(path) as content:
+            return yaml.load(content)
+    else:
+        MolerTest.error("For configuration file path: '{}' was used but absolute path is needed!".format(path))
+        return {}
 
 
 def load_config(config=None, from_env_var=None, config_type='yaml'):
@@ -50,6 +59,19 @@ def load_config(config=None, from_env_var=None, config_type='yaml'):
     :param config_type: 'dict' ('config' param is dict) or 'yaml' ('config' is filename of file with YAML content)
     :return: None
     """
+    global loaded_config
+
+    if loaded_config == "NOT_LOADED_YET":
+        loaded_config = config
+    elif loaded_config == config:
+        return
+    else:
+        # TODO: raise exception or no?
+        MolerTest.error("Try to load '{}' config when '{}' config already loaded.\n"
+                        "Reload configuration under one Moler execution not supported!".format(config,
+                                                                                               loaded_config))
+        return
+
     assert (config_type == 'dict') or (config_type == 'yaml')  # no other format supported yet
     if not config:
         if not from_env_var:
@@ -100,7 +122,8 @@ def load_device_from_config(config):
                 name=device_name,
                 device_class=device_def['DEVICE_CLASS'],
                 connection_desc=device_def.get('CONNECTION_DESC', dev_cfg.default_connection),
-                connection_hops={'CONNECTION_HOPS': device_def.get('CONNECTION_HOPS', {})}
+                connection_hops={'CONNECTION_HOPS': device_def.get('CONNECTION_HOPS', {})},
+                initial_state=device_def.get('INITIAL_STATE', None),
             )
 
     if create_at_startup is True:
@@ -125,5 +148,7 @@ def load_logger_from_config(config):
 
 def clear():
     """Cleanup Moler's configuration"""
+    global loaded_config
+    loaded_config = "NOT_LOADED_YET"
     conn_cfg.clear()
     dev_cfg.clear()

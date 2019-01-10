@@ -19,6 +19,7 @@ from moler.exceptions import ResultNotAvailableYet
 from moler.helpers import ClassProperty
 from moler.helpers import camel_case_to_lower_case_underscore
 from moler.helpers import instance_id
+from moler.helpers import copy_list
 from moler.runner import ThreadPoolExecutorRunner
 from moler.runner_factory import get_runner
 
@@ -257,7 +258,7 @@ class ConnectionObserver(object):
                 ConnectionObserver._not_raised_exceptions = list()
                 return list_of_exceptions
             else:
-                list_of_exceptions = ConnectionObserver._not_raised_exceptions.copy()
+                list_of_exceptions = copy_list(ConnectionObserver._not_raised_exceptions)
                 return list_of_exceptions
 
     @staticmethod

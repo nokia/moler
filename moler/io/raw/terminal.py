@@ -20,29 +20,39 @@ class ThreadedTerminal(IOConnection):
     ThreadedTerminal is shell working under Pty
     """
 
-    def __init__(self, moler_connection, cmd=None, select_timeout=0.002,
-                 read_buffer_size=4096, first_prompt=None, dimensions=(100, 300)):
+    def __init__(self, moler_connection, cmd="/bin/bash", select_timeout=0.002,
+                 read_buffer_size=4096, first_prompt=r'[%$#]+', target_prompt=r'^moler_bash#',
+                 set_prompt_cmd='export PS1="moler_bash# "\n', dimensions=(100, 300)):
+        """
+        :param moler_connection: Moler's connection to join with
+        :param cmd: command to run terminal
+        :param select_timeout: timeout for reading data from terminal
+        :param read_buffer_size: buffer for reading data from terminal
+        :param first_prompt: default terminal prompt on host where Moler is starting
+        :param target_prompt: new prompt which will be set on terminal
+        :param set_prompt_cmd: command to change prompt with new line char on the end of string
+        :param dimensions: dimensions of the psuedoterminal
+        """
         super(ThreadedTerminal, self).__init__(moler_connection=moler_connection)
+        self._terminal = None
+        self._shell_operable = Event()
+        self._export_sent = False
+        self.pulling_thread = None
+
         self._select_timeout = select_timeout
         self._read_buffer_size = read_buffer_size
         self.dimensions = dimensions
-        self._terminal = None
-        self.pulling_thread = None
-        self._shell_operable = Event()
-        if cmd is None:
-            cmd = ['/bin/bash', '--init-file']
-        self._cmd = ThreadedTerminal._build_bash_command(cmd)
-
-        if first_prompt:
-            self.prompt = first_prompt
-        else:
-            self.prompt = r'^moler_bash#'
+        self.first_prompt = first_prompt
+        self.target_prompt = target_prompt
+        self._cmd = [cmd]
+        self.set_prompt_cmd = set_prompt_cmd
 
     def open(self):
         """Open ThreadedTerminal connection & start thread pulling data from it."""
         ret = super(ThreadedTerminal, self).open()
         if not self._terminal:
             self._terminal = PtyProcessUnicode.spawn(self._cmd, dimensions=self.dimensions)
+
             done = Event()
             self.pulling_thread = TillDoneThread(target=self.pull_data,
                                                  done_event=done,
@@ -81,18 +91,14 @@ class ThreadedTerminal(IOConnection):
                         self.data_received(data)
                     else:
                         read_buffer = read_buffer + data
-                        if re.search(self.prompt, read_buffer, re.MULTILINE):
+                        if re.search(self.target_prompt, read_buffer, re.MULTILINE):
                             self._notify_on_connect()
                             self._shell_operable.set()
-                            data = re.sub(self.prompt, '', read_buffer, re.MULTILINE)
+                            data = re.sub(self.target_prompt, '', read_buffer, re.MULTILINE)
                             self.data_received(data)
+                        elif not self._export_sent and re.search(self.first_prompt, read_buffer, re.MULTILINE):
+                            self.send(self.set_prompt_cmd)
+                            self._export_sent = True
                 except EOFError:
                     self._notify_on_disconnect()
                     pulling_done.set()
-
-    @staticmethod
-    def _build_bash_command(bash_cmd):
-        abs_path = os.path.dirname(__file__)
-        init_file_path = [os.path.join(abs_path, "..", "..", "config", "bash_config")]
-
-        return bash_cmd + init_file_path

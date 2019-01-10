@@ -3,12 +3,14 @@
 Connections related configuration
 """
 
-__author__ = 'Grzegorz Latuszek'
+__author__ = 'Grzegorz Latuszek, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com'
 
 import sys
 import platform
+from moler.exceptions import MolerException
+
 
 default_variant = {}
 named_connections = {}
@@ -45,14 +47,37 @@ def clear():
     named_connections.clear()
 
 
+def set_defaults():
+    """Set defaults for connections configuration"""
+    set_default_variant(io_type="terminal", variant="threaded")
+
+
+def _running_python_3_5_or_above():
+    return (sys.version_info[0] >= 3) and (sys.version_info[1] >= 5)
+
+
+supported_systems = ['Linux', "FreeBSD", "Darwin", "SunOS"]
+
+
+def _running_on_supported_unix():
+    return platform.system() in supported_systems
+
+
 def register_builtin_connections(connection_factory, moler_conn_class):
     _register_builtin_connections(connection_factory, moler_conn_class)
-    if platform.system() == 'Linux':
-        _register_builtin_unix_connections(connection_factory, moler_conn_class)
-    if (sys.version_info[0] >= 3) and (sys.version_info[1] >= 5):
+    if _running_python_3_5_or_above():
         _register_python3_builtin_connections(connection_factory, moler_conn_class)
-        if platform.system() == 'Linux':
+
+    if _running_on_supported_unix():
+        _register_builtin_unix_connections(connection_factory, moler_conn_class)
+        if _running_python_3_5_or_above():
             _register_builtin_py3_unix_connections(connection_factory, moler_conn_class)
+    else:
+        # who has added this? On Windows - just terminal connection is absent
+        #
+        # err_msg = "Unsupported system {} detected! Supported systems: {}".format(platform.system(), supported_systems)
+        # raise MolerException(err_msg)
+        pass
 
 
 def mlr_conn_no_encoding(moler_conn_class, name):
