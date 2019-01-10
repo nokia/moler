@@ -85,7 +85,6 @@ class UBootCRTM(TextualEvent):
 
     def _parse_sjmpr(self, line):
         if self._regex_helper.search(UBootCRTM._re_sjmpr, line):
-            self.current_ret = dict()
             self.current_ret["CPLD_sjmpr"] = self._regex_helper.group("CPLD_sjmpr")
             self.event_occurred(event_data=self.current_ret)
             self.current_ret = dict()
