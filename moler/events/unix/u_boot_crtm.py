@@ -20,7 +20,7 @@ class UBootCRTM(TextualEvent):
         :param till_occurs_times: number of event occurrence
         """
         super(UBootCRTM, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
-        self.connection = connection
+        self.current_ret = dict()
 
     def on_new_line(self, line, is_full_line):
         """
@@ -45,9 +45,7 @@ class UBootCRTM(TextualEvent):
 
     def _parse_u_boot_crtm(self, line):
         if self._regex_helper.search(UBootCRTM._re_u_boot_crtm, line):
-            current_ret = dict()
-            current_ret["time"] = datetime.datetime.now()
-            self.event_occurred(event_data=current_ret)
+            self.current_ret["time"] = datetime.datetime.now()
 
             raise ParsingDone
 
@@ -55,9 +53,8 @@ class UBootCRTM(TextualEvent):
 
     def _parse_cpld_version(self, line):
         if self._regex_helper.search(UBootCRTM._re_cpld_version, line):
-            current_ret = dict()
-            current_ret["CPLD_version"] = self._regex_helper.group("CPLD_version")
-            self.event_occurred(event_data=current_ret)
+            self.current_ret = dict()
+            self.current_ret["CPLD_version"] = self._regex_helper.group("CPLD_version")
 
             raise ParsingDone
 
@@ -65,9 +62,8 @@ class UBootCRTM(TextualEvent):
 
     def _parse_reset_reason(self, line):
         if self._regex_helper.search(UBootCRTM._re_reset_reason, line):
-            current_ret = dict()
-            current_ret["CPLD_reset_reason"] = self._regex_helper.group("CPLD_reset_reason")
-            self.event_occurred(event_data=current_ret)
+            self.current_ret = dict()
+            self.current_ret["CPLD_reset_reason"] = self._regex_helper.group("CPLD_reset_reason")
 
             raise ParsingDone
 
@@ -75,9 +71,8 @@ class UBootCRTM(TextualEvent):
 
     def _parse_board_id(self, line):
         if self._regex_helper.search(UBootCRTM._re_board_id, line):
-            current_ret = dict()
-            current_ret["CPLD_board_id"] = self._regex_helper.group("CPLD_board_id")
-            self.event_occurred(event_data=current_ret)
+            self.current_ret = dict()
+            self.current_ret["CPLD_board_id"] = self._regex_helper.group("CPLD_board_id")
 
             raise ParsingDone
 
@@ -85,9 +80,8 @@ class UBootCRTM(TextualEvent):
 
     def _parse_gpir(self, line):
         if self._regex_helper.search(UBootCRTM._re_gpir, line):
-            current_ret = dict()
-            current_ret["CPLD_gpir"] = self._regex_helper.group("CPLD_gpir")
-            self.event_occurred(event_data=current_ret)
+            self.current_ret = dict()
+            self.current_ret["CPLD_gpir"] = self._regex_helper.group("CPLD_gpir")
 
             raise ParsingDone
 
@@ -95,8 +89,8 @@ class UBootCRTM(TextualEvent):
 
     def _parse_sjmpr(self, line):
         if self._regex_helper.search(UBootCRTM._re_sjmpr, line):
-            current_ret = dict()
-            current_ret["CPLD_sjmpr"] = self._regex_helper.group("CPLD_sjmpr")
-            self.event_occurred(event_data=current_ret)
+            self.current_ret = dict()
+            self.current_ret["CPLD_sjmpr"] = self._regex_helper.group("CPLD_sjmpr")
+            self.event_occurred(event_data=self.current_ret)
 
             raise ParsingDone
