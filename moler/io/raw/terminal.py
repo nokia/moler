@@ -100,3 +100,6 @@ class ThreadedTerminal(IOConnection):
                 except EOFError:
                     self._notify_on_disconnect()
                     pulling_done.set()
+                except UnicodeDecodeError:
+                    # ignore data pack with character which cannot properly decode
+                    pass
