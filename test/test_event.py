@@ -13,18 +13,19 @@ import importlib
 
 import pytest
 from moler.event import Event
+from moler.events.lineevent import LineEvent
 from moler.connection import ObservableConnection
 from moler.helpers import instance_id
 
 
-def test_event_has_means_to_retrieve_embedded_detect_pattern(do_nothing_command__for_major_base_class):
-    event_instance = do_nothing_command__for_major_base_class
+def test_event_has_means_to_retrieve_embedded_detect_pattern(lineevent_class):
+    event_instance = lineevent_class
     assert hasattr(event_instance, "detect_pattern")
     assert hasattr(event_instance, "detect_patterns")
 
 
 def test_str_conversion_of_event_object():
-    class Wait4(Event):
+    class Wait4(LineEvent):
         def __init__(self, connection=None):
             super(Wait4, self).__init__(connection=connection)
             self.detect_pattern = 'Connection close'
@@ -36,11 +37,11 @@ def test_str_conversion_of_event_object():
     assert 'Wait4("Connection close", id:{})'.format(instance_id(wait4)) == str(wait4)
 
 
-def test_event_string_is_required_to_start_command(command_major_base_class):
+def test_event_string_is_required_to_start_command(lineevent_class):
     from moler.exceptions import NoDetectPatternProvided
     moler_conn = ObservableConnection()
 
-    event_class = do_nothing_command_class(base_class=command_major_base_class)
+    event_class = do_nothing_command_class(base_class=lineevent_class)
     event = event_class(connection=moler_conn)
     assert not event.detect_pattern  # ensure it is empty before starting command
     assert not event.detect_patterns  # ensure it is empty before starting command
@@ -88,6 +89,13 @@ def test_event_whole_output(buffer_connection):
 
 @pytest.fixture(params=['event.Event'])
 def command_major_base_class(request):
+    module_name, class_name = request.param.rsplit('.', 1)
+    module = importlib.import_module('moler.{}'.format(module_name))
+    klass = getattr(module, class_name)
+    return klass\
+
+@pytest.fixture(params=['lineevent.LineEvent'])
+def lineevent_class(request):
     module_name, class_name = request.param.rsplit('.', 1)
     module = importlib.import_module('moler.{}'.format(module_name))
     klass = getattr(module, class_name)
