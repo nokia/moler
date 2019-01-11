@@ -52,7 +52,6 @@ class LineEvent(TextualEvent):
                     self.event_occurred(event_data=current_ret)
                     return
 
-
     def compile_patterns(self, patterns):
         compiled_patterns = []
         for pattern in patterns:
