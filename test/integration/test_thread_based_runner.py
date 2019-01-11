@@ -30,6 +30,19 @@ def test_can_submit_connection_observer_into_background(connection_observer,
         connection_observer_future.cancel()
 
 
+def test_future_lifetime_starts_from_runner_submit(connection_observer,
+                                                   observer_runner):
+    before_submit_time = time.time()
+    connection_observer_future = observer_runner.submit(connection_observer)
+    assert hasattr(connection_observer_future, "start_time")
+    assert connection_observer_future.start_time > before_submit_time
+
+    # TODO: ask runner (knows type of his future)
+    # observer_runner.remaining_lifetime(connection_observer_future)
+    # or
+    # connection_observer_future.remaining_lifetime()
+
+
 def test_CancellableFuture_can_be_cancelled_while_it_is_running(observer_runner):
     from concurrent.futures import ThreadPoolExecutor, CancelledError
     from moler.runner import CancellableFuture
@@ -46,7 +59,8 @@ def test_CancellableFuture_can_be_cancelled_while_it_is_running(observer_runner)
         is_done.set()
 
     future = ThreadPoolExecutor().submit(activity, is_started, stop_running, is_done)
-    c_future = CancellableFuture(future, is_started, stop_running, is_done)
+    start_time = time.time()
+    c_future = CancellableFuture(future, start_time, is_started, stop_running, is_done)
     try:
         is_started.wait(timeout=0.5)
         assert is_started.is_set()

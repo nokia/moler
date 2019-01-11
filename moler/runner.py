@@ -134,7 +134,7 @@ def result_for_runners(connection_observer):
 
 
 class CancellableFuture(object):
-    def __init__(self, future, is_started, stop_running, is_done, stop_timeout=0.5):
+    def __init__(self, future, start_time, is_started, stop_running, is_done, stop_timeout=0.5):
         """
         Wrapper to allow cancelling already running concurrent.futures.Future
 
@@ -149,6 +149,7 @@ class CancellableFuture(object):
         :param stop_timeout: timeout to await is_done after setting stop_running
         """
         self._future = future
+        self.start_time = start_time  # start of life time
         self._is_started = is_started
         self._stop_running = stop_running
         self._stop_timeout = stop_timeout
@@ -212,42 +213,35 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
         # TODO: check dependency - connection_observer.connection
 
-        # Our submit consists of single step:
-        # 1. scheduling "background feed" via executor.submit()
-        #    - internally it calls _start_feeding() which sets feed_started event
-        #
-        # Moreover, we await here (before returning from submit()) for "background feed" to be really started.
-        # That is realized by 0.5sec timeout and awaiting for feed_started threading.Event.
-        # It ensures that feed() method is already running inside dedicated thread.
+        # Our submit consists of two steps:
+        # 1. _start_feeding() which establishes data path from connection to observer
+        # 2. scheduling "background feed" via executor.submit()
         #
         # By using the code of _start_feeding() we ensure that after submit() connection data could reach
-        # data_received() of observer. Another words, no data will be lost-for-observer after runner.submit().
+        # data_received() of observer - as it would be "virtually running in background"
+        # Another words, no data will be lost-for-observer between runner.submit() and runner.feed() really running
         #
-        # Consequence of waiting for "background feed" to be running is that submit is blocking call till feed() start.
-        # Generic scheme of any async-code is: methods should be as quick as possible. Because async frameworks
-        # operate inside single thread blocking call means "nothing else could happen". Nothing here may
-        # mean for example "handling data of other connections", "handling other observers".
-        # So, if we put observer with ThreadPoolExecutorRunner inside some event loop then that loop will block
-        # for duration of submit() which is measured as around 0.002sec (depends on machine).
+        # We do not await here (before returning from submit()) for "background feed" to be really started.
+        # That is in sync with generic nature of threading.Thread - after thread.start() we do not have
+        # running thread - it is user responsibility to await for threads switch.
+        # User may check "if thread is running" via Thread.is_alive() API.
+        # For concurrent.futures same is done via future.running() API.
         #
-        # That 0.002sec price we want to pay since we gain another benefit for that price.
-        # If anything goes wrong and thread for feed() won't start in 0.5sec we will be at least notified
-        # by MolerException.
+        # However, lifetime of connection_observer starts here. It gains it's own timer (stored inside future)
+        # so that connection_observer timeout is calculated from that start-time.
+        #
+        # As a corner case runner.wait_for() may timeout before feeding thread has started.
 
         feed_started = threading.Event()
         stop_feeding = threading.Event()
         feed_done = threading.Event()
+        subscribed_data_receiver = self._start_feeding(connection_observer, feed_started)
         connection_observer_future = self.executor.submit(self.feed, connection_observer,
-                                                          feed_started, stop_feeding, feed_done)
-        # await feed thread to be really started
-        start_timeout = 0.5
-        if not feed_started.wait(timeout=start_timeout):
-            err_msg = "Failed to start observer feeding thread within {} sec".format(start_timeout)
-            self.logger.error(err_msg)
-            exc = MolerException(err_msg)
-            connection_observer.set_exception(exc)
-            return None
-        c_future = CancellableFuture(connection_observer_future, feed_started, stop_feeding, feed_done)
+                                                          feed_started, subscribed_data_receiver,
+                                                          stop_feeding, feed_done)
+        start_time = time.time()
+        c_future = CancellableFuture(connection_observer_future, start_time,
+                                     feed_started, stop_feeding, feed_done)
         return c_future
 
     def wait_for(self, connection_observer, connection_observer_future, timeout=None):
@@ -262,7 +256,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         self.logger.debug("go foreground: {!r} - await max. {} [sec]".format(connection_observer, timeout))
         if connection_observer.done():  # may happen when failed to start observer feeding thread
             return None
-        start_time = time.time()
+        start_time = connection_observer_future.start_time
         remain_time = connection_observer.timeout
         check_timeout_from_observer = True
         wait_tick = 0.1
@@ -331,7 +325,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         feed_started.set()  # mark that we have passed connection-subscription-step
         return secure_data_received  # to know what to unsubscribe
 
-    def feed(self, connection_observer, feed_started, stop_feeding, feed_done):
+    def feed(self, connection_observer, feed_started, subscribed_data_receiver, stop_feeding, feed_done):
         """
         Feeds connection_observer by transferring data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
