@@ -160,10 +160,16 @@ class CancellableFuture(object):
         attribute = getattr(self._future, attr)
         return attribute
 
-    def cancel(self):
+    def cancel(self, no_wait=False):
+        """
+        Cancel embedded future
+        :param no_wait: if True - just set self._stop_running event to let thread exit loop
+        :return:
+        """
         if self.running():
-            self._stop()
-
+            self._stop(no_wait)
+            if no_wait:
+                return True
             # after exiting threaded-function future.state == FINISHED
             # we need to change it to PENDING to allow for correct cancel via concurrent.futures.Future
             with self._condition:
@@ -171,8 +177,10 @@ class CancellableFuture(object):
 
         return self._future.cancel()
 
-    def _stop(self):
+    def _stop(self, no_wait=False):
         self._stop_running.set()  # force threaded-function to exit
+        if no_wait:
+            return
         if not self._is_done.wait(timeout=self._stop_timeout):
             err_msg = "Failed to stop thread-running function within {} sec".format(self._stop_timeout)
             # TODO: should we break current thread or just set this exception inside connection-observer
@@ -276,7 +284,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         # code below is for timed out observer
         passed = time.time() - start_time
         self.logger.debug("timed out {}".format(connection_observer))
-        connection_observer_future.cancel()
+        connection_observer_future.cancel(no_wait=True)
         time_out_observer(connection_observer=connection_observer,
                           timeout=timeout, passed_time=passed, kind="await_done")
         return None
