@@ -493,8 +493,8 @@ class TextualDevice(object):
                 }
             )
 
-            prompt_event_callback = functools.partial(self._prompt_observer_callback, event=prompt_event, state=state)
-            prompt_event.add_event_occurred_callback(callback=prompt_event_callback)
+            prompt_event.add_event_occurred_callback(callback=self._prompt_observer_callback, event=prompt_event,
+                                                     state=state)
 
             prompt_event.start()
             self._prompts_events[state] = prompt_event

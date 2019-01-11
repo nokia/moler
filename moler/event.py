@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import functools
 
 __author__ = 'Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -33,8 +34,9 @@ class Event(ConnectionObserver):
 
         return ret
 
-    def add_event_occurred_callback(self, callback):
+    def add_event_occurred_callback(self, callback, **callback_args):
         if not self.callback:
+            callback = functools.partial(callback, **callback_args)
             self.callback = callback
         else:
             raise MolerException("Cannot assign already assigned 'self.callback'.")
