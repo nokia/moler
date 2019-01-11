@@ -248,6 +248,7 @@ class ConnectionObserver(object):
 
             ConnectionObserver._not_raised_exceptions.append(new_exception)
             observer._exception = new_exception
+        ConnectionObserver.print_exceptions(observer)
         observer._log(logging.DEBUG, "*** _change_untraised_exception OUT\n\n\n")
 
     @staticmethod
