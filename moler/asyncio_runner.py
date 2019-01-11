@@ -119,6 +119,8 @@ class AsyncioRunner(ConnectionObserverRunner):
         :return:
         """
         self.logger.debug("go foreground: {!r} - await max. {} [sec]".format(connection_observer, timeout))
+        if connection_observer.done():
+            return None
         start_time = time.time()
         event_loop = thread_secure_get_event_loop()
 
@@ -384,6 +386,8 @@ class AsyncioInThreadRunner(AsyncioRunner):
         :return:
         """
         self.logger.debug("go foreground: {!r} - await max. {} [sec]".format(connection_observer, timeout))
+        if connection_observer.done():  # may happen when failed to start observer feeder
+            return None
         start_time = time.time()
 
         async def wait_for_connection_observer_done():

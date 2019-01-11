@@ -260,6 +260,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         :return:
         """
         self.logger.debug("go foreground: {!r} - await max. {} [sec]".format(connection_observer, timeout))
+        if connection_observer.done():  # may happen when failed to start observer feeding thread
+            return None
         start_time = time.time()
         remain_time = connection_observer.timeout
         check_timeout_from_observer = True
