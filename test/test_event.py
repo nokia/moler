@@ -19,7 +19,7 @@ from moler.helpers import instance_id
 
 
 def test_event_has_means_to_retrieve_embedded_detect_pattern(lineevent_class):
-    event_instance = lineevent_class
+    event_instance = lineevent_class()
     assert hasattr(event_instance, "detect_pattern")
     assert hasattr(event_instance, "detect_patterns")
 
