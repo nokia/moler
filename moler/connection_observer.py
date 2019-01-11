@@ -60,10 +60,12 @@ class ConnectionObserver(object):
         Run connection-observer in foreground
         till it is done or timeouted
         """
+        self._log(logging.DEBUG, "{} __call__ IN".format(self))
         if timeout:
             self.timeout = timeout
         started_observer = self.start(timeout, *args, **kwargs)
         if started_observer:
+            self._log(logging.DEBUG, "{} __call__ wait for await_done".format(self))
             return started_observer.await_done(*args, **kwargs)
         # TODO: raise ConnectionObserverFailedToStart
 
@@ -104,13 +106,16 @@ class ConnectionObserver(object):
 
     def await_done(self, timeout=None):
         """Await completion of connection-observer."""
+        self._log(logging.DEBUG, "{} await_done IN".format(self))
         if self.done():
+            self._log(logging.DEBUG, "{} await_done done return result".format(self))
             return self.result()
         if self._future is None:
             raise ConnectionObserverNotStarted(self)
+        self._log(logging.DEBUG, "{} await_done wait for runner.wait_for".format(self))
         self.runner.wait_for(connection_observer=self, connection_observer_future=self._future,
                              timeout=timeout)
-
+        self._log(logging.DEBUG, "{} await_done result".format(self))
         return self.result()
 
     def cancel(self):
