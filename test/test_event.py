@@ -12,9 +12,9 @@ __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 import importlib
 
 import pytest
-from moler.event import Event
-from moler.events.lineevent import LineEvent
+
 from moler.connection import ObservableConnection
+from moler.events.lineevent import LineEvent
 from moler.helpers import instance_id
 
 
@@ -84,6 +84,7 @@ def test_event_whole_output(buffer_connection):
     event.await_done()
     assert event.done() is True
 
+
 # --------------------------- resources ---------------------------
 
 
@@ -92,7 +93,8 @@ def command_major_base_class(request):
     module_name, class_name = request.param.rsplit('.', 1)
     module = importlib.import_module('moler.{}'.format(module_name))
     klass = getattr(module, class_name)
-    return klass\
+    return klass
+
 
 @pytest.fixture(params=['lineevent.LineEvent'])
 def lineevent_class(request):
@@ -104,9 +106,11 @@ def lineevent_class(request):
 
 def do_nothing_command_class(base_class):
     """Command class that can be instantiated (overwritten abstract methods); uses different base class"""
+
     class DoNothingCommand(base_class):
         def data_received(self, data):  # we need to overwrite it since it is @abstractmethod
             pass  # ignore incoming data
+
     return DoNothingCommand
 
 
