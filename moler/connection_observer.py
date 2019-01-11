@@ -157,6 +157,8 @@ class ConnectionObserver(object):
 
     def set_exception(self, exception):
         """Should be used to indicate some failure during observation"""
+        if self._is_done:
+            self._log(logging.WARNING, "Set exception on object ({}) in done state".format(self))
         self._is_done = True
         ConnectionObserver._change_unraised_exception(new_exception=exception, observer=self)
         self._log(logging.INFO, "'{}.{}' has set exception '{}.{}' ({}).".format(self.__class__.__module__,
@@ -168,13 +170,15 @@ class ConnectionObserver(object):
     def result(self):
         """Retrieve final result of connection-observer"""
         self._log(logging.DEBUG, "{} result IN".format(self))
-        if self._exception:
-            self._log(logging.DEBUG, "Got exception: '{}'".format(self._exception))
-            ConnectionObserver.print_exceptions(self)
-            ConnectionObserver._remove_from_not_raised_exceptions(self._exception)
-            self._log(logging.DEBUG, "Removed exception from list: '{}'".format(self._exception))
-            ConnectionObserver.print_exceptions(self)
-            raise self._exception
+        with ConnectionObserver._exceptions_lock:
+            if self._exception:
+                self._log(logging.DEBUG, "RESULT Got exception: '{}'".format(self._exception))
+                ConnectionObserver.print_exceptions(self)
+                if self._exception in ConnectionObserver._not_raised_exceptions:
+                    ConnectionObserver._not_raised_exceptions.remove(self._exception)
+                self._log(logging.DEBUG, "RESULT Removed exception from list: '{}'".format(self._exception))
+                ConnectionObserver.print_exceptions(self)
+                raise self._exception
         if self.cancelled():
             raise NoResultSinceCancelCalled(self)
         if not self.done():
@@ -208,12 +212,6 @@ class ConnectionObserver(object):
             else:
                 list_of_exceptions = copy_list(ConnectionObserver._not_raised_exceptions)
                 return list_of_exceptions
-
-    @staticmethod
-    def _remove_from_not_raised_exceptions(exception):
-        with ConnectionObserver._exceptions_lock:
-            if exception in ConnectionObserver._not_raised_exceptions:
-                ConnectionObserver._not_raised_exceptions.remove(exception)
 
     @staticmethod
     def _change_unraised_exception(new_exception, observer):
