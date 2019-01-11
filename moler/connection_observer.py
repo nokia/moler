@@ -153,18 +153,7 @@ class ConnectionObserver(object):
     def set_exception(self, exception):
         """Should be used to indicate some failure during observation"""
         self._is_done = True
-        if self._exception:
-            self._log(logging.DEBUG, "'{}.{}' has overwritten exception. From '{}.{}' () to '{}.{}' ().".format(
-                self.__class__.__module__,
-                self.__class__.__name__,
-                self._exception.__class__.__module__,
-                self._exception.__class__.__name__,
-                self._exception,
-                exception.__class__.__module__,
-                exception.__class__.__name__,
-                exception,
-            ))
-        ConnectionObserver._swap_unraised_exception(old_exception=self._exception, new_exception=exception)
+        ConnectionObserver._change_unraised_exception(new_exception=exception, observer=self)
         self._exception = exception
         self._log(logging.INFO, "'{}.{}' has set exception '{}.{}'.".format(self.__class__.__module__,
                                                                             self.__class__.__name__,
@@ -217,11 +206,40 @@ class ConnectionObserver(object):
                 ConnectionObserver._not_raised_exceptions.remove(exception)
 
     @staticmethod
-    def _swap_unraised_exception(old_exception, new_exception):
+    def _change_unraised_exception(new_exception, observer):
         with ConnectionObserver._exceptions_lock:
-            if old_exception and old_exception in ConnectionObserver._not_raised_exceptions:
-                ConnectionObserver._not_raised_exceptions.remove(old_exception)
+            old_exception = observer._exception
+            if old_exception:
+                observer._log(logging.DEBUG, "'{}.{}' has overwritten exception. From '{}.{}' () to '{}.{}' ().".format(
+                    observer.__class__.__module__,
+                    observer.__class__.__name__,
+                    old_exception.__class__.__module__,
+                    old_exception.__class__.__name__,
+                    old_exception,
+                    new_exception.__class__.__module__,
+                    new_exception.__class__.__name__,
+                    new_exception,
+                ))
+                if old_exception in ConnectionObserver._not_raised_exceptions:
+                    ConnectionObserver._not_raised_exceptions.remove(old_exception)
+                    observer._log(logging.DEBUG,
+                                  "'{}.{}': removed exception '{}.{}' '{}' from _not_raised_exceptions.".format(
+                                      observer.__class__.__module__,
+                                      observer.__class__.__name__,
+                                      old_exception.__class__.__module__,
+                                      old_exception.__class__.__name__,
+                                      old_exception,
+                                  ))
+                else:
+                    observer._log(logging.DEBUG, "'{}.{}': cannot find exception '{}.{}' '{}' in _not_raised_exceptions.".format(
+                        observer.__class__.__module__,
+                        observer.__class__.__name__,
+                        old_exception.__class__.__module__,
+                        old_exception.__class__.__name__,
+                        old_exception,
+                    ))
             ConnectionObserver._not_raised_exceptions.append(new_exception)
+            observer._exception = new_exception
 
     def get_long_desc(self):
         return "Observer '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)
