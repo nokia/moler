@@ -155,10 +155,10 @@ class ConnectionObserver(object):
         self._is_done = True
         ConnectionObserver._change_unraised_exception(new_exception=exception, observer=self)
         self._log(logging.INFO, "'{}.{}' has set exception '{}.{}' ({}).".format(self.__class__.__module__,
-                                                                            self.__class__.__name__,
-                                                                            exception.__class__.__module__,
-                                                                            exception.__class__.__name__,
-                                                                            exception))
+                                                                                 self.__class__.__name__,
+                                                                                 exception.__class__.__module__,
+                                                                                 exception.__class__.__name__,
+                                                                                 exception))
 
     def result(self):
         """Retrieve final result of connection-observer"""
@@ -210,16 +210,17 @@ class ConnectionObserver(object):
         with ConnectionObserver._exceptions_lock:
             old_exception = observer._exception
             if old_exception:
-                observer._log(logging.DEBUG, "'{}.{}' has overwritten exception. From '{}.{}' ({}) to '{}.{}' ({}).".format(
-                    observer.__class__.__module__,
-                    observer.__class__.__name__,
-                    old_exception.__class__.__module__,
-                    old_exception.__class__.__name__,
-                    old_exception,
-                    new_exception.__class__.__module__,
-                    new_exception.__class__.__name__,
-                    new_exception,
-                ))
+                observer._log(logging.DEBUG,
+                              "'{}.{}' has overwritten exception. From '{}.{}' ({}) to '{}.{}' ({}).".format(
+                                  observer.__class__.__module__,
+                                  observer.__class__.__name__,
+                                  old_exception.__class__.__module__,
+                                  old_exception.__class__.__name__,
+                                  old_exception,
+                                  new_exception.__class__.__module__,
+                                  new_exception.__class__.__name__,
+                                  new_exception,
+                              ))
                 if old_exception in ConnectionObserver._not_raised_exceptions:
                     ConnectionObserver._not_raised_exceptions.remove(old_exception)
                     observer._log(logging.DEBUG,
@@ -231,13 +232,14 @@ class ConnectionObserver(object):
                                       old_exception,
                                   ))
                 else:
-                    observer._log(logging.DEBUG, "'{}.{}': cannot find exception '{}.{}' '{}' in _not_raised_exceptions.".format(
-                        observer.__class__.__module__,
-                        observer.__class__.__name__,
-                        old_exception.__class__.__module__,
-                        old_exception.__class__.__name__,
-                        old_exception,
-                    ))
+                    observer._log(logging.DEBUG,
+                                  "'{}.{}': cannot find exception '{}.{}' '{}' in _not_raised_exceptions.".format(
+                                      observer.__class__.__module__,
+                                      observer.__class__.__name__,
+                                      old_exception.__class__.__module__,
+                                      old_exception.__class__.__name__,
+                                      old_exception,
+                                  ))
             ConnectionObserver._not_raised_exceptions.append(new_exception)
             observer._exception = new_exception
 
