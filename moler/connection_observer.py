@@ -5,6 +5,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
+import threading
 from abc import abstractmethod, ABCMeta
 
 from six import add_metaclass
@@ -17,10 +18,9 @@ from moler.exceptions import ResultAlreadySet
 from moler.exceptions import ResultNotAvailableYet
 from moler.helpers import ClassProperty
 from moler.helpers import camel_case_to_lower_case_underscore
-from moler.helpers import instance_id
 from moler.helpers import copy_list
+from moler.helpers import instance_id
 from moler.runner import ThreadPoolExecutorRunner
-import threading
 
 
 @add_metaclass(ABCMeta)
@@ -168,10 +168,10 @@ class ConnectionObserver(object):
         self._exception = exception
         ConnectionObserver._append_to_not_raised_exceptions(exception)
         self._log(logging.INFO, "'{}.{}' has set exception '{}.{}: {}'.".format(self.__class__.__module__,
-                                                                            self.__class__.__name__,
-                                                                            exception.__class__.__module__,
-                                                                            exception.__class__.__name__,
-                                                                            exception))
+                                                                                self.__class__.__name__,
+                                                                                exception.__class__.__module__,
+                                                                                exception.__class__.__name__,
+                                                                                exception))
 
     def result(self):
         """Retrieve final result of connection-observer"""

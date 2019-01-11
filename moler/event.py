@@ -34,9 +34,9 @@ class Event(ConnectionObserver):
 
         return ret
 
-    def add_event_occurred_callback(self, callback, **callback_args):
+    def add_event_occurred_callback(self, callback, callback_params):
         if not self.callback:
-            callback = functools.partial(callback, **callback_args)
+            callback = functools.partial(callback, **callback_params)
             self.callback = callback
         else:
             raise MolerException("Cannot assign already assigned 'self.callback'.")
