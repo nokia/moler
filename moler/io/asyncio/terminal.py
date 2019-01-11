@@ -10,6 +10,11 @@ The only 3 requirements for these connections are:
 
 (3) forward IO received data into self.moler_connection.data_received(data)
 """
+
+# Module heavily inspired by:
+# https://github.com/osrf/osrf_pycommon/tree/master/osrf_pycommon/process_utils
+# thanks William Woodall :-)
+
 import re
 import struct
 import termios
@@ -25,7 +30,7 @@ import pty
 import os
 import ctypes
 
-from moler.asyncio_runner import get_asyncio_loop_thread
+from moler.asyncio_runner import get_asyncio_loop_thread, thread_secure_get_event_loop
 from moler.io.io_connection import IOConnection
 
 
@@ -259,7 +264,7 @@ async def start_reading_pty(protocol, pty_fd):
     :param pty_fd: file descriptor of Pty (dialog with subprocess goes that way)
     :return:
     """
-    loop = asyncio.get_event_loop()
+    loop = thread_secure_get_event_loop()
 
     # Create Protocol classes
     class PtyFdProtocol(asyncio.Protocol):
@@ -323,7 +328,7 @@ async def start_subprocess_in_terminal(protocol_class, cmd=None, cwd=None, env=N
     :param dimensions: terminal dimensions (rows, columns)
     :return:
     """
-    loop = asyncio.get_event_loop()
+    loop = thread_secure_get_event_loop()
     # Create the PTY's
     # slave is used by cmd(bash) running in subprocess
     # master is used in client code to read/write into subprocess

@@ -25,6 +25,28 @@ from moler.io.raw import TillDoneThread
 from moler.runner import ConnectionObserverRunner, result_for_runners, time_out_observer
 
 
+def thread_secure_get_event_loop():
+    """
+    Need securing since asyncio.get_event_loop() when called from new thread
+    may raise sthg like:
+    RuntimeError: There is no current event loop in thread 'Thread-3'
+    It is so since MainThread has preinstalled loop but other threads must
+    setup own loop by themselves.
+
+    :return: loop of current thread
+    """
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError as err:
+        if "no current event loop in thread" in str(err):
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        else:
+            raise
+
+    return loop
+
+
 class AsyncioRunner(ConnectionObserverRunner):
     def __init__(self, logger_name='moler.runner.asyncio'):
         """Create instance of AsyncioRunner class"""
@@ -38,7 +60,7 @@ class AsyncioRunner(ConnectionObserverRunner):
     def shutdown(self):
         self.logger.debug("shutting down")
         self._in_shutdown = True  # will exit from feed()
-        # event_loop = asyncio.get_event_loop()
+        # event_loop = thread_secure_get_event_loop()
         # if not event_loop.is_closed():
         #     remaining_tasks = asyncio.gather(*self._submitted_futures, return_exceptions=True)
         #     remaining_tasks.cancel()
@@ -98,7 +120,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         """
         self.logger.debug("go foreground: {!r} - await max. {} [sec]".format(connection_observer, timeout))
         start_time = time.time()
-        event_loop = asyncio.get_event_loop()
+        event_loop = thread_secure_get_event_loop()
 
         try:
             # we might be already called from within running event loop
@@ -283,7 +305,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
     def shutdown(self):
         self.logger.debug("shutting down")
         self._in_shutdown = True  # will exit from feed()
-        # event_loop = asyncio.get_event_loop()
+        # event_loop = thread_secure_get_event_loop()
         # if not event_loop.is_closed():
         #     remaining_tasks = asyncio.gather(*self._submitted_futures, return_exceptions=True)
         #     remaining_tasks.cancel()
@@ -367,7 +389,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
 
         thread4async = get_asyncio_loop_thread()
         try:
-            if asyncio.get_event_loop().is_running():
+            if thread_secure_get_event_loop().is_running():
                 # wait_for() should not be called from 'async def'
                 self._raise_wrong_usage_of_wait_for(connection_observer)
 
