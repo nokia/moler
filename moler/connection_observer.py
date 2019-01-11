@@ -207,8 +207,12 @@ class ConnectionObserver(object):
 
     @staticmethod
     def _change_unraised_exception(new_exception, observer):
+        observer._log(logging.DEBUG, "\n\n*** _change_untraised_exception IN")
         with ConnectionObserver._exceptions_lock:
             old_exception = observer._exception
+            observer._log(logging.DEBUG, "OLD: {}".format(old_exception))
+            observer._log(logging.DEBUG, "NEW: {}".format(new_exception))
+            ConnectionObserver.print_exceptions(observer)
             if old_exception:
                 observer._log(logging.DEBUG,
                               "'{}.{}' has overwritten exception. From '{}.{}' ({}) to '{}.{}' ({}).".format(
@@ -240,8 +244,20 @@ class ConnectionObserver(object):
                                       old_exception.__class__.__name__,
                                       old_exception,
                                   ))
+                    ConnectionObserver.print_exceptions(observer)
+
             ConnectionObserver._not_raised_exceptions.append(new_exception)
             observer._exception = new_exception
+        observer._log(logging.DEBUG, "*** _change_untraised_exception OUT\n\n\n")
+
+    @staticmethod
+    def print_exceptions(observer):
+        observer._log(logging.DEBUG, "list length: {}".format(len(ConnectionObserver._not_raised_exceptions)))
+        observer._log(logging.DEBUG, "list: {}".format(ConnectionObserver._not_raised_exceptions))
+        i = 0
+        for item in ConnectionObserver._not_raised_exceptions:
+            observer._log(logging.DEBUG, "{}: {}".format(i, item))
+            i += 1
 
     def get_long_desc(self):
         return "Observer '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)
