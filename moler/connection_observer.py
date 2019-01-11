@@ -158,7 +158,14 @@ class ConnectionObserver(object):
     def set_exception(self, exception):
         """Should be used to indicate some failure during observation"""
         if self._is_done:
-            self._log(logging.WARNING, "Set exception on object ({}) in done state".format(self))
+            self._log(logging.WARNING,
+                      "Set exception with object '{}.{}' ({}) on object ({}) that is already done.".format(
+                          exception.__class__.__module__,
+                          exception.__class__.__name__,
+                          exception,
+                          self
+                      ))
+            return
         self._is_done = True
         ConnectionObserver._change_unraised_exception(new_exception=exception, observer=self)
         self._log(logging.INFO, "'{}.{}' has set exception '{}.{}' ({}).".format(self.__class__.__module__,
