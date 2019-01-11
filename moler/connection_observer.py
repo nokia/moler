@@ -154,11 +154,11 @@ class ConnectionObserver(object):
         """Should be used to indicate some failure during observation"""
         self._is_done = True
         ConnectionObserver._change_unraised_exception(new_exception=exception, observer=self)
-        self._exception = exception
-        self._log(logging.INFO, "'{}.{}' has set exception '{}.{}'.".format(self.__class__.__module__,
+        self._log(logging.INFO, "'{}.{}' has set exception '{}.{}' ({}).".format(self.__class__.__module__,
                                                                             self.__class__.__name__,
                                                                             exception.__class__.__module__,
-                                                                            exception.__class__.__name__))
+                                                                            exception.__class__.__name__,
+                                                                            exception))
 
     def result(self):
         """Retrieve final result of connection-observer"""
@@ -210,7 +210,7 @@ class ConnectionObserver(object):
         with ConnectionObserver._exceptions_lock:
             old_exception = observer._exception
             if old_exception:
-                observer._log(logging.DEBUG, "'{}.{}' has overwritten exception. From '{}.{}' () to '{}.{}' ().".format(
+                observer._log(logging.DEBUG, "'{}.{}' has overwritten exception. From '{}.{}' ({}) to '{}.{}' ({}).".format(
                     observer.__class__.__module__,
                     observer.__class__.__name__,
                     old_exception.__class__.__module__,
