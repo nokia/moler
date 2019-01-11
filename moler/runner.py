@@ -134,7 +134,7 @@ def result_for_runners(connection_observer):
 
 
 class CancellableFuture(object):
-    def __init__(self, future, start_time, is_started, stop_running, is_done, stop_timeout=0.5):
+    def __init__(self, future, observer_lock, start_time, is_started, stop_running, is_done, stop_timeout=0.5):
         """
         Wrapper to allow cancelling already running concurrent.futures.Future
 
@@ -149,6 +149,7 @@ class CancellableFuture(object):
         :param stop_timeout: timeout to await is_done after setting stop_running
         """
         self._future = future
+        self.observer_lock = observer_lock  # against threads race write-access to observer
         self.start_time = start_time  # start of life time
         self._is_started = is_started
         self._stop_running = stop_running
@@ -243,12 +244,13 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         feed_started = threading.Event()
         stop_feeding = threading.Event()
         feed_done = threading.Event()
-        subscribed_data_receiver = self._start_feeding(connection_observer, feed_started)
+        observer_lock = threading.Lock()  # against threads race write-access to observer
+        subscribed_data_receiver = self._start_feeding(connection_observer, feed_started, observer_lock)
         connection_observer_future = self.executor.submit(self.feed, connection_observer,
                                                           feed_started, subscribed_data_receiver,
-                                                          stop_feeding, feed_done)
+                                                          stop_feeding, feed_done, observer_lock)
         start_time = time.time()
-        c_future = CancellableFuture(connection_observer_future, start_time,
+        c_future = CancellableFuture(connection_observer_future, observer_lock, start_time,
                                      feed_started, stop_feeding, feed_done)
         return c_future
 
@@ -285,8 +287,9 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         passed = time.time() - start_time
         self.logger.debug("timed out {}".format(connection_observer))
         connection_observer_future.cancel(no_wait=True)
-        time_out_observer(connection_observer=connection_observer,
-                          timeout=timeout, passed_time=passed, kind="await_done")
+        with connection_observer_future.observer_lock:
+            time_out_observer(connection_observer=connection_observer,
+                              timeout=timeout, passed_time=passed, kind="await_done")
         return None
 
     def wait_for_iterator(self, connection_observer, connection_observer_future):
@@ -306,7 +309,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         res = result_for_runners(connection_observer)
         raise StopIteration(res)  # Python 2 compatibility
 
-    def _start_feeding(self, connection_observer, feed_started):
+    def _start_feeding(self, connection_observer, feed_started, observer_lock):
         """
         Start feeding connection_observer by establishing data-channel from connection to observer.
         """
@@ -314,12 +317,14 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             try:
                 if connection_observer.done() or self._in_shutdown:
                     return  # even not unsubscribed secure_data_received() won't pass data to done observer
-                connection_observer.data_received(data)
+                with observer_lock:
+                    connection_observer.data_received(data)
 
             except Exception as exc:  # TODO: handling stacktrace
                 # observers should not raise exceptions during data parsing
                 # but if they do so - we fix it
-                connection_observer.set_exception(exc)
+                with observer_lock:
+                    connection_observer.set_exception(exc)
             finally:
                 if connection_observer.done() and not connection_observer.cancelled():
                     if connection_observer._exception:
@@ -333,14 +338,14 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         feed_started.set()  # mark that we have passed connection-subscription-step
         return secure_data_received  # to know what to unsubscribe
 
-    def feed(self, connection_observer, feed_started, subscribed_data_receiver, stop_feeding, feed_done):
+    def feed(self, connection_observer, feed_started, subscribed_data_receiver, stop_feeding, feed_done, observer_lock):
         """
         Feeds connection_observer by transferring data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
         connection_observer._log(logging.INFO, "{} started.".format(connection_observer.get_long_desc()))
         if not feed_started.is_set():
-            subscribed_data_receiver = self._start_feeding(connection_observer, feed_started)
+            subscribed_data_receiver = self._start_feeding(connection_observer, feed_started, observer_lock)
 
         time.sleep(0.005)  # give control back before we start processing
         start_time = time.time()
@@ -359,9 +364,10 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             # we need to check connection_observer.timeout at each round since timeout may change
             # during lifetime of connection_observer
             if (connection_observer.timeout is not None) and (run_duration >= connection_observer.timeout):
-                time_out_observer(connection_observer,
-                                  timeout=connection_observer.timeout,
-                                  passed_time=run_duration)
+                with observer_lock:
+                    time_out_observer(connection_observer,
+                                      timeout=connection_observer.timeout,
+                                      passed_time=run_duration)
                 break
             if self._in_shutdown:
                 self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))

@@ -60,7 +60,8 @@ def test_CancellableFuture_can_be_cancelled_while_it_is_running(observer_runner)
 
     future = ThreadPoolExecutor().submit(activity, is_started, stop_running, is_done)
     start_time = time.time()
-    c_future = CancellableFuture(future, start_time, is_started, stop_running, is_done)
+    observer_lock = threading.Lock()
+    c_future = CancellableFuture(future, observer_lock, start_time, is_started, stop_running, is_done)
     try:
         is_started.wait(timeout=0.5)
         assert is_started.is_set()
