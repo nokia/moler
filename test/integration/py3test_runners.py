@@ -416,6 +416,33 @@ def test_observer__on_timeout__is_called_once_at_timeout(observer_runner, connec
         timeout_callback.assert_called_once()
 
 
+def test_observer__on_timeout__is_called_once_at_timeout_threads_races(observer_runner):
+    from moler.exceptions import MolerTimeout
+    from moler.connection import ObservableConnection
+
+    observers_pool = []
+    for idx in range(200):
+        connection_observer = NetworkDownDetector(connection=ObservableConnection())
+        connection_observer.timeout = 0.33
+        connection_observer.on_timeout = mock.MagicMock()
+        observers_pool.append(connection_observer)
+
+    def await_on_timeout(connection_observer):
+        future = observer_runner.submit(connection_observer)
+        with pytest.raises(MolerTimeout):
+            observer_runner.wait_for(connection_observer, future, timeout=0.33)
+            connection_observer.result()  # should raise Timeout
+
+    th_pool = [threading.Thread(target=await_on_timeout, args=(connection_observer,)) for connection_observer in observers_pool]
+    for th in th_pool:
+        th.start()
+    for th in th_pool:
+        th.join()
+
+    for connection_observer in observers_pool:
+        timeout_callback = connection_observer.on_timeout
+        timeout_callback.assert_called_once()
+
 # --------------------------------------------------------------------
 # Testing wait_for() API
 #
@@ -540,11 +567,12 @@ available_standalone_runners = ['runner.ThreadPoolExecutorRunner']
 # async_runners may be called only from 'async def' functions and require already running events-loop
 available_async_runners = []
 if is_python36_or_above():
-    available_bg_runners.append('asyncio_runner.AsyncioRunner')
-    available_async_runners.append('asyncio_runner.AsyncioRunner')
-    available_bg_runners.append('asyncio_runner.AsyncioInThreadRunner')
-    available_async_runners.append('asyncio_runner.AsyncioInThreadRunner')
-    available_standalone_runners.append('asyncio_runner.AsyncioInThreadRunner')
+    # available_bg_runners.append('asyncio_runner.AsyncioRunner')
+    # available_async_runners.append('asyncio_runner.AsyncioRunner')
+    # available_bg_runners.append('asyncio_runner.AsyncioInThreadRunner')
+    # available_async_runners.append('asyncio_runner.AsyncioInThreadRunner')
+    # available_standalone_runners.append('asyncio_runner.AsyncioInThreadRunner')
+    pass
 
 
 @pytest.yield_fixture(params=available_bg_runners)
