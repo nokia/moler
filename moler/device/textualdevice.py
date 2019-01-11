@@ -241,7 +241,7 @@ class TextualDevice(object):
                 change_state_method = getattr(self, goto_method)
 
         if change_state_method:
-            while (retrying <= rerun) and (not entered_state):
+            while (retrying <= rerun) and (not entered_state) and (self.current_state is not next_state):
                 try:
                     change_state_method(self.current_state, next_state, timeout=timeout)
                     entered_state = True
