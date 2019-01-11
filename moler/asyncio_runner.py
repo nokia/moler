@@ -76,7 +76,7 @@ class AsyncioRunner(ConnectionObserverRunner):
 
         # TODO: check dependency - connection_observer.connection
 
-        feed_started = asyncio.Event()
+        feed_started = asyncio.Event(loop=thread_secure_get_event_loop())
 
         # Our submit consists of two steps:
         # 1. _start_feeding() which establishes data path from connection to observer
@@ -301,6 +301,9 @@ class AsyncioInThreadRunner(AsyncioRunner):
     def __init__(self):
         """Create instance of AsyncioInThreadRunner class"""
         super(AsyncioInThreadRunner, self).__init__(logger_name='moler.runner.asyncio-in-thrd')
+        # AsyncioLoopThread must be created from MainThread since it adds signal handlers
+        # (AsyncioLoopThread needs unix watchers embeding signal handles used to stop subprocesses)
+        get_asyncio_loop_thread()
 
     def shutdown(self):
         self.logger.debug("shutting down")
@@ -520,6 +523,17 @@ class AsyncioLoopThread(TillDoneThread):
             raise MolerException(err_msg)
         self.logger.info("started new asyncio-loop-thrd ...")
 
+    def join(self, timeout=None):
+        """
+        Closing asyncio loop must be done from MainThread
+        to allow for removing signal handlers
+        """
+        super(AsyncioLoopThread, self).join(timeout=timeout)
+        self.logger.info("finished asyncio-loop-thrd ...")
+        self.logger.info("closing events loop ...")
+        self.ev_loop.close()
+        self.logger.info("... asyncio loop closed")
+
     def _start_loop(self, loop, loop_started, loop_done):
         asyncio.set_event_loop(loop)
         try:
@@ -527,9 +541,7 @@ class AsyncioLoopThread(TillDoneThread):
             loop.run_until_complete(self._await_stop_loop(loop_started=loop_started, stop_event=loop_done))
             # cleanup_remaining_tasks(loop=loop, logger=self.logger)
         finally:
-            self.logger.info("closing events loop ...")
-            loop.close()
-            self.logger.info("... asyncio loop done")
+            self.logger.info("asyncio loop is done ...")
 
     async def _await_stop_loop(self, loop_started, stop_event):
         # stop_event may be set directly via self._loop_done.set()
