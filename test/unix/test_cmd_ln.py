@@ -21,8 +21,7 @@ def test_calling_ln_raise_exception_command_failure(buffer_connection, command_o
         command_output, expected_result = command_output_and_expected_result_file_exist
         buffer_connection.remote_inject_response([command_output])
         ln_cmd = Ln(connection=buffer_connection.moler_connection, options="-s file1 file2")
-        with pytest.raises(CommandFailure, match=r'Command failed \'ln -s file1 file2\' with ERROR: '
-                                                 r'ln: failed to create symbolic link, File exists'):
+        with pytest.raises(CommandFailure):
             ln_cmd()
 
 
