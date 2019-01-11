@@ -162,7 +162,7 @@ class ConnectionObserver(object):
 
     def result(self):
         """Retrieve final result of connection-observer"""
-        self._log(logging.DEBUG, "result IN")
+        self._log(logging.DEBUG, "{} result IN".format(self))
         if self._exception:
             self._log(logging.DEBUG, "Got exception: '{}'".format(self._exception))
             ConnectionObserver.print_exceptions(self)
@@ -174,7 +174,7 @@ class ConnectionObserver(object):
             raise NoResultSinceCancelCalled(self)
         if not self.done():
             raise ResultNotAvailableYet(self)
-        self._log(logging.DEBUG, "result OUT")
+        self._log(logging.DEBUG, "{} result OUT".format(self))
         return self._result
 
     def on_timeout(self):
