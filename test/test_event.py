@@ -96,7 +96,7 @@ def command_major_base_class(request):
     return klass
 
 
-@pytest.fixture(params=['lineevent.LineEvent'])
+@pytest.fixture(params=['events.lineevent.LineEvent'])
 def lineevent_class(request):
     module_name, class_name = request.param.rsplit('.', 1)
     module = importlib.import_module('moler.{}'.format(module_name))
