@@ -297,6 +297,7 @@ def test_wait_for__times_out_on_constructor_timeout(observer_runner, connection_
     duration = time.time() - start_time
     assert duration >= 0.2
     assert duration < 0.25
+    time.sleep(0.1)  # future may be 'not done yet' (just after timeout) - it should be "in exiting of feed"
     assert future.done()
     if not future.cancelled():  # future for timeouted observer should be either cancelled
         assert future.exception() is None  # or done with no exception inside future itself
