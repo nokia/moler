@@ -1,8 +1,9 @@
+import codecs
+
 __author__ = 'Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
-import os
 import re
 import select
 from threading import Event
@@ -52,6 +53,8 @@ class ThreadedTerminal(IOConnection):
         ret = super(ThreadedTerminal, self).open()
         if not self._terminal:
             self._terminal = PtyProcessUnicode.spawn(self._cmd, dimensions=self.dimensions)
+            # need to not replace not unicode data instead of raise exception
+            self._terminal.decoder = codecs.getincrementaldecoder('utf-8')(errors='replace')
 
             done = Event()
             self.pulling_thread = TillDoneThread(target=self.pull_data,
