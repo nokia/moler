@@ -15,7 +15,6 @@ class UBootCrtm(TextualEvent):
         """
         Event for 'Site is resetting due to Fault'
         :param connection: moler connection to device, terminal when command is executed
-        :param fault_id: fault id to catch
         :param till_occurs_times: number of event occurrence
         """
         super(UBootCrtm, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
