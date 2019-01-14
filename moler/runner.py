@@ -246,10 +246,11 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         feed_done = threading.Event()
         observer_lock = threading.Lock()  # against threads race write-access to observer
         subscribed_data_receiver = self._start_feeding(connection_observer, feed_started, observer_lock)
+        start_time = time.time()
         connection_observer_future = self.executor.submit(self.feed, connection_observer,
                                                           feed_started, subscribed_data_receiver,
-                                                          stop_feeding, feed_done, observer_lock)
-        start_time = time.time()
+                                                          stop_feeding, feed_done, observer_lock, start_time)
+
         c_future = CancellableFuture(connection_observer_future, observer_lock, start_time,
                                      feed_started, stop_feeding, feed_done)
         return c_future
@@ -339,7 +340,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         feed_started.set()  # mark that we have passed connection-subscription-step
         return secure_data_received  # to know what to unsubscribe
 
-    def feed(self, connection_observer, feed_started, subscribed_data_receiver, stop_feeding, feed_done, observer_lock):
+    def feed(self, connection_observer, feed_started, subscribed_data_receiver, stop_feeding, feed_done,
+             observer_lock, start_time):
         """
         Feeds connection_observer by transferring data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
@@ -349,7 +351,6 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             subscribed_data_receiver = self._start_feeding(connection_observer, feed_started, observer_lock)
 
         time.sleep(0.005)  # give control back before we start processing
-        start_time = time.time()
 
         moler_conn = connection_observer.connection
 
