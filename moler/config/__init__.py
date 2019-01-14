@@ -4,7 +4,7 @@ Moler related configuration
 """
 import os
 
-from moler.util.moler_test import MolerTest
+from moler.exceptions import MolerException
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -46,8 +46,8 @@ def read_yaml_configfile(path):
         with read_configfile(path) as content:
             return yaml.load(content)
     else:
-        MolerTest.error("For configuration file path: '{}' was used but absolute path is needed!".format(path))
-        return {}
+        error = "Loading configuration requires absolute path and not '{}'".format(path)
+        raise MolerException(error)
 
 
 def load_config(config=None, from_env_var=None, config_type='yaml'):
@@ -66,11 +66,9 @@ def load_config(config=None, from_env_var=None, config_type='yaml'):
     elif loaded_config == config:
         return
     else:
-        # TODO: raise exception or no?
-        MolerTest.error("Try to load '{}' config when '{}' config already loaded.\n"
-                        "Reload configuration under one Moler execution not supported!".format(config,
-                                                                                               loaded_config))
-        return
+        why = "Reloading configuration during Moler execution is not supported!"
+        error = "Trial to load '{}' config while '{}' config already loaded.\n{}".format(config, loaded_config, why)
+        raise MolerException(error)
 
     assert (config_type == 'dict') or (config_type == 'yaml')  # no other format supported yet
     if not config:
