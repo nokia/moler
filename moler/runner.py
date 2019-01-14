@@ -214,12 +214,6 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         passed = time.time() - start_time
         self.logger.debug("timed out {}".format(connection_observer))
         connection_observer_future.cancel()
-        connection_observer.cancel()  # TODO: should call connection_observer_future.cancel() via runner
-        connection_observer.on_timeout()
-        connection_observer._log(logging.INFO,
-                                 "'{}.{}' has timed out after '{:.2f}' seconds.".format(
-                                     connection_observer.__class__.__module__,
-                                     connection_observer.__class__.__name__, time.time() - start_time))
         # TODO: rethink - on timeout we raise while on other exceptions we expect observers
         #       just to call  observer.set_exception() - so, no raise before calling observer.result()
         if hasattr(connection_observer, "command_string"):
@@ -227,6 +221,12 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         else:
             exception = ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
         connection_observer.set_exception(exception)
+        connection_observer.cancel()  # TODO: should call connection_observer_future.cancel() via runner
+        connection_observer.on_timeout()
+        connection_observer._log(logging.INFO,
+                                 "'{}.{}' has timed out after '{:.2f}' seconds.".format(
+                                     connection_observer.__class__.__module__,
+                                     connection_observer.__class__.__name__, time.time() - start_time))
         return None
 
     def feed(self, connection_observer, feed_started, stop_feeding, feed_done):

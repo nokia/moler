@@ -20,7 +20,7 @@ def test_cat_raise_exception_wrong_path(buffer_connection, command_output_and_ex
     command_output, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
     cat_cmd = Cat(connection=buffer_connection.moler_connection, path="/home/test/test")
-    with pytest.raises(CommandFailure, match=r'Command failed \'cat /home/test/test\' with ERROR: Is a directory'):
+    with pytest.raises(CommandFailure):
         cat_cmd()
 
 

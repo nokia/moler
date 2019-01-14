@@ -22,14 +22,15 @@ def test_calling_zip_raise_exception_wrong_command_string(buffer_connection, com
     command_output, expected_result = command_output_and_expected_result_file_not_exist
     buffer_connection.remote_inject_response([command_output])
     zip_cmd = Zip(connection=buffer_connection.moler_connection, options="", zip_file="test.zip", file_name="test.txt")
-    with pytest.raises(CommandFailure, match=r"Command failed 'zip test.zip test.txt' with ERROR: "r'zip error: Nothing to do! \(test.zip\)'):
+    with pytest.raises(CommandFailure):
         zip_cmd()
 
 
 def test_zip_raise_exception_wrong_command_string(buffer_connection):
     from moler.cmd.unix.zip import Zip
-    with pytest.raises(TypeError, match=r'.*missing \d+ required positional argument.*|__init__\(\) takes at least \d+ arguments \(\d+ given\)'):
-        Zip(buffer_connection, options="").command_string
+    with pytest.raises(TypeError):
+        zip_cmd = Zip(buffer_connection, options="")
+        zip_cmd.command_string
 
 
 def test_calling_zip_timeout(buffer_connection, command_output_and_expected_result_timeout):
@@ -60,5 +61,5 @@ def command_output_and_expected_result_timeout():
     data = """
     user@server:~> zip test.zip test.txt
     """
-    result={}
+    result = {}
     return data, result
