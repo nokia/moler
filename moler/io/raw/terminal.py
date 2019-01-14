@@ -4,7 +4,6 @@ __author__ = 'Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
-import os
 import re
 import select
 from threading import Event
@@ -103,6 +102,3 @@ class ThreadedTerminal(IOConnection):
                 except EOFError:
                     self._notify_on_disconnect()
                     pulling_done.set()
-                except UnicodeDecodeError:
-                    # ignore data pack with character which cannot properly decode
-                    pass
