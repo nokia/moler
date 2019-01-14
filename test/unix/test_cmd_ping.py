@@ -19,6 +19,6 @@ def test_ping_returns_proper_command_string(buffer_connection):
 
 def test_ping_observer_timeout(buffer_connection):
     from moler.exceptions import CommandTimeout
-    with pytest.raises(CommandTimeout, match=r'Ping\(\"ping localhost\", id:\S+\) \S+ time \d+.\d+ >= \d+.\d+ sec timeout'):
+    with pytest.raises(CommandTimeout):
         cmd_ping = Ping(buffer_connection.moler_connection, destination='localhost')
         cmd_ping()

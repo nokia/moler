@@ -102,13 +102,6 @@ class ConnectionObserverRunner(object):
 def time_out_observer(connection_observer, timeout, passed_time, kind="background_run"):
     """Set connection_observer status to timed-out"""
     if not connection_observer.done():
-        connection_observer.on_timeout()
-
-        observer_info = "'{}.{}'".format(connection_observer.__class__.__module__,
-                                         connection_observer.__class__.__name__)
-        timeout_msg = "{} has timed out after {:.2f} seconds.".format(observer_info, passed_time)
-        connection_observer._log(logging.INFO, timeout_msg)
-
         if hasattr(connection_observer, "command_string"):
             exception = CommandTimeout(connection_observer=connection_observer,
                                        timeout=timeout, kind=kind, passed_time=passed_time)
@@ -118,6 +111,13 @@ def time_out_observer(connection_observer, timeout, passed_time, kind="backgroun
         # TODO: secure_data_received() may change status of connection_observer
         # TODO: and if secure_data_received() runs inside threaded connection - we have race
         connection_observer.set_exception(exception)
+
+        connection_observer.on_timeout()
+
+        observer_info = "'{}.{}'".format(connection_observer.__class__.__module__,
+                                         connection_observer.__class__.__name__)
+        timeout_msg = "{} has timed out after {:.2f} seconds.".format(observer_info, passed_time)
+        connection_observer._log(logging.INFO, timeout_msg)
 
 
 def result_for_runners(connection_observer):
@@ -290,6 +290,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         with connection_observer_future.observer_lock:
             time_out_observer(connection_observer=connection_observer,
                               timeout=timeout, passed_time=passed, kind="await_done")
+
         return None
 
     def wait_for_iterator(self, connection_observer, connection_observer_future):
