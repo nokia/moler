@@ -23,7 +23,7 @@ def test_calling_route_returns_result_file_exists(buffer_connection, command_out
     buffer_connection.remote_inject_response([command_output])
     route_cmd = Route(connection=buffer_connection.moler_connection,
                       options="add -net 0.0.0.0 netmask 0.0.0.0 gw 10.0.2.2")
-    with pytest.raises(CommandFailure, match=r"Command failed in line 'SIOCADDRT: File exists'"):
+    with pytest.raises(CommandFailure):
         route_cmd()
 
 
