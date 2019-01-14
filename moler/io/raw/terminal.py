@@ -52,6 +52,7 @@ class ThreadedTerminal(IOConnection):
         """Open ThreadedTerminal connection & start thread pulling data from it."""
         if not self._terminal:
             self._terminal = PtyProcessUnicode.spawn(self._cmd, dimensions=self.dimensions)
+            # need to not replace not unicode data instead of raise exception
             self._terminal.decoder = codecs.getincrementaldecoder('utf-8')(errors='replace')
 
             done = Event()
