@@ -171,10 +171,12 @@ class ConnectionObserver(object):
     def result(self):
         """Retrieve final result of connection-observer"""
         with ConnectionObserver._exceptions_lock:
+            ConnectionObserver._log_unraised_exceptions(self)
             if self._exception:
-                if self._exception in ConnectionObserver._not_raised_exceptions:
-                    ConnectionObserver._not_raised_exceptions.remove(self._exception)
-                raise self._exception
+                exception = self._exception
+                if exception in ConnectionObserver._not_raised_exceptions:
+                    ConnectionObserver._not_raised_exceptions.remove(exception)
+                raise exception
         if self.cancelled():
             raise NoResultSinceCancelCalled(self)
         if not self.done():
