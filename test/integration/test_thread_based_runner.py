@@ -48,23 +48,19 @@ def test_CancellableFuture_can_be_cancelled_while_it_is_running(observer_runner)
     from moler.runner import CancellableFuture
     # concurrent.futures.Future can't cancel() while it is already running
 
-    is_started = threading.Event()
     stop_running = threading.Event()
     is_done = threading.Event()
 
-    def activity(is_started, stop_running, is_done):
-        is_started.set()
+    def activity(stop_running, is_done):
         while not stop_running.is_set():
             time.sleep(0.1)
         is_done.set()
 
-    future = ThreadPoolExecutor().submit(activity, is_started, stop_running, is_done)
+    future = ThreadPoolExecutor().submit(activity, stop_running, is_done)
     start_time = time.time()
     observer_lock = threading.Lock()
-    c_future = CancellableFuture(future, observer_lock, start_time, is_started, stop_running, is_done)
+    c_future = CancellableFuture(future, observer_lock, start_time, stop_running, is_done)
     try:
-        is_started.wait(timeout=0.5)
-        assert is_started.is_set()
         cancelled = c_future.cancel()
         time.sleep(0.1)  # allow threads switch
         assert is_done.is_set()

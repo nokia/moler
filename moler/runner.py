@@ -134,16 +134,15 @@ def result_for_runners(connection_observer):
 
 
 class CancellableFuture(object):
-    def __init__(self, future, observer_lock, start_time, is_started, stop_running, is_done, stop_timeout=0.5):
+    def __init__(self, future, observer_lock, start_time, stop_running, is_done, stop_timeout=0.5):
         """
         Wrapper to allow cancelling already running concurrent.futures.Future
 
         Assumes that executor submitted function with following parameters
-        fun(is_started, stop_running, is_done)
+        fun(stop_running, is_done)
         and that such function correctly handles that events (threading.Event)
 
         :param future: wrapped instance of concurrent.futures.Future
-        :param is_started: set when function started to run in thread
         :param stop_running: set externally to finish thread execution of function
         :param is_done: set when function finished running in thread
         :param stop_timeout: timeout to await is_done after setting stop_running
@@ -151,7 +150,6 @@ class CancellableFuture(object):
         self._future = future
         self.observer_lock = observer_lock  # against threads race write-access to observer
         self.start_time = start_time  # start of life time
-        self._is_started = is_started
         self._stop_running = stop_running
         self._stop_timeout = stop_timeout
         self._is_done = is_done
@@ -241,18 +239,17 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         #
         # As a corner case runner.wait_for() may timeout before feeding thread has started.
 
-        feed_started = threading.Event()
         stop_feeding = threading.Event()
         feed_done = threading.Event()
         observer_lock = threading.Lock()  # against threads race write-access to observer
-        subscribed_data_receiver = self._start_feeding(connection_observer, feed_started, observer_lock)
+        subscribed_data_receiver = self._start_feeding(connection_observer, observer_lock)
         start_time = time.time()
         connection_observer_future = self.executor.submit(self.feed, connection_observer,
-                                                          feed_started, subscribed_data_receiver,
+                                                          subscribed_data_receiver,
                                                           stop_feeding, feed_done, observer_lock, start_time)
 
         c_future = CancellableFuture(connection_observer_future, observer_lock, start_time,
-                                     feed_started, stop_feeding, feed_done)
+                                     stop_feeding, feed_done)
         return c_future
 
     def wait_for(self, connection_observer, connection_observer_future, timeout=None):
@@ -311,7 +308,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         res = result_for_runners(connection_observer)
         raise StopIteration(res)  # Python 2 compatibility
 
-    def _start_feeding(self, connection_observer, feed_started, observer_lock):
+    def _start_feeding(self, connection_observer, observer_lock):
         """
         Start feeding connection_observer by establishing data-channel from connection to observer.
         """
@@ -337,18 +334,17 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         moler_conn = connection_observer.connection
         self.logger.debug("subscribing for data {!r}".format(connection_observer))
         moler_conn.subscribe(secure_data_received)
-        feed_started.set()  # mark that we have passed connection-subscription-step
         return secure_data_received  # to know what to unsubscribe
 
-    def feed(self, connection_observer, feed_started, subscribed_data_receiver, stop_feeding, feed_done,
+    def feed(self, connection_observer, subscribed_data_receiver, stop_feeding, feed_done,
              observer_lock, start_time):
         """
         Feeds connection_observer by transferring data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
         connection_observer._log(logging.INFO, "{} started.".format(connection_observer.get_long_desc()))
-        if not feed_started.is_set():
-            subscribed_data_receiver = self._start_feeding(connection_observer, feed_started, observer_lock)
+        if not subscribed_data_receiver:
+            subscribed_data_receiver = self._start_feeding(connection_observer, observer_lock)
 
         time.sleep(0.005)  # give control back before we start processing
 
