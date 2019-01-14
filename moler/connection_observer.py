@@ -172,10 +172,8 @@ class ConnectionObserver(object):
         """Retrieve final result of connection-observer"""
         with ConnectionObserver._exceptions_lock:
             if self._exception:
-                ConnectionObserver._log_unraised_exceptions(self)
                 if self._exception in ConnectionObserver._not_raised_exceptions:
                     ConnectionObserver._not_raised_exceptions.remove(self._exception)
-                ConnectionObserver._log_unraised_exceptions(self)
                 raise self._exception
         if self.cancelled():
             raise NoResultSinceCancelCalled(self)
