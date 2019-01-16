@@ -7,9 +7,9 @@ from pytest import mark, raises
 
 from moler.command import Command
 
-__author__ = 'Michal Plichta'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'michal.plichta@nokia.com'
+__author__ = 'Michal Plichta, Michal Ernst'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'michal.plichta@nokia.com, michal.ernst@nokia.com'
 
 cmd_dir_under_test = 'moler/cmd/'
 
