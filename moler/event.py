@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
-import functools
 
 __author__ = 'Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
-
-import re
+import functools
 
 from moler.connection_observer import ConnectionObserver
-from moler.exceptions import NoDetectPatternProvided, MolerException
+from moler.exceptions import MolerException
 from moler.exceptions import ResultAlreadySet
 from moler.helpers import instance_id
 
