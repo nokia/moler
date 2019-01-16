@@ -21,12 +21,11 @@ class Reboot(GenericUnixCommand):
 
         super(Reboot, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
-        self.ret_required = False
-
     def build_command_string(self):
         return "reboot"
 
     def on_new_line(self, line, is_full_line):
+        self.set_result({})
         return super(Reboot, self).on_new_line(line, is_full_line)
 
 
