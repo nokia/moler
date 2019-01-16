@@ -4,6 +4,7 @@ __author__ = 'Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
+import abc
 from moler.event import Event
 from moler.cmd import RegexHelper
 
@@ -21,6 +22,7 @@ class TextualEvent(Event):
         self._consume_already_parsed_fragment()
         super(TextualEvent, self).event_occurred(event_data)
 
+    @abc.abstractmethod
     def on_new_line(self, line, is_full_line):
         """
         Method to parse output from device.
