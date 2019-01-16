@@ -204,6 +204,17 @@ def _run_command_parsing_test(moler_cmd, creation_str, buffer_io, cmd_output, cm
     return ""
 
 
+def check_cmd_or_event(path2cmds):
+    if "events" in split(path2cmds):
+        observer_type = "EVENT"
+        base_class = Event
+    else:
+        observer_type = "COMMAND"
+        base_class = Command
+
+    return observer_type, base_class
+
+
 def check_if_documentation_exists(path2cmds):
     """
     Check if documentation exists and has proper structure.
@@ -213,12 +224,7 @@ def check_if_documentation_exists(path2cmds):
     :return: True if all checks passed
     :rtype: bool
     """
-    if "events" in split(path2cmds):
-        observer_type = "EVENT"
-        base_class = Event
-    else:
-        observer_type = "COMMAND"
-        base_class = Command
+    observer_type, base_class = check_cmd_or_event(path2cmds)
     wrong_commands = {}
     errors_found = []
     print()
