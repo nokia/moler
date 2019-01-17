@@ -277,11 +277,6 @@ def test_can_load_configuration_when_already_loaded_from_same_dict(moler_config,
         moler_config.load_config(config=conn_config, config_type='dict')
         moler_config.load_config(config=conn_config, config_type='dict')
 
-        device = device_factory.get_device(name='UNIX')
-
-        assert device.__module__ == 'moler.device.unixlocal'
-        assert device.__class__.__name__ == 'UnixLocal'
-
         MolerTest.steps_end()
 
     can_load_configuration_when_already_loaded_from_same_dict(moler_config, device_factory)
