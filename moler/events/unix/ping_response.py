@@ -67,7 +67,7 @@ no answer yet for icmp_seq=42
 64 bytes from 192.168.255.129: icmp_seq=43 ttl=64 time=0.638 ms
 64 bytes from 192.168.255.129: icmp_seq=44 ttl=64 time=0.375 ms
 64 bytes from 192.168.255.129: icmp_seq=45 ttl=64 time=0.297 ms
-ute@SC5G-HUB-079:~$""".encode("ascii", "ignore")
+ute@SC5G-HUB-079:~$"""
 
 EVENT_KWARGS = {
     "till_occurs_times": 1
