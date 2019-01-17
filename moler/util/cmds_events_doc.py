@@ -4,16 +4,17 @@ Perform command autotest for selected command(s).
 """
 
 __author__ = 'Grzegorz Latuszek', 'Michal Ernst', 'Michal Plichta'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com', 'michal.ernst@nokia.com', 'michal.plichta@nokia.com'
 
 from argparse import ArgumentParser
 from importlib import import_module
 from os import walk, sep
-from os.path import abspath, join, relpath, exists
+from os.path import abspath, join, relpath, exists, split
 from pprint import pformat
 
 from moler.command import Command
+from moler.event import Event
 
 
 def _buffer_connection():
@@ -33,6 +34,17 @@ def _buffer_connection():
                 in_bytes = [data.decode("utf-8").encode("utf-8") for data in input_strings]
             self.inject_response(in_bytes, delay)
 
+        def remote_inject(self, input_strings, delay=0.0):
+            """
+            Simulate remote endpoint that sends response.
+            Response is given as strings.
+            """
+            try:
+                in_bytes = [data.encode("utf-8") for data in input_strings]
+            except UnicodeDecodeError:
+                in_bytes = [data.decode("utf-8").encode("utf-8") for data in input_strings]
+            self.inject(in_bytes, delay)
+
     moler_conn = ObservableConnection(encoder=lambda data: data.encode("utf-8"),
                                       decoder=lambda data: data.decode("utf-8"))
     ext_io_in_memory = RemoteConnection(moler_connection=moler_conn,
@@ -40,7 +52,7 @@ def _buffer_connection():
     return ext_io_in_memory
 
 
-def _walk_moler_python_files(path):
+def _walk_moler_python_files(path, *args):
     """
     Walk thru directory with commands and search for python source code (except __init__.py)
     Yield relative filepath to parameter path
@@ -49,8 +61,9 @@ def _walk_moler_python_files(path):
     :type path:
     :rtype: str
     """
+    observer = "event" if "events" in split(path) else "command"
+    print("Processing {}s test from path: '{}'".format(observer, path))
     repo_path = abspath(join(path, '..', '..'))
-    print("Processing commands test from path: '{}'".format(repo_path))
 
     for (dirpath, _, filenames) in walk(path):
         for filename in filenames:
@@ -63,7 +76,7 @@ def _walk_moler_python_files(path):
                 yield in_moler_path
 
 
-def _walk_moler_commands(path):
+def _walk_moler_commands(path, base_class):
     for fname in _walk_moler_python_files(path=path):
         pkg_name = fname.replace(".py", "")
         parts = pkg_name.split(sep)
@@ -72,16 +85,16 @@ def _walk_moler_commands(path):
         for _, cls in moler_module.__dict__.items():
             if not isinstance(cls, type):
                 continue
-            if not issubclass(cls, Command):
+            if not issubclass(cls, base_class):
                 continue
             module_of_class = cls.__dict__['__module__']
             # take only Commands
             # take only the ones defined in given file (not imported ones)
-            if (cls != Command) and (module_of_class == pkg_name):
+            if (cls != base_class) and (module_of_class == pkg_name):
                 yield moler_module, cls
 
 
-def _walk_moler_nonabstract_commands(path):
+def _walk_moler_nonabstract_commands(path, base_class):
     """
     We don't require COMMAND_OUTPUT/COMMAND_RESULT for base classes
     however, they should be abstract to block their instantiation.
@@ -89,7 +102,7 @@ def _walk_moler_nonabstract_commands(path):
     :param path: path to python module
     :type path: str
     """
-    for moler_module, moler_class in _walk_moler_commands(path):
+    for moler_module, moler_class in _walk_moler_commands(path, base_class):
         try:
             _ = moler_class()
         except TypeError as err:
@@ -101,10 +114,12 @@ def _walk_moler_nonabstract_commands(path):
         yield moler_module, moler_class
 
 
-def _retrieve_command_documentation(moler_module):
+def _retrieve_command_documentation(moler_module, observer_type):
     test_data = {}
     for attr, value in moler_module.__dict__.items():
-        for info in ['COMMAND_OUTPUT', 'COMMAND_KWARGS', 'COMMAND_RESULT']:
+        for info in ['{}_OUTPUT'.format(observer_type),
+                     '{}_KWARGS'.format(observer_type),
+                     '{}_RESULT'.format(observer_type)]:
             if attr.startswith(info):
                 variant = attr[len(info):]
                 if variant not in test_data:
@@ -113,40 +128,41 @@ def _retrieve_command_documentation(moler_module):
     return test_data
 
 
-def _validate_documentation_existence(moler_module, test_data):
+def _validate_documentation_existence(moler_module, test_data, observer_type):
     """Check if module has at least one variant of output documented"""
     if len(test_data.keys()) == 0:
-        expected_info = 'COMMAND_OUTPUT/COMMAND_KWARGS/COMMAND_RESULT'
+        expected_info = '{}_OUTPUT/{}_KWARGS/{}_RESULT'.format(observer_type, observer_type, observer_type)
         error_msg = "{} is missing documentation: {}".format(moler_module, expected_info)
         return error_msg
     return ""
 
 
-def _validate_documentation_consistency(moler_module, test_data, variant):
+def _validate_documentation_consistency(moler_module, test_data, variant, observer_type):
     errors = []
-    for attr in ['COMMAND_OUTPUT', 'COMMAND_KWARGS', 'COMMAND_RESULT']:
+    for attr in ['{}_OUTPUT'.format(observer_type), '{}_KWARGS'.format(observer_type),
+                 '{}_RESULT'.format(observer_type)]:
         if attr in test_data[variant]:
-            if 'COMMAND_OUTPUT' not in test_data[variant]:
-                error_msg = "{} has {} but no {}".format(moler_module, attr + variant, 'COMMAND_OUTPUT' + variant)
+            if '{}_OUTPUT'.format(observer_type) not in test_data[variant]:
+                error_msg = "{} has {} but no {}_OUTPUT{}".format(moler_module, attr + variant, observer_type, variant)
                 errors.append(error_msg)
-            if 'COMMAND_KWARGS' not in test_data[variant]:
-                error_msg = "{} has {} but no {}".format(moler_module, attr + variant, 'COMMAND_KWARGS' + variant)
+            if '{}_KWARGS'.format(observer_type) not in test_data[variant]:
+                error_msg = "{} has {} but no {}_KWARGS{}".format(moler_module, attr + variant, observer_type, variant)
                 errors.append(error_msg)
-            if 'COMMAND_RESULT' not in test_data[variant]:
-                error_msg = "{} has {} but no {}".format(moler_module, attr + variant, 'COMMAND_RESULT' + variant)
+            if '{}_RESULT'.format(observer_type) not in test_data[variant]:
+                error_msg = "{} has {} but no {}_RESULT{}".format(moler_module, attr + variant, observer_type, variant)
                 errors.append(error_msg)
     return errors
 
 
-def _get_doc_variant(test_data, variant):
-    cmd_output = test_data[variant]['COMMAND_OUTPUT']
+def _get_doc_variant(test_data, variant, observer_type):
+    cmd_output = test_data[variant]['{}_OUTPUT'.format(observer_type)]
     # COMMAND_KWARGS is optional? missing == {}
     # or we should be direct "zen of Python"
-    if 'COMMAND_KWARGS' in test_data[variant]:
-        cmd_kwargs = test_data[variant]['COMMAND_KWARGS']
+    if '{}_KWARGS'.format(observer_type) in test_data[variant]:
+        cmd_kwargs = test_data[variant]['{}_KWARGS'.format(observer_type)]
     else:
         cmd_kwargs = {}
-    cmd_result = test_data[variant]['COMMAND_RESULT']
+    cmd_result = test_data[variant]['{}_RESULT'.format(observer_type)]
     return cmd_output, cmd_kwargs, cmd_result
 
 
@@ -162,18 +178,41 @@ def _create_command(moler_class, moler_connection, cmd_kwargs):
         raise Exception(error_msg)
 
 
-def _run_command_parsing_test(moler_cmd, creation_str, buffer_io, cmd_output, cmd_result, variant):
-    with buffer_io.open():  # open it (autoclose by context-mngr)
-        buffer_io.remote_inject_response([cmd_output])
-        result = moler_cmd()
+def _run_command_parsing_test(moler_cmd, creation_str, buffer_io, cmd_output, cmd_result, variant, base_class,
+                              observer_type):
+    with buffer_io:  # open it (autoclose by context-mngr)
+        if base_class is Event:
+            moler_cmd.start()
+            buffer_io.remote_inject([cmd_output])
+            result = moler_cmd.await_done(7)
+            # need to remove event time
+            cmd_result.pop('time', None)
+            result[0].pop('time', None)
+            result = result[0]
+        elif base_class is Command:
+            buffer_io.remote_inject_response([cmd_output])
+            result = moler_cmd()
         if result != cmd_result:
             expected_result = pformat(cmd_result, indent=4)
             real_result = pformat(result, indent=4)
-            error_msg = "Command {} {} (see {}{}):\n{}\n{}:\n{}".format(creation_str, 'expected to return',
-                                                                        'COMMAND_RESULT', variant, expected_result,
-                                                                        'but returned', real_result)
+            error_msg = "{} {} {} (see {}{}):\n{}\n{}:\n{}".format(observer_type, creation_str,
+                                                                   'expected to return',
+                                                                   '{}_RESULT'.format(observer_type), variant,
+                                                                   expected_result,
+                                                                   'but returned', real_result)
             return error_msg
     return ""
+
+
+def check_cmd_or_event(path2cmds):
+    if "events" in split(path2cmds):
+        observer_type = "EVENT"
+        base_class = Event
+    else:
+        observer_type = "COMMAND"
+        base_class = Command
+
+    return observer_type, base_class
 
 
 def check_if_documentation_exists(path2cmds):
@@ -185,30 +224,31 @@ def check_if_documentation_exists(path2cmds):
     :return: True if all checks passed
     :rtype: bool
     """
+    observer_type, base_class = check_cmd_or_event(path2cmds)
     wrong_commands = {}
     errors_found = []
     print()
     number_of_command_found = 0
-    for moler_module, moler_class in _walk_moler_nonabstract_commands(path=path2cmds):
+    for moler_module, moler_class in _walk_moler_nonabstract_commands(path=path2cmds, base_class=base_class):
         number_of_command_found += 1
         print("processing: {}".format(moler_class))
 
-        test_data = _retrieve_command_documentation(moler_module)
+        test_data = _retrieve_command_documentation(moler_module, observer_type)
 
-        error_msg = _validate_documentation_existence(moler_module, test_data)
+        error_msg = _validate_documentation_existence(moler_module, test_data, observer_type)
         if error_msg:
             wrong_commands[moler_class.__name__] = 1
             errors_found.append(error_msg)
             continue
 
         for variant in test_data:
-            error_msgs = _validate_documentation_consistency(moler_module, test_data, variant)
+            error_msgs = _validate_documentation_consistency(moler_module, test_data, variant, observer_type)
             if error_msgs:
                 wrong_commands[moler_class.__name__] = 1
                 errors_found.extend(error_msgs)
                 continue
 
-            cmd_output, cmd_kwargs, cmd_result = _get_doc_variant(test_data, variant)
+            cmd_output, cmd_kwargs, cmd_result = _get_doc_variant(test_data, variant, observer_type)
 
             buffer_io = _buffer_connection()
             try:
@@ -223,22 +263,24 @@ def check_if_documentation_exists(path2cmds):
             error_msg = _run_command_parsing_test(moler_cmd, creation_str,
                                                   buffer_io,
                                                   cmd_output, cmd_result,
-                                                  variant)
+                                                  variant,
+                                                  base_class,
+                                                  observer_type)
             if error_msg:
                 wrong_commands[moler_class.__name__] = 1
                 errors_found.append(error_msg)
 
     if errors_found:
         print("\n".join(errors_found))
-        msg = "Following commands have incorrect documentation:"
+        msg = "Following {} have incorrect documentation:".format(observer_type.lower())
         err_msg = "{}\n    {}".format(msg, "\n    ".join(wrong_commands.keys()))
         print(err_msg)
         return False
     if number_of_command_found == 0:
-        err_msg = "No tests run! Not found any command to test in path: '{}'!".format(path2cmds)
+        err_msg = "No tests run! Not found any {} to test in path: '{}'!".format(observer_type.lower(), path2cmds)
         print(err_msg)
         return False
-    print("All of {} processed commands have correct documentation".format(number_of_command_found))
+    print("All of {} processed {}s have correct documentation".format(number_of_command_found, observer_type.lower()))
     return True
 
 

@@ -89,47 +89,47 @@ class UBootCrtm(TextualEvent):
             raise ParsingDone
 
 
-EVENT_OUTPUT_ver_execute = """
-14 13:12:48.224 <|
-                 |U-Boot CRTM 2013.01-00520-ga4ed750 (Aug 26 2016 - 19:56:14)
+EVENT_OUTPUT = """
 
-14 13:12:48.232 <|SF: Detected MX25U12835E with page size 64 KiB, total 16 MiB
+U-Boot CRTM 2013.01-00520-ga4ed750 (Aug 26 2016 - 19:56:14)
 
-14 13:12:48.255 <|CRTM: Bootflash is not write enabled
-                 |CRTM: U-boot state for PARTITION 1 = 0x0fffffff
-                 |CRTM: U-boot state for PARTITION 2 = 0x1fffffff
-                 |CRTM: Choosing u-boot in PARTITION 2
-                 |CRTM: Authenticating u-boot in PARTITION 2
+SF: Detected MX25U12835E with page size 64 KiB, total 16 MiB
 
-14 13:12:48.486 <|CRTM: Loading u-boot from PARTITION 2
+CRTM: Bootflash is not write enabled
+CRTM: U-boot state for PARTITION 1 = 0x0fffffff
+CRTM: U-boot state for PARTITION 2 = 0x1fffffff
+CRTM: Choosing u-boot in PARTITION 2
+CRTM: Authenticating u-boot in PARTITION 2
 
-14 13:12:48.521 <|
-                 |
-                 |U-Boot 2013.01-00652-g3c5109d (Nov 14 2018 - 11:42:24)
-                 |
-                 |I2C:   ready
-                 |DRAM:  2.9 GiB
+CRTM: Loading u-boot from PARTITION 2
 
-14 13:12:48.542 <|ARM CLOCK: 1413 MHz [1400 MHz part]
-                 |JTAG ID: 2b98102f part b981 variant 2
-                 |CPU ID: 412fc0f4 r2p4 rev 0000020a
-                 |DIE ID:0x1401300b 0x0c000115
-                 |Using default environment
-                 |
 
-14 13:12:48.563 <|[CPLD] Version      = 0x01.04
-                 |[CPLD] Board Id     = 0x20
-                 |[CPLD] Reset Reason = [02 00] Reset
-                 |[CPLD] GPIR         = 0x17
-                 |[CPLD] SJMPR        = 0x00
-                 |SF: Detected MX25U12835E with page size 64 KiB, total 16 MiB
+
+U-Boot 2013.01-00652-g3c5109d (Nov 14 2018 - 11:42:24)
+
+I2C:   ready
+DRAM:  2.9 GiB
+
+ARM CLOCK: 1413 MHz [1400 MHz part]
+JTAG ID: 2b98102f part b981 variant 2
+CPU ID: 412fc0f4 r2p4 rev 0000020a
+DIE ID:0x1401300b 0x0c000115
+Using default environment
+
+
+[CPLD] Version      = 0x01.04
+[CPLD] Board Id     = 0x20
+[CPLD] Reset Reason = [02 00] Reset
+[CPLD] GPIR         = 0x17
+[CPLD] SJMPR        = 0x00
+SF: Detected MX25U12835E with page size 64 KiB, total 16 MiB
 """
 
-EVENT_KWARGS_ver_execute = {
+EVENT_KWARGS = {
     "till_occurs_times": 1
 }
 
-EVENT_RESULT_ver_execute = {
+EVENT_RESULT = {
     'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
     'CPLD_version': ' 0x01.04',
     'CPLD_board_id': ' 0x20',
