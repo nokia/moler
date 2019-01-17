@@ -242,13 +242,14 @@ def test_can_get_same_asyncio_loop_thread():
 
 def test_can_get_same_asyncio_loop_thread_even_from_different_calling_threads():
     from moler.asyncio_runner import get_asyncio_loop_thread
-    async_thrds = [None, None]
+    async_thrds = [None, None, None]
+    async_thrds[0] = get_asyncio_loop_thread()  # first one must be called from MainThread (unix signals issue)
 
     def call_from_thrd0():
-        async_thrds[0] = get_asyncio_loop_thread()
+        async_thrds[1] = get_asyncio_loop_thread()
 
     def call_from_thrd1():
-        async_thrds[1] = get_asyncio_loop_thread()
+        async_thrds[2] = get_asyncio_loop_thread()
 
     thrd0 = threading.Thread(target=call_from_thrd0)
     thrd1 = threading.Thread(target=call_from_thrd1)
@@ -256,8 +257,9 @@ def test_can_get_same_asyncio_loop_thread_even_from_different_calling_threads():
     thrd0.start()
     thrd1.start()
     time.sleep(0.1)  # allow threads switch
-    assert async_thrds[0] is not None
+    assert async_thrds[1] is not None
     assert async_thrds[0] is async_thrds[1]
+    assert async_thrds[1] is async_thrds[2]
 
 
 def test_get_asyncio_loop_thread_returns_running_thread_and_loop():
