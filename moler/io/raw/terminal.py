@@ -61,7 +61,9 @@ class ThreadedTerminal(IOConnection):
                                                  done_event=done,
                                                  kwargs={'pulling_done': done})
             self.pulling_thread.start()
-            self._shell_operable.wait(timeout=2)
+            is_operable = self._shell_operable.wait(timeout=2)
+            if not is_operable:
+                self.logger.warning("Terminal open but not fully operable yet")
         return ret
 
     def close(self):
