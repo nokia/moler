@@ -194,7 +194,7 @@ def configure_moler_main_logger():
                                                                              datefmt=date_format))
 
     if want_debug_details():
-        debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(name)-30s %(transfer_direction)s|%(message)s"
+        debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(name)-30s %(threadName)22s %(transfer_direction)s|%(message)s"
         _add_new_file_handler(logger_name='moler',
                               log_file='moler.debug.log',
                               log_level=debug_level,
