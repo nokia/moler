@@ -52,7 +52,7 @@ class IOConnection(object):
         self._disconnect_subscribers_lock = Lock()
         self.moler_connection = moler_connection
         self.__name = "UNNAMED_IO_CONNECTION"
-        self.logger = logging.getLogger("moler.connection.{}".format(self.__name))
+        self.logger = logging.getLogger("moler.connection.{}.io".format(self.__name))
         # plugin the way we output data to external world
         self.moler_connection.how2send = self.send
 
@@ -63,7 +63,7 @@ class IOConnection(object):
     @name.setter
     def name(self, value):
         self.__name = value
-        self.logger = logging.getLogger("moler.connection.{}".format(self.__name))
+        self.logger = logging.getLogger("moler.connection.{}.io".format(self.__name))
 
     def open(self):
         """
