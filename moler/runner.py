@@ -114,8 +114,7 @@ def time_out_observer(connection_observer, timeout, passed_time, kind="backgroun
 
         connection_observer.on_timeout()
 
-        observer_info = "'{}.{}'".format(connection_observer.__class__.__module__,
-                                         connection_observer.__class__.__name__)
+        observer_info = "{}.{}".format(connection_observer.__class__.__module__, connection_observer)
         timeout_msg = "{} has timed out after {:.2f} seconds.".format(observer_info, passed_time)
         connection_observer._log(logging.INFO, timeout_msg)
 
@@ -261,7 +260,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         :param timeout: Max time (in float seconds) you want to await before you give up. If None then taken from connection_observer
         :return:
         """
-        self.logger.debug("go foreground: {!r} - await max. {} [sec]".format(connection_observer, timeout))
+        # TODO: calculate remaining timeout before logging
+        self.logger.debug("go foreground: {} - await max. {} [sec]".format(connection_observer, timeout))
         if connection_observer.done():  # may happen when failed to start observer feeding thread
             return None
         start_time = connection_observer_future.start_time
@@ -332,7 +332,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                         self.logger.debug("{} returned: {}".format(connection_observer, connection_observer._result))
 
         moler_conn = connection_observer.connection
-        self.logger.debug("subscribing for data {!r}".format(connection_observer))
+        self.logger.debug("subscribing for data {}".format(connection_observer))
         moler_conn.subscribe(secure_data_received)
         return secure_data_received  # to know what to unsubscribe
 
@@ -353,10 +353,10 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         while True:
             if stop_feeding.is_set():
                 # TODO: should it be renamed to 'cancelled' to be in sync with initial action?
-                self.logger.debug("stopped {!r}".format(connection_observer))
+                self.logger.debug("stopped {}".format(connection_observer))
                 break
             if connection_observer.done():
-                self.logger.debug("done {!r}".format(connection_observer))
+                self.logger.debug("done {}".format(connection_observer))
                 break
             run_duration = time.time() - start_time
             # we need to check connection_observer.timeout at each round since timeout may change
@@ -368,11 +368,11 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                                       passed_time=run_duration)
                 break
             if self._in_shutdown:
-                self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))
+                self.logger.debug("shutdown so cancelling {}".format(connection_observer))
                 connection_observer.cancel()
             time.sleep(0.005)  # give moler_conn a chance to feed observer
 
-        self.logger.debug("unsubscribing {!r}".format(connection_observer))
+        self.logger.debug("unsubscribing {}".format(connection_observer))
         moler_conn.unsubscribe(subscribed_data_receiver)
         feed_done.set()
 

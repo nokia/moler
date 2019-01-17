@@ -20,7 +20,6 @@ from moler.helpers import ClassProperty
 from moler.helpers import camel_case_to_lower_case_underscore
 from moler.helpers import instance_id
 from moler.helpers import copy_list
-from moler.runner import ThreadPoolExecutorRunner
 from moler.runner_factory import get_runner
 
 
@@ -206,20 +205,12 @@ class ConnectionObserver(object):
         """Should be used to indicate some failure during observation"""
         if self._is_done:
             self._log(logging.WARNING,
-                      "Set exception with object '{}.{}' ({}) on already done object ({}).".format(
-                          exception.__class__.__module__,
-                          exception.__class__.__name__,
-                          exception,
-                          self
-                      ))
+                      "Trial to set exception {!r} on already done {}".format(exception, self))
             return
         self._is_done = True
         ConnectionObserver._change_unraised_exception(new_exception=exception, observer=self)
-        self._log(logging.INFO, "'{}.{}' has set exception '{}.{}' ({}).".format(self.__class__.__module__,
-                                                                                 self.__class__.__name__,
-                                                                                 exception.__class__.__module__,
-                                                                                 exception.__class__.__name__,
-                                                                                 exception))
+        self._log(logging.INFO, "{}.{} has set exception {!r}".format(self.__class__.__module__,
+                                                                      self, exception))
 
     def result(self):
         """Retrieve final result of connection-observer"""
@@ -270,25 +261,17 @@ class ConnectionObserver(object):
             ConnectionObserver._log_unraised_exceptions(observer)
             if old_exception:
                 observer._log(logging.DEBUG,
-                              "'{}.{}' has overwritten exception. From '{}.{}' ({}) to '{}.{}' ({}).".format(
-                                  observer.__class__.__module__,
-                                  observer.__class__.__name__,
-                                  old_exception.__class__.__module__,
-                                  old_exception.__class__.__name__,
+                              "{} has overwritten exception. From {!r} to {!r}".format(
+                                  observer,
                                   old_exception,
-                                  new_exception.__class__.__module__,
-                                  new_exception.__class__.__name__,
                                   new_exception,
                               ))
                 if old_exception in ConnectionObserver._not_raised_exceptions:
                     ConnectionObserver._not_raised_exceptions.remove(old_exception)
                 else:
                     observer._log(logging.DEBUG,
-                                  "'{}.{}': cannot find exception '{}.{}' '{}' in _not_raised_exceptions.".format(
-                                      observer.__class__.__module__,
-                                      observer.__class__.__name__,
-                                      old_exception.__class__.__module__,
-                                      old_exception.__class__.__name__,
+                                  "{}: cannot find exception {!r} in _not_raised_exceptions.".format(
+                                      observer,
                                       old_exception,
                                   ))
                     ConnectionObserver._log_unraised_exceptions(observer)
@@ -305,10 +288,10 @@ class ConnectionObserver(object):
             observer._log(logging.DEBUG, "{}: {}".format(i, item))
 
     def get_long_desc(self):
-        return "Observer '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)
+        return "Observer '{}.{}'".format(self.__class__.__module__, self)
 
     def get_short_desc(self):
-        return "Observer '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)
+        return "Observer '{}.{}'".format(self.__class__.__module__, self)
 
     def _log(self, lvl, msg, extra=None):
         extra_params = {
