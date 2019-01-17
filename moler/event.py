@@ -15,6 +15,9 @@ class Event(ConnectionObserver):
 
     def __init__(self, connection=None, till_occurs_times=-1, runner=None):
         super(Event, self).__init__(connection=connection, runner=runner)
+        # By default events are infinite (100 years :-) so, they won't timeout since they are
+        # mainly designed to catch something inside event_occurred(), notify interested parties and keep going.
+        self.timeout = 60 * 60 * 24 * 356 * 100  # [sec]
         self.callback = None
         self.callback_params = dict()
         self._occurred = []
