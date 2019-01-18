@@ -41,8 +41,23 @@ class Command(ConnectionObserver):
         self._validate_start(*args, **kwargs)
         ret = super(Command, self).start(timeout, *args, **kwargs)
         self._is_running = True  # when it sends - real CMD starts running
-        self.connection.sendline(self.command_string)
         return ret
+
+    def add_command_to_connection(self, do_not_wait):
+        """
+        Adds Command object to connection.
+        :return: True if ConnectionObserver was added to connection. False if cannot add Command to connection in timeout.
+        """
+        if self.connection.add_command_to_connection(cmd=self, do_not_wait=do_not_wait):
+            return True
+        return False
+
+    def remove_command_from_connection(self):
+        """
+        Removes blocking Command object from connection.
+        :return: Nothing
+        """
+        self.connection.remove_command_from_connection(cmd=self)
 
     def _validate_start(self, *args, **kwargs):
         # check base class invariants first
