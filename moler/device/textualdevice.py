@@ -141,6 +141,7 @@ class TextualDevice(object):
         return cls(io_connection=io_conn)
 
     def __del__(self):
+        self._close_connection()
         self._stop_prompts_observers()
 
     def _collect_cmds_for_state_machine(self):
@@ -477,7 +478,7 @@ class TextualDevice(object):
     def _open_connection(self, source_state, dest_state, timeout):
         self.io_connection.open()
 
-    def _close_connection(self, source_state, dest_state, timeout):
+    def _close_connection(self, source_state="", dest_state="", timeout=7):
         self.io_connection.close()
 
     def _prompt_observer_callback(self, event, state):
