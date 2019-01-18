@@ -114,7 +114,7 @@ class ThreadedTerminal(IOConnection):
                     except EOFError:
                         self._notify_on_disconnect()
                         pulling_done.set()
-            except ValueError:
-                self.logger.warning("Could not open another file handler to stdout!")
+            except ValueError as exc:
+                self.logger.warning("Could not open another file handler to stdout!\n{}".format(exc))
                 self._notify_on_disconnect()
                 pulling_done.set()
