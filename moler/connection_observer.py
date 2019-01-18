@@ -21,7 +21,6 @@ from moler.helpers import camel_case_to_lower_case_underscore
 from moler.helpers import instance_id
 from moler.helpers import copy_list
 from moler.runner import ThreadPoolExecutorRunner
-from moler.command_scheduler import CommandScheduler
 import threading
 
 
@@ -192,7 +191,7 @@ class ConnectionObserver(object):
         """ It's callback called by framework just before raise exception for Timeout """
         pass
 
-    def add_self_to_connection(self, do_no_wait):
+    def add_command_to_connection(self, do_no_wait):
         """
         Adds blocking ConnectionObserver object (command object) to connection. If ConnectionObserver object is not
          blocking then immediately returns True.
@@ -201,19 +200,16 @@ class ConnectionObserver(object):
         :return: True if ConnectionObserver was added to connection or adding is not required. False if cannot add ConnectionObserver
          to connection
         """
-        if self.is_command():
-            return CommandScheduler.add_command_to_connection(cmd=self, do_no_wait=do_no_wait)
         return True
 
-    def remove_self_from_connection(self):
+    def remove_command_from_connection(self):
         """
         Remove blocking ConnectionObserver object (command object) from connection. If Connection observer is not blocking
          then does nothing.
         :return: Nothing
         """
-        if self.is_command():
-            CommandScheduler.remove_command_from_connection(cmd=self)
-            
+        pass
+
     def is_command(self):
         """
         :return: True if instance of ConnectionObserver is a command. False if not a command.
