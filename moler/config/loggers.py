@@ -16,6 +16,8 @@ logging_path = os.getcwd()  # Logging path that is used as a prefix for log file
 active_loggers = []  # TODO: use set()      # Active loggers created by Moler
 date_format = "%d %H:%M:%S"
 
+logger_list = list()
+
 # new logging levels
 RAW_DATA = 1  # should be used for logging data of external sources, like connection's data send/received
 TRACE = 4  # may produce tons of logs, should be used for lib dev & troubleshooting
@@ -111,7 +113,14 @@ def _add_new_file_handler(logger_name,
     :param filter: filter for file logger
     :return: None
     """
+
     logfile_full_path = os.path.join(logging_path, log_file)
+
+    if "{}->{}".format(logger_name, logfile_full_path) not in logger_list:
+        logger_list.append("{}->{}".format(logger_name, logfile_full_path))
+    else:
+        return
+
     _prepare_logs_folder(logfile_full_path)
     setup_new_file_handler(logger_name=logger_name,
                            log_level=log_level,
@@ -129,6 +138,10 @@ def _add_raw_file_handler(logger_name, log_file):
     :return: None
     """
     logfile_full_path = os.path.join(logging_path, log_file)
+    if "{}->{}".format(logger_name, logfile_full_path) not in logger_list:
+        logger_list.append("{}->{}".format(logger_name, logfile_full_path))
+    else:
+        return
     _prepare_logs_folder(logfile_full_path)
     logger = logging.getLogger(logger_name)
     rfh = RawFileHandler(filename=logfile_full_path, mode='wb')
@@ -144,6 +157,10 @@ def _add_raw_trace_file_handler(logger_name, log_file):
     :return: None
     """
     logfile_full_path = os.path.join(logging_path, log_file)
+    if "{}->{}".format(logger_name, logfile_full_path) not in logger_list:
+        logger_list.append("{}->{}".format(logger_name, logfile_full_path))
+    else:
+        return
     _prepare_logs_folder(logfile_full_path)
     logger = logging.getLogger(logger_name)
     trace_rfh = RawFileHandler(filename=logfile_full_path, mode='w')

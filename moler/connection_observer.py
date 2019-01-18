@@ -48,6 +48,17 @@ class ConnectionObserver(object):
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
 
+    def __del__(self):
+        device_handlers = self.device_logger.handlers[:]
+        for handler in device_handlers:
+            handler.close()
+            self.device_logger.removeHandler(handler)
+
+        handlers = self.logger.handlers[:]
+        for handler in handlers:
+            handler.close()
+            self.logger.removeHandler(handler)
+
     def __repr__(self):
         cmd_str = self.__str__()
         connection_str = '<NO CONNECTION>'
