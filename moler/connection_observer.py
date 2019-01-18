@@ -49,15 +49,17 @@ class ConnectionObserver(object):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
 
     def __del__(self):
-        device_handlers = self.device_logger.handlers[:]
-        for handler in device_handlers:
-            handler.close()
-            self.device_logger.removeHandler(handler)
+        if hasattr(self, "device_logger"):
+            device_handlers = self.device_logger.handlers[:]
+            for handler in device_handlers:
+                handler.close()
+                self.device_logger.removeHandler(handler)
 
-        handlers = self.logger.handlers[:]
-        for handler in handlers:
-            handler.close()
-            self.logger.removeHandler(handler)
+        if hasattr(self, "logger"):
+            handlers = self.logger.handlers[:]
+            for handler in handlers:
+                handler.close()
+                self.logger.removeHandler(handler)
 
     def __repr__(self):
         cmd_str = self.__str__()
