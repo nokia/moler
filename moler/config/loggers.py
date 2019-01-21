@@ -93,7 +93,6 @@ def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filt
     """
     logger = logging.getLogger(logger_name)
     cfh = logging.FileHandler(log_filename, 'w')
-    print("setup_new_file_handler(): logger FileHandler = {}, its stream = {}, id(stream) = {}".format(cfh, cfh.stream, id(cfh.stream)))
     cfh.setLevel(log_level)
     cfh.setFormatter(formatter)
     if filter:
@@ -121,7 +120,8 @@ def _add_new_file_handler(logger_name,
     if "{}->{}".format(logger_name, logfile_full_path) not in logger_list:
         logger_list.append("{}->{}".format(logger_name, logfile_full_path))
     else:
-        return
+        # return
+        pass
 
     _prepare_logs_folder(logfile_full_path)
     setup_new_file_handler(logger_name=logger_name,
@@ -203,61 +203,66 @@ def create_logger(name,
 def configure_moler_main_logger():
     """Configure main logger of Moler"""
     # warning or above go to logfile
-    print("inside configure_moler_main_logger()")
-    logger = create_logger(name='moler', log_level=TRACE, datefmt=date_format)
-    logger.propagate = True
+    if 'moler' not in active_loggers:
+        print("inside configure_moler_main_logger()")
+        logger = create_logger(name='moler', log_level=TRACE, datefmt=date_format)
+        logger.propagate = True
 
-    main_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(message)s"
-    _add_new_file_handler(logger_name='moler',
-                          log_file='moler.log',
-                          log_level=logging.INFO,  # only hi-level info from library
-                          formatter=MolerMainMultilineWithDirectionFormatter(fmt=main_log_format,
-                                                                             datefmt=date_format))
-
-    if want_debug_details():
-        debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(name)-30s %(threadName)22s %(transfer_direction)s|%(message)s"
+        main_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(message)s"
         _add_new_file_handler(logger_name='moler',
-                              log_file='moler.debug.log',
-                              log_level=debug_level,
-                              # entries from different components go to single file, so we need to
-                              # differentiate them by logger name: "%(name)s"
-                              # do we need "%(threadName)-30s" ???
-                              formatter=MultilineWithDirectionFormatter(fmt=debug_log_format,
-                                                                        datefmt=date_format))
+                              log_file='moler.log',
+                              log_level=logging.INFO,  # only hi-level info from library
+                              formatter=MolerMainMultilineWithDirectionFormatter(fmt=main_log_format,
+                                                                                 datefmt=date_format))
 
-    logger.info("More logs in: {}".format(logging_path))
+        if want_debug_details():
+            debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(name)-30s %(threadName)22s %(transfer_direction)s|%(message)s"
+            _add_new_file_handler(logger_name='moler',
+                                  log_file='moler.debug.log',
+                                  log_level=debug_level,
+                                  # entries from different components go to single file, so we need to
+                                  # differentiate them by logger name: "%(name)s"
+                                  # do we need "%(threadName)-30s" ???
+                                  formatter=MultilineWithDirectionFormatter(fmt=debug_log_format,
+                                                                            datefmt=date_format))
+
+        logger.info("More logs in: {}".format(logging_path))
 
 
 def configure_runner_logger(runner_name):
     """Configure logger with file storing runner's log"""
-    create_logger(name='moler.runner.{}'.format(runner_name),
-                  log_file='moler.runner.{}.log'.format(runner_name),
-                  log_level=debug_level_or_info_level(),
-                  log_format="%(asctime)s.%(msecs)03d %(levelname)-10s |%(message)s",
-                  datefmt=date_format
-                  # log_format="%(asctime)s %(levelname)-10s %(subarea)-30s: |%(message)s"
-                  )
+    logger_name = 'moler.runner.{}'.format(runner_name)
+    if logger_name not in active_loggers:
+        create_logger(name=logger_name,
+                      log_file='moler.runner.{}.log'.format(runner_name),
+                      log_level=debug_level_or_info_level(),
+                      log_format="%(asctime)s.%(msecs)03d %(levelname)-10s |%(message)s",
+                      datefmt=date_format
+                      # log_format="%(asctime)s %(levelname)-10s %(subarea)-30s: |%(message)s"
+                      )
 
 
 def configure_device_logger(connection_name, propagate=False):
     """Configure logger with file storing connection's log"""
     logger_name = 'moler.{}'.format(connection_name)
-    logger = create_logger(name=logger_name, log_level=TRACE)
-    logger.propagate = propagate
-    conn_formatter = MultilineWithDirectionFormatter(fmt="%(asctime)s.%(msecs)03d %(transfer_direction)s|%(message)s",
-                                                     datefmt=date_format)
-    _add_new_file_handler(logger_name=logger_name,
-                          log_file='{}.log'.format(logger_name),
-                          log_level=logging.INFO,
-                          formatter=conn_formatter)
-    if want_raw_logs():
-        # RAW_LOGS is lowest log-level so we need to change log-level of logger
-        # to make it pass data into raw-log-handler
-        logger.setLevel(min(RAW_DATA, TRACE))
-        _add_raw_file_handler(logger_name=logger_name, log_file='{}.raw.log'.format(logger_name))
-        if debug_level == TRACE:
-            _add_raw_trace_file_handler(logger_name=logger_name, log_file='{}.raw.trace.log'.format(logger_name))
-
+    if logger_name not in active_loggers:
+        logger = create_logger(name=logger_name, log_level=TRACE)
+        logger.propagate = propagate
+        conn_formatter = MultilineWithDirectionFormatter(fmt="%(asctime)s.%(msecs)03d %(transfer_direction)s|%(message)s",
+                                                         datefmt=date_format)
+        _add_new_file_handler(logger_name=logger_name,
+                              log_file='{}.log'.format(logger_name),
+                              log_level=logging.INFO,
+                              formatter=conn_formatter)
+        if want_raw_logs():
+            # RAW_LOGS is lowest log-level so we need to change log-level of logger
+            # to make it pass data into raw-log-handler
+            logger.setLevel(min(RAW_DATA, TRACE))
+            _add_raw_file_handler(logger_name=logger_name, log_file='{}.raw.log'.format(logger_name))
+            if debug_level == TRACE:
+                _add_raw_trace_file_handler(logger_name=logger_name, log_file='{}.raw.trace.log'.format(logger_name))
+    else:
+        logger = logging.getLogger(logger_name)
     return logger
 
 
