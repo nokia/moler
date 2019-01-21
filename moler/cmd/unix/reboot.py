@@ -8,6 +8,7 @@ __email__ = 'agnieszka.bylica@nokia.com'
 
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
+import re
 
 
 class Reboot(GenericUnixCommand):
@@ -21,8 +22,6 @@ class Reboot(GenericUnixCommand):
         """
         super(Reboot, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
-        self.ret_required = False
-
     def build_command_string(self):
         """
         Builds command string.
@@ -30,11 +29,33 @@ class Reboot(GenericUnixCommand):
         """
         return "reboot"
 
+    def on_new_line(self, line, is_full_line):
+        """
+        Method to parse command output. Will be called after line with command echo.
+        :param line: Line to parse, new lines are trimmed
+        :param is_full_line:  False for chunk of line; True on full line (NOTE: new line character removed)
+        :return: Nothing
+        """
+        if is_full_line:
+            self._catch_connection_closed(line)
 
-COMMAND_OUTPUT = """
+    _re_connection_closed = re.compile(r"(?P<CLOSED>Connection\s+to\s+\S+\s+closed.*)", re.I)
+
+    def _catch_connection_closed(self, line):
+        if self._regex_helper.search_compiled(Reboot._re_connection_closed, line):
+            self.set_result({'RESULT': self._regex_helper.group('CLOSED')})
+
+
+COMMAND_OUTPUT_LINUX = """
 toor4nsn@fzhub:~# reboot
-toor4nsn@fzhub:~#"""
+reboot
+Connection to 192.168.255.129 closed by remote host.
 
-COMMAND_KWARGS = {}
+Connection to 192.168.255.129 closed.
+ute@SC5G-HUB-079:"""
 
-COMMAND_RESULT = {}
+COMMAND_KWARGS_LINUX = {}
+
+COMMAND_RESULT_LINUX = {
+    'RESULT': 'Connection to 192.168.255.129 closed by remote host.'
+}
