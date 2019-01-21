@@ -24,6 +24,10 @@ class Reboot(GenericUnixCommand):
         self.ret_required = False
 
     def build_command_string(self):
+        """
+        Builds command string.
+        :return: String representation of command to send over connection to device.
+        """
         return "reboot"
 
 
