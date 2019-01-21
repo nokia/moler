@@ -93,6 +93,7 @@ def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filt
     """
     logger = logging.getLogger(logger_name)
     cfh = logging.FileHandler(log_filename, 'w')
+    print("setup_new_file_handler(): logger FileHandler = {}, its stream = {}, id(stream) = {}".format(cfh, cfh.stream, id(cfh.stream)))
     cfh.setLevel(log_level)
     cfh.setFormatter(formatter)
     if filter:
@@ -115,6 +116,7 @@ def _add_new_file_handler(logger_name,
     """
 
     logfile_full_path = os.path.join(logging_path, log_file)
+    print("inside _add_new_file_handler({}, {})".format(logger_name, logfile_full_path))
 
     if "{}->{}".format(logger_name, logfile_full_path) not in logger_list:
         logger_list.append("{}->{}".format(logger_name, logfile_full_path))
@@ -186,6 +188,7 @@ def create_logger(name,
     """
     logger = logging.getLogger(name)
     if name not in active_loggers:
+        print("inside create_logger({}) - configuring it".format(name))
         logger.setLevel(log_level)
         if log_file:  # if present means: "please add this file as logs storage for my logger"
             _add_new_file_handler(logger_name=name,
@@ -200,6 +203,7 @@ def create_logger(name,
 def configure_moler_main_logger():
     """Configure main logger of Moler"""
     # warning or above go to logfile
+    print("inside configure_moler_main_logger()")
     logger = create_logger(name='moler', log_level=TRACE, datefmt=date_format)
     logger.propagate = True
 
