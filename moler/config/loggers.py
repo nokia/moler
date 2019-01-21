@@ -116,7 +116,11 @@ def _add_new_file_handler(logger_name,
 
     logfile_full_path = os.path.join(logging_path, log_file)
 
-    print(logging.Logger.manager.loggerDict)
+    #print(logging.Logger.manager.loggerDict)
+    # for v in logging.Logger.manager.loggerDict.values():
+    #     if hasattr(v, "handlers"):
+    #         if len(v.handlers) > 0:
+    #             print("{} -> {}".format(v, v.handlers))
 
     if "{}->{}".format(logger_name, logfile_full_path) not in logger_list:
         logger_list.append("{}->{}".format(logger_name, logfile_full_path))
@@ -141,7 +145,11 @@ def _add_raw_file_handler(logger_name, log_file):
     """
     logfile_full_path = os.path.join(logging_path, log_file)
 
-    print(logging.Logger.manager.loggerDict)
+    #print(logging.Logger.manager.loggerDict)
+    # for v in logging.Logger.manager.loggerDict.values():
+    #     if hasattr(v, "handlers"):
+    #         if len(v.handlers) > 0:
+    #             print("{} -> {}".format(v, v.handlers))
 
     if "{}->{}".format(logger_name, logfile_full_path) not in logger_list:
         logger_list.append("{}->{}".format(logger_name, logfile_full_path))
@@ -163,7 +171,11 @@ def _add_raw_trace_file_handler(logger_name, log_file):
     """
     logfile_full_path = os.path.join(logging_path, log_file)
 
-    print(logging.Logger.manager.loggerDict)
+    #print(logging.Logger.manager.loggerDict)
+    # for v in logging.Logger.manager.loggerDict.values():
+    #     if hasattr(v, "handlers"):
+    #         if len(v.handlers) > 0:
+    #             print("{} -> {}".format(v, v.handlers))
 
     if "{}->{}".format(logger_name, logfile_full_path) not in logger_list:
         logger_list.append("{}->{}".format(logger_name, logfile_full_path))

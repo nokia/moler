@@ -17,7 +17,6 @@ from moler.io.raw import TillDoneThread
 class ThreadedTerminal(IOConnection):
     """
     Works on Unix (like Linux) systems only!
-
     ThreadedTerminal is shell working under Pty
     """
 
@@ -50,6 +49,7 @@ class ThreadedTerminal(IOConnection):
 
     def open(self):
         """Open ThreadedTerminal connection & start thread pulling data from it."""
+        ret = super(ThreadedTerminal, self).open()
         if not self._terminal:
             self._terminal = PtyProcessUnicode.spawn(self._cmd, dimensions=self.dimensions)
             # need to not replace not unicode data instead of raise exception
@@ -60,7 +60,16 @@ class ThreadedTerminal(IOConnection):
                                                  done_event=done,
                                                  kwargs={'pulling_done': done})
             self.pulling_thread.start()
-            self._shell_operable.wait(timeout=2)
+            retry = 0
+            is_operable = False
+
+            while (retry < 3) and (not is_operable):
+                is_operable = self._shell_operable.wait(timeout=1)
+                if not is_operable:
+                    self.logger.warning("Terminal open but not fully operable yet")
+                    self._terminal.write('\n')
+                    retry += 1
+        return ret
 
     def close(self):
         """Close ThreadedTerminal connection & stop pulling thread."""
@@ -70,7 +79,7 @@ class ThreadedTerminal(IOConnection):
         super(ThreadedTerminal, self).close()
 
         if self._terminal and self._terminal.isalive():
-            self._terminal.close()
+            self._terminal.close(force=True)
             self._terminal = None
             self._notify_on_disconnect()
 
@@ -83,23 +92,28 @@ class ThreadedTerminal(IOConnection):
         read_buffer = ""
 
         while not pulling_done.is_set():
-            reads, _, _ = select.select([self._terminal.fd], [], [], self._select_timeout)
-            if self._terminal.fd in reads:
-                try:
-                    data = self._terminal.read(self._read_buffer_size)
-
-                    if self._shell_operable.is_set():
-                        self.data_received(data)
-                    else:
-                        read_buffer = read_buffer + data
-                        if re.search(self.target_prompt, read_buffer, re.MULTILINE):
-                            self._notify_on_connect()
-                            self._shell_operable.set()
-                            data = re.sub(self.target_prompt, '', read_buffer, re.MULTILINE)
+            try:
+                reads, _, _ = select.select([self._terminal.fd], [], [], self._select_timeout)
+                if self._terminal.fd in reads:
+                    try:
+                        data = self._terminal.read(self._read_buffer_size)
+                        self.logger.debug("<|{}".format(data))
+                        if self._shell_operable.is_set():
                             self.data_received(data)
-                        elif not self._export_sent and re.search(self.first_prompt, read_buffer, re.MULTILINE):
-                            self.send(self.set_prompt_cmd)
-                            self._export_sent = True
-                except EOFError:
-                    self._notify_on_disconnect()
-                    pulling_done.set()
+                        else:
+                            read_buffer = read_buffer + data
+                            if re.search(self.target_prompt, read_buffer, re.MULTILINE):
+                                self._notify_on_connect()
+                                self._shell_operable.set()
+                                data = re.sub(self.target_prompt, '', read_buffer, re.MULTILINE)
+                                self.data_received(data)
+                            elif not self._export_sent and re.search(self.first_prompt, read_buffer, re.MULTILINE):
+                                self.send(self.set_prompt_cmd)
+                                self._export_sent = True
+                    except EOFError:
+                        self._notify_on_disconnect()
+                        pulling_done.set()
+            except ValueError as exc:
+                self.logger.warning("Could not open another file handler to stdout!\n{}".format(exc))
+                self._notify_on_disconnect()
+                pulling_done.set()
