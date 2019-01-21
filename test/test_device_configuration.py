@@ -261,6 +261,8 @@ def test_can_select_device_loaded_from_config_dict(moler_config, device_factory)
         assert device.__module__ == 'moler.device.unixlocal'
         assert device.__class__.__name__ == 'UnixLocal'
 
+        device.__del__()
+
         MolerTest.steps_end()
 
     can_select_device_loaded_from_config_dict(moler_config, device_factory)
