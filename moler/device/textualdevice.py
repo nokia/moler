@@ -146,12 +146,14 @@ class TextualDevice(object):
         if hasattr(self, "logger"):
             handlers = self.logger.handlers[:]
             for handler in handlers:
+                handler.flush()
                 handler.close()
                 self.logger.removeHandler(handler)
 
         if hasattr(self, "device_data_logger"):
             handlers = self.device_data_logger.handlers[:]
             for handler in handlers:
+                handler.flush()
                 handler.close()
                 self.device_data_logger.removeHandler(handler)
 

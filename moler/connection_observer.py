@@ -74,12 +74,14 @@ class ConnectionObserver(object):
         if hasattr(self, "device_logger"):
             device_handlers = self.device_logger.handlers[:]
             for handler in device_handlers:
+                handler.flush()
                 handler.close()
                 self.device_logger.removeHandler(handler)
 
         if hasattr(self, "logger"):
             handlers = self.logger.handlers[:]
             for handler in handlers:
+                handler.flush()
                 handler.close()
                 self.logger.removeHandler(handler)
 

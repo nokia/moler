@@ -116,6 +116,8 @@ def _add_new_file_handler(logger_name,
 
     logfile_full_path = os.path.join(logging_path, log_file)
 
+    print(logging.Logger.manager.loggerDict)
+
     if "{}->{}".format(logger_name, logfile_full_path) not in logger_list:
         logger_list.append("{}->{}".format(logger_name, logfile_full_path))
     else:
@@ -138,6 +140,9 @@ def _add_raw_file_handler(logger_name, log_file):
     :return: None
     """
     logfile_full_path = os.path.join(logging_path, log_file)
+
+    print(logging.Logger.manager.loggerDict)
+
     if "{}->{}".format(logger_name, logfile_full_path) not in logger_list:
         logger_list.append("{}->{}".format(logger_name, logfile_full_path))
     else:
@@ -157,6 +162,9 @@ def _add_raw_trace_file_handler(logger_name, log_file):
     :return: None
     """
     logfile_full_path = os.path.join(logging_path, log_file)
+
+    print(logging.Logger.manager.loggerDict)
+
     if "{}->{}".format(logger_name, logfile_full_path) not in logger_list:
         logger_list.append("{}->{}".format(logger_name, logfile_full_path))
     else:
