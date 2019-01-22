@@ -2,6 +2,7 @@
 """
 Utility/common code of library.
 """
+import threading
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -117,15 +118,7 @@ class MolerTest(object):
         MolerTest._was_steps_end = False
 
     @staticmethod
-    def _check_exceptions_occured(caught_exception=None):
-        unraised_exceptions = ConnectionObserver.get_unraised_exceptions(True)
-        occured_exceptions = list()
-        for unraised_exception in unraised_exceptions:
-            occured_exceptions.append(unraised_exception)
-            MolerTest._error("Unhandled exception: '{}'".format(unraised_exception))
-        if caught_exception:
-            occured_exceptions.append(caught_exception)
-
+    def _prepare_err_msg(occured_exceptions):
         was_error_in_last_execution = MolerTest._was_error
         err_msg = ""
 
@@ -142,6 +135,23 @@ class MolerTest(object):
                     err_msg += repr(exc)
         if len(MolerTest._list_of_errors) > 0:
             err_msg += "There were error messages in Moler execution."
+
+        return err_msg
+
+    @staticmethod
+    def _check_exceptions_occured(caught_exception=None):
+        if not isinstance(threading.current_thread(), threading._MainThread):
+            return
+        unraised_exceptions = ConnectionObserver.get_unraised_exceptions(True)
+        occured_exceptions = list()
+        for unraised_exception in unraised_exceptions:
+            occured_exceptions.append(unraised_exception)
+            MolerTest._error("Unhandled exception: '{}'".format(unraised_exception))
+        if caught_exception:
+            occured_exceptions.append(caught_exception)
+
+        err_msg = MolerTest._prepare_err_msg(occured_exceptions)
+
         if err_msg:
             MolerTest._error(err_msg)
             MolerTest._was_error = False
@@ -152,7 +162,7 @@ class MolerTest(object):
     @staticmethod
     def _check_steps_end():
         if not MolerTest._was_steps_end:
-            err_msg = "Method steps_end() was not called.\n"
+            err_msg = "Method 'steps_end()' was not called.\n"
             MolerTest._error(err_msg)
             MolerTest._was_error = False
             raise MolerStatusException(err_msg)
