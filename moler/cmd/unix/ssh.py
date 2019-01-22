@@ -451,3 +451,38 @@ COMMAND_KWARGS_2_passwords = {
 }
 
 COMMAND_RESULT_2_passwords = {}
+
+COMMAND_OUTPUT_resize_window = """
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+It is also possible that a host key has just been changed.
+The fingerprint for the RSA key sent by the remote host is
+[...].
+Please contact your system administrator.
+Add correct host key in /home/you/.ssh/known_hosts to get rid of this message.
+Offending RSA key in /home/you/.ssh/known_hosts:86
+RSA host key for host.domain.net has changed and you have requested strict checking.
+Host key verification failed.
+client:~/>sh-keygen -R host.domain.net
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+To edit this message please edit /etc/ssh_banner
+You may put information to /etc/ssh_banner who is owner of this PC
+Password:
+Last login: Sun Jan  6 13:42:05 UTC+2 2019 on ttyAMA2
+7[r[999;999H[6n
+resize: unknown character, exiting.
+Have a lot of fun...
+host:~ #
+host:~ # export TMOUT="2678400"
+host:~ #"""
+
+COMMAND_KWARGS_resize_window = {
+    "login": "user", "password": "english", "known_hosts_on_failure": "keygen",
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
+}
+
+COMMAND_RESULT_resize_window = {}
