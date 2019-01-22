@@ -2,6 +2,7 @@
 """
 Utility/common code of library.
 """
+import threading
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
@@ -118,6 +119,8 @@ class MolerTest(object):
 
     @staticmethod
     def _check_exceptions_occured(caught_exception=None):
+        if not isinstance(threading.current_thread(), threading._MainThread):
+            return
         unraised_exceptions = ConnectionObserver.get_unraised_exceptions(True)
         occured_exceptions = list()
         for unraised_exception in unraised_exceptions:
@@ -152,7 +155,7 @@ class MolerTest(object):
     @staticmethod
     def _check_steps_end():
         if not MolerTest._was_steps_end:
-            err_msg = "Method steps_end() was not called.\n"
+            err_msg = "Method 'steps_end()' was not called.\n"
             MolerTest._error(err_msg)
             MolerTest._was_error = False
             raise MolerStatusException(err_msg)
