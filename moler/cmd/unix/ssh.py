@@ -24,12 +24,12 @@ class Ssh(GenericUnixCommand):
     _re_password = re.compile(r"(password.*:)", re.IGNORECASE)
     _re_failed_strings = re.compile(r"Permission denied|No route to host|ssh: Could not", re.IGNORECASE)
     _re_host_key_verification_failed = re.compile(r"Host key verification failed", re.IGNORECASE)
+    _re_resize = re.compile(r"999H")
 
     def __init__(self, connection, login, password, host, prompt=None, expected_prompt='>', port=0,
                  known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
                  term_mono="TERM=xterm-mono", newline_chars=None, encrypt_password=True, runner=None,
                  target_newline="\n", allowed_newline_after_prompt=False):
-
         """
         :param connection: moler connection to device, terminal when command is executed
         :param login: ssh login
@@ -75,6 +75,7 @@ class Ssh(GenericUnixCommand):
         self._sent_prompt = False
         self._sent_password = False
         self._sent_continue_connecting = False
+        self._resize_sent = False
 
     def build_command_string(self):
         """
@@ -100,6 +101,7 @@ class Ssh(GenericUnixCommand):
         :return: Nothing
         """
         try:
+            self._check_if_resize(line)
             self._check_if_failure(line)
             self._get_hosts_file_if_displayed(line)
             self._push_yes_if_needed(line)
@@ -309,6 +311,17 @@ class Ssh(GenericUnixCommand):
         """
         return self._regex_helper.search_compiled(self._re_expected_prompt, line)
 
+    def _check_if_resize(self, line):
+        """
+        Checks if line from device has information about size of windows.
+        :param line: Line from device.
+        :return: Match object if regex matches, None otherwise.
+        """
+        if self._regex_helper.search_compiled(Ssh._re_resize, line) and not self._resize_sent:
+            self._resize_sent = True
+            self.connection.sendline("")
+            raise ParsingDone()
+
 
 COMMAND_OUTPUT = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
@@ -379,7 +392,6 @@ COMMAND_KWARGS_rm = {
 
 COMMAND_RESULT_rm = {}
 
-
 COMMAND_OUTPUT_keygen = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -412,7 +424,6 @@ COMMAND_KWARGS_keygen = {
 }
 
 COMMAND_RESULT_keygen = {}
-
 
 COMMAND_OUTPUT_2_passwords = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
