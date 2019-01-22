@@ -473,7 +473,7 @@ To edit this message please edit /etc/ssh_banner
 You may put information to /etc/ssh_banner who is owner of this PC
 Password:
 Last login: Sun Jan  6 13:42:05 UTC+2 2019 on ttyAMA2
-7[r[999;999H[6n
+7[r[999;999H[6n
 resize: unknown character, exiting.
 Have a lot of fun...
 host:~ #
