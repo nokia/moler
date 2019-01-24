@@ -16,8 +16,6 @@ logging_path = os.getcwd()  # Logging path that is used as a prefix for log file
 active_loggers = []  # TODO: use set()      # Active loggers created by Moler
 date_format = "%d %H:%M:%S"
 
-logger_list = list()
-
 # new logging levels
 RAW_DATA = 1  # should be used for logging data of external sources, like connection's data send/received
 TRACE = 4  # may produce tons of logs, should be used for lib dev & troubleshooting
@@ -41,7 +39,6 @@ def set_date_format(format):
 def configure_debug_level(level=None):
     """
     Configure debug_level based on environment variable MOLER_DEBUG_LEVEL
-
     We use additional env variable besides MOLER_CONFIG to allow for quick/temporary change
     since debug level is intended also for troubleshooting
     """
@@ -83,7 +80,6 @@ def debug_level_or_info_level():
 def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filter=None):
     """
     Sets up new file handler for given logger
-
     :param logger_name: name of logger to which filelogger is added
     :param log_level: logging level
     :param log_filename: path to log file
@@ -105,7 +101,6 @@ def _add_new_file_handler(logger_name,
                           log_file, formatter, log_level=TRACE, filter=None):
     """
     Add file writer into Logger
-
     :param logger_name: Logger name
     :param log_file: Path to logfile. Final logfile location is logging_path + log_file
     :param log_level: only log records with equal and greater level will be accepted for storage in log
@@ -115,13 +110,6 @@ def _add_new_file_handler(logger_name,
     """
 
     logfile_full_path = os.path.join(logging_path, log_file)
-    print("inside _add_new_file_handler({}, {})".format(logger_name, logfile_full_path))
-
-    if "{}->{}".format(logger_name, logfile_full_path) not in logger_list:
-        logger_list.append("{}->{}".format(logger_name, logfile_full_path))
-    else:
-        # return
-        pass
 
     _prepare_logs_folder(logfile_full_path)
     setup_new_file_handler(logger_name=logger_name,
@@ -134,16 +122,11 @@ def _add_new_file_handler(logger_name,
 def _add_raw_file_handler(logger_name, log_file):
     """
     Add raw/binary file writer into Logger
-
     :param logger_name: Logger name
     :param log_file: Path to logfile. Final logfile location is logging_path + log_file
     :return: None
     """
     logfile_full_path = os.path.join(logging_path, log_file)
-    if "{}->{}".format(logger_name, logfile_full_path) not in logger_list:
-        logger_list.append("{}->{}".format(logger_name, logfile_full_path))
-    else:
-        return
     _prepare_logs_folder(logfile_full_path)
     logger = logging.getLogger(logger_name)
     rfh = RawFileHandler(filename=logfile_full_path, mode='wb')
@@ -153,16 +136,11 @@ def _add_raw_file_handler(logger_name, log_file):
 def _add_raw_trace_file_handler(logger_name, log_file):
     """
     Add raw-info file writer into Logger
-
     :param logger_name: Logger name
     :param log_file: Path to logfile. Final logfile location is logging_path + log_file
     :return: None
     """
     logfile_full_path = os.path.join(logging_path, log_file)
-    if "{}->{}".format(logger_name, logfile_full_path) not in logger_list:
-        logger_list.append("{}->{}".format(logger_name, logfile_full_path))
-    else:
-        return
     _prepare_logs_folder(logfile_full_path)
     logger = logging.getLogger(logger_name)
     trace_rfh = RawFileHandler(filename=logfile_full_path, mode='w')
@@ -178,7 +156,6 @@ def create_logger(name,
                   datefmt=None):
     """
     Creates Logger with (optional) file writer
-
     :param name: Logger name
     :param log_file: Path to logfile. Final logfile location is logging_path + log_file
     :param log_level: only log records with equal and greater level will be accepted for storage in log
@@ -188,7 +165,6 @@ def create_logger(name,
     """
     logger = logging.getLogger(name)
     if name not in active_loggers:
-        print("inside create_logger({}) - configuring it".format(name))
         logger.setLevel(log_level)
         if log_file:  # if present means: "please add this file as logs storage for my logger"
             _add_new_file_handler(logger_name=name,
@@ -204,7 +180,6 @@ def configure_moler_main_logger():
     """Configure main logger of Moler"""
     # warning or above go to logfile
     if 'moler' not in active_loggers:
-        print("inside configure_moler_main_logger()")
         logger = create_logger(name='moler', log_level=TRACE, datefmt=date_format)
         logger.propagate = True
 
@@ -269,7 +244,6 @@ def configure_device_logger(connection_name, propagate=False):
 def _prepare_logs_folder(logfile_full_path):
     """
     Checks that log folder exist and creates it if needed
-
     :param logfile_full_path: path to log folder
     :return: Nome
     """
@@ -361,7 +335,6 @@ class RawFileHandler(logging.FileHandler):
     def emit(self, record):
         """
         Emit a record.
-
         We don't want base class implementation since we don't want to do:
         stream.write(self.terminator)
         We are not adding any \n to bytes-message from record.
@@ -383,15 +356,12 @@ class MultilineWithDirectionFormatter(logging.Formatter):
     timestamp area TTTTTTTTTTT
     transfer direction area >  (shows send '>' or receive '<')
     log message area MMMMMMMMMM
-
     It should look like:
     TTTTTTTTTTTTTTT D MMMMMMMMMMMMMMM
-
     01 00:36:09.581 >|cat my_file.txt
     01 00:36:09.585 <|This is
                      |multiline
                      |content
-
     This formatter allows to use %(transfer_direction)s inside format
     """
 

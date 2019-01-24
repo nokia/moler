@@ -6,6 +6,7 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 
 import logging
 import threading
+import time
 from abc import abstractmethod, ABCMeta
 
 from six import add_metaclass
@@ -41,25 +42,14 @@ class ConnectionObserver(object):
         self._exception = None
         self.runner = runner if runner else get_runner()
         self._future = None
+        self._is_command = None
         self.timeout = 7
+        self.start_time = -1
         self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
         self.logger = logging.getLogger('moler.connection.{}'.format(self.get_logger_name()))
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
-
-    def __del__(self):
-        if hasattr(self, "device_logger"):
-            device_handlers = self.device_logger.handlers[:]
-            for handler in device_handlers:
-                handler.close()
-                self.device_logger.removeHandler(handler)
-
-        if hasattr(self, "logger"):
-            handlers = self.logger.handlers[:]
-            for handler in handlers:
-                handler.close()
-                self.logger.removeHandler(handler)
 
     def __repr__(self):
         cmd_str = self.__str__()
@@ -100,6 +90,7 @@ class ConnectionObserver(object):
             self.timeout = timeout
         self._validate_start(*args, **kwargs)
         self._is_running = True
+        self.start_time = time.time()
         self._future = self.runner.submit(self)
         if self._future is None:
             self._is_running = False
@@ -178,7 +169,6 @@ class ConnectionObserver(object):
 
     def cancel(self):
         """Cancel execution of connection-observer."""
-        # TODO: call cancel on runner to stop background run of connection-observer
         if self.cancelled() or self.done():
             return False
         self._is_done = True
@@ -243,6 +233,33 @@ class ConnectionObserver(object):
     def on_timeout(self):
         """Callback called when observer times out"""
         pass
+
+    def add_command_to_connection(self, do_no_wait):
+        """
+        Adds blocking ConnectionObserver object (command object) to connection. If ConnectionObserver object is not
+         blocking then immediately returns True.
+        :param do_no_wait: If True then returns immediately from method, if False then wait till the connection is available
+        to execute another command or timeout occurred.
+        :return: True if ConnectionObserver was added to connection or adding is not required. False if cannot add ConnectionObserver
+         to connection
+        """
+        return True
+
+    def remove_command_from_connection(self):
+        """
+        Remove blocking ConnectionObserver object (command object) from connection. If Connection observer is not blocking
+         then does nothing.
+        :return: Nothing
+        """
+        pass
+
+    def is_command(self):
+        """
+        :return: True if instance of ConnectionObserver is a command. False if not a command.
+        """
+        if self._is_command is None:
+            self._is_command = hasattr(self, "command_string")
+        return self._is_command
 
     def extend_timeout(self, timedelta):
         prev_timeout = self.timeout

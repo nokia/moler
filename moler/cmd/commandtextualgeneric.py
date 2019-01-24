@@ -38,6 +38,9 @@ class CommandTextualGeneric(Command):
         self._last_not_full_line = None  # Part of line
         self._re_prompt = CommandTextualGeneric._calculate_prompt(prompt)  # Expected prompt on device
         self._newline_chars = newline_chars  # New line characters on device
+        self.do_not_process_after_done = True  # Set True if you want to break processing data when command is done. If
+        # False then on_new_line will be called after done if more lines are in the same data package.
+
         if not self._newline_chars:
             self._newline_chars = CommandTextualGeneric._default_newline_chars
 
@@ -91,6 +94,8 @@ class CommandTextualGeneric(Command):
                 self.on_new_line(line, is_full_line)
             elif is_full_line:
                 self._detect_start_of_cmd_output(line)
+            if self.done() and self.do_not_process_after_done:
+                break
 
     @abc.abstractmethod
     def build_command_string(self):

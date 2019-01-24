@@ -58,14 +58,16 @@ class MolerTest(object):
         MolerTest._logger.warning(msg)
 
     @staticmethod
-    def sleep(seconds):
+    def sleep(seconds, quiet=False):
         """
         Add sleep functionality
         TODO: add support to asyncio when runner ready
         :param seconds: Time to sleep (in seconds)
+        :param quiet: If True then no info to log about sleeping, if False then sleep info will be logged
         :return:
         """
-        MolerTest.info("Sleep for {:.2f} seconds.".format(seconds))
+        if not quiet:
+            MolerTest.info("Sleep for {:.2f} seconds.".format(seconds))
         time.sleep(seconds)
 
     @staticmethod

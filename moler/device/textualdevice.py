@@ -86,10 +86,11 @@ class TextualDevice(object):
         self._configure_state_machine(sm_params)
         self._prepare_newline_chars()
 
-        self.io_connection.notify(callback=self.on_connection_made, when="connection_made")
         # TODO: Need test to ensure above sentence for all connection
-        self.io_connection.open()
+        self.io_connection.notify(callback=self.on_connection_made, when="connection_made")
         self.io_connection.notify(callback=self.on_connection_lost, when="connection_lost")
+        self.io_connection.open()
+
         self._cmdnames_available_in_state = dict()
         self._eventnames_available_in_state = dict()
 
