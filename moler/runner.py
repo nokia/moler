@@ -243,7 +243,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         feed_done = threading.Event()
         observer_lock = threading.Lock()  # against threads race write-access to observer
         subscribed_data_receiver = self._start_feeding(connection_observer, feed_started, observer_lock)
-        start_time = connection_observer.start_time  # time.time()
+        start_time = connection_observer.start_time if connection_observer.start_time != -1 else time.time()
+        connection_observer.start_time = start_time
         connection_observer_future = self.executor.submit(self.feed, connection_observer,
                                                           subscribed_data_receiver,
                                                           feed_started, stop_feeding, feed_done,
@@ -316,11 +317,13 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         """
         def secure_data_received(data):
             if not feed_started.is_set():
+                self.logger.debug("got '{}' but not feed_started on {}".format(data, connection_observer))
                 return
             try:
                 if connection_observer.done() or self._in_shutdown:
                     return  # even not unsubscribed secure_data_received() won't pass data to done observer
                 with observer_lock:
+                    self.logger.debug("{} passed to: {}".format(data, connection_observer))
                     connection_observer.data_received(data)
 
             except Exception as exc:  # TODO: handling stacktrace
@@ -353,21 +356,25 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             subscribed_data_receiver = self._start_feeding(connection_observer, feed_started, observer_lock)
 
         # await command to be 'current on connection' - need to pass over all queued commands
+        started_before_timeout = True
         if connection_observer.is_command():
             started_before_timeout = self._await_passing_command_queue(connection_observer, observer_lock)
-            if not started_before_timeout:
-                return None
-            connection_observer.connection.sendline(connection_observer.command_string)
-            feed_started.set()  # commands start just after sending command_string
+            if started_before_timeout:
+                # feed_started must be set before sending command_string to open data-path inside subscribed_data_receiver
+                # since threads switch may happen during following sendline() function
+                feed_started.set()  # commands start just after sending command_string
+                self.logger.debug("SET feed_started on {}".format(connection_observer))
+                self.logger.debug("sending '{}' on {}".format(connection_observer.command_string, connection_observer))
+                connection_observer.connection.sendline(connection_observer.command_string)
 
-        time.sleep(0.005)  # give control back before we start processing
+        if started_before_timeout:
+            time.sleep(0.005)  # give control back before we start processing
 
-        moler_conn = connection_observer.connection
-
-        self._feed_loop(connection_observer, stop_feeding, observer_lock)
+            self._feed_loop(connection_observer, stop_feeding, observer_lock)
 
         self.logger.debug("unsubscribing {}".format(connection_observer))
         connection_observer.remove_command_from_connection()
+        moler_conn = connection_observer.connection
         moler_conn.unsubscribe(subscribed_data_receiver)
         feed_done.set()
 
@@ -382,7 +389,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Commands are queued on connection. Next command may start running on connection only
         after previous is done. That is to secure against interleaving output of commands on same connection.
         """
-        added_before_timeout = connection_observer.add_command_to_connection()
+        added_before_timeout = connection_observer.add_command_to_connection(do_not_wait=False)
         if not added_before_timeout:
             self.logger.debug("Command '{}' has no chance to start.".format(connection_observer))
             run_duration = time.time() - connection_observer.start_time

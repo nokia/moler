@@ -25,7 +25,6 @@ import moler.config.connections as connection_cfg
 from moler.config.loggers import RAW_DATA, TRACE
 from moler.exceptions import WrongUsage
 from moler.helpers import instance_id
-from moler.util.moler_test import MolerTest
 
 
 def identity_transformation(data):
@@ -224,7 +223,7 @@ class Connection(object):
                 self._commands_queue.append(cmd)
         start_time = cmd.start_time
         while cmd.timeout > (time.time() - start_time):
-            MolerTest.sleep(seconds=0.001, quiet=True)
+            time.sleep(0.001)
             with self._command_lock:
                 if self._command_executing is None and cmd == self._commands_queue[0]:
                     self._commands_queue.pop(0)

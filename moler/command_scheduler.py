@@ -7,6 +7,7 @@ __email__ = 'marcin.usielski@nokia.com'
 
 import threading
 import time
+import logging
 from moler.util.moler_test import MolerTest
 
 
@@ -32,9 +33,10 @@ class CommandScheduler(object):
                 if conn_atr['current_cmd'] is None and cmd == conn_atr['queue'][0]:
                     conn_atr['queue'].pop(0)
                     conn_atr['current_cmd'] = cmd
-                    self._log(logging.DEBUG,
-                              ">'{}' Connection.add_command_to_connection '{}' added cmd from  queue.".format(cmd,
-                                                                                                              cmd.command_string))
+                    log_msg = ">'{}' {} '{}' added cmd from  queue.".format(cmd,
+                                                                            "Connection.add_command_to_connection",
+                                                                            cmd.command_string)
+                    connection._log(logging.DEBUG, log_msg)
                     return True
         # If we are here it means command timeout before it really starts
         with lock:

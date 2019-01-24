@@ -102,6 +102,7 @@ class ThreadedTerminal(IOConnection):
                 self.logger.warning("'{}: {}'".format(exc.__class__, exc))
                 self._notify_on_disconnect()
                 pulling_done.set()
+                break
 
             if self._terminal.fd in reads:
                 try:

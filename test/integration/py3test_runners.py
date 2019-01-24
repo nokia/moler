@@ -82,6 +82,8 @@ def test_runner_secures_observer_against_additional_data_after_observer_is_done(
         connection.data_received("ping: Network is unreachable")
         connection.data_received("62 bytes")
 
+        # print("{} - {}".format(n, net_down_detector.all_data_received))
+
         assert net_down_detector.all_data_received == ["61 bytes", "ping: Network is unreachable"]
 
 

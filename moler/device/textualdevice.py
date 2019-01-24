@@ -509,7 +509,7 @@ class TextualDevice(object):
         for device_state in self._prompts_events:
             self._prompts_events[device_state].cancel()
             self._prompts_events[device_state].remove_event_occurred_callback()
-            self._prompts_events[device_state].__del__()
+        self._prompts_events = {}
 
     def build_trigger_to_state(self, state):
         trigger = "GOTO_{}".format(state)
