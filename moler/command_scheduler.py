@@ -21,6 +21,8 @@ class CommandScheduler(object):
         then returns immediately regardless there is free slot or not.
         :return: True if command was marked as current executed, False if command cannot be set as current executed.
         """
+        if not cmd.is_command():
+            return True  # Passed observer, not command.
         if CommandScheduler._add_command_to_execute(cmd=cmd):
             return True
         else:
@@ -28,7 +30,7 @@ class CommandScheduler(object):
                 CommandScheduler._add_command_to_queue(cmd=cmd)
                 if CommandScheduler._wait_for_slot_for_command(cmd=cmd):
                     return True
-                # If we are here it means command timeout before it really starts
+                # If we are here it means command timeout before it really starts.
                 CommandScheduler._remove_command(cmd=cmd)
         return False
 
@@ -74,8 +76,9 @@ class CommandScheduler(object):
                     conn_atr['queue'].pop(0)
                     conn_atr['current_cmd'] = cmd
                     cmd._log(logging.DEBUG,
-                             ">'{}' Connection.add_command_to_connection '{}' added cmd from  queue.".format(
+                             ">'{}' Connection.add_command_to_connection '{}' added cmd from queue.".format(
                                  cmd, cmd.command_string))
+                    # TODO: start command
                     return True
         return False
 
@@ -101,6 +104,7 @@ class CommandScheduler(object):
         with lock:
             if conn_atr['current_cmd'] is None:
                 conn_atr['current_cmd'] = cmd
+                # TODO: start command
                 return True
         return False
 
