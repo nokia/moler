@@ -41,3 +41,12 @@ def test_add_when_queue_occupied_wait(buffer_connection):
     CommandScheduler.remove_command_from_connection(cmd1)
     assert CommandScheduler.add_command_to_connection(cmd2, wait_for_slot=True) is True
     CommandScheduler.remove_command_from_connection(cmd2)
+
+
+def test_remove_not_added_cmd(buffer_connection):
+    cmd1 = Ls(connection=buffer_connection)
+    CommandScheduler.remove_command_from_connection(cmd1)
+    CommandScheduler.remove_command_from_connection(cmd1)
+    assert CommandScheduler.add_command_to_connection(cmd1, wait_for_slot=False) is True
+    CommandScheduler.remove_command_from_connection(cmd1)
+    CommandScheduler.remove_command_from_connection(cmd1)
