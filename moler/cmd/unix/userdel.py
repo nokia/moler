@@ -3,9 +3,9 @@
 Userdel command module.
 """
 
-__author__ = 'Agnieszka Bylica'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'agnieszka.bylica@nokia.com'
+__author__ = 'Agnieszka Bylica, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com'
 
 
 import re
@@ -46,13 +46,13 @@ class Userdel(GenericUnixCommand):
     _re_wrong_syntax = re.compile(r"Usage:\s(?P<HELP_MSG>.*)", re.IGNORECASE)
 
     def _command_error(self, line):
-            if self._regex_helper.search_compiled(Userdel._re_command_error, line):
-                self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
-                raise ParsingDone
-            if self._regex_helper.search_compiled(Userdel._re_wrong_syntax, line):
-                self.set_exception(CommandFailure(self, "ERROR: wrong syntax, should be: {}".format(
-                    self._regex_helper.group("HELP_MSG"))))
-                raise ParsingDone
+        if self._regex_helper.search_compiled(Userdel._re_command_error, line):
+            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
+            raise ParsingDone
+        if self._regex_helper.search_compiled(Userdel._re_wrong_syntax, line):
+            self.set_exception(CommandFailure(self, "ERROR: wrong syntax, should be: {}".format(
+                self._regex_helper.group("HELP_MSG"))))
+            raise ParsingDone
 
     _re_command_error_user_used = re.compile(r"userdel:\suser\s(?P<USER>.*)\sis\scurrently\sused\sby\sprocess"
                                              r"\s(?P<PROCESS>.*)", re.IGNORECASE)
