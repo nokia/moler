@@ -39,23 +39,47 @@ class Reboot(GenericUnixCommand):
         if is_full_line:
             self._catch_connection_closed(line)
 
-    _re_connection_closed = re.compile(r"(?P<CLOSED>Connection\s+to\s+\S+\s+closed.*)", re.I)
+    _re_connection_closed = re.compile(r"(?P<CLOSED>(Connection\s+to\s+\S+\s+closed.*)|"
+                                       r"(Connection closed by foreign host.*)|(.*?login:\s+))", re.I)
 
     def _catch_connection_closed(self, line):
         if self._regex_helper.search_compiled(Reboot._re_connection_closed, line):
             self.set_result({'RESULT': self._regex_helper.group('CLOSED')})
 
 
-COMMAND_OUTPUT_LINUX = """
+COMMAND_OUTPUT_SSH = """
 toor4nsn@fzhub:~# reboot
-reboot
 Connection to 192.168.255.129 closed by remote host.
 
 Connection to 192.168.255.129 closed.
-ute@SC5G-HUB-079:"""
+ute@SC5G-HUB-079"""
 
-COMMAND_KWARGS_LINUX = {}
+COMMAND_KWARGS_SSH = {}
 
-COMMAND_RESULT_LINUX = {
+COMMAND_RESULT_SSH = {
     'RESULT': 'Connection to 192.168.255.129 closed by remote host.'
+}
+
+COMMAND_OUTPUT_TELNET = """
+root@HUB_WS:~# reboot
+Connection closed by foreign host.
+
+ute@SC5G-HUB-079"""
+
+COMMAND_KWARGS_TELNET = {}
+
+COMMAND_RESULT_TELNET = {
+    'RESULT': 'Connection closed by foreign host.'
+}
+
+COMMAND_OUTPUT_CONSOLE = """
+toor4nsn@fzhub:~# reboot
+Poky (Yocto Project Reference Distro) 2.2.2 fzhub ttyPS0
+
+fzhub login: """
+
+COMMAND_KWARGS_CONSOLE = {}
+
+COMMAND_RESULT_CONSOLE = {
+    'RESULT': 'fzhub login: '
 }
