@@ -7,10 +7,18 @@ __email__ = 'marcin.usielski@nokia.com'
 import threading
 import time
 import logging
-from moler.util.moler_test import MolerTest
+from moler.exceptions import CommandTimeout
+from threading import Thread
 
 
 class CommandScheduler(object):
+
+    @staticmethod
+    def wait_till_slot(cmd):
+        t1 = Thread(target=CommandScheduler.add_command_to_connection, args=(cmd, True))
+        t1.setDaemon(True)
+        t1.start()
+        time.sleep(0.2)
 
     @staticmethod
     def add_command_to_connection(cmd, wait_for_slot=True):
@@ -22,15 +30,20 @@ class CommandScheduler(object):
         :return: True if command was marked as current executed, False if command cannot be set as current executed.
         """
         if not cmd.is_command():
+            CommandScheduler._submit(cmd)
             return True  # Passed observer, not command.
         if CommandScheduler._add_command_to_execute(cmd=cmd):
+            CommandScheduler._submit(cmd)
             return True
         else:
             if wait_for_slot:
                 CommandScheduler._add_command_to_queue(cmd=cmd)
+                start_time = time.time()
                 if CommandScheduler._wait_for_slot_for_command(cmd=cmd):
+                    CommandScheduler._submit(cmd)
                     return True
                 # If we are here it means command timeout before it really starts.
+                cmd.set_exception(CommandTimeout(cmd, timeout=cmd.timeout, kind="scheduler.await_done", passed_time=time.time()-start_time))
                 CommandScheduler._remove_command(cmd=cmd)
         return False
 
@@ -67,10 +80,11 @@ class CommandScheduler(object):
     def _wait_for_slot_for_command(cmd):
         connection = cmd.connection
         lock = CommandScheduler._lock_for_connection(connection)
-        start_time = cmd.start_time
+        start_time = time.time()
         conn_atr = CommandScheduler._locks[connection]
-        while cmd.timeout > (time.time() - start_time):
-            MolerTest.sleep(seconds=0.005, quiet=True)
+        while cmd.timeout >= (time.time() - start_time):
+            # MolerTest.sleep(seconds=0.005, quiet=True)
+            time.sleep(0.005)
             with lock:
                 if conn_atr['current_cmd'] is None and cmd == conn_atr['queue'][0]:
                     conn_atr['queue'].pop(0)
@@ -78,7 +92,6 @@ class CommandScheduler(object):
                     cmd._log(logging.DEBUG,
                              ">'{}' Connection.add_command_to_connection '{}' added cmd from queue.".format(
                                  cmd, cmd.command_string))
-                    # TODO: start command
                     return True
         return False
 
@@ -91,8 +104,9 @@ class CommandScheduler(object):
             if cmd == conn_atr['current_cmd']:
                 conn_atr['current_cmd'] = None
             try:
-                index = conn_atr['queue'].index(cmd)
-                conn_atr['queue'].pop(index)
+                queue = conn_atr['queue']
+                index = queue.index(cmd)
+                queue.pop(index)
             except ValueError:  # command object does not exist in the list
                 pass
 
@@ -115,3 +129,8 @@ class CommandScheduler(object):
         conn_atr = CommandScheduler._locks[connection]
         with lock:
             conn_atr['queue'].append(cmd)
+
+    @staticmethod
+    def _submit(cmd):
+        runner = cmd.runner
+        cmd._future = runner.submit(cmd)

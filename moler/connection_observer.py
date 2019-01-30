@@ -10,7 +10,7 @@ from abc import abstractmethod, ABCMeta
 
 from six import add_metaclass
 
-from moler.exceptions import ConnectionObserverNotStarted
+# from moler.exceptions import ConnectionObserverNotStarted
 from moler.exceptions import ConnectionObserverTimeout
 from moler.exceptions import NoConnectionProvided
 from moler.exceptions import NoResultSinceCancelCalled
@@ -21,6 +21,7 @@ from moler.helpers import camel_case_to_lower_case_underscore
 from moler.helpers import instance_id
 from moler.helpers import copy_list
 from moler.runner import ThreadPoolExecutorRunner
+from moler.command_scheduler import CommandScheduler
 import threading
 
 
@@ -70,6 +71,16 @@ class ConnectionObserver(object):
             return started_observer.await_done(*args, **kwargs)
         # TODO: raise ConnectionObserverFailedToStart
 
+    @property
+    def _is_done(self):
+        return self.__is_done
+
+    @_is_done.setter
+    def _is_done(self, value):
+        if value:
+            CommandScheduler.remove_command_from_connection(cmd=self)
+        self.__is_done = value
+
     def get_logger_name(self):
         if self.connection and hasattr(self.connection, "name"):
             return self.connection.name
@@ -83,9 +94,11 @@ class ConnectionObserver(object):
         self._validate_start(*args, **kwargs)
         self._is_running = True
         self.start_time = time.time()
-        self._future = self.runner.submit(self)
-        if self._future is None:
-            self._is_running = False
+        CommandScheduler.wait_till_slot(cmd=self)
+        # CommandScheduler.add_command_to_connection(cmd=self, wait_for_slot=True)
+        #self._future = self.runner.submit(self)
+        #if self._future is None:
+        #    self._is_running = False
         return self
 
     def _validate_start(self, *args, **kwargs):
@@ -93,7 +106,8 @@ class ConnectionObserver(object):
         if not self.connection:
             # only if we have connection we can expect some data on it
             # at the latest "just before start" we need connection
-            raise NoConnectionProvided(self)
+            self.set_exception(NoConnectionProvided(self))
+            # raise NoConnectionProvided(self)
         # ----------------------------------------------------------------------
         # We intentionally do not check if connection is open here.
         # In such case net result anyway will be failed/timeouted observer -
@@ -104,16 +118,22 @@ class ConnectionObserver(object):
         # We choose minimalistic dependency over better troubleshooting support.
         # ----------------------------------------------------------------------
         if self.timeout <= 0.0:
-            raise ConnectionObserverTimeout(self, self.timeout, "before run", "timeout is not positive value")
+            exc = ConnectionObserverTimeout(self, self.timeout, "before run", "timeout is not positive value")
+            self.set_exception(exc)
+            #raise ConnectionObserverTimeout(self, self.timeout, "before run", "timeout is not positive value")
 
     def await_done(self, timeout=None):
         """Await completion of connection-observer."""
         if self.done():
             return self.result()
-        if self._future is None:
-            raise ConnectionObserverNotStarted(self)
-        self.runner.wait_for(connection_observer=self, connection_observer_future=self._future,
-                             timeout=timeout)
+        while self._future is None:
+            time.sleep(0.005)
+            if self.done():
+                break
+        # if self._future is None:
+        #     raise ConnectionObserverNotStarted(self)
+        if self._future:
+            self.runner.wait_for(connection_observer=self, connection_observer_future=self._future, timeout=timeout)
         return self.result()
 
     def cancel(self):
@@ -144,6 +164,9 @@ class ConnectionObserver(object):
             raise ResultAlreadySet(self)
         self._is_done = True
         self._result = result
+
+    def finish(self):
+        CommandScheduler.remove_command_from_connection(cmd=self)
 
     @abstractmethod
     def data_received(self, data):
@@ -191,24 +214,24 @@ class ConnectionObserver(object):
         """ It's callback called by framework just before raise exception for Timeout """
         pass
 
-    def add_command_to_connection(self, do_no_wait):
-        """
-        Adds blocking ConnectionObserver object (command object) to connection. If ConnectionObserver object is not
-         blocking then immediately returns True.
-        :param do_no_wait: If True then returns immediately from method, if False then wait till the connection is available
-        to execute another command or timeout occurred.
-        :return: True if ConnectionObserver was added to connection or adding is not required. False if cannot add ConnectionObserver
-         to connection
-        """
-        return True
-
-    def remove_command_from_connection(self):
-        """
-        Remove blocking ConnectionObserver object (command object) from connection. If Connection observer is not blocking
-         then does nothing.
-        :return: Nothing
-        """
-        pass
+    # def add_command_to_connection(self, do_no_wait):
+    #     """
+    #     Adds blocking ConnectionObserver object (command object) to connection. If ConnectionObserver object is not
+    #      blocking then immediately returns True.
+    #     :param do_no_wait: If True then returns immediately from method, if False then wait till the connection is available
+    #     to execute another command or timeout occurred.
+    #     :return: True if ConnectionObserver was added to connection or adding is not required. False if cannot add ConnectionObserver
+    #      to connection
+    #     """
+    #     return True
+    #
+    # def remove_command_from_connection(self):
+    #     """
+    #     Remove blocking ConnectionObserver object (command object) from connection. If Connection observer is not blocking
+    #      then does nothing.
+    #     :return: Nothing
+    #     """
+    #     pass
 
     def is_command(self):
         """
