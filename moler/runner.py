@@ -251,7 +251,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         feed_started.set()
 
         self._feed_loop(connection_observer, stop_feeding)
-        
+
         self.logger.debug("unsubscribing {!r}".format(connection_observer))
         moler_conn.unsubscribe(secure_data_received)
         feed_done.set()

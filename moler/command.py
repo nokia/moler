@@ -18,8 +18,11 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import NoCommandStringProvided
 from moler.helpers import instance_id
+from six import add_metaclass
+from abc import ABCMeta
 
 
+@add_metaclass(ABCMeta)
 class Command(ConnectionObserver):
     def __init__(self, connection=None, runner=None):
         """
