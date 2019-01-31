@@ -36,7 +36,7 @@ class Sed(GenericUnixCommand):
     def build_command_string(self):
         cmd = "sed"
         if self.options:
-                cmd = "{} {}".format(cmd, self.options)
+            cmd = "{} {}".format(cmd, self.options)
         if self.scripts:
             for script in self.scripts:
                 cmd = "{} -e '{}'".format(cmd, script)
