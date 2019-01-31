@@ -14,14 +14,14 @@ from threading import Thread
 class CommandScheduler(object):
 
     @staticmethod
-    def wait_till_slot(cmd):
+    def wait_for_slot_and_run_connection_observer(cmd):
         t1 = Thread(target=CommandScheduler._add_command_to_connection, args=(cmd, True))
         t1.setDaemon(True)
         t1.start()
         time.sleep(0.2)
 
     @staticmethod
-    def remove_command_from_connection(cmd):
+    def remove_connection_observer_from_connection(cmd):
         """
         Removes command from queue and/or current executed on connection.
         :param cmd: Command object to remove from connection
