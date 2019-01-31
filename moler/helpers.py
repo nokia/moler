@@ -96,7 +96,7 @@ def create_object_from_name(full_class_name, constructor_params):
 
     imported_module = importlib.import_module(module_name)
     class_imported = getattr(imported_module, class_name)
-    obj = class_imported(constructor_params)
+    obj = class_imported(**constructor_params)
     return obj
 
 

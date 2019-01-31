@@ -15,13 +15,22 @@ class CommandScheduler(object):
 
     @staticmethod
     def wait_till_slot(cmd):
-        t1 = Thread(target=CommandScheduler.add_command_to_connection, args=(cmd, True))
+        t1 = Thread(target=CommandScheduler._add_command_to_connection, args=(cmd, True))
         t1.setDaemon(True)
         t1.start()
         time.sleep(0.2)
 
     @staticmethod
-    def add_command_to_connection(cmd, wait_for_slot=True):
+    def remove_command_from_connection(cmd):
+        """
+        Removes command from queue and/or current executed on connection.
+        :param cmd: Command object to remove from connection
+        :return: None
+        """
+        CommandScheduler._remove_command(cmd=cmd)
+
+    @staticmethod
+    def _add_command_to_connection(cmd, wait_for_slot=True):
         """
         Adds command to execute on connection.
         :param cmd: Command object to add to connection
@@ -47,15 +56,6 @@ class CommandScheduler(object):
                                                  passed_time=time.time() - start_time))
                 CommandScheduler._remove_command(cmd=cmd)
         return False
-
-    @staticmethod
-    def remove_command_from_connection(cmd):
-        """
-        Removes command from queue and/or current executed on connection.
-        :param cmd: Command object to remove from connection
-        :return: None
-        """
-        CommandScheduler._remove_command(cmd=cmd)
 
     # internal methods and variables
 
