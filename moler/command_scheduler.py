@@ -27,7 +27,7 @@ class CommandScheduler(object):
         t1 = Thread(target=CommandScheduler._add_command_to_connection, args=(connection_observer, True))
         t1.setDaemon(True)
         t1.start()
-        time.sleep(0.1)
+        # time.sleep(0.1)
 
     @staticmethod
     def remove_connection_observer_from_connection(connection_observer):
