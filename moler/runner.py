@@ -248,10 +248,10 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
         if connection_observer.is_command():
             connection_observer.connection.sendline(connection_observer.command_string)
-        feed_started.set()  # Events start here because they do not have to wait to finish other events.
+        feed_started.set()
 
         self._feed_loop(connection_observer, stop_feeding)
-
+        
         self.logger.debug("unsubscribing {!r}".format(connection_observer))
         moler_conn.unsubscribe(secure_data_received)
         feed_done.set()
