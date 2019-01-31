@@ -21,6 +21,9 @@ class CommandScheduler(object):
         :param connection_observer: Object of ConnectionObserver to run. Maybe a command or an observer.
         :return: Nothing
         """
+        if not connection_observer.is_command():
+            CommandScheduler._submit(connection_observer)
+            return  # Passed observer, not command.
         t1 = Thread(target=CommandScheduler._add_command_to_connection, args=(connection_observer, True))
         t1.setDaemon(True)
         t1.start()
@@ -49,9 +52,6 @@ class CommandScheduler(object):
         then returns immediately regardless there is free slot or not.
         :return: True if command was marked as current executed, False if command cannot be set as current executed.
         """
-        if not cmd.is_command():
-            CommandScheduler._submit(cmd)
-            return True  # Passed observer, not command.
         if CommandScheduler._add_command_to_execute(cmd=cmd):
             CommandScheduler._submit(cmd)
             return True
@@ -60,10 +60,12 @@ class CommandScheduler(object):
                 CommandScheduler._add_command_to_queue(cmd=cmd)
                 start_time = time.time()
                 if CommandScheduler._wait_for_slot_for_command(cmd=cmd):
-                    CommandScheduler._submit(cmd)
+                    CommandScheduler._submit(connection_observer=cmd)
                     return True
                 # If we are here it means command timeout before it really starts.
-                cmd.set_exception(CommandTimeout(cmd, timeout=cmd.timeout, kind="scheduler.await_done",
+                cmd.set_exception(CommandTimeout(cmd,
+                                                 timeout=cmd.timeout,
+                                                 kind="scheduler.await_done",
                                                  passed_time=time.time() - start_time))
                 CommandScheduler._remove_command(cmd=cmd)
         return False
@@ -137,6 +139,6 @@ class CommandScheduler(object):
             conn_atr['queue'].append(cmd)
 
     @staticmethod
-    def _submit(cmd):
-        runner = cmd.runner
-        cmd._future = runner.submit(cmd)
+    def _submit(connection_observer):
+        runner = connection_observer.runner
+        connection_observer._future = runner.submit(connection_observer)
