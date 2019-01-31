@@ -24,6 +24,9 @@ class CommandScheduler(object):
         if not connection_observer.is_command():  # Passed observer, not command.
             CommandScheduler._submit(connection_observer)
             return
+        if CommandScheduler._add_command_to_connection(cmd=connection_observer, wait_for_slot=False):
+            #  We have a free slot available
+            return
         t1 = Thread(target=CommandScheduler._add_command_to_connection, args=(connection_observer, True))
         t1.setDaemon(True)
         t1.start()
