@@ -2,12 +2,13 @@
 """
 SFTP command test module.
 """
-__author__ = 'Agnieszka Bylica'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'agnieszka.bylica@nokia.com'
+__author__ = 'Agnieszka Bylica, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com'
 
 
 import pytest
+import time
 from moler.cmd.unix.sftp import Sftp
 from moler.exceptions import CommandFailure
 
@@ -246,6 +247,7 @@ def test_sftp_raise_not_confirmed_connection(buffer_connection, command_output_a
     assert "sftp fred@192.168.0.102" == sftp_cmd.command_string
     sftp_cmd.start()
     command_output, expected_result = command_output_and_expected_result_not_confirmed
+    time.sleep(0.2)
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
     with pytest.raises(CommandFailure):
@@ -275,6 +277,7 @@ def test_sftp_returns_result_pwd_in_prompt(buffer_connection, command_output_and
     assert "sftp fred@192.168.0.102" == sftp_cmd.command_string
     command_output, expected_result = command_output_and_expected_result_pwd_in_prompt
     sftp_cmd.start()
+    time.sleep(0.1)
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
     assert sftp_cmd.current_ret == expected_result
@@ -316,7 +319,8 @@ def test_sftp_no_result(buffer_connection, command_output_and_expected_result_no
                     command="mkdir pet", no_result=True)
     assert "sftp fred@192.168.0.102" == sftp_cmd.command_string
     command_output, expected_result = command_output_and_expected_result_no_result
-    sftp_cmd.start()
+    sftp_cmd.start(timeout=1)
+    time.sleep(0.1)
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
     assert sftp_cmd.current_ret == expected_result
@@ -359,6 +363,7 @@ def test_sftp_returns_result_of_fetching_file_with_progress_bar(buffer_connectio
     assert "sftp fred@192.168.0.102:debian-9.5.0-i386-netinst.iso" == sftp_cmd.command_string
     command_output, expected_result = command_output_and_expected_result_progress_bar
     sftp_cmd.start()
+    time.sleep(0.1)
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
     assert sftp_cmd.current_ret == expected_result
