@@ -21,9 +21,9 @@ class CommandScheduler(object):
         :param connection_observer: Object of ConnectionObserver to run. Maybe a command or an observer.
         :return: Nothing
         """
-        if not connection_observer.is_command():
+        if not connection_observer.is_command():  # Passed observer, not command.
             CommandScheduler._submit(connection_observer)
-            return  # Passed observer, not command.
+            return
         t1 = Thread(target=CommandScheduler._add_command_to_connection, args=(connection_observer, True))
         t1.setDaemon(True)
         t1.start()
@@ -36,6 +36,8 @@ class CommandScheduler(object):
         :param connection_observer: Command object to remove from connection
         :return: None
         """
+        if not connection_observer.is_command():  # Passed observer, not command.
+            return
         CommandScheduler._remove_command(cmd=connection_observer)
 
     # internal methods and variables
