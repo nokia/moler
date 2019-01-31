@@ -177,7 +177,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             connection_observer.set_exception(exc)
             return None
         c_future = CancellableFuture(connection_observer_future, feed_started, stop_feeding, feed_done)
-        #time.sleep(0.05)  # Workaround for command tests because they send output before command string is sent
+        # time.sleep(0.05)  # Workaround for command tests because they send output before command string is sent
         return c_future
 
     def wait_for(self, connection_observer, connection_observer_future, timeout=None):
@@ -215,8 +215,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         connection_observer_future.cancel()
         # TODO: rethink - on timeout we raise while on other exceptions we expect observers
         #       just to call  observer.set_exception() - so, no raise before calling observer.result()
-        if connection_observer.is_command():
         # if hasattr(connection_observer, "command_string"):
+        if connection_observer.is_command():
             exception = CommandTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
         else:
             exception = ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)

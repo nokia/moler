@@ -43,7 +43,8 @@ class CommandScheduler(object):
                     CommandScheduler._submit(cmd)
                     return True
                 # If we are here it means command timeout before it really starts.
-                cmd.set_exception(CommandTimeout(cmd, timeout=cmd.timeout, kind="scheduler.await_done", passed_time=time.time()-start_time))
+                cmd.set_exception(CommandTimeout(cmd, timeout=cmd.timeout, kind="scheduler.await_done",
+                                                 passed_time=time.time() - start_time))
                 CommandScheduler._remove_command(cmd=cmd)
         return False
 

@@ -96,8 +96,8 @@ class ConnectionObserver(object):
         self.start_time = time.time()
         CommandScheduler.wait_till_slot(cmd=self)
         # CommandScheduler.add_command_to_connection(cmd=self, wait_for_slot=True)
-        #self._future = self.runner.submit(self)
-        #if self._future is None:
+        # self._future = self.runner.submit(self)
+        # if self._future is None:
         #    self._is_running = False
         return self
 
