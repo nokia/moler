@@ -18,7 +18,6 @@ class PingResponse(LineEvent):
         :param till_occurs_times: number of event occurrence
         """
         super(PingResponse, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
-        self.connection = connection
         self.detect_pattern = r'\d+\s+bytes\s+from.+'
         self.current_ret = dict()
 
@@ -33,7 +32,6 @@ class PingResponse(LineEvent):
             match_obj = re.search(self.detect_pattern, line)
 
             if match_obj:
-                print(line)
                 self.current_ret['time'] = datetime.datetime.now()
                 self.current_ret['line'] = line
                 self.event_occurred(event_data=self.current_ret)

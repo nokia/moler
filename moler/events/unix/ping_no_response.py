@@ -18,7 +18,6 @@ class PingNoResponse(LineEvent):
         :param till_occurs_times: number of event occurrence
         """
         super(PingNoResponse, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
-        self.connection = connection
         self.detect_pattern = r'(no\s+answer\s+yet\s+for.*)|(.*Destination\s+Host\s+Unreachable)'
         self.current_ret = dict()
 
