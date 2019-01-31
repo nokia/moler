@@ -94,7 +94,6 @@ class CommandScheduler(object):
         start_time = time.time()
         conn_atr = CommandScheduler._locks[connection]
         while cmd.timeout >= (time.time() - start_time):
-            # MolerTest.sleep(seconds=0.005, quiet=True)
             time.sleep(0.005)
             with lock:
                 if conn_atr['current_cmd'] is None and cmd == conn_atr['queue'][0]:
