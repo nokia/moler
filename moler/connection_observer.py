@@ -43,7 +43,6 @@ class ConnectionObserver(object):
         self._exception = None
         self.runner = runner if runner else ThreadPoolExecutorRunner()
         self._future = None
-        self._is_command = None
         self.timeout = 7
         self.start_time = -1
         self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
@@ -216,32 +215,11 @@ class ConnectionObserver(object):
         """ It's callback called by framework just before raise exception for Timeout """
         pass
 
-    # def add_command_to_connection(self, do_no_wait):
-    #     """
-    #     Adds blocking ConnectionObserver object (command object) to connection. If ConnectionObserver object is not
-    #      blocking then immediately returns True.
-    #     :param do_no_wait: If True then returns immediately from method, if False then wait till the connection is available
-    #     to execute another command or timeout occurred.
-    #     :return: True if ConnectionObserver was added to connection or adding is not required. False if cannot add ConnectionObserver
-    #      to connection
-    #     """
-    #     return True
-    #
-    # def remove_command_from_connection(self):
-    #     """
-    #     Remove blocking ConnectionObserver object (command object) from connection. If Connection observer is not blocking
-    #      then does nothing.
-    #     :return: Nothing
-    #     """
-    #     pass
-
     def is_command(self):
         """
         :return: True if instance of ConnectionObserver is a command. False if not a command.
         """
-        if self._is_command is None:
-            self._is_command = hasattr(self, "command_string")
-        return self._is_command
+        return False
 
     def extend_timeout(self, timedelta):
         prev_timeout = self.timeout

@@ -52,3 +52,9 @@ class Command(ConnectionObserver):
 
     def get_short_desc(self):
         return "Command '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)
+
+    def is_command(self):
+        """
+        :return: True if instance of ConnectionObserver is a command. False if not a command.
+        """
+        return True
