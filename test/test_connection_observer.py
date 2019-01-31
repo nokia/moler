@@ -118,6 +118,7 @@ def test_connection_is_required_to_start_connection_observer(do_nothing_connecti
 
     with pytest.raises(NoConnectionProvided):
         connection_observer.start()  # start background-run of connection_observer-future
+        connection_observer.await_done()
 
 
 def test_connection_observer_is_running_after_it_calls_start(do_nothing_connection_observer__for_major_base_class,

@@ -10,7 +10,7 @@ from abc import abstractmethod, ABCMeta
 
 from six import add_metaclass
 
-# from moler.exceptions import ConnectionObserverNotStarted
+from moler.exceptions import ConnectionObserverNotStarted
 from moler.exceptions import ConnectionObserverTimeout
 from moler.exceptions import NoConnectionProvided
 from moler.exceptions import NoResultSinceCancelCalled
@@ -126,6 +126,8 @@ class ConnectionObserver(object):
         """Await completion of connection-observer."""
         if self.done():
             return self.result()
+        if not self._is_running:
+            raise ConnectionObserverNotStarted(self)
         while self._future is None:
             time.sleep(0.005)
             if self.done():
