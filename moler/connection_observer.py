@@ -120,7 +120,7 @@ class ConnectionObserver(object):
         if self.timeout <= 0.0:
             exc = ConnectionObserverTimeout(self, self.timeout, "before run", "timeout is not positive value")
             self.set_exception(exc)
-            #raise ConnectionObserverTimeout(self, self.timeout, "before run", "timeout is not positive value")
+            # raise ConnectionObserverTimeout(self, self.timeout, "before run", "timeout is not positive value")
 
     def await_done(self, timeout=None):
         """Await completion of connection-observer."""
