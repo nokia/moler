@@ -63,7 +63,7 @@ class CommandScheduler(object):
         else:
             if wait_for_slot:
                 CommandScheduler._add_command_to_queue(cmd=cmd)
-                start_time = time.time()
+                start_time = cmd.start_time
                 if CommandScheduler._wait_for_slot_for_command(cmd=cmd):
                     CommandScheduler._submit(connection_observer=cmd)
                     return True
@@ -77,6 +77,11 @@ class CommandScheduler(object):
 
     @staticmethod
     def _lock_for_connection(connection):
+        """
+        Returns a lock object for the connection.
+        :param connection: connection to look for a lock object.
+        :return: Lock object.
+        """
         with CommandScheduler._conn_lock:
             if connection not in CommandScheduler._locks:
                 CommandScheduler._locks[connection] = CommandScheduler._create_empty_connection_dict()
@@ -84,6 +89,10 @@ class CommandScheduler(object):
 
     @staticmethod
     def _create_empty_connection_dict():
+        """
+        Creates the dict with initial values for fields for connection.
+        :return: Initial dict for connection
+        """
         ret = dict()
         ret['lock'] = threading.Lock()
         ret['queue'] = list()
@@ -92,6 +101,11 @@ class CommandScheduler(object):
 
     @staticmethod
     def _wait_for_slot_for_command(cmd):
+        """
+        Waits for free slot for the command.
+        :param cmd: Command object.
+        :return: True if command was marked as ready to execute, False if timeout.
+        """
         connection = cmd.connection
         lock = CommandScheduler._lock_for_connection(connection)
         start_time = time.time()
@@ -103,13 +117,19 @@ class CommandScheduler(object):
                     conn_atr['queue'].pop(0)
                     conn_atr['current_cmd'] = cmd
                     cmd._log(logging.DEBUG,
-                             ">'{}' Connection.add_command_to_connection '{}' added cmd from queue.".format(
-                                 cmd, cmd.command_string))
+                             ">'{}': added  added cmd ('{}') from queue.".format(
+                                 cmd.connection.name, cmd))
                     return True
         return False
 
     @staticmethod
     def _remove_command(cmd):
+        """
+        Removes command object from queue and/or current executed. It is safe to call this method many times for the
+         same command object.
+        :param cmd: Command object
+        :return: Nothing.
+        """
         connection = cmd.connection
         lock = CommandScheduler._lock_for_connection(connection)
         conn_atr = CommandScheduler._locks[connection]
@@ -125,6 +145,11 @@ class CommandScheduler(object):
 
     @staticmethod
     def _add_command_to_execute(cmd):
+        """
+        Tries to mark command object as current in run mode .
+        :param cmd: Command object.
+        :return: True if command object was marked as current run, False otherwise.
+        """
         connection = cmd.connection
         lock = CommandScheduler._lock_for_connection(connection)
         conn_atr = CommandScheduler._locks[connection]
@@ -136,6 +161,11 @@ class CommandScheduler(object):
 
     @staticmethod
     def _add_command_to_queue(cmd):
+        """
+        Adds command object to queue fot connection of command.
+        :param cmd: Command object.
+        :return: Nothing.
+        """
         connection = cmd.connection
         lock = CommandScheduler._lock_for_connection(connection)
         conn_atr = CommandScheduler._locks[connection]
@@ -144,5 +174,10 @@ class CommandScheduler(object):
 
     @staticmethod
     def _submit(connection_observer):
+        """
+        Submits a connection_observer object (command or observer) in the runner.
+        :param connection_observer: Connection observer (command or observer) object to submit
+        :return: Nothing
+        """
         runner = connection_observer.runner
         connection_observer._future = runner.submit(connection_observer)
