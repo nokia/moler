@@ -44,7 +44,7 @@ class Reboot(GenericUnixCommand):
     _re_connection_closed = re.compile(r"(?P<CLOSED>(Connection\s+to\s+\S+\s+closed.*)|"
                                        r"(Connection closed by foreign host.*))", re.I)
 
-    _re_login_prompt = re.compile(r"(?P<CLOSED>.*?login:\s+)", re.I)
+    _re_login_prompt = re.compile(r"(?P<LOGIN_PROMPT>.*?login:\s+)", re.I)
 
     def _catch_connection_closed(self, line):
         if self._regex_helper.search_compiled(Reboot._re_connection_closed, line):
@@ -52,7 +52,7 @@ class Reboot(GenericUnixCommand):
 
     def _catch_login_prompt(self, line):
         if self._regex_helper.search_compiled(Reboot._re_login_prompt, line):
-            self.set_result({'RESULT': self._regex_helper.group('CLOSED')})
+            self.set_result({'RESULT': self._regex_helper.group('LOGIN_PROMPT')})
 
 
 COMMAND_OUTPUT_SSH = """
