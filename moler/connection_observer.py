@@ -94,10 +94,6 @@ class ConnectionObserver(object):
         self._is_running = True
         self.start_time = time.time()
         CommandScheduler.wait_for_slot_and_run_connection_observer(connection_observer=self)
-        # CommandScheduler.add_command_to_connection(cmd=self, wait_for_slot=True)
-        # self._future = self.runner.submit(self)
-        # if self._future is None:
-        #    self._is_running = False
         return self
 
     def _validate_start(self, *args, **kwargs):
@@ -106,7 +102,6 @@ class ConnectionObserver(object):
             # only if we have connection we can expect some data on it
             # at the latest "just before start" we need connection
             self.set_exception(NoConnectionProvided(self))
-            # raise NoConnectionProvided(self)
         # ----------------------------------------------------------------------
         # We intentionally do not check if connection is open here.
         # In such case net result anyway will be failed/timeouted observer -
@@ -119,7 +114,6 @@ class ConnectionObserver(object):
         if self.timeout <= 0.0:
             exc = ConnectionObserverTimeout(self, self.timeout, "before run", "timeout is not positive value")
             self.set_exception(exc)
-            # raise ConnectionObserverTimeout(self, self.timeout, "before run", "timeout is not positive value")
 
     def await_done(self, timeout=None):
         """Await completion of connection-observer."""
@@ -131,8 +125,6 @@ class ConnectionObserver(object):
             time.sleep(0.005)
             if self.done():
                 break
-        # if self._future is None:
-        #     raise ConnectionObserverNotStarted(self)
         if self._future:
             self.runner.wait_for(connection_observer=self, connection_observer_future=self._future, timeout=timeout)
         return self.result()
