@@ -14,20 +14,31 @@ from threading import Thread
 class CommandScheduler(object):
 
     @staticmethod
-    def wait_for_slot_and_run_connection_observer(cmd):
-        t1 = Thread(target=CommandScheduler._add_command_to_connection, args=(cmd, True))
+    def wait_for_slot_and_run_connection_observer(connection_observer):
+        """
+        Waits for free slot and runs command when no other command is in run mode. If connection_observer is not
+         a command then runs immediately.
+        :param connection_observer: Object of ConnectionObserver to run. Maybe a command or an observer.
+        :return: Nothing
+        """
+        t1 = Thread(target=CommandScheduler._add_command_to_connection, args=(connection_observer, True))
         t1.setDaemon(True)
         t1.start()
-        time.sleep(0.2)
+        time.sleep(0.1)
 
     @staticmethod
-    def remove_connection_observer_from_connection(cmd):
+    def remove_connection_observer_from_connection(connection_observer):
         """
         Removes command from queue and/or current executed on connection.
-        :param cmd: Command object to remove from connection
+        :param connection_observer: Command object to remove from connection
         :return: None
         """
-        CommandScheduler._remove_command(cmd=cmd)
+        CommandScheduler._remove_command(cmd=connection_observer)
+
+    # internal methods and variables
+
+    _conn_lock = threading.Lock()
+    _locks = dict()
 
     @staticmethod
     def _add_command_to_connection(cmd, wait_for_slot=True):
@@ -56,11 +67,6 @@ class CommandScheduler(object):
                                                  passed_time=time.time() - start_time))
                 CommandScheduler._remove_command(cmd=cmd)
         return False
-
-    # internal methods and variables
-
-    _conn_lock = threading.Lock()
-    _locks = dict()
 
     @staticmethod
     def _lock_for_connection(connection):
@@ -119,7 +125,6 @@ class CommandScheduler(object):
         with lock:
             if conn_atr['current_cmd'] is None:
                 conn_atr['current_cmd'] = cmd
-                # TODO: start command
                 return True
         return False
 
