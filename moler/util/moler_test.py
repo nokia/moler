@@ -10,6 +10,7 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 
 import logging
 import time
+import pprint
 from functools import partial
 from functools import wraps
 from types import FunctionType, MethodType
@@ -30,33 +31,52 @@ class MolerTest(object):
         MolerTest._was_steps_end = True
 
     @staticmethod
-    def error(msg, raise_exception=False):
+    def error(msg, raise_exception=False, dump=None):
         """
         Makes an error (fail the test) and (optional) continue the test flow.
         :param msg: Message to show.
         :param raise_exception: If True then raise an exception, if False then only show msg and mark error in logs.
+        :param dump: If defined then dump object.
         :return: Nothing.
         """
         MolerTest._list_of_errors.append(msg)
-        MolerTest._error(msg, raise_exception)
+        MolerTest._error(msg, raise_exception, dump)
 
     @staticmethod
-    def info(msg):
+    def info(msg, dump=None):
         """
         Shows the message
         :param msg: Message to show.
+        :param dump: If defined then dump object.
         :return: Nothing.
         """
+
         MolerTest._logger.info(msg)
+        if dump:
+            MolerTest.dump(dump)
 
     @staticmethod
-    def warning(msg):
+    def warning(msg, dump=None):
         """
         Shows the message as warning.
         :param msg: Message to show.
+        :param dump: If defined then dump object.
         :return: Nothing
         """
         MolerTest._logger.warning(msg)
+        if dump:
+            MolerTest.dump(dump)
+
+    @staticmethod
+    def dump(obj):
+        """
+        Dumping objet to moler log.
+        :param obj: Object to dump.
+        :return: Nothing
+        """
+        msg_str = pprint.pformat(obj, indent=1)
+
+        MolerTest._logger.info(msg_str)
 
     @staticmethod
     def sleep(seconds, quiet=False):
@@ -94,9 +114,11 @@ class MolerTest(object):
     _list_of_errors = list()
 
     @staticmethod
-    def _error(msg, raise_exception=False):
+    def _error(msg, raise_exception=False, dump=None):
         MolerTest._was_error = True
         MolerTest._logger.error(msg, extra={'moler_error': True})
+        if dump:
+            MolerTest.dump(dump)
         if raise_exception:
             raise MolerException(msg)
 
