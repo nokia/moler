@@ -59,9 +59,6 @@ class Connection(object):
         self.newline = newline
         self.data_logger = logging.getLogger('moler.{}'.format(self.name))
         self.logger = Connection._select_logger(logger_name, self._name)
-        self._command_lock = Lock()
-        self._commands_queue = list()
-        self._command_executing = None
 
     @property
     def name(self):
