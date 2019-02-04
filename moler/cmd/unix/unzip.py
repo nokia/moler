@@ -159,8 +159,8 @@ class Unzip(GenericUnixCommand):
 COMMAND_OUTPUT_parse_info_output = """
 host:~ # unzip test.zip
 Archive:  test.zip
- extracting: file1.txt               
- extracting: file.txt                
+ extracting: file1.txt
+ extracting: file.txt
 host:~ # """
 
 COMMAND_RESULT_parse_info_output = {
@@ -174,10 +174,10 @@ COMMAND_KWARGS_parse_info_output = {
 }
 
 COMMAND_OUTPUT_overwrite = """
-host:~ # unzip test.zip 
+host:~ # unzip test.zip
 Archive:  test.zip
 replace test.txt? [y]es, [n]o, [A]ll, [N]one, [r]ename:
- extracting: test.txt 
+ extracting: test.txt
 host:~ # """
 
 COMMAND_RESULT_overwrite = {
