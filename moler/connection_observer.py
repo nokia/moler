@@ -77,7 +77,7 @@ class ConnectionObserver(object):
     @_is_done.setter
     def _is_done(self, value):
         if value:
-            CommandScheduler.remove_connection_observer_from_connection(connection_observer=self)
+            CommandScheduler.dequeue_running_on_connection(connection_observer=self)
         self.__is_done = value
 
     def get_logger_name(self):
@@ -93,7 +93,7 @@ class ConnectionObserver(object):
         self._validate_start(*args, **kwargs)
         self._is_running = True
         self.start_time = time.time()
-        CommandScheduler.wait_for_slot_and_run_connection_observer(connection_observer=self)
+        CommandScheduler.enqueue_starting_on_connection(connection_observer=self)
         return self
 
     def _validate_start(self, *args, **kwargs):
@@ -159,7 +159,7 @@ class ConnectionObserver(object):
         self._result = result
 
     def finish(self):
-        CommandScheduler.remove_connection_observer_from_connection(connection_observer=self)
+        CommandScheduler.dequeue_running_on_connection(connection_observer=self)
 
     @abstractmethod
     def data_received(self, data):

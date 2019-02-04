@@ -14,7 +14,7 @@ from threading import Thread
 class CommandScheduler(object):
 
     @staticmethod
-    def wait_for_slot_and_run_connection_observer(connection_observer):
+    def enqueue_starting_on_connection(connection_observer):
         """
         Waits for free slot and runs command when no other command is in run mode. If connection_observer is not
          a command then runs immediately.
@@ -34,7 +34,7 @@ class CommandScheduler(object):
         t1.start()
 
     @staticmethod
-    def remove_connection_observer_from_connection(connection_observer):
+    def dequeue_running_on_connection(connection_observer):
         """
         Removes command from queue and/or current executed on connection.
         :param connection_observer: Command object to remove from connection
