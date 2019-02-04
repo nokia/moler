@@ -31,6 +31,6 @@ unzip:  cannot find or open test.zip, test.zip.zip or test.zip.ZIP.
 ute@debdev:~$ 
 """
     buffer_connection.remote_inject_response([command_output])
-    cmd = Unzip(connection=buffer_connection.moler_connection, options="unzip test.zip")
+    cmd = Unzip(connection=buffer_connection.moler_connection, zip_file="test.zip")
     with pytest.raises(CommandFailure):
         cmd()
