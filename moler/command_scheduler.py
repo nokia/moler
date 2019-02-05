@@ -4,74 +4,186 @@ __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
-
 import threading
 import time
-from moler.util.moler_test import MolerTest
+import logging
+from moler.exceptions import CommandTimeout
+from threading import Thread
 
 
 class CommandScheduler(object):
 
     @staticmethod
-    def add_command_to_connection(cmd, do_not_wait=False):
-        connection = cmd.connection
-        lock = CommandScheduler._lock_for_connection(connection)
-        conn_atr = CommandScheduler._locks[connection]
-        with lock:
-            if conn_atr['current_cmd'] is None:
-                conn_atr['current_cmd'] = cmd
-                return True
-            else:
-                if do_not_wait:
-                    return False
-                conn_atr['queue'].append(cmd)
-        start_time = cmd.start_time
-        while cmd.timeout > (time.time() - start_time):
-            MolerTest.sleep(seconds=0.001, quiet=True)
-            with lock:
-                if conn_atr['current_cmd'] is None and cmd == conn_atr['queue'][0]:
-                    conn_atr['queue'].pop(0)
-                    conn_atr['current_cmd'] = cmd
-                    self._log(logging.DEBUG,
-                              ">'{}' Connection.add_command_to_connection '{}' added cmd from  queue.".format(cmd,
-                                                                                                              cmd.command_string))
-                    return True
-        # If we are here it means command timeout before it really starts
-        with lock:
-            index = conn_atr['queue'].index(cmd)
-            conn_atr['queue'].pop(index)
-            return False
+    def enqueue_starting_on_connection(connection_observer):
+        """
+        Waits for free slot and runs command when no other command is in run mode. If connection_observer is not
+         a command then runs immediately.
+        :param connection_observer: Object of ConnectionObserver to run. Maybe a command or an observer.
+        :return: Nothing
+        """
+        scheduler = CommandScheduler._get_scheduler()
+        if not connection_observer.is_command():  # Passed observer, not command.
+            scheduler._submit(connection_observer)
+            return
+        if scheduler._add_command_to_connection(cmd=connection_observer, wait_for_slot=False):
+            #  We have a free slot available
+            return
+        # We have to wait to finish other command(s) so let's do it in another thread.
+        t1 = Thread(target=scheduler._add_command_to_connection, args=(connection_observer, True))
+        t1.setDaemon(True)
+        t1.start()
 
     @staticmethod
-    def remove_command_form_connection(cmd):
-        connection = cmd.connection
-        lock = CommandScheduler._lock_for_connection(connection)
-        conn_atr = CommandScheduler._locks[connection]
-        with lock:
-            if conn_atr['current_cmd'] == cmd:
-                conn_atr['current_cmd'] = None
-            try:
-                index = conn_atr['queue'].index(cmd)
-                conn_atr['queue'].pop(index)
-            except ValueError:
-                pass  # Command does not wait in the queue so nothing to remove
+    def dequeue_running_on_connection(connection_observer):
+        """
+        Removes command from queue and/or current executed on connection.
+        :param connection_observer: Command object to remove from connection
+        :return: None
+        """
+        if not connection_observer.is_command():  # Passed observer, not command.
+            return
+        scheduler = CommandScheduler._get_scheduler()
+        scheduler._remove_command(cmd=connection_observer)
 
     # internal methods and variables
 
     _conn_lock = threading.Lock()
-    _locks = dict()
+    _scheduler = None
 
-    @staticmethod
-    def _lock_for_connection(connection):
+    def __init__(self):
         with CommandScheduler._conn_lock:
-            if connection not in CommandScheduler._locks:
-                CommandScheduler._locks[connection] = CommandScheduler._create_empty_connection_dict()
-            return CommandScheduler._locks[connection]['lock']
+            if CommandScheduler._scheduler is None:
+                self._locks = dict()
+                CommandScheduler._scheduler = self
 
     @staticmethod
-    def _create_empty_connection_dict():
+    def _get_scheduler():
+        if CommandScheduler._scheduler is None:
+            CommandScheduler()
+        return CommandScheduler._scheduler
+
+    def _add_command_to_connection(self, cmd, wait_for_slot=True):
+        """
+        Adds command to execute on connection.
+        :param cmd: Command object to add to connection
+        :param wait_for_slot: If True then waits till command timeout or there is free slot to execute command. If False
+        then returns immediately regardless there is free slot or not.
+        :return: True if command was marked as current executed, False if command cannot be set as current executed.
+        """
+        if self._add_command_to_execute(cmd=cmd):
+            self._submit(cmd)
+            return True
+        else:
+            if wait_for_slot:
+                self._add_command_to_queue(cmd=cmd)
+                start_time = cmd.start_time
+                if self._wait_for_slot_for_command(cmd=cmd):
+                    self._submit(connection_observer=cmd)
+                    return True
+                # If we are here it means command timeout before it really starts.
+                cmd.set_exception(CommandTimeout(cmd,
+                                                 timeout=cmd.timeout,
+                                                 kind="scheduler.await_done",
+                                                 passed_time=time.time() - start_time))
+                self._remove_command(cmd=cmd)
+        return False
+
+    def _lock_for_connection(self, connection):
+        """
+        Returns a lock object for the connection.
+        :param connection: connection to look for a lock object.
+        :return: Lock object.
+        """
+        with CommandScheduler._conn_lock:
+            if connection not in self._locks:
+                self._locks[connection] = self._create_empty_connection_dict()
+            return self._locks[connection]['lock']
+
+    def _create_empty_connection_dict(self):
+        """
+        Creates the dict with initial values for fields for connection.
+        :return: Initial dict for connection
+        """
         ret = dict()
         ret['lock'] = threading.Lock()
         ret['queue'] = list()
         ret['current_cmd'] = None
         return ret
+
+    def _wait_for_slot_for_command(self, cmd):
+        """
+        Waits for free slot for the command.
+        :param cmd: Command object.
+        :return: True if command was marked as ready to execute, False if timeout.
+        """
+        connection = cmd.connection
+        lock = self._lock_for_connection(connection)
+        start_time = time.time()
+        conn_atr = self._locks[connection]
+        while cmd.timeout >= (time.time() - start_time):
+            time.sleep(0.005)
+            with lock:
+                if conn_atr['current_cmd'] is None and cmd == conn_atr['queue'][0]:
+                    conn_atr['queue'].pop(0)
+                    conn_atr['current_cmd'] = cmd
+                    cmd._log(logging.DEBUG,
+                             ">'{}': added  added cmd ('{}') from queue.".format(
+                                 cmd.connection.name, cmd))
+                    return True
+        return False
+
+    def _remove_command(self, cmd):
+        """
+        Removes command object from queue and/or current executed. It is safe to call this method many times for the
+         same command object.
+        :param cmd: Command object
+        :return: Nothing.
+        """
+        connection = cmd.connection
+        lock = self._lock_for_connection(connection)
+        conn_atr = self._locks[connection]
+        with lock:
+            if cmd == conn_atr['current_cmd']:
+                conn_atr['current_cmd'] = None
+            try:
+                queue = conn_atr['queue']
+                index = queue.index(cmd)
+                queue.pop(index)
+            except ValueError:  # command object does not exist in the list
+                pass
+
+    def _add_command_to_execute(self, cmd):
+        """
+        Tries to mark command object as current in run mode .
+        :param cmd: Command object.
+        :return: True if command object was marked as current run, False otherwise.
+        """
+        connection = cmd.connection
+        lock = self._lock_for_connection(connection)
+        conn_atr = self._locks[connection]
+        with lock:
+            if conn_atr['current_cmd'] is None:
+                conn_atr['current_cmd'] = cmd
+                return True
+        return False
+
+    def _add_command_to_queue(self, cmd):
+        """
+        Adds command object to queue fot connection of command.
+        :param cmd: Command object.
+        :return: Nothing.
+        """
+        connection = cmd.connection
+        lock = self._lock_for_connection(connection)
+        conn_atr = self._locks[connection]
+        with lock:
+            conn_atr['queue'].append(cmd)
+
+    def _submit(self, connection_observer):
+        """
+        Submits a connection_observer object (command or observer) in the runner.
+        :param connection_observer: Connection observer (command or observer) object to submit
+        :return: Nothing
+        """
+        runner = connection_observer.runner
+        connection_observer._future = runner.submit(connection_observer)

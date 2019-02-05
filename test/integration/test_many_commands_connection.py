@@ -3,7 +3,7 @@
 Testing of uptime command.
 """
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import pytest
@@ -20,6 +20,7 @@ def test_two_commands_uptime_whoami(buffer_connection, command_output_and_expect
     whoami_cmd = Whoami(connection=buffer_connection.moler_connection)
     uptime_cmd.start(timeout=2)
     whoami_cmd.start(timeout=2)
+    time.sleep(0.05)
     buffer_connection.moler_connection.data_received(command_output[0].encode("utf-8"))
     time.sleep(0.2)
     buffer_connection.moler_connection.data_received(command_output[1].encode("utf-8"))
@@ -37,6 +38,7 @@ def test_two_commands_uptime(buffer_connection, command_output_and_expected_resu
     uptime2_cmd = Uptime(connection=buffer_connection.moler_connection, prompt="host:.*#")
     uptime1_cmd.start(timeout=2)
     uptime2_cmd.start(timeout=2)
+    time.sleep(0.05)
     buffer_connection.moler_connection.data_received(command_output[0].encode("utf-8"))
     time.sleep(0.2)
     buffer_connection.moler_connection.data_received(command_output[1].encode("utf-8"))
