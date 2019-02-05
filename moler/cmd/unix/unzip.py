@@ -263,7 +263,7 @@ COMMAND_KWARGS_is_dir = {
 COMMAND_OUTPUT_options_is_dir = """
 host:~ # unzip -u test.zip -d /home/ute/temp
 Archive:  test.zip
- extracting: /home/ute/temp/test.txt 
+ extracting: /home/ute/temp/test.txt
 host:~ # """
 
 COMMAND_RESULT_options_is_dir = {
