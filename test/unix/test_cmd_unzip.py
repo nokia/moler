@@ -1,22 +1,12 @@
 # -*- coding: utf-8 -*-
-"""
-Testing of unzip command.
-
-:copyright: Nokia Networks
-:author: I_MOLER_DEV
-:contact: I_MOLER_DEV@internal.nsn.com
-:maintainer: I_MOLER_DEV
-:contact: I_MOLER_DEV@internal.nsn.com
-"""
+__author__ = 'Mateusz Szczurek'
+__copyright__ = 'Copyright (C) 2019, Nokia'
+__email__ = 'mateusz.m.szczurek@nokia.com'
 
 import pytest
 from moler.exceptions import CommandFailure
 
 from moler.cmd.unix.unzip import Unzip
-
-__author__ = 'Mateusz Szczurek'
-__copyright__ = 'Copyright (C) 2019, Nokia'
-__email__ = 'mateusz.m.szczurek@nokia.com'
 
 
 def test_unzip_returns_fail(buffer_connection):

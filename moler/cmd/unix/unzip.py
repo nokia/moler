@@ -1,22 +1,12 @@
 # -*- coding: utf-8 -*-
-"""
-Unzip command module.
-
-:copyright: Nokia Networks
-:author: I_MOLER_DEV
-:contact: I_MOLER_DEV@internal.nsn.com
-:maintainer: I_MOLER_DEV
-:contact: I_MOLER_DEV@internal.nsn.com
-"""
+__author__ = 'Mateusz Szczurek'
+__copyright__ = 'Copyright (C) 2019, Nokia'
+__email__ = 'mateusz.m.szczurek@nokia.com'
 
 import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure, ParsingDone
-
-__author__ = 'Mateusz Szczurek'
-__copyright__ = 'Copyright (C) 2019, Nokia'
-__email__ = 'mateusz.m.szczurek@nokia.com'
 
 
 class Unzip(GenericUnixCommand):
