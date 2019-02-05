@@ -77,6 +77,7 @@ class Unzip(GenericUnixCommand):
                 self._parse_info_output(line)
                 self._parse_error_no_file(line)
                 self._asks_to_overwrite(line)
+                self._parse_error_filename_not_matched(line)
                 self._parse_v_option(line)
             except ParsingDone:
                 pass  # line has been fully parsed by one of above parse-methods
@@ -122,9 +123,9 @@ class Unzip(GenericUnixCommand):
         """
         if self._regex_helper.search_compiled(Unzip._re_overwrite, line):
             if self.overwrite:
-                self.connection.sendline('y')
+                self.connection.sendline('A')
             else:
-                self.connection.sendline('n')
+                self.connection.sendline('N')
                 self.set_exception(
                     CommandFailure(self, "ERROR: {} already exists".format(self._regex_helper.group("OVERWRITE"))))
             raise ParsingDone
@@ -153,6 +154,20 @@ class Unzip(GenericUnixCommand):
                 'time': self._regex_helper.group("TIME"),
                 'crc-32': self._regex_helper.group("CRC"),
             }})
+            raise ParsingDone
+
+    # unzip:  caution: filename not matched:  -q
+    _re_filename_not_matched = re.compile(r'(?P<error>unzip:+\s*caution: filename not matched:.*\S)')
+
+    def _parse_error_filename_not_matched(self, line):
+        """
+        Parse errors in line and set exception in case of any errors were parsed.
+
+        :param line: Line to process.
+        :return: Nothing but raises ParsingDone if line has the information to handle by this method.
+        """
+        if self._cmd_output_started and self._regex_helper.search_compiled(Unzip._re_filename_not_matched, line):
+            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("error"))))
             raise ParsingDone
 
 
@@ -225,4 +240,40 @@ COMMAND_RESULT_v_option = {
 COMMAND_KWARGS_v_option = {
     "options": "-v",
     "zip_file": "files.zip",
+}
+
+COMMAND_OUTPUT_is_dir = """
+host:~ # unzip test.zip -d /home/ute/temp
+Archive:  test.zip
+ extracting: /home/ute/temp/test.txt
+host:~ # """
+
+COMMAND_RESULT_is_dir = {
+    'FILE_LIST': ['/home/ute/temp/test.txt'],
+    'FILE_DICT': {}
+}
+
+COMMAND_KWARGS_is_dir = {
+    "options": "",
+    "zip_file": "test.zip",
+    "is_dir": "-d",
+    "directory": "/home/ute/temp"
+}
+
+COMMAND_OUTPUT_options_is_dir = """
+host:~ # unzip -u test.zip -d /home/ute/temp
+Archive:  test.zip
+ extracting: /home/ute/temp/test.txt 
+host:~ # """
+
+COMMAND_RESULT_options_is_dir = {
+    'FILE_LIST': ['/home/ute/temp/test.txt'],
+    'FILE_DICT': {}
+}
+
+COMMAND_KWARGS_options_is_dir = {
+    "options": "-u",
+    "zip_file": "test.zip",
+    "is_dir": "-d",
+    "directory": "/home/ute/temp"
 }
