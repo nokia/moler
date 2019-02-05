@@ -37,7 +37,7 @@ class ConnectionObserver(object):
         """
         self.connection = connection
         self._is_running = False
-        self._is_done = False
+        self.__is_done = False
         self._is_cancelled = False
         self._result = None
         self._exception = None
@@ -157,9 +157,6 @@ class ConnectionObserver(object):
             raise ResultAlreadySet(self)
         self._is_done = True
         self._result = result
-
-    def finish(self):
-        CommandScheduler.dequeue_running_on_connection(connection_observer=self)
 
     @abstractmethod
     def data_received(self, data):
