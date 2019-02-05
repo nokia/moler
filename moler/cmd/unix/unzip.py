@@ -4,6 +4,7 @@ __copyright__ = 'Copyright (C) 2019, Nokia'
 __email__ = 'mateusz.m.szczurek@nokia.com'
 
 import re
+import datetime
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure, ParsingDone
@@ -134,6 +135,7 @@ class Unzip(GenericUnixCommand):
         :return: Nothing but raises ParsingDone if line has the information to handle by this method.
         """
         if 'v' in self.options and self._regex_helper.search_compiled(Unzip._re_assign_values, line):
+            _date_time_str = self._regex_helper.group("DATE") + " " + self._regex_helper.group("TIME")
             self.current_ret['FILE_LIST'].append(self._regex_helper.group("NAME"))
             self.current_ret['FILE_DICT'].update({self._regex_helper.group("NAME"): {
                 'length': self._regex_helper.group("LENGTH"),
@@ -143,6 +145,7 @@ class Unzip(GenericUnixCommand):
                 'date': self._regex_helper.group("DATE"),
                 'time': self._regex_helper.group("TIME"),
                 'crc-32': self._regex_helper.group("CRC"),
+                'datetime': datetime.datetime.strptime(_date_time_str, '%Y-%m-%d %H:%M')
             }})
             raise ParsingDone
 
@@ -212,6 +215,7 @@ COMMAND_RESULT_v_option = {
     'FILE_DICT': {'file.txt': {'cmpr': '0%',
                                'crc-32': '00000000',
                                'date': '2019-01-30',
+                               'datetime': datetime.datetime(2019, 1, 30, 8, 58),
                                'length': '0',
                                'method': 'Stored',
                                'size': '0',
@@ -219,6 +223,7 @@ COMMAND_RESULT_v_option = {
                   'file1.txt': {'cmpr': '0%',
                                 'crc-32': '00000000',
                                 'date': '2019-01-30',
+                                'datetime': datetime.datetime(2019, 1, 30, 8, 58),
                                 'length': '0',
                                 'method': 'Stored',
                                 'size': '0',
