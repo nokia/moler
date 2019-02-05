@@ -12,20 +12,18 @@ Connection responsibilities:
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
 import weakref
 from threading import Lock
-import time
 import six
 
 import moler.config.connections as connection_cfg
 from moler.config.loggers import RAW_DATA, TRACE
 from moler.exceptions import WrongUsage
 from moler.helpers import instance_id
-from moler.util.moler_test import MolerTest
 
 
 def identity_transformation(data):
@@ -61,9 +59,6 @@ class Connection(object):
         self.newline = newline
         self.data_logger = logging.getLogger('moler.{}'.format(self.name))
         self.logger = Connection._select_logger(logger_name, self._name)
-        self._command_lock = Lock()
-        self._commands_queue = list()
-        self._command_executing = None
 
     @property
     def name(self):
@@ -210,39 +205,6 @@ class Connection(object):
                 self.logger.log(level, msg, extra=extra_params)
             except Exception as err:
                 print(err)  # logging errors should not propagate
-
-    def add_command_to_connection(self, cmd, do_not_wait=False):
-        with self._command_lock:
-            if self._command_executing is None:
-                self._command_executing = cmd
-                self._log(logging.DEBUG, ">'{}' Connection.add_command_to_connection '{}' added.".format(cmd, cmd.command_string))
-                return True
-            else:
-                if do_not_wait:
-                    return False
-                self._log(logging.DEBUG, ">'{}' Connection.add_command_to_connection '{}' added to queue.".format(cmd, cmd.command_string))
-                self._commands_queue.append(cmd)
-        start_time = cmd.start_time
-        while cmd.timeout > (time.time() - start_time):
-            MolerTest.sleep(seconds=0.001, quiet=True)
-            with self._command_lock:
-                if self._command_executing is None and cmd == self._commands_queue[0]:
-                    self._commands_queue.pop(0)
-                    self._command_executing = cmd
-                    self._log(logging.DEBUG, ">'{}' Connection.add_command_to_connection '{}' added cmd from  queue.".format(cmd, cmd.command_string))
-                    return True
-        # If we are here it means command timeout before it really starts
-        with self._command_lock:
-            index = self._commands_queue.index(cmd)
-            self._commands_queue.pop(index)
-            return False
-
-    def remove_command_from_connection(self, cmd):
-        self._log(logging.DEBUG, "{} Trying to remove command.".format(cmd))
-        with self._command_lock:
-            if self._command_executing == cmd:
-                self._log(logging.DEBUG, "{} removed.".format(cmd))
-                self._command_executing = None
 
 
 class ObservableConnection(Connection):

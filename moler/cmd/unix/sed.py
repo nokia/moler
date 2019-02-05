@@ -3,9 +3,9 @@
 Sed command module.
 """
 
-__author__ = 'Agnieszka Bylica'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'agnieszka.bylica@nokia.com'
+__author__ = 'Agnieszka Bylica, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com'
 
 
 import re
