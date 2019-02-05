@@ -22,7 +22,7 @@ __email__ = 'mateusz.m.szczurek@nokia.com'
 class Unzip(GenericUnixCommand):
     """Unzip command class"""
 
-    def __init__(self, connection, zip_file, is_dir=None, directory=None, options=None, overwrite=False, prompt=None,
+    def __init__(self, connection, zip_file, is_dir=None, directory=None, options="", overwrite=False, prompt=None,
                  newline_chars=None, runner=None):
         """
         Unzip command.
@@ -157,7 +157,7 @@ class Unzip(GenericUnixCommand):
             raise ParsingDone
 
     # unzip:  caution: filename not matched:  -q
-    _re_filename_not_matched = re.compile(r'(?P<error>unzip:+\s*caution: filename not matched:.*\S)')
+    _re_filename_not_matched = re.compile(r'(?P<caution>caution: filename not matched:.*\S)')
 
     def _parse_error_filename_not_matched(self, line):
         """
@@ -167,7 +167,7 @@ class Unzip(GenericUnixCommand):
         :return: Nothing but raises ParsingDone if line has the information to handle by this method.
         """
         if self._cmd_output_started and self._regex_helper.search_compiled(Unzip._re_filename_not_matched, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("error"))))
+            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("caution"))))
             raise ParsingDone
 
 
