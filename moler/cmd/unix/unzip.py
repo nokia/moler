@@ -65,9 +65,8 @@ class Unzip(GenericUnixCommand):
         :return: Nothing
         """
         try:
-            if not is_full_line:
-                self._asks_to_overwrite(line)
-            elif is_full_line:
+            self._asks_to_overwrite(line)
+            if is_full_line:
                 self._parse_error_no_file(line)
                 self._parse_error_filename_not_matched(line)
                 self._parse_info_output(line)
