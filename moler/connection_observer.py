@@ -5,6 +5,7 @@ __copyright__ = 'Copyright (C) 2018-2019 Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
+import time
 from abc import abstractmethod, ABCMeta
 
 from six import add_metaclass
@@ -20,6 +21,7 @@ from moler.helpers import camel_case_to_lower_case_underscore
 from moler.helpers import instance_id
 from moler.helpers import copy_list
 from moler.runner import ThreadPoolExecutorRunner
+from moler.command_scheduler import CommandScheduler
 import threading
 
 
@@ -35,13 +37,14 @@ class ConnectionObserver(object):
         """
         self.connection = connection
         self._is_running = False
-        self._is_done = False
+        self.__is_done = False
         self._is_cancelled = False
         self._result = None
         self._exception = None
         self.runner = runner if runner else ThreadPoolExecutorRunner()
         self._future = None
         self.timeout = 7
+        self.start_time = -1
         self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
         self.logger = logging.getLogger('moler.connection.{}'.format(self.get_logger_name()))
 
@@ -67,6 +70,16 @@ class ConnectionObserver(object):
             return started_observer.await_done(*args, **kwargs)
         # TODO: raise ConnectionObserverFailedToStart
 
+    @property
+    def _is_done(self):
+        return self.__is_done
+
+    @_is_done.setter
+    def _is_done(self, value):
+        if value:
+            CommandScheduler.dequeue_running_on_connection(connection_observer=self)
+        self.__is_done = value
+
     def get_logger_name(self):
         if self.connection and hasattr(self.connection, "name"):
             return self.connection.name
@@ -79,9 +92,8 @@ class ConnectionObserver(object):
             self.timeout = timeout
         self._validate_start(*args, **kwargs)
         self._is_running = True
-        self._future = self.runner.submit(self)
-        if self._future is None:
-            self._is_running = False
+        self.start_time = time.time()
+        CommandScheduler.enqueue_starting_on_connection(connection_observer=self)
         return self
 
     def _validate_start(self, *args, **kwargs):
@@ -89,7 +101,7 @@ class ConnectionObserver(object):
         if not self.connection:
             # only if we have connection we can expect some data on it
             # at the latest "just before start" we need connection
-            raise NoConnectionProvided(self)
+            self.set_exception(NoConnectionProvided(self))
         # ----------------------------------------------------------------------
         # We intentionally do not check if connection is open here.
         # In such case net result anyway will be failed/timeouted observer -
@@ -100,16 +112,21 @@ class ConnectionObserver(object):
         # We choose minimalistic dependency over better troubleshooting support.
         # ----------------------------------------------------------------------
         if self.timeout <= 0.0:
-            raise ConnectionObserverTimeout(self, self.timeout, "before run", "timeout is not positive value")
+            exc = ConnectionObserverTimeout(self, self.timeout, "before run", "timeout is not positive value")
+            self.set_exception(exc)
 
     def await_done(self, timeout=None):
         """Await completion of connection-observer."""
         if self.done():
             return self.result()
-        if self._future is None:
+        if not self._is_running:
             raise ConnectionObserverNotStarted(self)
-        self.runner.wait_for(connection_observer=self, connection_observer_future=self._future,
-                             timeout=timeout)
+        while self._future is None:
+            time.sleep(0.005)
+            if self.done():
+                break
+        if self._future:
+            self.runner.wait_for(connection_observer=self, connection_observer_future=self._future, timeout=timeout)
         return self.result()
 
     def cancel(self):
@@ -186,6 +203,12 @@ class ConnectionObserver(object):
     def on_timeout(self):
         """ It's callback called by framework just before raise exception for Timeout """
         pass
+
+    def is_command(self):
+        """
+        :return: True if instance of ConnectionObserver is a command. False if not a command.
+        """
+        return False
 
     def extend_timeout(self, timedelta):
         prev_timeout = self.timeout
