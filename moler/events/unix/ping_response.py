@@ -7,10 +7,10 @@ __email__ = 'agnieszka.bylica@nokia.com, tomasz.krol@nokia.com'
 
 import re
 import datetime
-from moler.events.lineevent import LineEvent
+from moler.events.lineevent import TextualEvent
 
 
-class PingResponse(LineEvent):
+class PingResponse(TextualEvent):
     def __init__(self, connection, till_occurs_times=-1):
         """
         Event for 'Wait for response from ping.'.
@@ -18,8 +18,9 @@ class PingResponse(LineEvent):
         :param till_occurs_times: number of event occurrence
         """
         super(PingResponse, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
-        self.detect_pattern = r'\d+\s+bytes\s+from.+'
         self.current_ret = dict()
+
+    _re_detect_pattern = r'\d+\s+bytes\s+from.+'
 
     def on_new_line(self, line, is_full_line):
         """
@@ -29,7 +30,7 @@ class PingResponse(LineEvent):
         :return: Nothing
         """
         if is_full_line or not self.process_full_lines_only:
-            match_obj = re.search(self.detect_pattern, line)
+            match_obj = re.search(PingResponse._re_detect_pattern, line)
 
             if match_obj:
                 self.current_ret['time'] = datetime.datetime.now()
