@@ -36,6 +36,7 @@ class Unzip(GenericUnixCommand):
         self.directory = directory
         self.overwrite = overwrite
         self.ret_required = False
+        self._is_overwritten = False
         self.current_ret['FILE_LIST'] = list()
         self.current_ret['FILE_DICT'] = dict()
 
@@ -63,15 +64,16 @@ class Unzip(GenericUnixCommand):
         :param is_full_line: True if line had new line chars, False otherwise
         :return: Nothing
         """
-        if is_full_line:
-            try:
-                self._parse_info_output(line)
-                self._parse_error_no_file(line)
+        try:
+            if not is_full_line:
                 self._asks_to_overwrite(line)
+            elif is_full_line:
+                self._parse_error_no_file(line)
                 self._parse_error_filename_not_matched(line)
+                self._parse_info_output(line)
                 self._parse_v_option(line)
-            except ParsingDone:
-                pass  # line has been fully parsed by one of above parse-methods
+        except ParsingDone:
+            pass  # line has been fully parsed by one of above parse-methods
         return super(Unzip, self).on_new_line(line, is_full_line)
 
     _re_info_output = re.compile(r"extracting:+\s*(?P<FILE_NAME>\S*)")
@@ -102,8 +104,9 @@ class Unzip(GenericUnixCommand):
             raise ParsingDone
 
     # replace test.txt? [y]es, [n]o, [A]ll, [N]one, [r]ename:
-    _re_overwrite = re.compile(r"replace\s*(?P<OVERWRITE>\S*)\s*\[y]es,\s*\[n\]o,\s*\[A\]ll,\s*\[N\]one,\s*\[r\]ename:",
-                               re.IGNORECASE)
+    _re_overwrite = re.compile(
+        r"replace\s*(?P<OVERWRITE>\S*)\?\s*\[y]es,\s*\[n\]o,\s*\[A\]ll,\s*\[N\]one,\s*\[r\]ename:",
+        re.IGNORECASE)
 
     def _asks_to_overwrite(self, line):
         """
@@ -112,7 +115,8 @@ class Unzip(GenericUnixCommand):
         :param line: Line to process.
         :return: Nothing but raises ParsingDone if line has the information to handle by this method.
         """
-        if self._regex_helper.search_compiled(Unzip._re_overwrite, line):
+        if self._regex_helper.search_compiled(Unzip._re_overwrite, line) and not self._is_overwritten:
+            self._is_overwritten = True
             if self.overwrite:
                 self.connection.sendline('A')
             else:
@@ -177,7 +181,6 @@ COMMAND_RESULT_parse_info_output = {
 }
 
 COMMAND_KWARGS_parse_info_output = {
-    "options": "",
     "zip_file": "test.zip"
 }
 
@@ -194,7 +197,6 @@ COMMAND_RESULT_overwrite = {
 }
 
 COMMAND_KWARGS_overwrite = {
-    "options": "",
     "zip_file": "test.zip",
     "overwrite": True
 }
@@ -249,7 +251,6 @@ COMMAND_RESULT_is_dir = {
 }
 
 COMMAND_KWARGS_is_dir = {
-    "options": "",
     "zip_file": "test.zip",
     "is_dir": "-d",
     "directory": "/home/ute/temp"
