@@ -24,7 +24,6 @@ class PingNoResponse(LineEvent):
         self.detect_pattern = PingNoResponse._re_detect_pattern
 
 
-
 EVENT_OUTPUT = """ute@SC5G-HUB-079:~$ ping -O 192.168.255.126
 PING 192.168.255.129 (192.168.255.129) 56(84) bytes of data.
 From 192.168.255.126 icmp_seq=1 Destination Host Unreachable
@@ -104,6 +103,6 @@ EVENT_KWARGS_2 = {
 
 EVENT_RESULT_2 = {
     "line": "no answer yet for icmp_seq=22",
-    #"time": datetime.datetime.now()
+    # "time": datetime.datetime.now()
     "time": 0
 }
