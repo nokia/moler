@@ -103,6 +103,5 @@ EVENT_KWARGS_2 = {
 
 EVENT_RESULT_2 = {
     "line": "no answer yet for icmp_seq=22",
-    # "time": datetime.datetime.now()
-    "time": 0
+    "time": datetime.datetime.now()
 }
