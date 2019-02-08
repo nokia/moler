@@ -11,11 +11,11 @@ from moler.exceptions import ParsingDone
 
 
 class W(GenericUnixCommand):
-    """W command class"""
+    """W command class."""
 
     def __init__(self, connection, options="", prompt=None, newline_chars=None, runner=None):
         """
-        W command
+        W command.
 
         :param connection: Moler connection to device, terminal when command is executed.
         :param options: Options of w command.
@@ -65,7 +65,6 @@ class W(GenericUnixCommand):
                 self._parse_v_option(line)
                 self._parse_general_info(line)
                 self._parse_header(line)
-
         except ParsingDone:
             pass  # line has been fully parsed by one of above parse-methods
         return super(W, self).on_new_line(line, is_full_line)
@@ -73,8 +72,6 @@ class W(GenericUnixCommand):
     # 09:07:41 up 148 days, 21:57, 11 users,  load average: 1.92, 1.82, 1.81
     _re_general_info = re.compile(r"(?P<TIME>\d{2}:\d{2}:\d{2})\s*up\s*(?P<UPTIME>.*),\s*(?P<USER_NUMBER>\d*)\s*users,"
                                   r"\s*load\s*average:\s(?P<L_AVERAGE>\S*,\s*\S*,\s*\S*)")
-    # w from procps-ng 3.3.9
-    _re_v_option = re.compile(r"(?P<V_OPTION>w from.*)")
 
     def _parse_general_info(self, line):
         """
@@ -91,6 +88,9 @@ class W(GenericUnixCommand):
                 'load_average': self._regex_helper.group("L_AVERAGE")
             })
             raise ParsingDone
+
+    # w from procps-ng 3.3.9
+    _re_v_option = re.compile(r"(?P<V_OPTION>w from.*)")
 
     def _parse_v_option(self, line):
         """
