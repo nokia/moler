@@ -70,7 +70,6 @@ class MolerTest(object):
 
         MolerTest._logger.warning(msg)
 
-
     @staticmethod
     def _dump(obj):
         """
