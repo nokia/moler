@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Agnieszka Bylica, Tomasz Krol'
+__author__ = 'Agnieszka Bylica, Tomasz Krol, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2019, Nokia'
-__email__ = 'agnieszka.bylica@nokia.com, tomasz.krol@nokia.com'
+__email__ = 'agnieszka.bylica@nokia.com, tomasz.krol@nokia.com, marcin.usielski@nokia.com'
 
 
 import re
 import datetime
-from moler.events.lineevent import TextualEvent
+from moler.events.lineevent import LineEvent
 
 
-class PingNoResponse(TextualEvent):
+class PingNoResponse(LineEvent):
+
+    _re_detect_pattern = re.compile(r'(no\s+answer\s+yet\s+for.*)|(.*Destination\s+Host\s+Unreachable)')
+
     def __init__(self, connection, till_occurs_times=-1):
         """
         Event for 'Wait for no response from ping '.
@@ -18,25 +21,7 @@ class PingNoResponse(TextualEvent):
         :param till_occurs_times: number of event occurrence
         """
         super(PingNoResponse, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
-        self.current_ret = dict()
-
-    _re_detect_pattern = r'(no\s+answer\s+yet\s+for.*)|(.*Destination\s+Host\s+Unreachable)'
-
-    def on_new_line(self, line, is_full_line):
-        """
-         Put your parsing code here.
-        :param line: Line to process, can be only part of line. New line chars are removed from line.
-        :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
-        """
-        if is_full_line or not self.process_full_lines_only:
-            match_obj = re.search(PingNoResponse._re_detect_pattern, line)
-
-            if match_obj:
-                self.current_ret['time'] = datetime.datetime.now()
-                self.current_ret['line'] = line
-                self.event_occurred(event_data=self.current_ret)
-                self.current_ret = dict()
+        self.detect_pattern = PingNoResponse._re_detect_pattern
 
 
 EVENT_OUTPUT = """ute@SC5G-HUB-079:~$ ping -O 192.168.255.126
