@@ -7,6 +7,7 @@ import re
 import datetime
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
+from moler.exceptions import ParsingDone
 
 
 class W(GenericUnixCommand):
