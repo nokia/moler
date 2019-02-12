@@ -325,7 +325,15 @@ def test_dump():
     test_string = MolerTest._dump(test_dict)
     assert test_string == "{'key': 'value'}"
 
+
+def test_get_string_message():
+    test_dict = {'key': 'value'}
+    test_string = "This is sample message"
+    msg = MolerTest._get_string_message(test_string, test_dict)
+    assert msg == "This is sample message\n{'key': 'value'}"
+
 # --------------------------- resources ---------------------------
+
 
 @pytest.yield_fixture
 def moler_test_se():

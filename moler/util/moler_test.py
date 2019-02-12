@@ -31,7 +31,7 @@ class MolerTest(object):
         MolerTest._was_steps_end = True
 
     @staticmethod
-    def error(msg, dump=None, raise_exception=False):
+    def error(msg, raise_exception=False, dump=None):
         """
         Makes an error (fail the test) and (optional) continue the test flow.
         :param msg: Message to show.
@@ -50,10 +50,7 @@ class MolerTest(object):
         :param dump: If defined then dump object.
         :return: Nothing.
         """
-        if dump is not None:
-            dump_str = MolerTest._dump(dump)
-            msg = "{}\n{}".format(msg, dump_str)
-
+        msg = MolerTest._get_string_message(msg, dump)
         MolerTest._logger.info(msg)
 
     @staticmethod
@@ -64,10 +61,7 @@ class MolerTest(object):
         :param dump: If defined then dump object.
         :return: Nothing
         """
-        if dump is not None:
-            dump_str = MolerTest._dump(dump)
-            msg = "{}\n{}".format(msg, dump_str)
-
+        msg = MolerTest._get_string_message(msg, dump)
         MolerTest._logger.warning(msg)
 
     @staticmethod
@@ -79,6 +73,14 @@ class MolerTest(object):
         """
         msg_str = pprint.pformat(obj, indent=1)
         return msg_str
+
+    @staticmethod
+    def _get_string_message(msg, dump):
+        if dump is not None:
+            dump_str = MolerTest._dump(dump)
+            msg = "{}\n{}".format(msg, dump_str)
+
+        return msg
 
     @staticmethod
     def sleep(seconds, quiet=False):
@@ -119,10 +121,7 @@ class MolerTest(object):
     def _error(msg, raise_exception=False, dump=None):
         MolerTest._was_error = True
 
-        if dump is not None:
-            dump_str = MolerTest._dump(dump)
-            msg = "{}\n{}".format(msg, dump_str)
-
+        msg = MolerTest._get_string_message(msg, dump)
         MolerTest._logger.error(msg, extra={'moler_error': True})
 
         if raise_exception:
