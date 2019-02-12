@@ -13,7 +13,7 @@ import re
 class ConverterHelper(object):
     instance = None
     # examples of matched strings: 1K 1 .5M  3.2G
-    _re_to_bytes = re.compile(r"(\d+\.?\d*|\.\d+)\s*(\w?)")
+    _re_to_bytes = re.compile(r"(?P<VALUE>\d+\.?\d*|\.\d+)\s*(?P<UNIT>\w?)")
     _binary_multipliers = {
         "k": 1024,
         "m": 1024 * 1024,
@@ -35,6 +35,15 @@ class ConverterHelper(object):
         "j": 1000 * 1000 * 1000 * 1000 * 1000 * 1000 * 1000 * 1000,
     }
 
+    _seconds_multipliers = {
+        "h": 3600,
+        "m": 60,
+        "s": 1,
+        "ms": 0.001,
+        "us": 0.000001,
+        "ns": 0.000000001,
+    }
+
     def to_bytes(self, str_bytes, binary_multipliers=True):
         """
         Method to convert size with unit to size in bytes
@@ -43,8 +52,8 @@ class ConverterHelper(object):
         :return: 3 values: int value in bytes, float value in units (parsed form string), String unit
         """
         m = re.search(ConverterHelper._re_to_bytes, str_bytes)
-        value_str = m.group(1)
-        value_unit = m.group(2)
+        value_str = m.group("VALUE")
+        value_unit = m.group("UNIT")
         value_in_units = float(value_str)
         value_in_bytes = int(value_in_units)  # Default when not unit provided
         if value_unit:
@@ -57,6 +66,32 @@ class ConverterHelper(object):
             else:
                 raise ValueError("Unsupported unit '{}' in passed value: '{}'".format(value_unit, str_bytes))
         return value_in_bytes, value_in_units, value_unit
+
+    def to_seconds_str(self, str_time):
+        """
+        Method to convert string time with unit to seconds.
+        :param str_time: String with time and unit.
+        :return: 3 values: float value in seconds, float value in units (parsed form string), String unit
+        """
+        m = re.search(ConverterHelper._re_to_bytes, str_time)
+        value_str = m.group("VALUE")
+        value_unit = m.group("UNIT")
+        value_in_units = float(value_str)
+        value_in_seconds = value_in_units  # Default when not unit provided
+        if value_unit:
+            value_in_seconds = self.to_seconds(value_in_units, value_unit)
+        return value_in_seconds, value_in_units, value_unit
+
+    def to_seconds(self, value, unit):
+        """
+        Method to convert number of
+        :param value: numeric value in units
+        :param unit: Unit of time, h for hour
+        :return: number of seconds
+        """
+        if unit not in ConverterHelper._seconds_multipliers:
+            raise ValueError("Unsupported unit '{}' for passed value: '{}'".format(unit, value))
+        return ConverterHelper._seconds_multipliers[unit] * value
 
     @staticmethod
     def get_converter_helper():
