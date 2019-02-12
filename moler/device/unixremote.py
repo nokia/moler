@@ -361,7 +361,6 @@ Example of device in yaml configuration file:
                login: login
                password: password
              execute_command: ssh
-        
     -without PROXY_PC:
       UNIX_1:
        DEVICE_CLASS: moler.device.unixremote.UnixRemote
