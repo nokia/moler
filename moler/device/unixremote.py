@@ -325,3 +325,53 @@ class UnixRemote(UnixLocal):
         command_timeout = self.calc_timeout_for_command(timeout, command_params)
         command = self.get_cmd(cmd_name=command_name, cmd_params=command_params)
         command(timeout=command_timeout)
+
+
+"""
+Example of device in yaml configuration file:
+    - with PROXY_PC:
+     UNIX_1:
+       DEVICE_CLASS: moler.device.unixremote.UnixRemote
+       CONNECTION_HOPS:
+         PROXY_PC:
+           UNIX_REMOTE:
+             command_params:
+               expected_prompt: unix_remote_prompt
+               host: host_ip
+               login: login
+               password: password
+             execute_command: ssh
+         UNIX_REMOTE:
+           PROXY_PC:
+             command_params:
+               expected_prompt: proxy_pc_prompt
+         UNIX_LOCAL:
+           PROXY_PC:
+             command_params:
+               expected_prompt: proxy_pc_prompt
+               host: host_ip
+               login: login
+               password: password
+             execute_command: ssh
+         UNIX_LOCAL:
+           UNIX_REMOTE:
+             command_params:
+               expected_prompt: unix_remote_prompt
+               host: host_ip
+               login: login
+               password: password
+             execute_command: ssh
+        
+    -without PROXY_PC:
+      UNIX_1:
+       DEVICE_CLASS: moler.device.unixremote.UnixRemote
+       CONNECTION_HOPS:
+         UNIX_LOCAL:
+           UNIX_REMOTE:
+             command_params:
+               expected_prompt: unix_remote_prompt
+               host: host_ip
+               login: login
+               password: password
+             execute_command: ssh
+"""

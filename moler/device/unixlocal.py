@@ -80,3 +80,10 @@ class UnixLocal(TextualDevice):
 
     def on_connection_lost(self, connection):
         self._set_state(UnixLocal.not_connected)
+
+
+"""
+Example of device in yaml configuration file:
+  UNIX_1:
+    DEVICE_CLASS: moler.device.unixlocal.UnixLocal
+"""
