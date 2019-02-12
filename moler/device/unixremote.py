@@ -343,6 +343,7 @@ Example of device in yaml configuration file:
                password: password
          UNIX_REMOTE:
            PROXY_PC:
+             execute_command: exit # default value
              command_params:
                expected_prompt: proxy_pc_prompt
          UNIX_LOCAL:
