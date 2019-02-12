@@ -335,42 +335,42 @@ Example of device in yaml configuration file:
        CONNECTION_HOPS:
          PROXY_PC:
            UNIX_REMOTE:
+             execute_command: ssh # default value
              command_params:
                expected_prompt: unix_remote_prompt
                host: host_ip
                login: login
                password: password
-             execute_command: ssh
          UNIX_REMOTE:
            PROXY_PC:
              command_params:
                expected_prompt: proxy_pc_prompt
          UNIX_LOCAL:
            PROXY_PC:
+             execute_command: ssh # default value
              command_params:
                expected_prompt: proxy_pc_prompt
                host: host_ip
                login: login
                password: password
-             execute_command: ssh
          UNIX_LOCAL:
            UNIX_REMOTE:
+             execute_command: ssh # default value
              command_params:
                expected_prompt: unix_remote_prompt
                host: host_ip
                login: login
                password: password
-             execute_command: ssh
     -without PROXY_PC:
       UNIX_1:
        DEVICE_CLASS: moler.device.unixremote.UnixRemote
        CONNECTION_HOPS:
          UNIX_LOCAL:
            UNIX_REMOTE:
+             execute_command: ssh # default value
              command_params:
                expected_prompt: unix_remote_prompt
                host: host_ip
                login: login
                password: password
-             execute_command: ssh
 """
