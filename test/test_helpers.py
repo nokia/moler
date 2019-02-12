@@ -39,6 +39,13 @@ def test_converterhelper_m():
     assert 'm' == unit
 
 
+def test_converterhelper_wrong_unit():
+    from moler.util.converterhelper import ConverterHelper
+    converter = ConverterHelper.get_converter_helper()
+    with pytest.raises(ValueError):
+        converter.to_bytes("3UU", False)
+
+
 def test_converterhelper_seconds():
     from moler.util.converterhelper import ConverterHelper
     converter = ConverterHelper.get_converter_helper()
