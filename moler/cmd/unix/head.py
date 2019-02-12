@@ -82,7 +82,7 @@ class Head(GenericUnixCommand):
         """
         self.current_ret["LINES"].append(line)
         raise ParsingDone
-    
+
 
 COMMAND_OUTPUT_no_options = """
 host:~ # head /proc/meminfo
