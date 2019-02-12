@@ -4,14 +4,14 @@ Units converter
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
 
 
 class ConverterHelper(object):
-    instance = None
+    _instance = None
     # examples of matched strings: 1K 1 .5M  3.2G
     _re_to_bytes = re.compile(r"(?P<VALUE>\d+\.?\d*|\.\d+)\s*(?P<UNIT>\w?)")
     _binary_multipliers = {
@@ -95,6 +95,6 @@ class ConverterHelper(object):
 
     @staticmethod
     def get_converter_helper():
-        if ConverterHelper.instance is None:
-            ConverterHelper.instance = ConverterHelper()
-        return ConverterHelper.instance
+        if ConverterHelper._instance is None:
+            ConverterHelper._instance = ConverterHelper()
+        return ConverterHelper._instance
