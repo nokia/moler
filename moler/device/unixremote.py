@@ -354,7 +354,6 @@ Example of device in yaml configuration file:
                host: host_ip
                login: login
                password: password
-         UNIX_LOCAL:
            UNIX_REMOTE:
              execute_command: ssh # default value
              command_params:

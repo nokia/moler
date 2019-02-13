@@ -7,11 +7,12 @@ __author__ = 'Grzegorz Latuszek, Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
-import importlib
-import re
 import copy
+import importlib
 import logging
+import re
 
+import deepdiff
 
 try:
     import collections.abc as collections
@@ -107,6 +108,32 @@ def update_dict(target_dict, expand_dict):
             update_dict(target_dict[key], expand_dict[key])
         else:
             target_dict[key] = expand_dict[key]
+
+
+def compare_objects(first_object, second_object, ignore_order=False, report_repetition=False, significant_digits=None,
+                    exclude_paths=None, exclude_types=None, verbose_level=2):
+    """
+    Return difference between two objects.
+    :param first_object: first object to compare
+    :param second_object: second object to compare
+    :param ignore_order: ignore difference in order
+    :param report_repetition: report when is repetition
+    :param significant_digits: use to properly compare numbers(float arithmetic error)
+    :param exclude_paths: path which be excluded from comparison
+    :param exclude_types: types which be excluded from comparison
+    :param verbose_level: higher verbose level shows you more details - default 0.
+    :return: difference between two objects
+    """
+    if exclude_paths is None:
+        exclude_paths = set()
+    if exclude_types is None:
+        exclude_types = set()
+
+    diff = deepdiff.DeepDiff(first_object, second_object, ignore_order=ignore_order,
+                             report_repetition=report_repetition, significant_digits=significant_digits,
+                             exclude_paths=exclude_paths, exclude_types=exclude_types, verbose_level=verbose_level)
+
+    return diff
 
 
 class ForwardingHandler(logging.Handler):

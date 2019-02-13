@@ -82,10 +82,12 @@ EVENT_KWARGS_single_pattern = {
     "till_occurs_times": 1
 }
 
-EVENT_RESULT_single_pattern = {
-    'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
-    'line': "host:~ #"
-}
+EVENT_RESULT_single_pattern = [
+    {
+        'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
+        'line': "host:~ #"
+    }
+]
 
 EVENT_OUTPUT_patterns_list = """
 user@host01:~> TERM=xterm-mono telnet -4 host.domain.net 1500
@@ -102,7 +104,9 @@ EVENT_KWARGS_patterns_list = {
     "till_occurs_times": 1
 }
 
-EVENT_RESULT_patterns_list = {
-    'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
-    'line': "host:~ #"
-}
+EVENT_RESULT_patterns_list = [
+    {
+        'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
+        'line': "host:~ #"
+    }
+]

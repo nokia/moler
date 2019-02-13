@@ -57,7 +57,9 @@ EVENT_KWARGS = {
     "till_occurs_times": 1
 }
 
-EVENT_RESULT = {
-    'line': '64 bytes from 192.168.255.129: icmp_seq=43 ttl=64 time=0.638 ms',
-    'time': datetime.datetime.now()
-}
+EVENT_RESULT = [
+    {
+        'line': '64 bytes from 192.168.255.129: icmp_seq=43 ttl=64 time=0.638 ms',
+        'time': datetime.datetime.now()
+    }
+]
