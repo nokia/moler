@@ -116,7 +116,7 @@ def compare_objects(first_object, second_object, ignore_order=False, report_repe
     Return difference between two objects.
     :param first_object: first object to compare
     :param second_object: second object to compare
-    :param ignore_order: ignore difference in orders
+    :param ignore_order: ignore difference in order
     :param report_repetition: report when is repetition
     :param significant_digits: use to properly compare numbers(float arithmetic error)
     :param exclude_paths: path which be excluded from comparison
