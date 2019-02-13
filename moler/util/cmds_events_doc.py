@@ -7,12 +7,14 @@ __author__ = 'Grzegorz Latuszek', 'Michal Ernst', 'Michal Plichta'
 __copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com', 'michal.ernst@nokia.com', 'michal.plichta@nokia.com'
 
+from datetime import datetime
 from argparse import ArgumentParser
 from importlib import import_module
 from os import walk, sep
 from os.path import abspath, join, relpath, exists, split
 from pprint import pformat
 
+from moler.helpers import compare_objects
 from moler.command import Command
 from moler.event import Event
 
@@ -185,21 +187,21 @@ def _run_command_parsing_test(moler_cmd, creation_str, buffer_io, cmd_output, cm
             moler_cmd.start()
             buffer_io.remote_inject([cmd_output])
             result = moler_cmd.await_done(7)
-            # need to remove event time
-            cmd_result.pop('time', None)
-            result[0].pop('time', None)
-            result = result[0]
         elif base_class is Command:
             buffer_io.remote_inject_response([cmd_output])
             result = moler_cmd()
-        if result != cmd_result:
+
+        diff = compare_objects(cmd_result, result, significant_digits=6, exclude_types={datetime})
+        if diff:
             expected_result = pformat(cmd_result, indent=4)
             real_result = pformat(result, indent=4)
-            error_msg = "{} {} {} (see {}{}):\n{}\n{}:\n{}".format(observer_type, creation_str,
-                                                                   'expected to return',
-                                                                   '{}_RESULT'.format(observer_type), variant,
-                                                                   expected_result,
-                                                                   'but returned', real_result)
+            diff = pformat(diff, indent=4)
+            error_msg = "{} {} {} (see {}{}):\n{}\n{}:\n{}\n{}\n{}".format(observer_type, creation_str,
+                                                                           'expected to return',
+                                                                           '{}_RESULT'.format(observer_type), variant,
+                                                                           expected_result,
+                                                                           'but returned', real_result,
+                                                                           'difference:', diff)
             return error_msg
     return ""
 

@@ -7,11 +7,12 @@ __author__ = 'Grzegorz Latuszek, Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
-import importlib
-import re
 import copy
+import importlib
 import logging
+import re
 
+import deepdiff
 
 try:
     import collections.abc as collections
@@ -107,6 +108,14 @@ def update_dict(target_dict, expand_dict):
             update_dict(target_dict[key], expand_dict[key])
         else:
             target_dict[key] = expand_dict[key]
+
+
+def compare_objects(first_object, second_object, ignore_order=False, report_repetition=False, significant_digits=None,
+                    exclude_paths=set(), exclude_types=set()):
+    diff = deepdiff.DeepDiff(first_object, second_object, ignore_order, report_repetition, significant_digits,
+                             exclude_paths, exclude_types)
+
+    return diff
 
 
 class ForwardingHandler(logging.Handler):

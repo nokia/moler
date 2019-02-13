@@ -41,10 +41,10 @@ EVENT_KWARGS = {
     "till_occurs_times": 1
 }
 
-EVENT_RESULT = {
+EVENT_RESULT = [{
     "line": "From 192.168.255.126 icmp_seq=1 Destination Host Unreachable",
     "time": datetime.datetime.now()
-}
+}]
 
 
 EVENT_OUTPUT_2 = """
@@ -101,7 +101,9 @@ EVENT_KWARGS_2 = {
     "till_occurs_times": 1
 }
 
-EVENT_RESULT_2 = {
-    "line": "no answer yet for icmp_seq=22",
-    "time": datetime.datetime.now()
-}
+EVENT_RESULT_2 = [
+    {
+        "line": "no answer yet for icmp_seq=22",
+        "time": datetime.datetime.now()
+    }
+]
