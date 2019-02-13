@@ -123,9 +123,9 @@ def compare_objects(first_object, second_object, ignore_order=False, report_repe
     :param exclude_types: types which be excluded from comparison
     :return: difference between two objects
     """
-    if exclude_paths is not None:
+    if exclude_paths is None:
         exclude_paths = set()
-    if exclude_types is not None:
+    if exclude_types is None:
         exclude_types = set()
 
     diff = deepdiff.DeepDiff(first_object, second_object, ignore_order, report_repetition, significant_digits,
