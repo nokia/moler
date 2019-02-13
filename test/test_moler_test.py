@@ -308,7 +308,32 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_d
         MyTest().method_using_observer()
 
 
+def test_info_with_dump():
+    MolerTest.info("Testing info message", dump={'key': 'value'})
+
+
+def test_warning_with_dump():
+    MolerTest.warning("Testing warning message", dump={'key': 'value'})
+
+
+def test_error_with_dump():
+    MolerTest.error("Testing warning message", dump={'key': 'value'})
+
+
+def test_dump():
+    test_dict = {'key': 'value'}
+    test_string = MolerTest._dump(test_dict)
+    assert test_string == "{'key': 'value'}"
+
+
+def test_get_string_message():
+    test_dict = {'key': 'value'}
+    test_string = "This is sample message"
+    msg = MolerTest._get_string_message(test_string, test_dict)
+    assert msg == "This is sample message\n{'key': 'value'}"
+
 # --------------------------- resources ---------------------------
+
 
 @pytest.yield_fixture
 def moler_test_se():
