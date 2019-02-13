@@ -88,14 +88,20 @@ host:~ # """
     )
 
     result = {
-        'packets_transmitted': '6',
-        'packets_received': '6',
-        'packet_loss': '0',
-        'time': '4996ms',
-        'time_min': '0.035',
-        'time_avg': '0.045',
-        'time_max': '0.062',
-        'time_mdev': '0.012',
+        'packets_transmitted': 6,
+        'packets_received': 6,
+        'packet_loss': 0,
+        'time': 4996,
+        'time_seconds': 4.996,
+        'packets_time_unit': 'ms',
+        'time_min': 0.035,
+        'time_avg': 0.045,
+        'time_max': 0.062,
+        'time_mdev': 0.012,
+        'time_min_seconds': 0.035 * 0.001,
+        'time_avg_seconds': 0.045 * 0.001,
+        'time_max_seconds': 0.062 * 0.001,
+        'time_mdev_seconds': 0.012 * 0.001,
         'time_unit': 'ms',
     }
     return data, result

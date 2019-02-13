@@ -3,25 +3,40 @@
 Mpstat command module.
 """
 
-__author__ = 'Julia Patacz'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'julia.patacz@nokia.com'
+__author__ = 'Julia Patacz, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'julia.patacz@nokia.com, marcin.usielski@nokia.com'
 
 import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
+from moler.util.converterhelper import ConverterHelper
 
 
 class Ping(GenericUnixCommand):
 
     def __init__(self, connection, destination, options=None, prompt=None, newline_chars=None, runner=None):
+        """
+        Ping command.
+        :param connection: moler connection to device, terminal when command is executed.
+        :param destination: address (IP v4 or v6) of unit to ping.
+        :param options: options of ping command for unix.
+        :param prompt: prompt on system where ping is executed.
+        :param newline_chars: characters to split lines.
+        :param runner: Runner to run command
+        """
         super(Ping, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         # Parameters defined by calling the command
         self.options = options
         self.destination = destination
+        self._converther_helper = ConverterHelper.get_converter_helper()
 
     def build_command_string(self):
+        """
+        Builds command string from parameters passed to object.
+        :return: String representation of command to send over connection to device.
+        """
         if ":" in self.destination:
             cmd = "ping6 {}".format(self.destination)
         else:
@@ -31,6 +46,12 @@ class Ping(GenericUnixCommand):
         return cmd
 
     def on_new_line(self, line, is_full_line):
+        """
+        Put your parsing code here.
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: Nothing
+        """
         if is_full_line:
             try:
                 self._parse_trans_recv_loss_time(line)
@@ -41,27 +62,54 @@ class Ping(GenericUnixCommand):
 
     # 11 packets transmitted, 11 received, 0 % packet loss, time 9999 ms
     _re_trans_recv_loss_time = re.compile(
-        r"(?P<PKTS_TRANS>\d+) packets transmitted, (?P<PKTS_RECV>\d+) received, (?P<PKT_LOSS>\S+)% packet loss, time (?P<TIME>\S+)")
+        r"(?P<PKTS_TRANS>\d+) packets transmitted, (?P<PKTS_RECV>\d+) received, (?P<PKT_LOSS>\S+)% packet loss, time (?P<TIME>\d+)\s*(?P<UNIT>\S+)")
 
     def _parse_trans_recv_loss_time(self, line):
+        """
+        Parses packets from the line of command output
+        :param line: Line of output of command.
+        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        """
         if self._regex_helper.search_compiled(Ping._re_trans_recv_loss_time, line):
-            self.current_ret['packets_transmitted'] = self._regex_helper.group('PKTS_TRANS')
-            self.current_ret['packets_received'] = self._regex_helper.group('PKTS_RECV')
-            self.current_ret['packet_loss'] = self._regex_helper.group('PKT_LOSS')
-            self.current_ret['time'] = self._regex_helper.group('TIME')
+            self.current_ret['packets_transmitted'] = int(self._regex_helper.group('PKTS_TRANS'))
+            self.current_ret['packets_received'] = int(self._regex_helper.group('PKTS_RECV'))
+            self.current_ret['packet_loss'] = int(self._regex_helper.group('PKT_LOSS'))
+            self.current_ret['time'] = int(self._regex_helper.group('TIME'))
+            self.current_ret['packets_time_unit'] = self._regex_helper.group('UNIT')
+            value_in_seconds = self._converther_helper.to_seconds(self.current_ret['time'], self.current_ret['packets_time_unit'])
+            self.current_ret['time_seconds'] = value_in_seconds
             raise ParsingDone
 
     # rtt min/avg/max/mdev = 0.033/0.050/0.084/0.015 ms
     _re_min_avg_max_mdev_unit_time = re.compile(
-        r"rtt min\/avg\/max\/mdev = (?P<MIN>\S+)\/(?P<AVG>\S+)\/(?P<MAX>\S+)\/(?P<MDEV>\S+)\s+(?P<UNIT>\S+)")
+        r"rtt min\/avg\/max\/mdev = (?P<MIN>[\d\.]+)\/(?P<AVG>[\d\.]+)\/(?P<MAX>[\d\.]+)\/(?P<MDEV>[\d\.]+)\s+(?P<UNIT>\S+)")
 
     def _parse_min_avg_max_mdev_unit_time(self, line):
+        """
+        Parses rrt info form the line of command output
+        :param line: Line of output of command
+        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        """
         if self._regex_helper.search_compiled(Ping._re_min_avg_max_mdev_unit_time, line):
-            self.current_ret['time_min'] = self._regex_helper.group('MIN')
-            self.current_ret['time_avg'] = self._regex_helper.group('AVG')
-            self.current_ret['time_max'] = self._regex_helper.group('MAX')
-            self.current_ret['time_mdev'] = self._regex_helper.group('MDEV')
-            self.current_ret['time_unit'] = self._regex_helper.group('UNIT')
+            unit = self._regex_helper.group('UNIT')
+            time_min = float(self._regex_helper.group('MIN'))
+            time_min_sec = self._converther_helper.to_seconds(time_min, unit)
+            time_avg = float(self._regex_helper.group('AVG'))
+            time_avg_sec = self._converther_helper.to_seconds(time_avg, unit)
+            time_max = float(self._regex_helper.group('MAX'))
+            time_max_sec = self._converther_helper.to_seconds(time_max, unit)
+            time_mdev = float(self._regex_helper.group('MDEV'))
+            time_mdev_sec = self._converther_helper.to_seconds(time_mdev, unit)
+            self.current_ret['time_unit'] = unit
+            self.current_ret['time_min'] = time_min
+            self.current_ret['time_min_seconds'] = time_min_sec
+            self.current_ret['time_avg'] = time_avg
+            self.current_ret['time_avg_seconds'] = time_avg_sec
+            self.current_ret['time_max'] = time_max
+            self.current_ret['time_max_seconds'] = time_max_sec
+            self.current_ret['time_mdev'] = time_mdev
+            self.current_ret['time_mdev_seconds'] = time_mdev_sec
+
             raise ParsingDone
 
 
@@ -82,14 +130,20 @@ ute@debdev:~/moler_int$ """
 COMMAND_KWARGS = {'destination': 'localhost',
                   'options': '-w 5'}
 COMMAND_RESULT = {
-    'packets_transmitted': '6',
-    'packets_received': '6',
-    'packet_loss': '0',
-    'time': '4996ms',
-    'time_min': '0.035',
-    'time_avg': '0.045',
-    'time_max': '0.062',
-    'time_mdev': '0.012',
+    'packets_transmitted': 6,
+    'packets_received': 6,
+    'packet_loss': 0,
+    'time': 4996,
+    'time_seconds': 4.996,
+    'packets_time_unit': 'ms',
+    'time_min': 0.035,
+    'time_avg': 0.045,
+    'time_max': 0.062,
+    'time_mdev': 0.012,
+    'time_min_seconds': 0.035 * 0.001,
+    'time_avg_seconds': 0.045 * 0.001,
+    'time_max_seconds': 0.062 * 0.001,
+    'time_mdev_seconds': 0.012 * 0.001,
     'time_unit': 'ms',
 }
 
@@ -113,13 +167,19 @@ COMMAND_KWARGS_v6 = {
 }
 
 COMMAND_RESULT_v6 = {
-    'packets_transmitted': '6',
-    'packets_received': '6',
-    'packet_loss': '0',
-    'time': '4999ms',
-    'time_min': '0.022',
-    'time_avg': '0.049',
-    'time_max': '0.070',
-    'time_mdev': '0.019',
+    'packets_transmitted': 6,
+    'packets_received': 6,
+    'packet_loss': 0,
+    'time': 4999,
+    'time_seconds': 4.999,
+    'packets_time_unit': 'ms',
+    'time_min': 0.022,
+    'time_avg': 0.049,
+    'time_max': 0.070,
+    'time_mdev': 0.019,
+    'time_min_seconds': 0.022 * 0.001,
+    'time_avg_seconds': 0.049 * 0.001,
+    'time_max_seconds': 0.070 * 0.001,
+    'time_mdev_seconds': 0.019 * 0.001,
     'time_unit': 'ms',
 }
