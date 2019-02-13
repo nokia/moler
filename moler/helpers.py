@@ -111,7 +111,12 @@ def update_dict(target_dict, expand_dict):
 
 
 def compare_objects(first_object, second_object, ignore_order=False, report_repetition=False, significant_digits=None,
-                    exclude_paths=set(), exclude_types=set()):
+                    exclude_paths=None, exclude_types=None):
+    if not exclude_paths:
+        exclude_paths = set()
+    if not exclude_types:
+        exclude_types = set()
+
     diff = deepdiff.DeepDiff(first_object, second_object, ignore_order, report_repetition, significant_digits,
                              exclude_paths, exclude_types)
 
