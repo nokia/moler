@@ -111,7 +111,7 @@ def update_dict(target_dict, expand_dict):
 
 
 def compare_objects(first_object, second_object, ignore_order=False, report_repetition=False, significant_digits=None,
-                    exclude_paths=None, exclude_types=None):
+                    exclude_paths=None, exclude_types=None, verbose_level=2):
     """
     Return difference between two objects.
     :param first_object: first object to compare
@@ -121,6 +121,7 @@ def compare_objects(first_object, second_object, ignore_order=False, report_repe
     :param significant_digits: use to properly compare numbers(float arithmetic error)
     :param exclude_paths: path which be excluded from comparison
     :param exclude_types: types which be excluded from comparison
+    :param verbose_level: higher verbose level shows you more details - default 0.
     :return: difference between two objects
     """
     if exclude_paths is None:
@@ -128,8 +129,9 @@ def compare_objects(first_object, second_object, ignore_order=False, report_repe
     if exclude_types is None:
         exclude_types = set()
 
-    diff = deepdiff.DeepDiff(first_object, second_object, ignore_order, report_repetition, significant_digits,
-                             exclude_paths, exclude_types)
+    diff = deepdiff.DeepDiff(first_object, second_object, ignore_order=ignore_order,
+                             report_repetition=report_repetition, significant_digits=significant_digits,
+                             exclude_paths=exclude_paths, exclude_types=exclude_types, verbose_level=verbose_level)
 
     return diff
 

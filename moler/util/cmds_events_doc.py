@@ -7,16 +7,18 @@ __author__ = 'Grzegorz Latuszek', 'Michal Ernst', 'Michal Plichta'
 __copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com', 'michal.ernst@nokia.com', 'michal.plichta@nokia.com'
 
-from datetime import datetime
+import collections
+import sys
 from argparse import ArgumentParser
+from datetime import datetime
 from importlib import import_module
 from os import walk, sep
 from os.path import abspath, join, relpath, exists, split
 from pprint import pformat
 
-from moler.helpers import compare_objects
 from moler.command import Command
 from moler.event import Event
+from moler.helpers import compare_objects
 
 
 def _buffer_connection():
@@ -180,18 +182,55 @@ def _create_command(moler_class, moler_connection, cmd_kwargs):
         raise Exception(error_msg)
 
 
+def _reformat_str_to_unicode(cmd_result):
+    if (isinstance(cmd_result, dict)):
+        for key, value in cmd_result.items():
+            if (key in cmd_result and isinstance(cmd_result[key], dict) and isinstance(cmd_result[key],
+                                                                                       collections.Mapping)):
+                _reformat_str_to_unicode(cmd_result[key])
+            else:
+                if isinstance(cmd_result[key], str):
+                    cmd_result[key] = cmd_result[key].decode('utf-8')
+                    print(cmd_result[key])
+
+    return cmd_result
+
+
+def _convert_str_to_unicode(input):
+    if isinstance(input, dict):
+        return {_convert_str_to_unicode(key): _convert_str_to_unicode(value) for key, value in input.iteritems()}
+    elif isinstance(input, list):
+        return [_convert_str_to_unicode(element) for element in input]
+    elif isinstance(input, str):
+        return input.decode('utf-8')
+    elif isinstance(input, int):
+        return input
+    elif isinstance(input, float):
+        return input
+    else:
+        return input
+
+
 def _run_command_parsing_test(moler_cmd, creation_str, buffer_io, cmd_output, cmd_result, variant, base_class,
                               observer_type):
     with buffer_io:  # open it (autoclose by context-mngr)
+        exclude_types = None
+
         if base_class is Event:
             moler_cmd.start()
             buffer_io.remote_inject([cmd_output])
             result = moler_cmd.await_done(7)
+            exclude_types = {datetime}
         elif base_class is Command:
             buffer_io.remote_inject_response([cmd_output])
             result = moler_cmd()
 
-        diff = compare_objects(cmd_result, result, significant_digits=6, exclude_types={datetime})
+        if sys.version_info < (3, 0):
+            # workaround for python2.7 - convert str to unicode
+            cmd_result = _convert_str_to_unicode(cmd_result)
+            result = _convert_str_to_unicode(result)
+
+        diff = compare_objects(cmd_result, result, significant_digits=6, exclude_types=exclude_types)
         if diff:
             expected_result = pformat(cmd_result, indent=4)
             real_result = pformat(result, indent=4)
