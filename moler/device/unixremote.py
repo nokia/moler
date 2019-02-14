@@ -6,7 +6,7 @@ Moler's device has 2 main responsibilities:
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 from moler.device.unixlocal import UnixLocal
@@ -325,3 +325,52 @@ class UnixRemote(UnixLocal):
         command_timeout = self.calc_timeout_for_command(timeout, command_params)
         command = self.get_cmd(cmd_name=command_name, cmd_params=command_params)
         command(timeout=command_timeout)
+
+
+"""
+Example of device in yaml configuration file:
+    - with PROXY_PC:
+     UNIX_1:
+       DEVICE_CLASS: moler.device.unixremote.UnixRemote
+       CONNECTION_HOPS:
+         PROXY_PC:
+           UNIX_REMOTE:
+             execute_command: ssh # default value
+             command_params:
+               expected_prompt: unix_remote_prompt
+               host: host_ip
+               login: login
+               password: password
+         UNIX_REMOTE:
+           PROXY_PC:
+             execute_command: exit # default value
+             command_params:
+               expected_prompt: proxy_pc_prompt
+         UNIX_LOCAL:
+           PROXY_PC:
+             execute_command: ssh # default value
+             command_params:
+               expected_prompt: proxy_pc_prompt
+               host: host_ip
+               login: login
+               password: password
+           UNIX_REMOTE:
+             execute_command: ssh # default value
+             command_params:
+               expected_prompt: unix_remote_prompt
+               host: host_ip
+               login: login
+               password: password
+    -without PROXY_PC:
+      UNIX_1:
+       DEVICE_CLASS: moler.device.unixremote.UnixRemote
+       CONNECTION_HOPS:
+         UNIX_LOCAL:
+           UNIX_REMOTE:
+             execute_command: ssh # default value
+             command_params:
+               expected_prompt: unix_remote_prompt
+               host: host_ip
+               login: login
+               password: password
+"""

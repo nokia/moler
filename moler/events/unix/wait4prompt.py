@@ -30,7 +30,9 @@ EVENT_KWARGS = {
     "till_occurs_times": 1
 }
 
-EVENT_RESULT = {
-    'line': "host:~ #",
-    'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
-}
+EVENT_RESULT = [
+    {
+        'line': "host:~ #",
+        'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
+    }
+]

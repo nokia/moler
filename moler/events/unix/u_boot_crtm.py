@@ -129,11 +129,13 @@ EVENT_KWARGS = {
     "till_occurs_times": 1
 }
 
-EVENT_RESULT = {
-    'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
-    'CPLD_version': ' 0x01.04',
-    'CPLD_board_id': ' 0x20',
-    'CPLD_reset_reason': ' [02 00] Reset',
-    'CPLD_gpir': ' 0x17',
-    'CPLD_sjmpr': ' 0x00'
-}
+EVENT_RESULT = [
+    {
+        'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
+        'CPLD_version': ' 0x01.04',
+        'CPLD_board_id': ' 0x20',
+        'CPLD_reset_reason': ' [02 00] Reset',
+        'CPLD_gpir': ' 0x17',
+        'CPLD_sjmpr': ' 0x00'
+    }
+]
