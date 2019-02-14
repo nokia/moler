@@ -15,6 +15,9 @@ import re
 
 import deepdiff
 
+if datetime.time not in deepdiff.diff.numbers:
+    deepdiff.diff.numbers = deepdiff.diff.numbers + (datetime.time,)
+
 try:
     import collections.abc as collections
 except ImportError:
@@ -145,9 +148,6 @@ def compare_objects(first_object, second_object, ignore_order=False, report_repe
         exclude_paths = set()
     if exclude_types is None:
         exclude_types = set()
-
-    if datetime.time not in deepdiff.diff.numbers:
-        deepdiff.diff.numbers = deepdiff.diff.numbers + (datetime.time,)
 
     diff = deepdiff.DeepDiff(first_object, second_object, ignore_order=ignore_order,
                              report_repetition=report_repetition, significant_digits=significant_digits,
