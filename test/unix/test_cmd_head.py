@@ -13,7 +13,7 @@ import pytest
 
 def test_head_raise_exception(buffer_connection):
     """
-    Test if proper alarm is raised when head tries to open non existing file.
+    Test if exception is raised when head tries to open non existing file.
 
     :param buffer_connection: Simulation of a real connection with a device.
     :return: Nothing

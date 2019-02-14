@@ -13,11 +13,11 @@ __email__ = 'mateusz.m.szczurek@nokia.com, sylwester.golonka@nokia.com'
 
 
 class Head(GenericUnixCommand):
-    """Head command class"""
+    """Head command class."""
 
     def __init__(self, connection, path, options=None, prompt=None, newline_chars=None, runner=None):
         """
-        Head command
+        Head command.
 
         :param connection: Moler connection to device, terminal when command is executed.
         :param path: Path to the file.
@@ -49,8 +49,8 @@ class Head(GenericUnixCommand):
         Put your parsing code here.
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
-        :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :param is_full_line: True if line had new line chars, False otherwise.
+        :return: Nothing.
         """
         if is_full_line:
             try:
