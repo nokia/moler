@@ -8,6 +8,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import copy
+import datetime
 import importlib
 import logging
 import re
@@ -101,13 +102,20 @@ def create_object_from_name(full_class_name, constructor_params):
     return obj
 
 
-def update_dict(target_dict, expand_dict):
-    for key, value in expand_dict.items():
-        if (key in target_dict and isinstance(target_dict[key], dict) and isinstance(expand_dict[key],
-                                                                                     collections.Mapping)):
-            update_dict(target_dict[key], expand_dict[key])
-        else:
-            target_dict[key] = expand_dict[key]
+def _replace_diff_values(diff_dict):
+    """
+    Replace old_ and new_ keys in diff_dict into more understandable current_ and expected_ values.
+    :param diff_dict: dict with two dicts diff
+    :return: diff_dict with changed keys
+    """
+    if isinstance(diff_dict, dict):
+        return {_replace_diff_values(key): _replace_diff_values(diff_dict[key]) for key in diff_dict.keys()}
+    elif isinstance(diff_dict, list):
+        return [_replace_diff_values(element) for element in diff_dict]
+    elif isinstance(diff_dict, str) and ("old_" or "new_" in diff_dict):
+        return diff_dict.replace("old_", "expected_").replace("new_", "current_")
+    else:
+        return diff_dict
 
 
 def compare_objects(first_object, second_object, ignore_order=False, report_repetition=False, significant_digits=None,
@@ -129,9 +137,13 @@ def compare_objects(first_object, second_object, ignore_order=False, report_repe
     if exclude_types is None:
         exclude_types = set()
 
+    if datetime.time not in deepdiff.diff.numbers:
+        deepdiff.diff.numbers = deepdiff.diff.numbers + (datetime.time, )
+
     diff = deepdiff.DeepDiff(first_object, second_object, ignore_order=ignore_order,
                              report_repetition=report_repetition, significant_digits=significant_digits,
                              exclude_paths=exclude_paths, exclude_types=exclude_types, verbose_level=verbose_level)
+    diff = _replace_diff_values(diff)
 
     return diff
 

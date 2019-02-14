@@ -203,10 +203,6 @@ def _convert_str_to_unicode(input):
         return [_convert_str_to_unicode(element) for element in input]
     elif isinstance(input, str):
         return input.decode('utf-8')
-    elif isinstance(input, int):
-        return input
-    elif isinstance(input, float):
-        return input
     else:
         return input
 
