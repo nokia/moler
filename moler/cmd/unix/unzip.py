@@ -11,17 +11,16 @@ from moler.exceptions import CommandFailure, ParsingDone
 
 
 class Unzip(GenericUnixCommand):
-    """Unzip command class"""
+    """Unzip command class."""
 
-    def __init__(self, connection, zip_file, is_dir=None, directory=None, options="", overwrite=False, prompt=None,
+    def __init__(self, connection, zip_file, extract_dir=None, options="", overwrite=False, prompt=None,
                  newline_chars=None, runner=None):
         """
         Unzip command.
 
         :param connection: Moler connection to device, terminal when command is executed.
         :param zip_file: Name of a file which shall be unzipped.
-        :param is_dir: A parameter that determines whether files shall be extract to specified directory.
-        :param directory: An optional directory to which to extract files.
+        :param extract_dir: An optional extract_dir to which to extract files.
         :param options: Options of command unzip.
         :param overwrite: A parameter that determines whether an existing file shall be overwritten.
         :param prompt: Expected prompt that has been sent by device after command execution.
@@ -32,8 +31,7 @@ class Unzip(GenericUnixCommand):
         # Parameters defined by calling the command
         self.options = options
         self.zip_file = zip_file
-        self.is_dir = is_dir
-        self.directory = directory
+        self.extract_dir = extract_dir
         self.overwrite = overwrite
         self.ret_required = False
         self._is_overwritten = False
@@ -46,10 +44,10 @@ class Unzip(GenericUnixCommand):
 
         :return: String representation of the command to send over a connection to the device.
         """
-        if self.options and self.is_dir:
-            cmd = "{} {} {} {} {}".format("unzip", self.options, self.zip_file, self.is_dir, self.directory)
-        elif self.is_dir:
-            cmd = "{} {} {} {}".format("unzip", self.zip_file, self.is_dir, self.directory)
+        if self.options and self.extract_dir:
+            cmd = "{} {} {} {} {}".format("unzip", self.options, self.zip_file, '-d', self.extract_dir)
+        elif self.extract_dir:
+            cmd = "{} {} {} {}".format("unzip", self.zip_file, '-d', self.extract_dir)
         elif self.options:
             cmd = "{} {} {}".format("unzip", self.options, self.zip_file)
         else:
@@ -62,7 +60,7 @@ class Unzip(GenericUnixCommand):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: Nothing.
         """
         try:
             self._asks_to_overwrite(line)
@@ -153,7 +151,7 @@ class Unzip(GenericUnixCommand):
             raise ParsingDone
 
     # unzip:  caution: filename not matched:  -q
-    _re_filename_not_matched = re.compile(r'(?P<caution>caution: filename not matched:.*\S)')
+    _re_filename_not_matched = re.compile(r'(?P<caution>cannot create extraction directory:.*\S)')
 
     def _parse_error_filename_not_matched(self, line):
         """
@@ -238,37 +236,35 @@ COMMAND_KWARGS_v_option = {
     "zip_file": "files.zip",
 }
 
-COMMAND_OUTPUT_is_dir = """
+COMMAND_OUTPUT_extract_dir = """
 host:~ # unzip test.zip -d /home/ute/temp
 Archive:  test.zip
  extracting: /home/ute/temp/test.txt
 host:~ # """
 
-COMMAND_RESULT_is_dir = {
+COMMAND_RESULT_extract_dir = {
     'FILE_LIST': ['/home/ute/temp/test.txt'],
     'FILE_DICT': {}
 }
 
-COMMAND_KWARGS_is_dir = {
+COMMAND_KWARGS_extract_dir = {
     "zip_file": "test.zip",
-    "is_dir": "-d",
-    "directory": "/home/ute/temp"
+    "extract_dir": "/home/ute/temp"
 }
 
-COMMAND_OUTPUT_options_is_dir = """
+COMMAND_OUTPUT_options_extract_dir = """
 host:~ # unzip -u test.zip -d /home/ute/temp
 Archive:  test.zip
  extracting: /home/ute/temp/test.txt
 host:~ # """
 
-COMMAND_RESULT_options_is_dir = {
+COMMAND_RESULT_options_extract_dir = {
     'FILE_LIST': ['/home/ute/temp/test.txt'],
     'FILE_DICT': {}
 }
 
-COMMAND_KWARGS_options_is_dir = {
+COMMAND_KWARGS_options_extract_dir = {
     "options": "-u",
     "zip_file": "test.zip",
-    "is_dir": "-d",
-    "directory": "/home/ute/temp"
+    "extract_dir": "/home/ute/temp"
 }
