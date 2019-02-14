@@ -21,8 +21,7 @@ def test_head_raise_exception(buffer_connection):
     command_output = """
 host:~ # head test.txt
 head: cannot open "test.txt" for reading: No such file or directory
-host:~ #
-"""
+host:~ # """
     buffer_connection.remote_inject_response([command_output])
     cmd = Head(connection=buffer_connection.moler_connection, path="test.txt")
     with pytest.raises(CommandFailure):

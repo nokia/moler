@@ -96,8 +96,7 @@ Active:          1335448 kB
 Inactive:         569004 kB
 Active(anon):    1076756 kB
 Inactive(anon):    17844 kB
-host:~ #
-"""
+host:~ # """
 
 COMMAND_RESULT_no_options = {'LINES': ['MemTotal:        4056916 kB',
                                        'MemFree:         2035136 kB',
@@ -108,8 +107,7 @@ COMMAND_RESULT_no_options = {'LINES': ['MemTotal:        4056916 kB',
                                        'Active:          1335448 kB',
                                        'Inactive:         569004 kB',
                                        'Active(anon):    1076756 kB',
-                                       'Inactive(anon):    17844 kB',
-                                       'host:~ #']
+                                       'Inactive(anon):    17844 kB']
                              }
 
 COMMAND_KWARGS_no_options = {
@@ -121,13 +119,11 @@ host:~ # head /proc/meminfo -n 3
 MemTotal:        4056916 kB
 MemFree:         1556208 kB
 MemAvailable:    2369852 kB
-host:~ #
-"""
+host:~ # """
 
 COMMAND_RESULT_options = {'LINES': ['MemTotal:        4056916 kB',
                                     'MemFree:         1556208 kB',
-                                    'MemAvailable:    2369852 kB',
-                                    'host:~ #']
+                                    'MemAvailable:    2369852 kB']
                           }
 
 COMMAND_KWARGS_options = {
