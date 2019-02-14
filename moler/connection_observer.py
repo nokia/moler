@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019 Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
+import time
 from abc import abstractmethod, ABCMeta
 
 from six import add_metaclass
@@ -18,7 +19,9 @@ from moler.exceptions import ResultNotAvailableYet
 from moler.helpers import ClassProperty
 from moler.helpers import camel_case_to_lower_case_underscore
 from moler.helpers import instance_id
+from moler.helpers import copy_list
 from moler.runner import ThreadPoolExecutorRunner
+from moler.command_scheduler import CommandScheduler
 import threading
 
 
@@ -34,13 +37,14 @@ class ConnectionObserver(object):
         """
         self.connection = connection
         self._is_running = False
-        self._is_done = False
+        self.__is_done = False
         self._is_cancelled = False
         self._result = None
         self._exception = None
         self.runner = runner if runner else ThreadPoolExecutorRunner()
         self._future = None
         self.timeout = 7
+        self.start_time = -1
         self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
         self.logger = logging.getLogger('moler.connection.{}'.format(self.get_logger_name()))
 
@@ -66,6 +70,16 @@ class ConnectionObserver(object):
             return started_observer.await_done(*args, **kwargs)
         # TODO: raise ConnectionObserverFailedToStart
 
+    @property
+    def _is_done(self):
+        return self.__is_done
+
+    @_is_done.setter
+    def _is_done(self, value):
+        if value:
+            CommandScheduler.dequeue_running_on_connection(connection_observer=self)
+        self.__is_done = value
+
     def get_logger_name(self):
         if self.connection and hasattr(self.connection, "name"):
             return self.connection.name
@@ -78,9 +92,8 @@ class ConnectionObserver(object):
             self.timeout = timeout
         self._validate_start(*args, **kwargs)
         self._is_running = True
-        self._future = self.runner.submit(self)
-        if self._future is None:
-            self._is_running = False
+        self.start_time = time.time()
+        CommandScheduler.enqueue_starting_on_connection(connection_observer=self)
         return self
 
     def _validate_start(self, *args, **kwargs):
@@ -88,7 +101,7 @@ class ConnectionObserver(object):
         if not self.connection:
             # only if we have connection we can expect some data on it
             # at the latest "just before start" we need connection
-            raise NoConnectionProvided(self)
+            self.set_exception(NoConnectionProvided(self))
         # ----------------------------------------------------------------------
         # We intentionally do not check if connection is open here.
         # In such case net result anyway will be failed/timeouted observer -
@@ -99,17 +112,21 @@ class ConnectionObserver(object):
         # We choose minimalistic dependency over better troubleshooting support.
         # ----------------------------------------------------------------------
         if self.timeout <= 0.0:
-            raise ConnectionObserverTimeout(self, self.timeout, "before run", "timeout is not positive value")
+            exc = ConnectionObserverTimeout(self, self.timeout, "before run", "timeout is not positive value")
+            self.set_exception(exc)
 
     def await_done(self, timeout=None):
         """Await completion of connection-observer."""
         if self.done():
             return self.result()
-        if self._future is None:
+        if not self._is_running:
             raise ConnectionObserverNotStarted(self)
-        self.runner.wait_for(connection_observer=self, connection_observer_future=self._future,
-                             timeout=timeout)
-
+        while self._future is None:
+            time.sleep(0.005)
+            if self.done():
+                break
+        if self._future:
+            self.runner.wait_for(connection_observer=self, connection_observer_future=self._future, timeout=timeout)
         return self.result()
 
     def cancel(self):
@@ -151,30 +168,32 @@ class ConnectionObserver(object):
 
     def set_exception(self, exception):
         """Should be used to indicate some failure during observation"""
+        if self._is_done:
+            self._log(logging.WARNING,
+                      "Set exception with object '{}.{}' ({}) on already done object ({}).".format(
+                          exception.__class__.__module__,
+                          exception.__class__.__name__,
+                          exception,
+                          self
+                      ))
+            return
         self._is_done = True
-        if self._exception:
-            self._log(logging.DEBUG, "'{}.{}' has overwritten exception. From '{}.{}' to '{}.{}'.".format(
-                self.__class__.__module__,
-                self.__class__.__name__,
-                self._exception.__class__.__module__,
-                self._exception.__class__.__name__,
-                exception.__class__.__module__,
-                exception.__class__.__name__
-            ))
-            ConnectionObserver._remove_from_not_raised_exceptions(self._exception)
-        self._exception = exception
-        ConnectionObserver._append_to_not_raised_exceptions(exception)
-        self._log(logging.INFO, "'{}.{}' has set exception '{}.{}'.".format(self.__class__.__module__,
-                                                                            self.__class__.__name__,
-                                                                            exception.__class__.__module__,
-                                                                            exception.__class__.__name__))
+        ConnectionObserver._change_unraised_exception(new_exception=exception, observer=self)
+        self._log(logging.INFO, "'{}.{}' has set exception '{}.{}' ({}).".format(self.__class__.__module__,
+                                                                                 self.__class__.__name__,
+                                                                                 exception.__class__.__module__,
+                                                                                 exception.__class__.__name__,
+                                                                                 exception))
 
     def result(self):
         """Retrieve final result of connection-observer"""
-        if self._exception:
+        with ConnectionObserver._exceptions_lock:
+            ConnectionObserver._log_unraised_exceptions(self)
             if self._exception:
-                ConnectionObserver._remove_from_not_raised_exceptions(self._exception)
-            raise self._exception
+                exception = self._exception
+                if exception in ConnectionObserver._not_raised_exceptions:
+                    ConnectionObserver._not_raised_exceptions.remove(exception)
+                raise exception
         if self.cancelled():
             raise NoResultSinceCancelCalled(self)
         if not self.done():
@@ -184,6 +203,12 @@ class ConnectionObserver(object):
     def on_timeout(self):
         """ It's callback called by framework just before raise exception for Timeout """
         pass
+
+    def is_command(self):
+        """
+        :return: True if instance of ConnectionObserver is a command. False if not a command.
+        """
+        return False
 
     def extend_timeout(self, timedelta):
         prev_timeout = self.timeout
@@ -205,19 +230,49 @@ class ConnectionObserver(object):
                 ConnectionObserver._not_raised_exceptions = list()
                 return list_of_exceptions
             else:
-                list_of_exceptions = ConnectionObserver._not_raised_exceptions.copy()
+                list_of_exceptions = copy_list(ConnectionObserver._not_raised_exceptions)
                 return list_of_exceptions
 
     @staticmethod
-    def _append_to_not_raised_exceptions(exception):
+    def _change_unraised_exception(new_exception, observer):
         with ConnectionObserver._exceptions_lock:
-            ConnectionObserver._not_raised_exceptions.append(exception)
+            old_exception = observer._exception
+            ConnectionObserver._log_unraised_exceptions(observer)
+            if old_exception:
+                observer._log(logging.DEBUG,
+                              "'{}.{}' has overwritten exception. From '{}.{}' ({}) to '{}.{}' ({}).".format(
+                                  observer.__class__.__module__,
+                                  observer.__class__.__name__,
+                                  old_exception.__class__.__module__,
+                                  old_exception.__class__.__name__,
+                                  old_exception,
+                                  new_exception.__class__.__module__,
+                                  new_exception.__class__.__name__,
+                                  new_exception,
+                              ))
+                if old_exception in ConnectionObserver._not_raised_exceptions:
+                    ConnectionObserver._not_raised_exceptions.remove(old_exception)
+                else:
+                    observer._log(logging.DEBUG,
+                                  "'{}.{}': cannot find exception '{}.{}' '{}' in _not_raised_exceptions.".format(
+                                      observer.__class__.__module__,
+                                      observer.__class__.__name__,
+                                      old_exception.__class__.__module__,
+                                      old_exception.__class__.__name__,
+                                      old_exception,
+                                  ))
+                    ConnectionObserver._log_unraised_exceptions(observer)
+
+            ConnectionObserver._not_raised_exceptions.append(new_exception)
+            observer._exception = new_exception
 
     @staticmethod
-    def _remove_from_not_raised_exceptions(exception):
-        with ConnectionObserver._exceptions_lock:
-            if exception in ConnectionObserver._not_raised_exceptions:
-                ConnectionObserver._not_raised_exceptions.remove(exception)
+    def _log_unraised_exceptions(observer):
+        observer._log(logging.DEBUG, "list length: {}".format(len(ConnectionObserver._not_raised_exceptions)))
+        observer._log(logging.DEBUG, "list: {}".format(ConnectionObserver._not_raised_exceptions))
+
+        for i, item in enumerate(ConnectionObserver._not_raised_exceptions):
+            observer._log(logging.DEBUG, "{}: {}".format(i, item))
 
     def get_long_desc(self):
         return "Observer '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)
