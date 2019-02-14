@@ -4,6 +4,7 @@ __copyright__ = 'Copyright (C) 2019, Nokia'
 __email__ = 'mateusz.m.szczurek@nokia.com'
 
 import re
+import datetime
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
@@ -81,7 +82,7 @@ class W(GenericUnixCommand):
         """
         if self._regex_helper.search_compiled(W._re_general_info, line):
             self.current_ret['GENERAL_INFO'].update({
-                'time': self._regex_helper.group("TIME"),
+                'time': datetime.datetime.strptime(self._regex_helper.group("TIME"), '%H:%M:%S').time(),
                 'uptime': self._regex_helper.group("UPTIME"),
                 'user_number': self._regex_helper.group("USER_NUMBER"),
                 'load_average': self._regex_helper.group("L_AVERAGE")
@@ -149,7 +150,7 @@ host:~ # """
 
 COMMAND_RESULT_parse_general_case = {
     'GENERAL_INFO': {'load_average': '0.50, 0.33, 0.14',
-                     'time': '14:40:19',
+                     'time': datetime.time(14, 40, 19),
                      'uptime': '7:12',
                      'user_number': '5'},
     'RESULT': [{'FROM': ':0',
@@ -184,7 +185,7 @@ host:~ # """
 
 COMMAND_RESULT_s_option = {
     'GENERAL_INFO': {'load_average': '0.22, 0.33, 0.32',
-                     'time': '10:22:30',
+                     'time': datetime.time(10, 22, 30),
                      'uptime': '3:09',
                      'user_number': '3'},
     'RESULT': [{'FROM': ':0',
@@ -226,7 +227,7 @@ host:~ # """
 
 COMMAND_RESULT_h_option_solo = {
     'GENERAL_INFO': {'load_average': '0.50, 0.33, 0.14',
-                     'time': '14:40:19',
+                     'time': datetime.time(14, 40, 19),
                      'uptime': '7:12',
                      'user_number': '5'},
     'RESULT': [{'FROM': ':0',
@@ -252,7 +253,7 @@ host:~ # """
 
 COMMAND_RESULT_h_option_middle = {
     'GENERAL_INFO': {'load_average': '0.50, 0.33, 0.14',
-                     'time': '14:40:19',
+                     'time': datetime.time(14, 40, 19),
                      'uptime': '7:12',
                      'user_number': '5'},
     'RESULT': [{'FROM': ':0',
