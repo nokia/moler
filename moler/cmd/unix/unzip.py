@@ -66,7 +66,7 @@ class Unzip(GenericUnixCommand):
             self._asks_to_overwrite(line)
             if is_full_line:
                 self._parse_error_no_file(line)
-                self._parse_error_filename_not_matched(line)
+                self._parse_error_can_not_create_dir(line)
                 self._parse_info_output(line)
                 self._parse_v_option(line)
         except ParsingDone:
@@ -153,7 +153,7 @@ class Unzip(GenericUnixCommand):
     # unzip:  caution: filename not matched:  -q
     _re_filename_not_matched = re.compile(r'(?P<caution>cannot create extraction directory:.*\S)')
 
-    def _parse_error_filename_not_matched(self, line):
+    def _parse_error_can_not_create_dir(self, line):
         """
         Parse errors in line and set exception in case of any errors were parsed.
 
