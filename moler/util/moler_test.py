@@ -172,7 +172,7 @@ class MolerTest(object):
                 err_msg += "There were NO unhandled exceptions in Moler.\n"
         if len(MolerTest._list_of_errors) > 0:
             err_msg += "There were error messages in Moler execution.\n"
-            i=0
+            i = 0
             for msg in MolerTest._list_of_errors:
                 i += 1
                 err_msg += "{}) >>{}<<\n".format(i, msg)
