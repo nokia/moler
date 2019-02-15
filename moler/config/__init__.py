@@ -2,18 +2,17 @@
 """
 Moler related configuration
 """
-import os
-
-from moler.util.moler_test import MolerTest
-
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
-
-import yaml
-import six
+import os
 from contextlib import contextmanager
 
+import six
+import yaml
+
+from moler.helpers import compare_objects
+from moler.util.moler_test import MolerTest
 from . import connections as conn_cfg
 from . import devices as dev_cfg
 from . import loggers as log_cfg
@@ -63,7 +62,7 @@ def load_config(config=None, from_env_var=None, config_type='yaml'):
 
     if loaded_config == "NOT_LOADED_YET":
         loaded_config = config
-    elif loaded_config == config:
+    elif not compare_objects(loaded_config, config):
         return
     else:
         # TODO: raise exception or no?
