@@ -2,20 +2,17 @@
 """
 Moler related configuration
 """
-import os
-from pprint import pformat
-
-from moler.util.moler_test import MolerTest
-
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
-
-import yaml
-import six
+import os
 from contextlib import contextmanager
-from moler.helpers import compare_objects
 
+import six
+import yaml
+
+from moler.helpers import compare_objects
+from moler.util.moler_test import MolerTest
 from . import connections as conn_cfg
 from . import devices as dev_cfg
 from . import loggers as log_cfg
