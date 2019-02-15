@@ -125,6 +125,7 @@ class MolerTest(object):
         MolerTest._logger.error(msg, extra={'moler_error': True})
 
         if raise_exception:
+            print("MolerTest::_error: '{}'".format(msg))
             raise MolerException(msg)
 
     @staticmethod
@@ -160,9 +161,15 @@ class MolerTest(object):
                     err_msg += "{}{}".format(exc_traceback, repr(exc))
                 except AttributeError:
                     err_msg += repr(exc)
+        else:
+            if err_msg:
+                err_msg += "There were NO unhandled exceptions in Moler.\n"
         if len(MolerTest._list_of_errors) > 0:
             err_msg += "There were error messages in Moler execution."
-
+        else:
+            if err_msg:
+                err_msg += "There were NO error messages in Moler execution."
+        print("MolerTest::_prepare_err_msg: '{}'".format(err_msg))
         return err_msg
 
     @staticmethod
