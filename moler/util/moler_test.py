@@ -120,7 +120,6 @@ class MolerTest(object):
     @staticmethod
     def _error(msg, raise_exception=False, dump=None):
         MolerTest._was_error = True
-
         msg = MolerTest._get_string_message(msg, dump)
         MolerTest._logger.error(msg, extra={'moler_error': True})
 
@@ -130,20 +129,27 @@ class MolerTest(object):
 
     @staticmethod
     def _steps_start():
-        err_msg = ""
-        unraised_exceptions = ConnectionObserver.get_unraised_exceptions(True)
-        if MolerTest._list_of_errors:
-            err_msg += "There were errors in previous Moler test. Please check Moler logs for details. List of them:\n"
-            for msg in MolerTest._list_of_errors:
-                MolerTest._error("    {}\n".format(msg))
-        if unraised_exceptions:
-            err_msg += "There were unhandled exceptions in previous Moler test. Please check Moler logs for details.\n"
-            for unraised_exception in unraised_exceptions:
-                err_msg = "    {}{}\n".format(err_msg, unraised_exception)
-            MolerTest._error(err_msg)
+        err_msg = MolerTest._prepare_err_msg(list())
         MolerTest._list_of_errors = list()  # clean the list for new test
-
+        MolerTest._was_error = False
         MolerTest._was_steps_end = False
+        if err_msg:
+            prefix = "There were errors in previous Moler test. Please check Moler logs for details. List of them:\n"
+            err_msg = "{} {}".format(prefix, err_msg)
+            MolerTest.error(err_msg)
+        # err_msg = ""
+        # unraised_exceptions = ConnectionObserver.get_unraised_exceptions(True)
+        # if MolerTest._list_of_errors:
+        #     err_msg += "There were errors in previous Moler test. Please check Moler logs for details. List of them:\n"
+        #     for msg in MolerTest._list_of_errors:
+        #         MolerTest._error("    {}\n".format(msg))
+        # if unraised_exceptions:
+        #     err_msg += "There were unhandled exceptions in previous Moler test. Please check Moler logs for details.\n"
+        #     for unraised_exception in unraised_exceptions:
+        #         err_msg = "    {}{}\n".format(err_msg, unraised_exception)
+        #     MolerTest._error(err_msg)
+        # MolerTest._list_of_errors = list()  # clean the list for new test
+        # MolerTest._was_steps_end = False
 
     @staticmethod
     def _prepare_err_msg(occured_exceptions):
