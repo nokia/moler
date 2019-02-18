@@ -154,25 +154,23 @@ class MolerTest(object):
             err_msg += "There were error messages in Moler execution. Please check Moler logs for details.\n"
         if len(occured_exceptions) > 0:
             err_msg += "There were unhandled exceptions in Moler.\n"
+            i = 0
             for exc in occured_exceptions:
+                i += 1
                 try:
                     import traceback
                     exc_traceback = ' '.join(traceback.format_tb(exc.__traceback__))
-                    err_msg += "{}{}".format(exc_traceback, repr(exc))
+                    err_msg += "  {}){}{}\n".format(i, exc_traceback, repr(exc))
                 except AttributeError:
                     err_msg += repr(exc)
-        else:
-            if err_msg:
-                err_msg += "There were NO unhandled exceptions in Moler.\n"
+
         if len(MolerTest._list_of_errors) > 0:
             err_msg += "There were error messages in Moler execution:\n"
             i = 0
             for msg in MolerTest._list_of_errors:
                 i += 1
-                err_msg += "{}) >>{}<<\n".format(i, msg)
-        else:
-            if err_msg:
-                err_msg += "There were NO error messages in Moler execution."
+                err_msg += "  {}) >>{}<<\n".format(i, msg)
+
         return err_msg
 
     @staticmethod
