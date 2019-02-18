@@ -198,7 +198,7 @@ class MolerTest(object):
         # check that decorated function is not statimethod or classmethod
         if not obj:
             raise MolerStatusException("Decorator for 'staticmethod' or 'classmethod' not implemented yet.",
-                                       [MolerException()])
+                                       )
 
         if hasattr(obj, "__dict__"):
             if obj.__dict__.items():
@@ -214,7 +214,7 @@ class MolerTest(object):
             else:
                 obj = MolerTest._wrapper(obj, True)
         else:
-            raise MolerStatusException("No '__dict__' in decorated object.", [MolerException()])
+            raise MolerStatusException("No '__dict__' in decorated object.")
 
         return obj
 
