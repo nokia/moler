@@ -116,7 +116,6 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_fu
 
     with pytest.raises(MolerStatusException) as err:
         function_using_observer()
-    assert exc in err.value.exceptions
 
 
 def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_decorator_on_function(
