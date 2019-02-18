@@ -5,11 +5,12 @@ Utility/common code of library.
 import threading
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
 import time
+import gc
 import pprint
 from functools import partial
 from functools import wraps
@@ -124,7 +125,6 @@ class MolerTest(object):
         MolerTest._logger.error(msg, extra={'moler_error': True})
 
         if raise_exception:
-            print("MolerTest::_error: '{}'".format(msg))
             raise MolerException(msg)
 
     @staticmethod
@@ -179,7 +179,6 @@ class MolerTest(object):
         else:
             if err_msg:
                 err_msg += "There were NO error messages in Moler execution."
-        print("MolerTest::_prepare_err_msg: '{}'".format(err_msg))
         return err_msg
 
     @staticmethod
@@ -253,6 +252,7 @@ class MolerTest(object):
                 MolerTest._check_exceptions_occured(caught_exception)
                 if check_steps_end:
                     MolerTest._check_steps_end()
+            gc.collect()
             return result
 
         wrapped._already_decorated = True
