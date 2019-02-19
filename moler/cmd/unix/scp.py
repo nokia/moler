@@ -7,13 +7,13 @@ from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 import re
 
-__author__ = 'Sylwester Golonka, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'sylwester.golonka@nokia.com, marcin.usielski@nokia.com'
+__author__ = 'Sylwester Golonka, Marcin Usielski, Michal Ernst'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'sylwester.golonka@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 
 class Scp(GenericUnixCommand):
-    def __init__(self, connection, source, dest, password="", prompt=None, newline_chars=None,
+    def __init__(self, connection, source, dest, password="", options="", prompt=None, newline_chars=None,
                  known_hosts_on_failure='keygen', encrypt_password=True, runner=None):
         """
         :param connection: moler connection to device, terminal when command is executed
@@ -29,6 +29,7 @@ class Scp(GenericUnixCommand):
         super(Scp, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.source = source
         self.dest = dest
+        self.options = options
         self.password = password
         self.known_hosts_on_failure = known_hosts_on_failure
         self.encrypt_password = encrypt_password
@@ -44,7 +45,11 @@ class Scp(GenericUnixCommand):
         Builds command string from parameters passed to object.
         :return: String representation of command to send over connection to device.
         """
-        cmd = "{} {} {}".format("scp", self.source, self.dest)
+        cmd = "scp"
+        if self.options:
+            cmd = "{} {} {} {}".format(cmd, self.options, self.source, self.dest)
+        else:
+            cmd = "{} {} {}".format(cmd, self.source, self.dest)
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -74,7 +79,10 @@ class Scp(GenericUnixCommand):
         :return: Nothing but raises ParsingDone if matches success
         """
         if self._regex_helper.search_compiled(Scp._re_parse_success, line):
-            self.current_ret['FILENAME'] = self._regex_helper.group('FILENAME')
+            if 'FILE_NAMES' not in self.current_ret.keys():
+                self.current_ret['FILE_NAMES'] = list()
+
+            self.current_ret['FILE_NAMES'].append(self._regex_helper.group('FILENAME'))
             raise ParsingDone
 
     _re_parse_failed = re.compile(
@@ -215,7 +223,37 @@ COMMAND_KWARGS_succsess = {
 }
 
 COMMAND_RESULT_succsess = {
-    'FILENAME': u'test.txt'
+    'FILE_NAMES': [
+        u'test.txt'
+    ]
+}
+
+COMMAND_KWARGS_rm = {
+    "source": "test.txt",
+    "dest": "ute@localhost:/home/ute",
+    "password": "ute",
+    "known_hosts_on_failure": "rm"
+}
+
+COMMAND_OUTPUT_recursively_succsess = """
+ute@debdev:~/Desktop$ scp -r test ute@localhost:/home/ute
+ute@localhost's password:
+test.txt                                                             100%  104     0.1KB/s   00:00
+test2.txt                                                            100%  104     0.1KB/s   00:00
+ute@debdev:~/Desktop$"""
+
+COMMAND_KWARGS_recursively_succsess = {
+    "source": "test",
+    "dest": "ute@localhost:/home/ute",
+    "password": "ute",
+    "options": "-r"
+}
+
+COMMAND_RESULT_recursively_succsess = {
+    'FILE_NAMES': [
+        u'test.txt',
+        u'test2.txt'
+    ]
 }
 
 COMMAND_KWARGS_rm = {
@@ -238,7 +276,11 @@ ute@debdev:~/Desktop$ scp test ute@localhost:/home/ute
 test.txt                                                            100%  104     0.1KB/s   00:00
 ute@debdev:~/Desktop$ """
 
-COMMAND_RESULT_rm = {'FILENAME': u'test.txt'}
+COMMAND_RESULT_rm = {
+    'FILE_NAMES': [
+        u'test.txt'
+    ]
+}
 
 COMMAND_KWARGS_keygen = {
     "source": "test.txt",
@@ -261,4 +303,8 @@ ute@debdev:~/Desktop$ scp test ute@localhost:/home/ute
 test.txt                                                            100%  104     0.1KB/s   00:00
 ute@debdev:~/Desktop$ """
 
-COMMAND_RESULT_keygen = {'FILENAME': u'test.txt'}
+COMMAND_RESULT_keygen = {
+    'FILE_NAMES': [
+        u'test.txt'
+    ]
+}
