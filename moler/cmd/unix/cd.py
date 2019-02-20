@@ -34,12 +34,22 @@ class Cd(GenericUnixCommand):
         self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(expected_prompt)  # Expected prompt on device
 
     def build_command_string(self):
+        """
+        Builds command string from parameters passed to object.
+        :return: String representation of command to send over connection to device.
+        """
         cmd = "cd"
         if self.path:
             cmd = "{} {}".format(cmd, self.path)
         return cmd
 
     def on_new_line(self, line, is_full_line):
+        """
+        Put your parsing code here.
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: Nothing
+        """
         if self._re_expected_prompt is not None:
             try:
                 self._is_target_prompt(line)
@@ -49,6 +59,11 @@ class Cd(GenericUnixCommand):
             super(Cd, self).on_new_line(line, is_full_line)
 
     def _is_target_prompt(self, line):
+        """
+        Checks target prompt.
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :return: Nothing
+        """
         if self._regex_helper.search_compiled(self._re_expected_prompt, line):
             if not self.done():
                 self.set_result({})
