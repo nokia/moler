@@ -61,7 +61,7 @@ class Cd(GenericUnixCommand):
     def _is_target_prompt(self, line):
         """
         Checks target prompt.
-        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param line: Line to process
         :return: Nothing
         """
         if self._regex_helper.search_compiled(self._re_expected_prompt, line):
