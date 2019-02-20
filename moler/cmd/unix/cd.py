@@ -74,10 +74,10 @@ COMMAND_RESULT_ver_execute = {
 
 COMMAND_OUTPUT_ver_expected_prompt = """
 host:~ # cd /home/ute/test
-host:/home/ute/test # 
+host:/home/ute/test #
 """
 
-COMMAND_KWARGS_ver_expected_prompt = {'path': '/home/ute/test', 'expected_prompt': r'host:/home/ute/test #\s+'}
+COMMAND_KWARGS_ver_expected_prompt = {'path': '/home/ute/test', 'expected_prompt': r'host:/home/ute/test #'}
 
 COMMAND_RESULT_ver_expected_prompt = {
 }
