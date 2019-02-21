@@ -5,11 +5,12 @@ Utility/common code of library.
 import threading
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
 import time
+import gc
 import pprint
 from functools import partial
 from functools import wraps
@@ -120,7 +121,6 @@ class MolerTest(object):
     @staticmethod
     def _error(msg, raise_exception=False, dump=None):
         MolerTest._was_error = True
-
         msg = MolerTest._get_string_message(msg, dump)
         MolerTest._logger.error(msg, extra={'moler_error': True})
 
@@ -129,62 +129,56 @@ class MolerTest(object):
 
     @staticmethod
     def _steps_start():
-        err_msg = ""
-        unraised_exceptions = ConnectionObserver.get_unraised_exceptions(True)
-        if MolerTest._list_of_errors:
-            err_msg += "There were errors in previous Moler test. Please check Moler logs for details. List of them:\n"
-            for msg in MolerTest._list_of_errors:
-                MolerTest._error("    {}\n".format(msg))
-        if unraised_exceptions:
-            err_msg += "There were unhandled exceptions in previous Moler test. Please check Moler logs for details.\n"
-            for unraised_exception in unraised_exceptions:
-                err_msg = "    {}{}\n".format(err_msg, unraised_exception)
-            MolerTest._error(err_msg)
+        err_msg = MolerTest._prepare_err_msg(None)
         MolerTest._list_of_errors = list()  # clean the list for new test
-
+        MolerTest._was_error = False
         MolerTest._was_steps_end = False
+        if err_msg:
+            prefix = "There were errors in previous Moler test. Please check Moler logs for details. List of them:\n"
+            err_msg = "{} {}".format(prefix, err_msg)
+            MolerTest._error(err_msg)
 
     @staticmethod
-    def _prepare_err_msg(occured_exceptions):
+    def _prepare_err_msg(caught_exception):
         was_error_in_last_execution = MolerTest._was_error
         err_msg = ""
+
+        unraised_exceptions = ConnectionObserver.get_unraised_exceptions(True)
+        occured_exceptions = list()
+        for unraised_exception in unraised_exceptions:
+            occured_exceptions.append(unraised_exception)
+        if caught_exception:
+            occured_exceptions.append(caught_exception)
 
         if was_error_in_last_execution:
             err_msg += "There were error messages in Moler execution. Please check Moler logs for details.\n"
         if len(occured_exceptions) > 0:
             err_msg += "There were unhandled exceptions in Moler.\n"
-            for exc in occured_exceptions:
+            for i, exc in enumerate(occured_exceptions, 1):
                 try:
                     import traceback
                     exc_traceback = ' '.join(traceback.format_tb(exc.__traceback__))
-                    err_msg += "{}{}".format(exc_traceback, repr(exc))
+                    err_msg += "  {}) {}{}\n".format(i, exc_traceback, repr(exc))
                 except AttributeError:
                     err_msg += repr(exc)
+
         if len(MolerTest._list_of_errors) > 0:
-            err_msg += "There were error messages in Moler execution."
+            err_msg += "There were error messages in Moler execution:\n"
+
+            for i, msg in enumerate(MolerTest._list_of_errors, 1):
+                err_msg += "  {}) >>{}<<\n".format(i, msg)
 
         return err_msg
 
     @staticmethod
     def _check_exceptions_occured(caught_exception=None):
-        if not isinstance(threading.current_thread(), threading._MainThread):
-            return
-        unraised_exceptions = ConnectionObserver.get_unraised_exceptions(True)
-        occured_exceptions = list()
-        for unraised_exception in unraised_exceptions:
-            occured_exceptions.append(unraised_exception)
-            MolerTest._error("Unhandled exception: '{}'".format(unraised_exception))
-        if caught_exception:
-            occured_exceptions.append(caught_exception)
-
-        err_msg = MolerTest._prepare_err_msg(occured_exceptions)
+        err_msg = MolerTest._prepare_err_msg(caught_exception)
 
         if err_msg:
             MolerTest._error(err_msg)
             MolerTest._was_error = False
-            error_msgs = MolerTest._list_of_errors
             MolerTest._list_of_errors = list()
-            raise MolerStatusException(err_msg, occured_exceptions, error_msgs)
+            raise MolerStatusException(err_msg)
 
     @staticmethod
     def _check_steps_end():
@@ -199,7 +193,7 @@ class MolerTest(object):
         # check that decorated function is not statimethod or classmethod
         if not obj:
             raise MolerStatusException("Decorator for 'staticmethod' or 'classmethod' not implemented yet.",
-                                       [MolerException()])
+                                       )
 
         if hasattr(obj, "__dict__"):
             if obj.__dict__.items():
@@ -215,7 +209,7 @@ class MolerTest(object):
             else:
                 obj = MolerTest._wrapper(obj, True)
         else:
-            raise MolerStatusException("No '__dict__' in decorated object.", [MolerException()])
+            raise MolerStatusException("No '__dict__' in decorated object.")
 
         return obj
 
@@ -236,6 +230,7 @@ class MolerTest(object):
                 MolerTest._check_exceptions_occured(caught_exception)
                 if check_steps_end:
                     MolerTest._check_steps_end()
+            gc.collect()
             return result
 
         wrapped._already_decorated = True

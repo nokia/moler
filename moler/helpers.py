@@ -8,11 +8,15 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import copy
+import datetime
 import importlib
 import logging
 import re
 
 import deepdiff
+
+if datetime.time not in deepdiff.diff.numbers:
+    deepdiff.diff.numbers = deepdiff.diff.numbers + (datetime.time,)
 
 try:
     import collections.abc as collections
@@ -132,7 +136,6 @@ def compare_objects(first_object, second_object, ignore_order=False, report_repe
     diff = deepdiff.DeepDiff(first_object, second_object, ignore_order=ignore_order,
                              report_repetition=report_repetition, significant_digits=significant_digits,
                              exclude_paths=exclude_paths, exclude_types=exclude_types, verbose_level=verbose_level)
-
     return diff
 
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
@@ -116,7 +116,6 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_fu
 
     with pytest.raises(MolerStatusException) as err:
         function_using_observer()
-    assert exc in err.value.exceptions
 
 
 def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_decorator_on_function(
@@ -314,10 +313,6 @@ def test_info_with_dump():
 
 def test_warning_with_dump():
     MolerTest.warning("Testing warning message", dump={'key': 'value'})
-
-
-def test_error_with_dump():
-    MolerTest.error("Testing warning message", dump={'key': 'value'})
 
 
 def test_dump():
