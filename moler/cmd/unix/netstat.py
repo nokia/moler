@@ -32,7 +32,7 @@ class Netstat(GenericUnixCommand):
 
     def build_command_string(self):
         """
-        Build command string from parameters passed to object. Usage of paramter -h in options is going to be ignored.
+        Build command string from parameters passed to object.
 
         :return: String representation of the command to send over a connection to the device.
         """
@@ -167,8 +167,8 @@ class Netstat(GenericUnixCommand):
 
     # default         123.123.123.123  0.0.0.0         UG        0 0          0 eth0
     _re_routing_table = re.compile(
-        r"(?P<DESTINATION>\S*)\s+(?P<GATEWAY>[0-9|*|.]*)\s+(?P<GENMASK>[0-9|*|.]*)\s+(?P<FLAGS>[A-Z]*)\s+(?P<MSS>\d*)"
-        r"\s+(?P<WINDOW>\d*)\s+(?P<IRTT>\d*)\s+(?P<INTERFACE>\S*$)")
+        r"(?P<DESTINATION>\S*)\s+(?P<GATEWAY>\S*)\s+(?P<GENMASK>\S*)\s+(?P<FLAGS>[A-Z]*)\s+(?P<MSS>\d*)"
+        r"\s+(?P<WINDOW>\d*)\s+(?P<IRTT>\d*)\s+(?P<INTERFACE>\S*)$")
 
     def _parse_routing_table(self, line):
         if "r" in self.options and self._regex_helper.search_compiled(Netstat._re_routing_table, line):
@@ -187,11 +187,19 @@ class Netstat(GenericUnixCommand):
             self.current_ret['RTABLE'].append(_ret_dict)
             raise ParsingDone
 
+    # IcmpMsg:
+    _re_statistics = re.compile(r"^(?P<PROTO>\S+):$")
+
     def _parse_statistics(self, line):
         if "s" in self.options:
             if "STATISTICS" not in self.current_ret:
-                self.current_ret['STATISTICS'] = list()
-            self.current_ret['STATISTICS'].append(line)
+                self.current_ret['STATISTICS'] = dict()
+            if self._regex_helper.search_compiled(Netstat._re_statistics, line):
+                self.statistics_proto = self._regex_helper.group("PROTO")
+                self.current_ret['STATISTICS'][self.statistics_proto] = list()
+                raise ParsingDone
+            else:
+                self.current_ret['STATISTICS'][self.statistics_proto].append(line.lstrip())
             raise ParsingDone
 
 
@@ -381,17 +389,16 @@ Udp:
 host:~ # """
 
 COMMAND_RESULT_statistics = {
-    'STATISTICS': ['IcmpMsg:',
-                   '        InType3: 33',
-                   '        InType8: 1',
-                   '        OutType0: 1',
-                   '        OutType3: 38',
-                   'UdpLite:',
-                   'Udp:',
-                   '    117068 packets received',
-                   '    38 packets to unknown port received.',
-                   '    0 packet receive errors',
-                   '    661 packets sent ']
+    'STATISTICS': {'IcmpMsg': ['InType3: 33',
+                               'InType8: 1',
+                               'OutType0: 1',
+                               'OutType3: 38'],
+                   'Udp': ['117068 packets received',
+                           '38 packets to unknown port received.',
+                           '0 packet receive errors',
+                           '661 packets sent '],
+                   'UdpLite': []}
+
 }
 
 COMMAND_KWARGS_statistics = {
