@@ -248,7 +248,7 @@ class Netstat(GenericUnixCommand):
 COMMAND_OUTPUT = """
 host:~ #   netstat
 Active Internet connections (w/o servers)
-Proto Recv-Q Send-Q Local Address           Foreign Address         State      
+Proto Recv-Q Send-Q Local Address           Foreign Address         State
 tcp        0      0 localhost.localdo:20567 localhost.localdo:20570 ESTABLISHED
 tcp        0      0 localhost.localdo:20567 localhost.localdo:20568 ESTABLISHED
 Active UNIX domain sockets (w/o servers)
@@ -385,12 +385,12 @@ COMMAND_KWARGS_routing_table = {
 COMMAND_OUTPUT_pid = """
 host:~ #   netstat -p
 Active Internet connections (w/o servers)
-Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name  
-tcp        0      0 localhost:45138         localhost:60002         ESTABLISHED 6919/egate  
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
+tcp        0      0 localhost:45138         localhost:60002         ESTABLISHED 6919/egate
 Active UNIX domain sockets (w/o servers)
 Active UNIX domain sockets (w/o servers)
 Proto RefCnt Flags       Type       State         I-Node   PID/Program name    Path
-unix  2      [ ]         DGRAM                    15390    -                   /var/cache/samba/msg/922    
+unix  2      [ ]         DGRAM                    15390    -                   /var/cache/samba/msg/922
 host:~ # """
 
 COMMAND_RESULT_pid = {
@@ -427,7 +427,7 @@ Udp:
     117068 packets received
     38 packets to unknown port received.
     0 packet receive errors
-    661 packets sent 
+    661 packets sent
 host:~ # """
 
 COMMAND_RESULT_statistics = {
