@@ -49,7 +49,7 @@ class Scp(GenericUnixCommand):
         """
         Builds command string from parameters passed to object.
 
-        :return: String representation ofl command to send over connection to device.
+        :return: String representation of command to send over connection to device.
         """
         cmd = "scp"
         if self.options:
