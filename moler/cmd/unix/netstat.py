@@ -25,7 +25,6 @@ class Netstat(GenericUnixCommand):
         super(Netstat, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         # Parameters defined by calling the command
         self.options = options
-        self._is_overwritten = False
         self.active = ''
         self.headers = list()
 
