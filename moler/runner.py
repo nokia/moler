@@ -6,7 +6,7 @@ to make it exchangeable (threads, asyncio, twisted, curio)
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import atexit
@@ -133,7 +133,7 @@ def result_for_runners(connection_observer):
 
 
 class CancellableFuture(object):
-    def __init__(self, future, observer_lock, start_time, stop_running, is_done, stop_timeout=0.5):
+    def __init__(self, future, observer_lock, stop_running, is_done, stop_timeout=0.5):
         """
         Wrapper to allow cancelling already running concurrent.futures.Future
 
@@ -148,7 +148,6 @@ class CancellableFuture(object):
         """
         self._future = future
         self.observer_lock = observer_lock  # against threads race write-access to observer
-        self.start_time = start_time  # start of life time
         self._stop_running = stop_running
         self._stop_timeout = stop_timeout
         self._is_done = is_done
@@ -215,8 +214,9 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Submit connection observer to background execution.
         Returns Future that could be used to await for connection_observer done.
         """
-        self.logger.debug("go background: {!r}".format(connection_observer))
-
+        observer_timeout = connection_observer.timeout
+        remain_time, msg = self._remaining_time("remaining", connection_observer, observer_timeout)
+        self.logger.debug("go background: {!r} - {}".format(connection_observer, msg))
         # TODO: check dependency - connection_observer.connection
 
         # Our submit consists of two steps:
@@ -233,8 +233,9 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         # User may check "if thread is running" via Thread.is_alive() API.
         # For concurrent.futures same is done via future.running() API.
         #
-        # However, lifetime of connection_observer starts here. It gains it's own timer (stored inside future)
-        # so that connection_observer timeout is calculated from that start-time.
+        # However, lifetime of connection_observer starts in connection_observer.start().
+        # It gains it's own timer so that timeout is calculated from that connection_observer.start_time
+        # That lifetime may start even before this submit() if observer is command and we have commands queue.
         #
         # As a corner case runner.wait_for() may timeout before feeding thread has started.
 
@@ -242,12 +243,11 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         feed_done = threading.Event()
         observer_lock = threading.Lock()  # against threads race write-access to observer
         subscribed_data_receiver = self._start_feeding(connection_observer, observer_lock)
-        start_time = time.time()
         connection_observer_future = self.executor.submit(self.feed, connection_observer,
                                                           subscribed_data_receiver,
-                                                          stop_feeding, feed_done, observer_lock, start_time)
+                                                          stop_feeding, feed_done, observer_lock)
 
-        c_future = CancellableFuture(connection_observer_future, observer_lock, start_time,
+        c_future = CancellableFuture(connection_observer_future, observer_lock,
                                      stop_feeding, feed_done)
         return c_future
 
@@ -260,26 +260,48 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         :param timeout: Max time (in float seconds) you want to await before you give up. If None then taken from connection_observer
         :return:
         """
-        # TODO: calculate remaining timeout before logging
-        self.logger.debug("go foreground: {} - await max. {} [sec]".format(connection_observer, timeout))
-        if connection_observer.done():  # may happen when failed to start observer feeding thread
+        # TODO: calculate remaining timeout before logging + done(result/exception) info
+        if connection_observer.done():
+            # 1. done() might mean "timed out" before future start
+            #    Observer lifetime started with its timeout clock so, it might timeout even before
+            #    connection_observer_future started - since future's thread might not get control yet
+            # 2. done() might mean "timed out" before wait_for()
+            #    wait_for() might be called so late after submit() that observer already "timed out"
+            # 3. done() might mean have result or got exception
+            #    wait_for() might be called so late after submit() that observer already got result/exception
+            #
+            # In all above cases we want to stop future if it is still running
+
+            self.logger.debug("go foreground: {} is already done".format(connection_observer))
+            if not connection_observer_future.done():
+                connection_observer_future.cancel(no_wait=True)
             return None
-        start_time = connection_observer_future.start_time
-        remain_time = connection_observer.timeout
-        check_timeout_from_observer = True
-        wait_tick = 0.1
-        if timeout:
-            remain_time = timeout
-            check_timeout_from_observer = False
-            wait_tick = remain_time
-        while remain_time > 0.0:
-            done, not_done = wait([connection_observer_future], timeout=wait_tick)
-            if connection_observer_future in done:
-                connection_observer_future._stop()
-                return None
-            if check_timeout_from_observer:
+
+        start_time = connection_observer.start_time
+        max_timeout = timeout
+        observer_timeout = connection_observer.timeout
+        if max_timeout:
+            remain_time, msg = self._remaining_time("await max.", connection_observer, max_timeout)
+        else:
+            remain_time, msg = self._remaining_time("remaining", connection_observer, observer_timeout)
+
+        self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
+
+        # either we wait forced-max-timeout or we check done-status each 0.1sec tick
+        if max_timeout:
+            if remain_time > 0.0:
+                done, not_done = wait([connection_observer_future], timeout=remain_time)
+                if connection_observer_future in done:
+                    return None
+        else:
+            wait_tick = 0.1
+            while remain_time > 0.0:
+                done, not_done = wait([connection_observer_future], timeout=wait_tick)
+                if connection_observer_future in done:
+                    return None
                 timeout = connection_observer.timeout
-            remain_time = timeout - (time.time() - start_time)
+                already_passed = time.time() - start_time
+                remain_time = timeout - already_passed
 
         # code below is for timed out observer
         passed = time.time() - start_time
@@ -334,15 +356,18 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         moler_conn = connection_observer.connection
         self.logger.debug("subscribing for data {}".format(connection_observer))
         moler_conn.subscribe(secure_data_received)
+        if connection_observer.is_command():
+            connection_observer.connection.sendline(connection_observer.command_string)
         return secure_data_received  # to know what to unsubscribe
 
     def feed(self, connection_observer, subscribed_data_receiver, stop_feeding, feed_done,
-             observer_lock, start_time):
+             observer_lock):
         """
         Feeds connection_observer by transferring data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
-        connection_observer._log(logging.INFO, "{} started.".format(connection_observer.get_long_desc()))
+        remain_time, msg = self._remaining_time("remaining", connection_observer, observer_timeout)
+        connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
         if not subscribed_data_receiver:
             subscribed_data_receiver = self._start_feeding(connection_observer, observer_lock)
 
@@ -350,6 +375,18 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
         moler_conn = connection_observer.connection
 
+        self._feed_loop(connection_observer, stop_feeding, observer_lock)
+
+        self.logger.debug("unsubscribing {}".format(connection_observer))
+        moler_conn.unsubscribe(subscribed_data_receiver)
+        feed_done.set()
+
+        remain_time, msg = self._remaining_time("remaining", connection_observer, observer_timeout)
+        connection_observer._log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
+        return None
+
+    def _feed_loop(self, connection_observer, stop_feeding, observer_lock):
+        start_time = connection_observer.start_time
         while True:
             if stop_feeding.is_set():
                 # TODO: should it be renamed to 'cancelled' to be in sync with initial action?
@@ -372,12 +409,15 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 connection_observer.cancel()
             time.sleep(0.005)  # give moler_conn a chance to feed observer
 
-        self.logger.debug("unsubscribing {}".format(connection_observer))
-        moler_conn.unsubscribe(subscribed_data_receiver)
-        feed_done.set()
-
-        connection_observer._log(logging.INFO, "{} finished.".format(connection_observer.get_short_desc()))
-        return None
+    @staticmethod
+    def _remaining_time(prefix, connection_observer, timeout):
+        start_time = connection_observer.start_time
+        already_passed = time.time() - start_time
+        remain_time = timeout - already_passed
+        if remain_time < 0.0:
+            remain_time = 0.0
+        msg = "{} {} [sec], already passed {} [sec]".format(prefix, remain_time, already_passed)
+        return remain_time, msg
 
     def timeout_change(self, timedelta):
         pass

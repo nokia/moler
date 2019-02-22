@@ -12,14 +12,17 @@ Additionally:
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import NoCommandStringProvided
 from moler.helpers import instance_id
+from six import add_metaclass
+from abc import ABCMeta
 
 
+@add_metaclass(ABCMeta)
 class Command(ConnectionObserver):
     def __init__(self, connection=None, runner=None):
         """
@@ -36,14 +39,6 @@ class Command(ConnectionObserver):
             cmd_str = cmd_str[:-1] + r'<\n>'
         return '{}("{}", id:{})'.format(self.__class__.__name__, cmd_str, instance_id(self))
 
-    def start(self, timeout=None, *args, **kwargs):
-        """Start background execution of command."""
-        self._validate_start(*args, **kwargs)
-        ret = super(Command, self).start(timeout, *args, **kwargs)
-        self._is_running = True  # when it sends - real CMD starts running
-        self.connection.sendline(self.command_string)
-        return ret
-
     def _validate_start(self, *args, **kwargs):
         # check base class invariants first
         super(Command, self)._validate_start(*args, **kwargs)
@@ -57,3 +52,9 @@ class Command(ConnectionObserver):
 
     def get_short_desc(self):
         return "Command {}.{}(id:{})".format(self.__class__.__module__, self.__class__.__name__, instance_id(self))
+
+    def is_command(self):
+        """
+        :return: True if instance of ConnectionObserver is a command. False if not a command.
+        """
+        return True

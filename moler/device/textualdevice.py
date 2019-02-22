@@ -86,10 +86,11 @@ class TextualDevice(object):
         self._configure_state_machine(sm_params)
         self._prepare_newline_chars()
 
-        self.io_connection.notify(callback=self.on_connection_made, when="connection_made")
         # TODO: Need test to ensure above sentence for all connection
-        self.io_connection.open()
+        self.io_connection.notify(callback=self.on_connection_made, when="connection_made")
         self.io_connection.notify(callback=self.on_connection_lost, when="connection_lost")
+        self.io_connection.open()
+
         self._cmdnames_available_in_state = dict()
         self._eventnames_available_in_state = dict()
 
@@ -141,7 +142,6 @@ class TextualDevice(object):
         return cls(io_connection=io_conn)
 
     def __del__(self):
-        self._close_connection()
         self._stop_prompts_observers()
 
     def _collect_cmds_for_state_machine(self):
@@ -478,7 +478,7 @@ class TextualDevice(object):
     def _open_connection(self, source_state, dest_state, timeout):
         self.io_connection.open()
 
-    def _close_connection(self, source_state="", dest_state="", timeout=7):
+    def _close_connection(self, source_state, dest_state, timeout):
         self.io_connection.close()
 
     def _prompt_observer_callback(self, event, state):
@@ -508,7 +508,6 @@ class TextualDevice(object):
         for device_state in self._prompts_events:
             self._prompts_events[device_state].cancel()
             self._prompts_events[device_state].remove_event_occurred_callback()
-            self._prompts_events[device_state].__del__()
 
     def build_trigger_to_state(self, state):
         trigger = "GOTO_{}".format(state)

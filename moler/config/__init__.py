@@ -2,18 +2,16 @@
 """
 Moler related configuration
 """
-import os
-
-from moler.exceptions import MolerException
-
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
-
-import yaml
+import os
 import six
+import yaml
 from contextlib import contextmanager
 
+from moler.helpers import compare_objects
+from moler.exceptions import MolerException
 from . import connections as conn_cfg
 from . import devices as dev_cfg
 from . import loggers as log_cfg
@@ -50,6 +48,18 @@ def read_yaml_configfile(path):
         raise MolerException(error)
 
 
+def configs_are_same(config1, config2):
+    """
+    Utility function to check if two configs are identical (deep comparison)
+
+    :param config1: first config to compare
+    :param config2: second config to compare
+    :return: bool
+    """
+    diff = compare_objects(config1, config2)
+    return not diff
+
+
 def load_config(config=None, from_env_var=None, config_type='yaml'):
     """
     Load Moler's configuration from config file
@@ -63,7 +73,7 @@ def load_config(config=None, from_env_var=None, config_type='yaml'):
 
     if loaded_config == "NOT_LOADED_YET":
         loaded_config = config
-    elif loaded_config == config:
+    elif configs_are_same(loaded_config, config):
         return
     else:
         why = "Reloading configuration during Moler execution is not supported!"

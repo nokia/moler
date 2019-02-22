@@ -119,12 +119,24 @@ def test_command_string_is_required_to_start_command(command_major_base_class):
 
 
 def test_command_string_is_required_to_call_command(command_major_base_class):
+    import threading
     from moler.exceptions import NoCommandStringProvided
     moler_conn = ObservableConnection()
 
     command_class = do_nothing_command_class(base_class=command_major_base_class)
     command = command_class(connection=moler_conn)
     assert not command.command_string  # ensure it is empty before starting command
+
+    def command_in_thread():
+        with pytest.raises(NoCommandStringProvided) as error:
+            command()
+        assert error.value.command == command
+        assert 'for {}'.format(str(command)) in str(error.value)
+        assert 'You should fill .command_string member before starting command' in str(error.value)
+
+    cmd_thrd = threading.Thread(target=command_in_thread)
+    cmd_thrd.start()
+    cmd_thrd.join()
 
     with pytest.raises(NoCommandStringProvided) as error:
         command()  # call the command-future (foreground run)

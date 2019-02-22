@@ -6,6 +6,7 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 
 import logging
 import threading
+import time
 from abc import abstractmethod, ABCMeta
 
 from six import add_metaclass
@@ -21,6 +22,37 @@ from moler.helpers import camel_case_to_lower_case_underscore
 from moler.helpers import instance_id
 from moler.helpers import copy_list
 from moler.runner_factory import get_runner
+from moler.command_scheduler import CommandScheduler
+
+try:
+    threading.main_thread()  # Python 3.4+
+except AttributeError:
+    def inside_main_thread():
+        in_main_thread = isinstance(threading.current_thread(), threading._MainThread)
+        return in_main_thread
+else:
+    def inside_main_thread():
+        in_main_thread = threading.current_thread() is threading.main_thread()
+        return in_main_thread
+
+
+class exception_stored_if_not_main_thread(object):
+    def __init__(self, connection_observer):
+        self.connection_observer = connection_observer
+
+    def __enter__(self):
+        return None
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_val:
+            if inside_main_thread():
+                logging.getLogger('moler').debug("MainThread raised: {!r}".format(exc_val))
+                return False  # will reraise exception
+            else:
+                logging.getLogger('moler').debug("NOT MainThread raised: {!r}".format(exc_val))
+                self.connection_observer.set_exception(exc_val)
+                return True  # means: exception already handled
+        return True
 
 
 @add_metaclass(ABCMeta)
@@ -35,31 +67,21 @@ class ConnectionObserver(object):
         """
         self.connection = connection
         self._is_running = False
-        self._is_done = False
+        self.__is_done = False
         self._is_cancelled = False
         self._result = None
         self._exception = None
         self.runner = runner if runner else get_runner()
         self._future = None
-        self.timeout = 7
+        self.start_time = 0.0  # means epoch: 1970-01-01 00:00:00
+        self.__timeout = 7  # default
         self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
         self.logger = logging.getLogger('moler.connection.{}'.format(self.get_logger_name()))
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
 
-    def __del__(self):
-        if hasattr(self, "device_logger"):
-            device_handlers = self.device_logger.handlers[:]
-            for handler in device_handlers:
-                handler.close()
-                self.device_logger.removeHandler(handler)
-
-        if hasattr(self, "logger"):
-            handlers = self.logger.handlers[:]
-            for handler in handlers:
-                handler.close()
-                self.logger.removeHandler(handler)
+    __base_str = __str__
 
     def __repr__(self):
         cmd_str = self.__str__()
@@ -88,6 +110,25 @@ class ConnectionObserver(object):
             return started_observer.await_done(*args, **kwargs)
         # TODO: raise ConnectionObserverFailedToStart
 
+    @property
+    def _is_done(self):
+        return self.__is_done
+
+    @_is_done.setter
+    def _is_done(self, value):
+        if value:
+            CommandScheduler.dequeue_running_on_connection(connection_observer=self)
+        self.__is_done = value
+
+    @property
+    def timeout(self):
+        return self.__timeout
+
+    @timeout.setter
+    def timeout(self, value):
+        self._log(logging.DEBUG, "Setting {} timeout to {} [sec]".format(ConnectionObserver.__base_str(self), value))
+        self.__timeout = value
+
     def get_logger_name(self):
         if self.connection and hasattr(self.connection, "name"):
             return self.connection.name
@@ -96,13 +137,24 @@ class ConnectionObserver(object):
 
     def start(self, timeout=None, *args, **kwargs):
         """Start background execution of connection-observer."""
-        if timeout:
-            self.timeout = timeout
-        self._validate_start(*args, **kwargs)
-        self._is_running = True
-        self._future = self.runner.submit(self)
-        if self._future is None:
-            self._is_running = False
+        with exception_stored_if_not_main_thread(self):
+            if timeout:
+                self.timeout = timeout
+            self._validate_start(*args, **kwargs)
+            # After start we treat it as started even if it's underlying
+            # parallelism machinery (threads, coroutines, ...) has not started yet
+            # (thread didn't get control, coro didn't start in async-loop)
+            # That is so, since observer lifetime starts with it's timeout-clock
+            # and timeout is counted from calling observer.start()
+            self._is_running = True
+            self.start_time = time.time()
+            # Besides not started parallelism machinery causing start-delay
+            # we can have start-delay caused by commands queue on connection
+            # (can't submit command to background-run till previous stops running)
+            CommandScheduler.enqueue_starting_on_connection(connection_observer=self)
+            # Above line will set self._future when it is possible to submit
+            # observer to background-run (observer not command, or empty commands queue)
+            # or setting self._future will be delayed by nonempty commands queue.
         return self
 
     def _validate_start(self, *args, **kwargs):
@@ -170,10 +222,18 @@ class ConnectionObserver(object):
         """
         if self.done():
             return self.result()
-        if self._future is None:
-            raise ConnectionObserverNotStarted(self)
-        self.runner.wait_for(connection_observer=self, connection_observer_future=self._future,
-                             timeout=timeout)
+        with exception_stored_if_not_main_thread(self):
+            if not self._is_running:
+                raise ConnectionObserverNotStarted(self)
+            # Observer lifetime started with its timeout clock
+            # but self._future setting may be delayed by nonempty commands queue.
+            # In such case we have to wait either for _future or timeout.
+            while self._future is None:
+                time.sleep(0.005)
+                if self.done():
+                    break
+            if self._future:
+                self.runner.wait_for(connection_observer=self, connection_observer_future=self._future, timeout=timeout)
         return self.result()
 
     def cancel(self):
@@ -243,6 +303,12 @@ class ConnectionObserver(object):
     def on_timeout(self):
         """Callback called when observer times out"""
         pass
+
+    def is_command(self):
+        """
+        :return: True if instance of ConnectionObserver is a command. False if not a command.
+        """
+        return False
 
     def extend_timeout(self, timedelta):
         prev_timeout = self.timeout

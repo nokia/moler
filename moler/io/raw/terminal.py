@@ -1,9 +1,9 @@
-import codecs
-
+# -*- coding: utf-8 -*-
 __author__ = 'Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
+import codecs
 import re
 import select
 from threading import Event
@@ -51,6 +51,7 @@ class ThreadedTerminal(IOConnection):
     def open(self):
         """Open ThreadedTerminal connection & start thread pulling data from it."""
         ret = super(ThreadedTerminal, self).open()
+
         if not self._terminal:
             self._terminal = PtyProcessUnicode.spawn(self._cmd, dimensions=self.dimensions)
             # need to not replace not unicode data instead of raise exception
@@ -70,6 +71,7 @@ class ThreadedTerminal(IOConnection):
                     self.logger.warning("Terminal open but not fully operable yet")
                     self._terminal.write('\n')
                     retry += 1
+
         return ret
 
     def close(self):
@@ -91,30 +93,33 @@ class ThreadedTerminal(IOConnection):
     def pull_data(self, pulling_done):
         """Pull data from ThreadedTerminal connection."""
         read_buffer = ""
+        reads = []
 
         while not pulling_done.is_set():
             try:
                 reads, _, _ = select.select([self._terminal.fd], [], [], self._select_timeout)
-                if self._terminal.fd in reads:
-                    try:
-                        data = self._terminal.read(self._read_buffer_size)
-                        self.logger.debug("<|{}".format(data))
-                        if self._shell_operable.is_set():
-                            self.data_received(data)
-                        else:
-                            read_buffer = read_buffer + data
-                            if re.search(self.target_prompt, read_buffer, re.MULTILINE):
-                                self._notify_on_connect()
-                                self._shell_operable.set()
-                                data = re.sub(self.target_prompt, '', read_buffer, re.MULTILINE)
-                                self.data_received(data)
-                            elif not self._export_sent and re.search(self.first_prompt, read_buffer, re.MULTILINE):
-                                self.send(self.set_prompt_cmd)
-                                self._export_sent = True
-                    except EOFError:
-                        self._notify_on_disconnect()
-                        pulling_done.set()
             except ValueError as exc:
-                self.logger.warning("Could not open another file handler to stdout!\n{}".format(exc))
+                self.logger.warning("'{}: {}'".format(exc.__class__, exc))
                 self._notify_on_disconnect()
                 pulling_done.set()
+
+            if self._terminal.fd in reads:
+                try:
+                    data = self._terminal.read(self._read_buffer_size)
+                    self.logger.debug("<|{}".format(data))
+
+                    if self._shell_operable.is_set():
+                        self.data_received(data)
+                    else:
+                        read_buffer = read_buffer + data
+                        if re.search(self.target_prompt, read_buffer, re.MULTILINE):
+                            self._notify_on_connect()
+                            self._shell_operable.set()
+                            data = re.sub(self.target_prompt, '', read_buffer, re.MULTILINE)
+                            self.data_received(data)
+                        elif not self._export_sent and re.search(self.first_prompt, read_buffer, re.MULTILINE):
+                            self.send(self.set_prompt_cmd)
+                            self._export_sent = True
+                except EOFError:
+                    self._notify_on_disconnect()
+                    pulling_done.set()
