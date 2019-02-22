@@ -65,7 +65,7 @@ class Netstat(GenericUnixCommand):
 
     def _parse_active(self, line):
         """
-        Parse active connections or sockets in line. Set self.active to current type of connection.
+        Parse active connections or sockets in line. Set self._active to current type of connection.
 
         :param line: Line to process.
         :return: Nothing but raises ParsingDone if line has the information to handle by this method.
