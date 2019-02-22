@@ -17,7 +17,7 @@ class Netstat(GenericUnixCommand):
         Netstat command.
 
         :param connection: Moler connection to device, terminal when command is executed.
-        :param options: Options of w command.
+        :param options: Options of netstat command.
         :param prompt: Expected prompt that has been sent by device after command execution.
         :param newline_chars: Characters to split lines - list.
         :param runner: Runner to run command.
@@ -25,7 +25,6 @@ class Netstat(GenericUnixCommand):
         super(Netstat, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         # Parameters defined by calling the command
         self.options = options
-        self.ret_required = False
         self._is_overwritten = False
         self.active = ''
         self.headers = list()
@@ -239,7 +238,6 @@ class Netstat(GenericUnixCommand):
             if self._regex_helper.search_compiled(Netstat._re_statistics, line):
                 self.statistics_proto = self._regex_helper.group("PROTO")
                 self.current_ret['STATISTICS'][self.statistics_proto] = list()
-                raise ParsingDone
             else:
                 self.current_ret['STATISTICS'][self.statistics_proto].append(line.lstrip())
             raise ParsingDone
