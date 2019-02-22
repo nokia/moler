@@ -222,7 +222,7 @@ ute@debdev:~/Desktop$"""
 COMMAND_KWARGS_succsess = {
     "source": "test.txt",
     "dest": "ute@localhost:/home/ute",
-    "password": "ute"
+    "password": "pass"
 }
 
 COMMAND_RESULT_succsess = {
@@ -234,7 +234,7 @@ COMMAND_RESULT_succsess = {
 COMMAND_KWARGS_rm = {
     "source": "test.txt",
     "dest": "ute@localhost:/home/ute",
-    "password": "ute",
+    "password": "pass",
     "known_hosts_on_failure": "rm"
 }
 
@@ -262,7 +262,7 @@ COMMAND_RESULT_recursively_succsess = {
 COMMAND_KWARGS_rm = {
     "source": "test.txt",
     "dest": "ute@localhost:/home/ute",
-    "password": "ute",
+    "password": "pass",
     "known_hosts_on_failure": "rm"
 }
 
@@ -288,7 +288,7 @@ COMMAND_RESULT_rm = {
 COMMAND_KWARGS_keygen = {
     "source": "test.txt",
     "dest": "ute@localhost:/home/ute",
-    "password": "ute",
+    "password": "pass",
 }
 
 COMMAND_OUTPUT_keygen = """
@@ -307,6 +307,25 @@ test.txt                                                            100%  104   
 ute@debdev:~/Desktop$ """
 
 COMMAND_RESULT_keygen = {
+    'FILE_NAMES': [
+        u'test.txt'
+    ]
+}
+
+COMMAND_OUTPUT_ldap = """
+ute@debdev:~/Desktop$ scp test.txt ute@localhost:/home/ute
+ute@localhost's password:
+ldap password:
+test.txt                                                            100%  104     0.1KB/s   00:00
+ute@debdev:~/Desktop$"""
+
+COMMAND_KWARGS_ldap = {
+    "source": "test.txt",
+    "dest": "ute@localhost:/home/ute",
+    "password": ("pass1", "pass2")
+}
+
+COMMAND_RESULT_ldap = {
     'FILE_NAMES': [
         u'test.txt'
     ]
