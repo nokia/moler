@@ -76,3 +76,17 @@ ute@debdev:~/Desktop$"""
                   known_hosts_on_failure="")
     with pytest.raises(CommandFailure):
         scp_cmd()
+
+
+def test_scp_raise_exception_ldap_password(buffer_connection):
+    command_output = """
+ute@debdev:~/Desktop$ scp test.txt ute@localhost:/home/ute
+ute@localhost's password:
+ute@localhost's ldap password:
+test.txt                                                            100%  104     0.1KB/s   00:00
+ute@debdev:~/Desktop$"""
+    buffer_connection.remote_inject_response([command_output])
+    scp_cmd = Scp(connection=buffer_connection.moler_connection, source="test.txt", dest="ute@localhost:/home/ute",
+                  known_hosts_on_failure="", password="pass")
+    with pytest.raises(CommandFailure):
+        scp_cmd()
