@@ -438,7 +438,7 @@ COMMAND_RESULT_statistics = {
                    'Udp': ['117068 packets received',
                            '38 packets to unknown port received.',
                            '0 packet receive errors',
-                           '661 packets sent '],
+                           '661 packets sent'],
                    'UdpLite': []}
 
 }
