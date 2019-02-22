@@ -49,7 +49,7 @@ class Scp(GenericUnixCommand):
         """
         Builds command string from parameters passed to object.
 
-        :return: String representation of command to send over connection to device.
+        :return: String representation ofl command to send over connection to device.
         """
         cmd = "scp"
         if self.options:
@@ -106,7 +106,7 @@ class Scp(GenericUnixCommand):
         :return: Nothing but raises ParsingDone if matches fail
         """
         if self._regex_helper.search_compiled(Scp._re_parse_failed, line):
-            self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+            self.set_exception(CommandFailure(self, "Command failed in line >>{}<<.".format(line)))
             raise ParsingDone
 
     _re_parse_permission_denied = re.compile(
@@ -190,7 +190,7 @@ class Scp(GenericUnixCommand):
             if self._hosts_file:
                 self.handle_failed_host_key_verification()
             else:
-                self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+                self.set_exception(CommandFailure(self, "Command failed in line >>{}<<.".format(line)))
 
     def handle_failed_host_key_verification(self):
         """
