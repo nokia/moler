@@ -25,7 +25,7 @@ class Netstat(GenericUnixCommand):
         super(Netstat, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         # Parameters defined by calling the command
         self.options = options
-        self.active = ''
+        self._active = ''
 
     def build_command_string(self):
         """
@@ -71,7 +71,7 @@ class Netstat(GenericUnixCommand):
         :return: Nothing but raises ParsingDone if line has the information to handle by this method.
         """
         if self._regex_helper.search_compiled(Netstat._re_active, line):
-            self.active = self._regex_helper.group("ACTIVE")
+            self._active = self._regex_helper.group("ACTIVE")
             raise ParsingDone
 
     # unix  2      [ ]         DGRAM                    15382    /var/cache/samba/msg/950
@@ -87,7 +87,7 @@ class Netstat(GenericUnixCommand):
         :param line: Line to process.
         :return: Nothing but raises ParsingDone if line has the information to handle by this method.
         """
-        if self.active == "UNIX domain sockets":
+        if self._active == "UNIX domain sockets":
             if "UNIX_SOCKETS" not in self.current_ret:
                 self.current_ret['UNIX_SOCKETS'] = list()
             if self._regex_helper.search_compiled(Netstat._re_header_unix, line):
@@ -118,7 +118,7 @@ class Netstat(GenericUnixCommand):
         :param line: Line to process.
         :return: Nothing but raises ParsingDone if line has the information to handle by this method.
         """
-        if self.active == "Internet connections":
+        if self._active == "Internet connections":
             if "INTERNET_CONNECTIONS" not in self.current_ret:
                 self.current_ret['INTERNET_CONNECTIONS'] = list()
             if self._regex_helper.search_compiled(Netstat._re_header_internet, line):
