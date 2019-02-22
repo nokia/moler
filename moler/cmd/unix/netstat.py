@@ -26,7 +26,6 @@ class Netstat(GenericUnixCommand):
         # Parameters defined by calling the command
         self.options = options
         self.active = ''
-        self.headers = list()
 
     def build_command_string(self):
         """
