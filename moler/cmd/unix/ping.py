@@ -30,7 +30,7 @@ class Ping(GenericUnixCommand):
         # Parameters defined by calling the command
         self.options = options
         self.destination = destination
-        self._converther_helper = ConverterHelper.get_converter_helper()
+        self._converter_helper = ConverterHelper.get_converter_helper()
 
     def build_command_string(self):
         """
@@ -76,7 +76,7 @@ class Ping(GenericUnixCommand):
             self.current_ret['packet_loss'] = int(self._regex_helper.group('PKT_LOSS'))
             self.current_ret['time'] = int(self._regex_helper.group('TIME'))
             self.current_ret['packets_time_unit'] = self._regex_helper.group('UNIT')
-            value_in_seconds = self._converther_helper.to_seconds(self.current_ret['time'], self.current_ret['packets_time_unit'])
+            value_in_seconds = self._converter_helper.to_seconds(self.current_ret['time'], self.current_ret['packets_time_unit'])
             self.current_ret['time_seconds'] = value_in_seconds
             raise ParsingDone
 
@@ -93,13 +93,13 @@ class Ping(GenericUnixCommand):
         if self._regex_helper.search_compiled(Ping._re_min_avg_max_mdev_unit_time, line):
             unit = self._regex_helper.group('UNIT')
             time_min = float(self._regex_helper.group('MIN'))
-            time_min_sec = self._converther_helper.to_seconds(time_min, unit)
+            time_min_sec = self._converter_helper.to_seconds(time_min, unit)
             time_avg = float(self._regex_helper.group('AVG'))
-            time_avg_sec = self._converther_helper.to_seconds(time_avg, unit)
+            time_avg_sec = self._converter_helper.to_seconds(time_avg, unit)
             time_max = float(self._regex_helper.group('MAX'))
-            time_max_sec = self._converther_helper.to_seconds(time_max, unit)
+            time_max_sec = self._converter_helper.to_seconds(time_max, unit)
             time_mdev = float(self._regex_helper.group('MDEV'))
-            time_mdev_sec = self._converther_helper.to_seconds(time_mdev, unit)
+            time_mdev_sec = self._converter_helper.to_seconds(time_mdev, unit)
             self.current_ret['time_unit'] = unit
             self.current_ret['time_min'] = time_min
             self.current_ret['time_min_seconds'] = time_min_sec
