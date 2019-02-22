@@ -55,8 +55,8 @@ class Netstat(GenericUnixCommand):
                 self._parse_active(line)
                 self._parse_headers_unix(line)
                 self._parse_headers_internet(line)
-                self._parse_groups(line)
                 self._parse_interface(line)
+                self._parse_groups(line)
                 self._parse_routing_table(line)
                 self._parse_statistics(line)
         except ParsingDone:
