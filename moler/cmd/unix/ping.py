@@ -30,7 +30,7 @@ class Ping(GenericUnixCommand):
         # Parameters defined by calling the command
         self.options = options
         self.destination = destination
-        self._converter_helper = ConverterHelper()
+        self._converter_helper = ConverterHelper.get_converter_helper()
 
     def build_command_string(self):
         """
