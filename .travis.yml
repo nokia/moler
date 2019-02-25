@@ -44,6 +44,9 @@ jobs:
     - NAME="Test"
     script:
     - python2.7 -m pytest --random -s -vv test
+    after_failure:
+    - ls -laR
+    - cat *.log
   - stage: test
     language: python
     python: 3.6
