@@ -121,7 +121,6 @@ def time_out_observer(connection_observer, timeout, passed_time, kind="backgroun
         connection_observer.device_logger.log(logging.INFO, timeout_msg)
 
 
-
 def result_for_runners(connection_observer):
     """
     When runner takes result from connection-observer it should not
@@ -261,7 +260,6 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 self.logger.warning("go background: {} - {}".format(connection_observer, err_msg))
                 self.logger.exception(err_msg)
                 raise
-
 
         c_future = CancellableFuture(connection_observer_future, observer_lock,
                                      stop_feeding, feed_done)
