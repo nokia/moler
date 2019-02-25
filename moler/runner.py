@@ -13,6 +13,8 @@ import atexit
 import concurrent.futures
 import logging
 import time
+import sys
+import os
 import threading
 from abc import abstractmethod, ABCMeta
 from concurrent.futures import ThreadPoolExecutor, wait
@@ -30,6 +32,45 @@ except ImportError:
     def cpu_count():
         """Workarround fix"""
         return None
+
+
+if hasattr(sys, '_getframe'):
+    def caller_frame():
+        """Return the frame object for the caller's stack frame."""
+        return sys._getframe(1)
+else:
+    def caller_frame():
+        """Return the frame object for the caller's stack frame."""
+        try:
+            raise Exception
+        except Exception:
+            return sys.exc_info()[0].tb_frame.f_back
+
+
+def find_caller_info(frm):
+    """
+    Find the stack frame of the caller so that we can note the source
+    file name, line number and function name.
+    """
+    #On some versions of IronPython, currentframe() returns None if
+    #IronPython isn't run with -X:Frames.
+    if frm is not None:
+        frm = frm.f_back
+    rv = "(unknown file)", 0, "(unknown function)", None
+    if hasattr(frm, "f_code"):
+        co = frm.f_code
+        rv = (co.co_filename, frm.f_lineno, co.co_name)
+    return rv
+
+
+def log_into_logger(logger, lvl, msg, frame):
+    if logger.isEnabledFor(lvl):
+        try:
+            fn, lno, func = find_caller_info(frame)
+        except ValueError:
+            fn, lno, func = "(unknown file)", 0, "(unknown function)"
+        record = logger.makeRecord(logger.name, lvl, fn, lno, msg, [], None, func, None, None)
+        logger.handle(record)
 
 
 @add_metaclass(ABCMeta)
@@ -116,9 +157,14 @@ def time_out_observer(connection_observer, timeout, passed_time, kind="backgroun
 
         observer_info = "{}.{}".format(connection_observer.__class__.__module__, connection_observer)
         timeout_msg = "{} has timed out after {:.2f} seconds.".format(observer_info, passed_time)
+
+        # TODO: extract caller info to log where .time_out_observer has been called from
+        caller_f = caller_frame()
         # connection_observer._log(logging.INFO, timeout_msg)
-        connection_observer.logger.log(logging.INFO, timeout_msg)
-        connection_observer.device_logger.log(logging.INFO, timeout_msg)
+        # connection_observer.logger.log(logging.INFO, timeout_msg)
+        log_into_logger(connection_observer.logger, logging.INFO, timeout_msg, caller_f)
+        # connection_observer.device_logger.log(logging.INFO, timeout_msg)
+        log_into_logger(connection_observer.device_logger, logging.INFO, timeout_msg, caller_f)
 
 
 def result_for_runners(connection_observer):
@@ -218,7 +264,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         """
         assert connection_observer.start_time > 0.0  # connection-observer lifetime should already been started
         observer_timeout = connection_observer.timeout
-        remain_time, msg = self._remaining_time("remaining", connection_observer, observer_timeout)
+        remain_time, msg = his_remaining_time("remaining", he=connection_observer, timeout=observer_timeout)
         self.logger.debug("go background: {!r} - {}".format(connection_observer, msg))
         # TODO: check dependency - connection_observer.connection
 
@@ -295,9 +341,9 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         max_timeout = timeout
         observer_timeout = connection_observer.timeout
         if max_timeout:
-            remain_time, msg = self._remaining_time("await max.", connection_observer, max_timeout)
+            remain_time, msg = his_remaining_time("await max.", he=connection_observer, timeout=max_timeout)
         else:
-            remain_time, msg = self._remaining_time("remaining", connection_observer, observer_timeout)
+            remain_time, msg = his_remaining_time("remaining", he=connection_observer, timeout=observer_timeout)
 
         self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
 
@@ -319,11 +365,11 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
         # code below is for timed out observer
         passed = time.time() - start_time
-        self.logger.debug("timed out {}".format(connection_observer))
         connection_observer_future.cancel(no_wait=True)
+        fired_timeout = timeout if timeout else connection_observer.timeout
         with connection_observer_future.observer_lock:
             time_out_observer(connection_observer=connection_observer,
-                              timeout=timeout, passed_time=passed, kind="await_done")
+                              timeout=fired_timeout, passed_time=passed, kind="await_done")
 
         return None
 
@@ -380,7 +426,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Feeds connection_observer by transferring data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
-        remain_time, msg = self._remaining_time("remaining", connection_observer, connection_observer.timeout)
+        remain_time, msg = his_remaining_time("remaining", he=connection_observer, timeout=connection_observer.timeout)
         # connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
         connection_observer.logger.log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
         connection_observer.device_logger.log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
@@ -398,7 +444,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         moler_conn.unsubscribe(subscribed_data_receiver)
         feed_done.set()
 
-        remain_time, msg = self._remaining_time("remaining", connection_observer, connection_observer.timeout)
+        remain_time, msg = his_remaining_time("remaining", he=connection_observer, timeout=connection_observer.timeout)
         # connection_observer._log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
         connection_observer.logger.log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
         connection_observer.device_logger.log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
@@ -428,15 +474,26 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 connection_observer.cancel()
             time.sleep(0.005)  # give moler_conn a chance to feed observer
 
-    @staticmethod
-    def _remaining_time(prefix, connection_observer, timeout):
-        start_time = connection_observer.start_time
-        already_passed = time.time() - start_time
-        remain_time = timeout - already_passed
-        if remain_time < 0.0:
-            remain_time = 0.0
-        msg = "{} {:.3f} [sec], already passed {:.3f} [sec]".format(prefix, remain_time, already_passed)
-        return remain_time, msg
-
     def timeout_change(self, timedelta):
         pass
+
+
+# utilities to be used by runners
+
+
+def his_remaining_time(prefix, he, timeout):
+    """
+    Calculate remaining time of "he" object assuming that "he" has .start_time attribute
+
+    :param prefix: string to be used inside 'remaining time description'
+    :param he: object to calculate remaining time for
+    :param timeout: max lifetime of object
+    :return: remaining time as float and related description message
+    """
+    start_time = he.start_time
+    already_passed = time.time() - start_time
+    remain_time = timeout - already_passed
+    if remain_time < 0.0:
+        remain_time = 0.0
+    msg = "{} {:.3f} [sec], already passed {:.3f} [sec]".format(prefix, remain_time, already_passed)
+    return remain_time, msg
