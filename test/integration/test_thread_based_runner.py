@@ -48,8 +48,7 @@ def test_CancellableFuture_can_be_cancelled_while_it_is_running(observer_runner)
     observer_lock = threading.Lock()
     c_future = CancellableFuture(future, observer_lock, stop_running, is_done)
     try:
-        assert not c_future.running()
-        time.sleep(0.1)  # allow threads switch to make future running
+        time.sleep(0.1)  # allow threads switch to ensure future running
         assert c_future.running()
         cancelled = c_future.cancel()
         time.sleep(0.1)  # allow threads switch
