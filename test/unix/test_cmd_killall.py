@@ -15,7 +15,7 @@ def test_calling_killall_returns_result_no_permit(buffer_connection, command_out
     command_output, expected_result = command_output_and_expected_result_no_permit
     buffer_connection.remote_inject_response([command_output])
     killall_cmd = Killall(connection=buffer_connection.moler_connection, name="iperf")
-    with pytest.raises(CommandFailure, match=r'Command failed \'killall iperf\' with ERROR: Operation not permitted'):
+    with pytest.raises(CommandFailure):
         killall_cmd()
 
 

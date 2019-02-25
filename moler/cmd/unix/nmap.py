@@ -3,9 +3,9 @@
 Nmap command module.
 """
 
-__author__ = 'Yeshu Yang'
+__author__ = 'Yeshu Yang, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'yeshu.yang@nokia-sbell.com'
+__email__ = 'yeshu.yang@nokia-sbell.com, marcin.usielski@nokia.com'
 
 import re
 
@@ -15,23 +15,41 @@ from moler.exceptions import ParsingDone
 
 class Nmap(GenericUnixCommand):
 
-    def __init__(self, connection, ip, is_ping=False, option=None, prompt=None, newline_chars=None, runner=None):
+    def __init__(self, connection, ip, is_ping=False, options=None, prompt=None, newline_chars=None, runner=None):
+        """
+        :param connection: Moler connection to device, terminal when command is executed.
+        :param ip: IP address of host.
+        :param is_ping: If True then skip host discovery.
+        :param options: Options of command nmap.
+        :param prompt: prompt (on system where command runs).
+        :param newline_chars: Characters to split lines - list.
+        :param runner: Runner to run command.
+        """
         super(Nmap, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
-        self.option = option
+        self.options = options
         self.ip = ip
         self.is_ping = is_ping
         self.timeout = 120  # Time in seconds
 
     def build_command_string(self):
+        """
+        :return: String representation of command to send over connection to device.
+        """
         cmd = "nmap"
-        if self.option:
-            cmd = cmd + " " + self.option
-        cmd = cmd + " " + self.ip
+        if self.options:
+            cmd = "{} {}".format(cmd, self.options)
+        cmd = "{} {}".format(cmd, self.ip)
         if not self.is_ping:
-            cmd = cmd + " -PN"
+            cmd = "{} -PN".format(cmd)
         return cmd
 
     def on_new_line(self, line, is_full_line):
+        """
+        Put your parsing code here.
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: Nothing
+        """
         if is_full_line:
             try:
                 self._parse_ports_line(line)
@@ -165,7 +183,7 @@ Nmap done: 1 IP address (1 host up) scanned in 17.52 seconds
            Raw packets sent: 65544 (2.884MB) | Rcvd: 65528 (2.621MB)
 root@cp19-nj:/home/ute# """
 
-COMMAND_KWARGS_host_up = {'option': '-d1 -p- -S 192.168.255.126',
+COMMAND_KWARGS_host_up = {'options': '-d1 -p- -S 192.168.255.126',
                           'ip': '192.168.255.129'}
 
 COMMAND_RESULT_host_up = {
@@ -309,7 +327,7 @@ Nmap done: 1 IP address (0 hosts up) scanned in 0.54 seconds
            Raw packets sent: 2 (56B) | Rcvd: 0 (0B)
 root@cp19-nj:/home/ute# """
 
-COMMAND_KWARGS_host_down = {'option': '-d1 -p- -S 192.168.255.126',
+COMMAND_KWARGS_host_down = {'options': '-d1 -p- -S 192.168.255.126',
                             'ip': '192.168.255.4'}
 
 COMMAND_RESULT_host_down = {
@@ -464,8 +482,8 @@ Nmap done: 16 IP addresses (16 hosts up) scanned in 209.25 seconds
            Raw packets sent: 210722 (9.272MB) | Rcvd: 18224 (730.812KB)
 root@cp19-nj:/home/ute# """
 
-COMMAND_KWARGS = {'option': '-d1 -p- --host-timeout 100',
-                            'ip': '10.9.134.0/28'}
+COMMAND_KWARGS = {'options': '-d1 -p- --host-timeout 100',
+                  'ip': '10.9.134.0/28'}
 
 COMMAND_RESULT = {
     'RAW_PACKETS': {

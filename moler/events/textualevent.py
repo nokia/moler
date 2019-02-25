@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Marcin Usielski'
+__author__ = 'Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
+import abc
 from moler.event import Event
+from moler.cmd import RegexHelper
 
 
 class TextualEvent(Event):
@@ -14,11 +16,13 @@ class TextualEvent(Event):
         super(TextualEvent, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
         self._last_not_full_line = None
         self._newline_chars = TextualEvent._default_newline_chars
+        self._regex_helper = RegexHelper()  # Object to regular expression matching
 
     def event_occurred(self, event_data):
         self._consume_already_parsed_fragment()
         super(TextualEvent, self).event_occurred(event_data)
 
+    @abc.abstractmethod
     def on_new_line(self, line, is_full_line):
         """
         Method to parse output from device.

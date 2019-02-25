@@ -3,11 +3,12 @@
 Gunzip command test module.
 """
 
-__author__ = 'Adrianna Pienkowska'
+__author__ = 'Adrianna Pienkowska, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'adrianna.pienkowska@nokia.com'
+__email__ = 'adrianna.pienkowska@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
+import time
 from moler.cmd.unix.gunzip import Gunzip
 from moler.exceptions import CommandFailure
 
@@ -49,6 +50,7 @@ def test_gunzip_raise_error_on_cannot_overwrite_multiple_files(
     gunzip_cmd = Gunzip(connection=buffer_connection.moler_connection, archive_name=["new5.gz", "new.gz"])
     assert 'gunzip new5.gz new.gz' == gunzip_cmd.command_string
     gunzip_cmd.start()
+    time.sleep(0.1)
     command_output, expected_result = command_output_and_expected_result_on_cannot_overwrite_multiple_files
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
@@ -62,6 +64,7 @@ def test_gunzip_raise_error_on_can_multiple_files(
                         archive_name=["new5.gz", "new.gz"], overwrite=True)
     assert 'gunzip new5.gz new.gz' == gunzip_cmd.command_string
     gunzip_cmd.start()
+    time.sleep(0.1)
     command_output, expected_result = command_output_and_expected_result_on_overwrite_multiple_files
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))

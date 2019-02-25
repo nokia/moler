@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 
@@ -104,35 +104,31 @@ class NoConnectionProvided(MolerException):
 
 class CommandFailure(MolerException):
     def __init__(self, command, message):
-        err_msg = "Command failed '{}' with {}".format(command.command_string, message)
+        err_msg = "Command '{}.{}' ('{}') failed with >>{}<<.".format(command.__class__.__module__, command.__class__.__name__,
+                                                                      command.command_string, message)
         self.command = command
         super(CommandFailure, self).__init__(err_msg)
 
 
 class CommandWrongState(MolerException):
     def __init__(self, command, expected_state, current_state):
-        err_msg = "Command '{}' tried to run in state '{}' but created in '{}'".format(command.command_string,
-                                                                                       current_state, expected_state)
+        err_msg = "Command '{}' tried to run in state '{}' but created in '{}'.".format(command.command_string,
+                                                                                        current_state, expected_state)
         self.command = command
         super(CommandWrongState, self).__init__(err_msg)
 
 
 class EventWrongState(MolerException):
     def __init__(self, command, expected_state, current_state):
-        err_msg = "Event '{}' tried to run in state '{}' but created in '{}'".format(command.command_string,
-                                                                                     current_state, expected_state)
+        err_msg = "Event '{}' tried to run in state '{}' but created in '{}'.".format(command.command_string,
+                                                                                      current_state, expected_state)
         self.command = command
         super(EventWrongState, self).__init__(err_msg)
 
 
 class MolerStatusException(MolerException):
-    def __init__(self, msg, exceptions=None):
-        self.exceptions = exceptions
-        err_msg = msg
-        if exceptions:
-            for exception in exceptions:
-                err_msg = "{}\n{}".format(err_msg, exception)
-        super(MolerStatusException, self).__init__(err_msg)
+    def __init__(self, msg):
+        super(MolerStatusException, self).__init__(msg)
 
 
 class CommandTimeout(ConnectionObserverTimeout):
@@ -142,12 +138,12 @@ class CommandTimeout(ConnectionObserverTimeout):
 class DeviceFailure(MolerException):
     def __init__(self, device, message):
         self.device = device
-        err_msg = "Device failed '{}' with {}".format(device, message)
+        err_msg = "Device '{}' failed with '{}'.".format(device, message)
         super(DeviceFailure, self).__init__(err_msg)
 
 
 class DeviceChangeStateFailure(DeviceFailure):
     def __init__(self, device, exception):
         self.device = device
-        err_msg = "Exception raised by device '{}' SM when try to changing state: {}".format(device, exception)
+        err_msg = "Exception raised by device '{}' SM when try to changing state: '{}'.".format(device, exception)
         super(DeviceChangeStateFailure, self).__init__(device, err_msg)

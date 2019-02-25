@@ -2,12 +2,13 @@
 """
 SFTP command test module.
 """
-__author__ = 'Agnieszka Bylica'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'agnieszka.bylica@nokia.com'
+__author__ = 'Agnieszka Bylica, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com'
 
 
 import pytest
+import time
 from moler.cmd.unix.sftp import Sftp
 from moler.exceptions import CommandFailure
 
@@ -244,23 +245,24 @@ def test_sftp_raise_not_confirmed_connection(buffer_connection, command_output_a
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
                     confirm_connection=False, command="mkdir", no_result=True)
     assert "sftp fred@192.168.0.102" == sftp_cmd.command_string
-    command_output, expected_result = command_output_and_expected_result_not_confirmed
     sftp_cmd.start()
+    command_output, expected_result = command_output_and_expected_result_not_confirmed
+    time.sleep(0.2)
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
     with pytest.raises(CommandFailure):
-        sftp_cmd()
+        sftp_cmd.await_done(timeout=2)
 
 
 @pytest.fixture
 def command_output_and_expected_result_not_confirmed():
-    output1 = """xyz@debian:/home$ sftp fred@192.168.0.102:cat /home/xyz/Docs/cat
+    output1 = """xyz@debian:/home$ sftp fred@192.168.0.102
 The authenticity of host '192.168.0.102 (192.168.0.102)' can't be established.
 ECDSA key fingerprint is SHA256:ghQ3iy/gH4YTqZOggql1eJCe3EETOOpn5yANJwFeRt0.
 Are you sure you want to continue connecting (yes/no)?"""
     output2 = """Are you sure you want to continue connecting (yes/no)? no
 Host key verification failed.
-xyz@debian:/home$"""
+xyz@debian:/home$ """
 
     outputs = [output1, output2]
 
@@ -275,6 +277,7 @@ def test_sftp_returns_result_pwd_in_prompt(buffer_connection, command_output_and
     assert "sftp fred@192.168.0.102" == sftp_cmd.command_string
     command_output, expected_result = command_output_and_expected_result_pwd_in_prompt
     sftp_cmd.start()
+    time.sleep(0.1)
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
     assert sftp_cmd.current_ret == expected_result
@@ -316,7 +319,8 @@ def test_sftp_no_result(buffer_connection, command_output_and_expected_result_no
                     command="mkdir pet", no_result=True)
     assert "sftp fred@192.168.0.102" == sftp_cmd.command_string
     command_output, expected_result = command_output_and_expected_result_no_result
-    sftp_cmd.start()
+    sftp_cmd.start(timeout=1)
+    time.sleep(0.1)
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
     assert sftp_cmd.current_ret == expected_result
@@ -359,6 +363,7 @@ def test_sftp_returns_result_of_fetching_file_with_progress_bar(buffer_connectio
     assert "sftp fred@192.168.0.102:debian-9.5.0-i386-netinst.iso" == sftp_cmd.command_string
     command_output, expected_result = command_output_and_expected_result_progress_bar
     sftp_cmd.start()
+    time.sleep(0.1)
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
     assert sftp_cmd.current_ret == expected_result

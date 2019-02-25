@@ -6,7 +6,7 @@ to make it exchangeable (threads, asyncio, twisted, curio)
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import atexit
@@ -162,9 +162,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Returns Future that could be used to await for connection_observer done.
         """
         self.logger.debug("go background: {!r}".format(connection_observer))
-
         # TODO: check dependency - connection_observer.connection
-
         feed_started = threading.Event()
         stop_feeding = threading.Event()
         feed_done = threading.Event()
@@ -175,8 +173,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         if not feed_started.wait(timeout=start_timeout):
             err_msg = "Failed to start observer feeding thread within {} sec".format(start_timeout)
             self.logger.error(err_msg)
-            MolerException(err_msg)
-            connection_observer.set_exception(err_msg)
+            exc = MolerException(err_msg)
+            connection_observer.set_exception(exc)
             return None
         c_future = CancellableFuture(connection_observer_future, feed_started, stop_feeding, feed_done)
         return c_future
@@ -191,7 +189,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         :return:
         """
         self.logger.debug("go foreground: {!r} - await max. {} [sec]".format(connection_observer, timeout))
-        start_time = time.time()
+        start_time = connection_observer.start_time
         remain_time = connection_observer.timeout
         check_timeout_from_observer = True
         wait_tick = 0.1
@@ -214,19 +212,18 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         passed = time.time() - start_time
         self.logger.debug("timed out {}".format(connection_observer))
         connection_observer_future.cancel()
-        connection_observer.cancel()  # TODO: should call connection_observer_future.cancel() via runner
+        # TODO: rethink - on timeout we raise while on other exceptions we expect observers
+        #       just to call  observer.set_exception() - so, no raise before calling observer.result()
+        if connection_observer.is_command():
+            exception = CommandTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
+        else:
+            exception = ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
+        connection_observer.set_exception(exception)
         connection_observer.on_timeout()
         connection_observer._log(logging.INFO,
                                  "'{}.{}' has timed out after '{:.2f}' seconds.".format(
                                      connection_observer.__class__.__module__,
                                      connection_observer.__class__.__name__, time.time() - start_time))
-        # TODO: rethink - on timeout we raise while on other exceptions we expect observers
-        #       just to call  observer.set_exception() - so, no raise before calling observer.result()
-        if hasattr(connection_observer, "command_string"):
-            exception = CommandTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
-        else:
-            exception = ConnectionObserverTimeout(connection_observer, timeout, kind="await_done", passed_time=passed)
-        connection_observer.set_exception(exception)
         return None
 
     def feed(self, connection_observer, feed_started, stop_feeding, feed_done):
@@ -246,19 +243,12 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         # start feeding connection_observer by establishing data-channel from connection to observer
         self.logger.debug("subscribing for data {!r}".format(connection_observer))
         moler_conn.subscribe(secure_data_received)
+
+        if connection_observer.is_command():
+            connection_observer.connection.sendline(connection_observer.command_string)
         feed_started.set()
 
-        while True:
-            if stop_feeding.is_set():
-                self.logger.debug("stopped {!r}".format(connection_observer))
-                break
-            if connection_observer.done():
-                self.logger.debug("done {!r}".format(connection_observer))
-                break
-            if self._in_shutdown:
-                self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))
-                connection_observer.cancel()
-            time.sleep(0.01)  # give moler_conn a chance to feed observer
+        self._feed_loop(connection_observer, stop_feeding)
 
         self.logger.debug("unsubscribing {!r}".format(connection_observer))
         moler_conn.unsubscribe(secure_data_received)
@@ -270,3 +260,16 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
     def timeout_change(self, timedelta):
         pass
+
+    def _feed_loop(self, connection_observer, stop_feeding):
+        while True:
+            if stop_feeding.is_set():
+                self.logger.debug("stopped {!r}".format(connection_observer))
+                break
+            if connection_observer.done():
+                self.logger.debug("done {!r}".format(connection_observer))
+                break
+            if self._in_shutdown:
+                self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))
+                connection_observer.cancel()
+            time.sleep(0.01)  # give moler_conn a chance to feed observer

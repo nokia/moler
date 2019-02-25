@@ -12,13 +12,12 @@ Connection responsibilities:
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
 import weakref
 from threading import Lock
-
 import six
 
 import moler.config.connections as connection_cfg
@@ -36,7 +35,7 @@ class Connection(object):
     """Connection API required by ConnectionObservers."""
 
     def __init__(self, how2send=None, encoder=identity_transformation, decoder=identity_transformation,
-                 name=None, newline='\r\n', logger_name=""):
+                 name=None, newline='\n', logger_name=""):
         """
         Create Connection via registering external-IO
 
@@ -147,7 +146,7 @@ class Connection(object):
 
     def change_newline_seq(self, newline_seq="\n"):
         """
-        Method to change newline char(s). Useful when connect from one point to another if newline chars change (i.e. "\n", "\r\n")
+        Method to change newline char(s). Useful when connect from one point to another if newline chars change (i.e. "\n", "\n")
         :param newline_seq: Sequence of chars to send as new line char(s)
         :return: Nothing
         """

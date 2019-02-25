@@ -31,6 +31,11 @@ Moler key features
 
    installation
    modules
+   moler.config
+   moler.device
+   moler.events
+   moler.parser
+   moler.util
    examples
 
 

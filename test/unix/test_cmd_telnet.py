@@ -4,11 +4,11 @@ Testing of telnet command.
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import pytest
-
+import time
 from moler.cmd.unix.telnet import Telnet
 from moler.exceptions import CommandFailure
 
@@ -78,6 +78,7 @@ def test_telnet_with_additional_commands(buffer_connection):
                         cmds_after_establish_connection=['mode character'])
     assert "TERM=xterm-mono telnet" == telnet_cmd.command_string
     telnet_cmd.start()
+    time.sleep(0.1)
     outputs = [output1, output2, output3, output4, output5, output6]
     for output in outputs:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))

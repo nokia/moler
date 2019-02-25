@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
@@ -9,6 +9,11 @@ import pytest
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import MolerStatusException
 from moler.util.moler_test import MolerTest
+
+
+def test_moler_test_warn():
+    ConnectionObserver.get_unraised_exceptions()
+    MolerTest.warning("Warning test")
 
 
 def test_moler_test_not_raise_exception_when_steps_end(moler_test_se):
@@ -74,6 +79,31 @@ def test_exception_in_observer_is_ignored_if_no_result_called_nor_decorator_on_f
     function_using_observer()  # should not raise so test should pass
 
 
+def test_log_error_in_next_test_when_previous_set_exception(do_nothing_connection_observer,
+                                                              ObserverExceptionClass):
+    exc = ObserverExceptionClass("some error inside observer")
+
+    def function_using_observer_and_set_exception():
+        observer = do_nothing_connection_observer
+        # for real usage observer should be started to run background thread that will set_exception()
+        # but for unit tests we just call it (simulating background thread)
+        observer.set_exception(exc)
+
+    @MolerTest.raise_background_exceptions(check_steps_end=True)
+    def function_using_observer():
+        observer = do_nothing_connection_observer
+        # for real usage observer should be started to run background thread that will set_exception()
+        # but for unit tests we just call it (simulating background thread)
+        print(observer.result())
+        MolerTest.steps_end()
+
+    function_using_observer_and_set_exception()
+
+    with pytest.raises(MolerStatusException) as err:
+        function_using_observer()
+    assert "some error inside observer" in str(err.value)
+
+
 def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_function(do_nothing_connection_observer,
                                                                                        ObserverExceptionClass):
     from moler.util.moler_test import MolerTest
@@ -86,7 +116,6 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_fu
 
     with pytest.raises(MolerStatusException) as err:
         function_using_observer()
-    assert exc in err.value.exceptions
 
 
 def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_decorator_on_function(
@@ -278,7 +307,28 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_d
         MyTest().method_using_observer()
 
 
+def test_info_with_dump():
+    MolerTest.info("Testing info message", dump={'key': 'value'})
+
+
+def test_warning_with_dump():
+    MolerTest.warning("Testing warning message", dump={'key': 'value'})
+
+
+def test_dump():
+    test_dict = {'key': 'value'}
+    test_string = MolerTest._dump(test_dict)
+    assert test_string == "{'key': 'value'}"
+
+
+def test_get_string_message():
+    test_dict = {'key': 'value'}
+    test_string = "This is sample message"
+    msg = MolerTest._get_string_message(test_string, test_dict)
+    assert msg == "This is sample message\n{'key': 'value'}"
+
 # --------------------------- resources ---------------------------
+
 
 @pytest.yield_fixture
 def moler_test_se():
