@@ -126,7 +126,7 @@ class ConnectionObserver(object):
 
     @timeout.setter
     def timeout(self, value):
-        #TODO: extract caller info to log where .timeout has been set
+        # TODO: extract caller info to log where .timeout has been set
         self._log(logging.DEBUG, "Setting {} timeout to {} [sec]".format(ConnectionObserver.__base_str(self), value))
         self.__timeout = value
 
