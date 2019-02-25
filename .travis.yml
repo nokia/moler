@@ -44,6 +44,9 @@ jobs:
     - NAME="Test"
     script:
     - python2.7 -m pytest --random -s -vv test
+    after_failure:
+    - ls -laR
+    - cat *.log
   - stage: test
     language: python
     python: 3.6
@@ -60,6 +63,9 @@ jobs:
     - coverage run -m pytest -c py3pytest.ini --random  -s -vv
     after_success:
     - coveralls
+    after_failure:
+    - ls -laR
+    - cat *.log
   - stage: example
     language: python
     python: 3.6
@@ -73,3 +79,6 @@ jobs:
     - NAME="Example"
     script:
     - bash examples/run_all_examples.bash
+    after_failure:
+    - ls -laR
+    - cat *.log
