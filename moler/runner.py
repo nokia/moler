@@ -246,6 +246,18 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         connection_observer_future = self.executor.submit(self.feed, connection_observer,
                                                           subscribed_data_receiver,
                                                           stop_feeding, feed_done, observer_lock)
+        if connection_observer_future.done():
+            # most probably we have some exception during submit(); it should be stored inside future
+            try:
+                too_early_result = connection_observer_future.result()
+                err_msg = "PROBLEM: future returned {} already in runner.submit()".format(too_early_result)
+                self.logger.warning("go background: {} - {}".format(connection_observer, err_msg))
+            except Exception as err:
+                err_msg = "PROBLEM: future raised {!r} during runner.submit()".format(err)
+                self.logger.warning("go background: {} - {}".format(connection_observer, err_msg))
+                self.logger.exception(err_msg)
+                raise
+
 
         c_future = CancellableFuture(connection_observer_future, observer_lock,
                                      stop_feeding, feed_done)
@@ -416,7 +428,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         remain_time = timeout - already_passed
         if remain_time < 0.0:
             remain_time = 0.0
-        msg = "{} {} [sec], already passed {} [sec]".format(prefix, remain_time, already_passed)
+        msg = "{} {:.3f} [sec], already passed {:.3f} [sec]".format(prefix, remain_time, already_passed)
         return remain_time, msg
 
     def timeout_change(self, timedelta):
