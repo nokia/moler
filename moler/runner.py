@@ -116,7 +116,10 @@ def time_out_observer(connection_observer, timeout, passed_time, kind="backgroun
 
         observer_info = "{}.{}".format(connection_observer.__class__.__module__, connection_observer)
         timeout_msg = "{} has timed out after {:.2f} seconds.".format(observer_info, passed_time)
-        connection_observer._log(logging.INFO, timeout_msg)
+        # connection_observer._log(logging.INFO, timeout_msg)
+        connection_observer.logger.log(logging.INFO, timeout_msg)
+        connection_observer.device_logger.log(logging.INFO, timeout_msg)
+
 
 
 def result_for_runners(connection_observer):
@@ -378,8 +381,11 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Feeds connection_observer by transferring data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
-        remain_time, msg = self._remaining_time("remaining", connection_observer, observer_timeout)
-        connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
+        remain_time, msg = self._remaining_time("remaining", connection_observer, connection_observer.timeout)
+        # connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
+        connection_observer.logger.log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
+        connection_observer.device_logger.log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
+
         if not subscribed_data_receiver:
             subscribed_data_receiver = self._start_feeding(connection_observer, observer_lock)
 
@@ -393,8 +399,10 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         moler_conn.unsubscribe(subscribed_data_receiver)
         feed_done.set()
 
-        remain_time, msg = self._remaining_time("remaining", connection_observer, observer_timeout)
-        connection_observer._log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
+        remain_time, msg = self._remaining_time("remaining", connection_observer, connection_observer.timeout)
+        # connection_observer._log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
+        connection_observer.logger.log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
+        connection_observer.device_logger.log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
         return None
 
     def _feed_loop(self, connection_observer, stop_feeding, observer_lock):
