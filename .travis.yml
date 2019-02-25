@@ -63,6 +63,9 @@ jobs:
     - coverage run -m pytest -c py3pytest.ini --random  -s -vv
     after_success:
     - coveralls
+    after_failure:
+    - ls -laR
+    - cat *.log
   - stage: example
     language: python
     python: 3.6
