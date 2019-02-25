@@ -173,9 +173,12 @@ class AsyncioRunner(ConnectionObserverRunner):
             if event_loop.is_running():
                 # wait_for() should not be called from 'async def'
                 self._raise_wrong_usage_of_wait_for(connection_observer)
-            else:
+            elif max_timeout:
                 event_loop.run_until_complete(asyncio.wait_for(connection_observer_future,
                                                                timeout=remain_time))
+            else:
+                event_loop.run_until_complete(connection_observer_future)  # timeout is handled by feed()
+
         except asyncio.futures.CancelledError:
             self.logger.debug("canceled {}".format(connection_observer))
             connection_observer.cancel()
