@@ -52,8 +52,8 @@ def find_caller_info(frm):
     Find the stack frame of the caller so that we can note the source
     file name, line number and function name.
     """
-    #On some versions of IronPython, currentframe() returns None if
-    #IronPython isn't run with -X:Frames.
+    # On some versions of IronPython, currentframe() returns None if
+    # IronPython isn't run with -X:Frames.
     if frm is not None:
         frm = frm.f_back
     rv = "(unknown file)", 0, "(unknown function)", None
