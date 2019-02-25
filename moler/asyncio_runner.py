@@ -22,7 +22,8 @@ from moler.exceptions import MolerException
 from moler.exceptions import WrongUsage
 from moler.helpers import instance_id
 from moler.io.raw import TillDoneThread
-from moler.runner import ConnectionObserverRunner, result_for_runners, time_out_observer
+from moler.runner import ConnectionObserverRunner
+from moler.runner import result_for_runners, time_out_observer, his_remaining_time
 
 
 def thread_secure_get_event_loop():
@@ -48,10 +49,15 @@ def thread_secure_get_event_loop():
 
 
 class AsyncioRunner(ConnectionObserverRunner):
+    last_runner_id_lock = threading.Lock()
+    last_runner_id = 0
+
     def __init__(self, logger_name='moler.runner.asyncio'):
         """Create instance of AsyncioRunner class"""
         self._in_shutdown = False
-        self._id = instance_id(self)
+        with AsyncioRunner.last_runner_id_lock:
+            AsyncioRunner.last_runner_id += 1
+            self._id = AsyncioRunner.last_runner_id  # instance_id(self)
         self.logger = logging.getLogger('{}:{}'.format(logger_name, self._id))
         self.logger.debug("created {}:{}".format(self.__class__.__name__, self._id))
         self._submitted_futures = []
@@ -72,41 +78,57 @@ class AsyncioRunner(ConnectionObserverRunner):
         Submit connection observer to background execution.
         Returns Future that could be used to await for connection_observer done.
         """
-        self.logger.debug("go background: {!r}".format(connection_observer))
-
-        # TODO: check dependency - connection_observer.connection
-
-        feed_started = asyncio.Event(loop=thread_secure_get_event_loop())
+        assert connection_observer.start_time > 0.0  # connection-observer lifetime should already been started
+        observer_timeout = connection_observer.timeout
+        remain_time, msg = his_remaining_time("remaining", he=connection_observer, timeout=observer_timeout)
+        self.logger.debug("go background: {!r} - {}".format(connection_observer, msg))
 
         # Our submit consists of two steps:
         # 1. _start_feeding() which establishes data path from connection to observer
         # 2. starting "background feed" task handling native future bound to connection_observer
         #                               native future here is asyncio.Task
-        # We could await here (before returning from submit()) for "background feed" to be really started.
-        # However, for asyncio runner it is technically impossible (or possible but tricky)
-        # since to be able to await for 'feed_started' asyncio.Event we need to give control back to events loop.
-        # And the only way to do it is to return from this method since it is raw method (not 'async def' which
-        # would allow for 'await' syntax)
         #
-        # But by using the code of _start_feeding() we ensure that after submit() connection data could reach
+        # By using the code of _start_feeding() we ensure that after submit() connection data could reach
         # data_received() of observer - as it would be "virtually running in background"
-        # so, no data will be lost-for-observer between runner.submit() and runner.feed() really running
+        # Another words, no data will be lost-for-observer between runner.submit() and runner.feed() really running
         #
-        # Moreover, not waiting for "background feed" to be running (assuming tricky code) is in line
-        # with generic scheme of any async-code: methods should be as quick as possible. Because async frameworks
-        # operate inside single thread being inside method means "nothing else could happen". Nothing here may
-        # mean for example "handling data of other connections", "handling other observers".
+        # We do not await here (before returning from submit()) for "background feed" to be really started.
+        # Not waiting for "background feed" to be running is in line with generic scheme of any async-code: methods
+        # should be as quick as possible.
+        #
+        # However, lifetime of connection_observer starts in connection_observer.start().
+        # It gains it's own timer so that timeout is calculated from that connection_observer.start_time
+        # That lifetime may start even before this submit() if observer is command and we have commands queue.
+        #
+        # As a corner case runner.wait_for() may timeout before feeding coroutine has started.
         #
         # duration of submit() is measured as around 0.0007sec (depends on machine).
-
-        subscribed_data_receiver = self._start_feeding(connection_observer, feed_started)
+        event_loop = thread_secure_get_event_loop()
+        observer_lock = threading.Lock()  # against threads race write-access to observer
+        subscribed_data_receiver = self._start_feeding(connection_observer, observer_lock)
         self.logger.debug("scheduling feed({})".format(connection_observer))
         connection_observer_future = asyncio.ensure_future(self.feed(connection_observer,
-                                                                     feed_started,
-                                                                     subscribed_data_receiver))
+                                                                     subscribed_data_receiver,
+                                                                     observer_lock),
+                                                           loop=event_loop)
         self.logger.debug("runner submit() returning - future: {}:{}".format(instance_id(connection_observer_future),
                                                                              connection_observer_future))
+        if connection_observer_future.done():
+            # most probably we have some exception during ensure_future(); it should be stored inside future
+            try:
+                too_early_result = connection_observer_future.result()
+                err_msg = "PROBLEM: future returned {} already in runner.submit()".format(too_early_result)
+                self.logger.warning("go background: {} - {}".format(connection_observer, err_msg))
+            except Exception as err:
+                err_msg = "PROBLEM: future raised {!r} during runner.submit()".format(err)
+                self.logger.warning("go background: {} - {}".format(connection_observer, err_msg))
+                self.logger.exception(err_msg)
+                raise
+
         self._submitted_futures.append(connection_observer_future)
+        # need injecting new attribute inside asyncio.Future object
+        # to allow passing lock to wait_for()
+        connection_observer_future.observer_lock = observer_lock
         return connection_observer_future
 
     def wait_for(self, connection_observer, connection_observer_future, timeout=None):
@@ -118,10 +140,31 @@ class AsyncioRunner(ConnectionObserverRunner):
         :param timeout: Max time (in float seconds) to await before give up. If None then taken from connection_observer
         :return:
         """
-        self.logger.debug("go foreground: {!r} - await max. {} [sec]".format(connection_observer, timeout))
         if connection_observer.done():
+            # 1. done() might mean "timed out" before future start
+            #    Observer lifetime started with its timeout clock so, it might timeout even before
+            #    connection_observer_future started - since future's coro might not get control yet
+            # 2. done() might mean "timed out" before wait_for()
+            #    wait_for() might be called so late after submit() that observer already "timed out"
+            # 3. done() might mean have result or got exception
+            #    wait_for() might be called so late after submit() that observer already got result/exception
+            #
+            # In all above cases we want to stop future if it is still running
+
+            self.logger.debug("go foreground: {} is already done".format(connection_observer))
+            if not connection_observer_future.done():
+                connection_observer_future.cancel()
             return None
-        start_time = time.time()
+
+        start_time = connection_observer.start_time
+        max_timeout = timeout
+        observer_timeout = connection_observer.timeout
+        if max_timeout:
+            remain_time, msg = his_remaining_time("await max.", he=connection_observer, timeout=max_timeout)
+        else:
+            remain_time, msg = his_remaining_time("remaining", he=connection_observer, timeout=observer_timeout)
+
+        self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
         event_loop = thread_secure_get_event_loop()
 
         try:
@@ -132,15 +175,16 @@ class AsyncioRunner(ConnectionObserverRunner):
                 self._raise_wrong_usage_of_wait_for(connection_observer)
             else:
                 event_loop.run_until_complete(asyncio.wait_for(connection_observer_future,
-                                                               timeout=timeout))
+                                                               timeout=remain_time))
         except asyncio.futures.CancelledError:
             self.logger.debug("canceled {}".format(connection_observer))
             connection_observer.cancel()
         except asyncio.futures.TimeoutError:
             passed = time.time() - start_time
             fired_timeout = timeout if timeout else connection_observer.timeout
-            time_out_observer(connection_observer=connection_observer,
-                              timeout=fired_timeout, passed_time=passed, kind="await_done")
+            with connection_observer_future.observer_lock:
+                time_out_observer(connection_observer=connection_observer,
+                                  timeout=fired_timeout, passed_time=passed, kind="await_done")
         except Exception as err:
             self.logger.debug("{} raised {!r}".format(connection_observer, err))
             connection_observer.set_exception(err)
@@ -191,7 +235,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         # Here we know, connection_observer_future is asyncio.Future (precisely asyncio.tasks.Task)
         # and we know it has __await__() method.
 
-    def _start_feeding(self, connection_observer, feed_started):
+    def _start_feeding(self, connection_observer, observer_lock):
         """
         Start feeding connection_observer by establishing data-channel from connection to observer.
         """
@@ -209,12 +253,14 @@ class AsyncioRunner(ConnectionObserverRunner):
             try:
                 if connection_observer.done() or self._in_shutdown:
                     return  # even not unsubscribed secure_data_received() won't pass data to done observer
-                connection_observer.data_received(data)
+                with observer_lock:
+                    connection_observer.data_received(data)
 
             except Exception as exc:  # TODO: handling stacktrace
                 # observers should not raise exceptions during data parsing
                 # but if they do so - we fix it
-                connection_observer.set_exception(exc)
+                with observer_lock:
+                    connection_observer.set_exception(exc)
             finally:
                 if connection_observer.done() and not connection_observer.cancelled():
                     if connection_observer._exception:
@@ -223,40 +269,45 @@ class AsyncioRunner(ConnectionObserverRunner):
                         self.logger.debug("{} returned: {}".format(connection_observer, connection_observer._result))
 
         moler_conn = connection_observer.connection
-        self.logger.debug("subscribing for data {!r}".format(connection_observer))
+        self.logger.debug("subscribing for data {}".format(connection_observer))
         moler_conn.subscribe(secure_data_received)
-        feed_started.set()  # mark that we have passed connection-subscription-step
+        if connection_observer.is_command():
+            connection_observer.connection.sendline(connection_observer.command_string)
         return secure_data_received  # to know what to unsubscribe
 
-    async def feed(self, connection_observer, feed_started, subscribed_data_receiver):
+    async def feed(self, connection_observer, subscribed_data_receiver, observer_lock):
         """
         Feeds connection_observer by transferring data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
-        connection_observer._log(logging.INFO, "{} started.".format(connection_observer.get_long_desc()))
-        if not feed_started.is_set():
-            subscribed_data_receiver = self._start_feeding(connection_observer, feed_started)
+        remain_time, msg = his_remaining_time("remaining", he=connection_observer, timeout=connection_observer.timeout)
+        # connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
+        connection_observer.logger.log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
+        connection_observer.device_logger.log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
+
+        if not subscribed_data_receiver:
+            subscribed_data_receiver = self._start_feeding(connection_observer, observer_lock)
 
         await asyncio.sleep(0.005)  # give control back before we start processing
-        start_time = time.time()
+        start_time = connection_observer.start_time
 
         moler_conn = connection_observer.connection
         try:
             while True:
                 if connection_observer.done():
-                    self.logger.debug("done {!r}".format(connection_observer))
+                    self.logger.debug("done {}".format(connection_observer))
                     break
                 run_duration = time.time() - start_time
                 # we need to check connection_observer.timeout at each round since timeout may change
                 # during lifetime of connection_observer
                 if (connection_observer.timeout is not None) and (run_duration >= connection_observer.timeout):
-                    self.logger.debug("timed out {!r}".format(connection_observer))
-                    time_out_observer(connection_observer,
-                                      timeout=connection_observer.timeout,
-                                      passed_time=run_duration)
+                    with observer_lock:
+                        time_out_observer(connection_observer,
+                                          timeout=connection_observer.timeout,
+                                          passed_time=run_duration)
                     break
                 if self._in_shutdown:
-                    self.logger.debug("shutdown so cancelling {!r}".format(connection_observer))
+                    self.logger.debug("shutdown so cancelling {}".format(connection_observer))
                     connection_observer.cancel()
                 await asyncio.sleep(0.005)  # give moler_conn a chance to feed observer
             #
@@ -275,17 +326,20 @@ class AsyncioRunner(ConnectionObserverRunner):
             # However, feed() task worked fine since it correctly handled observer's exception.
             # Another words - it is not feed's exception but observer's exception so, it should not be raised here.
             #
-            return None
-
         except asyncio.CancelledError:
-            self.logger.debug("cancelled {!r}.feed".format(self))
+            self.logger.debug("cancelled {}.feed".format(self))
             raise  # need to reraise to inform "I agree for cancellation"
 
         finally:
-            self.logger.debug("unsubscribing {!r}".format(connection_observer))
-            moler_conn.unsubscribe(subscribed_data_receiver)  # stop feeding
+            self.logger.debug("unsubscribing {}".format(connection_observer))
+            moler_conn.unsubscribe(subscribed_data_receiver)
             # feed_done.set()
-            connection_observer._log(logging.INFO, "{} finished.".format(connection_observer.get_short_desc()))
+
+            remain_time, msg = his_remaining_time("remaining", he=connection_observer, timeout=connection_observer.timeout)
+            # connection_observer._log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
+            connection_observer.logger.log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
+            connection_observer.device_logger.log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
+        return None
 
     def timeout_change(self, timedelta):
         pass
