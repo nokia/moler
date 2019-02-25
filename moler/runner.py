@@ -217,6 +217,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Submit connection observer to background execution.
         Returns Future that could be used to await for connection_observer done.
         """
+        assert connection_observer.start_time > 0.0  # connection-observer lifetime should already been started
         observer_timeout = connection_observer.timeout
         remain_time, msg = self._remaining_time("remaining", connection_observer, observer_timeout)
         self.logger.debug("go background: {!r} - {}".format(connection_observer, msg))

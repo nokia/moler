@@ -288,8 +288,8 @@ def test_wait_for__times_out_on_constructor_timeout(observer_runner, connection_
     from moler.exceptions import MolerTimeout
 
     connection_observer.timeout = 0.2
+    start_time = connection_observer.start_time = time.time()
     future = observer_runner.submit(connection_observer)
-    start_time = future.start_time
     with pytest.raises(MolerTimeout):
         observer_runner.wait_for(connection_observer, future,
                                  timeout=None)  # means: use .timeout of observer
@@ -307,8 +307,8 @@ def test_wait_for__times_out_on_specified_timeout(observer_runner, connection_ob
     from moler.exceptions import MolerTimeout
 
     connection_observer.timeout = 0.4
+    start_time = connection_observer.start_time = time.time()
     future = observer_runner.submit(connection_observer)
-    start_time = future.start_time
     with pytest.raises(MolerTimeout):
         observer_runner.wait_for(connection_observer, future,
                                  timeout=0.2)  # means: use timeout of wait_for (shorter then initial one)
@@ -322,8 +322,8 @@ def test_wait_for__times_out_on_earlier_timeout(observer_runner, connection_obse
     from moler.exceptions import MolerTimeout
 
     connection_observer.timeout = 0.3
+    start_time = connection_observer.start_time = time.time()
     future = observer_runner.submit(connection_observer)
-    start_time = future.start_time
     with pytest.raises(MolerTimeout):
         observer_runner.wait_for(connection_observer, future,
                                  timeout=0.5)  # means: timeout of wait_for longer then initial one
@@ -337,8 +337,8 @@ def test_wait_for__tracks_changes_of_observer_timeout__extension(observer_runner
     from moler.exceptions import MolerTimeout
 
     connection_observer.timeout = 0.2
+    start_time = connection_observer.start_time = time.time()
     future = observer_runner.submit(connection_observer)
-    start_time = future.start_time
 
     def modify_observer_timeout():
         time.sleep(0.15)
@@ -358,8 +358,8 @@ def test_wait_for__tracks_changes_of_observer_timeout__shortening(observer_runne
     from moler.exceptions import MolerTimeout
 
     connection_observer.timeout = 0.35
+    start_time = connection_observer.start_time = time.time()
     future = observer_runner.submit(connection_observer)
-    start_time = future.start_time
 
     def modify_observer_timeout():
         time.sleep(0.05)
@@ -381,8 +381,8 @@ def test_wait_for__direct_timeout_takes_precedence_over_extended_observer_timeou
     from moler.exceptions import MolerTimeout
 
     connection_observer.timeout = 0.2
+    start_time = connection_observer.start_time = time.time()
     future = observer_runner.submit(connection_observer)
-    start_time = future.start_time
 
     def modify_observer_timeout():
         time.sleep(0.15)

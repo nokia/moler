@@ -19,6 +19,7 @@ from moler.connection_observer import ConnectionObserver
 
 def test_can_submit_connection_observer_into_background(connection_observer,
                                                         observer_runner):
+    connection_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
     connection_observer_future = observer_runner.submit(connection_observer)
     # see API of concurrent.futures.Future
     try:
@@ -28,19 +29,6 @@ def test_can_submit_connection_observer_into_background(connection_observer,
         assert connection_observer_future.running()
     finally:  # test cleanup
         connection_observer_future.cancel()
-
-
-def test_future_lifetime_starts_from_runner_submit(connection_observer,
-                                                   observer_runner):
-    before_submit_time = time.time()
-    connection_observer_future = observer_runner.submit(connection_observer)
-    assert hasattr(connection_observer_future, "start_time")
-    assert connection_observer_future.start_time > before_submit_time
-
-    # TODO: ask runner (knows type of his future)
-    # observer_runner.remaining_lifetime(connection_observer_future)
-    # or
-    # connection_observer_future.remaining_lifetime()
 
 
 def test_CancellableFuture_can_be_cancelled_while_it_is_running(observer_runner):
@@ -53,16 +41,19 @@ def test_CancellableFuture_can_be_cancelled_while_it_is_running(observer_runner)
 
     def activity(stop_running, is_done):
         while not stop_running.is_set():
-            time.sleep(0.1)
+            time.sleep(0.5)
         is_done.set()
 
     future = ThreadPoolExecutor().submit(activity, stop_running, is_done)
-    start_time = time.time()
     observer_lock = threading.Lock()
-    c_future = CancellableFuture(future, observer_lock, start_time, stop_running, is_done)
+    c_future = CancellableFuture(future, observer_lock, stop_running, is_done)
     try:
+        assert not c_future.running()
+        time.sleep(0.1)  # allow threads switch to make future running
+        assert c_future.running()
         cancelled = c_future.cancel()
         time.sleep(0.1)  # allow threads switch
+        assert not c_future.running()
         assert is_done.is_set()
         assert cancelled is True
         assert c_future.cancelled()
