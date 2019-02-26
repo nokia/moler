@@ -193,7 +193,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         return None
 
     @staticmethod
-    def _run_via_asyncio(self, connection_observer_future, max_timeout, remain_time):
+    def _run_via_asyncio(connection_observer_future, max_timeout, remain_time):
         event_loop = thread_secure_get_event_loop()
 
         if max_timeout:
