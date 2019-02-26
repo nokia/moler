@@ -22,6 +22,7 @@ from moler.helpers import camel_case_to_lower_case_underscore
 from moler.helpers import instance_id
 from moler.helpers import copy_list
 from moler.util.connection_observer import exception_stored_if_not_main_thread
+from moler.util.loghelper import log_into_logger
 from moler.runner_factory import get_runner
 from moler.command_scheduler import CommandScheduler
 
@@ -74,8 +75,6 @@ class ConnectionObserver(object):
         or you may delegate blocking call execution to separate thread,
         see: https://pymotw.com/3/asyncio/executors.html
         """
-        if timeout:
-            self.timeout = timeout
         started_observer = self.start(timeout, *args, **kwargs)
         if started_observer:
             return started_observer.await_done(*args, **kwargs)
@@ -97,8 +96,9 @@ class ConnectionObserver(object):
 
     @timeout.setter
     def timeout(self, value):
-        # TODO: extract caller info to log where .timeout has been set
-        self._log(logging.DEBUG, "Setting {} timeout to {} [sec]".format(ConnectionObserver.__base_str(self), value))
+        # levels_to_go_up=2 : extract caller info to log where .timeout=XXX has been called from
+        self._log(logging.DEBUG, "Setting {} timeout to {} [sec]".format(ConnectionObserver.__base_str(self), value),
+                  levels_to_go_up=2)
         self.__timeout = value
 
     def get_logger_name(self):
@@ -344,7 +344,7 @@ class ConnectionObserver(object):
     def get_short_desc(self):
         return "Observer '{}.{}'".format(self.__class__.__module__, self)
 
-    def _log(self, lvl, msg, extra=None):
+    def _log(self, lvl, msg, extra=None, levels_to_go_up=1):
         extra_params = {
             'log_name': self.get_logger_name()
         }
@@ -352,5 +352,7 @@ class ConnectionObserver(object):
         if extra:
             extra_params.update(extra)
 
-        self.logger.log(lvl, msg, extra=extra_params)
+        # levels_to_go_up=1 : extract caller info to log where _log() has been called from
+        log_into_logger(self.logger, lvl, msg, levels_to_go_up=levels_to_go_up)
+        # self.logger.log(lvl, msg, extra=extra_params)
         self.device_logger.log(lvl, msg, extra=extra_params)
