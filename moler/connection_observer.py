@@ -250,12 +250,14 @@ class ConnectionObserver(object):
         """Should be used to indicate some failure during observation"""
         if self._is_done:
             self._log(logging.WARNING,
-                      "Trial to set exception {!r} on already done {}".format(exception, self))
+                      "Trial to set exception {!r} on already done {}".format(exception, self),
+                      levels_to_go_up=2)
             return
         self._is_done = True
         ConnectionObserver._change_unraised_exception(new_exception=exception, observer=self)
-        self._log(logging.INFO, "{}.{} has set exception {!r}".format(self.__class__.__module__,
-                                                                      self, exception))
+        self._log(logging.INFO,
+                  "{}.{} has set exception {!r}".format(self.__class__.__module__, self, exception),
+                  levels_to_go_up=2)
 
     def result(self):
         """Retrieve final result of connection-observer"""
@@ -282,7 +284,7 @@ class ConnectionObserver(object):
         """
         return False
 
-    def extend_timeout(self, timedelta):
+    def extend_timeout(self, timedelta):  # TODO: probably API to remove since we have runner tracking .timeout=XXX
         prev_timeout = self.timeout
         self.timeout = self.timeout + timedelta
         msg = "Extended timeout from %.2f with delta %.2f to %.2f" % (prev_timeout, timedelta, self.timeout)
@@ -353,6 +355,5 @@ class ConnectionObserver(object):
             extra_params.update(extra)
 
         # levels_to_go_up=1 : extract caller info to log where _log() has been called from
-        log_into_logger(self.logger, lvl, msg, levels_to_go_up=levels_to_go_up)
-        # self.logger.log(lvl, msg, extra=extra_params)
-        self.device_logger.log(lvl, msg, extra=extra_params)
+        log_into_logger(self.logger, lvl, msg, extra=extra_params, levels_to_go_up=levels_to_go_up)
+        log_into_logger(self.device_logger, lvl, msg, extra=extra_params, levels_to_go_up=levels_to_go_up)

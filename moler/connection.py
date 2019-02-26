@@ -24,6 +24,7 @@ import moler.config.connections as connection_cfg
 from moler.config.loggers import RAW_DATA, TRACE
 from moler.exceptions import WrongUsage
 from moler.helpers import instance_id
+from moler.util.loghelper import log_into_logger
 
 
 def identity_transformation(data):
@@ -73,7 +74,7 @@ class Connection(object):
         If connection is using default logger ("moler.connection.<name>")
         then modify logger after connection name change.
         """
-        self._log(level=TRACE, msg=r'changing name: {} --> {}'.format(self._name, value))
+        self._log(level=TRACE, msg=r'changing name: {} --> {}'.format(self._name, value), levels_to_go_up=2)
         if self._using_default_logger():
             self.logger = Connection._select_logger(logger_name="", connection_name=value)
         self._name = value
@@ -121,7 +122,7 @@ class Connection(object):
         return data.strip() if isinstance(data, six.string_types) else data
 
     # TODO: should timeout be property of IO? We timeout whole connection-observer.
-    def send(self, data, timeout=30, encrypt=False):
+    def send(self, data, timeout=30, encrypt=False, levels_to_go_up=2):
         """Outgoing-IO API: Send data over external-IO."""
         msg = data
         if encrypt:
@@ -135,7 +136,8 @@ class Connection(object):
                   extra={
                       'transfer_direction': '>',
                       'log_name': self.name
-                  })
+                  },
+                  levels_to_go_up=levels_to_go_up)
 
         encoded_msg = self.encode(msg)
         self._log_data(msg=encoded_msg, level=RAW_DATA,
@@ -162,7 +164,7 @@ class Connection(object):
     def sendline(self, data, timeout=30, encrypt=False):
         """Outgoing-IO API: Send data line over external-IO."""
         line = data + self.newline
-        self.send(data=line, timeout=timeout, encrypt=encrypt)
+        self.send(data=line, timeout=timeout, encrypt=encrypt, levels_to_go_up=3)
 
     def data_received(self, data):
         """Incoming-IO API: external-IO should call this method when data is received"""
@@ -193,7 +195,7 @@ class Connection(object):
         except Exception as err:
             print(err)  # logging errors should not propagate
 
-    def _log(self, level, msg, extra=None):
+    def _log(self, level, msg, extra=None, levels_to_go_up=1):
         if self.logger:
             extra_params = {
                 'log_name': self.name
@@ -202,7 +204,8 @@ class Connection(object):
             if extra:
                 extra_params.update(extra)
             try:
-                self.logger.log(level, msg, extra=extra_params)
+                # levels_to_go_up=1 : extract caller info to log where _log() has been called from
+                log_into_logger(self.logger, level, msg, extra=extra_params, levels_to_go_up=levels_to_go_up)
             except Exception as err:
                 print(err)  # logging errors should not propagate
 
@@ -275,7 +278,7 @@ class ObservableConnection(Connection):
                 del self._observers[observer_key]
             else:
                 self._log(level=logging.WARNING,
-                          msg="{} was not subscribed".format(observer))
+                          msg="{} was not subscribed".format(observer), levels_to_go_up=2)
 
     def notify_observers(self, data):
         """Notify all subscribed observers about data received on connection"""

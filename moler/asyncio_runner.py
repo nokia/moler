@@ -288,9 +288,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         Should be called from background-processing of connection observer.
         """
         remain_time, msg = his_remaining_time("remaining", he=connection_observer, timeout=connection_observer.timeout)
-        # connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
-        connection_observer.logger.log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
-        connection_observer.device_logger.log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
+        connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
 
         if not subscribed_data_receiver:
             subscribed_data_receiver = self._start_feeding(connection_observer, observer_lock)
@@ -343,9 +341,7 @@ class AsyncioRunner(ConnectionObserverRunner):
             # feed_done.set()
 
             remain_time, msg = his_remaining_time("remaining", he=connection_observer, timeout=connection_observer.timeout)
-            # connection_observer._log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
-            connection_observer.logger.log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
-            connection_observer.device_logger.log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
+            connection_observer._log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
         return None
 
     def timeout_change(self, timedelta):

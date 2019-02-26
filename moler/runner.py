@@ -21,7 +21,6 @@ from six import add_metaclass
 from moler.exceptions import CommandTimeout
 from moler.exceptions import ConnectionObserverTimeout
 from moler.exceptions import MolerException
-from moler.util.loghelper import info_into_logger
 
 # fix for concurrent.futures  v.3.0.3  to have API of v.3.1.1 or above
 try:
@@ -118,10 +117,8 @@ def time_out_observer(connection_observer, timeout, passed_time, kind="backgroun
         observer_info = "{}.{}".format(connection_observer.__class__.__module__, connection_observer)
         timeout_msg = "{} has timed out after {:.2f} seconds.".format(observer_info, passed_time)
 
-        # levels_to_go_up=1 : extract caller info to log where .time_out_observer has been called from
-        # connection_observer._log(logging.INFO, timeout_msg)
-        info_into_logger(connection_observer.logger, timeout_msg, levels_to_go_up=1)
-        info_into_logger(connection_observer.device_logger, timeout_msg, levels_to_go_up=1)
+        # levels_to_go_up=2 : extract caller info to log where .time_out_observer has been called from
+        connection_observer._log(logging.INFO, timeout_msg, levels_to_go_up=2)
 
 
 def result_for_runners(connection_observer):
@@ -384,9 +381,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Should be called from background-processing of connection observer.
         """
         remain_time, msg = his_remaining_time("remaining", he=connection_observer, timeout=connection_observer.timeout)
-        # connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
-        connection_observer.logger.log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
-        connection_observer.device_logger.log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
+        connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
 
         if not subscribed_data_receiver:
             subscribed_data_receiver = self._start_feeding(connection_observer, observer_lock)
@@ -402,9 +397,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         feed_done.set()
 
         remain_time, msg = his_remaining_time("remaining", he=connection_observer, timeout=connection_observer.timeout)
-        # connection_observer._log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
-        connection_observer.logger.log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
-        connection_observer.device_logger.log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
+        connection_observer._log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
         return None
 
     def _feed_loop(self, connection_observer, stop_feeding, observer_lock):
