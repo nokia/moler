@@ -83,6 +83,7 @@ class Telnet(GenericUnixCommand):
     def build_command_string(self):
         """
         Builds command string from parameters passed to object.
+
         :return: String representation of command to send over connection to device.
         """
         cmd = ""
@@ -102,7 +103,8 @@ class Telnet(GenericUnixCommand):
 
     def on_new_line(self, line, is_full_line):
         """
-        Put your parsing code here.
+        Parses the output of the command.
+
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
         :return: Nothing
@@ -121,6 +123,7 @@ class Telnet(GenericUnixCommand):
     def _parse_failure_indication(self, line):
         """
         Detects fail from command output.
+
         :param line: Line from device
         :return: Match object if matches, None otherwise
         """
@@ -130,6 +133,8 @@ class Telnet(GenericUnixCommand):
 
     def _settings_after_login(self, line, is_full_line):
         """
+        Checks if settings after login are requested and sent.
+
         :param line: Line from device.
         :param is_full_line: True if line had new line chars, False otherwise.
         :return: Nothing but raises ParsingDone if line has information to handle by this method.
@@ -145,7 +150,8 @@ class Telnet(GenericUnixCommand):
 
     def _just_connected(self, line):
         """
-        Checks if line contains has just connected
+        Checks if line contains has just connected.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if line has information to handle by this method.
         """
@@ -156,6 +162,7 @@ class Telnet(GenericUnixCommand):
     def _send_telnet_commands(self, line, is_full_line, commands):
         """
         Sends telnet commands.
+
         :param line: Line from device.
         :param is_full_line: True if line had new line chars, False otherwise.
         :param commands: list of commands to send.
@@ -172,6 +179,7 @@ class Telnet(GenericUnixCommand):
     def _send_commands_before_establish_connection_if_requested(self, line, is_full_line):
         """
         Sends commands before open connection to telnet server.
+
         :param line: Line from device.
         :param is_full_line: True if line had new line chars, False otherwise.
         :return: Nothing but raises ParsingDone if any command was sent by this method.
@@ -182,6 +190,7 @@ class Telnet(GenericUnixCommand):
     def _send_commands_after_establish_connection_if_requested(self, line, is_full_line):
         """
         Sends commands after connection (after login and password) to telnet server.
+
         :param line: Line from device.
         :param is_full_line: True if line had new line chars, False otherwise.
         :return: Nothing but raises ParsingDone if any command was sent by this method.
@@ -195,6 +204,7 @@ class Telnet(GenericUnixCommand):
     def _change_telnet_to_setting_commands(self):
         """
         Changes telnet mode to enter telnet commands not information from server.
+
         :return: Nothing
         """
         if not self._telnet_command_mode:
@@ -204,6 +214,7 @@ class Telnet(GenericUnixCommand):
     def _send_login_if_requested(self, line):
         """
         Sends login if requested by server.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if login was sent.
         """
@@ -216,6 +227,7 @@ class Telnet(GenericUnixCommand):
     def _send_password_if_requested(self, line):
         """
         Sends server if requested by server.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if password was sent.
         """
@@ -228,6 +240,7 @@ class Telnet(GenericUnixCommand):
     def _send_after_login_settings(self, line):
         """
         Sends commands to set timeout and to change prompt.
+
         :param line: Line from device.
         :return: True if any command was sent, False if no command was sent.
         """
@@ -246,6 +259,7 @@ class Telnet(GenericUnixCommand):
     def _cmds_after_establish_connection_needed(self):
         """
         Checks if any command is requested to be sent to telnet command after establishing connection.
+
         :return: True if there is at least one command to execute. False is there is no command to execute.
         """
         ret = False
@@ -256,6 +270,7 @@ class Telnet(GenericUnixCommand):
     def _all_after_login_settings_sent(self):
         """
         Checks if all commands were sent by telnet command.
+
         :return: True if all requested commands were sent, False if at least one left.
         """
         telnet_cmds_sent = (0 == len(self.cmds_after_establish_connection))
@@ -269,6 +284,7 @@ class Telnet(GenericUnixCommand):
     def _no_after_login_settings_needed(self):
         """
         Checks if prompt and timeout commands are sent.
+
         :return: True if commands for login nor timeout are no needed.
         """
         return (not self.set_prompt) and (not self.set_timeout)
@@ -276,6 +292,7 @@ class Telnet(GenericUnixCommand):
     def _timeout_set_needed(self):
         """
         Checks if command to set timeout is still needed.
+
         :return: True if command to set timeout is needed, otherwise (sent or not requested) False
         """
         return self.set_timeout and not self._sent_timeout
@@ -283,6 +300,7 @@ class Telnet(GenericUnixCommand):
     def _send_timeout_set(self):
         """
         Sends command to set timeout
+
         :return: Nothing
         """
         self.connection.sendline("{}{}".format(self.target_newline, self.set_timeout))
@@ -291,13 +309,15 @@ class Telnet(GenericUnixCommand):
     def _prompt_set_needed(self):
         """
         Checks if command to set prompt is still needed.
+
         :return: True if command to set prompt is needed, otherwise (sent or not requested) False
         """
         return self.set_prompt and not self._sent_prompt
 
     def _send_prompt_set(self):
         """
-        Sends command to set prompt
+        Sends command to set prompt.
+
         :return: Nothing
         """
         self.connection.sendline("{}{}".format(self.target_newline, self.set_prompt))
@@ -305,7 +325,8 @@ class Telnet(GenericUnixCommand):
 
     def is_failure_indication(self, line):
         """
-        Checks if line contains information that command fails
+        Checks if line contains information that command fails.
+
         :param line: Line from device
         :return: Match object or None
         """
@@ -313,7 +334,8 @@ class Telnet(GenericUnixCommand):
 
     def _is_login_requested(self, line):
         """
-        Checks if line contains information that commands waits for login
+        Checks if line contains information that commands waits for login.
+
         :param line: Line from device
         :return: Match object or None
         """
@@ -321,7 +343,8 @@ class Telnet(GenericUnixCommand):
 
     def _is_password_requested(self, line):
         """
-        Checks if line contains information that commands waits for password
+        Checks if line contains information that commands waits for password.
+
         :param line: Line from device
         :return: Match object or None
         """
@@ -329,7 +352,8 @@ class Telnet(GenericUnixCommand):
 
     def _is_target_prompt(self, line):
         """
-        Checks if line contains prompt on target system
+        Checks if line contains prompt on target system.
+
         :param line: Line from device
         :return: Match object or None
         """
