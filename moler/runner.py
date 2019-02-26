@@ -13,8 +13,6 @@ import atexit
 import concurrent.futures
 import logging
 import time
-import sys
-import os
 import threading
 from abc import abstractmethod, ABCMeta
 from concurrent.futures import ThreadPoolExecutor, wait
@@ -23,6 +21,7 @@ from six import add_metaclass
 from moler.exceptions import CommandTimeout
 from moler.exceptions import ConnectionObserverTimeout
 from moler.exceptions import MolerException
+from moler.util.loghelper import info_into_logger
 
 # fix for concurrent.futures  v.3.0.3  to have API of v.3.1.1 or above
 try:
@@ -32,45 +31,6 @@ except ImportError:
     def cpu_count():
         """Workarround fix"""
         return None
-
-
-if hasattr(sys, '_getframe'):
-    def caller_frame():
-        """Return the frame object for the caller's stack frame."""
-        return sys._getframe(1)
-else:
-    def caller_frame():
-        """Return the frame object for the caller's stack frame."""
-        try:
-            raise Exception
-        except Exception:
-            return sys.exc_info()[0].tb_frame.f_back
-
-
-def find_caller_info(frm):
-    """
-    Find the stack frame of the caller so that we can note the source
-    file name, line number and function name.
-    """
-    # On some versions of IronPython, currentframe() returns None if
-    # IronPython isn't run with -X:Frames.
-    if frm is not None:
-        frm = frm.f_back
-    rv = "(unknown file)", 0, "(unknown function)", None
-    if hasattr(frm, "f_code"):
-        co = frm.f_code
-        rv = (co.co_filename, frm.f_lineno, co.co_name)
-    return rv
-
-
-def log_into_logger(logger, lvl, msg, frame):
-    if logger.isEnabledFor(lvl):
-        try:
-            fn, lno, func = find_caller_info(frame)
-        except ValueError:
-            fn, lno, func = "(unknown file)", 0, "(unknown function)"
-        record = logger.makeRecord(logger.name, lvl, fn, lno, msg, [], None, func, None, None)
-        logger.handle(record)
 
 
 @add_metaclass(ABCMeta)
@@ -158,13 +118,10 @@ def time_out_observer(connection_observer, timeout, passed_time, kind="backgroun
         observer_info = "{}.{}".format(connection_observer.__class__.__module__, connection_observer)
         timeout_msg = "{} has timed out after {:.2f} seconds.".format(observer_info, passed_time)
 
-        # TODO: extract caller info to log where .time_out_observer has been called from
-        caller_f = caller_frame()
+        # levels_to_go_up=1 : extract caller info to log where .time_out_observer has been called from
         # connection_observer._log(logging.INFO, timeout_msg)
-        # connection_observer.logger.log(logging.INFO, timeout_msg)
-        log_into_logger(connection_observer.logger, logging.INFO, timeout_msg, caller_f)
-        # connection_observer.device_logger.log(logging.INFO, timeout_msg)
-        log_into_logger(connection_observer.device_logger, logging.INFO, timeout_msg, caller_f)
+        info_into_logger(connection_observer.logger, timeout_msg, levels_to_go_up=1)
+        info_into_logger(connection_observer.device_logger, timeout_msg, levels_to_go_up=1)
 
 
 def result_for_runners(connection_observer):
