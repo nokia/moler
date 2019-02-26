@@ -21,6 +21,7 @@ from moler.exceptions import MolerTimeout
 from moler.exceptions import MolerException
 from moler.exceptions import WrongUsage
 from moler.helpers import instance_id
+from moler.util.connection_observer import exception_stored_if_not_main_thread
 from moler.io.raw import TillDoneThread
 from moler.runner import ConnectionObserverRunner
 from moler.runner import result_for_runners, time_out_observer, his_remaining_time
@@ -156,7 +157,6 @@ class AsyncioRunner(ConnectionObserverRunner):
                 connection_observer_future.cancel()
             return None
 
-        start_time = connection_observer.start_time
         max_timeout = timeout
         observer_timeout = connection_observer.timeout
         if max_timeout:
@@ -167,36 +167,40 @@ class AsyncioRunner(ConnectionObserverRunner):
         self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
         event_loop = thread_secure_get_event_loop()
 
-        try:
-            # we might be already called from within running event loop
-            # or we are just in synchronous code
-            if event_loop.is_running():
-                # wait_for() should not be called from 'async def'
-                self._raise_wrong_usage_of_wait_for(connection_observer)
-            elif max_timeout:
-                event_loop.run_until_complete(asyncio.wait_for(connection_observer_future,
-                                                               timeout=remain_time))
-            else:
-                event_loop.run_until_complete(connection_observer_future)  # timeout is handled by feed()
+        with exception_stored_if_not_main_thread(connection_observer, logger=self.logger):
+            try:
+                # we might be already called from within running event loop
+                # or we are just in synchronous code
+                if event_loop.is_running():
+                    # wait_for() should not be called from 'async def'
+                    self._raise_wrong_usage_of_wait_for(connection_observer)
 
-        except asyncio.futures.CancelledError:
-            self.logger.debug("canceled {}".format(connection_observer))
-            connection_observer.cancel()
-        except asyncio.futures.TimeoutError:
-            passed = time.time() - start_time
-            fired_timeout = timeout if timeout else connection_observer.timeout
-            with connection_observer_future.observer_lock:
-                time_out_observer(connection_observer=connection_observer,
-                                  timeout=fired_timeout, passed_time=passed, kind="await_done")
-        except Exception as err:
-            self.logger.debug("{} raised {!r}".format(connection_observer, err))
-            connection_observer.set_exception(err)
-        finally:
-            connection_observer_future.cancel()
+                self._run_via_asyncio(connection_observer_future, max_timeout, remain_time)
 
-        if connection_observer_future in self._submitted_futures:
-            self._submitted_futures.remove(connection_observer_future)
+            except asyncio.futures.CancelledError:
+                self.logger.debug("canceled {}".format(connection_observer))
+                connection_observer.cancel()
+            except asyncio.futures.TimeoutError:
+                passed = time.time() - connection_observer.start_time
+                fired_timeout = timeout if timeout else connection_observer.timeout
+                with connection_observer_future.observer_lock:
+                    time_out_observer(connection_observer=connection_observer,
+                                      timeout=fired_timeout, passed_time=passed, kind="await_done")
+            finally:
+                connection_observer_future.cancel()
+                if connection_observer_future in self._submitted_futures:
+                    self._submitted_futures.remove(connection_observer_future)
         return None
+
+    @staticmethod
+    def _run_via_asyncio(self, connection_observer_future, max_timeout, remain_time):
+        event_loop = thread_secure_get_event_loop()
+
+        if max_timeout:
+            event_loop.run_until_complete(asyncio.wait_for(connection_observer_future,
+                                                           timeout=remain_time))
+        else:
+            event_loop.run_until_complete(connection_observer_future)  # timeout is handled by feed()
 
     def _raise_wrong_usage_of_wait_for(self, connection_observer):
         import inspect  # don't import if never raising this exception
