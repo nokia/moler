@@ -31,6 +31,8 @@ class Ssh(GenericUnixCommand):
                  term_mono="TERM=xterm-mono", newline_chars=None, encrypt_password=True, runner=None,
                  target_newline="\n", allowed_newline_after_prompt=False):
         """
+        Moler class of Unix command ssh.
+
         :param connection: moler connection to device, terminal when command is executed
         :param login: ssh login
         :param password: ssh password or list of passwords for multi passwords connection
@@ -46,7 +48,7 @@ class Ssh(GenericUnixCommand):
         :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text
         :param runner: Runner to run command
         :param target_newline: newline chars on remote system where ssh connects
-        ;param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt
+        :param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt
         """
         super(Ssh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 

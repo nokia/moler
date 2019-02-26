@@ -4,7 +4,7 @@ Telnet command module.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
@@ -29,8 +29,11 @@ class Telnet(GenericUnixCommand):
     def __init__(self, connection, host, login=None, password=None, port=0, prompt=None, expected_prompt=r'^>\s*',
                  set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono="TERM=xterm-mono", prefix=None,
                  newline_chars=None, cmds_before_establish_connection=None, cmds_after_establish_connection=None,
-                 telnet_prompt=r"^\s*telnet>\s*", encrypt_password=True, runner=None, target_newline="\n"):
+                 telnet_prompt=r"^\s*telnet>\s*", encrypt_password=True, runner=None, target_newline="\n",
+                 allowed_newline_after_prompt=False):
         """
+        Moler class of Unix command telnet.
+
         :param connection: moler connection to device, terminal when command is executed
         :param host: address of telnet server.
         :param login: login to telnet server.
@@ -49,6 +52,7 @@ class Telnet(GenericUnixCommand):
         :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text
         :param runner: Runner to run command
         :param target_newline: newline chars on remote system where ssh connects
+        :param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt
         """
         super(Telnet, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
@@ -67,6 +71,7 @@ class Telnet(GenericUnixCommand):
         self.cmds_before_establish_connection = copy_list(cmds_before_establish_connection)
         self.cmds_after_establish_connection = copy_list(cmds_after_establish_connection)
         self.target_newline = target_newline
+        self.allowed_newline_after_prompt = allowed_newline_after_prompt
 
         # Internal variables
         self._sent_timeout = False
@@ -132,7 +137,7 @@ class Telnet(GenericUnixCommand):
         sent = self._send_after_login_settings(line)
         if sent:
             raise ParsingDone()
-        if (not sent) and self._is_target_prompt(line) and (not is_full_line):
+        if (not sent) and self._is_target_prompt(line) and (not is_full_line or self.allowed_newline_after_prompt):
             if self._all_after_login_settings_sent() or self._no_after_login_settings_needed():
                 if not self.done():
                     self.set_result({})
@@ -408,3 +413,23 @@ COMMAND_KWARGS_prefix = {
 }
 
 COMMAND_RESULT_prefix = {}
+
+
+COMMAND_OUTPUT_newline_after_prompt = """
+user@host01:~> TERM=xterm-mono telnet -4 host.domain.net 1500
+Login:
+Login:user
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+CLIENT5 [] has just connected!
+host:~ #
+"""
+
+COMMAND_KWARGS_newline_after_prompt = {
+    "login": "user", "password": "english", "port": "1500", 'set_timeout': None,
+    "host": "host.domain.net", "expected_prompt": "host:.*#", 'prefix': "-4",
+    "allowed_newline_after_prompt": True
+}
+
+COMMAND_RESULT_newline_after_prompt = {}
