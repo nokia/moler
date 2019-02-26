@@ -11,7 +11,7 @@ import mock
 
 
 def test_extracting_caller_code_location():
-    from moler.util.logging import find_caller
+    from moler.util.loghelper import find_caller
 
     frames_info = []
 
@@ -45,7 +45,7 @@ def test_extracting_caller_code_location():
 
 def test_logging_caller_code_location():
     import logging
-    from moler.util.logging import warning_into_logger
+    from moler.util.loghelper import warning_into_logger
 
     logger = logging.getLogger('moler')
 
@@ -74,10 +74,10 @@ def test_logging_caller_code_location():
 
 def test_correct_loglevel_of_helper_logging_functions():
     import logging
-    from moler.util.logging import error_into_logger
-    from moler.util.logging import warning_into_logger
-    from moler.util.logging import info_into_logger
-    from moler.util.logging import debug_into_logger
+    from moler.util.loghelper import error_into_logger
+    from moler.util.loghelper import warning_into_logger
+    from moler.util.loghelper import info_into_logger
+    from moler.util.loghelper import debug_into_logger
 
     logger = logging.getLogger('moler')
 
