@@ -21,12 +21,12 @@ def test_extracting_caller_code_location():
 
     def my_iner_fun():
         frames_info.append(find_caller())  # who called me and from which line
-        frames_info.append(find_caller(1))  # who called him and from which line
+        frames_info.append(find_caller(levels_to_go_up=1))  # who called him and from which line
 
     my_outer_fun()
 
     called_from_filename = frames_info[0][0]
-    assert called_from_filename.endswith("test_util_logging.py")
+    assert called_from_filename.endswith("test_util_loghelper.py")
     assert called_from_filename == frames_info[1][0]
     assert called_from_filename == frames_info[2][0]
 
@@ -67,7 +67,7 @@ def test_logging_caller_code_location():
     log_record = logged_record[0]
     assert log_record.levelname == "WARNING"
     assert log_record.msg == "you should not call deprecated functions"
-    assert log_record.filename.endswith("test_util_logging.py")
+    assert log_record.filename.endswith("test_util_loghelper.py")
     assert log_record.funcName == "test_logging_caller_code_location"
     assert log_record.lineno == 64
 
@@ -99,3 +99,23 @@ def test_correct_loglevel_of_helper_logging_functions():
     assert logged_record[1].levelname == "WARNING"
     assert logged_record[2].levelname == "INFO"
     assert logged_record[3].levelname == "DEBUG"
+
+
+def test_passing_extra_param_into_helper_logging_functions():
+    import logging
+    from moler.util.loghelper import log_into_logger
+
+    logger = logging.getLogger('moler')
+
+    def fun_using_helper_logging():
+        log_into_logger(logger, level=logging.WARNING, msg="hi", extra={'transfer_direction': '<'})
+
+    logged_record = []
+
+    def log_record_receiver(logger, log_record):
+        logged_record.append(log_record)
+
+    with mock.patch.object(logger.__class__, "handle", new=log_record_receiver):
+        fun_using_helper_logging()
+
+    assert logged_record[0].transfer_direction == "<"

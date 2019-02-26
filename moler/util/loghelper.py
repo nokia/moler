@@ -52,23 +52,23 @@ def find_caller(levels_to_go_up=0):
     return rv
 
 
-def error_into_logger(logger, msg, levels_to_go_up=0):
-    log_into_logger(logger, logging.ERROR, msg, levels_to_go_up)
+def error_into_logger(logger, msg, extra=None, levels_to_go_up=0):
+    log_into_logger(logger, logging.ERROR, msg, extra=extra, levels_to_go_up=levels_to_go_up)
 
 
-def warning_into_logger(logger, msg, levels_to_go_up=0):
-    log_into_logger(logger, logging.WARNING, msg, levels_to_go_up)
+def warning_into_logger(logger, msg, extra=None, levels_to_go_up=0):
+    log_into_logger(logger, logging.WARNING, msg, extra=extra, levels_to_go_up=levels_to_go_up)
 
 
-def info_into_logger(logger, msg, levels_to_go_up=0):
-    log_into_logger(logger, logging.INFO, msg, levels_to_go_up)
+def info_into_logger(logger, msg, extra=None, levels_to_go_up=0):
+    log_into_logger(logger, logging.INFO, msg, extra=extra, levels_to_go_up=levels_to_go_up)
 
 
-def debug_into_logger(logger, msg, levels_to_go_up=0):
-    log_into_logger(logger, logging.DEBUG, msg, levels_to_go_up)
+def debug_into_logger(logger, msg, extra=None, levels_to_go_up=0):
+    log_into_logger(logger, logging.DEBUG, msg, extra=extra, levels_to_go_up=levels_to_go_up)
 
 
-def log_into_logger(logger, level, msg, levels_to_go_up=0):
+def log_into_logger(logger, level, msg, extra=None, levels_to_go_up=0):
     """
     Log into specific logger
 
@@ -85,5 +85,5 @@ def log_into_logger(logger, level, msg, levels_to_go_up=0):
             fn, lno, func = find_caller(levels_to_go_up)
         except ValueError:  # pragma: no cover
             fn, lno, func = "(unknown file)", 0, "(unknown function)"
-        record = logger.makeRecord(logger.name, level, fn, lno, msg, [], None, func, None)
+        record = logger.makeRecord(logger.name, level, fn, lno, msg, [], None, func, extra)
         logger.handle(record)
