@@ -335,7 +335,7 @@ class ConnectionObserver(object):
     @staticmethod
     def _log_unraised_exceptions(observer):
         for i, item in enumerate(ConnectionObserver._not_raised_exceptions):
-            observer._log(logging.DEBUG, "{:4d} NOT RAISED: {!r}".format(i+1, item))
+            observer._log(logging.DEBUG, "{:4d} NOT RAISED: {!r}".format(i + 1, item))
 
     def get_long_desc(self):
         return "Observer '{}.{}'".format(self.__class__.__module__, self)
