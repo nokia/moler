@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__author__ = 'Marcin Usielski, Tomasz Krol'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'marcin.usielski@nokia.com, tomasz.krol@nokia.com'
 
 import datetime
 import re
@@ -13,21 +13,20 @@ from moler.helpers import instance_id, copy_list
 
 
 class LineEvent(TextualEvent):
-    def __init__(self, detect_pattern=None, detect_patterns=list(), connection=None, till_occurs_times=-1):
+    def __init__(self, detect_pattern=None, detect_patterns=list(), connection=None, till_occurs_times=-1, match='any'):
         super(LineEvent, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
         self.detect_pattern = detect_pattern
         self.detect_patterns = copy_list(detect_patterns)
         self.process_full_lines_only = False
+        self.match = match
+        self._prepare_parameters(match)
 
     def __str__(self):
-        detect_pattern = self.detect_pattern if not (self.detect_pattern is None) else ', '.join(self.detect_patterns)
-        return '{}("{}", id:{})'.format(self.__class__.__name__, detect_pattern, instance_id(self))
+        return '{}("{}", id:{})'.format(self.__class__.__name__, self.detect_patterns, instance_id(self))
 
     def start(self, timeout=None, *args, **kwargs):
         """Start background execution of command."""
-        if self.detect_pattern and not self.detect_patterns:
-            self.detect_patterns = [self.detect_pattern]
-        self.detect_patterns = self.compile_patterns(self.detect_patterns)
+
         self._validate_start(*args, **kwargs)
         ret = super(LineEvent, self).start(timeout, *args, **kwargs)
         self._is_running = True
@@ -44,13 +43,7 @@ class LineEvent(TextualEvent):
 
     def on_new_line(self, line, is_full_line):
         if is_full_line or not self.process_full_lines_only:
-            for pattern in self.detect_patterns:
-                if re.search(pattern, line):
-                    current_ret = dict()
-                    current_ret["line"] = line
-                    current_ret["time"] = datetime.datetime.now()
-                    self.event_occurred(event_data=current_ret)
-                    return
+            self._parse_line(line=line)
 
     def compile_patterns(self, patterns):
         compiled_patterns = []
@@ -65,6 +58,57 @@ class LineEvent(TextualEvent):
 
     def get_short_desc(self):
         return "Event '{}.{}': '{}'".format(self.__class__.__module__, self.__class__.__name__, self.detect_patterns)
+
+    def get_parser(self, match):
+        parsers = {
+            "any": self._catch_any,
+            "all": self._catch_all,
+            "sequence": self._catch_sequence,
+        }
+        if match in parsers:
+            return parsers[match]
+
+    def _set_detect_patterns(self):
+        if self.detect_pattern and not self.detect_patterns:
+            self.detect_patterns = [self.detect_pattern]
+
+    def _prepare_parameters(self, match):
+        self._set_detect_patterns()
+        self.parser = self.get_parser(match)
+        self.detect_patterns = self.compile_patterns(self.detect_patterns)
+
+        if match in ['all', 'sequence']:
+            self.till_occurs_times = len(self.detect_patterns)
+            self.copy_detect_patterns = copy_list(self.detect_patterns)
+
+    def _parse_line(self, line):
+        self.parser(line=line)
+
+    def _set_current_ret(self, line):
+        current_ret = dict()
+        current_ret["line"] = line
+        current_ret["time"] = datetime.datetime.now()
+        self.event_occurred(event_data=current_ret)
+
+    def _catch_any(self, line):
+        for pattern in self.detect_patterns:
+            if re.search(pattern, line):
+                self._set_current_ret(line=line)
+                return
+
+    def _catch_all(self, line):
+        for index, pattern in enumerate(self.copy_detect_patterns):
+            if re.search(pattern, line):
+                del self.copy_detect_patterns[index]
+                self._set_current_ret(line=line)
+                return
+
+    def _catch_sequence(self, line):
+        if self.copy_detect_patterns:
+            pattern = self.copy_detect_patterns[0]
+            if re.search(pattern, line):
+                del self.copy_detect_patterns[0]
+                self._set_current_ret(line=line)
 
 
 EVENT_OUTPUT_single_pattern = """
