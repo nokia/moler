@@ -43,23 +43,25 @@ async def test_observer_gets_all_data_of_connection_after_it_is_submitted_to_bac
     # The only difference is that raw def function may use only standalone_runner (which is subset of observer_runner)
     # and inside test you exchange 'await asyncio.sleep()' with 'time.sleep()'
     from moler.connection import ObservableConnection
+    from moler.util.loghelper import disabled_logging
 
-    durations = []
-    for n in range(20):  # need to test multiple times to ensure there are no thread races
-        moler_conn = ObservableConnection()
-        net_down_detector = NetworkDownDetector(connection=moler_conn)
-        connection = net_down_detector.connection
-        start_time = net_down_detector.start_time = time.time()
-        observer_runner.submit(net_down_detector)
-        durations.append(time.time() - start_time)
+    with disabled_logging():
+        durations = []
+        for n in range(20):  # need to test multiple times to ensure there are no thread races
+            moler_conn = ObservableConnection()
+            net_down_detector = NetworkDownDetector(connection=moler_conn)
+            connection = net_down_detector.connection
+            start_time = net_down_detector.start_time = time.time()
+            observer_runner.submit(net_down_detector)
+            durations.append(time.time() - start_time)
 
-        connection.data_received("61 bytes")
-        connection.data_received("62 bytes")
-        connection.data_received("ping: Network is unreachable")
+            connection.data_received("61 bytes")
+            connection.data_received("62 bytes")
+            connection.data_received("ping: Network is unreachable")
 
-        assert net_down_detector.all_data_received == ["61 bytes", "62 bytes", "ping: Network is unreachable"]
-    print("\n{}.submit() duration == {}".format(observer_runner.__class__.__name__,
-                                                float(sum(durations))/len(durations)))
+            assert net_down_detector.all_data_received == ["61 bytes", "62 bytes", "ping: Network is unreachable"]
+        print("\n{}.submit() duration == {}".format(observer_runner.__class__.__name__,
+                                                    float(sum(durations))/len(durations)))
 
 
 def test_runner_secures_observer_against_additional_data_after_observer_is_done(observer_runner):
@@ -72,20 +74,22 @@ def test_runner_secures_observer_against_additional_data_after_observer_is_done(
     #
     # This test checks if runners secure wrong-written-observers with missing 'if not self.done():'
     from moler.connection import ObservableConnection
+    from moler.util.loghelper import disabled_logging
 
-    for n in range(20):  # need to test multiple times to ensure there are no thread races
-        moler_conn = ObservableConnection()
-        net_down_detector = NetworkDownDetector(connection=moler_conn)
-        net_down_detector.start_time = time.time()  # must start observer lifetime before runner.submit()
-        connection = net_down_detector.connection
-        net_down_detector.start_time = time.time()
-        observer_runner.submit(net_down_detector)
+    with disabled_logging():
+        for n in range(20):  # need to test multiple times to ensure there are no thread races
+            moler_conn = ObservableConnection()
+            net_down_detector = NetworkDownDetector(connection=moler_conn)
+            net_down_detector.start_time = time.time()  # must start observer lifetime before runner.submit()
+            connection = net_down_detector.connection
+            net_down_detector.start_time = time.time()
+            observer_runner.submit(net_down_detector)
 
-        connection.data_received("61 bytes")
-        connection.data_received("ping: Network is unreachable")
-        connection.data_received("62 bytes")
+            connection.data_received("61 bytes")
+            connection.data_received("ping: Network is unreachable")
+            connection.data_received("62 bytes")
 
-        assert net_down_detector.all_data_received == ["61 bytes", "ping: Network is unreachable"]
+            assert net_down_detector.all_data_received == ["61 bytes", "ping: Network is unreachable"]
 
 
 def test_runner_secures_observer_against_additional_data_after_runner_shutdown(observer_runner):
@@ -435,30 +439,32 @@ def test_observer__on_timeout__is_called_once_at_timeout(observer_runner, connec
 def test_observer__on_timeout__is_called_once_at_timeout_threads_races(observer_runner):
     from moler.exceptions import MolerTimeout
     from moler.connection import ObservableConnection
+    from moler.util.loghelper import disabled_logging
 
-    observers_pool = []
-    for idx in range(200):
-        connection_observer = NetworkDownDetector(connection=ObservableConnection())
-        connection_observer.timeout = 0.33
-        connection_observer.on_timeout = mock.MagicMock()
-        observers_pool.append(connection_observer)
+    with disabled_logging():
+        observers_pool = []
+        for idx in range(200):
+            connection_observer = NetworkDownDetector(connection=ObservableConnection())
+            connection_observer.timeout = 0.33
+            connection_observer.on_timeout = mock.MagicMock()
+            observers_pool.append(connection_observer)
 
-    def await_on_timeout(connection_observer):
-        connection_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
-        future = observer_runner.submit(connection_observer)
-        with pytest.raises(MolerTimeout):
-            observer_runner.wait_for(connection_observer, future, timeout=0.33)
-            connection_observer.result()  # should raise Timeout
+        def await_on_timeout(connection_observer):
+            connection_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
+            future = observer_runner.submit(connection_observer)
+            with pytest.raises(MolerTimeout):
+                observer_runner.wait_for(connection_observer, future, timeout=0.33)
+                connection_observer.result()  # should raise Timeout
 
-    th_pool = [threading.Thread(target=await_on_timeout, args=(connection_observer,)) for connection_observer in observers_pool]
-    for th in th_pool:
-        th.start()
-    for th in th_pool:
-        th.join()
+        th_pool = [threading.Thread(target=await_on_timeout, args=(connection_observer,)) for connection_observer in observers_pool]
+        for th in th_pool:
+            th.start()
+        for th in th_pool:
+            th.join()
 
-    for connection_observer in observers_pool:
-        timeout_callback = connection_observer.on_timeout
-        timeout_callback.assert_called_once()
+        for connection_observer in observers_pool:
+            timeout_callback = connection_observer.on_timeout
+            timeout_callback.assert_called_once()
 
 # --------------------------------------------------------------------
 # Testing wait_for() API

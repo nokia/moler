@@ -10,6 +10,7 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 
 import os
 import logging
+import contextlib
 
 
 def __dummy():
@@ -87,3 +88,10 @@ def log_into_logger(logger, level, msg, extra=None, levels_to_go_up=0):
             fn, lno, func = "(unknown file)", 0, "(unknown function)"
         record = logger.makeRecord(logger.name, level, fn, lno, msg, [], None, func, extra)
         logger.handle(record)
+
+
+@contextlib.contextmanager
+def disabled_logging(from_level_and_below=logging.INFO):
+    logging.disable(from_level_and_below)
+    yield
+    logging.disable(logging.NOTSET)
