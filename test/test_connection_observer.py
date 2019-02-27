@@ -464,12 +464,14 @@ def test_connection_observer_exception_do_not_remove():
 # --------------------------- resources ---------------------------
 
 
-@pytest.fixture(params=['connection_observer.ConnectionObserver', 'command.Command'])
+@pytest.yield_fixture(params=['connection_observer.ConnectionObserver', 'command.Command'])
 def connection_observer_major_base_class(request):
     module_name, class_name = request.param.rsplit('.', 1)
     module = importlib.import_module('moler.{}'.format(module_name))
     klass = getattr(module, class_name)
-    return klass
+    yield klass
+    # remove exceptions collected inside ConnectionObserver
+    ConnectionObserver.get_unraised_exceptions(remove=True)
 
 
 def do_nothing_connection_observer_class(base_class):

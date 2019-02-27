@@ -21,8 +21,9 @@ import platform
 import importlib
 import asyncio
 import mock
-
 import pytest
+import contextlib
+
 from moler.connection_observer import ConnectionObserver
 
 
@@ -139,17 +140,17 @@ async def test_runner_unsubscribes_from_connection_after_runner_shutdown(observe
 async def test_runner_doesnt_break_on_exception_raised_inside_observer(observer_runner):
     """Runner should be secured against 'wrongly written' connection-observer"""
     # see - Raw 'def' usage note
-    conn_observer = failing_net_down_detector(fail_on_data="zero bytes",
-                                              fail_by_raising=Exception("unknown format"))
-    connection = conn_observer.connection
-    conn_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
-    observer_runner.submit(conn_observer)
+    with failing_net_down_detector(fail_on_data="zero bytes",
+                                   fail_by_raising=Exception("unknown format")) as conn_observer:
+        connection = conn_observer.connection
+        conn_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
+        observer_runner.submit(conn_observer)
 
-    connection.data_received("61 bytes")
-    connection.data_received("zero bytes")
-    connection.data_received("ping: Network is unreachable")
+        connection.data_received("61 bytes")
+        connection.data_received("zero bytes")
+        connection.data_received("ping: Network is unreachable")
 
-    assert conn_observer.all_data_received == ["61 bytes"]
+        assert conn_observer.all_data_received == ["61 bytes"]
 
 
 # --------------------------------------------------------------------
@@ -167,17 +168,17 @@ async def test_runner_sets_observer_exception_result_for_exception_raised_inside
 
     # see - Raw 'def' usage note
     unknown_format_exception = Exception("unknown format")
-    conn_observer = failing_net_down_detector(fail_on_data="zero bytes",
-                                              fail_by_raising=unknown_format_exception)
-    connection = conn_observer.connection
-    conn_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
-    observer_runner.submit(conn_observer)
+    with failing_net_down_detector(fail_on_data="zero bytes",
+                                   fail_by_raising=unknown_format_exception) as conn_observer:
+        connection = conn_observer.connection
+        conn_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
+        observer_runner.submit(conn_observer)
 
-    connection.data_received("61 bytes")
-    connection.data_received("zero bytes")
-    connection.data_received("ping: Network is unreachable")
+        connection.data_received("61 bytes")
+        connection.data_received("zero bytes")
+        connection.data_received("ping: Network is unreachable")
 
-    assert conn_observer._exception is unknown_format_exception
+        assert conn_observer._exception is unknown_format_exception
 
 
 @pytest.mark.asyncio
@@ -187,17 +188,17 @@ async def test_future_is_not_exception_broken_when_observer_is_exception_broken(
     # and not future itself - future behaviour is OK when it can correctly handle exception of observer.
 
     # see - Raw 'def' usage note
-    conn_observer = failing_net_down_detector(fail_on_data="zero bytes",
-                                              fail_by_raising=Exception("unknown format"))
-    connection = conn_observer.connection
-    conn_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
-    future = observer_runner.submit(conn_observer)
+    with failing_net_down_detector(fail_on_data="zero bytes",
+                                   fail_by_raising=Exception("unknown format")) as conn_observer:
+        connection = conn_observer.connection
+        conn_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
+        future = observer_runner.submit(conn_observer)
 
-    connection.data_received("61 bytes")
-    connection.data_received("zero bytes")
-    await asyncio.sleep(0.2)
+        connection.data_received("61 bytes")
+        connection.data_received("zero bytes")
+        await asyncio.sleep(0.2)
 
-    assert future.exception() is None  # assumption here: used future has .exceptions() API
+        assert future.exception() is None  # assumption here: used future has .exceptions() API
 
 
 @pytest.mark.asyncio
@@ -602,6 +603,8 @@ def observer_runner(request):
     runner = runner_class()
     # NOTE: AsyncioRunner given here will start without running event loop
     yield runner
+    # remove exceptions collected inside ConnectionObserver
+    ConnectionObserver.get_unraised_exceptions(remove=True)
     runner.shutdown()
 
 
@@ -612,6 +615,8 @@ def standalone_runner(request):
     runner_class = getattr(module, class_name)
     runner = runner_class()
     yield runner
+    # remove exceptions collected inside ConnectionObserver
+    ConnectionObserver.get_unraised_exceptions(remove=True)
     runner.shutdown()
 
 
@@ -622,6 +627,8 @@ def async_runner(request):
     runner_class = getattr(module, class_name)
     runner = runner_class()
     yield runner
+    # remove exceptions collected inside ConnectionObserver
+    ConnectionObserver.get_unraised_exceptions(remove=True)
     runner.shutdown()
 
 
@@ -643,19 +650,21 @@ class NetworkDownDetector(ConnectionObserver):
                 self.set_result(result=when_detected)
 
 
-@pytest.fixture()
+@pytest.yield_fixture()
 def connection_observer():
     from moler.connection import ObservableConnection
     moler_conn = ObservableConnection()
     observer = NetworkDownDetector(connection=moler_conn)
-    return observer
-
+    yield observer
+    # remove exceptions collected inside ConnectionObserver
+    ConnectionObserver.get_unraised_exceptions(remove=True)
 
 @pytest.fixture()
 def net_down_detector(connection_observer):  # let name say what type of observer it is
     return connection_observer
 
 
+@contextlib.contextmanager
 def failing_net_down_detector(fail_on_data, fail_by_raising):
     from moler.connection import ObservableConnection
 
@@ -667,7 +676,9 @@ def failing_net_down_detector(fail_on_data, fail_by_raising):
 
     moler_conn = ObservableConnection()
     failing_detector = FailingNetworkDownDetector(connection=moler_conn)
-    return failing_detector
+    yield failing_detector
+    # remove exceptions collected inside ConnectionObserver
+    ConnectionObserver.get_unraised_exceptions(remove=True)
 
 
 @pytest.fixture()
