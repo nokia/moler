@@ -199,7 +199,13 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         atexit.register(self.shutdown)
         if executor is None:
             max_workers = (cpu_count() or 1) * 5  # fix for concurrent.futures  v.3.0.3  to have API of v.3.1.1 or above
-            self.executor = ThreadPoolExecutor(max_workers=max_workers)
+            try:  # concurrent.futures  v.3.2.0 introduced prefix we like :-)
+                self.executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix='ThrdPoolRunner')
+            except TypeError as exc:
+                if ('unexpected' in str(exc)) and ('thread_name_prefix' in str(exc)):
+                    self.executor = ThreadPoolExecutor(max_workers=max_workers)
+                else:
+                    raise
             self.logger.debug("created own executor {!r}".format(self.executor))
             self._i_own_executor = True
         else:
