@@ -48,9 +48,6 @@ def system_resources_usage_msg(curr_fds_open, curr_threads_nb):
 def check_system_resources_limit(connection_observer, observer_lock, logger):
     # The number of file descriptors currently opened by this process
     curr_fds_open, curr_threads_nb = system_resources_usage()
-    msg = system_resources_usage_msg(curr_fds_open, curr_threads_nb)
-    logger.info(msg)
-    sys.stderr.write(msg + "\n")
 
     if curr_fds_open > max_open_files_limit_soft - 10:
         err_cause = "Can't run new asyncio loop - ALMOST REACHED MAX OPEN FILES LIMIT"

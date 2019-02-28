@@ -9,13 +9,12 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 
 from pytest import fixture, yield_fixture
 import os
-import sys
 import logging
 import psutil
 import threading
 
 import moler.config.loggers
-from moler.helpers import instance_id
+
 
 current_process = psutil.Process()
 (max_open_files_limit_soft, max_open_files_limit_hard) = current_process.rlimit(psutil.RLIMIT_NOFILE)
@@ -40,7 +39,6 @@ def check_system_resources_limit(logger):
         prefix = "!!! ALMOST REACHED"
         msg = "{} MAX OPEN FILES LIMIT ({}). Now {} FDs open".format(prefix, max_open_files_limit_soft, curr_fds_open)
         logger.warning(msg)
-        sys.stderr.write(msg + "\n")
         raise Exception(msg)
 
 # plugins to let us see (in moler logs) where we are in testing
@@ -56,7 +54,6 @@ def pytest_runtest_protocol(item, nextitem):
     logger.propagate = False
     resources_usage_msg = system_resources_usage_msg(*resources_stats['START'])
     logger.log(level=moler.config.loggers.TEST_CASE, msg="{} - {}".format(item.nodeid, resources_usage_msg))
-    sys.stderr.write(item.nodeid + "\n")
     check_system_resources_limit(logger)
 
 
@@ -68,7 +65,6 @@ def pytest_runtest_logreport(report):
     resources_usage_msg = system_resources_usage_msg(*resources_stats[when])
     msg = "TC {} [{}] - {}".format(when, str(report.outcome).upper(), resources_usage_msg)
     logger.log(level=moler.config.loggers.TEST_CASE, msg=msg)
-    sys.stderr.write(msg + "\n")
     if when == 'TEARDOWN':
         logger.log(level=moler.config.loggers.TEST_CASE, msg=str(resources_stats))
         initial_fds = resources_stats['START'][0]
