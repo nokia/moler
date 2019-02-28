@@ -33,7 +33,7 @@ current_process = psutil.Process()
 (max_open_files_limit_soft, max_open_files_limit_hard) = current_process.rlimit(psutil.RLIMIT_NOFILE)
 
 
-def check_system_resources_limit(logger):
+def check_system_resources_limit(connection_observer, observer_lock, logger):
     # The number of file descriptors currently opened by this process
     curr_fds_open = current_process.num_fds()
     curr_threads_nb = threading.active_count()
@@ -41,15 +41,31 @@ def check_system_resources_limit(logger):
     logger.info(msg)
     sys.stderr.write(msg + "\n")
 
-    prefix = ""
-    if curr_fds_open > max_open_files_limit_soft:
-        prefix = "EXCEEDED"
-    elif curr_fds_open > max_open_files_limit_soft - 20:
-        prefix = "ALMOST REACHED"
-    if prefix:
-        msg = "{} MAX OPEN FILES LIMIT ({}). Now {} fds open".format(prefix, max_open_files_limit_soft, curr_fds_open)
+    if curr_fds_open > max_open_files_limit_soft - 10:
+        err_cause = "Can't run new asyncio loop - ALMOST REACHED MAX OPEN FILES LIMIT"
+        msg = "{} ({}). Now {} FDs open, {} threads active.".format(err_cause, max_open_files_limit_soft,
+                                                                    curr_fds_open, curr_threads_nb)
         logger.warning(msg)
-        sys.stderr.write(msg + "\n")
+        limit_exception = MolerException(msg)
+        # make future done and observer done-with-exception
+        with observer_lock:
+            connection_observer.set_exception(limit_exception)
+        # We need to return future informing "it's impossible to create new event loop"
+        # However, it can't be asyncio.Future() since it requires event loop ;-)
+        # We would get something like:
+        #
+        #    impossible_future = asyncio.Future()
+        #  File "/opt/ute/python3/lib/python3.6/asyncio/events.py", line 676, in get_event_loop
+        #    return get_event_loop_policy().get_event_loop()
+        #  File "/opt/ute/python3/lib/python3.6/asyncio/events.py", line 584, in get_event_loop
+        #    % threading.current_thread().name)
+        # RuntimeError: There is no current event loop in thread 'Thread-5090'.
+        #
+        # So, we use concurrent.futures.Future - it has almost same API (duck typing for runner.wait_for() below)
+        impossible_future = concurrent.futures.Future()
+        impossible_future.set_result(None)
+        return impossible_future
+    return None
 
 
 def thread_secure_get_event_loop():
@@ -104,7 +120,11 @@ class AsyncioRunner(ConnectionObserverRunner):
         Submit connection observer to background execution.
         Returns Future that could be used to await for connection_observer done.
         """
-        check_system_resources_limit(self.logger)
+        observer_lock = threading.Lock()  # against threads race write-access to observer
+
+        impossible_future = check_system_resources_limit(connection_observer, observer_lock, self.logger)
+        if impossible_future:
+            return impossible_future
 
         assert connection_observer.start_time > 0.0  # connection-observer lifetime should already been started
         observer_timeout = connection_observer.timeout
@@ -132,7 +152,6 @@ class AsyncioRunner(ConnectionObserverRunner):
         #
         # duration of submit() is measured as around 0.0007sec (depends on machine).
         event_loop = thread_secure_get_event_loop()
-        observer_lock = threading.Lock()  # against threads race write-access to observer
         subscribed_data_receiver = self._start_feeding(connection_observer, observer_lock)
         self.logger.debug("scheduling feed({})".format(connection_observer))
         connection_observer_future = asyncio.ensure_future(self.feed(connection_observer,
