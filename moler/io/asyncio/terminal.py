@@ -264,7 +264,7 @@ async def start_reading_pty(protocol, pty_fd):
     :param pty_fd: file descriptor of Pty (dialog with subprocess goes that way)
     :return:
     """
-    loop = thread_secure_get_event_loop()
+    loop, its_new = thread_secure_get_event_loop()
 
     # Create Protocol classes
     class PtyFdProtocol(asyncio.Protocol):
@@ -328,7 +328,7 @@ async def start_subprocess_in_terminal(protocol_class, cmd=None, cwd=None, env=N
     :param dimensions: terminal dimensions (rows, columns)
     :return:
     """
-    loop = thread_secure_get_event_loop()
+    loop, its_new = thread_secure_get_event_loop()
     # Create the PTY's
     # slave is used by cmd(bash) running in subprocess
     # master is used in client code to read/write into subprocess

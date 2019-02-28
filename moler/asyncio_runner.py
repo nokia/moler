@@ -33,11 +33,22 @@ current_process = psutil.Process()
 (max_open_files_limit_soft, max_open_files_limit_hard) = current_process.rlimit(psutil.RLIMIT_NOFILE)
 
 
-def check_system_resources_limit(connection_observer, observer_lock, logger):
-    # The number of file descriptors currently opened by this process
+def system_resources_usage():
     curr_fds_open = current_process.num_fds()
     curr_threads_nb = threading.active_count()
-    msg = "CURRENT SYS USAGE: {} fds OPEN, {} threads active.".format(curr_fds_open, curr_threads_nb)
+    return curr_fds_open, curr_threads_nb
+
+
+def system_resources_usage_msg(curr_fds_open, curr_threads_nb):
+    msg = "RESOURCES USAGE: {}/{} FDs OPEN, {} threads active.".format(curr_fds_open, max_open_files_limit_soft,
+                                                                       curr_threads_nb)
+    return msg
+
+
+def check_system_resources_limit(connection_observer, observer_lock, logger):
+    # The number of file descriptors currently opened by this process
+    curr_fds_open, curr_threads_nb = system_resources_usage()
+    msg = system_resources_usage_msg(curr_fds_open, curr_threads_nb)
     logger.info(msg)
     sys.stderr.write(msg + "\n")
 
@@ -76,39 +87,56 @@ def thread_secure_get_event_loop():
     It is so since MainThread has preinstalled loop but other threads must
     setup own loop by themselves.
 
-    :return: loop of current thread
+    :return: loop of current thread + info if it was newly created
     """
+    new_loop = False
     try:
         loop = asyncio.get_event_loop()
     except RuntimeError as err:
         if "no current event loop in thread" in str(err):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
+            new_loop = True
         else:
             raise
 
-    return loop
+    return loop, new_loop
 
 
 class AsyncioRunner(ConnectionObserverRunner):
-    last_runner_id_lock = threading.Lock()
+    runner_lock = threading.Lock()
     last_runner_id = 0
 
     def __init__(self, logger_name='moler.runner.asyncio'):
         """Create instance of AsyncioRunner class"""
         self._in_shutdown = False
-        with AsyncioRunner.last_runner_id_lock:
+        with AsyncioRunner.runner_lock:
             AsyncioRunner.last_runner_id += 1
             self._id = AsyncioRunner.last_runner_id  # instance_id(self)
         self.logger = logging.getLogger('{}:{}'.format(logger_name, self._id))
         self.logger.debug("created {}:{}".format(self.__class__.__name__, self._id))
         self._submitted_futures = []
+        self._started_ev_loops = []
         atexit.register(self.shutdown)
 
     def shutdown(self):
         self.logger.debug("shutting down")
         self._in_shutdown = True  # will exit from feed()
-        # event_loop = thread_secure_get_event_loop()
+        # TODO: need wait for all feed() coros before closing owned event loops
+
+        with AsyncioRunner.runner_lock:
+            owned_loops_nb = len(self._started_ev_loops)
+            if owned_loops_nb:
+                sys_resources_usage_msg = system_resources_usage_msg(*system_resources_usage())
+                self.logger.debug("before closing loops ({} owned loops): {}".format(owned_loops_nb,
+                                                                                     sys_resources_usage_msg))
+                for owned_loop in self._started_ev_loops:
+                    owned_loop.close()
+                self._started_ev_loops = []
+                sys_resources_usage_msg = system_resources_usage_msg(*system_resources_usage())
+                self.logger.debug("after closing loops: " + sys_resources_usage_msg)
+
+        # event_loop, its_new = thread_secure_get_event_loop()
         # if not event_loop.is_closed():
         #     remaining_tasks = asyncio.gather(*self._submitted_futures, return_exceptions=True)
         #     remaining_tasks.cancel()
@@ -151,7 +179,10 @@ class AsyncioRunner(ConnectionObserverRunner):
         # As a corner case runner.wait_for() may timeout before feeding coroutine has started.
         #
         # duration of submit() is measured as around 0.0007sec (depends on machine).
-        event_loop = thread_secure_get_event_loop()
+        event_loop, its_new = thread_secure_get_event_loop()
+        if its_new:
+            with AsyncioRunner.runner_lock:
+                self._started_ev_loops.append(event_loop)
         subscribed_data_receiver = self._start_feeding(connection_observer, observer_lock)
         self.logger.debug("scheduling feed({})".format(connection_observer))
         connection_observer_future = asyncio.ensure_future(self.feed(connection_observer,
@@ -211,7 +242,8 @@ class AsyncioRunner(ConnectionObserverRunner):
             remain_time, msg = his_remaining_time("remaining", he=connection_observer, timeout=observer_timeout)
 
         self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
-        event_loop = thread_secure_get_event_loop()
+        event_loop, its_new = thread_secure_get_event_loop()
+        assert not its_new  # should not happen since submit() is called first
 
         with exception_stored_if_not_main_thread(connection_observer, logger=self.logger):
             try:
@@ -221,7 +253,7 @@ class AsyncioRunner(ConnectionObserverRunner):
                     # wait_for() should not be called from 'async def'
                     self._raise_wrong_usage_of_wait_for(connection_observer)
 
-                self._run_via_asyncio(connection_observer_future, max_timeout, remain_time)
+                self._run_via_asyncio(event_loop, connection_observer_future, max_timeout, remain_time)
 
             except asyncio.futures.CancelledError:
                 self.logger.debug("canceled {}".format(connection_observer))
@@ -239,9 +271,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         return None
 
     @staticmethod
-    def _run_via_asyncio(connection_observer_future, max_timeout, remain_time):
-        event_loop = thread_secure_get_event_loop()
-
+    def _run_via_asyncio(event_loop, connection_observer_future, max_timeout, remain_time):
         if max_timeout:
             event_loop.run_until_complete(asyncio.wait_for(connection_observer_future,
                                                            timeout=remain_time))
@@ -413,7 +443,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
     def shutdown(self):
         self.logger.debug("shutting down")
         self._in_shutdown = True  # will exit from feed()
-        # event_loop = thread_secure_get_event_loop()
+        # event_loop, its_new = thread_secure_get_event_loop()
         # if not event_loop.is_closed():
         #     remaining_tasks = asyncio.gather(*self._submitted_futures, return_exceptions=True)
         #     remaining_tasks.cancel()
@@ -499,7 +529,8 @@ class AsyncioInThreadRunner(AsyncioRunner):
 
         thread4async = get_asyncio_loop_thread()
         try:
-            if thread_secure_get_event_loop().is_running():
+            event_loop, its_new = thread_secure_get_event_loop()
+            if event_loop.is_running():
                 # wait_for() should not be called from 'async def'
                 self._raise_wrong_usage_of_wait_for(connection_observer)
 

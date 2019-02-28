@@ -28,7 +28,7 @@ def system_resources_usage():
 
 
 def system_resources_usage_msg(curr_fds_open, curr_threads_nb):
-    msg = "RESOURCES USAGE: {}/{} fds OPEN, {} threads active.".format(curr_fds_open, max_open_files_limit_soft,
+    msg = "RESOURCES USAGE: {}/{} FDs OPEN, {} threads active.".format(curr_fds_open, max_open_files_limit_soft,
                                                                        curr_threads_nb)
     return msg
 
@@ -38,7 +38,7 @@ def check_system_resources_limit(logger):
     curr_fds_open = current_process.num_fds()
     if curr_fds_open > max_open_files_limit_soft - 10:
         prefix = "!!! ALMOST REACHED"
-        msg = "{} MAX OPEN FILES LIMIT ({}). Now {} fds open".format(prefix, max_open_files_limit_soft, curr_fds_open)
+        msg = "{} MAX OPEN FILES LIMIT ({}). Now {} FDs open".format(prefix, max_open_files_limit_soft, curr_fds_open)
         logger.warning(msg)
         sys.stderr.write(msg + "\n")
         raise Exception(msg)
