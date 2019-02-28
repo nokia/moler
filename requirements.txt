@@ -6,3 +6,4 @@ transitions
 apscheduler
 trollius; python_version < '3'
 deepdiff
+psutil
