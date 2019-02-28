@@ -16,6 +16,8 @@ import concurrent.futures
 import logging
 import threading
 import time
+import sys
+import psutil
 
 from moler.exceptions import MolerTimeout
 from moler.exceptions import MolerException
@@ -25,6 +27,29 @@ from moler.util.connection_observer import exception_stored_if_not_main_thread
 from moler.io.raw import TillDoneThread
 from moler.runner import ConnectionObserverRunner
 from moler.runner import result_for_runners, time_out_observer, his_remaining_time
+
+
+current_process = psutil.Process()
+(max_open_files_limit_soft, max_open_files_limit_hard) = current_process.rlimit(psutil.RLIMIT_NOFILE)
+
+
+def check_system_resources_limit(logger):
+    # The number of file descriptors currently opened by this process
+    curr_fds_open = current_process.num_fds()
+    curr_threads_nb = threading.active_count()
+    msg = "CURRENT SYS USAGE: {} fds OPEN, {} threads active.".format(curr_fds_open, curr_threads_nb)
+    logger.info(msg)
+    sys.stderr.write(msg + "\n")
+
+    prefix = ""
+    if curr_fds_open > max_open_files_limit_soft:
+        prefix = "EXCEEDED"
+    elif curr_fds_open > max_open_files_limit_soft - 20:
+        prefix = "ALMOST REACHED"
+    if prefix:
+        msg = "{} MAX OPEN FILES LIMIT ({}). Now {} fds open".format(prefix, max_open_files_limit_soft, curr_fds_open)
+        logger.warning(msg)
+        sys.stderr.write(msg + "\n")
 
 
 def thread_secure_get_event_loop():
@@ -79,6 +104,8 @@ class AsyncioRunner(ConnectionObserverRunner):
         Submit connection observer to background execution.
         Returns Future that could be used to await for connection_observer done.
         """
+        check_system_resources_limit(self.logger)
+
         assert connection_observer.start_time > 0.0  # connection-observer lifetime should already been started
         observer_timeout = connection_observer.timeout
         remain_time, msg = his_remaining_time("remaining", he=connection_observer, timeout=observer_timeout)

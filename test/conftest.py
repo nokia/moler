@@ -9,26 +9,46 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 
 from pytest import fixture, yield_fixture
 import os
+import sys
 import logging
+import psutil
 
 import moler.config.loggers
 from moler.helpers import instance_id
 
+current_process = psutil.Process()
+(max_open_files_limit_soft, max_open_files_limit_hard) = current_process.rlimit(psutil.RLIMIT_NOFILE)
+
+
 # plugins to let us see (in moler logs) where we are in testing
+
+
+def check_system_resources_limit(logger):
+    # The number of file descriptors currently opened by this process
+    curr_fds_open = current_process.num_fds()
+    if curr_fds_open > max_open_files_limit_soft - 10:
+        prefix = "!!! ALMOST REACHED"
+        msg = "{} MAX OPEN FILES LIMIT ({}). Now {} fds open".format(prefix, max_open_files_limit_soft, curr_fds_open)
+        logger.warning(msg)
+        sys.stderr.write(msg + "\n")
+        raise Exception(msg)
 
 
 def pytest_runtest_protocol(item, nextitem):
     logger = logging.getLogger("moler")
     logger.propagate = False
     logger.log(level=moler.config.loggers.TEST_CASE, msg=item.nodeid)
+    sys.stderr.write(item.nodeid + "\n")
+    check_system_resources_limit(logger)
 
 
 def pytest_runtest_logreport(report):
     logger = logging.getLogger("moler")
     logger.propagate = False
-    logger.log(level=moler.config.loggers.TEST_CASE,
-               msg="TC {} [{}]".format(str(report.when).upper(),
-                                       str(report.outcome).upper()))
+    msg = "TC {} [{}]".format(str(report.when).upper(), str(report.outcome).upper())
+    logger.log(level=moler.config.loggers.TEST_CASE, msg=msg)
+    sys.stderr.write(msg + "\n")
+    check_system_resources_limit(logger)
 
 
 # --------------------------- cmd_at and cmd_at_get_imsi resources ---------------------------
