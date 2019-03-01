@@ -343,6 +343,9 @@ class AsyncioRunner(ConnectionObserverRunner):
         finally:
             future.remove_done_callback(_run_until_complete_cb)
         if not future.done():
+            fut_id = id(future)
+            msg = "not done future in _run_until_complete(fut_id = {}, {})".format(fut_id, future)
+            sys.stderr.write(msg)
             raise RuntimeError('Event loop stopped before Future completed.')
 
         return future.result()
