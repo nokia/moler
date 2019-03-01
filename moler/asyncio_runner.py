@@ -324,7 +324,12 @@ class AsyncioRunner(ConnectionObserverRunner):
         event_loop._check_closed()
 
         new_task = not asyncio.futures.isfuture(future)
+        fut_id = id(future)
         future = asyncio.tasks.ensure_future(future, loop=event_loop)
+        task_id = id(future)
+        msg = "task for future id ({}) future = asyncio.tasks.ensure_future: (task_id = {}, {})\n".format(fut_id, task_id, future)
+        sys.stderr.write(msg)
+
         if new_task:
             # An exception is raised if the future didn't complete, so there
             # is no need to log the "destroy pending task" message
