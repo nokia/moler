@@ -100,6 +100,19 @@ def thread_secure_get_event_loop():
     return loop, new_loop
 
 
+def _run_until_complete_cb(fut):
+    exc = fut._exception
+    if (isinstance(exc, BaseException)
+    and not isinstance(exc, Exception)):
+        # Issue #22429: run_forever() already finished, no need to
+        # stop it.
+        return
+    fut_id = id(fut)
+    msg = "_run_until_complete_cb(fut_id = {}, {})".format(fut_id, fut)
+    sys.stderr.write(msg)
+    fut._loop.stop()
+
+
 class AsyncioRunner(ConnectionObserverRunner):
     runner_lock = threading.Lock()
     last_runner_id = 0
@@ -112,6 +125,7 @@ class AsyncioRunner(ConnectionObserverRunner):
             self._id = AsyncioRunner.last_runner_id  # instance_id(self)
         self.logger = logging.getLogger('{}:{}'.format(logger_name, self._id))
         self.logger.debug("created {}:{}".format(self.__class__.__name__, self._id))
+        logging.getLogger("asyncio").setLevel(logging.DEBUG)
         self._submitted_futures = []
         self._started_ev_loops = []
         atexit.register(self.shutdown)
@@ -275,15 +289,64 @@ class AsyncioRunner(ConnectionObserverRunner):
     def _run_via_asyncio(event_loop, connection_observer_future, max_timeout, remain_time):
         if max_timeout:
             timeout_limited_future = asyncio.wait_for(connection_observer_future, timeout=remain_time)
+
+            fut_id = id(connection_observer_future)
+            msg = "__run_via_asyncio with timeout: (fut_id = {}, {})".format(fut_id, connection_observer_future)
+            sys.stderr.write(msg)
+            fut_id = id(timeout_limited_future)
+            msg = "__run_via_asyncio with timeout: (tmout_fut_id = {}, {})".format(fut_id, timeout_limited_future)
+            sys.stderr.write(msg)
+
             try:
-                event_loop.run_until_complete(timeout_limited_future)
+                AsyncioRunner._run_until_complete(event_loop, timeout_limited_future)
             except BaseException as exc:
                 err_msg = "asyncio.wait_for({}) raised {!r} - {!r}".format(connection_observer_future, exc,
                                                                            timeout_limited_future)
                 sys.stderr.write(err_msg + "\n")
                 raise
         else:
-            event_loop.run_until_complete(connection_observer_future)  # timeout is handled by feed()
+            fut_id = id(connection_observer_future)
+            msg = "__run_via_asyncio no timeout: (fut_id = {}, {})".format(fut_id, connection_observer_future)
+            sys.stderr.write(msg)
+            AsyncioRunner._run_until_complete(event_loop, connection_observer_future)  # timeout is handled by feed()
+
+    @staticmethod
+    def _run_until_complete(event_loop, future):
+        """Run until the Future is done.
+
+        If the argument is a coroutine, it is wrapped in a Task.
+
+        WARNING: It would be disastrous to call run_until_complete()
+        with the same coroutine twice -- it would wrap it in two
+        different Tasks and that can't be good.
+
+        Return the Future's result, or raise its exception.
+        """
+        event_loop._check_closed()
+
+        new_task = not asyncio.futures.isfuture(future)
+        future = asyncio.tasks.ensure_future(future, loop=event_loop)
+        if new_task:
+            # An exception is raised if the future didn't complete, so there
+            # is no need to log the "destroy pending task" message
+            future._log_destroy_pending = False
+
+        future.add_done_callback(_run_until_complete_cb)
+        try:
+            event_loop.run_forever()
+        except:
+            if new_task and future.done() and not future.cancelled():
+                # The coroutine raised a BaseException. Consume the exception
+                # to not log a warning, the caller doesn't have access to the
+                # local task.
+                future.exception()
+            raise
+        finally:
+            future.remove_done_callback(_run_until_complete_cb)
+        if not future.done():
+            raise RuntimeError('Event loop stopped before Future completed.')
+
+        return future.result()
 
     def _raise_wrong_usage_of_wait_for(self, connection_observer):
         import inspect  # don't import if never raising this exception
