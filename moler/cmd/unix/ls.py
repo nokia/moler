@@ -236,4 +236,3 @@ COMMAND_RESULT_no_output = {
     "files": {
     },
 }
-
