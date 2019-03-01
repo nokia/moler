@@ -585,7 +585,7 @@ def is_python36_or_above():
 
 
 # bg_runners may be called from both 'async def' and raw 'def' functions
-available_bg_runners = ['runner.ThreadPoolExecutorRunner']
+available_bg_runners = []  # 'runner.ThreadPoolExecutorRunner']
 # standalone_runners may run without giving up control to some event loop (since they create own thread(s))
 available_standalone_runners = ['runner.ThreadPoolExecutorRunner']
 # async_runners may be called only from 'async def' functions and require already running events-loop
