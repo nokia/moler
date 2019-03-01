@@ -33,12 +33,13 @@ class Ps(GenericUnixCommand):
         :param runner: Runner to run command
         """
         super(Ps, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+        self.current_ret = list()
+        self.options = options
         self._cmd_line_found = False
         self._column_line_found = False
         self._columns = list()
         self._space_columns = list()
-        self.options = options
-        self.current_ret = list()
+        self._parser = None
 
     def on_new_line(self, line, is_full_line):
         """
@@ -54,17 +55,17 @@ class Ps(GenericUnixCommand):
             # when columns names are set proceed with putting data to dictionary list
             if self._columns and splitted_columns is not None:
                 # put correct value to specific column
-                parsed_line = self.parser.parse(line)
+                parsed_line = self._parser.parse(line)
                 if parsed_line is not None:
                     self.current_ret.append(parsed_line)
             # assign splitted columns to parameter in Ps class; columns are printed as first line after ps command execution
             if not self._column_line_found:
                 self._columns = splitted_columns
                 self._column_line_found = True
-                self.parser = TableText(self._columns, self._columns)
-                self.parser.parse(line)
+                self._parser = TableText(self._columns, self._columns)
+                self._parser.parse(line)
         # execute generic on_new_line
-        return super(Ps, self).on_new_line(line, is_full_line=True)
+        return super(Ps, self).on_new_line(line, is_full_line)
 
     def _split_columns_in_line(self, line):
         """
