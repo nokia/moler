@@ -110,7 +110,7 @@ root@DMICTRL:~# ps -o user,pid,vsz,osz,pmem,rss,cmd -e
  root@DMICTRL:~#
  '''
 
-COMMAND_KWARGS = {}
+COMMAND_KWARGS = {"options": "-o user,pid,vsz,osz,pmem,rss,cmd -e"}
 
 COMMAND_RESULT = [
     {'USER': 'root', 'PID': 1, 'VSZ': 1664, 'SZ': '-', 'MEM': 0.1, 'RSS': 572, 'COMMAND': 'init [3]'},
@@ -147,7 +147,7 @@ root      5823     2  0 Mar09 ?        00:00:03 [kworker/u8:2]
 FZM-FDD-086-ws-kvm:/home/rtg #
 '''
 
-COMMAND_KWARGS_V2 = {}
+COMMAND_KWARGS_V2 = {"options": "-ef"}
 
 COMMAND_RESULT_V2 = [
     {'UID': 'avahi-a+', 'PID': 3597, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:45',
@@ -196,7 +196,7 @@ root      5823     2  0 Mar09 ?     [kworker/u8:2]                              
 FZM-FDD-086-ws-kvm:/home/rtg #
 '''
 
-COMMAND_KWARGS_V3 = {}
+COMMAND_KWARGS_V3 = {"options": "-ef"}
 
 COMMAND_RESULT_V3 = [
     {'UID': 'avahi-a+', 'PID': 3597, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:45',
@@ -224,5 +224,4 @@ COMMAND_RESULT_V3 = [
      'CMD': '/sbin/dhcpcd --netconfig -L -E -HHH -c /etc/sysconfig/network/scripts/dhcpcd-hook -t 0 -h FZM-FDD-086-'},
     {'UID': 'root', 'PID': 5823, 'PPID': 2, 'C': 0, 'STIME': 'Mar09', 'TTY': '?', 'TIME': '00:00:03',
      'CMD': '[kworker/u8:2]'},
-
 ]
