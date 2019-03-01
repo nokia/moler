@@ -12,6 +12,7 @@ import re
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.util.converterhelper import ConverterHelper
 from moler.exceptions import ResultNotAvailableYet
+from moler.exceptions import ParsingDone
 
 
 class Ls(GenericUnixCommand):
@@ -59,21 +60,40 @@ class Ls(GenericUnixCommand):
         :return: Nothing
         """
         if is_full_line:
-            if self._regex_helper.search_compiled(Ls._re_total, line):
-                if "total" not in self.current_ret:
-                    self.current_ret["total"] = dict()
-                self.current_ret["total"]["raw"] = self._regex_helper.group(1)
-                self.current_ret["total"]["bytes"] = self._converter_helper.to_bytes(self._regex_helper.group(1))[0]
-            elif self._regex_helper.search_compiled(Ls._re_long_links, line):
-                self._add_new_file_long(True)
-            elif self._regex_helper.search_compiled(Ls._re_long, line):
-                self._add_new_file_long(False)
-            elif self._regex_helper.search_compiled(Ls._re_files_list, line):
-                files = line.split()
-                for filename in files:
-                    self.current_ret["files"][filename] = dict()
-                    self.current_ret["files"][filename]["name"] = filename
+            try:
+                self._parse_total(line)
+                self._parse_long_links(line)
+                self._parse_long_file(line)
+                self._parse_files_list(line)
+            except ParsingDone:
+                pass
         return super(Ls, self).on_new_line(line, is_full_line)
+
+    def _parse_files_list(self, line):
+        if self._regex_helper.search_compiled(Ls._re_files_list, line):
+            files = line.split()
+            for filename in files:
+                self.current_ret["files"][filename] = dict()
+                self.current_ret["files"][filename]["name"] = filename
+            raise ParsingDone()
+
+    def _parse_long_file(self, line):
+        if self._regex_helper.search_compiled(Ls._re_long, line):
+            self._add_new_file_long(False)
+            raise ParsingDone()
+
+    def _parse_long_links(self, line):
+        if self._regex_helper.search_compiled(Ls._re_long_links, line):
+            self._add_new_file_long(True)
+            raise ParsingDone()
+
+    def _parse_total(self, line):
+        if self._regex_helper.search_compiled(Ls._re_total, line):
+            if "total" not in self.current_ret:
+                self.current_ret["total"] = dict()
+            self.current_ret["total"]["raw"] = self._regex_helper.group(1)
+            self.current_ret["total"]["bytes"] = self._converter_helper.to_bytes(self._regex_helper.group(1))[0]
+            raise ParsingDone()
 
     def _add_new_file_long(self, islink):
         """
