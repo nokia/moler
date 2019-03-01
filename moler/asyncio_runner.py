@@ -300,7 +300,7 @@ class AsyncioRunner(ConnectionObserverRunner):
                 AsyncioRunner._run_until_complete(event_loop, timeout_limited_future)
             except BaseException as exc:
                 err_msg = "asyncio.wait_for({}) raised {!r} - {!r}\n".format(connection_observer_future, exc,
-                                                                           timeout_limited_future)
+                                                                             timeout_limited_future)
                 sys.stderr.write(err_msg + "\n")
                 raise
         else:
