@@ -1,4 +1,14 @@
 # -*- coding: utf-8 -*-
+
+__author__ = 'Dariusz Rosinski, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'dariusz.rosinski@nokia.com, marcin.usielski@nokia.com'
+
+import re
+from moler.cmd.unix.genericunix import GenericUnixCommand
+from moler.parser.table_text import TableText
+
+
 """
 ps command module.
 Commad Ps is parsed to list of dictionary.
@@ -11,16 +21,10 @@ Each key is derived from first line of executed ps command so accessing it needs
 result knowledge
 """
 
-__author__ = 'Dariusz Rosinski, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
-__email__ = 'dariusz.rosinski@nokia.com, marcin.usielski@nokia.com'
-
-import re
-from moler.cmd.unix.genericunix import GenericUnixCommand
-from moler.parser.table_text import TableText
-
 
 class Ps(GenericUnixCommand):
+
+    """Unix command ps."""
 
     def __init__(self, connection=None, options='', prompt=None, newline_chars=None, runner=None):
         """
