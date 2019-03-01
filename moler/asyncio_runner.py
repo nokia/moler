@@ -102,8 +102,7 @@ def thread_secure_get_event_loop():
 
 def _run_until_complete_cb(fut):
     exc = fut._exception
-    if (isinstance(exc, BaseException)
-    and not isinstance(exc, Exception)):
+    if isinstance(exc, BaseException) and not isinstance(exc, Exception):
         # Issue #22429: run_forever() already finished, no need to
         # stop it.
         return
@@ -334,7 +333,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         future.add_done_callback(_run_until_complete_cb)
         try:
             event_loop.run_forever()
-        except:
+        except BaseException:
             if new_task and future.done() and not future.cancelled():
                 # The coroutine raised a BaseException. Consume the exception
                 # to not log a warning, the caller doesn't have access to the
