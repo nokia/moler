@@ -70,6 +70,12 @@ class Ls(GenericUnixCommand):
         return super(Ls, self).on_new_line(line, is_full_line)
 
     def _parse_files_list(self, line):
+        """
+        Parses list of files.
+
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if matches success.
+        """
         if self._regex_helper.search_compiled(Ls._re_files_list, line):
             files = line.split()
             for filename in files:
@@ -78,16 +84,34 @@ class Ls(GenericUnixCommand):
             raise ParsingDone()
 
     def _parse_long_file(self, line):
+        """
+        Parses line with long information with file or directory.
+
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if matches success.
+        """
         if self._regex_helper.search_compiled(Ls._re_long, line):
             self._add_new_file_long(False)
             raise ParsingDone()
 
     def _parse_long_links(self, line):
+        """
+        Parses line with long information with link.
+
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if matches success.
+        """
         if self._regex_helper.search_compiled(Ls._re_long_links, line):
             self._add_new_file_long(True)
             raise ParsingDone()
 
     def _parse_total(self, line):
+        """
+        Parses information about total in ls output.
+
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if matches success.
+        """
         if self._regex_helper.search_compiled(Ls._re_total, line):
             if "total" not in self.current_ret:
                 self.current_ret["total"] = dict()
