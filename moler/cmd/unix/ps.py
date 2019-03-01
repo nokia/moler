@@ -32,14 +32,12 @@ class Ps(GenericUnixCommand):
         :param newline_chars: characters to split lines
         :param runner: Runner to run command
         """
-        self.parser = None
-        self._cmd = 'ps'
+        super(Ps, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self._cmd_line_found = False
         self._column_line_found = False
         self._columns = list()
         self._space_columns = list()
-        self._options = options
-        super(Ps, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+        self.options = options
         self.current_ret = list()
 
     def on_new_line(self, line, is_full_line):
@@ -50,31 +48,30 @@ class Ps(GenericUnixCommand):
         :param is_full_line: True if line had new line chars, False otherwise
         :return: Nothing
         """
-        if not is_full_line:
-            return super(Ps, self).on_new_line(line, is_full_line)
-        # splitting columns according to column number
-        splitted_columns = self.split_columns_in_line(line)
-        # when columns names are set proceed with putting data to dictionary list
-        if self._columns and splitted_columns is not None:
-            # put correct value to specific column
-            parsed_line = self.parser.parse(line)
-            if parsed_line is not None:
-                self.current_ret.append(parsed_line)
-        # assign splitted columns to parameter in Ps class; columns are printed as first line after ps command execution
-        if not self._column_line_found:
-            self._columns = splitted_columns
-            self._column_line_found = True
-            self.parser = TableText(self._columns, self._columns)
-            self.parser.parse(line)
+        if is_full_line:
+            # splitting columns according to column number
+            splitted_columns = self._split_columns_in_line(line)
+            # when columns names are set proceed with putting data to dictionary list
+            if self._columns and splitted_columns is not None:
+                # put correct value to specific column
+                parsed_line = self.parser.parse(line)
+                if parsed_line is not None:
+                    self.current_ret.append(parsed_line)
+            # assign splitted columns to parameter in Ps class; columns are printed as first line after ps command execution
+            if not self._column_line_found:
+                self._columns = splitted_columns
+                self._column_line_found = True
+                self.parser = TableText(self._columns, self._columns)
+                self.parser.parse(line)
         # execute generic on_new_line
         return super(Ps, self).on_new_line(line, is_full_line=True)
 
-    def split_columns_in_line(self, line):
-        '''
+    def _split_columns_in_line(self, line):
+        """
         Method to split line according to columns number
-        :param line:
-        :return:
-        '''
+        :param line: 
+        :return: list of columns or None
+        """
         parsed_line = str.strip(str(line))
         # split with whitespaces
         parsed_line = re.split(r'\s+', parsed_line)
@@ -84,25 +81,11 @@ class Ps(GenericUnixCommand):
         # When data is avaliable proceed with parsing
         return parsed_line
 
-    @staticmethod
-    def convert_data_to_type(data):
-        # when casting wrong type Value Error will be raised
-        try:
-            d_int = int(data)
-            if str(d_int) == data:
-                return d_int
-        except ValueError:
-            pass
-        try:
-            d_float = float(data)
-            return d_float
-        except ValueError:
-            pass
-
-        return data
-
     def build_command_string(self):
-        return self._cmd + " " + self._options
+        cmd = "ps"
+        if self.options:
+            cmd = "{} {}".format(cmd, self.options)
+        return cmd        
 
 
 COMMAND_OUTPUT = '''
