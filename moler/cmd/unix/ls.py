@@ -40,6 +40,30 @@ class Ls(GenericUnixCommand):
         # Parameters defined by calling the command
         self.options = options
 
+    def get_dirs(self):
+        """
+        Returns only directories (folders) from command output
+
+        :return: Dict, key is item, value is parsed information about item
+        """
+        return self._get_types('d')
+
+    def get_links(self):
+        """
+        Returns only links from command output
+
+        :return: Dict, key is item, value is parsed information about item
+        """
+        return self._get_types('l')
+
+    def get_files(self):
+        """
+        Returns only files from command output
+
+        :return: Dict, key is item, value is parsed information about item
+        """
+        return self._get_types('-')
+
     def build_command_string(self):
         """
         Builds command string from parameters passed to object.
@@ -121,7 +145,8 @@ class Ls(GenericUnixCommand):
 
     def _add_new_file_long(self, islink):
         """
-        Method to add parsed output to command ret.
+        Adds parsed output to command ret.
+
         :param islink: True if parsed output is link or False otherwise.
         :return: Nothing.
         """
@@ -158,27 +183,6 @@ class Ls(GenericUnixCommand):
                 if requested_type == current_type:
                     ret[file_name] = file_dict
         return ret
-
-    def get_dirs(self):
-        """
-        Returns only directories (folders) from command output
-        :return: Dict, key is item, value is parsed information about item
-        """
-        return self._get_types('d')
-
-    def get_links(self):
-        """
-        Returns only links from command output
-        :return: Dict, key is item, value is parsed information about item
-        """
-        return self._get_types('l')
-
-    def get_files(self):
-        """
-        Returns only files from command output
-        :return: Dict, key is item, value is parsed information about item
-        """
-        return self._get_types('-')
 
 
 COMMAND_OUTPUT_ver_human = """
