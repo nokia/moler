@@ -68,8 +68,9 @@ class Ps(GenericUnixCommand):
 
     def _split_columns_in_line(self, line):
         """
-        Method to split line according to columns number
-        :param line: 
+        Split line according to columns number.
+
+        :param line: line from device to process
         :return: list of columns or None
         """
         parsed_line = str.strip(str(line))
@@ -85,7 +86,7 @@ class Ps(GenericUnixCommand):
         cmd = "ps"
         if self.options:
             cmd = "{} {}".format(cmd, self.options)
-        return cmd        
+        return cmd
 
 
 COMMAND_OUTPUT = '''
