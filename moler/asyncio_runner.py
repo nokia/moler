@@ -97,6 +97,7 @@ def thread_secure_get_event_loop():
         else:
             raise
 
+    loop.set_debug(enabled=True)
     return loop, new_loop
 
 
@@ -106,9 +107,10 @@ def _run_until_complete_cb(fut):
         # Issue #22429: run_forever() already finished, no need to
         # stop it.
         return
-    fut_id = id(fut)
-    msg = "_run_until_complete_cb(fut_id = {}, {})\n".format(fut_id, fut)
-    sys.stderr.write(msg)
+    fut_id = instance_id(fut)
+    msg = "_run_until_complete_cb(fut_id = {}, {})".format(fut_id, fut)
+    sys.stderr.write(msg + "\n")
+    logging.getLogger("moler").debug(msg)
     fut._loop.stop()
 
 
@@ -142,9 +144,11 @@ class AsyncioRunner(ConnectionObserverRunner):
                                                                                      sys_resources_usage_msg))
                 for owned_loop in self._started_ev_loops:
                     sys.stderr.write("CLOSING EV_LOOP owned by AsyncioRunner {!r}\n".format(owned_loop))
+                    self.logger.debug("CLOSING EV_LOOP owned by AsyncioRunner {!r}".format(owned_loop))
                     msg = "AsyncioRunner owned loop has still running task"
                     for still_running_tasks in asyncio.Task.all_tasks(loop=owned_loop):
                         sys.stderr.write("{}: {!r}\n".format(msg, still_running_tasks))
+                        self.logger.debug("{}: {!r}".format(msg, still_running_tasks))
                     owned_loop.close()
                 self._started_ev_loops = []
                 sys_resources_usage_msg = system_resources_usage_msg(*system_resources_usage())
@@ -286,28 +290,38 @@ class AsyncioRunner(ConnectionObserverRunner):
 
     @staticmethod
     def _run_via_asyncio(event_loop, connection_observer_future, max_timeout, remain_time):
-        if max_timeout:
-            timeout_limited_future = asyncio.wait_for(connection_observer_future, timeout=remain_time)
+        try:
+            if max_timeout:
+                timeout_limited_future = asyncio.wait_for(connection_observer_future, timeout=remain_time)
 
-            fut_id = id(connection_observer_future)
-            msg = "__run_via_asyncio with timeout: (fut_id = {}, {})\n".format(fut_id, connection_observer_future)
-            sys.stderr.write(msg)
-            fut_id = id(timeout_limited_future)
-            msg = "__run_via_asyncio with timeout: (tmout_fut_id = {}, {})\n".format(fut_id, timeout_limited_future)
-            sys.stderr.write(msg)
+                fut_id = instance_id(connection_observer_future)
+                msg = "__run_via_asyncio with timeout: (fut_id = {}, {})".format(fut_id, connection_observer_future)
+                sys.stderr.write(msg + "\n")
+                logging.getLogger("moler").debug(msg)
+                fut_id = instance_id(timeout_limited_future)
+                msg = "__run_via_asyncio with timeout: (tmout_fut_id = {}, {})".format(fut_id, timeout_limited_future)
+                sys.stderr.write(msg + "\n")
+                logging.getLogger("moler").debug(msg)
 
-            try:
                 AsyncioRunner._run_until_complete(event_loop, timeout_limited_future)
-            except BaseException as exc:
-                err_msg = "asyncio.wait_for({}) raised {!r} - {!r}\n".format(connection_observer_future, exc,
-                                                                             timeout_limited_future)
-                sys.stderr.write(err_msg + "\n")
-                raise
-        else:
-            fut_id = id(connection_observer_future)
-            msg = "__run_via_asyncio no timeout: (fut_id = {}, {})\n".format(fut_id, connection_observer_future)
-            sys.stderr.write(msg)
-            AsyncioRunner._run_until_complete(event_loop, connection_observer_future)  # timeout is handled by feed()
+
+            else:
+                fut_id = instance_id(connection_observer_future)
+                msg = "__run_via_asyncio no timeout: (fut_id = {}, {})".format(fut_id, connection_observer_future)
+                sys.stderr.write(msg + "\n")
+                logging.getLogger("moler").debug(msg)
+                AsyncioRunner._run_until_complete(event_loop, connection_observer_future)  # timeout is handled by feed()
+
+        except BaseException as exc:
+            fut = connection_observer_future
+            fut_id = instance_id(connection_observer_future)
+            err_msg = "_run_until_complete(max_tm={}, remain={}): raised {!r}\n\tfut: {}:{!r}".format(max_timeout,
+                                                                                                      remain_time,
+                                                                                                      exc,
+                                                                                                      fut_id, fut)
+            sys.stderr.write(err_msg + "\n")
+            logging.getLogger("moler").debug(msg)
+            raise
 
     @staticmethod
     def _run_until_complete(event_loop, future):
@@ -324,11 +338,13 @@ class AsyncioRunner(ConnectionObserverRunner):
         event_loop._check_closed()
 
         new_task = not asyncio.futures.isfuture(future)
-        fut_id = id(future)
+        fut_id = instance_id(future)
         future = asyncio.tasks.ensure_future(future, loop=event_loop)
-        task_id = id(future)
-        msg = "task for future id ({}) future = asyncio.tasks.ensure_future: (task_id = {}, {})\n".format(fut_id, task_id, future)
-        sys.stderr.write(msg)
+        task_id = instance_id(future)
+        msg = "task for future id ({}) future = asyncio.tasks.ensure_future: (task_id = {}, {})".format(fut_id, task_id,
+                                                                                                        future)
+        sys.stderr.write(msg + "\n")
+        logging.getLogger("moler").debug(msg)
 
         if new_task:
             # An exception is raised if the future didn't complete, so there
@@ -348,10 +364,11 @@ class AsyncioRunner(ConnectionObserverRunner):
         finally:
             future.remove_done_callback(_run_until_complete_cb)
         if not future.done():
-            fut_id = id(future)
-            msg = "not done future in _run_until_complete(fut_id = {}, {})\n".format(fut_id, future)
-            sys.stderr.write(msg)
-            raise RuntimeError('Event loop stopped before Future completed.')
+            fut_id = instance_id(future)
+            msg = "not done future in _run_until_complete(fut_id = {}, {})".format(fut_id, future)
+            sys.stderr.write(msg + "\n")
+            logging.getLogger("moler").debug(msg)
+            raise RuntimeError('Event loop stopped before Future completed. (fut_id = {}, {})'.format(fut_id, future))
 
         return future.result()
 

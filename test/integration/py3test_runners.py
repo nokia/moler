@@ -25,6 +25,7 @@ import pytest
 import contextlib
 
 from moler.connection_observer import ConnectionObserver
+from moler.util.loghelper import disabled_logging
 
 
 # --------------------------------------------------------------------
@@ -43,7 +44,6 @@ async def test_observer_gets_all_data_of_connection_after_it_is_submitted_to_bac
     # The only difference is that raw def function may use only standalone_runner (which is subset of observer_runner)
     # and inside test you exchange 'await asyncio.sleep()' with 'time.sleep()'
     from moler.connection import ObservableConnection
-    from moler.util.loghelper import disabled_logging
 
     with disabled_logging():
         durations = []
@@ -74,7 +74,6 @@ def test_runner_secures_observer_against_additional_data_after_observer_is_done(
     #
     # This test checks if runners secure wrong-written-observers with missing 'if not self.done():'
     from moler.connection import ObservableConnection
-    from moler.util.loghelper import disabled_logging
 
     with disabled_logging():
         for n in range(20):  # need to test multiple times to ensure there are no thread races
@@ -439,7 +438,6 @@ def test_observer__on_timeout__is_called_once_at_timeout(observer_runner, connec
 # def test_observer__on_timeout__is_called_once_at_timeout_threads_races(observer_runner):
 #     from moler.exceptions import MolerTimeout
 #     from moler.connection import ObservableConnection
-#     from moler.util.loghelper import disabled_logging
 #
 #     with disabled_logging():
 #         observers_pool = []
