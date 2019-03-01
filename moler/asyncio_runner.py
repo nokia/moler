@@ -107,7 +107,7 @@ def _run_until_complete_cb(fut):
         # stop it.
         return
     fut_id = id(fut)
-    msg = "_run_until_complete_cb(fut_id = {}, {})".format(fut_id, fut)
+    msg = "_run_until_complete_cb(fut_id = {}, {})\n".format(fut_id, fut)
     sys.stderr.write(msg)
     fut._loop.stop()
 
@@ -290,22 +290,22 @@ class AsyncioRunner(ConnectionObserverRunner):
             timeout_limited_future = asyncio.wait_for(connection_observer_future, timeout=remain_time)
 
             fut_id = id(connection_observer_future)
-            msg = "__run_via_asyncio with timeout: (fut_id = {}, {})".format(fut_id, connection_observer_future)
+            msg = "__run_via_asyncio with timeout: (fut_id = {}, {})\n".format(fut_id, connection_observer_future)
             sys.stderr.write(msg)
             fut_id = id(timeout_limited_future)
-            msg = "__run_via_asyncio with timeout: (tmout_fut_id = {}, {})".format(fut_id, timeout_limited_future)
+            msg = "__run_via_asyncio with timeout: (tmout_fut_id = {}, {})\n".format(fut_id, timeout_limited_future)
             sys.stderr.write(msg)
 
             try:
                 AsyncioRunner._run_until_complete(event_loop, timeout_limited_future)
             except BaseException as exc:
-                err_msg = "asyncio.wait_for({}) raised {!r} - {!r}".format(connection_observer_future, exc,
+                err_msg = "asyncio.wait_for({}) raised {!r} - {!r}\n".format(connection_observer_future, exc,
                                                                            timeout_limited_future)
                 sys.stderr.write(err_msg + "\n")
                 raise
         else:
             fut_id = id(connection_observer_future)
-            msg = "__run_via_asyncio no timeout: (fut_id = {}, {})".format(fut_id, connection_observer_future)
+            msg = "__run_via_asyncio no timeout: (fut_id = {}, {})\n".format(fut_id, connection_observer_future)
             sys.stderr.write(msg)
             AsyncioRunner._run_until_complete(event_loop, connection_observer_future)  # timeout is handled by feed()
 
@@ -344,7 +344,7 @@ class AsyncioRunner(ConnectionObserverRunner):
             future.remove_done_callback(_run_until_complete_cb)
         if not future.done():
             fut_id = id(future)
-            msg = "not done future in _run_until_complete(fut_id = {}, {})".format(fut_id, future)
+            msg = "not done future in _run_until_complete(fut_id = {}, {})\n".format(fut_id, future)
             sys.stderr.write(msg)
             raise RuntimeError('Event loop stopped before Future completed.')
 
