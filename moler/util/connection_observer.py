@@ -8,6 +8,7 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 
 import logging
 import threading
+import sys
 
 
 try:
@@ -38,7 +39,9 @@ class exception_stored_if_not_main_thread(object):
             if inside_main_thread():
                 return False  # will reraise exception
             else:
-                self.logger.debug("NOT MainThread: {} raised {!r}".format(self.connection_observer, exc_val))
+                err_msg = "NOT MainThread: {} raised {!r}".format(self.connection_observer, exc_val)
+                self.logger.debug(err_msg)
+                sys.stderr.write(err_msg + "\n")
                 self.connection_observer.set_exception(exc_val)
                 return True  # means: exception already handled
         return True

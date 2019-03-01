@@ -270,8 +270,14 @@ class AsyncioRunner(ConnectionObserverRunner):
     @staticmethod
     def _run_via_asyncio(event_loop, connection_observer_future, max_timeout, remain_time):
         if max_timeout:
-            event_loop.run_until_complete(asyncio.wait_for(connection_observer_future,
-                                                           timeout=remain_time))
+            timeout_limited_future = asyncio.wait_for(connection_observer_future, timeout=remain_time)
+            try:
+                event_loop.run_until_complete(timeout_limited_future)
+            except BaseException as exc:
+                err_msg = "asyncio.wait_for({}) raised {!r} - {!r}".format(connection_observer_future, exc,
+                                                                           timeout_limited_future)
+                sys.stderr.write(err_msg + "\n")
+                raise
         else:
             event_loop.run_until_complete(connection_observer_future)  # timeout is handled by feed()
 
