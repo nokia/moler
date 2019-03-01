@@ -324,16 +324,16 @@ def test_wait_for__times_out_on_constructor_timeout(observer_runner, connection_
 def test_wait_for__times_out_on_specified_timeout(observer_runner, connection_observer):
     from moler.exceptions import MolerTimeout
 
-    connection_observer.timeout = 60.4
+    connection_observer.timeout = 0.4
     start_time = connection_observer.start_time = time.time()
     future = observer_runner.submit(connection_observer)
     with pytest.raises(MolerTimeout):
         observer_runner.wait_for(connection_observer, future,
-                                 timeout=3.2)  # means: use timeout of wait_for (shorter then initial one)
+                                 timeout=0.2)  # means: use timeout of wait_for (shorter then initial one)
         connection_observer.result()  # should raise Timeout
     duration = time.time() - start_time
     assert duration >= 0.2
-    assert duration < 0.25
+    assert duration < 0.3
 
 
 def test_wait_for__times_out_on_earlier_timeout(observer_runner, connection_observer):
