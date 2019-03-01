@@ -130,7 +130,7 @@ class AsyncioRunner(ConnectionObserverRunner):
                 for owned_loop in self._started_ev_loops:
                     sys.stderr.write("CLOSING EV_LOOP owned by AsyncioRunner {!r}\n".format(owned_loop))
                     msg = "AsyncioRunner owned loop has still running task"
-                    for still_running_tasks in asyncio.all_tasks(loop=owned_loop):
+                    for still_running_tasks in asyncio.Task.all_tasks(loop=owned_loop):
                         sys.stderr.write("{}: {!r}\n".format(msg, still_running_tasks))
                     owned_loop.close()
                 self._started_ev_loops = []
@@ -677,7 +677,7 @@ class AsyncioLoopThread(TillDoneThread):
         self.logger.info("finished asyncio-loop-thrd ...")
         self.logger.info("closing events loop ...")
         sys.stderr.write("CLOSING EV_LOOP of AsyncioLoopThread {!r}\n".format(self.ev_loop))
-        for still_running_tasks in asyncio.all_tasks(loop=self.ev_loop):
+        for still_running_tasks in asyncio.Task.all_tasks(loop=self.ev_loop):
             sys.stderr.write("AsyncioLoopThread has still running task: {!r}\n".format(still_running_tasks))
         self.ev_loop.close()
         self.logger.info("... asyncio loop closed")
