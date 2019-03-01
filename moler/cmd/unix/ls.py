@@ -4,7 +4,7 @@ Ls command module.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
@@ -15,6 +15,9 @@ from moler.exceptions import ResultNotAvailableYet
 
 
 class Ls(GenericUnixCommand):
+
+    """Unix command ls"""
+
     _re_files_list = re.compile(r"\S{2,}")
     _re_total = re.compile(r"total\s+(\d+\S*)")
     _re_long = re.compile(r"([\w-]{10})\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S.*\S)\s+(\S+)\s*$")
@@ -22,6 +25,8 @@ class Ls(GenericUnixCommand):
 
     def __init__(self, connection, prompt=None, newline_chars=None, options=None, runner=None):
         """
+        Unix command ls
+
         :param connection: Moler connection to device, terminal when command is executed.
         :param prompt: prompt (on system where command runs).
         :param newline_chars: Characters to split lines - list.
@@ -30,44 +35,44 @@ class Ls(GenericUnixCommand):
         """
         super(Ls, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self._converter_helper = ConverterHelper()
+        self.current_ret["files"] = dict()
         # Parameters defined by calling the command
         self.options = options
 
     def build_command_string(self):
         """
         Builds command string from parameters passed to object.
+
         :return: String representation of command to send over connection to device.
         """
         cmd = "ls"
         if self.options:
-            cmd = cmd + " " + self.options
+            cmd = "{} {}".format(cmd, self.options)
         return cmd
 
     def on_new_line(self, line, is_full_line):
         """
-        Put your parsing code here.
+        Processes line from output form connection/device.
+
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
         :return: Nothing
         """
-        if not is_full_line:
-            return super(Ls, self).on_new_line(line, is_full_line)
-        if self._regex_helper.search_compiled(Ls._re_total, line):
-            if "total" not in self.current_ret:
-                self.current_ret["total"] = dict()
-            self.current_ret["total"]["raw"] = self._regex_helper.group(1)
-            self.current_ret["total"]["bytes"] = self._converter_helper.to_bytes(self._regex_helper.group(1))[0]
-        elif self._regex_helper.search_compiled(Ls._re_long_links, line):
-            self._add_new_file_long(True)
-        elif self._regex_helper.search_compiled(Ls._re_long, line):
-            self._add_new_file_long(False)
-        elif self._regex_helper.search_compiled(Ls._re_files_list, line):
-            files = line.split()
-            if "files" not in self.current_ret:
-                self.current_ret["files"] = dict()
-            for filename in files:
-                self.current_ret["files"][filename] = dict()
-                self.current_ret["files"][filename]["name"] = filename
+        if is_full_line:
+            if self._regex_helper.search_compiled(Ls._re_total, line):
+                if "total" not in self.current_ret:
+                    self.current_ret["total"] = dict()
+                self.current_ret["total"]["raw"] = self._regex_helper.group(1)
+                self.current_ret["total"]["bytes"] = self._converter_helper.to_bytes(self._regex_helper.group(1))[0]
+            elif self._regex_helper.search_compiled(Ls._re_long_links, line):
+                self._add_new_file_long(True)
+            elif self._regex_helper.search_compiled(Ls._re_long, line):
+                self._add_new_file_long(False)
+            elif self._regex_helper.search_compiled(Ls._re_files_list, line):
+                files = line.split()
+                for filename in files:
+                    self.current_ret["files"][filename] = dict()
+                    self.current_ret["files"][filename]["name"] = filename
         return super(Ls, self).on_new_line(line, is_full_line)
 
     def _add_new_file_long(self, islink):
@@ -77,8 +82,6 @@ class Ls(GenericUnixCommand):
         :return: Nothing.
         """
         filename = self._regex_helper.group(7)
-        if "files" not in self.current_ret:
-            self.current_ret["files"] = dict()
         self.current_ret["files"][filename] = dict()
         self.current_ret["files"][filename]["permissions"] = self._regex_helper.group(1)
         self.current_ret["files"][filename]["hard_links_count"] = int(self._regex_helper.group(2))
@@ -222,3 +225,15 @@ COMMAND_RESULT_ver_plain = {
         "Downloads": {"name": "Downloads"},
     },
 }
+
+COMMAND_OUTPUT_no_output = """
+host:~/tmp/a$ ls
+host:~/tmp/a$"""
+
+COMMAND_KWARGS_no_output = {}
+
+COMMAND_RESULT_no_output = {
+    "files": {
+    },
+}
+
