@@ -11,9 +11,9 @@ Each key is derived from first line of executed ps command so accessing it needs
 result knowledge
 """
 
-__author__ = 'Dariusz Rosinski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'dariusz.rosinski@nokia.com'
+__author__ = 'Dariusz Rosinski, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'dariusz.rosinski@nokia.com, marcin.usielski@nokia.com'
 
 import re
 from moler.cmd.unix.genericunix import GenericUnixCommand
@@ -23,6 +23,15 @@ from moler.parser.table_text import TableText
 class Ps(GenericUnixCommand):
 
     def __init__(self, connection=None, options='', prompt=None, newline_chars=None, runner=None):
+        """
+        Represents Unix command ps.
+
+        :param connection: moler connection to device, terminal where command is executed
+        :param options: ps command options as string
+        :param prompt: prompt (on system where command runs).
+        :param newline_chars: characters to split lines
+        :param runner: Runner to run command
+        """
         self.parser = None
         self._cmd = 'ps'
         self._cmd_line_found = False
@@ -34,12 +43,13 @@ class Ps(GenericUnixCommand):
         self.current_ret = list()
 
     def on_new_line(self, line, is_full_line):
-        '''
-        Operations executed on new line columns must be found in order to correct introduce values to dictionary
-        :param line:
-        :param is_full_line:
-        :return:
-        '''
+        """
+        Parses output from command.
+
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: Nothing
+        """
         if not is_full_line:
             return super(Ps, self).on_new_line(line, is_full_line)
         # splitting columns according to column number
