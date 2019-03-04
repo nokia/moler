@@ -47,9 +47,9 @@ class IpRoute(GenericUnixCommand):
         if self.is_ipv6:
             cmd = "ip -6 route"
         if self.addr_get:
-            cmd = cmd + " get ".self.addr_get
+            cmd = "{} get {}".format(cmd, self.addr_get)
             if self.addr_from:
-                cmd = cmd + " from ".addr_from
+                cmd = "{} from {}".format(cmd, self.addr_from)
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -85,17 +85,11 @@ class IpRoute(GenericUnixCommand):
         if "VIA" in self.current_ret:
             if "default" in self.current_ret["VIA"]:
                 def_route = self.current_ret["VIA"]["default"]["VIA"]
-                if "METRIC" in self.current_ret["VIA"]["default"]:
-                    metric = self.current_ret["VIA"]["default"]["METRIC"]
 
                 for item in self.current_ret["ALL"]:
                     if "default" == item["ADDRESS"]:
                         if "METRIC" in item:
-                            if metric:
-                                if item["METRIC"] > metric:
-                                    pass
                             def_route = item["VIA"]
-                            metric = item["METRIC"]
 
         return def_route
 
