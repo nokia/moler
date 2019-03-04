@@ -78,26 +78,21 @@ def check_system_resources_limit(connection_observer, observer_lock, logger):
     return None
 
 
-def _show_stop_callers(self, original_stop):
-    logger = logging.getLogger('moler')
-    msg = "called loop.stop() of {}".format(self)
-    debug_into_logger(logger, msg=msg, levels_to_go_up=1)
-    debug_into_logger(logger, msg=msg, levels_to_go_up=2)
-    debug_into_logger(logger, msg=msg, levels_to_go_up=3)
-    original_stop(self)
+class LoudEventLoop(asyncio.unix_events.SelectorEventLoop):
+    def __init__(self, *args):
+        super(LoudEventLoop, self).__init__(*args)
+
+    def stop(self):
+        logger = logging.getLogger('moler')
+        msg = "Called loop.stop() of {}".format(self)
+        debug_into_logger(logger, msg=msg, levels_to_go_up=1)
+        debug_into_logger(logger, msg=msg, levels_to_go_up=2)
+        debug_into_logger(logger, msg=msg, levels_to_go_up=3)
+        super(LoudEventLoop, self).stop()
 
 
-def patch_stop(loop):
-    """
-    Patch stop() of loop to see who is calling it
-    :param loop:
-    :return:
-    """
-    if not hasattr(loop.__class__, "_stop_patched"):
-        prev_stop_method = loop.__class__.stop
-        new_stop_method = functools.partial(_show_stop_callers, loop, original_stop=prev_stop_method)
-        loop.__class__.stop = new_stop_method
-        loop.__class__._stop_patched = True
+class LoudEventLoopPolicy(asyncio.unix_events.DefaultEventLoopPolicy):
+    _loop_factory = LoudEventLoop
 
 
 def thread_secure_get_event_loop():
@@ -122,7 +117,6 @@ def thread_secure_get_event_loop():
             raise
 
     loop.set_debug(enabled=True)
-    patch_stop(loop)
     return loop, new_loop
 
 

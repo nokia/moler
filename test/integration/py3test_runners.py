@@ -663,6 +663,7 @@ def connection_observer():
     # remove exceptions collected inside ConnectionObserver
     ConnectionObserver.get_unraised_exceptions(remove=True)
 
+
 @pytest.fixture()
 def net_down_detector(connection_observer):  # let name say what type of observer it is
     return connection_observer
@@ -689,3 +690,10 @@ def failing_net_down_detector(fail_on_data, fail_by_raising):
 def observer_and_awaited_data(connection_observer):
     awaited_data = 'ping: sendmsg: Network is unreachable'
     return connection_observer, awaited_data
+
+
+@pytest.fixture(scope='module', autouse=True)
+def use_loud_event_loop():
+    from moler.asyncio_runner import LoudEventLoopPolicy
+    loud_policy = LoudEventLoopPolicy()
+    asyncio.set_event_loop_policy(loud_policy)
