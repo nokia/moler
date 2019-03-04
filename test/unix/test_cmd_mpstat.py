@@ -25,5 +25,5 @@ Linux 4.4.112-rt127 (type)    05/10/18    _armv7l_    (4 CPU)
 user@dev:~# """
     buffer_connection.remote_inject_response([wrong_output])
     cmd = Mpstat(connection=buffer_connection.moler_connection)
-    with pytest.raises(CommandFailure):
-        cmd()
+    ret = cmd()
+    assert ret == list()
