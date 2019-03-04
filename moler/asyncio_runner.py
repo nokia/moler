@@ -18,6 +18,7 @@ import threading
 import time
 import sys
 import psutil
+import functools
 
 from moler.exceptions import MolerTimeout
 from moler.exceptions import MolerException
@@ -27,6 +28,7 @@ from moler.util.connection_observer import exception_stored_if_not_main_thread
 from moler.io.raw import TillDoneThread
 from moler.runner import ConnectionObserverRunner
 from moler.runner import result_for_runners, time_out_observer, his_remaining_time
+from moler.util.loghelper import debug_into_logger
 
 
 current_process = psutil.Process()
@@ -76,6 +78,28 @@ def check_system_resources_limit(connection_observer, observer_lock, logger):
     return None
 
 
+def _show_stop_callers(self, original_stop):
+    logger = logging.getLogger('moler')
+    msg = "called loop.stop() of {}".format(self)
+    debug_into_logger(logger, msg=msg, levels_to_go_up=1)
+    debug_into_logger(logger, msg=msg, levels_to_go_up=2)
+    debug_into_logger(logger, msg=msg, levels_to_go_up=3)
+    original_stop(self)
+
+
+def patch_stop(loop):
+    """
+    Patch stop() of loop to see who is calling it
+    :param loop:
+    :return:
+    """
+    if not hasattr(loop.__class__, "_stop_patched"):
+        prev_stop_method = loop.__class__.stop
+        new_stop_method = functools.partial(_show_stop_callers, loop, original_stop=prev_stop_method)
+        loop.__class__.stop = new_stop_method
+        loop.__class__._stop_patched = True
+
+
 def thread_secure_get_event_loop():
     """
     Need securing since asyncio.get_event_loop() when called from new thread
@@ -98,6 +122,7 @@ def thread_secure_get_event_loop():
             raise
 
     loop.set_debug(enabled=True)
+    patch_stop(loop)
     return loop, new_loop
 
 
