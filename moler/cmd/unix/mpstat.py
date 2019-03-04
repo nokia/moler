@@ -79,10 +79,7 @@ class Mpstat(GenericUnixCommand):
                 temp[self._regex_helper.group('CPU')] = dict()
                 temp[self._regex_helper.group('CPU')]['TIME'] = self._regex_helper.group('TIME')
                 for key in Mpstat._re_keys_table:
-                    try:
-                        temp[self._regex_helper.group('CPU')][key] = float(self._regex_helper.group(key))
-                    except ValueError:
-                        self.set_exception(CommandFailure("Wrong value type of {}: {}.".format(key, self._regex_helper.group(key))))
+                    temp[self._regex_helper.group('CPU')][key] = float(self._regex_helper.group(key))
                 self.current_ret["cpu"].append(temp)
             raise ParsingDone()
 
