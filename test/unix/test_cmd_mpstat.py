@@ -2,13 +2,12 @@
 """
 Testing of mpstat command.
 """
+
 __author__ = 'Julia Patacz, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018-2019, Nokia'
 _email_ = 'julia.patacz@nokia.com, marcin.usielski@nokia.com'
 
-import pytest
 from moler.cmd.unix.mpstat import Mpstat
-from moler.exceptions import CommandFailure
 
 
 def test_mpstat_returns_proper_command_string(buffer_connection):
