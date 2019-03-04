@@ -12,7 +12,7 @@ from moler.exceptions import CommandFailure
 
 
 def test_mpstat_returns_proper_command_string(buffer_connection):
-    mpstat_cmd = Mpstat(buffer_connection, options="-P 0")
+    mpstat_cmd = Mpstat(connection=buffer_connection.moler_connection, options="-P 0")
     assert "mpstat -P 0" == mpstat_cmd.command_string
 
 
@@ -24,6 +24,6 @@ Linux 4.4.112-rt127 (type)    05/10/18    _armv7l_    (4 CPU)
 11:07:06     all    WO     0.07      2.28   0.50    0.00    0.17    0.00    0.00   95.49
 user@dev:~# """
     buffer_connection.remote_inject_response([wrong_output])
-    cmd = Mpstat(buffer_connection)
+    cmd = Mpstat(connection=buffer_connection.moler_connection)
     with pytest.raises(CommandFailure):
         cmd()
