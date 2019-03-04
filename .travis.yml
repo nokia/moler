@@ -60,7 +60,7 @@ jobs:
     - NAME="Test"
     script:
     - python3.6 -m pytest --mccabe moler
-    - coverage run -m pytest -c py3pytest.ini --random  -s -vv -k py3test_runners
+    - coverage run -m pytest -c py3pytest.ini --random  -s -vv
     after_success:
     - coveralls
     after_failure:
