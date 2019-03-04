@@ -26,4 +26,5 @@ user@dev:~# """
     buffer_connection.remote_inject_response([wrong_output])
     cmd = Mpstat(connection=buffer_connection.moler_connection)
     ret = cmd()
-    assert ret == list()
+    expected_ret = {'cpu': []}
+    assert ret == expected_ret
