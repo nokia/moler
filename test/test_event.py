@@ -32,7 +32,7 @@ def test_str_conversion_of_event_object():
             pass  # not important now
 
     wait4 = Wait4()
-    assert 'Wait4(["Connection close"], id:{})'.format(instance_id(wait4)) == str(wait4)
+    assert "Wait4(['Connection close'], id:{})".format(instance_id(wait4)) == str(wait4)
 
 
 def test_event_string_is_required_to_start_command(lineevent_class):
