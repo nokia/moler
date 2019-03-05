@@ -21,7 +21,7 @@ class LineEvent(TextualEvent):
         self._prepare_parameters(match)
 
     def __str__(self):
-        return '{}("{}", id:{})'.format(self.__class__.__name__, self.detect_patterns, instance_id(self))
+        return '{}({}, id:{})'.format(self.__class__.__name__, self.detect_patterns, instance_id(self))
 
     def start(self, timeout=None, *args, **kwargs):
         """Start background execution of command."""
@@ -69,11 +69,11 @@ class LineEvent(TextualEvent):
 
     def _prepare_parameters(self, match):
         self.parser = self.get_parser(match)
-        self.detect_patterns = self.compile_patterns(self.detect_patterns)
+        self.compiled_patterns = self.compile_patterns(self.detect_patterns)
 
         if match in ['all', 'sequence']:
             self.till_occurs_times = len(self.detect_patterns)
-            self.copy_detect_patterns = copy_list(self.detect_patterns)
+            self.copy_compiled_patterns = copy_list(self.compiled_patterns)
 
     def _parse_line(self, line):
         self.parser(line=line)
@@ -85,23 +85,23 @@ class LineEvent(TextualEvent):
         self.event_occurred(event_data=current_ret)
 
     def _catch_any(self, line):
-        for pattern in self.detect_patterns:
+        for pattern in self.compiled_patterns:
             if re.search(pattern, line):
                 self._set_current_ret(line=line)
                 return
 
     def _catch_all(self, line):
-        for index, pattern in enumerate(self.copy_detect_patterns):
+        for index, pattern in enumerate(self.copy_compiled_patterns):
             if re.search(pattern, line):
-                del self.copy_detect_patterns[index]
+                del self.copy_compiled_patterns[index]
                 self._set_current_ret(line=line)
                 return
 
     def _catch_sequence(self, line):
-        if self.copy_detect_patterns:
-            pattern = self.copy_detect_patterns[0]
+        if self.copy_compiled_patterns:
+            pattern = self.copy_compiled_patterns[0]
             if re.search(pattern, line):
-                del self.copy_detect_patterns[0]
+                del self.copy_compiled_patterns[0]
                 self._set_current_ret(line=line)
 
 
