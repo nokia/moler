@@ -435,6 +435,60 @@ def test_observer__on_timeout__is_called_once_at_timeout(observer_runner, connec
         timeout_callback.assert_called_once()
 
 
+def test_runner_shutdown_cancels_remaining_active_feeders_inside_main_thread(observer_runner):
+    from moler.connection import ObservableConnection
+
+    connection_observer = NetworkDownDetector(connection=ObservableConnection())
+
+    connection_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
+    future = observer_runner.submit(connection_observer)
+
+    future._loop.run_until_complete(asyncio.sleep(1.0))  # feeder will start processing inside loop
+    # time.sleep(0.5)
+    observer_runner.shutdown()
+    assert connection_observer.cancelled()
+
+
+def test_runner_shutdown_cancels_remaining_inactive_feeders_inside_main_thread(observer_runner):
+    from moler.connection import ObservableConnection
+
+    connection_observer = NetworkDownDetector(connection=ObservableConnection())
+
+    connection_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
+    future = observer_runner.submit(connection_observer)
+
+    time.sleep(0.2)  # won't enter event loop of future - feeder won't start processing
+    observer_runner.shutdown()
+    assert connection_observer.cancelled()
+
+
+def test_runner_shutdown_cancels_remaining_feeders_inside_threads(observer_runner):
+    from moler.connection import ObservableConnection
+
+    observers_pool = []
+    for idx in range(3):
+        connection_observer = NetworkDownDetector(connection=ObservableConnection())
+        observers_pool.append(connection_observer)
+
+    def submit_feeder(connection_observer):
+        connection_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
+        future = observer_runner.submit(connection_observer)
+        while not future.done():
+            time.sleep(0.1)
+
+    th_pool = [threading.Thread(target=submit_feeder, args=(connection_observer,)) for connection_observer in observers_pool]
+    for th in th_pool:
+        th.start()
+    # loop.run_until_complete(remaining_tasks)  # let it enter feeder
+    time.sleep(0.5)
+    observer_runner.shutdown()
+    for th in th_pool:
+        th.join()
+    assert observers_pool[0].cancelled()
+    assert observers_pool[1].cancelled()
+    assert observers_pool[2].cancelled()
+
+
 # def test_observer__on_timeout__is_called_once_at_timeout_threads_races(observer_runner):
 #     from moler.exceptions import MolerTimeout
 #     from moler.connection import ObservableConnection
@@ -697,3 +751,14 @@ def use_loud_event_loop():
     from moler.asyncio_runner import LoudEventLoopPolicy
     loud_policy = LoudEventLoopPolicy()
     asyncio.set_event_loop_policy(loud_policy)
+
+
+@pytest.yield_fixture()
+def event_loop():
+    from moler.asyncio_runner import cancel_remaining_feeders
+
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    # shutdown all submitted futures
+    cancel_remaining_feeders(loop)
+    loop.close()

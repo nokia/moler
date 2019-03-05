@@ -84,7 +84,8 @@ class LoudEventLoop(asyncio.unix_events.SelectorEventLoop):
 
     def stop(self):
         logger = logging.getLogger('moler')
-        msg = "Called loop.stop() of {}".format(self)
+        loop_id = instance_id(self)
+        msg = "Called loop.stop() of {}:{}".format(loop_id, self)
         debug_into_logger(logger, msg=msg, levels_to_go_up=1)
         debug_into_logger(logger, msg=msg, levels_to_go_up=2)
         debug_into_logger(logger, msg=msg, levels_to_go_up=3)
@@ -95,7 +96,7 @@ class LoudEventLoopPolicy(asyncio.unix_events.DefaultEventLoopPolicy):
     _loop_factory = LoudEventLoop
 
 
-def thread_secure_get_event_loop():
+def thread_secure_get_event_loop(logger_name="moler.runner.asyncio"):
     """
     Need securing since asyncio.get_event_loop() when called from new thread
     may raise sthg like:
@@ -111,6 +112,9 @@ def thread_secure_get_event_loop():
     except RuntimeError as err:
         if "no current event loop in thread" in str(err):
             loop = asyncio.new_event_loop()
+            loop_id = instance_id(loop)
+            logger = logging.getLogger(logger_name)
+            logger.debug("created new event loop {}:{}".format(loop_id, loop))
             asyncio.set_event_loop(loop)
             new_loop = True
         else:
@@ -133,6 +137,40 @@ def _run_until_complete_cb(fut):
     fut._loop.stop()
 
 
+def feeder_callback(future):
+    """Used to recognize asyncio task as AsyncioRunner feeder"""
+    pass
+
+
+def is_feeder(task):
+    """We recognize asyncio task to be feeder if it has feeder_callback attached"""
+    removed_nb = task.remove_done_callback(feeder_callback)
+    return removed_nb > 0
+
+
+def handle_cancelled_feeder(connection_observer, observer_lock, logger, future):
+    if future.cancelled() and not connection_observer.cancelled():
+        logger.debug("cancelled {}".format(future))
+        with observer_lock:
+            if not connection_observer.done():
+                logger.debug("cancelling {}".format(connection_observer))
+                connection_observer.cancel()
+
+
+def cancel_remaining_feeders(loop, logger_name="moler.runner.asyncio"):
+    remaining = [task for task in asyncio.Task.all_tasks(loop=loop) if (not task.done()) and (is_feeder(task))]
+    if remaining:
+        logger = logging.getLogger(logger_name)
+        loop_id = instance_id(loop)
+        logger.debug("cancelling all remaining feeders of loop {}:".format(loop_id))
+        remaining_tasks = asyncio.gather(*remaining, loop=loop, return_exceptions=True)
+        for feeder in remaining:
+            logger.debug("  remaining {}:{}".format(instance_id(feeder), feeder))
+        remaining_tasks.cancel()
+        # Keep the event loop running until it is either destroyed or all tasks have really terminated
+        loop.run_until_complete(remaining_tasks)
+
+
 class AsyncioRunner(ConnectionObserverRunner):
     runner_lock = threading.Lock()
     last_runner_id = 0
@@ -146,7 +184,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         self.logger = logging.getLogger('{}:{}'.format(logger_name, self._id))
         self.logger.debug("created {}:{}".format(self.__class__.__name__, self._id))
         logging.getLogger("asyncio").setLevel(logging.DEBUG)
-        self._submitted_futures = []
+        self._submitted_futures = {}  # id(future): future
         self._started_ev_loops = []
         atexit.register(self.shutdown)
 
@@ -162,23 +200,26 @@ class AsyncioRunner(ConnectionObserverRunner):
                 self.logger.debug("before closing loops ({} owned loops): {}".format(owned_loops_nb,
                                                                                      sys_resources_usage_msg))
                 for owned_loop in self._started_ev_loops:
-                    sys.stderr.write("CLOSING EV_LOOP owned by AsyncioRunner {!r}\n".format(owned_loop))
-                    self.logger.debug("CLOSING EV_LOOP owned by AsyncioRunner {!r}".format(owned_loop))
-                    msg = "AsyncioRunner owned loop has still running task"
-                    for still_running_tasks in asyncio.Task.all_tasks(loop=owned_loop):
-                        sys.stderr.write("{}: {!r}\n".format(msg, still_running_tasks))
-                        self.logger.debug("{}: {!r}".format(msg, still_running_tasks))
+                    msg = "CLOSING EV_LOOP owned by AsyncioRunner {}:{!r}".format(instance_id(owned_loop), owned_loop)
+                    sys.stderr.write(msg + '\n')
+                    self.logger.debug(msg)
+                    cancel_remaining_feeders(owned_loop, logger_name=self.logger.name)
+                    remaining = [task for task in asyncio.Task.all_tasks(loop=owned_loop) if not task.done()]
+                    if remaining:
+                        msg = "AsyncioRunner owned loop has still running task"
+                        for still_running_task in remaining:
+                            msg = "{}: {!r}\n".format(msg, still_running_task)
+                            sys.stderr.write(msg + '\n')
+                            self.logger.debug(msg)
                     owned_loop.close()
                 self._started_ev_loops = []
                 sys_resources_usage_msg = system_resources_usage_msg(*system_resources_usage())
                 self.logger.debug("after closing loops: " + sys_resources_usage_msg)
 
-        # event_loop, its_new = thread_secure_get_event_loop()
-        # if not event_loop.is_closed():
-        #     remaining_tasks = asyncio.gather(*self._submitted_futures, return_exceptions=True)
-        #     remaining_tasks.cancel()
-        #     # cleanup_selected_tasks(tasks2cancel=self._submitted_futures, loop=event_loop, logger=self.logger)
-        self._submitted_futures = []
+        event_loop, its_new = thread_secure_get_event_loop(logger_name=self.logger.name)
+        if not event_loop.is_closed():
+            cancel_remaining_feeders(event_loop, logger_name=self.logger.name)
+        self._submitted_futures = {}
 
     def submit(self, connection_observer):
         """
@@ -216,7 +257,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         # As a corner case runner.wait_for() may timeout before feeding coroutine has started.
         #
         # duration of submit() is measured as around 0.0007sec (depends on machine).
-        event_loop, its_new = thread_secure_get_event_loop()
+        event_loop, its_new = thread_secure_get_event_loop(logger_name=self.logger.name)
         if its_new:
             with AsyncioRunner.runner_lock:
                 self._started_ev_loops.append(event_loop)
@@ -240,10 +281,14 @@ class AsyncioRunner(ConnectionObserverRunner):
                 self.logger.exception(err_msg)
                 raise
 
-        self._submitted_futures.append(connection_observer_future)
+        self._submitted_futures[id(connection_observer_future)] = connection_observer_future
         # need injecting new attribute inside asyncio.Future object
         # to allow passing lock to wait_for()
         connection_observer_future.observer_lock = observer_lock
+        connection_observer_future.add_done_callback(feeder_callback)
+        connection_observer_future.add_done_callback(functools.partial(handle_cancelled_feeder,
+                                                                       connection_observer,
+                                                                       observer_lock, self.logger))
         return connection_observer_future
 
     def wait_for(self, connection_observer, connection_observer_future, timeout=None):
@@ -303,8 +348,8 @@ class AsyncioRunner(ConnectionObserverRunner):
                                       timeout=fired_timeout, passed_time=passed, kind="await_done")
             finally:
                 connection_observer_future.cancel()
-                if connection_observer_future in self._submitted_futures:
-                    self._submitted_futures.remove(connection_observer_future)
+                if id(connection_observer_future) in self._submitted_futures:
+                    del self._submitted_futures[id(connection_observer_future)]
         return None
 
     @staticmethod
@@ -521,7 +566,8 @@ class AsyncioRunner(ConnectionObserverRunner):
             # Another words - it is not feed's exception but observer's exception so, it should not be raised here.
             #
         except asyncio.CancelledError:
-            self.logger.debug("cancelled {}.feed".format(self))
+            self.logger.debug("cancelling {}.feed".format(self))
+            # cancelling connection_observer is done inside handle_cancelled_feeder()
             raise  # need to reraise to inform "I agree for cancellation"
 
         finally:
