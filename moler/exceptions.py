@@ -88,7 +88,7 @@ class NoCommandStringProvided(MolerException):
 class NoDetectPatternProvided(MolerException):
     def __init__(self, command):
         """Create instance of NoDetectPatternProvided exception"""
-        fix_info = 'fill .detect_pattern or .detect_patterns member before starting event'
+        fix_info = 'fill .detect_patterns member before starting event'
         err_msg = 'for {}\nYou should {}'.format(command, fix_info)
         super(NoDetectPatternProvided, self).__init__(err_msg)
         self.command = command
