@@ -20,7 +20,6 @@ from moler.helpers import instance_id
 
 def test_event_has_means_to_retrieve_embedded_detect_pattern(lineevent_class):
     event_instance = lineevent_class()
-    assert hasattr(event_instance, "detect_pattern")
     assert hasattr(event_instance, "detect_patterns")
 
 
@@ -42,7 +41,6 @@ def test_event_string_is_required_to_start_command(lineevent_class):
 
     event_class = do_nothing_command_class(base_class=lineevent_class)
     event = event_class(connection=moler_conn)
-    assert not event.detect_pattern  # ensure it is empty before starting command
     assert not event.detect_patterns  # ensure it is empty before starting command
 
     with pytest.raises(NoDetectPatternProvided) as error:
@@ -57,7 +55,7 @@ def test_event_is_running(do_nothing_command__for_major_base_class):
             pass
 
     wait4.connection = TheConnection()
-    wait4.detect_pattern = 'Connection lose'
+    wait4.detect_patterns = ['Connection lose']
     assert not wait4.running()
     wait4.start()  # start the event-future
 
