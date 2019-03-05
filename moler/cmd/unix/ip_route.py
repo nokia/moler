@@ -466,7 +466,7 @@ COMMAND_RESULT_with_metric = {
 }
 
 COMMAND_OUTPUT_get = """host:~ # ip route get 10.0.2.0
-broadcast 10.0.2.0 dev eth0 src 10.0.2.15 
+broadcast 10.0.2.0 dev eth0 src 10.0.2.15
     cache <local,brd>
 host:~ # """
 
@@ -481,7 +481,7 @@ COMMAND_RESULT_get = {'ADDRESS': {
 }
 
 COMMAND_OUTPUT_get_from = """host:~ # ip route get 10.0.2.0 from 10.0.2.15
-broadcast 10.0.2.0 dev eth0 src 10.0.2.15 
+broadcast 10.0.2.0 dev eth0 src 10.0.2.15
     cache <local,brd>
 host:~ # """
 
