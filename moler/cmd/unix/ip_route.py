@@ -4,7 +4,7 @@ ip route command module.
 """
 
 __author__ = 'Yang Snackwell, Marcin Usielski, Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'snackwell.yang@nokia-sbell.com, marcin.usielski@nokia.com, grzegorz.latuszek@nokia.com'
 
 import re
