@@ -11,6 +11,13 @@ from moler.events.lineevent import LineEvent
 
 class Wait4(LineEvent):
     def __init__(self, connection, detect_patterns=list(), match='any', till_occurs_times=-1):
+        """
+        Event for Wait4 - universal event observer.
+        :param connection: moler connection to device, terminal when command is executed
+        :param detect_patterns: list of patterns
+        :param match: type of our awaiting. Possible values: any, all, sequence
+        :param till_occurs_times: number of event occurrence
+        """
         super(Wait4, self).__init__(connection=connection, match=match, till_occurs_times=till_occurs_times,
                                     detect_patterns=detect_patterns)
 
