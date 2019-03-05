@@ -40,6 +40,14 @@ def test_iproute_returns_proper_command_string(buffer_connection):
     assert "ip -6 route" == iproute_cmd.command_string
 
 
+def test_iproute_cancel(buffer_connection):
+    from moler.cmd.unix.ip_route import IpRoute
+    iproute_cmd = IpRoute(buffer_connection)
+    assert iproute_cmd.cancelled() is False
+    iproute_cmd.cancel()
+    assert iproute_cmd.cancelled() is True
+
+
 # --------------------------- resources
 
 
