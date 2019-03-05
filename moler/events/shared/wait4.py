@@ -10,9 +10,9 @@ from moler.events.lineevent import LineEvent
 
 
 class Wait4(LineEvent):
-    def __init__(self, connection, detect_pattern=None, detect_patterns=list(), match='any', till_occurs_times=-1):
+    def __init__(self, connection, detect_patterns=list(), match='any', till_occurs_times=-1):
         super(Wait4, self).__init__(connection=connection, match=match, till_occurs_times=till_occurs_times,
-                                    detect_pattern=detect_pattern, detect_patterns=detect_patterns)
+                                    detect_patterns=detect_patterns)
 
 
 EVENT_OUTPUT = """

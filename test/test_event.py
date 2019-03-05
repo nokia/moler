@@ -27,14 +27,13 @@ def test_event_has_means_to_retrieve_embedded_detect_pattern(lineevent_class):
 def test_str_conversion_of_event_object():
     class Wait4(LineEvent):
         def __init__(self, connection=None):
-            super(Wait4, self).__init__(connection=connection)
-            self.detect_pattern = 'Connection close'
+            super(Wait4, self).__init__(connection=connection, detect_patterns=['Connection close'])
 
         def data_received(self, data):
             pass  # not important now
 
     wait4 = Wait4()
-    assert 'Wait4("Connection close", id:{})'.format(instance_id(wait4)) == str(wait4)
+    assert 'Wait4(["Connection close"], id:{})'.format(instance_id(wait4)) == str(wait4)
 
 
 def test_event_string_is_required_to_start_command(lineevent_class):

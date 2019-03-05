@@ -20,8 +20,8 @@ class PingNoResponse(LineEvent):
         :param connection: moler connection to device, terminal when command is executed
         :param till_occurs_times: number of event occurrence
         """
-        super(PingNoResponse, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
-        self.detect_pattern = PingNoResponse._re_detect_pattern
+        super(PingNoResponse, self).__init__(connection=connection, till_occurs_times=till_occurs_times,
+                                             detect_patterns=[PingNoResponse._re_detect_pattern], match='any')
 
 
 EVENT_OUTPUT = """ute@SC5G-HUB-079:~$ ping -O 192.168.255.126

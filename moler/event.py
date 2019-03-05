@@ -63,3 +63,7 @@ class Event(ConnectionObserver):
 
     def get_short_desc(self):
         return "Event '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)
+
+    def get_last_occurrence(self):
+        if self._occurred is not None:
+            return self._occurred[-1]

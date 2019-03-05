@@ -5,14 +5,13 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 import datetime
 
-from moler.events.lineevent import LineEvent
+from moler.events.shared import Wait4
 
 
-class Wait4prompt(LineEvent):
+class Wait4prompt(Wait4):
     def __init__(self, connection, prompt, till_occurs_times=-1):
-        super(Wait4prompt, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
-        self.connection = connection
-        self.detect_pattern = prompt
+        super(Wait4prompt, self).__init__(connection=connection, till_occurs_times=till_occurs_times,
+                                          detect_patterns=[prompt], match='any')
 
 
 EVENT_OUTPUT = """

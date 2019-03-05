@@ -13,9 +13,8 @@ from moler.helpers import instance_id, copy_list
 
 
 class LineEvent(TextualEvent):
-    def __init__(self, detect_pattern=None, detect_patterns=list(), connection=None, till_occurs_times=-1, match='any'):
+    def __init__(self, detect_patterns=list(), connection=None, till_occurs_times=-1, match='any'):
         super(LineEvent, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
-        self.detect_pattern = detect_pattern
         self.detect_patterns = copy_list(detect_patterns)
         self.process_full_lines_only = False
         self.match = match
@@ -68,12 +67,7 @@ class LineEvent(TextualEvent):
         if match in parsers:
             return parsers[match]
 
-    def _set_detect_patterns(self):
-        if self.detect_pattern and not self.detect_patterns:
-            self.detect_patterns = [self.detect_pattern]
-
     def _prepare_parameters(self, match):
-        self._set_detect_patterns()
         self.parser = self.get_parser(match)
         self.detect_patterns = self.compile_patterns(self.detect_patterns)
 
@@ -122,7 +116,7 @@ CLIENT5 [] has just connected!
 host:~ #"""
 
 EVENT_KWARGS_single_pattern = {
-    "detect_pattern": r'host:.*#',
+    "detect_patterns": [r'host:.*#'],
     "till_occurs_times": 1
 }
 
@@ -144,8 +138,8 @@ CLIENT5 [] has just connected!
 host:~ #"""
 
 EVENT_KWARGS_patterns_list = {
-    "detect_pattern": r'host:.*#',
-    "till_occurs_times": 1
+    "detect_patterns": ['Last login', r'host:.*#'],
+    "till_occurs_times": 2
 }
 
 EVENT_RESULT_patterns_list = [

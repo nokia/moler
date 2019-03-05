@@ -20,8 +20,8 @@ class PingResponse(LineEvent):
         :param connection: moler connection to device, terminal when command is executed
         :param till_occurs_times: number of event occurrence
         """
-        super(PingResponse, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
-        self.detect_pattern = PingResponse._re_detect_pattern
+        super(PingResponse, self).__init__(connection=connection, till_occurs_times=till_occurs_times,
+                                           detect_patterns=[PingResponse._re_detect_pattern], match='any')
 
 
 EVENT_OUTPUT = """
