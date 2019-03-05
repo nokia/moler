@@ -36,7 +36,7 @@ class LineEvent(TextualEvent):
         # check base class invariants first
         super(LineEvent, self)._validate_start(*args, **kwargs)
         # then what is needed for command
-        if not self.detect_pattern and not self.detect_patterns:
+        if not self.detect_patterns:
             # no chance to start CMD
             raise NoDetectPatternProvided(self)
 
