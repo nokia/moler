@@ -5,7 +5,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 import datetime
 
-from moler.events.shared import Wait4
+from moler.events.shared.wait4 import Wait4
 
 
 class Wait4prompt(Wait4):
