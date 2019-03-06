@@ -149,12 +149,11 @@ def is_feeder(task):
 
 
 def handle_cancelled_feeder(connection_observer, observer_lock, logger, future):
-    if future.cancelled() and not connection_observer.cancelled():
+    if future.cancelled() and not connection_observer.done():
         logger.debug("cancelled {}".format(future))
         with observer_lock:
-            if not connection_observer.done():
-                logger.debug("cancelling {}".format(connection_observer))
-                connection_observer.cancel()
+            logger.debug("cancelling {}".format(connection_observer))
+            connection_observer.cancel()
 
 
 def cancel_remaining_feeders(loop, logger_name="moler.runner.asyncio"):
@@ -167,8 +166,11 @@ def cancel_remaining_feeders(loop, logger_name="moler.runner.asyncio"):
         for feeder in remaining:
             logger.debug("  remaining {}:{}".format(instance_id(feeder), feeder))
         remaining_tasks.cancel()
-        # Keep the event loop running until it is either destroyed or all tasks have really terminated
-        loop.run_until_complete(remaining_tasks)
+        if loop.is_running():
+            remaining_tasks.add_done_callback(lambda t: loop.stop())
+        else:
+            # Keep the event loop running until it is either destroyed or all tasks have really terminated
+            loop.run_until_complete(remaining_tasks)
 
 
 class AsyncioRunner(ConnectionObserverRunner):
