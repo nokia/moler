@@ -4,7 +4,7 @@ Tests for helpers functions/classes.
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import mock
@@ -78,3 +78,13 @@ def test_copy_dict():
     assert src == dst
     dst['a'] = 2
     assert src != dst
+
+
+def test_regex_helper():
+    from moler.cmd import RegexHelper
+    regex_helper = RegexHelper()
+    assert regex_helper is not None
+    match = regex_helper.match(r"\d+(\D+)\d+", "111ABC222")
+    assert match is not None
+    assert match == regex_helper.get_match()
+    assert regex_helper.group(1) == "ABC"
