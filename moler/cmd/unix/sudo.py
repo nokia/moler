@@ -136,6 +136,9 @@ class Sudo(GenericUnixCommand):
                 self._sent_sudo_password = True
             raise ParsingDone()
 
+    def _validate_start(self, *args, **kwargs):
+        return super(Sudo, self)
+
 
 COMMAND_OUTPUT_whoami = """
 user@client:~/moler$ sudo whoami
