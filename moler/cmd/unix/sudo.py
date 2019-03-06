@@ -137,7 +137,10 @@ class Sudo(GenericUnixCommand):
             raise ParsingDone()
 
     def _validate_start(self, *args, **kwargs):
-        return super(Sudo, self)
+        if self.cmd_object and self.cmd_object.done():
+            exc = CommandFailure(self, "Not allowed to run again the embeded command (embeded command is done): {}.".format(self.cmd_object))
+            self.set_exception(exception=exc)
+        return super(Sudo, self)._validate_start(*args, **kwargs)
 
 
 COMMAND_OUTPUT_whoami = """
