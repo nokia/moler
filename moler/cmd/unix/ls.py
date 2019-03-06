@@ -4,7 +4,7 @@ Ls command module.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
@@ -12,9 +12,13 @@ import re
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.util.converterhelper import ConverterHelper
 from moler.exceptions import ResultNotAvailableYet
+from moler.exceptions import ParsingDone
 
 
 class Ls(GenericUnixCommand):
+
+    """Unix command ls"""
+
     _re_files_list = re.compile(r"\S{2,}")
     _re_total = re.compile(r"total\s+(\d+\S*)")
     _re_long = re.compile(r"([\w-]{10})\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S.*\S)\s+(\S+)\s*$")
@@ -22,6 +26,8 @@ class Ls(GenericUnixCommand):
 
     def __init__(self, connection, prompt=None, newline_chars=None, options=None, runner=None):
         """
+        Unix command ls
+
         :param connection: Moler connection to device, terminal when command is executed.
         :param prompt: prompt (on system where command runs).
         :param newline_chars: Characters to split lines - list.
@@ -30,55 +36,121 @@ class Ls(GenericUnixCommand):
         """
         super(Ls, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self._converter_helper = ConverterHelper()
+        self.current_ret["files"] = dict()
         # Parameters defined by calling the command
         self.options = options
+
+    def get_dirs(self):
+        """
+        Returns only directories (folders) from command output
+
+        :return: Dict, key is item, value is parsed information about item
+        """
+        return self._get_types('d')
+
+    def get_links(self):
+        """
+        Returns only links from command output
+
+        :return: Dict, key is item, value is parsed information about item
+        """
+        return self._get_types('l')
+
+    def get_files(self):
+        """
+        Returns only files from command output
+
+        :return: Dict, key is item, value is parsed information about item
+        """
+        return self._get_types('-')
 
     def build_command_string(self):
         """
         Builds command string from parameters passed to object.
+
         :return: String representation of command to send over connection to device.
         """
         cmd = "ls"
         if self.options:
-            cmd = cmd + " " + self.options
+            cmd = "{} {}".format(cmd, self.options)
         return cmd
 
     def on_new_line(self, line, is_full_line):
         """
-        Put your parsing code here.
+        Processes line from output form connection/device.
+
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
         :return: Nothing
         """
-        if not is_full_line:
-            return super(Ls, self).on_new_line(line, is_full_line)
+        if is_full_line:
+            try:
+                self._parse_total(line)
+                self._parse_long_links(line)
+                self._parse_long_file(line)
+                self._parse_files_list(line)
+            except ParsingDone:
+                pass
+        return super(Ls, self).on_new_line(line, is_full_line)
+
+    def _parse_files_list(self, line):
+        """
+        Parses list of files.
+
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if matches success.
+        """
+        if self._regex_helper.search_compiled(Ls._re_files_list, line):
+            files = line.split()
+            for filename in files:
+                self.current_ret["files"][filename] = dict()
+                self.current_ret["files"][filename]["name"] = filename
+            raise ParsingDone()
+
+    def _parse_long_file(self, line):
+        """
+        Parses line with long information with file or directory.
+
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if matches success.
+        """
+        if self._regex_helper.search_compiled(Ls._re_long, line):
+            self._add_new_file_long(False)
+            raise ParsingDone()
+
+    def _parse_long_links(self, line):
+        """
+        Parses line with long information with link.
+
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if matches success.
+        """
+        if self._regex_helper.search_compiled(Ls._re_long_links, line):
+            self._add_new_file_long(True)
+            raise ParsingDone()
+
+    def _parse_total(self, line):
+        """
+        Parses information about total in ls output.
+
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if matches success.
+        """
         if self._regex_helper.search_compiled(Ls._re_total, line):
             if "total" not in self.current_ret:
                 self.current_ret["total"] = dict()
             self.current_ret["total"]["raw"] = self._regex_helper.group(1)
             self.current_ret["total"]["bytes"] = self._converter_helper.to_bytes(self._regex_helper.group(1))[0]
-        elif self._regex_helper.search_compiled(Ls._re_long_links, line):
-            self._add_new_file_long(True)
-        elif self._regex_helper.search_compiled(Ls._re_long, line):
-            self._add_new_file_long(False)
-        elif self._regex_helper.search_compiled(Ls._re_files_list, line):
-            files = line.split()
-            if "files" not in self.current_ret:
-                self.current_ret["files"] = dict()
-            for filename in files:
-                self.current_ret["files"][filename] = dict()
-                self.current_ret["files"][filename]["name"] = filename
-        return super(Ls, self).on_new_line(line, is_full_line)
+            raise ParsingDone()
 
     def _add_new_file_long(self, islink):
         """
-        Method to add parsed output to command ret.
+        Adds parsed output to command ret.
+
         :param islink: True if parsed output is link or False otherwise.
         :return: Nothing.
         """
         filename = self._regex_helper.group(7)
-        if "files" not in self.current_ret:
-            self.current_ret["files"] = dict()
         self.current_ret["files"][filename] = dict()
         self.current_ret["files"][filename]["permissions"] = self._regex_helper.group(1)
         self.current_ret["files"][filename]["hard_links_count"] = int(self._regex_helper.group(2))
@@ -111,27 +183,6 @@ class Ls(GenericUnixCommand):
                 if requested_type == current_type:
                     ret[file_name] = file_dict
         return ret
-
-    def get_dirs(self):
-        """
-        Returns only directories (folders) from command output
-        :return: Dict, key is item, value is parsed information about item
-        """
-        return self._get_types('d')
-
-    def get_links(self):
-        """
-        Returns only links from command output
-        :return: Dict, key is item, value is parsed information about item
-        """
-        return self._get_types('l')
-
-    def get_files(self):
-        """
-        Returns only files from command output
-        :return: Dict, key is item, value is parsed information about item
-        """
-        return self._get_types('-')
 
 
 COMMAND_OUTPUT_ver_human = """
@@ -220,5 +271,16 @@ COMMAND_RESULT_ver_plain = {
         ".kde4": {"name": ".kde4"},
         ".bash_history": {"name": ".bash_history"},
         "Downloads": {"name": "Downloads"},
+    },
+}
+
+COMMAND_OUTPUT_no_output = """
+host:~/tmp/a$ ls
+host:~/tmp/a$"""
+
+COMMAND_KWARGS_no_output = {}
+
+COMMAND_RESULT_no_output = {
+    "files": {
     },
 }
