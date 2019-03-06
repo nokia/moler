@@ -166,9 +166,7 @@ def cancel_remaining_feeders(loop, logger_name="moler.runner.asyncio"):
         for feeder in remaining:
             logger.debug("  remaining {}:{}".format(instance_id(feeder), feeder))
         remaining_tasks.cancel()
-        if loop.is_running():
-            remaining_tasks.add_done_callback(lambda t: loop.stop())
-        else:
+        if not loop.is_running():
             # Keep the event loop running until it is either destroyed or all tasks have really terminated
             loop.run_until_complete(remaining_tasks)
 
