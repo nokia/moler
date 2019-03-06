@@ -148,12 +148,15 @@ def is_feeder(task):
     return removed_nb > 0
 
 
-def handle_cancelled_feeder(connection_observer, observer_lock, logger, future):
+def handle_cancelled_feeder(connection_observer, observer_lock, subscribed_data_receiver, logger, future):
     if future.cancelled() and not connection_observer.done():
         logger.debug("cancelled {}".format(future))
         with observer_lock:
             logger.debug("cancelling {}".format(connection_observer))
             connection_observer.cancel()
+        logger.debug("unsubscribing {}".format(connection_observer))
+        moler_conn = connection_observer.connection
+        moler_conn.unsubscribe(subscribed_data_receiver)
 
 
 def cancel_remaining_feeders(loop, logger_name="moler.runner.asyncio"):
@@ -288,7 +291,9 @@ class AsyncioRunner(ConnectionObserverRunner):
         connection_observer_future.add_done_callback(feeder_callback)
         connection_observer_future.add_done_callback(functools.partial(handle_cancelled_feeder,
                                                                        connection_observer,
-                                                                       observer_lock, self.logger))
+                                                                       observer_lock,
+                                                                       subscribed_data_receiver,
+                                                                       self.logger))
         return connection_observer_future
 
     def wait_for(self, connection_observer, connection_observer_future, timeout=None):
