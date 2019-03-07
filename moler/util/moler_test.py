@@ -2,7 +2,6 @@
 """
 Utility/common code of library.
 """
-import threading
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018-2019, Nokia'
