@@ -49,6 +49,10 @@ def test_moler_test_raise_exception_when_no_steps_end_for_global_method():
         moler_test_raise_exception_when_no_steps_end_for_global_method()
 
 
+def test_moler_test_not_raise_exception_when_no_steps_end_for_global_method():
+    moler_test_not_raise_exception_when_no_steps_end_for_global_method()
+
+
 # connection observer running in background thread may raise exception
 # but such exception is not visible inside MainThread
 # However, in all such cases connection observer stores exception via conn_obs.set_exception()
@@ -367,6 +371,11 @@ def moler_test():
 
 @MolerTest.raise_background_exceptions(check_steps_end=True)
 def moler_test_raise_exception_when_no_steps_end_for_global_method():
+    MolerTest.info("Start global method with log and without steps_end")
+
+
+@MolerTest.raise_background_exceptions
+def moler_test_not_raise_exception_when_no_steps_end_for_global_method():
     MolerTest.info("Start global method with log and without steps_end")
 
 
