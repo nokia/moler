@@ -375,6 +375,12 @@ def moler_test_raise_exception_when_no_steps_end_for_global_method():
 
 
 @MolerTest.raise_background_exceptions
+@MolerTest.raise_background_exceptions
+def moler_test_not_raise_exception_when_no_steps_end_for_global_method_twice():
+    MolerTest.info("Start global method with log and without steps_end")
+
+
+@MolerTest.raise_background_exceptions
 def moler_test_not_raise_exception_when_no_steps_end_for_global_method():
     MolerTest.info("Start global method with log and without steps_end")
 
