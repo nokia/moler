@@ -20,6 +20,12 @@ def test_moler_test_not_raise_exception_when_no_steps_end_for_global_method_twic
     moler_test_not_raise_exception_when_no_steps_end_for_global_method_twice()
 
 
+def test_moler_test_raise_exception_when_not_callable_passed():
+    var="blabla"
+    with pytest.raises(MolerStatusException):
+        MolerTest._decorate(var)
+
+
 def test_moler_test_not_raise_exception_when_steps_end(moler_test_se):
     ConnectionObserver.get_unraised_exceptions()
     moler_test_se.test_not_raise_exception_when_steps_end()
