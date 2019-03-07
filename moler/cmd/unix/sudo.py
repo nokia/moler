@@ -17,13 +17,13 @@ from moler.helpers import copy_dict
 
 class Sudo(GenericUnixCommand):
 
-    def __init__(self, connection, sudo_password, cmd_object=None, cmd_class_name=None, cmd_params=None, prompt=None,
+    def __init__(self, connection, password, cmd_object=None, cmd_class_name=None, cmd_params=None, prompt=None,
                  newline_chars=None, runner=None, encrypt_password=True):
         """
         Constructs object for Unix command sudo.
 
         :param connection: Moler connection to device, terminal when command is executed.
-        :param sudo_password: password for sudo.
+        :param password: password for sudo.
         :param cmd_object: object of command. Pass this object or cmd_class_name.
         :param cmd_class_name: full (with package) class name. Pass this name or cmd_object.
         :param cmd_params: params for cmd_class_name. If cmd_object is passed this parameter is ignored.
@@ -33,7 +33,7 @@ class Sudo(GenericUnixCommand):
         :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text.
         """
         super(Sudo, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
-        self.sudo_password = sudo_password
+        self.password = password
         self.cmd_object = cmd_object
         self.encrypt_password = encrypt_password
         self._sent_sudo_password = False
@@ -132,7 +132,7 @@ class Sudo(GenericUnixCommand):
         """
         if re.search(Sudo._re_sudo_password, line):
             if not self._sent_sudo_password:
-                self.connection.sendline(self.sudo_password, encrypt=self.encrypt_password)
+                self.connection.sendline(self.password, encrypt=self.encrypt_password)
                 self._sent_sudo_password = True
             raise ParsingDone()
 
@@ -155,7 +155,7 @@ COMMAND_RESULT_whoami = {
 
 COMMAND_KWARGS_whoami = {
     "cmd_class_name": "moler.cmd.unix.whoami.Whoami",
-    "sudo_password": "pass",
+    "password": "pass",
 }
 
 COMMAND_OUTPUT_ls = """
@@ -202,5 +202,5 @@ COMMAND_RESULT_ls = {
 COMMAND_KWARGS_ls = {
     "cmd_class_name": "moler.cmd.unix.ls.Ls",
     "cmd_params": {"options": "-l"},
-    "sudo_password": "pass",
+    "password": "pass",
 }
