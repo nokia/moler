@@ -204,9 +204,9 @@ class MolerTest(object):
 
                     if not attributeName.startswith("_"):
                         if isinstance(attribute, (FunctionType, MethodType)):
-                            setattr(obj, attributeName, MolerTest._wrapper(attribute, check_steps_end))
+                            setattr(obj, attributeName, MolerTest._wrapper(attribute, check_steps_end=check_steps_end))
             else:
-                obj = MolerTest._wrapper(obj, True)
+                obj = MolerTest._wrapper(obj, check_steps_end=check_steps_end)
         else:
             raise MolerStatusException("No '__dict__' in decorated object.")
 
