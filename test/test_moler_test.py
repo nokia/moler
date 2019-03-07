@@ -23,7 +23,7 @@ def test_moler_test_not_raise_exception_when_no_steps_end_for_global_method_twic
 
 def test_moler_test_raise_exception_when_not_callable_passed():
     ConnectionObserver.get_unraised_exceptions()
-    var = "blabla"
+    var = "no callable"
     with pytest.raises(MolerStatusException):
         MolerTest._decorate(var)
 
