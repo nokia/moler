@@ -85,8 +85,8 @@ def test_failing_with_both_parameters(buffer_connection, command_output_cp_fails
     command_output = command_output_cp_fails
     buffer_connection.remote_inject_response([command_output])
     cmd_cp = Cp(connection=buffer_connection.moler_connection, src="src.txt", dst="dst.txt")
-    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass", cmd_object=cmd_cp,
-                    cmd_class_name="moler.cmd.unix.cp.Cp")
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, cmd_class_name="moler.cmd.unix.cp.Cp",
+                    cmd_object=cmd_cp, password="pass")
     with pytest.raises(CommandFailure):
         cmd_sudo()
 
