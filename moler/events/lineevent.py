@@ -72,7 +72,9 @@ class LineEvent(TextualEvent):
         self.compiled_patterns = self.compile_patterns(self.detect_patterns)
 
         if match in ['all', 'sequence']:
-            self.till_occurs_times = len(self.detect_patterns)
+            self.finished_cycles = 0
+            self.number_of_cycles = self.till_occurs_times
+            self.till_occurs_times = len(self.detect_patterns) * self.till_occurs_times
             self.copy_compiled_patterns = copy_list(self.compiled_patterns)
 
     def _parse_line(self, line):
@@ -94,6 +96,7 @@ class LineEvent(TextualEvent):
         for index, pattern in enumerate(self.copy_compiled_patterns):
             if re.search(pattern, line):
                 del self.copy_compiled_patterns[index]
+                self._prepare_parameters_when_single_cycle_finished()
                 self._set_current_ret(line=line)
                 return
 
@@ -102,7 +105,16 @@ class LineEvent(TextualEvent):
             pattern = self.copy_compiled_patterns[0]
             if re.search(pattern, line):
                 del self.copy_compiled_patterns[0]
+                self._prepare_parameters_when_single_cycle_finished()
                 self._set_current_ret(line=line)
+
+    def _prepare_new_cycle_parameters(self):
+        self.finished_cycles += 1
+        self.copy_compiled_patterns = copy_list(self.compiled_patterns)
+
+    def _prepare_parameters_when_single_cycle_finished(self):
+        if not len(self.copy_compiled_patterns):
+            self._prepare_new_cycle_parameters()
 
 
 EVENT_OUTPUT_single_pattern = """
@@ -143,6 +155,10 @@ EVENT_KWARGS_patterns_list = {
 }
 
 EVENT_RESULT_patterns_list = [
+    {
+        'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
+        'line': "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1"
+    },
     {
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
         'line': "host:~ #"
