@@ -304,15 +304,15 @@ class UnixRemote(UnixLocal):
     def _get_packages_for_state(self, state, observer):
         if state == UnixLocal.unix_local:
             available = {UnixLocal.cmds: ['moler.cmd.unix'],
-                         UnixLocal.events: ['moler.events.unix']}
+                         UnixLocal.events: ['moler.events.shared', 'moler.events.unix']}
             return available[observer]
         elif state == UnixRemote.unix_remote:
             available = {UnixLocal.cmds: ['moler.cmd.unix'],
-                         UnixLocal.events: ['moler.events.unix']}
+                         UnixLocal.events: ['moler.events.shared', 'moler.events.unix']}
             return available[observer]
         elif state == UnixRemote.proxy_pc:
             available = {UnixLocal.cmds: ['moler.cmd.unix'],
-                         UnixLocal.events: ['moler.events.unix']}
+                         UnixLocal.events: ['moler.events.shared', 'moler.events.unix']}
             return available[observer]
         return []
 
