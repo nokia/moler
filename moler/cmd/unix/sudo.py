@@ -137,6 +137,12 @@ class Sudo(GenericUnixCommand):
             raise ParsingDone()
 
     def _validate_start(self, *args, **kwargs):
+        """
+        Validates internal data before start.
+        :param args: args passed to super _validate_start
+        :param kwargs: kwargs passed to super _validate_start
+        :return: Nothing
+        """
         if self.cmd_object and self.cmd_object.done():
             exc = CommandFailure(self, "Not allowed to run again the embeded command (embeded command is done): {}.".format(self.cmd_object))
             self.set_exception(exception=exc)
