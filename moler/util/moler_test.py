@@ -2,7 +2,6 @@
 """
 Utility/common code of library.
 """
-import threading
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018-2019, Nokia'
@@ -183,7 +182,7 @@ class MolerTest(object):
     @staticmethod
     def _check_steps_end():
         if not MolerTest._was_steps_end:
-            err_msg = "Method 'steps_end()' was not called.\n"
+            err_msg = "Method 'steps_end()' was not called or parameter 'check_steps_end' was not set properly.\n."
             MolerTest._error(err_msg)
             MolerTest._was_error = False
             raise MolerStatusException(err_msg)
@@ -205,9 +204,9 @@ class MolerTest(object):
 
                     if not attributeName.startswith("_"):
                         if isinstance(attribute, (FunctionType, MethodType)):
-                            setattr(obj, attributeName, MolerTest._wrapper(attribute, check_steps_end))
+                            setattr(obj, attributeName, MolerTest._wrapper(attribute, check_steps_end=check_steps_end))
             else:
-                obj = MolerTest._wrapper(obj, True)
+                obj = MolerTest._wrapper(obj, check_steps_end=check_steps_end)
         else:
             raise MolerStatusException("No '__dict__' in decorated object.")
 
