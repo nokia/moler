@@ -17,6 +17,8 @@ from moler.helpers import copy_dict
 
 class Sudo(GenericUnixCommand):
 
+    """Unix command sudo"""
+
     def __init__(self, connection, password, cmd_object=None, cmd_class_name=None, cmd_params=None, prompt=None,
                  newline_chars=None, runner=None, encrypt_password=True):
         """
@@ -139,6 +141,7 @@ class Sudo(GenericUnixCommand):
     def _validate_start(self, *args, **kwargs):
         """
         Validates internal data before start.
+
         :param args: args passed to super _validate_start
         :param kwargs: kwargs passed to super _validate_start
         :return: Nothing
