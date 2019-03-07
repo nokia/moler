@@ -183,7 +183,7 @@ class MolerTest(object):
     @staticmethod
     def _check_steps_end():
         if not MolerTest._was_steps_end:
-            err_msg = "Method 'steps_end()' was not called.\n"
+            err_msg = "Method 'steps_end()' was not called or parameter 'check_steps_end' was not set properly.\n."
             MolerTest._error(err_msg)
             MolerTest._was_error = False
             raise MolerStatusException(err_msg)
