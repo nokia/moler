@@ -38,7 +38,7 @@ class UnixLocal(TextualDevice):
 
     def _get_default_sm_configuration(self):
         config = super(UnixLocal, self)._get_default_sm_configuration()
-        extended_config = {
+        default_config = {
             UnixLocal.connection_hops: {
                 UnixLocal.unix_local: {  # from
                     UnixLocal.unix_local_root: {  # to
@@ -65,7 +65,7 @@ class UnixLocal(TextualDevice):
                 }
             }
         }
-        self._update_dict(config, extended_config)
+        self._update_dict(config, default_config)
         return config
 
     def _prepare_transitions(self):
