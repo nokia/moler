@@ -28,7 +28,7 @@ class CtrlC(GenericUnixCommand):
         """
         super(CtrlC, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.ret_required = False
-
+        self.break_on_timeout = False  # If True then Ctrl+c on timeout
         self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(expected_prompt)  # Expected prompt on device
 
     def build_command_string(self):
