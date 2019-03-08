@@ -46,6 +46,9 @@ class CommandTextualGeneric(Command):
         self._newline_chars = newline_chars  # New line characters on device
         self.do_not_process_after_done = True  # Set True if you want to break processing data when command is done. If
         # False then on_new_line will be called after done if more lines are in the same data package.
+        self.newline_after_command_string = True  # Set True if you want to send a new line char(s) after command
+        # string (sendline from connection)- most cases. Set False if you want to sent command string without adding
+        # new line char(s) - send from connection.
 
         if not self._newline_chars:
             self._newline_chars = CommandTextualGeneric._default_newline_chars
@@ -210,3 +213,15 @@ class CommandTextualGeneric(Command):
         if self.current_ret:
             is_ret = True
         return is_ret
+
+    def send_command(self):
+        """
+        Sends command string over connection.
+
+        :return: Nothing
+        """
+        # TODO: Update runner after asyncio merge.
+        if self.newline_after_command_string:
+            self.connection.sendline(self.command_string)
+        else:
+            self.connection.send(self.command_string)
