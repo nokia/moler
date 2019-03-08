@@ -42,10 +42,10 @@ class UnixRemote(UnixLocal):
     def _get_default_sm_configuration(self):
         config = super(UnixRemote, self)._get_default_sm_configuration()
         if self.use_proxy_pc:
-            extended_config = self._get_default_sm_configuration_with_proxy_pc()
+            default_config = self._get_default_sm_configuration_with_proxy_pc()
         else:
-            extended_config = self._get_default_sm_configuration_without_proxy_pc()
-        self._update_dict(config, extended_config)
+            default_config = self._get_default_sm_configuration_without_proxy_pc()
+        self._update_dict(config, default_config)
         return config
 
     def _get_default_sm_configuration_with_proxy_pc(self):
