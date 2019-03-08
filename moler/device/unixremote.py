@@ -101,7 +101,8 @@ class UnixRemote(UnixLocal):
         return config
 
     def _get_default_sm_configuration_without_proxy_pc(self):
-        config = {
+        config = super(UnixRemote, self)._get_default_sm_configuration()
+        extended_config = {
             UnixRemote.connection_hops: {
                 UnixRemote.unix_local: {  # from
                     UnixRemote.unix_remote: {  # to
@@ -130,6 +131,7 @@ class UnixRemote(UnixLocal):
                 }
             }
         }
+        self._update_dict(config, extended_config)
         return config
 
     def _prepare_transitions(self):
@@ -276,13 +278,16 @@ class UnixRemote(UnixLocal):
             UnixLocal.not_connected: {
                 UnixRemote.unix_remote: UnixRemote.unix_local,
                 UnixRemote.proxy_pc: UnixRemote.unix_local,
+                UnixRemote.unix_local_root: UnixRemote.unix_local
             },
             UnixRemote.unix_remote: {
                 UnixRemote.not_connected: UnixRemote.proxy_pc,
                 UnixRemote.unix_local: UnixRemote.proxy_pc,
+                UnixRemote.unix_local_root: UnixRemote.unix_local
             },
             UnixRemote.proxy_pc: {
-                UnixRemote.not_connected: UnixRemote.unix_local
+                UnixRemote.not_connected: UnixRemote.unix_local,
+                UnixRemote.unix_local_root: UnixRemote.unix_local
             },
             UnixRemote.unix_local: {
                 UnixRemote.unix_remote: UnixRemote.proxy_pc
@@ -294,15 +299,17 @@ class UnixRemote(UnixLocal):
         state_hops = {
             UnixLocal.not_connected: {
                 UnixRemote.unix_remote: UnixLocal.unix_local,
+                UnixRemote.unix_local_root: UnixLocal.unix_local,
             },
             UnixRemote.unix_remote: {
-                UnixLocal.not_connected: UnixLocal.unix_local
+                UnixLocal.not_connected: UnixLocal.unix_local,
+                UnixLocal.unix_local_root: UnixLocal.unix_local
             }
         }
         return state_hops
 
     def _get_packages_for_state(self, state, observer):
-        if state == UnixLocal.unix_local:
+        if state == UnixLocal.unix_local or state == UnixLocal.unix_local_root:
             available = {UnixLocal.cmds: ['moler.cmd.unix'],
                          UnixLocal.events: ['moler.events.unix']}
             return available[observer]

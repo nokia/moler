@@ -37,7 +37,8 @@ class UnixLocal(TextualDevice):
                                         variant=variant, initial_state=initial_state)
 
     def _get_default_sm_configuration(self):
-        config = {
+        config = super(UnixLocal, self)._get_default_sm_configuration()
+        extended_config = {
             UnixLocal.connection_hops: {
                 UnixLocal.unix_local: {  # from
                     UnixLocal.unix_local_root: {  # to
@@ -63,6 +64,7 @@ class UnixLocal(TextualDevice):
                 }
             }
         }
+        self._update_dict(config, extended_config)
         return config
 
     def _prepare_transitions(self):
@@ -86,8 +88,10 @@ class UnixLocal(TextualDevice):
                     "action": [
                         "_open_connection"
                     ],
-                },
-                UnixLocal.unix_local_root: {
+                }
+            },
+            UnixLocal.unix_local_root: {
+                UnixLocal.unix_local: {
                     "action": [
                         "_execute_command_to_change_state"
                     ]
