@@ -410,8 +410,8 @@ class UnixRemote(UnixLocal):
         if self.use_proxy_pc:
             self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote_root][UnixRemote.unix_remote][
                 "command_params"]["expected_prompt"] = \
-            self._configurations[UnixRemote.connection_hops][UnixRemote.proxy_pc][UnixRemote.unix_remote][
-                "command_params"]["expected_prompt"]
+                self._configurations[UnixRemote.connection_hops][UnixRemote.proxy_pc][UnixRemote.unix_remote][
+                    "command_params"]["expected_prompt"]
         else:
             self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote_root][UnixRemote.unix_remote][
                 "command_params"]["expected_prompt"] = \
