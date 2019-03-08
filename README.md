@@ -12,7 +12,7 @@
 3. [API design reasoning](#api-design-reasoning)
 4. [Designed API](#designed-api)
 
-# Moler
+# ![moler logo](graphics/moler_logo_small.png)
 Moler ([name origin](https://github.com/nokia/moler/wiki#moler-name-origin)) is Python library
 that provides "bricks" for building  automated tests.
 All these "bricks" have clearly defined responsibilities, have similar API,
