@@ -525,8 +525,8 @@ class TextualDevice(object):
         return prompt
 
     def _configure_state_machine(self, sm_params):
-        configuration = self._get_default_sm_configuration()
-        self._configurations = self._prepare_sm_configuration(configuration, sm_params)
+        default_sm_configurations = self._get_default_sm_configuration()
+        self._configurations = self._prepare_sm_configuration(default_sm_configurations, sm_params)
         self._validate_device_configuration()
         self._prepare_state_prompts()
 
