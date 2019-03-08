@@ -45,7 +45,8 @@ class UnixLocal(TextualDevice):
                         "execute_command": "su",  # using command
                         "command_params": {  # with parameters
                             "password": "root_password",
-                            "expected_prompt": r'root@'
+                            "expected_prompt": r'root@',
+                            "target_newline": "\n"
                         },
                         "required_command_params": [
                         ]
