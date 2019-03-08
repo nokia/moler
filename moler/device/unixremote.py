@@ -316,16 +316,6 @@ class UnixRemote(UnixLocal):
             return available[observer]
         return []
 
-    def _execute_command_to_change_state(self, source_state, dest_state, timeout=-1):
-        configurations = self.get_configurations(source_state=source_state, dest_state=dest_state)
-
-        command_name = configurations["execute_command"]
-        command_params = configurations["command_params"]
-
-        command_timeout = self.calc_timeout_for_command(timeout, command_params)
-        command = self.get_cmd(cmd_name=command_name, cmd_params=command_params)
-        command(timeout=command_timeout)
-
 
 """
 Example of device in yaml configuration file:
