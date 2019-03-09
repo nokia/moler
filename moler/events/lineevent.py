@@ -80,33 +80,39 @@ class LineEvent(TextualEvent):
     def _parse_line(self, line):
         self.parser(line=line)
 
-    def _set_current_ret(self, line):
+    def _set_current_ret(self, line, match=None):
         current_ret = dict()
         current_ret["line"] = line
         current_ret["time"] = datetime.datetime.now()
+        if match:
+            current_ret["groups"] = match.groups()
+            current_ret["named_groups"] = match.groupdict()
         self.event_occurred(event_data=current_ret)
 
     def _catch_any(self, line):
         for pattern in self.compiled_patterns:
-            if re.search(pattern, line):
-                self._set_current_ret(line=line)
+            match = re.search(pattern, line)
+            if match:
+                self._set_current_ret(line=line, match=match)
                 return
 
     def _catch_all(self, line):
         for index, pattern in enumerate(self.copy_compiled_patterns):
-            if re.search(pattern, line):
+            match = re.search(pattern, line)
+            if match:
                 del self.copy_compiled_patterns[index]
                 self._prepare_parameters_when_single_cycle_finished()
-                self._set_current_ret(line=line)
+                self._set_current_ret(line=line, match=match)
                 return
 
     def _catch_sequence(self, line):
         if self.copy_compiled_patterns:
             pattern = self.copy_compiled_patterns[0]
-            if re.search(pattern, line):
+            match = re.search(pattern, line)
+            if match:
                 del self.copy_compiled_patterns[0]
                 self._prepare_parameters_when_single_cycle_finished()
-                self._set_current_ret(line=line)
+                self._set_current_ret(line=line, match=match)
 
     def _prepare_new_cycle_parameters(self):
         self.finished_cycles += 1
@@ -135,6 +141,8 @@ EVENT_KWARGS_single_pattern = {
 EVENT_RESULT_single_pattern = [
     {
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
+        "groups": (),
+        "named_groups": {},
         'line': "host:~ #"
     }
 ]
@@ -157,10 +165,14 @@ EVENT_KWARGS_patterns_list = {
 EVENT_RESULT_patterns_list = [
     {
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
+        "groups": (),
+        "named_groups": {},
         'line': "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1"
     },
     {
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
+        "groups": (),
+        "named_groups": {},
         'line': "host:~ #"
     }
 ]

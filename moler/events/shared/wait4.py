@@ -32,7 +32,7 @@ Line6 contains message number 20
 """
 
 EVENT_KWARGS_any = {
-    "detect_patterns": ['number 15', 'number 20'],
+    "detect_patterns": [r'number (\d5)', r'(?P<LINE_NUMBER>Line\d+)\s+(.*)\s+number 20'],
     "match": "any",
     "till_occurs_times": 3
 }
@@ -40,14 +40,20 @@ EVENT_KWARGS_any = {
 EVENT_RESULT_any = [
     {
         'line': "Line1 contains message number 20",
+        "groups": (u"Line1", u"contains message"),
+        "named_groups": {"LINE_NUMBER": "Line1"},
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
     },
     {
         'line': "Line2 contains message number 15",
+        "groups": (u"15",),
+        "named_groups": {},
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224935),
     },
     {
         'line': "Line4 contains message number 20",
+        "groups": (u"Line4", u"contains message"),
+        "named_groups": {"LINE_NUMBER": "Line4"},
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224940),
     }
 ]
@@ -62,7 +68,7 @@ Line6 contains message number 20
 """
 
 EVENT_KWARGS_all = {
-    "detect_patterns": ['number 15', 'number 20'],
+    "detect_patterns": [r'number (\d5)', r'(?P<LINE_NUMBER>Line\d+)\s+(.*)\s+number 20'],
     "match": "all",
     "till_occurs_times": 1
 }
@@ -70,10 +76,14 @@ EVENT_KWARGS_all = {
 EVENT_RESULT_all = [
     {
         'line': "Line1 contains message number 20",
+        "groups": (u"Line1", u"contains message"),
+        "named_groups": {"LINE_NUMBER": "Line1"},
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
     },
     {
         'line': "Line2 contains message number 15",
+        "groups": (u"15",),
+        "named_groups": {},
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224935),
     }
 ]
@@ -88,7 +98,7 @@ Line6 contains message number 20
 """
 
 EVENT_KWARGS_sequence = {
-    "detect_patterns": ['number 15', 'number 20'],
+    "detect_patterns": [r'number (\d5)', r'(?P<LINE_NUMBER>Line\d+)\s+(.*)\s+number 20'],
     "match": "sequence",
     "till_occurs_times": 1
 }
@@ -96,10 +106,14 @@ EVENT_KWARGS_sequence = {
 EVENT_RESULT_sequence = [
     {
         'line': "Line2 contains message number 15",
+        "groups": (u"15",),
+        "named_groups": {},
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
     },
     {
         'line': "Line4 contains message number 20",
+        "groups": (u"Line4", u"contains message"),
+        "named_groups": {"LINE_NUMBER": "Line4"},
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224935),
     }
 ]
@@ -114,7 +128,7 @@ Line6 contains message number 20
 """
 
 EVENT_KWARGS_sequence2 = {
-    "detect_patterns": ['number 15', 'number 20'],
+    "detect_patterns": [r'number \d5', r'(?P<LINE_NUMBER>Line\d+)\s+(.*)\s+number 20'],
     "match": "sequence",
     "till_occurs_times": 2
 }
@@ -122,18 +136,26 @@ EVENT_KWARGS_sequence2 = {
 EVENT_RESULT_sequence2 = [
     {
         'line': "Line2 contains message number 15",
+        "groups": (),
+        "named_groups": {},
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
     },
     {
         'line': "Line4 contains message number 20",
+        "groups": (u"Line4", u"contains message"),
+        "named_groups": {"LINE_NUMBER": "Line4"},
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224935),
     },
     {
         'line': "Line5 contains message number 15",
+        "groups": (),
+        "named_groups": {},
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224940),
     },
     {
         'line': "Line6 contains message number 20",
+        "groups": (u"Line6", u"contains message"),
+        "named_groups": {"LINE_NUMBER": "Line6"},
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224945),
     }
 ]
