@@ -87,6 +87,7 @@ class LineEvent(TextualEvent):
         if match:
             current_ret["groups"] = match.groups()
             current_ret["named_groups"] = match.groupdict()
+            current_ret["matched"] = match.group(0)
         self.event_occurred(event_data=current_ret)
 
     def _catch_any(self, line):
@@ -143,6 +144,7 @@ EVENT_RESULT_single_pattern = [
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
         "groups": (),
         "named_groups": {},
+        "matched": "host:~ #",
         'line': "host:~ #"
     }
 ]
@@ -167,12 +169,14 @@ EVENT_RESULT_patterns_list = [
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
         "groups": (),
         "named_groups": {},
+        "matched": "Last login",
         'line': "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1"
     },
     {
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
         "groups": (),
         "named_groups": {},
+        "matched": "host:~ #",
         'line': "host:~ #"
     }
 ]
