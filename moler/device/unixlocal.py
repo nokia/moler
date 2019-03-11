@@ -114,6 +114,20 @@ class UnixLocal(TextualDevice):
         }
         self._update_dict(self._state_prompts, state_prompts)
 
+    def _prepare_newline_chars(self):
+        super(UnixLocal, self)._prepare_newline_chars()
+
+        newline_chars = {
+            UnixLocal.unix_local:
+                self._configurations[UnixLocal.connection_hops][UnixLocal.unix_local_root][UnixLocal.unix_local][
+                    "command_params"]["target_newline"],
+            UnixLocal.unix_local_root:
+                self._configurations[UnixLocal.connection_hops][UnixLocal.unix_local][UnixLocal.unix_local_root][
+                    "command_params"]["target_newline"],
+        }
+
+        self._update_dict(self._newline_chars, newline_chars)
+
     def _prepare_state_hops(self):
         state_hops = {
             UnixLocal.not_connected: {
