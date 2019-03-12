@@ -31,8 +31,21 @@ def test_calling_uptime_fails_unsupported_format(buffer_connection, command_unsu
 
 def test_uptime_returns_proper_command_string(buffer_connection):
     from moler.cmd.unix.uptime import Uptime
-    uptime_cmd = Uptime(buffer_connection)
+    uptime_cmd = Uptime(buffer_connection.moler_connection)
     assert "uptime" == uptime_cmd.command_string
+
+
+def test_uptime_sends_with_enter(buffer_connection):
+    from moler.cmd.unix.uptime import Uptime
+    uptime_cmd = Uptime(buffer_connection.moler_connection)
+    uptime_cmd.send_command()
+
+
+def test_uptime_sends_without_enter(buffer_connection):
+    from moler.cmd.unix.uptime import Uptime
+    uptime_cmd = Uptime(buffer_connection.moler_connection)
+    uptime_cmd.newline_after_command_string = False
+    uptime_cmd.send_command()
 
 
 @pytest.fixture
