@@ -137,7 +137,7 @@ class UnixLocal(TextualDevice):
         return state_hops
 
     def _get_packages_for_state(self, state, observer):
-        available = dict()
+        available = list()
         if state == UnixLocal.unix_local or state == UnixLocal.unix_local_root:
             available = {UnixLocal.cmds: ['moler.cmd.unix'],
                          UnixLocal.events: ['moler.events.unix']}
