@@ -185,8 +185,8 @@ class AsyncioRunner(ConnectionObserverRunner):
         with AsyncioRunner.runner_lock:
             AsyncioRunner.last_runner_id += 1
             self._id = AsyncioRunner.last_runner_id  # instance_id(self)
-        self.logger = logging.getLogger('{}:{}'.format(logger_name, self._id))
-        self.logger.debug("created {}:{}".format(self.__class__.__name__, self._id))
+        self.logger = logging.getLogger('{}.#{}'.format(logger_name, self._id))
+        self.logger.debug("created {}.#{}".format(self.__class__.__name__, self._id))
         logging.getLogger("asyncio").setLevel(logging.DEBUG)
         self._submitted_futures = {}  # id(future): future
         self._started_ev_loops = []
