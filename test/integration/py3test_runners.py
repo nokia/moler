@@ -49,7 +49,7 @@ async def test_observer_gets_all_data_of_connection_after_it_is_submitted_to_bac
         durations = []
         for n in range(20):  # need to test multiple times to ensure there are no thread races
             moler_conn = ObservableConnection()
-            net_down_detector = NetworkDownDetector(connection=moler_conn)
+            net_down_detector = NetworkDownDetector(connection=moler_conn, runner=observer_runner)
             connection = net_down_detector.connection
             start_time = net_down_detector.start_time = time.time()
             observer_runner.submit(net_down_detector)
@@ -78,7 +78,7 @@ def test_runner_secures_observer_against_additional_data_after_observer_is_done(
     with disabled_logging():
         for n in range(20):  # need to test multiple times to ensure there are no thread races
             moler_conn = ObservableConnection()
-            net_down_detector = NetworkDownDetector(connection=moler_conn)
+            net_down_detector = NetworkDownDetector(connection=moler_conn, runner=observer_runner)
             net_down_detector.start_time = time.time()  # must start observer lifetime before runner.submit()
             connection = net_down_detector.connection
             net_down_detector.start_time = time.time()
@@ -100,8 +100,8 @@ def test_runner_secures_observer_against_additional_data_after_runner_shutdown(o
 
     moler_conn = ObservableConnection()
     # check if shutdown stops all observers running inside given runner
-    net_down_detector1 = NetworkDownDetector(connection=moler_conn)
-    net_down_detector2 = NetworkDownDetector(connection=moler_conn)
+    net_down_detector1 = NetworkDownDetector(connection=moler_conn, runner=observer_runner)
+    net_down_detector2 = NetworkDownDetector(connection=moler_conn, runner=observer_runner)
     net_down_detector1.start_time = time.time()  # must start observer lifetime before runner.submit()
     net_down_detector2.start_time = time.time()  # must start observer lifetime before runner.submit()
     connection = moler_conn
@@ -123,8 +123,8 @@ async def test_runner_unsubscribes_from_connection_after_runner_shutdown(observe
 
     moler_conn = ObservableConnection()
     # check if shutdown unsubscribes all observers running inside given runner
-    net_down_detector1 = NetworkDownDetector(connection=moler_conn)
-    net_down_detector2 = NetworkDownDetector(connection=moler_conn)
+    net_down_detector1 = NetworkDownDetector(connection=moler_conn, runner=observer_runner)
+    net_down_detector2 = NetworkDownDetector(connection=moler_conn, runner=observer_runner)
     net_down_detector1.start_time = time.time()  # must start observer lifetime before runner.submit()
     net_down_detector2.start_time = time.time()  # must start observer lifetime before runner.submit()
     assert len(moler_conn._observers) == 0
@@ -144,7 +144,8 @@ async def test_runner_doesnt_break_on_exception_raised_inside_observer(observer_
     """Runner should be secured against 'wrongly written' connection-observer"""
     # see - Raw 'def' usage note
     with failing_net_down_detector(fail_on_data="zero bytes",
-                                   fail_by_raising=Exception("unknown format")) as conn_observer:
+                                   fail_by_raising=Exception("unknown format"),
+                                   runner=observer_runner) as conn_observer:
         connection = conn_observer.connection
         conn_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
         observer_runner.submit(conn_observer)
@@ -172,7 +173,8 @@ async def test_runner_sets_observer_exception_result_for_exception_raised_inside
     # see - Raw 'def' usage note
     unknown_format_exception = Exception("unknown format")
     with failing_net_down_detector(fail_on_data="zero bytes",
-                                   fail_by_raising=unknown_format_exception) as conn_observer:
+                                   fail_by_raising=unknown_format_exception,
+                                   runner=observer_runner) as conn_observer:
         connection = conn_observer.connection
         conn_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
         observer_runner.submit(conn_observer)
@@ -192,7 +194,8 @@ async def test_future_is_not_exception_broken_when_observer_is_exception_broken(
 
     # see - Raw 'def' usage note
     with failing_net_down_detector(fail_on_data="zero bytes",
-                                   fail_by_raising=Exception("unknown format")) as conn_observer:
+                                   fail_by_raising=Exception("unknown format"),
+                                   runner=observer_runner) as conn_observer:
         connection = conn_observer.connection
         conn_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
         future = observer_runner.submit(conn_observer)
@@ -205,11 +208,11 @@ async def test_future_is_not_exception_broken_when_observer_is_exception_broken(
 
 
 @pytest.mark.asyncio
-async def test_future_doesnt_return_result_of_observer(observer_runner, net_down_detector):
+async def test_future_doesnt_return_result_of_observer(net_down_detector):
     """Future just returns None when it is done"""
     # see - Raw 'def' usage note
-    from moler.connection import ObservableConnection
 
+    observer_runner = net_down_detector.runner
     connection = net_down_detector.connection
     net_down_detector.start_time = time.time()  # must start observer lifetime before runner.submit()
     future = observer_runner.submit(net_down_detector)
@@ -232,11 +235,12 @@ async def test_future_doesnt_return_result_of_observer(observer_runner, net_down
 # --------------------------------------------------------------------
 
 @pytest.mark.asyncio
-async def test_future_timeouts_after_timeout_of_observer(observer_runner, connection_observer):
+async def test_future_timeouts_after_timeout_of_observer(connection_observer):
     """Observer has .timeout member"""
     # see - Raw 'def' usage note
     from moler.exceptions import ResultNotAvailableYet, MolerTimeout
 
+    observer_runner = connection_observer.runner
     connection_observer.timeout = 0.1
     connection_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
     future = observer_runner.submit(connection_observer)
@@ -252,10 +256,11 @@ async def test_future_timeouts_after_timeout_of_observer(observer_runner, connec
 
 
 @pytest.mark.asyncio
-async def test_future_accommodates_to_extending_timeout_of_observer(observer_runner, connection_observer):
+async def test_future_accommodates_to_extending_timeout_of_observer(connection_observer):
     # see - Raw 'def' usage note
     from moler.exceptions import ResultNotAvailableYet, MolerTimeout
 
+    observer_runner = connection_observer.runner
     connection_observer.timeout = 0.1
     connection_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
     observer_runner.submit(connection_observer)
@@ -274,10 +279,11 @@ async def test_future_accommodates_to_extending_timeout_of_observer(observer_run
 
 
 @pytest.mark.asyncio
-async def test_future_accommodates_to_shortening_timeout_of_observer(observer_runner, connection_observer):
+async def test_future_accommodates_to_shortening_timeout_of_observer(connection_observer):
     # see - Raw 'def' usage note
     from moler.exceptions import ResultNotAvailableYet, MolerTimeout
 
+    observer_runner = connection_observer.runner
     connection_observer.timeout = 0.2
     connection_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
     observer_runner.submit(connection_observer)
@@ -301,9 +307,10 @@ async def test_future_accommodates_to_shortening_timeout_of_observer(observer_ru
 # being inside blocking wait_for() - escape it on timeout
 # --------------------------------------------------------------------
 
-def test_wait_for__times_out_on_constructor_timeout(observer_runner, connection_observer):
+def test_wait_for__times_out_on_constructor_timeout(connection_observer):
     from moler.exceptions import MolerTimeout
 
+    observer_runner = connection_observer.runner
     connection_observer.timeout = 0.2
     start_time = connection_observer.start_time = time.time()
     future = observer_runner.submit(connection_observer)
@@ -320,9 +327,10 @@ def test_wait_for__times_out_on_constructor_timeout(observer_runner, connection_
         assert future.exception() is None  # or done with no exception inside future itself
 
 
-def test_wait_for__times_out_on_specified_timeout(observer_runner, connection_observer):
+def test_wait_for__times_out_on_specified_timeout(connection_observer):
     from moler.exceptions import MolerTimeout
 
+    observer_runner = connection_observer.runner
     connection_observer.timeout = 0.4
     start_time = connection_observer.start_time = time.time()
     future = observer_runner.submit(connection_observer)
@@ -335,9 +343,10 @@ def test_wait_for__times_out_on_specified_timeout(observer_runner, connection_ob
     assert duration < 0.3
 
 
-def test_wait_for__times_out_on_earlier_timeout(observer_runner, connection_observer):
+def test_wait_for__times_out_on_earlier_timeout(connection_observer):
     from moler.exceptions import MolerTimeout
 
+    observer_runner = connection_observer.runner
     connection_observer.timeout = 0.3
     start_time = connection_observer.start_time = time.time()
     future = observer_runner.submit(connection_observer)
@@ -350,9 +359,10 @@ def test_wait_for__times_out_on_earlier_timeout(observer_runner, connection_obse
     assert duration < 0.35
 
 
-def test_wait_for__tracks_changes_of_observer_timeout__extension(observer_runner, connection_observer):
+def test_wait_for__tracks_changes_of_observer_timeout__extension(connection_observer):
     from moler.exceptions import MolerTimeout
 
+    observer_runner = connection_observer.runner
     connection_observer.timeout = 0.2
     start_time = connection_observer.start_time = time.time()
     future = observer_runner.submit(connection_observer)
@@ -371,9 +381,10 @@ def test_wait_for__tracks_changes_of_observer_timeout__extension(observer_runner
     assert duration < 0.4
 
 
-def test_wait_for__tracks_changes_of_observer_timeout__shortening(observer_runner, connection_observer):
+def test_wait_for__tracks_changes_of_observer_timeout__shortening(connection_observer):
     from moler.exceptions import MolerTimeout
 
+    observer_runner = connection_observer.runner
     connection_observer.timeout = 0.35
     start_time = connection_observer.start_time = time.time()
     future = observer_runner.submit(connection_observer)
@@ -392,11 +403,11 @@ def test_wait_for__tracks_changes_of_observer_timeout__shortening(observer_runne
     assert duration < 0.25
 
 
-def test_wait_for__direct_timeout_takes_precedence_over_extended_observer_timeout(observer_runner,
-                                                                                  connection_observer):
+def test_wait_for__direct_timeout_takes_precedence_over_extended_observer_timeout(connection_observer):
     # this is another variant of test_wait_for__times_out_on_earlier_timeout
     from moler.exceptions import MolerTimeout
 
+    observer_runner = connection_observer.runner
     connection_observer.timeout = 0.2
     start_time = connection_observer.start_time = time.time()
     future = observer_runner.submit(connection_observer)
@@ -421,9 +432,10 @@ def test_wait_for__direct_timeout_takes_precedence_over_extended_observer_timeou
 # Part III - on_timeout() callback
 # --------------------------------------------------------------------
 
-def test_observer__on_timeout__is_called_once_at_timeout(observer_runner, connection_observer):
+def test_observer__on_timeout__is_called_once_at_timeout(connection_observer):
     from moler.exceptions import MolerTimeout
 
+    observer_runner = connection_observer.runner
     connection_observer.timeout = 0.33
     connection_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
     future = observer_runner.submit(connection_observer)
@@ -438,7 +450,7 @@ def test_observer__on_timeout__is_called_once_at_timeout(observer_runner, connec
 def test_runner_shutdown_cancels_remaining_active_feeders_inside_main_thread(observer_runner):
     from moler.connection import ObservableConnection
 
-    connection_observer = NetworkDownDetector(connection=ObservableConnection())
+    connection_observer = NetworkDownDetector(connection=ObservableConnection(), runner=observer_runner)
 
     connection_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
     future = observer_runner.submit(connection_observer)
@@ -452,7 +464,7 @@ def test_runner_shutdown_cancels_remaining_active_feeders_inside_main_thread(obs
 def test_runner_shutdown_cancels_remaining_inactive_feeders_inside_main_thread(observer_runner):
     from moler.connection import ObservableConnection
 
-    connection_observer = NetworkDownDetector(connection=ObservableConnection())
+    connection_observer = NetworkDownDetector(connection=ObservableConnection(), runner=observer_runner)
 
     connection_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
     future = observer_runner.submit(connection_observer)
@@ -467,7 +479,7 @@ def test_runner_shutdown_cancels_remaining_feeders_inside_threads(observer_runne
 
     observers_pool = []
     for idx in range(3):
-        connection_observer = NetworkDownDetector(connection=ObservableConnection())
+        connection_observer = NetworkDownDetector(connection=ObservableConnection(), runner=observer_runner)
         observers_pool.append(connection_observer)
 
     def submit_feeder(connection_observer):
@@ -496,7 +508,7 @@ def test_runner_shutdown_cancels_remaining_feeders_inside_threads(observer_runne
 #     with disabled_logging():
 #         observers_pool = []
 #         for idx in range(200):
-#             connection_observer = NetworkDownDetector(connection=ObservableConnection())
+#             connection_observer = NetworkDownDetector(connection=ObservableConnection(), runner=observer_runner)
 #             connection_observer.timeout = 0.33
 #             connection_observer.on_timeout = mock.MagicMock()
 #             observers_pool.append(connection_observer)
@@ -526,8 +538,9 @@ def test_runner_shutdown_cancels_remaining_feeders_inside_threads(observer_runne
 # Future should be done as well.
 # --------------------------------------------------------------------
 
-def test_can_await_connection_observer_to_complete(observer_runner, observer_and_awaited_data):
+def test_can_await_connection_observer_to_complete(observer_and_awaited_data):
     connection_observer, awaited_data = observer_and_awaited_data
+    observer_runner = connection_observer.runner
     connection_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
     future = observer_runner.submit(connection_observer)
 
@@ -554,8 +567,9 @@ def test_can_await_connection_observer_to_complete(observer_runner, observer_and
 # --------------------------------------------------------------------
 
 @pytest.mark.asyncio
-async def test_can_async_await_connection_observer_to_complete(observer_runner, observer_and_awaited_data):
+async def test_can_async_await_connection_observer_to_complete(observer_and_awaited_data):
     connection_observer, awaited_data = observer_and_awaited_data
+    observer_runner = connection_observer.runner
     connection_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
     future = observer_runner.submit(connection_observer)
     connection_observer.timeout = 0.3
@@ -589,10 +603,11 @@ async def test_can_async_await_connection_observer_to_complete(observer_runner, 
 # --------------------------------------------------------------------
 
 @pytest.mark.asyncio
-async def test_wait_for__is_prohibited_inside_async_def(async_runner, connection_observer):
+async def test_wait_for__is_prohibited_inside_async_def(async_runner):
     # can't raise in generic runner since why non-async-runner should bother about being used inside 'async def'
     # using them in such case is end-user error the same way as using time.sleep(2.41) inside 'async def'
     from moler.exceptions import WrongUsage
+    from moler.connection import ObservableConnection
 
     # TODO: can we confidently check "called from async def"
     # https://stackoverflow.com/questions/30155138/how-can-i-write-asyncio-coroutines-that-optionally-act-as-regular-functions
@@ -601,6 +616,7 @@ async def test_wait_for__is_prohibited_inside_async_def(async_runner, connection
     #
     # Any way to treat wait_for() as awaitable?
     #
+    connection_observer = NetworkDownDetector(connection=ObservableConnection(), runner=async_runner)
     connection_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
     future = async_runner.submit(connection_observer)
     with pytest.raises(WrongUsage) as err:
@@ -613,10 +629,11 @@ async def test_wait_for__is_prohibited_inside_async_def(async_runner, connection
 
 
 @pytest.mark.asyncio
-async def test_wait_for__prohibited_inside_async_def_speaks_in_observer_API(async_runner, connection_observer):
+async def test_wait_for__prohibited_inside_async_def_speaks_in_observer_API(async_runner):
     from moler.exceptions import WrongUsage
+    from moler.connection import ObservableConnection
 
-    connection_observer.runner = async_runner
+    connection_observer = NetworkDownDetector(connection=ObservableConnection(), runner=async_runner)
     connection_observer.start()  # internally calls async_runner.submit()
     future = async_runner.submit(connection_observer)
     with pytest.raises(WrongUsage) as err:
@@ -640,13 +657,14 @@ def is_python36_or_above():
 
 # bg_runners may be called from both 'async def' and raw 'def' functions
 available_bg_runners = []  # 'runner.ThreadPoolExecutorRunner']
+available_bg_runners = ['runner.ThreadPoolExecutorRunner']
 # standalone_runners may run without giving up control to some event loop (since they create own thread(s))
 available_standalone_runners = ['runner.ThreadPoolExecutorRunner']
 # async_runners may be called only from 'async def' functions and require already running events-loop
 available_async_runners = []
 if is_python36_or_above():
     available_bg_runners.append('asyncio_runner.AsyncioRunner')
-    # available_async_runners.append('asyncio_runner.AsyncioRunner')
+    available_async_runners.append('asyncio_runner.AsyncioRunner')
     # available_bg_runners.append('asyncio_runner.AsyncioInThreadRunner')
     # available_async_runners.append('asyncio_runner.AsyncioInThreadRunner')
     # available_standalone_runners.append('asyncio_runner.AsyncioInThreadRunner')
@@ -709,10 +727,10 @@ class NetworkDownDetector(ConnectionObserver):
 
 
 @pytest.yield_fixture()
-def connection_observer():
+def connection_observer(observer_runner):
     from moler.connection import ObservableConnection
     moler_conn = ObservableConnection()
-    observer = NetworkDownDetector(connection=moler_conn)
+    observer = NetworkDownDetector(connection=moler_conn, runner=observer_runner)
     yield observer
     # remove exceptions collected inside ConnectionObserver
     ConnectionObserver.get_unraised_exceptions(remove=True)
@@ -724,7 +742,7 @@ def net_down_detector(connection_observer):  # let name say what type of observe
 
 
 @contextlib.contextmanager
-def failing_net_down_detector(fail_on_data, fail_by_raising):
+def failing_net_down_detector(fail_on_data, fail_by_raising, runner):
     from moler.connection import ObservableConnection
 
     class FailingNetworkDownDetector(NetworkDownDetector):
@@ -734,7 +752,7 @@ def failing_net_down_detector(fail_on_data, fail_by_raising):
             return super(FailingNetworkDownDetector, self).data_received(data)
 
     moler_conn = ObservableConnection()
-    failing_detector = FailingNetworkDownDetector(connection=moler_conn)
+    failing_detector = FailingNetworkDownDetector(connection=moler_conn, runner=runner)
     yield failing_detector
     # remove exceptions collected inside ConnectionObserver
     ConnectionObserver.get_unraised_exceptions(remove=True)
