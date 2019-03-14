@@ -447,17 +447,17 @@ def test_observer__on_timeout__is_called_once_at_timeout(connection_observer):
         timeout_callback.assert_called_once()
 
 
-def test_runner_shutdown_cancels_remaining_active_feeders_inside_main_thread(observer_runner):
+def test_runner_shutdown_cancels_remaining_active_feeders_inside_main_thread(async_runner):
     from moler.connection import ObservableConnection
 
-    connection_observer = NetworkDownDetector(connection=ObservableConnection(), runner=observer_runner)
+    connection_observer = NetworkDownDetector(connection=ObservableConnection(), runner=async_runner)
 
     connection_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
-    future = observer_runner.submit(connection_observer)
+    future = async_runner.submit(connection_observer)
 
     future._loop.run_until_complete(asyncio.sleep(1.0))  # feeder will start processing inside loop
     # time.sleep(0.5)
-    observer_runner.shutdown()
+    async_runner.shutdown()
     assert connection_observer.cancelled()
 
 
