@@ -258,22 +258,30 @@ async def test_future_timeouts_after_timeout_of_observer(connection_observer):
 @pytest.mark.asyncio
 async def test_future_accommodates_to_extending_timeout_of_observer(connection_observer):
     # see - Raw 'def' usage note
+    import logging
     from moler.exceptions import ResultNotAvailableYet, MolerTimeout
 
+    logger = logging.getLogger('moler.runner')
     observer_runner = connection_observer.runner
-    connection_observer.timeout = 0.1
+    connection_observer.timeout = 0.2
     connection_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
     observer_runner.submit(connection_observer)
     with pytest.raises(ResultNotAvailableYet):  # not timed out yet
         connection_observer.result()
-    await asyncio.sleep(0.08)
+    logger.debug("first await asyncio.sleep(0.1)")
+    await asyncio.sleep(0.1)
+    logger.debug("after first await asyncio.sleep(0.1)")
     with pytest.raises(ResultNotAvailableYet):  # not timed out yet
         connection_observer.result()
-    connection_observer.timeout = 0.15  # EXTEND
-    await asyncio.sleep(0.05)
+    connection_observer.timeout = 0.5  # EXTEND
+    logger.debug("second await asyncio.sleep(0.1)")
+    await asyncio.sleep(0.1)
+    logger.debug("after second await asyncio.sleep(0.1)")
     with pytest.raises(ResultNotAvailableYet):  # not timed out yet
         connection_observer.result()
-    await asyncio.sleep(0.04)
+    logger.debug("final await asyncio.sleep(0.3)")
+    await asyncio.sleep(0.3)
+    logger.debug("after final await asyncio.sleep(0.3)")
     with pytest.raises(MolerTimeout):  # should time out
         connection_observer.result()
 
