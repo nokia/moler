@@ -419,19 +419,19 @@ class UnixRemote(UnixLocal):
                     "command_params"]["expected_prompt"]
 
     def _get_packages_for_state(self, state, observer):
-        if state == UnixLocal.unix_local or state == UnixLocal.unix_local_root:
-            available = {UnixLocal.cmds: ['moler.cmd.unix'],
-                         UnixLocal.events: ['moler.events.unix']}
-            return available[observer]
-        elif state == UnixRemote.unix_remote or state == UnixRemote.unix_remote_root:
-            available = {UnixLocal.cmds: ['moler.cmd.unix'],
-                         UnixLocal.events: ['moler.events.unix']}
-            return available[observer]
-        elif state == UnixRemote.proxy_pc:
-            available = {UnixLocal.cmds: ['moler.cmd.unix'],
-                         UnixLocal.events: ['moler.events.unix']}
-            return available[observer]
-        return []
+        available = super(UnixRemote, self)._get_packages_for_state(state, observer)
+
+        if not available:
+            if state == UnixRemote.unix_remote or state == UnixRemote.unix_remote_root:
+                available = {UnixLocal.cmds: ['moler.cmd.unix'],
+                             UnixLocal.events: ['moler.events.unix']}
+            elif state == UnixRemote.proxy_pc:
+                available = {UnixLocal.cmds: ['moler.cmd.unix'],
+                             UnixLocal.events: ['moler.events.unix']}
+            if available:
+                return available[observer]
+
+        return available
 
 
 """
