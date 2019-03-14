@@ -759,6 +759,8 @@ def event_loop():
 
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
-    # shutdown all submitted futures
+    # event_loop fixture is autoloaded by @pytest.mark.asyncio decorator
+    # and inside some of our async tests we just submit() observer inside runner without stopping it
+    # so, we need to stop all submitted futures
     cancel_remaining_feeders(loop)
     loop.close()

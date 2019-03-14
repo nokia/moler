@@ -159,15 +159,16 @@ def handle_cancelled_feeder(connection_observer, observer_lock, subscribed_data_
         moler_conn.unsubscribe(subscribed_data_receiver)
 
 
-def cancel_remaining_feeders(loop, logger_name="moler.runner.asyncio"):
+def cancel_remaining_feeders(loop, logger_name="moler.runner.asyncio", in_shutdown=False):
     remaining = [task for task in asyncio.Task.all_tasks(loop=loop) if (not task.done()) and (is_feeder(task))]
     if remaining:
         logger = logging.getLogger(logger_name)
         loop_id = instance_id(loop)
-        logger.debug("cancelling all remaining feeders of loop {}:".format(loop_id))
+        log_level = logging.WARNING if in_shutdown else logging.DEBUG
+        logger.log(level=log_level, msg="cancelling all remaining feeders of loop {}:".format(loop_id))
         remaining_tasks = asyncio.gather(*remaining, loop=loop, return_exceptions=True)
         for feeder in remaining:
-            logger.debug("  remaining {}:{}".format(instance_id(feeder), feeder))
+            logger.log(level=log_level, msg="  remaining {}:{}".format(instance_id(feeder), feeder))
         remaining_tasks.cancel()
         if not loop.is_running():
             # Keep the event loop running until it is either destroyed or all tasks have really terminated
@@ -206,7 +207,7 @@ class AsyncioRunner(ConnectionObserverRunner):
                     msg = "CLOSING EV_LOOP owned by AsyncioRunner {}:{!r}".format(instance_id(owned_loop), owned_loop)
                     sys.stderr.write(msg + '\n')
                     self.logger.debug(msg)
-                    cancel_remaining_feeders(owned_loop, logger_name=self.logger.name)
+                    cancel_remaining_feeders(owned_loop, logger_name=self.logger.name, in_shutdown=True)
                     remaining = [task for task in asyncio.Task.all_tasks(loop=owned_loop) if not task.done()]
                     if remaining:
                         msg = "AsyncioRunner owned loop has still running task"
@@ -221,7 +222,7 @@ class AsyncioRunner(ConnectionObserverRunner):
 
         event_loop, its_new = thread_secure_get_event_loop(logger_name=self.logger.name)
         if not event_loop.is_closed():
-            cancel_remaining_feeders(event_loop, logger_name=self.logger.name)
+            cancel_remaining_feeders(event_loop, logger_name=self.logger.name, in_shutdown=True)
         self._submitted_futures = {}
 
     def submit(self, connection_observer):
