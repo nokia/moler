@@ -351,7 +351,8 @@ class AsyncioRunner(ConnectionObserverRunner):
                 fired_timeout = timeout if timeout else connection_observer.timeout
                 with connection_observer_future.observer_lock:
                     time_out_observer(connection_observer=connection_observer,
-                                      timeout=fired_timeout, passed_time=passed, kind="await_done")
+                                      timeout=fired_timeout, passed_time=passed,
+                                      runner_logger=self.logger, kind="await_done")
             finally:
                 connection_observer_future.cancel()
                 if id(connection_observer_future) in self._submitted_futures:
@@ -528,6 +529,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         Should be called from background-processing of connection observer.
         """
         remain_time, msg = his_remaining_time("remaining", he=connection_observer, timeout=connection_observer.timeout)
+        self.logger.info("{} started, {}".format(connection_observer, msg))
         connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
 
         if not subscribed_data_receiver:
@@ -549,7 +551,8 @@ class AsyncioRunner(ConnectionObserverRunner):
                     with observer_lock:
                         time_out_observer(connection_observer,
                                           timeout=connection_observer.timeout,
-                                          passed_time=run_duration)
+                                          passed_time=run_duration,
+                                          runner_logger=self.logger)
                     break
                 if self._in_shutdown:
                     self.logger.debug("shutdown so cancelling {}".format(connection_observer))
@@ -583,6 +586,7 @@ class AsyncioRunner(ConnectionObserverRunner):
 
             remain_time, msg = his_remaining_time("remaining", he=connection_observer, timeout=connection_observer.timeout)
             connection_observer._log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
+            self.logger.info("{} finished, {}".format(connection_observer, msg))
         return None
 
     def timeout_change(self, timedelta):
@@ -731,7 +735,8 @@ class AsyncioInThreadRunner(AsyncioRunner):
         passed = time.time() - start_time
         fired_timeout = timeout if timeout else connection_observer.timeout
         time_out_observer(connection_observer=connection_observer,
-                          timeout=fired_timeout, passed_time=passed, kind="await_done")
+                          timeout=fired_timeout, passed_time=passed,
+                          runner_logger=self.logger, kind="await_done")
         return None
 
     def wait_for_iterator(self, connection_observer, connection_observer_future):
