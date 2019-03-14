@@ -201,7 +201,7 @@ class ConnectionObserver(object):
             # but self._future setting may be delayed by nonempty commands queue.
             # In such case we have to wait either for _future or timeout.
             while self._future is None:
-                time.sleep(0.005)
+                time.sleep(0.005)  # TODO: if asyncio event-loop is running it should raise without waiting
                 if self.done():
                     break
             if self._future:
