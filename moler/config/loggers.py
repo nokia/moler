@@ -211,7 +211,7 @@ def configure_runner_logger(runner_name):
         create_logger(name=logger_name,
                       log_file='moler.runner.{}.log'.format(runner_name),
                       log_level=debug_level_or_info_level(),
-                      log_format="%(asctime)s.%(msecs)03d %(levelname)-10s |%(message)s",
+                      log_format="%(asctime)s.%(msecs)03d %(levelname)-12s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() |%(message)s",
                       datefmt=date_format
                       # log_format="%(asctime)s %(levelname)-10s %(subarea)-30s: |%(message)s"
                       )
