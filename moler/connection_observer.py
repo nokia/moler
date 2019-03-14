@@ -86,9 +86,9 @@ class ConnectionObserver(object):
 
     @_is_done.setter
     def _is_done(self, value):
+        self.__is_done = value
         if value:
             CommandScheduler.dequeue_running_on_connection(connection_observer=self)
-        self.__is_done = value
 
     @property
     def timeout(self):
@@ -335,7 +335,7 @@ class ConnectionObserver(object):
     @staticmethod
     def _log_unraised_exceptions(observer):
         for i, item in enumerate(ConnectionObserver._not_raised_exceptions):
-            observer._log(logging.DEBUG, "{:4d} NOT RAISED: {!r}".format(i + 1, item))
+            observer._log(logging.DEBUG, "{:4d} NOT RAISED: {!r}".format(i + 1, item), levels_to_go_up=2)
 
     def get_long_desc(self):
         return "Observer '{}.{}'".format(self.__class__.__module__, self)
