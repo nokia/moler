@@ -101,10 +101,10 @@ class Lsof(GenericUnixCommand):
             return True
         prev_header_pos = -1
         if header_index > 0:
-            prev_header_pos = self._header_pos[header_index-1]
+            prev_header_pos = self._header_pos[header_index - 1]
         next_header_pos = 9999999999
-        if header_index < len(self._headers)-1:
-            next_header_pos = self._header_pos[header_index]+len(self._headers[header_index])
+        if header_index < len(self._headers) - 1:
+            next_header_pos = self._header_pos[header_index] + len(self._headers[header_index])
         if value_position >= next_header_pos:
             return False
         if value_position <= prev_header_pos:
