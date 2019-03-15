@@ -31,6 +31,7 @@ class Lsof(GenericUnixCommand):
         self._headers = list()
         self._header_pos = list()
         self.current_ret["VALUES"] = list()
+        self.current_ret["NUMBER"] = 0
 
     def build_command_string(self):
         """
@@ -92,10 +93,10 @@ class Lsof(GenericUnixCommand):
                         # No value for given header
                         pass
                 self.current_ret["VALUES"].append(item)
+                self.current_ret["NUMBER"] += 1
                 raise ParsingDone()
 
     def _proper_position_value(self, header_index, value_position):
-        # 0th element
         current_header_pos = self._header_pos[header_index]
         if current_header_pos == value_position:
             return True
@@ -126,6 +127,7 @@ COMMAND_KWARGS_no_parameters = {
 }
 
 COMMAND_RESULT_no_parameters = {
+    "NUMBER": 6,
     "VALUES": [
         {
             'COMMAND': 'systemd',
