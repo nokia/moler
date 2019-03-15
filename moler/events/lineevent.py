@@ -80,14 +80,13 @@ class LineEvent(TextualEvent):
     def _parse_line(self, line):
         self.parser(line=line)
 
-    def _set_current_ret(self, line, match=None):
+    def _set_current_ret(self, line, match):
         current_ret = dict()
         current_ret["line"] = line
         current_ret["time"] = datetime.datetime.now()
-        if match:
-            current_ret["groups"] = match.groups()
-            current_ret["named_groups"] = match.groupdict()
-            current_ret["matched"] = match.group(0)
+        current_ret["groups"] = match.groups()
+        current_ret["named_groups"] = match.groupdict()
+        current_ret["matched"] = match.group(0)
         self.event_occurred(event_data=current_ret)
 
     def _catch_any(self, line):
