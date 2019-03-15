@@ -30,6 +30,7 @@ class Lsof(GenericUnixCommand):
         self.options = options
         self._headers = list()
         self._header_pos = list()
+        self.current_ret["VALUES"] = list()
 
     def build_command_string(self):
         """
@@ -59,32 +60,144 @@ class Lsof(GenericUnixCommand):
         super(Lsof, self).on_new_line(line=line, is_full_line=is_full_line)
 
     # COMMAND     PID   TID        USER   FD      TYPE             DEVICE  SIZE/OFF       NODE NAME
-    _re_headers = re.compile(r"\S+")
+    _re_output_line = re.compile(r"\S+")
 
     def _parse_headers(self, line):
         if not self._headers:
-            self._headers = re.findall(Lsof._re_headers, line)
+            last_pos = 0
+            self._headers = re.findall(Lsof._re_output_line, line)
             for header in self._headers:
-                position = line.find(header)
+                position = line.find(header, last_pos)
+                last_pos = position + len(header)
                 self._header_pos.append(position)
-            self.current_ret["HEADERS"] = self._headers
-            self.current_ret["HEADER_POS"] = self._header_pos
             raise ParsingDone()
 
     def _parse_data(self, line):
         if self._headers:
-            item=dict()
+            item = dict()
+            for header in self._headers:
+                item[header] = None
+            splitted_values = re.findall(Lsof._re_output_line, line)
+            last_value_position = 0
+            if len(splitted_values) > 1:
+                data_index = 0
+                for header_index, header in enumerate(self._headers, 0):
+                    value = splitted_values[data_index]
+                    value_position = line.find(value, last_value_position)
+                    if self._proper_position_value(header_index=header_index, value_position=value_position):
+                        item[header] = value
+                        data_index += 1
+                        last_value_position = value_position
+                    else:
+                        # No value for given header
+                        pass
+                self.current_ret["VALUES"].append(item)
+                raise ParsingDone()
 
+    def _proper_position_value(self, header_index, value_position):
+        # 0th element
+        current_header_pos = self._header_pos[header_index]
+        if current_header_pos == value_position:
+            return True
+        prev_header_pos = -1
+        if header_index > 0:
+            prev_header_pos = self._header_pos[header_index-1]
+        next_header_pos = 9999999999
+        if header_index < len(self._headers)-1:
+            next_header_pos = self._header_pos[header_index]+len(self._headers[header_index])
+        if value_position >= next_header_pos:
+            return False
+        if value_position <= prev_header_pos:
+            return False
+        return True
 
 
 COMMAND_OUTPUT_no_parameters = """lsof
 COMMAND     PID   TID        USER   FD      TYPE             DEVICE  SIZE/OFF       NODE NAME
 systemd       1              root  cwd   unknown                                         /proc/1/cwd (readlink: Permission denied)
 systemd       1              root  rtd   unknown                                         /proc/1/root (readlink: Permission denied)
-lxpanel    1593               ute   12r     FIFO               0,10       0t0      20366 pipe
+lxpanel    1593               uls   12r     FIFO               0,10       0t0      20366 pipe
+VBoxClien  1557               uls    5u     unix 0xffff9a1adcb22800       0t0      19578 type=STREAM
+exim4      1129       Debian-exim  cwd   unknown                                         /proc/1129/cwd (readlink: Permission denied)
+gmain      1491  1570         uls  rtd       DIR              254,0      4096          2 /
 bash-4.2:~ #"""
 
 COMMAND_KWARGS_no_parameters = {
 }
 
-COMMAND_RESULT_no_parameters = {}
+COMMAND_RESULT_no_parameters = {
+    "VALUES": [
+        {
+            'COMMAND': 'systemd',
+            'PID': '1',
+            'TID': None,
+            'USER': 'root',
+            'FD': 'cwd',
+            'TYPE': 'unknown',
+            'DEVICE': None,
+            'SIZE/OFF': None,
+            'NODE': None,
+            'NAME': '/proc/1/cwd',
+        },
+        {
+            'COMMAND': 'systemd',
+            'PID': '1',
+            'TID': None,
+            'USER': 'root',
+            'FD': 'rtd',
+            'TYPE': 'unknown',
+            'DEVICE': None,
+            'SIZE/OFF': None,
+            'NODE': None,
+            'NAME': '/proc/1/root',
+        },
+        {
+            'COMMAND': 'lxpanel',
+            'PID': '1593',
+            'TID': None,
+            'USER': 'uls',
+            'FD': '12r',
+            'TYPE': 'FIFO',
+            'DEVICE': '0,10',
+            'SIZE/OFF': '0t0',
+            'NODE': '20366',
+            'NAME': 'pipe',
+        },
+        {
+            'COMMAND': 'VBoxClien',
+            'PID': '1557',
+            'TID': None,
+            'USER': 'uls',
+            'FD': '5u',
+            'TYPE': 'unix',
+            'DEVICE': '0xffff9a1adcb22800',
+            'SIZE/OFF': '0t0',
+            'NODE': '19578',
+            'NAME': 'type=STREAM',
+        },
+        {
+            'COMMAND': 'exim4',
+            'PID': '1129',
+            'TID': None,
+            'USER': 'Debian-exim',
+            'FD': 'cwd',
+            'TYPE': 'unknown',
+            'DEVICE': None,
+            'SIZE/OFF': None,
+            'NODE': None,
+            'NAME': '/proc/1129/cwd',
+        },
+        {
+            'COMMAND': 'gmain',
+            'PID': '1491',
+            'TID': '1570',
+            'USER': 'uls',
+            'FD': 'rtd',
+            'TYPE': 'DIR',
+            'DEVICE': '254,0',
+            'SIZE/OFF': '4096',
+            'NODE': '2',
+            'NAME': '/',
+        }
+    ]
+}
