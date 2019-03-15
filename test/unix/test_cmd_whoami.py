@@ -9,6 +9,7 @@ __email__ = 'yeshu.yang@nokia-sbell.com'
 
 import pytest
 
+
 def test_calling_whoami_returns_result(buffer_connection, command_output_and_expected_result):
     from moler.cmd.unix.whoami import Whoami
     command_output, expected_result = command_output_and_expected_result
@@ -30,4 +31,4 @@ def command_output_and_expected_result():
     result= {
         "USER": "ute"
     }
-    return data,result
+    return data, result

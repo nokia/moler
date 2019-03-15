@@ -4,7 +4,7 @@ Ssh command module.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
@@ -31,6 +31,8 @@ class Ssh(GenericUnixCommand):
                  term_mono="TERM=xterm-mono", newline_chars=None, encrypt_password=True, runner=None,
                  target_newline="\n", allowed_newline_after_prompt=False):
         """
+        Moler class of Unix command ssh.
+
         :param connection: moler connection to device, terminal when command is executed
         :param login: ssh login
         :param password: ssh password or list of passwords for multi passwords connection
@@ -46,7 +48,7 @@ class Ssh(GenericUnixCommand):
         :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text
         :param runner: Runner to run command
         :param target_newline: newline chars on remote system where ssh connects
-        ;param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt
+        :param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt
         """
         super(Ssh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
@@ -80,6 +82,7 @@ class Ssh(GenericUnixCommand):
     def build_command_string(self):
         """
         Builds command string from parameters passed to object.
+
         :return: String representation of command to send over connection to device.
         """
         cmd = ""
@@ -95,7 +98,8 @@ class Ssh(GenericUnixCommand):
 
     def on_new_line(self, line, is_full_line):
         """
-        Put your parsing code here.
+        Parses the output of the command.
+
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
         :return: Nothing
@@ -117,6 +121,7 @@ class Ssh(GenericUnixCommand):
     def is_failure_indication(self, line):
         """
         Detects fail from command output.
+
         :param line: Line from device
         :return: Match object if matches, None otherwise
         """
@@ -125,6 +130,7 @@ class Ssh(GenericUnixCommand):
     def _commands_after_established(self, line, is_full_line):
         """
         Performs commands after ssh connection is established and user is logged in.
+
         :param line: Line from device.
         :param is_full_line: True is line contained new line chars, False otherwise.
         :return: Nothing but raises ParsingDone if all required commands are sent.
@@ -142,6 +148,7 @@ class Ssh(GenericUnixCommand):
     def _host_key_verification(self, line):
         """
         Checks regex host key verification.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if regex matches.
         """
@@ -155,6 +162,7 @@ class Ssh(GenericUnixCommand):
     def _id_dsa(self, line):
         """
         Checks id dsa.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if regex matches.
         """
@@ -165,6 +173,7 @@ class Ssh(GenericUnixCommand):
     def _check_if_failure(self, line):
         """
         Checks if line from device has information about failed ssh.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if regex matches.
         """
@@ -175,6 +184,7 @@ class Ssh(GenericUnixCommand):
     def _get_hosts_file_if_displayed(self, line):
         """
         Checks if line from device has info about hosts file.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if regex matches.
         """
@@ -185,6 +195,7 @@ class Ssh(GenericUnixCommand):
     def _push_yes_if_needed(self, line):
         """
         Checks if line from device has information about waiting for sent yes/no.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if regex matches.
         """
@@ -196,6 +207,7 @@ class Ssh(GenericUnixCommand):
     def _send_password_if_requested(self, line):
         """
         Checks if line from device has information about waiting for password.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if regex matches.
         """
@@ -211,6 +223,7 @@ class Ssh(GenericUnixCommand):
     def _handle_failed_host_key_verification(self):
         """
         Handles situation when failed host key verification.
+
         :return: Nothing.
         """
         if "rm" == self.known_hosts_on_failure:
@@ -233,6 +246,7 @@ class Ssh(GenericUnixCommand):
     def _send_after_login_settings(self, line):
         """
         Sends information about timeout and prompt.
+
         :param line: Line from device.
         :return: True if anything was sent, False otherwise.
         """
@@ -248,6 +262,7 @@ class Ssh(GenericUnixCommand):
     def _all_after_login_settings_sent(self):
         """
         Checks if all requested commands are sent.
+
         :return: True if all commands after ssh connection establishing are sent, False otherwise
         """
         both_requested = self.set_prompt and self.set_timeout
@@ -259,6 +274,7 @@ class Ssh(GenericUnixCommand):
     def _no_after_login_settings_needed(self):
         """
         Checks if any commands after logged in are requested.
+
         :return: True if no commands are awaited, False if any.
         """
         return (not self.set_prompt) and (not self.set_timeout)
@@ -266,6 +282,7 @@ class Ssh(GenericUnixCommand):
     def _timeout_set_needed(self):
         """
         Checks if command for timeout is awaited.
+
         :return: True if command is set and not sent. False otherwise.
         """
         return self.set_timeout and not self._sent_timeout
@@ -273,6 +290,7 @@ class Ssh(GenericUnixCommand):
     def _send_timeout_set(self):
         """
         Sends command to set timeout.
+
         :return: Nothing.
         """
         cmd = "{}{}{}".format(self.target_newline, self.set_timeout, self.target_newline)
@@ -282,6 +300,7 @@ class Ssh(GenericUnixCommand):
     def _prompt_set_needed(self):
         """
         Checks if command for prompt is awaited.
+
         :return: True if command is set and not sent. False otherwise.
         """
         return self.set_prompt and not self._sent_prompt
@@ -289,6 +308,7 @@ class Ssh(GenericUnixCommand):
     def _send_prompt_set(self):
         """
         Sends command to set prompt.
+
         :return: Nothing.
         """
         cmd = "{}{}{}".format(self.target_newline, self.set_prompt, self.target_newline)
@@ -298,6 +318,7 @@ class Ssh(GenericUnixCommand):
     def _is_password_requested(self, line):
         """
         Checks if password is requested by device.
+
         :param line: Line from device.
         :return: Match object if regex matches, None otherwise.
         """
@@ -306,6 +327,7 @@ class Ssh(GenericUnixCommand):
     def _is_target_prompt(self, line):
         """
         Checks if device sends prompt from target system.
+
         :param line: Line from device.
         :return: Match object if regex matches, None otherwise.
         """
@@ -314,6 +336,7 @@ class Ssh(GenericUnixCommand):
     def _check_if_resize(self, line):
         """
         Checks if line from device has information about size of windows.
+
         :param line: Line from device.
         :return: Match object if regex matches, None otherwise.
         """

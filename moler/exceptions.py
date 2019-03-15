@@ -114,8 +114,8 @@ class NoConnectionProvided(MolerException):
 
 class CommandFailure(MolerException):
     def __init__(self, command, message):
-        err_msg = "Command '{}.{}' ('{}') failed with '{}'.".format(command.__class__.__module__, command.__class__.__name__,
-                                                                    command.command_string, message)
+        err_msg = "Command '{}.{}' ('{}') failed with >>{}<<.".format(command.__class__.__module__, command.__class__.__name__,
+                                                                      command.command_string, message)
         self.command = command
         super(CommandFailure, self).__init__(err_msg)
 
