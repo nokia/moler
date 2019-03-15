@@ -54,11 +54,28 @@ class Lsof(GenericUnixCommand):
         """
         if is_full_line:
             try:
+                self._parse_warning(line)
+                self._parse_number(line)
                 self._parse_headers(line)
                 self._parse_data(line)
             except ParsingDone:
                 pass
         super(Lsof, self).on_new_line(line=line, is_full_line=is_full_line)
+
+    # Output information may be incomplete.
+    _re_warnings = re.compile(r"can't stat|may be incomplete")
+
+    def _parse_warning(self, line):
+        if self._regex_helper.search_compiled(Lsof._re_warnings, line):
+            raise ParsingDone()
+
+    # 15695
+    _re_number = re.compile(r"\s*(?P<NUMBER>\d+)\s*")
+
+    def _parse_number(self, line):
+        if self._regex_helper.match_compiled(Lsof._re_number, line):
+            self.current_ret["NUMBER"] = int(self._regex_helper.group("NUMBER"))
+            raise ParsingDone()
 
     # COMMAND     PID   TID        USER   FD      TYPE             DEVICE  SIZE/OFF       NODE NAME
     _re_output_line = re.compile(r"\S+")
@@ -112,6 +129,23 @@ class Lsof(GenericUnixCommand):
             return False
         return True
 
+
+COMMAND_OUTPUT_number_only = """lsof | wc -l
+lsof: WARNING: can't stat() vboxsf file system /media/sf_SharedFolder
+      Output information may be incomplete.
+lsof: WARNING: can't stat() fuse.gvfsd-fuse file system /run/user/121/gvfs
+      Output information may be incomplete.
+15695
+bash-4.2:~ #"""
+
+COMMAND_KWARGS_number_only = {
+    "options": "| wc -l"
+}
+
+COMMAND_RESULT_number_only = {
+    "NUMBER": 15695,
+    "VALUES": []
+}
 
 COMMAND_OUTPUT_no_parameters = """lsof
 COMMAND     PID   TID        USER   FD      TYPE             DEVICE  SIZE/OFF       NODE NAME
