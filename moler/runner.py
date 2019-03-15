@@ -164,7 +164,7 @@ class CancellableFuture(object):
         attribute = getattr(self._future, attr)
         return attribute
 
-    def cancel(self, no_wait=False):
+    def cancel(self, no_wait=True):
         """
         Cancel embedded future
         :param no_wait: if True - just set self._stop_running event to let thread exit loop
@@ -304,7 +304,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
             self.logger.debug("go foreground: {} is already done".format(connection_observer))
             if future and (not future.done()):
-                future.cancel(no_wait=True)
+                future.cancel()
             return None
 
         max_timeout = timeout
@@ -346,7 +346,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         passed = time.time() - start_time
         future = connection_observer_future or connection_observer._future
         if future:
-            future.cancel(no_wait=True)
+            future.cancel()
             with future.observer_lock:
                 time_out_observer(connection_observer=connection_observer,
                                   timeout=await_timeout, passed_time=passed,
