@@ -365,12 +365,16 @@ def test_wait_for__times_out_on_earlier_timeout(connection_observer):
     start_time = connection_observer.start_time = time.time()
     future = observer_runner.submit(connection_observer)
     with pytest.raises(MolerTimeout):
+        wait4_start_time = time.time()  # wait_for() timeout is counted from wait_for() line in code
         observer_runner.wait_for(connection_observer, future,
                                  timeout=0.5)  # means: timeout of wait_for longer then initial one
         connection_observer.result()  # should raise Timeout
-    duration = time.time() - start_time
-    assert duration >= 0.3
-    assert duration < 0.35
+    now = time.time()
+    observer_life_duration = now - start_time
+    wait4_duration = now - wait4_start_time
+    assert observer_life_duration >= 0.3
+    assert observer_life_duration < 0.35
+    assert wait4_duration < 0.5
 
 
 def test_wait_for__tracks_changes_of_observer_timeout__extension(connection_observer):
@@ -428,16 +432,23 @@ def test_wait_for__direct_timeout_takes_precedence_over_extended_observer_timeou
 
     def modify_observer_timeout():
         time.sleep(0.15)
-        connection_observer.timeout = 0.35  # extend while inside wait_for()
+        connection_observer.timeout = 0.4  # extend while inside wait_for()
     threading.Thread(target=modify_observer_timeout).start()
 
     with pytest.raises(MolerTimeout):
+        wait4_start_time = time.time()  # wait_for() timeout is counted from wait_for() line in code
         observer_runner.wait_for(connection_observer, future,
                                  timeout=0.25)  # should take precedence, means: 0.25 sec from now
         connection_observer.result()  # should raise Timeout
-    duration = time.time() - start_time
-    assert duration >= 0.25
-    assert duration < 0.3
+
+    now = time.time()
+    observer_life_duration = now - start_time
+    wait4_duration = now - wait4_start_time
+
+    assert wait4_duration >= 0.25
+    assert wait4_duration < 0.35
+    assert observer_life_duration > 0.2
+    assert observer_life_duration < 0.4
 
 
 # --------------------------------------------------------------------

@@ -27,7 +27,7 @@ from moler.helpers import instance_id
 from moler.util.connection_observer import exception_stored_if_not_main_thread
 from moler.io.raw import TillDoneThread
 from moler.runner import ConnectionObserverRunner
-from moler.runner import result_for_runners, time_out_observer, his_remaining_time
+from moler.runner import result_for_runners, time_out_observer, his_remaining_time, await_future_or_eol
 from moler.util.loghelper import debug_into_logger
 
 
@@ -238,7 +238,8 @@ class AsyncioRunner(ConnectionObserverRunner):
 
         assert connection_observer.start_time > 0.0  # connection-observer lifetime should already been started
         observer_timeout = connection_observer.timeout
-        remain_time, msg = his_remaining_time("remaining", he=connection_observer, timeout=observer_timeout)
+        remain_time, msg = his_remaining_time("remaining", timeout=observer_timeout,
+                                              from_start_time=connection_observer.start_time)
         self.logger.debug("go background: {!r} - {}".format(connection_observer, msg))
 
         # Our submit consists of two steps:
@@ -307,27 +308,34 @@ class AsyncioRunner(ConnectionObserverRunner):
         :return:
         """
         if connection_observer.done():
-            # 1. done() might mean "timed out" before future start
+            future = connection_observer_future or connection_observer._future
+            # 1. done() might mean "timed out" before future created (future is None)
+            #    Observer lifetime started with its timeout clock so, it might timeout even before
+            #    future created by runner.submit() - may happen for nonempty commands queue
+            # 2. done() might mean "timed out" before future start
             #    Observer lifetime started with its timeout clock so, it might timeout even before
             #    connection_observer_future started - since future's coro might not get control yet
-            # 2. done() might mean "timed out" before wait_for()
+            # 3. done() might mean "timed out" before wait_for()
             #    wait_for() might be called so late after submit() that observer already "timed out"
-            # 3. done() might mean have result or got exception
+            # 4. done() might mean have result or got exception
             #    wait_for() might be called so late after submit() that observer already got result/exception
             #
             # In all above cases we want to stop future if it is still running
 
             self.logger.debug("go foreground: {} is already done".format(connection_observer))
-            if not connection_observer_future.done():
-                connection_observer_future.cancel()
+            if future and (not future.done()):
+                future.cancel()
             return None
 
         max_timeout = timeout
         observer_timeout = connection_observer.timeout
+        # we count timeout from now if timeout is given; else we use .start_time and .timeout of observer
+        start_time = time.time() if max_timeout else connection_observer.start_time
+        await_timeout = max_timeout if max_timeout else observer_timeout
         if max_timeout:
-            remain_time, msg = his_remaining_time("await max.", he=connection_observer, timeout=max_timeout)
+            remain_time, msg = his_remaining_time("await max.", timeout=max_timeout, from_start_time=start_time)
         else:
-            remain_time, msg = his_remaining_time("remaining", he=connection_observer, timeout=observer_timeout)
+            remain_time, msg = his_remaining_time("remaining", timeout=observer_timeout, from_start_time=start_time)
 
         self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
         event_loop, its_new = thread_secure_get_event_loop()
@@ -341,6 +349,15 @@ class AsyncioRunner(ConnectionObserverRunner):
                     # wait_for() should not be called from 'async def'
                     self._raise_wrong_usage_of_wait_for(connection_observer)
 
+                if connection_observer_future is None:
+                    end_of_life, remain_time = await_future_or_eol(connection_observer, remain_time, start_time, await_timeout, self.logger)
+                    if end_of_life:
+                        return None
+                    if remain_time <= 0.0:
+                        raise asyncio.futures.TimeoutError()
+                    connection_observer_future = connection_observer._future
+                    assert connection_observer_future is not None
+
                 self._run_via_asyncio(event_loop, connection_observer_future, max_timeout, remain_time)
 
             except asyncio.futures.CancelledError:
@@ -348,15 +365,23 @@ class AsyncioRunner(ConnectionObserverRunner):
                 connection_observer.cancel()
             except asyncio.futures.TimeoutError:
                 passed = time.time() - connection_observer.start_time
-                fired_timeout = timeout if timeout else connection_observer.timeout
-                with connection_observer_future.observer_lock:
+                future = connection_observer_future or connection_observer._future
+                if future:
+                    with future.observer_lock:
+                        time_out_observer(connection_observer=connection_observer,
+                                          timeout=await_timeout, passed_time=passed,
+                                          runner_logger=self.logger, kind="await_done")
+                else:
+                    # sorry, we don't have lock yet (it is created by runner.submit()
                     time_out_observer(connection_observer=connection_observer,
-                                      timeout=fired_timeout, passed_time=passed,
+                                      timeout=await_timeout, passed_time=passed,
                                       runner_logger=self.logger, kind="await_done")
             finally:
-                connection_observer_future.cancel()
-                if id(connection_observer_future) in self._submitted_futures:
-                    del self._submitted_futures[id(connection_observer_future)]
+                future = connection_observer_future or connection_observer._future
+                if future:
+                    future.cancel()
+                    if id(future) in self._submitted_futures:
+                        del self._submitted_futures[id(future)]
         return None
 
     @staticmethod
@@ -528,7 +553,8 @@ class AsyncioRunner(ConnectionObserverRunner):
         Feeds connection_observer by transferring data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
-        remain_time, msg = his_remaining_time("remaining", he=connection_observer, timeout=connection_observer.timeout)
+        remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
+                                              from_start_time=connection_observer.start_time)
         self.logger.info("{} started, {}".format(connection_observer, msg))
         connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
 
@@ -584,7 +610,8 @@ class AsyncioRunner(ConnectionObserverRunner):
             moler_conn.unsubscribe(subscribed_data_receiver)
             # feed_done.set()
 
-            remain_time, msg = his_remaining_time("remaining", he=connection_observer, timeout=connection_observer.timeout)
+            remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
+                                                  from_start_time=connection_observer.start_time)
             connection_observer._log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
             self.logger.info("{} finished, {}".format(connection_observer, msg))
         return None
