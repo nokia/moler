@@ -4,7 +4,7 @@ from moler.connection import get_connection
 
 host = 'www.google.com'
 terminal = get_connection(io_type='terminal', variant='threaded')
-with terminal:
+with terminal.open():
     ping_cmd = Ping(connection=terminal.moler_connection,
                     destination=host, options="-w 6")
     print("Start pinging {} ...".format(host))

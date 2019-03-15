@@ -4,7 +4,7 @@ Sudo command module.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
@@ -17,21 +17,27 @@ from moler.helpers import copy_dict
 
 class Sudo(GenericUnixCommand):
 
-    def __init__(self, connection, sudo_password, cmd_object=None, cmd_class_name=None, cmd_params=None, prompt=None,
-                 newline_chars=None, runner=None):
+    """Unix command sudo"""
+
+    def __init__(self, connection, password, cmd_object=None, cmd_class_name=None, cmd_params=None, prompt=None,
+                 newline_chars=None, runner=None, encrypt_password=True):
         """
-        :param connection: moler connection to device, terminal when command is executed
-        :param sudo_password: password
+        Constructs object for Unix command sudo.
+
+        :param connection: Moler connection to device, terminal when command is executed.
+        :param password: password for sudo.
         :param cmd_object: object of command. Pass this object or cmd_class_name.
         :param cmd_class_name: full (with package) class name. Pass this name or cmd_object.
         :param cmd_params: params for cmd_class_name. If cmd_object is passed this parameter is ignored.
         :param prompt: prompt (on system where command runs).
         :param newline_chars: Characters to split lines - list.
         :param runner: Runner to run command.
+        :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text.
         """
         super(Sudo, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
-        self.sudo_password = sudo_password
+        self.password = password
         self.cmd_object = cmd_object
+        self.encrypt_password = encrypt_password
         self._sent_sudo_password = False
         self._sent_command_string = False
         self.newline_seq = "\n"
@@ -56,6 +62,7 @@ class Sudo(GenericUnixCommand):
     def build_command_string(self):
         """
         Builds command string from parameters passed to object.
+
         :return: String representation of command to send over connection to device.
         """
         cmd = "sudo"
@@ -66,6 +73,7 @@ class Sudo(GenericUnixCommand):
     def on_new_line(self, line, is_full_line):
         """
         Put your parsing code here.
+
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise.
         :return: Nothing.
@@ -81,6 +89,7 @@ class Sudo(GenericUnixCommand):
     def _process_embedded_command(self, line, is_full_line):
         """
         Processes embedded command, passes output from device to embedded command.
+
         :param line: Line from device
         :param is_full_line: True if line had new line chars, False otherwise.
         :return: Nothing but raises ParsingDone if sudo has embedded command object.
@@ -106,6 +115,7 @@ class Sudo(GenericUnixCommand):
     def _parse_command_not_found(self, line):
         """
         Parses if command not found is found in line.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if regex matches.
         """
@@ -118,14 +128,28 @@ class Sudo(GenericUnixCommand):
     def _parse_sudo_password(self, line):
         """
         Parses if sudo waits for password.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if regex matches.
         """
         if re.search(Sudo._re_sudo_password, line):
             if not self._sent_sudo_password:
-                self.connection.sendline(self.sudo_password)
+                self.connection.sendline(self.password, encrypt=self.encrypt_password)
                 self._sent_sudo_password = True
             raise ParsingDone()
+
+    def _validate_start(self, *args, **kwargs):
+        """
+        Validates internal data before start.
+
+        :param args: args passed to super _validate_start
+        :param kwargs: kwargs passed to super _validate_start
+        :return: Nothing
+        """
+        if self.cmd_object and self.cmd_object.done():
+            exc = CommandFailure(self, "Not allowed to run again the embeded command (embeded command is done): {}.".format(self.cmd_object))
+            self.set_exception(exception=exc)
+        return super(Sudo, self)._validate_start(*args, **kwargs)
 
 
 COMMAND_OUTPUT_whoami = """
@@ -140,7 +164,7 @@ COMMAND_RESULT_whoami = {
 
 COMMAND_KWARGS_whoami = {
     "cmd_class_name": "moler.cmd.unix.whoami.Whoami",
-    "sudo_password": "pass",
+    "password": "pass",
 }
 
 COMMAND_OUTPUT_ls = """
@@ -187,5 +211,5 @@ COMMAND_RESULT_ls = {
 COMMAND_KWARGS_ls = {
     "cmd_class_name": "moler.cmd.unix.ls.Ls",
     "cmd_params": {"options": "-l"},
-    "sudo_password": "pass",
+    "password": "pass",
 }

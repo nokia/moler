@@ -16,6 +16,34 @@ def test_moler_test_warn():
     MolerTest.warning("Warning test")
 
 
+def test_moler_test_not_raise_exception_when_no_steps_end_for_global_method_twice():
+    ConnectionObserver.get_unraised_exceptions()
+    moler_test_not_raise_exception_when_no_steps_end_for_global_method_twice()
+
+
+def test_moler_test_raise_exception_when_not_callable_passed():
+    ConnectionObserver.get_unraised_exceptions()
+    var = "no callable"
+    with pytest.raises(MolerStatusException):
+        MolerTest._decorate(var)
+
+
+def test_moler_test_wrapper():
+    ConnectionObserver.get_unraised_exceptions()
+    decorated = moler_test_raise_exception_when_no_steps_end_for_global_method
+    ret = MolerTest._wrapper(decorated, False)
+    assert decorated == ret
+
+
+def test_moler_test_exception_no_exception():
+    ConnectionObserver.get_unraised_exceptions()
+    from moler.cmd.unix.ls import Ls
+    cmd = Ls(connection=None)
+    cmd.set_exception("wrong exception")
+    with pytest.raises(MolerStatusException):
+        moler_test_not_raise_exception_when_no_steps_end_for_global_method()
+
+
 def test_moler_test_not_raise_exception_when_steps_end(moler_test_se):
     ConnectionObserver.get_unraised_exceptions()
     moler_test_se.test_not_raise_exception_when_steps_end()
@@ -47,6 +75,10 @@ def test_moler_test_not_raise_exception_when_no_steps_end(moler_test):
 def test_moler_test_raise_exception_when_no_steps_end_for_global_method():
     with pytest.raises(MolerStatusException):
         moler_test_raise_exception_when_no_steps_end_for_global_method()
+
+
+def test_moler_test_not_raise_exception_when_no_steps_end_for_global_method():
+    moler_test_not_raise_exception_when_no_steps_end_for_global_method()
 
 
 # connection observer running in background thread may raise exception
@@ -367,6 +399,17 @@ def moler_test():
 
 @MolerTest.raise_background_exceptions(check_steps_end=True)
 def moler_test_raise_exception_when_no_steps_end_for_global_method():
+    MolerTest.info("Start global method with log and without steps_end")
+
+
+@MolerTest.raise_background_exceptions
+@MolerTest.raise_background_exceptions
+def moler_test_not_raise_exception_when_no_steps_end_for_global_method_twice():
+    MolerTest.info("Start global method with log and without steps_end")
+
+
+@MolerTest.raise_background_exceptions
+def moler_test_not_raise_exception_when_no_steps_end_for_global_method():
     MolerTest.info("Start global method with log and without steps_end")
 
 

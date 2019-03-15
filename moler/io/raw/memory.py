@@ -208,7 +208,7 @@ class ThreadedFifoBuffer(FifoBuffer):
 
     def open(self):
         """Start thread pulling data from FIFO buffer."""
-        super(ThreadedFifoBuffer, self).open()
+        ret = super(ThreadedFifoBuffer, self).open()
         done = threading.Event()
         self.pulling_thread = TillDoneThread(target=self.pull_data,
                                              done_event=done,
@@ -216,6 +216,7 @@ class ThreadedFifoBuffer(FifoBuffer):
         self.pulling_thread.start()
         self._log(msg="open {}".format(self), level=logging.INFO)
         self._notify_on_connect()
+        return ret
 
     def close(self):
         """Stop pulling thread."""

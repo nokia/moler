@@ -5,6 +5,7 @@ __copyright__ = 'Copyright (C) 2018-2019 Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
+import threading
 import time
 from abc import abstractmethod, ABCMeta
 
@@ -20,9 +21,10 @@ from moler.helpers import ClassProperty
 from moler.helpers import camel_case_to_lower_case_underscore
 from moler.helpers import instance_id
 from moler.helpers import copy_list
-from moler.runner import ThreadPoolExecutorRunner
+from moler.util.connection_observer import exception_stored_if_not_main_thread
+from moler.util.loghelper import log_into_logger
+from moler.runner_factory import get_runner
 from moler.command_scheduler import CommandScheduler
-import threading
 
 
 @add_metaclass(ABCMeta)
@@ -41,15 +43,17 @@ class ConnectionObserver(object):
         self._is_cancelled = False
         self._result = None
         self._exception = None
-        self.runner = runner if runner else ThreadPoolExecutorRunner()
+        self.runner = runner if runner else get_runner()
         self._future = None
-        self.timeout = 7
-        self.start_time = -1
+        self.start_time = 0.0  # means epoch: 1970-01-01 00:00:00
+        self.__timeout = 7  # default
         self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
         self.logger = logging.getLogger('moler.connection.{}'.format(self.get_logger_name()))
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
+
+    __base_str = __str__
 
     def __repr__(self):
         cmd_str = self.__str__()
@@ -62,9 +66,15 @@ class ConnectionObserver(object):
         """
         Run connection-observer in foreground
         till it is done or timeouted
+
+        CAUTION: if you call it from asynchronous code (async def) you may block events loop for long time.
+        You should rather await it via:
+        result = await connection_observer
+        or (to have timeout)
+        result = await asyncio.wait_for(connection_observer, timeout=10)
+        or you may delegate blocking call execution to separate thread,
+        see: https://pymotw.com/3/asyncio/executors.html
         """
-        if timeout:
-            self.timeout = timeout
         started_observer = self.start(timeout, *args, **kwargs)
         if started_observer:
             return started_observer.await_done(*args, **kwargs)
@@ -76,9 +86,20 @@ class ConnectionObserver(object):
 
     @_is_done.setter
     def _is_done(self, value):
+        self.__is_done = value
         if value:
             CommandScheduler.dequeue_running_on_connection(connection_observer=self)
-        self.__is_done = value
+
+    @property
+    def timeout(self):
+        return self.__timeout
+
+    @timeout.setter
+    def timeout(self, value):
+        # levels_to_go_up=2 : extract caller info to log where .timeout=XXX has been called from
+        self._log(logging.DEBUG, "Setting {} timeout to {} [sec]".format(ConnectionObserver.__base_str(self), value),
+                  levels_to_go_up=2)
+        self.__timeout = value
 
     def get_logger_name(self):
         if self.connection and hasattr(self.connection, "name"):
@@ -88,12 +109,24 @@ class ConnectionObserver(object):
 
     def start(self, timeout=None, *args, **kwargs):
         """Start background execution of connection-observer."""
-        if timeout:
-            self.timeout = timeout
-        self._validate_start(*args, **kwargs)
-        self._is_running = True
-        self.start_time = time.time()
-        CommandScheduler.enqueue_starting_on_connection(connection_observer=self)
+        with exception_stored_if_not_main_thread(self):
+            if timeout:
+                self.timeout = timeout
+            self._validate_start(*args, **kwargs)
+            # After start we treat it as started even if it's underlying
+            # parallelism machinery (threads, coroutines, ...) has not started yet
+            # (thread didn't get control, coro didn't start in async-loop)
+            # That is so, since observer lifetime starts with it's timeout-clock
+            # and timeout is counted from calling observer.start()
+            self._is_running = True
+            self.start_time = time.time()
+            # Besides not started parallelism machinery causing start-delay
+            # we can have start-delay caused by commands queue on connection
+            # (can't submit command to background-run till previous stops running)
+            CommandScheduler.enqueue_starting_on_connection(connection_observer=self)
+            # Above line will set self._future when it is possible to submit
+            # observer to background-run (observer not command, or empty commands queue)
+            # or setting self._future will be delayed by nonempty commands queue.
         return self
 
     def _validate_start(self, *args, **kwargs):
@@ -101,7 +134,7 @@ class ConnectionObserver(object):
         if not self.connection:
             # only if we have connection we can expect some data on it
             # at the latest "just before start" we need connection
-            self.set_exception(NoConnectionProvided(self))
+            raise NoConnectionProvided(self)
         # ----------------------------------------------------------------------
         # We intentionally do not check if connection is open here.
         # In such case net result anyway will be failed/timeouted observer -
@@ -112,25 +145,65 @@ class ConnectionObserver(object):
         # We choose minimalistic dependency over better troubleshooting support.
         # ----------------------------------------------------------------------
         if self.timeout <= 0.0:
-            exc = ConnectionObserverTimeout(self, self.timeout, "before run", "timeout is not positive value")
-            self.set_exception(exc)
+            raise ConnectionObserverTimeout(self, self.timeout, "before run", "timeout is not positive value")
+
+    def __iter__(self):  # Python 3.4 support - do we need it?
+        """
+        Implement iterator protocol to support 'yield from' in @asyncio.coroutine
+        :return:
+        """
+        if self._future is None:
+            self.start()
+        assert self._future is not None
+        return self.runner.wait_for_iterator(self, self._future)
+
+    def __await__(self):
+        """
+        Await completion of connection-observer.
+
+        Allows to use Python3 'await' syntax
+
+        According to https://www.python.org/dev/peps/pep-0492/#await-expression
+        it is a SyntaxError to use await outside of an async def function.
+        :return:
+        """
+        # We may have already started connection_observer:
+        #    connection_observer = SomeObserver()
+        #    connection_observer.start()
+        # then we await it via:
+        #    result = await connection_observer
+        # but above notation in terms of Python3 async code may also mean "start it and await completion", so it may look like:
+        #    connection_observer = SomeObserver()
+        #    result = await connection_observer
+        return self.__iter__()
 
     def await_done(self, timeout=None):
-        """Await completion of connection-observer."""
+        """
+        Await completion of connection-observer.
+
+        CAUTION: if you call it from asynchronous code (async def) you may block events loop for long time.
+        You should rather await it via:
+        result = await connection_observer
+        or (to have timeout)
+        result = await asyncio.wait_for(connection_observer, timeout=10)
+        or you may delegate blocking call execution to separate thread,
+        see: https://pymotw.com/3/asyncio/executors.html
+
+        :param timeout:
+        :return: observer result
+        """
         if self.done():
             return self.result()
-        if not self._is_running:
-            raise ConnectionObserverNotStarted(self)
-        while self._future is None:
-            time.sleep(0.005)
-            if self.done():
-                break
-        if self._future:
+        with exception_stored_if_not_main_thread(self):
+            if not self._is_running:
+                raise ConnectionObserverNotStarted(self)
+
             self.runner.wait_for(connection_observer=self, connection_observer_future=self._future, timeout=timeout)
         return self.result()
 
     def cancel(self):
         """Cancel execution of connection-observer."""
+        # TODO: call cancel on runner to stop background run of connection-observer
         if self.cancelled() or self.done():
             return False
         self._is_done = True
@@ -170,20 +243,14 @@ class ConnectionObserver(object):
         """Should be used to indicate some failure during observation"""
         if self._is_done:
             self._log(logging.WARNING,
-                      "Set exception with object '{}.{}' ({}) on already done object ({}).".format(
-                          exception.__class__.__module__,
-                          exception.__class__.__name__,
-                          exception,
-                          self
-                      ))
+                      "Trial to set exception {!r} on already done {}".format(exception, self),
+                      levels_to_go_up=2)
             return
         self._is_done = True
         ConnectionObserver._change_unraised_exception(new_exception=exception, observer=self)
-        self._log(logging.INFO, "'{}.{}' has set exception '{}.{}' ({}).".format(self.__class__.__module__,
-                                                                                 self.__class__.__name__,
-                                                                                 exception.__class__.__module__,
-                                                                                 exception.__class__.__name__,
-                                                                                 exception))
+        self._log(logging.INFO,
+                  "{}.{} has set exception {!r}".format(self.__class__.__module__, self, exception),
+                  levels_to_go_up=2)
 
     def result(self):
         """Retrieve final result of connection-observer"""
@@ -201,7 +268,7 @@ class ConnectionObserver(object):
         return self._result
 
     def on_timeout(self):
-        """ It's callback called by framework just before raise exception for Timeout """
+        """Callback called when observer times out"""
         pass
 
     def is_command(self):
@@ -210,7 +277,7 @@ class ConnectionObserver(object):
         """
         return False
 
-    def extend_timeout(self, timedelta):
+    def extend_timeout(self, timedelta):  # TODO: probably API to remove since we have runner tracking .timeout=XXX
         prev_timeout = self.timeout
         self.timeout = self.timeout + timedelta
         msg = "Extended timeout from %.2f with delta %.2f to %.2f" % (prev_timeout, timedelta, self.timeout)
@@ -240,25 +307,17 @@ class ConnectionObserver(object):
             ConnectionObserver._log_unraised_exceptions(observer)
             if old_exception:
                 observer._log(logging.DEBUG,
-                              "'{}.{}' has overwritten exception. From '{}.{}' ({}) to '{}.{}' ({}).".format(
-                                  observer.__class__.__module__,
-                                  observer.__class__.__name__,
-                                  old_exception.__class__.__module__,
-                                  old_exception.__class__.__name__,
+                              "{} has overwritten exception. From {!r} to {!r}".format(
+                                  observer,
                                   old_exception,
-                                  new_exception.__class__.__module__,
-                                  new_exception.__class__.__name__,
                                   new_exception,
                               ))
                 if old_exception in ConnectionObserver._not_raised_exceptions:
                     ConnectionObserver._not_raised_exceptions.remove(old_exception)
                 else:
                     observer._log(logging.DEBUG,
-                                  "'{}.{}': cannot find exception '{}.{}' '{}' in _not_raised_exceptions.".format(
-                                      observer.__class__.__module__,
-                                      observer.__class__.__name__,
-                                      old_exception.__class__.__module__,
-                                      old_exception.__class__.__name__,
+                                  "{}: cannot find exception {!r} in _not_raised_exceptions.".format(
+                                      observer,
                                       old_exception,
                                   ))
                     ConnectionObserver._log_unraised_exceptions(observer)
@@ -268,19 +327,16 @@ class ConnectionObserver(object):
 
     @staticmethod
     def _log_unraised_exceptions(observer):
-        observer._log(logging.DEBUG, "list length: {}".format(len(ConnectionObserver._not_raised_exceptions)))
-        observer._log(logging.DEBUG, "list: {}".format(ConnectionObserver._not_raised_exceptions))
-
         for i, item in enumerate(ConnectionObserver._not_raised_exceptions):
-            observer._log(logging.DEBUG, "{}: {}".format(i, item))
+            observer._log(logging.DEBUG, "{:4d} NOT RAISED: {!r}".format(i + 1, item), levels_to_go_up=2)
 
     def get_long_desc(self):
-        return "Observer '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)
+        return "Observer '{}.{}'".format(self.__class__.__module__, self)
 
     def get_short_desc(self):
-        return "Observer '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)
+        return "Observer '{}.{}'".format(self.__class__.__module__, self)
 
-    def _log(self, lvl, msg, extra=None):
+    def _log(self, lvl, msg, extra=None, levels_to_go_up=1):
         extra_params = {
             'log_name': self.get_logger_name()
         }
@@ -288,5 +344,6 @@ class ConnectionObserver(object):
         if extra:
             extra_params.update(extra)
 
-        self.logger.log(lvl, msg, extra=extra_params)
-        self.device_logger.log(lvl, msg, extra=extra_params)
+        # levels_to_go_up=1 : extract caller info to log where _log() has been called from
+        log_into_logger(self.logger, lvl, msg, extra=extra_params, levels_to_go_up=levels_to_go_up)
+        log_into_logger(self.device_logger, lvl, msg, extra=extra_params, levels_to_go_up=levels_to_go_up)
