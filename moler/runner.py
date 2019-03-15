@@ -164,7 +164,7 @@ class CancellableFuture(object):
         attribute = getattr(self._future, attr)
         return attribute
 
-    def cancel(self, no_wait=True):
+    def cancel(self, no_wait=False):
         """
         Cancel embedded future
         :param no_wait: if True - just set self._stop_running event to let thread exit loop
@@ -288,7 +288,6 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         """
         # TODO: calculate remaining timeout before logging + done(result/exception) info
         if connection_observer.done():
-            future = connection_observer_future or connection_observer._future
             # 1. done() might mean "timed out" before future created (future is None)
             #    Observer lifetime started with its timeout clock so, it might timeout even before
             #    future created by runner.submit() - may happen for nonempty commands queue
@@ -303,8 +302,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             # In all above cases we want to stop future if it is still running
 
             self.logger.debug("go foreground: {} is already done".format(connection_observer))
-            if future and (not future.done()):
-                future.cancel()
+            self._cancel_submitted_future(connection_observer, connection_observer_future)
             return None
 
         max_timeout = timeout
@@ -343,21 +341,30 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                     remain_time = timeout - already_passed
 
         # code below is for timed out observer
-        passed = time.time() - start_time
+        self._wait_for_time_out(connection_observer, connection_observer_future,
+                                timeout=await_timeout)
+        return None
+
+    @staticmethod
+    def _cancel_submitted_future(connection_observer, connection_observer_future):
+        future = connection_observer_future or connection_observer._future
+        if future and (not future.done()):
+            future.cancel(no_wait=True)
+
+    def _wait_for_time_out(self, connection_observer, connection_observer_future, timeout):
+        passed = time.time() - connection_observer.start_time
         future = connection_observer_future or connection_observer._future
         if future:
-            future.cancel()
+            future.cancel(no_wait=True)
             with future.observer_lock:
                 time_out_observer(connection_observer=connection_observer,
-                                  timeout=await_timeout, passed_time=passed,
+                                  timeout=timeout, passed_time=passed,
                                   runner_logger=self.logger, kind="await_done")
         else:
             # sorry, we don't have lock yet (it is created by runner.submit()
             time_out_observer(connection_observer=connection_observer,
-                              timeout=await_timeout, passed_time=passed,
+                              timeout=timeout, passed_time=passed,
                               runner_logger=self.logger, kind="await_done")
-
-        return None
 
     def wait_for_iterator(self, connection_observer, connection_observer_future):
         """
