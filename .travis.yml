@@ -1,52 +1,52 @@
 stages:
-#- style
+- style
 - test
 #- example
 
 jobs:
   include:
-#  - stage: style
-#    language: python
-#    python: 2.7
-#    install:
-#    - pip install -U pip
-#    - pip install -U pycodestyle
-#    before_script:
-#    - pip install -Ur requirements.txt
-#    - python2 -V
-#    env:
-#    - NAME="Style"
-#    script:
-#    - pycodestyle moler
-#  - stage: style
-#    language: python
-#    python: 3.6
-#    install:
-#    - pip install -U pip
-#    - pip install -U pycodestyle
-#    before_script:
-#    - pip install -Ur requirements.txt
-#    - python3 -V
-#    env:
-#    - NAME="Style"
-#    script:
-#    - pycodestyle moler
-#  - stage: test
-#    language: python
-#    python: 2.7
-#    install:
-#    - pip install -U pip
-#    - pip install -U pytest-mccabe pytest-random
-#    before_script:
-#    - pip install -Ur requirements.txt
-#    - python2 -V
-#    env:
-#    - NAME="Test"
-#    script:
-#    - python2.7 -m pytest --random -s -vv test
-#    after_failure:
-#    - ls -laR
-#    - cat *.log
+  - stage: style
+    language: python
+    python: 2.7
+    install:
+    - pip install -U pip
+    - pip install -U pycodestyle
+    before_script:
+    - pip install -Ur requirements.txt
+    - python2 -V
+    env:
+    - NAME="Style"
+    script:
+    - pycodestyle moler
+  - stage: style
+    language: python
+    python: 3.6
+    install:
+    - pip install -U pip
+    - pip install -U pycodestyle
+    before_script:
+    - pip install -Ur requirements.txt
+    - python3 -V
+    env:
+    - NAME="Style"
+    script:
+    - pycodestyle moler
+  - stage: test
+    language: python
+    python: 2.7
+    install:
+    - pip install -U pip
+    - pip install -U pytest-mccabe pytest-random
+    before_script:
+    - pip install -Ur requirements.txt
+    - python2 -V
+    env:
+    - NAME="Test"
+    script:
+    - python2.7 -m pytest --random -s -vv test
+    after_failure:
+    - ls -laR
+    - cat *.log
   - stage: test
     language: python
     python: 3.6
@@ -60,7 +60,7 @@ jobs:
     - NAME="Test"
     script:
     - python3.6 -m pytest --mccabe moler
-    - coverage run -m pytest -c py3pytest.ini --random  -s -vv -k py3test_runners
+    - coverage run -m pytest -c py3pytest.ini --random  -s -vv
     after_success:
     - coveralls
     after_failure:
