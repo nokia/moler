@@ -550,7 +550,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         self.logger.debug("subscribing for data {}".format(connection_observer))
         moler_conn.subscribe(secure_data_received)
         if connection_observer.is_command():
-            connection_observer.connection.sendline(connection_observer.command_string)
+            connection_observer.send_command()
         return secure_data_received  # to know what to unsubscribe
 
     async def feed(self, connection_observer, subscribed_data_receiver, observer_lock):
