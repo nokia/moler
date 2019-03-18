@@ -12,10 +12,11 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 import atexit
 import concurrent.futures
 import logging
-import time
 import threading
+import time
 from abc import abstractmethod, ABCMeta
 from concurrent.futures import ThreadPoolExecutor, wait
+
 from six import add_metaclass
 
 from moler.exceptions import CommandTimeout
@@ -318,7 +319,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
 
         if connection_observer_future is None:
-            end_of_life, remain_time = await_future_or_eol(connection_observer, remain_time, start_time, await_timeout, self.logger)
+            end_of_life, remain_time = await_future_or_eol(connection_observer, remain_time, start_time, await_timeout,
+                                                           self.logger)
             if end_of_life:
                 return None
 
@@ -387,6 +389,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         """
         Start feeding connection_observer by establishing data-channel from connection to observer.
         """
+
         def secure_data_received(data):
             try:
                 if connection_observer.done() or self._in_shutdown:
@@ -410,7 +413,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         self.logger.debug("subscribing for data {}".format(connection_observer))
         moler_conn.subscribe(secure_data_received)
         if connection_observer.is_command():
-            connection_observer.connection.sendline(connection_observer.command_string)
+            connection_observer.send_command()
         return secure_data_received  # to know what to unsubscribe
 
     def feed(self, connection_observer, subscribed_data_receiver, stop_feeding, feed_done,

@@ -58,3 +58,12 @@ class Command(ConnectionObserver):
         :return: True if instance of ConnectionObserver is a command. False if not a command.
         """
         return True
+
+    def send_command(self):
+        """
+        Sends command string over connection.
+
+        :return: Nothing
+        """
+        self.connection.sendline(self.command_string)
+
