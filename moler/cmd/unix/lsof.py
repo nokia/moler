@@ -70,7 +70,7 @@ class Lsof(GenericUnixCommand):
             raise ParsingDone()
 
     # 15695
-    _re_number = re.compile(r"\s*(?P<NUMBER>\d+)\s*")
+    _re_number = re.compile(r"^\s*(?P<NUMBER>\d+)\s*$")
 
     def _parse_number(self, line):
         if self._regex_helper.match_compiled(Lsof._re_number, line):
@@ -157,13 +157,14 @@ lxpanel    1593               uls   12r     FIFO               0,10       0t0   
 VBoxClien  1557               uls    5u     unix 0xffff9a1adcb22800       0t0      19578 type=STREAM
 exim4      1129       Debian-exim  cwd   unknown                                         /proc/1129/cwd (readlink: Permission denied)
 gmain      1491  1570         uls  rtd       DIR              254,0      4096          2 /
+                 1570         uls  rtd       DIR              254,0      4096          2 /
 bash-4.2:~ #"""
 
 COMMAND_KWARGS_no_parameters = {
 }
 
 COMMAND_RESULT_no_parameters = {
-    "NUMBER": 6,
+    "NUMBER": 7,
     "VALUES": [
         {
             'COMMAND': 'systemd',
@@ -228,6 +229,18 @@ COMMAND_RESULT_no_parameters = {
         {
             'COMMAND': 'gmain',
             'PID': '1491',
+            'TID': '1570',
+            'USER': 'uls',
+            'FD': 'rtd',
+            'TYPE': 'DIR',
+            'DEVICE': '254,0',
+            'SIZE/OFF': '4096',
+            'NODE': '2',
+            'NAME': '/',
+        },
+        {
+            'COMMAND': None,
+            'PID': None,
             'TID': '1570',
             'USER': 'uls',
             'FD': 'rtd',
