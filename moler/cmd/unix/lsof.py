@@ -111,20 +111,25 @@ class Lsof(GenericUnixCommand):
                 raise ParsingDone()
 
     def _proper_position_value(self, header_index, value_position):
-        current_header_pos = self._header_pos[header_index]
-        if current_header_pos == value_position:
-            return True
-        prev_header_pos = -1
-        if header_index > 0:
-            prev_header_pos = self._header_pos[header_index - 1]
-        next_header_pos = 9999999999
-        if header_index < len(self._headers) - 1:
-            next_header_pos = self._header_pos[header_index] + len(self._headers[header_index])
-        if value_position >= next_header_pos:
-            return False
-        if value_position <= prev_header_pos:
-            return False
-        return True
+        ret = False
+        if header_index < len(self._headers):
+            current_header_pos = self._header_pos[header_index]
+            if current_header_pos == value_position:
+                ret = True
+            else:
+                prev_header_pos = -1
+                if header_index > 0:
+                    prev_header_pos = self._header_pos[header_index - 1]
+                next_header_pos = 9999999999
+                if header_index < len(self._headers) - 1:
+                    next_header_pos = self._header_pos[header_index] + len(self._headers[header_index])
+                if value_position >= next_header_pos:
+                    ret = False
+                elif value_position <= prev_header_pos:
+                    ret = False
+                else:
+                    ret = True
+        return ret
 
 
 COMMAND_OUTPUT_number_only = """lsof | wc -l
