@@ -106,9 +106,6 @@ class Lsof(GenericUnixCommand):
                         item[header] = value
                         data_index += 1
                         last_value_position = value_position
-                    else:
-                        # No value for given header
-                        pass
                 self.current_ret["VALUES"].append(item)
                 self.current_ret["NUMBER"] += 1
                 raise ParsingDone()
