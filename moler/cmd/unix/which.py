@@ -60,13 +60,14 @@ class Which(GenericUnixCommand):
         if not self._result_set:
             for name in self.names:
                 if not name:
-                    self.set_exception(CommandFailure(self, "ERROR: name is empty"))
+                    raise CommandFailure(self, "ERROR: name is empty")
                 else:
                     self.current_ret[name] = list()
             self._result_set = True
 
     def _validate_start(self, *args, **kwargs):
         super(Which, self)._validate_start(*args, **kwargs)
+        # _validate_start is call before run command on connection, so we raise exception instead of set it
         self._set_result()
 
 

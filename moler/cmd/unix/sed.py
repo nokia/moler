@@ -73,10 +73,11 @@ class Sed(GenericUnixCommand):
             if file and not file.isspace():
                 is_empty = False
         if is_empty:
-            self.set_exception(CommandFailure(self, "No input file given in: {}".format(self.input_files)))
+            raise CommandFailure(self, "No input file given in: {}".format(self.input_files))
 
     def _validate_start(self, *args, **kwargs):
         super(Sed, self)._validate_start(*args, **kwargs)
+        # _validate_start is call before run command on connection, so we raise exception instead of set it
         self._is_input_file()
 
 

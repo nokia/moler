@@ -133,28 +133,26 @@ class Sudo(GenericUnixCommand):
         """
         super(Sudo, self)._validate_start(*args, **kwargs)
         if self.cmd_object and self.cmd_class_name:
-            self.set_exception(CommandFailure(self,
-                                              "both 'cmd_object' and 'cmd_class_name' parameters provided. Please specify only one. "))
-            return
+            # _validate_start is call before run command on connection, so we raise exception instead of set it
+            raise CommandFailure(self,
+                                 "both 'cmd_object' and 'cmd_class_name' parameters provided. Please specify only one.")
 
         if self.cmd_class_name:
             params = copy_dict(self.cmd_params)
             params["connection"] = self.connection
             params['prompt'] = self._re_prompt
             params["newline_chars"] = self._newline_chars
-            try:
-                self.cmd_object = create_object_from_name(self.cmd_class_name, params)
-            except Exception as ex:
-                self.set_exception(ex)
+            self.cmd_object = create_object_from_name(self.cmd_class_name, params)
         else:
             if not self.cmd_object:
-                self.set_exception(CommandFailure(self,
-                                                  "Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor. Please specific parameter."))
+                # _validate_start is call before run command on connection, so we raise exception instead of set it
+                raise CommandFailure(self,
+                                     "Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor. Please specific parameter.")
         if self.cmd_object and self.cmd_object.done():
-            exc = CommandFailure(self,
+            # _validate_start is call before run command on connection, so we raise exception instead of set it
+            raise CommandFailure(self,
                                  "Not allowed to run again the embeded command (embeded command is done): {}.".format(
                                      self.cmd_object))
-            self.set_exception(exception=exc)
 
 
 COMMAND_OUTPUT_whoami = """
