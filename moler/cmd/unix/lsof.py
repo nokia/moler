@@ -18,7 +18,7 @@ class Lsof(GenericUnixCommand):
 
     def __init__(self, connection, prompt=None, newline_chars=None, runner=None, options=None):
         """
-        Unix ctrl+c command
+        Unix lsof command
 
         :param connection: Moler connection to device, terminal when command is executed.
         :param prompt: Prompt of the starting shell
