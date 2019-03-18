@@ -123,9 +123,7 @@ class Lsof(GenericUnixCommand):
                 next_header_pos = 9999999999
                 if header_index < len(self._headers) - 1:
                     next_header_pos = self._header_pos[header_index] + len(self._headers[header_index])
-                if value_position >= next_header_pos:
-                    ret = False
-                elif value_position <= prev_header_pos:
+                if value_position <= prev_header_pos or value_position >= next_header_pos:
                     ret = False
                 else:
                     ret = True
