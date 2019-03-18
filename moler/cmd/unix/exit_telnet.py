@@ -30,7 +30,7 @@ class ExitTelnet(GenericUnixCommand):
         self.ret_required = False
         self._command_sent = False
         self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(expected_prompt)
-        self.newline_after_command_string
+        self.newline_after_command_string = False
 
     def build_command_string(self):
         return "\x1d"
