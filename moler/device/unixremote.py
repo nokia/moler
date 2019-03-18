@@ -108,6 +108,15 @@ class UnixRemote(UnixLocal):
                         "required_command_params": [
                         ]
                     },
+                    UnixRemote.unix_local: {  # to
+                        "execute_command": "exit",  # using command
+                        "command_params": {  # with parameters
+                            "expected_prompt": r'^moler_bash#',
+                            "target_newline": "\n"
+                        },
+                        "required_command_params": [
+                        ]
+                    },
                 },
                 UnixRemote.unix_remote_root: {  # from
                     UnixRemote.unix_remote: {  # to
