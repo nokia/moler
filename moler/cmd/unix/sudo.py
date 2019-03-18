@@ -8,15 +8,15 @@ __copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
+
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
-from moler.helpers import create_object_from_name
 from moler.helpers import copy_dict
+from moler.helpers import create_object_from_name
 
 
 class Sudo(GenericUnixCommand):
-
     """Unix command sudo"""
 
     def __init__(self, connection, password, cmd_object=None, cmd_class_name=None, cmd_params=None, prompt=None,
@@ -37,27 +37,12 @@ class Sudo(GenericUnixCommand):
         super(Sudo, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.password = password
         self.cmd_object = cmd_object
+        self.cmd_params = cmd_params
+        self.cmd_class_name = cmd_class_name
         self.encrypt_password = encrypt_password
         self._sent_sudo_password = False
         self._sent_command_string = False
         self.newline_seq = "\n"
-        if cmd_object and cmd_class_name:
-            self.set_exception(CommandFailure(self, "both 'cmd_object' and 'cmd_class_name' parameters provided. Please specify only one. "))
-            return
-
-        if cmd_class_name:
-            params = copy_dict(cmd_params)
-            params["connection"] = connection
-            params['prompt'] = prompt
-            params["newline_chars"] = newline_chars
-            try:
-                self.cmd_object = create_object_from_name(cmd_class_name, params)
-            except Exception as ex:
-                self.set_exception(ex)
-        else:
-            if not self.cmd_object:
-                self.set_exception(CommandFailure(self,
-                                                  "Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor. Please specific parameter."))
 
     def build_command_string(self):
         """
@@ -146,10 +131,30 @@ class Sudo(GenericUnixCommand):
         :param kwargs: kwargs passed to super _validate_start
         :return: Nothing
         """
+        super(Sudo, self)._validate_start(*args, **kwargs)
+        if self.cmd_object and self.cmd_class_name:
+            self.set_exception(CommandFailure(self,
+                                              "both 'cmd_object' and 'cmd_class_name' parameters provided. Please specify only one. "))
+            return
+
+        if self.cmd_class_name:
+            params = copy_dict(self.cmd_params)
+            params["connection"] = self.connection
+            params['prompt'] = self._re_prompt
+            params["newline_chars"] = self._newline_chars
+            try:
+                self.cmd_object = create_object_from_name(self.cmd_class_name, params)
+            except Exception as ex:
+                self.set_exception(ex)
+        else:
+            if not self.cmd_object:
+                self.set_exception(CommandFailure(self,
+                                                  "Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor. Please specific parameter."))
         if self.cmd_object and self.cmd_object.done():
-            exc = CommandFailure(self, "Not allowed to run again the embeded command (embeded command is done): {}.".format(self.cmd_object))
+            exc = CommandFailure(self,
+                                 "Not allowed to run again the embeded command (embeded command is done): {}.".format(
+                                     self.cmd_object))
             self.set_exception(exception=exc)
-        return super(Sudo, self)._validate_start(*args, **kwargs)
 
 
 COMMAND_OUTPUT_whoami = """

@@ -3,9 +3,9 @@
 Which command module.
 """
 
-__author__ = 'Agnieszka Bylica'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'agnieszka.bylica@nokia.com'
+__author__ = 'Agnieszka Bylica, Michal Ernst'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'agnieszka.bylica@nokia.com, michal.ernst@nokia.com'
 
 
 import re
@@ -26,7 +26,6 @@ class Which(GenericUnixCommand):
         # Internal variables
         self._compiled_regex = []
         self._result_set = False
-        self._set_result()
 
     def build_command_string(self):
         cmd = "which"
@@ -65,6 +64,10 @@ class Which(GenericUnixCommand):
                 else:
                     self.current_ret[name] = list()
             self._result_set = True
+
+    def _validate_start(self, *args, **kwargs):
+        super(Which, self)._validate_start(*args, **kwargs)
+        self._set_result()
 
 
 COMMAND_OUTPUT = """
