@@ -67,7 +67,7 @@ class Which(GenericUnixCommand):
 
     def _validate_start(self, *args, **kwargs):
         super(Which, self)._validate_start(*args, **kwargs)
-        # _validate_start is call before run command on connection, so we raise exception instead of set it
+        # _validate_start is called before running command on connection, so we raise exception instead of setting it
         self._set_result()
 
 
