@@ -1,4 +1,14 @@
 # -*- coding: utf-8 -*-
+
+__author__ = 'Dariusz Rosinski, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'dariusz.rosinski@nokia.com, marcin.usielski@nokia.com'
+
+import re
+from moler.cmd.unix.genericunix import GenericUnixCommand
+from moler.parser.table_text import TableText
+
+
 """
 ps command module.
 Commad Ps is parsed to list of dictionary.
@@ -11,60 +21,63 @@ Each key is derived from first line of executed ps command so accessing it needs
 result knowledge
 """
 
-__author__ = 'Dariusz Rosinski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'dariusz.rosinski@nokia.com'
-
-import re
-from moler.cmd.unix.genericunix import GenericUnixCommand
-from moler.parser.table_text import TableText
-
 
 class Ps(GenericUnixCommand):
 
+    """Unix command ps."""
+
     def __init__(self, connection=None, options='', prompt=None, newline_chars=None, runner=None):
-        self.parser = None
-        self._cmd = 'ps'
+        """
+        Represents Unix command ps.
+
+        :param connection: moler connection to device, terminal where command is executed
+        :param options: ps command options as string
+        :param prompt: prompt (on system where command runs).
+        :param newline_chars: characters to split lines
+        :param runner: Runner to run command
+        """
+        super(Ps, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+        self.current_ret = list()
+        self.options = options
         self._cmd_line_found = False
         self._column_line_found = False
         self._columns = list()
         self._space_columns = list()
-        self._options = options
-        super(Ps, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
-        self.current_ret = list()
+        self._parser = None
 
     def on_new_line(self, line, is_full_line):
-        '''
-        Operations executed on new line columns must be found in order to correct introduce values to dictionary
-        :param line:
-        :param is_full_line:
-        :return:
-        '''
-        if not is_full_line:
-            return super(Ps, self).on_new_line(line, is_full_line)
-        # splitting columns according to column number
-        splitted_columns = self.split_columns_in_line(line)
-        # when columns names are set proceed with putting data to dictionary list
-        if self._columns and splitted_columns is not None:
-            # put correct value to specific column
-            parsed_line = self.parser.parse(line)
-            if parsed_line is not None:
-                self.current_ret.append(parsed_line)
-        # assign splitted columns to parameter in Ps class; columns are printed as first line after ps command execution
-        if not self._column_line_found:
-            self._columns = splitted_columns
-            self._column_line_found = True
-            self.parser = TableText(self._columns, self._columns)
-            self.parser.parse(line)
-        # execute generic on_new_line
-        return super(Ps, self).on_new_line(line, is_full_line=True)
+        """
+        Parses output from command.
 
-    def split_columns_in_line(self, line):
-        '''
-        Method to split line according to columns number
-        :param line:
-        :return:
-        '''
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: Nothing
+        """
+        if is_full_line:
+            # splitting columns according to column number
+            splitted_columns = self._split_columns_in_line(line)
+            # when columns names are set proceed with putting data to dictionary list
+            if self._columns and splitted_columns is not None:
+                # put correct value to specific column
+                parsed_line = self._parser.parse(line)
+                if parsed_line is not None:
+                    self.current_ret.append(parsed_line)
+            # assign splitted columns to parameter in Ps class; columns are printed as first line after ps command execution
+            if not self._column_line_found:
+                self._columns = splitted_columns
+                self._column_line_found = True
+                self._parser = TableText(self._columns, self._columns)
+                self._parser.parse(line)
+        # execute generic on_new_line
+        return super(Ps, self).on_new_line(line, is_full_line)
+
+    def _split_columns_in_line(self, line):
+        """
+        Split line according to columns number.
+
+        :param line: line from device to process
+        :return: list of columns or None
+        """
         parsed_line = str.strip(str(line))
         # split with whitespaces
         parsed_line = re.split(r'\s+', parsed_line)
@@ -74,25 +87,11 @@ class Ps(GenericUnixCommand):
         # When data is avaliable proceed with parsing
         return parsed_line
 
-    @staticmethod
-    def convert_data_to_type(data):
-        # when casting wrong type Value Error will be raised
-        try:
-            d_int = int(data)
-            if str(d_int) == data:
-                return d_int
-        except ValueError:
-            pass
-        try:
-            d_float = float(data)
-            return d_float
-        except ValueError:
-            pass
-
-        return data
-
     def build_command_string(self):
-        return self._cmd + " " + self._options
+        cmd = "ps"
+        if self.options:
+            cmd = "{} {}".format(cmd, self.options)
+        return cmd
 
 
 COMMAND_OUTPUT = '''
@@ -116,7 +115,7 @@ root@DMICTRL:~# ps -o user,pid,vsz,osz,pmem,rss,cmd -e
  root@DMICTRL:~#
  '''
 
-COMMAND_KWARGS = {}
+COMMAND_KWARGS = {"options": "-o user,pid,vsz,osz,pmem,rss,cmd -e"}
 
 COMMAND_RESULT = [
     {'USER': 'root', 'PID': 1, 'VSZ': 1664, 'SZ': '-', 'MEM': 0.1, 'RSS': 572, 'COMMAND': 'init [3]'},
@@ -153,7 +152,7 @@ root      5823     2  0 Mar09 ?        00:00:03 [kworker/u8:2]
 FZM-FDD-086-ws-kvm:/home/rtg #
 '''
 
-COMMAND_KWARGS_V2 = {}
+COMMAND_KWARGS_V2 = {"options": "-ef"}
 
 COMMAND_RESULT_V2 = [
     {'UID': 'avahi-a+', 'PID': 3597, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:45',
@@ -202,7 +201,7 @@ root      5823     2  0 Mar09 ?     [kworker/u8:2]                              
 FZM-FDD-086-ws-kvm:/home/rtg #
 '''
 
-COMMAND_KWARGS_V3 = {}
+COMMAND_KWARGS_V3 = {"options": "-ef"}
 
 COMMAND_RESULT_V3 = [
     {'UID': 'avahi-a+', 'PID': 3597, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:45',
@@ -230,5 +229,4 @@ COMMAND_RESULT_V3 = [
      'CMD': '/sbin/dhcpcd --netconfig -L -E -HHH -c /etc/sysconfig/network/scripts/dhcpcd-hook -t 0 -h FZM-FDD-086-'},
     {'UID': 'root', 'PID': 5823, 'PPID': 2, 'C': 0, 'STIME': 'Mar09', 'TTY': '?', 'TIME': '00:00:03',
      'CMD': '[kworker/u8:2]'},
-
 ]

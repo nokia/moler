@@ -1,6 +1,7 @@
 stages:
 - style
 - test
+#- example
 
 jobs:
   include:
@@ -42,14 +43,16 @@ jobs:
     env:
     - NAME="Test"
     script:
-    - python2.7 -m pytest --mccabe moler
     - python2.7 -m pytest --random -s -vv test
+    after_failure:
+    - ls -laR
+    - cat *.log
   - stage: test
     language: python
     python: 3.6
     install:
     - pip install -U pip
-    - pip install -U coveralls pytest-mccabe pytest-random
+    - pip install -U coveralls pytest-mccabe pytest-random pytest-asyncio==0.9.0
     before_script:
     - pip install -Ur requirements.txt
     - python3 -V
@@ -57,6 +60,25 @@ jobs:
     - NAME="Test"
     script:
     - python3.6 -m pytest --mccabe moler
-    - coverage run -m py.test --random  -s -vv
+    - coverage run -m pytest -c py3pytest.ini --random  -s -vv
     after_success:
     - coveralls
+    after_failure:
+    - ls -laR
+    - cat *.log
+#  - stage: example
+#    language: python
+#    python: 3.6
+#    install:
+#    - pip install -U pip
+#    - pip install -U twisted curio
+#    before_script:
+#    - pip install -Ur requirements.txt
+#    - python3 -V
+#    env:
+#    - NAME="Example"
+#    script:
+#    - bash examples/run_all_examples.bash
+#    after_failure:
+#    - ls -laR
+#    - cat *.log

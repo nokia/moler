@@ -3,14 +3,13 @@
 Testing of ls command.
 """
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import pytest
-
+from moler.cmd.unix.ls import Ls
 
 def test_calling_ls_returns_result_parsed_from_command_output(buffer_connection, command_output_and_expected_result):
-    from moler.cmd.unix.ls import Ls
     command_output, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
     ls_cmd = Ls(connection=buffer_connection.moler_connection)
@@ -19,7 +18,6 @@ def test_calling_ls_returns_result_parsed_from_command_output(buffer_connection,
 
 
 def test_calling_dir_getter_from_ls_command_output(buffer_connection, command_output_and_expected_result):
-    from moler.cmd.unix.ls import Ls
     command_output, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
     ls_cmd = Ls(connection=buffer_connection.moler_connection, options="-l")
@@ -35,7 +33,6 @@ def test_calling_dir_getter_from_ls_command_output(buffer_connection, command_ou
 
 
 def test_calling_link_getter_from_ls_command_output(buffer_connection, command_output_and_expected_result):
-    from moler.cmd.unix.ls import Ls
     command_output, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
     ls_cmd = Ls(connection=buffer_connection.moler_connection, options="-l")
@@ -52,7 +49,6 @@ def test_calling_link_getter_from_ls_command_output(buffer_connection, command_o
 
 
 def test_calling_file_getter_from_ls_command_output(buffer_connection, command_output_and_expected_result):
-    from moler.cmd.unix.ls import Ls
     command_output, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
     ls_cmd = Ls(connection=buffer_connection.moler_connection, options="-l")
@@ -70,9 +66,15 @@ def test_calling_file_getter_from_ls_command_output(buffer_connection, command_o
 
 
 def test_ls_returns_proper_command_string(buffer_connection):
-    from moler.cmd.unix.ls import Ls
     ls_cmd = Ls(buffer_connection, options="-l")
     assert "ls -l" == ls_cmd.command_string
+
+
+def test_ls_throw_ResultNotAvailableYet(buffer_connection):
+    from moler.exceptions import ResultNotAvailableYet
+    ls_cmd = Ls(buffer_connection, options="-l")
+    with pytest.raises(ResultNotAvailableYet):
+        ls_cmd.get_dirs()
 
 
 @pytest.fixture

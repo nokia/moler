@@ -48,10 +48,10 @@ class Command(ConnectionObserver):
             raise NoCommandStringProvided(self)
 
     def get_long_desc(self):
-        return "Command '{}.{}':'{}'".format(self.__class__.__module__, self.__class__.__name__, self.command_string)
+        return "Command {}.{}".format(self.__class__.__module__, self)
 
     def get_short_desc(self):
-        return "Command '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)
+        return "Command {}.{}(id:{})".format(self.__class__.__module__, self.__class__.__name__, instance_id(self))
 
     def is_command(self):
         """

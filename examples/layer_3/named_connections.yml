@@ -7,6 +7,14 @@ NAMED_CONNECTIONS:
         io_type: tcp
         host: localhost
         port: 5672
+    net_11:               # connection name
+        io_type: tcp
+        host: localhost
+        port: 5681
+    net_21:
+        io_type: tcp
+        host: localhost
+        port: 5682
 IO_TYPES:
     default_variant:
         tcp: threaded

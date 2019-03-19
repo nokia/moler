@@ -6,13 +6,12 @@ __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 import os
-from contextlib import contextmanager
-
 import six
 import yaml
+from contextlib import contextmanager
 
 from moler.helpers import compare_objects
-from moler.util.moler_test import MolerTest
+from moler.exceptions import MolerException
 from . import connections as conn_cfg
 from . import devices as dev_cfg
 from . import loggers as log_cfg
@@ -45,8 +44,20 @@ def read_yaml_configfile(path):
         with read_configfile(path) as content:
             return yaml.load(content)
     else:
-        MolerTest.error("For configuration file path: '{}' was used but absolute path is needed!".format(path))
-        return {}
+        error = "Loading configuration requires absolute path and not '{}'".format(path)
+        raise MolerException(error)
+
+
+def configs_are_same(config1, config2):
+    """
+    Utility function to check if two configs are identical (deep comparison)
+
+    :param config1: first config to compare
+    :param config2: second config to compare
+    :return: bool
+    """
+    diff = compare_objects(config1, config2)
+    return not diff
 
 
 def load_config(config=None, from_env_var=None, config_type='yaml'):
@@ -62,14 +73,12 @@ def load_config(config=None, from_env_var=None, config_type='yaml'):
 
     if loaded_config == "NOT_LOADED_YET":
         loaded_config = config
-    elif not compare_objects(loaded_config, config):
+    elif configs_are_same(loaded_config, config):
         return
     else:
-        # TODO: raise exception or no?
-        MolerTest.error("Try to load '{}' config when '{}' config already loaded.\n"
-                        "Reload configuration under one Moler execution not supported!".format(config,
-                                                                                               loaded_config))
-        return
+        why = "Reloading configuration during Moler execution is not supported!"
+        error = "Trial to load '{}' config while '{}' config already loaded.\n{}".format(config, loaded_config, why)
+        raise MolerException(error)
 
     assert (config_type == 'dict') or (config_type == 'yaml')  # no other format supported yet
     if not config:

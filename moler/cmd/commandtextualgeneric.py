@@ -4,7 +4,7 @@ Generic Unix/Linux module
 """
 
 __author__ = 'Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
@@ -17,15 +17,21 @@ from moler.cmd import RegexHelper
 from moler.command import Command
 
 
+@six.add_metaclass(abc.ABCMeta)
 class CommandTextualGeneric(Command):
+    """Base class for textual commands."""
+
     _re_default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')  # When user provides no prompt
     _default_newline_chars = ("\n", "\r")  # New line chars on device, not system with script!
 
     def __init__(self, connection, prompt=None, newline_chars=None, runner=None):
         """
-        :param connection: connection to device
-        :param prompt: expected prompt sending by device after command execution. Maybe String or compiled re
-        :param newline_chars:  new line chars on device
+        Base class for textual commands.
+
+        :param connection: connection to device.
+        :param prompt: expected prompt sending by device after command execution. Maybe String or compiled re.
+        :param newline_chars:  new line chars on device (a list).
+        :param runner: runner to run command.
         """
         super(CommandTextualGeneric, self).__init__(connection=connection, runner=runner)
         self.__command_string = None  # String representing command on device
@@ -40,21 +46,35 @@ class CommandTextualGeneric(Command):
         self._newline_chars = newline_chars  # New line characters on device
         self.do_not_process_after_done = True  # Set True if you want to break processing data when command is done. If
         # False then on_new_line will be called after done if more lines are in the same data package.
+        self.newline_after_command_string = True  # Set True if you want to send a new line char(s) after command
+        # string (sendline from connection)- most cases. Set False if you want to sent command string without adding
+        # new line char(s) - send from connection.
 
         if not self._newline_chars:
             self._newline_chars = CommandTextualGeneric._default_newline_chars
 
     @property
     def command_string(self):
+        """
+        Getter for command_string.
+
+        :return: String with command_string.
+        """
         if not self.__command_string:
             self.__command_string = self.build_command_string()
-            self._cmd_escaped = re.escape(self.__command_string)
+            self._cmd_escaped = re.compile(re.escape(self.__command_string))
         return self.__command_string
 
     @command_string.setter
     def command_string(self, command_string):
+        """
+        Setter for command_string.
+
+        :param command_string: Stting with command to set.
+        :return: Nothing.
+        """
         self.__command_string = command_string
-        self._cmd_escaped = re.escape(command_string)
+        self._cmd_escaped = re.compile(re.escape(command_string))
 
     @staticmethod
     def _calculate_prompt(prompt):
@@ -66,9 +86,10 @@ class CommandTextualGeneric(Command):
 
     def has_endline_char(self, line):
         """
-        Method to check if line has chars of new line at the right side
-        :param line: String to check
-        :return: True if any new line char was found, False otherwise
+        Method to check if line has chars of new line at the right side.
+
+        :param line: String to check.
+        :return: True if any new line char was found, False otherwise.
         """
         if line.endswith(self._newline_chars):
             return True
@@ -76,9 +97,10 @@ class CommandTextualGeneric(Command):
 
     def data_received(self, data):
         """
-        Called by framework when any data are sent by device
-        :param data: List of strings sent by device
-        :return: Nothing
+        Called by framework when any data are sent by device.
+
+        :param data: List of strings sent by device.
+        :return: Nothing.
         """
         lines = data.splitlines(True)
         for line in lines:
@@ -100,14 +122,17 @@ class CommandTextualGeneric(Command):
     @abc.abstractmethod
     def build_command_string(self):
         """
-        :return:  String with command
+        Returns string with command constructed with parameters of object.
+
+        :return:  String with command.
         """
         pass
 
     def on_new_line(self, line, is_full_line):
         """
         Method to parse command output. Will be called after line with command echo.
-        Write your own implementation but don't forget to call on_new_line from base class
+        Write your own implementation but don't forget to call on_new_line from base class in most cases.
+
         :param line: Line to parse, new lines are trimmed
         :param is_full_line: True if new line character was removed from line, False otherwise
         :return: Nothing
@@ -121,14 +146,22 @@ class CommandTextualGeneric(Command):
                           msg="Found candidate for final prompt but current ret is None or empty, required not None nor empty.")
 
     def is_end_of_cmd_output(self, line):
+        """
+        Checks if end of command is reached.
+
+        :param line: Line from device.
+        :return:
+        """
         if self._regex_helper.search_compiled(self._re_prompt, line):
             return True
         return False
 
     def _strip_new_lines_chars(self, line):
         """
-        :param line: line from device
-        :return: line without new lines chars
+        Removes new line char(s) from line.
+
+        :param line: line from device.
+        :return: line without new lines chars.
         """
         for char in self._newline_chars:
             line = line.rstrip(char)
@@ -136,40 +169,59 @@ class CommandTextualGeneric(Command):
 
     def _detect_start_of_cmd_output(self, line):
         """
-        :param line: line to check if echo of command is sent by device
-        :return: Nothing
+        Checks if command stated.
+
+        :param line: line to check if echo of command is sent by device.
+        :return: Nothing.
         """
-        if self._regex_helper.search(self._cmd_escaped, line):
+        if self._regex_helper.search_compiled(self._cmd_escaped, line):
             self._cmd_output_started = True
 
     def break_cmd(self):
         """
-        Send ctrl+c to device to break command execution
-        :return:
+        Send ctrl+c to device to break command execution.
+
+        :return: Nothing
         """
         self.connection.send("\x03")  # ctrl+c
 
     def cancel(self):
         """
-        Called by framework to cancel the command
-        :return:
+        Called by framework to cancel the command.
+
+        :return: False if already cancelled or already done, True otherwise.
         """
         self.break_cmd()
         return super(CommandTextualGeneric, self).cancel()
 
     def on_timeout(self):
         """
-        Callback called by framework when timeout occurs
-        :return: Nothing
+        Callback called by framework when timeout occurs.
+
+        :return: Nothing.
         """
         if self.break_on_timeout:
             self.break_cmd()
 
     def has_any_result(self):
         """
-        :return: True if current_ret has collected any data. Otherwise False
+        Checks if any result was already set by command.
+
+        :return: True if current_ret has collected any data. Otherwise False.
         """
         is_ret = False
         if self.current_ret:
             is_ret = True
         return is_ret
+
+    def send_command(self):
+        """
+        Sends command string over connection.
+
+        :return: Nothing
+        """
+        # TODO: Update runner after asyncio merge.
+        if self.newline_after_command_string:
+            self.connection.sendline(self.command_string)
+        else:
+            self.connection.send(self.command_string)

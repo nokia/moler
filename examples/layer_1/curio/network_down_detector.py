@@ -23,94 +23,17 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 
 import logging
 import sys
+import os
 import time
 
 import curio
 from moler.connection import ObservableConnection
-from moler.connection_observer import ConnectionObserver
 
-ping_output = '''
-greg@debian:~$ ping 10.0.2.15
-PING 10.0.2.15 (10.0.2.15) 56(84) bytes of data.
-64 bytes from 10.0.2.15: icmp_req=1 ttl=64 time=0.080 ms
-64 bytes from 10.0.2.15: icmp_req=2 ttl=64 time=0.037 ms
-64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms
-ping: sendmsg: Network is unreachable
-ping: sendmsg: Network is unreachable
-ping: sendmsg: Network is unreachable
-64 bytes from 10.0.2.15: icmp_req=7 ttl=64 time=0.123 ms
-64 bytes from 10.0.2.15: icmp_req=8 ttl=64 time=0.056 ms
-'''
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))  # allow finding modules in examples/
 
-
-async def ping_sim_tcp_server(client, address):
-    logger = logging.getLogger('curio.ping.tcp-server')
-    logger.debug('connection accepted - client at tcp://{}:{}'.format(*address))
-
-    ping_lines = ping_output.splitlines(keepends=True)
-    async with client:
-        for ping_line in ping_lines:
-            data = ping_line.encode(encoding='utf-8')
-            await client.sendall(data)
-            await curio.sleep(1)  # simulate delay between ping lines
-    logger.info('Connection closed')
-
-
-async def start_ping_sim_server(server_address):
-    """Run server simulating ping command output, this is one-shot server"""
-    logger = logging.getLogger('curio.ping.tcp-server')
-    host, port = server_address
-    try:
-        async with curio.TaskGroup() as g:
-            await g.spawn(curio.tcp_server, host, port, ping_sim_tcp_server)
-            info = "Ping Sim started at tcp://{}:{}".format(*server_address)
-            logger.debug(info)
-            info = "WARNING - I'll be tired too much just after first client!"
-            logger.debug(info)
-    except curio.CancelledError:
-        logger.debug("Ping Sim: You are right - I'm tired after this client")
-
-
-async def tcp_connection(address):
-    """Async generator reading from tcp network transport layer"""
-    logger = logging.getLogger('curio.tcp-connection')
-    logger.debug('... connecting to tcp://{}:{}'.format(*address))
-    host, port = address
-    sock = await curio.open_connection(host, port)
-    async with sock:
-        while True:
-            data = await sock.recv(128)
-            if data:
-                logger.debug('<<< {!r}'.format(data))
-                yield data
-            else:
-                break
-
-
-async def main(host, port):
-    logger = logging.getLogger('curio.main')
-    # Starting the server
-    serv_task = await curio.spawn(start_ping_sim_server, (host, port))
-    # Starting the client
-    cli_task = await curio.spawn(ping_observing_task, (host, port))
-    await cli_task.join()
-    # Client is done
-    # One-shot server - so we shutting it down
-    await serv_task.cancel()
-
+from network_toggle_observers import NetworkDownDetector
 
 # ===================== Moler's connection-observer usage ======================
-class NetworkDownDetector(ConnectionObserver):
-    def __init__(self):
-        super(NetworkDownDetector, self).__init__()
-        self.logger = logging.getLogger('moler.net-down-detector')
-
-    def data_received(self, data):
-        if not self.done():
-            if "Network is unreachable" in data:  # observer operates on strings
-                when_network_down_detected = time.time()
-                self.logger.debug("Network is down!")
-                self.set_result(result=when_network_down_detected)
 
 
 async def ping_observing_task(address):
@@ -118,7 +41,7 @@ async def ping_observing_task(address):
 
     # Lowest layer of Moler's usage (you manually glue all elements):
     # 1. create observer
-    net_down_detector = NetworkDownDetector()
+    net_down_detector = NetworkDownDetector('10.0.2.15')
     # 2. ObservableConnection is a proxy-glue between observer (speaks str)
     #                                   and curio-connection (speaks bytes)
     moler_conn = ObservableConnection(decoder=lambda data: data.decode("utf-8"))
@@ -142,7 +65,32 @@ async def ping_observing_task(address):
 
 
 # ==============================================================================
+
+async def tcp_connection(address):
+    """Async generator reading from tcp network transport layer"""
+    logger = logging.getLogger('curio.tcp-connection')
+    logger.debug('... connecting to tcp://{}:{}'.format(*address))
+    host, port = address
+    sock = await curio.open_connection(host, port)
+    async with sock:
+        while True:
+            data = await sock.recv(128)
+            if data:
+                logger.debug('<<< {!r}'.format(data))
+                yield data
+            else:
+                break
+
+
+async def main(host, port):
+    # Starting the client
+    cli_task = await curio.spawn(ping_observing_task, (host, port))
+    await cli_task.join()
+
+
+# ==============================================================================
 if __name__ == '__main__':
+    from threaded_ping_server import start_ping_servers, stop_ping_servers
     logging.basicConfig(
         level=logging.DEBUG,
         format='%(asctime)s |%(name)25s |%(message)s',
@@ -160,7 +108,9 @@ if __name__ == '__main__':
                                             stdlib_socket.SOCK_DGRAM)
         selector.register(dummy_socket, selectors.EVENT_READ)
     # --------------------------------------------------------------------
-    curio.run(main, '', 5679, selector=selector)
+    servers = start_ping_servers([(('localhost', 5679), '10.0.2.15')])
+    curio.run(main, 'localhost', 5679, selector=selector)
+    stop_ping_servers(servers)
 
 '''
 LOG OUTPUT
