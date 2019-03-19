@@ -14,6 +14,7 @@ import pytest
 from moler.cmd.unix.ls import Ls
 from moler.cmd.unix.ping import Ping
 from moler.cmd.unix.whoami import Whoami
+from moler.cmd.unix.lsof import Lsof
 from moler.exceptions import CommandTimeout
 from moler.io.raw.terminal import ThreadedTerminal
 
@@ -69,6 +70,13 @@ def test_terminal_whoami_ls(terminal_connection):
     user2 = ret['USER']
     assert user1 == user2
     assert getpass.getuser() == user2
+
+
+def test_terminal_lsof(terminal_connection):
+    terminal = terminal_connection
+    cmd = Lsof(connection=terminal)
+    ret = cmd()
+    assert ret["NUMBER"] > 1
 
 
 @pytest.yield_fixture()
