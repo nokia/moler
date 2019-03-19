@@ -5,5 +5,5 @@ six
 transitions
 apscheduler
 trollius; python_version < '3'
-deepdiff
+deepdiff==3.3.0; python_version == "2.7"
 psutil
