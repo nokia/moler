@@ -254,8 +254,7 @@ def test_can_retrieve_connection_observer_result_after_setting_result(
     assert connection_observer.result() == 14361
 
 
-def test_setting_result_multiple_times_raises_CommandResultAlreadySet(
-        do_nothing_connection_observer__for_major_base_class):
+def test_setting_result_multiple_times_raises_ResultAlreadySet(do_nothing_connection_observer__for_major_base_class):
     connection_observer = do_nothing_connection_observer__for_major_base_class
     from moler.exceptions import ResultAlreadySet
     # We start feeding connection-observer with data coming from connection
@@ -264,6 +263,20 @@ def test_setting_result_multiple_times_raises_CommandResultAlreadySet(
     connection_observer.set_result(14361)
     with pytest.raises(ResultAlreadySet) as error:
         connection_observer.set_result(78990)  # connection_observer internally tries to overwrite the result
+
+    assert error.value.connection_observer == connection_observer
+    assert str(error.value) == 'for {}'.format(str(connection_observer))
+
+
+def test_setting_result_after_set_exception_raises_ResultAlreadySet(do_nothing_connection_observer__for_major_base_class):
+    connection_observer = do_nothing_connection_observer__for_major_base_class
+    from moler.exceptions import ResultAlreadySet
+    # set_exception() and set_result() may come from different threads (runner/external-io) - so,
+    # we must be secured against race
+    exc = Exception("exception in runner")
+    connection_observer.set_exception(exc)
+    with pytest.raises(ResultAlreadySet) as error:
+        connection_observer.set_result(78990)  # trial to overwrite exception with the result
 
     assert error.value.connection_observer == connection_observer
     assert str(error.value) == 'for {}'.format(str(connection_observer))
@@ -451,12 +464,14 @@ def test_connection_observer_exception_do_not_remove():
 # --------------------------- resources ---------------------------
 
 
-@pytest.fixture(params=['connection_observer.ConnectionObserver', 'command.Command'])
+@pytest.yield_fixture(params=['connection_observer.ConnectionObserver', 'command.Command'])
 def connection_observer_major_base_class(request):
     module_name, class_name = request.param.rsplit('.', 1)
     module = importlib.import_module('moler.{}'.format(module_name))
     klass = getattr(module, class_name)
-    return klass
+    yield klass
+    # remove exceptions collected inside ConnectionObserver
+    ConnectionObserver.get_unraised_exceptions(remove=True)
 
 
 def do_nothing_connection_observer_class(base_class):

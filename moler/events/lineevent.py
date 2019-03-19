@@ -61,10 +61,10 @@ class LineEvent(TextualEvent):
         return compiled_patterns
 
     def get_long_desc(self):
-        return "Event '{}.{}':'{}'".format(self.__class__.__module__, self.__class__.__name__, self.detect_patterns)
+        return "Event {}.{}".format(self.__class__.__module__, str(self))
 
     def get_short_desc(self):
-        return "Event '{}.{}': '{}'".format(self.__class__.__module__, self.__class__.__name__, self.detect_patterns)
+        return "Event {}.{}".format(self.__class__.__module__, str(self))
 
 
 EVENT_OUTPUT_single_pattern = """

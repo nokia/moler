@@ -106,6 +106,7 @@ class ThreadedTerminal(IOConnection):
             if self._terminal.fd in reads:
                 try:
                     data = self._terminal.read(self._read_buffer_size)
+                    self.logger.debug("<|{}".format(data))
 
                     if self._shell_operable.is_set():
                         self.data_received(data)
