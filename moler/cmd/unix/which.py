@@ -3,9 +3,9 @@
 Which command module.
 """
 
-__author__ = 'Agnieszka Bylica'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'agnieszka.bylica@nokia.com'
+__author__ = 'Agnieszka Bylica, Michal Ernst'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'agnieszka.bylica@nokia.com, michal.ernst@nokia.com'
 
 
 import re
@@ -26,7 +26,6 @@ class Which(GenericUnixCommand):
         # Internal variables
         self._compiled_regex = []
         self._result_set = False
-        self._set_result()
 
     def build_command_string(self):
         cmd = "which"
@@ -61,10 +60,15 @@ class Which(GenericUnixCommand):
         if not self._result_set:
             for name in self.names:
                 if not name:
-                    self.set_exception(CommandFailure(self, "ERROR: name is empty"))
+                    raise CommandFailure(self, "ERROR: name is empty")
                 else:
                     self.current_ret[name] = list()
             self._result_set = True
+
+    def _validate_start(self, *args, **kwargs):
+        super(Which, self)._validate_start(*args, **kwargs)
+        # _validate_start is called before running command on connection, so we raise exception instead of setting it
+        self._set_result()
 
 
 COMMAND_OUTPUT = """

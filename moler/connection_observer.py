@@ -17,6 +17,7 @@ from moler.exceptions import NoConnectionProvided
 from moler.exceptions import NoResultSinceCancelCalled
 from moler.exceptions import ResultAlreadySet
 from moler.exceptions import ResultNotAvailableYet
+from moler.exceptions import WrongUsage
 from moler.helpers import ClassProperty
 from moler.helpers import camel_case_to_lower_case_underscore
 from moler.helpers import instance_id
@@ -131,6 +132,8 @@ class ConnectionObserver(object):
 
     def _validate_start(self, *args, **kwargs):
         # check base class invariants first
+        if self.done():
+            raise WrongUsage("You can't run same {} multiple times. It is already done.".format(self))
         if not self.connection:
             # only if we have connection we can expect some data on it
             # at the latest "just before start" we need connection

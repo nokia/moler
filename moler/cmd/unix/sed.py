@@ -3,10 +3,9 @@
 Sed command module.
 """
 
-__author__ = 'Agnieszka Bylica, Marcin Usielski'
+__author__ = 'Agnieszka Bylica, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018-2019, Nokia'
-__email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com'
-
+__email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import re
 
@@ -22,13 +21,11 @@ class Sed(GenericUnixCommand):
         super(Sed, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
         # Parameters defined by calling the command
-        self.options = options            # string or None
-        self.scripts = scripts            # list of strings or None
+        self.options = options  # string or None
+        self.scripts = scripts  # list of strings or None
         self.script_files = script_files  # list of strings or None
-        self.input_files = input_files    # list of strings
-        self.output_file = output_file    # string or None
-
-        self._is_input_file()
+        self.input_files = input_files  # list of strings
+        self.output_file = output_file  # string or None
 
         # Other parameters
         self.current_ret['RESULT'] = list()
@@ -76,7 +73,12 @@ class Sed(GenericUnixCommand):
             if file and not file.isspace():
                 is_empty = False
         if is_empty:
-            self.set_exception(CommandFailure(self, "No input file given in: {}".format(self.input_files)))
+            raise CommandFailure(self, "No input file given in: {}".format(self.input_files))
+
+    def _validate_start(self, *args, **kwargs):
+        super(Sed, self)._validate_start(*args, **kwargs)
+        # _validate_start is called before running command on connection, so we raise exception instead of setting it
+        self._is_input_file()
 
 
 COMMAND_OUTPUT = """xyz@debian:~$ sed -e 's/a/A/' old old2 > new
@@ -89,7 +91,6 @@ COMMAND_KWARGS = {
 COMMAND_RESULT = {
     'RESULT': []
 }
-
 
 COMMAND_OUTPUT_to_stdout = """xyz@debian:~$ sed -e 's/a/A/' old old2
 Apple
@@ -106,7 +107,6 @@ COMMAND_RESULT_to_stdout = {
     'RESULT': ['Apple', 'peAr', 'plum']
 }
 
-
 COMMAND_OUTPUT_with_script_file = """xyz@debian:~$ sed -f script old old2 > new
 xyz@debian:~$"""
 
@@ -119,7 +119,6 @@ COMMAND_KWARGS_with_script_file = {
 COMMAND_RESULT_with_script_file = {
     'RESULT': []
 }
-
 
 COMMAND_OUTPUT_with_option = """xyz@debian:~$ sed -i -e 's/a/A/' old old2
 xyz@debian:~$"""

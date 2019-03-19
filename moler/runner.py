@@ -12,10 +12,11 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 import atexit
 import concurrent.futures
 import logging
-import time
 import threading
+import time
 from abc import abstractmethod, ABCMeta
 from concurrent.futures import ThreadPoolExecutor, wait
+
 from six import add_metaclass
 
 from moler.exceptions import CommandTimeout
@@ -121,7 +122,7 @@ def time_out_observer(connection_observer, timeout, passed_time, runner_logger, 
 
         # levels_to_go_up: extract caller info to log where .time_out_observer has been called from
         connection_observer._log(logging.INFO, msg, levels_to_go_up=2)
-        log_into_logger(runner_logger, level=logging.INFO,
+        log_into_logger(runner_logger, level=logging.DEBUG,
                         msg="{} {}".format(connection_observer, timeout_msg),
                         levels_to_go_up=1)
 
@@ -318,7 +319,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
 
         if connection_observer_future is None:
-            end_of_life, remain_time = await_future_or_eol(connection_observer, remain_time, start_time, await_timeout, self.logger)
+            end_of_life, remain_time = await_future_or_eol(connection_observer, remain_time, start_time, await_timeout,
+                                                           self.logger)
             if end_of_life:
                 return None
 
@@ -387,6 +389,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         """
         Start feeding connection_observer by establishing data-channel from connection to observer.
         """
+
         def secure_data_received(data):
             try:
                 if connection_observer.done() or self._in_shutdown:
@@ -410,7 +413,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         self.logger.debug("subscribing for data {}".format(connection_observer))
         moler_conn.subscribe(secure_data_received)
         if connection_observer.is_command():
-            connection_observer.connection.sendline(connection_observer.command_string)
+            connection_observer.send_command()
         return secure_data_received  # to know what to unsubscribe
 
     def feed(self, connection_observer, subscribed_data_receiver, stop_feeding, feed_done,
@@ -421,7 +424,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         """
         remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                               from_start_time=connection_observer.start_time)
-        self.logger.info("{} started, {}".format(connection_observer, msg))
+        self.logger.debug("{} started, {}".format(connection_observer, msg))
         connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
 
         if not subscribed_data_receiver:
@@ -440,7 +443,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                               from_start_time=connection_observer.start_time)
         connection_observer._log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
-        self.logger.info("{} finished, {}".format(connection_observer, msg))
+        self.logger.debug("{} finished, {}".format(connection_observer, msg))
         return None
 
     def _feed_loop(self, connection_observer, stop_feeding, observer_lock):
