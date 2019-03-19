@@ -15,11 +15,13 @@ __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
+from abc import ABCMeta
+
+from six import add_metaclass
+
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import NoCommandStringProvided
 from moler.helpers import instance_id
-from six import add_metaclass
-from abc import ABCMeta
 
 
 @add_metaclass(ABCMeta)
@@ -58,3 +60,11 @@ class Command(ConnectionObserver):
         :return: True if instance of ConnectionObserver is a command. False if not a command.
         """
         return True
+
+    def send_command(self):
+        """
+        Sends command string over connection.
+
+        :return: Nothing
+        """
+        self.connection.sendline(self.command_string)

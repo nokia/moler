@@ -550,7 +550,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         self.logger.debug("subscribing for data {}".format(connection_observer))
         moler_conn.subscribe(secure_data_received)
         if connection_observer.is_command():
-            connection_observer.connection.sendline(connection_observer.command_string)
+            connection_observer.send_command()
         return secure_data_received  # to know what to unsubscribe
 
     async def feed(self, connection_observer, subscribed_data_receiver, observer_lock):
@@ -560,7 +560,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         """
         remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                               from_start_time=connection_observer.start_time)
-        self.logger.info("{} started, {}".format(connection_observer, msg))
+        self.logger.debug("{} started, {}".format(connection_observer, msg))
         connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
 
         if not subscribed_data_receiver:
@@ -618,7 +618,7 @@ class AsyncioRunner(ConnectionObserverRunner):
             remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                                   from_start_time=connection_observer.start_time)
             connection_observer._log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
-            self.logger.info("{} finished, {}".format(connection_observer, msg))
+            self.logger.debug("{} finished, {}".format(connection_observer, msg))
         return None
 
     def timeout_change(self, timedelta):

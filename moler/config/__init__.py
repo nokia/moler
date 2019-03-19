@@ -151,7 +151,7 @@ def load_logger_from_config(config):
         if 'DATE_FORMAT' in config['LOGGER']:
             log_cfg.set_date_format(config['LOGGER']['DATE_FORMAT'])
 
-        log_cfg.configure_moler_main_logger()
+    log_cfg.configure_moler_main_logger()
 
 
 def clear():

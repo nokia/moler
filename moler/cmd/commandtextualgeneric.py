@@ -220,7 +220,6 @@ class CommandTextualGeneric(Command):
 
         :return: Nothing
         """
-        # TODO: Update runner after asyncio merge.
         if self.newline_after_command_string:
             self.connection.sendline(self.command_string)
         else:
