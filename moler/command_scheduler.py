@@ -123,7 +123,7 @@ class CommandScheduler(object):
         while cmd.timeout >= (time.time() - start_time):
             time.sleep(0.005)
             with lock:
-                if conn_atr['current_cmd'] is None and cmd == conn_atr['queue'][0]:
+                if conn_atr['current_cmd'] is None and len(conn_atr['queue']) >= 1 and cmd == conn_atr['queue'][0]:
                     conn_atr['queue'].pop(0)
                     conn_atr['current_cmd'] = cmd
                     cmd._log(logging.DEBUG,
