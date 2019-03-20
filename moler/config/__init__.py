@@ -42,7 +42,7 @@ def read_yaml_configfile(path):
     """
     if os.path.isabs(path):
         with read_configfile(path) as content:
-            return yaml.load(content)
+            return yaml.load(content, Loader=yaml.FullLoader)
     else:
         error = "Loading configuration requires absolute path and not '{}'".format(path)
         raise MolerException(error)
