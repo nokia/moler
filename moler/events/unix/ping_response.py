@@ -14,13 +14,14 @@ class PingResponse(LineEvent):
 
     _re_detect_pattern = re.compile(r'\d+\s+bytes\s+from.+')
 
-    def __init__(self, connection, till_occurs_times=-1):
+    def __init__(self, connection, till_occurs_times=-1, runner=None):
         """
         Event for 'Wait for response from ping.'.
         :param connection: moler connection to device, terminal when command is executed
         :param till_occurs_times: number of event occurrence
+        :param runner: Runner to run event
         """
-        super(PingResponse, self).__init__(connection=connection, till_occurs_times=till_occurs_times,
+        super(PingResponse, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times,
                                            detect_patterns=[PingResponse._re_detect_pattern], match='any')
 
 

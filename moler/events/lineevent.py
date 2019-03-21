@@ -13,8 +13,8 @@ from moler.helpers import instance_id, copy_list
 
 
 class LineEvent(TextualEvent):
-    def __init__(self, detect_patterns=list(), connection=None, till_occurs_times=-1, match='any'):
-        super(LineEvent, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
+    def __init__(self, detect_patterns, connection=None, till_occurs_times=-1, match='any', runner=None):
+        super(LineEvent, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times)
         self.detect_patterns = copy_list(detect_patterns)
         self.process_full_lines_only = False
         self.match = match
