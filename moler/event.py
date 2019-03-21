@@ -68,5 +68,5 @@ class Event(ConnectionObserver):
         return "Event '{}.{}'".format(self.__class__.__module__, self)
 
     def get_last_occurrence(self):
-        if self._occurred is not None:
+        if self._occurred:
             return self._occurred[-1]
