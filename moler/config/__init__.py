@@ -42,7 +42,7 @@ def read_yaml_configfile(path):
     """
     if os.path.isabs(path):
         with read_configfile(path) as content:
-            return yaml.load(content)
+            return yaml.load(content, Loader=yaml.FullLoader)
     else:
         error = "Loading configuration requires absolute path and not '{}'".format(path)
         raise MolerException(error)
@@ -151,7 +151,7 @@ def load_logger_from_config(config):
         if 'DATE_FORMAT' in config['LOGGER']:
             log_cfg.set_date_format(config['LOGGER']['DATE_FORMAT'])
 
-        log_cfg.configure_moler_main_logger()
+    log_cfg.configure_moler_main_logger()
 
 
 def clear():

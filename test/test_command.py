@@ -138,6 +138,7 @@ def test_command_string_is_required_to_call_command(command_major_base_class):
     cmd_thrd.start()
     cmd_thrd.join()
 
+    command = command_class(connection=moler_conn)
     with pytest.raises(NoCommandStringProvided) as error:
         command()  # call the command-future (foreground run)
 

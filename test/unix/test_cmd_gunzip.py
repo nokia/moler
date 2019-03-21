@@ -10,7 +10,7 @@ __email__ = 'adrianna.pienkowska@nokia.com, marcin.usielski@nokia.com'
 import pytest
 import time
 from moler.cmd.unix.gunzip import Gunzip
-from moler.exceptions import CommandFailure
+from moler.exceptions import CommandFailure, WrongUsage
 
 
 def test_gunzip_returns_proper_command_string(buffer_connection):
@@ -54,7 +54,7 @@ def test_gunzip_raise_error_on_cannot_overwrite_multiple_files(
     command_output, expected_result = command_output_and_expected_result_on_cannot_overwrite_multiple_files
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
-    with pytest.raises(CommandFailure):
+    with pytest.raises(WrongUsage):
         gunzip_cmd()
 
 
