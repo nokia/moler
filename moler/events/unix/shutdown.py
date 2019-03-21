@@ -34,6 +34,9 @@ EVENT_KWARGS_SIMPLE = {
 EVENT_RESULT_SIMPLE = [
     {
         'line': 'The system is going down for reboot at Tue 2019-03-19 12:15:16 CET!',
+        "groups": (u'reboot', u'Tue 2019-03-19 12:15:16 CET!'),
+        "named_groups": {},
+        "matched": "system is going down for reboot at Tue 2019-03-19 12:15:16 CET!",
         'time': datetime.datetime.now()
     }
 ]
