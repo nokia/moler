@@ -45,7 +45,7 @@ class Command(ConnectionObserver):
         # check base class invariants first
         super(Command, self)._validate_start(*args, **kwargs)
         # then what is needed for command
-        if not self.command_string:
+        if self.command_string is None:
             # no chance to start CMD
             raise NoCommandStringProvided(self)
 

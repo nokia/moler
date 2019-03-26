@@ -27,7 +27,7 @@ class Enter(GenericUnixCommand):
         """
         :return: String representation of command to send over connection to device.
         """
-        return " "
+        return ""
 
 
 COMMAND_OUTPUT_ver_execute = """
