@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-
+Bash command module
 """
 
 __author__ = 'Sylwester Golonka'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2019, Nokia'
 __email__ = 'sylwester.golonka@nokia.com'
 
 import logging
 from moler.device.unixlocal import UnixLocal
 
 
-class JUNOS(UnixLocal):
-    """Junos device class."""
+class JuniperGeneric(UnixLocal):
+    """Junipergeneric device class."""
 
     cli = "CLI"
     configure = "CONFIGURE"
@@ -28,11 +28,12 @@ class JUNOS(UnixLocal):
         :param initial_state: Initial state for device
         """
         sm_params = sm_params.copy()
-        self.use_proxy_pc = self._is_proxy_pc_in_sm_params(sm_params, JUNOS.proxy_pc)
-        initial_state = initial_state if initial_state is not None else JUNOS.cli
-        super(JUNOS, self).__init__(sm_params=sm_params, name=name, io_connection=io_connection, io_type=io_type,
-                                    variant=variant, initial_state=initial_state)
-        self.logger = logging.getLogger('moler.junos')
+        self.use_proxy_pc = self._is_proxy_pc_in_sm_params(sm_params, JuniperGeneric.proxy_pc)
+        initial_state = initial_state if initial_state is not None else JuniperGeneric.cli
+        super(JuniperGeneric, self).__init__(sm_params=sm_params, name=name, io_connection=io_connection,
+                                             io_type=io_type,
+                                             variant=variant, initial_state=initial_state)
+        self.logger = logging.getLogger('moler.juniper')
 
     def _get_default_sm_configuration(self):
         if self.use_proxy_pc:
@@ -44,9 +45,9 @@ class JUNOS(UnixLocal):
 
     def _get_default_sm_configuration_with_proxy_pc(self):
         config = {
-            JUNOS.connection_hops: {
-                JUNOS.unix_local: {  # from
-                    JUNOS.proxy_pc: {  # to
+            JuniperGeneric.connection_hops: {
+                JuniperGeneric.unix_local: {  # from
+                    JuniperGeneric.proxy_pc: {  # to
                         "execute_command": "ssh",  # using command
                         "command_params": {  # with parameters
                             "target_newline": "\n"
@@ -59,7 +60,7 @@ class JUNOS(UnixLocal):
                         ]
                     }
                 },
-                JUNOS.proxy_pc: {  # from
+                JuniperGeneric.proxy_pc: {  # from
                     UnixLocal.unix_local: {  # to
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
@@ -69,11 +70,11 @@ class JUNOS(UnixLocal):
                         "required_command_params": [
                         ]
                     },
-                    JUNOS.cli: {  # to
+                    JuniperGeneric.cli: {  # to
                         "execute_command": "ssh",  # using command
                         "command_params": {  # with parameters
-                            "target_newline": "\n",
-                            "expected_prompt": "^admin@switch>"
+                            "set_timeout": None,
+                            "expected_prompt": "^.*@.*>"
                         },
                         "required_command_params": [
                             "host",
@@ -82,8 +83,8 @@ class JUNOS(UnixLocal):
                         ]
                     }
                 },
-                JUNOS.cli: {  # from
-                    JUNOS.proxy_pc: {  # to
+                JuniperGeneric.cli: {  # from
+                    JuniperGeneric.proxy_pc: {  # to
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
                         },
@@ -91,18 +92,18 @@ class JUNOS(UnixLocal):
                             "expected_prompt"
                         ]
                     },
-                    JUNOS.configure: {
+                    JuniperGeneric.configure: {
                         "execute_command": "configure",
                         "command_params": {
-                            "expected_prompt": "^admin@switch#"
+                            "expected_prompt": "^.*@.*#"
                         }
                     }
                 },
-                JUNOS.configure: {  # from
-                    JUNOS.cli: {  # to
-                        "execute_command": "exit",  # using command
+                JuniperGeneric.configure: {  # from
+                    JuniperGeneric.cli: {  # to
+                        "execute_command": "exit_configure",  # using command
                         "command_params": {  # with parameters
-                            "expected_prompt": "^admin@switch>"
+                            "expected_prompt": "^.*@.*>"
                         }
                     },
                 }
@@ -112,13 +113,13 @@ class JUNOS(UnixLocal):
 
     def _get_default_sm_configuration_without_proxy_pc(self):
         config = {
-            JUNOS.connection_hops: {
-                JUNOS.unix_local: {  # from
-                    JUNOS.cli: {  # to
+            JuniperGeneric.connection_hops: {
+                JuniperGeneric.unix_local: {  # from
+                    JuniperGeneric.cli: {  # to
                         "execute_command": "ssh",  # using command
                         "command_params": {  # with parameters
-                            "target_newline": "\n",
-                            "expected_prompt": "^admin@switch>"
+                            "expected_prompt": "^.*@.*>",
+                            "set_timeout": None
                         },
                         "required_command_params": [
                             "host",
@@ -127,25 +128,25 @@ class JUNOS(UnixLocal):
                         ]
                     }
                 },
-                JUNOS.cli: {  # from
-                    JUNOS.unix_local: {  # to
+                JuniperGeneric.cli: {  # from
+                    JuniperGeneric.unix_local: {  # to
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
                             "expected_prompt": r'^moler_bash#'
                         },
                     },
-                    JUNOS.configure: {
+                    JuniperGeneric.configure: {
                         "execute_command": "configure",
                         "command_params": {
-                            "expected_prompt": "^admin@switch#"
+                            "expected_prompt": "^.*@.*#"
                         }
                     }
                 },
-                JUNOS.configure: {  # from
-                    JUNOS.cli: {  # to
-                        "execute_command": "exit",  # using command
+                JuniperGeneric.configure: {  # from
+                    JuniperGeneric.cli: {  # to
+                        "execute_command": "exit_configure",  # using command
                         "command_params": {  # with parameters
-                            "expected_prompt": "^admin@switch>"
+                            "expected_prompt": "^.*@.*>"
                         }
                     },
                 }
@@ -154,7 +155,7 @@ class JUNOS(UnixLocal):
         return config
 
     def _prepare_transitions(self):
-        super(JUNOS, self)._prepare_transitions()
+        super(JuniperGeneric, self)._prepare_transitions()
 
         if self.use_proxy_pc:
             transitions = self._prepare_transitions_with_proxy_pc()
@@ -164,39 +165,39 @@ class JUNOS(UnixLocal):
 
     def _prepare_transitions_with_proxy_pc(self):
         transitions = {
-            JUNOS.cli: {
-                JUNOS.proxy_pc: {
+            JuniperGeneric.cli: {
+                JuniperGeneric.proxy_pc: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
                 },
-                JUNOS.configure: {
+                JuniperGeneric.configure: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
                 },
             },
             UnixLocal.unix_local: {
-                JUNOS.proxy_pc: {
+                JuniperGeneric.proxy_pc: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
                 }
             },
-            JUNOS.proxy_pc: {
+            JuniperGeneric.proxy_pc: {
                 UnixLocal.unix_local: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
                 },
-                JUNOS.cli: {
+                JuniperGeneric.cli: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
                 },
             },
-            JUNOS.configure: {
-                JUNOS.cli: {
+            JuniperGeneric.configure: {
+                JuniperGeneric.cli: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
@@ -207,13 +208,13 @@ class JUNOS(UnixLocal):
 
     def _prepare_transitions_without_proxy_pc(self):
         transitions = {
-            JUNOS.cli: {
+            JuniperGeneric.cli: {
                 UnixLocal.unix_local: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
                 },
-                JUNOS.configure: {
+                JuniperGeneric.configure: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
@@ -221,14 +222,14 @@ class JUNOS(UnixLocal):
 
             },
             UnixLocal.unix_local: {
-                JUNOS.cli: {
+                JuniperGeneric.cli: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
                 }
             },
-            JUNOS.configure: {
-                JUNOS.cli: {
+            JuniperGeneric.configure: {
+                JuniperGeneric.cli: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
@@ -239,7 +240,7 @@ class JUNOS(UnixLocal):
         return transitions
 
     def _prepare_state_prompts(self):
-        super(JUNOS, self)._prepare_state_prompts()
+        super(JuniperGeneric, self)._prepare_state_prompts()
 
         if self.use_proxy_pc:
             state_prompts = self._prepare_state_prompts_with_proxy_pc()
@@ -249,17 +250,19 @@ class JUNOS(UnixLocal):
 
     def _prepare_state_prompts_with_proxy_pc(self):
         state_prompts = {
-            JUNOS.unix_local:
-                self._configurations[JUNOS.connection_hops][JUNOS.proxy_pc][JUNOS.unix_local][
+            JuniperGeneric.unix_local:
+                self._configurations[JuniperGeneric.connection_hops][JuniperGeneric.proxy_pc][
+                    JuniperGeneric.unix_local][
                     "command_params"]["expected_prompt"],
-            JUNOS.proxy_pc:
-                self._configurations[JUNOS.connection_hops][JUNOS.unix_local][JUNOS.proxy_pc][
+            JuniperGeneric.proxy_pc:
+                self._configurations[JuniperGeneric.connection_hops][JuniperGeneric.unix_local][
+                    JuniperGeneric.proxy_pc][
                     "command_params"]["expected_prompt"],
-            JUNOS.cli:
-                self._configurations[JUNOS.connection_hops][JUNOS.configure][JUNOS.cli][
+            JuniperGeneric.cli:
+                self._configurations[JuniperGeneric.connection_hops][JuniperGeneric.configure][JuniperGeneric.cli][
                     "command_params"]["expected_prompt"],
-            JUNOS.configure:
-                self._configurations[JUNOS.connection_hops][JUNOS.cli][JUNOS.configure][
+            JuniperGeneric.configure:
+                self._configurations[JuniperGeneric.connection_hops][JuniperGeneric.cli][JuniperGeneric.configure][
                     "command_params"]["expected_prompt"],
 
         }
@@ -267,21 +270,21 @@ class JUNOS(UnixLocal):
 
     def _prepare_state_prompts_without_proxy_pc(self):
         state_prompts = {
-            JUNOS.unix_local:
-                self._configurations[JUNOS.connection_hops][JUNOS.cli][JUNOS.unix_local][
+            JuniperGeneric.unix_local:
+                self._configurations[JuniperGeneric.connection_hops][JuniperGeneric.cli][JuniperGeneric.unix_local][
                     "command_params"]["expected_prompt"],
-            JUNOS.cli:
-                self._configurations[JUNOS.connection_hops][JUNOS.configure][JUNOS.cli][
+            JuniperGeneric.cli:
+                self._configurations[JuniperGeneric.connection_hops][JuniperGeneric.configure][JuniperGeneric.cli][
                     "command_params"]["expected_prompt"],
-            JUNOS.configure:
-                self._configurations[JUNOS.connection_hops][JUNOS.cli][JUNOS.configure][
+            JuniperGeneric.configure:
+                self._configurations[JuniperGeneric.connection_hops][JuniperGeneric.cli][JuniperGeneric.configure][
                     "command_params"]["expected_prompt"],
 
         }
         return state_prompts
 
     def _prepare_state_hops(self):
-        super(JUNOS, self)._prepare_state_hops()
+        super(JuniperGeneric, self)._prepare_state_hops()
 
         if self.use_proxy_pc:
             state_hops = self._prepare_state_hops_with_proxy_pc()
@@ -293,23 +296,26 @@ class JUNOS(UnixLocal):
     def _prepare_state_hops_with_proxy_pc(self):
         state_hops = {
             UnixLocal.not_connected: {
-                JUNOS.cli: UnixLocal.unix_local,
-                JUNOS.configure: UnixLocal.unix_local,
-                JUNOS.proxy_pc: UnixLocal.unix_local
+                JuniperGeneric.cli: UnixLocal.unix_local,
+                JuniperGeneric.configure: UnixLocal.unix_local,
+                JuniperGeneric.proxy_pc: UnixLocal.unix_local
             },
-            JUNOS.cli: {
-                UnixLocal.not_connected: JUNOS.proxy_pc,
-                UnixLocal.unix_local: JUNOS.proxy_pc
+            JuniperGeneric.cli: {
+                UnixLocal.not_connected: JuniperGeneric.proxy_pc,
+                UnixLocal.unix_local: JuniperGeneric.proxy_pc
             },
-            JUNOS.configure: {
-                UnixLocal.unix_local: JUNOS.cli,
-                JUNOS.proxy_pc: JUNOS.cli,
-                UnixLocal.not_connected: JUNOS.cli,
+            JuniperGeneric.configure: {
+                UnixLocal.unix_local: JuniperGeneric.cli,
+                JuniperGeneric.proxy_pc: JuniperGeneric.cli,
+                UnixLocal.not_connected: JuniperGeneric.cli,
 
             },
-            JUNOS.unix_local: {
-                JUNOS.cli: JUNOS.proxy_pc,
-                JUNOS.configure: JUNOS.proxy_pc,
+            JuniperGeneric.unix_local: {
+                JuniperGeneric.cli: JuniperGeneric.proxy_pc,
+                JuniperGeneric.configure: JuniperGeneric.proxy_pc,
+            },
+            JuniperGeneric.proxy_pc: {
+                JuniperGeneric.configure: JuniperGeneric.cli
             }
         }
         return state_hops
@@ -317,15 +323,18 @@ class JUNOS(UnixLocal):
     def _prepare_state_hops_without_proxy_pc(self):
         state_hops = {
             UnixLocal.not_connected: {
-                JUNOS.cli: UnixLocal.unix_local,
-                JUNOS.configure: UnixLocal.unix_local,
+                JuniperGeneric.cli: UnixLocal.unix_local,
+                JuniperGeneric.configure: UnixLocal.unix_local,
             },
-            JUNOS.cli: {
+            UnixLocal.unix_local: {
+                JuniperGeneric.configure: JuniperGeneric.cli
+            },
+            JuniperGeneric.cli: {
                 UnixLocal.not_connected: UnixLocal.unix_local,
             },
-            JUNOS.configure: {
-                UnixLocal.unix_local: JUNOS.cli,
-                UnixLocal.not_connected: JUNOS.cli,
+            JuniperGeneric.configure: {
+                UnixLocal.unix_local: JuniperGeneric.cli,
+                UnixLocal.not_connected: JuniperGeneric.cli,
 
             },
         }
@@ -333,15 +342,15 @@ class JUNOS(UnixLocal):
 
     def _get_packages_for_state(self, state, observer):
         available = {UnixLocal.cmds: [], UnixLocal.events: []}
-        if state == UnixLocal.unix_local or state == JUNOS.proxy_pc:
+        if state == UnixLocal.unix_local or state == JuniperGeneric.proxy_pc:
             available = {UnixLocal.cmds: ['moler.cmd.unix'],
                          UnixLocal.events: ['moler.events.unix']}
-        elif state == JUNOS.cli:
-            available = {UnixLocal.cmds: ['moler.cmd.junos.cli'],
-                         UnixLocal.events: ['moler.events.junos']}
-        elif state == JUNOS.configure:
-            available = {UnixLocal.cmds: ['moler.cmd.junos.configure'],
-                         UnixLocal.events: ['moler.events.junos']}
+        elif state == JuniperGeneric.cli:
+            available = {UnixLocal.cmds: ['moler.cmd.unix', 'moler.cmd.juniper.cli'],
+                         UnixLocal.events: ['moler.events.unix', 'moler.events.juniper']}
+        elif state == JuniperGeneric.configure:
+            available = {UnixLocal.cmds: ['moler.cmd.juniper.configure'],
+                         UnixLocal.events: ['moler.events.juniper']}
         return available[observer]
 
     def _execute_command_to_change_state(self, source_state, dest_state, timeout=-1):
