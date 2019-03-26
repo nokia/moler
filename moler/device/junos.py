@@ -31,7 +31,7 @@ class JUNOS(UnixLocal):
         self.use_proxy_pc = self._is_proxy_pc_in_sm_params(sm_params, JUNOS.proxy_pc)
         initial_state = initial_state if initial_state is not None else JUNOS.cli
         super(JUNOS, self).__init__(sm_params=sm_params, name=name, io_connection=io_connection, io_type=io_type,
-                                         variant=variant, initial_state=initial_state)
+                                    variant=variant, initial_state=initial_state)
         self.logger = logging.getLogger('moler.junos')
 
     def _get_default_sm_configuration(self):
