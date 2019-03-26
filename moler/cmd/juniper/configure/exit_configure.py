@@ -61,7 +61,7 @@ class ExitConfigure(CommandTextualGeneric):
 
 COMMAND_OUTPUT = """
 admin@switch# exit
-exit 
+exit
 Exiting configuration mode
 admin@switch> """
 

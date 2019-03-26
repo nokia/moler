@@ -60,7 +60,7 @@ class Configure(CommandTextualGeneric):
 
 COMMAND_OUTPUT = """
 admin@switch> configure
- 
+
 Entering configuration mode
 
 [edit]
