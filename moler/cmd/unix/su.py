@@ -3,9 +3,9 @@
 Su command module.
 """
 
-__author__ = 'Agnieszka Bylica, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com'
+__author__ = 'Agnieszka Bylica, Marcin Usielski, Michal Ernst'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import re
 
@@ -18,8 +18,10 @@ from moler.exceptions import ParsingDone
 class Su(GenericUnixCommand):
 
     def __init__(self, connection, user=None, options=None, password=None, prompt=None, expected_prompt=None,
-                 newline_chars=None, encrypt_password=True, runner=None):
+                 newline_chars=None, encrypt_password=True, target_newline="\n", runner=None):
         """
+        Moler class of Unix command su.
+
         :param connection: moler connection to device, terminal when command is executed
         :param user: user name
         :param options: su unix command options
@@ -28,6 +30,7 @@ class Su(GenericUnixCommand):
         :param expected_prompt: final prompt
         :param newline_chars: Characters to split lines
         :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text
+        :param target_newline: newline chars on root user
         :param runner: Runner to run command
         """
         super(Su, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
@@ -39,6 +42,7 @@ class Su(GenericUnixCommand):
         self.options = options
         self.password = password
         self.encrypt_password = encrypt_password
+        self.target_newline = target_newline
 
         # Internal variables
         self._password_sent = False
@@ -47,6 +51,7 @@ class Su(GenericUnixCommand):
     def build_command_string(self):
         """
         Builds command string from parameters passed to object.
+
         :return: String representation of command to send over connection to device.
         """
         cmd = "su"
@@ -58,7 +63,8 @@ class Su(GenericUnixCommand):
 
     def on_new_line(self, line, is_full_line):
         """
-        Put your parsing code here.
+        Parses the output of the command.
+
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
         :return: Nothing
@@ -84,6 +90,7 @@ class Su(GenericUnixCommand):
     def _authentication_failure(self, line):
         """
         Checks if line has info about authentication failure.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if regex matches.
         """
@@ -100,6 +107,7 @@ class Su(GenericUnixCommand):
     def _command_failure(self, line):
         """
         Checks if line has info about command failure.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if regex matches.
         """
@@ -115,6 +123,7 @@ class Su(GenericUnixCommand):
     def _is_password_requested(self, line):
         """
         Checks if device waits for password.
+
         :param line: Line from device.
         :return: Match object if regex matches, None otherwise.
         """
@@ -123,6 +132,7 @@ class Su(GenericUnixCommand):
     def _is_prompt(self, line):
         """
         Checks if device sends final prompt.
+
         :param line: Line from device.
         :return: Match object if regex matches, None otherwise
         """
@@ -134,6 +144,7 @@ class Su(GenericUnixCommand):
     def _send_password_if_requested(self, line):
         """
         Sends password.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if regex matches.
         """
@@ -148,6 +159,7 @@ class Su(GenericUnixCommand):
     def _parse(self, line):
         """
         Add output to result.
+
         :param line: Line from device
         :return: Nothing but raises ParsingDone
         """

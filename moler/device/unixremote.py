@@ -15,6 +15,7 @@ from moler.device.unixlocal import UnixLocal
 # TODO: name, logger/logger_name as param
 class UnixRemote(UnixLocal):
     unix_remote = "UNIX_REMOTE"
+    unix_remote_root = "UNIX_REMOTE_ROOT"
     proxy_pc = "PROXY_PC"
 
     def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, io_constructor_kwargs={},
@@ -39,10 +40,12 @@ class UnixRemote(UnixLocal):
                                          sm_params=sm_params, initial_state=initial_state)
 
     def _get_default_sm_configuration(self):
+        config = super(UnixRemote, self)._get_default_sm_configuration()
         if self.use_proxy_pc:
-            config = self._get_default_sm_configuration_with_proxy_pc()
+            default_config = self._get_default_sm_configuration_with_proxy_pc()
         else:
-            config = self._get_default_sm_configuration_without_proxy_pc()
+            default_config = self._get_default_sm_configuration_without_proxy_pc()
+        self._update_dict(config, default_config)
         return config
 
     def _get_default_sm_configuration_with_proxy_pc(self):
@@ -60,7 +63,7 @@ class UnixRemote(UnixLocal):
                             "password",
                             "expected_prompt"
                         ]
-                    }
+                    },
                 },
                 UnixRemote.proxy_pc: {  # from
                     UnixRemote.unix_remote: {  # to
@@ -94,8 +97,38 @@ class UnixRemote(UnixLocal):
                         "required_command_params": [
                             "expected_prompt"
                         ]
-                    }
+                    },
+                    UnixRemote.unix_remote_root: {  # to
+                        "execute_command": "su",  # using command
+                        "command_params": {  # with parameters
+                            "password": "root_password",
+                            "expected_prompt": r'root@',
+                            "target_newline": "\n"
+                        },
+                        "required_command_params": [
+                        ]
+                    },
+                    UnixRemote.unix_local: {  # to
+                        "execute_command": "exit",  # using command
+                        "command_params": {  # with parameters
+                            "expected_prompt": r'^moler_bash#',
+                            "target_newline": "\n"
+                        },
+                        "required_command_params": [
+                        ]
+                    },
                 },
+                UnixRemote.unix_remote_root: {  # from
+                    UnixRemote.unix_remote: {  # to
+                        "execute_command": "exit",  # using command
+                        "command_params": {  # with parameters
+                            "target_newline": "\n",
+                            "expected_prompt": r'user@'
+                        },
+                        "required_command_params": [
+                        ]
+                    }
+                }
             }
         }
         return config
@@ -115,7 +148,7 @@ class UnixRemote(UnixLocal):
                             "password",
                             "expected_prompt"
                         ]
-                    }
+                    },
                 },
                 UnixRemote.unix_remote: {  # from
                     UnixRemote.unix_local: {  # to
@@ -126,7 +159,28 @@ class UnixRemote(UnixLocal):
                         },
                         "required_command_params": [
                         ]
-                    }
+                    },
+                    UnixRemote.unix_remote_root: {  # to
+                        "execute_command": "su",  # using command
+                        "command_params": {  # with parameters
+                            "password": "root_password",
+                            "expected_prompt": r'root@',
+                            "target_newline": "\n"
+                        },
+                        "required_command_params": [
+                        ]
+                    },
+                },
+                UnixRemote.unix_remote_root: {  # from
+                    UnixRemote.unix_remote: {  # to
+                        "execute_command": "exit",  # using command
+                        "command_params": {  # with parameters
+                            "expected_prompt": r'user@',
+                            "target_newline": "\n"
+                        },
+                        "required_command_params": [
+                        ]
+                    },
                 }
             }
         }
@@ -167,8 +221,20 @@ class UnixRemote(UnixLocal):
                     "action": [
                         "_execute_command_to_change_state"
                     ],
+                },
+                UnixRemote.unix_remote_root: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
                 }
             },
+            UnixRemote.unix_remote_root: {
+                UnixRemote.unix_remote: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                }
+            }
         }
         return transitions
 
@@ -176,6 +242,11 @@ class UnixRemote(UnixLocal):
         transitions = {
             UnixRemote.unix_remote: {
                 UnixLocal.unix_local: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                },
+                UnixRemote.unix_remote_root: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
@@ -188,6 +259,13 @@ class UnixRemote(UnixLocal):
                     ],
                 }
             },
+            UnixRemote.unix_remote_root: {
+                UnixRemote.unix_remote: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                }
+            }
         }
         return transitions
 
@@ -212,6 +290,9 @@ class UnixRemote(UnixLocal):
             UnixRemote.unix_remote:
                 self._configurations[UnixRemote.connection_hops][UnixRemote.proxy_pc][UnixRemote.unix_remote][
                     "command_params"]["expected_prompt"],
+            UnixRemote.unix_remote_root:
+                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.unix_remote_root][
+                    "command_params"]["expected_prompt"],
         }
         return state_prompts
 
@@ -219,6 +300,9 @@ class UnixRemote(UnixLocal):
         state_prompts = {
             UnixRemote.unix_remote:
                 self._configurations[UnixRemote.connection_hops][UnixRemote.unix_local][UnixRemote.unix_remote][
+                    "command_params"]["expected_prompt"],
+            UnixRemote.unix_remote_root:
+                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.unix_remote_root][
                     "command_params"]["expected_prompt"],
             UnixRemote.unix_local:
                 self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.unix_local][
@@ -247,6 +331,9 @@ class UnixRemote(UnixLocal):
             UnixRemote.unix_remote:
                 self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.proxy_pc][
                     "command_params"]["target_newline"],
+            UnixRemote.unix_remote_root:
+                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.unix_remote_root][
+                    "command_params"]["target_newline"],
         }
         return newline_chars
 
@@ -257,6 +344,9 @@ class UnixRemote(UnixLocal):
                     "command_params"]["target_newline"],
             UnixRemote.unix_local:
                 self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.unix_local][
+                    "command_params"]["target_newline"],
+            UnixRemote.unix_remote_root:
+                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.unix_remote_root][
                     "command_params"]["target_newline"],
         }
         return newline_chars
@@ -276,17 +366,28 @@ class UnixRemote(UnixLocal):
             UnixLocal.not_connected: {
                 UnixRemote.unix_remote: UnixRemote.unix_local,
                 UnixRemote.proxy_pc: UnixRemote.unix_local,
+                UnixRemote.unix_local_root: UnixRemote.unix_local,
+                UnixRemote.unix_remote_root: UnixRemote.unix_local
             },
             UnixRemote.unix_remote: {
                 UnixRemote.not_connected: UnixRemote.proxy_pc,
                 UnixRemote.unix_local: UnixRemote.proxy_pc,
+                UnixRemote.unix_local_root: UnixRemote.unix_local
             },
             UnixRemote.proxy_pc: {
-                UnixRemote.not_connected: UnixRemote.unix_local
+                UnixRemote.not_connected: UnixRemote.unix_local,
+                UnixRemote.unix_local_root: UnixRemote.unix_local,
+                UnixRemote.unix_remote_root: UnixRemote.unix_remote
             },
             UnixRemote.unix_local: {
-                UnixRemote.unix_remote: UnixRemote.proxy_pc
+                UnixRemote.unix_remote: UnixRemote.proxy_pc,
+                UnixRemote.unix_remote_root: UnixRemote.proxy_pc
             },
+            UnixRemote.unix_remote_root: {
+                UnixRemote.not_connected: UnixRemote.unix_remote,
+                UnixRemote.unix_local: UnixRemote.unix_remote,
+                UnixRemote.unix_local_root: UnixRemote.unix_remote
+            }
         }
         return state_hops
 
@@ -294,37 +395,52 @@ class UnixRemote(UnixLocal):
         state_hops = {
             UnixLocal.not_connected: {
                 UnixRemote.unix_remote: UnixLocal.unix_local,
+                UnixRemote.unix_local_root: UnixLocal.unix_local,
+                UnixRemote.unix_remote_root: UnixLocal.unix_local,
+            },
+            UnixLocal.unix_local: {
+                UnixRemote.unix_remote_root: UnixRemote.unix_remote
             },
             UnixRemote.unix_remote: {
-                UnixLocal.not_connected: UnixLocal.unix_local
+                UnixRemote.not_connected: UnixRemote.unix_local,
+                UnixRemote.unix_local_root: UnixRemote.unix_local
+            },
+            UnixRemote.unix_remote_root: {
+                UnixRemote.not_connected: UnixRemote.unix_remote,
+                UnixRemote.unix_local: UnixRemote.unix_remote,
+                UnixRemote.unix_local_root: UnixRemote.unix_remote
             }
         }
         return state_hops
 
+    def _configure_state_machine(self, sm_params):
+        super(UnixRemote, self)._configure_state_machine(sm_params)
+
+        if self.use_proxy_pc:
+            self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote_root][UnixRemote.unix_remote][
+                "command_params"]["expected_prompt"] = \
+                self._configurations[UnixRemote.connection_hops][UnixRemote.proxy_pc][UnixRemote.unix_remote][
+                    "command_params"]["expected_prompt"]
+        else:
+            self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote_root][UnixRemote.unix_remote][
+                "command_params"]["expected_prompt"] = \
+                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_local][UnixRemote.unix_remote][
+                    "command_params"]["expected_prompt"]
+
     def _get_packages_for_state(self, state, observer):
-        if state == UnixLocal.unix_local:
-            available = {UnixLocal.cmds: ['moler.cmd.unix'],
-                         UnixLocal.events: ['moler.events.shared', 'moler.events.unix']}
-            return available[observer]
-        elif state == UnixRemote.unix_remote:
-            available = {UnixLocal.cmds: ['moler.cmd.unix'],
-                         UnixLocal.events: ['moler.events.shared', 'moler.events.unix']}
-            return available[observer]
-        elif state == UnixRemote.proxy_pc:
-            available = {UnixLocal.cmds: ['moler.cmd.unix'],
-                         UnixLocal.events: ['moler.events.shared', 'moler.events.unix']}
-            return available[observer]
-        return []
+        available = super(UnixRemote, self)._get_packages_for_state(state, observer)
 
-    def _execute_command_to_change_state(self, source_state, dest_state, timeout=-1):
-        configurations = self.get_configurations(source_state=source_state, dest_state=dest_state)
+        if not available:
+            if state == UnixRemote.unix_remote or state == UnixRemote.unix_remote_root:
+                available = {UnixLocal.cmds: ['moler.cmd.unix'],
+                             UnixLocal.events: ['moler.events.shared', 'moler.events.unix']}
+            elif state == UnixRemote.proxy_pc:
+                available = {UnixLocal.cmds: ['moler.cmd.unix'],
+                             UnixLocal.events: ['moler.events.shared', 'moler.events.unix']}
+            if available:
+                return available[observer]
 
-        command_name = configurations["execute_command"]
-        command_params = configurations["command_params"]
-
-        command_timeout = self.calc_timeout_for_command(timeout, command_params)
-        command = self.get_cmd(cmd_name=command_name, cmd_params=command_params)
-        command(timeout=command_timeout)
+        return available
 
 
 """
