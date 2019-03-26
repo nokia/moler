@@ -10,6 +10,7 @@ import re
 from moler.events.textualevent import TextualEvent
 from moler.exceptions import NoDetectPatternProvided
 from moler.helpers import instance_id, copy_list
+from moler.exceptions import WrongUsage
 
 
 class LineEvent(TextualEvent):
@@ -18,7 +19,7 @@ class LineEvent(TextualEvent):
         self.detect_patterns = copy_list(detect_patterns)
         self.process_full_lines_only = False
         self.match = match
-        self._prepare_parameters(match)
+        self._prepare_parameters()
 
     def __str__(self):
         return '{}({}, id:{})'.format(self.__class__.__name__, self.detect_patterns, instance_id(self))
@@ -58,20 +59,23 @@ class LineEvent(TextualEvent):
     def get_short_desc(self):
         return "Event {}.{}".format(self.__class__.__module__, str(self))
 
-    def get_parser(self, match):
+    def _get_parser(self):
         parsers = {
             "any": self._catch_any,
             "all": self._catch_all,
             "sequence": self._catch_sequence,
         }
-        if match in parsers:
-            return parsers[match]
+        if self.match in parsers:
+            return parsers[self.match]
+        else:
+            self.set_exception(WrongUsage("{} is not supported. Possible choices: any, all or sequence ".
+                                          format(self.match)))
 
-    def _prepare_parameters(self, match):
-        self.parser = self.get_parser(match)
+    def _prepare_parameters(self):
+        self.parser = self._get_parser()
         self.compiled_patterns = self.compile_patterns(self.detect_patterns)
 
-        if match in ['all', 'sequence']:
+        if self.match in ['all', 'sequence']:
             self.finished_cycles = 0
             self.number_of_cycles = self.till_occurs_times
             self.till_occurs_times = len(self.detect_patterns) * self.till_occurs_times

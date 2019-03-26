@@ -70,3 +70,5 @@ class Event(ConnectionObserver):
     def get_last_occurrence(self):
         if self._occurred:
             return self._occurred[-1]
+        else:
+            return None
