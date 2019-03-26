@@ -21,6 +21,7 @@ class Event(ConnectionObserver):
         self.callback = None
         self.callback_params = dict()
         self._occurred = []
+        self._notify = True
         self.till_occurs_times = till_occurs_times
         self.event_name = Event.observer_name
 
@@ -59,7 +60,8 @@ class Event(ConnectionObserver):
         if self.till_occurs_times > 0:
             if len(self._occurred) >= self.till_occurs_times:
                 self.set_result(self._occurred)
-        self.notify()
+        if self._notify:
+            self.notify()
 
     def get_long_desc(self):
         return "Event '{}.{}'".format(self.__class__.__module__, self)

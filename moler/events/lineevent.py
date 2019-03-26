@@ -105,7 +105,10 @@ class LineEvent(TextualEvent):
             match = re.search(pattern, line)
             if match:
                 del self.copy_compiled_patterns[index]
-                self._prepare_parameters_when_single_cycle_finished()
+                if self._is_single_cycle_finished():
+                    self._prepare_new_cycle_parameters
+                else:
+                    self._notify = False
                 self._set_current_ret(line=line, match=match)
                 return
 
@@ -115,16 +118,22 @@ class LineEvent(TextualEvent):
             match = re.search(pattern, line)
             if match:
                 del self.copy_compiled_patterns[0]
-                self._prepare_parameters_when_single_cycle_finished()
+                if self._is_single_cycle_finished():
+                    self._prepare_new_cycle_parameters
+                else:
+                    self._notify = False
                 self._set_current_ret(line=line, match=match)
 
     def _prepare_new_cycle_parameters(self):
         self.finished_cycles += 1
         self.copy_compiled_patterns = copy_list(self.compiled_patterns)
+        self._notify = True
 
-    def _prepare_parameters_when_single_cycle_finished(self):
-        if not len(self.copy_compiled_patterns):
-            self._prepare_new_cycle_parameters()
+    def _is_single_cycle_finished(self):
+        if len(self.copy_compiled_patterns):
+            return False
+        else:
+            return True
 
 
 EVENT_OUTPUT_single_pattern = """
