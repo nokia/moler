@@ -76,10 +76,7 @@ class LineEvent(TextualEvent):
         self.compiled_patterns = self.compile_patterns(self.detect_patterns)
 
         if self.match in ['all', 'sequence']:
-            self.finished_cycles = 0
-            self.number_of_cycles = self.till_occurs_times
-            self.till_occurs_times = len(self.detect_patterns) * self.till_occurs_times
-            self.copy_compiled_patterns = copy_list(self.compiled_patterns)
+            self._prepare_new_cycle_parameters()
 
     def _parse_line(self, line):
         self.parser(line=line)
@@ -91,7 +88,15 @@ class LineEvent(TextualEvent):
         current_ret["groups"] = match.groups()
         current_ret["named_groups"] = match.groupdict()
         current_ret["matched"] = match.group(0)
-        self.event_occurred(event_data=current_ret)
+
+        if self._is_single_cycle_finished():
+            if self.match == "any":
+                self.event_occurred(event_data=current_ret)
+            else:
+                self._current_ret.append(current_ret)
+                self.event_occurred(event_data=self._current_ret)
+        else:
+            self._current_ret.append(current_ret)
 
     def _catch_any(self, line):
         for pattern in self.compiled_patterns:
@@ -105,11 +110,9 @@ class LineEvent(TextualEvent):
             match = re.search(pattern, line)
             if match:
                 del self.copy_compiled_patterns[index]
-                if self._is_single_cycle_finished():
-                    self._prepare_new_cycle_parameters
-                else:
-                    self._notify = False
                 self._set_current_ret(line=line, match=match)
+                if self._is_single_cycle_finished():
+                    self._prepare_new_cycle_parameters()
                 return
 
     def _catch_sequence(self, line):
@@ -118,19 +121,16 @@ class LineEvent(TextualEvent):
             match = re.search(pattern, line)
             if match:
                 del self.copy_compiled_patterns[0]
-                if self._is_single_cycle_finished():
-                    self._prepare_new_cycle_parameters
-                else:
-                    self._notify = False
                 self._set_current_ret(line=line, match=match)
+                if self._is_single_cycle_finished():
+                    self._prepare_new_cycle_parameters()
 
     def _prepare_new_cycle_parameters(self):
-        self.finished_cycles += 1
         self.copy_compiled_patterns = copy_list(self.compiled_patterns)
-        self._notify = True
+        self._current_ret = []
 
     def _is_single_cycle_finished(self):
-        if len(self.copy_compiled_patterns):
+        if hasattr(self, "copy_compiled_patterns") and len(self.copy_compiled_patterns):
             return False
         else:
             return True
