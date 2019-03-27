@@ -32,7 +32,7 @@ class Command(ConnectionObserver):
         :param connection: connection used to start CMD and receive its output
         """
         super(Command, self).__init__(connection=connection, runner=runner)
-        self.command_string = ''
+        self.command_string = None
         self.cmd_name = Command.observer_name
 
     def __str__(self):
@@ -45,7 +45,7 @@ class Command(ConnectionObserver):
         # check base class invariants first
         super(Command, self)._validate_start(*args, **kwargs)
         # then what is needed for command
-        if not self.command_string:
+        if self.command_string is None:
             # no chance to start CMD
             raise NoCommandStringProvided(self)
 
