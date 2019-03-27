@@ -68,7 +68,7 @@ class LineEvent(TextualEvent):
         if self.match in parsers:
             return parsers[self.match]
         else:
-            self.set_exception(WrongUsage("{} is not supported. Possible choices: any, all or sequence ".
+            self.set_exception(WrongUsage("'{}' is not supported. Possible choices: 'any', 'all' or 'sequence'".
                                           format(self.match)))
 
     def _prepare_parameters(self):
