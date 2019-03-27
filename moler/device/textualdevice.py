@@ -66,9 +66,9 @@ class TextualDevice(object):
                                auto_transitions=False,
                                queued=True)
 
-        self._state_hops = {}
-        self._state_prompts = {}
-        self._prompts_events = {}
+        self._state_hops = dict()
+        self._state_prompts = dict()
+        self._prompts_events = dict()
         self._configurations = dict()
         self._newline_chars = dict()  # key is state, value is chars to send as newline
         if io_connection:
@@ -526,8 +526,7 @@ class TextualDevice(object):
 
     def _configure_state_machine(self, sm_params):
         default_sm_configurations = self._get_default_sm_configuration()
-        configuration = self._prepare_sm_configuration(default_sm_configurations, sm_params)
-        self._configurations = configuration
+        self._configurations = self._prepare_sm_configuration(default_sm_configurations, sm_params)
         self._validate_device_configuration()
         self._prepare_state_prompts()
 
@@ -548,7 +547,12 @@ class TextualDevice(object):
         update_dict(target_dict, expand_dict)
 
     def _get_default_sm_configuration(self):
-        return {TextualDevice.connection_hops: {}}
+        config = {
+            TextualDevice.connection_hops: {
+            }
+        }
+
+        return config
 
     def get_configurations(self, source_state, dest_state):
         if source_state and dest_state:

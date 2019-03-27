@@ -32,7 +32,7 @@ class Command(ConnectionObserver):
         :param connection: connection used to start CMD and receive its output
         """
         super(Command, self).__init__(connection=connection, runner=runner)
-        self.command_string = ''
+        self.command_string = None
         self.cmd_name = Command.observer_name
 
     def __str__(self):
