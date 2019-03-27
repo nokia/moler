@@ -14,14 +14,15 @@ class PingResponse(LineEvent):
 
     _re_detect_pattern = re.compile(r'\d+\s+bytes\s+from.+')
 
-    def __init__(self, connection, till_occurs_times=-1):
+    def __init__(self, connection, till_occurs_times=-1, runner=None):
         """
         Event for 'Wait for response from ping.'.
         :param connection: moler connection to device, terminal when command is executed
         :param till_occurs_times: number of event occurrence
+        :param runner: Runner to run event
         """
-        super(PingResponse, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
-        self.detect_pattern = PingResponse._re_detect_pattern
+        super(PingResponse, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times,
+                                           detect_patterns=[PingResponse._re_detect_pattern], match='any')
 
 
 EVENT_OUTPUT = """
@@ -60,6 +61,9 @@ EVENT_KWARGS = {
 EVENT_RESULT = [
     {
         'line': '64 bytes from 192.168.255.129: icmp_seq=43 ttl=64 time=0.638 ms',
+        "groups": (),
+        "named_groups": {},
+        "matched": "64 bytes from 192.168.255.129: icmp_seq=43 ttl=64 time=0.638 ms",
         'time': datetime.datetime.now()
     }
 ]

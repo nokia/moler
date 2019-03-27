@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__author__ = 'Marcin Usielski, Tomasz Krol'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'marcin.usielski@nokia.com, tomasz.krol@nokia.com'
 
 import datetime
 import re
@@ -10,24 +10,23 @@ import re
 from moler.events.textualevent import TextualEvent
 from moler.exceptions import NoDetectPatternProvided
 from moler.helpers import instance_id, copy_list
+from moler.exceptions import WrongUsage
 
 
 class LineEvent(TextualEvent):
-    def __init__(self, detect_pattern=None, detect_patterns=list(), connection=None, till_occurs_times=-1):
-        super(LineEvent, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
-        self.detect_pattern = detect_pattern
+    def __init__(self, detect_patterns, connection=None, till_occurs_times=-1, match='any', runner=None):
+        super(LineEvent, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times)
         self.detect_patterns = copy_list(detect_patterns)
         self.process_full_lines_only = False
+        self.match = match
+        self._prepare_parameters()
 
     def __str__(self):
-        detect_pattern = self.detect_pattern if not (self.detect_pattern is None) else ', '.join(self.detect_patterns)
-        return '{}("{}", id:{})'.format(self.__class__.__name__, detect_pattern, instance_id(self))
+        return '{}({}, id:{})'.format(self.__class__.__name__, self.detect_patterns, instance_id(self))
 
     def start(self, timeout=None, *args, **kwargs):
         """Start background execution of command."""
-        if self.detect_pattern and not self.detect_patterns:
-            self.detect_patterns = [self.detect_pattern]
-        self.detect_patterns = self.compile_patterns(self.detect_patterns)
+
         self._validate_start(*args, **kwargs)
         ret = super(LineEvent, self).start(timeout, *args, **kwargs)
         self._is_running = True
@@ -38,19 +37,13 @@ class LineEvent(TextualEvent):
         # check base class invariants first
         super(LineEvent, self)._validate_start(*args, **kwargs)
         # then what is needed for command
-        if not self.detect_pattern and not self.detect_patterns:
+        if not self.detect_patterns:
             # no chance to start CMD
             raise NoDetectPatternProvided(self)
 
     def on_new_line(self, line, is_full_line):
         if is_full_line or not self.process_full_lines_only:
-            for pattern in self.detect_patterns:
-                if re.search(pattern, line):
-                    current_ret = dict()
-                    current_ret["line"] = line
-                    current_ret["time"] = datetime.datetime.now()
-                    self.event_occurred(event_data=current_ret)
-                    return
+            self._parse_line(line=line)
 
     def compile_patterns(self, patterns):
         compiled_patterns = []
@@ -66,6 +59,82 @@ class LineEvent(TextualEvent):
     def get_short_desc(self):
         return "Event {}.{}".format(self.__class__.__module__, str(self))
 
+    def _get_parser(self):
+        parsers = {
+            "any": self._catch_any,
+            "all": self._catch_all,
+            "sequence": self._catch_sequence,
+        }
+        if self.match in parsers:
+            return parsers[self.match]
+        else:
+            self.set_exception(WrongUsage("'{}' is not supported. Possible choices: 'any', 'all' or 'sequence'".
+                                          format(self.match)))
+
+    def _prepare_parameters(self):
+        self.parser = self._get_parser()
+        self.compiled_patterns = self.compile_patterns(self.detect_patterns)
+
+        if self.match in ['all', 'sequence']:
+            self._prepare_new_cycle_parameters()
+
+    def _parse_line(self, line):
+        self.parser(line=line)
+
+    def _set_current_ret(self, line, match):
+        current_ret = dict()
+        current_ret["line"] = line
+        current_ret["time"] = datetime.datetime.now()
+        current_ret["groups"] = match.groups()
+        current_ret["named_groups"] = match.groupdict()
+        current_ret["matched"] = match.group(0)
+
+        if self._is_single_cycle_finished():
+            if self.match == "any":
+                self.event_occurred(event_data=current_ret)
+            else:
+                self._current_ret.append(current_ret)
+                self.event_occurred(event_data=self._current_ret)
+        else:
+            self._current_ret.append(current_ret)
+
+    def _catch_any(self, line):
+        for pattern in self.compiled_patterns:
+            match = re.search(pattern, line)
+            if match:
+                self._set_current_ret(line=line, match=match)
+                return
+
+    def _catch_all(self, line):
+        for index, pattern in enumerate(self.copy_compiled_patterns):
+            match = re.search(pattern, line)
+            if match:
+                del self.copy_compiled_patterns[index]
+                self._set_current_ret(line=line, match=match)
+                if self._is_single_cycle_finished():
+                    self._prepare_new_cycle_parameters()
+                return
+
+    def _catch_sequence(self, line):
+        if self.copy_compiled_patterns:
+            pattern = self.copy_compiled_patterns[0]
+            match = re.search(pattern, line)
+            if match:
+                del self.copy_compiled_patterns[0]
+                self._set_current_ret(line=line, match=match)
+                if self._is_single_cycle_finished():
+                    self._prepare_new_cycle_parameters()
+
+    def _prepare_new_cycle_parameters(self):
+        self.copy_compiled_patterns = copy_list(self.compiled_patterns)
+        self._current_ret = []
+
+    def _is_single_cycle_finished(self):
+        if hasattr(self, "copy_compiled_patterns") and len(self.copy_compiled_patterns):
+            return False
+        else:
+            return True
+
 
 EVENT_OUTPUT_single_pattern = """
 user@host01:~> TERM=xterm-mono telnet -4 host.domain.net 1500
@@ -78,13 +147,16 @@ CLIENT5 [] has just connected!
 host:~ #"""
 
 EVENT_KWARGS_single_pattern = {
-    "detect_pattern": r'host:.*#',
+    "detect_patterns": [r'host:.*#'],
     "till_occurs_times": 1
 }
 
 EVENT_RESULT_single_pattern = [
     {
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
+        "groups": (),
+        "named_groups": {},
+        "matched": "host:~ #",
         'line': "host:~ #"
     }
 ]
@@ -100,13 +172,23 @@ CLIENT5 [] has just connected!
 host:~ #"""
 
 EVENT_KWARGS_patterns_list = {
-    "detect_pattern": r'host:.*#',
-    "till_occurs_times": 1
+    "detect_patterns": ['Last login', r'host:.*#'],
+    "till_occurs_times": 2
 }
 
 EVENT_RESULT_patterns_list = [
     {
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
+        "groups": (),
+        "named_groups": {},
+        "matched": "Last login",
+        'line': "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1"
+    },
+    {
+        'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
+        "groups": (),
+        "named_groups": {},
+        "matched": "host:~ #",
         'line': "host:~ #"
     }
 ]

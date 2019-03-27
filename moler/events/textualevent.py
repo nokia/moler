@@ -12,8 +12,8 @@ from moler.cmd import RegexHelper
 class TextualEvent(Event):
     _default_newline_chars = ("\n", "\r")  # New line chars on device, not system with script!
 
-    def __init__(self, connection=None, till_occurs_times=-1):
-        super(TextualEvent, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
+    def __init__(self, connection=None, till_occurs_times=-1, runner=None):
+        super(TextualEvent, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times)
         self._last_not_full_line = None
         self._newline_chars = TextualEvent._default_newline_chars
         self._regex_helper = RegexHelper()  # Object to regular expression matching

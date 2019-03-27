@@ -14,14 +14,15 @@ class PingNoResponse(LineEvent):
 
     _re_detect_pattern = re.compile(r'(no\s+answer\s+yet\s+for.*)|(.*Destination\s+Host\s+Unreachable)')
 
-    def __init__(self, connection, till_occurs_times=-1):
+    def __init__(self, connection, till_occurs_times=-1, runner=None):
         """
         Event for 'Wait for no response from ping '.
         :param connection: moler connection to device, terminal when command is executed
         :param till_occurs_times: number of event occurrence
+        :param runner: Runner to run event
         """
-        super(PingNoResponse, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
-        self.detect_pattern = PingNoResponse._re_detect_pattern
+        super(PingNoResponse, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times,
+                                             detect_patterns=[PingNoResponse._re_detect_pattern], match='any')
 
 
 EVENT_OUTPUT = """ute@SC5G-HUB-079:~$ ping -O 192.168.255.126
@@ -43,6 +44,9 @@ EVENT_KWARGS = {
 
 EVENT_RESULT = [{
     "line": "From 192.168.255.126 icmp_seq=1 Destination Host Unreachable",
+    "groups": (None, u"From 192.168.255.126 icmp_seq=1 Destination Host Unreachable"),
+    "named_groups": {},
+    "matched": "From 192.168.255.126 icmp_seq=1 Destination Host Unreachable",
     "time": datetime.datetime.now()
 }]
 
@@ -104,6 +108,9 @@ EVENT_KWARGS_2 = {
 EVENT_RESULT_2 = [
     {
         "line": "no answer yet for icmp_seq=22",
+        "groups": (u"no answer yet for icmp_seq=22", None),
+        "named_groups": {},
+        "matched": "no answer yet for icmp_seq=22",
         "time": datetime.datetime.now()
     }
 ]

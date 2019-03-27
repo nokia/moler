@@ -140,7 +140,7 @@ class UnixLocal(TextualDevice):
         available = list()
         if state == UnixLocal.unix_local or state == UnixLocal.unix_local_root:
             available = {UnixLocal.cmds: ['moler.cmd.unix'],
-                         UnixLocal.events: ['moler.events.unix']}
+                         UnixLocal.events: ['moler.events.shared', 'moler.events.unix']}
             return available[observer]
         return available
 

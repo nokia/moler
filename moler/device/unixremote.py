@@ -433,10 +433,10 @@ class UnixRemote(UnixLocal):
         if not available:
             if state == UnixRemote.unix_remote or state == UnixRemote.unix_remote_root:
                 available = {UnixLocal.cmds: ['moler.cmd.unix'],
-                             UnixLocal.events: ['moler.events.unix']}
+                             UnixLocal.events: ['moler.events.shared', 'moler.events.unix']}
             elif state == UnixRemote.proxy_pc:
                 available = {UnixLocal.cmds: ['moler.cmd.unix'],
-                             UnixLocal.events: ['moler.events.unix']}
+                             UnixLocal.events: ['moler.events.shared', 'moler.events.unix']}
             if available:
                 return available[observer]
 
