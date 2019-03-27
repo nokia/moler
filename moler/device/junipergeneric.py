@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Bash command module
+Juniper Generic module.
 """
 
 __author__ = 'Sylwester Golonka'
