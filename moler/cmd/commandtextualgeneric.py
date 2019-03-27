@@ -74,7 +74,10 @@ class CommandTextualGeneric(Command):
         :return: Nothing.
         """
         self.__command_string = command_string
-        self._cmd_escaped = re.compile(re.escape(command_string))
+        if command_string is None:
+            self._cmd_escaped = None
+        else:
+            self._cmd_escaped = re.compile(re.escape(command_string))
 
     @staticmethod
     def _calculate_prompt(prompt):
