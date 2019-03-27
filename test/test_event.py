@@ -82,6 +82,23 @@ def test_event_whole_output(buffer_connection):
     assert event.done() is True
 
 
+def test_event_get_last_occurrence(buffer_connection):
+    from moler.events.unix.wait4prompt import Wait4prompt
+    output = "bash\n"
+    dict_output = {'line': u'bash', 'matched': u'bash', 'named_groups': {}, 'groups': (), 'time': 0}
+    event = Wait4prompt(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
+    event.start(timeout=0.1)
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    event.await_done()
+    occurrence = event.get_last_occurrence()
+    occurrence['time'] = 0
+    assert occurrence == dict_output
+
+
+def test_get_not_supported_parser():
+    le = LineEvent(connection=None, detect_patterns=['Sample pattern'], match='not_supported_value')
+    le._get_parser()
+
 # --------------------------- resources ---------------------------
 
 
