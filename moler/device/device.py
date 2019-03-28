@@ -7,7 +7,6 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 from moler.config import devices as devices_config
-from moler.helpers import copy_dict
 from moler.instance_loader import create_instance_from_class_fullname
 
 
