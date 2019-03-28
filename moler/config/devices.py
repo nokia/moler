@@ -24,7 +24,7 @@ def define_device(name, device_class, connection_desc, connection_hops, initial_
             new_connection_hops["CONNECTION_HOPS"] = connection_hops
 
             connection_hops = new_connection_hops
-    
+
     named_devices[name] = (device_class, connection_desc, connection_hops, initial_state)
 
 
