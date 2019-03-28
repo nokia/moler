@@ -18,6 +18,13 @@ def set_default_connection(io_type, variant):
 
 def define_device(name, device_class, connection_desc, connection_hops, initial_state=None):
     """Assign name to device specification."""
+    if connection_hops:
+        if "CONNECTION_HOPS" not in connection_hops.keys():
+            new_connection_hops = dict()
+            new_connection_hops["CONNECTION_HOPS"] = connection_hops
+
+            connection_hops = new_connection_hops
+    
     named_devices[name] = (device_class, connection_desc, connection_hops, initial_state)
 
 
