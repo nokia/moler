@@ -11,6 +11,8 @@ from moler.device.junipergeneric import JuniperGeneric
 
 
 class JuniperEX(JuniperGeneric):
+    """Juniperex device class."""
+
     def _get_packages_for_state(self, state, observer):
         available = {JuniperEX.cmds: [], JuniperEX.events: []}
         if state == JuniperEX.unix_local or state == JuniperGeneric.proxy_pc:
