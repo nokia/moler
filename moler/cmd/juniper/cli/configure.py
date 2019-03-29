@@ -14,15 +14,17 @@ from moler.exceptions import ParsingDone
 class Configure(CommandTextualGeneric):
     """Configure command class."""
 
-    def __init__(self, connection, prompt=None, expected_prompt=r'^.*@.*#',
+    def __init__(self, connection, prompt=None, expected_prompt=r'^admin@switch#',
                  newline_chars=None, runner=None, target_newline="\r\n"):
         """
         Configure command.
 
-        :param connection:.
+        :param connection: Moler connection to device, terminal when command is executed.
         :param prompt: Prompt of the starting shell
         :param expected_prompt: Prompt of the target shell reached after exit command
-        :param newline_chars:
+        :param newline_chars: Characters to split lines - list.
+        :param target_newline: newline chars on remote system where ssh connects
+        :param runner: Runner to run command
         """
         super(Configure, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.ret_required = False
@@ -53,6 +55,12 @@ class Configure(CommandTextualGeneric):
             pass  # line has been fully parsed by one of above parse-methods
 
     def _is_target_prompt(self, line):
+        """
+        Checks target prompt.
+
+        :param line: Line to process
+        :return: Nothing
+        """
         if self._regex_helper.search_compiled(self._re_expected_prompt, line):
             self.set_result({})
             raise ParsingDone

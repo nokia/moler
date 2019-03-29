@@ -78,7 +78,7 @@ class JuniperGeneric(UnixLocal):
                         "execute_command": "ssh",  # using command
                         "command_params": {  # with parameters
                             "set_timeout": None,
-                            "expected_prompt": "^.*@.*>"
+                            "expected_prompt": "^admin@switch>"
                         },
                         "required_command_params": [
                             "host",
@@ -99,7 +99,7 @@ class JuniperGeneric(UnixLocal):
                     JuniperGeneric.configure: {
                         "execute_command": "configure",
                         "command_params": {
-                            "expected_prompt": "^.*@.*#"
+                            "expected_prompt": "^admin@switch#"
                         }
                     }
                 },
@@ -107,7 +107,7 @@ class JuniperGeneric(UnixLocal):
                     JuniperGeneric.cli: {  # to
                         "execute_command": "exit_configure",  # using command
                         "command_params": {  # with parameters
-                            "expected_prompt": "^.*@.*>"
+                            "expected_prompt": "^admin@switch>"
                         }
                     },
                 }
@@ -122,7 +122,7 @@ class JuniperGeneric(UnixLocal):
                     JuniperGeneric.cli: {  # to
                         "execute_command": "ssh",  # using command
                         "command_params": {  # with parameters
-                            "expected_prompt": "^.*@.*>",
+                            "expected_prompt": "^admin@switch>",
                             "set_timeout": None
                         },
                         "required_command_params": [
@@ -142,7 +142,7 @@ class JuniperGeneric(UnixLocal):
                     JuniperGeneric.configure: {
                         "execute_command": "configure",
                         "command_params": {
-                            "expected_prompt": "^.*@.*#"
+                            "expected_prompt": "^admin@switch#"
                         }
                     }
                 },
@@ -150,7 +150,7 @@ class JuniperGeneric(UnixLocal):
                     JuniperGeneric.cli: {  # to
                         "execute_command": "exit_configure",  # using command
                         "command_params": {  # with parameters
-                            "expected_prompt": "^.*@.*>"
+                            "expected_prompt": "^admin@switch>"
                         }
                     },
                 }
