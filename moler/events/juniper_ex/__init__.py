@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Package for implementing Juniper events.
+Package for implementing JuniperEX events.
 """
 
 __author__ = 'Sylwester Golonka'
