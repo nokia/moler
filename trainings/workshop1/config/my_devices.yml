@@ -1,3 +1,6 @@
+LOGGER:
+  PATH: /home/moler/gitrepos/moler/trainings/workshop1/logs  # yours might differ
+
 DEVICES:
   MyMachine1:
     DEVICE_CLASS: moler.device.unixlocal.UnixLocal
