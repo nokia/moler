@@ -31,6 +31,9 @@ def test_network_outage():
 
     time.sleep(3)
 
+    # test teardown
+    ping.cancel()
+
 
 if __name__ == '__main__':
     test_network_outage()
