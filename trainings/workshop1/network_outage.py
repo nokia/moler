@@ -10,9 +10,9 @@ def test_network_outage():
     unix2 = DeviceFactory.get_device(name='MyMachine2')
 
     # test setup - ensure network is up before running test
-    ifconfig_up = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo up"})
-    sudo_ifconfig_up = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": ifconfig_up})
-    sudo_ifconfig_up()
+    net_up = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo up"})
+    sudo_ensure_net_up = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": net_up})
+    sudo_ensure_net_up()
 
     # run test
     ping = unix1.get_cmd(cmd_name="ping", cmd_params={"destination": "localhost", "options": "-O"})
