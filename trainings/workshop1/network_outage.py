@@ -2,10 +2,11 @@ import os.path
 import time
 from moler.config import load_config
 from moler.device.device import DeviceFactory
+from moler.util.moler_test import MolerTest
 
 
 def outage_callback():
-    print("Network outage")
+    MolerTest.info("Network outage")
 
 
 def test_network_outage():
