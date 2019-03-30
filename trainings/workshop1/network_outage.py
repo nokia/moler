@@ -4,6 +4,10 @@ from moler.config import load_config
 from moler.device.device import DeviceFactory
 
 
+def outage_callback():
+    print("Network outage")
+
+
 def test_network_outage():
     load_config(config=os.path.abspath('config/my_devices.yml'))
     unix1 = DeviceFactory.get_device(name='MyMachine1')
@@ -21,6 +25,7 @@ def test_network_outage():
 
     # run event observing "network down"
     no_ping = unix1.get_event(event_name="ping_no_response")
+    no_ping.add_event_occurred_callback(callback=outage_callback, callback_params={})
     no_ping.start()
 
     ifconfig_down = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo down"})
