@@ -9,6 +9,10 @@ def outage_callback(device_name):
     MolerTest.info("Network outage on {}".format(device_name))
 
 
+def ping_is_on_callback():
+    MolerTest.info("Ping works")
+
+
 def test_network_outage():
     load_config(config=os.path.abspath('config/my_devices.yml'))
     unix1 = DeviceFactory.get_device(name='MyMachine1')
@@ -18,11 +22,15 @@ def test_network_outage():
     net_up = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo up"})
     sudo_ensure_net_up = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": net_up})
     sudo_ensure_net_up()
-    # run event observing "network down"
+    # run event observing "network down/up"
     no_ping = unix1.get_event(event_name="ping_no_response")
     no_ping.add_event_occurred_callback(callback=outage_callback,
                                         callback_params={'device_name': 'MyMachine1'})
     no_ping.start()
+    ping_is_on = unix1.get_event(event_name="ping_response")
+    ping_is_on.add_event_occurred_callback(callback=ping_is_on_callback,
+                                           callback_params={})
+    ping_is_on.start()
 
     # run test
     ping = unix1.get_cmd(cmd_name="ping", cmd_params={"destination": "localhost", "options": "-O"})

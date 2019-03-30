@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
 """
 copy this file into workshop1/network_outage.py
-*** passing parameters to callback ***
+*** event and callback for tracking correct ping response ***
 1. run it
-2. see logs - look for "Network outage"
+2. see logs - look for "Network outage" & "Ping works"
 """
