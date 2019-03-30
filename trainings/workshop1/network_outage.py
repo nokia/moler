@@ -12,11 +12,17 @@ def test_network_outage():
     ping.start(timeout=120)
     time.sleep(3)
 
-    ifconfig = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo down"})
-    sudo = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": ifconfig})
-    sudo()
+    ifconfig_down = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo down"})
+    sudo_ifconfig_down = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": ifconfig_down})
+    sudo_ifconfig_down()
 
     time.sleep(5)
+
+    ifconfig_up = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo up"})
+    sudo_ifconfig_up = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": ifconfig_up})
+    sudo_ifconfig_up()
+
+    time.sleep(3)
 
 
 if __name__ == '__main__':

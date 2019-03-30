@@ -10,7 +10,7 @@ def test_network_outage():
     unix2 = DeviceFactory.get_device(name='MyMachine2')
     ping = unix1.get_cmd(cmd_name="ping", cmd_params={"destination": "localhost", "options": "-O"})
     ping.start(timeout=120)
-    time.sleep(4)
+    time.sleep(3)
 
     ifconfig_down = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo down"})
     sudo_ifconfig_down = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": ifconfig_down})
