@@ -19,6 +19,10 @@ def test_network_outage():
     ping.start(timeout=120)
     time.sleep(3)
 
+    # run event observing "network down"
+    no_ping = unix1.get_event(event_name="ping_no_response")
+    no_ping.start()
+
     ifconfig_down = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo down"})
     sudo_ifconfig_down = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": ifconfig_down})
     sudo_ifconfig_down()
