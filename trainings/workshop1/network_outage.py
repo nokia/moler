@@ -10,6 +10,10 @@ def test_network_outage():
     unix2 = DeviceFactory.get_device(name='MyMachine2')
     ping = unix1.get_cmd(cmd_name="ping", cmd_params={"destination": "localhost", "options": "-O"})
     ping.start(timeout=120)
+    time.sleep(3)
+
+    ifconfig = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo down"})
+    ifconfig()
     time.sleep(5)
 
 
