@@ -20,7 +20,7 @@ def test_network_outage():
     time.sleep(3)
 
     # run event observing "network down"
-    no_ping = unix1.get_event(event_name="ping_no_response", event_params={"till_occurs_times": 1})
+    no_ping = unix1.get_event(event_name="ping_no_response")
     no_ping.start()
 
     ifconfig_down = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo down"})
@@ -37,6 +37,7 @@ def test_network_outage():
 
     # test teardown
     ping.cancel()
+    no_ping.cancel()
 
 
 if __name__ == '__main__':
