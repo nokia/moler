@@ -1,0 +1,29 @@
+# Copyright (C) 2019 Nokia
+
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2019, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
+
+############################################
+
+If you want to run all examples totally without code changes you need to have same execution environment as me ;-)
+Otherwise you need to do OS and Python adaptation by yourself.
+
+* I run Linux Debian under Oracle VirtualBox
+* exercises utilizing connection to remote machine will require: machine name, user login and password
+* my machine is named ute-image9
+  * to change your hostname to such name google for: "debian command to change hostname"
+* I have created user 'moler' with password 'moler'
+  * to create user & password: login as root and fire command 'adduser moler'
+    (if you see 'BAD PASSWORD: it is too short' or 'is too simple' ignore it and keep repeating 'moler' as password)
+* I have added 'moler' user to sudoers - inside directory /etc/sudoers.d/ create file 'moler' (as root) with content:
+    moler  ALL=NOPASSWD:  ALL
+* for experiment with running 'ifconfig' command we need to know it's location
+  * as root fire command 'which ifconfig'; my output is '/sbin/ifconfig'; add to /etc/sudoers.d/moler commented line:
+    #moler  ALL=(ALL) /sbin/ifconfig
+* for running python I use python3.6 as /usr/bin/python3 - you may need to change symbolic link, mine was:
+  sudo ln -sf /opt/ute/python3/bin/python3 /usr/bin/python3
+* logs creation assumes specific location so, replicate moler repository in same directory:
+  cd /home/moler
+  mkdir gitrepos
+  git clone https://github.com/nokia/moler.git gitrepos/moler
