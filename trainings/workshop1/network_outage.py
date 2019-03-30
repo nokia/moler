@@ -25,6 +25,7 @@ def test_network_outage():
 
     time.sleep(5)
 
+    ifconfig_up = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo up"})
     sudo_ifconfig_up = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": ifconfig_up})
     sudo_ifconfig_up()
 
