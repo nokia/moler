@@ -5,8 +5,8 @@ from moler.device.device import DeviceFactory
 from moler.util.moler_test import MolerTest
 
 
-def outage_callback():
-    MolerTest.info("Network outage")
+def outage_callback(device_name):
+    MolerTest.info("Network outage on {}".format(device_name))
 
 
 def test_network_outage():
@@ -20,7 +20,8 @@ def test_network_outage():
     sudo_ensure_net_up()
     # run event observing "network down"
     no_ping = unix1.get_event(event_name="ping_no_response")
-    no_ping.add_event_occurred_callback(callback=outage_callback, callback_params={})
+    no_ping.add_event_occurred_callback(callback=outage_callback,
+                                        callback_params={'device_name': 'MyMachine1'})
     no_ping.start()
 
     # run test
