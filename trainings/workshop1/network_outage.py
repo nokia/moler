@@ -1,4 +1,5 @@
 import os.path
+import time
 from moler.config import load_config
 from moler.device.device import DeviceFactory
 
@@ -9,6 +10,7 @@ def test_network_outage():
     unix2 = DeviceFactory.get_device(name='MyMachine2')
     ping = unix1.get_cmd(cmd_name="ping", cmd_params={"destination": "localhost", "options": "-O"})
     ping.start(timeout=120)
+    time.sleep(5)
 
 
 if __name__ == '__main__':
