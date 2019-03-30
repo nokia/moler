@@ -8,6 +8,13 @@ def test_network_outage():
     load_config(config=os.path.abspath('config/my_devices.yml'))
     unix1 = DeviceFactory.get_device(name='MyMachine1')
     unix2 = DeviceFactory.get_device(name='MyMachine2')
+
+    # test setup - ensure network is up before running test
+    ifconfig_up = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo up"})
+    sudo_ifconfig_up = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": ifconfig_up})
+    sudo_ifconfig_up()
+
+    # run test
     ping = unix1.get_cmd(cmd_name="ping", cmd_params={"destination": "localhost", "options": "-O"})
     ping.start(timeout=120)
     time.sleep(3)
@@ -18,8 +25,6 @@ def test_network_outage():
 
     time.sleep(5)
 
-    ifconfig_up = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo up"})
-    sudo_ifconfig_up = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": ifconfig_up})
     sudo_ifconfig_up()
 
     time.sleep(3)
