@@ -25,9 +25,14 @@ def test_network_outage():
 
     time.sleep(5)
 
+    ifconfig_up = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo up"})
+    sudo_ifconfig_up = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": ifconfig_up})
     sudo_ifconfig_up()
 
     time.sleep(3)
+
+    # test teardown
+    ping.cancel()
 
 
 if __name__ == '__main__':
@@ -35,13 +40,11 @@ if __name__ == '__main__':
 
 """
 copy this file into workshop1/network_outage.py
-*** setup for test - ensure network is up before running test ***
+*** teardown for test - stop all running "background things" ***
 1. run it
-2. note exception - sudo_ifconfig_up() tries to run same sudo command - but remember commands are one shot only.
-3. try copy sudo command creation:
-    sudo_ifconfig_up = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "uteadmin", "cmd_object": ifconfig_up})
-  and paste it just before second:
-    sudo_ifconfig_up()
-  
-4. Is "one shot command" clear now?
+2. all started commands should be cancelled
+   - see Ping("ping localhost -O", ...) finished in moler.debug.log
+   - run previous step and notice "shutdown so cancelling" inside moler.debug.log 
+      - library cleaned up for us at shutdown but that is wrong style - we should not leave any command/event
+        running between test - they may impact next test
 """
