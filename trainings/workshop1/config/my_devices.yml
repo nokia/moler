@@ -1,5 +1,6 @@
 LOGGER:
   PATH: /home/moler/gitrepos/moler/trainings/workshop1/logs  # yours might differ
+  RAW_LOG: True
 
 DEVICES:
   MyMachine1:
