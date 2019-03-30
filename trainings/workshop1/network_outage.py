@@ -13,7 +13,9 @@ def test_network_outage():
     time.sleep(3)
 
     ifconfig = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo down"})
-    ifconfig()
+    sudo = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": ifconfig})
+    sudo()
+
     time.sleep(5)
 
 
