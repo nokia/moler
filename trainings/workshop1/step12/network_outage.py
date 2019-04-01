@@ -74,4 +74,8 @@ copy this file into workshop1/network_outage.py
 1. run it
 2. see logs - look for "Network outage" and "Ping works"
    - be carefull in logs analysis - what's wrong?
+3. fix incorrect calculation by exchanging:
+   no_ping = unix1.get_event(event_name="ping_no_response")
+   into:
+   no_ping = unix1.get_event(event_name="ping_no_response", event_params={"till_occurs_times": 1})
 """

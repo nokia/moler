@@ -32,7 +32,7 @@ def test_network_outage():
     sudo_ensure_net_up = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": net_up})
     sudo_ensure_net_up()
     # run event observing "network down/up"
-    no_ping = unix1.get_event(event_name="ping_no_response")
+    no_ping = unix1.get_event(event_name="ping_no_response", event_params={"till_occurs_times": 1})
     no_ping.add_event_occurred_callback(callback=outage_callback,
                                         callback_params={'device_name': 'MyMachine1',
                                                          'ping_times': ping_times})
