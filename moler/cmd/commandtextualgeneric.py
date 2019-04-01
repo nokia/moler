@@ -49,6 +49,9 @@ class CommandTextualGeneric(Command):
         self.newline_after_command_string = True  # Set True if you want to send a new line char(s) after command
         # string (sendline from connection)- most cases. Set False if you want to sent command string without adding
         # new line char(s) - send from connection.
+        self.wait_for_prompt_on_exception = False  # Set True to wait for command prompt on failure. Set False to cancel
+        # command immediately on failure.
+        self._stored_exception = None
 
         if not self._newline_chars:
             self._newline_chars = CommandTextualGeneric._default_newline_chars
@@ -196,6 +199,29 @@ class CommandTextualGeneric(Command):
         """
         self.break_cmd()
         return super(CommandTextualGeneric, self).cancel()
+
+    def set_exception(self, exception):
+        """
+        Set exception object as failure for command object.
+
+        :param exception: An exception object to set.
+        :return: Nothing.
+        """
+        if self.done() or not self.wait_for_prompt_on_exception:
+            super(CommandTextualGeneric, self).set_exception(exception=exception)
+        else:
+            if self._stored_exception is None:
+                self._log(logging.INFO,
+                          "{}.{} has set exception {!r}".format(self.__class__.__module__, self, exception),
+                          levels_to_go_up=2)
+                self._stored_exception = exception
+            else:
+                self._log(logging.INFO,
+                          "{}.{} tried set exception {!r} on already set exception {!r}".format(
+                              self.__class__.__module__,
+                              self, exception,
+                              self._stored_exception),
+                          levels_to_go_up=2)
 
     def on_timeout(self):
         """
