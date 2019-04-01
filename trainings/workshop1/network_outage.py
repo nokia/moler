@@ -23,6 +23,7 @@ def ping_is_on_callback(ping_times):
                 MolerTest.info("Network outage duration is acceptable")
 
 
+@MolerTest.raise_background_exceptions()
 def test_network_outage():
     load_config(config=os.path.abspath('config/my_devices.yml'))
     unix1 = DeviceFactory.get_device(name='MyMachine1')
