@@ -33,44 +33,46 @@ def test_network_outage():
     # TEST GOAL: network outage should not exceed 3 seconds
     #######################################################
 
-    # test setup
+    # test setup - prepare everything required by test
     ping_times = {"lost_connection_time": 0,
                   "reconnection_time": 0}
     # ensure network is up before running test
     net_up = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo up"})
     sudo_ensure_net_up = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": net_up})
-    sudo_ensure_net_up()
     # run event observing "network down/up"
     no_ping = unix1.get_event(event_name="ping_no_response", event_params={"till_occurs_times": 1})
     no_ping.add_event_occurred_callback(callback=outage_callback,
                                         callback_params={'device_name': 'MyMachine1',
                                                          'ping_times': ping_times})
-    no_ping.start()
     ping_is_on = unix1.get_event(event_name="ping_response")
     ping_is_on.add_event_occurred_callback(callback=ping_is_on_callback,
                                            callback_params={'ping_times': ping_times})
-    ping_is_on.start()
-
-    # run test
-    ping = unix1.get_cmd(cmd_name="ping", cmd_params={"destination": "localhost", "options": "-O"})
-    ping.start(timeout=120)
-    time.sleep(3)
-
     ifconfig_down = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo down"})
     sudo_ifconfig_down = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": ifconfig_down})
-    sudo_ifconfig_down()
-
-    time.sleep(5)
-
     ifconfig_up = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo up"})
     sudo_ifconfig_up = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": ifconfig_up})
-    sudo_ifconfig_up()
+    ping = unix1.get_cmd(cmd_name="ping", cmd_params={"destination": "localhost", "options": "-O"})
 
-    time.sleep(3)
+    # fire ifconfig up command - that one is part of Test Setup logic
+    sudo_ensure_net_up()
+    try:
+        no_ping.start()  # oh, yes - that is still setup, but we want it here to be cancelled by finally
+        ping_is_on.start()
 
-    # test teardown
-    ping.cancel()
-    no_ping.cancel()
+        # run test
+        ping.start(timeout=120)
+        time.sleep(3)
+
+        sudo_ifconfig_down()
+        time.sleep(5)
+        sudo_ifconfig_up()
+
+        time.sleep(3)
+
+    finally:
+        # test teardown
+        ping.cancel()
+        no_ping.cancel()
 
 
 if __name__ == '__main__':
