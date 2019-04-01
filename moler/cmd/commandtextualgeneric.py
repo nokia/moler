@@ -22,7 +22,7 @@ from moler.exceptions import CommandTimeout
 class CommandTextualGeneric(Command):
     """Base class for textual commands."""
 
-    _re_default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')  # When user provides no prompt
+    _re_default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~|:]\s*$')  # When user provides no prompt
     _default_newline_chars = ("\n", "\r")  # New line chars on device, not system with script!
 
     def __init__(self, connection, prompt=None, newline_chars=None, runner=None):
