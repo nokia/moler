@@ -75,6 +75,11 @@ def test_network_outage():
         no_ping.cancel()
         ping_is_on.cancel()
 
+    if ping_times["lost_connection_time"] == 0:
+        MolerTest.error("Network outage did not occur.")
+    if ping_times["reconnection_time"] == 0:
+        MolerTest.error("Network outage did not finish on time.")
+
 
 if __name__ == '__main__':
     test_network_outage()
