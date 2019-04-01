@@ -83,6 +83,19 @@ class CommandTextualGeneric(Command):
         else:
             self._cmd_escaped = re.compile(re.escape(command_string))
 
+    @property
+    def _is_done(self):
+        return super(CommandTextualGeneric, self)._is_done()
+
+    @_is_done.setter
+    def _is_done(self, value):
+        if value:
+            if self._stored_exception:
+                exception = self._stored_exception
+                self._stored_exception = None
+                super(CommandTextualGeneric, self).set_exception(exception=exception)
+        super(CommandTextualGeneric, self)._is_done(value)
+
     @staticmethod
     def _calculate_prompt(prompt):
         if not prompt:
