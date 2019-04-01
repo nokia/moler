@@ -157,7 +157,9 @@ class CommandTextualGeneric(Command):
         :return: Nothing
         """
         if self.is_end_of_cmd_output(line):
-            if (self.ret_required and self.has_any_result()) or not self.ret_required:
+            if self._stored_exception:
+                self._is_done = True
+            elif (self.ret_required and self.has_any_result()) or not self.ret_required:
                 if not self.done():
                     self.set_result(self.current_ret)
             else:
