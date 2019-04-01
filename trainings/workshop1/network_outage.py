@@ -17,12 +17,20 @@ def ping_is_on_callback(ping_times):
             ping_times["reconnection_time"] = time.time()
             outage_time = ping_times["reconnection_time"] - ping_times["lost_connection_time"]
             MolerTest.info("Network outage time is {}".format(outage_time))
+            if outage_time > 3:
+                MolerTest.error("Network outage duration exceeded threshold")
+            else:
+                MolerTest.info("Network outage duration is acceptable")
 
 
 def test_network_outage():
     load_config(config=os.path.abspath('config/my_devices.yml'))
     unix1 = DeviceFactory.get_device(name='MyMachine1')
     unix2 = DeviceFactory.get_device(name='MyMachine2')
+
+    #######################################################
+    # TEST GOAL: network outage should not exceed 3 seconds
+    #######################################################
 
     # test setup
     ping_times = {"lost_connection_time": 0,
