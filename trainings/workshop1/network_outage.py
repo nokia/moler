@@ -10,10 +10,10 @@ def outage_callback(device_name, ping_times):
     ping_times["lost_connection_time"] = time.time()
 
 
-def ping_is_on_callback(ping_times):
-    MolerTest.info("Ping works")
+def ping_back_detector_callback(ping_times):
     if ping_times["lost_connection_time"] > 0:  # ping operable AFTER any net loss
         if ping_times["reconnection_time"] == 0:
+            MolerTest.info("Ping is back")
             ping_times["reconnection_time"] = time.time()
             outage_time = ping_times["reconnection_time"] - ping_times["lost_connection_time"]
             MolerTest.info("Network outage time is {}".format(outage_time))
@@ -38,42 +38,42 @@ def test_network_outage():
                   "reconnection_time": 0}
     # ensure network is up before running test
     net_up = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo up"})
-    sudo_ensure_net_up = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": net_up})
+    ensure_interfaces_up = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": net_up})
     # run event observing "network down/up"
-    no_ping = unix1.get_event(event_name="ping_no_response", event_params={"till_occurs_times": 1})
-    no_ping.add_event_occurred_callback(callback=outage_callback,
-                                        callback_params={'device_name': 'MyMachine1',
-                                                         'ping_times': ping_times})
-    ping_is_on = unix1.get_event(event_name="ping_response")
-    ping_is_on.add_event_occurred_callback(callback=ping_is_on_callback,
-                                           callback_params={'ping_times': ping_times})
+    ping_lost_detector = unix1.get_event(event_name="ping_no_response", event_params={"till_occurs_times": 1})
+    ping_lost_detector.add_event_occurred_callback(callback=outage_callback,
+                                                   callback_params={'device_name': 'MyMachine1',
+                                                                    'ping_times': ping_times})
+    ping_back_detector = unix1.get_event(event_name="ping_response")
+    ping_back_detector.add_event_occurred_callback(callback=ping_back_detector_callback,
+                                                   callback_params={'ping_times': ping_times})
     ifconfig_down = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo down"})
-    sudo_ifconfig_down = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": ifconfig_down})
+    put_interfaces_down = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": ifconfig_down})
     ifconfig_up = unix2.get_cmd(cmd_name="ifconfig", cmd_params={"options": "lo up"})
-    sudo_ifconfig_up = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": ifconfig_up})
+    put_interfaces_up = unix2.get_cmd(cmd_name="sudo", cmd_params={"password": "moler", "cmd_object": ifconfig_up})
     ping = unix1.get_cmd(cmd_name="ping", cmd_params={"destination": "localhost", "options": "-O"})
 
     # fire ifconfig up command - that one is part of Test Setup logic
-    sudo_ensure_net_up()
+    ensure_interfaces_up()
     try:
-        no_ping.start()  # oh, yes - that is still setup, but we want it here to be cancelled by finally
-        ping_is_on.start()
+        ping_lost_detector.start()  # oh, yes - that is still setup, but we want it here to be cancelled by finally
+        ping_back_detector.start()
 
         # run test
         ping.start(timeout=120)
         time.sleep(3)
 
-        sudo_ifconfig_down()
+        put_interfaces_down()
         time.sleep(5)
-        sudo_ifconfig_up()
+        put_interfaces_up()
 
         time.sleep(3)
 
     finally:
         # test teardown
         ping.cancel()
-        no_ping.cancel()
-        ping_is_on.cancel()
+        ping_lost_detector.cancel()
+        ping_back_detector.cancel()
 
     if ping_times["lost_connection_time"] == 0:
         MolerTest.error("Network outage did not occur.")
