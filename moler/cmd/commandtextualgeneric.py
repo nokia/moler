@@ -83,6 +83,18 @@ class CommandTextualGeneric(Command):
         else:
             self._cmd_escaped = re.compile(re.escape(command_string))
 
+    @property
+    def _is_done(self):
+        return super(CommandTextualGeneric, self)._is_done
+
+    @_is_done.setter
+    def _is_done(self, value):
+        if self._stored_exception:
+            exception = self._stored_exception
+            self._stored_exception = None
+            super(CommandTextualGeneric, self).set_exception(exception=exception)
+        super(CommandTextualGeneric, self.__class__)._is_done.fset(self, value)
+
     @staticmethod
     def _calculate_prompt(prompt):
         if not prompt:
@@ -147,12 +159,7 @@ class CommandTextualGeneric(Command):
         if self.is_end_of_cmd_output(line):
             if (self.ret_required and self.has_any_result()) or not self.ret_required:
                 if not self.done():
-                    if self._stored_exception:
-                        exception = self._stored_exception
-                        self._stored_exception = None
-                        super(CommandTextualGeneric, self).set_exception(exception=exception)
-                    else:
-                        self.set_result(self.current_ret)
+                    self.set_result(self.current_ret)
             else:
                 self._log(lvl=logging.DEBUG,
                           msg="Found candidate for final prompt but current ret is None or empty, required not None nor empty.")
