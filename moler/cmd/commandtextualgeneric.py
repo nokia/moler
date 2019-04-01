@@ -15,6 +15,7 @@ import six
 
 from moler.cmd import RegexHelper
 from moler.command import Command
+from moler.exceptions import CommandTimeout
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -207,7 +208,7 @@ class CommandTextualGeneric(Command):
         :param exception: An exception object to set.
         :return: Nothing.
         """
-        if self.done() or not self.wait_for_prompt_on_exception:
+        if self.done() or not self.wait_for_prompt_on_exception or isinstance(exception, CommandTimeout):
             super(CommandTextualGeneric, self).set_exception(exception=exception)
         else:
             if self._stored_exception is None:
