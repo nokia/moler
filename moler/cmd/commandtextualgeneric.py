@@ -50,7 +50,7 @@ class CommandTextualGeneric(Command):
         self.newline_after_command_string = True  # Set True if you want to send a new line char(s) after command
         # string (sendline from connection)- most cases. Set False if you want to sent command string without adding
         # new line char(s) - send from connection.
-        self.wait_for_prompt_on_exception = False  # Set True to wait for command prompt on failure. Set False to cancel
+        self.wait_for_prompt_on_exception = True  # Set True to wait for command prompt on failure. Set False to cancel
         # command immediately on failure.
         self._stored_exception = None
 
