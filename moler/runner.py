@@ -165,6 +165,11 @@ class CancellableFuture(object):
         attribute = getattr(self._future, attr)
         return attribute
 
+    def __str__(self):
+        """Make it proxy to embedded future"""
+        f_str = str(self._future)
+        return "CancellableFuture({})".format(f_str)
+
     def cancel(self, no_wait=False):
         """
         Cancel embedded future
@@ -330,13 +335,15 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             assert future is not None
             if max_timeout:
                 done, not_done = wait([future], timeout=remain_time)
-                if future in done:
+                if (future in done) or connection_observer.done():
+                    self._cancel_submitted_future(connection_observer, future)
                     return None
             else:
                 wait_tick = 0.1
                 while remain_time > 0.0:
                     done, not_done = wait([future], timeout=wait_tick)
-                    if future in done:
+                    if (future in done) or connection_observer.done():
+                        self._cancel_submitted_future(connection_observer, future)
                         return None
                     timeout = connection_observer.timeout
                     already_passed = time.time() - start_time
