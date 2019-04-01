@@ -73,6 +73,7 @@ def test_network_outage():
         # test teardown
         ping.cancel()
         no_ping.cancel()
+        ping_is_on.cancel()
 
 
 if __name__ == '__main__':
