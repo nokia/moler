@@ -4,9 +4,9 @@ Testing of chmod command.
 """
 import pytest
 
-__author__ = 'Yuping Sang'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'yuping.sang@nokia.com'
+__author__ = 'Yuping Sang, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'yuping.sang@nokia.com, marcin.usielski@nokia.com'
 
 
 @pytest.mark.parametrize("permission, filename, error", [
@@ -38,8 +38,8 @@ def command_output_and_expected_result():
     def output_data(permission, filename, error):
         data = """
         ute@debdev:~$ chmod {} {}
-        ute@debdev:~$ {}
-            """
+         {}
+         ute@debdev:~$"""
         result = {}
         return data.format(permission, filename, error), result
 
