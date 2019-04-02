@@ -4,9 +4,9 @@ Testing of mv command.
 """
 import pytest
 
-__author__ = 'Maciej Malczyk'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'maciej.malczyk@nokia.com'
+__author__ = 'Maciej Malczyk, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'maciej.malczyk@nokia.com, marcin.usielski@nokia.com'
 
 
 @pytest.mark.parametrize("source,destination,error", [
@@ -38,8 +38,8 @@ def command_output_and_expected_result():
     def output_data(src, dst, err):
         data = """
         ute@debdev:~$ mv {} {}
-        ute@debdev:~$ {}
-            """
+        {}
+        ute@debdev:~$ """
         result = {}
         return data.format(src, dst, err), result
 
