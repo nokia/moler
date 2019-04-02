@@ -246,9 +246,9 @@ class Ssh(GenericUnixCommand):
             self.connection.sendline("\nssh-keygen -R {}".format(self.host))
         else:
             exception = CommandFailure(self,
-                               "Bad value of parameter known_hosts_on_failure '{}'. "
-                               "Supported values: rm or keygen.".format(
-                                   self.known_hosts_on_failure))
+                                       "Bad value of parameter known_hosts_on_failure '{}'. "
+                                       "Supported values: rm or keygen.".format(
+                                           self.known_hosts_on_failure))
         if exception:
             self.set_exception(exception=exception)
         else:
