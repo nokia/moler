@@ -112,7 +112,7 @@ xyz@debian:/home$"""
     return data, result
 
 
-def test_sftp_raises_file_error_no_such_file(buffer_connection, command_output_and_expected_result_no_such_file):
+def test_sftp_raises_file_error_nol_such_file(buffer_connection, command_output_and_expected_result_no_such_file):
     command_output, expected_result = command_output_and_expected_result_no_such_file
     buffer_connection.remote_inject_response([command_output])
     sftp_cmd = Sftp(connection=buffer_connection.moler_connection, host='192.168.0.102', user='fred', password='1234',
@@ -233,9 +233,10 @@ def test_sftp_raises_ssh_error(buffer_connection, command_output_and_expected_re
 
 @pytest.fixture
 def command_output_and_expected_result_ssh_error():
-    data = """sftp fred@192.168.0.103
+    data = """xyz@debian:/home$ sftp fred@192.168.0.103
 ssh: connect to host 192.168.0.103 port 22: No route to host
-Couldn't read packet: Connection reset by peer"""
+Couldn't read packet: Connection reset by peer
+xyz@debian:/home$ """
     result = dict()
     return data, result
 
