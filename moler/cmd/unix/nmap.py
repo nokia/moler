@@ -3,9 +3,9 @@
 Nmap command module.
 """
 
-__author__ = 'Yeshu Yang, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'yeshu.yang@nokia-sbell.com, marcin.usielski@nokia.com'
+__author__ = 'Yeshu Yang, Marcin Usielski, Bartosz Odziomek'
+__copyright__ = 'Copyright (C) 2018, Nokia; Copyright (C) 2019, Nokia'
+__email__ = 'yeshu.yang@nokia-sbell.com, marcin.usielski@nokia.com, bartosz.odziomek@nokia.com'
 
 import re
 
@@ -62,7 +62,7 @@ class Nmap(GenericUnixCommand):
         return super(Nmap, self).on_new_line(line, is_full_line)
 
     _re_ports_line = re.compile(r"^(?P<LINES>(?P<PORTS>(?P<PORT>\d+)\/(?P<TYPE>\w+))\s+"
-                                r"(?P<STATE>\S+)\s+(?P<SERVICE>\S+)\s+(?P<REASON>\S+)\s*)$")
+                                r"(?P<STATE>\S+)\s+(?P<SERVICE>\S+)\s*(?P<REASON>\S+)?\s*)$")
 
     def _parse_ports_line(self, line):
         if self._regex_helper.search_compiled(Nmap._re_ports_line, line):
@@ -89,8 +89,8 @@ class Nmap(GenericUnixCommand):
             raise ParsingDone
 
 #    Nmap scan report for 192.168.255.4 [host down, received no-response]
-    _re_scan_report = re.compile(r"(?P<LINE>Nmap scan report for (?P<ADDRESS>\S+)\s+\[host\s+"
-                                 r"(?P<HOST>\S+),\s+received\s+(?P<RECEIVED>\S+)\])")
+    _re_scan_report = re.compile(r"(?P<LINE>Nmap scan report for (?P<ADDRESS>\S+)"
+                                 r"(?:\s+\[host\s+(?P<HOST>\S+),\s+received\s+(?P<RECEIVED>\S+)\])?)")
 
     def _parse_scan_report(self, line):
         if self._regex_helper.search_compiled(Nmap._re_scan_report, line):
