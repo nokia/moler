@@ -40,6 +40,7 @@ def test_moler_test_exception_no_exception():
     from moler.cmd.unix.ls import Ls
     cmd = Ls(connection=None)
     cmd.set_exception("wrong exception")
+    cmd._is_done = True
     with pytest.raises(MolerStatusException):
         moler_test_not_raise_exception_when_no_steps_end_for_global_method()
 
