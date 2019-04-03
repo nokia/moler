@@ -113,7 +113,7 @@ class Ssh(GenericUnixCommand):
             self._id_dsa(line)
             self._host_key_verification(line)
             self._commands_after_established(line, is_full_line)
-            self._detect_prompt(line)
+            self._detect_prompt_after_exception(line)
         except ParsingDone:
             pass
         if is_full_line:
@@ -146,7 +146,7 @@ class Ssh(GenericUnixCommand):
                         self.set_result({})
                     raise ParsingDone()
 
-    def _detect_prompt(self, line):
+    def _detect_prompt_after_exception(self, line):
         """
         Detects start prompt.
 
