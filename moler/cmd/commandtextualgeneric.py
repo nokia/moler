@@ -245,8 +245,8 @@ class CommandTextualGeneric(Command):
         :return: Nothing.
         """
         msg = "Timeout when command_string='{}', _cmd_escaped='{}', _cmd_output_started='{}', ret_required='{}', "
-        "break_on_timeout='{}', _last_not_full_line='{}'_re_prompt='{}', do_not_process_after_done='{}', "
-        "newline_after_command_string='{}', wait_for_prompt_on_exception='{}' _stored_exception='{}',"
+        "break_on_timeout='{}', _last_not_full_line='{}', _re_prompt='{}', do_not_process_after_done='{}', "
+        "newline_after_command_string='{}', wait_for_prompt_on_exception='{}', _stored_exception='{}',"
         "current_ret='{}', _newline_chars='{}'."
         msg = msg.format(
             self.__command_string, self._cmd_escaped, self._cmd_output_started, self.ret_required,
