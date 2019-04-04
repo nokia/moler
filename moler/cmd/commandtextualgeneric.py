@@ -195,8 +195,9 @@ class CommandTextualGeneric(Command):
         :param is_full_line: True if line ends with new line char, False otherwise.
         :return: Nothing.
         """
-        if is_full_line and self._regex_helper.search_compiled(self._cmd_escaped, line):
-            self._cmd_output_started = True
+        if (is_full_line and self.newline_after_command_string) or not self.newline_after_command_string:
+            if self._regex_helper.search_compiled(self._cmd_escaped, line):
+                self._cmd_output_started = True
 
     def break_cmd(self):
         """
