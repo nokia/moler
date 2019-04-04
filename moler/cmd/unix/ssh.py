@@ -113,6 +113,7 @@ class Ssh(GenericUnixCommand):
             self._id_dsa(line)
             self._host_key_verification(line)
             self._commands_after_established(line, is_full_line)
+            self._detect_prompt_after_exception(line)
         except ParsingDone:
             pass
         if is_full_line:
@@ -144,6 +145,17 @@ class Ssh(GenericUnixCommand):
                     if not self.done():
                         self.set_result({})
                     raise ParsingDone()
+
+    def _detect_prompt_after_exception(self, line):
+        """
+        Detects start prompt.
+
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if detects start prompt and any exception was set.
+        """
+        if self._stored_exception and self._regex_helper.search_compiled(self._re_prompt, line):
+            self._is_done = True
+            raise ParsingDone()
 
     def _host_key_verification(self, line):
         """
@@ -226,22 +238,25 @@ class Ssh(GenericUnixCommand):
 
         :return: Nothing.
         """
+        exception = None
         if "rm" == self.known_hosts_on_failure:
             self.connection.sendline("\nrm -f {}".format(self._hosts_file))
         elif "keygen" == self.known_hosts_on_failure:
             self.connection.sendline("\nssh-keygen -R {}".format(self.host))
         else:
-            self.set_exception(
-                CommandFailure(self,
-                               "Bad value of parameter known_hosts_on_failure '{}'. "
-                               "Supported values: rm or keygen.".format(
-                                   self.known_hosts_on_failure)))
-        self._cmd_output_started = False
-        self._sent_continue_connecting = False
-        self._sent_prompt = False
-        self._sent_timeout = False
-        self._sent_password = False
-        self.connection.sendline(self.command_string)
+            exception = CommandFailure(self,
+                                       "Bad value of parameter known_hosts_on_failure '{}'. "
+                                       "Supported values: rm or keygen.".format(
+                                           self.known_hosts_on_failure))
+        if exception:
+            self.set_exception(exception=exception)
+        else:
+            self._cmd_output_started = False
+            self._sent_continue_connecting = False
+            self._sent_prompt = False
+            self._sent_timeout = False
+            self._sent_password = False
+            self.connection.sendline(self.command_string)
 
     def _send_after_login_settings(self, line):
         """

@@ -4,7 +4,7 @@ Testing of ssh command.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 from moler.cmd.unix.ssh import Ssh
@@ -27,7 +27,7 @@ def test_ssh_failed_with_multiple_passwords(buffer_connection, command_output_2_
     buffer_connection.remote_inject_response([command_output])
 
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
-                  host="host.domain.net", expected_prompt="host:.*#")
+                  host="host.domain.net", expected_prompt="host:.*#", prompt="starthost:~ >")
     assert "TERM=xterm-mono ssh -l user host.domain.net" == ssh_cmd.command_string
     with pytest.raises(CommandFailure):
         ssh_cmd()
@@ -38,7 +38,7 @@ def test_ssh_failed_host_key_verification(buffer_connection, command_output_fail
     buffer_connection.remote_inject_response([command_output])
 
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
-                  host="host.domain.net", expected_prompt="host:.*#")
+                  host="host.domain.net", expected_prompt="server:.*#", prompt="host:~ #")
     assert "TERM=xterm-mono ssh -l user host.domain.net" == ssh_cmd.command_string
     with pytest.raises(CommandFailure):
         ssh_cmd()
@@ -59,7 +59,7 @@ def test_ssh_failed_known_hosts(buffer_connection, command_output_failed_known_h
     command_output = command_output_failed_known_hosts
     buffer_connection.remote_inject_response([command_output])
 
-    ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
+    ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english", prompt="client:~ #",
                   host="host.domain.net", expected_prompt="host:.*#", known_hosts_on_failure='badvalue')
     assert "TERM=xterm-mono ssh -l user host.domain.net" == ssh_cmd.command_string
     with pytest.raises(CommandFailure):
@@ -76,8 +76,7 @@ def test_ssh_returns_proper_command_string(buffer_connection):
 def command_output_failed_host_key_verification():
     data = """TERM=xterm-mono ssh -l user host.domain.net
 Host key verification failed
-host:~ #
-"""
+host:~ # """
     return data
 
 
@@ -98,7 +97,7 @@ Offending RSA key in /home/you/.ssh/known_hosts:86
 id_dsa:
 RSA host key for host.domain.net has changed and you have requested strict checking.
 Host key verification failed.
-client:~ #"""
+client:~ # """
     return data
 
 
@@ -107,7 +106,7 @@ def command_output_permission_denied():
     data = """TERM=xterm-mono ssh -l user host.domain.net
 Password:
 Permission denied.
-clinet:~ #"""
+client:~ >"""
     return data
 
 
@@ -126,6 +125,8 @@ def command_output_2_passwords():
         '\n',
         'Please enter the root password\n',
         'Password:',
+        '\n',
+        'starthost:~ > '
     ]
     data = ""
     for line in lines:

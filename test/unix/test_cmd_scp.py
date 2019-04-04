@@ -2,9 +2,9 @@
 """
 Testing of scp command.
 """
-__author__ = 'Sylwester Golonka'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'sylwester.golonka@nokia.com'
+__author__ = 'Sylwester Golonka, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'sylwester.golonka@nokia.com, marcin.usielski@nokia.com'
 
 from moler.cmd.unix.scp import Scp
 from moler.exceptions import CommandFailure
@@ -22,8 +22,7 @@ def test_scp_raise_exception_failure(buffer_connection):
     ute@debdev:~/Desktop$ scp test ute@localhost:/home/ute
     ute@localhost's password:
     test: not a regular file
-    ute@debdev:~/Desktop$
-    """
+    ute@debdev:~/Desktop$"""
     buffer_connection.remote_inject_response([command_output])
     scp_cmd = Scp(connection=buffer_connection.moler_connection, source="test", dest="ute@localhost:/home/ute")
     with pytest.raises(CommandFailure):
@@ -36,7 +35,7 @@ ute@debdev:~/Desktop$ scp test ute@localhost:/home/ute
 Are you sure you want to continue connecting (yes/no)?".
 Host key verification failed.
 ute@debdev:~/Desktop$ scp test ute@localhost:/home/ute
-    """
+ute@debdev:~/Desktop$"""
     buffer_connection.remote_inject_response([command_output])
     scp_cmd = Scp(connection=buffer_connection.moler_connection, source="test", dest="ute@localhost:/home/ute")
     with pytest.raises(CommandFailure):

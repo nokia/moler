@@ -3,9 +3,9 @@
 Socat command test module.
 """
 
-__author__ = 'Adrianna Pienkowska'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'adrianna.pienkowska@nokia.com'
+__author__ = 'Adrianna Pienkowska, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'adrianna.pienkowska@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
 from moler.cmd.unix.socat import Socat
@@ -49,26 +49,26 @@ def test_socat_raise_address_required(buffer_connection, command_output_and_expe
 
 @pytest.fixture
 def command_output_and_expected_result_on_connection_refused():
-    output = """xyz@debian: socat -d STDIO tcp:localhost:3334
+    output = """xyz@debian> socat -d STDIO tcp:localhost:3334
 2018/08/20 11:22:29 socat[31916] E connect(5, AF=2 127.0.0.1:3334, 16): Connection refused
-xyz@debian:"""
+xyz@debian>"""
     result = dict()
     return output, result
 
 
 @pytest.fixture
 def command_output_and_expected_result_on_device_unknown():
-    output = """xyz@debian: socat READLINE,history=$HOME/.cmd_history /dev/ttyS0,raw,echo=0,crnl 
+    output = """xyz@debian> socat READLINE,history=$HOME/.cmd_history /dev/ttyS0,raw,echo=0,crnl 
 2018/08/20 12:57:05 socat[4296] E unknown device/address "READLINE"
-xyz@debian:"""
+xyz@debian>"""
     result = dict()
     return output, result
 
 
 @pytest.fixture
 def command_output_and_expected_result_on_address_required():
-    output = """xyz@debian: socat READLINE,history=$HOME/.cmd_history /dev/ttyS0,raw,echo=0,crnl 
+    output = """xyz@debian> socat READLINE,history=$HOME/.cmd_history /dev/ttyS0,raw,echo=0,crnl 
 2018/08/20 12:57:05 socat[4296] E unknown device/address "READLINE"
-xyz@debian:"""
+xyz@debian>"""
     result = dict()
     return output, result
