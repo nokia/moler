@@ -139,10 +139,9 @@ class Telnet(GenericUnixCommand):
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if detects start prompt and any exception was set.
         """
-        if self._regex_helper.search_compiled(self._re_prompt, line):
-            if self._stored_exception:
-                self._is_done = True
-                raise ParsingDone()
+        if self._stored_exception and self._regex_helper.search_compiled(self._re_prompt, line):
+            self._is_done = True
+            raise ParsingDone()
 
     def _settings_after_login(self, line, is_full_line):
         """
