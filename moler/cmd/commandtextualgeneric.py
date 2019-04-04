@@ -77,7 +77,7 @@ class CommandTextualGeneric(Command):
         Setter for command_string.
 
         :param command_string: Stting with command to set.
-        :return: Nothing.
+        :return: None.
         """
         self.__command_string = command_string
         self._build_command_string_escaped()
@@ -131,7 +131,7 @@ class CommandTextualGeneric(Command):
         Called by framework when any data are sent by device.
 
         :param data: List of strings sent by device.
-        :return: Nothing.
+        :return: None.
         """
         lines = data.splitlines(True)
         for line in lines:
@@ -166,7 +166,7 @@ class CommandTextualGeneric(Command):
 
         :param line: Line to parse, new lines are trimmed
         :param is_full_line: True if new line character was removed from line, False otherwise
-        :return: Nothing
+        :return: None
         """
         if self.is_end_of_cmd_output(line):
             if self._stored_exception:
@@ -206,7 +206,7 @@ class CommandTextualGeneric(Command):
 
         :param line: line to check if echo of command is sent by device.
         :param is_full_line: True if line ends with new line char, False otherwise.
-        :return: Nothing.
+        :return: None.
         """
         if (is_full_line and self.newline_after_command_string) or not self.newline_after_command_string:
             if self._regex_helper.search_compiled(self._cmd_escaped, line):
@@ -216,7 +216,7 @@ class CommandTextualGeneric(Command):
         """
         Send ctrl+c to device to break command execution.
 
-        :return: Nothing
+        :return: None
         """
         self.connection.send("\x03")  # ctrl+c
 
@@ -234,7 +234,7 @@ class CommandTextualGeneric(Command):
         Set exception object as failure for command object.
 
         :param exception: An exception object to set.
-        :return: Nothing.
+        :return: None.
         """
         if self.done() or not self.wait_for_prompt_on_exception or isinstance(exception, CommandTimeout):
             super(CommandTextualGeneric, self).set_exception(exception=exception)
@@ -256,7 +256,7 @@ class CommandTextualGeneric(Command):
         """
         Callback called by framework when timeout occurs.
 
-        :return: Nothing.
+        :return: None.
         """
         msg = ("Timeout when command_string='{}', _cmd_escaped='{}', _cmd_output_started='{}', ret_required='{}', "
                "break_on_timeout='{}', _last_not_full_line='{}', _re_prompt='{}', do_not_process_after_done='{}', "
@@ -285,7 +285,7 @@ class CommandTextualGeneric(Command):
         """
         Sends command string over connection.
 
-        :return: Nothing
+        :return: None
         """
         if self.newline_after_command_string:
             self.connection.sendline(self.command_string)
