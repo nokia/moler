@@ -78,10 +78,9 @@ class CommandTextualGeneric(Command):
         :return: Nothing.
         """
         self.__command_string = command_string
-        if command_string is None:
-            self._cmd_escaped = None
-        else:
-            self._cmd_escaped = re.compile(re.escape(command_string))
+        self._cmd_escaped = None
+        if command_string:
+            self._cmd_escaped = re.compile(re.escape(command_string[:20]))
 
     @property
     def _is_done(self):
@@ -134,7 +133,7 @@ class CommandTextualGeneric(Command):
             if self._cmd_output_started:
                 self.on_new_line(line, is_full_line)
             elif is_full_line:
-                self._detect_start_of_cmd_output(line)
+                self._detect_start_of_cmd_output(line, is_full_line)
             if self.done() and self.do_not_process_after_done:
                 break
 
@@ -188,14 +187,15 @@ class CommandTextualGeneric(Command):
             line = line.rstrip(char)
         return line
 
-    def _detect_start_of_cmd_output(self, line):
+    def _detect_start_of_cmd_output(self, line, is_full_line):
         """
         Checks if command stated.
 
         :param line: line to check if echo of command is sent by device.
+        :param is_full_line: True if line ends with new line char, False otherwise.
         :return: Nothing.
         """
-        if self._regex_helper.search_compiled(self._cmd_escaped, line):
+        if is_full_line and self._regex_helper.search_compiled(self._cmd_escaped, line):
             self._cmd_output_started = True
 
     def break_cmd(self):
