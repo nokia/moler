@@ -106,7 +106,7 @@ def command_output_permission_denied():
     data = """TERM=xterm-mono ssh -l user host.domain.net
 Password:
 Permission denied.
-clinet:~ >"""
+client:~ >"""
     return data
 
 
