@@ -35,7 +35,7 @@ def test_iperf_raise_error_on_no_such_file(buffer_connection, command_output_and
         iperf_cmd()
 
 
-def test_gunzip_raise_error_on_iperf_problem(buffer_connection, command_output_and_expected_result_on_iperf_problem):
+def test_iperf_raise_error_on_iperf_problem(buffer_connection, command_output_and_expected_result_on_iperf_problem):
     iperf_cmd = Iperf(connection=buffer_connection.moler_connection, options='-i')
     command_output, expected_result = command_output_and_expected_result_on_iperf_problem
     buffer_connection.remote_inject_response([command_output])
@@ -46,27 +46,27 @@ def test_gunzip_raise_error_on_iperf_problem(buffer_connection, command_output_a
 
 @pytest.fixture
 def command_output_and_expected_result_on_bind_failed():
-    output = """xyz@debian:iperf -s
+    output = """xyz@debian>iperf -s
 bind failed: Address already in use
-xyz@debian:"""
+xyz@debian>"""
     result = dict()
     return output, result
 
 
 @pytest.fixture
 def command_output_and_expected_result_on_connect_failed():
-    output = """xyz@debian:iperf -c 10.156.236.132
+    output = """xyz@debian>iperf -c 10.156.236.132
 connect failed: Connection refused
-xyz@debian:"""
+xyz@debian>"""
     result = dict()
     return output, result
 
 
 @pytest.fixture
 def command_output_and_expected_result_on_iperf_problem():
-    output = """xyz@debian:iperf -i
+    output = """xyz@debian>iperf -i
 iperf: option requires an argument -- i 
-xyz@debian:"""
+xyz@debian>"""
     result = dict()
     return output, result
 

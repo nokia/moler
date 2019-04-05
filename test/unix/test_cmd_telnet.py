@@ -33,7 +33,7 @@ def test_calling_telnet_raise_exception_command_failure(buffer_connection):
     configure_device_logger(connection_name="host")
     buffer_connection.remote_inject_response([command_output])
     telnet_cmd = Telnet(connection=buffer_connection.moler_connection, login="user", password="english", port=1500,
-                        host="host.domain.net", expected_prompt="host:.*#")
+                        host="host.domain.net", expected_prompt=r"host:.*#", prompt=r"user@client.*>")
     with pytest.raises(CommandFailure):
         telnet_cmd()
 

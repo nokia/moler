@@ -15,6 +15,7 @@ import six
 
 from moler.cmd import RegexHelper
 from moler.command import Command
+from moler.exceptions import CommandTimeout
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -49,6 +50,9 @@ class CommandTextualGeneric(Command):
         self.newline_after_command_string = True  # Set True if you want to send a new line char(s) after command
         # string (sendline from connection)- most cases. Set False if you want to sent command string without adding
         # new line char(s) - send from connection.
+        self.wait_for_prompt_on_exception = True  # Set True to wait for command prompt on failure. Set False to cancel
+        # command immediately on failure.
+        self._stored_exception = None
 
         if not self._newline_chars:
             self._newline_chars = CommandTextualGeneric._default_newline_chars
@@ -78,6 +82,18 @@ class CommandTextualGeneric(Command):
             self._cmd_escaped = None
         else:
             self._cmd_escaped = re.compile(re.escape(command_string))
+
+    @property
+    def _is_done(self):
+        return super(CommandTextualGeneric, self)._is_done
+
+    @_is_done.setter
+    def _is_done(self, value):
+        if self._stored_exception:
+            exception = self._stored_exception
+            self._stored_exception = None
+            super(CommandTextualGeneric, self).set_exception(exception=exception)
+        super(CommandTextualGeneric, self.__class__)._is_done.fset(self, value)
 
     @staticmethod
     def _calculate_prompt(prompt):
@@ -141,7 +157,9 @@ class CommandTextualGeneric(Command):
         :return: Nothing
         """
         if self.is_end_of_cmd_output(line):
-            if (self.ret_required and self.has_any_result()) or not self.ret_required:
+            if self._stored_exception:
+                self._is_done = True
+            elif (self.ret_required and self.has_any_result()) or not self.ret_required:
                 if not self.done():
                     self.set_result(self.current_ret)
             else:
@@ -197,12 +215,44 @@ class CommandTextualGeneric(Command):
         self.break_cmd()
         return super(CommandTextualGeneric, self).cancel()
 
+    def set_exception(self, exception):
+        """
+        Set exception object as failure for command object.
+
+        :param exception: An exception object to set.
+        :return: Nothing.
+        """
+        if self.done() or not self.wait_for_prompt_on_exception or isinstance(exception, CommandTimeout):
+            super(CommandTextualGeneric, self).set_exception(exception=exception)
+        else:
+            if self._stored_exception is None:
+                self._log(logging.INFO,
+                          "{}.{} has set exception {!r}".format(self.__class__.__module__, self, exception),
+                          levels_to_go_up=2)
+                self._stored_exception = exception
+            else:
+                self._log(logging.INFO,
+                          "{}.{} tried set exception {!r} on already set exception {!r}".format(
+                              self.__class__.__module__,
+                              self, exception,
+                              self._stored_exception),
+                          levels_to_go_up=2)
+
     def on_timeout(self):
         """
         Callback called by framework when timeout occurs.
 
         :return: Nothing.
         """
+        msg = "Timeout when command_string='{}', _cmd_escaped='{}', _cmd_output_started='{}', ret_required='{}', "
+        "break_on_timeout='{}', _last_not_full_line='{}', _re_prompt='{}', do_not_process_after_done='{}', "
+        "newline_after_command_string='{}', wait_for_prompt_on_exception='{}', _stored_exception='{}',"
+        "current_ret='{}', _newline_chars='{}'.".format(
+            self.__command_string, self._cmd_escaped, self._cmd_output_started, self.ret_required,
+            self.break_on_timeout, self._last_not_full_line, self._re_prompt, self.do_not_process_after_done,
+            self.newline_after_command_string, self.wait_for_prompt_on_exception, self._stored_exception,
+            self.current_ret, self._newline_chars)
+        self._log(logging.DEBUG, msg, levels_to_go_up=2)
         if self.break_on_timeout:
             self.break_cmd()
 
