@@ -106,7 +106,8 @@ class CommandTextualGeneric(Command):
         if self._stored_exception:
             exception = self._stored_exception
             self._stored_exception = None
-            super(CommandTextualGeneric, self).set_exception(exception=exception)
+            if exception:
+                super(CommandTextualGeneric, self).set_exception(exception=exception)
         super(CommandTextualGeneric, self.__class__)._is_done.fset(self, value)
 
     @staticmethod
@@ -136,6 +137,7 @@ class CommandTextualGeneric(Command):
         :return: None.
         """
         lines = data.splitlines(True)
+        print("'{}' has received: '{}'".format(self, lines))
         for line in lines:
             if self._last_not_full_line is not None:
                 line = "{}{}".format(self._last_not_full_line, line)
@@ -240,9 +242,12 @@ class CommandTextualGeneric(Command):
         :param exception: An exception object to set.
         :return: None.
         """
-        if self.done() or not self.wait_for_prompt_on_exception or isinstance(exception, CommandTimeout):
+        print("'{}' set exception '{}'.".format(self, exception))
+        if self.done() or not self.wait_for_prompt_on_exception:
+            print("SUPER")
             super(CommandTextualGeneric, self).set_exception(exception=exception)
         else:
+            print("NOT SUPER")
             if self._stored_exception is None:
                 self._log(logging.INFO,
                           "{}.{} has set exception {!r}".format(self.__class__.__module__, self, exception),
