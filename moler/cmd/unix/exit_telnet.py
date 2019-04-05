@@ -71,9 +71,10 @@ class ExitTelnet(GenericUnixCommand):
                 self.set_result({})
                 raise ParsingDone
 
-    def _detect_start_of_cmd_output(self, line):
+    def _detect_start_of_cmd_output(self, line, is_full_line):
         """
         :param line: line to check if echo of command is sent by device
+        :param is_full_line:
         :return: Nothing
         """
         self._cmd_output_started = True

@@ -34,10 +34,12 @@ class CommandTextualGeneric(Command):
         :param newline_chars:  new line chars on device (a list).
         :param runner: runner to run command.
         """
-        super(CommandTextualGeneric, self).__init__(connection=connection, runner=runner)
+        self._command_string_right_index = 20  # Right index of substring of command_string passed as _cmd_escaped. Set
+        # 0 to disable functionality of substring.
         self.__command_string = None  # String representing command on device
-        self.current_ret = dict()  # Placeholder for result as-it-grows, before final write into self._result
         self._cmd_escaped = None  # Escaped regular expression string with command
+        super(CommandTextualGeneric, self).__init__(connection=connection, runner=runner)
+        self.current_ret = dict()  # Placeholder for result as-it-grows, before final write into self._result
         self._cmd_output_started = False  # If false parsing is not passed to command
         self._regex_helper = RegexHelper()  # Object to regular expression matching
         self.ret_required = True  # # Set False for commands not returning parsed result
@@ -52,7 +54,9 @@ class CommandTextualGeneric(Command):
         # new line char(s) - send from connection.
         self.wait_for_prompt_on_exception = True  # Set True to wait for command prompt on failure. Set False to cancel
         # command immediately on failure.
-        self._stored_exception = None
+        self._concatenate_before_command_starts = True  # Set True to concatenate all strings from connection before
+        # command starts, False to split lines on every new line char
+        self._stored_exception = None  # Exception stored before it is passed to base class when command is done.
 
         if not self._newline_chars:
             self._newline_chars = CommandTextualGeneric._default_newline_chars
@@ -66,7 +70,7 @@ class CommandTextualGeneric(Command):
         """
         if not self.__command_string:
             self.__command_string = self.build_command_string()
-            self._cmd_escaped = re.compile(re.escape(self.__command_string))
+            self._build_command_string_escaped()
         return self.__command_string
 
     @command_string.setter
@@ -75,13 +79,23 @@ class CommandTextualGeneric(Command):
         Setter for command_string.
 
         :param command_string: Stting with command to set.
-        :return: Nothing.
+        :return: None.
         """
         self.__command_string = command_string
-        if command_string is None:
-            self._cmd_escaped = None
-        else:
-            self._cmd_escaped = re.compile(re.escape(command_string))
+        self._build_command_string_escaped()
+
+    def _build_command_string_escaped(self):
+        """
+        Builds escaped command string for regular expression based on command_string property .
+
+        :return: None
+        """
+        self._cmd_escaped = None
+        if self.__command_string is not None:
+            sub_command_string = self.__command_string
+            if self._command_string_right_index != 0:
+                sub_command_string = self.__command_string[:self._command_string_right_index]
+            self._cmd_escaped = re.compile(re.escape(sub_command_string))
 
     @property
     def _is_done(self):
@@ -119,12 +133,12 @@ class CommandTextualGeneric(Command):
         Called by framework when any data are sent by device.
 
         :param data: List of strings sent by device.
-        :return: Nothing.
+        :return: None.
         """
         lines = data.splitlines(True)
         for line in lines:
             if self._last_not_full_line is not None:
-                line = self._last_not_full_line + line
+                line = "{}{}".format(self._last_not_full_line, line)
                 self._last_not_full_line = None
             is_full_line = self.has_endline_char(line)
             if is_full_line:
@@ -133,8 +147,10 @@ class CommandTextualGeneric(Command):
                 self._last_not_full_line = line
             if self._cmd_output_started:
                 self.on_new_line(line, is_full_line)
-            elif is_full_line:
-                self._detect_start_of_cmd_output(line)
+            else:
+                self._detect_start_of_cmd_output(line, is_full_line)
+                if self._concatenate_before_command_starts and not self._cmd_output_started and is_full_line:
+                    self._last_not_full_line = line
             if self.done() and self.do_not_process_after_done:
                 break
 
@@ -154,7 +170,7 @@ class CommandTextualGeneric(Command):
 
         :param line: Line to parse, new lines are trimmed
         :param is_full_line: True if new line character was removed from line, False otherwise
-        :return: Nothing
+        :return: None
         """
         if self.is_end_of_cmd_output(line):
             if self._stored_exception:
@@ -188,21 +204,23 @@ class CommandTextualGeneric(Command):
             line = line.rstrip(char)
         return line
 
-    def _detect_start_of_cmd_output(self, line):
+    def _detect_start_of_cmd_output(self, line, is_full_line):
         """
         Checks if command stated.
 
         :param line: line to check if echo of command is sent by device.
-        :return: Nothing.
+        :param is_full_line: True if line ends with new line char, False otherwise.
+        :return: None.
         """
-        if self._regex_helper.search_compiled(self._cmd_escaped, line):
-            self._cmd_output_started = True
+        if (is_full_line and self.newline_after_command_string) or not self.newline_after_command_string:
+            if self._regex_helper.search_compiled(self._cmd_escaped, line):
+                self._cmd_output_started = True
 
     def break_cmd(self):
         """
         Send ctrl+c to device to break command execution.
 
-        :return: Nothing
+        :return: None
         """
         self.connection.send("\x03")  # ctrl+c
 
@@ -220,7 +238,7 @@ class CommandTextualGeneric(Command):
         Set exception object as failure for command object.
 
         :param exception: An exception object to set.
-        :return: Nothing.
+        :return: None.
         """
         if self.done() or not self.wait_for_prompt_on_exception or isinstance(exception, CommandTimeout):
             super(CommandTextualGeneric, self).set_exception(exception=exception)
@@ -242,19 +260,21 @@ class CommandTextualGeneric(Command):
         """
         Callback called by framework when timeout occurs.
 
-        :return: Nothing.
+        :return: None.
         """
-        msg = "Timeout when command_string='{}', _cmd_escaped='{}', _cmd_output_started='{}', ret_required='{}', "
-        "break_on_timeout='{}', _last_not_full_line='{}', _re_prompt='{}', do_not_process_after_done='{}', "
-        "newline_after_command_string='{}', wait_for_prompt_on_exception='{}', _stored_exception='{}',"
-        "current_ret='{}', _newline_chars='{}'.".format(
+        if self.break_on_timeout:
+            self.break_cmd()
+        msg = ("Timeout when command_string='{}', _cmd_escaped='{}', _cmd_output_started='{}', ret_required='{}', "
+               "break_on_timeout='{}', _last_not_full_line='{}', _re_prompt='{}', do_not_process_after_done='{}', "
+               "newline_after_command_string='{}', wait_for_prompt_on_exception='{}', _stored_exception='{}', "
+               "current_ret='{}', _newline_chars='{}', _concatenate_before_command_starts='{}', "
+               "_command_string_right_index='{}'.").format(
             self.__command_string, self._cmd_escaped, self._cmd_output_started, self.ret_required,
             self.break_on_timeout, self._last_not_full_line, self._re_prompt, self.do_not_process_after_done,
             self.newline_after_command_string, self.wait_for_prompt_on_exception, self._stored_exception,
-            self.current_ret, self._newline_chars)
+            self.current_ret, self._newline_chars, self._concatenate_before_command_starts,
+            self._command_string_right_index)
         self._log(logging.DEBUG, msg, levels_to_go_up=2)
-        if self.break_on_timeout:
-            self.break_cmd()
 
     def has_any_result(self):
         """
@@ -271,7 +291,7 @@ class CommandTextualGeneric(Command):
         """
         Sends command string over connection.
 
-        :return: Nothing
+        :return: None
         """
         if self.newline_after_command_string:
             self.connection.sendline(self.command_string)
