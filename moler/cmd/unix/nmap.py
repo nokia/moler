@@ -73,12 +73,12 @@ class Nmap(GenericUnixCommand):
                 self.current_ret["PORTS"]["LINES"] = list()
             ports = self._regex_helper.group("PORTS")
             self.current_ret["PORTS"][ports] = self._regex_helper.groupdict()
-            self.current_ret["PORTS"]["LINES"]. append(self._regex_helper.group("LINES"))
-            del(self.current_ret["PORTS"][ports]["PORTS"])
-            del(self.current_ret["PORTS"][ports]["LINES"])
+            self.current_ret["PORTS"]["LINES"].append(self._regex_helper.group("LINES"))
+            del (self.current_ret["PORTS"][ports]["PORTS"])
+            del (self.current_ret["PORTS"][ports]["LINES"])
             raise ParsingDone
 
-#    Raw packets sent: 65544 (2.884MB) | Rcvd: 65528 (2.621MB)
+    #    Raw packets sent: 65544 (2.884MB) | Rcvd: 65528 (2.621MB)
     _re_raw_packets = re.compile(r"Raw packets sent: (?P<SENT_NO>\d+)\s+\((?P<SENT_SIZE>\S+)\)\s+"
                                  r"\|\s+Rcvd:\s+(?P<RCVD_NO>\d+)\s+\((?P<RCVD_SIZE>\S+)\)")
 
@@ -89,7 +89,7 @@ class Nmap(GenericUnixCommand):
             self.current_ret["RAW_PACKETS"] = self._regex_helper.groupdict()
             raise ParsingDone
 
-#    Nmap scan report for 192.168.255.4 [host down, received no-response]
+    #    Nmap scan report for 192.168.255.4 [host down, received no-response]
     _re_scan_report = re.compile(r"(?P<LINE>Nmap scan report for (?P<ADDRESS>\S+)\s+\[host\s+"
                                  r"(?P<HOST>\S+),\s+received\s+(?P<RECEIVED>\S+)\])")
 
@@ -100,9 +100,9 @@ class Nmap(GenericUnixCommand):
             self.current_ret["SCAN_REPORT"] = self._regex_helper.groupdict()
             raise ParsingDone
 
-#   Nmap scan report for 192.168.255.132
+    #   Nmap scan report for 192.168.255.132
     _re_scan_reports = re.compile(r"(?P<LINE>Nmap scan report for (?P<ADDRESS>\S+)"
-                                 r"(?:\s+\[host\s+(?P<HOST>\S+),\s+received\s+(?P<RECEIVED>\S+)\])?)")
+                                  r"(?:\s+\[host\s+(?P<HOST>\S+),\s+received\s+(?P<RECEIVED>\S+)\])?)")
 
     def _parse_scan_reports(self, line):
         if self._regex_helper.search_compiled(Nmap._re_scan_reports, line):
@@ -115,7 +115,7 @@ class Nmap(GenericUnixCommand):
     #     self.current_ret["SKIPPING_HOST"]["HOST"] = list()
     # self.current_ret["SKIPPING_HOST"]["HOST"].append(self._regex_helper.group("HOST"))
 
-#    SYN Stealth Scan Timing: About 78.01% done; ETC: 23:30 (0:00:52 remaining)
+    #    SYN Stealth Scan Timing: About 78.01% done; ETC: 23:30 (0:00:52 remaining)
     _re_syn_stealth_scan = re.compile(r"SYN Stealth Scan Timing: About (?P<DONE>[\d\.]+)% done; "
                                       r"ETC: (?P<ETC>[\d:]+) \((?P<REMAINING>[\d:]+) remaining\)")
 
@@ -126,7 +126,7 @@ class Nmap(GenericUnixCommand):
             self.current_ret["SYN_STEALTH_SCAN"] = self._regex_helper.groupdict()
             raise ParsingDone
 
-#    Skipping host 10.9.134.1 due to host timeout
+    #    Skipping host 10.9.134.1 due to host timeout
     _re_skipping_host = re.compile(r"Skipping host (?P<HOST>\S+) due to host timeout")
 
     def _parse_skipping_host(self, line):
@@ -135,7 +135,7 @@ class Nmap(GenericUnixCommand):
                 self.current_ret["SKIPPING_HOST"] = dict()
             if "HOST" not in self.current_ret["SKIPPING_HOST"]:
                 self.current_ret["SKIPPING_HOST"]["HOST"] = list()
-            self.current_ret["SKIPPING_HOST"]["HOST"]. append(self._regex_helper.group("HOST"))
+            self.current_ret["SKIPPING_HOST"]["HOST"].append(self._regex_helper.group("HOST"))
             raise ParsingDone
 
 
@@ -317,10 +317,10 @@ COMMAND_RESULT_host_up = {
         'SENT_NO': '65544',
         'SENT_SIZE': '2.884MB'
     },
-    'SCAN_REPORTS': [   {   u'ADDRESS': u'192.168.255.129',
-                             u'HOST': None,
-                             u'LINE': u'Nmap scan report for 192.168.255.129',
-                             u'RECEIVED': None}]
+    'SCAN_REPORTS': [{u'ADDRESS': u'192.168.255.129',
+                      u'HOST': None,
+                      u'LINE': u'Nmap scan report for 192.168.255.129',
+                      u'RECEIVED': None}]
 
 }
 
@@ -536,69 +536,69 @@ COMMAND_RESULT = {
         'ETC': '03:39',
         'REMAINING': '0:12:13'
     },
-    'SCAN_REPORTS': [   {   u'ADDRESS': u'10.9.134.0',
-                             u'HOST': None,
-                             u'LINE': u'Nmap scan report for 10.9.134.0',
-                             u'RECEIVED': None},
-                         {   u'ADDRESS': u'10.9.134.1',
-                             u'HOST': None,
-                             u'LINE': u'Nmap scan report for 10.9.134.1',
-                             u'RECEIVED': None},
-                         {   u'ADDRESS': u'10.9.134.2',
-                             u'HOST': None,
-                             u'LINE': u'Nmap scan report for 10.9.134.2',
-                             u'RECEIVED': None},
-                         {   u'ADDRESS': u'10.9.134.3',
-                             u'HOST': None,
-                             u'LINE': u'Nmap scan report for 10.9.134.3',
-                             u'RECEIVED': None},
-                         {   u'ADDRESS': u'10.9.134.4',
-                             u'HOST': None,
-                             u'LINE': u'Nmap scan report for 10.9.134.4',
-                             u'RECEIVED': None},
-                         {   u'ADDRESS': u'10.9.134.5',
-                             u'HOST': None,
-                             u'LINE': u'Nmap scan report for 10.9.134.5',
-                             u'RECEIVED': None},
-                         {   u'ADDRESS': u'10.9.134.6',
-                             u'HOST': None,
-                             u'LINE': u'Nmap scan report for 10.9.134.6',
-                             u'RECEIVED': None},
-                         {   u'ADDRESS': u'10.9.134.7',
-                             u'HOST': None,
-                             u'LINE': u'Nmap scan report for 10.9.134.7',
-                             u'RECEIVED': None},
-                         {   u'ADDRESS': u'10.9.134.8',
-                             u'HOST': None,
-                             u'LINE': u'Nmap scan report for 10.9.134.8',
-                             u'RECEIVED': None},
-                         {   u'ADDRESS': u'10.9.134.9',
-                             u'HOST': None,
-                             u'LINE': u'Nmap scan report for 10.9.134.9',
-                             u'RECEIVED': None},
-                         {   u'ADDRESS': u'10.9.134.10',
-                             u'HOST': None,
-                             u'LINE': u'Nmap scan report for 10.9.134.10',
-                             u'RECEIVED': None},
-                         {   u'ADDRESS': u'10.9.134.11',
-                             u'HOST': None,
-                             u'LINE': u'Nmap scan report for 10.9.134.11',
-                             u'RECEIVED': None},
-                         {   u'ADDRESS': u'10.9.134.12',
-                             u'HOST': None,
-                             u'LINE': u'Nmap scan report for 10.9.134.12',
-                             u'RECEIVED': None},
-                         {   u'ADDRESS': u'10.9.134.13',
-                             u'HOST': None,
-                             u'LINE': u'Nmap scan report for 10.9.134.13',
-                             u'RECEIVED': None},
-                         {   u'ADDRESS': u'10.9.134.14',
-                             u'HOST': None,
-                             u'LINE': u'Nmap scan report for 10.9.134.14',
-                             u'RECEIVED': None},
-                         {   u'ADDRESS': u'10.9.134.15',
-                             u'HOST': None,
-                             u'LINE': u'Nmap scan report for 10.9.134.15',
-                             u'RECEIVED': None}],
+    'SCAN_REPORTS': [{u'ADDRESS': u'10.9.134.0',
+                      u'HOST': None,
+                      u'LINE': u'Nmap scan report for 10.9.134.0',
+                      u'RECEIVED': None},
+                     {u'ADDRESS': u'10.9.134.1',
+                      u'HOST': None,
+                      u'LINE': u'Nmap scan report for 10.9.134.1',
+                      u'RECEIVED': None},
+                     {u'ADDRESS': u'10.9.134.2',
+                      u'HOST': None,
+                      u'LINE': u'Nmap scan report for 10.9.134.2',
+                      u'RECEIVED': None},
+                     {u'ADDRESS': u'10.9.134.3',
+                      u'HOST': None,
+                      u'LINE': u'Nmap scan report for 10.9.134.3',
+                      u'RECEIVED': None},
+                     {u'ADDRESS': u'10.9.134.4',
+                      u'HOST': None,
+                      u'LINE': u'Nmap scan report for 10.9.134.4',
+                      u'RECEIVED': None},
+                     {u'ADDRESS': u'10.9.134.5',
+                      u'HOST': None,
+                      u'LINE': u'Nmap scan report for 10.9.134.5',
+                      u'RECEIVED': None},
+                     {u'ADDRESS': u'10.9.134.6',
+                      u'HOST': None,
+                      u'LINE': u'Nmap scan report for 10.9.134.6',
+                      u'RECEIVED': None},
+                     {u'ADDRESS': u'10.9.134.7',
+                      u'HOST': None,
+                      u'LINE': u'Nmap scan report for 10.9.134.7',
+                      u'RECEIVED': None},
+                     {u'ADDRESS': u'10.9.134.8',
+                      u'HOST': None,
+                      u'LINE': u'Nmap scan report for 10.9.134.8',
+                      u'RECEIVED': None},
+                     {u'ADDRESS': u'10.9.134.9',
+                      u'HOST': None,
+                      u'LINE': u'Nmap scan report for 10.9.134.9',
+                      u'RECEIVED': None},
+                     {u'ADDRESS': u'10.9.134.10',
+                      u'HOST': None,
+                      u'LINE': u'Nmap scan report for 10.9.134.10',
+                      u'RECEIVED': None},
+                     {u'ADDRESS': u'10.9.134.11',
+                      u'HOST': None,
+                      u'LINE': u'Nmap scan report for 10.9.134.11',
+                      u'RECEIVED': None},
+                     {u'ADDRESS': u'10.9.134.12',
+                      u'HOST': None,
+                      u'LINE': u'Nmap scan report for 10.9.134.12',
+                      u'RECEIVED': None},
+                     {u'ADDRESS': u'10.9.134.13',
+                      u'HOST': None,
+                      u'LINE': u'Nmap scan report for 10.9.134.13',
+                      u'RECEIVED': None},
+                     {u'ADDRESS': u'10.9.134.14',
+                      u'HOST': None,
+                      u'LINE': u'Nmap scan report for 10.9.134.14',
+                      u'RECEIVED': None},
+                     {u'ADDRESS': u'10.9.134.15',
+                      u'HOST': None,
+                      u'LINE': u'Nmap scan report for 10.9.134.15',
+                      u'RECEIVED': None}],
 
 }
