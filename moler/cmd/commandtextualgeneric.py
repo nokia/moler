@@ -54,6 +54,8 @@ class CommandTextualGeneric(Command):
         # new line char(s) - send from connection.
         self.wait_for_prompt_on_exception = True  # Set True to wait for command prompt on failure. Set False to cancel
         # command immediately on failure.
+        self.concatenate_before_command_starts = True  # Set True to concatenate all strings from connection before
+        # command starts, False to split lines on every new line char
         self._stored_exception = None  # Exception stored before it is passed to base class when command is done.
 
         if not self._newline_chars:
@@ -136,7 +138,7 @@ class CommandTextualGeneric(Command):
         lines = data.splitlines(True)
         for line in lines:
             if self._last_not_full_line is not None:
-                line = self._last_not_full_line + line
+                line = "{}{}".format(self._last_not_full_line, line)
                 self._last_not_full_line = None
             is_full_line = self.has_endline_char(line)
             if is_full_line:
@@ -147,6 +149,8 @@ class CommandTextualGeneric(Command):
                 self.on_new_line(line, is_full_line)
             else:
                 self._detect_start_of_cmd_output(line, is_full_line)
+                if self.concatenate_before_command_starts and not self._cmd_output_started and is_full_line:
+                    self._last_not_full_line = line
             if self.done() and self.do_not_process_after_done:
                 break
 
@@ -261,11 +265,11 @@ class CommandTextualGeneric(Command):
         msg = ("Timeout when command_string='{}', _cmd_escaped='{}', _cmd_output_started='{}', ret_required='{}', "
                "break_on_timeout='{}', _last_not_full_line='{}', _re_prompt='{}', do_not_process_after_done='{}', "
                "newline_after_command_string='{}', wait_for_prompt_on_exception='{}', _stored_exception='{}',"
-               "current_ret='{}', _newline_chars='{}'.").format(
+               "current_ret='{}', _newline_chars='{}', concatenate_before_command_starts='{}'.").format(
             self.__command_string, self._cmd_escaped, self._cmd_output_started, self.ret_required,
             self.break_on_timeout, self._last_not_full_line, self._re_prompt, self.do_not_process_after_done,
             self.newline_after_command_string, self.wait_for_prompt_on_exception, self._stored_exception,
-            self.current_ret, self._newline_chars)
+            self.current_ret, self._newline_chars, self.concatenate_before_command_starts)
         self._log(logging.DEBUG, msg, levels_to_go_up=2)
         if self.break_on_timeout:
             self.break_cmd()
