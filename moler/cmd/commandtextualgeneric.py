@@ -34,7 +34,7 @@ class CommandTextualGeneric(Command):
         :param newline_chars:  new line chars on device (a list).
         :param runner: runner to run command.
         """
-        self.command_string_right_index = 20  # Right index of substring of command_string passed as _cmd_escaped. Set
+        self._command_string_right_index = 20  # Right index of substring of command_string passed as _cmd_escaped. Set
         # 0 to disable functionality of substring.
         self.__command_string = None  # String representing command on device
         self._cmd_escaped = None  # Escaped regular expression string with command
@@ -54,7 +54,7 @@ class CommandTextualGeneric(Command):
         # new line char(s) - send from connection.
         self.wait_for_prompt_on_exception = True  # Set True to wait for command prompt on failure. Set False to cancel
         # command immediately on failure.
-        self.concatenate_before_command_starts = True  # Set True to concatenate all strings from connection before
+        self._concatenate_before_command_starts = True  # Set True to concatenate all strings from connection before
         # command starts, False to split lines on every new line char
         self._stored_exception = None  # Exception stored before it is passed to base class when command is done.
 
@@ -93,8 +93,8 @@ class CommandTextualGeneric(Command):
         self._cmd_escaped = None
         if self.__command_string is not None:
             sub_command_string = self.__command_string
-            if self.command_string_right_index != 0:
-                sub_command_string = self.__command_string[:self.command_string_right_index]
+            if self._command_string_right_index != 0:
+                sub_command_string = self.__command_string[:self._command_string_right_index]
             self._cmd_escaped = re.compile(re.escape(sub_command_string))
 
     @property
@@ -149,7 +149,7 @@ class CommandTextualGeneric(Command):
                 self.on_new_line(line, is_full_line)
             else:
                 self._detect_start_of_cmd_output(line, is_full_line)
-                if self.concatenate_before_command_starts and not self._cmd_output_started and is_full_line:
+                if self._concatenate_before_command_starts and not self._cmd_output_started and is_full_line:
                     self._last_not_full_line = line
             if self.done() and self.do_not_process_after_done:
                 break
@@ -269,7 +269,7 @@ class CommandTextualGeneric(Command):
             self.__command_string, self._cmd_escaped, self._cmd_output_started, self.ret_required,
             self.break_on_timeout, self._last_not_full_line, self._re_prompt, self.do_not_process_after_done,
             self.newline_after_command_string, self.wait_for_prompt_on_exception, self._stored_exception,
-            self.current_ret, self._newline_chars, self.concatenate_before_command_starts)
+            self.current_ret, self._newline_chars, self._concatenate_before_command_starts)
         self._log(logging.DEBUG, msg, levels_to_go_up=2)
         if self.break_on_timeout:
             self.break_cmd()
