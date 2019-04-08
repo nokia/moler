@@ -21,12 +21,12 @@ from moler.exceptions import CommandFailure
 
 
 class Journalctl(GenericUnixCommand):
-    """Gethwinventoryinfo command class."""
+    """Journalctl command class."""
 
     def __init__(self, connection, prompt=None, newline_chars=None, runner=None, options=None,
                  expected_prompt=r'[^@]+@0x[^>]+>'):
         """
-        Lxcattach command attaches to specified gNB.
+        Journalctl command attaches to specified gNB.
 
         :param connection: moler connection to device, terminal when command is executed.
         :param prompt: expected prompt sending by device after command execution.
@@ -73,9 +73,9 @@ class Journalctl(GenericUnixCommand):
     # Mar 21 14:44:56 fct-0a em_attach[24467]: e1 FCTL-E00A-Disp_1 <2019-03-21T12:44:56.264715Z> 11D-L2MediatorQ INF/EM/AaEmServices, TRACE: EM Monitoring AaEmMonCo
 
     def _command_error(self, line):
-        _re_command_error = re.compile(r'(?P<ERROR>journalctl:\s+.+)', re.I)
+        re_command_error = re.compile(r'(?P<ERROR>journalctl:\s+.+)', re.I)
 
-        if self._regex_helper.search_compiled(Journalctl._re_command_error, line):
+        if self._regex_helper.search_compiled(re_command_error, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
 
     def _is_target_prompt(self, line):
@@ -85,10 +85,11 @@ class Journalctl(GenericUnixCommand):
                 raise ParsingDone
 
 
-COMMAND_OUTPUT = """root@fct-0a:~ >journalctl
+COMMAND_OUTPUT = """root@fct-0a:~ >journalctl --system
     root@0xe019:~ >"""
 
 COMMAND_KWARGS = {
+    "options": "--system"
 }
 
 COMMAND_RESULT = {}
