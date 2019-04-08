@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import importlib
@@ -428,6 +428,7 @@ def test_connection_observer_one_exception():
     none_exceptions = ConnectionObserver.get_unraised_exceptions(True)
     assert 0 == len(none_exceptions)
     cmd.set_exception(CommandTimeout(cmd, 0.1))
+    cmd._is_done = True
     active_exceptions = ConnectionObserver.get_unraised_exceptions(True)
     assert 1 == len(active_exceptions)
     try:
@@ -449,10 +450,12 @@ def test_connection_observer_exception_do_not_remove():
     none_exceptions = ConnectionObserver.get_unraised_exceptions(True)
     assert 0 == len(none_exceptions)
     cmd.set_exception(CommandTimeout(cmd, 0.1))
+    cmd._is_done = True
     active_exceptions = ConnectionObserver.get_unraised_exceptions(False)
     assert 1 == len(active_exceptions)
     cmd = Ls(None)
     cmd.set_exception(CommandTimeout(cmd, 0.1))
+    cmd._is_done = True
     active_exceptions = ConnectionObserver.get_unraised_exceptions(False)
     assert 2 == len(active_exceptions)
     active_exceptions = ConnectionObserver.get_unraised_exceptions(True)
