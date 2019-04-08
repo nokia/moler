@@ -479,7 +479,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             if (timeout is not None) and (run_duration >= timeout):
                 if in_terminating:
                     msg = "{} could not terminate during {} seconds. It will be cancelled".format(connection_observer,
-                                                                                                timeout)
+                                                                                                  timeout)
                     self.logger.info(msg)
                     print(msg)
                     connection_observer.cancel()
