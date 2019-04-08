@@ -39,6 +39,9 @@ class CommandTextualGeneric(Command):
         self.__command_string = None  # String representing command on device
         self._cmd_escaped = None  # Escaped regular expression string with command
         super(CommandTextualGeneric, self).__init__(connection=connection, runner=runner)
+        self.terminating_timeout = 3  # value for terminating command if it timeouts. Set positive value
+        # for command if they can do anything if timeout. Set 0 for  command if it cannot do anything if
+        # timeout.
         self.current_ret = dict()  # Placeholder for result as-it-grows, before final write into self._result
         self._cmd_output_started = False  # If false parsing is not passed to command
         self._regex_helper = RegexHelper()  # Object to regular expression matching

@@ -48,7 +48,9 @@ class ConnectionObserver(object):
         self._future = None
         self.start_time = 0.0  # means epoch: 1970-01-01 00:00:00
         self.__timeout = 7  # default
-        self.terminating_timeout = 2  # value for terminating command when it timeouts.
+        self.terminating_timeout = 0  # value for terminating connection_observer when it timeouts. Set positive value
+        # for command if they can do anything if timeout. Set 0 for observer or command if it cannot do anything if
+        # timeout.
         self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
         self.logger = logging.getLogger('moler.connection.{}'.format(self.get_logger_name()))
 

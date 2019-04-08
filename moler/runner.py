@@ -323,6 +323,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             remain_time, msg = his_remaining_time("remaining", timeout=observer_timeout, from_start_time=start_time)
 
         self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
+        remain_time += connection_observer.terminating_timeout
 
         if connection_observer_future is None:
             end_of_life, remain_time = await_future_or_eol(connection_observer, remain_time, start_time, await_timeout,
@@ -346,15 +347,14 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                     if (future in done) or connection_observer.done():
                         self._cancel_submitted_future(connection_observer, future)
                         return None
-                    timeout = connection_observer.timeout
+                    timeout = connection_observer.timeout + connection_observer.terminating_timeout
                     already_passed = time.time() - start_time
                     remain_time = timeout - already_passed
 
         # code below is for timed out observer
         print("'{}' wait_for -> _wait_for_time_out".format(connection_observer))
-        await_timeout += connection_observer.terminating_timeout
         self._wait_for_time_out(connection_observer, connection_observer_future,
-                                timeout=await_timeout)
+                                timeout=await_timeout + connection_observer.terminating_timeout)
         return None
 
     @staticmethod
