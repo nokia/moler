@@ -378,6 +378,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             time_out_observer(connection_observer=connection_observer,
                               timeout=timeout, passed_time=passed,
                               runner_logger=self.logger, kind="await_done")
+        connection_observer.cancel()
 
     def wait_for_iterator(self, connection_observer, connection_observer_future):
         """
