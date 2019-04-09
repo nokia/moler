@@ -236,8 +236,8 @@ class ConnectionObserver(object):
         """Should be used to set final result"""
         if self.done():
             raise ResultAlreadySet(self)
-        self._is_done = True
         self._result = result
+        self._is_done = True
 
     @abstractmethod
     def data_received(self, data):
