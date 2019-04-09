@@ -30,7 +30,7 @@ class Configure(GenericJuniperCommand):
         self.ret_required = False
         self.target_newline = target_newline
         # Parameters defined by calling the command
-        self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(expected_prompt)  # Expected prompt on device
+        self._re_expected_prompt = GenericJuniperCommand._calculate_prompt(expected_prompt)  # Expected prompt on device
 
     def build_command_string(self):
         """
