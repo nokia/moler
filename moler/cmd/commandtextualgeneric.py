@@ -107,14 +107,13 @@ class CommandTextualGeneric(Command):
 
     @_is_done.setter
     def _is_done(self, value):
-        with self._lock_is_done:
-            print("{} CommandTextualGeneric _is_done setter: '{}'".format(self, value))
-            if self._stored_exception:
+        if value and self._stored_exception:
+            with self._lock_is_done:
+                print("{} CommandTextualGeneric _is_done setter: '{}'".format(self, value))
                 exception = self._stored_exception
                 self._stored_exception = None
-                if exception:
-                    super(CommandTextualGeneric, self).set_exception(exception=exception)
-            super(CommandTextualGeneric, self.__class__)._is_done.fset(self, value)
+                super(CommandTextualGeneric, self).set_exception(exception=exception)
+        super(CommandTextualGeneric, self.__class__)._is_done.fset(self, value)
 
     @staticmethod
     def _calculate_prompt(prompt):
