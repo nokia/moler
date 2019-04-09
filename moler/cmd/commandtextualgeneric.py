@@ -106,6 +106,7 @@ class CommandTextualGeneric(Command):
 
     @_is_done.setter
     def _is_done(self, value):
+        print("{} CommandTextualGeneric _is_done setter: '{}'".format(self, value))
         if self._stored_exception:
             exception = self._stored_exception
             self._stored_exception = None
@@ -244,6 +245,7 @@ class CommandTextualGeneric(Command):
         :param exception: An exception object to set.
         :return: None.
         """
+        print("'{}' CommandTextualGeneric: set_exception with '{}'".format(self, exception))
         if self.done() or not self.wait_for_prompt_on_exception:
             super(CommandTextualGeneric, self).set_exception(exception=exception)
         else:
