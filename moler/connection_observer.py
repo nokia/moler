@@ -90,7 +90,6 @@ class ConnectionObserver(object):
 
     @_is_done.setter
     def _is_done(self, value):
-        print("{} ConnectionObserver _is_done setter: '{}'".format(self, value))
         self.__is_done = value
         if value:
             CommandScheduler.dequeue_running_on_connection(connection_observer=self)
@@ -206,7 +205,6 @@ class ConnectionObserver(object):
                 raise ConnectionObserverNotStarted(self)
 
             self.runner.wait_for(connection_observer=self, connection_observer_future=self._future, timeout=timeout)
-        print("'{} await_done just before result".format(self))
         return self.result()
 
     def cancel(self):
@@ -249,7 +247,6 @@ class ConnectionObserver(object):
 
     def set_exception(self, exception):
         """Should be used to indicate some failure during observation"""
-        print("'{}' ConnectionObserver: set_exception with '{}'".format(self, exception))
         if self._is_done:
             self._log(logging.WARNING,
                       "Trial to set exception {!r} on already done {}".format(exception, self),
@@ -263,18 +260,13 @@ class ConnectionObserver(object):
 
     def result(self):
         """Retrieve final result of connection-observer"""
-        print("'{} result".format(self))
         with ConnectionObserver._exceptions_lock:
             ConnectionObserver._log_unraised_exceptions(self)
             if self._exception:
-                print("'{} exception stored in ConnectionObserver object".format(self))
                 exception = self._exception
                 if exception in ConnectionObserver._not_raised_exceptions:
-                    print("'{} Found exception in ConnectionObserver._not_raised_exception.".format(self))
                     ConnectionObserver._not_raised_exceptions.remove(exception)
                 raise exception
-            else:
-                print("'{} exception NOT stored in ConnectionObserver object".format(self))
         if self.cancelled():
             raise NoResultSinceCancelCalled(self)
         if not self.done():

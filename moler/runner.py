@@ -293,7 +293,6 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         :return:
         """
         # TODO: calculate remaining timeout before logging + done(result/exception) info
-        print("'{}'  wait_for".format(connection_observer))
         if connection_observer.done():
             # 1. done() might mean "timed out" before future created (future is None)
             #    Observer lifetime started with its timeout clock so, it might timeout even before
@@ -352,7 +351,6 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                     remain_time = timeout - already_passed
 
         # code below is for timed out observer
-        print("'{}' wait_for -> _wait_for_time_out".format(connection_observer))
         self._wait_for_time_out(connection_observer, connection_observer_future,
                                 timeout=await_timeout + connection_observer.terminating_timeout)
         return None
@@ -364,7 +362,6 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             future.cancel(no_wait=True)
 
     def _wait_for_time_out(self, connection_observer, connection_observer_future, timeout):
-        print("_wait_for_time_out: '{}', timeout:'{}'".format(connection_observer, timeout))
         passed = time.time() - connection_observer.start_time
         future = connection_observer_future or connection_observer._future
         if future:
@@ -465,10 +462,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             if stop_feeding.is_set():
                 # TODO: should it be renamed to 'cancelled' to be in sync with initial action?
                 self.logger.debug("stopped {}".format(connection_observer))
-                print("{} stop_feeding.is_set()".format(connection_observer))
                 break
             if connection_observer.done():
-                print("{} is done in _feed_loop".format(connection_observer))
                 self.logger.debug("done {}".format(connection_observer))
                 break
             run_duration = time.time() - start_time
@@ -482,21 +477,17 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                     msg = "{} could not terminate during {} seconds. It will be cancelled".format(connection_observer,
                                                                                                   timeout)
                     self.logger.info(msg)
-                    print(msg)
                     connection_observer.cancel()
                 else:
                     with observer_lock:
-                        print("Runner::feedloop for '{}' timed out after {} seconds".format(connection_observer, timeout))
                         start_time = time.time()
                         in_terminating = True
                         time_out_observer(connection_observer,
                                           timeout=connection_observer.timeout,
                                           passed_time=run_duration,
                                           runner_logger=self.logger)
-                        print("terminating?")
 
             if self._in_shutdown:
-                print("{} in shutdown".format(connection_observer))
                 self.logger.debug("shutdown so cancelling {}".format(connection_observer))
                 connection_observer.cancel()
             time.sleep(0.005)  # give moler_conn a chance to feed observer
