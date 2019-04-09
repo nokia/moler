@@ -102,7 +102,7 @@ class UnixRemote(UnixLocal):
                         "execute_command": "su",  # using command
                         "command_params": {  # with parameters
                             "password": "root_password",
-                            "expected_prompt": r'root@',
+                            "expected_prompt": r'remote_root_prompt',
                             "target_newline": "\n"
                         },
                         "required_command_params": [
@@ -433,10 +433,10 @@ class UnixRemote(UnixLocal):
         if not available:
             if state == UnixRemote.unix_remote or state == UnixRemote.unix_remote_root:
                 available = {UnixLocal.cmds: ['moler.cmd.unix'],
-                             UnixLocal.events: ['moler.events.unix']}
+                             UnixLocal.events: ['moler.events.shared', 'moler.events.unix']}
             elif state == UnixRemote.proxy_pc:
                 available = {UnixLocal.cmds: ['moler.cmd.unix'],
-                             UnixLocal.events: ['moler.events.unix']}
+                             UnixLocal.events: ['moler.events.shared', 'moler.events.unix']}
             if available:
                 return available[observer]
 

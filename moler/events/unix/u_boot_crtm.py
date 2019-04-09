@@ -11,13 +11,14 @@ from moler.exceptions import ParsingDone
 
 
 class UBootCrtm(TextualEvent):
-    def __init__(self, connection, till_occurs_times=-1):
+    def __init__(self, connection, till_occurs_times=-1, runner=None):
         """
         Event for 'Site is resetting due to Fault'
         :param connection: moler connection to device, terminal when command is executed
         :param till_occurs_times: number of event occurrence
+        :param runner: Runner to run event
         """
-        super(UBootCrtm, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
+        super(UBootCrtm, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times)
         self.current_ret = dict()
 
     def on_new_line(self, line, is_full_line):

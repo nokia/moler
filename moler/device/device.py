@@ -38,6 +38,13 @@ class DeviceFactory(object):
         if name in cls._devices.keys():
             return cls._devices[name]
 
+        if connection_hops:
+            if "CONNECTION_HOPS" not in connection_hops.keys():
+                new_connection_hops = dict()
+                new_connection_hops["CONNECTION_HOPS"] = connection_hops
+
+                connection_hops = new_connection_hops
+
         device_class, connection_desc, connection_hops, initial_state = cls._try_take_named_device_params(name,
                                                                                                           device_class,
                                                                                                           connection_desc,

@@ -117,6 +117,7 @@ class Telnet(GenericUnixCommand):
             self._just_connected(line)
             self._send_commands_after_establish_connection_if_requested(line, is_full_line)
             self._settings_after_login(line, is_full_line)
+            self._detect_prompt_after_exception(line)
         except ParsingDone:
             pass
 
@@ -129,6 +130,17 @@ class Telnet(GenericUnixCommand):
         """
         if self.is_failure_indication(line):
             self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+            raise ParsingDone()
+
+    def _detect_prompt_after_exception(self, line):
+        """
+        Detects start prompt.
+
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if detects start prompt and any exception was set.
+        """
+        if self._stored_exception and self._regex_helper.search_compiled(self._re_prompt, line):
+            self._is_done = True
             raise ParsingDone()
 
     def _settings_after_login(self, line, is_full_line):

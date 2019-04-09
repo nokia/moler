@@ -5,14 +5,20 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 import datetime
 
-from moler.events.lineevent import LineEvent
+from moler.events.shared.wait4 import Wait4
 
 
-class Wait4prompt(LineEvent):
-    def __init__(self, connection, prompt, till_occurs_times=-1):
-        super(Wait4prompt, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
-        self.connection = connection
-        self.detect_pattern = prompt
+class Wait4prompt(Wait4):
+    def __init__(self, connection, prompt, till_occurs_times=-1, runner=None):
+        """
+        Event for waiting for prompt
+        :param connection: moler connection to device, terminal when command is executed
+        :param prompt: prompt regex
+        :param till_occurs_times: number of event occurrence
+        :param runner: Runner to run event
+        """
+        super(Wait4prompt, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times,
+                                          detect_patterns=[prompt], match='any')
 
 
 EVENT_OUTPUT = """
@@ -33,6 +39,9 @@ EVENT_KWARGS = {
 EVENT_RESULT = [
     {
         'line': "host:~ #",
+        "groups": (),
+        "named_groups": {},
+        "matched": "host:~ #",
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
     }
 ]

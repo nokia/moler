@@ -3,9 +3,9 @@
 Top command test module.
 """
 
-__author__ = 'Adrianna Pienkowska '
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'adrianna.pienkowska@nokia.com'
+__author__ = 'Adrianna Pienkowska, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'adrianna.pienkowska@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
 from moler.cmd.unix.top import Top
@@ -28,10 +28,10 @@ def test_top_raise_error_on_bad_option(buffer_connection, command_output_and_exp
 
 @pytest.fixture
 def command_output_and_expected_result_on_bad_option():
-    output = """xyz@debian:top abc n 1
+    output = """xyz@debian>top abc n 1
 top: unknown option 'a'
 Usage:
   top -hv | -bcHiOSs -d secs -n max -u|U user -p pid(s) -o field -w [cols]
-xyz@debian:"""
+xyz@debian>"""
     result = dict()
     return output, result
