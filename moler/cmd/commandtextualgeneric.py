@@ -109,7 +109,6 @@ class CommandTextualGeneric(Command):
     def _is_done(self, value):
         if value and self._stored_exception:
             with self._lock_is_done:
-                print("{} CommandTextualGeneric _is_done setter: '{}'".format(self, value))
                 exception = self._stored_exception
                 self._stored_exception = None
                 super(CommandTextualGeneric, self).set_exception(exception=exception)
@@ -142,7 +141,6 @@ class CommandTextualGeneric(Command):
         :return: None.
         """
         lines = data.splitlines(True)
-        print("'{}' got '{}'".format(self, lines))
         for line in lines:
             if self._last_not_full_line is not None:
                 line = "{}{}".format(self._last_not_full_line, line)
@@ -247,7 +245,6 @@ class CommandTextualGeneric(Command):
         :param exception: An exception object to set.
         :return: None.
         """
-        print("'{}' CommandTextualGeneric: set_exception with '{}'".format(self, exception))
         if self.done() or not self.wait_for_prompt_on_exception:
             super(CommandTextualGeneric, self).set_exception(exception=exception)
         else:
