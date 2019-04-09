@@ -7,11 +7,11 @@ __author__ = 'Sylwester Golonka'
 __copyright__ = 'Copyright (C) 2019, Nokia'
 __email__ = 'sylwester.golonka@nokia.com'
 
-from moler.cmd.commandtextualgeneric import CommandTextualGeneric
+from moler.cmd.juniper.genericjuniper import GenericJuniperCommand
 from moler.exceptions import ParsingDone
 
 
-class Configure(CommandTextualGeneric):
+class Configure(GenericJuniperCommand):
     """Configure command class."""
 
     def __init__(self, connection, prompt=None, expected_prompt=r'^admin@switch#',
