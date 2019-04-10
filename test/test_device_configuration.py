@@ -2,15 +2,16 @@
 """
 Testing possibilities to configure devices
 """
-__author__ = 'Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'michal.ernst@nokia.com'
+__author__ = 'Michal Ernst, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import os
 
 import pytest
 
 from moler.util.moler_test import MolerTest
+from moler.connection_observer import ConnectionObserver
 
 
 def test_get_device_may_not_use_both__name_and_device_class(device_factory):
@@ -256,7 +257,7 @@ def test_can_select_device_loaded_from_config_dict(moler_config, device_factory)
         device.__del__()
 
         MolerTest.steps_end()
-
+    ConnectionObserver.get_unraised_exceptions(True)
     can_select_device_loaded_from_config_dict(moler_config, device_factory)
 
 
