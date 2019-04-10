@@ -488,7 +488,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                             start_time = time.time()
                             in_terminating = True
                         else:
-                            connection_observer.cancel()
+                            break
 
             if self._in_shutdown:
                 self.logger.debug("shutdown so cancelling {}".format(connection_observer))
