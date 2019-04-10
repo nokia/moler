@@ -279,9 +279,9 @@ async def test_future_accommodates_to_extending_timeout_of_observer(connection_o
     logger.debug("after second await asyncio.sleep(0.1)")
     with pytest.raises(ResultNotAvailableYet):  # not timed out yet
         connection_observer.result()
-    logger.debug("final await asyncio.sleep(0.3)")
-    await asyncio.sleep(0.3 + connection_observer.terminating_timeout)
-    logger.debug("after final await asyncio.sleep(0.3)")
+    logger.debug("final await asyncio.sleep(0.4)")
+    await asyncio.sleep(0.4)
+    logger.debug("after final await asyncio.sleep(0.4)")
     with pytest.raises(MolerTimeout):  # should time out
         connection_observer.result()
 
