@@ -47,8 +47,8 @@ class ConnectionObserver(object):
         self.runner = runner if runner else get_runner()
         self._future = None
         self.start_time = 0.0  # means epoch: 1970-01-01 00:00:00
-        self.__timeout = 7  # default
-        self.terminating_timeout = 0  # value for terminating connection_observer when it timeouts. Set positive value
+        self.__timeout = 7.0  # default
+        self.terminating_timeout = 0.0  # value for terminating connection_observer when it timeouts. Set positive value
         # for command if they can do anything if timeout. Set 0 for observer or command if it cannot do anything if
         # timeout.
         self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
@@ -212,8 +212,8 @@ class ConnectionObserver(object):
         # TODO: call cancel on runner to stop background run of connection-observer
         if self.cancelled() or self.done():
             return False
-        self._is_done = True
         self._is_cancelled = True
+        self._is_done = True
         return True
 
     def cancelled(self):

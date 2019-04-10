@@ -480,12 +480,15 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                     connection_observer.cancel()
                 else:
                     with observer_lock:
-                        start_time = time.time()
-                        in_terminating = True
                         time_out_observer(connection_observer,
                                           timeout=connection_observer.timeout,
                                           passed_time=run_duration,
                                           runner_logger=self.logger)
+                        if connection_observer.terminating_timeout >= 0.0:
+                            start_time = time.time()
+                            in_terminating = True
+                        else:
+                            connection_observer.cancel()
 
             if self._in_shutdown:
                 self.logger.debug("shutdown so cancelling {}".format(connection_observer))
