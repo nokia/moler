@@ -49,8 +49,8 @@ class ConnectionObserver(object):
         self.start_time = 0.0  # means epoch: 1970-01-01 00:00:00
         self.__timeout = 7.0  # default
         self.terminating_timeout = 0.0  # value for terminating connection_observer when it timeouts. Set positive value
-        # for command if they can do anything if timeout. Set 0 for observer or command if it cannot do anything if
-        # timeout.
+        #                                 for command if they can do anything if timeout. Set 0 for observer or command
+        #                                 if it cannot do anything if timeout.
         self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
         self.logger = logging.getLogger('moler.connection.{}'.format(self.get_logger_name()))
 
@@ -252,10 +252,10 @@ class ConnectionObserver(object):
         :param exception: Exception to set
         :return: None
         """
-        self._set_exception(exception)
+        self._set_exception_without_done(exception)
         self._is_done = True
 
-    def _set_exception(self, exception):
+    def _set_exception_without_done(self, exception):
         """
         Should be used to indicate some failure during observation. This method does not finish connection observer
         object!
