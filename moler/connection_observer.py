@@ -246,7 +246,23 @@ class ConnectionObserver(object):
         pass
 
     def set_exception(self, exception):
-        """Should be used to indicate some failure during observation"""
+        """
+        Should be used to indicate some failure during observation.
+
+        :param exception: Exception to set
+        :return: None
+        """
+        self._set_exception(exception)
+        self._is_done = True
+
+    def _set_exception(self, exception):
+        """
+        Should be used to indicate some failure during observation. This method does not finish connection observer
+        object!
+
+        :param exception: exception to set
+        :return: None
+        """
         if self._is_done:
             self._log(logging.WARNING,
                       "Trial to set exception {!r} on already done {}".format(exception, self),
@@ -256,7 +272,6 @@ class ConnectionObserver(object):
         self._log(logging.INFO,
                   "{}.{} has set exception {!r}".format(self.__class__.__module__, self, exception),
                   levels_to_go_up=2)
-        self._is_done = True
 
     def result(self):
         """Retrieve final result of connection-observer"""
