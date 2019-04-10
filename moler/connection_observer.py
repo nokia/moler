@@ -343,8 +343,8 @@ class ConnectionObserver(object):
                                   ))
                     ConnectionObserver._log_unraised_exceptions(observer)
 
-            observer._exception = new_exception
             ConnectionObserver._not_raised_exceptions.append(new_exception)
+            observer._exception = new_exception
 
     @staticmethod
     def _log_unraised_exceptions(observer):
