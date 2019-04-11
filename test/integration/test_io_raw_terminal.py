@@ -47,13 +47,16 @@ def test_terminal_cmd_whoami(terminal_connection):
 
 def test_terminal_timeout_next_command(terminal_connection):
     terminal = terminal_connection
-    max_nr = 5
+    max_nr = 1000
     for i in range(1, max_nr):
+        print(i)
         cmd = Ping(connection=terminal, destination="127.0.0.1")
         with pytest.raises(CommandTimeout):
             cmd(timeout=0.3)
         cmd = Whoami(connection=terminal)
         ret = cmd()
+        if ret is None:
+            print("    cmd stored output is {}".format(cmd._raw_lines))
         user = ret['USER']
         assert getpass.getuser() == user
 
