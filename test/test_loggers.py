@@ -267,7 +267,7 @@ def test_raw_trace_log_can_be_yaml_loaded(monkeypatch):
             raw_trace_logfile_full_path = hndl.baseFilename
     with open(raw_trace_logfile_full_path, mode='r') as logfh:
 
-        raw_log_records = yaml.load(logfh)
+        raw_log_records = yaml.load(logfh, Loader=yaml.FullLoader)
 
         assert len(raw_log_records) == 3
         rec1 = raw_log_records[0]
