@@ -22,6 +22,7 @@ from moler.exceptions import CommandFailure
 
 class Journalctl(GenericUnixCommand):
     """Journalctl command class."""
+    _re_outline= re.compile(r"(?P<DATE>^[\D]+ [\d]+\s[\d]+:[\d]+:[\d]+\s)(?P<CODE>[\w-]+\s)(?P<NAME>[\w\d\[\]]+):(?P<MSG>.*$)")
 
     def __init__(self, connection, prompt=None, newline_chars=None, runner=None, options=None,
                  expected_prompt=r'[^@]+@0x[^>]+>'):
@@ -65,15 +66,14 @@ class Journalctl(GenericUnixCommand):
         try:
             self._command_error(line)
             self._is_target_prompt(line)
+            self._parse_line_complete(line)
         except ParsingDone:
             pass
         super(Journalctl, self).on_new_line(line, is_full_line)
 
-    # Mar 21 14:44:54 fct-0a BTS_SW/run.sh[26389]: [03-21 14:44:54.658870][000155][debug] Pm agent proxy received: 0x3740 from 0xe00315c5
-    # Mar 21 14:44:56 fct-0a em_attach[24467]: e1 FCTL-E00A-Disp_1 <2019-03-21T12:44:56.264715Z> 11D-L2MediatorQ INF/EM/AaEmServices, TRACE: EM Monitoring AaEmMonCo
 
     def _command_error(self, line):
-        re_command_error = re.compile(r'(?P<ERROR>journalctl:\s+.+)', re.I)
+        re_command_error = re.compile(r'(?P<ERROR>No journal files were opened\s+.+)', re.I)
 
         if self._regex_helper.search_compiled(re_command_error, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
@@ -82,11 +82,34 @@ class Journalctl(GenericUnixCommand):
         if self._regex_helper.search_compiled(self._re_expected_prompt, line):
             if not self.done():
                 self.set_result({})
-                raise ParsingDone
+
+    def _parse_line_complete(self, line):
+        if self._regex_helper.search_compiled(Journalctl._re_outline, line):
+            self.curr_out = {
+                "DATE": self._regex_helper.group(1),
+                "CODE": self._regex_helper.group(2),
+                "NAME": self._regex_helper.group(3),
+                "MSG": self._regex_helper.group(4)
+            }
+            raise ParsingDone
+
+
+
 
 
 COMMAND_OUTPUT = """root@fct-0a:~ >journalctl --system
-    root@0xe019:~ >"""
+Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: Connection (1): Incoming message
+Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: Request Type is HttpSupervision
+Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: SMA_XOHMessageInterpreter:: Message Type = HttpSupervision
+Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: ::SMA_XOHBTSOMForwarder:: Forward message to BTSOM.
+Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: Connection (1): Finished handling message
+Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: Calling handle_input with FD :: 12
+Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: Connection (2): Incoming message
+Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: Response Type is HttpSupervision
+Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: SMA_XOHMessageInterpreter:: Message Type = HttpSupervision
+Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: Sent HttpSupervision to SEM
+Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: Connection (2): Finished handling message
+root@0xe019:~ >"""
 
 COMMAND_KWARGS = {
     "options": "--system"
