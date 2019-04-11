@@ -22,7 +22,6 @@ from moler.exceptions import CommandFailure
 
 class Journalctl(GenericUnixCommand):
     """Journalctl command class."""
-    _re_outline= re.compile(r"(?P<DATE>^[\D]+ [\d]+\s[\d]+:[\d]+:[\d]+\s)(?P<CODE>[\w-]+\s)(?P<NAME>[\w\d\[\]]+):(?P<MSG>.*$)")
 
     def __init__(self, connection, prompt=None, newline_chars=None, runner=None, options=None,
                  expected_prompt=r'[^@]+@0x[^>]+>'):
@@ -38,11 +37,10 @@ class Journalctl(GenericUnixCommand):
         """
         super(Journalctl, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                          runner=runner)
-
+        self.current_ret = {"RESULT": []}
         self.options = options
         if expected_prompt:
             self._re_expected_prompt = GenericUnixCommand._calculate_prompt(expected_prompt)
-        self.ret_required = False
 
     def build_command_string(self):
         """
@@ -71,7 +69,6 @@ class Journalctl(GenericUnixCommand):
             pass
         super(Journalctl, self).on_new_line(line, is_full_line)
 
-
     def _command_error(self, line):
         re_command_error = re.compile(r'(?P<ERROR>No journal files were opened\s+.+)', re.I)
 
@@ -83,18 +80,19 @@ class Journalctl(GenericUnixCommand):
             if not self.done():
                 self.set_result({})
 
+    _re_outline = re.compile(r"(?P<DATE>^[\D]+ [\d]+\s[\d]+:[\d]+:[\d]+\s)"
+                             r"(?P<HOST>[\w-]+\s)(?P<NAME>[\w\d\[\]]+):(?P<MSG>.*$)")
+
     def _parse_line_complete(self, line):
         if self._regex_helper.search_compiled(Journalctl._re_outline, line):
-            self.curr_out = {
+            curr_out = {
                 "DATE": self._regex_helper.group(1),
-                "CODE": self._regex_helper.group(2),
+                "HOST": self._regex_helper.group(2),
                 "NAME": self._regex_helper.group(3),
                 "MSG": self._regex_helper.group(4)
             }
+            self.current_ret["RESULT"].append(curr_out)
             raise ParsingDone
-
-
-
 
 
 COMMAND_OUTPUT = """root@fct-0a:~ >journalctl --system
@@ -102,20 +100,40 @@ Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: Connection (1): Incoming message
 Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: Request Type is HttpSupervision
 Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: SMA_XOHMessageInterpreter:: Message Type = HttpSupervision
 Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: ::SMA_XOHBTSOMForwarder:: Forward message to BTSOM.
-Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: Connection (1): Finished handling message
-Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: Calling handle_input with FD :: 12
-Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: Connection (2): Incoming message
-Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: Response Type is HttpSupervision
-Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: SMA_XOHMessageInterpreter:: Message Type = HttpSupervision
-Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: Sent HttpSupervision to SEM
-Apr 10 18:08:34 fct-0a SmaLiteXoh[26334]: Connection (2): Finished handling message
 root@0xe019:~ >"""
 
 COMMAND_KWARGS = {
     "options": "--system"
 }
 
-COMMAND_RESULT = {}
+COMMAND_RESULT = {
+    "RESULT": [
+        {
+            'DATE': "Apr 10 18:08:34 ",
+            'HOST': "fct-0a ",
+            'NAME': "SmaLiteXoh[26334]",
+            'MSG': "Connection (1): Incoming message"
+        },
+        {
+            'DATE': "Apr 10 18:08:34 ",
+            'HOST': "fct-0a ",
+            'NAME': "SmaLiteXoh[26334]",
+            'MSG': "Request Type is HttpSupervision"
+        },
+        {
+            'DATE': "Apr 10 18:08:34 ",
+            'HOST': "fct-0a ",
+            'NAME': "SmaLiteXoh[26334]",
+            'MSG': "SMA_XOHMessageInterpreter:: Message Type = HttpSupervision"
+        },
+        {
+            'DATE': "Apr 10 18:08:34 ",
+            'HOST': "fct-0a ",
+            'NAME': "SmaLiteXoh[26334]",
+            'MSG': "::SMA_XOHBTSOMForwarder:: Forward message to BTSOM."
+        }
+    ]
+}
 
 """
 =================================================HELP=MESSAGE===========================================================
