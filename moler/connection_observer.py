@@ -265,7 +265,7 @@ class ConnectionObserver(object):
         """
         if self._is_done:
             self._log(logging.WARNING,
-                      "Trial to set exception {!r} on already done {}".format(exception, self),
+                      "Try to set exception {!r} on already done {}".format(exception, self),
                       levels_to_go_up=2)
             return
         ConnectionObserver._change_unraised_exception(new_exception=exception, observer=self)
