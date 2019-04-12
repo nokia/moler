@@ -141,6 +141,8 @@ def load_device_from_config(config):
 
 def load_logger_from_config(config):
     if 'LOGGER' in config:
+        if 'MODE' in config['LOGGER']:
+            log_cfg.set_write_mode(config['LOGGER']['MODE'])
         if 'PATH' in config['LOGGER']:
             log_cfg.set_logging_path(config['LOGGER']['PATH'])
         if 'RAW_LOG' in config['LOGGER']:

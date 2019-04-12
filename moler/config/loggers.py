@@ -24,6 +24,15 @@ TEST_CASE = 45
 
 debug_level = None  # means: inactive
 raw_logs_active = False
+write_mode = "a"
+
+
+def set_write_mode(mode):
+    global write_mode
+    if mode.lower() in ["a", "append"]:
+        write_mode = "a"
+    elif mode.lower() in ["w", "write"]:
+        write_mode = "w"
 
 
 def set_logging_path(path):
@@ -87,8 +96,9 @@ def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filt
     :param filter: filter for file logger
     :return:  logging.FileHandler object
     """
+    global write_mode
     logger = logging.getLogger(logger_name)
-    cfh = logging.FileHandler(log_filename, 'w')
+    cfh = logging.FileHandler(log_filename, write_mode)
     cfh.setLevel(log_level)
     cfh.setFormatter(formatter)
     if filter:
@@ -126,10 +136,11 @@ def _add_raw_file_handler(logger_name, log_file):
     :param log_file: Path to logfile. Final logfile location is logging_path + log_file
     :return: None
     """
+    global write_mode
     logfile_full_path = os.path.join(logging_path, log_file)
     _prepare_logs_folder(logfile_full_path)
     logger = logging.getLogger(logger_name)
-    rfh = RawFileHandler(filename=logfile_full_path, mode='wb')
+    rfh = RawFileHandler(filename=logfile_full_path, mode='{}b'.format(write_mode))
     logger.addHandler(rfh)
 
 
@@ -140,10 +151,11 @@ def _add_raw_trace_file_handler(logger_name, log_file):
     :param log_file: Path to logfile. Final logfile location is logging_path + log_file
     :return: None
     """
+    global write_mode
     logfile_full_path = os.path.join(logging_path, log_file)
     _prepare_logs_folder(logfile_full_path)
     logger = logging.getLogger(logger_name)
-    trace_rfh = RawFileHandler(filename=logfile_full_path, mode='w')
+    trace_rfh = RawFileHandler(filename=logfile_full_path, mode=write_mode)
     # exchange Formatter
     raw_trace_formatter = RawTraceFormatter()
     trace_rfh.setFormatter(raw_trace_formatter)
@@ -223,8 +235,9 @@ def configure_device_logger(connection_name, propagate=False):
     if logger_name not in active_loggers:
         logger = create_logger(name=logger_name, log_level=TRACE)
         logger.propagate = propagate
-        conn_formatter = MultilineWithDirectionFormatter(fmt="%(asctime)s.%(msecs)03d %(transfer_direction)s|%(message)s",
-                                                         datefmt=date_format)
+        conn_formatter = MultilineWithDirectionFormatter(
+            fmt="%(asctime)s.%(msecs)03d %(transfer_direction)s|%(message)s",
+            datefmt=date_format)
         _add_new_file_handler(logger_name=logger_name,
                               log_file='{}.log'.format(logger_name),
                               log_level=logging.INFO,

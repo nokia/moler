@@ -109,6 +109,7 @@ def buffer_connection():
 os.environ['MOLER_DEBUG_LEVEL'] = 'TRACE'  # to have all debug details of tests
 moler.config.loggers.raw_logs_active = True
 moler.config.loggers.configure_debug_level()
+moler.config.loggers.set_write_mode(mode="write")
 moler.config.loggers.configure_moler_main_logger()
 moler.config.loggers.configure_runner_logger(runner_name="thread-pool")
 moler.config.loggers.configure_runner_logger(runner_name="asyncio")
