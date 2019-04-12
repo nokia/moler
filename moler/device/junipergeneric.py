@@ -362,13 +362,3 @@ class JuniperGeneric(UnixLocal):
             available = {UnixLocal.cmds: ['moler.cmd.juniper.configure'],
                          UnixLocal.events: ['moler.events.juniper']}
         return available[observer]
-
-    def _execute_command_to_change_state(self, source_state, dest_state, timeout=-1):
-        configurations = self.get_configurations(source_state=source_state, dest_state=dest_state)
-        # will be telnet or ssh
-        command_name = configurations["execute_command"]
-        command_params = configurations["command_params"]
-
-        command_timeout = self.calc_timeout_for_command(timeout, command_params)
-        command = self.get_cmd(cmd_name=command_name, cmd_params=command_params)
-        command(timeout=command_timeout)
