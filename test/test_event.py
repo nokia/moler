@@ -54,6 +54,9 @@ def test_event_is_running(do_nothing_command__for_major_base_class):
         def subscribe(self, observer):
             pass
 
+        def unsubscribe(self, observer):
+            pass
+
     wait4.connection = TheConnection()
     wait4.detect_patterns = ['Connection lose']
     assert not wait4.running()
