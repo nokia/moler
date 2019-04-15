@@ -45,6 +45,19 @@ class CommandScheduler(object):
         scheduler = CommandScheduler._get_scheduler()
         scheduler._remove_command(cmd=connection_observer)
 
+    @staticmethod
+    def is_waiting_for_execution(connection_observer):
+        """
+        Checks if connection_observer waits in queue before passed to runner.
+
+        :param connection_observer: ConnectionObserver object.
+        :return: True if connection_observer waits in queue and False if it does not wait.
+        """
+        if connection_observer.is_command:
+            scheduler = CommandScheduler._get_scheduler()
+            return scheduler._does_it_wait_in_queue(cmd=connection_observer)
+        return False
+
     # internal methods and variables
 
     _conn_lock = threading.Lock()
@@ -85,6 +98,7 @@ class CommandScheduler(object):
                                                  timeout=cmd.timeout,
                                                  kind="scheduler.await_done",
                                                  passed_time=time.time() - start_time))
+                cmd.set_end_of_life()
                 self._remove_command(cmd=cmd)
         return False
 
@@ -178,6 +192,15 @@ class CommandScheduler(object):
         conn_atr = self._locks[connection]
         with lock:
             conn_atr['queue'].append(cmd)
+
+    def _does_it_wait_in_queue(self, cmd):
+        connection = cmd.connection
+        lock = self._lock_for_connection(connection)
+        conn_atr = self._locks[connection]
+        with lock:
+            if cmd in conn_atr['queue']:
+                return True
+        return False
 
     def _submit(self, connection_observer):
         """

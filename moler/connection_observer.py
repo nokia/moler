@@ -54,8 +54,12 @@ class ConnectionObserver(object):
         self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
         self.logger = logging.getLogger('moler.connection.{}'.format(self.get_logger_name()))
 
-        self.in_terminating = False
-        self.was_on_timeout_called = False
+        self.in_terminating = False  # Set True if ConnectionObserver object is just after __timeout but it can do
+        #                              something during terminating_timeout. False if the ConnectionObserver object runs
+        #                              during normal timeout. For Runners only!
+        self.was_on_timeout_called = False  # Set True if method on_timeout was called. False otherwise. For Runners
+        #                                     only!
+
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
@@ -206,7 +210,9 @@ class ConnectionObserver(object):
         with exception_stored_if_not_main_thread(self):
             if not self._is_running:
                 raise ConnectionObserverNotStarted(self)
-
+            # check if already is running
+            while not self._is_done and CommandScheduler.is_waiting_for_execution(self):
+                time.sleep(0.005)
             self.runner.wait_for(connection_observer=self, connection_observer_future=self._future, timeout=timeout)
         return self.result()
 

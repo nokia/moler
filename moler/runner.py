@@ -103,28 +103,30 @@ class ConnectionObserverRunner(object):
 
 def time_out_observer(connection_observer, timeout, passed_time, runner_logger, kind="background_run"):
     """Set connection_observer status to timed-out"""
-    if not connection_observer.done():
-        if hasattr(connection_observer, "command_string"):
-            exception = CommandTimeout(connection_observer=connection_observer,
-                                       timeout=timeout, kind=kind, passed_time=passed_time)
-        else:
-            exception = ConnectionObserverTimeout(connection_observer=connection_observer,
-                                                  timeout=timeout, kind=kind, passed_time=passed_time)
-        # TODO: secure_data_received() may change status of connection_observer
-        # TODO: and if secure_data_received() runs inside threaded connection - we have race
-        connection_observer.set_exception(exception)
+    if not connection_observer.was_on_timeout_called:
+        connection_observer.was_on_timeout_called = True
+        if not connection_observer.done():
+            if hasattr(connection_observer, "command_string"):
+                exception = CommandTimeout(connection_observer=connection_observer,
+                                           timeout=timeout, kind=kind, passed_time=passed_time)
+            else:
+                exception = ConnectionObserverTimeout(connection_observer=connection_observer,
+                                                      timeout=timeout, kind=kind, passed_time=passed_time)
+            # TODO: secure_data_received() may change status of connection_observer
+            # TODO: and if secure_data_received() runs inside threaded connection - we have race
+            connection_observer.set_exception(exception)
 
-        connection_observer.on_timeout()
+            connection_observer.on_timeout()
 
-        observer_info = "{}.{}".format(connection_observer.__class__.__module__, connection_observer)
-        timeout_msg = "has timed out after {:.2f} seconds.".format(passed_time)
-        msg = "{} {}".format(observer_info, timeout_msg)
+            observer_info = "{}.{}".format(connection_observer.__class__.__module__, connection_observer)
+            timeout_msg = "has timed out after {:.2f} seconds.".format(passed_time)
+            msg = "{} {}".format(observer_info, timeout_msg)
 
-        # levels_to_go_up: extract caller info to log where .time_out_observer has been called from
-        connection_observer._log(logging.INFO, msg, levels_to_go_up=2)
-        log_into_logger(runner_logger, level=logging.DEBUG,
-                        msg="{} {}".format(connection_observer, timeout_msg),
-                        levels_to_go_up=1)
+            # levels_to_go_up: extract caller info to log where .time_out_observer has been called from
+            connection_observer._log(logging.INFO, msg, levels_to_go_up=2)
+            log_into_logger(runner_logger, level=logging.DEBUG,
+                            msg="{} {}".format(connection_observer, timeout_msg),
+                            levels_to_go_up=1)
 
 
 def result_for_runners(connection_observer):
@@ -211,8 +213,6 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         atexit.register(self.shutdown)
         if executor is None:
             max_workers = (cpu_count() or 1) * 5  # fix for concurrent.futures  v.3.0.3  to have API of v.3.1.1 or above
-            if max_workers < 1000:
-                max_workers = 1000
             try:  # concurrent.futures  v.3.2.0 introduced prefix we like :-)
                 self.executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix='ThrdPoolRunner')
             except TypeError as exc:
@@ -325,7 +325,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             remain_time, msg = his_remaining_time("remaining", timeout=observer_timeout, from_start_time=start_time)
 
         self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
-        remain_time += connection_observer.terminating_timeout
+        eol_remain_time = remain_time + connection_observer.terminating_timeout
 
         if connection_observer_future is None:
             end_of_life, remain_time = await_future_or_eol(connection_observer, remain_time, start_time, await_timeout,
@@ -334,7 +334,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 return None
 
         # either we wait forced-max-timeout or we check done-status each 0.1sec tick
-        if remain_time > 0.0:
+        if eol_remain_time > 0.0:
             future = connection_observer_future or connection_observer._future
             assert future is not None
             if max_timeout:
@@ -352,24 +352,21 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                         return None
             else:
                 wait_tick = 0.1
-                while remain_time > 0.0:
+                while eol_remain_time > 0.0:
                     done, not_done = wait([future], timeout=wait_tick)
                     if (future in done) or connection_observer.done():
                         self._cancel_submitted_future(connection_observer, future)
                         return None
-                    if connection_observer.in_terminating:
-                        timeout = connection_observer.terminating_timeout
-                    else:
-                        timeout = connection_observer.timeout
                     already_passed = time.time() - start_time
+                    eol_timeout = connection_observer.timeout + connection_observer.terminating_timeout
+                    eol_remain_time = eol_timeout - already_passed
+                    timeout = connection_observer.timeout
                     remain_time = timeout - already_passed
-                    if remain_time <= 0.0 and not connection_observer.in_terminating:
+                    if remain_time <= 0.0:
                         self._wait_for_time_out(connection_observer, connection_observer_future,
                                                 timeout=await_timeout)
-                        connection_observer.in_terminating = True
-                        if connection_observer.terminating_timeout > 0.0:
-                            start_time = time.time()
-                            remain_time = connection_observer.terminating_timeout
+                        if not connection_observer.in_terminating:
+                            connection_observer.in_terminating = True
 
         # code below is to close ConnectionObserver and future objects
         self._end_of_life_of_future_and_connection_observer(connection_observer, connection_observer_future)
@@ -393,18 +390,14 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         future = connection_observer_future or connection_observer._future
         if future:
             with future.observer_lock:
-                if connection_observer.was_on_timeout_called:
-                    connection_observer.was_on_timeout_called = True
-                    time_out_observer(connection_observer=connection_observer,
-                                      timeout=timeout, passed_time=passed,
-                                      runner_logger=self.logger, kind="await_done")
-        else:
-            # sorry, we don't have lock yet (it is created by runner.submit()
-            if connection_observer.was_on_timeout_called:
-                connection_observer.was_on_timeout_called = True
                 time_out_observer(connection_observer=connection_observer,
                                   timeout=timeout, passed_time=passed,
                                   runner_logger=self.logger, kind="await_done")
+        else:
+            # sorry, we don't have lock yet (it is created by runner.submit()
+            time_out_observer(connection_observer=connection_observer,
+                              timeout=timeout, passed_time=passed,
+                              runner_logger=self.logger, kind="await_done")
 
     def wait_for_iterator(self, connection_observer, connection_observer_future):
         """
