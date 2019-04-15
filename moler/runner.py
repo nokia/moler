@@ -204,12 +204,16 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         """Create instance of ThreadPoolExecutorRunner class"""
         self._in_shutdown = False
         self._i_own_executor = False
+        self._in_terminating = False
+        self._was_timeout_called = False
         self.executor = executor
         self.logger = logging.getLogger('moler.runner.thread-pool')
         self.logger.debug("created")
         atexit.register(self.shutdown)
         if executor is None:
             max_workers = (cpu_count() or 1) * 5  # fix for concurrent.futures  v.3.0.3  to have API of v.3.1.1 or above
+            if max_workers < 1000:
+                max_workers = 1000
             try:  # concurrent.futures  v.3.2.0 introduced prefix we like :-)
                 self.executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix='ThrdPoolRunner')
             except TypeError as exc:
@@ -339,6 +343,14 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 if (future in done) or connection_observer.done():
                     self._cancel_submitted_future(connection_observer, future)
                     return None
+                self._wait_for_time_out(connection_observer, connection_observer_future,
+                                        timeout=await_timeout)
+                if connection_observer.terminating_timeout > 0.0:
+                    self._in_terminating = True
+                    done, not_done = wait([future], timeout=connection_observer.terminating_timeout)
+                    if (future in done) or connection_observer.done():
+                        self._cancel_submitted_future(connection_observer, future)
+                        return None
             else:
                 wait_tick = 0.1
                 while remain_time > 0.0:
@@ -346,14 +358,30 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                     if (future in done) or connection_observer.done():
                         self._cancel_submitted_future(connection_observer, future)
                         return None
-                    timeout = connection_observer.timeout + connection_observer.terminating_timeout
+                    if self._in_terminating:
+                        timeout = connection_observer.terminating_timeout
+                    else:
+                        timeout = connection_observer.timeout
                     already_passed = time.time() - start_time
                     remain_time = timeout - already_passed
+                    if remain_time <= 0.0 and not self._in_terminating:
+                        self._wait_for_time_out(connection_observer, connection_observer_future,
+                                                timeout=await_timeout)
+                        self._in_terminating = True
+                        if connection_observer.terminating_timeout > 0.0:
+                            start_time = time.time()
+                            remain_time = connection_observer.terminating_timeout
 
-        # code below is for timed out observer
-        self._wait_for_time_out(connection_observer, connection_observer_future,
-                                timeout=await_timeout + connection_observer.terminating_timeout)
+        # code below is to close ConnectionObserver and future objects
+        self._end_of_life_of_future_and_connection_observer(connection_observer, connection_observer_future)
+
         return None
+
+    def _end_of_life_of_future_and_connection_observer(self, connection_observer, connection_observer_future):
+        future = connection_observer_future or connection_observer._future
+        if future:
+            future.cancel(no_wait=True)
+        connection_observer.set_end_of_life()
 
     @staticmethod
     def _cancel_submitted_future(connection_observer, connection_observer_future):
@@ -362,20 +390,20 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             future.cancel(no_wait=True)
 
     def _wait_for_time_out(self, connection_observer, connection_observer_future, timeout):
-        passed = time.time() - connection_observer.start_time
-        future = connection_observer_future or connection_observer._future
-        if future:
-            future.cancel(no_wait=True)
-            with future.observer_lock:
+        if self._was_timeout_called:
+            self._was_timeout_called = True
+            passed = time.time() - connection_observer.start_time
+            future = connection_observer_future or connection_observer._future
+            if future:
+                with future.observer_lock:
+                    time_out_observer(connection_observer=connection_observer,
+                                      timeout=timeout, passed_time=passed,
+                                      runner_logger=self.logger, kind="await_done")
+            else:
+                # sorry, we don't have lock yet (it is created by runner.submit()
                 time_out_observer(connection_observer=connection_observer,
                                   timeout=timeout, passed_time=passed,
                                   runner_logger=self.logger, kind="await_done")
-        else:
-            # sorry, we don't have lock yet (it is created by runner.submit()
-            time_out_observer(connection_observer=connection_observer,
-                              timeout=timeout, passed_time=passed,
-                              runner_logger=self.logger, kind="await_done")
-        connection_observer.cancel()
 
     def wait_for_iterator(self, connection_observer, connection_observer_future):
         """
@@ -457,7 +485,6 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
     def _feed_loop(self, connection_observer, stop_feeding, observer_lock):
         start_time = connection_observer.start_time
-        in_terminating = False
         while True:
             if stop_feeding.is_set():
                 # TODO: should it be renamed to 'cancelled' to be in sync with initial action?
@@ -470,14 +497,14 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             # we need to check connection_observer.timeout at each round since timeout may change
             # during lifetime of connection_observer
             timeout = connection_observer.timeout
-            if in_terminating:
+            if self._in_terminating:
                 timeout = connection_observer.terminating_timeout
             if (timeout is not None) and (run_duration >= timeout):
-                if in_terminating:
+                if self._in_terminating:
                     msg = "{} could not terminate during {} seconds. It will be cancelled".format(connection_observer,
                                                                                                   timeout)
                     self.logger.info(msg)
-                    connection_observer.cancel()
+                    connection_observer.set_end_of_life()
                 else:
                     with observer_lock:
                         time_out_observer(connection_observer,
@@ -486,7 +513,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                                           runner_logger=self.logger)
                         if connection_observer.terminating_timeout >= 0.0:
                             start_time = time.time()
-                            in_terminating = True
+                            self._in_terminating = True
                         else:
                             break
 
