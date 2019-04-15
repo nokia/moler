@@ -54,6 +54,9 @@ class ConnectionObserver(object):
         self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
         self.logger = logging.getLogger('moler.connection.{}'.format(self.get_logger_name()))
 
+        self.in_terminating = False
+        self.was_on_timeout_called = False
+
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
 
