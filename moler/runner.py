@@ -16,6 +16,7 @@ import threading
 import time
 from abc import abstractmethod, ABCMeta
 from concurrent.futures import ThreadPoolExecutor, wait
+from functools import partial
 
 from six import add_metaclass
 
@@ -23,15 +24,6 @@ from moler.exceptions import CommandTimeout
 from moler.exceptions import ConnectionObserverTimeout
 from moler.exceptions import MolerException
 from moler.util.loghelper import log_into_logger
-
-# fix for concurrent.futures  v.3.0.3  to have API of v.3.1.1 or above
-try:
-    from multiprocessing import cpu_count
-except ImportError:
-    # some platforms don't have multiprocessing
-    def cpu_count():
-        """Workarround fix"""
-        return None
 
 
 @add_metaclass(ABCMeta)
@@ -209,7 +201,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         self.logger.debug("created")
         atexit.register(self.shutdown)
         if executor is None:
-            max_workers = (cpu_count() or 1) * 5  # fix for concurrent.futures  v.3.0.3  to have API of v.3.1.1 or above
+            max_workers = 1000  # max 1000 threads in pool
             try:  # concurrent.futures  v.3.2.0 introduced prefix we like :-)
                 self.executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix='ThrdPoolRunner')
             except TypeError as exc:
@@ -278,6 +270,12 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 self.logger.warning("go background: {} - {}".format(connection_observer, err_msg))
                 self.logger.exception(err_msg)
                 raise
+
+        finalizer = partial(self._feed_finish_callback,
+                            connection_observer=connection_observer,
+                            subscribed_data_receiver=subscribed_data_receiver,
+                            feed_done=feed_done, observer_lock=observer_lock)
+        connection_observer_future.add_done_callback(finalizer)
 
         c_future = CancellableFuture(connection_observer_future, observer_lock,
                                      stop_feeding, feed_done)
@@ -418,10 +416,31 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
         moler_conn = connection_observer.connection
         self.logger.debug("subscribing for data {}".format(connection_observer))
-        moler_conn.subscribe(secure_data_received)
+        with observer_lock:
+            moler_conn.subscribe(secure_data_received)
+            # after subscription we have data path so observer is started
+            remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
+                                                  from_start_time=connection_observer.start_time)
+            connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
         if connection_observer.is_command():
             connection_observer.send_command()
         return secure_data_received  # to know what to unsubscribe
+
+    def _stop_feeding(self, connection_observer, subscribed_data_receiver, feed_done, observer_lock):
+        with observer_lock:
+            if not feed_done.is_set():
+                moler_conn = connection_observer.connection
+                self.logger.debug("unsubscribing {}".format(connection_observer))
+                moler_conn.unsubscribe(subscribed_data_receiver)
+                # after unsubscription we break data path so observer is finished
+                remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
+                                                      from_start_time=connection_observer.start_time)
+                connection_observer._log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
+                feed_done.set()
+
+    def _feed_finish_callback(self, future, connection_observer, subscribed_data_receiver, feed_done, observer_lock):
+        """Callback attached to concurrent.futures.Future of submitted feed()"""
+        self._stop_feeding(connection_observer, subscribed_data_receiver, feed_done, observer_lock)
 
     def feed(self, connection_observer, subscribed_data_receiver, stop_feeding, feed_done,
              observer_lock):
@@ -431,26 +450,19 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         """
         remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                               from_start_time=connection_observer.start_time)
-        self.logger.debug("{} started, {}".format(connection_observer, msg))
-        connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
+        self.logger.debug("thread started  for {}, {}".format(connection_observer, msg))
 
         if not subscribed_data_receiver:
             subscribed_data_receiver = self._start_feeding(connection_observer, observer_lock)
 
         time.sleep(0.005)  # give control back before we start processing
 
-        moler_conn = connection_observer.connection
-
         self._feed_loop(connection_observer, stop_feeding, observer_lock)
-
-        self.logger.debug("unsubscribing {}".format(connection_observer))
-        moler_conn.unsubscribe(subscribed_data_receiver)
-        feed_done.set()
 
         remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                               from_start_time=connection_observer.start_time)
-        connection_observer._log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
-        self.logger.debug("{} finished, {}".format(connection_observer, msg))
+        self.logger.debug("thread finished for {}, {}".format(connection_observer, msg))
+        self._stop_feeding(connection_observer, subscribed_data_receiver, feed_done, observer_lock)
         return None
 
     def _feed_loop(self, connection_observer, stop_feeding, observer_lock):
