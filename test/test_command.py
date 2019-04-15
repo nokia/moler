@@ -205,6 +205,9 @@ def test_command_is_running_after_sending_command_string(do_nothing_command__for
         def subscribe(self, observer):
             pass
 
+        def unsubscribe(self, observer):
+            pass
+
     ping.connection = TheConnection()
     ping.command_string = 'ping localhost'
     assert not ping.running()
