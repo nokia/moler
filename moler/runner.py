@@ -24,15 +24,6 @@ from moler.exceptions import ConnectionObserverTimeout
 from moler.exceptions import MolerException
 from moler.util.loghelper import log_into_logger
 
-# fix for concurrent.futures  v.3.0.3  to have API of v.3.1.1 or above
-try:
-    from multiprocessing import cpu_count
-except ImportError:
-    # some platforms don't have multiprocessing
-    def cpu_count():
-        """Workarround fix"""
-        return None
-
 
 @add_metaclass(ABCMeta)
 class ConnectionObserverRunner(object):
@@ -209,7 +200,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         self.logger.debug("created")
         atexit.register(self.shutdown)
         if executor is None:
-            max_workers = (cpu_count() or 1) * 5  # fix for concurrent.futures  v.3.0.3  to have API of v.3.1.1 or above
+            max_workers = 1000  # max 1000 threads in pool
             try:  # concurrent.futures  v.3.2.0 introduced prefix we like :-)
                 self.executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix='ThrdPoolRunner')
             except TypeError as exc:
