@@ -60,7 +60,6 @@ class ConnectionObserver(object):
         self.was_on_timeout_called = False  # Set True if method on_timeout was called. False otherwise. For Runners
         #                                     only!
 
-
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
 
