@@ -28,12 +28,11 @@ class Scheduler(object):
         :param callback_params: dict of params of fun
         :param cancel_on_exception: set True if you want to break next execution of this callback if previous raises an
          exception
-        :param int misfire_grace_time: seconds after the designated runtime that the job is still
-            allowed to be run
+        :param int misfire_grace_time: seconds after the designated runtime that the job is still allowed to be run
         :return: Instance of Job.
         """
         if not misfire_grace_time:
-            misfire_grace_time = int(interval/2)
+            misfire_grace_time = int(interval / 2)
 
         instance = Scheduler._get_instance()
         decorated = DecoratedCallable(callback, cancel_on_exception)
