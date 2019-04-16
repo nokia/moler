@@ -378,14 +378,17 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                         if not connection_observer.in_terminating:
                             connection_observer.in_terminating = True
         else:
-            # Have to wait till connection_observer is done with terminaing timeout.
-            eol_remain_time = connection_observer.terminating_timeout
-            start_time = time.time()
-            wait_tick = 0.1
-            while not connection_observer.done() and eol_remain_time > 0.0:
-                time.sleep(wait_tick)
-                eol_remain_time = start_time + connection_observer.terminating_timeout - time.time()
+            self._wait_for_not_started_connection_observer_is_done(connection_observer=connection_observer)
         return False
+
+    def _wait_for_not_started_connection_observer_is_done(self, connection_observer):
+        # Have to wait till connection_observer is done with terminaing timeout.
+        eol_remain_time = connection_observer.terminating_timeout
+        start_time = time.time()
+        wait_tick = 0.1
+        while not connection_observer.done() and eol_remain_time > 0.0:
+            time.sleep(wait_tick)
+            eol_remain_time = start_time + connection_observer.terminating_timeout - time.time()
 
     def _end_of_life_of_future_and_connection_observer(self, connection_observer, connection_observer_future):
         future = connection_observer_future or connection_observer._future
