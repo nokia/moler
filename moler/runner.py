@@ -204,6 +204,7 @@ class CancellableFuture(object):
 class ThreadPoolExecutorRunner(ConnectionObserverRunner):
     def __init__(self, executor=None):
         """Create instance of ThreadPoolExecutorRunner class"""
+        self._tick = 0.005  # Tick for sleep or partial timeout
         self._in_shutdown = False
         self._i_own_executor = False
         self._was_timeout_called = False
@@ -359,9 +360,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                         self._cancel_submitted_future(connection_observer, future)
                         return True
             else:
-                wait_tick = 0.005
                 while eol_remain_time > 0.0:
-                    done, not_done = wait([future], timeout=wait_tick)
+                    done, not_done = wait([future], timeout=self._tick)
                     if (future in done) or connection_observer.done():
                         self._cancel_submitted_future(connection_observer, future)
                         return True
@@ -383,9 +383,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         # Have to wait till connection_observer is done with terminaing timeout.
         eol_remain_time = connection_observer.terminating_timeout
         start_time = time.time()
-        wait_tick = 0.005
         while not connection_observer.done() and eol_remain_time > 0.0:
-            time.sleep(wait_tick)
+            time.sleep(self._tick)
             eol_remain_time = start_time + connection_observer.terminating_timeout - time.time()
 
     def _end_of_life_of_future_and_connection_observer(self, connection_observer, connection_observer_future):
@@ -476,7 +475,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         if not subscribed_data_receiver:
             subscribed_data_receiver = self._start_feeding(connection_observer, observer_lock)
 
-        time.sleep(0.005)  # give control back before we start processing
+        time.sleep(self._tick)  # give control back before we start processing
 
         moler_conn = connection_observer.connection
 
@@ -510,8 +509,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 timeout = connection_observer.terminating_timeout
             if (timeout is not None) and (run_duration >= timeout):
                 if connection_observer.in_terminating:
-                    msg = "{} could not terminate during {} seconds. It will be cancelled".format(connection_observer,
-                                                                                                  timeout)
+                    msg = "{} underlying real command failed to finish during {} seconds. It will be forcefully" \
+                          " terminated".format(connection_observer, timeout)
                     self.logger.info(msg)
                     connection_observer.set_end_of_life()
                 else:
@@ -529,7 +528,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             if self._in_shutdown:
                 self.logger.debug("shutdown so cancelling {}".format(connection_observer))
                 connection_observer.cancel()
-            time.sleep(0.005)  # give moler_conn a chance to feed observer
+            time.sleep(self._tick)  # give moler_conn a chance to feed observer
 
     def timeout_change(self, timedelta):
         pass
