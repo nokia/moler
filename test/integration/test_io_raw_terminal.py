@@ -40,7 +40,6 @@ def test_terminal_cmd_whoami(terminal_connection):
     terminal = terminal_connection
     cmd = Whoami(connection=terminal)
     ret = cmd()
-    print(ret)
     assert 'USER' in ret
     assert ret['USER'] is not None
     assert getpass.getuser() == ret['USER']
