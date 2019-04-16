@@ -323,7 +323,6 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             remain_time, msg = his_remaining_time("await max.", timeout=max_timeout, from_start_time=start_time)
         else:
             remain_time, msg = his_remaining_time("remaining", timeout=observer_timeout, from_start_time=start_time)
-
         self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
 
         if connection_observer_future is None:
@@ -331,17 +330,16 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                                                            self.logger)
             if end_of_life:
                 return None
-
         if not self._execute_till_eol(connection_observer=connection_observer,
                                       connection_observer_future=connection_observer_future,
                                       max_timeout=max_timeout,
-                                      await_timeout=await_timeout):
+                                      await_timeout=await_timeout,
+                                      remain_time=remain_time):
             # code below is to close ConnectionObserver and future objects
             self._end_of_life_of_future_and_connection_observer(connection_observer, connection_observer_future)
         return None
 
-    def _execute_till_eol(self, connection_observer, connection_observer_future, max_timeout, await_timeout):
-        remain_time = connection_observer.start_time + connection_observer.timeout - time.time()
+    def _execute_till_eol(self, connection_observer, connection_observer_future, max_timeout, await_timeout, remain_time):
         eol_remain_time = remain_time
         # either we wait forced-max-timeout or we check done-status each 0.1sec tick
         if eol_remain_time > 0.0:
@@ -361,7 +359,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                         self._cancel_submitted_future(connection_observer, future)
                         return True
             else:
-                wait_tick = 0.1
+                wait_tick = 0.005
                 while eol_remain_time > 0.0:
                     done, not_done = wait([future], timeout=wait_tick)
                     if (future in done) or connection_observer.done():
@@ -385,7 +383,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         # Have to wait till connection_observer is done with terminaing timeout.
         eol_remain_time = connection_observer.terminating_timeout
         start_time = time.time()
-        wait_tick = 0.01
+        wait_tick = 0.005
         while not connection_observer.done() and eol_remain_time > 0.0:
             time.sleep(wait_tick)
             eol_remain_time = start_time + connection_observer.terminating_timeout - time.time()
