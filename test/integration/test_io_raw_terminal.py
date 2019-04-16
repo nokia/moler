@@ -75,7 +75,7 @@ def test_terminal_whoami_ls(terminal_connection):
 def test_terminal_lsof(terminal_connection):
     terminal = terminal_connection
     cmd = Lsof(connection=terminal, options="| grep python")
-    ret = cmd()
+    ret = cmd(timeout=30)
     assert ret["NUMBER"] > 1
 
 
