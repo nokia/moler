@@ -17,7 +17,7 @@ from moler.helpers import ForwardingHandler
 class Scheduler(object):
 
     @staticmethod
-    def get_job(callback, interval, callback_params=None, cancel_on_exception=False, misfire_grace_time=None):
+    def get_job(callback, interval, callback_params=None, cancel_on_exception=False, misfire_grace_time=0):
         """
         Static method to create job.
         :param callback: Reference to callable object (i.e. function, method)
@@ -31,13 +31,15 @@ class Scheduler(object):
         :param int misfire_grace_time: seconds after the designated runtime that the job is still allowed to be run
         :return: Instance of Job.
         """
-        if not misfire_grace_time:
-            misfire_grace_time = int(interval / 2)
-
         instance = Scheduler._get_instance()
         decorated = DecoratedCallable(callback, cancel_on_exception)
-        job_internal = instance._scheduler.add_job(decorated.call, 'interval', seconds=interval,
-                                                   misfire_grace_time=misfire_grace_time, kwargs=callback_params)
+
+        if misfire_grace_time != 0:
+            job_internal = instance._scheduler.add_job(decorated.call, 'interval', seconds=interval,
+                                                       misfire_grace_time=misfire_grace_time, kwargs=callback_params)
+        else:
+            job_internal = instance._scheduler.add_job(decorated.call, 'interval', seconds=interval,
+                                                       kwargs=callback_params)
         job_internal.pause()
         job = Job(job_internal)
         decorated.job = job
