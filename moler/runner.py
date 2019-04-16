@@ -338,11 +338,10 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                                       await_timeout=await_timeout):
             # code below is to close ConnectionObserver and future objects
             self._end_of_life_of_future_and_connection_observer(connection_observer, connection_observer_future)
-
         return None
 
     def _execute_till_eol(self, connection_observer, connection_observer_future, max_timeout, await_timeout):
-        remain_time = connection_observer.start_time + connection_observer.timeout- time.time()
+        remain_time = connection_observer.start_time + connection_observer.timeout - time.time()
         eol_remain_time = remain_time
         # either we wait forced-max-timeout or we check done-status each 0.1sec tick
         if eol_remain_time > 0.0:
