@@ -86,7 +86,7 @@ class ConnectionObserver(object):
         see: https://pymotw.com/3/asyncio/executors.html
         """
         self.start(timeout, *args, **kwargs)
-        #started_observer = self.start(timeout, *args, **kwargs)
+        # started_observer = self.start(timeout, *args, **kwargs)
         # if started_observer:
         #     return started_observer.await_done(*args, **kwargs)
         return self.await_done()
