@@ -446,6 +446,7 @@ def test_connection_observer_exception_do_not_remove():
     time.sleep(0.1)
     from moler.cmd.unix.ls import Ls
     from moler.exceptions import CommandTimeout
+    from moler.exceptions import WrongUsage
     cmd = Ls(None)
     none_exceptions = ConnectionObserver.get_unraised_exceptions(True)
     assert 0 == len(none_exceptions)
@@ -454,9 +455,13 @@ def test_connection_observer_exception_do_not_remove():
     active_exceptions = ConnectionObserver.get_unraised_exceptions(False)
     assert 1 == len(active_exceptions)
     cmd = Ls(None)
-    cmd.set_exception(CommandTimeout(cmd, 0.1))
+    ctoe = CommandTimeout(cmd, 0.1)
+    cwue = WrongUsage(cmd, "Another exception")
+    cmd.set_exception(ctoe)
     cmd._is_done = True
+    cmd.set_exception(cwue)
     active_exceptions = ConnectionObserver.get_unraised_exceptions(False)
+    assert ctoe == active_exceptions[1]
     assert 2 == len(active_exceptions)
     active_exceptions = ConnectionObserver.get_unraised_exceptions(True)
     assert 2 == len(active_exceptions)
