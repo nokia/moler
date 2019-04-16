@@ -85,9 +85,11 @@ class ConnectionObserver(object):
         or you may delegate blocking call execution to separate thread,
         see: https://pymotw.com/3/asyncio/executors.html
         """
-        started_observer = self.start(timeout, *args, **kwargs)
-        if started_observer:
-            return started_observer.await_done(*args, **kwargs)
+        self.start(timeout, *args, **kwargs)
+        #started_observer = self.start(timeout, *args, **kwargs)
+        # if started_observer:
+        #     return started_observer.await_done(*args, **kwargs)
+        return self.await_done()
         # TODO: raise ConnectionObserverFailedToStart
 
     @property
@@ -210,8 +212,6 @@ class ConnectionObserver(object):
             if not self._is_running:
                 raise ConnectionObserverNotStarted(self)
             # check if already is running
-            while not self._is_done and CommandScheduler.is_waiting_for_execution(self):
-                time.sleep(0.005)
             self.runner.wait_for(connection_observer=self, connection_observer_future=self._future, timeout=timeout)
         return self.result()
 

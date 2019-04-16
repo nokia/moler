@@ -568,6 +568,7 @@ def await_future_or_eol(connection_observer, remain_time, start_time, timeout, l
         if remain_observer_lifetime <= 0.0:
             remain_time = 0.0
         if remain_time <= 0.0:
+            end_of_life = True
             logger.debug("{} timeout before creating future".format(connection_observer))
 
     return end_of_life, remain_time
