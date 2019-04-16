@@ -2,6 +2,7 @@ LOGGER:
   PATH: /tmp/
   RAW_LOG: True
   DATE_FORMAT: '%d %H:%M:%S'
+  MODE: write
 
 DEVICES:
   CREATE_AT_STARTUP: True
