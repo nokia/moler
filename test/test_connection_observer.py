@@ -151,7 +151,7 @@ def test_connection_observer_call_passes_positional_arguments_to_start(
 
     connection_observer = ParametrizedObserver()
 
-    connection_observer(1., 23, "foo")
+    connection_observer.start(1., 23, "foo")
 
     assert called_with_params == [23, "foo"]
 
@@ -167,7 +167,7 @@ def test_connection_observer_call_passes_keyword_arguments_to_start(
 
     observer = ParametrizedObserver()
 
-    observer(param2="foo", param1=23)
+    observer.start(timeout=1.0, param2="foo", param1=23)
 
     assert called_with_params == [23, "foo"]
 

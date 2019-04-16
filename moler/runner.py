@@ -385,7 +385,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         # Have to wait till connection_observer is done with terminaing timeout.
         eol_remain_time = connection_observer.terminating_timeout
         start_time = time.time()
-        wait_tick = 0.1
+        wait_tick = 0.01
         while not connection_observer.done() and eol_remain_time > 0.0:
             time.sleep(wait_tick)
             eol_remain_time = start_time + connection_observer.terminating_timeout - time.time()
