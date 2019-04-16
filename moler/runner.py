@@ -342,8 +342,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         return None
 
     def _execute_till_eol(self, connection_observer, connection_observer_future, max_timeout, await_timeout):
-        remain_time = time.time() - connection_observer.start_time
-        eol_remain_time = remain_time + connection_observer.terminating_timeout
+        remain_time = connection_observer.start_time + connection_observer.timeout- time.time()
+        eol_remain_time = remain_time
         # either we wait forced-max-timeout or we check done-status each 0.1sec tick
         if eol_remain_time > 0.0:
             future = connection_observer_future or connection_observer._future
@@ -378,6 +378,14 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                                                 timeout=await_timeout)
                         if not connection_observer.in_terminating:
                             connection_observer.in_terminating = True
+        else:
+            # Have to wait till connection_observer is done with terminaing timeout.
+            eol_remain_time = connection_observer.terminating_timeout
+            start_time = time.time()
+            wait_tick = 0.1
+            while not connection_observer.done() and eol_remain_time > 0.0:
+                time.sleep(wait_tick)
+                eol_remain_time = start_time + connection_observer.terminating_timeout - time.time()
         return False
 
     def _end_of_life_of_future_and_connection_observer(self, connection_observer, connection_observer_future):
@@ -563,12 +571,11 @@ def await_future_or_eol(connection_observer, remain_time, start_time, timeout, l
         already_passed = now - start_time
         remain_time = timeout - already_passed
         observer_lifetime_passed = now - connection_observer.start_time
-        remain_observer_lifetime = connection_observer.timeout - observer_lifetime_passed
+        remain_observer_lifetime = connection_observer.timeout + connection_observer.terminating_timeout - observer_lifetime_passed
         # we timeout on earlier timeout (timeout or connection_observer.timeout)
         if remain_observer_lifetime <= 0.0:
             remain_time = 0.0
         if remain_time <= 0.0:
-            end_of_life = True
             logger.debug("{} timeout before creating future".format(connection_observer))
 
     return end_of_life, remain_time
