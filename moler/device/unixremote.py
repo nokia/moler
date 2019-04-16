@@ -123,7 +123,7 @@ class UnixRemote(UnixLocal):
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
                             "target_newline": "\n",
-                            "expected_prompt": r'user@'
+                            "expected_prompt": r'remote_user_prompt'
                         },
                         "required_command_params": [
                         ]
@@ -164,7 +164,7 @@ class UnixRemote(UnixLocal):
                         "execute_command": "su",  # using command
                         "command_params": {  # with parameters
                             "password": "root_password",
-                            "expected_prompt": r'root@',
+                            "expected_prompt": r'remote_root_prompt',
                             "target_newline": "\n"
                         },
                         "required_command_params": [
@@ -175,7 +175,7 @@ class UnixRemote(UnixLocal):
                     UnixRemote.unix_remote: {  # to
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
-                            "expected_prompt": r'user@',
+                            "expected_prompt": r'remote_user_prompt',
                             "target_newline": "\n"
                         },
                         "required_command_params": [
