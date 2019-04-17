@@ -1,22 +1,23 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__author__ = 'Marcin Usielski, Michal Ernst'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
+import logging
+import threading
 
-from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
+
 from moler.exceptions import WrongUsage
 from moler.helpers import ForwardingHandler
-import threading
-import logging
 
 
 class Scheduler(object):
 
     @staticmethod
-    def get_job(callback, interval, callback_params=None, cancel_on_exception=False):
+    def get_job(callback, interval, callback_params=None, cancel_on_exception=False, misfire_grace_time=0):
         """
         Static method to create job.
         :param callback: Reference to callable object (i.e. function, method)
@@ -27,12 +28,18 @@ class Scheduler(object):
         :param callback_params: dict of params of fun
         :param cancel_on_exception: set True if you want to break next execution of this callback if previous raises an
          exception
+        :param int misfire_grace_time: seconds after the designated runtime that the job is still allowed to be run
         :return: Instance of Job.
         """
-
         instance = Scheduler._get_instance()
         decorated = DecoratedCallable(callback, cancel_on_exception)
-        job_internal = instance._scheduler.add_job(decorated.call, 'interval', seconds=interval, kwargs=callback_params)
+
+        if misfire_grace_time != 0:
+            job_internal = instance._scheduler.add_job(decorated.call, 'interval', seconds=interval,
+                                                       misfire_grace_time=misfire_grace_time, kwargs=callback_params)
+        else:
+            job_internal = instance._scheduler.add_job(decorated.call, 'interval', seconds=interval,
+                                                       kwargs=callback_params)
         job_internal.pause()
         job = Job(job_internal)
         decorated.job = job
@@ -101,7 +108,8 @@ class Scheduler(object):
         elif scheduler_type == 'asyncio':
             scheduler = MolerAsyncioScheduler()
         else:
-            raise WrongUsage("Wrong value of 'scheduler_type': '{}'. Allowed are 'thread' or 'asyncio'".format(scheduler_type))
+            raise WrongUsage(
+                "Wrong value of 'scheduler_type': '{}'. Allowed are 'thread' or 'asyncio'".format(scheduler_type))
         scheduler.start()
         return scheduler
 
