@@ -15,7 +15,7 @@ import six
 
 from moler.cmd import RegexHelper
 from moler.command import Command
-from moler.exceptions import CommandTimeout
+from threading import Lock
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -39,6 +39,9 @@ class CommandTextualGeneric(Command):
         self.__command_string = None  # String representing command on device
         self._cmd_escaped = None  # Escaped regular expression string with command
         super(CommandTextualGeneric, self).__init__(connection=connection, runner=runner)
+        self.terminating_timeout = 3.0  # value for terminating command if it timeouts. Set positive value for command
+        #                                 if they can do anything if timeout. Set 0 for command if it cannot do
+        #                                 anything if timeout.
         self.current_ret = dict()  # Placeholder for result as-it-grows, before final write into self._result
         self._cmd_output_started = False  # If false parsing is not passed to command
         self._regex_helper = RegexHelper()  # Object to regular expression matching
@@ -57,6 +60,7 @@ class CommandTextualGeneric(Command):
         self._concatenate_before_command_starts = True  # Set True to concatenate all strings from connection before
         # command starts, False to split lines on every new line char
         self._stored_exception = None  # Exception stored before it is passed to base class when command is done.
+        self._lock_is_done = Lock()
 
         if not self._newline_chars:
             self._newline_chars = CommandTextualGeneric._default_newline_chars
@@ -103,11 +107,12 @@ class CommandTextualGeneric(Command):
 
     @_is_done.setter
     def _is_done(self, value):
-        if self._stored_exception:
-            exception = self._stored_exception
-            self._stored_exception = None
-            super(CommandTextualGeneric, self).set_exception(exception=exception)
-        super(CommandTextualGeneric, self.__class__)._is_done.fset(self, value)
+        with self._lock_is_done:
+            if self._stored_exception:
+                exception = self._stored_exception
+                self._stored_exception = None
+                super(CommandTextualGeneric, self)._set_exception_without_done(exception=exception)
+            super(CommandTextualGeneric, self.__class__)._is_done.fset(self, value)
 
     @staticmethod
     def _calculate_prompt(prompt):
@@ -240,7 +245,7 @@ class CommandTextualGeneric(Command):
         :param exception: An exception object to set.
         :return: None.
         """
-        if self.done() or not self.wait_for_prompt_on_exception or isinstance(exception, CommandTimeout):
+        if self.done() or not self.wait_for_prompt_on_exception:
             super(CommandTextualGeneric, self).set_exception(exception=exception)
         else:
             if self._stored_exception is None:

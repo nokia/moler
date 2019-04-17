@@ -43,6 +43,7 @@ def test_calling_telnet_timeout(buffer_connection, command_output_and_expected_r
     buffer_connection.remote_inject_response([command_output])
     telnet_cmd = Telnet(connection=buffer_connection.moler_connection, login="user", password="english", port=1500,
                         host="host.domain.net", expected_prompt="host:.*#")
+    telnet_cmd.terminating_timeout = 0.1
     from moler.exceptions import CommandTimeout
     with pytest.raises(CommandTimeout):
         telnet_cmd(timeout=0.5)
