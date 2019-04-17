@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import importlib
@@ -151,7 +151,7 @@ def test_connection_observer_call_passes_positional_arguments_to_start(
 
     connection_observer = ParametrizedObserver()
 
-    connection_observer(1., 23, "foo")
+    connection_observer.start(1., 23, "foo")
 
     assert called_with_params == [23, "foo"]
 
@@ -167,7 +167,7 @@ def test_connection_observer_call_passes_keyword_arguments_to_start(
 
     observer = ParametrizedObserver()
 
-    observer(param2="foo", param1=23)
+    observer.start(timeout=1.0, param2="foo", param1=23)
 
     assert called_with_params == [23, "foo"]
 
@@ -428,6 +428,7 @@ def test_connection_observer_one_exception():
     none_exceptions = ConnectionObserver.get_unraised_exceptions(True)
     assert 0 == len(none_exceptions)
     cmd.set_exception(CommandTimeout(cmd, 0.1))
+    cmd._is_done = True
     active_exceptions = ConnectionObserver.get_unraised_exceptions(True)
     assert 1 == len(active_exceptions)
     try:
@@ -445,15 +446,22 @@ def test_connection_observer_exception_do_not_remove():
     time.sleep(0.1)
     from moler.cmd.unix.ls import Ls
     from moler.exceptions import CommandTimeout
+    from moler.exceptions import WrongUsage
     cmd = Ls(None)
     none_exceptions = ConnectionObserver.get_unraised_exceptions(True)
     assert 0 == len(none_exceptions)
     cmd.set_exception(CommandTimeout(cmd, 0.1))
+    cmd._is_done = True
     active_exceptions = ConnectionObserver.get_unraised_exceptions(False)
     assert 1 == len(active_exceptions)
     cmd = Ls(None)
-    cmd.set_exception(CommandTimeout(cmd, 0.1))
+    ctoe = CommandTimeout(cmd, 0.1)
+    cwue = WrongUsage(cmd, "Another exception")
+    cmd.set_exception(ctoe)
+    cmd._is_done = True
+    cmd.set_exception(cwue)
     active_exceptions = ConnectionObserver.get_unraised_exceptions(False)
+    assert ctoe == active_exceptions[1]
     assert 2 == len(active_exceptions)
     active_exceptions = ConnectionObserver.get_unraised_exceptions(True)
     assert 2 == len(active_exceptions)

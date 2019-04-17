@@ -38,6 +38,7 @@ def test_calling_zip_timeout(buffer_connection, command_output_and_expected_resu
     command_output, expected_result = command_output_and_expected_result_timeout
     buffer_connection.remote_inject_response([command_output])
     zip_cmd = Zip(connection=buffer_connection.moler_connection, options="", zip_file="test.zip", file_name="test.txt")
+    zip_cmd.terminating_timeout = 0
     from moler.exceptions import CommandTimeout
     with pytest.raises(CommandTimeout) as exception:
         zip_cmd(timeout=0.5)

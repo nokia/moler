@@ -47,9 +47,18 @@ class ConnectionObserver(object):
         self.runner = runner if runner else get_runner()
         self._future = None
         self.start_time = 0.0  # means epoch: 1970-01-01 00:00:00
-        self.__timeout = 7  # default
+        self.__timeout = 7.0  # default
+        self.terminating_timeout = 0.0  # value for terminating connection_observer when it timeouts. Set positive value
+        #                                 for command if they can do anything if timeout. Set 0 for observer or command
+        #                                 if it cannot do anything if timeout.
         self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
         self.logger = logging.getLogger('moler.connection.{}'.format(self.get_logger_name()))
+
+        self.in_terminating = False  # Set True if ConnectionObserver object is just after __timeout but it can do
+        #                              something during terminating_timeout. False if the ConnectionObserver object runs
+        #                              during normal timeout. For Runners only!
+        self.was_on_timeout_called = False  # Set True if method on_timeout was called. False otherwise. For Runners
+        #                                     only!
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
@@ -76,9 +85,11 @@ class ConnectionObserver(object):
         or you may delegate blocking call execution to separate thread,
         see: https://pymotw.com/3/asyncio/executors.html
         """
-        started_observer = self.start(timeout, *args, **kwargs)
-        if started_observer:
-            return started_observer.await_done(*args, **kwargs)
+        self.start(timeout, *args, **kwargs)
+        # started_observer = self.start(timeout, *args, **kwargs)
+        # if started_observer:
+        #     return started_observer.await_done(*args, **kwargs)
+        return self.await_done()
         # TODO: raise ConnectionObserverFailedToStart
 
     @property
@@ -200,7 +211,7 @@ class ConnectionObserver(object):
         with exception_stored_if_not_main_thread(self):
             if not self._is_running:
                 raise ConnectionObserverNotStarted(self)
-
+            # check if already is running
             self.runner.wait_for(connection_observer=self, connection_observer_future=self._future, timeout=timeout)
         return self.result()
 
@@ -209,9 +220,17 @@ class ConnectionObserver(object):
         # TODO: call cancel on runner to stop background run of connection-observer
         if self.cancelled() or self.done():
             return False
-        self._is_done = True
         self._is_cancelled = True
+        self._is_done = True
         return True
+
+    def set_end_of_life(self):
+        """
+        Set end of life of object. Dedicated for runners only!
+
+        :return: None
+        """
+        self._is_done = True
 
     def cancelled(self):
         """Return True if the connection-observer has been cancelled."""
@@ -231,8 +250,8 @@ class ConnectionObserver(object):
         """Should be used to set final result"""
         if self.done():
             raise ResultAlreadySet(self)
-        self._is_done = True
         self._result = result
+        self._is_done = True
 
     @abstractmethod
     def data_received(self, data):
@@ -243,13 +262,28 @@ class ConnectionObserver(object):
         pass
 
     def set_exception(self, exception):
-        """Should be used to indicate some failure during observation"""
+        """
+        Should be used to indicate some failure during observation.
+
+        :param exception: Exception to set
+        :return: None
+        """
+        self._set_exception_without_done(exception)
+        self._is_done = True
+
+    def _set_exception_without_done(self, exception):
+        """
+        Should be used to indicate some failure during observation. This method does not finish connection observer
+        object!
+
+        :param exception: exception to set
+        :return: None
+        """
         if self._is_done:
             self._log(logging.WARNING,
                       "Trial to set exception {!r} on already done {}".format(exception, self),
                       levels_to_go_up=2)
             return
-        self._is_done = True
         ConnectionObserver._change_unraised_exception(new_exception=exception, observer=self)
         self._log(logging.INFO,
                   "{}.{} has set exception {!r}".format(self.__class__.__module__, self, exception),
