@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__author__ = 'Marcin Usielski, Michal Ernst'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
 import threading
