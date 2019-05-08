@@ -18,7 +18,7 @@ active_loggers = {
     "main_loggers": [],
     "devices_loggers": [],
     "runner_loggers": []
-}  # TODO: use set()      # Active loggers created by Moler
+}
 date_format = "%d %H:%M:%S"
 
 # new logging levels
