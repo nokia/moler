@@ -157,6 +157,11 @@ def load_logger_from_config(config):
 
 
 def reconfigure_logging_path(logging_path):
+    """
+    Set up new logging path when Moler script is running
+    :param logging_path: new log path when logs will be stored
+    :return:
+    """
     log_cfg.reconfigure_logging_path(log_path=logging_path)
 
 
