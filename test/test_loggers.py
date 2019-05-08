@@ -287,3 +287,9 @@ def test_raw_trace_log_can_be_yaml_loaded(monkeypatch):
         assert rec3[time3]['offset'] == 34
     for filename in created_files:
         os.remove(filename)
+
+def test_reconfigure_moler_loggers():
+    import moler.config.loggers as m_logger
+    import os
+
+    m_logger.reconfigure_logging_path(os.getcwd())
