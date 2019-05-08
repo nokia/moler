@@ -292,4 +292,4 @@ def test_reconfigure_moler_loggers():
     import moler.config.loggers as m_logger
     import os
 
-    m_logger.reconfigure_logging_path(os.getcwd())
+    m_logger.reconfigure_logging_path(m_logger.logging_path)
