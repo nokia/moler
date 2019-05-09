@@ -93,6 +93,7 @@ def reconfigure_logging_path(log_path):
             if isinstance(handler, logging.FileHandler):
                 handler.close()
                 handler.baseFilename = handler.baseFilename.replace(old_logging_path, logging_path)
+                handler.stream = handler._open()
 
 
 def debug_level_or_info_level():
