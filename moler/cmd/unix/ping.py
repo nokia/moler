@@ -82,7 +82,7 @@ class Ping(GenericUnixCommand):
 
     # rtt min/avg/max/mdev = 0.033/0.050/0.084/0.015 ms
     _re_min_avg_max_mdev_unit_time = re.compile(
-        r"rtt min\/avg\/max\/mdev = (?P<MIN>[\d\.]+)\/(?P<AVG>[\d\.]+)\/(?P<MAX>[\d\.]+)\/(?P<MDEV>[\d\.]+)\s+(?P<UNIT>\S+)")
+        r"rtt min\/avg\/max\/mdev = (?P<MIN>[\d\.]+)\/(?P<AVG>[\d\.]+)\/(?P<MAX>[\d\.]+)\/(?P<MDEV>[\d\.]+)\s+(?P<UNIT>\w+)")
 
     def _parse_min_avg_max_mdev_unit_time(self, line):
         """
