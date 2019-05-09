@@ -14,11 +14,7 @@ import os
 import sys
 
 logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
-active_loggers = {
-    "main_loggers": [],
-    "devices_loggers": [],
-    "runner_loggers": []
-}
+active_loggers = set()  # Active loggers created by Moler
 date_format = "%d %H:%M:%S"
 
 # new logging levels
@@ -79,6 +75,24 @@ def want_raw_logs():
     return raw_logs_active
 
 
+def reconfigure_logging_path(log_path):
+    old_logging_path = logging_path
+    set_logging_path(log_path)
+    _create_logs_folder(log_path)
+
+    if not os.path.exists(log_path):
+        os.makedirs(log_path)
+
+    for logger_name in active_loggers:
+        logger = logging.getLogger(logger_name)
+        logger_handlers = copy(logger.handlers)
+
+        for handler in logger_handlers:
+            handler.stream = None
+            handler.baseFilename = handler.baseFilename.replace(old_logging_path, logging_path)
+
+
+
 def debug_level_or_info_level():
     """
     If debugging is active we want to have details inside logs
@@ -99,53 +113,21 @@ def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filt
     :param log_filename: path to log file
     :param formatter: formatter for file logger
     :param filter: filter for file logger
-    :return: logging.FileHandler object
+    :return:  logging.FileHandler object
     """
     global write_mode
     logger = logging.getLogger(logger_name)
-
     cfh = logging.FileHandler(log_filename, write_mode)
     cfh.setLevel(log_level)
     cfh.setFormatter(formatter)
     if filter:
         cfh.addFilter(filter)
     logger.addHandler(cfh)
-
     return cfh
 
 
-def reconfigure_logging_path(log_path):
-    """
-    Set up new logging path when Moler script is running
-    :param log_path: new log path when logs will be stored
-    :return: None
-    """
-    _remove_all_loggers_handlers()
-    set_logging_path(log_path)
-
-    configure_moler_main_logger(reconfigure=True)
-
-    for logger_name in active_loggers["runner_loggers"]:
-        configure_runner_logger(runner_name=logger_name.replace("moler.", ""), reconfigure=True)
-    for logger_name in active_loggers["devices_loggers"]:
-        configure_device_logger(connection_name=logger_name.replace("moler.", ""), reconfigure=True)
-
-
-def _remove_all_loggers_handlers():
-    """
-    Remove handlers from loggers
-    :return: None
-    """
-    for logger_type in active_loggers.keys():
-        for logger_name in active_loggers[logger_type]:
-            logger = logging.getLogger(logger_name)
-            logger_handlers = copy(logger.handlers)
-            for handler in logger_handlers:
-                logger.removeHandler(handler)
-
-
 def _add_new_file_handler(logger_name,
-                          log_file, formatter, log_level=TRACE, filter=None, reconfigure=False):
+                          log_file, formatter, log_level=TRACE, filter=None):
     """
     Add file writer into Logger
     :param logger_name: Logger name
@@ -153,7 +135,6 @@ def _add_new_file_handler(logger_name,
     :param log_level: only log records with equal and greater level will be accepted for storage in log
     :param formatter: formatter for file logger
     :param filter: filter for file logger
-    :param reconfigure: set new logging path default False
     :return: None
     """
 
@@ -203,7 +184,7 @@ def _add_raw_trace_file_handler(logger_name, log_file):
 def create_logger(name,
                   log_file=None, log_level=TRACE,
                   log_format="%(asctime)s %(levelname)-10s: |%(message)s",
-                  datefmt=None, reconfigure=False, logger_type=None):
+                  datefmt=None):
     """
     Creates Logger with (optional) file writer
     :param name: Logger name
@@ -211,34 +192,26 @@ def create_logger(name,
     :param log_level: only log records with equal and greater level will be accepted for storage in log
     :param log_format: layout of log file, default is "%(asctime)s %(levelname)-10s: |%(message)s"
     :param datefmt: format the creation time of the log record
-    :param reconfigure: set new logging path default False
-    :param logger_type: type of logger, available: "main_loggers", "devices_loggers", "runner_loggers"
     :return: None
     """
     logger = logging.getLogger(name)
-    if (name not in active_loggers[logger_type]) or reconfigure:
+    if name not in active_loggers:
         logger.setLevel(log_level)
         if log_file:  # if present means: "please add this file as logs storage for my logger"
             _add_new_file_handler(logger_name=name,
                                   log_file=log_file,
                                   log_level=log_level,
                                   formatter=logging.Formatter(fmt=log_format,
-                                                              datefmt=datefmt),
-                                  reconfigure=reconfigure)
-        if not reconfigure:
-            active_loggers[logger_type].append(name)
+                                                              datefmt=datefmt))
+        active_loggers.add(name)
     return logger
 
 
-def configure_moler_main_logger(reconfigure=False):
+def configure_moler_main_logger():
     """Configure main logger of Moler"""
     # warning or above go to logfile
-    logger_name = 'moler'
-    logger_type = "main_loggers"
-
-    if (logger_name not in active_loggers[logger_type]) or reconfigure:
-        logger = create_logger(name=logger_name, log_level=TRACE, datefmt=date_format, reconfigure=reconfigure,
-                               logger_type=logger_type)
+    if 'moler' not in active_loggers:
+        logger = create_logger(name='moler', log_level=TRACE, datefmt=date_format)
         logger.propagate = True
 
         main_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(message)s"
@@ -246,8 +219,7 @@ def configure_moler_main_logger(reconfigure=False):
                               log_file='moler.log',
                               log_level=logging.INFO,  # only hi-level info from library
                               formatter=MolerMainMultilineWithDirectionFormatter(fmt=main_log_format,
-                                                                                 datefmt=date_format),
-                              reconfigure=reconfigure)
+                                                                                 datefmt=date_format))
 
         if want_debug_details():
             debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(name)-30s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() %(transfer_direction)s|%(message)s"
@@ -258,34 +230,29 @@ def configure_moler_main_logger(reconfigure=False):
                                   # differentiate them by logger name: "%(name)s"
                                   # do we need "%(threadName)-30s" ???
                                   formatter=MultilineWithDirectionFormatter(fmt=debug_log_format,
-                                                                            datefmt=date_format),
-                                  reconfigure=reconfigure)
+                                                                            datefmt=date_format))
 
         logger.info("More logs in: {}".format(logging_path))
 
 
-def configure_runner_logger(runner_name, reconfigure=False):
+def configure_runner_logger(runner_name):
     """Configure logger with file storing runner's log"""
     logger_name = 'moler.runner.{}'.format(runner_name)
-    logger_type = "runner_loggers"
-    if (logger_name not in active_loggers[logger_type]) or reconfigure:
+    if logger_name not in active_loggers:
         create_logger(name=logger_name,
                       log_file='moler.runner.{}.log'.format(runner_name),
                       log_level=debug_level_or_info_level(),
                       log_format="%(asctime)s.%(msecs)03d %(levelname)-12s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() |%(message)s",
-                      datefmt=date_format,
-                      reconfigure=reconfigure,
-                      logger_type=logger_type
+                      datefmt=date_format
+                      # log_format="%(asctime)s %(levelname)-10s %(subarea)-30s: |%(message)s"
                       )
 
 
-def configure_device_logger(connection_name, propagate=False, reconfigure=False):
+def configure_device_logger(connection_name, propagate=False):
     """Configure logger with file storing connection's log"""
     logger_name = 'moler.{}'.format(connection_name)
-    logger_type = "devices_loggers"
-
-    if (logger_name not in active_loggers[logger_type]) or reconfigure:
-        logger = create_logger(name=logger_name, log_level=TRACE, reconfigure=reconfigure, logger_type=logger_type)
+    if logger_name not in active_loggers:
+        logger = create_logger(name=logger_name, log_level=TRACE)
         logger.propagate = propagate
         conn_formatter = MultilineWithDirectionFormatter(
             fmt="%(asctime)s.%(msecs)03d %(transfer_direction)s|%(message)s",
@@ -293,8 +260,7 @@ def configure_device_logger(connection_name, propagate=False, reconfigure=False)
         _add_new_file_handler(logger_name=logger_name,
                               log_file='{}.log'.format(logger_name),
                               log_level=logging.INFO,
-                              formatter=conn_formatter,
-                              reconfigure=reconfigure)
+                              formatter=conn_formatter)
         if want_raw_logs():
             # RAW_LOGS is lowest log-level so we need to change log-level of logger
             # to make it pass data into raw-log-handler
@@ -314,6 +280,15 @@ def _prepare_logs_folder(logfile_full_path):
     :return: Nome
     """
     logdir = os.path.dirname(logfile_full_path)
+    _create_logs_folder(logdir)
+
+
+def _create_logs_folder(logdir):
+    """
+    Create log folder
+    :param logdir: path to log folder
+    :return: None
+    """
     if not os.path.exists(logdir):
         os.makedirs(logdir)
 
