@@ -80,16 +80,13 @@ def reconfigure_logging_path(log_path):
     set_logging_path(log_path)
     _create_logs_folder(log_path)
 
-    if not os.path.exists(log_path):
-        os.makedirs(log_path)
-
     for logger_name in active_loggers:
         logger = logging.getLogger(logger_name)
         logger_handlers = copy(logger.handlers)
 
         for handler in logger_handlers:
             if isinstance(handler, logging.FileHandler):
-                handler.stream = None
+                handler.close()
                 handler.baseFilename = handler.baseFilename.replace(old_logging_path, logging_path)
 
 
