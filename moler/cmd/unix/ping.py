@@ -215,7 +215,7 @@ COMMAND_RESULT_pipe = {
     'time_mdev': 544.022,
     'time_min_seconds': 0.408 * 0.001,
     'time_avg_seconds': 504.817 * 0.001,
-    'time_max_seconds': 1260.131* 0.001,
+    'time_max_seconds': 1260.131 * 0.001,
     'time_mdev_seconds': 544.022 * 0.001,
     'time_unit': 'ms',
 }
