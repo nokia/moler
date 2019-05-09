@@ -54,6 +54,7 @@ class Ping(GenericUnixCommand):
         """
         if is_full_line:
             try:
+                self._re_trans_recv_loss_time_plus_errors(line)
                 self._parse_trans_recv_loss_time(line)
                 self._parse_min_avg_max_mdev_unit_time(line)
             except ParsingDone:
@@ -77,6 +78,28 @@ class Ping(GenericUnixCommand):
             self.current_ret['time'] = int(self._regex_helper.group('TIME'))
             self.current_ret['packets_time_unit'] = self._regex_helper.group('UNIT')
             value_in_seconds = self._converter_helper.to_seconds(self.current_ret['time'], self.current_ret['packets_time_unit'])
+            self.current_ret['time_seconds'] = value_in_seconds
+            raise ParsingDone
+
+    # 4 packets transmitted, 3 received, +1 errors, 25% packet loss, time 3008ms
+    _re_trans_recv_loss_time_plus_errors = re.compile(
+        r"(?P<PKTS_TRANS>\d+) packets transmitted, (?P<PKTS_RECV>\d+) received, \+?(?P<ERRORS>\d+) errors, (?P<PKT_LOSS>\S+)% packet loss, time (?P<TIME>\d+)\s*(?P<UNIT>\w+)")
+
+    def _parse_trans_recv_loss_time_plus_errors(self, line):
+        """
+        Parses packets from the line of command output
+        :param line: Line of output of command.
+        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        """
+        if self._regex_helper.search_compiled(Ping._re_trans_recv_loss_time_plus_errors, line):
+            self.current_ret['packets_transmitted'] = int(self._regex_helper.group('PKTS_TRANS'))
+            self.current_ret['packets_received'] = int(self._regex_helper.group('PKTS_RECV'))
+            self.current_ret['errors'] = int(self._regex_helper.group('ERRORS'))
+            self.current_ret['packet_loss'] = int(self._regex_helper.group('PKT_LOSS'))
+            self.current_ret['time'] = int(self._regex_helper.group('TIME'))
+            self.current_ret['packets_time_unit'] = self._regex_helper.group('UNIT')
+            value_in_seconds = self._converter_helper.to_seconds(self.current_ret['time'],
+                                                                 self.current_ret['packets_time_unit'])
             self.current_ret['time_seconds'] = value_in_seconds
             raise ParsingDone
 
@@ -209,6 +232,7 @@ COMMAND_RESULT_pipe = {
     'time': 3008,
     'time_seconds': 3.008,
     'packets_time_unit': 'ms',
+    'errors': 1,
     'time_min': 0.408,
     'time_avg': 504.817,
     'time_max': 1260.131,
