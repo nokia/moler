@@ -62,7 +62,7 @@ class Ping(GenericUnixCommand):
 
     # 11 packets transmitted, 11 received, 0 % packet loss, time 9999 ms
     _re_trans_recv_loss_time = re.compile(
-        r"(?P<PKTS_TRANS>\d+) packets transmitted, (?P<PKTS_RECV>\d+) received, (?P<PKT_LOSS>\S+)% packet loss, time (?P<TIME>\d+)\s*(?P<UNIT>\S+)")
+        r"(?P<PKTS_TRANS>\d+) packets transmitted, (?P<PKTS_RECV>\d+) received, (?P<PKT_LOSS>\S+)% packet loss, time (?P<TIME>\d+)\s*(?P<UNIT>\w+)")
 
     def _parse_trans_recv_loss_time(self, line):
         """
@@ -181,5 +181,41 @@ COMMAND_RESULT_v6 = {
     'time_avg_seconds': 0.049 * 0.001,
     'time_max_seconds': 0.070 * 0.001,
     'time_mdev_seconds': 0.019 * 0.001,
+    'time_unit': 'ms',
+}
+
+
+COMMAND_OUTPUT_pipe = """ping 192.168.1.1 -c 4
+PING 192.168.1.1 (192.168.1.1) 56(84) bytes of data.
+From 192.168.1.1 icmp_seq=1 Destination Host Unreachable
+64 bytes from 192.168.1.1: icmp_seq=2 ttl=64 time=1260 ms
+64 bytes from 192.168.1.1: icmp_seq=3 ttl=64 time=253 ms
+64 bytes from 192.168.1.1: icmp_seq=4 ttl=64 time=0.408 ms
+
+--- 192.168.255.129 ping statistics ---
+4 packets transmitted, 3 received, +1 errors, 25% packet loss, time 3008ms
+rtt min/avg/max/mdev = 0.408/504.817/1260.131/544.022 ms, pipe 2
+moler@moler:>"""
+
+COMMAND_KWARGS_pipe = {
+    'destination': '192.168.1.1',
+    'options': '-c 4'
+}
+
+COMMAND_RESULT_pipe = {
+    'packets_transmitted': 4,
+    'packets_received': 3,
+    'packet_loss': 1,
+    'time': 3008,
+    'time_seconds': 3.008,
+    'packets_time_unit': 'ms',
+    'time_min': 0.408,
+    'time_avg': 504.817,
+    'time_max': 1260.131,
+    'time_mdev': 544.022,
+    'time_min_seconds': 0.408 * 0.001,
+    'time_avg_seconds': 504.817 * 0.001,
+    'time_max_seconds': 1260.131* 0.001,
+    'time_mdev_seconds': 544.022 * 0.001,
     'time_unit': 'ms',
 }
