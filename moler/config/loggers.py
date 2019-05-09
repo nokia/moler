@@ -90,7 +90,6 @@ def reconfigure_logging_path(log_path):
                 handler.baseFilename = handler.baseFilename.replace(old_logging_path, logging_path)
 
 
-
 def debug_level_or_info_level():
     """
     If debugging is active we want to have details inside logs
