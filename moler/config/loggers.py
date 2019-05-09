@@ -76,6 +76,11 @@ def want_raw_logs():
 
 
 def reconfigure_logging_path(log_path):
+    """
+    Set up new logging path when Moler script is running
+    :param log_path: new log path when logs will be stored
+    :return: None
+    """
     old_logging_path = logging_path
     set_logging_path(log_path)
     _create_logs_folder(log_path)
