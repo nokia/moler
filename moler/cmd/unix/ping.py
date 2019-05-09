@@ -54,7 +54,7 @@ class Ping(GenericUnixCommand):
         """
         if is_full_line:
             try:
-                self._re_trans_recv_loss_time_plus_errors(line)
+                self._parse_trans_recv_loss_time_plus_errors(line)
                 self._parse_trans_recv_loss_time(line)
                 self._parse_min_avg_max_mdev_unit_time(line)
             except ParsingDone:
@@ -228,7 +228,7 @@ COMMAND_KWARGS_pipe = {
 COMMAND_RESULT_pipe = {
     'packets_transmitted': 4,
     'packets_received': 3,
-    'packet_loss': 1,
+    'packet_loss': 25,
     'time': 3008,
     'time_seconds': 3.008,
     'packets_time_unit': 'ms',
