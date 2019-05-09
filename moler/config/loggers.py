@@ -88,8 +88,9 @@ def reconfigure_logging_path(log_path):
         logger_handlers = copy(logger.handlers)
 
         for handler in logger_handlers:
-            handler.stream = None
-            handler.baseFilename = handler.baseFilename.replace(old_logging_path, logging_path)
+            if isinstance(handler, logging.FileHandler):
+                handler.stream = None
+                handler.baseFilename = handler.baseFilename.replace(old_logging_path, logging_path)
 
 
 
