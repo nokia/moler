@@ -54,6 +54,7 @@ class Ping(GenericUnixCommand):
         """
         if is_full_line:
             try:
+                self._parse_trans_recv_loss_time_plus_errors(line)
                 self._parse_trans_recv_loss_time(line)
                 self._parse_min_avg_max_mdev_unit_time(line)
             except ParsingDone:
@@ -62,7 +63,7 @@ class Ping(GenericUnixCommand):
 
     # 11 packets transmitted, 11 received, 0 % packet loss, time 9999 ms
     _re_trans_recv_loss_time = re.compile(
-        r"(?P<PKTS_TRANS>\d+) packets transmitted, (?P<PKTS_RECV>\d+) received, (?P<PKT_LOSS>\S+)% packet loss, time (?P<TIME>\d+)\s*(?P<UNIT>\S+)")
+        r"(?P<PKTS_TRANS>\d+) packets transmitted, (?P<PKTS_RECV>\d+) received, (?P<PKT_LOSS>\S+)% packet loss, time (?P<TIME>\d+)\s*(?P<UNIT>\w+)")
 
     def _parse_trans_recv_loss_time(self, line):
         """
@@ -80,9 +81,31 @@ class Ping(GenericUnixCommand):
             self.current_ret['time_seconds'] = value_in_seconds
             raise ParsingDone
 
+    # 4 packets transmitted, 3 received, +1 errors, 25% packet loss, time 3008ms
+    _re_trans_recv_loss_time_plus_errors = re.compile(
+        r"(?P<PKTS_TRANS>\d+) packets transmitted, (?P<PKTS_RECV>\d+) received, \+?(?P<ERRORS>\d+) errors, (?P<PKT_LOSS>\S+)% packet loss, time (?P<TIME>\d+)\s*(?P<UNIT>\w+)")
+
+    def _parse_trans_recv_loss_time_plus_errors(self, line):
+        """
+        Parses packets from the line of command output
+        :param line: Line of output of command.
+        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        """
+        if self._regex_helper.search_compiled(Ping._re_trans_recv_loss_time_plus_errors, line):
+            self.current_ret['packets_transmitted'] = int(self._regex_helper.group('PKTS_TRANS'))
+            self.current_ret['packets_received'] = int(self._regex_helper.group('PKTS_RECV'))
+            self.current_ret['errors'] = int(self._regex_helper.group('ERRORS'))
+            self.current_ret['packet_loss'] = int(self._regex_helper.group('PKT_LOSS'))
+            self.current_ret['time'] = int(self._regex_helper.group('TIME'))
+            self.current_ret['packets_time_unit'] = self._regex_helper.group('UNIT')
+            value_in_seconds = self._converter_helper.to_seconds(self.current_ret['time'],
+                                                                 self.current_ret['packets_time_unit'])
+            self.current_ret['time_seconds'] = value_in_seconds
+            raise ParsingDone
+
     # rtt min/avg/max/mdev = 0.033/0.050/0.084/0.015 ms
     _re_min_avg_max_mdev_unit_time = re.compile(
-        r"rtt min\/avg\/max\/mdev = (?P<MIN>[\d\.]+)\/(?P<AVG>[\d\.]+)\/(?P<MAX>[\d\.]+)\/(?P<MDEV>[\d\.]+)\s+(?P<UNIT>\S+)")
+        r"rtt min\/avg\/max\/mdev = (?P<MIN>[\d\.]+)\/(?P<AVG>[\d\.]+)\/(?P<MAX>[\d\.]+)\/(?P<MDEV>[\d\.]+)\s+(?P<UNIT>\w+)")
 
     def _parse_min_avg_max_mdev_unit_time(self, line):
         """
@@ -181,5 +204,42 @@ COMMAND_RESULT_v6 = {
     'time_avg_seconds': 0.049 * 0.001,
     'time_max_seconds': 0.070 * 0.001,
     'time_mdev_seconds': 0.019 * 0.001,
+    'time_unit': 'ms',
+}
+
+
+COMMAND_OUTPUT_pipe = """ping 192.168.1.1 -c 4
+PING 192.168.1.1 (192.168.1.1) 56(84) bytes of data.
+From 192.168.1.1 icmp_seq=1 Destination Host Unreachable
+64 bytes from 192.168.1.1: icmp_seq=2 ttl=64 time=1260 ms
+64 bytes from 192.168.1.1: icmp_seq=3 ttl=64 time=253 ms
+64 bytes from 192.168.1.1: icmp_seq=4 ttl=64 time=0.408 ms
+
+--- 192.168.255.129 ping statistics ---
+4 packets transmitted, 3 received, +1 errors, 25% packet loss, time 3008ms
+rtt min/avg/max/mdev = 0.408/504.817/1260.131/544.022 ms, pipe 2
+moler@moler:>"""
+
+COMMAND_KWARGS_pipe = {
+    'destination': '192.168.1.1',
+    'options': '-c 4'
+}
+
+COMMAND_RESULT_pipe = {
+    'packets_transmitted': 4,
+    'packets_received': 3,
+    'packet_loss': 25,
+    'time': 3008,
+    'time_seconds': 3.008,
+    'packets_time_unit': 'ms',
+    'errors': 1,
+    'time_min': 0.408,
+    'time_avg': 504.817,
+    'time_max': 1260.131,
+    'time_mdev': 544.022,
+    'time_min_seconds': 0.408 * 0.001,
+    'time_avg_seconds': 504.817 * 0.001,
+    'time_max_seconds': 1260.131 * 0.001,
+    'time_mdev_seconds': 544.022 * 0.001,
     'time_unit': 'ms',
 }
