@@ -298,7 +298,7 @@ def test_reconfigure_moler_loggers():
 
     @mock.patch("moler.config.loggers.set_logging_path")
     @mock.patch("moler.config.loggers._create_logs_folder")
-    @mock.patch("moler.config.loggers.active_loggers", ["moler"])
+    @mock.patch("moler.config.loggers.active_loggers", ["dummy_logger"])
     @mock.patch("logging.FileHandler.close")
     @mock.patch("logging.FileHandler._open")
     @mock.patch("copy.copy", return_value=dummy_handler)
