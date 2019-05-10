@@ -69,6 +69,7 @@ class Scpi(UnixLocal):
                             "login": "login",
                             "password": "params",
                             "set_timeout": None,
+                            "target_newline": "\r\n",
                         },
                         "required_command_params": [
                             "host",
@@ -106,6 +107,7 @@ class Scpi(UnixLocal):
                     Scpi.scpi: {  # to
                         "execute_command": "telnet",  # using command
                         "command_params": {  # with parameters
+                            "target_newline": "\r\n",
                             "expected_prompt": r'\w+>',
                             "login": "login",
                             "password": "password",
@@ -121,7 +123,8 @@ class Scpi(UnixLocal):
                     Scpi.unix_local: {  # to
                         "execute_command": "exit_telnet",  # using command
                         "command_params": {  # with parameters
-                            "expected_prompt": r'^moler_bash#'
+                            "expected_prompt": r'^moler_bash#',
+                            "target_newline": "\n",
                         },
                         "required_command_params": [
                         ]
@@ -268,7 +271,7 @@ class Scpi(UnixLocal):
                 available = {UnixLocal.cmds: ['moler.cmd.unix'],
                              UnixLocal.events: ['moler.events.shared', 'moler.events.unix']}
             elif state == Scpi.scpi:
-                available = {UnixLocal.cmds: ['moler.cmd.scpi'],
+                available = {UnixLocal.cmds: ['moler.cmd.scpi.scpi'],
                              UnixLocal.events: ['moler.events.unix', 'moler.events.scpi']}
             if available:
                 return available[observer]
