@@ -291,4 +291,4 @@ def test_raw_trace_log_can_be_yaml_loaded(monkeypatch):
 def test_reconfigure_moler_loggers():
     import moler.config.loggers as m_logger
 
-    m_logger.reconfigure_logging_path(m_logger.logging_path)
+    m_logger.reconfigure_logging_path(m_logger._logging_path)

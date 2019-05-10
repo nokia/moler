@@ -13,7 +13,7 @@ import logging
 import os
 import sys
 
-logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
+_logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
 active_loggers = set()  # Active loggers created by Moler
 date_format = "%d %H:%M:%S"
 
@@ -37,8 +37,8 @@ def set_write_mode(mode):
 
 
 def set_logging_path(path):
-    global logging_path
-    logging_path = path
+    global _logging_path
+    _logging_path = path
 
 
 def set_date_format(format):
@@ -81,10 +81,13 @@ def reconfigure_logging_path(log_path):
     :param log_path: new log path when logs will be stored
     :return: None
     """
-    old_logging_path = logging_path
+    old_logging_path = _logging_path
     set_logging_path(log_path)
     _create_logs_folder(log_path)
+    _reopen_all_logfiles_in_new_path(old_logging_path=old_logging_path, new_logging_path=_logging_path)
 
+
+def _reopen_all_logfiles_in_new_path(old_logging_path, new_logging_path):
     for logger_name in active_loggers:
         logger = logging.getLogger(logger_name)
         logger_handlers = copy(logger.handlers)
@@ -92,7 +95,7 @@ def reconfigure_logging_path(log_path):
         for handler in logger_handlers:
             if isinstance(handler, logging.FileHandler):
                 handler.close()
-                handler.baseFilename = handler.baseFilename.replace(old_logging_path, logging_path)
+                handler.baseFilename = handler.baseFilename.replace(old_logging_path, new_logging_path)
                 handler.stream = handler._open()
 
 
@@ -141,7 +144,7 @@ def _add_new_file_handler(logger_name,
     :return: None
     """
 
-    logfile_full_path = os.path.join(logging_path, log_file)
+    logfile_full_path = os.path.join(_logging_path, log_file)
 
     _prepare_logs_folder(logfile_full_path)
     setup_new_file_handler(logger_name=logger_name,
@@ -159,7 +162,7 @@ def _add_raw_file_handler(logger_name, log_file):
     :return: None
     """
     global write_mode
-    logfile_full_path = os.path.join(logging_path, log_file)
+    logfile_full_path = os.path.join(_logging_path, log_file)
     _prepare_logs_folder(logfile_full_path)
     logger = logging.getLogger(logger_name)
     rfh = RawFileHandler(filename=logfile_full_path, mode='{}b'.format(write_mode))
@@ -174,7 +177,7 @@ def _add_raw_trace_file_handler(logger_name, log_file):
     :return: None
     """
     global write_mode
-    logfile_full_path = os.path.join(logging_path, log_file)
+    logfile_full_path = os.path.join(_logging_path, log_file)
     _prepare_logs_folder(logfile_full_path)
     logger = logging.getLogger(logger_name)
     trace_rfh = RawFileHandler(filename=logfile_full_path, mode=write_mode)
@@ -235,7 +238,7 @@ def configure_moler_main_logger():
                                   formatter=MultilineWithDirectionFormatter(fmt=debug_log_format,
                                                                             datefmt=date_format))
 
-        logger.info("More logs in: {}".format(logging_path))
+        logger.info("More logs in: {}".format(_logging_path))
 
 
 def configure_runner_logger(runner_name):
