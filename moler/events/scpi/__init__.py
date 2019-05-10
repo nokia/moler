@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Package for implementing SCPI in state SCPI commands.
+Package for implementing SCPI events.
 """
 
 __author__ = 'Marcin Usielski'
