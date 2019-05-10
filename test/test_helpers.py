@@ -59,7 +59,7 @@ def test_converterhelper_seconds_ms():
     from moler.util.converterhelper import ConverterHelper
     converter = ConverterHelper.get_converter_helper()
     value = converter.to_seconds(0.408, "ms")
-    assert pytest.approx(0.000408, 0.001) == value
+    assert pytest.approx(0.000408, 0.000001) == value
 
 
 def test_converterhelper_seconds_wrong_unit():
