@@ -290,5 +290,20 @@ def test_raw_trace_log_can_be_yaml_loaded(monkeypatch):
 
 def test_reconfigure_moler_loggers():
     import moler.config.loggers as m_logger
+    import os
+    import mock
 
-    m_logger.reconfigure_logging_path(m_logger._logging_path)
+    from logging import FileHandler
+
+    m_logger.set_logging_path = mock.Mock()
+    m_logger._create_logs_folder = mock.Mock()
+    FileHandler.close = mock.Mock()
+    FileHandler._open = mock.Mock()
+
+    dummy_handler = [FileHandler(filename=os.path.join(m_logger._logging_path, 'moler.log'))]
+
+    with mock.patch("copy.copy", return_value=dummy_handler):
+        new_path = "/new_path"
+        m_logger.reconfigure_logging_path(new_path)
+
+        assert new_path in dummy_handler[0].baseFilename

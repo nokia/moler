@@ -2,7 +2,6 @@
 """
 Configure logging for Moler's needs
 """
-from copy import copy
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018-2019, Nokia'
@@ -12,6 +11,7 @@ import codecs
 import logging
 import os
 import sys
+import copy
 
 _logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
 active_loggers = set()  # Active loggers created by Moler
@@ -84,13 +84,13 @@ def reconfigure_logging_path(log_path):
     old_logging_path = _logging_path
     set_logging_path(log_path)
     _create_logs_folder(log_path)
-    _reopen_all_logfiles_in_new_path(old_logging_path=old_logging_path, new_logging_path=_logging_path)
+    _reopen_all_logfiles_in_new_path(old_logging_path=old_logging_path, new_logging_path=log_path)
 
 
 def _reopen_all_logfiles_in_new_path(old_logging_path, new_logging_path):
     for logger_name in active_loggers:
         logger = logging.getLogger(logger_name)
-        logger_handlers = copy(logger.handlers)
+        logger_handlers = copy.copy(logger.handlers)
 
         for handler in logger_handlers:
             if isinstance(handler, logging.FileHandler):
