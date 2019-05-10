@@ -232,6 +232,8 @@ def test_cannot_load_config_from_when_path_or_from_env_var_not_provide(moler_con
 
 
 def test_can_select_device_loaded_from_config_dict(moler_config, device_factory):
+    ConnectionObserver.get_unraised_exceptions(True)
+
     @MolerTest.raise_background_exceptions(check_steps_end=True)
     def can_select_device_loaded_from_config_dict(moler_config, device_factory):
         conn_config = {
@@ -257,7 +259,6 @@ def test_can_select_device_loaded_from_config_dict(moler_config, device_factory)
         device.__del__()
 
         MolerTest.steps_end()
-    ConnectionObserver.get_unraised_exceptions(True)
     can_select_device_loaded_from_config_dict(moler_config, device_factory)
 
 
