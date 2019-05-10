@@ -292,18 +292,26 @@ def test_reconfigure_moler_loggers():
     import moler.config.loggers as m_logger
     import os
     import mock
-
     from logging import FileHandler
-
-    m_logger.set_logging_path = mock.Mock()
-    m_logger._create_logs_folder = mock.Mock()
-    FileHandler.close = mock.Mock()
-    FileHandler._open = mock.Mock()
 
     dummy_handler = [FileHandler(filename=os.path.join(m_logger._logging_path, 'moler.log'))]
 
-    with mock.patch("copy.copy", return_value=dummy_handler):
+    @mock.patch("moler.config.loggers.set_logging_path")
+    @mock.patch("moler.config.loggers._create_logs_folder")
+    @mock.patch("moler.config.loggers.active_loggers", ["moler"])
+    @mock.patch("logging.FileHandler.close")
+    @mock.patch("logging.FileHandler._open")
+    @mock.patch("copy.copy", return_value=dummy_handler)
+    def reconfigure_moler_loggers(set_logging_path_mocked, _create_logs_folder_mocked, close_mocked, _open_mocked, copy_mocked):
         new_path = "/new_path"
         m_logger.reconfigure_logging_path(new_path)
 
+        set_logging_path_mocked.assert_called_once()
+        _create_logs_folder_mocked.assert_called_once()
+        copy_mocked.assert_called_once()
+        close_mocked.assert_called_once()
+        _open_mocked.assert_called_once()
+
         assert new_path in dummy_handler[0].baseFilename
+
+    reconfigure_moler_loggers()
