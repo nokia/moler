@@ -68,6 +68,7 @@ class Scpi(UnixLocal):
                             "expected_prompt": r'\w+>',
                             "login": "login",
                             "password": "params",
+                            "set_timeout": None,
                         },
                         "required_command_params": [
                             "host",
@@ -108,6 +109,7 @@ class Scpi(UnixLocal):
                             "expected_prompt": r'\w+>',
                             "login": "login",
                             "password": "password",
+                            "set_timeout": None,
                         },
                         "required_command_params": [
                             "host",
@@ -115,7 +117,7 @@ class Scpi(UnixLocal):
                         ]
                     },
                 },
-                Scpi.linux: {  # from
+                Scpi.scpi: {  # from
                     Scpi.unix_local: {  # to
                         "execute_command": "exit_telnet",  # using command
                         "command_params": {  # with parameters
@@ -206,7 +208,7 @@ class Scpi(UnixLocal):
                 self._configurations[Scpi.connection_hops][Scpi.unix_local][Scpi.proxy_pc][
                     "command_params"]["expected_prompt"],
             Scpi.scpi:
-                self._configurations[Scpi.connection_hops][Scpi.proxy_pc][Scpi.linux][
+                self._configurations[Scpi.connection_hops][Scpi.proxy_pc][Scpi.scpi][
                     "command_params"]["expected_prompt"],
         }
         return state_prompts
@@ -214,10 +216,10 @@ class Scpi(UnixLocal):
     def _prepare_state_prompts_without_proxy_pc(self):
         state_prompts = {
             Scpi.unix_local:
-                self._configurations[Scpi.connection_hops][Scpi.linux][Scpi.unix_local][
+                self._configurations[Scpi.connection_hops][Scpi.scpi][Scpi.unix_local][
                     "command_params"]["expected_prompt"],
             Scpi.scpi:
-                self._configurations[Scpi.connection_hops][Scpi.unix_local][Scpi.linux][
+                self._configurations[Scpi.connection_hops][Scpi.unix_local][Scpi.scpi][
                     "command_params"]["expected_prompt"],
         }
         return state_prompts
@@ -242,7 +244,7 @@ class Scpi(UnixLocal):
                 UnixLocal.unix_local: Scpi.proxy_pc
             },
             Scpi.unix_local: {
-                Scpi.linux: Scpi.proxy_pc,
+                Scpi.scpi: Scpi.proxy_pc,
             }
         }
         return state_hops
@@ -266,8 +268,8 @@ class Scpi(UnixLocal):
                 available = {UnixLocal.cmds: ['moler.cmd.unix'],
                              UnixLocal.events: ['moler.events.shared', 'moler.events.unix']}
             elif state == Scpi.scpi:
-                available = {UnixLocal.cmds: ['ta_moler.cmd.scpi'],
-                             UnixLocal.events: ['moler.events.unix', 'ta_moler.events.scpi']}
+                available = {UnixLocal.cmds: ['moler.cmd.scpi'],
+                             UnixLocal.events: ['moler.events.unix', 'moler.events.scpi']}
             if available:
                 return available[observer]
 
