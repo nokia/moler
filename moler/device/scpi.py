@@ -277,3 +277,38 @@ class Scpi(UnixLocal):
                 return available[observer]
 
         return available
+
+    def _prepare_newline_chars(self):
+        super(Scpi, self)._prepare_newline_chars()
+
+        if self.use_proxy_pc:
+            newline_chars = self._prepare_newline_chars_with_proxy_pc()
+        else:
+            newline_chars = self._prepare_newline_chars_without_proxy_pc()
+
+        self._update_dict(self._newline_chars, newline_chars)
+
+    def _prepare_newline_chars_with_proxy_pc(self):
+        newline_chars = {
+            Scpi.proxy_pc:
+                self._configurations[Scpi.connection_hops][Scpi.unix_local][Scpi.proxy_pc][
+                    "command_params"]["target_newline"],
+            Scpi.unix_local:
+                self._configurations[Scpi.connection_hops][Scpi.proxy_pc][Scpi.unix_local][
+                    "command_params"]["target_newline"],
+            Scpi.scpi:
+                self._configurations[Scpi.connection_hops][Scpi.scpi][Scpi.proxy_pc][
+                    "command_params"]["target_newline"],
+        }
+        return newline_chars
+
+    def _prepare_newline_chars_without_proxy_pc(self):
+        newline_chars = {
+            Scpi.scpi:
+                self._configurations[Scpi.connection_hops][Scpi.unix_local][Scpi.scpi][
+                    "command_params"]["target_newline"],
+            Scpi.unix_local:
+                self._configurations[Scpi.connection_hops][Scpi.scpi][Scpi.unix_local][
+                    "command_params"]["target_newline"],
+        }
+        return newline_chars
