@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-SCPI command READ module.
+SCPI command READ.
 """
 
 import re
