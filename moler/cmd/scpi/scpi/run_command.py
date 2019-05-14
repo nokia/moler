@@ -14,13 +14,13 @@ __email__ = 'marcin.usielski@nokia.com'
 
 class RunCommand(GenericScpi):
 
-    def __init__(self, connection, command_string, error_regex=re.compile(r"ERROR", re.I), prompt=None,
+    def __init__(self, connection, command, error_regex=re.compile(r"ERROR", re.I), prompt=None,
                  newline_chars=None, runner=None):
         """
         Class for command CONF for SCPI device.
 
         :param connection: connection to device.
-        :param command_string: string with command to send to device.
+        :param command: string with command to send to device.
         :param error_regex: regex to fail the command.
         :param prompt: expected prompt sending by device after command execution. Maybe String or compiled re.
         :param newline_chars:  new line chars on device (a list).
@@ -28,12 +28,12 @@ class RunCommand(GenericScpi):
         """
         super(RunCommand, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                          runner=runner)
-        self.command_string = command_string
+        self.command = command
         self.error_regex = error_regex
         self.ret_required = False
 
     def build_command_string(self):
-        return self.command_string
+        return self.command
 
     def on_new_line(self, line, is_full_line):
         if is_full_line:
@@ -45,13 +45,13 @@ class RunCommand(GenericScpi):
 COMMAND_OUTPUT_conf = """CONF:FREQ 1, (@1)
 SCPI>"""
 
-COMMAND_KWARGS_conf = {"command_string": "CONF:FREQ 1, (@1)"}
+COMMAND_KWARGS_conf = {"command": "CONF:FREQ 1, (@1)"}
 
 COMMAND_RESULT_conf = {}
 
 COMMAND_OUTPUT_abs = """INP1:LEV1:ABS 1V
 SCPI>"""
 
-COMMAND_KWARGS_abs = {"command_string": "INP1:LEV1:ABS 1V"}
+COMMAND_KWARGS_abs = {"command": "INP1:LEV1:ABS 1V"}
 
 COMMAND_RESULT_abs = {}

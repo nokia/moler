@@ -14,7 +14,7 @@ from moler.cmd.scpi.scpi.run_command import RunCommand
 
 def test_run_script_raise_exception(buffer_connection, command_output):
     buffer_connection.remote_inject_response([command_output])
-    cmd = RunCommand(connection=buffer_connection.moler_connection, command_string="INP1:LEV1:ABS 1A")
+    cmd = RunCommand(connection=buffer_connection.moler_connection, command="INP1:LEV1:ABS 1A")
     with pytest.raises(CommandFailure):
         cmd()
 
