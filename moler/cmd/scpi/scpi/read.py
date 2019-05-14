@@ -38,6 +38,7 @@ class Read(GenericScpi):
                 self.current_ret['VALUE_FLOAT'] = float(self._regex_helper.group("VALUE"))
         super(Read, self).on_new_line(line=line, is_full_line=is_full_line)
 
+
 COMMAND_OUTPUT = """READ?
 +8.59803192358089E-005 
 SCPI>"""

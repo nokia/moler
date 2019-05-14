@@ -34,6 +34,7 @@ class Idn(GenericScpi):
             self.current_ret['RAW_OUTPUT'].append(line)
         return super(Idn, self).on_new_line(line=line, is_full_line=is_full_line)
 
+
 COMMAND_OUTPUT = """*idn?
 Agilent Technologies,N9020A,MY53420262,A.13.15
 SCPI>"""
