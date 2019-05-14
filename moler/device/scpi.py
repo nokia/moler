@@ -66,8 +66,6 @@ class Scpi(UnixLocal):
                         "execute_command": "telnet",  # using command
                         "command_params": {  # with parameters
                             "expected_prompt": r'\w+>',
-                            "login": "login",
-                            "password": "params",
                             "set_timeout": None,
                             "target_newline": "\r\n",
                         },
@@ -109,8 +107,6 @@ class Scpi(UnixLocal):
                         "command_params": {  # with parameters
                             "target_newline": "\r\n",
                             "expected_prompt": r'\w+>',
-                            "login": "login",
-                            "password": "password",
                             "set_timeout": None,
                         },
                         "required_command_params": [
@@ -312,3 +308,16 @@ class Scpi(UnixLocal):
                     "command_params"]["target_newline"],
         }
         return newline_chars
+
+""" Example of device in yaml configuration file:
+SCPI_1:
+    DEVICE_CLASS: moler.device.scpi.Scpi
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        SCPI:
+          execute_command: telnet # default value
+          command_params:
+            host: 10.0.0.1
+            port: 99999
+
+"""
