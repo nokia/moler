@@ -309,6 +309,7 @@ class Scpi(UnixLocal):
         }
         return newline_chars
 
+
 """ Example of device in yaml configuration file:
 SCPI_1:
     DEVICE_CLASS: moler.device.scpi.Scpi
