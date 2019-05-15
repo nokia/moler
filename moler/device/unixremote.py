@@ -329,7 +329,7 @@ class UnixRemote(UnixLocal):
                 self._configurations[UnixRemote.connection_hops][UnixRemote.proxy_pc][UnixRemote.unix_local][
                     "command_params"]["target_newline"],
             UnixRemote.unix_remote:
-                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.proxy_pc][
+                self._configurations[UnixRemote.connection_hops][UnixRemote.proxy_pc][UnixRemote.unix_remote][
                     "command_params"]["target_newline"],
             UnixRemote.unix_remote_root:
                 self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.unix_remote_root][
