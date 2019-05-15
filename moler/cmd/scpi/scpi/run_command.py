@@ -3,7 +3,7 @@
 SCPI command to support command without interesting output.
 """
 
-from moler.cmd.scpi.scpi.genericscpi import GenericScpi
+from moler.cmd.scpi.scpi.genericscpistate import GenericScpiState
 from moler.exceptions import CommandFailure
 import re
 
@@ -12,7 +12,7 @@ __copyright__ = 'Copyright (C) 2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 
-class RunCommand(GenericScpi):
+class RunCommand(GenericScpiState):
 
     def __init__(self, connection, command, error_regex=re.compile(r"ERROR", re.I), prompt=None,
                  newline_chars=None, runner=None):

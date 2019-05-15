@@ -13,7 +13,7 @@ __email__ = 'marcin.usielski@nokia.com'
 
 
 @six.add_metaclass(abc.ABCMeta)
-class GenericScpi(DefaultGeneric):
+class GenericScpiState(DefaultGeneric):
     def __init__(self, connection, prompt=None, newline_chars=None, runner=None):
         """
         Base class for Scpi commands in state SCPI.
@@ -24,5 +24,5 @@ class GenericScpi(DefaultGeneric):
         :param runner: runner to run command.
         """
 
-        super(GenericScpi, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
-                                          runner=runner)
+        super(GenericScpiState, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
+                                               runner=runner)
