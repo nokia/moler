@@ -65,7 +65,7 @@ class Scpi(UnixLocal):
                     Scpi.scpi: {  # to
                         "execute_command": "telnet",  # using command
                         "command_params": {  # with parameters
-                            "expected_prompt": r'\w+>',
+                            "expected_prompt": r'SCPI>',
                             "set_timeout": None,
                             "target_newline": "\r\n",
                         },
@@ -88,6 +88,7 @@ class Scpi(UnixLocal):
                     Scpi.proxy_pc: {  # to
                         "execute_command": "exit_telnet",  # using command
                         "command_params": {  # with parameters
+                            "target_newline": "\n"
                         },
                         "required_command_params": [
                             "expected_prompt"
@@ -203,7 +204,7 @@ class Scpi(UnixLocal):
             UnixLocal.unix_local:
                 self._configurations[Scpi.connection_hops][Scpi.proxy_pc][Scpi.unix_local][
                     "command_params"]["expected_prompt"],
-            UnixLocal.proxy_pc:
+            Scpi.proxy_pc:
                 self._configurations[Scpi.connection_hops][Scpi.unix_local][Scpi.proxy_pc][
                     "command_params"]["expected_prompt"],
             Scpi.scpi:
@@ -293,7 +294,7 @@ class Scpi(UnixLocal):
                 self._configurations[Scpi.connection_hops][Scpi.proxy_pc][Scpi.unix_local][
                     "command_params"]["target_newline"],
             Scpi.scpi:
-                self._configurations[Scpi.connection_hops][Scpi.scpi][Scpi.proxy_pc][
+                self._configurations[Scpi.connection_hops][Scpi.proxy_pc][Scpi.scpi][
                     "command_params"]["target_newline"],
         }
         return newline_chars
@@ -310,7 +311,9 @@ class Scpi(UnixLocal):
         return newline_chars
 
 
-""" Example of device in yaml configuration file:
+"""
+Example of device in yaml configuration file:
+
 SCPI_1:
     DEVICE_CLASS: moler.device.scpi.Scpi
     CONNECTION_HOPS:
@@ -318,7 +321,33 @@ SCPI_1:
         SCPI:
           execute_command: telnet # default value
           command_params:
+            expected_prompt: SCPI>
             host: 10.0.0.1
             port: 99999
+
+Example of device in yaml with proxy PC:
+SCPI_2:
+    DEVICE_CLASS: moler.device.scpi.Scpi
+    CONNECTION_HOPS:
+      PROXY_PC:
+        SCPI:
+          execute_command: telnet # default value
+          command_params:
+            expected_prompt: SCPI>
+            host: 10.0.0.1
+            port: 99999
+      SCPI:
+        PROXY_PC:
+          execute_command: exit_telnet # default value
+          command_params:
+            expected_prompt: proxy_pc.*>
+      UNIX_LOCAL:
+        PROXY_PC:
+          execute_command: ssh # default value
+          command_params:
+            expected_prompt: proxy_pc.*>
+            host: 10.0.0.2
+            login: user
+            password: password
 
 """
