@@ -20,10 +20,12 @@ class Scpi(UnixLocal):
 
     def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, initial_state=None):
         """
-        Create MXA device communicating over io_connection.
+        Create SCPI device communicating over io_connection.
 
-        :param io_connection: External-IO connection having embedded moler-connection
-        :param io_type: External-IO connection connection type
+        :param sm_params: params with machine state description.
+        :param name: name of device.
+        :param io_connection: External-IO connection having embedded moler-connection.
+        :param io_type: External-IO connection type
         :param variant: External-IO connection variant
         :param initial_state: Initial state for device
         """
