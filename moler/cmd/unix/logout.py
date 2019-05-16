@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Exit command module.
+Logout command module.
 """
 
 __author__ = 'Marcin Usielski'
