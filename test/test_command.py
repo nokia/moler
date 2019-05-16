@@ -181,6 +181,7 @@ def test_calling_start_on_command_sends_command_string_over_connection(do_nothin
     with ext_io.open():
         ping.start()  # start background-run of command-future
         assert b'ping localhost' in ext_io.remote_endpoint()
+    ping.cancel()
 
 
 def test_command_is_running_after_sending_command_string(do_nothing_command__for_major_base_class):
