@@ -28,6 +28,7 @@ def test_calling_start_on_connection_observer_returns_itself(do_nothing_connecti
     connection_observer = do_nothing_connection_observer__for_major_base_class
     connection_observer.connection = connection_to_remote.moler_connection
     assert connection_observer == connection_observer.start()
+    connection_observer.cancel()
 
 
 # str representation of class instances may be specific for given class - means: each derived class

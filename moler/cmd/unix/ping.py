@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Mpstat command module.
+Ping command module.
 """
 
 __author__ = 'Julia Patacz, Marcin Usielski'
