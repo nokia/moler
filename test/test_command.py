@@ -213,7 +213,8 @@ def test_command_is_running_after_sending_command_string(do_nothing_command__for
     ping.command_string = 'ping localhost'
     assert not ping.running()
     ping.start()  # start the command-future
-
+    assert ping.running()
+    ping.cancel()
 
 # --------------------------- resources ---------------------------
 

@@ -56,6 +56,7 @@ def test_gunzip_raise_error_on_cannot_overwrite_multiple_files(
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
     with pytest.raises(WrongUsage):
         gunzip_cmd()
+    gunzip_cmd.cancel()
 
 
 def test_gunzip_raise_error_on_can_multiple_files(
@@ -69,6 +70,7 @@ def test_gunzip_raise_error_on_can_multiple_files(
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
     assert gunzip_cmd.done() is True
+    gunzip_cmd.cancel()
 
 
 @pytest.fixture
