@@ -41,7 +41,7 @@ EVENT_KWARGS = {
 EVENT_RESULT = [
     {
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48),
-        'groups': ('2',),
+        'groups': (u'2',),
         'line': 'There were 2 failed login attempts since the last successful login.',
         'matched': 'There were 2 failed login attempts since the last successful login',
         'named_groups': {'ATTEMPTS_NR': '2'},
