@@ -10,7 +10,6 @@ from moler.events.lineevent import LineEvent
 
 
 class FailedLoginCounter(LineEvent):
-
     # There were 2 failed login attempts since the last successful login
     _re_attempts = re.compile(
         r'There were (?P<ATTEMPTS_NR>\d+) failed login attempts since the last successful login', re.I)
@@ -39,11 +38,11 @@ EVENT_KWARGS = {
 }
 
 EVENT_RESULT = [
-    {
-        'time': datetime.datetime(2019, 1, 14, 13, 12, 48),
-        'groups': (u'2',),
-        'line': 'There were 2 failed login attempts since the last successful login.',
-        'matched': 'There were 2 failed login attempts since the last successful login',
-        'named_groups': {'ATTEMPTS_NR': '2'},
-    }
+    {'groups': (2,),
+     'line': 'There were 2 failed login attempts since the last successful '
+             'login.',
+     'matched': 'There were 2 failed login attempts since the last '
+                'successful login',
+     'named_groups': {'ATTEMPTS_NR': 2},
+     'time': datetime.datetime(2019, 5, 17, 12, 42, 38, 278418)}
 ]
