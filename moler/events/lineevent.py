@@ -10,7 +10,7 @@ import re
 from moler.events.textualevent import TextualEvent
 from moler.exceptions import NoDetectPatternProvided
 from moler.exceptions import WrongUsage
-from moler.helpers import instance_id, copy_list
+from moler.helpers import instance_id, copy_list, convert_to_number
 
 
 class LineEvent(TextualEvent):
@@ -100,27 +100,19 @@ class LineEvent(TextualEvent):
 
         group_dict = match.groupdict()
         for named_group in match.groupdict():
-            group_dict[named_group] = self._convert_to_number_if_possible(group_dict[named_group])
+            group_dict[named_group] = convert_to_number(group_dict[named_group])
 
         current_ret["named_groups"] = group_dict
 
         groups = tuple()
         for value in match.groups():
-            groups = groups + (self._convert_to_number_if_possible(value), )
+            groups = groups + (convert_to_number(value), )
 
         current_ret["groups"] = groups
 
-        current_ret["matched"] = self._convert_to_number_if_possible(match.group(0))
+        current_ret["matched"] = convert_to_number(match.group(0))
 
         return current_ret
-
-    def _convert_to_number_if_possible(self, value):
-        if value and value.isnumeric():
-            try:
-                value = int(value)
-            except ValueError:
-                value = float(value)
-        return value
 
     def _catch_any(self, line):
         for pattern in self.compiled_patterns:
