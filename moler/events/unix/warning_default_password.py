@@ -46,4 +46,3 @@ EVENT_RESULT = [
      'named_groups': {},
      'time': datetime.datetime(2019, 5, 17, 12, 42, 38, 278418)}
 ]
-
