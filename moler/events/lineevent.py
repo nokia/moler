@@ -56,7 +56,7 @@ class LineEvent(TextualEvent):
 
     def _convert_string_to_number(self, value):
         if self.convert_string_to_number:
-            return convert_to_number(value)
+            value = convert_to_number(value)
         return value
 
     def get_long_desc(self):
