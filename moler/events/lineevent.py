@@ -19,6 +19,7 @@ class LineEvent(TextualEvent):
         self.detect_patterns = copy_list(detect_patterns)
         self.process_full_lines_only = False
         self.match = match
+        self.convert_string_to_number = True
         self._prepare_parameters()
 
     def __str__(self):
@@ -52,6 +53,11 @@ class LineEvent(TextualEvent):
                 pattern = re.compile(pattern)
             compiled_patterns.append(pattern)
         return compiled_patterns
+
+    def _convert_string_to_number(self, value):
+        if self.convert_string_to_number:
+            return convert_to_number(value)
+        return value
 
     def get_long_desc(self):
         return "Event {}.{}".format(self.__class__.__module__, str(self))
@@ -100,17 +106,17 @@ class LineEvent(TextualEvent):
 
         group_dict = match.groupdict()
         for named_group in match.groupdict():
-            group_dict[named_group] = convert_to_number(group_dict[named_group])
+            group_dict[named_group] = self._convert_string_to_number(group_dict[named_group])
 
         current_ret["named_groups"] = group_dict
 
         groups = tuple()
         for value in match.groups():
-            groups = groups + (convert_to_number(value), )
+            groups = groups + (self._convert_string_to_number(value), )
 
         current_ret["groups"] = groups
 
-        current_ret["matched"] = convert_to_number(match.group(0))
+        current_ret["matched"] = self._convert_string_to_number(match.group(0))
 
         return current_ret
 
