@@ -330,10 +330,10 @@ root@debian:/home/xyz #
 
 COMMAND_KWARGS_newline_after_prompt_with_prompt_change = {
     'login': None, 'options': None, 'password': '1234', 'expected_prompt': 'root@debian:/home/xyz',
-    'allowed_newline_after_prompt': True, 'set_prompt': r'export PS1="${PS1::-4} # "',
+    'allowed_newline_after_prompt': True, 'set_prompt': r'export PS1="${PS1::-4} #"',
 }
 
-COMMAND_RESULT_newline_after_prompt_with_prompt_change = {'RESULT': [r'$ export PS1="${PS1::-4} # ']}
+COMMAND_RESULT_newline_after_prompt_with_prompt_change = {'RESULT': [r'$ export PS1="${PS1::-4} #']}
 
 COMMAND_OUTPUT_set_timeout = """
 xyz@debian:~$ su
