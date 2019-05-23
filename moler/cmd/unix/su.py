@@ -324,7 +324,7 @@ COMMAND_OUTPUT_newline_after_prompt_with_prompt_change = """
 xyz@debian:~$ su
 Password:
 root@debian:/home/xyz
-$ export PS1="${PS1::-4} # 
+$ export PS1="${PS1::-4} #
 root@debian:/home/xyz #
 """
 
