@@ -157,8 +157,14 @@ class UnixLocal(TextualDevice):
         command_params = configurations["command_params"]
 
         command_timeout = self.calc_timeout_for_command(timeout, command_params)
+        self._delete_timeout_parameter(command_params)
         command = self.get_cmd(cmd_name=command_name, cmd_params=command_params)
         command(timeout=command_timeout)
+
+    @staticmethod
+    def _delete_timeout_parameter(parameters):
+        if 'timeout' in parameters:
+            del parameters['timeout']
 
 
 """
