@@ -17,32 +17,39 @@ from moler.exceptions import ParsingDone
 
 class Su(GenericUnixCommand):
 
-    def __init__(self, connection, user=None, options=None, password=None, prompt=None, expected_prompt=None,
-                 newline_chars=None, encrypt_password=True, target_newline="\n", runner=None):
+    def __init__(self, connection, login=None, options=None, password=None, prompt=None, expected_prompt=None,
+                 newline_chars=None, encrypt_password=True, target_newline="\n", runner=None, set_timeout=None,
+                 allowed_newline_after_prompt=False, set_prompt=None):
         """
         Moler class of Unix command su.
 
-        :param connection: moler connection to device, terminal when command is executed
-        :param user: user name
-        :param options: su unix command options
-        :param password: password
-        :param prompt: start prompt
-        :param expected_prompt: final prompt
-        :param newline_chars: Characters to split lines
-        :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text
-        :param target_newline: newline chars on root user
-        :param runner: Runner to run command
+        :param connection: moler connection to device, terminal when command is executed.
+        :param login: user name.
+        :param options: su unix command options.
+        :param password: password.
+        :param prompt: start prompt.
+        :param expected_prompt: final prompt.
+        :param newline_chars: Characters to split lines.
+        :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text.
+        :param target_newline: newline chars on root user.
+        :param runner: Runner to run command.
+        :param set_timeout: Command to set timeout after su success.
+        :param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt
+        :param set_prompt: Command to set prompt after su success.
         """
         super(Su, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
         # Parameters defined by calling the command
         self.expected_prompt = expected_prompt
-        self._re_expected_prompt = None             # Expected prompt on device
-        self.user = user
+        self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(expected_prompt)  # Expected prompt on device
+        self.login = login
         self.options = options
         self.password = password
         self.encrypt_password = encrypt_password
         self.target_newline = target_newline
+        self.set_timeout = set_timeout
+        self.allowed_newline_after_prompt = allowed_newline_after_prompt
+        self.set_prompt = set_prompt
 
         # Internal variables
         self._password_sent = False
@@ -57,8 +64,8 @@ class Su(GenericUnixCommand):
         cmd = "su"
         if self.options:
             cmd = cmd + " " + self.options
-        if self.user:
-            cmd = cmd + " " + self.user
+        if self.login:
+            cmd = cmd + " " + self.login
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -66,8 +73,8 @@ class Su(GenericUnixCommand):
         Parses the output of the command.
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
-        :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :param is_full_line: True if line had new line chars, False otherwise.
+        :return: None.
         """
         try:
             self._send_password_if_requested(line)
@@ -137,7 +144,6 @@ class Su(GenericUnixCommand):
         :return: Match object if regex matches, None otherwise
         """
         if self.expected_prompt:
-            self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(self.expected_prompt)
             return self._regex_helper.search_compiled(self._re_expected_prompt, line)
         return None
 
@@ -173,7 +179,7 @@ Password:
 root@debian:/home/xyz#"""
 
 COMMAND_KWARGS_su = {
-    'user': None, 'options': None, 'password': '1234', 'expected_prompt': 'root@debian:/home/xyz#'
+    'login': None, 'options': None, 'password': '1234', 'expected_prompt': 'root@debian:/home/xyz#'
 }
 
 COMMAND_RESULT_su = {}
@@ -185,7 +191,7 @@ Dokumenty Pobrane Publiczny Pulpit Szablony Wideo
 xyz@debian:~$"""
 
 COMMAND_KWARGS_su_option = {
-    'user': 'xyz', 'options': "-c 'ls'", 'password': '1234'
+    'login': 'xyz', 'options': "-c 'ls'", 'password': '1234'
 }
 
 COMMAND_RESULT_su_option = {'RESULT': ['Dokumenty Pobrane Publiczny Pulpit Szablony Wideo']}

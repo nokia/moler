@@ -13,7 +13,7 @@ from moler.cmd.unix.su import Su
 
 
 def test_su_returns_proper_command_string(buffer_connection):
-    telnet_cmd = Su(buffer_connection, user='xyz', options='-p', password="1234", prompt=None, newline_chars=None)
+    telnet_cmd = Su(buffer_connection, login='xyz', options='-p', password="1234", prompt=None, newline_chars=None)
     assert "su -p xyz" == telnet_cmd.command_string
 
 
