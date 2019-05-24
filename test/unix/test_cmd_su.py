@@ -13,7 +13,7 @@ from moler.cmd.unix.su import Su
 
 
 def test_su_returns_proper_command_string(buffer_connection):
-    telnet_cmd = Su(buffer_connection, user='xyz', options='-p', password="1234", prompt=None, newline_chars=None)
+    telnet_cmd = Su(buffer_connection, login='xyz', options='-p', password="1234", prompt=None, newline_chars=None)
     assert "su -p xyz" == telnet_cmd.command_string
 
 
@@ -21,7 +21,7 @@ def test_su_catches_authentication_failure(buffer_connection, command_output_and
     from moler.exceptions import CommandFailure
     command_output, expected_result = command_output_and_expected_result_auth
     buffer_connection.remote_inject_response([command_output])
-    su_cmd = Su(connection=buffer_connection.moler_connection, prompt=r"xyz@debian:")
+    su_cmd = Su(connection=buffer_connection.moler_connection, prompt=r"xyz@debian:", expected_prompt=r"root@debian")
     with pytest.raises(CommandFailure):
         su_cmd()
 
