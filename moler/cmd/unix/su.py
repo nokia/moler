@@ -86,8 +86,8 @@ class Su(GenericUnixCommand):
             self._authentication_failure(line)
             self._command_failure(line)
             if is_full_line:
-                self._parse(line)
                 self._sent_password = False  # Clear flag for multi passwords connections
+                self._parse(line)
         except ParsingDone:
             pass
 
