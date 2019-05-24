@@ -247,17 +247,6 @@ class Su(GenericUnixCommand):
         """
         return self._regex_helper.search_compiled(Su._re_password, line)
 
-    def _is_prompt(self, line):
-        """
-        Checks if device sends final prompt.
-
-        :param line: Line from device.
-        :return: Match object if regex matches, None otherwise
-        """
-        if self.expected_prompt:
-            return self._regex_helper.search_compiled(self._re_expected_prompt, line)
-        return None
-
     def _send_password_if_requested(self, line):
         """
         Sends password.
