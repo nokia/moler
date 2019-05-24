@@ -5,7 +5,7 @@ Moler's device has 2 main responsibilities:
 - be the state machine that controls which commands may run in given state
 """
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
@@ -312,16 +312,17 @@ class TextualDevice(object):
                     available_cmds.update({cmd_name: cmd_class_fullname})
         return available_cmds
 
-    def _get_observer_in_state(self, observer_name, observer_type, **kwargs):
+    def _get_observer_in_state(self, observer_name, observer_type, for_state, **kwargs):
         """Return Observable object assigned to obserber_name of given device"""
         # TODO: return observer object wrapped in decorator mocking it's start()
         # TODO:  to check it it is starting in correct state (do it on flag)
         available_observer_names = []
-
+        if not for_state:
+            for_state = self.current_state
         if observer_type == TextualDevice.cmds:
-            available_observer_names = self._cmdnames_available_in_state[self.current_state]
+            available_observer_names = self._cmdnames_available_in_state[for_state]
         elif observer_type == TextualDevice.events:
-            available_observer_names = self._eventnames_available_in_state[self.current_state]
+            available_observer_names = self._eventnames_available_in_state[for_state]
 
         if observer_name in available_observer_names:
             # TODO: GL refactor to instance_loader
@@ -338,33 +339,38 @@ class TextualDevice(object):
         exc = DeviceFailure(
             device=self.__class__.__name__,
             message="Failed to create {}-object for '{}' {}. '{}' {} is unknown for state '{}' of device '{}'. Available names: {}".format(
-                observer_type, observer_name, observer_type, observer_name, observer_type, self.current_state,
+                observer_type, observer_name, observer_type, observer_name, observer_type, for_state,
                 self.__class__.__name__, available_observer_names))
         self._log(logging.ERROR, exc)
         raise exc
 
-    def _create_cmd_instance(self, cmd_name, **kwargs):
+    def _create_cmd_instance(self, cmd_name, for_state, **kwargs):
         """
         CAUTION: it checks if cmd may be created in current_state of device
         """
-        return self._get_observer_in_state(observer_name=cmd_name, observer_type=TextualDevice.cmds, **kwargs)
+        return self._get_observer_in_state(observer_name=cmd_name, observer_type=TextualDevice.cmds,
+                                           for_state=for_state, **kwargs)
 
-    def _create_event_instance(self, event_name, **kwargs):
+    def _create_event_instance(self, event_name, for_state, **kwargs):
         """
         CAUTION: it checks if event may be created in current_state of device
         """
-        return self._get_observer_in_state(observer_name=event_name, observer_type=TextualDevice.events, **kwargs)
+        return self._get_observer_in_state(observer_name=event_name, observer_type=TextualDevice.events,
+                                           for_state=for_state, **kwargs)
 
-    def get_observer(self, observer_name, observer_type, observer_exception, check_state=True, **kwargs):
+    def get_observer(self, observer_name, observer_type, observer_exception, check_state=True, for_state=None,
+                     **kwargs):
+        if not for_state:
+            for_state = self.current_state
         observer = None
         if observer_type == TextualDevice.cmds:
-            observer = self._create_cmd_instance(observer_name, **kwargs)
+            observer = self._create_cmd_instance(observer_name, for_state=for_state, **kwargs)
         elif observer_type == TextualDevice.events:
-            observer = self._create_event_instance(observer_name, **kwargs)
+            observer = self._create_event_instance(observer_name, for_state=for_state, **kwargs)
 
         if check_state:
             original_fun = observer._validate_start
-            creation_state = self.current_state
+            creation_state = for_state
 
             @functools.wraps(observer._validate_start)
             def validate_device_state_before_observer_start(*args, **kargs):
@@ -380,35 +386,41 @@ class TextualDevice(object):
             observer._validate_start = validate_device_state_before_observer_start
         return observer
 
-    def get_cmd(self, cmd_name, cmd_params=None, check_state=True):
+    def get_cmd(self, cmd_name, cmd_params=None, check_state=True, for_state=None):
         """
         Returns instance of command connected with the device.
         :param cmd_name: name of commands, name of class (without package), for example "cd".
         :param cmd_params: dict with command parameters.
         :param check_state: if True then before execute of command the state of device will be check if the same
          as when command was created. If False the device state is not checked.
+        :param for_state: if None then command object for current state is returned, otherwise object for for_state is
+         returned.
         :return: Instance of command
         """
         cmd_params = copy_dict(cmd_params)
         if "prompt" not in cmd_params:
             cmd_params["prompt"] = self.get_prompt()
         cmd = self.get_observer(observer_name=cmd_name, observer_type=TextualDevice.cmds,
-                                observer_exception=CommandWrongState, check_state=check_state, **cmd_params)
+                                observer_exception=CommandWrongState, check_state=check_state,
+                                for_state=for_state, **cmd_params)
         assert isinstance(cmd, CommandTextualGeneric)
         return cmd
 
-    def get_event(self, event_name, event_params=None, check_state=True):
+    def get_event(self, event_name, event_params=None, check_state=True, for_state=None):
         """
         Return instance of event connected with the device.
         :param event_name: name of event, name of class (without package).
         :param event_params: dict with event parameters.
         :param check_state: if True then before execute of event the state of device will be check if the same
          as when event was created. If False the device state is not checked.
-        :return:
+        :param for_state: if None then event object for current state is returned, otherwise object for for_state is
+         returned.
+        :return: Event object
         """
         event_params = copy_dict(event_params)
         event = self.get_observer(observer_name=event_name, observer_type=TextualDevice.events,
-                                  observer_exception=EventWrongState, check_state=check_state, **event_params)
+                                  observer_exception=EventWrongState, check_state=check_state,
+                                  for_state=for_state, **event_params)
 
         return event
 
