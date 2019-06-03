@@ -29,7 +29,7 @@ class Ssh(GenericUnixCommand):
     def __init__(self, connection, login, password, host, prompt=None, expected_prompt='>', port=0,
                  known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
                  term_mono="TERM=xterm-mono", newline_chars=None, encrypt_password=True, runner=None,
-                 target_newline="\n", allowed_newline_after_prompt=False):
+                 target_newline="\n", allowed_newline_after_prompt=False, repeat_password=False):
         """
         Moler class of Unix command ssh.
 
@@ -49,6 +49,7 @@ class Ssh(GenericUnixCommand):
         :param runner: Runner to run command
         :param target_newline: newline chars on remote system where ssh connects
         :param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt
+        :param repeat_password: If True then repeat last password if no more provided. If False then exception is set.
         """
         super(Ssh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
@@ -68,6 +69,7 @@ class Ssh(GenericUnixCommand):
         self.encrypt_password = encrypt_password
         self.target_newline = target_newline
         self.allowed_newline_after_prompt = allowed_newline_after_prompt
+        self.repeat_password = repeat_password
 
         self.ret_required = False
 
@@ -78,6 +80,7 @@ class Ssh(GenericUnixCommand):
         self._sent_password = False
         self._sent_continue_connecting = False
         self._resize_sent = False
+        self._last_password = " "
 
     def build_command_string(self):
         """
@@ -226,9 +229,13 @@ class Ssh(GenericUnixCommand):
         if (not self._sent_password) and self._is_password_requested(line):
             try:
                 pwd = self._passwords.pop(0)
+                self._last_password = pwd
                 self.connection.sendline(pwd, encrypt=self.encrypt_password)
             except IndexError:
-                self.set_exception(CommandFailure(self, "Password was requested but no more passwords provided."))
+                if self.repeat_password:
+                    self.connection.sendline(self._last_password, encrypt=self.encrypt_password)
+                else:
+                    self.set_exception(CommandFailure(self, "Password was requested but no more passwords provided."))
             self._sent_password = True
             raise ParsingDone()
 
@@ -489,6 +496,34 @@ COMMAND_KWARGS_2_passwords = {
 }
 
 COMMAND_RESULT_2_passwords = {}
+
+
+COMMAND_OUTPUT_2_passwords_repeat = """
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+You are about to access a private system. This system is for the use of
+authorized users only. All connections are logged to the extent and by means
+acceptable by the local legislation. Any unauthorized access or access attempts
+may be punished to the fullest extent possible under the applicable local
+legislation.
+Password:
+This account is used as a fallback account. The only thing it provides is
+the ability to switch to the root account.
+
+Please enter the root password
+Password:
+
+USAGE OF THE ROOT ACCOUNT AND THE FULL BASH IS RECOMMENDED ONLY FOR LIMITED USE. PLEASE USE A NON-ROOT ACCOUNT AND THE SCLI SHELL (fsclish) AND/OR LIMITED BASH SHELL.
+
+host:~ #
+host:~ # export TMOUT="2678400"
+host:~ #"""
+
+COMMAND_KWARGS_2_passwords_repeat = {
+    "login": "user", "password": "english", "repeat_password": True,
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
+}
+
+COMMAND_RESULT_2_passwords_repeat = {}
 
 COMMAND_OUTPUT_resize_window = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
