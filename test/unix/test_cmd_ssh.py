@@ -27,7 +27,7 @@ def test_ssh_failed_with_multiple_passwords(buffer_connection, command_output_2_
     buffer_connection.remote_inject_response([command_output])
 
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
-                  host="host.domain.net", expected_prompt="host:.*#", prompt="starthost:~ >")
+                  host="host.domain.net", expected_prompt="host:.*#", prompt="starthost:~ >", repeat_password=False)
     assert "TERM=xterm-mono ssh -l user host.domain.net" == ssh_cmd.command_string
     with pytest.raises(CommandFailure):
         ssh_cmd()

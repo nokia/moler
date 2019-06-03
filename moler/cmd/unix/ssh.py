@@ -22,14 +22,15 @@ class Ssh(GenericUnixCommand):
     _re_yes_no = re.compile(r"\(yes/no\)\?|'yes' or 'no':", re.IGNORECASE)
     _re_id_dsa = re.compile(r"id_dsa:", re.IGNORECASE)
     _re_password = re.compile(r"(password.*:)", re.IGNORECASE)
-    _re_failed_strings = re.compile(r"Permission denied|No route to host|ssh: Could not", re.IGNORECASE)
+    _re_failed_strings = re.compile(r"Permission denied|No route to host|ssh: Could not|"
+                                    r"Too many authentication failures", re.IGNORECASE)
     _re_host_key_verification_failed = re.compile(r"Host key verification failed", re.IGNORECASE)
     _re_resize = re.compile(r"999H")
 
     def __init__(self, connection, login, password, host, prompt=None, expected_prompt='>', port=0,
                  known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
                  term_mono="TERM=xterm-mono", newline_chars=None, encrypt_password=True, runner=None,
-                 target_newline="\n", allowed_newline_after_prompt=False, repeat_password=False):
+                 target_newline="\n", allowed_newline_after_prompt=False, repeat_password=True):
         """
         Moler class of Unix command ssh.
 
