@@ -491,6 +491,20 @@ COMMAND_KWARGS_no_settings = {
 
 COMMAND_RESULT_no_settings = {}
 
+COMMAND_OUTPUT_no_credentials = """
+userl@host01:~> TERM=xterm-mono telnet host.domain.net 1425
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+CLIENT5 [] has just connected!
+host:~ #"""
+
+COMMAND_KWARGS_no_credentials = {
+    "login": None, "password": None, "port": 1425, 'set_timeout': None,
+    "host": "host.domain.net", "expected_prompt": "host:.*#",
+}
+
+COMMAND_RESULT_no_credentials = {}
+
 
 COMMAND_OUTPUT_prefix = """
 user@host01:~> TERM=xterm-mono telnet -4 host.domain.net 1500
