@@ -23,7 +23,7 @@ class Ssh(GenericUnixCommand):
     _re_id_dsa = re.compile(r"id_dsa:", re.IGNORECASE)
     _re_password = re.compile(r"(password.*:)", re.IGNORECASE)
     _re_failed_strings = re.compile(r"Permission denied|No route to host|ssh: Could not|"
-                                    r"Too many authentication failures", re.IGNORECASE)
+                                    r"Too many authentication failures|Received disconnect from", re.IGNORECASE)
     _re_host_key_verification_failed = re.compile(r"Host key verification failed", re.IGNORECASE)
     _re_resize = re.compile(r"999H")
 
