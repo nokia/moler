@@ -8,6 +8,7 @@ __copyright__ = 'Copyright (C) 2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
+from moler.helpers import copy_list
 import six
 
 
@@ -32,7 +33,7 @@ class Tee(GenericUnixCommand):
         if isinstance(content, six.string_types):
             self._content = [content]
         else:
-            self._content = list(content)  # copy of list of content to modify
+            self._content = copy_list(src=content)  # copy of list of content to modify
         self.end_sent = False
 
     def build_command_string(self):
@@ -44,6 +45,15 @@ class Tee(GenericUnixCommand):
         cmd = "tee {}".format(self.path)
         return cmd
 
+    def send_command(self):
+        """
+        Sends command (and the first line from content) to connection.
+
+        :return: None
+        """
+        super(Tee, self).send_command()
+        self._send_one_line()
+
     def on_new_line(self, line, is_full_line):
         """
         Parses the output of the command.
@@ -53,15 +63,18 @@ class Tee(GenericUnixCommand):
         :return: Nothing
         """
         if is_full_line:
-            try:
-                line_to_save = self._content.pop(0)
-                self.connection.sendline(line_to_save)
-            except IndexError:
-                if not self.end_sent:
-                    self.connection.send(chr(4))
-                    self.connection.send(chr(3))
-                    self.end_sent = True
+            self._send_one_line()
         super(Tee, self).on_new_line(line=line, is_full_line=is_full_line)
+
+    def _send_one_line(self):
+        try:
+            line_to_save = self._content.pop(0)
+            self.connection.sendline(line_to_save)
+        except IndexError:
+            if not self.end_sent:
+                self.connection.send(chr(4))
+                self.connection.send(chr(3))
+                self.end_sent = True
 
 
 COMMAND_OUTPUT_string = """tee file.txt
