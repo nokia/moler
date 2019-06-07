@@ -233,7 +233,7 @@ class TextualDevice(object):
         return next_state
 
     def _trigger_change_state(self, next_state, timeout, rerun, send_enter_after_changed_state,
-                              log_stacktrace_on_error=True):
+                              log_stacktrace_on_fail=True):
         self._log(logging.DEBUG, "Changing state from '%s' into '%s'" % (self.current_state, next_state))
         change_state_method = None
         entered_state = False
@@ -253,7 +253,7 @@ class TextualDevice(object):
                     if retrying == rerun:
                         ex_traceback = traceback.format_exc()
                         exc = DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback)
-                        if log_stacktrace_on_error:
+                        if log_stacktrace_on_fail:
                             self._log(logging.ERROR, exc)
                         raise exc
                     else:
@@ -273,7 +273,7 @@ class TextualDevice(object):
                         "Either target state does not exist in SM or there is no direct/indirect transition "
                         "towards target state. Try to change state machine definition. "
                         "Available states: {}".format(next_state, self.states))
-            if log_stacktrace_on_error:
+            if log_stacktrace_on_fail:
                 self._log(logging.ERROR, exc)
             raise exc
 
