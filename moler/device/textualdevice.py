@@ -193,7 +193,8 @@ class TextualDevice(object):
             self._log(logging.INFO, "Changed state from '%s' into '%s'" % (self.current_state, state))
             self.SM.set_state(state=state)
 
-    def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False):
+    def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False,
+                   log_stacktrace_on_fail=True):
         dest_state = state
 
         if self.current_state == dest_state:
@@ -209,7 +210,8 @@ class TextualDevice(object):
         while (not is_dest_state) and (not is_timeout):
             next_state = self._get_next_state(dest_state)
             self._trigger_change_state(next_state=next_state, timeout=next_stage_timeout, rerun=rerun,
-                                       send_enter_after_changed_state=send_enter_after_changed_state)
+                                       send_enter_after_changed_state=send_enter_after_changed_state,
+                                       log_stacktrace_on_fail=log_stacktrace_on_fail)
 
             if self.current_state == dest_state:
                 is_dest_state = True
@@ -230,7 +232,8 @@ class TextualDevice(object):
 
         return next_state
 
-    def _trigger_change_state(self, next_state, timeout, rerun, send_enter_after_changed_state):
+    def _trigger_change_state(self, next_state, timeout, rerun, send_enter_after_changed_state,
+                              log_stacktrace_on_error=True):
         self._log(logging.DEBUG, "Changing state from '%s' into '%s'" % (self.current_state, next_state))
         change_state_method = None
         entered_state = False
@@ -250,7 +253,8 @@ class TextualDevice(object):
                     if retrying == rerun:
                         ex_traceback = traceback.format_exc()
                         exc = DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback)
-                        self._log(logging.ERROR, exc)
+                        if log_stacktrace_on_error:
+                            self._log(logging.ERROR, exc)
                         raise exc
                     else:
                         retrying += 1
@@ -269,7 +273,8 @@ class TextualDevice(object):
                         "Either target state does not exist in SM or there is no direct/indirect transition "
                         "towards target state. Try to change state machine definition. "
                         "Available states: {}".format(next_state, self.states))
-            self._log(logging.ERROR, exc)
+            if log_stacktrace_on_error:
+                self._log(logging.ERROR, exc)
             raise exc
 
     def on_connection_made(self, connection):
