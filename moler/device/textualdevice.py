@@ -236,8 +236,6 @@ class TextualDevice(object):
                               log_stacktrace_on_fail=True):
         self._log(logging.DEBUG, "Changing state from '%s' into '%s'" % (self.current_state, next_state))
         change_state_method = None
-        entered_state = False
-        retrying = 0
         # all state triggers used by SM are methods with names starting from "GOTO_"
         # for e.g. GOTO_REMOTE, GOTO_CONNECTED
         for goto_method in self.goto_states_triggers:
@@ -245,27 +243,9 @@ class TextualDevice(object):
                 change_state_method = getattr(self, goto_method)
 
         if change_state_method:
-            while (retrying <= rerun) and (not entered_state) and (self.current_state is not next_state):
-                try:
-                    change_state_method(self.current_state, next_state, timeout=timeout)
-                    entered_state = True
-                except Exception as ex:
-                    if retrying == rerun:
-                        ex_traceback = traceback.format_exc()
-                        exc = DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback)
-                        if log_stacktrace_on_fail:
-                            self._log(logging.ERROR, exc)
-                        raise exc
-                    else:
-                        retrying += 1
-                        self._log(logging.DEBUG, "Cannot change state into '{}'. "
-                                                 "Retrying '{}' of '{}' times.".format(next_state, retrying, rerun))
-                        if send_enter_after_changed_state:
-                            self._send_enter_after_changed_state()
-            self.io_connection.moler_connection.change_newline_seq(self._get_newline(state=next_state))
-            if send_enter_after_changed_state:
-                self._send_enter_after_changed_state()
-            self._log(logging.DEBUG, "Successfully enter state '{}'".format(next_state))
+            self._trigger_change_state_loop(rerun=rerun, next_state=next_state, change_state_method=change_state_method,
+                                            timeout=timeout, log_stacktrace_on_fail=log_stacktrace_on_fail,
+                                            send_enter_after_changed_state=send_enter_after_changed_state)
         else:
             exc = DeviceFailure(
                 device=self.__class__.__name__,
@@ -276,6 +256,32 @@ class TextualDevice(object):
             if log_stacktrace_on_fail:
                 self._log(logging.ERROR, exc)
             raise exc
+
+    def _trigger_change_state_loop(self, rerun, next_state, change_state_method, timeout, log_stacktrace_on_fail,
+                                   send_enter_after_changed_state):
+        entered_state = False
+        retrying = 0
+        while (retrying <= rerun) and (not entered_state) and (self.current_state is not next_state):
+            try:
+                change_state_method(self.current_state, next_state, timeout=timeout)
+                entered_state = True
+            except Exception as ex:
+                if retrying == rerun:
+                    ex_traceback = traceback.format_exc()
+                    exc = DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback)
+                    if log_stacktrace_on_fail:
+                        self._log(logging.ERROR, exc)
+                    raise exc
+                else:
+                    retrying += 1
+                    self._log(logging.DEBUG, "Cannot change state into '{}'. "
+                                             "Retrying '{}' of '{}' times.".format(next_state, retrying, rerun))
+                    if send_enter_after_changed_state:
+                        self._send_enter_after_changed_state()
+        self.io_connection.moler_connection.change_newline_seq(self._get_newline(state=next_state))
+        if send_enter_after_changed_state:
+            self._send_enter_after_changed_state()
+        self._log(logging.DEBUG, "Successfully enter state '{}'".format(next_state))
 
     def on_connection_made(self, connection):
         self._set_state(TextualDevice.connected)
