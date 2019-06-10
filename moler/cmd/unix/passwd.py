@@ -93,7 +93,7 @@ class Passwd(GenericUnixCommand):
             raise ParsingDone
 
     # New password:
-    _re_new_password = re.compile(r'New .* password:', re.IGNORECASE)
+    _re_new_password = re.compile(r'New .*password:')
 
     def _parse_new_password(self, line):
         """
@@ -108,7 +108,7 @@ class Passwd(GenericUnixCommand):
             raise ParsingDone
 
     # Retype new password:
-    _re_retype_new_password = re.compile(r'Retype new .* password:')
+    _re_retype_new_password = re.compile(r'Retype .*new password:')
 
     def _parse_retype_new_password(self, line):
         """
