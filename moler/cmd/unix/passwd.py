@@ -14,7 +14,7 @@ __email__ = 'michal.ernst@nokia.com'
 
 
 class Passwd(GenericUnixCommand):
-    def __init__(self, connection, current_password, new_password, user=None, options=None,
+    def __init__(self, connection, new_password, current_password=None, user=None, options=None,
                  encrypt_password_sending=True, newline_chars=None, runner=None):
         """
         Moler class of Unix command passwd.
