@@ -14,7 +14,7 @@ __email__ = 'michal.ernst@nokia.com'
 
 
 class Passwd(GenericUnixCommand):
-    def __init__(self, connection, new_password, current_password=None, user=None, options=None,
+    def __init__(self, connection, current_password=None, new_password=None, user=None, options=None,
                  encrypt_password_sending=True, newline_chars=None, runner=None):
         """
         Moler class of Unix command passwd.
@@ -41,6 +41,7 @@ class Passwd(GenericUnixCommand):
 
         self._cancel_cmd = False
         self.current_ret["PASSWORD_CHANGED"] = False
+        self.current_ret["LINES"] = []
 
     def build_command_string(self):
         """
@@ -66,6 +67,8 @@ class Passwd(GenericUnixCommand):
         try:
             if self._cancel_cmd:
                 self._send_enters_to_cancel_cmd()
+            if is_full_line:
+                self._parse_line(line)
             self._parse_re_too_short_password(line)
             self._parse_too_simple_password(line)
             self._parse_error(line)
@@ -78,7 +81,7 @@ class Passwd(GenericUnixCommand):
         return super(Passwd, self).on_new_line(line, is_full_line)
 
     # Current password:
-    _re_current_password = re.compile(r'Current .* password:')
+    _re_current_password = re.compile(r'Current .*password:')
 
     def _parse_current_password(self, line):
         """
@@ -185,6 +188,15 @@ class Passwd(GenericUnixCommand):
 
             raise ParsingDone
 
+    def _parse_line(self, line):
+        """
+        Parse single full line and add it to result dict.
+
+        :param line: Line from device.
+        :return: Nothing
+        """
+        self.current_ret["LINES"].append(line)
+
     def _send_enters_to_cancel_cmd(self, ):
         """
         Send enter to cancel cmd.
@@ -209,7 +221,14 @@ COMMAND_KWARGS_no_user = {
 }
 
 COMMAND_RESULT_no_user = {
-    "PASSWORD_CHANGED": True
+    "PASSWORD_CHANGED": True,
+    "LINES": [
+        "Changing password for user.",
+        "Current password:",
+        "New password:",
+        "Retype new password:",
+        "passwd: password updated successfully",
+    ]
 }
 
 COMMAND_OUTPUT_with_user = """user@host:~$: passwd user
@@ -227,5 +246,28 @@ COMMAND_KWARGS_with_user = {
 }
 
 COMMAND_RESULT_with_user = {
-    "PASSWORD_CHANGED": True
+    "PASSWORD_CHANGED": True,
+    "LINES": [
+        "Changing password for user.",
+        "Current password:",
+        "New password:",
+        "Retype new password:",
+        "passwd: password updated successfully",
+    ]
+}
+
+COMMAND_OUTPUT_with_user = """user@host:~$: passwd -S user
+user P 05/22/2018 0 99999 7 -1
+user@host:~$"""
+
+COMMAND_KWARGS_with_user = {
+    "user": "user",
+    "options": "-S"
+}
+
+COMMAND_RESULT_with_user = {
+    "PASSWORD_CHANGED": False,
+    "LINES": [
+        "user P 05/22/2018 0 99999 7 -1"
+    ]
 }
