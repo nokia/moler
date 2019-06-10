@@ -33,13 +33,13 @@ class Passwd(GenericUnixCommand):
         self.current_password = current_password
         self.new_password = new_password
         self.options = options
-
-        self.current_password_sent = False
-        self.new_password_sent = False
-        self.retype_new_password_sent = False
         self.encrypt_password_sending = encrypt_password_sending
 
-        self.cancel_cmd = False
+        self._current_password_sent = False
+        self._new_password_sent = False
+        self._retype_new_password_sent = False
+
+        self._cancel_cmd = False
         self.current_ret["PASSWORD_CHANGED"] = False
 
     def build_command_string(self):
@@ -64,7 +64,7 @@ class Passwd(GenericUnixCommand):
         :return: Nothing
         """
         try:
-            if self.cancel_cmd:
+            if self._cancel_cmd:
                 self._send_enters_to_cancel_cmd()
             self._parse_re_too_short_password(line)
             self._parse_too_simple_password(line)
@@ -87,9 +87,9 @@ class Passwd(GenericUnixCommand):
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if all required commands are sent.
         """
-        if self._regex_helper.search_compiled(Passwd._re_current_password, line) and not self.current_password_sent:
+        if self._regex_helper.search_compiled(Passwd._re_current_password, line) and not self._current_password_sent:
             self.connection.sendline(data=self.current_password, encrypt=self.encrypt_password_sending)
-            self.current_password_sent = True
+            self._current_password_sent = True
             raise ParsingDone
 
     # New password:
@@ -102,9 +102,9 @@ class Passwd(GenericUnixCommand):
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if all required commands are sent.
         """
-        if self._regex_helper.search_compiled(Passwd._re_new_password, line) and not self.new_password_sent:
+        if self._regex_helper.search_compiled(Passwd._re_new_password, line) and not self._new_password_sent:
             self.connection.sendline(data=self.new_password, encrypt=self.encrypt_password_sending)
-            self.new_password_sent = True
+            self._new_password_sent = True
             raise ParsingDone
 
     # Retype new password:
@@ -118,9 +118,9 @@ class Passwd(GenericUnixCommand):
         :return: Nothing but raises ParsingDone if all required commands are sent.
         """
         if self._regex_helper.search_compiled(Passwd._re_retype_new_password,
-                                              line) and not self.retype_new_password_sent:
+                                              line) and not self._retype_new_password_sent:
             self.connection.sendline(data=self.new_password, encrypt=self.encrypt_password_sending)
-            self.retype_new_password_sent = True
+            self._retype_new_password_sent = True
             raise ParsingDone
 
     # Bad: new password is too simple
@@ -136,7 +136,7 @@ class Passwd(GenericUnixCommand):
         if self._regex_helper.search_compiled(Passwd._re_too_simple_password, line):
             self.set_exception(CommandFailure(self, "New password is too simple."))
 
-            self.cancel_cmd = True
+            self._cancel_cmd = True
 
     # You must choose a longer password
     _re_too_short_password = re.compile(r'You must choose a longer password')
@@ -151,7 +151,7 @@ class Passwd(GenericUnixCommand):
         if self._regex_helper.search_compiled(Passwd._re_too_short_password, line):
             self.set_exception(CommandFailure(self, "New password is too short."))
 
-            self.cancel_cmd = True
+            self._cancel_cmd = True
             raise ParsingDone
 
     # passwd: Authentication token manipulation error
@@ -167,7 +167,7 @@ class Passwd(GenericUnixCommand):
         if self._regex_helper.search_compiled(Passwd._re_passwd_error, line):
             self.set_exception(CommandFailure(self, "Unexpected error: '{}'".format(self._regex_helper.group('ERROR'))))
 
-            self.cancel_cmd = True
+            self._cancel_cmd = True
             raise ParsingDone
 
     # passwd: password updated successfully
