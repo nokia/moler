@@ -156,6 +156,15 @@ def load_logger_from_config(config):
     log_cfg.configure_moler_main_logger()
 
 
+def reconfigure_logging_path(logging_path):
+    """
+    Set up new logging path when Moler script is running
+    :param logging_path: new log path when logs will be stored
+    :return:
+    """
+    log_cfg.reconfigure_logging_path(log_path=logging_path)
+
+
 def clear():
     """Cleanup Moler's configuration"""
     global loaded_config
