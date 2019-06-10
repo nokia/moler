@@ -256,16 +256,16 @@ COMMAND_RESULT_with_user = {
     ]
 }
 
-COMMAND_OUTPUT_with_user = """user@host:~$: passwd -S user
+COMMAND_OUTPUT_with_options = """user@host:~$: passwd -S user
 user P 05/22/2018 0 99999 7 -1
 user@host:~$"""
 
-COMMAND_KWARGS_with_user = {
+COMMAND_KWARGS_with_options = {
     "user": "user",
     "options": "-S"
 }
 
-COMMAND_RESULT_with_user = {
+COMMAND_RESULT_with_options = {
     "PASSWORD_CHANGED": False,
     "LINES": [
         "user P 05/22/2018 0 99999 7 -1"
