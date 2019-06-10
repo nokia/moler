@@ -6,6 +6,7 @@ Moler's device has 2 main responsibilities:
 """
 
 from moler.device.textualdevice import TextualDevice
+from moler.helpers import copy_dict
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018-2019, Nokia'
@@ -157,14 +158,16 @@ class UnixLocal(TextualDevice):
         command_params = configurations["command_params"]
 
         command_timeout = self.calc_timeout_for_command(timeout, command_params)
-        self._delete_timeout_parameter(command_params)
-        command = self.get_cmd(cmd_name=command_name, cmd_params=command_params)
+        command_params_without_timeout = self._parameters_without_timeout(parameters=command_params)
+        command = self.get_cmd(cmd_name=command_name, cmd_params=command_params_without_timeout)
         command(timeout=command_timeout)
 
-    @staticmethod
-    def _delete_timeout_parameter(parameters):
+    @classmethod
+    def _parameters_without_timeout(cls, parameters):
         if 'timeout' in parameters:
+            parameters = copy_dict(src=parameters, deep_copy=True)
             del parameters['timeout']
+        return parameters
 
 
 """

@@ -193,7 +193,8 @@ class TextualDevice(object):
             self._log(logging.INFO, "Changed state from '%s' into '%s'" % (self.current_state, state))
             self.SM.set_state(state=state)
 
-    def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False):
+    def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False,
+                   log_stacktrace_on_fail=True):
         dest_state = state
 
         if self.current_state == dest_state:
@@ -209,7 +210,8 @@ class TextualDevice(object):
         while (not is_dest_state) and (not is_timeout):
             next_state = self._get_next_state(dest_state)
             self._trigger_change_state(next_state=next_state, timeout=next_stage_timeout, rerun=rerun,
-                                       send_enter_after_changed_state=send_enter_after_changed_state)
+                                       send_enter_after_changed_state=send_enter_after_changed_state,
+                                       log_stacktrace_on_fail=log_stacktrace_on_fail)
 
             if self.current_state == dest_state:
                 is_dest_state = True
@@ -230,11 +232,10 @@ class TextualDevice(object):
 
         return next_state
 
-    def _trigger_change_state(self, next_state, timeout, rerun, send_enter_after_changed_state):
+    def _trigger_change_state(self, next_state, timeout, rerun, send_enter_after_changed_state,
+                              log_stacktrace_on_fail=True):
         self._log(logging.DEBUG, "Changing state from '%s' into '%s'" % (self.current_state, next_state))
         change_state_method = None
-        entered_state = False
-        retrying = 0
         # all state triggers used by SM are methods with names starting from "GOTO_"
         # for e.g. GOTO_REMOTE, GOTO_CONNECTED
         for goto_method in self.goto_states_triggers:
@@ -242,26 +243,9 @@ class TextualDevice(object):
                 change_state_method = getattr(self, goto_method)
 
         if change_state_method:
-            while (retrying <= rerun) and (not entered_state) and (self.current_state is not next_state):
-                try:
-                    change_state_method(self.current_state, next_state, timeout=timeout)
-                    entered_state = True
-                except Exception as ex:
-                    if retrying == rerun:
-                        ex_traceback = traceback.format_exc()
-                        exc = DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback)
-                        self._log(logging.ERROR, exc)
-                        raise exc
-                    else:
-                        retrying += 1
-                        self._log(logging.DEBUG, "Cannot change state into '{}'. "
-                                                 "Retrying '{}' of '{}' times.".format(next_state, retrying, rerun))
-                        if send_enter_after_changed_state:
-                            self._send_enter_after_changed_state()
-            self.io_connection.moler_connection.change_newline_seq(self._get_newline(state=next_state))
-            if send_enter_after_changed_state:
-                self._send_enter_after_changed_state()
-            self._log(logging.DEBUG, "Successfully enter state '{}'".format(next_state))
+            self._trigger_change_state_loop(rerun=rerun, next_state=next_state, change_state_method=change_state_method,
+                                            timeout=timeout, log_stacktrace_on_fail=log_stacktrace_on_fail,
+                                            send_enter_after_changed_state=send_enter_after_changed_state)
         else:
             exc = DeviceFailure(
                 device=self.__class__.__name__,
@@ -269,8 +253,35 @@ class TextualDevice(object):
                         "Either target state does not exist in SM or there is no direct/indirect transition "
                         "towards target state. Try to change state machine definition. "
                         "Available states: {}".format(next_state, self.states))
-            self._log(logging.ERROR, exc)
+            if log_stacktrace_on_fail:
+                self._log(logging.ERROR, exc)
             raise exc
+
+    def _trigger_change_state_loop(self, rerun, next_state, change_state_method, timeout, log_stacktrace_on_fail,
+                                   send_enter_after_changed_state):
+        entered_state = False
+        retrying = 0
+        while (retrying <= rerun) and (not entered_state) and (self.current_state is not next_state):
+            try:
+                change_state_method(self.current_state, next_state, timeout=timeout)
+                entered_state = True
+            except Exception as ex:
+                if retrying == rerun:
+                    ex_traceback = traceback.format_exc()
+                    exc = DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback)
+                    if log_stacktrace_on_fail:
+                        self._log(logging.ERROR, exc)
+                    raise exc
+                else:
+                    retrying += 1
+                    self._log(logging.DEBUG, "Cannot change state into '{}'. "
+                                             "Retrying '{}' of '{}' times.".format(next_state, retrying, rerun))
+                    if send_enter_after_changed_state:
+                        self._send_enter_after_changed_state()
+        self.io_connection.moler_connection.change_newline_seq(self._get_newline(state=next_state))
+        if send_enter_after_changed_state:
+            self._send_enter_after_changed_state()
+        self._log(logging.DEBUG, "Successfully enter state '{}'".format(next_state))
 
     def on_connection_made(self, connection):
         self._set_state(TextualDevice.connected)
