@@ -4,13 +4,14 @@ Nmap command module.
 """
 
 __author__ = 'Yeshu Yang, Marcin Usielski, Bartosz Odziomek'
-__copyright__ = 'Copyright (C) 2018, Nokia; Copyright (C) 2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'yeshu.yang@nokia-sbell.com, marcin.usielski@nokia.com, bartosz.odziomek@nokia.com'
 
 import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
+from moler.exceptions import CommandFailure
 
 
 class Nmap(GenericUnixCommand):
@@ -48,10 +49,11 @@ class Nmap(GenericUnixCommand):
         Put your parsing code here.
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         if is_full_line:
             try:
+                self._parse_error(line)
                 self._parse_ports_line(line)
                 self._parse_raw_packets(line)
                 self._parse_scan_report(line)
@@ -125,6 +127,14 @@ class Nmap(GenericUnixCommand):
                 self.current_ret["SYN_STEALTH_SCAN"] = dict()
             self.current_ret["SYN_STEALTH_SCAN"] = self._regex_helper.groupdict()
             raise ParsingDone
+
+    # Failed to open normal output file /logs/IP_Protocol_Discovery_BH_IPv4.nmap for writing
+    _re_fail_file = re.compile(r"Failed to open.*file", re.I)
+
+    def _parse_error(self, line):
+        if self._regex_helper.search_compiled(Nmap._re_fail_file, line):
+            self.set_exception(CommandFailure(self, "Fail in line: '{}'".format(line)))
+            raise ParsingDone()
 
     #    Skipping host 10.9.134.1 due to host timeout
     _re_skipping_host = re.compile(r"Skipping host (?P<HOST>\S+) due to host timeout")
