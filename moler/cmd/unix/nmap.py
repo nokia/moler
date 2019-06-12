@@ -154,8 +154,8 @@ class Nmap(GenericUnixCommand):
 
     def _parse_extend_timeout(self, line):
         if self._regex_helper.search_compiled(Nmap._re_extend_timeout, line):
-            timedelta = int(self._regex_helper.group("HOURS")) * 3600 + int(self._regex_helper.group("MINUTES"))\
-                        * 60 + int(self._regex_helper.group("SECONDS"))
+            timedelta = int(self._regex_helper.group("HOURS")) * 3600 + int(
+                self._regex_helper.group("MINUTES")) * 60 + int(self._regex_helper.group("SECONDS"))
             self.extend_timeout(timedelta=timedelta)
 
 
