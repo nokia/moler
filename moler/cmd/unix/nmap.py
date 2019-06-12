@@ -153,10 +153,10 @@ class Nmap(GenericUnixCommand):
     _re_extend_timeout = re.compile(r"\((?P<HOURS>\d+):(?P<MINUTES>\d+):(?P<SECONDS>\d+)\s+remaining\)")
 
     def _parse_extend_timeout(self, line):
-            if self._regex_helper.search_compiled(Nmap._re_extend_timeout, line):
-                timedelta = int(self._regex_helper.group("HOURS")) * 3600 + int(self._regex_helper.group("MINUTES"))\
-                            * 60 + int(self._regex_helper.group("SECONDS"))
-                self.extend_timeout(timedelta=timedelta)
+        if self._regex_helper.search_compiled(Nmap._re_extend_timeout, line):
+            timedelta = int(self._regex_helper.group("HOURS")) * 3600 + int(self._regex_helper.group("MINUTES"))\
+                        * 60 + int(self._regex_helper.group("SECONDS"))
+            self.extend_timeout(timedelta=timedelta)
 
 
 COMMAND_OUTPUT_host_up = """
