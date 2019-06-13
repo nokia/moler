@@ -15,7 +15,7 @@ __email__ = 'michal.ernst@nokia.com'
 
 class Passwd(GenericUnixCommand):
     def __init__(self, connection, current_password=None, new_password=None, user=None, options=None,
-                 encrypt_password_sending=True, newline_chars=None, runner=None):
+                 encrypt_password=True, newline_chars=None, runner=None):
         """
         Moler class of Unix command passwd.
 
@@ -24,7 +24,7 @@ class Passwd(GenericUnixCommand):
         :param new_password: user new password
         :param user: user to change password
         :param options: additional command parameters
-        :param encrypt_password_sending:
+        :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text
         :param newline_chars: Characters to split lines
         :param runner: Runner to run command
         """
@@ -33,7 +33,7 @@ class Passwd(GenericUnixCommand):
         self.current_password = current_password
         self.new_password = new_password
         self.options = options
-        self.encrypt_password_sending = encrypt_password_sending
+        self.encrypt_password = encrypt_password
 
         self._current_password_sent = False
         self._new_password_sent = False
@@ -91,7 +91,7 @@ class Passwd(GenericUnixCommand):
         :return: Nothing but raises ParsingDone if all required commands are sent.
         """
         if self._regex_helper.search_compiled(Passwd._re_current_password, line) and not self._current_password_sent:
-            self.connection.sendline(data=self.current_password, encrypt=self.encrypt_password_sending)
+            self.connection.sendline(data=self.current_password, encrypt=self.encrypt_password)
             self._current_password_sent = True
             raise ParsingDone
 
@@ -106,7 +106,7 @@ class Passwd(GenericUnixCommand):
         :return: Nothing but raises ParsingDone if all required commands are sent.
         """
         if self._regex_helper.search_compiled(Passwd._re_new_password, line) and not self._new_password_sent:
-            self.connection.sendline(data=self.new_password, encrypt=self.encrypt_password_sending)
+            self.connection.sendline(data=self.new_password, encrypt=self.encrypt_password)
             self._new_password_sent = True
             raise ParsingDone
 
@@ -122,7 +122,7 @@ class Passwd(GenericUnixCommand):
         """
         if self._regex_helper.search_compiled(Passwd._re_retype_new_password,
                                               line) and not self._retype_new_password_sent:
-            self.connection.sendline(data=self.new_password, encrypt=self.encrypt_password_sending)
+            self.connection.sendline(data=self.new_password, encrypt=self.encrypt_password)
             self._retype_new_password_sent = True
             raise ParsingDone
 
