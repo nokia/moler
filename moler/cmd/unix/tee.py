@@ -16,13 +16,14 @@ class Tee(GenericUnixCommand):
 
     """Unix tee command"""
 
-    def __init__(self, connection, path, content, prompt=None, newline_chars=None, runner=None):
+    def __init__(self, connection, path, content, border="END_OF_FILE", prompt=None, newline_chars=None, runner=None):
         """
         Unix tee command
 
         :param connection: Moler connection to device, terminal when command is executed.
         :param path: path to file to save.
         :param content: content of file. A string or list of strings.
+        :param border: border string, to finish command output
         :param prompt: Prompt of the starting shell
         :param newline_chars: Characters to split lines - list.
         :param runner: Runner to run command.
@@ -34,6 +35,7 @@ class Tee(GenericUnixCommand):
             self._content = [content]
         else:
             self._content = copy_list(src=content)  # copy of list of content to modify
+        self.border = border
         self.end_sent = False
 
     def build_command_string(self):
@@ -42,7 +44,7 @@ class Tee(GenericUnixCommand):
 
         :return: String representation of command to send over connection to device.
         """
-        cmd = "tee {}".format(self.path)
+        cmd = "tee {} << {}".format(self.path, self.border)
         return cmd
 
     def send_command(self):
@@ -72,14 +74,14 @@ class Tee(GenericUnixCommand):
             self.connection.sendline(line_to_save)
         except IndexError:
             if not self.end_sent:
-                self.connection.send(chr(4))
-                self.connection.send(chr(3))
+                self.connection.sendline(self.border)
                 self.end_sent = True
 
 
-COMMAND_OUTPUT_string = """tee file.txt
+COMMAND_OUTPUT_string = """tee file.txt << END_OF_FILE
 line 1
 line 2
+END_OF_FILE
 moler-bash#"""
 
 COMMAND_KWARGS_string = {
@@ -89,9 +91,10 @@ COMMAND_KWARGS_string = {
 
 COMMAND_RESULT_string = {}
 
-COMMAND_OUTPUT_list = """tee file.txt
+COMMAND_OUTPUT_list = """tee file.txt << END_OF_FILE
 line a
 line b
+END_OF_FILE
 moler-bash#"""
 
 COMMAND_KWARGS_list = {
