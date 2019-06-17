@@ -22,14 +22,15 @@ class Ssh(GenericUnixCommand):
     _re_yes_no = re.compile(r"\(yes/no\)\?|'yes' or 'no':", re.IGNORECASE)
     _re_id_dsa = re.compile(r"id_dsa:", re.IGNORECASE)
     _re_password = re.compile(r"(password.*:)", re.IGNORECASE)
-    _re_failed_strings = re.compile(r"Permission denied|No route to host|ssh: Could not", re.IGNORECASE)
+    _re_failed_strings = re.compile(r"Permission denied|No route to host|ssh: Could not|"
+                                    r"Too many authentication failures|Received disconnect from", re.IGNORECASE)
     _re_host_key_verification_failed = re.compile(r"Host key verification failed", re.IGNORECASE)
     _re_resize = re.compile(r"999H")
 
     def __init__(self, connection, login, password, host, prompt=None, expected_prompt='>', port=0,
                  known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
                  term_mono="TERM=xterm-mono", newline_chars=None, encrypt_password=True, runner=None,
-                 target_newline="\n", allowed_newline_after_prompt=False):
+                 target_newline="\n", allowed_newline_after_prompt=False, repeat_password=True, options=None):
         """
         Moler class of Unix command ssh.
 
@@ -49,6 +50,8 @@ class Ssh(GenericUnixCommand):
         :param runner: Runner to run command
         :param target_newline: newline chars on remote system where ssh connects
         :param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt
+        :param repeat_password: If True then repeat last password if no more provided. If False then exception is set.
+        :param options: Options to add to command string just before host.
         """
         super(Ssh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
@@ -68,6 +71,8 @@ class Ssh(GenericUnixCommand):
         self.encrypt_password = encrypt_password
         self.target_newline = target_newline
         self.allowed_newline_after_prompt = allowed_newline_after_prompt
+        self.repeat_password = repeat_password
+        self.options = options
 
         self.ret_required = False
 
@@ -78,6 +83,7 @@ class Ssh(GenericUnixCommand):
         self._sent_password = False
         self._sent_continue_connecting = False
         self._resize_sent = False
+        self._last_password = " "
 
     def build_command_string(self):
         """
@@ -93,6 +99,8 @@ class Ssh(GenericUnixCommand):
             cmd = "{} -p {}".format(cmd, self.port)
         if self.login:
             cmd = "{} -l {}".format(cmd, self.login)
+        if self.options:
+            cmd = "{} {}".format(cmd, self.options)
         cmd = "{} {}".format(cmd, self.host)
         return cmd
 
@@ -226,9 +234,13 @@ class Ssh(GenericUnixCommand):
         if (not self._sent_password) and self._is_password_requested(line):
             try:
                 pwd = self._passwords.pop(0)
+                self._last_password = pwd
                 self.connection.sendline(pwd, encrypt=self.encrypt_password)
             except IndexError:
-                self.set_exception(CommandFailure(self, "Password was requested but no more passwords provided."))
+                if self.repeat_password:
+                    self.connection.sendline(self._last_password, encrypt=self.encrypt_password)
+                else:
+                    self.set_exception(CommandFailure(self, "Password was requested but no more passwords provided."))
             self._sent_password = True
             raise ParsingDone()
 
@@ -490,6 +502,34 @@ COMMAND_KWARGS_2_passwords = {
 
 COMMAND_RESULT_2_passwords = {}
 
+
+COMMAND_OUTPUT_2_passwords_repeat = """
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+You are about to access a private system. This system is for the use of
+authorized users only. All connections are logged to the extent and by means
+acceptable by the local legislation. Any unauthorized access or access attempts
+may be punished to the fullest extent possible under the applicable local
+legislation.
+Password:
+This account is used as a fallback account. The only thing it provides is
+the ability to switch to the root account.
+
+Please enter the root password
+Password:
+
+USAGE OF THE ROOT ACCOUNT AND THE FULL BASH IS RECOMMENDED ONLY FOR LIMITED USE. PLEASE USE A NON-ROOT ACCOUNT AND THE SCLI SHELL (fsclish) AND/OR LIMITED BASH SHELL.
+
+host:~ #
+host:~ # export TMOUT="2678400"
+host:~ #"""
+
+COMMAND_KWARGS_2_passwords_repeat = {
+    "login": "user", "password": "english", "repeat_password": True,
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
+}
+
+COMMAND_RESULT_2_passwords_repeat = {}
+
 COMMAND_OUTPUT_resize_window = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -524,3 +564,39 @@ COMMAND_KWARGS_resize_window = {
 }
 
 COMMAND_RESULT_resize_window = {}
+
+COMMAND_OUTPUT_options = """
+client:~/>TERM=xterm-mono ssh -l user -o Interval=100 host.domain.net
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+It is also possible that a host key has just been changed.
+The fingerprint for the RSA key sent by the remote host is
+[...].
+Please contact your system administrator.
+Add correct host key in /home/you/.ssh/known_hosts to get rid of this message.
+Offending RSA key in /home/you/.ssh/known_hosts:86
+RSA host key for host.domain.net has changed and you have requested strict checking.
+Host key verification failed.
+client:~/>sh-keygen -R host.domain.net
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+To edit this message please edit /etc/ssh_banner
+You may put information to /etc/ssh_banner who is owner of this PC
+Password:
+Last login: Sun Jan  6 13:42:05 UTC+2 2019 on ttyAMA2
+7[r[999;999H[6n
+resize: unknown character, exiting.
+Have a lot of fun...
+host:~ #
+host:~ # export TMOUT="2678400"
+host:~ #"""
+
+COMMAND_KWARGS_options = {
+    "login": "user", "password": "english", "known_hosts_on_failure": "keygen",
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#",
+    "options": "-o Interval=100"
+}
+
+COMMAND_RESULT_options = {}

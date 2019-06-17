@@ -38,6 +38,23 @@ def test_calling_telnet_raise_exception_command_failure(buffer_connection):
         telnet_cmd()
 
 
+def test_calling_telnet_raise_exception_no_more_passwords(buffer_connection):
+    command_output ="""user@host01:~> TERM=xterm-mono telnet host.domain.net 1504
+Login:
+Login:user
+Password:
+Second password:
+Third password:
+user@host01:~> """
+
+    buffer_connection.remote_inject_response([command_output])
+    telnet_cmd = Telnet(connection=buffer_connection.moler_connection, login="user", password=["english", "polish"],
+                        port=1501, host="host.domain.net", expected_prompt="host.*#", set_timeout=None,
+                        repeat_password=False)
+    with pytest.raises(CommandFailure):
+        telnet_cmd()
+
+
 def test_calling_telnet_timeout(buffer_connection, command_output_and_expected_result_timeout):
     command_output, expected_result = command_output_and_expected_result_timeout
     buffer_connection.remote_inject_response([command_output])

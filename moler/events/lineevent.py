@@ -9,8 +9,8 @@ import re
 
 from moler.events.textualevent import TextualEvent
 from moler.exceptions import NoDetectPatternProvided
-from moler.helpers import instance_id, copy_list
 from moler.exceptions import WrongUsage
+from moler.helpers import instance_id, copy_list, convert_to_number
 
 
 class LineEvent(TextualEvent):
@@ -19,6 +19,7 @@ class LineEvent(TextualEvent):
         self.detect_patterns = copy_list(detect_patterns)
         self.process_full_lines_only = False
         self.match = match
+        self.convert_string_to_number = True
         self._prepare_parameters()
 
     def __str__(self):
@@ -53,6 +54,11 @@ class LineEvent(TextualEvent):
             compiled_patterns.append(pattern)
         return compiled_patterns
 
+    def _convert_string_to_number(self, value):
+        if self.convert_string_to_number:
+            value = convert_to_number(value)
+        return value
+
     def get_long_desc(self):
         return "Event {}.{}".format(self.__class__.__module__, str(self))
 
@@ -82,12 +88,7 @@ class LineEvent(TextualEvent):
         self.parser(line=line)
 
     def _set_current_ret(self, line, match):
-        current_ret = dict()
-        current_ret["line"] = line
-        current_ret["time"] = datetime.datetime.now()
-        current_ret["groups"] = match.groups()
-        current_ret["named_groups"] = match.groupdict()
-        current_ret["matched"] = match.group(0)
+        current_ret = self._prepare_current_ret(line, match)
 
         if self._is_single_cycle_finished():
             if self.match == "any":
@@ -97,6 +98,27 @@ class LineEvent(TextualEvent):
                 self.event_occurred(event_data=self._current_ret)
         else:
             self._current_ret.append(current_ret)
+
+    def _prepare_current_ret(self, line, match):
+        current_ret = dict()
+        current_ret["line"] = line
+        current_ret["time"] = datetime.datetime.now()
+
+        group_dict = match.groupdict()
+        for named_group in match.groupdict():
+            group_dict[named_group] = self._convert_string_to_number(group_dict[named_group])
+
+        current_ret["named_groups"] = group_dict
+
+        groups = tuple()
+        for value in match.groups():
+            groups = groups + (self._convert_string_to_number(value), )
+
+        current_ret["groups"] = groups
+
+        current_ret["matched"] = self._convert_string_to_number(match.group(0))
+
+        return current_ret
 
     def _catch_any(self, line):
         for pattern in self.compiled_patterns:

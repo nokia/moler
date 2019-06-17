@@ -61,6 +61,8 @@ def test_event_is_running(do_nothing_command__for_major_base_class):
     wait4.detect_patterns = ['Connection lose']
     assert not wait4.running()
     wait4.start()  # start the event-future
+    assert wait4.running()
+    wait4.cancel()
 
 
 def test_event_output_in_parts(buffer_connection):

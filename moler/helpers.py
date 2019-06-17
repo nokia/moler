@@ -139,6 +139,33 @@ def compare_objects(first_object, second_object, ignore_order=False, report_repe
     return diff
 
 
+def convert_to_number(value):
+    """
+    Convert value to Python number type.
+    :param value: value to convert
+    :return: converted value if possible, otherwise original
+    """
+    if value and is_digit(value):
+        try:
+            value = int(value)
+        except ValueError:
+            value = float(value)
+    return value
+
+
+def is_digit(value):
+    """
+    Check that value is digit.
+    :param value: value to check
+    :return: True if value is digit, otherwise False
+    """
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
+
+
 class ForwardingHandler(logging.Handler):
     """
     Take log record and pass it to target_logger

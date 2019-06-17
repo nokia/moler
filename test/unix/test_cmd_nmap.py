@@ -3,9 +3,9 @@
 Testing of Nmap command.
 """
 
-__author__ = 'Yeshu Yang'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'yeshu.yang@nokia-sbell.com'
+__author__ = 'Yeshu Yang, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'yeshu.yang@nokia-sbell.com, marcin.usielski@nokia.com'
 
 import pytest
 from pytest import raises
@@ -23,6 +23,25 @@ def test_calling_nmap_timeout(buffer_connection, command_output_and_expected_res
     nmap_cmd = Nmap(connection=buffer_connection.moler_connection, ip="192.168.255.3")
     from moler.exceptions import CommandTimeout
     with raises(CommandTimeout) as exception:
+        nmap_cmd(timeout=0.5)
+    assert exception is not None
+
+
+def test_calling_nmap_cannot_write(buffer_connection):
+    command_output = """
+    nmap -sO -p- -vvv --reason --webxml -oA  /logs/IP_Protocol_Discovery_BH_IPv4 192.168.255.101 -PN
+
+    Failed to open normal output file /logs/IP_Protocol_Discovery_BH_IPv4.nmap for writing
+    QUITTING!
+
+    root@server:~>"""
+    buffer_connection.remote_inject_response([command_output])
+    nmap_cmd = Nmap(connection=buffer_connection.moler_connection, prompt=r"@server.*>", ip="192.168.255.101",
+                    options=r"-sO -p- -vvv --reason --webxml -oA  /logs/IP_Protocol_Discovery_BH_IPv4")
+    cmd_s = r"nmap -sO -p- -vvv --reason --webxml -oA  /logs/IP_Protocol_Discovery_BH_IPv4 192.168.255.101 -PN"
+    assert cmd_s == nmap_cmd.command_string
+    from moler.exceptions import CommandFailure
+    with raises(CommandFailure) as exception:
         nmap_cmd(timeout=0.5)
     assert exception is not None
 

@@ -129,6 +129,7 @@ def test_connection_observer_is_running_after_it_calls_start(do_nothing_connecti
     connection_observer.connection = connection_to_remote.moler_connection
     connection_observer.start()  # start background-run of connection_observer-future
     assert connection_observer.running()
+    connection_observer.cancel()
 
 
 def test_connection_observer_is_not_running_after_it_is_done(do_nothing_connection_observer__for_major_base_class,
@@ -155,6 +156,7 @@ def test_connection_observer_call_passes_positional_arguments_to_start(
     connection_observer.start(1., 23, "foo")
 
     assert called_with_params == [23, "foo"]
+    connection_observer.cancel()
 
 
 def test_connection_observer_call_passes_keyword_arguments_to_start(
@@ -171,6 +173,7 @@ def test_connection_observer_call_passes_keyword_arguments_to_start(
     observer.start(timeout=1.0, param2="foo", param1=23)
 
     assert called_with_params == [23, "foo"]
+    observer.cancel()
 
 
 def test_connection_observer_is_done_after_setting_result(do_nothing_connection_observer__for_major_base_class):
