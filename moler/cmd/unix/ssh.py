@@ -241,6 +241,7 @@ class Ssh(GenericUnixCommand):
                     self.connection.sendline(self._last_password, encrypt=self.encrypt_password)
                 else:
                     self.set_exception(CommandFailure(self, "Password was requested but no more passwords provided."))
+                    self.break_cmd()
             self._sent_password = True
             raise ParsingDone()
 
