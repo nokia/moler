@@ -12,7 +12,8 @@ from moler.events.lineevent import LineEvent
 class FailedLoginCounter(LineEvent):
     # There were 2 failed login attempts since the last successful login
     _re_attempts = re.compile(
-        r'There (?:were|was) (?P<ATTEMPTS_NR>\d+) failed login attempts? since the last successful login', re.I)
+        r'There (?:were|was|have been) (?P<ATTEMPTS_NR>\d+) (?:failed|unsuccessful) login attempts? '
+        r'since the last successful login', re.I)
 
     def __init__(self, connection, till_occurs_times=-1, runner=None):
         """
