@@ -61,7 +61,7 @@ class Netstat(GenericUnixCommand):
         return super(Netstat, self).on_new_line(line, is_full_line)
 
     # Active UNIX domain sockets (w/o servers)
-    _re_active = re.compile(r"Active\s*(?P<ACTIVE>.*) \s*\(w/o servers\)")
+    _re_active = re.compile(r"Active\s*(?P<ACTIVE>.*) \s*\((w/o servers|servers and established)\)")
 
     def _parse_active(self, line):
         """
