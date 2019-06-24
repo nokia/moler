@@ -86,7 +86,12 @@ class Sudo(GenericUnixCommand):
                 self.cmd_object.data_received(cs)
             if is_full_line:
                 line = "{}{}".format(line, self.newline_seq)
+            prev_cmd_timeout = self.cmd_object.timeout
             self.cmd_object.data_received(line)
+            new_cmd_timeout = self.cmd_object.timeout
+            if prev_cmd_timeout != new_cmd_timeout:
+                timedelta = new_cmd_timeout - prev_cmd_timeout
+                self.extend_timeout(timedelta=timedelta)
             self.current_ret["cmd_ret"] = self.cmd_object.current_ret
             if self.cmd_object.done():
                 try:
@@ -153,6 +158,7 @@ class Sudo(GenericUnixCommand):
             raise CommandFailure(self,
                                  "Not allowed to run again the embeded command (embeded command is done): {}.".format(
                                      self.cmd_object))
+        self.timeout = self.cmd_object.timeout
 
 
 COMMAND_OUTPUT_whoami = """
