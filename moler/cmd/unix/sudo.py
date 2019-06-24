@@ -176,6 +176,70 @@ COMMAND_KWARGS_whoami = {
     "password": "pass",
 }
 
+COMMAND_OUTPUT_dynamic_timeout = """
+user@client:~/moler$ sudo nmap -sS -sV -p- -P0 -vvv --reason --webxml --min-rate 100 --max-rate 300 -oA ipv4 1.1.1.4 -PN
+Starting Nmap 6.47 ( http://nmap.org ) at 2019-06-21 14:33 CEST
+
+21 14:30:54.167 <|NSE: Loaded 29 scripts for scanning.
+21 14:30:54.170 <|
+                 |Initiating Parallel DNS resolution of 1 host. at 14:33
+
+21 14:30:54.173 <|Completed Parallel DNS resolution of 1 host. at 14:33, 0.01s elapsed
+                 |DNS resolution of 1 IPs took 0.01s. Mode: Async [#: 1, OK: 0, NX: 1, DR: 0, SF: 0, TR: 1, CN: 0]
+
+21 14:30:54.189 <|Initiating SYN Stealth Scan at 14:33
+                 |Scanning 1.1.1.4 [65535 ports]
+
+21 14:30:54.395 <|Discovered open port 22/tcp on 1.1.1.4
+                 |Discovered open port 80/tcp on 1.1.1.4
+21 14:30:54.397 <|
+                 |Discovered open port 443/tcp on 1.1.1.4
+
+21 14:31:19.398 <|Increasing send delay for 10.83.182.11 from 0 to 5 due to 11 out of 33 dropped probes since last increase.
+
+21 14:31:24.403 <|SYN Stealth Scan Timing: About 4.82% done; ETC: 14:43 (0:10:13 remaining)
+
+21 14:31:24.405  |Extended timeout from 120.00 with delta 613.00 to 733.00
+21 14:31:24.406  |Extended timeout from 120.00 with delta 613.00 to 733.00
+21 14:31:45.896 <|Increasing send delay for 10.83.182.11 from 5 to 10 due to 11 out of 34 dropped probes since last increase.
+
+21 14:31:54.237 <|SYN Stealth Scan Timing: About 5.32% done; ETC: 14:52 (0:18:05 remaining)
+
+21 14:31:54.238  |Extended timeout from 733.00 with delta 1085.00 to 1818.00
+21 14:31:54.239  |Extended timeout from 733.00 with delta 1085.00 to 1818.00
+21 14:32:13.519 <|Increasing send delay for 10.83.182.11 from 10 to 20 due to 11 out of 32 dropped probes since last increase.
+
+21 14:32:24.057 <|SYN Stealth Scan Timing: About 6.84% done; ETC: 14:55 (0:20:40 remaining)
+
+21 14:32:24.058  |Extended timeout from 1818.00 with delta 1240.00 to 3058.00
+21 14:32:24.059  |Extended timeout from 1818.00 with delta 1240.00 to 3058.00
+21 14:32:42.300 <|Increasing send delay for 10.83.182.11 from 20 to 40 due to 11 out of 34 dropped probes since last increase.
+
+21 14:32:53.886 <|SYN Stealth Scan Timing: About 8.35% done; ETC: 14:57 (0:22:08 remaining)
+
+21 14:32:53.888  |Extended timeout from 3058.00 with delta 1328.00 to 4386.00
+user@client:~/moler$ """
+
+COMMAND_RESULT_dynamic_timeout = {
+    'cmd_ret': {
+        'SYN_STEALTH_SCAN': {
+            'DONE': '8.35',
+            'ETC': '14:57',
+            'REMAINING': '0:22:08'
+        }
+    }
+}
+
+COMMAND_KWARGS_dynamic_timeout = {
+    'cmd_class_name': r'moler.cmd.unix.nmap.Nmap',
+    'password': r'pass',
+    'cmd_params': {
+        'options': r'-sS -sV -p- -P0 -vvv --reason --webxml --min-rate 100 --max-rate 300 -oA ipv4',
+        'ip': r'1.1.1.4',
+        'is_ping': False
+    }
+}
+
 COMMAND_OUTPUT_ls = """
 user@client:~/moler$ sudo ls -l
 [sudo] password for user:
