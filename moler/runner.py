@@ -268,7 +268,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             try:
                 too_early_result = connection_observer_future.result()
                 err_msg = "PROBLEM: future returned {} already in runner.submit()".format(too_early_result)
-                self.logger.warning("go background: {} - {}".format(connection_observer, err_msg))
+                self.logger.debug("go background: {} - {}".format(connection_observer, err_msg))
             except Exception as err:
                 err_msg = "PROBLEM: future raised {!r} during runner.submit()".format(err)
                 self.logger.warning("go background: {} - {}".format(connection_observer, err_msg))
