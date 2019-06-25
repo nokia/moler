@@ -40,6 +40,8 @@ class Sudo(GenericUnixCommand):
         self.cmd_params = cmd_params
         self.cmd_class_name = cmd_class_name
         self.encrypt_password = encrypt_password
+        self.timeout_from_embedded_command = True  # Set True to set timeout from command or False to use timeout set in
+        #  sudo command.
         self._sent_sudo_password = False
         self._sent_command_string = False
         self.newline_seq = "\n"
@@ -71,6 +73,12 @@ class Sudo(GenericUnixCommand):
             pass
         super(Sudo, self).on_new_line(line, is_full_line)
 
+    def start(self, timeout=None, *args, **kwargs):
+        """Start background execution of connection-observer."""
+        if timeout is not None:
+            self.timeout_from_embedded_command = False
+        return super(Sudo, self).start(timeout=timeout, args=args, kwargs=kwargs)
+
     def _process_embedded_command(self, line, is_full_line):
         """
         Processes embedded command, passes output from device to embedded command.
@@ -89,7 +97,7 @@ class Sudo(GenericUnixCommand):
             prev_cmd_timeout = self.cmd_object.timeout
             self.cmd_object.data_received(line)
             new_cmd_timeout = self.cmd_object.timeout
-            if prev_cmd_timeout != new_cmd_timeout:
+            if self.timeout_from_embedded_command and prev_cmd_timeout != new_cmd_timeout:
                 timedelta = new_cmd_timeout - prev_cmd_timeout
                 self.extend_timeout(timedelta=timedelta)
             self.current_ret["cmd_ret"] = self.cmd_object.current_ret
