@@ -88,7 +88,7 @@ def test_failing_with_both_parameters(buffer_connection, command_output_cp_fails
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection, cmd_class_name="moler.cmd.unix.cp.Cp",
                     cmd_object=cmd_cp, password="pass")
     with pytest.raises(CommandFailure):
-        cmd_sudo()
+        cmd_sudo(timeout=0.2)
 
 
 @pytest.fixture()
