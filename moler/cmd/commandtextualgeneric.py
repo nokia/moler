@@ -151,7 +151,8 @@ class CommandTextualGeneric(Command):
             else:
                 self._last_not_full_line = line
             if self._cmd_output_started:
-                self.on_new_line(line, is_full_line)
+                decoded_line = self._decode_line(line=line)
+                self.on_new_line(line=decoded_line, is_full_line=is_full_line)
             else:
                 self._detect_start_of_cmd_output(line, is_full_line)
                 if self._concatenate_before_command_starts and not self._cmd_output_started and is_full_line:
@@ -302,3 +303,12 @@ class CommandTextualGeneric(Command):
             self.connection.sendline(self.command_string)
         else:
             self.connection.send(self.command_string)
+
+    def _decode_line(self, line):
+        """
+        Decodes line if necessary. Put here code to remove colors from terminal etc.
+
+        :param line: line from device to decode.
+        :return: decoded line.
+        """
+        return line

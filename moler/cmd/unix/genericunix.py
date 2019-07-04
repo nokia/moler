@@ -4,7 +4,7 @@ Generic Unix/Linux module
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
@@ -15,7 +15,8 @@ from moler.helpers import remove_escape_codes
 
 
 class GenericUnixCommand(CommandTextualGeneric):
-    _re_fail = re.compile(r'command not found|No such file or directory|running it may require superuser privileges|Cannot find device', re.I)
+    _re_fail = re.compile(r'command not found|No such file or directory|running it may require superuser privileges'
+                          r'|Cannot find device', re.I)
 
     def __init__(self, connection, prompt=None, newline_chars=None, runner=None):
         """
@@ -32,9 +33,10 @@ class GenericUnixCommand(CommandTextualGeneric):
         """
         Method to parse command output. Will be called after line with command echo.
         Write your own implementation but don't forget to call on_new_line from base class
+
         :param line: Line to parse, new lines are trimmed
         :param is_full_line:  False for chunk of line; True on full line (NOTE: new line character removed)
-        :return: Nothing
+        :return: None
         """
         if is_full_line and self.is_failure_indication(line):
             self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
@@ -43,18 +45,19 @@ class GenericUnixCommand(CommandTextualGeneric):
     def is_failure_indication(self, line):
         """
         Method to detect if passed line contains part indicating failure of command
+
         :param line: Line from command output on device
-        :return: True if command should fail, False otherwise
+        :return: Match object if find regex in line, None otherwise.
         """
         return self._regex_helper.search_compiled(GenericUnixCommand._re_fail, line)
 
-    def _strip_new_lines_chars(self, line):
+    def _decode_line(self, line):
         """
         Method to delete new line chars and other chars we don not need to parse in on_new_line (color escape character)
+
         :param line: Line with special chars, raw string from device
         :return: line without special chars.
         """
-        line = super(GenericUnixCommand, self)._strip_new_lines_chars(line)
         if self.remove_colors_from_terminal_output:
             line = remove_escape_codes(line)
         return line
