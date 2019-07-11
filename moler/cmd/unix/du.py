@@ -28,7 +28,6 @@ class Du(GenericUnixCommand):
         super(Du, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                  runner=runner)
         self.options = options
-        self.current_ret = dict()
 
     def build_command_string(self):
         """
