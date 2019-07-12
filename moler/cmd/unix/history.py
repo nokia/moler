@@ -9,6 +9,7 @@ __email__ = 'marcin.szlapa@nokia.com'
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
+from moler.helpers import convert_to_number
 import re
 
 
@@ -53,7 +54,7 @@ class History(GenericUnixCommand):
 
     def _parse_history(self, line):
         if self._regex_helper.search_compiled(History._re_history, line):
-            self.current_ret[int(self._regex_helper.group('NUMBER'))] = self._regex_helper.group('CMD')
+            self.current_ret[convert_to_number(self._regex_helper.group('NUMBER'))] = self._regex_helper.group('CMD')
         raise ParsingDone
 
 
@@ -81,5 +82,5 @@ COMMAND_RESULT_History = {
     6: "ip n",
     7: "mv file directory/",
     8: "cat directory/file",
-    9: "cd ~",
+    9: "cd ~"
 }
