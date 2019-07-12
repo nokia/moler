@@ -9,6 +9,7 @@ __email__ = 'marcin.szlapa@nokia.com'
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
+from moler.helpers import convert_to_number
 import re
 
 
@@ -60,7 +61,7 @@ class Du(GenericUnixCommand):
 
     def _parse_du(self, line):
         if self._regex_helper.search_compiled(Du._re_du, line):
-            self.current_ret[self._regex_helper.group('DIRECTORY')] = int(
+            self.current_ret[self._regex_helper.group('DIRECTORY')] = convert_to_number(
                 self._regex_helper.group('NUMBER'))
             raise ParsingDone
 
