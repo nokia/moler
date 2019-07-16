@@ -64,8 +64,10 @@ class Du(GenericUnixCommand):
 
     def _parse_du(self, line):
         if self._regex_helper.search_compiled(Du._re_du, line):
-            self.current_ret[self._regex_helper.group('DIRECTORY')] = convert_to_number(
+            self.current_ret[self._regex_helper.group('DIRECTORY')] = dict()
+            self.current_ret[self._regex_helper.group('DIRECTORY')]["size_bytes"] = 1024 * int(
                 self._regex_helper.group('NUMBER'))
+            self.current_ret[self._regex_helper.group('DIRECTORY')]["size_raw"] = self._regex_helper.group('NUMBER')
             raise ParsingDone
 
     # 4.0K    ./directory2/directory3
@@ -90,9 +92,9 @@ COMMAND_KWARGS_DU = {
 }
 
 COMMAND_RESULT_DU = {
-    "./directory/directory2": 4,
-    "./directory": 8,
-    ".": 12
+    "./directory/directory2": {"size_bytes": 4096, "size_raw": "4"},
+    "./directory": {"size_bytes": 8192, "size_raw": "8"},
+    ".": {"size_bytes": 12288, "size_raw": "12"},
 }
 
 COMMAND_OUTPUT_DU_SK = """host:~ # du -sk *
@@ -105,8 +107,8 @@ COMMAND_KWARGS_DU_SK = {
 }
 
 COMMAND_RESULT_DU_SK = {
-    "file": 0,
-    "directory": 8,
+    "file": {"size_bytes": 0, "size_raw": "0"},
+    "directory": {"size_bytes": 8192, "size_raw": "8"}
 }
 
 COMMAND_OUTPUT_DU_H = """host:~ # du -h
@@ -124,5 +126,5 @@ COMMAND_RESULT_DU_H = {
     "./directory2/directory3": {"size_bytes": 4096, "size_raw": "4.0K"},
     "./directory2": {"size_bytes": 8192, "size_raw": "8.0K"},
     "./directory": {"size_bytes": 4096, "size_raw": "4.0K"},
-    ".": {"size_bytes": 16384, "size_raw": "16K"},
+    ".": {"size_bytes": 16384, "size_raw": "16K"}
 }
