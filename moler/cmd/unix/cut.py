@@ -9,7 +9,6 @@ __email__ = 'marcin.szlapa@nokia.com'
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone, CommandFailure
-from moler.helpers import convert_to_number
 import re
 
 
@@ -57,12 +56,15 @@ class Cut(GenericUnixCommand):
                 pass
         return super(Cut, self).on_new_line(line, is_full_line)
 
+    # cut: you must specify a list of bytes, characters, or fields
     _re_parse_error = re.compile(r'cut:\s(?P<ERROR>.*)')
 
     def _parse_error(self, line):
         if self._regex_helper.search_compiled(Cut._re_parse_error, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
             raise ParsingDone
+
+    # # This file describes the network interfaces av
 
     def _parse_cut(self, line):
         if not line == "":
