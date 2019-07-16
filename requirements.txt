@@ -9,3 +9,4 @@ deepdiff == 3.3.0; python_version < '3'
 deepdiff; python_version > '3'
 psutil
 python-dateutil
+pytest==4.0.2; python_version > '3'
