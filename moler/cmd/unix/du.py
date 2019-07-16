@@ -73,8 +73,10 @@ class Du(GenericUnixCommand):
 
     def _parse_du_bytes(self, line):
         if self._regex_helper.search_compiled(Du._re_du_bytes, line):
-            self.current_ret[self._regex_helper.group('DIRECTORY')] = \
+            self.current_ret[self._regex_helper.group('DIRECTORY')] = dict()
+            self.current_ret[self._regex_helper.group('DIRECTORY')]["size_bytes"] = \
                 self._converter_helper.to_bytes(self._regex_helper.group('NUMBER'))[0]
+            self.current_ret[self._regex_helper.group('DIRECTORY')]["size_raw"] = self._regex_helper.group('NUMBER')
             raise ParsingDone
 
 
@@ -119,8 +121,8 @@ COMMAND_KWARGS_DU_H = {
 }
 
 COMMAND_RESULT_DU_H = {
-    "./directory2/directory3": 4096,
-    "./directory2": 8192,
-    "./directory": 4096,
-    ".": 16384
+    "./directory2/directory3": {"size_bytes": 4096, "size_raw": "4.0K"},
+    "./directory2": {"size_bytes": 8192, "size_raw": "8.0K"},
+    "./directory": {"size_bytes": 4096, "size_raw": "4.0K"},
+    ".": {"size_bytes": 16384, "size_raw": "16K"},
 }
