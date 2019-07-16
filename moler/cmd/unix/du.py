@@ -94,7 +94,7 @@ COMMAND_KWARGS_DU = {
 COMMAND_RESULT_DU = {
     "./directory/directory2": {"size_bytes": 4096, "size_raw": "4"},
     "./directory": {"size_bytes": 8192, "size_raw": "8"},
-    ".": {"size_bytes": 12288, "size_raw": "12"},
+    ".": {"size_bytes": 12288, "size_raw": "12"}
 }
 
 COMMAND_OUTPUT_DU_SK = """host:~ # du -sk *
@@ -119,7 +119,7 @@ COMMAND_OUTPUT_DU_H = """host:~ # du -h
 host:~ #"""
 
 COMMAND_KWARGS_DU_H = {
-    "options": "-h",
+    "options": "-h"
 }
 
 COMMAND_RESULT_DU_H = {
