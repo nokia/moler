@@ -10,6 +10,7 @@ __email__ = 'marcin.szlapa@nokia.com'
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
 from moler.helpers import convert_to_number
+from moler.util.converterhelper import ConverterHelper
 import re
 
 
@@ -29,6 +30,7 @@ class Du(GenericUnixCommand):
         super(Du, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                  runner=runner)
         self.options = options
+        self._converter_helper = ConverterHelper()
 
     def build_command_string(self):
         """
@@ -52,6 +54,7 @@ class Du(GenericUnixCommand):
         if is_full_line:
             try:
                 self._parse_du(line)
+                self._parse_du_bytes(line)
             except ParsingDone:
                 pass
         return super(Du, self).on_new_line(line, is_full_line)
@@ -63,6 +66,15 @@ class Du(GenericUnixCommand):
         if self._regex_helper.search_compiled(Du._re_du, line):
             self.current_ret[self._regex_helper.group('DIRECTORY')] = convert_to_number(
                 self._regex_helper.group('NUMBER'))
+            raise ParsingDone
+
+    # 4.0K    ./directory2/directory3
+    _re_du_bytes = re.compile(r"(?P<NUMBER>^\d+\.?\d*\w)\s+(?P<DIRECTORY>\S*$)")
+
+    def _parse_du_bytes(self, line):
+        if self._regex_helper.search_compiled(Du._re_du_bytes, line):
+            self.current_ret[self._regex_helper.group('DIRECTORY')] = \
+                self._converter_helper.to_bytes(self._regex_helper.group('NUMBER'))[0]
             raise ParsingDone
 
 
@@ -93,4 +105,22 @@ COMMAND_KWARGS_DU_SK = {
 COMMAND_RESULT_DU_SK = {
     "file": 0,
     "directory": 8,
+}
+
+COMMAND_OUTPUT_DU_H = """host:~ # du -h
+4.0K    ./directory2/directory3
+8.0K    ./directory2
+4.0K    ./directory
+16K     .
+host:~ #"""
+
+COMMAND_KWARGS_DU_H = {
+    "options": "-h",
+}
+
+COMMAND_RESULT_DU_H = {
+    "./directory2/directory3": 4096,
+    "./directory2": 8192,
+    "./directory": 4096,
+    ".": 16384
 }
