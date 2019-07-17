@@ -52,7 +52,7 @@ jobs:
     python: 3.5
     install:
     - pip install -U pip
-    - pip install -U coveralls pytest-mccabe pytest-random pytest-asyncio
+    - pip install -U coveralls pytest-mccabe pytest-random
     before_script:
     - pip install -Ur requirements.txt
     - python3 -V
