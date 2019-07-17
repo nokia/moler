@@ -112,7 +112,7 @@ class ConnectionObserver(object):
         self._log(logging.DEBUG, "Setting {} timeout to {} [sec]".format(ConnectionObserver.__base_str(self), value),
                   levels_to_go_up=2)
         self.__timeout = value
-        
+
     def __del__(self):
         if hasattr(self, "device_logger"):
             device_handlers = self.device_logger.handlers[:]
