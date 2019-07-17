@@ -23,7 +23,6 @@ jobs:
     python: 3.6
     install:
     - pip install -U pip
-    - pip install -U pytest==3.1.0
     - pip install -U pycodestyle
     before_script:
     - pip install -Ur requirements.txt
@@ -53,8 +52,7 @@ jobs:
     python: 3.6
     install:
     - pip install -U pip
-    - pip install -U pytest==3.1.0
-    - pip install -U coveralls pytest-mccabe pytest-random pytest-asyncio==0.9.0
+    - pip install -U coveralls pytest-mccabe pytest-random pytest-asyncio
     before_script:
     - pip install -Ur requirements.txt
     - python3 -V
