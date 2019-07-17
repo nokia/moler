@@ -133,7 +133,8 @@ class MolerTest(object):
         MolerTest._was_error = False
         MolerTest._was_steps_end = False
         if err_msg:
-            prefix = "There were errors in previous Moler test. Please check Moler logs for details. List of them:\n"
+            prefix = "Moler caught some error messages during execution. Please check Moler logs for details."\
+                     " List of them:\n"
             err_msg = "{} {}".format(prefix, err_msg)
             MolerTest._error(err_msg)
 
@@ -150,9 +151,9 @@ class MolerTest(object):
             occured_exceptions.append(caught_exception)
 
         if was_error_in_last_execution:
-            err_msg += "There were error messages in Moler execution. Please check Moler logs for details.\n"
+            err_msg += "Moler caught some error messages during execution. Please check Moler logs for details.\n"
         if len(occured_exceptions) > 0:
-            err_msg += "There were unhandled exceptions in Moler.\n"
+            err_msg += "There were unhandled exceptions from test caught by Moler.\n"
             for i, exc in enumerate(occured_exceptions, 1):
                 try:
                     import traceback
@@ -162,7 +163,7 @@ class MolerTest(object):
                     err_msg += repr(exc)
 
         if len(MolerTest._list_of_errors) > 0:
-            err_msg += "There were error messages in Moler execution:\n"
+            err_msg += "Moler caught some error messages during execution:\n"
 
             for i, msg in enumerate(MolerTest._list_of_errors, 1):
                 err_msg += "  {}) >>{}<<\n".format(i, msg)
