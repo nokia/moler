@@ -17,6 +17,7 @@ from moler.io.raw import TillDoneThread
 class ThreadedTerminal(IOConnection):
     """
     Works on Unix (like Linux) systems only!
+
     ThreadedTerminal is shell working under Pty
     """
 
@@ -116,17 +117,9 @@ class ThreadedTerminal(IOConnection):
                             self._shell_operable.set()
                             data = re.sub(self.target_prompt, '', read_buffer, re.MULTILINE)
                             self.data_received(data)
-                        else:
-                            read_buffer = read_buffer + data
-                            if re.search(self.target_prompt, read_buffer, re.MULTILINE):
-                                self._notify_on_connect()
-                                self._shell_operable.set()
-                                data = re.sub(self.target_prompt, '', read_buffer, re.MULTILINE)
-                                self.data_received(data)
-                            elif not self._export_sent and re.search(self.first_prompt, read_buffer, re.MULTILINE):
-                                self.send(self.set_prompt_cmd)
-                                self._export_sent = True
-                except ValueError as exc:
-                    self.logger.warning("Probably could not open another file handler to stdout!\n{}".format(exc))
+                        elif not self._export_sent and re.search(self.first_prompt, read_buffer, re.MULTILINE):
+                            self.send(self.set_prompt_cmd)
+                            self._export_sent = True
+                except EOFError:
                     self._notify_on_disconnect()
                     pulling_done.set()
