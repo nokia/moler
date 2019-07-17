@@ -34,6 +34,7 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import logging
 from threading import Lock
+import contextlib
 
 
 class IOConnection(object):
@@ -51,7 +52,7 @@ class IOConnection(object):
         self._disconnect_subscribers_lock = Lock()
         self.moler_connection = moler_connection
         self.__name = "UNNAMED_IO_CONNECTION"
-        self.logger = logging.getLogger("moler.connection.{}".format(self.__name))
+        self.logger = logging.getLogger("moler.connection.{}.io".format(self.__name))
         # plugin the way we output data to external world
         self.moler_connection.how2send = self.send
 
@@ -62,14 +63,16 @@ class IOConnection(object):
     @name.setter
     def name(self, value):
         self.__name = value
-        self.logger = logging.getLogger("moler.connection.{}".format(self.__name))
+        self.logger = logging.getLogger("moler.connection.{}.io".format(self.__name))
 
     def open(self):
         """
         Take 'how to establish connection' info from constructor
         and open that connection.
+
+        Return context manager to allow for:  with connection.open() as conn:
         """
-        pass
+        return contextlib.closing(self)
 
     def close(self):
         """Close established connection."""

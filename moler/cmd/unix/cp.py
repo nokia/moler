@@ -3,9 +3,9 @@
 Cp command module.
 """
 
-__author__ = 'Julia Patacz'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'julia.patacz@nokia.com'
+__author__ = 'Julia Patacz, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'julia.patacz@nokia.com, marcin.usielski@nokia.com'
 
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
@@ -25,7 +25,7 @@ class Cp(GenericUnixCommand):
 
     def build_command_string(self):
         if self.options:
-            cmd = "{} {} {} {}".format("cp", self.src, self.dst, self.options)
+            cmd = "{} {} {} {}".format("cp", self.options, self.src, self.dst)
         else:
             cmd = "{} {} {}".format("cp", self.src, self.dst)
         return cmd
@@ -47,4 +47,19 @@ COMMAND_RESULT = {
 COMMAND_KWARGS = {
     "src": "uses.pl",
     "dst": "uses.pl.bak",
+}
+
+COMMAND_OUTPUT_options = """
+user@server:~$ cp -v src.txt dst.txt
+'src.txt' -> 'dst.txt'
+user@dserver:$"""
+
+COMMAND_RESULT_options = {
+
+}
+
+COMMAND_KWARGS_options = {
+    "src": "src.txt",
+    "dst": "dst.txt",
+    "options": "-v"
 }

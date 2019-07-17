@@ -4,7 +4,7 @@ Ssh command module.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
@@ -22,15 +22,18 @@ class Ssh(GenericUnixCommand):
     _re_yes_no = re.compile(r"\(yes/no\)\?|'yes' or 'no':", re.IGNORECASE)
     _re_id_dsa = re.compile(r"id_dsa:", re.IGNORECASE)
     _re_password = re.compile(r"(password.*:)", re.IGNORECASE)
-    _re_failed_strings = re.compile(r"Permission denied|No route to host|ssh: Could not", re.IGNORECASE)
+    _re_failed_strings = re.compile(r"Permission denied|No route to host|ssh: Could not|"
+                                    r"Too many authentication failures|Received disconnect from", re.IGNORECASE)
     _re_host_key_verification_failed = re.compile(r"Host key verification failed", re.IGNORECASE)
+    _re_resize = re.compile(r"999H")
 
     def __init__(self, connection, login, password, host, prompt=None, expected_prompt='>', port=0,
                  known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
                  term_mono="TERM=xterm-mono", newline_chars=None, encrypt_password=True, runner=None,
-                 target_newline="\n", allowed_newline_after_prompt=False):
-
+                 target_newline="\n", allowed_newline_after_prompt=False, repeat_password=True, options=None):
         """
+        Moler class of Unix command ssh.
+
         :param connection: moler connection to device, terminal when command is executed
         :param login: ssh login
         :param password: ssh password or list of passwords for multi passwords connection
@@ -46,7 +49,9 @@ class Ssh(GenericUnixCommand):
         :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text
         :param runner: Runner to run command
         :param target_newline: newline chars on remote system where ssh connects
-        ;param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt
+        :param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt
+        :param repeat_password: If True then repeat last password if no more provided. If False then exception is set.
+        :param options: Options to add to command string just before host.
         """
         super(Ssh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
@@ -66,6 +71,8 @@ class Ssh(GenericUnixCommand):
         self.encrypt_password = encrypt_password
         self.target_newline = target_newline
         self.allowed_newline_after_prompt = allowed_newline_after_prompt
+        self.repeat_password = repeat_password
+        self.options = options
 
         self.ret_required = False
 
@@ -75,10 +82,13 @@ class Ssh(GenericUnixCommand):
         self._sent_prompt = False
         self._sent_password = False
         self._sent_continue_connecting = False
+        self._resize_sent = False
+        self._last_password = " "
 
     def build_command_string(self):
         """
         Builds command string from parameters passed to object.
+
         :return: String representation of command to send over connection to device.
         """
         cmd = ""
@@ -89,17 +99,21 @@ class Ssh(GenericUnixCommand):
             cmd = "{} -p {}".format(cmd, self.port)
         if self.login:
             cmd = "{} -l {}".format(cmd, self.login)
+        if self.options:
+            cmd = "{} {}".format(cmd, self.options)
         cmd = "{} {}".format(cmd, self.host)
         return cmd
 
     def on_new_line(self, line, is_full_line):
         """
-        Put your parsing code here.
+        Parses the output of the command.
+
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
         :return: Nothing
         """
         try:
+            self._check_if_resize(line)
             self._check_if_failure(line)
             self._get_hosts_file_if_displayed(line)
             self._push_yes_if_needed(line)
@@ -107,6 +121,7 @@ class Ssh(GenericUnixCommand):
             self._id_dsa(line)
             self._host_key_verification(line)
             self._commands_after_established(line, is_full_line)
+            self._detect_prompt_after_exception(line)
         except ParsingDone:
             pass
         if is_full_line:
@@ -115,6 +130,7 @@ class Ssh(GenericUnixCommand):
     def is_failure_indication(self, line):
         """
         Detects fail from command output.
+
         :param line: Line from device
         :return: Match object if matches, None otherwise
         """
@@ -123,6 +139,7 @@ class Ssh(GenericUnixCommand):
     def _commands_after_established(self, line, is_full_line):
         """
         Performs commands after ssh connection is established and user is logged in.
+
         :param line: Line from device.
         :param is_full_line: True is line contained new line chars, False otherwise.
         :return: Nothing but raises ParsingDone if all required commands are sent.
@@ -137,9 +154,21 @@ class Ssh(GenericUnixCommand):
                         self.set_result({})
                     raise ParsingDone()
 
+    def _detect_prompt_after_exception(self, line):
+        """
+        Detects start prompt.
+
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if detects start prompt and any exception was set.
+        """
+        if self._stored_exception and self._regex_helper.search_compiled(self._re_prompt, line):
+            self._is_done = True
+            raise ParsingDone()
+
     def _host_key_verification(self, line):
         """
         Checks regex host key verification.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if regex matches.
         """
@@ -153,6 +182,7 @@ class Ssh(GenericUnixCommand):
     def _id_dsa(self, line):
         """
         Checks id dsa.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if regex matches.
         """
@@ -163,6 +193,7 @@ class Ssh(GenericUnixCommand):
     def _check_if_failure(self, line):
         """
         Checks if line from device has information about failed ssh.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if regex matches.
         """
@@ -173,6 +204,7 @@ class Ssh(GenericUnixCommand):
     def _get_hosts_file_if_displayed(self, line):
         """
         Checks if line from device has info about hosts file.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if regex matches.
         """
@@ -183,6 +215,7 @@ class Ssh(GenericUnixCommand):
     def _push_yes_if_needed(self, line):
         """
         Checks if line from device has information about waiting for sent yes/no.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if regex matches.
         """
@@ -194,43 +227,54 @@ class Ssh(GenericUnixCommand):
     def _send_password_if_requested(self, line):
         """
         Checks if line from device has information about waiting for password.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if regex matches.
         """
         if (not self._sent_password) and self._is_password_requested(line):
             try:
                 pwd = self._passwords.pop(0)
+                self._last_password = pwd
                 self.connection.sendline(pwd, encrypt=self.encrypt_password)
             except IndexError:
-                self.set_exception(CommandFailure(self, "Password was requested but no more passwords provided."))
+                if self.repeat_password:
+                    self.connection.sendline(self._last_password, encrypt=self.encrypt_password)
+                else:
+                    self.set_exception(CommandFailure(self, "Password was requested but no more passwords provided."))
+                    self.break_cmd()
             self._sent_password = True
             raise ParsingDone()
 
     def _handle_failed_host_key_verification(self):
         """
         Handles situation when failed host key verification.
+
         :return: Nothing.
         """
+        exception = None
         if "rm" == self.known_hosts_on_failure:
             self.connection.sendline("\nrm -f {}".format(self._hosts_file))
         elif "keygen" == self.known_hosts_on_failure:
             self.connection.sendline("\nssh-keygen -R {}".format(self.host))
         else:
-            self.set_exception(
-                CommandFailure(self,
-                               "Bad value of parameter known_hosts_on_failure '{}'. "
-                               "Supported values: rm or keygen.".format(
-                                   self.known_hosts_on_failure)))
-        self._cmd_output_started = False
-        self._sent_continue_connecting = False
-        self._sent_prompt = False
-        self._sent_timeout = False
-        self._sent_password = False
-        self.connection.sendline(self.command_string)
+            exception = CommandFailure(self,
+                                       "Bad value of parameter known_hosts_on_failure '{}'. "
+                                       "Supported values: rm or keygen.".format(
+                                           self.known_hosts_on_failure))
+        if exception:
+            self.set_exception(exception=exception)
+        else:
+            self._cmd_output_started = False
+            self._sent_continue_connecting = False
+            self._sent_prompt = False
+            self._sent_timeout = False
+            self._sent_password = False
+            self.connection.sendline(self.command_string)
 
     def _send_after_login_settings(self, line):
         """
         Sends information about timeout and prompt.
+
         :param line: Line from device.
         :return: True if anything was sent, False otherwise.
         """
@@ -246,6 +290,7 @@ class Ssh(GenericUnixCommand):
     def _all_after_login_settings_sent(self):
         """
         Checks if all requested commands are sent.
+
         :return: True if all commands after ssh connection establishing are sent, False otherwise
         """
         both_requested = self.set_prompt and self.set_timeout
@@ -257,6 +302,7 @@ class Ssh(GenericUnixCommand):
     def _no_after_login_settings_needed(self):
         """
         Checks if any commands after logged in are requested.
+
         :return: True if no commands are awaited, False if any.
         """
         return (not self.set_prompt) and (not self.set_timeout)
@@ -264,6 +310,7 @@ class Ssh(GenericUnixCommand):
     def _timeout_set_needed(self):
         """
         Checks if command for timeout is awaited.
+
         :return: True if command is set and not sent. False otherwise.
         """
         return self.set_timeout and not self._sent_timeout
@@ -271,6 +318,7 @@ class Ssh(GenericUnixCommand):
     def _send_timeout_set(self):
         """
         Sends command to set timeout.
+
         :return: Nothing.
         """
         cmd = "{}{}{}".format(self.target_newline, self.set_timeout, self.target_newline)
@@ -280,6 +328,7 @@ class Ssh(GenericUnixCommand):
     def _prompt_set_needed(self):
         """
         Checks if command for prompt is awaited.
+
         :return: True if command is set and not sent. False otherwise.
         """
         return self.set_prompt and not self._sent_prompt
@@ -287,6 +336,7 @@ class Ssh(GenericUnixCommand):
     def _send_prompt_set(self):
         """
         Sends command to set prompt.
+
         :return: Nothing.
         """
         cmd = "{}{}{}".format(self.target_newline, self.set_prompt, self.target_newline)
@@ -296,6 +346,7 @@ class Ssh(GenericUnixCommand):
     def _is_password_requested(self, line):
         """
         Checks if password is requested by device.
+
         :param line: Line from device.
         :return: Match object if regex matches, None otherwise.
         """
@@ -304,10 +355,23 @@ class Ssh(GenericUnixCommand):
     def _is_target_prompt(self, line):
         """
         Checks if device sends prompt from target system.
+
         :param line: Line from device.
         :return: Match object if regex matches, None otherwise.
         """
         return self._regex_helper.search_compiled(self._re_expected_prompt, line)
+
+    def _check_if_resize(self, line):
+        """
+        Checks if line from device has information about size of windows.
+
+        :param line: Line from device.
+        :return: Match object if regex matches, None otherwise.
+        """
+        if self._regex_helper.search_compiled(Ssh._re_resize, line) and not self._resize_sent:
+            self._resize_sent = True
+            self.connection.sendline("")
+            raise ParsingDone()
 
 
 COMMAND_OUTPUT = """
@@ -379,7 +443,6 @@ COMMAND_KWARGS_rm = {
 
 COMMAND_RESULT_rm = {}
 
-
 COMMAND_OUTPUT_keygen = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -413,7 +476,6 @@ COMMAND_KWARGS_keygen = {
 
 COMMAND_RESULT_keygen = {}
 
-
 COMMAND_OUTPUT_2_passwords = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
 You are about to access a private system. This system is for the use of
@@ -440,3 +502,102 @@ COMMAND_KWARGS_2_passwords = {
 }
 
 COMMAND_RESULT_2_passwords = {}
+
+
+COMMAND_OUTPUT_2_passwords_repeat = """
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+You are about to access a private system. This system is for the use of
+authorized users only. All connections are logged to the extent and by means
+acceptable by the local legislation. Any unauthorized access or access attempts
+may be punished to the fullest extent possible under the applicable local
+legislation.
+Password:
+This account is used as a fallback account. The only thing it provides is
+the ability to switch to the root account.
+
+Please enter the root password
+Password:
+
+USAGE OF THE ROOT ACCOUNT AND THE FULL BASH IS RECOMMENDED ONLY FOR LIMITED USE. PLEASE USE A NON-ROOT ACCOUNT AND THE SCLI SHELL (fsclish) AND/OR LIMITED BASH SHELL.
+
+host:~ #
+host:~ # export TMOUT="2678400"
+host:~ #"""
+
+COMMAND_KWARGS_2_passwords_repeat = {
+    "login": "user", "password": "english", "repeat_password": True,
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
+}
+
+COMMAND_RESULT_2_passwords_repeat = {}
+
+COMMAND_OUTPUT_resize_window = """
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+It is also possible that a host key has just been changed.
+The fingerprint for the RSA key sent by the remote host is
+[...].
+Please contact your system administrator.
+Add correct host key in /home/you/.ssh/known_hosts to get rid of this message.
+Offending RSA key in /home/you/.ssh/known_hosts:86
+RSA host key for host.domain.net has changed and you have requested strict checking.
+Host key verification failed.
+client:~/>sh-keygen -R host.domain.net
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+To edit this message please edit /etc/ssh_banner
+You may put information to /etc/ssh_banner who is owner of this PC
+Password:
+Last login: Sun Jan  6 13:42:05 UTC+2 2019 on ttyAMA2
+7[r[999;999H[6n
+resize: unknown character, exiting.
+Have a lot of fun...
+host:~ #
+host:~ # export TMOUT="2678400"
+host:~ #"""
+
+COMMAND_KWARGS_resize_window = {
+    "login": "user", "password": "english", "known_hosts_on_failure": "keygen",
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
+}
+
+COMMAND_RESULT_resize_window = {}
+
+COMMAND_OUTPUT_options = """
+client:~/>TERM=xterm-mono ssh -l user -o Interval=100 host.domain.net
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+It is also possible that a host key has just been changed.
+The fingerprint for the RSA key sent by the remote host is
+[...].
+Please contact your system administrator.
+Add correct host key in /home/you/.ssh/known_hosts to get rid of this message.
+Offending RSA key in /home/you/.ssh/known_hosts:86
+RSA host key for host.domain.net has changed and you have requested strict checking.
+Host key verification failed.
+client:~/>sh-keygen -R host.domain.net
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+To edit this message please edit /etc/ssh_banner
+You may put information to /etc/ssh_banner who is owner of this PC
+Password:
+Last login: Sun Jan  6 13:42:05 UTC+2 2019 on ttyAMA2
+7[r[999;999H[6n
+resize: unknown character, exiting.
+Have a lot of fun...
+host:~ #
+host:~ # export TMOUT="2678400"
+host:~ #"""
+
+COMMAND_KWARGS_options = {
+    "login": "user", "password": "english", "known_hosts_on_failure": "keygen",
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#",
+    "options": "-o Interval=100"
+}
+
+COMMAND_RESULT_options = {}

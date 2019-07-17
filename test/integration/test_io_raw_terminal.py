@@ -4,7 +4,7 @@ Tests for connection shell
 """
 
 __author__ = 'Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import getpass
@@ -14,8 +14,26 @@ import pytest
 from moler.cmd.unix.ls import Ls
 from moler.cmd.unix.ping import Ping
 from moler.cmd.unix.whoami import Whoami
+from moler.cmd.unix.lsof import Lsof
 from moler.exceptions import CommandTimeout
 from moler.io.raw.terminal import ThreadedTerminal
+
+
+def test_terminal_cmd_whoami_during_ping(terminal_connection):
+    terminal = terminal_connection
+    cmd_whoami = Whoami(connection=terminal)
+    cmd_ping = Ping(connection=terminal, destination="127.0.0.1", options='-c 3')
+    cmd_ping.start(timeout=3)
+    cmd_whoami.start(timeout=5)
+    ret_whoami = cmd_whoami.await_done(timeout=5)
+    assert 'USER' in ret_whoami
+    assert ret_whoami['USER'] is not None
+    assert getpass.getuser() == ret_whoami['USER']
+    ret_ping = cmd_ping.result()
+    assert 'packets_transmitted' in ret_ping
+    assert 3 == int(ret_ping['packets_transmitted'])
+    assert 'packet_loss' in ret_ping
+    assert 0 == int(ret_ping['packet_loss'])
 
 
 def test_terminal_cmd_whoami(terminal_connection):
@@ -54,6 +72,13 @@ def test_terminal_whoami_ls(terminal_connection):
     assert getpass.getuser() == user2
 
 
+def test_terminal_lsof(terminal_connection):
+    terminal = terminal_connection
+    cmd = Lsof(connection=terminal, options="| grep python")
+    ret = cmd(timeout=30)
+    assert ret["NUMBER"] > 1
+
+
 @pytest.yield_fixture()
 def terminal_connection():
     from moler.connection import ObservableConnection
@@ -61,5 +86,5 @@ def terminal_connection():
     moler_conn = ObservableConnection()
     terminal = ThreadedTerminal(moler_connection=moler_conn)
 
-    with terminal as connection:
+    with terminal.open() as connection:
         yield connection.moler_connection

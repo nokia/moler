@@ -7,11 +7,16 @@ __author__ = 'Grzegorz Latuszek, Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
-import importlib
-import re
 import copy
+import datetime
+import importlib
 import logging
+import re
 
+import deepdiff
+
+if datetime.time not in deepdiff.diff.numbers:
+    deepdiff.diff.numbers = deepdiff.diff.numbers + (datetime.time,)
 
 try:
     import collections.abc as collections
@@ -96,7 +101,7 @@ def create_object_from_name(full_class_name, constructor_params):
 
     imported_module = importlib.import_module(module_name)
     class_imported = getattr(imported_module, class_name)
-    obj = class_imported(constructor_params)
+    obj = class_imported(**constructor_params)
     return obj
 
 
@@ -107,6 +112,58 @@ def update_dict(target_dict, expand_dict):
             update_dict(target_dict[key], expand_dict[key])
         else:
             target_dict[key] = expand_dict[key]
+
+
+def compare_objects(first_object, second_object, ignore_order=False, report_repetition=False, significant_digits=None,
+                    exclude_paths=None, exclude_types=None, verbose_level=2):
+    """
+    Return difference between two objects.
+    :param first_object: first object to compare
+    :param second_object: second object to compare
+    :param ignore_order: ignore difference in order
+    :param report_repetition: report when is repetition
+    :param significant_digits: use to properly compare numbers(float arithmetic error)
+    :param exclude_paths: path which be excluded from comparison
+    :param exclude_types: types which be excluded from comparison
+    :param verbose_level: higher verbose level shows you more details - default 0.
+    :return: difference between two objects
+    """
+    if exclude_paths is None:
+        exclude_paths = set()
+    if exclude_types is None:
+        exclude_types = set()
+
+    diff = deepdiff.DeepDiff(first_object, second_object, ignore_order=ignore_order,
+                             report_repetition=report_repetition, significant_digits=significant_digits,
+                             exclude_paths=exclude_paths, exclude_types=exclude_types, verbose_level=verbose_level)
+    return diff
+
+
+def convert_to_number(value):
+    """
+    Convert value to Python number type.
+    :param value: value to convert
+    :return: converted value if possible, otherwise original
+    """
+    if value and is_digit(value):
+        try:
+            value = int(value)
+        except ValueError:
+            value = float(value)
+    return value
+
+
+def is_digit(value):
+    """
+    Check that value is digit.
+    :param value: value to check
+    :return: True if value is digit, otherwise False
+    """
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
 
 
 class ForwardingHandler(logging.Handler):

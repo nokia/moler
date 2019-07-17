@@ -3,11 +3,12 @@
 Testing of uptime command.
 """
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import pytest
-from  moler.exceptions import CommandFailure
+from moler.exceptions import CommandFailure
+from moler.exceptions import CommandTimeout
 
 
 def test_calling_uptime_returns_result_parsed_from_command_output(buffer_connection,
@@ -29,10 +30,31 @@ def test_calling_uptime_fails_unsupported_format(buffer_connection, command_unsu
         uptime_cmd()
 
 
+def test_calling_uptime_timeout(buffer_connection):
+    from moler.cmd.unix.uptime import Uptime
+    uptime_cmd = Uptime(connection=buffer_connection.moler_connection)
+    uptime_cmd.terminating_timeout = 0.2
+    uptime_cmd.timeout = 0.2
+    with pytest.raises(CommandTimeout):
+        uptime_cmd()
+
 def test_uptime_returns_proper_command_string(buffer_connection):
     from moler.cmd.unix.uptime import Uptime
-    uptime_cmd = Uptime(buffer_connection)
+    uptime_cmd = Uptime(buffer_connection.moler_connection)
     assert "uptime" == uptime_cmd.command_string
+
+
+def test_uptime_sends_with_enter(buffer_connection):
+    from moler.cmd.unix.uptime import Uptime
+    uptime_cmd = Uptime(buffer_connection.moler_connection)
+    uptime_cmd.send_command()
+
+
+def test_uptime_sends_without_enter(buffer_connection):
+    from moler.cmd.unix.uptime import Uptime
+    uptime_cmd = Uptime(buffer_connection.moler_connection)
+    uptime_cmd.newline_after_command_string = False
+    uptime_cmd.send_command()
 
 
 @pytest.fixture

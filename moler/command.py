@@ -12,14 +12,19 @@ Additionally:
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
+
+from abc import ABCMeta
+
+from six import add_metaclass
 
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import NoCommandStringProvided
 from moler.helpers import instance_id
 
 
+@add_metaclass(ABCMeta)
 class Command(ConnectionObserver):
     def __init__(self, connection=None, runner=None):
         """
@@ -27,7 +32,7 @@ class Command(ConnectionObserver):
         :param connection: connection used to start CMD and receive its output
         """
         super(Command, self).__init__(connection=connection, runner=runner)
-        self.command_string = ''
+        self.command_string = None
         self.cmd_name = Command.observer_name
 
     def __str__(self):
@@ -36,39 +41,30 @@ class Command(ConnectionObserver):
             cmd_str = cmd_str[:-1] + r'<\n>'
         return '{}("{}", id:{})'.format(self.__class__.__name__, cmd_str, instance_id(self))
 
-    def start(self, timeout=None, *args, **kwargs):
-        """Start background execution of command."""
-        self._validate_start(*args, **kwargs)
-        ret = super(Command, self).start(timeout, *args, **kwargs)
-        self._is_running = True  # when it sends - real CMD starts running
-        return ret
-
-    def add_command_to_connection(self, do_not_wait):
-        """
-        Adds Command object to connection.
-        :return: True if ConnectionObserver was added to connection. False if cannot add Command to connection in timeout.
-        """
-        if self.connection.add_command_to_connection(cmd=self, do_not_wait=do_not_wait):
-            return True
-        return False
-
-    def remove_command_from_connection(self):
-        """
-        Removes blocking Command object from connection.
-        :return: Nothing
-        """
-        self.connection.remove_command_from_connection(cmd=self)
-
     def _validate_start(self, *args, **kwargs):
         # check base class invariants first
         super(Command, self)._validate_start(*args, **kwargs)
         # then what is needed for command
-        if not self.command_string:
+        if self.command_string is None:
             # no chance to start CMD
             raise NoCommandStringProvided(self)
 
     def get_long_desc(self):
-        return "Command '{}.{}':'{}'".format(self.__class__.__module__, self.__class__.__name__, self.command_string)
+        return "Command {}.{}".format(self.__class__.__module__, self)
 
     def get_short_desc(self):
-        return "Command '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)
+        return "Command {}.{}(id:{})".format(self.__class__.__module__, self.__class__.__name__, instance_id(self))
+
+    def is_command(self):
+        """
+        :return: True if instance of ConnectionObserver is a command. False if not a command.
+        """
+        return True
+
+    def send_command(self):
+        """
+        Sends command string over connection.
+
+        :return: Nothing
+        """
+        self.connection.sendline(self.command_string)

@@ -4,10 +4,11 @@ Tests for helpers functions/classes.
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import mock
+import pytest
 
 
 def test_instance_id_returns_id_in_hex_form_without_0x():
@@ -38,6 +39,36 @@ def test_converterhelper_m():
     assert 'm' == unit
 
 
+def test_converterhelper_wrong_unit():
+    from moler.util.converterhelper import ConverterHelper
+    converter = ConverterHelper.get_converter_helper()
+    with pytest.raises(ValueError):
+        converter.to_bytes("3UU", False)
+
+
+def test_converterhelper_seconds():
+    from moler.util.converterhelper import ConverterHelper
+    converter = ConverterHelper.get_converter_helper()
+    value, value_in_units, unit = converter.to_seconds_str("3m")
+    assert 180 == value
+    assert 3 == value_in_units
+    assert 'm' == unit
+
+
+def test_converterhelper_seconds_ms():
+    from moler.util.converterhelper import ConverterHelper
+    converter = ConverterHelper.get_converter_helper()
+    value = converter.to_seconds(0.408, "ms")
+    assert pytest.approx(0.000408, 0.000001) == value
+
+
+def test_converterhelper_seconds_wrong_unit():
+    from moler.util.converterhelper import ConverterHelper
+    converter = ConverterHelper.get_converter_helper()
+    with pytest.raises(ValueError):
+        converter.to_seconds_str("3UU")
+
+
 def test_copy_list():
     from moler.helpers import copy_list
     src = [1]
@@ -54,3 +85,13 @@ def test_copy_dict():
     assert src == dst
     dst['a'] = 2
     assert src != dst
+
+
+def test_regex_helper():
+    from moler.cmd import RegexHelper
+    regex_helper = RegexHelper()
+    assert regex_helper is not None
+    match = regex_helper.match(r"\d+(\D+)\d+", "111ABC222")
+    assert match is not None
+    assert match == regex_helper.get_match()
+    assert regex_helper.group(1) == "ABC"

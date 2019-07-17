@@ -1,5 +1,16 @@
+import logging
+import sys
 from moler.config import load_config
 from moler.device.device import DeviceFactory
+
+def configure_logging():
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s |%(name)-45s | %(threadName)22s |%(message)s',
+        # format=' |%(name)-45s | %(threadName)12s |%(message)s',
+        datefmt='%H:%M:%S',
+        stream=sys.stderr,
+    )
 
 # configure library directly from dict
 load_config(config={'DEVICES': {'DEFAULT_CONNECTION':
@@ -16,6 +27,8 @@ load_config(config={'DEVICES': {'DEFAULT_CONNECTION':
                                                                                       'target_newline': "\r\n",
                                                                                       'set_timeout': None}}}}}}},
             config_type='dict')
+
+configure_logging()
 
 remote_unix = DeviceFactory.get_device(name='RebexTestMachine')  # it starts in local shell
 remote_unix.goto_state(state="UNIX_REMOTE")                      # make it go to remote shell

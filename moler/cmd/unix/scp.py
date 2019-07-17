@@ -6,20 +6,23 @@ from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 import re
+import six
 
-__author__ = 'Sylwester Golonka, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'sylwester.golonka@nokia.com, marcin.usielski@nokia.com'
+__author__ = 'Sylwester Golonka, Marcin Usielski, Michal Ernst'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'sylwester.golonka@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 
 class Scp(GenericUnixCommand):
-    def __init__(self, connection, source, dest, password="", prompt=None, newline_chars=None,
+    def __init__(self, connection, source, dest, password="", options="", prompt=None, newline_chars=None,
                  known_hosts_on_failure='keygen', encrypt_password=True, runner=None):
         """
+        Represents Unix command scp.
+
         :param connection: moler connection to device, terminal when command is executed
         :param source: path to source
         :param dest: path to destination
-        :param password: password
+        :param password: scp password or list of passwords for multi passwords connection
         :param prompt: prompt (on system where command runs).
         :param newline_chars: characters to split lines
         :param known_hosts_on_failure: "rm" or "keygen" how to deal with error. If empty then scp fails.
@@ -29,27 +32,36 @@ class Scp(GenericUnixCommand):
         super(Scp, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.source = source
         self.dest = dest
-        self.password = password
+        self.options = options
         self.known_hosts_on_failure = known_hosts_on_failure
         self.encrypt_password = encrypt_password
         self.ret_required = True
-        # Iternal variables
+        # Internal variables
         self._sent_password = False
-        self._sent_ldap_password = False
         self._sent_continue_connecting = False
         self._hosts_file = ""
+        if isinstance(password, six.string_types):
+            self._passwords = [password]
+        else:
+            self._passwords = list(password)  # copy of list of passwords to modify
 
     def build_command_string(self):
         """
         Builds command string from parameters passed to object.
+
         :return: String representation of command to send over connection to device.
         """
-        cmd = "{} {} {}".format("scp", self.source, self.dest)
+        cmd = "scp"
+        if self.options:
+            cmd = "{} {} {} {}".format(cmd, self.options, self.source, self.dest)
+        else:
+            cmd = "{} {} {}".format(cmd, self.source, self.dest)
         return cmd
 
     def on_new_line(self, line, is_full_line):
         """
         Put your parsing code here.
+
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
         :return: Nothing
@@ -63,18 +75,24 @@ class Scp(GenericUnixCommand):
             self._get_hosts_file_if_displayed(line)
         except ParsingDone:
             pass
+        if is_full_line:
+            self._sent_password = False  # Clear flag for multi passwords connections
         return super(Scp, self).on_new_line(line, is_full_line)
 
     _re_parse_success = re.compile(r'^(?P<FILENAME>\S+)\s+.*\d+\%.*')
 
     def _parse_success(self, line):
         """
-        Parses line if success
+        Parses line if success.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if matches success
         """
         if self._regex_helper.search_compiled(Scp._re_parse_success, line):
-            self.current_ret['FILENAME'] = self._regex_helper.group('FILENAME')
+            if 'FILE_NAMES' not in self.current_ret.keys():
+                self.current_ret['FILE_NAMES'] = list()
+
+            self.current_ret['FILE_NAMES'].append(self._regex_helper.group('FILENAME'))
             raise ParsingDone
 
     _re_parse_failed = re.compile(
@@ -82,12 +100,13 @@ class Scp(GenericUnixCommand):
 
     def _parse_failed(self, line):
         """
-        Parses line if failed
+        Parses line if failed.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if matches fail
         """
         if self._regex_helper.search_compiled(Scp._re_parse_failed, line):
-            self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+            self.set_exception(CommandFailure(self, "Command failed in line >>{}<<.".format(line)))
             raise ParsingDone
 
     _re_parse_permission_denied = re.compile(
@@ -95,47 +114,35 @@ class Scp(GenericUnixCommand):
 
     def _parse_sent_password(self, line):
         """
-        Sends password if necessary
+        Sends password if necessary.
+
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if password was sent.
         """
-        if (not self._sent_ldap_password) and self._is_ldap_password_requested(line):
-            self.connection.sendline(self.password, encrypt=self.encrypt_password)
-            self._sent_ldap_password = True
-            raise ParsingDone
-        elif (not self._sent_password) and self._is_password_requested(line):
-            self.connection.sendline(self.password, encrypt=self.encrypt_password)
+        if (not self._sent_password) and self._is_password_requested(line):
+            try:
+                pwd = self._passwords.pop(0)
+                self.connection.sendline(pwd, encrypt=self.encrypt_password)
+            except IndexError:
+                self.set_exception(CommandFailure(self, "Password was requested but no more passwords provided."))
             self._sent_password = True
-            raise ParsingDone
-        elif (self._sent_password or self._sent_ldap_password) and self._regex_helper.search_compiled(
-                Scp._re_parse_permission_denied, line):
-            self._sent_password = False
-            self._sent_ldap_password = False
-            raise ParsingDone
+            raise ParsingDone()
 
     _re_password = re.compile(r'password:', re.IGNORECASE)
 
     def _is_password_requested(self, line):
         """
-        Parses line if password is requested
+        Parses line if password is requested.
+
         :param line: Line from device.
         :return: Match object if matches, otherwise None
         """
         return self._regex_helper.search_compiled(Scp._re_password, line)
 
-    _re_ldap_password = re.compile(r'ldap password:', re.IGNORECASE)
-
-    def _is_ldap_password_requested(self, line):
-        """
-        Parses line if ldap password is requested.
-        :param line: Line from device.
-        :return: Match object if matches, otherwise None
-        """
-        return self._regex_helper.search_compiled(Scp._re_ldap_password, line)
-
     def _push_yes_if_needed(self, line):
         """
         Sends yes to device if needed.
+
         :param line: Line from device.
         :return: Nothing
         """
@@ -148,6 +155,7 @@ class Scp(GenericUnixCommand):
     def _parse_continue_connecting(self, line):
         """
         Parses continue connecting.
+
         :param line: Line from device.
         :return: Match object if matches, None otherwise
         """
@@ -157,7 +165,8 @@ class Scp(GenericUnixCommand):
 
     def _get_hosts_file_if_displayed(self, line):
         """
-        Parses hosts file
+        Parses hosts file.
+
         :param line: Line from device
         :return: Nothing
         """
@@ -170,7 +179,8 @@ class Scp(GenericUnixCommand):
 
     def _know_hosts_verification(self, line):
         """
-        Parses host key verification
+        Parses host key verification.
+
         :param line: Line from device
         :return: Nothing
         """
@@ -180,11 +190,12 @@ class Scp(GenericUnixCommand):
             if self._hosts_file:
                 self.handle_failed_host_key_verification()
             else:
-                self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+                self.set_exception(CommandFailure(self, "Command failed in line >>{}<<.".format(line)))
 
     def handle_failed_host_key_verification(self):
         """
-        Handles failed host key verification
+        Handles failed host key verification.
+
         :return: Nothing
         """
         if "rm" == self.known_hosts_on_failure:
@@ -211,17 +222,47 @@ ute@debdev:~/Desktop$"""
 COMMAND_KWARGS_succsess = {
     "source": "test.txt",
     "dest": "ute@localhost:/home/ute",
-    "password": "ute"
+    "password": "pass"
 }
 
 COMMAND_RESULT_succsess = {
-    'FILENAME': u'test.txt'
+    'FILE_NAMES': [
+        u'test.txt'
+    ]
 }
 
 COMMAND_KWARGS_rm = {
     "source": "test.txt",
     "dest": "ute@localhost:/home/ute",
+    "password": "pass",
+    "known_hosts_on_failure": "rm"
+}
+
+COMMAND_OUTPUT_recursively_succsess = """
+ute@debdev:~/Desktop$ scp -r test ute@localhost:/home/ute
+ute@localhost's password:
+test.txt                                                             100%  104     0.1KB/s   00:00
+test2.txt                                                            100%  104     0.1KB/s   00:00
+ute@debdev:~/Desktop$"""
+
+COMMAND_KWARGS_recursively_succsess = {
+    "source": "test",
+    "dest": "ute@localhost:/home/ute",
     "password": "ute",
+    "options": "-r"
+}
+
+COMMAND_RESULT_recursively_succsess = {
+    'FILE_NAMES': [
+        u'test.txt',
+        u'test2.txt'
+    ]
+}
+
+COMMAND_KWARGS_rm = {
+    "source": "test.txt",
+    "dest": "ute@localhost:/home/ute",
+    "password": "pass",
     "known_hosts_on_failure": "rm"
 }
 
@@ -238,12 +279,16 @@ ute@debdev:~/Desktop$ scp test ute@localhost:/home/ute
 test.txt                                                            100%  104     0.1KB/s   00:00
 ute@debdev:~/Desktop$ """
 
-COMMAND_RESULT_rm = {'FILENAME': u'test.txt'}
+COMMAND_RESULT_rm = {
+    'FILE_NAMES': [
+        u'test.txt'
+    ]
+}
 
 COMMAND_KWARGS_keygen = {
     "source": "test.txt",
     "dest": "ute@localhost:/home/ute",
-    "password": "ute",
+    "password": "pass",
 }
 
 COMMAND_OUTPUT_keygen = """
@@ -261,4 +306,27 @@ ute@debdev:~/Desktop$ scp test ute@localhost:/home/ute
 test.txt                                                            100%  104     0.1KB/s   00:00
 ute@debdev:~/Desktop$ """
 
-COMMAND_RESULT_keygen = {'FILENAME': u'test.txt'}
+COMMAND_RESULT_keygen = {
+    'FILE_NAMES': [
+        u'test.txt'
+    ]
+}
+
+COMMAND_OUTPUT_ldap = """
+ute@debdev:~/Desktop$ scp test.txt ute@localhost:/home/ute
+ute@localhost's password:
+ldap password:
+test.txt                                                            100%  104     0.1KB/s   00:00
+ute@debdev:~/Desktop$"""
+
+COMMAND_KWARGS_ldap = {
+    "source": "test.txt",
+    "dest": "ute@localhost:/home/ute",
+    "password": ("pass1", "pass2")
+}
+
+COMMAND_RESULT_ldap = {
+    'FILE_NAMES': [
+        u'test.txt'
+    ]
+}

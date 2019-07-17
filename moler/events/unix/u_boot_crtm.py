@@ -11,13 +11,14 @@ from moler.exceptions import ParsingDone
 
 
 class UBootCrtm(TextualEvent):
-    def __init__(self, connection, till_occurs_times=-1):
+    def __init__(self, connection, till_occurs_times=-1, runner=None):
         """
         Event for 'Site is resetting due to Fault'
         :param connection: moler connection to device, terminal when command is executed
         :param till_occurs_times: number of event occurrence
+        :param runner: Runner to run event
         """
-        super(UBootCrtm, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
+        super(UBootCrtm, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times)
         self.current_ret = dict()
 
     def on_new_line(self, line, is_full_line):
@@ -129,11 +130,13 @@ EVENT_KWARGS = {
     "till_occurs_times": 1
 }
 
-EVENT_RESULT = {
-    'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
-    'CPLD_version': ' 0x01.04',
-    'CPLD_board_id': ' 0x20',
-    'CPLD_reset_reason': ' [02 00] Reset',
-    'CPLD_gpir': ' 0x17',
-    'CPLD_sjmpr': ' 0x00'
-}
+EVENT_RESULT = [
+    {
+        'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
+        'CPLD_version': ' 0x01.04',
+        'CPLD_board_id': ' 0x20',
+        'CPLD_reset_reason': ' [02 00] Reset',
+        'CPLD_gpir': ' 0x17',
+        'CPLD_sjmpr': ' 0x00'
+    }
+]

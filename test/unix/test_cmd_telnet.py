@@ -4,11 +4,11 @@ Testing of telnet command.
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import pytest
-
+import time
 from moler.cmd.unix.telnet import Telnet
 from moler.exceptions import CommandFailure
 
@@ -33,7 +33,24 @@ def test_calling_telnet_raise_exception_command_failure(buffer_connection):
     configure_device_logger(connection_name="host")
     buffer_connection.remote_inject_response([command_output])
     telnet_cmd = Telnet(connection=buffer_connection.moler_connection, login="user", password="english", port=1500,
-                        host="host.domain.net", expected_prompt="host:.*#")
+                        host="host.domain.net", expected_prompt=r"host:.*#", prompt=r"user@client.*>")
+    with pytest.raises(CommandFailure):
+        telnet_cmd()
+
+
+def test_calling_telnet_raise_exception_no_more_passwords(buffer_connection):
+    command_output ="""user@host01:~> TERM=xterm-mono telnet host.domain.net 1504
+Login:
+Login:user
+Password:
+Second password:
+Third password:
+user@host01:~> """
+
+    buffer_connection.remote_inject_response([command_output])
+    telnet_cmd = Telnet(connection=buffer_connection.moler_connection, login="user", password=["english", "polish"],
+                        port=1501, host="host.domain.net", expected_prompt="host.*#", set_timeout=None,
+                        repeat_password=False)
     with pytest.raises(CommandFailure):
         telnet_cmd()
 
@@ -43,6 +60,7 @@ def test_calling_telnet_timeout(buffer_connection, command_output_and_expected_r
     buffer_connection.remote_inject_response([command_output])
     telnet_cmd = Telnet(connection=buffer_connection.moler_connection, login="user", password="english", port=1500,
                         host="host.domain.net", expected_prompt="host:.*#")
+    telnet_cmd.terminating_timeout = 0.1
     from moler.exceptions import CommandTimeout
     with pytest.raises(CommandTimeout):
         telnet_cmd(timeout=0.5)
@@ -78,6 +96,7 @@ def test_telnet_with_additional_commands(buffer_connection):
                         cmds_after_establish_connection=['mode character'])
     assert "TERM=xterm-mono telnet" == telnet_cmd.command_string
     telnet_cmd.start()
+    time.sleep(0.1)
     outputs = [output1, output2, output3, output4, output5, output6]
     for output in outputs:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))

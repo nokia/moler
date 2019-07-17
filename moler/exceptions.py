@@ -63,17 +63,27 @@ class ResultAlreadySet(InvalidStateError):
         self.connection_observer = connection_observer
 
 
-class ConnectionObserverTimeout(MolerException):
-    def __init__(self, connection_observer, timeout,
-                 kind='run', passed_time=''):
-        """Create instance of ConnectionObserverTimeout exception"""
+class MolerTimeout(MolerException):
+    def __init__(self, timeout, kind='run', passed_time=''):
+        """Create instance of MolerTimeout exception"""
         if passed_time:
             passed_time = '{:.2f} '.format(passed_time)
-        err_msg = '{} {} time {}>= {:.2f} sec'.format(connection_observer, kind,
-                                                      passed_time, timeout)
-        super(ConnectionObserverTimeout, self).__init__(err_msg + ' timeout')
-        self.connection_observer = connection_observer
+        err_msg = '{} time {}>= {:.2f} sec'.format(kind, passed_time, timeout)
+        super(MolerTimeout, self).__init__(err_msg + ' timeout')
         self.timeout = timeout
+
+
+class ConnectionObserverTimeout(MolerTimeout):
+    def __init__(self, connection_observer, timeout, kind='run', passed_time=''):
+        """Create instance of ConnectionObserverTimeout exception"""
+        super(ConnectionObserverTimeout, self).__init__(timeout=timeout,
+                                                        kind='{} {}'.format(connection_observer, kind),
+                                                        passed_time=passed_time)
+        self.connection_observer = connection_observer
+
+
+class CommandTimeout(ConnectionObserverTimeout):
+    pass
 
 
 class NoCommandStringProvided(MolerException):
@@ -88,7 +98,7 @@ class NoCommandStringProvided(MolerException):
 class NoDetectPatternProvided(MolerException):
     def __init__(self, command):
         """Create instance of NoDetectPatternProvided exception"""
-        fix_info = 'fill .detect_pattern or .detect_patterns member before starting event'
+        fix_info = 'fill .detect_patterns member before starting event'
         err_msg = 'for {}\nYou should {}'.format(command, fix_info)
         super(NoDetectPatternProvided, self).__init__(err_msg)
         self.command = command
@@ -104,8 +114,8 @@ class NoConnectionProvided(MolerException):
 
 class CommandFailure(MolerException):
     def __init__(self, command, message):
-        err_msg = "Command '{}.{}' ('{}') failed with '{}'.".format(command.__class__.__module__, command.__class__.__name__,
-                                                                    command.command_string, message)
+        err_msg = "Command '{}.{}' ('{}') failed with >>{}<<.".format(command.__class__.__module__, command.__class__.__name__,
+                                                                      command.command_string, message)
         self.command = command
         super(CommandFailure, self).__init__(err_msg)
 
@@ -127,21 +137,8 @@ class EventWrongState(MolerException):
 
 
 class MolerStatusException(MolerException):
-    def __init__(self, msg, exceptions=None, messages=None):
-        self.exceptions = exceptions
-        self.messages = messages
-        err_msg = msg
-        if self.exceptions:
-            for exception in self.exceptions:
-                err_msg = "{}\n{}".format(err_msg, exception)
-        if self.messages:
-            for message in self.messages:
-                err_msg = "{}\n{}".format(err_msg, message)
-        super(MolerStatusException, self).__init__(err_msg)
-
-
-class CommandTimeout(ConnectionObserverTimeout):
-    pass
+    def __init__(self, msg):
+        super(MolerStatusException, self).__init__(msg)
 
 
 class DeviceFailure(MolerException):

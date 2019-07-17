@@ -119,6 +119,7 @@ def test_command_string_is_required_to_start_command(command_major_base_class):
 
 
 def test_command_string_is_required_to_call_command(command_major_base_class):
+    import threading
     from moler.exceptions import NoCommandStringProvided
     moler_conn = ObservableConnection()
 
@@ -126,6 +127,18 @@ def test_command_string_is_required_to_call_command(command_major_base_class):
     command = command_class(connection=moler_conn)
     assert not command.command_string  # ensure it is empty before starting command
 
+    def command_in_thread():
+        with pytest.raises(NoCommandStringProvided) as error:
+            command()
+        assert error.value.command == command
+        assert 'for {}'.format(str(command)) in str(error.value)
+        assert 'You should fill .command_string member before starting command' in str(error.value)
+
+    cmd_thrd = threading.Thread(target=command_in_thread)
+    cmd_thrd.start()
+    cmd_thrd.join()
+
+    command = command_class(connection=moler_conn)
     with pytest.raises(NoCommandStringProvided) as error:
         command()  # call the command-future (foreground run)
 
@@ -146,7 +159,7 @@ def test_calling_command_sends_command_string_over_connection(do_nothing_command
     ext_io = connection_to_remote
     ping = QuickCmd(connection=ext_io.moler_connection)
     ping.command_string = 'ping localhost'
-    with ext_io:
+    with ext_io.open():
         try:
             ping()  # call the command-future (foreground run)
         except ConnectionObserverTimeout:
@@ -165,9 +178,10 @@ def test_calling_start_on_command_sends_command_string_over_connection(do_nothin
     ext_io = connection_to_remote
     ping = QuickCmd(connection=ext_io.moler_connection)
     ping.command_string = 'ping localhost'
-    with ext_io:
+    with ext_io.open():
         ping.start()  # start background-run of command-future
         assert b'ping localhost' in ext_io.remote_endpoint()
+    ping.cancel()
 
 
 def test_command_is_running_after_sending_command_string(do_nothing_command__for_major_base_class):
@@ -192,11 +206,15 @@ def test_command_is_running_after_sending_command_string(do_nothing_command__for
         def subscribe(self, observer):
             pass
 
+        def unsubscribe(self, observer):
+            pass
+
     ping.connection = TheConnection()
     ping.command_string = 'ping localhost'
     assert not ping.running()
     ping.start()  # start the command-future
-
+    assert ping.running()
+    ping.cancel()
 
 # --------------------------- resources ---------------------------
 

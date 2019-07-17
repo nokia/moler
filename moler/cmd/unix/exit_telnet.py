@@ -9,7 +9,7 @@ from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
 
 __author__ = 'Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'michal.ernst@nokia.com'
 
 
@@ -30,6 +30,7 @@ class ExitTelnet(GenericUnixCommand):
         self.ret_required = False
         self._command_sent = False
         self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(expected_prompt)
+        self.newline_after_command_string = False
 
     def build_command_string(self):
         return "\x1d"
@@ -70,9 +71,10 @@ class ExitTelnet(GenericUnixCommand):
                 self.set_result({})
                 raise ParsingDone
 
-    def _detect_start_of_cmd_output(self, line):
+    def _detect_start_of_cmd_output(self, line, is_full_line):
         """
         :param line: line to check if echo of command is sent by device
+        :param is_full_line:
         :return: Nothing
         """
         self._cmd_output_started = True
