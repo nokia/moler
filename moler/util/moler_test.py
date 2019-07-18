@@ -35,7 +35,8 @@ class MolerTest(object):
         """
         Makes an error (fail the test) and (optional) continue the test flow.
         :param msg: Message to show.
-        :param raise_exception: If True then raise an exception, if False then only show msg and mark error in logs.
+        :param raise_exception: If True then raise an exception (if not in try except block then test will be
+         terminated), if False then only show msg and mark error in logs.
         :param dump: If defined then dump object.
         :return: Nothing.
         """
