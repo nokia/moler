@@ -7,7 +7,7 @@ __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 import pytest
 
 from moler.connection_observer import ConnectionObserver
-from moler.exceptions import MolerStatusException
+from moler.exceptions import StatusException
 from moler.util.moler_test import MolerTest
 
 
@@ -26,7 +26,7 @@ def test_moler_test_not_raise_exception_when_no_steps_end_for_global_method_twic
 def test_moler_test_raise_exception_when_not_callable_passed():
     ConnectionObserver.get_unraised_exceptions()
     var = "no callable"
-    with pytest.raises(MolerStatusException):
+    with pytest.raises(StatusException):
         MolerTest._decorate(var)
     ConnectionObserver.get_unraised_exceptions()
 
@@ -45,7 +45,7 @@ def test_moler_test_exception_no_exception():
     cmd = Ls(connection=None)
     cmd.set_exception("wrong exception")
     cmd._is_done = True
-    with pytest.raises(MolerStatusException):
+    with pytest.raises(StatusException):
         moler_test_not_raise_exception_when_no_steps_end_for_global_method()
     ConnectionObserver.get_unraised_exceptions()
 
@@ -58,21 +58,21 @@ def test_moler_test_not_raise_exception_when_steps_end(moler_test_se):
 
 def test_moler_test_test_raise_exception_when_not_call_steps_end(moler_test_se):
     ConnectionObserver.get_unraised_exceptions()
-    with pytest.raises(MolerStatusException):
+    with pytest.raises(StatusException):
         moler_test_se.test_raise_exception_when_not_call_steps_end()
     ConnectionObserver.get_unraised_exceptions()
 
 
 def test_moler_test_raise_exception_when_log_error(moler_test_se):
     ConnectionObserver.get_unraised_exceptions()
-    with pytest.raises(MolerStatusException):
+    with pytest.raises(StatusException):
         moler_test_se.test_raise_exception_when_log_error()
     ConnectionObserver.get_unraised_exceptions()
 
 
 def test_moler_test_raise_exception_when_log_error_raise_exception_set(moler_test_se):
     ConnectionObserver.get_unraised_exceptions()
-    with pytest.raises(MolerStatusException):
+    with pytest.raises(StatusException):
         moler_test_se.test_raise_exception_when_log_error_raise_exception_set()
     ConnectionObserver.get_unraised_exceptions()
 
@@ -84,7 +84,7 @@ def test_moler_test_not_raise_exception_when_no_steps_end(moler_test):
 
 
 def test_moler_test_raise_exception_when_no_steps_end_for_global_method():
-    with pytest.raises(MolerStatusException):
+    with pytest.raises(StatusException):
         moler_test_raise_exception_when_no_steps_end_for_global_method()
     ConnectionObserver.get_unraised_exceptions()
 
@@ -146,7 +146,7 @@ def test_log_error_in_next_test_when_previous_set_exception(do_nothing_connectio
 
     function_using_observer_and_set_exception()
 
-    with pytest.raises(MolerStatusException) as err:
+    with pytest.raises(StatusException) as err:
         function_using_observer()
     assert "some error inside observer" in str(err.value)
     ConnectionObserver.get_unraised_exceptions()
@@ -162,7 +162,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_fu
         observer = do_nothing_connection_observer
         observer.set_exception(exc)
 
-    with pytest.raises(MolerStatusException) as err:
+    with pytest.raises(StatusException) as err:
         function_using_observer()
     ConnectionObserver.get_unraised_exceptions()
 
@@ -177,7 +177,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_d
         observer = do_nothing_connection_observer
         observer.set_exception(exc)
 
-    with pytest.raises(MolerStatusException) as err:
+    with pytest.raises(StatusException) as err:
         function_using_observer()
     ConnectionObserver.get_unraised_exceptions()
 
@@ -195,7 +195,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_me
             observer = do_nothing_connection_observer
             observer.set_exception(exc)
 
-    with pytest.raises(MolerStatusException) as err:
+    with pytest.raises(StatusException) as err:
         MyTest().method_using_observer()
     ConnectionObserver.get_unraised_exceptions()
 
@@ -212,7 +212,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_d
             observer = do_nothing_connection_observer
             observer.set_exception(exc)
 
-    with pytest.raises(MolerStatusException) as err:
+    with pytest.raises(StatusException) as err:
         MyTest().method_using_observer()
     ConnectionObserver.get_unraised_exceptions()
 
@@ -223,7 +223,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_cl
     from moler.util.moler_test import MolerTest
     exc = ObserverExceptionClass("some error inside observer")
 
-    with pytest.raises(MolerStatusException) as err:
+    with pytest.raises(StatusException) as err:
         class MyTest(object):
             # TODO: Add later
             @MolerTest.raise_background_exceptions()
@@ -242,7 +242,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_d
     from moler.util.moler_test import MolerTest
     exc = ObserverExceptionClass("some error inside observer")
 
-    with pytest.raises(MolerStatusException) as err:
+    with pytest.raises(StatusException) as err:
         class MyTest(object):
             # TODO: Add later support for decorating classmethod and staticmethod
             @MolerTest.raise_background_exceptions
@@ -261,7 +261,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_st
     from moler.util.moler_test import MolerTest
     exc = ObserverExceptionClass("some error inside observer")
 
-    with pytest.raises(MolerStatusException) as err:
+    with pytest.raises(StatusException) as err:
         class MyTest(object):
             # TODO: Add later support for decorating classmethod and staticmethod
             @MolerTest.raise_background_exceptions()
@@ -280,7 +280,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_d
     from moler.util.moler_test import MolerTest
     exc = ObserverExceptionClass("some error inside observer")
 
-    with pytest.raises(MolerStatusException) as err:
+    with pytest.raises(StatusException) as err:
         class MyTest(object):
             # TODO: Add later
             @MolerTest.raise_background_exceptions
@@ -304,7 +304,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_cl
             observer = do_nothing_connection_observer
             observer.set_exception(exc)
 
-    with pytest.raises(MolerStatusException) as err:
+    with pytest.raises(StatusException) as err:
         MyTest().method_using_observer()
     ConnectionObserver.get_unraised_exceptions()
 
@@ -321,7 +321,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_d
             observer = do_nothing_connection_observer
             observer.set_exception(exc)
 
-    with pytest.raises(MolerStatusException) as err:
+    with pytest.raises(StatusException) as err:
         MyTest().method_using_observer()
     ConnectionObserver.get_unraised_exceptions()
 
@@ -341,7 +341,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_de
         def method_of_derived_class(self):
             pass
 
-    with pytest.raises(MolerStatusException) as err:
+    with pytest.raises(StatusException) as err:
         MyTest().method_using_observer()
     ConnectionObserver.get_unraised_exceptions()
 
@@ -361,7 +361,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_d
         def method_of_derived_class(self):
             pass
 
-    with pytest.raises(MolerStatusException) as err:
+    with pytest.raises(StatusException) as err:
         MyTest().method_using_observer()
     ConnectionObserver.get_unraised_exceptions()
 
