@@ -15,12 +15,12 @@ import re
 class Cut(GenericUnixCommand):
     """Unix command cut."""
 
-    def __init__(self, connection, options=None, file=None, prompt=None, newline_chars=None, runner=None):
+    def __init__(self, connection, options=None, path=None, prompt=None, newline_chars=None, runner=None):
         """
         Unix command cut.
         :param connection: moler connection to device, terminal when command is executed
         :param options: Options of unix du command
-        :param file: file path
+        :param path: file path
         :param prompt: expected prompt sending by device after command execution
         :param newline_chars: Characters to split lines
         :param runner: Runner to run command
@@ -28,7 +28,7 @@ class Cut(GenericUnixCommand):
         super(Cut, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                   runner=runner)
         self.options = options
-        self.file = file
+        self.path = path
         self.current_ret["LINES"] = list()
 
     def build_command_string(self):
@@ -38,7 +38,9 @@ class Cut(GenericUnixCommand):
         """
         cmd = "cut"
         if self.options:
-            cmd = '{} {} {}'.format(cmd, self.options, self.file)
+            cmd = '{} {}'.format(cmd, self.options)
+        if self.path:
+            cmd = '{} {}'.format(cmd, self.path)
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -67,7 +69,7 @@ class Cut(GenericUnixCommand):
     # # This file describes the network interfaces av
 
     def _parse_cut(self, line):
-        if not line == "":
+        if line:
             self.current_ret["LINES"].append(line)
             raise ParsingDone
 
@@ -89,7 +91,7 @@ host:~ #"""
 
 COMMAND_KWARGS_params = {
     "options": "-d 'a' -f 1-3",
-    "file": "/etc/network/interfaces"
+    "path": "/etc/network/interfaces"
 }
 
 COMMAND_RESULT_params = {
