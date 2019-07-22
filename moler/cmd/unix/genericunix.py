@@ -8,12 +8,15 @@ __copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
+import abc
+import six
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.exceptions import CommandFailure
 from moler.helpers import remove_escape_codes
 
 
+@six.add_metaclass(abc.ABCMeta)
 class GenericUnixCommand(CommandTextualGeneric):
     _re_fail = re.compile(r'command not found|No such file or directory|running it may require superuser privileges'
                           r'|Cannot find device', re.I)
