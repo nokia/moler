@@ -17,7 +17,7 @@ from types import FunctionType, MethodType
 
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import MolerException
-from moler.exceptions import StatusException
+from moler.exceptions import ExecutionException
 
 
 class MolerTest(object):
@@ -179,7 +179,7 @@ class MolerTest(object):
             MolerTest._error(err_msg)
             MolerTest._was_error = False
             MolerTest._list_of_errors = list()
-            raise StatusException(err_msg)
+            raise ExecutionException(err_msg)
 
     @staticmethod
     def _check_steps_end():
@@ -187,14 +187,14 @@ class MolerTest(object):
             err_msg = "Method 'steps_end()' was not called or parameter 'check_steps_end' was not set properly.\n."
             MolerTest._error(err_msg)
             MolerTest._was_error = False
-            raise StatusException(err_msg)
+            raise ExecutionException(err_msg)
 
     @staticmethod
     def _decorate(obj=None, check_steps_end=False):
         # check that decorated function is not statimethod or classmethod
         if not obj:
-            raise StatusException("Decorator for 'staticmethod' or 'classmethod' not implemented yet.",
-                                  )
+            raise ExecutionException("Decorator for 'staticmethod' or 'classmethod' not implemented yet.",
+                                     )
 
         if hasattr(obj, "__dict__"):
             if obj.__dict__.items():
@@ -210,7 +210,7 @@ class MolerTest(object):
             else:
                 obj = MolerTest._wrapper(obj, check_steps_end=check_steps_end)
         else:
-            raise StatusException("No '__dict__' in decorated object.")
+            raise ExecutionException("No '__dict__' in decorated object.")
 
         return obj
 
