@@ -174,6 +174,7 @@ class Telnet(GenericTelnetSsh):
         telnet_cmds_sent = (0 == len(self.cmds_after_establish_connection))
         return telnet_cmds_sent
 
+
 COMMAND_OUTPUT = """
 user@host01:~> TERM=xterm-mono telnet host.domain.net 1500
 Login:
