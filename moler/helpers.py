@@ -12,6 +12,7 @@ import datetime
 import importlib
 import logging
 import re
+from functools import wraps
 
 import deepdiff
 
@@ -190,3 +191,27 @@ class ForwardingHandler(logging.Handler):
             record.levelname = "DEBUG"
 
         self.target_logger.handle(record)
+
+
+def call_base_class_method(method):
+    """
+    Run base class method.
+
+    :param method: method from derived class to call
+    :return: updated of base class result derived class method result
+    """
+
+    @wraps(method)
+    def wrapped(*args, **kwargs):
+        _class = args[0].__class__
+        _base_class = _class.__bases__[0]
+
+        base_method = getattr(_base_class, method.__name__)
+
+        base_values = base_method(*args, **kwargs)
+        new_values = method(*args, **kwargs)
+        update_dict(new_values, base_values)
+
+        return new_values
+
+    return wrapped
