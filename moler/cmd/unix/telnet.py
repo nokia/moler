@@ -17,7 +17,7 @@ from moler.helpers import copy_list
 class Telnet(GenericTelnetSsh):
 
     def __init__(self, connection, host, login=None, password=None, port=0, prompt=None, expected_prompt=r'^>\s*',
-                 set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono="TERM=xterm-mono",
+                 set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono="TERM=xterm-mono", prefix=None,
                  newline_chars=None, cmds_before_establish_connection=None, cmds_after_establish_connection=None,
                  telnet_prompt=r"^\s*telnet>\s*", encrypt_password=True, runner=None, target_newline="\n",
                  allowed_newline_after_prompt=False, repeat_password=True):
@@ -48,12 +48,13 @@ class Telnet(GenericTelnetSsh):
         super(Telnet, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner,
                                      port=port, host=host, login=login, password=password,
                                      expected_prompt=expected_prompt, set_timeout=set_timeout, set_prompt=set_prompt,
-                                     term_mono=term_mono, prefix=prefix, encrypt_password=encrypt_password,
+                                     term_mono=term_mono, encrypt_password=encrypt_password,
                                      target_newline=target_newline,
                                      allowed_newline_after_prompt=allowed_newline_after_prompt,
                                      repeat_password=repeat_password
                                      )
 
+        self.prefix = prefix
         # Parameters defined by calling the command
         self._re_telnet_prompt = Telnet._calculate_prompt(telnet_prompt)  # Prompt for telnet commands
 
