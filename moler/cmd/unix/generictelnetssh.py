@@ -31,7 +31,7 @@ class GenericTelnetSsh(GenericUnixCommand):
 
     def __init__(self, connection, host, login=None, password=None, newline_chars=None, prompt=None, runner=None,
                  port=0, expected_prompt=r'^>\s*',
-                 set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono="TERM=xterm-mono", prefix=None,
+                 set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono="TERM=xterm-mono",
                  encrypt_password=True, target_newline="\n",
                  allowed_newline_after_prompt=False, repeat_password=True):
         """
@@ -47,7 +47,6 @@ class GenericTelnetSsh(GenericUnixCommand):
         :param set_timeout: Command to set timeout after telnet connects.
         :param set_prompt: Command to set prompt after telnet connects.
         :param term_mono: Params to set ssh mono connection (useful in script).
-        :param prefix: prefix telnet command.
         :param newline_chars: characters to split lines.
         :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text
         :param runner: Runner to run command
@@ -72,7 +71,6 @@ class GenericTelnetSsh(GenericUnixCommand):
         self.set_timeout = set_timeout
         self.set_prompt = set_prompt
         self.term_mono = term_mono
-        self.prefix = prefix
         self.encrypt_password = encrypt_password
         self.target_newline = target_newline
         self.allowed_newline_after_prompt = allowed_newline_after_prompt
