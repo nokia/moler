@@ -10,20 +10,16 @@ __email__ = 'marcin.usielski@nokia.com'
 import re
 import six
 
-from moler.cmd.commandtextualgeneric import CommandTextualGeneric
-from moler.cmd.unix.genericunix import GenericUnixCommand
+from moler.cmd.unix.generictelnetssh import GenericTelnetSsh
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 
 
-class Ssh(GenericUnixCommand):
+class Ssh(GenericTelnetSsh):
     # Compiled regexp
     _re_host_key = re.compile(r"Add correct host key in (?P<HOSTS_FILE>\S+) to get rid of this message", re.IGNORECASE)
     _re_yes_no = re.compile(r"\(yes/no\)\?|'yes' or 'no':", re.IGNORECASE)
     _re_id_dsa = re.compile(r"id_dsa:", re.IGNORECASE)
-    _re_password = re.compile(r"(password.*:)", re.IGNORECASE)
-    _re_failed_strings = re.compile(r"Permission denied|No route to host|ssh: Could not|"
-                                    r"Too many authentication failures|Received disconnect from", re.IGNORECASE)
     _re_host_key_verification_failed = re.compile(r"Host key verification failed", re.IGNORECASE)
     _re_resize = re.compile(r"999H")
 
@@ -53,37 +49,23 @@ class Ssh(GenericUnixCommand):
         :param repeat_password: If True then repeat last password if no more provided. If False then exception is set.
         :param options: Options to add to command string just before host.
         """
-        super(Ssh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+        super(Ssh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner,
+                                  port=port, host=host, login=login, password=password,
+                                  expected_prompt=expected_prompt, set_timeout=set_timeout, set_prompt=set_prompt,
+                                  term_mono=term_mono, encrypt_password=encrypt_password,
+                                  target_newline=target_newline,
+                                  allowed_newline_after_prompt=allowed_newline_after_prompt,
+                                  repeat_password=repeat_password
+                                  )
 
         # Parameters defined by calling the command
-        self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(expected_prompt)  # Expected prompt on device
-        self.login = login
-        if isinstance(password, six.string_types):
-            self._passwords = [password]
-        else:
-            self._passwords = list(password)  # copy of list of passwords to modify
-        self.host = host
-        self.port = port
         self.known_hosts_on_failure = known_hosts_on_failure
-        self.set_timeout = set_timeout
-        self.set_prompt = set_prompt
-        self.term_mono = term_mono
-        self.encrypt_password = encrypt_password
-        self.target_newline = target_newline
-        self.allowed_newline_after_prompt = allowed_newline_after_prompt
-        self.repeat_password = repeat_password
         self.options = options
-
-        self.ret_required = False
 
         # Internal variables
         self._hosts_file = ""
-        self._sent_timeout = False
-        self._sent_prompt = False
-        self._sent_password = False
         self._sent_continue_connecting = False
         self._resize_sent = False
-        self._last_password = " "
 
     def build_command_string(self):
         """
@@ -114,27 +96,27 @@ class Ssh(GenericUnixCommand):
         """
         try:
             self._check_if_resize(line)
-            self._check_if_failure(line)
+            # self._check_if_failure(line)
             self._get_hosts_file_if_displayed(line)
             self._push_yes_if_needed(line)
-            self._send_password_if_requested(line)
+            # self._send_password_if_requested(line)
             self._id_dsa(line)
             self._host_key_verification(line)
             self._commands_after_established(line, is_full_line)
-            self._detect_prompt_after_exception(line)
+            # self._detect_prompt_after_exception(line)
         except ParsingDone:
             pass
         if is_full_line:
             self._sent_password = False  # Clear flag for multi passwords connections
 
-    def is_failure_indication(self, line):
-        """
-        Detects fail from command output.
-
-        :param line: Line from device
-        :return: Match object if matches, None otherwise
-        """
-        return self._regex_helper.search_compiled(Ssh._re_failed_strings, line)
+    # def is_failure_indication(self, line):
+    #     """
+    #     Detects fail from command output.
+    #
+    #     :param line: Line from device
+    #     :return: Match object if matches, None otherwise
+    #     """
+    #     return self._regex_helper.search_compiled(Ssh._re_failed_strings, line)
 
     def _commands_after_established(self, line, is_full_line):
         """
@@ -154,16 +136,16 @@ class Ssh(GenericUnixCommand):
                         self.set_result({})
                     raise ParsingDone()
 
-    def _detect_prompt_after_exception(self, line):
-        """
-        Detects start prompt.
-
-        :param line: Line from device.
-        :return: Nothing but raises ParsingDone if detects start prompt and any exception was set.
-        """
-        if self._stored_exception and self._regex_helper.search_compiled(self._re_prompt, line):
-            self._is_done = True
-            raise ParsingDone()
+    # def _detect_prompt_after_exception(self, line):
+    #     """
+    #     Detects start prompt.
+    #
+    #     :param line: Line from device.
+    #     :return: Nothing but raises ParsingDone if detects start prompt and any exception was set.
+    #     """
+    #     if self._stored_exception and self._regex_helper.search_compiled(self._re_prompt, line):
+    #         self._is_done = True
+    #         raise ParsingDone()
 
     def _host_key_verification(self, line):
         """
@@ -190,16 +172,16 @@ class Ssh(GenericUnixCommand):
             self.connection.sendline("")
             raise ParsingDone()
 
-    def _check_if_failure(self, line):
-        """
-        Checks if line from device has information about failed ssh.
-
-        :param line: Line from device.
-        :return: Nothing but raises ParsingDone if regex matches.
-        """
-        if self.is_failure_indication(line):
-            self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
-            raise ParsingDone()
+    # def _check_if_failure(self, line):
+    #     """
+    #     Checks if line from device has information about failed ssh.
+    #
+    #     :param line: Line from device.
+    #     :return: Nothing but raises ParsingDone if regex matches.
+    #     """
+    #     if self.is_failure_indication(line):
+    #         self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+    #         raise ParsingDone()
 
     def _get_hosts_file_if_displayed(self, line):
         """
@@ -224,26 +206,26 @@ class Ssh(GenericUnixCommand):
             self._sent_continue_connecting = True
             raise ParsingDone()
 
-    def _send_password_if_requested(self, line):
-        """
-        Checks if line from device has information about waiting for password.
-
-        :param line: Line from device.
-        :return: Nothing but raises ParsingDone if regex matches.
-        """
-        if (not self._sent_password) and self._is_password_requested(line):
-            try:
-                pwd = self._passwords.pop(0)
-                self._last_password = pwd
-                self.connection.sendline(pwd, encrypt=self.encrypt_password)
-            except IndexError:
-                if self.repeat_password:
-                    self.connection.sendline(self._last_password, encrypt=self.encrypt_password)
-                else:
-                    self.set_exception(CommandFailure(self, "Password was requested but no more passwords provided."))
-                    self.break_cmd()
-            self._sent_password = True
-            raise ParsingDone()
+    # def _send_password_if_requested(self, line):
+    #     """
+    #     Checks if line from device has information about waiting for password.
+    #
+    #     :param line: Line from device.
+    #     :return: Nothing but raises ParsingDone if regex matches.
+    #     """
+    #     if (not self._sent_password) and self._is_password_requested(line):
+    #         try:
+    #             pwd = self._passwords.pop(0)
+    #             self._last_password = pwd
+    #             self.connection.sendline(pwd, encrypt=self.encrypt_password)
+    #         except IndexError:
+    #             if self.repeat_password:
+    #                 self.connection.sendline(self._last_password, encrypt=self.encrypt_password)
+    #             else:
+    #                 self.set_exception(CommandFailure(self, "Password was requested but no more passwords provided."))
+    #                 self.break_cmd()
+    #         self._sent_password = True
+    #         raise ParsingDone()
 
     def _handle_failed_host_key_verification(self):
         """
