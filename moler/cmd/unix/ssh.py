@@ -102,7 +102,7 @@ class Ssh(GenericTelnetSsh):
             # self._send_password_if_requested(line)
             self._id_dsa(line)
             self._host_key_verification(line)
-            self._commands_after_established(line, is_full_line)
+            # self._commands_after_established(line, is_full_line)
             # self._detect_prompt_after_exception(line)
         except ParsingDone:
             pass
@@ -118,23 +118,23 @@ class Ssh(GenericTelnetSsh):
     #     """
     #     return self._regex_helper.search_compiled(Ssh._re_failed_strings, line)
 
-    def _commands_after_established(self, line, is_full_line):
-        """
-        Performs commands after ssh connection is established and user is logged in.
-
-        :param line: Line from device.
-        :param is_full_line: True is line contained new line chars, False otherwise.
-        :return: Nothing but raises ParsingDone if all required commands are sent.
-        """
-        sent = self._send_after_login_settings(line)
-        if sent:
-            raise ParsingDone()
-        if (not sent) and self._is_target_prompt(line):
-            if not is_full_line or self.allowed_newline_after_prompt:
-                if self._all_after_login_settings_sent() or self._no_after_login_settings_needed():
-                    if not self.done():
-                        self.set_result({})
-                    raise ParsingDone()
+    # def _commands_after_established(self, line, is_full_line):
+    #     """
+    #     Performs commands after ssh connection is established and user is logged in.
+    #
+    #     :param line: Line from device.
+    #     :param is_full_line: True is line contained new line chars, False otherwise.
+    #     :return: Nothing but raises ParsingDone if all required commands are sent.
+    #     """
+    #     sent = self._send_after_login_settings(line)
+    #     if sent:
+    #         raise ParsingDone()
+    #     if (not sent) and self._is_target_prompt(line):
+    #         if not is_full_line or self.allowed_newline_after_prompt:
+    #             if self._all_after_login_settings_sent() or self._no_after_login_settings_needed():
+    #                 if not self.done():
+    #                     self.set_result({})
+    #                 raise ParsingDone()
 
     # def _detect_prompt_after_exception(self, line):
     #     """
