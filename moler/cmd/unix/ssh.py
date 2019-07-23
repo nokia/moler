@@ -8,7 +8,6 @@ __copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
-import six
 
 from moler.cmd.unix.generictelnetssh import GenericTelnetSsh
 from moler.exceptions import CommandFailure
@@ -95,6 +94,7 @@ class Ssh(GenericTelnetSsh):
         :return: Nothing
         """
         try:
+            self.generic_on_new_line(line=line, is_full_line=is_full_line)
             self._check_if_resize(line)
             # self._check_if_failure(line)
             self._get_hosts_file_if_displayed(line)
