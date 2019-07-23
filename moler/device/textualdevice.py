@@ -142,21 +142,7 @@ class TextualDevice(object):
         return cls(io_connection=io_conn)
 
     def __del__(self):
-        self._close_connection()
         self._stop_prompts_observers()
-        if hasattr(self, "logger"):
-            handlers = self.logger.handlers[:]
-            for handler in handlers:
-                handler.flush()
-                handler.close()
-                self.logger.removeHandler(handler)
-
-        if hasattr(self, "device_data_logger"):
-            handlers = self.device_data_logger.handlers[:]
-            for handler in handlers:
-                handler.flush()
-                handler.close()
-                self.device_data_logger.removeHandler(handler)
 
     def _collect_cmds_for_state_machine(self):
         for state in self._get_available_states():
@@ -515,7 +501,7 @@ class TextualDevice(object):
     def _open_connection(self, source_state, dest_state, timeout):
         self.io_connection.open()
 
-    def _close_connection(self, source_state="", dest_state="", timeout=7):
+    def _close_connection(self, source_state, dest_state, timeout):
         self.io_connection.close()
 
     def _prompt_observer_callback(self, event, state):
@@ -545,7 +531,6 @@ class TextualDevice(object):
         for device_state in self._prompts_events:
             self._prompts_events[device_state].cancel()
             self._prompts_events[device_state].remove_event_occurred_callback()
-            self._prompts_events[device_state].__del__()
 
     def build_trigger_to_state(self, state):
         trigger = "GOTO_{}".format(state)
