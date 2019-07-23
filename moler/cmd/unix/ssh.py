@@ -96,56 +96,14 @@ class Ssh(GenericTelnetSsh):
         try:
             self.generic_on_new_line(line=line, is_full_line=is_full_line)
             self._check_if_resize(line)
-            # self._check_if_failure(line)
             self._get_hosts_file_if_displayed(line)
             self._push_yes_if_needed(line)
-            # self._send_password_if_requested(line)
             self._id_dsa(line)
             self._host_key_verification(line)
-            # self._commands_after_established(line, is_full_line)
-            # self._detect_prompt_after_exception(line)
         except ParsingDone:
             pass
         if is_full_line:
             self._sent_password = False  # Clear flag for multi passwords connections
-
-    # def is_failure_indication(self, line):
-    #     """
-    #     Detects fail from command output.
-    #
-    #     :param line: Line from device
-    #     :return: Match object if matches, None otherwise
-    #     """
-    #     return self._regex_helper.search_compiled(Ssh._re_failed_strings, line)
-
-    # def _commands_after_established(self, line, is_full_line):
-    #     """
-    #     Performs commands after ssh connection is established and user is logged in.
-    #
-    #     :param line: Line from device.
-    #     :param is_full_line: True is line contained new line chars, False otherwise.
-    #     :return: Nothing but raises ParsingDone if all required commands are sent.
-    #     """
-    #     sent = self._send_after_login_settings(line)
-    #     if sent:
-    #         raise ParsingDone()
-    #     if (not sent) and self._is_target_prompt(line):
-    #         if not is_full_line or self.allowed_newline_after_prompt:
-    #             if self._all_after_login_settings_sent() or self._no_after_login_settings_needed():
-    #                 if not self.done():
-    #                     self.set_result({})
-    #                 raise ParsingDone()
-
-    # def _detect_prompt_after_exception(self, line):
-    #     """
-    #     Detects start prompt.
-    #
-    #     :param line: Line from device.
-    #     :return: Nothing but raises ParsingDone if detects start prompt and any exception was set.
-    #     """
-    #     if self._stored_exception and self._regex_helper.search_compiled(self._re_prompt, line):
-    #         self._is_done = True
-    #         raise ParsingDone()
 
     def _host_key_verification(self, line):
         """
@@ -172,17 +130,6 @@ class Ssh(GenericTelnetSsh):
             self.connection.sendline("")
             raise ParsingDone()
 
-    # def _check_if_failure(self, line):
-    #     """
-    #     Checks if line from device has information about failed ssh.
-    #
-    #     :param line: Line from device.
-    #     :return: Nothing but raises ParsingDone if regex matches.
-    #     """
-    #     if self.is_failure_indication(line):
-    #         self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
-    #         raise ParsingDone()
-
     def _get_hosts_file_if_displayed(self, line):
         """
         Checks if line from device has info about hosts file.
@@ -205,27 +152,6 @@ class Ssh(GenericTelnetSsh):
             self.connection.sendline('yes')
             self._sent_continue_connecting = True
             raise ParsingDone()
-
-    # def _send_password_if_requested(self, line):
-    #     """
-    #     Checks if line from device has information about waiting for password.
-    #
-    #     :param line: Line from device.
-    #     :return: Nothing but raises ParsingDone if regex matches.
-    #     """
-    #     if (not self._sent_password) and self._is_password_requested(line):
-    #         try:
-    #             pwd = self._passwords.pop(0)
-    #             self._last_password = pwd
-    #             self.connection.sendline(pwd, encrypt=self.encrypt_password)
-    #         except IndexError:
-    #             if self.repeat_password:
-    #                 self.connection.sendline(self._last_password, encrypt=self.encrypt_password)
-    #             else:
-    #                 self.set_exception(CommandFailure(self, "Password was requested but no more passwords provided."))
-    #                 self.break_cmd()
-    #         self._sent_password = True
-    #         raise ParsingDone()
 
     def _handle_failed_host_key_verification(self):
         """
@@ -253,95 +179,95 @@ class Ssh(GenericTelnetSsh):
             self._sent_password = False
             self.connection.sendline(self.command_string)
 
-    def _send_after_login_settings(self, line):
-        """
-        Sends information about timeout and prompt.
+    # def _send_after_login_settings(self, line):
+    #     """
+    #     Sends information about timeout and prompt.
+    #
+    #     :param line: Line from device.
+    #     :return: True if anything was sent, False otherwise.
+    #     """
+    #     if self._is_target_prompt(line):
+    #         if self._timeout_set_needed():
+    #             self._send_timeout_set()
+    #             return True  # just sent
+    #         elif self._prompt_set_needed():
+    #             self._send_prompt_set()
+    #             return True  # just sent
+    #     return False  # nothing sent
+    #
+    # def _all_after_login_settings_sent(self):
+    #     """
+    #     Checks if all requested commands are sent.
+    #
+    #     :return: True if all commands after ssh connection establishing are sent, False otherwise
+    #     """
+    #     both_requested = self.set_prompt and self.set_timeout
+    #     both_sent = self._sent_prompt and self._sent_timeout
+    #     single_req_and_sent1 = self.set_prompt and self._sent_prompt
+    #     single_req_and_sent2 = self.set_timeout and self._sent_timeout
+    #     return (both_requested and both_sent) or single_req_and_sent1 or single_req_and_sent2
 
-        :param line: Line from device.
-        :return: True if anything was sent, False otherwise.
-        """
-        if self._is_target_prompt(line):
-            if self._timeout_set_needed():
-                self._send_timeout_set()
-                return True  # just sent
-            elif self._prompt_set_needed():
-                self._send_prompt_set()
-                return True  # just sent
-        return False  # nothing sent
+    # def _no_after_login_settings_needed(self):
+    #     """
+    #     Checks if any commands after logged in are requested.
+    #
+    #     :return: True if no commands are awaited, False if any.
+    #     """
+    #     return (not self.set_prompt) and (not self.set_timeout)
+    #
+    # def _timeout_set_needed(self):
+    #     """
+    #     Checks if command for timeout is awaited.
+    #
+    #     :return: True if command is set and not sent. False otherwise.
+    #     """
+    #     return self.set_timeout and not self._sent_timeout
+    #
+    # def _send_timeout_set(self):
+    #     """
+    #     Sends command to set timeout.
+    #
+    #     :return: Nothing.
+    #     """
+    #     cmd = "{}{}{}".format(self.target_newline, self.set_timeout, self.target_newline)
+    #     self.connection.send(cmd)
+    #     self._sent_timeout = True
 
-    def _all_after_login_settings_sent(self):
-        """
-        Checks if all requested commands are sent.
+    # def _prompt_set_needed(self):
+    #     """
+    #     Checks if command for prompt is awaited.
+    #
+    #     :return: True if command is set and not sent. False otherwise.
+    #     """
+    #     return self.set_prompt and not self._sent_prompt
+    #
+    # def _send_prompt_set(self):
+    #     """
+    #     Sends command to set prompt.
+    #
+    #     :return: Nothing.
+    #     """
+    #     cmd = "{}{}{}".format(self.target_newline, self.set_prompt, self.target_newline)
+    #     self.connection.send(cmd)
+    #     self._sent_prompt = True
 
-        :return: True if all commands after ssh connection establishing are sent, False otherwise
-        """
-        both_requested = self.set_prompt and self.set_timeout
-        both_sent = self._sent_prompt and self._sent_timeout
-        single_req_and_sent1 = self.set_prompt and self._sent_prompt
-        single_req_and_sent2 = self.set_timeout and self._sent_timeout
-        return (both_requested and both_sent) or single_req_and_sent1 or single_req_and_sent2
-
-    def _no_after_login_settings_needed(self):
-        """
-        Checks if any commands after logged in are requested.
-
-        :return: True if no commands are awaited, False if any.
-        """
-        return (not self.set_prompt) and (not self.set_timeout)
-
-    def _timeout_set_needed(self):
-        """
-        Checks if command for timeout is awaited.
-
-        :return: True if command is set and not sent. False otherwise.
-        """
-        return self.set_timeout and not self._sent_timeout
-
-    def _send_timeout_set(self):
-        """
-        Sends command to set timeout.
-
-        :return: Nothing.
-        """
-        cmd = "{}{}{}".format(self.target_newline, self.set_timeout, self.target_newline)
-        self.connection.send(cmd)
-        self._sent_timeout = True
-
-    def _prompt_set_needed(self):
-        """
-        Checks if command for prompt is awaited.
-
-        :return: True if command is set and not sent. False otherwise.
-        """
-        return self.set_prompt and not self._sent_prompt
-
-    def _send_prompt_set(self):
-        """
-        Sends command to set prompt.
-
-        :return: Nothing.
-        """
-        cmd = "{}{}{}".format(self.target_newline, self.set_prompt, self.target_newline)
-        self.connection.send(cmd)
-        self._sent_prompt = True
-
-    def _is_password_requested(self, line):
-        """
-        Checks if password is requested by device.
-
-        :param line: Line from device.
-        :return: Match object if regex matches, None otherwise.
-        """
-        return self._regex_helper.search_compiled(Ssh._re_password, line)
-
-    def _is_target_prompt(self, line):
-        """
-        Checks if device sends prompt from target system.
-
-        :param line: Line from device.
-        :return: Match object if regex matches, None otherwise.
-        """
-        return self._regex_helper.search_compiled(self._re_expected_prompt, line)
+    # def _is_password_requested(self, line):
+    #     """
+    #     Checks if password is requested by device.
+    #
+    #     :param line: Line from device.
+    #     :return: Match object if regex matches, None otherwise.
+    #     """
+    #     return self._regex_helper.search_compiled(Ssh._re_password, line)
+    #
+    # def _is_target_prompt(self, line):
+    #     """
+    #     Checks if device sends prompt from target system.
+    #
+    #     :param line: Line from device.
+    #     :return: Match object if regex matches, None otherwise.
+    #     """
+    #     return self._regex_helper.search_compiled(self._re_expected_prompt, line)
 
     def _check_if_resize(self, line):
         """

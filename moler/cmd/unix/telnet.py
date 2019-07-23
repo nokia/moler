@@ -165,20 +165,14 @@ class Telnet(GenericTelnetSsh):
             ret = True
         return ret
 
-    def _all_after_login_settings_sent(self):
-        """
-        Checks if all commands were sent by telnet command.
+    def _commands_to_set_connection_after_login(self, line):
+        if self._cmds_after_establish_connection_needed():
+            self._change_telnet_to_setting_commands()
+            return True
 
-        :return: True if all requested commands were sent, False if at least one left.
-        """
+    def _sent_additional_settings_commands(self):
         telnet_cmds_sent = (0 == len(self.cmds_after_establish_connection))
-        both_requested = self.set_prompt and self.set_timeout
-        both_sent = self._sent_prompt and self._sent_timeout
-        single_req_and_sent1 = self.set_prompt and self._sent_prompt
-        single_req_and_sent2 = self.set_timeout and self._sent_timeout
-        terminal_cmds_sent = ((both_requested and both_sent) or single_req_and_sent1 or single_req_and_sent2)
-        return terminal_cmds_sent and telnet_cmds_sent
-
+        return telnet_cmds_sent
 
 COMMAND_OUTPUT = """
 user@host01:~> TERM=xterm-mono telnet host.domain.net 1500

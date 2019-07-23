@@ -196,8 +196,7 @@ class GenericTelnetSsh(GenericUnixCommand):
         :return: True if any command was sent, False if no command was sent.
         """
         if self._is_target_prompt(line):
-            if self._cmds_after_establish_connection_needed():
-                self._change_telnet_to_setting_commands()
+            if self._commands_to_set_connection_after_login(line):
                 return True
             if self._timeout_set_needed():
                 self._send_timeout_set()
@@ -206,6 +205,9 @@ class GenericTelnetSsh(GenericUnixCommand):
                 self._send_prompt_set()
                 return True  # just sent
         return False  # nothing sent
+
+    def _commands_to_set_connection_after_login(self, line):
+        return False
 
     def _no_after_login_settings_needed(self):
         """
@@ -284,3 +286,20 @@ class GenericTelnetSsh(GenericUnixCommand):
         :return: Match object or None
         """
         return self._regex_helper.search_compiled(self._re_expected_prompt, line)
+
+    def _all_after_login_settings_sent(self):
+        """
+        Checks if all commands were sent by telnet command.
+
+        :return: True if all requested commands were sent, False if at least one left.
+        """
+        additional_commands_sent = self._sent_additional_settings_commands()  # Useful for Telnet commands
+        both_requested = self.set_prompt and self.set_timeout
+        both_sent = self._sent_prompt and self._sent_timeout
+        single_req_and_sent1 = self.set_prompt and self._sent_prompt
+        single_req_and_sent2 = self.set_timeout and self._sent_timeout
+        terminal_cmds_sent = ((both_requested and both_sent) or single_req_and_sent1 or single_req_and_sent2)
+        return terminal_cmds_sent and additional_commands_sent
+
+    def _sent_additional_settings_commands(self):
+        return True
