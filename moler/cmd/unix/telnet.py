@@ -154,25 +154,6 @@ class Telnet(GenericTelnetSsh):
             self.connection.send(chr(0x1D))  # ctrl + ]
             self._telnet_command_mode = True
 
-    def _send_after_login_settings(self, line):
-        """
-        Sends commands to set timeout and to change prompt.
-
-        :param line: Line from device.
-        :return: True if any command was sent, False if no command was sent.
-        """
-        if self._is_target_prompt(line):
-            if self._cmds_after_establish_connection_needed():
-                self._change_telnet_to_setting_commands()
-                return True
-            if self._timeout_set_needed():
-                self._send_timeout_set()
-                return True  # just sent
-            elif self._prompt_set_needed():
-                self._send_prompt_set()
-                return True  # just sent
-        return False  # nothing sent
-
     def _cmds_after_establish_connection_needed(self):
         """
         Checks if any command is requested to be sent to telnet command after establishing connection.
