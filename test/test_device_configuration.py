@@ -244,7 +244,7 @@ def test_can_select_device_loaded_from_config_dict(moler_config, device_factory)
             },
             'DEVICES': {
                 'UNIX': {
-                    'DEVICE_CLASS': 'moler.device.unixremote.UnixLocal',
+                    'DEVICE_CLASS': 'moler.device.unixlocal.UnixLocal',
                     'INITIAL_STATE': 'UNIX_LOCAL'
                 }
             }
