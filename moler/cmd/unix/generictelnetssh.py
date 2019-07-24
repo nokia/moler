@@ -21,7 +21,7 @@ from moler.helpers import copy_list
 @six.add_metaclass(abc.ABCMeta)
 class GenericTelnetSsh(GenericUnixCommand):
     # Compiled regexp
-    _re_login = re.compile(r"login:", re.IGNORECASE)
+    _re_login = re.compile(r"login:\s*$", re.IGNORECASE)
     _re_password = re.compile(r"password:", re.IGNORECASE)
     _re_failed_strings = re.compile(
         r"Permission denied|closed by foreign host|telnet:.*Name or service not known|No route to host|ssh: Could not|"
@@ -81,7 +81,7 @@ class GenericTelnetSsh(GenericUnixCommand):
         self._sent_timeout = False
         self._sent_prompt = False
         self._sent_login = False
-        self._sent_password = False
+        self._sent = False
         self._last_password = " "
 
     def generic_on_new_line(self, line, is_full_line):
@@ -99,8 +99,8 @@ class GenericTelnetSsh(GenericUnixCommand):
             self._just_connected(line)
             self._settings_after_login(line, is_full_line)
             self._detect_prompt_after_exception(line)
-        except ParsingDone:
-            raise
+        except ParsingDone as pde:
+            raise pde
 
     def _parse_failure_indication(self, line):
         """
@@ -162,7 +162,7 @@ class GenericTelnetSsh(GenericUnixCommand):
         if (not self._sent_login) and self._is_login_requested(line) and self.login:
             self.connection.send("{}{}".format(self.login, self.target_newline))
             self._sent_login = True
-            self._sent_password = False
+            self._sent = False
             raise ParsingDone()
 
     def _send_password_if_requested(self, line):
@@ -172,7 +172,7 @@ class GenericTelnetSsh(GenericUnixCommand):
         :param line: Line from device.
         :return: Nothing but raises ParsingDone if password was sent.
         """
-        if (not self._sent_password) and self._is_password_requested(line):
+        if (not self._sent) and self._is_password_requested(line):
             try:
                 pwd = self._passwords.pop(0)
                 self._last_password = pwd
@@ -185,7 +185,7 @@ class GenericTelnetSsh(GenericUnixCommand):
                     self.set_exception(CommandFailure(self, "Password was requested but no more passwords provided."))
                     self.break_cmd()
             self._sent_login = False
-            self._sent_password = True
+            self._sent = True
             raise ParsingDone()
 
     def _send_after_login_settings(self, line):
@@ -198,10 +198,10 @@ class GenericTelnetSsh(GenericUnixCommand):
         if self._is_target_prompt(line):
             if self._commands_to_set_connection_after_login(line):
                 return True
-            if self._timeout_set_needed():
+            if self._timeout_set_needed() and not self._sent:
                 self._send_timeout_set()
                 return True  # just sent
-            elif self._prompt_set_needed():
+            elif self._prompt_set_needed() and not self._sent:
                 self._send_prompt_set()
                 return True  # just sent
         return False  # nothing sent
@@ -233,6 +233,7 @@ class GenericTelnetSsh(GenericUnixCommand):
         """
         self.connection.sendline("{}{}".format(self.target_newline, self.set_timeout))
         self._sent_timeout = True
+        self._sent = True
 
     def _prompt_set_needed(self):
         """
@@ -250,6 +251,7 @@ class GenericTelnetSsh(GenericUnixCommand):
         """
         self.connection.sendline("{}{}".format(self.target_newline, self.set_prompt))
         self._sent_prompt = True
+        self._sent = True
 
     def is_failure_indication(self, line):
         """

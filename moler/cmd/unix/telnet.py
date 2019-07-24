@@ -100,7 +100,7 @@ class Telnet(GenericTelnetSsh):
         except ParsingDone:
             pass
         if is_full_line:
-            self._sent_password = False  # Clear flag for multi passwords connections
+            self._sent = False  # Clear flag for multi passwords connections
 
     def _send_telnet_commands(self, line, is_full_line, commands):
         """
