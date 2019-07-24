@@ -193,7 +193,7 @@ class ForwardingHandler(logging.Handler):
         self.target_logger.handle(record)
 
 
-def call_base_class_method(method):
+def call_base_class_method_with_same_name(method):
     """
     Run base class method.
 

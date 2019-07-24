@@ -10,7 +10,7 @@ __copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 from moler.device.proxy_pc import ProxyPc
-from moler.helpers import call_base_class_method
+from moler.helpers import call_base_class_method_with_same_name
 
 
 # TODO: name, logger/logger_name as param
@@ -38,7 +38,7 @@ class UnixRemote(ProxyPc):
                                          io_constructor_kwargs=io_constructor_kwargs,
                                          sm_params=sm_params, initial_state=initial_state)
 
-    @call_base_class_method
+    @call_base_class_method_with_same_name
     def _get_default_sm_configuration_with_proxy_pc(self):
         config = {
             UnixRemote.connection_hops: {
@@ -92,7 +92,7 @@ class UnixRemote(ProxyPc):
         }
         return config
 
-    @call_base_class_method
+    @call_base_class_method_with_same_name
     def _get_default_sm_configuration_without_proxy_pc(self):
         config = {
             UnixRemote.connection_hops: {
@@ -155,7 +155,7 @@ class UnixRemote(ProxyPc):
         }
         return config
 
-    @call_base_class_method
+    @call_base_class_method_with_same_name
     def _prepare_transition_with_proxy_pc(self):
         transitions = {
             UnixRemote.proxy_pc: {
@@ -187,7 +187,7 @@ class UnixRemote(ProxyPc):
         }
         return transitions
 
-    @call_base_class_method
+    @call_base_class_method_with_same_name
     def _prepare_transition_without_proxy_pc(self):
         transitions = {
             UnixRemote.unix_remote: {
@@ -219,7 +219,7 @@ class UnixRemote(ProxyPc):
         }
         return transitions
 
-    @call_base_class_method
+    @call_base_class_method_with_same_name
     def _prepare_state_prompts_with_proxy_pc(self):
         state_prompts = {
             UnixRemote.unix_remote:
@@ -231,7 +231,7 @@ class UnixRemote(ProxyPc):
         }
         return state_prompts
 
-    @call_base_class_method
+    @call_base_class_method_with_same_name
     def _prepare_state_prompts_without_proxy_pc(self):
         state_prompts = {
             UnixRemote.unix_remote:
@@ -246,7 +246,7 @@ class UnixRemote(ProxyPc):
         }
         return state_prompts
 
-    @call_base_class_method
+    @call_base_class_method_with_same_name
     def _prepare_newline_chars_with_proxy_pc(self):
         newline_chars = {
             UnixRemote.unix_remote:
@@ -258,7 +258,7 @@ class UnixRemote(ProxyPc):
         }
         return newline_chars
 
-    @call_base_class_method
+    @call_base_class_method_with_same_name
     def _prepare_newline_chars_without_proxy_pc(self):
         newline_chars = {
             UnixRemote.unix_remote:
@@ -273,7 +273,7 @@ class UnixRemote(ProxyPc):
         }
         return newline_chars
 
-    @call_base_class_method
+    @call_base_class_method_with_same_name
     def _prepare_state_hops_with_proxy_pc(self):
         state_hops = {
             UnixRemote.not_connected: {
@@ -305,7 +305,7 @@ class UnixRemote(ProxyPc):
         }
         return state_hops
 
-    @call_base_class_method
+    @call_base_class_method_with_same_name
     def _prepare_state_hops_without_proxy_pc(self):
         state_hops = {
             UnixRemote.not_connected: {
