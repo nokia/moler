@@ -53,8 +53,8 @@ class GenericTelnetSsh(GenericUnixCommand):
         :param target_newline: newline chars on remote system where ssh connects
         :param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt
         :param repeat_password: If True then repeat last password if no more provided. If False then exception is set.
-        :param failure_exceptions_indication: String with regex or regex object to omit failure even if failed strings was
-         found.
+        :param failure_exceptions_indication: String with regex or regex object to omit failure even if failed string
+         was found.
         """
         super(GenericTelnetSsh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                                runner=runner)

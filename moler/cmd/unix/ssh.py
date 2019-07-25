@@ -25,7 +25,8 @@ class Ssh(GenericTelnetSsh):
     def __init__(self, connection, login, password, host, prompt=None, expected_prompt='>', port=0,
                  known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
                  term_mono="TERM=xterm-mono", newline_chars=None, encrypt_password=True, runner=None,
-                 target_newline="\n", allowed_newline_after_prompt=False, repeat_password=True, options=None):
+                 target_newline="\n", allowed_newline_after_prompt=False, repeat_password=True, options=None,
+                 failure_exceptions_indication=None):
         """
         Moler class of Unix command ssh.
 
@@ -47,6 +48,8 @@ class Ssh(GenericTelnetSsh):
         :param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt
         :param repeat_password: If True then repeat last password if no more provided. If False then exception is set.
         :param options: Options to add to command string just before host.
+        :param failure_exceptions_indication: String with regex or regex object to omit failure even if failed string
+         was found.
         """
         super(Ssh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner,
                                   port=port, host=host, login=login, password=password,
@@ -54,7 +57,8 @@ class Ssh(GenericTelnetSsh):
                                   term_mono=term_mono, encrypt_password=encrypt_password,
                                   target_newline=target_newline,
                                   allowed_newline_after_prompt=allowed_newline_after_prompt,
-                                  repeat_password=repeat_password
+                                  repeat_password=repeat_password,
+                                  failure_exceptions_indication=failure_exceptions_indication
                                   )
 
         # Parameters defined by calling the command
@@ -419,3 +423,25 @@ COMMAND_KWARGS_options = {
 }
 
 COMMAND_RESULT_options = {}
+
+COMMAND_OUTPUT_failure_exception = """
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+Password:
+Notice: The use of this system is restricted to users who have been granted access. 
+You have new mail.
+Last login: Tue Jul 23 13:59:25 2029 from 127.0.0.1
+Could not chdir to home directory /home/user: Permission denied
+Can't open display 
+-bash: /home/user/.bash_profile: Permission denied
+host:~ #
+host:~ # export TMOUT="2678400"
+host:~ #"""
+
+COMMAND_KWARGS_failure_exception = {
+    "login": "user", "password": "english", "known_hosts_on_failure": "keygen",
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#",
+    "failure_exceptions_indication":
+        r"/home/user/.bash_profile: Permission denied|Could not chdir to home directory /home/user: Permission denied",
+}
+
+COMMAND_RESULT_failure_exception = {}
