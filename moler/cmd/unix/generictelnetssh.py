@@ -87,7 +87,7 @@ class GenericTelnetSsh(GenericUnixCommand):
         self._sent_prompt = False
         self._sent_login = False
         self._sent = False
-        self._last_password = " "
+        self._last_password = ""
 
     def _generic_on_new_line(self, line, is_full_line):
         """
