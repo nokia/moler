@@ -427,11 +427,11 @@ COMMAND_RESULT_options = {}
 COMMAND_OUTPUT_failure_exception = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
 Password:
-Notice: The use of this system is restricted to users who have been granted access. 
+Notice: The use of this system is restricted to users who have been granted access.
 You have new mail.
 Last login: Tue Jul 23 13:59:25 2029 from 127.0.0.1
 Could not chdir to home directory /home/user: Permission denied
-Can't open display 
+Can't open display
 -bash: /home/user/.bash_profile: Permission denied
 host:~ #
 host:~ # export TMOUT="2678400"
