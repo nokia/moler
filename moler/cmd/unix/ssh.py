@@ -30,22 +30,22 @@ class Ssh(GenericTelnetSsh):
         """
         Moler class of Unix command ssh.
 
-        :param connection: moler connection to device, terminal when command is executed
-        :param login: ssh login
-        :param password: ssh password or list of passwords for multi passwords connection
-        :param host: host to ssh
-        :param prompt: start prompt (on system where command ssh starts)
-        :param expected_prompt: final prompt (on system where command ssh connects)
-        :param port: port to ssh connect
+        :param connection: moler connection to device, terminal when command is executed.
+        :param login: ssh login.
+        :param password: ssh password or list of passwords for multi passwords connection.
+        :param host: host to ssh.
+        :param prompt: start prompt (on system where command ssh starts).
+        :param expected_prompt: final prompt (on system where command ssh connects).
+        :param port: port to ssh connect.
         :param known_hosts_on_failure: "rm" or "keygen" how to deal with error. If empty then ssh fails.
-        :param set_timeout: Command to set timeout after ssh connects
-        :param set_prompt: Command to set prompt after ssh connects
-        :param term_mono: Params to set ssh mono connection (useful in script)
-        :param newline_chars: Characters to split lines
-        :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text
-        :param runner: Runner to run command
-        :param target_newline: newline chars on remote system where ssh connects
-        :param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt
+        :param set_timeout: Command to set timeout after ssh connects.
+        :param set_prompt: Command to set prompt after ssh connects.
+        :param term_mono: Params to set ssh mono connection (useful in script).
+        :param newline_chars: Characters to split lines.
+        :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text.
+        :param runner: Runner to run command.
+        :param target_newline: newline chars on remote system where ssh connects.
+        :param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt.
         :param repeat_password: If True then repeat last password if no more provided. If False then exception is set.
         :param options: Options to add to command string just before host.
         :param failure_exceptions_indication: String with regex or regex object to omit failure even if failed string

@@ -24,7 +24,7 @@ class Telnet(GenericTelnetSsh):
         """
         Moler class of Unix command telnet.
 
-        :param connection: moler connection to device, terminal when command is executed
+        :param connection: moler connection to device, terminal when command is executed.
         :param host: address of telnet server.
         :param login: login to telnet server.
         :param password: password to telnet server.
@@ -39,10 +39,10 @@ class Telnet(GenericTelnetSsh):
         :param cmds_before_establish_connection: list of commands to execute by telnet command before open.
         :param cmds_after_establish_connection: list of commands to execute by telnet commands after establishing.
         :param telnet_prompt: prompt for telnet commands.
-        :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text
-        :param runner: Runner to run command
-        :param target_newline: newline chars on remote system where ssh connects
-        :param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt
+        :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text.
+        :param runner: Runner to run command.
+        :param target_newline: newline chars on remote system where ssh connects.
+        :param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt.
         :param repeat_password: If True then repeat last password if no more provided. If False then exception is set.
         :param failure_exceptions_indication: String with regex or regex object to omit failure even if failed string
          was found.
