@@ -89,7 +89,7 @@ class GenericTelnetSsh(GenericUnixCommand):
         self._sent = False
         self._last_password = " "
 
-    def generic_on_new_line(self, line, is_full_line):
+    def _generic_on_new_line(self, line, is_full_line):
         """
         Parses the output of the command.
 
