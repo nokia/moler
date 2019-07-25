@@ -31,10 +31,9 @@ class GenericTelnetSsh(GenericUnixCommand):
     _re_has_just_connected = re.compile(r"has just connected|\{bash_history,ssh\}|Escape character is", re.IGNORECASE)
 
     def __init__(self, connection, host, login=None, password=None, newline_chars=None, prompt=None, runner=None,
-                 port=0, expected_prompt=r'^>\s*',
-                 set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono="TERM=xterm-mono",
-                 encrypt_password=True, target_newline="\n",
-                 allowed_newline_after_prompt=False, repeat_password=True):
+                 port=0, expected_prompt=r'^>\s*', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
+                 term_mono="TERM=xterm-mono", encrypt_password=True, target_newline="\n",
+                 allowed_newline_after_prompt=False, repeat_password=True, failure_exceptions_indication=None):
         """
         Base Moler class of Unix commands telnet and ssh.
 
@@ -54,12 +53,18 @@ class GenericTelnetSsh(GenericUnixCommand):
         :param target_newline: newline chars on remote system where ssh connects
         :param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt
         :param repeat_password: If True then repeat last password if no more provided. If False then exception is set.
+        :param failure_exceptions_indication: String with regex or regex object to omit failure even if failed strings was
+         found.
         """
         super(GenericTelnetSsh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                                runner=runner)
 
         # Parameters defined by calling the command
         self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(expected_prompt)  # Expected prompt on device
+        self._re_failure_exceptions_indication = None
+        if failure_exceptions_indication:
+            self._re_failure_exceptions_indication = CommandTextualGeneric._calculate_prompt(
+                failure_exceptions_indication)
         self.login = login
         if isinstance(password, six.string_types):
             self._passwords = [password]
@@ -91,6 +96,7 @@ class GenericTelnetSsh(GenericUnixCommand):
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
         :return: None
+        :raises: ParsingDone if any line matched the regex.
         """
         try:
             self._parse_failure_indication(line)
@@ -106,12 +112,14 @@ class GenericTelnetSsh(GenericUnixCommand):
         """
         Detects fail from command output.
 
-        :param line: Line from device
-        :return: Match object if matches, None otherwise
+        :param line: Line from device.
+        :return: None.
+        :raises: ParsingDone if line matched failure indication.
         """
         if self.is_failure_indication(line):
-            self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
-            raise ParsingDone()
+            if not self._is_failure_exception(line):
+                self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+                raise ParsingDone()
 
     def _detect_prompt_after_exception(self, line):
         """
@@ -262,6 +270,17 @@ class GenericTelnetSsh(GenericUnixCommand):
         """
         return self._regex_helper.search_compiled(GenericTelnetSsh._re_failed_strings, line)
 
+    def _is_failure_exception(self, line):
+        """
+        Checks if line contains exception information that command fails.
+
+        :param line: Line from device
+        :return: Match object or None
+        """
+        if not self._re_failure_exceptions_indication:
+            return None
+        return self._regex_helper.search_compiled(self._re_failure_exceptions_indication, line)
+
     def _is_login_requested(self, line):
         """
         Checks if line contains information that commands waits for login.
@@ -304,4 +323,9 @@ class GenericTelnetSsh(GenericUnixCommand):
         return terminal_cmds_sent and additional_commands_sent
 
     def _sent_additional_settings_commands(self):
+        """
+        Checks if additional commands after connection established are sent (useful for telnet, not used for ssh).
+
+        :return: True if all additional commands are sent (if any). False if any command left in the queue.
+        """
         return True

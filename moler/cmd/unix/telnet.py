@@ -166,11 +166,23 @@ class Telnet(GenericTelnetSsh):
         return ret
 
     def _commands_to_set_connection_after_login(self, line):
+        """
+        Sends command to telnet to change mode to enter telnet commands.
+
+        :param line: Line from device.
+        :return: True if command to change telnet mode was sent, False otherwise.
+        """
         if self._cmds_after_establish_connection_needed():
             self._change_telnet_to_setting_commands()
             return True
+        return False
 
     def _sent_additional_settings_commands(self):
+        """
+        Checks if additional commands for telnet mode are sent.
+
+        :return: True if no any commands to change telnet left. False if any command left.
+        """
         telnet_cmds_sent = (0 == len(self.cmds_after_establish_connection))
         return telnet_cmds_sent
 
