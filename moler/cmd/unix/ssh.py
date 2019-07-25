@@ -429,7 +429,7 @@ client:~/>TERM=xterm-mono ssh -l user host.domain.net
 Password:
 Notice: The use of this system is restricted to users who have been granted access.
 You have new mail.
-Last login: Tue Jul 23 13:59:25 2029 from 127.0.0.1
+Last login: Tue Jul 23 13:59:25 2029 from 127.0.0.2
 Could not chdir to home directory /home/user: Permission denied
 Can't open display
 -bash: /home/user/.bash_profile: Permission denied
