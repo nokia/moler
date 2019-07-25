@@ -105,8 +105,8 @@ class GenericTelnetSsh(GenericUnixCommand):
             self._just_connected(line)
             self._settings_after_login(line, is_full_line)
             self._detect_prompt_after_exception(line)
-        except ParsingDone as pde:
-            raise pde
+        except ParsingDone:
+            raise
 
     def _parse_failure_indication(self, line):
         """
@@ -239,7 +239,8 @@ class GenericTelnetSsh(GenericUnixCommand):
 
         :return: Nothing
         """
-        self.connection.sendline("{}{}".format(self.target_newline, self.set_timeout))
+        self.connection.sendline("")
+        self.connection.sendline(self.set_timeout)
         self._sent_timeout = True
         self._sent = True
 
@@ -257,7 +258,8 @@ class GenericTelnetSsh(GenericUnixCommand):
 
         :return: Nothing
         """
-        self.connection.sendline("{}{}".format(self.target_newline, self.set_prompt))
+        self.connection.sendline("")
+        self.connection.sendline(self.set_prompt)
         self._sent_prompt = True
         self._sent = True
 
@@ -317,9 +319,9 @@ class GenericTelnetSsh(GenericUnixCommand):
         additional_commands_sent = self._sent_additional_settings_commands()  # Useful for Telnet commands
         both_requested = self.set_prompt and self.set_timeout
         both_sent = self._sent_prompt and self._sent_timeout
-        single_req_and_sent1 = self.set_prompt and self._sent_prompt
-        single_req_and_sent2 = self.set_timeout and self._sent_timeout
-        terminal_cmds_sent = ((both_requested and both_sent) or single_req_and_sent1 or single_req_and_sent2)
+        req_and_sent_prompt = self.set_prompt and self._sent_prompt
+        req_and_sent_timeout = self.set_timeout and self._sent_timeout
+        terminal_cmds_sent = ((both_requested and both_sent) or req_and_sent_timeout or req_and_sent_prompt)
         return terminal_cmds_sent and additional_commands_sent
 
     def _sent_additional_settings_commands(self):
