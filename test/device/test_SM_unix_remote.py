@@ -17,6 +17,7 @@ def test_unix_remote_device(device_connection, unix_remote_output):
 def test_unix_remote_proxy_pc_device(device_connection, unix_remote_proxy_pc_output):
     unix_remote_proxy_pc = get_device(name="UNIX_REMOTE_PROXY_PC", connection=device_connection,
                                       device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
+
     iterate_over_device_states(device=unix_remote_proxy_pc)
 
 

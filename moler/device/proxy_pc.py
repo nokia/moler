@@ -180,8 +180,12 @@ class ProxyPc(UnixLocal):
             UnixLocal.not_connected: {
                 ProxyPc.proxy_pc: ProxyPc.unix_local,
             },
+            UnixLocal.unix_local_root:{
+                ProxyPc.proxy_pc: ProxyPc.unix_local,
+            },
             ProxyPc.proxy_pc: {
                 ProxyPc.not_connected: ProxyPc.unix_local,
+                ProxyPc.unix_local_root: ProxyPc.unix_local,
             },
         }
         return state_hops
