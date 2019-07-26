@@ -29,8 +29,8 @@ def iterate_over_device_states(device):
                     "Cannot trigger change state: '{}' -> '{}'\n{}".format(source_state, target_state, exc))
 
 
-def get_device(name, connection, device_output):
-    dir_path = os.path.dirname(os.path.realpath(__file__))
+def get_device(name, connection, device_output, test_file_path):
+    dir_path = os.path.dirname(os.path.realpath(test_file_path))
     load_config(os.path.join(dir_path, os.pardir, os.pardir, 'test', 'resources', 'device_config.yml'))
 
     device = DeviceFactory.get_device(name)

@@ -165,7 +165,11 @@ def device_connection():
             Inject response on connection.
             """
             cmd_data_string = self.input_bytes.decode("utf-8")
-            cmd_data_string = cmd_data_string[:-1] # remove \n from command_string on connection
+            if cmd_data_string:
+                if '\n' in cmd_data_string:
+                    cmd_data_string = cmd_data_string[:-1]  # remove \n from command_string on connection
+            else:
+                cmd_data_string = self.input_bytes
 
             try:
                 binary_cmd_ret = self.data[self.device.state][cmd_data_string].encode('utf-8')
@@ -177,7 +181,6 @@ def device_connection():
                     "Please update your device_output dict!\n"
                     "{}".format(cmd_data_string, self.device.state, exc)
                 )
-
 
         def write(self, input_bytes):
             """
