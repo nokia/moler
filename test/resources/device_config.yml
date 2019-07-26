@@ -28,7 +28,7 @@ DEVICES:
             host: remote_host
             login: remote_login
             password: login
-            set_timeout: ''
+            set_timeout: False
 
   UNIX_REMOTE_PROXY_PC:
     DEVICE_CLASS: moler.device.unixremote.UnixRemote
