@@ -87,12 +87,12 @@ class ProxyPc(UnixLocal):
     def _prepare_transitions(self):
         super(ProxyPc, self)._prepare_transitions()
         if self.use_proxy_pc:
-            transitions = self._prepare_transition_with_proxy_pc()
+            transitions = self._prepare_transitions_with_proxy_pc()
         else:
-            transitions = self._prepare_transition_without_proxy_pc()
+            transitions = self._prepare_transitions_without_proxy_pc()
         self._add_transitions(transitions=transitions)
 
-    def _prepare_transition_with_proxy_pc(self):
+    def _prepare_transitions_with_proxy_pc(self):
         transitions = {
             ProxyPc.unix_local: {
                 ProxyPc.proxy_pc: {
@@ -111,7 +111,7 @@ class ProxyPc(UnixLocal):
         }
         return transitions
 
-    def _prepare_transition_without_proxy_pc(self):
+    def _prepare_transitions_without_proxy_pc(self):
         transitions = {}
         return transitions
 

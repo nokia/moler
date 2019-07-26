@@ -147,7 +147,7 @@ class UnixRemote(ProxyPc):
         return config
 
     @mark_to_call_base_class_method_with_same_name
-    def _prepare_transition_with_proxy_pc(self):
+    def _prepare_transitions_with_proxy_pc(self):
         transitions = {
             UnixRemote.proxy_pc: {
                 UnixRemote.unix_remote: {
@@ -179,7 +179,7 @@ class UnixRemote(ProxyPc):
         return transitions
 
     @mark_to_call_base_class_method_with_same_name
-    def _prepare_transition_without_proxy_pc(self):
+    def _prepare_transitions_without_proxy_pc(self):
         transitions = {
             UnixRemote.unix_remote: {
                 UnixRemote.unix_local: {
