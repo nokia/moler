@@ -175,7 +175,7 @@ def device_connection():
                 raise MolerException(
                     "No output for cmd: '{}' in state '{}'!\n"
                     "Please update your device_output dict!\n"
-                    "{}".format(self.input_bytes, self.device.state, exc)
+                    "{}".format(cmd_data_string, self.device.state, exc)
                 )
 
 
