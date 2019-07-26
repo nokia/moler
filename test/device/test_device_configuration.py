@@ -18,13 +18,13 @@ def test_get_device_may_not_use_both__name_and_device_class(device_factory):
     with pytest.raises(AssertionError) as err:
         device_factory.get_device(name='UNIX', device_class='moler.device.unixlocal', connection_desc={},
                                   connection_hops={})
-    assert "Use either 'name' or 'device_class' parameter (not both)" in str(err)
+    assert "Use either 'name' or 'device_class' parameter (not both)" in str(err.value)
 
 
 def test_get_device_must_use_either_name_or_device_class(device_factory):
     with pytest.raises(AssertionError) as err:
         device_factory.get_device(connection_desc={}, connection_hops={})
-    assert "Provide either 'name' or 'device_class' parameter (none given)" in str(err)
+    assert "Provide either 'name' or 'device_class' parameter (none given)" in str(err.value)
 
 
 def test_can_select_device_by_name(device_config, device_factory):
@@ -109,7 +109,7 @@ def test_cannot_select_named_device_without_connection(device_config, device_fac
 
     with pytest.raises(KeyError) as err:
         device_factory.get_device(name='UNIX')
-    assert "No connection_desc selected (directly or via configuration)" in str(err)
+    assert "No connection_desc selected (directly or via configuration)" in str(err.value)
 
 
 def test_cannot_select_desc_device_without_connection(device_config, device_factory):
@@ -120,18 +120,18 @@ def test_cannot_select_desc_device_without_connection(device_config, device_fact
             device_class='moler.device.unixlocal.UnixLocal',
             connection_hops={}
         )
-    assert "No connection_desc selected (directly or via configuration)" in str(err)
+    assert "No connection_desc selected (directly or via configuration)" in str(err.value)
 
 
 def test_cannot_select_device_by_nonexisting_name(device_factory):
     """Non-existing means here not defined inside configuration"""
     with pytest.raises(KeyError) as err:
         device_factory.get_device(name='UNIX')
-    assert "Device named 'UNIX' was not defined inside configuration" in str(err)
+    assert "Device named 'UNIX' was not defined inside configuration" in str(err.value)
 
 
 def test_can_select_device_loaded_from_config_file(moler_config, device_factory):
-    conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
+    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
     moler_config.load_config(config=conn_config, config_type='yaml')
 
     device = device_factory.get_device(name='UNIX')
@@ -141,7 +141,7 @@ def test_can_select_device_loaded_from_config_file(moler_config, device_factory)
 
 
 def test_can_select_all_devices_loaded_from_config_file(moler_config, device_factory):
-    conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
+    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
     moler_config.load_config(config=conn_config, config_type='yaml')
 
     device_factory.create_all_devices()
@@ -153,7 +153,7 @@ def test_can_select_all_devices_loaded_from_config_file(moler_config, device_fac
 
 
 def test_can_select_device_loaded_from_env_variable(moler_config, monkeypatch, device_factory):
-    conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
+    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
     monkeypatch.setitem(os.environ, 'MOLER_CONFIG', conn_config)
     moler_config.load_config(from_env_var="MOLER_CONFIG", config_type='yaml')
 
@@ -171,7 +171,7 @@ def test_load_config_checks_env_variable_existence(moler_config):
 
 
 def test_return_created_device_when_call_another_time_for_same_named_device(moler_config, device_factory):
-    conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
+    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
     moler_config.load_config(config=conn_config, config_type='yaml')
 
     device = device_factory.get_device(name='UNIX')
@@ -189,11 +189,11 @@ def test_return_created_device_when_call_another_time_for_same_named_device(mole
 def test_log_error_when_not_abs_path_for_configuation_path_was_used(moler_config):
     from moler.exceptions import MolerException
 
-    conn_config = os.path.join("resources", "device_config.yml")
+    conn_config = os.path.join(os.pardir, "resources", "device_config.yml")
     with pytest.raises(MolerException) as err:
         moler_config.load_config(config=conn_config, config_type='yaml')
 
-    assert "Loading configuration requires absolute path and not 'resources/device_config.yml'" in str(err.value)
+    assert "Loading configuration requires absolute path and not '../resources/device_config.yml'" in str(err.value)
 
 
 def test_return_new_device_when_call_another_time_same_desc_device(device_factory):
@@ -320,8 +320,8 @@ def test_cannot_load_configuration_when_already_loaded_from_another_dict(moler_c
 def test_cannot_load_configuration_when_already_loaded_from_another_file(moler_config):
     from moler.exceptions import MolerException
 
-    conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
-    conn_config2 = os.path.join(os.path.dirname(__file__), "resources", "device_config2.yml")
+    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
+    conn_config2 = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config2.yml")
 
     moler_config.load_config(config=conn_config, config_type='yaml')
     with pytest.raises(MolerException) as err:
@@ -333,7 +333,7 @@ def test_cannot_load_configuration_when_already_loaded_from_another_file(moler_c
 
 
 def test_can_load_configuration_when_already_loaded_from_same_file(moler_config, device_factory):
-    conn_config = os.path.join(os.path.dirname(__file__), "resources", "device_config.yml")
+    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
     moler_config.load_config(config=conn_config, config_type='yaml')
     moler_config.load_config(config=conn_config, config_type='yaml')
 

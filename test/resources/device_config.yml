@@ -1,11 +1,10 @@
 LOGGER:
-  PATH: /tmp/
+  PATH: /home/ute/logs
   RAW_LOG: True
   DATE_FORMAT: '%d %H:%M:%S'
-  MODE: write
 
 DEVICES:
-  CREATE_AT_STARTUP: True
+  CREATE_AT_STARTUP: False
 
   DEFAULT_CONNECTION:
     CONNECTION_DESC:
@@ -15,3 +14,44 @@ DEVICES:
   UNIX:
     DEVICE_CLASS: moler.device.unixlocal.UnixLocal
     INITIAL_STATE: UNIX_LOCAL
+
+  UNIX_REMOTE:
+    DEVICE_CLASS: moler.device.unixremote.UnixRemote
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        UNIX_REMOTE:
+          execute_command: ssh # default value
+          command_params:
+            expected_prompt: 'remote#'
+            host: remote_host
+            login: remote_login
+            password: login
+            set_timeout: ''
+
+  UNIX_REMOTE_PROXY_PC:
+    DEVICE_CLASS: moler.device.unixremote.UnixRemote
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      PROXY_PC:
+        UNIX_REMOTE:
+          execute_command: ssh
+          command_params:
+            host: remote_host
+            login: remote_login
+            password: password
+            expected_prompt: "remote#"
+            set_timeout: False
+      UNIX_LOCAL:
+        PROXY_PC:
+          execute_command: ssh
+          command_params:
+            expected_prompt: "proxy_pc#"
+            host: proxy_pc_host
+            login: proxy_pc_login
+            password: password
+            set_timeout: False
+      UNIX_REMOTE:
+        PROXY_PC:
+          command_params:
+            expected_prompt: "proxy_pc#"

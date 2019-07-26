@@ -8,13 +8,13 @@ Moler's device has 2 main responsibilities:
 __author__ = 'Michal Ernst'
 __copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'michal.ernst@nokia.com'
+import six
+import abc
 
 from moler.device.unixlocal import UnixLocal
-from abc import ABCMeta
-from six import add_metaclass
 
 
-@add_metaclass(ABCMeta)
+@six.add_metaclass(abc.ABCMeta)
 class ProxyPc(UnixLocal):
     proxy_pc = "PROXY_PC"
 

@@ -10,10 +10,10 @@ __copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 from moler.device.proxy_pc import ProxyPc
-from moler.helpers import call_base_class_method_with_same_name
+from moler.helpers import call_base_class_method_with_same_name, mark_to_call_base_class_method_with_same_name
 
 
-# TODO: name, logger/logger_name as param
+@call_base_class_method_with_same_name
 class UnixRemote(ProxyPc):
     unix_remote = "UNIX_REMOTE"
     unix_remote_root = "UNIX_REMOTE_ROOT"
@@ -38,7 +38,7 @@ class UnixRemote(ProxyPc):
                                          io_constructor_kwargs=io_constructor_kwargs,
                                          sm_params=sm_params, initial_state=initial_state)
 
-    @call_base_class_method_with_same_name
+    @mark_to_call_base_class_method_with_same_name
     def _get_default_sm_configuration_with_proxy_pc(self):
         config = {
             UnixRemote.connection_hops: {
@@ -92,7 +92,7 @@ class UnixRemote(ProxyPc):
         }
         return config
 
-    @call_base_class_method_with_same_name
+    @mark_to_call_base_class_method_with_same_name
     def _get_default_sm_configuration_without_proxy_pc(self):
         config = {
             UnixRemote.connection_hops: {
@@ -130,15 +130,6 @@ class UnixRemote(ProxyPc):
                         "required_command_params": [
                         ]
                     },
-                    UnixRemote.unix_local: {  # to
-                        "execute_command": "exit",  # using command
-                        "command_params": {  # with parameters
-                            "expected_prompt": r'^moler_bash#',
-                            "target_newline": "\n"
-                        },
-                        "required_command_params": [
-                        ]
-                    },
                 },
                 UnixRemote.unix_remote_root: {  # from
                     UnixRemote.unix_remote: {  # to
@@ -155,7 +146,7 @@ class UnixRemote(ProxyPc):
         }
         return config
 
-    @call_base_class_method_with_same_name
+    @mark_to_call_base_class_method_with_same_name
     def _prepare_transition_with_proxy_pc(self):
         transitions = {
             UnixRemote.proxy_pc: {
@@ -187,7 +178,7 @@ class UnixRemote(ProxyPc):
         }
         return transitions
 
-    @call_base_class_method_with_same_name
+    @mark_to_call_base_class_method_with_same_name
     def _prepare_transition_without_proxy_pc(self):
         transitions = {
             UnixRemote.unix_remote: {
@@ -219,7 +210,7 @@ class UnixRemote(ProxyPc):
         }
         return transitions
 
-    @call_base_class_method_with_same_name
+    @mark_to_call_base_class_method_with_same_name
     def _prepare_state_prompts_with_proxy_pc(self):
         state_prompts = {
             UnixRemote.unix_remote:
@@ -231,7 +222,7 @@ class UnixRemote(ProxyPc):
         }
         return state_prompts
 
-    @call_base_class_method_with_same_name
+    @mark_to_call_base_class_method_with_same_name
     def _prepare_state_prompts_without_proxy_pc(self):
         state_prompts = {
             UnixRemote.unix_remote:
@@ -246,7 +237,7 @@ class UnixRemote(ProxyPc):
         }
         return state_prompts
 
-    @call_base_class_method_with_same_name
+    @mark_to_call_base_class_method_with_same_name
     def _prepare_newline_chars_with_proxy_pc(self):
         newline_chars = {
             UnixRemote.unix_remote:
@@ -258,7 +249,7 @@ class UnixRemote(ProxyPc):
         }
         return newline_chars
 
-    @call_base_class_method_with_same_name
+    @mark_to_call_base_class_method_with_same_name
     def _prepare_newline_chars_without_proxy_pc(self):
         newline_chars = {
             UnixRemote.unix_remote:
@@ -273,7 +264,7 @@ class UnixRemote(ProxyPc):
         }
         return newline_chars
 
-    @call_base_class_method_with_same_name
+    @mark_to_call_base_class_method_with_same_name
     def _prepare_state_hops_with_proxy_pc(self):
         state_hops = {
             UnixRemote.not_connected: {
@@ -285,7 +276,7 @@ class UnixRemote(ProxyPc):
             UnixRemote.unix_remote: {
                 UnixRemote.not_connected: UnixRemote.proxy_pc,
                 UnixRemote.unix_local: UnixRemote.proxy_pc,
-                UnixRemote.unix_local_root: UnixRemote.unix_local
+                UnixRemote.unix_local_root: UnixRemote.proxy_pc
             },
             UnixRemote.proxy_pc: {
                 UnixRemote.not_connected: UnixRemote.unix_local,
@@ -305,7 +296,7 @@ class UnixRemote(ProxyPc):
         }
         return state_hops
 
-    @call_base_class_method_with_same_name
+    @mark_to_call_base_class_method_with_same_name
     def _prepare_state_hops_without_proxy_pc(self):
         state_hops = {
             UnixRemote.not_connected: {
