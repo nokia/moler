@@ -180,7 +180,7 @@ class ProxyPc(UnixLocal):
             UnixLocal.not_connected: {
                 ProxyPc.proxy_pc: ProxyPc.unix_local,
             },
-            UnixLocal.unix_local_root:{
+            UnixLocal.unix_local_root: {
                 ProxyPc.proxy_pc: ProxyPc.unix_local,
             },
             ProxyPc.proxy_pc: {
