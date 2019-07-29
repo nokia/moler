@@ -13,6 +13,7 @@ import random
 from moler.device import DeviceFactory
 from moler.exceptions import MolerException
 from moler.config import load_config
+from moler.helpers import copy_list
 
 
 def iterate_over_device_states(device):
@@ -20,8 +21,8 @@ def iterate_over_device_states(device):
 
     states.remove("NOT_CONNECTED")
 
-    source_states = states.copy()
-    target_states = states.copy()
+    source_states = copy_list(states)
+    target_states = copy_list(states)
 
     random.shuffle(source_states)
     random.shuffle(target_states)
