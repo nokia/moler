@@ -331,7 +331,7 @@ class UnixRemote(ProxyPc):
     def _configure_state_machine(self, sm_params):
         super(UnixRemote, self)._configure_state_machine(sm_params)
 
-        if self.use_proxy_pc:
+        if self._use_proxy_pc:
             self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote_root][UnixRemote.unix_remote][
                 "command_params"]["expected_prompt"] = \
                 self._configurations[UnixRemote.connection_hops][UnixRemote.proxy_pc][UnixRemote.unix_remote][
