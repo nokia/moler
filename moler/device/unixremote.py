@@ -40,6 +40,10 @@ class UnixRemote(ProxyPc):
 
     @mark_to_call_base_class_method_with_same_name
     def _get_default_sm_configuration_with_proxy_pc(self):
+        """
+        Return State Machine default configuration with proxy_pc state.
+        :return: default sm configuration with proxy_pc state.
+        """
         config = {
             UnixRemote.connection_hops: {
                 UnixRemote.proxy_pc: {  # from
@@ -94,6 +98,10 @@ class UnixRemote(ProxyPc):
 
     @mark_to_call_base_class_method_with_same_name
     def _get_default_sm_configuration_without_proxy_pc(self):
+        """
+        Return State Machine default configuration without proxy_pc state.
+        :return: default sm configuration without proxy_pc state.
+        """
         config = {
             UnixRemote.connection_hops: {
                 UnixRemote.unix_local: {  # from
@@ -148,6 +156,10 @@ class UnixRemote(ProxyPc):
 
     @mark_to_call_base_class_method_with_same_name
     def _prepare_transitions_with_proxy_pc(self):
+        """
+        Prepare transitions to change states with proxy_pc state.
+        :return: transitions with proxy_pc state.
+        """
         transitions = {
             UnixRemote.proxy_pc: {
                 UnixRemote.unix_remote: {
@@ -180,6 +192,10 @@ class UnixRemote(ProxyPc):
 
     @mark_to_call_base_class_method_with_same_name
     def _prepare_transitions_without_proxy_pc(self):
+        """
+        Prepare transitions to change states without proxy_pc state.
+        :return: transitions without proxy_pc state.
+        """
         transitions = {
             UnixRemote.unix_remote: {
                 UnixRemote.unix_local: {
@@ -212,6 +228,10 @@ class UnixRemote(ProxyPc):
 
     @mark_to_call_base_class_method_with_same_name
     def _prepare_state_prompts_with_proxy_pc(self):
+        """
+        Prepare textual prompt for each state for State Machine with proxy_pc state.
+        :return: textual prompt for each state with proxy_pc state.
+        """
         state_prompts = {
             UnixRemote.unix_remote:
                 self._configurations[UnixRemote.connection_hops][UnixRemote.proxy_pc][UnixRemote.unix_remote][
@@ -224,6 +244,10 @@ class UnixRemote(ProxyPc):
 
     @mark_to_call_base_class_method_with_same_name
     def _prepare_state_prompts_without_proxy_pc(self):
+        """
+        Prepare textual prompt for each state for State Machine without proxy_pc state.
+        :return: textual prompt for each state without proxy_pc state.
+        """
         state_prompts = {
             UnixRemote.unix_remote:
                 self._configurations[UnixRemote.connection_hops][UnixRemote.unix_local][UnixRemote.unix_remote][
@@ -239,6 +263,10 @@ class UnixRemote(ProxyPc):
 
     @mark_to_call_base_class_method_with_same_name
     def _prepare_newline_chars_with_proxy_pc(self):
+        """
+        Prepare newline char for each state for State Machine with proxy_pc state.
+        :return: newline char for each state with proxy_pc state.
+        """
         newline_chars = {
             UnixRemote.unix_remote:
                 self._configurations[UnixRemote.connection_hops][UnixRemote.proxy_pc][UnixRemote.unix_remote][
@@ -251,6 +279,10 @@ class UnixRemote(ProxyPc):
 
     @mark_to_call_base_class_method_with_same_name
     def _prepare_newline_chars_without_proxy_pc(self):
+        """
+        Prepare newline char for each state for State Machine without proxy_pc state.
+        :return: newline char for each state without proxy_pc state.
+        """
         newline_chars = {
             UnixRemote.unix_remote:
                 self._configurations[UnixRemote.connection_hops][UnixRemote.unix_local][UnixRemote.unix_remote][
@@ -266,6 +298,10 @@ class UnixRemote(ProxyPc):
 
     @mark_to_call_base_class_method_with_same_name
     def _prepare_state_hops_with_proxy_pc(self):
+        """
+        Prepare non direct transitions for each state for State Machine with proxy_pc state.
+        :return: non direct transitions for each state with proxy_pc state.
+        """
         state_hops = {
             UnixRemote.not_connected: {
                 UnixRemote.unix_remote: UnixRemote.unix_local,
@@ -302,6 +338,10 @@ class UnixRemote(ProxyPc):
 
     @mark_to_call_base_class_method_with_same_name
     def _prepare_state_hops_without_proxy_pc(self):
+        """
+        Prepare non direct transitions for each state for State Machine without proxy_pc state.
+        :return: non direct transitions for each state without proxy_pc state.
+        """
         state_hops = {
             UnixRemote.not_connected: {
                 UnixRemote.unix_remote: UnixRemote.unix_local,
@@ -329,6 +369,11 @@ class UnixRemote(ProxyPc):
         return state_hops
 
     def _configure_state_machine(self, sm_params):
+        """
+        Configure device State Machine.
+        :param sm_params: dict with parameters of state machine for device.
+        :return: Nothing.
+        """
         super(UnixRemote, self)._configure_state_machine(sm_params)
 
         if self._use_proxy_pc:
@@ -343,6 +388,12 @@ class UnixRemote(ProxyPc):
                     "command_params"]["expected_prompt"]
 
     def _get_packages_for_state(self, state, observer):
+        """
+        Get available packages contain cmds and events for each state.
+        :param state: device state.
+        :param observer: observer type, available: cmd, events
+        :return: available cmds or events for specific device state.
+        """
         available = super(UnixRemote, self)._get_packages_for_state(state, observer)
 
         if not available:
