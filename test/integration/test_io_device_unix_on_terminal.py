@@ -6,7 +6,7 @@ __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
 
-from moler.device.unixremote import UnixLocal
+from moler.device.unixlocal import UnixLocal
 from moler.exceptions import DeviceFailure
 
 

@@ -38,6 +38,10 @@ class UnixLocal(TextualDevice):
                                         variant=variant, initial_state=initial_state)
 
     def _get_default_sm_configuration(self):
+        """
+        Create State Machine default configuration.
+        :return: default sm configuration.
+        """
         config = super(UnixLocal, self)._get_default_sm_configuration()
         default_config = {
             UnixLocal.connection_hops: {
@@ -70,6 +74,10 @@ class UnixLocal(TextualDevice):
         return config
 
     def _prepare_transitions(self):
+        """
+        Prepare transitions to change states.
+        :return: Nothing.
+        """
         super(UnixLocal, self)._prepare_transitions()
 
         transitions = {
@@ -103,6 +111,10 @@ class UnixLocal(TextualDevice):
         self._add_transitions(transitions=transitions)
 
     def _prepare_state_prompts(self):
+        """
+        Prepare textual prompt for each state.
+        :return: Nothing.
+        """
         super(UnixLocal, self)._prepare_state_prompts()
 
         state_prompts = {
@@ -116,6 +128,10 @@ class UnixLocal(TextualDevice):
         self._update_dict(self._state_prompts, state_prompts)
 
     def _prepare_newline_chars(self):
+        """
+        Prepare newline char for each state.
+        :return: Nothing.
+        """
         super(UnixLocal, self)._prepare_newline_chars()
 
         newline_chars = {
@@ -130,6 +146,10 @@ class UnixLocal(TextualDevice):
         self._update_dict(self._newline_chars, newline_chars)
 
     def _prepare_state_hops(self):
+        """
+        Prepare hops for non direct transitions between states.
+        :return: Nothing.
+        """
         state_hops = {
             UnixLocal.not_connected: {
                 UnixLocal.unix_local_root: UnixLocal.unix_local,
@@ -138,6 +158,12 @@ class UnixLocal(TextualDevice):
         return state_hops
 
     def _get_packages_for_state(self, state, observer):
+        """
+        Get available packages contain cmds and events for each state.
+        :param state: device state.
+        :param observer: observer type, available: cmd, events
+        :return: available cmds or events for specific device state.
+        """
         available = list()
         if state == UnixLocal.unix_local or state == UnixLocal.unix_local_root:
             available = {UnixLocal.cmds: ['moler.cmd.unix'],
@@ -146,12 +172,29 @@ class UnixLocal(TextualDevice):
         return available
 
     def on_connection_made(self, connection):
+        """
+        Execute action when connection made.
+        :param connection: device connection.
+        :return: Nothing.
+        """
         self._set_state(UnixLocal.unix_local)
 
     def on_connection_lost(self, connection):
+        """
+        Execute action when connection lost.
+        :param connection: device connection.
+        :return: Nothing.
+        """
         self._set_state(UnixLocal.not_connected)
 
     def _execute_command_to_change_state(self, source_state, dest_state, timeout=-1):
+        """
+        Execute action to change state.
+        :param source_state: device source state.
+        :param dest_state: device destination state.
+        :param timeout: transition timeout.
+        :return: Nothing.
+        """
         configurations = self.get_configurations(source_state=source_state, dest_state=dest_state)
 
         command_name = configurations["execute_command"]
@@ -164,6 +207,11 @@ class UnixLocal(TextualDevice):
 
     @classmethod
     def _parameters_without_timeout(cls, parameters):
+        """
+        Remove timeout from observable parameters.
+        :param parameters: observable parameters.
+        :return: new parameters without timeout.
+        """
         if 'timeout' in parameters:
             parameters = copy_dict(src=parameters, deep_copy=True)
             del parameters['timeout']
