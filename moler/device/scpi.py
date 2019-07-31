@@ -3,9 +3,9 @@
 SCPI device class
 """
 
-__author__ = 'Marcin Usielski'
+__author__ = 'Marcin Usielski, Marcin Szlapa'
 __copyright__ = 'Copyright (C) 2019, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__email__ = 'marcin.usielski@nokia.com, marcin.szlapa@nokia.com'
 
 import logging
 
