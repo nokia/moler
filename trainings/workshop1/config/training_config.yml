@@ -1,0 +1,52 @@
+LOGGER:
+  PATH: /home/ute/auto/moler/trainings/workshop1/config/logs
+  RAW_LOG: True
+  DEBUG_LEVEL: TRACE
+  DATE_FORMAT: "%d %H:%M:%S"
+
+DEVICES:
+  CREATE_AT_STARTUP: False
+  DEFAULT_CONNECTION:
+    CONNECTION_DESC:
+      io_type: terminal
+      variant: threaded
+
+  UNIX_1:
+    DEVICE_CLASS: moler.device.unixlocal.UnixLocal
+
+  UNIX_2:
+    DEVICE_CLASS: moler.device.unixlocal.UnixLocal
+
+  SCPI_1:
+    DEVICE_CLASS: moler.device.scpi.Scpi
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        SCPI:
+          execute_command: telnet # default value
+          command_params:
+            host: 10.93.202.73
+            port: 5523
+            expected_prompt: SCPI>
+
+  SCPI_2:
+    DEVICE_CLASS: moler.device.scpi.Scpi
+    CONNECTION_HOPS:
+      PROXY_PC:
+        SCPI:
+          execute_command: telnet # default value
+          command_params:
+            host: 10.63.202.73
+            port: 5523
+      SCPI:
+        PROXY_PC:
+          execute_command: exit_telnet # default value
+          command_params:
+            expected_prompt: belvedere.*>
+      UNIX_LOCAL:
+        PROXY_PC:
+          execute_command: ssh # default value
+          command_params:
+            expected_prompt: belvedere.*>
+            host: 10.83.200.37
+            login: LOGIN
+            password: PASS
