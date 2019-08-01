@@ -26,7 +26,7 @@ class Ssh(GenericTelnetSsh):
                  known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
                  term_mono="TERM=xterm-mono", newline_chars=None, encrypt_password=True, runner=None,
                  target_newline="\n", allowed_newline_after_prompt=False, repeat_password=True, options=None,
-                 failure_exceptions_indication=None):
+                 failure_exceptions_indication=None, prompt_after_login=None):
         """
         Moler class of Unix command ssh.
 
@@ -50,6 +50,8 @@ class Ssh(GenericTelnetSsh):
         :param options: Options to add to command string just before host.
         :param failure_exceptions_indication: String with regex or regex object to omit failure even if failed string
          was found.
+        :param prompt_after_login: prompt after login before send export PS1. If you do not change prompt exporting PS1
+         then leave it None.
         """
         super(Ssh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner,
                                   port=port, host=host, login=login, password=password,
@@ -58,7 +60,8 @@ class Ssh(GenericTelnetSsh):
                                   target_newline=target_newline,
                                   allowed_newline_after_prompt=allowed_newline_after_prompt,
                                   repeat_password=repeat_password,
-                                  failure_exceptions_indication=failure_exceptions_indication
+                                  failure_exceptions_indication=failure_exceptions_indication,
+                                  prompt_after_login=prompt_after_login
                                   )
 
         # Parameters defined by calling the command
@@ -232,6 +235,26 @@ COMMAND_KWARGS_prompt = {
 }
 
 COMMAND_RESULT_prompt = {}
+
+COMMAND_OUTPUT_2prompts = """
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+Do you want to continue (yes/no)? yes
+To edit this message please edit /etc/ssh_banner
+You may put information to /etc/ssh_banner who is owner of this PC
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+host:~ #
+host:~ # export PS1="\\u$"
+user$"""
+
+COMMAND_KWARGS_2prompts = {
+    "login": "user", "password": "english", "set_prompt": r'export PS1="\\u$"',
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": r"user\$",
+    "prompt_after_login": r"host.*#",
+}
+
+COMMAND_RESULT_2prompts = {}
 
 COMMAND_OUTPUT_rm = """
 client:~/>TERM=xterm-mono ssh -p 25 -l user host.domain.net

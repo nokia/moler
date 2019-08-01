@@ -20,7 +20,8 @@ class Telnet(GenericTelnetSsh):
                  set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono="TERM=xterm-mono", prefix=None,
                  newline_chars=None, cmds_before_establish_connection=None, cmds_after_establish_connection=None,
                  telnet_prompt=r"^\s*telnet>\s*", encrypt_password=True, runner=None, target_newline="\n",
-                 allowed_newline_after_prompt=False, repeat_password=True, failure_exceptions_indication=None):
+                 allowed_newline_after_prompt=False, repeat_password=True, failure_exceptions_indication=None,
+                 prompt_after_login=None):
         """
         Moler class of Unix command telnet.
 
@@ -46,6 +47,8 @@ class Telnet(GenericTelnetSsh):
         :param repeat_password: If True then repeat last password if no more provided. If False then exception is set.
         :param failure_exceptions_indication: String with regex or regex object to omit failure even if failed string
          was found.
+        :param prompt_after_login: prompt after login before send export PS1. If you do not change prompt exporting PS1
+         then leave it None.
         """
         super(Telnet, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner,
                                      port=port, host=host, login=login, password=password,
@@ -54,7 +57,8 @@ class Telnet(GenericTelnetSsh):
                                      target_newline=target_newline,
                                      allowed_newline_after_prompt=allowed_newline_after_prompt,
                                      repeat_password=repeat_password,
-                                     failure_exceptions_indication=failure_exceptions_indication
+                                     failure_exceptions_indication=failure_exceptions_indication,
+                                     prompt_after_login=prompt_after_login
                                      )
 
         self.prefix = prefix

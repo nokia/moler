@@ -33,7 +33,8 @@ class GenericTelnetSsh(GenericUnixCommand):
     def __init__(self, connection, host, login=None, password=None, newline_chars=None, prompt=None, runner=None,
                  port=0, expected_prompt=r'^>\s*', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
                  term_mono="TERM=xterm-mono", encrypt_password=True, target_newline="\n",
-                 allowed_newline_after_prompt=False, repeat_password=True, failure_exceptions_indication=None):
+                 allowed_newline_after_prompt=False, repeat_password=True, failure_exceptions_indication=None,
+                 prompt_after_login=None):
         """
         Base Moler class of Unix commands telnet and ssh.
 
@@ -55,12 +56,17 @@ class GenericTelnetSsh(GenericUnixCommand):
         :param repeat_password: If True then repeat last password if no more provided. If False then exception is set.
         :param failure_exceptions_indication: String with regex or regex object to omit failure even if failed string
          was found.
+        :param prompt_after_login: prompt after login before send export PS1. If you do not change prompt exporting PS1
+         then leave it None.
         """
         super(GenericTelnetSsh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                                runner=runner)
 
         # Parameters defined by calling the command
         self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(expected_prompt)  # Expected prompt on device
+        self._re_prompt_after_login = self._re_expected_prompt
+        if prompt_after_login:
+            self._re_prompt_after_login = CommandTextualGeneric._calculate_prompt(prompt_after_login)
         self._re_failure_exceptions_indication = None
         if failure_exceptions_indication:
             self._re_failure_exceptions_indication = CommandTextualGeneric._calculate_prompt(
@@ -203,7 +209,7 @@ class GenericTelnetSsh(GenericUnixCommand):
         :param line: Line from device.
         :return: True if any command was sent, False if no command was sent.
         """
-        if self._is_target_prompt(line):
+        if self._is_prompt_after_login(line):
             if self._commands_to_set_connection_after_login(line):
                 return True
             if self._timeout_set_needed() and not self._sent:
@@ -309,6 +315,15 @@ class GenericTelnetSsh(GenericUnixCommand):
         :return: Match object or None
         """
         return self._regex_helper.search_compiled(self._re_expected_prompt, line)
+
+    def _is_prompt_after_login(self, line):
+        """
+        Checks if line contains prompt just after login.
+
+        :param line: Line from device
+        :return: Match object or None
+        """
+        return self._regex_helper.search_compiled(self._re_prompt_after_login, line)
 
     def _all_after_login_settings_sent(self):
         """
