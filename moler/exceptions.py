@@ -136,9 +136,9 @@ class EventWrongState(MolerException):
         super(EventWrongState, self).__init__(err_msg)
 
 
-class MolerStatusException(MolerException):
+class ExecutionException(MolerException):
     def __init__(self, msg):
-        super(MolerStatusException, self).__init__(msg)
+        super(ExecutionException, self).__init__(msg)
 
 
 class DeviceFailure(MolerException):
