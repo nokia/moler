@@ -236,6 +236,29 @@ COMMAND_KWARGS_prompt = {
 
 COMMAND_RESULT_prompt = {}
 
+COMMAND_OUTPUT_2prompts = """
+user@host01:~> TERM=xterm-mono telnet host.domain.net 1500
+CLIENT5 [] has just connected!
+Login:
+Login:user
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+host:~ #
+export TMOUT="2678400",
+host:~ #
+export PS1="host_new#",
+host_new#"""
+
+COMMAND_KWARGS_2prompts = {
+    "login": "user", "password": "english", "port": "1500",
+    "host": "host.domain.net", "expected_prompt": r"host_new#",
+    "set_prompt": "export PS1=\"host_new#\"", "prompt_after_login": r"host:.*#"
+
+}
+
+COMMAND_RESULT_2prompts = {}
+
 
 COMMAND_OUTPUT_many_passwords = """
 user@host01:~> TERM=xterm-mono telnet host.domain.net 1501
