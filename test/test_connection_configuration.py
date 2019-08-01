@@ -16,7 +16,7 @@ def test_get_connection_without_variant_selection_raises_KeyError():
 
     with pytest.raises(KeyError) as err:
         get_connection(io_type='tcp', host='localhost', port=2345)
-    assert "No variant selected (directly or via configuration) for 'tcp' connection" in str(err)
+    assert "No variant selected (directly or via configuration) for 'tcp' connection" in str(err.value)
 
 
 def test_can_select_connection_variant_from_buildin_connections(connections_config):
@@ -35,7 +35,7 @@ def test_cannot_select_nonexisting_connection_variant(connections_config):
     connections_config.set_default_variant(io_type='tcp', variant='yedi_magic')
     with pytest.raises(KeyError) as err:
         get_connection(io_type='tcp', host='localhost', port=2345)
-    assert "'yedi_magic' variant of 'tcp' connection is not registered inside ConnectionFactory" in str(err)
+    assert "'yedi_magic' variant of 'tcp' connection is not registered inside ConnectionFactory" in str(err.value)
 
 
 def test_can_select_connection_variant_from_plugin_connections(builtin_connection_factories,
@@ -59,7 +59,7 @@ def test_get_connection_may_not_use_both__name_and_io_type():
     with pytest.raises(AssertionError) as err:
         get_connection(name='www_server_1',
                        io_type='tcp', host='localhost', port=2345)
-    assert "Use either 'name' or 'io_type' parameter (not both)" in str(err)
+    assert "Use either 'name' or 'io_type' parameter (not both)" in str(err.value)
 
 
 def test_get_connection_must_use_either_name_or_io_type():
@@ -67,7 +67,7 @@ def test_get_connection_must_use_either_name_or_io_type():
 
     with pytest.raises(AssertionError) as err:
         get_connection(host='localhost', port=2345)
-    assert "Provide either 'name' or 'io_type' parameter (none given)" in str(err)
+    assert "Provide either 'name' or 'io_type' parameter (none given)" in str(err.value)
 
 
 def test_can_select_connection_by_name(connections_config):
@@ -91,7 +91,7 @@ def test_cannot_select_connection_by_nonexisting_name(connections_config):
     connections_config.set_default_variant(io_type='tcp', variant='threaded')
     with pytest.raises(KeyError) as err:
         get_connection(name='www_server_1')
-    assert "Connection named 'www_server_1' was not defined inside configuration" in str(err)
+    assert "Connection named 'www_server_1' was not defined inside configuration" in str(err.value)
 
 
 def test_can_select_connection_loaded_from_config_file(moler_config):

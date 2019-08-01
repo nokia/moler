@@ -41,6 +41,11 @@ def set_logging_path(path):
     _logging_path = path
 
 
+def get_logging_path():
+    global _logging_path
+    return _logging_path
+
+
 def set_date_format(format):
     global date_format
     date_format = format

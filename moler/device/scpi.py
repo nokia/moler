@@ -30,7 +30,7 @@ class Scpi(UnixLocal):
         :param initial_state: Initial state for device
         """
         sm_params = sm_params.copy()
-        self.use_proxy_pc = self._is_proxy_pc_in_sm_params(sm_params, Scpi.proxy_pc)
+        self._use_proxy_pc = self._is_proxy_pc_in_sm_params(sm_params, Scpi.proxy_pc)
         initial_state = initial_state if initial_state is not None else Scpi.scpi
         super(Scpi, self).__init__(sm_params=sm_params, name=name, io_connection=io_connection, io_type=io_type,
                                    variant=variant, initial_state=initial_state)
@@ -38,7 +38,7 @@ class Scpi(UnixLocal):
 
     def _get_default_sm_configuration(self):
         config = super(Scpi, self)._get_default_sm_configuration()
-        if self.use_proxy_pc:
+        if self._use_proxy_pc:
             default_config = self._get_default_sm_configuration_with_proxy_pc()
         else:
             default_config = self._get_default_sm_configuration_without_proxy_pc()
@@ -136,7 +136,7 @@ class Scpi(UnixLocal):
     def _prepare_transitions(self):
         super(Scpi, self)._prepare_transitions()
 
-        if self.use_proxy_pc:
+        if self._use_proxy_pc:
             transitions = self._prepare_transitions_with_proxy_pc()
         else:
             transitions = self._prepare_transitions_without_proxy_pc()
@@ -195,7 +195,7 @@ class Scpi(UnixLocal):
     def _prepare_state_prompts(self):
         super(Scpi, self)._prepare_state_prompts()
 
-        if self.use_proxy_pc:
+        if self._use_proxy_pc:
             state_prompts = self._prepare_state_prompts_with_proxy_pc()
         else:
             state_prompts = self._prepare_state_prompts_without_proxy_pc()
@@ -229,7 +229,7 @@ class Scpi(UnixLocal):
     def _prepare_state_hops(self):
         super(Scpi, self)._prepare_state_hops()
 
-        if self.use_proxy_pc:
+        if self._use_proxy_pc:
             state_hops = self._prepare_state_hops_with_proxy_pc()
         else:
             state_hops = self._prepare_state_hops_without_proxy_pc()
@@ -280,7 +280,7 @@ class Scpi(UnixLocal):
     def _prepare_newline_chars(self):
         super(Scpi, self)._prepare_newline_chars()
 
-        if self.use_proxy_pc:
+        if self._use_proxy_pc:
             newline_chars = self._prepare_newline_chars_with_proxy_pc()
         else:
             newline_chars = self._prepare_newline_chars_without_proxy_pc()

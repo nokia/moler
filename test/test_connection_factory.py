@@ -14,7 +14,7 @@ def test_missing_constructor_raises_KeyError():
     from moler.connection import ConnectionFactory
     with pytest.raises(KeyError) as err:
         ConnectionFactory.get_connection(io_type='memory', variant='superquick')
-    assert "No constructor registered for [('memory', 'superquick')] connection" in str(err)
+    assert "No constructor registered for [('memory', 'superquick')] connection" in str(err.value)
 
 
 def test_factory_has_buildin_constructors_active_by_default():
@@ -45,7 +45,7 @@ def test_registered_constructor_must_be_callable():
         ConnectionFactory.register_construction(io_type='memory',
                                                 variant='superquick',
                                                 constructor=[1, 2])
-    assert "constructor must be callable not" in str(err)
+    assert "constructor must be callable not" in str(err.value)
 
 
 def test_can_plugin_alternative_connection_instead_of_builtin_one(builtin_connection_factories):
