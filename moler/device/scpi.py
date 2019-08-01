@@ -174,9 +174,6 @@ class Scpi(ProxyPc):
         :return: textual prompt for each state without proxy_pc state.
         """
         state_prompts = {
-            Scpi.unix_local:
-                self._configurations[Scpi.connection_hops][Scpi.scpi][Scpi.unix_local][
-                    "command_params"]["expected_prompt"],
             Scpi.scpi:
                 self._configurations[Scpi.connection_hops][Scpi.unix_local][Scpi.scpi][
                     "command_params"]["expected_prompt"],
@@ -192,8 +189,6 @@ class Scpi(ProxyPc):
         state_hops = {
             Scpi.not_connected: {
                 Scpi.scpi: Scpi.unix_local,
-                Scpi.proxy_pc: Scpi.unix_local,
-                Scpi.unix_local_root: Scpi.unix_local
             },
             Scpi.scpi: {
                 Scpi.not_connected: Scpi.proxy_pc,
@@ -206,10 +201,6 @@ class Scpi(ProxyPc):
             Scpi.unix_local_root: {
                 Scpi.scpi: Scpi.unix_local,
             },
-            Scpi.proxy_pc: {
-                Scpi.not_connected: Scpi.unix_local,
-                Scpi.unix_local_root: Scpi.unix_local,
-            }
         }
         return state_hops
 
@@ -222,7 +213,6 @@ class Scpi(ProxyPc):
         state_hops = {
             Scpi.not_connected: {
                 Scpi.scpi: Scpi.unix_local,
-                Scpi.unix_local_root: Scpi.unix_local,
             },
             Scpi.scpi: {
                 Scpi.not_connected: Scpi.unix_local,
