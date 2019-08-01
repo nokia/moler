@@ -3,12 +3,11 @@
 Juniper Generic module.
 """
 
-__author__ = 'Sylwester Golonka'
+__author__ = 'Jakub Kupiec'
 __copyright__ = 'Copyright (C) 2019, Nokia'
-__email__ = 'sylwester.golonka@nokia.com'
+__email__ = 'jakub.kupiec@nokia.com'
 
 import logging
-from moler.device.unixlocal import UnixLocal
 from abc import ABCMeta
 from six import add_metaclass
 from moler.device.proxy_pc import ProxyPc
@@ -49,7 +48,7 @@ class JuniperGeneric(ProxyPc):
             JuniperGeneric.connection_hops: {
 
                 JuniperGeneric.proxy_pc: {  # from
-                    UnixLocal.unix_local: {  # to
+                    JuniperGeneric.unix_local: {  # to
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
                             "expected_prompt": r'^moler_bash#',
@@ -62,7 +61,7 @@ class JuniperGeneric(ProxyPc):
                         "execute_command": "ssh",  # using command
                         "command_params": {  # with parameters
                             "set_timeout": None,
-                            "expected_prompt": "^admin@switch>"
+                            "expected_prompt": "proxy_pc#"
                         },
                         "required_command_params": [
                             "host",
@@ -76,9 +75,9 @@ class JuniperGeneric(ProxyPc):
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
                         },
-                        "required_command_params": [
-                            "expected_prompt"
-                        ]
+                        "required_command_params": {
+                            "expected_prompt": "proxy_pc#"
+                        }
                     },
                     JuniperGeneric.configure: {
                         "execute_command": "configure",
@@ -94,7 +93,22 @@ class JuniperGeneric(ProxyPc):
                             "expected_prompt": "^admin@switch>"
                         }
                     },
+                },
+                JuniperGeneric.unix_local: {  # from
+                    JuniperGeneric.proxy_pc: {  # to
+                        "execute_command": "ssh",  # using command
+                        "command_params": {  # with parameters
+                            "expected_prompt": "proxy_pc#"
+                        },
+                        "required_command_params": [
+                            "host",
+                            "login",
+                            "password",
+                        ]
+                    },
+
                 }
+
             }
         }
         return config
@@ -157,20 +171,42 @@ class JuniperGeneric(ProxyPc):
         transitions = {
 
             JuniperGeneric.proxy_pc: {
-
                 JuniperGeneric.cli: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
                 },
             },
+            JuniperGeneric.unix_local: {
+
+                JuniperGeneric.proxy_pc: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                },
+            },
+            JuniperGeneric.cli: {
+
+                JuniperGeneric.proxy_pc: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                },
+                JuniperGeneric.configure: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                },
+            },
+
             JuniperGeneric.configure: {
                 JuniperGeneric.cli: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
                 }
-            },
+            }
+
         }
         return transitions
 
@@ -219,11 +255,13 @@ class JuniperGeneric(ProxyPc):
                 :return: textual prompt for each state with proxy_pc state.
                 """
         state_prompts = {
-            JuniperGeneric.unix_local:
+            JuniperGeneric.cli:
                 self._configurations[JuniperGeneric.connection_hops][JuniperGeneric.proxy_pc][
-                    JuniperGeneric.unix_local][
+                    JuniperGeneric.cli][
                     "command_params"]["expected_prompt"],
-
+            JuniperGeneric.configure:
+                self._configurations[JuniperGeneric.connection_hops][JuniperGeneric.cli][JuniperGeneric.configure][
+                    "command_params"]["expected_prompt"]
         }
         return state_prompts
 
@@ -243,7 +281,6 @@ class JuniperGeneric(ProxyPc):
             JuniperGeneric.configure:
                 self._configurations[JuniperGeneric.connection_hops][JuniperGeneric.cli][JuniperGeneric.configure][
                     "command_params"]["expected_prompt"],
-
         }
         return state_prompts
 
@@ -265,20 +302,19 @@ class JuniperGeneric(ProxyPc):
                 JuniperGeneric.unix_local: JuniperGeneric.proxy_pc,
                 JuniperGeneric.unix_local_root: JuniperGeneric.proxy_pc,
             },
-            JuniperGeneric.unix_local_root: {
-                JuniperGeneric.unix_remote: JuniperGeneric.unix_local,
-                JuniperGeneric.unix_remote_root: JuniperGeneric.unix_local
-            },
-
             JuniperGeneric.configure: {
                 JuniperGeneric.unix_local: JuniperGeneric.cli,
                 JuniperGeneric.proxy_pc: JuniperGeneric.cli,
                 JuniperGeneric.not_connected: JuniperGeneric.cli,
-                JuniperGeneric.unix_local_root: JuniperGeneric.unix_local
+                JuniperGeneric.unix_local_root: JuniperGeneric.cli
             },
             JuniperGeneric.unix_local: {
                 JuniperGeneric.cli: JuniperGeneric.proxy_pc,
                 JuniperGeneric.configure: JuniperGeneric.proxy_pc,
+            },
+            JuniperGeneric.unix_local_root: {
+                JuniperGeneric.cli: JuniperGeneric.unix_local,
+                JuniperGeneric.configure: JuniperGeneric.unix_local,
             },
             JuniperGeneric.proxy_pc: {
                 JuniperGeneric.configure: JuniperGeneric.cli,
@@ -298,20 +334,22 @@ class JuniperGeneric(ProxyPc):
                 JuniperGeneric.cli: JuniperGeneric.unix_local,
                 JuniperGeneric.configure: JuniperGeneric.unix_local,
                 JuniperGeneric.unix_local_root: JuniperGeneric.unix_local,
-
             },
             JuniperGeneric.unix_local: {
                 JuniperGeneric.configure: JuniperGeneric.cli
             },
+            JuniperGeneric.unix_local_root: {
+                JuniperGeneric.cli: JuniperGeneric.unix_local,
+                JuniperGeneric.configure: JuniperGeneric.unix_local,
+            },
             JuniperGeneric.cli: {
-                UnixLocal.not_connected: UnixLocal.unix_local,
+                JuniperGeneric.not_connected: JuniperGeneric.unix_local,
                 JuniperGeneric.unix_local_root: JuniperGeneric.unix_local,
             },
             JuniperGeneric.configure: {
-                UnixLocal.unix_local: JuniperGeneric.cli,
-                UnixLocal.not_connected: JuniperGeneric.cli,
-                JuniperGeneric.unix_local_root: JuniperGeneric.unix_local,
-
+                JuniperGeneric.unix_local: JuniperGeneric.cli,
+                JuniperGeneric.not_connected: JuniperGeneric.cli,
+                JuniperGeneric.unix_local_root: JuniperGeneric.cli,
             },
         }
         return state_hops
@@ -323,14 +361,20 @@ class JuniperGeneric(ProxyPc):
                :param observer: observer type, available: cmd, events
                :return: available cmds or events for specific device state.
                """
-        available = {UnixLocal.cmds: [], UnixLocal.events: []}
-        if state == UnixLocal.unix_local or state == JuniperGeneric.proxy_pc:
-            available = {UnixLocal.cmds: ['moler.cmd.unix'],
-                         UnixLocal.events: ['moler.events.unix']}
-        elif state == JuniperGeneric.cli:
-            available = {UnixLocal.cmds: ['moler.cmd.unix', 'moler.cmd.juniper.cli'],
-                         UnixLocal.events: ['moler.events.unix', 'moler.events.juniper']}
-        elif state == JuniperGeneric.configure:
-            available = {UnixLocal.cmds: ['moler.cmd.juniper.configure'],
-                         UnixLocal.events: ['moler.events.juniper']}
-        return available[observer]
+        available = super(JuniperGeneric, self)._get_packages_for_state(state, observer)
+
+        if not available:
+            if state == JuniperGeneric.cli:
+                available = {
+                    JuniperGeneric.cmds: ['moler.cmd.unix', 'moler.cmd.juniper.cli', 'moler.cmd.juniper_ex.cli'],
+                    JuniperGeneric.events: ['moler.events.unix', 'moler.events.juniper', 'moler.events.juniper_ex']}
+            elif state == JuniperGeneric.configure:
+                available = {
+                    JuniperGeneric.cmds: ['moler.events.unix', 'moler.cmd.juniper.configure',
+                                          'moler.cmd.juniper_ex.configure'],
+                    JuniperGeneric.events: ['moler.events.unix', 'moler.events.juniper', 'moler.events.juniper_ex']}
+
+            if available:
+                return available[observer]
+
+        return available
