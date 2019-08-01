@@ -259,7 +259,6 @@ COMMAND_KWARGS_2prompts = {
 
 COMMAND_RESULT_2prompts = {}
 
-
 COMMAND_OUTPUT_many_passwords = """
 user@host01:~> TERM=xterm-mono telnet host.domain.net 1501
 Login:
@@ -277,7 +276,6 @@ COMMAND_KWARGS_many_passwords = {
 }
 
 COMMAND_RESULT_many_passwords = {}
-
 
 COMMAND_OUTPUT_many_passwords_repeat = """
 user@host01:~> TERM=xterm-mono telnet host.domain.net 1501

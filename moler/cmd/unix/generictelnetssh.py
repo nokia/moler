@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Telnet command module.
+Base class for telnet and ssh commands.
 """
 
 __author__ = 'Marcin Usielski'
@@ -21,13 +21,21 @@ from moler.helpers import copy_list
 @six.add_metaclass(abc.ABCMeta)
 class GenericTelnetSsh(GenericUnixCommand):
     # Compiled regexp
+
+    # Login:
     _re_login = re.compile(r"login:\s*$", re.IGNORECASE)
+
+    # Password:
     _re_password = re.compile(r"password:", re.IGNORECASE)
+
+    # Permission denied.
     _re_failed_strings = re.compile(
         r"Permission denied|closed by foreign host|telnet:.*Name or service not known|No route to host|ssh: Could not|"
         "is not a typo you can use command-not-found to lookup the package|command not found|"
         "Too many authentication failures|Received disconnect from",
         re.IGNORECASE)
+
+    # CLIENT5 [] has just connected!
     _re_has_just_connected = re.compile(r"has just connected|\{bash_history,ssh\}|Escape character is", re.IGNORECASE)
 
     def __init__(self, connection, host, login=None, password=None, newline_chars=None, prompt=None, runner=None,
