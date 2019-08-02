@@ -87,6 +87,15 @@ DEVICES:
           execute_command: exit
           command_params:
             expected_prompt: "moler_bash#"
+      UNIX_LOCAL:
+        PROXY_PC:
+          execute_command: ssh
+          command_params:
+            expected_prompt: "proxy_pc#"
+            host: proxy_pc_host
+            login: proxy_pc_login
+            password: password
+            set_timeout: False
       CLI:
         PROXY_PC:
           execute_command: exit
@@ -123,7 +132,6 @@ DEVICES:
           execute_command: exit_telnet # default value
           command_params:
             expected_prompt: "proxy_pc#"
-
       UNIX_LOCAL:
         PROXY_PC:
           execute_command: ssh
@@ -133,5 +141,3 @@ DEVICES:
             login: proxy_pc_login
             password: password
             set_timeout: False
-
-

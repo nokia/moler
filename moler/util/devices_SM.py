@@ -24,9 +24,6 @@ def iterate_over_device_states(device):
     random.shuffle(source_states)
     random.shuffle(target_states)
 
-    print(states)
-    print(len(states) * len(states))
-
     for source_state in source_states:
         for target_state in target_states:
             try:
