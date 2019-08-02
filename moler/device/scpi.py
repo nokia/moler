@@ -265,9 +265,6 @@ class Scpi(ProxyPc):
             Scpi.scpi:
                 self._configurations[Scpi.connection_hops][Scpi.unix_local][Scpi.scpi][
                     "command_params"]["target_newline"],
-            Scpi.unix_local:
-                self._configurations[Scpi.connection_hops][Scpi.scpi][Scpi.unix_local][
-                    "command_params"]["target_newline"],
         }
         return newline_chars
 
