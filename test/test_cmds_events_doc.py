@@ -2,12 +2,7 @@ from importlib import import_module
 from os import path, walk
 from os.path import isfile, join, abspath, dirname
 
-
-#from unittest import mock
-
 from mock import mock
-
-
 from pytest import mark, raises
 
 from moler.command import Command
