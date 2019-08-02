@@ -30,8 +30,4 @@ host:~ #"""
         'LINES': []
     }
 
-<<<<<<< HEAD
     return data, result
-=======
-    return data, result
->>>>>>> cd17aa59d86e697839022644eb91cb6a54d6ef81

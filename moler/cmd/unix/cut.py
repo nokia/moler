@@ -78,22 +78,12 @@ COMMAND_OUTPUT_params = """host:~ # cut -d 'a' -f 1-3 /etc/network/interfaces
 # This file describes the network interfaces av
 # and how to activ
 
-<<<<<<< HEAD
-
-source /etc/network/interfaces.d/*
-# The loopback network interface
-auto lo
-
-iface lo inet loopback
-=======
-
 source /etc/network/interfaces.d/*
 
 # The loopback network interface
 auto lo
 iface lo inet loopback
 
->>>>>>> cd17aa59d86e697839022644eb91cb6a54d6ef81
 # The primary network interface
 allow-hotplug enp0s3
 iface enp0s3 inet dhcp
