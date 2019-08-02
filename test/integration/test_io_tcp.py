@@ -41,6 +41,7 @@ def test_can_open_and_close_connection(tcp_connection_class,
     print("{}: TCOACC: 6".format(strftime("%Y-%m-%d %H:%M:%S", gmtime())))
     dialog_with_server = tcp_server_pipe.recv()
     print("{}: TCOACC: 7".format(strftime("%Y-%m-%d %H:%M:%S", gmtime())))
+    print("dialog with server: '{}'".format(dialog_with_server))
     assert 'Client connected' in dialog_with_server
     assert 'Client disconnected' in dialog_with_server
 
