@@ -14,10 +14,11 @@ from moler.device import DeviceFactory
 from moler.exceptions import MolerException
 from moler.config import load_config
 from moler.helpers import copy_list
+from inspect import ismethod
 
 
 def iterate_over_device_states(device):
-    states = device.states
+    states = [attr.replace("GOTO_", "") for attr in dir(device) if not ismethod(attr) and attr.startswith("GOTO_")]
 
     states.remove("NOT_CONNECTED")
 
