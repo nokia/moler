@@ -12,7 +12,7 @@ DEVICES:
       io_type: terminal
       variant: threaded
 
-  UNIX:
+  UNIX_LOCAL:
     DEVICE_CLASS: moler.device.unixlocal.UnixLocal
     INITIAL_STATE: UNIX_LOCAL
 
@@ -57,6 +57,7 @@ DEVICES:
           command_params:
             expected_prompt: "proxy_pc#"
 
+<<<<<<< HEAD
   JUNIPER_EX:
     DEVICE_CLASS: moler.device.juniper_ex.JuniperEX
     INITIAL_STATE: UNIX_LOCAL
@@ -87,6 +88,38 @@ DEVICES:
           execute_command: exit
           command_params:
             expected_prompt: "moler_bash#"
+=======
+  SCPI:
+    DEVICE_CLASS: moler.device.scpi.Scpi
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        SCPI:
+          execute_command: telnet # default value
+          command_params:
+            expected_prompt: SCPI>
+            host: 10.0.0.1
+            port: 99999
+            set_timeout: False
+
+  SCPI_PROXY_PC:
+    DEVICE_CLASS: moler.device.scpi.Scpi
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      PROXY_PC:
+        SCPI:
+          execute_command: telnet # default value
+          command_params:
+            expected_prompt: SCPI>
+            host: 10.0.0.1
+            port: 99999
+            set_timeout: False
+      SCPI:
+        PROXY_PC:
+          execute_command: exit_telnet # default value
+          command_params:
+            expected_prompt: "proxy_pc#"
+>>>>>>> cd17aa59d86e697839022644eb91cb6a54d6ef81
       UNIX_LOCAL:
         PROXY_PC:
           execute_command: ssh
@@ -96,8 +129,11 @@ DEVICES:
             login: proxy_pc_login
             password: password
             set_timeout: False
+<<<<<<< HEAD
       CLI:
         PROXY_PC:
           execute_command: exit
           command_params:
             expected_prompt: "proxy_pc#"
+=======
+>>>>>>> cd17aa59d86e697839022644eb91cb6a54d6ef81
