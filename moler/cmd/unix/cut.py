@@ -60,22 +60,19 @@ class Cut(GenericUnixCommand):
 
     # cut: you must specify a list of bytes, characters, or fields
 
+    _re_parse_error = re.compile(r'cut:\s(?P<ERROR>.*)')
 
-_re_parse_error = re.compile(r'cut:\s(?P<ERROR>.*)')
+    def _parse_error(self, line):
+        if self._regex_helper.search_compiled(Cut._re_parse_error, line):
+            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
+            raise ParsingDone
 
+    # # This file describes the network interfaces av
 
-def _parse_error(self, line):
-    if self._regex_helper.search_compiled(Cut._re_parse_error, line):
-        self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
-        raise ParsingDone
-
-
-# # This file describes the network interfaces av
-
-def _parse_cut(self, line):
-    if line:
-        self.current_ret["LINES"].append(line)
-        raise ParsingDone
+    def _parse_cut(self, line):
+        if line:
+            self.current_ret["LINES"].append(line)
+            raise ParsingDone
 
 
 COMMAND_OUTPUT_params = """host:~ # cut -d 'a' -f 1-3 /etc/network/interfaces	

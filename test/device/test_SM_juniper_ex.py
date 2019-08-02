@@ -46,7 +46,6 @@ def juniper_ex_proxy_pc_output():
         "UNIX_LOCAL": {
             'TERM=xterm-mono ssh -l proxy_pc_login proxy_pc_host': 'proxy_pc#',
             'su': 'local_root_prompt'
-
         },
         "UNIX_LOCAL_ROOT": {
             'exit': 'moler_bash#'
