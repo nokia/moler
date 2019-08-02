@@ -9,6 +9,7 @@ __email__ = 'marcin.usielski@nokia.com'
 
 from moler.cmd.unix.ssh import Ssh
 from moler.exceptions import CommandFailure
+from moler.exceptions import CommandTimeout
 import pytest
 
 
@@ -64,6 +65,30 @@ def test_ssh_failed_known_hosts(buffer_connection, command_output_failed_known_h
     assert "TERM=xterm-mono ssh -l user host.domain.net" == ssh_cmd.command_string
     with pytest.raises(CommandFailure):
         ssh_cmd()
+
+
+def test_ssh_timeout_with_wrong_change_prompt(buffer_connection, command_output_change_prompt):
+    command_output = command_output_change_prompt
+    buffer_connection.remote_inject_response([command_output])
+
+    ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
+                  set_prompt=r'export PS1="\\u$"', host="host.domain.net", prompt="client.*>",
+                  expected_prompt=r"wrong_user\$", prompt_after_login=r"host.*#",)
+
+    with pytest.raises(CommandTimeout):
+        ssh_cmd(timeout=0.2)
+
+
+def test_ssh_timeout_with_wrong_change_prompt_after_login(buffer_connection, command_output_change_prompt):
+    command_output = command_output_change_prompt
+    buffer_connection.remote_inject_response([command_output])
+
+    ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
+                  set_prompt=r'export PS1="\\u$"', host="host.domain.net", prompt="client.*>",
+                  expected_prompt=r"user\$", prompt_after_login=r"wronghost.*#", )
+
+    with pytest.raises(CommandTimeout):
+        ssh_cmd(timeout=0.2)
 
 
 def test_ssh_returns_proper_command_string(buffer_connection):
@@ -153,3 +178,20 @@ def command_output_and_expected_result():
     for line in lines:
         data = data + line
     return data
+
+
+@pytest.fixture
+def command_output_change_prompt():
+    lines = """
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+Do you want to continue (yes/no)? yes
+To edit this message please edit /etc/ssh_banner
+You may put information to /etc/ssh_banner who is owner of this PC
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+host:~ #
+host:~ # export PS1="\\u$"
+user$
+"""
+    return lines
