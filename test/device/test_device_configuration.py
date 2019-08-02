@@ -16,7 +16,7 @@ from moler.connection_observer import ConnectionObserver
 
 def test_get_device_may_not_use_both__name_and_device_class(device_factory):
     with pytest.raises(AssertionError) as err:
-        device_factory.get_device(name='UNIX', device_class='moler.device.unixlocal', connection_desc={},
+        device_factory.get_device(name='UNIX_LOCAL', device_class='moler.device.unixlocal', connection_desc={},
                                   connection_hops={})
     assert "Use either 'name' or 'device_class' parameter (not both)" in str(err.value)
 
@@ -29,7 +29,7 @@ def test_get_device_must_use_either_name_or_device_class(device_factory):
 
 def test_can_select_device_by_name(device_config, device_factory):
     device_config.define_device(
-        name="UNIX",
+        name="UNIX_LOCAL",
         device_class='moler.device.unixlocal.UnixLocal',
         connection_desc={
             "io_type": "terminal",
@@ -37,7 +37,7 @@ def test_can_select_device_by_name(device_config, device_factory):
         },
         connection_hops={},
     )
-    device = device_factory.get_device(name='UNIX')
+    device = device_factory.get_device(name='UNIX_LOCAL')
 
     assert device.__module__ == 'moler.device.unixlocal'
     assert device.__class__.__name__ == 'UnixLocal'
@@ -45,7 +45,7 @@ def test_can_select_device_by_name(device_config, device_factory):
 
 def test_can_select_device_by_name_with_initial_state_set(device_config, device_factory):
     device_config.define_device(
-        name="UNIX",
+        name="UNIX_LOCAL",
         device_class='moler.device.unixlocal.UnixLocal',
         connection_desc={
             "io_type": "terminal",
@@ -54,7 +54,7 @@ def test_can_select_device_by_name_with_initial_state_set(device_config, device_
         connection_hops={},
         initial_state="NOT_CONNECTED"
     )
-    device = device_factory.get_device(name='UNIX')
+    device = device_factory.get_device(name='UNIX_LOCAL')
 
     assert device.__module__ == 'moler.device.unixlocal'
     assert device.__class__.__name__ == 'UnixLocal'
@@ -87,12 +87,12 @@ def test_can_select_desc_device_by_default_connection_desc(device_factory):
 
 def test_can_select_named_device_by_default_connection_desc(device_config, device_factory):
     device_config.define_device(
-        name="UNIX",
+        name="UNIX_LOCAL",
         device_class='moler.device.unixlocal.UnixLocal',
         connection_desc=None,
         connection_hops={}
     )
-    device = device_factory.get_device(name='UNIX')
+    device = device_factory.get_device(name='UNIX_LOCAL')
 
     assert device.__module__ == 'moler.device.unixlocal'
     assert device.__class__.__name__ == 'UnixLocal'
@@ -100,7 +100,7 @@ def test_can_select_named_device_by_default_connection_desc(device_config, devic
 
 def test_cannot_select_named_device_without_connection(device_config, device_factory):
     device_config.define_device(
-        name="UNIX",
+        name="UNIX_LOCAL",
         device_class='moler.device.unixlocal.UnixLocal',
         connection_desc=None,
         connection_hops={}
@@ -108,7 +108,7 @@ def test_cannot_select_named_device_without_connection(device_config, device_fac
     device_config.default_connection = None
 
     with pytest.raises(KeyError) as err:
-        device_factory.get_device(name='UNIX')
+        device_factory.get_device(name='UNIX_LOCAL')
     assert "No connection_desc selected (directly or via configuration)" in str(err.value)
 
 
@@ -126,15 +126,15 @@ def test_cannot_select_desc_device_without_connection(device_config, device_fact
 def test_cannot_select_device_by_nonexisting_name(device_factory):
     """Non-existing means here not defined inside configuration"""
     with pytest.raises(KeyError) as err:
-        device_factory.get_device(name='UNIX')
-    assert "Device named 'UNIX' was not defined inside configuration" in str(err.value)
+        device_factory.get_device(name='UNIX_LOCAL')
+    assert "Device named 'UNIX_LOCAL' was not defined inside configuration" in str(err.value)
 
 
 def test_can_select_device_loaded_from_config_file(moler_config, device_factory):
     conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
     moler_config.load_config(config=conn_config, config_type='yaml')
 
-    device = device_factory.get_device(name='UNIX')
+    device = device_factory.get_device(name='UNIX_LOCAL')
 
     assert device.__module__ == 'moler.device.unixlocal'
     assert device.__class__.__name__ == 'UnixLocal'
@@ -146,7 +146,7 @@ def test_can_select_all_devices_loaded_from_config_file(moler_config, device_fac
 
     device_factory.create_all_devices()
 
-    device = device_factory._devices["UNIX"]
+    device = device_factory._devices["UNIX_LOCAL"]
 
     assert device.__module__ == 'moler.device.unixlocal'
     assert device.__class__.__name__ == 'UnixLocal'
@@ -157,7 +157,7 @@ def test_can_select_device_loaded_from_env_variable(moler_config, monkeypatch, d
     monkeypatch.setitem(os.environ, 'MOLER_CONFIG', conn_config)
     moler_config.load_config(from_env_var="MOLER_CONFIG", config_type='yaml')
 
-    device = device_factory.get_device(name='UNIX')
+    device = device_factory.get_device(name='UNIX_LOCAL')
 
     assert device.__module__ == 'moler.device.unixlocal'
     assert device.__class__.__name__ == 'UnixLocal'
@@ -174,8 +174,8 @@ def test_return_created_device_when_call_another_time_for_same_named_device(mole
     conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
     moler_config.load_config(config=conn_config, config_type='yaml')
 
-    device = device_factory.get_device(name='UNIX')
-    same_device = device_factory.get_device(name='UNIX')
+    device = device_factory.get_device(name='UNIX_LOCAL')
+    same_device = device_factory.get_device(name='UNIX_LOCAL')
 
     assert device.__module__ == 'moler.device.unixlocal'
     assert device.__class__.__name__ == 'UnixLocal'
@@ -243,7 +243,7 @@ def test_can_select_device_loaded_from_config_dict(moler_config, device_factory)
                 'DATE_FORMAT': '%d %H:%M:%S'
             },
             'DEVICES': {
-                'UNIX': {
+                'UNIX_LOCAL': {
                     'DEVICE_CLASS': 'moler.device.unixlocal.UnixLocal',
                     'INITIAL_STATE': 'UNIX_LOCAL'
                 }
@@ -251,7 +251,7 @@ def test_can_select_device_loaded_from_config_dict(moler_config, device_factory)
         }
         moler_config.load_config(config=conn_config, config_type='dict')
 
-        device = device_factory.get_device(name='UNIX')
+        device = device_factory.get_device(name='UNIX_LOCAL')
 
         assert device.__module__ == 'moler.device.unixlocal'
         assert device.__class__.__name__ == 'UnixLocal'
@@ -270,7 +270,7 @@ def test_can_load_configuration_when_already_loaded_from_same_dict(moler_config,
             'DATE_FORMAT': '%d %H:%M:%S'
         },
         'DEVICES': {
-            'UNIX': {
+            'UNIX_LOCAL': {
                 'DEVICE_CLASS': 'moler.device.unixremote.UnixLocal',
                 'INITIAL_STATE': 'UNIX_LOCAL'
             }
@@ -290,7 +290,7 @@ def test_cannot_load_configuration_when_already_loaded_from_another_dict(moler_c
             'DATE_FORMAT': '%d %H:%M:%S'
         },
         'DEVICES': {
-            'UNIX': {
+            'UNIX_LOCAL': {
                 'DEVICE_CLASS': 'moler.device.unixlocal.UnixLocal',
                 'INITIAL_STATE': 'UNIX_LOCAL'
             }
@@ -304,7 +304,7 @@ def test_cannot_load_configuration_when_already_loaded_from_another_dict(moler_c
             'DATE_FORMAT': '%d %H:%M:%S'
         },
         'DEVICES': {
-            'UNIX': {
+            'UNIX_LOCAL': {
                 'DEVICE_CLASS': 'moler.device.unixremote.UnixRemote',
                 'INITIAL_STATE': 'UNIX_REMOTE'
             }
