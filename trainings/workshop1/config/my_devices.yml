@@ -1,7 +1,8 @@
 LOGGER:
-  PATH: /home/moler/gitrepos/moler/trainings/workshop1/logs  # yours might differ
+  PATH: /home/ute/auto/moler/trainings/workshop1/config/logs  # yours might differ
   RAW_LOG: True
   DEBUG_LEVEL: DEBUG
+  DATE_FORMAT: "%Y-%m-%d %H:%M:%S"
 
 DEVICES:
   MyMachine1:

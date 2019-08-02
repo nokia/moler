@@ -4,7 +4,7 @@ from moler.device.device import DeviceFactory
 
 
 def test_network_outage():
-    load_config(config=os.path.abspath('my_devices.yml'))
+    load_config(config=os.path.abspath('config/my_devices.yml'))
     unix1 = DeviceFactory.get_device(name='MyMachine1')
     unix2 = DeviceFactory.get_device(name='MyMachine2')
 
