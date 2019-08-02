@@ -14,6 +14,7 @@ import time
 import importlib
 import pytest
 import threading
+from time import gmtime, strftime
 
 
 def test_can_open_and_close_connection(tcp_connection_class,
@@ -27,19 +28,19 @@ def test_can_open_and_close_connection(tcp_connection_class,
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
     moler_conn = ObservableConnection()
-    print("TCOACC: 1")
+    print("{}: TCOACC: 1".format(strftime("%Y-%m-%d %H:%M:%S", gmtime())))
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
-    print("TCOACC: 2")
+    print("{}: TCOACC: 2".format(strftime("%Y-%m-%d %H:%M:%S", gmtime())))
     connection.open()
-    print("TCOACC: 3")
+    print("{}: TCOACC: 3".format(strftime("%Y-%m-%d %H:%M:%S", gmtime())))
     connection.close()
-    print("TCOACC: 4")
+    print("{}: TCOACC: 4".format(strftime("%Y-%m-%d %H:%M:%S", gmtime())))
     time.sleep(0.01)  # otherwise we have race between server's pipe and from-client-connection
-    print("TCOACC: 5")
+    print("{}: TCOACC: 5".format(strftime("%Y-%m-%d %H:%M:%S", gmtime())))
     tcp_server_pipe.send(("get history", {}))
-    print("TCOACC: 6")
+    print("{}: TCOACC: 6".format(strftime("%Y-%m-%d %H:%M:%S", gmtime())))
     dialog_with_server = tcp_server_pipe.recv()
-    print("TCOACC: 7")
+    print("{}: TCOACC: 7".format(strftime("%Y-%m-%d %H:%M:%S", gmtime())))
     assert 'Client connected' in dialog_with_server
     assert 'Client disconnected' in dialog_with_server
 
