@@ -11,19 +11,14 @@ import os
 import random
 
 from moler.device import DeviceFactory
+from moler.device.textualdevice import TextualDevice
 from moler.exceptions import MolerException
 from moler.config import load_config
-from moler.helpers import copy_list
-from inspect import ismethod
 
 
 def iterate_over_device_states(device):
-    states = [attr.replace("GOTO_", "") for attr in dir(device) if not ismethod(attr) and attr.startswith("GOTO_")]
-
-    states.remove("NOT_CONNECTED")
-
-    source_states = copy_list(states)
-    target_states = copy_list(states)
+    source_states = _get_all_states_from_device(device=device)
+    target_states = _get_all_states_from_device(device=device)
 
     random.shuffle(source_states)
     random.shuffle(target_states)
@@ -51,3 +46,17 @@ def get_device(name, connection, device_output, test_file_path):
     device.io_connection.set_device(device)
 
     return device
+
+
+def _get_all_states_from_device(device):
+    states = list()
+    for attr_name in dir(device):
+        attr = getattr(device, attr_name)
+        if type(attr) is str and not attr_name.startswith('_') and attr_name not in dir(TextualDevice):
+            if attr not in states:
+                states.append(attr)
+
+    if "PROXY_PC" in states and hasattr(device, "_use_proxy_pc") and not getattr(device, "_use_proxy_pc"):
+        states.remove("PROXY_PC")
+
+    return states
