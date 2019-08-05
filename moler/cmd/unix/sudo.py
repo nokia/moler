@@ -63,11 +63,12 @@ class Sudo(GenericUnixCommand):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise.
-        :return: Nothing.
+        :return: None.
         """
         try:
             self._parse_sudo_password(line)
             self._parse_command_not_found(line)
+            self._parse_sudo_error(line)
             self._process_embedded_command(line, is_full_line)
         except ParsingDone:
             pass
@@ -85,7 +86,8 @@ class Sudo(GenericUnixCommand):
 
         :param line: Line from device
         :param is_full_line: True if line had new line chars, False otherwise.
-        :return: Nothing but raises ParsingDone if sudo has embedded command object.
+        :return: None.
+        :raises: ParsingDone if sudo has embedded command object.
         """
         if self.cmd_object:
             if not self._sent_command_string:
@@ -108,6 +110,7 @@ class Sudo(GenericUnixCommand):
                     self.set_exception(ex)
             raise ParsingDone()
 
+    # sudo: pwd: command not found
     _re_sudo_command_not_found = re.compile(r"sudo:.*command not found", re.I)
 
     def _parse_command_not_found(self, line):
@@ -115,12 +118,29 @@ class Sudo(GenericUnixCommand):
         Parses if command not found is found in line.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None.
+        :raises: ParsingDone if regex matches the line.
         """
         if re.search(Sudo._re_sudo_command_not_found, line):
-            self.set_exception(CommandFailure(self, "Command not found in line '{}'".format(line)))
+            self.set_exception(CommandFailure(self, "Command not found in line '{}'.".format(line)))
             raise ParsingDone()
 
+    # sudo: /usr/bin/sudo must be owned by uid 0 and have the setuid bit set
+    _re_sudo_error = re.compile(r"sudo:.*must be owned by uid\s+\d+\s+and have the setuid bit set", re.I)
+
+    def _parse_sudo_error(self, line):
+        """
+        Parses if command not found is found in line.
+
+        :param line: Line from device.
+        :return: None.
+        :raises: ParsingDone if regex matches the line.
+        """
+        if re.search(Sudo._re_sudo_error, line):
+            self.set_exception(CommandFailure(self, "Command sudo error found in line '{}'.".format(line)))
+            raise ParsingDone()
+
+    # [sudo] password for user:
     _re_sudo_password = re.compile(r"\[sudo\] password for.*:", re.I)
 
     def _parse_sudo_password(self, line):
@@ -128,7 +148,8 @@ class Sudo(GenericUnixCommand):
         Parses if sudo waits for password.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None.
+        :raises: ParsingDone if regex matches the line.
         """
         if re.search(Sudo._re_sudo_password, line):
             if not self._sent_sudo_password:
@@ -142,7 +163,8 @@ class Sudo(GenericUnixCommand):
 
         :param args: args passed to super _validate_start
         :param kwargs: kwargs passed to super _validate_start
-        :return: Nothing
+        :return: None.
+        :raises: CommandFailure if error in command settings.
         """
         super(Sudo, self)._validate_start(*args, **kwargs)
         if self.cmd_object and self.cmd_class_name:
