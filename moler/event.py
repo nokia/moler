@@ -90,4 +90,4 @@ class Event(ConnectionObserver):
 
         :return: None
         """
-        self.logger.info("Notify for event:  '{}.{}'.".format(self.callback, self.__class__.__module__, self))
+        self.logger.info("Notify for event:  '{}.{}'.".format(self.__class__.__module__, self))
