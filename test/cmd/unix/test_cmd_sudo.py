@@ -72,7 +72,7 @@ def test_failing_with_embedded_command_fails(buffer_connection, command_output_c
         cmd_sudo()
 
 
-def test_failing_with_bit_fails(buffer_connection, command_output_bit_fails):
+def test_failing_with_bit_fails(buffer_connection, command_output_cp_bit_fails):
     command_output = command_output_bit_fails
     buffer_connection.remote_inject_response([command_output])
     cmd_cp = Cp(connection=buffer_connection.moler_connection, src="src.txt", dst="dst.txt")
@@ -133,7 +133,7 @@ ute@debdev:~/moler$ """
 
 
 @pytest.fixture()
-def command_output_bit_fails():
+def command_output_cp_bit_fails():
     output = """sudo cp src.txt dst.txt 
 sudo: /usr/bin/sudo must be owned by uid 0 and have the setuid bit set
 ute@debdev:~/moler$ """
