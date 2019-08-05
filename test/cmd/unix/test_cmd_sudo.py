@@ -73,7 +73,7 @@ def test_failing_with_embedded_command_fails(buffer_connection, command_output_c
 
 
 def test_failing_with_bit_fails(buffer_connection, command_output_cp_bit_fails):
-    command_output = command_output_bit_fails
+    command_output = command_output_cp_bit_fails
     buffer_connection.remote_inject_response([command_output])
     cmd_cp = Cp(connection=buffer_connection.moler_connection, src="src.txt", dst="dst.txt")
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass", cmd_object=cmd_cp)
