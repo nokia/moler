@@ -46,11 +46,9 @@ class Event(ConnectionObserver):
         self.callback = None
 
     def notify(self):
+        self._log_occurred()
         if self.callback:
-            self._log_callback_occurred()
             self.callback()
-        else:
-            self._log_occurred()
 
     def event_occurred(self, event_data):
         """Should be used to set final result"""
@@ -76,18 +74,15 @@ class Event(ConnectionObserver):
         else:
             return None
 
-    def _log_callback_occurred(self):
-        """
-        Logs info about registered callback is called.
-
-        :return: None
-        """
-        self.logger.info("Callback '{}' for event:  '{}.{}'.".format(self.callback, self.__class__.__module__, self))
-
     def _log_occurred(self):
         """
         Logs info about notify when callback is not define.
 
         :return: None
         """
-        self.logger.info("Notify for event:  '{}.{}'.".format(self.__class__.__module__, self))
+        msg = "Notify for event:  '{}.{}'".format(self.__class__.__module__, self)
+        if self.callback:
+            msg = "{} with callback '{}'.".format(msg, self.callback)
+        else:
+            msg = "{} without callback.".format(msg)
+        self.logger.info(msg=msg)
