@@ -47,6 +47,7 @@ class Event(ConnectionObserver):
 
     def notify(self):
         if self.callback:
+            self._log_occurred()
             self.callback()
 
     def event_occurred(self, event_data):
@@ -72,3 +73,11 @@ class Event(ConnectionObserver):
             return self._occurred[-1]
         else:
             return None
+
+    def _log_occurred(self):
+        """
+        Logs info about registered callback is called.
+
+        :return: None
+        """
+        self.logger.info("Callback '{}' for event:  '{}.{}'.".format(self.callback, self.__class__.__module__, self))
