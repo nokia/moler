@@ -95,20 +95,23 @@ def test_can_receive_binary_data_from_connection(tcp_connection_class,
     assert b'data to read' == received_data
 
 
+# TODO: tests for error cases raising Exceptions
+# --------------------------- resources ---------------------------
+
+
 def _wait_for_last_message(tcp_server_pipe, last_message="Client disconnected", timeout=5):
     start_time = time.time()
     dialog_with_server = []
+
     while last_message not in dialog_with_server:
         tcp_server_pipe.send(("get history", {}))
         time.sleep(0.01)
         dialog_with_server = tcp_server_pipe.recv()
+
         if time.time() - start_time > timeout:
             break
+
     return dialog_with_server
-
-
-# TODO: tests for error cases raising Exceptions
-# --------------------------- resources ---------------------------
 
 
 @pytest.fixture(params=['io.raw.tcp.ThreadedTcp'])
