@@ -213,8 +213,8 @@ class JuniperGeneric(ProxyPc):
     @mark_to_call_base_class_method_with_same_name
     def _prepare_transitions_without_proxy_pc(self):
         """
-                Prepare transitions to change states with proxy_pc state.
-                :return: transitions with proxy_pc state.
+                Prepare transitions to change states without proxy_pc state.
+                :return: transitions without proxy_pc state.
                 """
         transitions = {
             JuniperGeneric.cli: {
