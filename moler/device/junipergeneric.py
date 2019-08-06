@@ -14,8 +14,8 @@ from moler.device.proxy_pc import ProxyPc
 from moler.helpers import call_base_class_method_with_same_name, mark_to_call_base_class_method_with_same_name
 
 
-@add_metaclass(ABCMeta)
 @call_base_class_method_with_same_name
+@add_metaclass(ABCMeta)
 class JuniperGeneric(ProxyPc):
     """Junipergeneric device class."""
 
