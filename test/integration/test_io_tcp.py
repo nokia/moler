@@ -6,9 +6,9 @@ Testing external-IO TCP connection
 - send/receive (naming may differ)
 """
 
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import time
 import importlib
@@ -52,9 +52,15 @@ def test_can_open_and_close_connection_as_context_manager(tcp_connection_class,
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     with connection.open():
         pass
-    time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
-    tcp_server_pipe.send(("get history", {}))
-    dialog_with_server = tcp_server_pipe.recv()
+    dialog_with_server = []
+    timeout = 5
+    start_time = time.time()
+    while 'Client disconnected' not in dialog_with_server:
+        tcp_server_pipe.send(("get history", {}))
+        time.sleep(0.01)
+        dialog_with_server = tcp_server_pipe.recv()
+        if time.time() - start_time > timeout:
+            break
     assert 'Client connected' in dialog_with_server
     assert 'Client disconnected' in dialog_with_server
 
