@@ -30,15 +30,8 @@ def test_can_open_and_close_connection(tcp_connection_class,
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     connection.open()
     connection.close()
-    dialog_with_server = []
-    timeout = 5
-    start_time = time.time()
-    while 'Client disconnected' not in dialog_with_server:
-        tcp_server_pipe.send(("get history", {}))
-        time.sleep(0.01)
-        dialog_with_server = tcp_server_pipe.recv()
-        if time.time() - start_time > timeout:
-            break
+    dialog_with_server = _wait_for_last_message(tcp_server_pipe=tcp_server_pipe, last_message='Client disconnected',
+                                                timeout=5)
     assert 'Client connected' in dialog_with_server
     assert 'Client disconnected' in dialog_with_server
 
@@ -52,15 +45,8 @@ def test_can_open_and_close_connection_as_context_manager(tcp_connection_class,
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     with connection.open():
         pass
-    dialog_with_server = []
-    timeout = 5
-    start_time = time.time()
-    while 'Client disconnected' not in dialog_with_server:
-        tcp_server_pipe.send(("get history", {}))
-        time.sleep(0.01)
-        dialog_with_server = tcp_server_pipe.recv()
-        if time.time() - start_time > timeout:
-            break
+    dialog_with_server = _wait_for_last_message(tcp_server_pipe=tcp_server_pipe, last_message='Client disconnected',
+                                                timeout=5)
     assert 'Client connected' in dialog_with_server
     assert 'Client disconnected' in dialog_with_server
 
@@ -109,6 +95,18 @@ def test_can_receive_binary_data_from_connection(tcp_connection_class,
     assert b'data to read' == received_data
 
 
+def _wait_for_last_message(tcp_server_pipe, last_message="Client disconnected", timeout=5):
+    start_time = time.time()
+    dialog_with_server = []
+    while last_message not in dialog_with_server:
+        tcp_server_pipe.send(("get history", {}))
+        time.sleep(0.01)
+        dialog_with_server = tcp_server_pipe.recv()
+        if time.time() - start_time > timeout:
+            break
+    return dialog_with_server
+
+
 # TODO: tests for error cases raising Exceptions
 # --------------------------- resources ---------------------------
 
@@ -119,6 +117,7 @@ def tcp_connection_class(request):
     module = importlib.import_module('moler.{}'.format(module_name))
     connection_class = getattr(module, class_name)
     return connection_class
+
 
 @pytest.yield_fixture()
 def integration_tcp_server_and_pipe():
