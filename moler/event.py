@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
-import functools
 
+import functools
+import abc
+import six
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import MolerException
 from moler.exceptions import ResultAlreadySet
 from moler.helpers import instance_id
 
 
+@six.add_metaclass(abc.ABCMeta)
 class Event(ConnectionObserver):
 
     def __init__(self, connection=None, till_occurs_times=-1, runner=None):
@@ -46,6 +49,7 @@ class Event(ConnectionObserver):
         self.callback = None
 
     def notify(self):
+        self._log_occurred()
         if self.callback:
             self.callback()
 
@@ -72,3 +76,16 @@ class Event(ConnectionObserver):
             return self._occurred[-1]
         else:
             return None
+
+    def _log_occurred(self):
+        """
+        Logs info about notify when callback is not define.
+
+        :return: None
+        """
+        msg = "Notify for event:  '{}.{}'".format(self.__class__.__module__, self)
+        if self.callback:
+            msg = "{} with callback '{}'.".format(msg, self.callback)
+        else:
+            msg = "{} without callback.".format(msg)
+        self.logger.info(msg=msg)

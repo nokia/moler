@@ -72,6 +72,15 @@ def test_failing_with_embedded_command_fails(buffer_connection, command_output_c
         cmd_sudo()
 
 
+def test_failing_with_bit_fails(buffer_connection, command_output_cp_bit_fails):
+    command_output = command_output_cp_bit_fails
+    buffer_connection.remote_inject_response([command_output])
+    cmd_cp = Cp(connection=buffer_connection.moler_connection, src="src.txt", dst="dst.txt")
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass", cmd_object=cmd_cp)
+    with pytest.raises(CommandFailure):
+        cmd_sudo()
+
+
 def test_failing_with_no_command_created(buffer_connection, command_output_cp_fails):
     command_output = command_output_cp_fails
     buffer_connection.remote_inject_response([command_output])
@@ -119,6 +128,14 @@ def command_output_cp_fails():
     output = """sudo cp src.txt dst.txt
 [sudo] password for user: 
 cp: cannot access
+ute@debdev:~/moler$ """
+    return output
+
+
+@pytest.fixture()
+def command_output_cp_bit_fails():
+    output = """sudo cp src.txt dst.txt 
+sudo: /usr/bin/sudo must be owned by uid 0 and have the setuid bit set
 ute@debdev:~/moler$ """
     return output
 
