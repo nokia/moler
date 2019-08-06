@@ -6,9 +6,10 @@ Testing external-IO TCP connection
 - send/receive (naming may differ)
 """
 
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
+
 
 import time
 import importlib
@@ -30,9 +31,8 @@ def test_can_open_and_close_connection(tcp_connection_class,
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     connection.open()
     connection.close()
-    time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
-    tcp_server_pipe.send(("get history", {}))
-    dialog_with_server = tcp_server_pipe.recv()
+    dialog_with_server = _wait_for_last_message(tcp_server_pipe=tcp_server_pipe, last_message='Client disconnected',
+                                                timeout=5)
     assert 'Client connected' in dialog_with_server
     assert 'Client disconnected' in dialog_with_server
 
@@ -46,9 +46,8 @@ def test_can_open_and_close_connection_as_context_manager(tcp_connection_class,
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     with connection.open():
         pass
-    time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
-    tcp_server_pipe.send(("get history", {}))
-    dialog_with_server = tcp_server_pipe.recv()
+    dialog_with_server = _wait_for_last_message(tcp_server_pipe=tcp_server_pipe, last_message='Client disconnected',
+                                                timeout=5)
     assert 'Client connected' in dialog_with_server
     assert 'Client disconnected' in dialog_with_server
 
@@ -101,12 +100,28 @@ def test_can_receive_binary_data_from_connection(tcp_connection_class,
 # --------------------------- resources ---------------------------
 
 
+def _wait_for_last_message(tcp_server_pipe, last_message="Client disconnected", timeout=5):
+    start_time = time.time()
+    dialog_with_server = []
+
+    while last_message not in dialog_with_server:
+        tcp_server_pipe.send(("get history", {}))
+        time.sleep(0.01)
+        dialog_with_server = tcp_server_pipe.recv()
+
+        if time.time() - start_time > timeout:
+            break
+
+    return dialog_with_server
+
+
 @pytest.fixture(params=['io.raw.tcp.ThreadedTcp'])
 def tcp_connection_class(request):
     module_name, class_name = request.param.rsplit('.', 1)
     module = importlib.import_module('moler.{}'.format(module_name))
     connection_class = getattr(module, class_name)
     return connection_class
+
 
 @pytest.yield_fixture()
 def integration_tcp_server_and_pipe():
