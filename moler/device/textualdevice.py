@@ -508,6 +508,8 @@ class TextualDevice(object):
         self._set_state(state)
 
     def _run_prompts_observers(self):
+        self._validate_prompts_uniqueness()
+
         for state in self._state_prompts.keys():
             prompt_event = self.get_event(
                 event_name="wait4prompt",
@@ -526,6 +528,25 @@ class TextualDevice(object):
 
             prompt_event.start()
             self._prompts_events[state] = prompt_event
+
+    def _validate_prompts_uniqueness(self):
+        prompts = dict()
+        error_message = ""
+
+        for state in self._state_prompts.keys():
+            prompt = self._state_prompts[state]
+
+            if prompt not in prompts.keys():
+                prompts[prompt] = state
+            else:
+                error_message += "\n'{}' -> '{}', '{}'".format(prompt, prompts[prompt], state)
+
+        if error_message:
+            exc = DeviceFailure(device=self.__class__.__name__,
+                                message="Incorrect device configuration. The same prompts for states: {}.".format(
+                                    error_message))
+            self._log(logging.ERROR, exc)
+            raise exc
 
     def _stop_prompts_observers(self):
         for device_state in self._prompts_events:

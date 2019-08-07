@@ -47,7 +47,7 @@ DEVICES:
         PROXY_PC:
           execute_command: ssh
           command_params:
-            expected_prompt: "proxy_pc#"
+            expected_prompt: "remote#"
             host: proxy_pc_host
             login: proxy_pc_login
             password: password
