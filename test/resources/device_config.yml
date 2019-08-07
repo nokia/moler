@@ -141,8 +141,5 @@ DEVICES:
             host: proxy_pc_host
             login: proxy_pc_login
             password: password
-<<<<<<< HEAD
             set_timeout: null
-=======
-            set_timeout: null
->>>>>>> 710ad7404f3be46bf1789b9ea7937f291975ae8e
+
