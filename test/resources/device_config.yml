@@ -28,7 +28,7 @@ DEVICES:
             host: remote_host
             login: remote_login
             password: login
-            set_timeout: none
+            set_timeout: null
 
   UNIX_REMOTE_PROXY_PC:
     DEVICE_CLASS: moler.device.unixremote.UnixRemote
@@ -42,7 +42,7 @@ DEVICES:
             login: remote_login
             password: password
             expected_prompt: "remote#"
-            set_timeout: none
+            set_timeout: null
       UNIX_LOCAL:
         PROXY_PC:
           execute_command: ssh
@@ -51,7 +51,7 @@ DEVICES:
             host: proxy_pc_host
             login: proxy_pc_login
             password: password
-            set_timeout: none
+            set_timeout: null
       UNIX_REMOTE:
         PROXY_PC:
           command_params:
@@ -68,6 +68,7 @@ DEVICES:
             host: cli_host
             login: cli_login
             password: password
+            set_timeout: null
 
 
   JUNIPER_EX_PROXY_PC:
@@ -82,7 +83,7 @@ DEVICES:
             host: proxy_pc_hostproxy_pc_host
             login: proxy_pc_login
             password: password
-            set_timeout: none
+            set_timeout: null
         UNIX_LOCAL:
           execute_command: exit
           command_params:
@@ -95,7 +96,7 @@ DEVICES:
             host: proxy_pc_host
             login: proxy_pc_login
             password: password
-            set_timeout: none
+            set_timeout: null
       CLI:
         PROXY_PC:
           execute_command: exit
@@ -113,7 +114,7 @@ DEVICES:
             expected_prompt: SCPI>
             host: 10.0.0.1
             port: 99999
-            set_timeout: none
+            set_timeout: null
 
   SCPI_PROXY_PC:
     DEVICE_CLASS: moler.device.scpi.Scpi
@@ -126,7 +127,7 @@ DEVICES:
             expected_prompt: SCPI>
             host: 10.0.0.1
             port: 99999
-            set_timeout: none
+            set_timeout: null
       SCPI:
         PROXY_PC:
           execute_command: exit_telnet # default value
@@ -140,4 +141,4 @@ DEVICES:
             host: proxy_pc_host
             login: proxy_pc_login
             password: password
-            set_timeout: none
+            set_timeout: null
