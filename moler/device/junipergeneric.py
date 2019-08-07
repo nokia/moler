@@ -3,9 +3,9 @@
 Juniper Generic module.
 """
 
-__author__ = 'Jakub Kupiec'
+__author__ = 'Sylwester Golonka, Jakub Kupiec'
 __copyright__ = 'Copyright (C) 2019, Nokia'
-__email__ = 'jakub.kupiec@nokia.com'
+__email__ = 'sylwester.golonka@nokia.com, jakub.kupiec@nokia.com'
 
 import logging
 from abc import ABCMeta
