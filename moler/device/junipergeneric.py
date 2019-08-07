@@ -47,6 +47,21 @@ class JuniperGeneric(ProxyPc):
         config = {
             JuniperGeneric.connection_hops: {
 
+                JuniperGeneric.unix_local: {  # from
+                    JuniperGeneric.proxy_pc: {  # to
+                        "execute_command": "ssh",  # using command
+                        "command_params": {  # with parameters
+                            "target_newline": "\n"
+                        },
+                        "required_command_params": [
+                            "host",
+                            "login",
+                            "password",
+                            "expected_prompt"
+                        ]
+                    },
+
+                },
                 JuniperGeneric.proxy_pc: {  # from
                     JuniperGeneric.unix_local: {  # to
                         "execute_command": "exit",  # using command
@@ -61,7 +76,7 @@ class JuniperGeneric(ProxyPc):
                         "execute_command": "ssh",  # using command
                         "command_params": {  # with parameters
                             "set_timeout": None,
-                            "expected_prompt": "proxy_pc#"
+                            "expected_prompt": "^admin@switch>"
                         },
                         "required_command_params": [
                             "host",
@@ -75,9 +90,9 @@ class JuniperGeneric(ProxyPc):
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
                         },
-                        "required_command_params": {
-                            "expected_prompt": "proxy_pc#"
-                        }
+                        "required_command_params": [
+                            "expected_prompt"
+                        ]
                     },
                     JuniperGeneric.configure: {
                         "execute_command": "configure",
@@ -94,20 +109,6 @@ class JuniperGeneric(ProxyPc):
                         }
                     },
                 },
-                JuniperGeneric.unix_local: {  # from
-                    JuniperGeneric.proxy_pc: {  # to
-                        "execute_command": "ssh",  # using command
-                        "command_params": {  # with parameters
-                            "expected_prompt": "proxy_pc#"
-                        },
-                        "required_command_params": [
-                            "host",
-                            "login",
-                            "password",
-                        ]
-                    },
-
-                }
 
             }
         }

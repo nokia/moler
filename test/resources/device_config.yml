@@ -79,9 +79,9 @@ DEVICES:
         CLI:
           execute_command: ssh
           command_params:
-            expected_prompt: "proxy_pc#"
-            host: proxy_pc_hostproxy_pc_host
-            login: proxy_pc_login
+            expected_prompt: "admin@switch>"
+            host: cli_host
+            login: cli_login
             password: password
             set_timeout: null
         UNIX_LOCAL:

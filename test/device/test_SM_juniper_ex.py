@@ -51,7 +51,7 @@ def juniper_ex_proxy_pc_output():
             'exit': 'moler_bash#'
         },
         "PROXY_PC": {
-            'TERM=xterm-mono ssh -l proxy_pc_login proxy_pc_hostproxy_pc_host': 'proxy_pc#',
+            'TERM=xterm-mono ssh -l cli_login cli_host': 'admin@switch>',
             'exit': 'moler_bash#'
         },
         "CLI": {
