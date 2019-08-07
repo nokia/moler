@@ -196,6 +196,38 @@ def test_log_error_when_not_abs_path_for_configuation_path_was_used(moler_config
     assert "Loading configuration requires absolute path and not '../resources/device_config.yml'" in str(err.value)
 
 
+def test_log_error_when_the_same_prompts_in_more_then_one_state(moler_config, device_factory):
+    from moler.exceptions import MolerException
+
+    conn_config = {
+        'LOGGER': {
+            'PATH': '/tmp/',
+            'RAW_LOG': True,
+            'DATE_FORMAT': '%d %H:%M:%S'
+        },
+        'DEVICES': {
+            'UNIX_LOCAL_THE_SAME_PROMPTS': {
+                'DEVICE_CLASS': 'moler.device.unixlocal.UnixLocal',
+                'INITIAL_STATE': 'UNIX_LOCAL',
+                'CONNECTION_HOPS': {
+                    "UNIX_LOCAL": {
+                        "UNIX_LOCAL_ROOT": {
+                            "command_params": {
+                                "expected_prompt": "^moler_bash#"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    with pytest.raises(MolerException) as err:
+        moler_config.load_config(config=conn_config, config_type='dict')
+        device = device_factory.get_device(name='UNIX_LOCAL_THE_SAME_PROMPTS')
+
+    assert "Incorrect device configuration. The same prompts for state" in str(err.value)
+
+
 def test_return_new_device_when_call_another_time_same_desc_device(device_factory):
     device = device_factory.get_device(
         device_class='moler.device.unixlocal.UnixLocal',
