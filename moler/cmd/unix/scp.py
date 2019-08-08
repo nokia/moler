@@ -15,7 +15,7 @@ __email__ = 'sylwester.golonka@nokia.com, marcin.usielski@nokia.com, michal.erns
 
 class Scp(GenericUnixCommand):
     def __init__(self, connection, source, dest, password="", options="", prompt=None, newline_chars=None,
-                 known_hosts_on_failure='keygen', encrypt_password=True, runner=None):
+                 known_hosts_on_failure='keygen', encrypt_password=True, runner=None, repeat_password=True):
         """
         Represents Unix command scp.
 
@@ -28,6 +28,7 @@ class Scp(GenericUnixCommand):
         :param known_hosts_on_failure: "rm" or "keygen" how to deal with error. If empty then scp fails.
         :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text
         :param runner: Runner to run command
+        :param repeat_password: If True then repeat last password if no more provided. If False then exception is set.
         """
         super(Scp, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.source = source
@@ -44,6 +45,8 @@ class Scp(GenericUnixCommand):
             self._passwords = [password]
         else:
             self._passwords = list(password)  # copy of list of passwords to modify
+        self.repeat_password = repeat_password
+        self._last_password = ""
 
     def build_command_string(self):
         """
@@ -126,9 +129,14 @@ class Scp(GenericUnixCommand):
         if (not self._sent_password) and self._is_password_requested(line):
             try:
                 pwd = self._passwords.pop(0)
+                self._last_password = pwd
                 self.connection.sendline(pwd, encrypt=self.encrypt_password)
             except IndexError:
-                self.set_exception(CommandFailure(self, "Password was requested but no more passwords provided."))
+                if self.repeat_password:
+                    self.connection.sendline(self._last_password, encrypt=self.encrypt_password)
+                else:
+                    self.set_exception(CommandFailure(self, "Password was requested but no more passwords provided."))
+                    self.break_cmd()
             self._sent_password = True
             raise ParsingDone()
 

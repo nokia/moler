@@ -98,7 +98,7 @@ test.txt                                                            100%  104   
 ute@debdev:~/Desktop$"""
     buffer_connection.remote_inject_response([command_output])
     scp_cmd = Scp(connection=buffer_connection.moler_connection, source="test.txt", dest="ute@localhost:/home/ute",
-                  known_hosts_on_failure="", password="pass")
+                  known_hosts_on_failure="", password="pass", repeat_password=False)
     with pytest.raises(CommandFailure):
         scp_cmd()
 
