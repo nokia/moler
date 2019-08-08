@@ -77,6 +77,18 @@ ute@debdev:~/Desktop$"""
         scp_cmd()
 
 
+def test_scp_raise_exception_failure_not_a_directory(buffer_connection):
+    command_output = """
+ute@debdev:~/Desktop$ scp test ute@localhost:/home/ute
+Not a directory
+ute@debdev:~/Desktop$"""
+    buffer_connection.remote_inject_response([command_output])
+    scp_cmd = Scp(connection=buffer_connection.moler_connection, source="test", dest="ute@localhost:/home/ute",
+                  known_hosts_on_failure="")
+    with pytest.raises(CommandFailure):
+        scp_cmd()
+
+
 def test_scp_raise_exception_ldap_password(buffer_connection):
     command_output = """
 ute@debdev:~/Desktop$ scp test.txt ute@localhost:/home/ute

@@ -64,7 +64,7 @@ class Scp(GenericUnixCommand):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         try:
             self._know_hosts_verification(line)
@@ -86,7 +86,8 @@ class Scp(GenericUnixCommand):
         Parses line if success.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if matches success
+        :return: None.
+        :raises: ParsingDone if matches success.
         """
         if self._regex_helper.search_compiled(Scp._re_parse_success, line):
             if 'FILE_NAMES' not in self.current_ret.keys():
@@ -96,14 +97,16 @@ class Scp(GenericUnixCommand):
             raise ParsingDone
 
     _re_parse_failed = re.compile(
-        r'(?P<FAILED>cannot access|Could not|no such|denied|not a regular file|Is a directory|No route to host|lost connection)')
+        r'(?P<FAILED>cannot access|Could not|no such|denied|not a regular file|Is a directory|No route to host|"'
+        r'lost connection|Not a directory)')
 
     def _parse_failed(self, line):
         """
         Parses line if failed.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if matches fail
+        :return: None
+        :raises ParsingDone if matches fail.
         """
         if self._regex_helper.search_compiled(Scp._re_parse_failed, line):
             self.set_exception(CommandFailure(self, "Command failed in line >>{}<<.".format(line)))
@@ -117,7 +120,8 @@ class Scp(GenericUnixCommand):
         Sends password if necessary.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if password was sent.
+        :return: None
+        :raises  ParsingDone if password was sent.
         """
         if (not self._sent_password) and self._is_password_requested(line):
             try:
@@ -144,11 +148,12 @@ class Scp(GenericUnixCommand):
         Sends yes to device if needed.
 
         :param line: Line from device.
-        :return: Nothing
+        :return: None
         """
         if (not self._sent_continue_connecting) and self._parse_continue_connecting(line):
             self.connection.sendline('yes')
             self._sent_continue_connecting = True
+            raise ParsingDone()
 
     _re_continue_connecting = re.compile(r'\(yes\/no\)|\'yes\'\sor\s\'no\'')
 
@@ -168,7 +173,7 @@ class Scp(GenericUnixCommand):
         Parses hosts file.
 
         :param line: Line from device
-        :return: Nothing
+        :return: None
         """
         if (self.known_hosts_on_failure is not None) and self._regex_helper.search_compiled(Scp._re_host_key, line):
             self._hosts_file = self._regex_helper.group("PATH")
@@ -182,7 +187,7 @@ class Scp(GenericUnixCommand):
         Parses host key verification.
 
         :param line: Line from device
-        :return: Nothing
+        :return: None
         """
         if self._regex_helper.search_compiled(Scp._re_id_dsa, line):
             self.connection.sendline("")
