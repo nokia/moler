@@ -91,7 +91,7 @@ class Scp(GenericUnixCommand):
 
         :param line: Line from device.
         :return: None.
-        :raises: ParsingDone if matches success.
+        :raises ParsingDone: if matches success.
         """
         if self._regex_helper.search_compiled(Scp._re_parse_success, line):
             if 'FILE_NAMES' not in self.current_ret.keys():
@@ -110,7 +110,7 @@ class Scp(GenericUnixCommand):
 
         :param line: Line from device.
         :return: None
-        :raises ParsingDone if matches fail.
+        :raises ParsingDone: if matches fail.
         """
         if self._regex_helper.search_compiled(Scp._re_parse_failed, line):
             self.set_exception(CommandFailure(self, "Command failed in line >>{}<<.".format(line)))
@@ -125,7 +125,7 @@ class Scp(GenericUnixCommand):
 
         :param line: Line from device.
         :return: None
-        :raises  ParsingDone if password was sent.
+        :raises  ParsingDone: if password was sent.
         """
         if (not self._sent_password) and self._is_password_requested(line):
             try:
@@ -148,7 +148,7 @@ class Scp(GenericUnixCommand):
         Parses line if password is requested.
 
         :param line: Line from device.
-        :return: Match object if matches, otherwise None
+        :return: Match object if matches, otherwise None.
         """
         return self._regex_helper.search_compiled(Scp._re_password, line)
 
@@ -158,7 +158,7 @@ class Scp(GenericUnixCommand):
 
         :param line: Line from device.
         :return: None.
-        :raises ParsingDone if line handled by this method.
+        :raises ParsingDone: if line handled by this method.
         """
         if (not self._sent_continue_connecting) and self._parse_continue_connecting(line):
             self.connection.sendline('yes')
@@ -182,11 +182,14 @@ class Scp(GenericUnixCommand):
         """
         Parses hosts file.
 
-        :param line: Line from device
-        :return: None
+        :param line: Line from device.
+        :return: None.
+        :raises ParsingDone: if line handled by this method.
+
         """
         if (self.known_hosts_on_failure is not None) and self._regex_helper.search_compiled(Scp._re_host_key, line):
             self._hosts_file = self._regex_helper.group("PATH")
+            raise ParsingDone()
 
     _re_id_dsa = re.compile("id_dsa:", re.IGNORECASE)
 
@@ -198,7 +201,7 @@ class Scp(GenericUnixCommand):
 
         :param line: Line from device.
         :return: None.
-        :raises ParsingDone if line handled by this method.
+        :raises ParsingDone: if line handled by this method.
         """
         if self._regex_helper.search_compiled(Scp._re_id_dsa, line):
             self.connection.sendline("")
