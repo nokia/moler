@@ -98,11 +98,11 @@ class Scp(GenericUnixCommand):
                 self.current_ret['FILE_NAMES'] = list()
 
             self.current_ret['FILE_NAMES'].append(self._regex_helper.group('FILENAME'))
-            raise ParsingDone
+            raise ParsingDone()
 
     _re_parse_failed = re.compile(
-        r'(?P<FAILED>cannot access|Could not|no such|denied|not a regular file|Is a directory|No route to host|"'
-        r'lost connection|Not a directory)')
+        r'cannot access|Could not|no such|denied|not a regular file|Is a directory|No route to host|"'
+        r'lost connection|Not a directory', re.IGNORECASE)
 
     def _parse_failed(self, line):
         """
@@ -114,7 +114,7 @@ class Scp(GenericUnixCommand):
         """
         if self._regex_helper.search_compiled(Scp._re_parse_failed, line):
             self.set_exception(CommandFailure(self, "Command failed in line >>{}<<.".format(line)))
-            raise ParsingDone
+            raise ParsingDone()
 
     _re_parse_permission_denied = re.compile(
         r'Permission denied, please try again|Permission denied \(publickey,password\)')
@@ -157,7 +157,8 @@ class Scp(GenericUnixCommand):
         Sends yes to device if needed.
 
         :param line: Line from device.
-        :return: None
+        :return: None.
+        :raises ParsingDone if line handled by this method.
         """
         if (not self._sent_continue_connecting) and self._parse_continue_connecting(line):
             self.connection.sendline('yes')
@@ -195,22 +196,25 @@ class Scp(GenericUnixCommand):
         """
         Parses host key verification.
 
-        :param line: Line from device
-        :return: None
+        :param line: Line from device.
+        :return: None.
+        :raises ParsingDone if line handled by this method.
         """
         if self._regex_helper.search_compiled(Scp._re_id_dsa, line):
             self.connection.sendline("")
+            raise ParsingDone()
         elif self._regex_helper.search_compiled(Scp._re_host_key_verification_failure, line):
             if self._hosts_file:
-                self.handle_failed_host_key_verification()
+                self._handle_failed_host_key_verification()
             else:
                 self.set_exception(CommandFailure(self, "Command failed in line >>{}<<.".format(line)))
+            raise ParsingDone()
 
-    def handle_failed_host_key_verification(self):
+    def _handle_failed_host_key_verification(self):
         """
         Handles failed host key verification.
 
-        :return: Nothing
+        :return: None
         """
         if "rm" == self.known_hosts_on_failure:
             self.connection.sendline("\nrm -f " + self._hosts_file)
