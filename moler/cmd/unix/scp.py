@@ -82,7 +82,7 @@ class Scp(GenericUnixCommand):
             self._sent_password = False  # Clear flag for multi passwords connections
         return super(Scp, self).on_new_line(line, is_full_line)
 
-    _re_parse_success = re.compile(r'^(?P<FILENAME>\S+)\s+.*\d+\%.*')
+    _re_parse_success = re.compile(r'^(?P<FILENAME>\S+)\s+.*\d+%.*')
 
     def _parse_success(self, line):
         """
@@ -163,7 +163,7 @@ class Scp(GenericUnixCommand):
             self._sent_continue_connecting = True
             raise ParsingDone()
 
-    _re_continue_connecting = re.compile(r'\(yes\/no\)|\'yes\'\sor\s\'no\'')
+    _re_continue_connecting = re.compile(r'\(yes/no\)|\'yes\'\sor\s\'no\'')
 
     def _parse_continue_connecting(self, line):
         """
