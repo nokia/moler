@@ -2,6 +2,7 @@
 """
 SCP command module.
 """
+
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
