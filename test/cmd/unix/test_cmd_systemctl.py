@@ -29,7 +29,7 @@ SUB    = The low-level unit activation state, values depend on unit type.
 
 141 loaded units listed. Pass --all to see loaded but inactive units, too.
 To show all installed unit files use 'systemctl list-unit-files'.
-lines 70-141 (END)"""
+lines 70-141/141 (END)"""
     output3 = "user@debdev:/home/ute#"
 
     systemctl = Systemctl(connection=buffer_connection.moler_connection)
