@@ -67,6 +67,7 @@ class Systemctl(Service):
             self._parse_authenticating_as(line, is_full_line)
             self._parse_header(line, is_full_line)
             self._parse_line(line, is_full_line)
+            self._parse_send_space_or_q(line, is_full_line)
 
             return super(Systemctl, self).on_new_line(line, is_full_line)
         except ParsingDone:
@@ -138,6 +139,19 @@ class Systemctl(Service):
                 self.current_ret[service][column] = self._regex_helper.group(column.strip())
 
             raise ParsingDone
+
+    # lines 1-99
+    _re_send_space_or_q = re.compile(r"^lines.+")
+
+    def _parse_send_space_or_q(self, line, is_full_line):
+        if not is_full_line and self._regex_helper.search_compiled(Systemctl._re_send_space_or_q, line):
+            if "END" in line:
+                self.connection.sendline("q")
+            else:
+                self.connection.send(" ")
+
+            raise ParsingDone
+
 
 
 COMMAND_OUTPUT_status = """user@debdev:/home/ute# systemctl status ssh.service
