@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Service command module.
+Systemctl command module.
 """
 
 __author__ = 'Michal Ernst'
