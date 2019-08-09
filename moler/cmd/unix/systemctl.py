@@ -75,6 +75,7 @@ class Systemctl(Service):
             pass
         if is_full_line:
             self._space_or_q_sent = False
+
     # Password:
     _re_password = re.compile(r"Password:", re.I)
 
@@ -108,10 +109,10 @@ class Systemctl(Service):
             self.current_ret['USER'] = self._regex_helper.group('USER')
             raise ParsingDone
 
-    columns = ["UNIT", "LOAD", "ACTIVE", "SUB", "DESCRIPTION"]
+    _columns = ["UNIT", "LOAD", "ACTIVE", "SUB", "DESCRIPTION"]
 
     # UNIT                                                                    LOAD   ACTIVE     SUB          DESCRIPTION
-    _re_header = re.compile(r"UNIT\s+LOAD\s+ACTIVE\s+SUB\s+DESCRIPTION")
+    _re_header = re.compile(r'\s+'.join(map(str, _columns)), re.I)
 
     def _parse_header(self, line, is_full_line):
         if is_full_line and self._regex_helper.search_compiled(Systemctl._re_header, line):
@@ -121,7 +122,7 @@ class Systemctl(Service):
 
     # basic.target                                                           loaded active     active       Basic System
     _re_line = re.compile(
-        r"^\s+(?P<UNIT>\S+)\s+(?P<LOAD>\S+)\s+(?P<ACTIVE>\S+)\s+(?P<SUB>\S+)\s+(?P<DESCRIPTION>.+)")
+        r"^\s+(?P<UNIT>\S+)\s+(?P<LOAD>\S+)\s+(?P<ACTIVE>\S+)\s+(?P<SUB>\S+)\s+(?P<DESCRIPTION>.+)", re.I)
 
     def _parse_line(self, line, is_full_line):
         """
@@ -134,10 +135,10 @@ class Systemctl(Service):
         """
 
         if is_full_line and self._header_found and self._regex_helper.search_compiled(Systemctl._re_line, line):
-            service = self._regex_helper.group(Systemctl.columns[0])
+            service = self._regex_helper.group(Systemctl._columns[0])
             self.current_ret[service] = dict()
 
-            for column in Systemctl.columns[1:]:
+            for column in Systemctl._columns[1:]:
                 self.current_ret[service][column] = self._regex_helper.group(column.strip())
 
             raise ParsingDone
