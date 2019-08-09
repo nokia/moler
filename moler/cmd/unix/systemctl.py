@@ -35,7 +35,6 @@ class Systemctl(Service):
         # Parameters defined by calling the command
         self.service = service
         self.password = password
-        self.encrypt_password = password
         self.encrypt_password = encrypt_password
 
         self.ret_required = False
