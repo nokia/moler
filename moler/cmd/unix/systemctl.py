@@ -153,7 +153,6 @@ class Systemctl(Service):
             raise ParsingDone
 
 
-
 COMMAND_OUTPUT_status = """user@debdev:/home/ute# systemctl status ssh.service
 ● ssh.service - OpenBSD Secure Shell server
    Loaded: loaded (/lib/systemd/system/ssh.service; enabled)
