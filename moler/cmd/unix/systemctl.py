@@ -40,6 +40,7 @@ class Systemctl(Service):
         self.ret_required = False
         self._password_sent = False
         self._header_found = False
+        self._space_or_q_sent = False
 
     def build_command_string(self):
         """
@@ -63,28 +64,29 @@ class Systemctl(Service):
         :return: None.
         """
         try:
-            self._parse_sudo_password(line)
+            self._parse_password(line)
             self._parse_authenticating_as(line, is_full_line)
             self._parse_header(line, is_full_line)
             self._parse_line(line, is_full_line)
-            self._parse_send_space_or_q(line, is_full_line)
+            self._parse_send_space_or_q(line)
 
             return super(Systemctl, self).on_new_line(line, is_full_line)
         except ParsingDone:
             pass
-
+        if is_full_line:
+            self._space_or_q_sent = False
     # Password:
-    _re_sudo_password = re.compile(r"Password:", re.I)
+    _re_password = re.compile(r"Password:", re.I)
 
-    def _parse_sudo_password(self, line):
+    def _parse_password(self, line):
         """
-        Parses if sudo waits for password.
+        Parses if waits for password.
 
         :param line: Line from device.
         :return: None.
         :raises: ParsingDone if regex matches the line.
         """
-        if re.search(Systemctl._re_sudo_password, line):
+        if re.search(Systemctl._re_password, line):
             if not self._password_sent:
                 self.connection.sendline(self.password, encrypt=self.encrypt_password)
                 self._password_sent = True
@@ -143,13 +145,14 @@ class Systemctl(Service):
     # lines 1-99
     _re_send_space_or_q = re.compile(r"^lines.+")
 
-    def _parse_send_space_or_q(self, line, is_full_line):
-        if not is_full_line and self._regex_helper.search_compiled(Systemctl._re_send_space_or_q, line):
+    def _parse_send_space_or_q(self, line):
+        if not self._space_or_q_sent and self._regex_helper.search_compiled(Systemctl._re_send_space_or_q, line):
             if "END" in line:
                 self.connection.sendline("q")
             else:
                 self.connection.send(" ")
 
+            self._space_or_q_sent = True
             raise ParsingDone
 
 
