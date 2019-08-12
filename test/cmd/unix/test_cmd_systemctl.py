@@ -12,7 +12,7 @@ import pytest
 from moler.cmd.unix.systemctl import Systemctl
 
 
-def test_telnet_with_additional_commands(buffer_connection):
+def test_systemctl_sending_space_and_q(buffer_connection):
     output1 = """systemctl
   UNIT                                                                                      LOAD   ACTIVE     SUB          DESCRIPTION
   basic.target                                                                              loaded active     active       Basic System
