@@ -3,9 +3,9 @@
 Tee command module.
 """
 
-__author__ = 'Marcin Usielski'
+__author__ = 'Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2019, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.helpers import copy_list
@@ -13,7 +13,6 @@ import six
 
 
 class Tee(GenericUnixCommand):
-
     """Unix tee command"""
 
     def __init__(self, connection, path, content, border="END_OF_FILE", prompt=None, newline_chars=None, runner=None):
@@ -37,6 +36,7 @@ class Tee(GenericUnixCommand):
             self._content = copy_list(src=content)  # copy of list of content to modify
         self.border = border
         self.end_sent = False
+        self._first_line_sent = False
 
     def build_command_string(self):
         """
@@ -47,15 +47,6 @@ class Tee(GenericUnixCommand):
         cmd = "tee {} << {}".format(self.path, self.border)
         return cmd
 
-    def send_command(self):
-        """
-        Sends command (and the first line from content) to connection.
-
-        :return: None
-        """
-        super(Tee, self).send_command()
-        self._send_one_line()
-
     def on_new_line(self, line, is_full_line):
         """
         Parses the output of the command.
@@ -64,9 +55,16 @@ class Tee(GenericUnixCommand):
         :param is_full_line: True if line had new line chars, False otherwise
         :return: Nothing
         """
+        self._send_content_first_line()
         if is_full_line:
             self._send_one_line()
         super(Tee, self).on_new_line(line=line, is_full_line=is_full_line)
+
+    def _send_content_first_line(self):
+        if not self._first_line_sent:
+            line_to_save = self._content.pop(0)
+            self.connection.sendline(line_to_save)
+            self._first_line_sent = True
 
     def _send_one_line(self):
         try:
