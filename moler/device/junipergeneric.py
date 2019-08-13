@@ -41,9 +41,9 @@ class JuniperGeneric(ProxyPc):
     @mark_to_call_base_class_method_with_same_name
     def _get_default_sm_configuration_with_proxy_pc(self):
         """
-               Return State Machine default configuration with proxy_pc state.
-               :return: default sm configuration with proxy_pc state.
-               """
+        Return State Machine default configuration with proxy_pc state.
+        :return: default sm configuration with proxy_pc state.
+        """
         config = {
             JuniperGeneric.connection_hops: {
 
@@ -117,9 +117,9 @@ class JuniperGeneric(ProxyPc):
     @mark_to_call_base_class_method_with_same_name
     def _get_default_sm_configuration_without_proxy_pc(self):
         """
-                Return State Machine default configuration without proxy_pc state.
-                :return: default sm configuration without proxy_pc state.
-                """
+        Return State Machine default configuration without proxy_pc state.
+        :return: default sm configuration without proxy_pc state.
+        """
         config = {
             JuniperGeneric.connection_hops: {
                 JuniperGeneric.unix_local: {  # from
@@ -214,9 +214,9 @@ class JuniperGeneric(ProxyPc):
     @mark_to_call_base_class_method_with_same_name
     def _prepare_transitions_without_proxy_pc(self):
         """
-                Prepare transitions to change states without proxy_pc state.
-                :return: transitions without proxy_pc state.
-                """
+        Prepare transitions to change states without proxy_pc state.
+        :return: transitions without proxy_pc state.
+        """
         transitions = {
             JuniperGeneric.cli: {
                 JuniperGeneric.unix_local: {
@@ -252,9 +252,9 @@ class JuniperGeneric(ProxyPc):
     @mark_to_call_base_class_method_with_same_name
     def _prepare_state_prompts_with_proxy_pc(self):
         """
-                Prepare textual prompt for each state for State Machine with proxy_pc state.
-                :return: textual prompt for each state with proxy_pc state.
-                """
+        Prepare textual prompt for each state for State Machine with proxy_pc state.
+        :return: textual prompt for each state with proxy_pc state.
+        """
         state_prompts = {
             JuniperGeneric.cli:
                 self._configurations[JuniperGeneric.connection_hops][JuniperGeneric.proxy_pc][
@@ -269,9 +269,9 @@ class JuniperGeneric(ProxyPc):
     @mark_to_call_base_class_method_with_same_name
     def _prepare_state_prompts_without_proxy_pc(self):
         """
-               Prepare textual prompt for each state for State Machine without proxy_pc state.
-               :return: textual prompt for each state without proxy_pc state.
-               """
+        Prepare textual prompt for each state for State Machine without proxy_pc state.
+        :return: textual prompt for each state without proxy_pc state.
+        """
         state_prompts = {
             JuniperGeneric.unix_local:
                 self._configurations[JuniperGeneric.connection_hops][JuniperGeneric.cli][JuniperGeneric.unix_local][
@@ -288,9 +288,9 @@ class JuniperGeneric(ProxyPc):
     @mark_to_call_base_class_method_with_same_name
     def _prepare_state_hops_with_proxy_pc(self):
         """
-                Prepare non direct transitions for each state for State Machine with proxy_pc state.
-                :return: non direct transitions for each state with proxy_pc state.
-                """
+        Prepare non direct transitions for each state for State Machine with proxy_pc state.
+        :return: non direct transitions for each state with proxy_pc state.
+        """
         state_hops = {
             JuniperGeneric.not_connected: {
                 JuniperGeneric.cli: JuniperGeneric.unix_local,
@@ -327,9 +327,9 @@ class JuniperGeneric(ProxyPc):
     @mark_to_call_base_class_method_with_same_name
     def _prepare_state_hops_without_proxy_pc(self):
         """
-               Prepare non direct transitions for each state for State Machine without proxy_pc state.
-               :return: non direct transitions for each state without proxy_pc state.
-               """
+        Prepare non direct transitions for each state for State Machine without proxy_pc state.
+        :return: non direct transitions for each state without proxy_pc state.
+        """
         state_hops = {
             JuniperGeneric.not_connected: {
                 JuniperGeneric.cli: JuniperGeneric.unix_local,
@@ -357,11 +357,12 @@ class JuniperGeneric(ProxyPc):
 
     def _get_packages_for_state(self, state, observer):
         """
-               Get available packages contain cmds and events for each state.
-               :param state: device state.
-               :param observer: observer type, available: cmd, events
-               :return: available cmds or events for specific device state.
-               """
+        Get available packages contain cmds and events for each state.
+
+        :param state: device state.
+        :param observer: observer type, available: cmd, events
+        :return: available cmds or events for specific device state.
+        """
         available = super(JuniperGeneric, self)._get_packages_for_state(state, observer)
 
         if not available:
