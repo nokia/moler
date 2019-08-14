@@ -339,12 +339,10 @@ class TextualDevice(object):
             available_observer_names = self._eventnames_available_in_state[for_state]
 
         if observer_name in available_observer_names:
+            observer_params = dict(kwargs, connection=self.io_connection.moler_connection)
             observer = create_instance_from_class_fullname(
                 class_fullname=available_observer_names[observer_name],
-                constructor_parameters={
-                    "connection": self.io_connection.moler_connection,
-                    **kwargs
-                }
+                constructor_parameters=observer_params
             )
             return observer
 
