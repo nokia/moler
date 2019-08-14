@@ -46,32 +46,7 @@ class JuniperGeneric(ProxyPc):
         """
         config = {
             JuniperGeneric.connection_hops: {
-
-                JuniperGeneric.unix_local: {  # from
-                    JuniperGeneric.proxy_pc: {  # to
-                        "execute_command": "ssh",  # using command
-                        "command_params": {  # with parameters
-                            "target_newline": "\n"
-                        },
-                        "required_command_params": [
-                            "host",
-                            "login",
-                            "password",
-                            "expected_prompt"
-                        ]
-                    },
-
-                },
                 JuniperGeneric.proxy_pc: {  # from
-                    JuniperGeneric.unix_local: {  # to
-                        "execute_command": "exit",  # using command
-                        "command_params": {  # with parameters
-                            "expected_prompt": r'^moler_bash#',
-                            "target_newline": "\n"
-                        },
-                        "required_command_params": [
-                        ]
-                    },
                     JuniperGeneric.cli: {  # to
                         "execute_command": "ssh",  # using command
                         "command_params": {  # with parameters
@@ -170,17 +145,8 @@ class JuniperGeneric(ProxyPc):
         """
 
         transitions = {
-
             JuniperGeneric.proxy_pc: {
                 JuniperGeneric.cli: {
-                    "action": [
-                        "_execute_command_to_change_state"
-                    ],
-                },
-            },
-            JuniperGeneric.unix_local: {
-
-                JuniperGeneric.proxy_pc: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
@@ -199,7 +165,6 @@ class JuniperGeneric(ProxyPc):
                     ],
                 },
             },
-
             JuniperGeneric.configure: {
                 JuniperGeneric.cli: {
                     "action": [
@@ -207,7 +172,6 @@ class JuniperGeneric(ProxyPc):
                     ],
                 }
             }
-
         }
         return transitions
 
@@ -273,9 +237,6 @@ class JuniperGeneric(ProxyPc):
         :return: textual prompt for each state without proxy_pc state.
         """
         state_prompts = {
-            JuniperGeneric.unix_local:
-                self._configurations[JuniperGeneric.connection_hops][JuniperGeneric.cli][JuniperGeneric.unix_local][
-                    "command_params"]["expected_prompt"],
             JuniperGeneric.cli:
                 self._configurations[JuniperGeneric.connection_hops][JuniperGeneric.unix_local][JuniperGeneric.cli][
                     "command_params"]["expected_prompt"],
@@ -295,8 +256,6 @@ class JuniperGeneric(ProxyPc):
             JuniperGeneric.not_connected: {
                 JuniperGeneric.cli: JuniperGeneric.unix_local,
                 JuniperGeneric.configure: JuniperGeneric.unix_local,
-                JuniperGeneric.proxy_pc: JuniperGeneric.unix_local,
-                JuniperGeneric.unix_local_root: JuniperGeneric.unix_local,
             },
             JuniperGeneric.cli: {
                 JuniperGeneric.not_connected: JuniperGeneric.proxy_pc,
@@ -319,7 +278,6 @@ class JuniperGeneric(ProxyPc):
             },
             JuniperGeneric.proxy_pc: {
                 JuniperGeneric.configure: JuniperGeneric.cli,
-                JuniperGeneric.unix_local_root: JuniperGeneric.unix_local
             }
         }
         return state_hops
@@ -334,7 +292,6 @@ class JuniperGeneric(ProxyPc):
             JuniperGeneric.not_connected: {
                 JuniperGeneric.cli: JuniperGeneric.unix_local,
                 JuniperGeneric.configure: JuniperGeneric.unix_local,
-                JuniperGeneric.unix_local_root: JuniperGeneric.unix_local,
             },
             JuniperGeneric.unix_local: {
                 JuniperGeneric.configure: JuniperGeneric.cli
