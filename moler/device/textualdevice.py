@@ -330,7 +330,6 @@ class TextualDevice(object):
     def _get_observer_in_state(self, observer_name, observer_type, for_state, **kwargs):
         """Return Observable object assigned to obserber_name of given device"""
         # TODO: return observer object wrapped in decorator mocking it's start()
-        # TODO:  to check it it is starting in correct state (do it on flag)
         available_observer_names = []
         if not for_state:
             for_state = self.current_state
