@@ -62,8 +62,7 @@ class Tee(GenericUnixCommand):
 
     def _send_content_first_line(self):
         if not self._first_line_sent:
-            line_to_save = self._content.pop(0)
-            self.connection.sendline(line_to_save)
+            self._send_one_line()
             self._first_line_sent = True
 
     def _send_one_line(self):
