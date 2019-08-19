@@ -25,6 +25,7 @@ from moler.device.state_machine import StateMachine
 from moler.exceptions import CommandWrongState, DeviceFailure, EventWrongState, DeviceChangeStateFailure
 from moler.helpers import copy_dict
 from moler.helpers import update_dict
+from moler.instance_loader import create_instance_from_class_fullname
 
 
 # TODO: name, logger/logger_name as param
@@ -329,7 +330,6 @@ class TextualDevice(object):
     def _get_observer_in_state(self, observer_name, observer_type, for_state, **kwargs):
         """Return Observable object assigned to obserber_name of given device"""
         # TODO: return observer object wrapped in decorator mocking it's start()
-        # TODO:  to check it it is starting in correct state (do it on flag)
         available_observer_names = []
         if not for_state:
             for_state = self.current_state
@@ -339,15 +339,11 @@ class TextualDevice(object):
             available_observer_names = self._eventnames_available_in_state[for_state]
 
         if observer_name in available_observer_names:
-            # TODO: GL refactor to instance_loader
-            observer_splited = available_observer_names[observer_name].split('.')
-            observer_module_name = ".".join(observer_splited[:-1])
-            observer_class_name = observer_splited[-1]
-
-            observer_module = importlib.import_module(observer_module_name)
-            observer_class = getattr(observer_module, observer_class_name)
-            observer = observer_class(connection=self.io_connection.moler_connection, **kwargs)
-
+            observer_params = dict(kwargs, connection=self.io_connection.moler_connection)
+            observer = create_instance_from_class_fullname(
+                class_fullname=available_observer_names[observer_name],
+                constructor_parameters=observer_params
+            )
             return observer
 
         exc = DeviceFailure(
