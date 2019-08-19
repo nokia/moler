@@ -29,11 +29,9 @@ Example of device in yaml configuration file:
             CLI:
               execute_command: ssh
               command_params:
-                expected_prompt: "admin@switch>"
                 host: cli_host
                 login: cli_login
                 password: password
-                set_timeout: null
             UNIX_LOCAL:
               execute_command: exit
               command_params:
@@ -52,7 +50,7 @@ Example of device in yaml configuration file:
               execute_command: exit
               command_params:
                 expected_prompt: "proxy_pc#"
-    -without PROXY_PC:
+    - without PROXY_PC:
       JUNIPER_EX:
         DEVICE_CLASS: moler.device.juniper_ex.JuniperEX
         INITIAL_STATE: UNIX_LOCAL
@@ -64,6 +62,5 @@ Example of device in yaml configuration file:
                 host: cli_host
                 login: cli_login
                 password: password
-                set_timeout: null
 
 """
