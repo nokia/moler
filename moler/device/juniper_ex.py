@@ -40,7 +40,6 @@ Example of device in yaml configuration file:
                 host: proxy_pc_host
                 login: proxy_pc_login
                 password: password
-                set_timeout: null
           CLI:
             PROXY_PC:
               execute_command: exit
