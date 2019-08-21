@@ -32,10 +32,6 @@ Example of device in yaml configuration file:
                 host: cli_host
                 login: cli_login
                 password: password
-            UNIX_LOCAL:
-              execute_command: exit
-              command_params:
-                expected_prompt: "moler_bash#"
           UNIX_LOCAL:
             PROXY_PC:
               execute_command: ssh
