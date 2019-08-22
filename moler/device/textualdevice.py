@@ -506,9 +506,6 @@ class TextualDevice(object):
     def _prompts_observer_callback(self, event):
         occurrence = event.get_last_occurrence()
         caught_prompt = occurrence["pattern"]
-
-        print(caught_prompt)
-
         state = self._reverse_state_prompts_dict[caught_prompt]
 
         self._set_state(state)
