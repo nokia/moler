@@ -42,16 +42,19 @@ EVENT_RESULT_any = [
     {u'groups': (u'Line1', u'contains message'),
      u'line': u'Line1 contains message number 20',
      u'matched': u'Line1 contains message number 20',
+     u'pattern': r'(?P<LINE_NUMBER>Line\d+)\s+(.*)\s+number 20',
      u'named_groups': {u'LINE_NUMBER': u'Line1'},
      u'time': datetime.datetime(2019, 5, 17, 12, 37, 47, 778380)},
     {u'groups': (15,),
      u'line': u'Line2 contains message number 15',
      u'matched': u'number 15',
+     u'pattern': r'number (\d5)',
      u'named_groups': {},
      u'time': datetime.datetime(2019, 5, 17, 12, 37, 47, 778498)},
     {u'groups': (u'Line4', u'contains message'),
      u'line': u'Line4 contains message number 20',
      u'matched': u'Line4 contains message number 20',
+     u'pattern': r'(?P<LINE_NUMBER>Line\d+)\s+(.*)\s+number 20',
      u'named_groups': {u'LINE_NUMBER': u'Line4'},
      u'time': datetime.datetime(2019, 5, 17, 12, 37, 47, 778554)}
 ]
@@ -75,11 +78,13 @@ EVENT_RESULT_all = [
     [{u'groups': (u'Line1', u'contains message'),
       u'line': u'Line1 contains message number 20',
       u'matched': u'Line1 contains message number 20',
+      u'pattern': r'(?P<LINE_NUMBER>Line\d+)\s+(.*)\s+number 20',
       u'named_groups': {u'LINE_NUMBER': u'Line1'},
       u'time': datetime.datetime(2019, 5, 17, 12, 36, 24, 390745)},
      {u'groups': (15,),
       u'line': u'Line2 contains message number 15',
       u'matched': u'number 15',
+      u'pattern': r'number (\d5)',
       u'named_groups': {},
       u'time': datetime.datetime(2019, 5, 17, 12, 36, 24, 390769)}]
 ]
@@ -103,11 +108,13 @@ EVENT_RESULT_sequence = [
     [{u'groups': (15,),
       u'line': u'Line2 contains message number 15',
       u'matched': u'number 15',
+      u'pattern': r'number (\d5)',
       u'named_groups': {},
       u'time': datetime.datetime(2019, 5, 17, 12, 37, 17, 832166)},
      {u'groups': (u'Line4', u'contains message'),
       u'line': u'Line4 contains message number 20',
       u'matched': u'Line4 contains message number 20',
+      u'pattern': r'(?P<LINE_NUMBER>Line\d+)\s+(.*)\s+number 20',
       u'named_groups': {u'LINE_NUMBER': u'Line4'},
       u'time': datetime.datetime(2019, 5, 17, 12, 37, 17, 832200)}]
 ]
@@ -137,6 +144,7 @@ EVENT_RESULT_sequence2 = [
             "groups": (),
             "named_groups": {},
             "matched": "number 15",
+            'pattern': r'number \d5',
             'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
         },
         {
@@ -144,6 +152,7 @@ EVENT_RESULT_sequence2 = [
             "groups": (u"Line4", u"contains message"),
             "named_groups": {"LINE_NUMBER": "Line4"},
             "matched": "Line4 contains message number 20",
+            'pattern': r'(?P<LINE_NUMBER>Line\d+)\s+(.*)\s+number 20',
             'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224935),
         }
     ],
@@ -153,6 +162,7 @@ EVENT_RESULT_sequence2 = [
             "groups": (),
             "named_groups": {},
             "matched": "number 15",
+            'pattern': r'number \d5',
             'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224940),
         },
         {
@@ -160,6 +170,7 @@ EVENT_RESULT_sequence2 = [
             "groups": (u"Line9", u"contains message"),
             "named_groups": {"LINE_NUMBER": "Line9"},
             "matched": "Line9 contains message number 20",
+            'pattern': r'(?P<LINE_NUMBER>Line\d+)\s+(.*)\s+number 20',
             'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224945),
         }
     ]

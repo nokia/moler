@@ -37,6 +37,7 @@ EVENT_RESULT_SIMPLE = [
         "groups": (u'reboot', u'Tue 2019-03-19 12:15:16 CET!'),
         "named_groups": {},
         "matched": "system is going down for reboot at Tue 2019-03-19 12:15:16 CET!",
+        "pattern": r"system is going down for (\w+) at (.+)",
         'time': datetime.datetime.now()
     }
 ]

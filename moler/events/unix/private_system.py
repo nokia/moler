@@ -52,6 +52,7 @@ EVENT_RESULT = [
         {
             'line': 'You are about to access a private system. This system is for the use of',
             'matched': 'You are about to access a private system. This system is for the use of',
+            'pattern': 'You are about to access a private system. This system is for the use of',
             'groups': (),
             'named_groups': {},
             'time': datetime.datetime(2019, 5, 17, 12, 42, 38, 278418)
@@ -59,6 +60,7 @@ EVENT_RESULT = [
         {
             'line': 'authorized users only. All connections are logged to the extent and by means',
             'matched': 'authorized users only. All connections are logged to the extent and by means',
+            'pattern': 'authorized users only. All connections are logged to the extent and by means',
             'groups': (),
             'named_groups': {},
             'time': datetime.datetime(2019, 5, 17, 12, 42, 38, 278418)
@@ -66,6 +68,7 @@ EVENT_RESULT = [
         {
             'line': 'acceptable by the local legislation. Any unauthorized access or access',
             'matched': 'acceptable by the local legislation. Any unauthorized access or access',
+            'pattern': 'acceptable by the local legislation. Any unauthorized access or access',
             'groups': (),
             'named_groups': {},
             'time': datetime.datetime(2019, 5, 17, 12, 42, 38, 278418)
@@ -73,6 +76,7 @@ EVENT_RESULT = [
         {
             'line': 'attempts may be punished to the fullest extent possible under the applicable',
             'matched': 'attempts may be punished to the fullest extent possible under the applicable',
+            'pattern': 'attempts may be punished to the fullest extent possible under the applicable',
             'groups': (),
             'named_groups': {},
             'time': datetime.datetime(2019, 5, 17, 12, 42, 38, 278418)
@@ -80,6 +84,7 @@ EVENT_RESULT = [
         {
             'line': 'local legislation.',
             'matched': 'local legislation.',
+            'pattern': 'local legislation.',
             'groups': (),
             'named_groups': {},
             'time': datetime.datetime(2019, 5, 17, 12, 42, 38, 278418)

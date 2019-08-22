@@ -87,8 +87,8 @@ class LineEvent(TextualEvent):
     def _parse_line(self, line):
         self.parser(line=line)
 
-    def _set_current_ret(self, line, match):
-        current_ret = self._prepare_current_ret(line, match)
+    def _set_current_ret(self, line, match, pattern):
+        current_ret = self._prepare_current_ret(line, match, pattern)
 
         if self._is_single_cycle_finished():
             if self.match == "any":
@@ -99,7 +99,7 @@ class LineEvent(TextualEvent):
         else:
             self._current_ret.append(current_ret)
 
-    def _prepare_current_ret(self, line, match):
+    def _prepare_current_ret(self, line, match, pattern):
         current_ret = dict()
         current_ret["line"] = line
         current_ret["time"] = datetime.datetime.now()
@@ -117,6 +117,7 @@ class LineEvent(TextualEvent):
         current_ret["groups"] = groups
 
         current_ret["matched"] = self._convert_string_to_number(match.group(0))
+        current_ret["pattern"] = pattern.pattern
 
         return current_ret
 
@@ -124,7 +125,7 @@ class LineEvent(TextualEvent):
         for pattern in self.compiled_patterns:
             match = re.search(pattern, line)
             if match:
-                self._set_current_ret(line=line, match=match)
+                self._set_current_ret(line=line, match=match, pattern=pattern)
                 return
 
     def _catch_all(self, line):
@@ -132,7 +133,7 @@ class LineEvent(TextualEvent):
             match = re.search(pattern, line)
             if match:
                 del self.copy_compiled_patterns[index]
-                self._set_current_ret(line=line, match=match)
+                self._set_current_ret(line=line, match=match, pattern=pattern)
                 if self._is_single_cycle_finished():
                     self._prepare_new_cycle_parameters()
                 return
@@ -143,7 +144,7 @@ class LineEvent(TextualEvent):
             match = re.search(pattern, line)
             if match:
                 del self.copy_compiled_patterns[0]
-                self._set_current_ret(line=line, match=match)
+                self._set_current_ret(line=line, match=match, pattern=pattern)
                 if self._is_single_cycle_finished():
                     self._prepare_new_cycle_parameters()
 
@@ -179,6 +180,7 @@ EVENT_RESULT_single_pattern = [
         "groups": (),
         "named_groups": {},
         "matched": "host:~ #",
+        "pattern": "host:.*#",
         'line': "host:~ #"
     }
 ]
@@ -204,6 +206,7 @@ EVENT_RESULT_patterns_list = [
         "groups": (),
         "named_groups": {},
         "matched": "Last login",
+        "pattern": "Last login",
         'line': "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1"
     },
     {
@@ -211,6 +214,7 @@ EVENT_RESULT_patterns_list = [
         "groups": (),
         "named_groups": {},
         "matched": "host:~ #",
+        "pattern": "host:.*#",
         'line': "host:~ #"
     }
 ]

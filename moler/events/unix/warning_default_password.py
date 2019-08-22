@@ -43,6 +43,7 @@ EVENT_RESULT = [
     {'groups': (),
      'line': 'Warning: you are using default password, please change it as soon as possible.',
      'matched': 'Warning: you are using default password, please change it as soon as possible',
+     "pattern": r'Warning: you are using default password, please change it as soon as possible',
      'named_groups': {},
      'time': datetime.datetime(2019, 5, 17, 12, 42, 38, 278418)}
 ]
