@@ -517,7 +517,7 @@ class TextualDevice(object):
         self._validate_prompts_uniqueness()
         self._prepare_reverse_state_prompts_dict()
 
-        self.prompts_event = self.get_event(
+        self._prompts_event = self.get_event(
             event_name="wait4prompts",
             event_params={
                 "prompts": self._reverse_state_prompts_dict.keys(),
@@ -525,13 +525,13 @@ class TextualDevice(object):
             }
         )
 
-        self.prompts_event.add_event_occurred_callback(
+        self._prompts_event.add_event_occurred_callback(
             callback=self._prompts_observer_callback,
             callback_params={
-                "event": self.prompts_event,
+                "event": self._prompts_event,
             })
 
-        self.prompts_event.start()
+        self._prompts_event.start()
 
     def _prepare_reverse_state_prompts_dict(self):
         for state in self._state_prompts.keys():
