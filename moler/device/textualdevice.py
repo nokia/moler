@@ -23,8 +23,7 @@ from moler.config.loggers import configure_device_logger
 from moler.connection import get_connection
 from moler.device.state_machine import StateMachine
 from moler.exceptions import CommandWrongState, DeviceFailure, EventWrongState, DeviceChangeStateFailure
-from moler.helpers import copy_dict
-from moler.helpers import update_dict
+from moler.helpers import copy_dict, update_dict
 from moler.instance_loader import create_instance_from_class_fullname
 
 
@@ -69,7 +68,8 @@ class TextualDevice(object):
 
         self._state_hops = dict()
         self._state_prompts = dict()
-        self._prompts_events = dict()
+        self._reverse_state_prompts_dict = dict()
+        self._prompts_event = None
         self._configurations = dict()
         self._newline_chars = dict()  # key is state, value is chars to send as newline
         if io_connection:
@@ -503,30 +503,36 @@ class TextualDevice(object):
     def _close_connection(self, source_state, dest_state, timeout):
         self.io_connection.close()
 
-    def _prompt_observer_callback(self, event, state):
+    def _prompts_observer_callback(self, event):
+        occurrence = event.get_last_occurrence()
+        state = occurrence["state"]
+
         self._set_state(state)
 
     def _run_prompts_observers(self):
         self._validate_prompts_uniqueness()
+        self._prepare_reverse_state_prompts_dict()
 
+        self._prompts_event = self.get_event(
+            event_name="wait4prompts",
+            event_params={
+                "prompts": self._reverse_state_prompts_dict,
+                "till_occurs_times": -1
+            }
+        )
+
+        self._prompts_event.add_event_occurred_callback(
+            callback=self._prompts_observer_callback,
+            callback_params={
+                "event": self._prompts_event,
+            })
+
+        self._prompts_event.start()
+
+    def _prepare_reverse_state_prompts_dict(self):
         for state in self._state_prompts.keys():
-            prompt_event = self.get_event(
-                event_name="wait4prompt",
-                event_params={
-                    "prompt": self._state_prompts[state],
-                    "till_occurs_times": -1
-                }
-            )
-
-            prompt_event.add_event_occurred_callback(
-                callback=self._prompt_observer_callback,
-                callback_params={
-                    "event": prompt_event,
-                    "state": state
-                })
-
-            prompt_event.start()
-            self._prompts_events[state] = prompt_event
+            prompt = self._state_prompts[state]
+            self._reverse_state_prompts_dict[prompt] = state
 
     def _validate_prompts_uniqueness(self):
         prompts = dict()
@@ -548,9 +554,8 @@ class TextualDevice(object):
             raise exc
 
     def _stop_prompts_observers(self):
-        for device_state in self._prompts_events:
-            self._prompts_events[device_state].cancel()
-            self._prompts_events[device_state].remove_event_occurred_callback()
+        self._prompts_event.cancel()
+        self._prompts_event.remove_event_occurred_callback()
 
     def build_trigger_to_state(self, state):
         trigger = "GOTO_{}".format(state)
