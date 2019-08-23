@@ -19,7 +19,7 @@ class Wait4prompts(TextualEvent):
         :param runner: Runner to run event
         """
         super(Wait4prompts, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times)
-        self.compiled_prompts = self.compile_prompts_patterns(prompts)
+        self.compiled_prompts_regex = self.compile_prompts_patterns(prompts)
         self.process_full_lines_only = False
 
     def on_new_line(self, line, is_full_line):
@@ -29,12 +29,12 @@ class Wait4prompts(TextualEvent):
             pass
 
     def _parse_prompts(self, line):
-        for prompt in self.compiled_prompts.keys():
-            if self._regex_helper.search_compiled(prompt, line):
+        for prompt_regex in self.compiled_prompts_regex.keys():
+            if self._regex_helper.search_compiled(prompt_regex, line):
                 current_ret = {
                     'line': line,
-                    'prompt': prompt.pattern,
-                    'state': self.compiled_prompts[prompt],
+                    'prompt_regex': prompt_regex.pattern,
+                    'state': self.compiled_prompts_regex[prompt_regex],
                     'time': datetime.datetime.now()
                 }
                 self.event_occurred(event_data=current_ret)
@@ -70,7 +70,7 @@ EVENT_KWARGS = {
 EVENT_RESULT = [
     {
         'line': "host:~ #",
-        "prompt": "host:.*#",
+        "prompt_regex": "host:.*#",
         "state": "UNIX_LOCAL",
         'time': datetime.datetime(2019, 8, 22, 12, 42, 38, 278418)
     }
