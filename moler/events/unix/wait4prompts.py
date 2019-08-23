@@ -14,12 +14,12 @@ class Wait4prompts(TextualEvent):
         """
         Event for waiting for prompt
         :param connection: moler connection to device, terminal when command is executed
-        :param prompt: prompt regex
+        :param prompts: prompts->state regex dict
         :param till_occurs_times: number of event occurrence
         :param runner: Runner to run event
         """
         super(Wait4prompts, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times)
-        self.compiled_prompts_regex = self.compile_prompts_patterns(prompts)
+        self.compiled_prompts_regex = self._compile_prompts_patterns(prompts)
         self.process_full_lines_only = False
 
     def on_new_line(self, line, is_full_line):
@@ -41,7 +41,7 @@ class Wait4prompts(TextualEvent):
 
                 raise ParsingDone()
 
-    def compile_prompts_patterns(self, patterns):
+    def _compile_prompts_patterns(self, patterns):
         compiled_patterns = dict()
         for pattern in patterns.keys():
             if not hasattr(pattern, "match"):  # Not compiled regexp
