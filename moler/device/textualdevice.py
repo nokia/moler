@@ -505,8 +505,7 @@ class TextualDevice(object):
 
     def _prompts_observer_callback(self, event):
         occurrence = event.get_last_occurrence()
-        caught_prompt = occurrence["pattern"]
-        state = self._reverse_state_prompts_dict[caught_prompt]
+        state = occurrence["state"]
 
         self._set_state(state)
 
@@ -517,7 +516,7 @@ class TextualDevice(object):
         self._prompts_event = self.get_event(
             event_name="wait4prompts",
             event_params={
-                "prompts": self._reverse_state_prompts_dict.keys(),
+                "prompts": self._reverse_state_prompts_dict,
                 "till_occurs_times": -1
             }
         )
