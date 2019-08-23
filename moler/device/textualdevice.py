@@ -103,6 +103,12 @@ class TextualDevice(object):
                                                                          self.__class__.__name__)
         self._log(level=logging.INFO, msg=msg)
 
+    def add_f_device(self, f_device, add_vice_versa=True):
+        pass
+
+    def get_f_devices(self, device_type):
+        pass
+
     def calc_timeout_for_command(self, passed_timeout, configurations):
         command_timeout = None
         configuration_timeout = -1
