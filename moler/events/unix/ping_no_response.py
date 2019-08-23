@@ -47,7 +47,6 @@ EVENT_RESULT = [{
     "groups": (None, u"From 192.168.255.126 icmp_seq=1 Destination Host Unreachable"),
     "named_groups": {},
     "matched": "From 192.168.255.126 icmp_seq=1 Destination Host Unreachable",
-    "pattern": r'(no\s+answer\s+yet\s+for.*)|(.*Destination\s+Host\s+Unreachable)',
     "time": datetime.datetime.now()
 }]
 
@@ -112,7 +111,6 @@ EVENT_RESULT_2 = [
         "groups": (u"no answer yet for icmp_seq=22", None),
         "named_groups": {},
         "matched": "no answer yet for icmp_seq=22",
-        "pattern": r'(no\s+answer\s+yet\s+for.*)|(.*Destination\s+Host\s+Unreachable)',
         "time": datetime.datetime.now()
     }
 ]

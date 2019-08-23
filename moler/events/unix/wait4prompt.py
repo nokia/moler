@@ -42,7 +42,6 @@ EVENT_RESULT = [
         "groups": (),
         "named_groups": {},
         "matched": "host:~ #",
-        "pattern": "host:.*#",
         'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
     }
 ]

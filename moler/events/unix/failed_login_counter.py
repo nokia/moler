@@ -44,8 +44,6 @@ EVENT_RESULT = [
     {'groups': (2,),
      'line': 'There were 2 failed login attempts since the last successful login.',
      'matched': 'There were 2 failed login attempts since the last successful login',
-     'pattern': r'There (?:were|was|have been) (?P<ATTEMPTS_NR>\d+) (?:failed|unsuccessful) login attempts? '
-                r'since the last successful login',
      'named_groups': {'ATTEMPTS_NR': 2},
      'time': datetime.datetime(2019, 5, 17, 12, 42, 38, 278418)}
 ]
@@ -62,8 +60,6 @@ EVENT_RESULT_one = [
     {'groups': (1,),
      'line': 'There was 1 failed login attempts since the last successful login.',
      'matched': 'There was 1 failed login attempts since the last successful login',
-     'pattern': r'There (?:were|was|have been) (?P<ATTEMPTS_NR>\d+) (?:failed|unsuccessful) login attempts? '
-                r'since the last successful login',
      'named_groups': {'ATTEMPTS_NR': 1},
      'time': datetime.datetime(2019, 5, 17, 12, 42, 38, 278418)}
 ]

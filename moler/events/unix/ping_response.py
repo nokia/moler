@@ -64,7 +64,6 @@ EVENT_RESULT = [
         "groups": (),
         "named_groups": {},
         "matched": "64 bytes from 192.168.255.129: icmp_seq=43 ttl=64 time=0.638 ms",
-        "pattern": r'\d+\s+bytes\s+from.+',
         'time': datetime.datetime.now()
     }
 ]

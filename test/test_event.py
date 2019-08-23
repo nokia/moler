@@ -90,7 +90,7 @@ def test_event_whole_output(buffer_connection):
 def test_event_get_last_occurrence(buffer_connection):
     from moler.events.unix.wait4prompt import Wait4prompt
     output = "bash\n"
-    dict_output = {'line': u'bash', 'matched': u'bash', 'pattern': "bash", 'named_groups': {}, 'groups': (), 'time': 0}
+    dict_output = {'line': u'bash', 'matched': u'bash', 'named_groups': {}, 'groups': (), 'time': 0}
     event = Wait4prompt(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
     event.start(timeout=0.1)
     buffer_connection.moler_connection.data_received(output.encode("utf-8"))
