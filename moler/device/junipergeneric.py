@@ -84,7 +84,7 @@ class JuniperGeneric(ProxyPc):
                             "expected_prompt": "^admin@switch>"
                         }
                     },
-                },
+                }
 
             }
         }
@@ -133,7 +133,7 @@ class JuniperGeneric(ProxyPc):
                         "command_params": {  # with parameters
                             "expected_prompt": "^admin@switch>"
                         }
-                    },
+                    }
                 }
             }
         }
@@ -212,8 +212,7 @@ class JuniperGeneric(ProxyPc):
                         "_execute_command_to_change_state"
                     ],
                 }
-            },
-
+            }
         }
         return transitions
 
@@ -248,7 +247,7 @@ class JuniperGeneric(ProxyPc):
                     "command_params"]["expected_prompt"],
             JuniperGeneric.configure:
                 self._configurations[JuniperGeneric.connection_hops][JuniperGeneric.cli][JuniperGeneric.configure][
-                    "command_params"]["expected_prompt"],
+                    "command_params"]["expected_prompt"]
         }
         return state_prompts
 
@@ -302,7 +301,7 @@ class JuniperGeneric(ProxyPc):
                 JuniperGeneric.configure: JuniperGeneric.unix_local,
             },
             JuniperGeneric.unix_local: {
-                JuniperGeneric.configure: JuniperGeneric.cli
+                JuniperGeneric.configure: JuniperGeneric.cli,
             },
             JuniperGeneric.unix_local_root: {
                 JuniperGeneric.cli: JuniperGeneric.unix_local,
