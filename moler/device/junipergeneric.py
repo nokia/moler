@@ -42,6 +42,7 @@ class JuniperGeneric(ProxyPc):
     def _get_default_sm_configuration_with_proxy_pc(self):
         """
         Return State Machine default configuration with proxy_pc state.
+
         :return: default sm configuration with proxy_pc state.
         """
         config = {
@@ -93,6 +94,7 @@ class JuniperGeneric(ProxyPc):
     def _get_default_sm_configuration_without_proxy_pc(self):
         """
         Return State Machine default configuration without proxy_pc state.
+
         :return: default sm configuration without proxy_pc state.
         """
         config = {
@@ -141,6 +143,7 @@ class JuniperGeneric(ProxyPc):
     def _prepare_transitions_with_proxy_pc(self):
         """
         Prepare transitions to change states with proxy_pc state.
+
         :return: transitions with proxy_pc state.
         """
 
@@ -179,6 +182,7 @@ class JuniperGeneric(ProxyPc):
     def _prepare_transitions_without_proxy_pc(self):
         """
         Prepare transitions to change states without proxy_pc state.
+
         :return: transitions without proxy_pc state.
         """
         transitions = {
@@ -217,6 +221,7 @@ class JuniperGeneric(ProxyPc):
     def _prepare_state_prompts_with_proxy_pc(self):
         """
         Prepare textual prompt for each state for State Machine with proxy_pc state.
+
         :return: textual prompt for each state with proxy_pc state.
         """
         state_prompts = {
@@ -234,6 +239,7 @@ class JuniperGeneric(ProxyPc):
     def _prepare_state_prompts_without_proxy_pc(self):
         """
         Prepare textual prompt for each state for State Machine without proxy_pc state.
+
         :return: textual prompt for each state without proxy_pc state.
         """
         state_prompts = {
@@ -250,6 +256,7 @@ class JuniperGeneric(ProxyPc):
     def _prepare_state_hops_with_proxy_pc(self):
         """
         Prepare non direct transitions for each state for State Machine with proxy_pc state.
+
         :return: non direct transitions for each state with proxy_pc state.
         """
         state_hops = {
@@ -286,6 +293,7 @@ class JuniperGeneric(ProxyPc):
     def _prepare_state_hops_without_proxy_pc(self):
         """
         Prepare non direct transitions for each state for State Machine without proxy_pc state.
+
         :return: non direct transitions for each state without proxy_pc state.
         """
         state_hops = {

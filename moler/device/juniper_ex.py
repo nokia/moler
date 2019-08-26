@@ -23,7 +23,6 @@ Example of device in yaml configuration file:
     - with PROXY_PC:
       JUNIPER_EX_PROXY_PC:
         DEVICE_CLASS: moler.device.juniper_ex.JuniperEX
-        INITIAL_STATE: UNIX_LOCAL
         CONNECTION_HOPS:
           PROXY_PC:
             CLI:
@@ -48,7 +47,6 @@ Example of device in yaml configuration file:
     - without PROXY_PC:
       JUNIPER_EX:
         DEVICE_CLASS: moler.device.juniper_ex.JuniperEX
-        INITIAL_STATE: UNIX_LOCAL
         CONNECTION_HOPS:
           UNIX_LOCAL:
             CLI:
@@ -57,5 +55,4 @@ Example of device in yaml configuration file:
                 host: cli_host
                 login: cli_login
                 password: password
-
 """
