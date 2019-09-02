@@ -106,7 +106,8 @@ class TextualDevice(object):
         self._log(level=logging.INFO, msg=msg)
 
     def add_f_device(self, f_device, add_vice_versa=True):
-        if six.string_types(f_device):
+        if isinstance(f_device, six.string_types):
+            # name of device was passed
             pass
         if self._f_devices is None:
             self._f_devices = list()
