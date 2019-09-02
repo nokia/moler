@@ -26,6 +26,7 @@ from moler.device.state_machine import StateMachine
 from moler.exceptions import CommandWrongState, DeviceFailure, EventWrongState, DeviceChangeStateFailure
 from moler.helpers import copy_dict, update_dict
 from moler.instance_loader import create_instance_from_class_fullname
+from moler.device import DeviceFactory
 
 
 # TODO: name, logger/logger_name as param
@@ -108,7 +109,7 @@ class TextualDevice(object):
     def add_f_device(self, f_device, add_vice_versa=True):
         if isinstance(f_device, six.string_types):
             # name of device was passed
-            pass
+            f_device = DeviceFactory.get_device(name=f_device)
         if self._f_devices is None:
             self._f_devices = list()
         if f_device not in self._f_devices:
