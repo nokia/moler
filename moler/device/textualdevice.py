@@ -99,15 +99,26 @@ class TextualDevice(object):
         self._collect_events_for_state_machine()
         self._run_prompts_observers()
         self._default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')
+        self._f_devices = None
         msg = "Created device '{}' as instance of class '{}.{}'.".format(self.name, self.__class__.__module__,
                                                                          self.__class__.__name__)
         self._log(level=logging.INFO, msg=msg)
 
     def add_f_device(self, f_device, add_vice_versa=True):
-        pass
+        if self._f_devices is None:
+            self._f_devices = list()
+        if f_device not in self._f_devices:
+            self._f_devices.append(f_device)
+        if add_vice_versa:
+            f_device.add_f_device(f_device=self, add_vice_versa=False)
 
     def get_f_devices(self, device_type):
-        pass
+        f_devices = list()
+        if self._f_devices is not None:
+            for device in self._f_devices:
+                if isinstance(device, device_type):
+                    f_devices.append(device)
+        return f_devices
 
     def calc_timeout_for_command(self, passed_timeout, configurations):
         command_timeout = None
