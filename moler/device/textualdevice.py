@@ -17,6 +17,7 @@ import pkgutil
 import re
 import time
 import traceback
+import six
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.config.loggers import configure_device_logger
@@ -105,6 +106,8 @@ class TextualDevice(object):
         self._log(level=logging.INFO, msg=msg)
 
     def add_f_device(self, f_device, add_vice_versa=True):
+        if six.string_types(f_device):
+            pass
         if self._f_devices is None:
             self._f_devices = list()
         if f_device not in self._f_devices:
