@@ -108,6 +108,13 @@ class TextualDevice(object):
         self._log(level=logging.INFO, msg=msg)
 
     def add_f_device(self, f_device, add_vice_versa=True):
+        """
+        Adds f device to this device.
+
+        :param f_device: device object or string with device name.
+        :param add_vice_versa: If True then this device will be added to f_device.
+        :return: None
+        """
         if isinstance(f_device, six.string_types):
             # name of device was passed
             f_device = DeviceFactory.get_device(name=f_device)
@@ -119,6 +126,12 @@ class TextualDevice(object):
             f_device.add_f_device(f_device=self, add_vice_versa=False)
 
     def get_f_devices(self, device_type):
+        """
+        Returns list of f devices of passed type.
+
+        :param device_type: type of device. If None then all f devices will be returned.
+        :return: list of devices.
+        """
         f_devices = list()
         if self._f_devices is not None:
             if device_type is None:
