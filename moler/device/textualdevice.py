@@ -25,6 +25,7 @@ from moler.connection import get_connection
 from moler.device.state_machine import StateMachine
 from moler.exceptions import CommandWrongState, DeviceFailure, EventWrongState, DeviceChangeStateFailure
 from moler.helpers import copy_dict, update_dict
+from moler.helpers import copy_list
 from moler.instance_loader import create_instance_from_class_fullname
 from moler.device import DeviceFactory
 
@@ -120,9 +121,12 @@ class TextualDevice(object):
     def get_f_devices(self, device_type):
         f_devices = list()
         if self._f_devices is not None:
-            for device in self._f_devices:
-                if isinstance(device, device_type):
-                    f_devices.append(device)
+            if device_type is None:
+                f_devices = copy_list(src=self._f_devices, deep_copy=False)
+            else:
+                for device in self._f_devices:
+                    if isinstance(device, device_type):
+                        f_devices.append(device)
         return f_devices
 
     def calc_timeout_for_command(self, passed_timeout, configurations):
