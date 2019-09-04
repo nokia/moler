@@ -27,7 +27,7 @@ from moler.exceptions import CommandWrongState, DeviceFailure, EventWrongState, 
 from moler.helpers import copy_dict, update_dict
 from moler.helpers import copy_list
 from moler.instance_loader import create_instance_from_class_fullname
-from moler.device import DeviceFactory
+from moler.device.device import DeviceFactory
 
 
 # TODO: name, logger/logger_name as param
