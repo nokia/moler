@@ -113,7 +113,11 @@ class CommandTextualGeneric(Command):
                 self._stored_exception = None
                 super(CommandTextualGeneric, self)._set_exception_without_done(exception=exception)
             if value and not self._is_done:
-                self.on_success()
+                self.on_done()
+                if self._stored_exception or self.cancelled():
+                    self.on_failure()
+                else:
+                    self.on_success()
             super(CommandTextualGeneric, self.__class__)._is_done.fset(self, value)
 
     @staticmethod
@@ -264,9 +268,25 @@ class CommandTextualGeneric(Command):
                               self._stored_exception),
                           levels_to_go_up=2)
 
+    def on_failure(self):
+        """
+        Callback called by framework when command is just about to finish with failure. Set ret is called
+
+        :return: None
+        """
+        pass
+
     def on_success(self):
         """
         Callback called by framework when command is just about to finish with success. Set ret is called
+
+        :return: None
+        """
+        pass
+
+    def on_done(self):
+        """
+        Callback called by framework when command is just about to finish.
 
         :return: None
         """
