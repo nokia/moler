@@ -528,6 +528,7 @@ class TextualDevice(object):
             })
 
         self._prompts_event.start()
+        self._log(logging.DEBUG, self._reverse_state_prompts_dict)
 
     def _prepare_reverse_state_prompts_dict(self):
         for state in self._state_prompts.keys():
