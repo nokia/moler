@@ -99,10 +99,10 @@ class TextualDevice(object):
         self._collect_events_for_state_machine()
         self._run_prompts_observers()
         self._default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')
-        msg = "Created device '{}' as instance of class '{}.{}'.".format(self.name, self.__class__.__module__,
+        msg = "Created device '{}' as instance of class '{}.{}'. with prompts:".format(self.name, self.__class__.__module__,
                                                                          self.__class__.__name__)
         self._log(level=logging.INFO, msg=msg)
-        self._log(logging.DEBUG, self._reverse_state_prompts_dict)
+        self._log(level=logging.INFO, msg=self._reverse_state_prompts_dict)
 
     def calc_timeout_for_command(self, passed_timeout, configurations):
         command_timeout = None
