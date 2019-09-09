@@ -270,7 +270,7 @@ class CommandTextualGeneric(Command):
 
     def on_failure(self):
         """
-        Callback called by framework when command is just about to finish with failure. Set ret is called
+        Callback called by framework when command is just about to finish with failure. Set ret is called.
 
         :return: None
         """
@@ -278,7 +278,7 @@ class CommandTextualGeneric(Command):
 
     def on_success(self):
         """
-        Callback called by framework when command is just about to finish with success. Set ret is called
+        Callback called by framework when command is just about to finish with success. Set ret is called.
 
         :return: None
         """
