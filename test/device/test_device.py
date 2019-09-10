@@ -19,25 +19,25 @@ def test_device_add_f_device(buffer_connection):
 
     dev1 = UnixLocal(io_connection=buffer_connection)
     dev2 = UnixLocal(io_connection=buffer_connection)
-    f_devices = dev1.get_f_devices(device_type=UnixLocal)
+    f_devices = dev1.get_neighbour_devices(device_type=UnixLocal)
     assert 0 == len(f_devices)
 
-    dev1.add_f_device(f_device=dev2, add_vice_versa=True)
-    f_devices = dev1.get_f_devices(device_type=UnixLocal)
+    dev1.add_neighbour_device(neighbour_device=dev2, bidirectional=True)
+    f_devices = dev1.get_neighbour_devices(device_type=UnixLocal)
     assert 1 == len(f_devices)
 
-    f_devices = dev2.get_f_devices(device_type=UnixLocal)
+    f_devices = dev2.get_neighbour_devices(device_type=UnixLocal)
     assert 1 == len(f_devices)
 
     # device is added only once
-    dev1.add_f_device(f_device=dev2)
-    f_devices = dev1.get_f_devices(device_type=UnixLocal)
+    dev1.add_neighbour_device(neighbour_device=dev2)
+    f_devices = dev1.get_neighbour_devices(device_type=UnixLocal)
     assert 1 == len(f_devices)
 
-    f_devices = dev1.get_f_devices(device_type=None)
+    f_devices = dev1.get_neighbour_devices(device_type=None)
     assert 1 == len(f_devices)
 
-    f_devices = dev1.get_f_devices(device_type=int)
+    f_devices = dev1.get_neighbour_devices(device_type=int)
     assert 0 == len(f_devices)
 
 
@@ -46,12 +46,12 @@ def test_device_add_f_device_without_viceversa(buffer_connection):
     dev1 = UnixLocal(io_connection=buffer_connection)
     dev2 = UnixLocal(io_connection=buffer_connection)
 
-    dev1.add_f_device(f_device=dev2, add_vice_versa=False)
+    dev1.add_neighbour_device(neighbour_device=dev2, bidirectional=False)
 
-    f_devices = dev1.get_f_devices(device_type=UnixLocal)
+    f_devices = dev1.get_neighbour_devices(device_type=UnixLocal)
     assert 1 == len(f_devices)
 
-    f_devices = dev2.get_f_devices(device_type=UnixLocal)
+    f_devices = dev2.get_neighbour_devices(device_type=UnixLocal)
     assert 0 == len(f_devices)
 
 

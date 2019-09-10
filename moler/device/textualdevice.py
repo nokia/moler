@@ -102,32 +102,32 @@ class TextualDevice(object):
         self._collect_events_for_state_machine()
         self._run_prompts_observers()
         self._default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')
-        self._f_devices = None
+        self._neighbour_devices = None
         msg = "Created device '{}' as instance of class '{}.{}' with prompts:".format(self.name,
                                                                                       self.__class__.__module__,
                                                                                       self.__class__.__name__)
         self._log(level=logging.INFO, msg=msg)
         self._log(level=logging.INFO, msg=self._state_prompts)
 
-    def add_f_device(self, f_device, add_vice_versa=True):
+    def add_neighbour_device(self, neighbour_device, bidirectional=True):
         """
         Adds f device to this device.
 
-        :param f_device: device object or string with device name.
-        :param add_vice_versa: If True then this device will be added to f_device.
+        :param neighbour_device: device object or string with device name.
+        :param bidirectional: If True then this device will be added to f_device.
         :return: None
         """
-        if isinstance(f_device, six.string_types):
+        if isinstance(neighbour_device, six.string_types):
             # name of device was passed
-            f_device = DeviceFactory.get_device(name=f_device)
-        if self._f_devices is None:
-            self._f_devices = list()
-        if f_device not in self._f_devices:
-            self._f_devices.append(f_device)
-        if add_vice_versa:
-            f_device.add_f_device(f_device=self, add_vice_versa=False)
+            neighbour_device = DeviceFactory.get_device(name=neighbour_device)
+        if self._neighbour_devices is None:
+            self._neighbour_devices = list()
+        if neighbour_device not in self._neighbour_devices:
+            self._neighbour_devices.append(neighbour_device)
+        if bidirectional:
+            neighbour_device.add_neighbour_device(neighbour_device=self, bidirectional=False)
 
-    def get_f_devices(self, device_type):
+    def get_neighbour_devices(self, device_type):
         """
         Returns list of f devices of passed type.
 
@@ -135,11 +135,11 @@ class TextualDevice(object):
         :return: list of devices.
         """
         f_devices = list()
-        if self._f_devices is not None:
+        if self._neighbour_devices is not None:
             if device_type is None:
-                f_devices = copy_list(src=self._f_devices, deep_copy=False)
+                f_devices = copy_list(src=self._neighbour_devices, deep_copy=False)
             else:
-                for device in self._f_devices:
+                for device in self._neighbour_devices:
                     if isinstance(device, device_type):
                         f_devices.append(device)
         return f_devices
