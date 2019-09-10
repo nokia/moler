@@ -103,7 +103,7 @@ class TextualDevice(object):
                                                                                       self.__class__.__module__,
                                                                                       self.__class__.__name__)
         self._log(level=logging.INFO, msg=msg)
-        self._log(level=logging.INFO, msg=self._reverse_state_prompts_dict)
+        self._log(level=logging.INFO, msg=self._state_prompts)
 
     def calc_timeout_for_command(self, passed_timeout, configurations):
         command_timeout = None
