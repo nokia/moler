@@ -103,9 +103,11 @@ class TextualDevice(object):
         self._run_prompts_observers()
         self._default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')
         self._f_devices = None
-        msg = "Created device '{}' as instance of class '{}.{}'.".format(self.name, self.__class__.__module__,
-                                                                         self.__class__.__name__)
+        msg = "Created device '{}' as instance of class '{}.{}' with prompts:".format(self.name,
+                                                                                      self.__class__.__module__,
+                                                                                      self.__class__.__name__)
         self._log(level=logging.INFO, msg=msg)
+        self._log(level=logging.INFO, msg=self._state_prompts)
 
     def add_f_device(self, f_device, add_vice_versa=True):
         """
