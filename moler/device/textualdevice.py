@@ -137,7 +137,7 @@ class TextualDevice(object):
         """
         if isinstance(neighbour_device, six.string_types):
             # name of device was passed
-            neighbour_device = DeviceFactory.get_device(name=neighbour_device)
+            neighbour_device = DeviceFactory.get_device(name=neighbour_device, establish_connection=False)
         if self._neighbour_devices is None:
             self._neighbour_devices = list()
         if neighbour_device not in self._neighbour_devices:
