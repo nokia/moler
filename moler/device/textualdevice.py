@@ -93,21 +93,39 @@ class TextualDevice(object):
         # TODO: Need test to ensure above sentence for all connection
         self.io_connection.notify(callback=self.on_connection_made, when="connection_made")
         self.io_connection.notify(callback=self.on_connection_lost, when="connection_lost")
-        self.io_connection.open()
 
         self._cmdnames_available_in_state = dict()
         self._eventnames_available_in_state = dict()
+        self._default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')
+        self._neighbour_devices = None
+        self._open = False
+        msg = "Created device '{}' as instance of class '{}.{}'.".format(
+            self.name,
+            self.__class__.__module__,
+            self.__class__.__name__,
+        )
+        self._log(level=logging.DEBUG, msg=msg)
+
+    def establish_connection(self):
+        if self._open:
+            return
+        self.io_connection.open()
 
         self._collect_cmds_for_state_machine()
         self._collect_events_for_state_machine()
         self._run_prompts_observers()
-        self._default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')
-        self._neighbour_devices = None
-        msg = "Created device '{}' as instance of class '{}.{}' with prompts:".format(self.name,
-                                                                                      self.__class__.__module__,
-                                                                                      self.__class__.__name__)
+
+        msg = "Established connection to device '{}' (as instance of class '{}.{}') with prompts: '{}'.".format(
+            self.name,
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self._state_prompts
+        )
+        self._open = True
         self._log(level=logging.INFO, msg=msg)
-        self._log(level=logging.INFO, msg=self._state_prompts)
+
+    def is_open(self):
+        return self._open
 
     def add_neighbour_device(self, neighbour_device, bidirectional=True):
         """

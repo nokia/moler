@@ -3,7 +3,7 @@
 Package Open Source functionality of Moler.
 """
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 from moler.config import devices as devices_config
@@ -19,16 +19,18 @@ class DeviceFactory(object):
             cls.get_device(name=device_name)
 
     @classmethod
-    def get_device(cls, name=None, device_class=None, connection_desc=None, connection_hops=None, initial_state=None):
+    def get_device(cls, name=None, device_class=None, connection_desc=None, connection_hops=None, initial_state=None,
+                   establish_connection=True):
         """
-        Return connection instance of given io_type/variant
+        Return connection instance of given io_type/variant.
 
-        :param name: name of device defined in configuration
+        :param name: name of device defined in configuration.
         :param device_class: 'moler.device.unixlocal', 'moler.device.unixremote', ...
-        :param connection_desc: 'io_type' and 'variant' of device connection
-        :param connection_hops: connection hops to create device SM
-        :param initial_state: initial state for device e.g. UNIX_REMOTE
-        :return: requested device
+        :param connection_desc: 'io_type' and 'variant' of device connection.
+        :param connection_hops: connection hops to create device SM.
+        :param initial_state: initial state for device e.g. UNIX_REMOTE.
+        :param establish_connection: True to open connection, False if it does not matter.
+        :return: requested device.
         """
         if (not name) and (not device_class):
             raise AssertionError("Provide either 'name' or 'device_class' parameter (none given)")
@@ -36,7 +38,11 @@ class DeviceFactory(object):
             raise AssertionError("Use either 'name' or 'device_class' parameter (not both)")
 
         if name in cls._devices.keys():
-            return cls._devices[name]
+            dev = cls._devices[name]
+            if establish_connection and not dev.is_open():
+                dev.establish_connection()
+                dev.goto_state(state=dev.initial_state)
+            return dev
 
         if connection_hops:
             if "CONNECTION_HOPS" not in connection_hops.keys():
@@ -54,6 +60,7 @@ class DeviceFactory(object):
             connection_desc = cls._try_select_device_connection_desc(device_class, connection_desc)
 
         device = cls._create_device(name, device_class, connection_desc, connection_hops, initial_state)
+        device.establish_connection()
         device.goto_state(state=device.initial_state)
 
         if name:
