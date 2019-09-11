@@ -258,6 +258,9 @@ class TextualDevice(object):
 
     def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False,
                    log_stacktrace_on_fail=True):
+        if not self.is_open():
+            self.establish_connection()
+
         dest_state = state
 
         if self.current_state == dest_state:
