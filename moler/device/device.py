@@ -40,7 +40,6 @@ class DeviceFactory(object):
         if name in cls._devices.keys():
             dev = cls._devices[name]
             if establish_connection and not dev.is_open():
-                dev.establish_connection()
                 dev.goto_state(state=dev.initial_state)
             return dev
 
@@ -60,7 +59,6 @@ class DeviceFactory(object):
             connection_desc = cls._try_select_device_connection_desc(device_class, connection_desc)
 
         device = cls._create_device(name, device_class, connection_desc, connection_hops, initial_state)
-        device.establish_connection()
         device.goto_state(state=device.initial_state)
 
         if name:
