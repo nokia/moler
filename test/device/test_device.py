@@ -68,6 +68,7 @@ def test_device_unix_can_return_cd_command(configure_net_1_connection):
     from moler.cmd.unix.cd import Cd
 
     ux = UnixLocal.from_named_connection(connection_name='net_1')
+    ux.establish_connection()
     assert hasattr(ux, 'get_cmd')
     assert isinstance(
         ux.get_cmd(
