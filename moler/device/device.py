@@ -8,6 +8,7 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 
 from moler.config import devices as devices_config
 from moler.instance_loader import create_instance_from_class_fullname
+from moler.helpers import copy_list
 
 
 class DeviceFactory(object):
@@ -67,6 +68,23 @@ class DeviceFactory(object):
             cls._devices[device.name] = device
 
         return device
+
+    @classmethod
+    def get_devices_by_type(cls, device_type):
+        """
+        Returns list of devices filtered by device_type.
+
+        :param device_type: type of device. If None then return all devices.
+        :return: List of devices. Can be an empty list.
+        """
+        if type is None:
+            devices = copy_list(src=cls._devices.values(), deep_copy=False)
+        else:
+            devices = list()
+            for device in cls._devices.values():
+                if isinstance(device, device_type):
+                    devices.append(device)
+        return devices
 
     @classmethod
     def _try_select_device_connection_desc(cls, device_class, connection_desc):

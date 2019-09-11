@@ -149,7 +149,7 @@ class TextualDevice(object):
         """
         Returns list of f devices of passed type.
 
-        :param device_type: type of device. If None then all f devices will be returned.
+        :param device_type: type of device. If None then all neighbour devices will be returned.
         :return: list of devices.
         """
         f_devices = list()
