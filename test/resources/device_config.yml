@@ -12,6 +12,11 @@ DEVICES:
       io_type: terminal
       variant: threaded
 
+  LOGICAL_TOPOLOGY:
+    UNIX_LOCAL:
+      - SCPI
+      - UNIX_REMOTE
+
   UNIX_LOCAL:
     DEVICE_CLASS: moler.device.unixlocal.UnixLocal
     INITIAL_STATE: UNIX_LOCAL
@@ -96,8 +101,3 @@ DEVICES:
             login: proxy_pc_login
             password: password
             set_timeout: False
-
-LOGICAL_TOPOLOGY:
-  UNIX_LOCAL:
-    - SCPI
-    - UNIX_REMOTE

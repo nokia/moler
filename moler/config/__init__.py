@@ -98,7 +98,6 @@ def load_config(config=None, from_env_var=None, config_type='yaml'):
     load_logger_from_config(config)
     load_connection_from_config(config)
     load_device_from_config(config)
-    load_topology_from_config(config)
 
 
 def load_connection_from_config(config):
@@ -113,19 +112,19 @@ def load_connection_from_config(config):
                 conn_cfg.set_default_variant(io_type, variant)
 
 
-def load_topology_from_config(config):
-    from moler.device import DeviceFactory
-    lt = 'LOGICAL_TOPOLOGY'
-    if lt in config:
-        for device_name in config[lt]:
+def _load_topology(topology):
+    if topology:
+        from moler.device import DeviceFactory
+        for device_name in topology:
             device = DeviceFactory.get_device(name=device_name, establish_connection=False)
-            for neighbour_device_name in config[lt][device_name]:
+            for neighbour_device_name in topology[device_name]:
                 neighbour_device = DeviceFactory.get_device(name=neighbour_device_name, establish_connection=False)
                 device.add_neighbour_device(neighbour_device=neighbour_device, bidirectional=True)
 
 
 def load_device_from_config(config):
     create_at_startup = False
+    topology = None
 
     if 'DEVICES' in config:
         if 'DEFAULT_CONNECTION' in config['DEVICES']:
@@ -135,6 +134,8 @@ def load_device_from_config(config):
 
         if 'CREATE_AT_STARTUP' in config['DEVICES']:
             create_at_startup = config['DEVICES'].pop('CREATE_AT_STARTUP')
+
+        topology = config['DEVICES'].pop('LOGICAL_TOPOLOGY', None)
 
         for device_name in config['DEVICES']:
             device_def = config['DEVICES'][device_name]
@@ -149,6 +150,7 @@ def load_device_from_config(config):
     if create_at_startup is True:
         from moler.device.device import DeviceFactory
         DeviceFactory.create_all_devices()
+    _load_topology(topology=topology)
 
 
 def load_logger_from_config(config):
