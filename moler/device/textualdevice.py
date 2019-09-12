@@ -107,6 +107,11 @@ class TextualDevice(object):
         self._log(level=logging.DEBUG, msg=msg)
 
     def establish_connection(self):
+        """
+        Establishes real connection to device. You have to call this method before device is full operable.
+
+        :return: None
+        """
         if self._open:
             return
         self.io_connection.open()
@@ -258,6 +263,17 @@ class TextualDevice(object):
 
     def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False,
                    log_stacktrace_on_fail=True):
+        """
+        Goes to specific state.
+
+        :param state: Name to state to change on the device.
+        :param timeout: Timeout for changing state, if negative then timeout from commands are taken.
+        :param rerun: How many times rerun the procedure before it fails.
+        :param send_enter_after_changed_state: If True then enter is sent after state is changed. False nothing is sent.
+        :param log_stacktrace_on_fail: Set True to have stacktrace in logs when failed, otherwise False.
+        :return: None
+        :raise: DeviceChangeStateFailure if cannot change the state of device.
+        """
         if not self.is_open():
             self.establish_connection()
 

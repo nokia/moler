@@ -113,6 +113,12 @@ def load_connection_from_config(config):
 
 
 def _load_topology(topology):
+    """
+    Loads topology from passed dict.
+
+    :param topology: dict where keys are devices names and values are lists with neighbour devices.
+    :return: None
+    """
     if topology:
         from moler.device import DeviceFactory
         for device_name in topology:
