@@ -96,3 +96,8 @@ DEVICES:
             login: proxy_pc_login
             password: password
             set_timeout: False
+
+LOGICAL_TOPOLOGY:
+  UNIX_LOCAL:
+    - SCPI
+    - UNIX_REMOTE

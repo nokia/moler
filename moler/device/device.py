@@ -77,7 +77,7 @@ class DeviceFactory(object):
         :param device_type: type of device. If None then return all devices.
         :return: List of devices. Can be an empty list.
         """
-        if type is None:
+        if device_type is None:
             devices = copy_list(src=cls._devices.values(), deep_copy=False)
         else:
             devices = list()

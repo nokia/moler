@@ -616,8 +616,9 @@ class TextualDevice(object):
             raise exc
 
     def _stop_prompts_observers(self):
-        self._prompts_event.cancel()
-        self._prompts_event.remove_event_occurred_callback()
+        if self._prompts_event:
+            self._prompts_event.cancel()
+            self._prompts_event.remove_event_occurred_callback()
 
     def build_trigger_to_state(self, state):
         trigger = "GOTO_{}".format(state)
