@@ -12,7 +12,6 @@ from contextlib import contextmanager
 
 from moler.helpers import compare_objects
 from moler.exceptions import MolerException
-from moler.device import DeviceFactory
 from . import connections as conn_cfg
 from . import devices as dev_cfg
 from . import loggers as log_cfg
@@ -115,6 +114,7 @@ def load_connection_from_config(config):
 
 
 def load_topology_from_config(config):
+    from moler.device import DeviceFactory
     lt = 'LOGICAL_TOPOLOGY'
     if lt in config:
         for device_name in config[lt]:
