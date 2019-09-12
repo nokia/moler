@@ -168,6 +168,7 @@ def test_can_select_neighbour_devices_loaded_from_config_file_(moler_config, dev
     assert unix_local in neighbours[0].get_neighbour_devices(device_type=moler.device.unixlocal.UnixLocal)
     assert unix_local in device_factory.get_devices_by_type(device_type=None)
     assert unix_local in device_factory.get_devices_by_type(device_type=moler.device.unixlocal.UnixLocal)
+    unix_local.goto_state(state=unix_local.initial_state)
 
 
 def test_can_select_device_loaded_from_env_variable(moler_config, monkeypatch, device_factory):
