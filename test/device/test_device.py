@@ -14,7 +14,7 @@ def test_device_directly_created_must_be_given_io_connection(buffer_connection):
     assert dev.io_connection == buffer_connection
 
 
-def test_device_add_f_device(buffer_connection):
+def test_device_add_neighbour_device(buffer_connection):
     from moler.device.unixlocal import UnixLocal
 
     dev1 = UnixLocal(io_connection=buffer_connection)
@@ -41,7 +41,7 @@ def test_device_add_f_device(buffer_connection):
     assert 0 == len(f_devices)
 
 
-def test_device_add_f_device_without_viceversa(buffer_connection):
+def test_device_add_neighbour_device_without_bidirectional(buffer_connection):
     from moler.device.unixlocal import UnixLocal
     dev1 = UnixLocal(io_connection=buffer_connection)
     dev2 = UnixLocal(io_connection=buffer_connection)
