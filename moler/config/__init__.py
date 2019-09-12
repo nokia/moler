@@ -12,6 +12,7 @@ from contextlib import contextmanager
 
 from moler.helpers import compare_objects
 from moler.exceptions import MolerException
+from moler.device import DeviceFactory
 from . import connections as conn_cfg
 from . import devices as dev_cfg
 from . import loggers as log_cfg
@@ -98,6 +99,7 @@ def load_config(config=None, from_env_var=None, config_type='yaml'):
     load_logger_from_config(config)
     load_connection_from_config(config)
     load_device_from_config(config)
+    load_topology_from_config(config)
 
 
 def load_connection_from_config(config):
@@ -110,6 +112,16 @@ def load_connection_from_config(config):
             defaults = config['IO_TYPES']['default_variant']
             for io_type, variant in defaults.items():
                 conn_cfg.set_default_variant(io_type, variant)
+
+
+def load_topology_from_config(config):
+    lt = 'LOGICAL_TOPOLOGY'
+    if lt in config:
+        for device_name in config[lt]:
+            device = DeviceFactory.get_device(name=device_name, establish_connection=False)
+            for neighbour_device_name in config[lt][device_name]:
+                neighbour_device = DeviceFactory.get_device(name=neighbour_device_name, establish_connection=False)
+                device.add_neighbour_device(neighbour_device=neighbour_device, bidirectional=True)
 
 
 def load_device_from_config(config):
