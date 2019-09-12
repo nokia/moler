@@ -134,15 +134,12 @@ class TextualDevice(object):
 
     def add_neighbour_device(self, neighbour_device, bidirectional=True):
         """
-        Adds f device to this device.
+        Adds neighbour device to this device.
 
         :param neighbour_device: device object or string with device name.
         :param bidirectional: If True then this device will be added to f_device.
         :return: None
         """
-        if isinstance(neighbour_device, six.string_types):
-            # name of device was passed
-            neighbour_device = DeviceFactory.get_device(name=neighbour_device, establish_connection=False)
         if self._neighbour_devices is None:
             self._neighbour_devices = list()
         if neighbour_device not in self._neighbour_devices:
@@ -152,7 +149,7 @@ class TextualDevice(object):
 
     def get_neighbour_devices(self, device_type):
         """
-        Returns list of f devices of passed type.
+        Returns list of neighbour devices of passed type.
 
         :param device_type: type of device. If None then all neighbour devices will be returned.
         :return: list of devices.
