@@ -116,7 +116,7 @@ def _load_topology(topology):
     """
     Loads topology from passed dict.
 
-    :param topology: dict where keys are devices names and values are lists with neighbour devices.
+    :param topology: dict where key is devices name and value is list with names of neighbour devices.
     :return: None
     """
     if topology:
