@@ -12,6 +12,7 @@ import logging
 import os
 import sys
 import copy
+import pkg_resources
 
 _logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
 active_loggers = set()  # Active loggers created by Moler
@@ -26,6 +27,46 @@ TEST_CASE = 45
 debug_level = None  # means: inactive
 raw_logs_active = False
 write_mode = "a"
+
+moler_logo = """                                                                     
+                        %%%%%%%%%%%%%%%%%%%%%                        
+                   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%                   
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%                
+             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%             
+           %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%           
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%         
+       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  %%%%%%%%%%%%      
+     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    %%%%%%%%%%%%     
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%      %%%%%%%%%%%%%    
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        %%%%%%%%%%%%%%%   
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%                     %%%%%%%%%%%%%%%%   
+  %%%%%%%%%%%%%%%%%%%%%                          %%%%%%%%%%%%%%%%%%  
+ %%%%%%%%%%%%%%%%%%%%                           %%%%%%%%%%%%%%%%%%%  
+ %%%%%%%%%%%%%%%%%%                            %%%%%%%%%%%%%%%%%%%%% 
+ %%%%%%%%%%%%%%%%       €€                    %%%%%%%%%%%%%%%%%%%%%% 
+ %%%%%%%%%%%%%%%                            %%%%%%%%%%%%%%%%%%%%%%%% 
+ %%%%%%%%%%%%%%                          %%%%, %%%%%%%%%%%%%%%%%%%%% 
+ %%%%%%%%%%%%%                                %%%%%%%%%%%%%%%%%%%%%  
+  %%%%%%%%%%%%                              %%%%%%%%%%%%%%%%%%%%%%%  
+  %%%%%%%%%%%                               %%%%%%%%%%%%%%%%%%%%%%   
+   %%%%%%%%%                                   %%%%%%%%%%%%%%%%%%%   
+    %%%%%%%%                                     %%%%%%%%%%%%%%%%    
+     %%%%%%    https://github.com/nokia/moler     %%%%%%%%%%%%%%     
+                                                                     
+    %%%%     %%%%   %%%%%%%%%%   %%%       %%%%%%%%%% %%%%%%%%%%     
+    %%%%%   %%%%%  %%%       %%  %%%       %%%        %%%     %%%    
+    %% %%% %%% %%  %%%       %%  %%%       %%%%%%%%%  %%% %%%%%%%    
+    %%  %%%%%  %%  %%%       %%  %%%       %%%        %%%   %%%      
+    %%   %%%   %%   %%%%%%%%%%%  %%%%%%%%% %%%%%%%%%% %%%     %%%                                                                        
+"""
+
+
+def _get_moler_version():
+    try:
+        return pkg_resources.get_distribution("moler").version
+    except pkg_resources.DistributionNotFound:
+        return "cloned from git repository"
 
 
 def set_write_mode(mode):
@@ -243,6 +284,11 @@ def configure_moler_main_logger():
                                   formatter=MultilineWithDirectionFormatter(fmt=debug_log_format,
                                                                             datefmt=date_format))
 
+        global moler_logo
+        global moler_version
+
+        logger.info(moler_logo)
+        logger.info("Using 'moler' package version: '{}'.".format(_get_moler_version()))
         logger.info("More logs in: {}".format(_logging_path))
 
 
