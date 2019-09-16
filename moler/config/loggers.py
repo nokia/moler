@@ -12,6 +12,7 @@ import logging
 import os
 import sys
 import copy
+import re
 import pkg_resources
 
 _logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
@@ -66,7 +67,16 @@ def _get_moler_version():
     try:
         return pkg_resources.get_distribution("moler").version
     except pkg_resources.DistributionNotFound:
-        return "cloned from git repository"
+        version = "UNKNOWN"
+        setup_py_path = os.path.join(os.path.dirname(__file__), "..", "..", "setup.py")
+
+        with open(setup_py_path, "r") as f:
+            for line in f:
+                search_version = re.search(r'version\s*=\s*\'(?P<VERSION>\d+\.\d+\.\d+)', line)
+                if search_version:
+                    version = search_version.group("VERSION")
+
+        return "{} cloned from git repository".format(version)
 
 
 def set_write_mode(mode):
@@ -283,8 +293,6 @@ def configure_moler_main_logger():
                                   # do we need "%(threadName)-30s" ???
                                   formatter=MultilineWithDirectionFormatter(fmt=debug_log_format,
                                                                             datefmt=date_format))
-
-        global moler_logo
 
         logger.info(moler_logo)
         logger.info("Using 'moler' package version: '{}'.".format(_get_moler_version()))
