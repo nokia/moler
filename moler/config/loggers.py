@@ -28,7 +28,7 @@ debug_level = None  # means: inactive
 raw_logs_active = False
 write_mode = "a"
 
-moler_logo = """                                                                     
+moler_logo = """
                         %%%%%%%%%%%%%%%%%%%%%
                    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
