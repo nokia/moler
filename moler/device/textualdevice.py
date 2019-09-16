@@ -17,7 +17,6 @@ import pkgutil
 import re
 import time
 import traceback
-import six
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.config.loggers import configure_device_logger
@@ -27,7 +26,6 @@ from moler.exceptions import CommandWrongState, DeviceFailure, EventWrongState, 
 from moler.helpers import copy_dict, update_dict
 from moler.helpers import copy_list
 from moler.instance_loader import create_instance_from_class_fullname
-from moler.device.device import DeviceFactory
 
 
 # TODO: name, logger/logger_name as param
@@ -98,7 +96,7 @@ class TextualDevice(object):
         self._eventnames_available_in_state = dict()
         self._default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')
         self._neighbour_devices = None
-        self._open = False
+        self._established = False
         msg = "Created device '{}' as instance of class '{}.{}'.".format(
             self.name,
             self.__class__.__module__,
@@ -112,7 +110,7 @@ class TextualDevice(object):
 
         :return: None
         """
-        if self._open:
+        if self._established:
             return
         self.io_connection.open()
 
@@ -126,11 +124,11 @@ class TextualDevice(object):
             self.__class__.__name__,
             self._state_prompts
         )
-        self._open = True
+        self._established = True
         self._log(level=logging.INFO, msg=msg)
 
-    def is_open(self):
-        return self._open
+    def is_established(self):
+        return self._established
 
     def add_neighbour_device(self, neighbour_device, bidirectional=True):
         """
@@ -154,15 +152,15 @@ class TextualDevice(object):
         :param device_type: type of device. If None then all neighbour devices will be returned.
         :return: list of devices.
         """
-        f_devices = list()
+        neighbour_devices = list()
         if self._neighbour_devices is not None:
             if device_type is None:
-                f_devices = copy_list(src=self._neighbour_devices, deep_copy=False)
+                neighbour_devices = copy_list(src=self._neighbour_devices, deep_copy=False)
             else:
                 for device in self._neighbour_devices:
                     if isinstance(device, device_type):
-                        f_devices.append(device)
-        return f_devices
+                        neighbour_devices.append(device)
+        return neighbour_devices
 
     def calc_timeout_for_command(self, passed_timeout, configurations):
         command_timeout = None
@@ -271,7 +269,7 @@ class TextualDevice(object):
         :return: None
         :raise: DeviceChangeStateFailure if cannot change the state of device.
         """
-        if not self.is_open():
+        if not self.is_established():
             self.establish_connection()
 
         dest_state = state
