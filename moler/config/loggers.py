@@ -70,11 +70,12 @@ def _get_moler_version():
         version = "UNKNOWN"
         setup_py_path = os.path.join(os.path.dirname(__file__), "..", "..", "setup.py")
 
-        with open(setup_py_path, "r") as f:
-            for line in f:
-                search_version = re.search(r'version\s*=\s*\'(?P<VERSION>\d+\.\d+\.\d+)', line)
-                if search_version:
-                    version = search_version.group("VERSION")
+        if os.path.isfile(setup_py_path):
+            with open(setup_py_path, "r") as f:
+                for line in f:
+                    search_version = re.search(r'version\s*=\s*\'(?P<VERSION>\d+\.\d+\.\d+)', line)
+                    if search_version:
+                        version = search_version.group("VERSION")
 
         return "{} cloned from git repository".format(version)
 
