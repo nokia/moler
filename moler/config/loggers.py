@@ -285,7 +285,6 @@ def configure_moler_main_logger():
                                                                             datefmt=date_format))
 
         global moler_logo
-        global moler_version
 
         logger.info(moler_logo)
         logger.info("Using 'moler' package version: '{}'.".format(_get_moler_version()))
