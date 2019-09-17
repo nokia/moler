@@ -14,6 +14,7 @@ import sys
 import copy
 import re
 import pkg_resources
+import platform
 
 _logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
 active_loggers = set()  # Active loggers created by Moler
@@ -45,7 +46,7 @@ moler_logo = """
   %%%%%%%%%%%%%%%%%%%%%                          %%%%%%%%%%%%%%%%%%
  %%%%%%%%%%%%%%%%%%%%                           %%%%%%%%%%%%%%%%%%%
  %%%%%%%%%%%%%%%%%%                            %%%%%%%%%%%%%%%%%%%%%
- %%%%%%%%%%%%%%%%       €€                    %%%%%%%%%%%%%%%%%%%%%%
+ %%%%%%%%%%%%%%%%       $$                    %%%%%%%%%%%%%%%%%%%%%%
  %%%%%%%%%%%%%%%                            %%%%%%%%%%%%%%%%%%%%%%%%
  %%%%%%%%%%%%%%                          %%%%, %%%%%%%%%%%%%%%%%%%%%
  %%%%%%%%%%%%%                                %%%%%%%%%%%%%%%%%%%%%
@@ -64,20 +65,28 @@ moler_logo = """
 
 
 def _get_moler_version():
-    try:
-        return pkg_resources.get_distribution("moler").version
-    except pkg_resources.DistributionNotFound:
-        version = "UNKNOWN"
-        setup_py_path = os.path.join(os.path.dirname(__file__), "..", "..", "setup.py")
+    setup_py_path = os.path.join(os.path.dirname(__file__), "..", "..", "setup.py")
 
-        if os.path.isfile(setup_py_path):
-            with open(setup_py_path, "r") as f:
-                for line in f:
-                    search_version = re.search(r'version\s*=\s*\'(?P<VERSION>\d+\.\d+\.\d+)', line)
-                    if search_version:
-                        version = search_version.group("VERSION")
+    if "site-packages" in setup_py_path:
+        try:
+            return pkg_resources.get_distribution("moler").version
+        except pkg_resources.DistributionNotFound:
+            return _get_moler_version_cloned_from_git_repository(setup_py_path)
+    else:
+        return _get_moler_version_cloned_from_git_repository(setup_py_path)
 
-        return "{} cloned from git repository".format(version)
+
+def _get_moler_version_cloned_from_git_repository(setup_py_path):
+    version = "UNKNOWN"
+
+    if os.path.isfile(setup_py_path):
+        with open(setup_py_path, "r") as f:
+            for line in f:
+                search_version = re.search(r'version\s*=\s*\'(?P<VERSION>\d+\.\d+\.\d+)', line)
+                if search_version:
+                    version = search_version.group("VERSION")
+
+    return "{} cloned from git repository".format(version)
 
 
 def set_write_mode(mode):
@@ -296,7 +305,9 @@ def configure_moler_main_logger():
                                                                             datefmt=date_format))
 
         logger.info(moler_logo)
-        logger.info("Using 'moler' package version: '{}'.".format(_get_moler_version()))
+        msg = "Using specific packages version:\nPython: {}\nmoler: {}".format(platform.python_version(),
+                                                                               _get_moler_version())
+        logger.info(msg)
         logger.info("More logs in: {}".format(_logging_path))
 
 
