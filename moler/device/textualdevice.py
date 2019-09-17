@@ -24,6 +24,7 @@ from moler.connection import get_connection
 from moler.device.state_machine import StateMachine
 from moler.exceptions import CommandWrongState, DeviceFailure, EventWrongState, DeviceChangeStateFailure
 from moler.helpers import copy_dict, update_dict
+from moler.helpers import copy_list
 from moler.instance_loader import create_instance_from_class_fullname
 
 
@@ -90,20 +91,76 @@ class TextualDevice(object):
         # TODO: Need test to ensure above sentence for all connection
         self.io_connection.notify(callback=self.on_connection_made, when="connection_made")
         self.io_connection.notify(callback=self.on_connection_lost, when="connection_lost")
-        self.io_connection.open()
 
         self._cmdnames_available_in_state = dict()
         self._eventnames_available_in_state = dict()
+        self._default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')
+        self._neighbour_devices = None
+        self._established = False
+        msg = "Created device '{}' as instance of class '{}.{}'.".format(
+            self.name,
+            self.__class__.__module__,
+            self.__class__.__name__,
+        )
+        self._log(level=logging.DEBUG, msg=msg)
+
+    def establish_connection(self):
+        """
+        Establishes real connection to device. You have to call this method before device is full operable.
+
+        :return: None
+        """
+        if self._established:
+            return
+        self.io_connection.open()
 
         self._collect_cmds_for_state_machine()
         self._collect_events_for_state_machine()
         self._run_prompts_observers()
-        self._default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')
-        msg = "Created device '{}' as instance of class '{}.{}' with prompts:".format(self.name,
-                                                                                      self.__class__.__module__,
-                                                                                      self.__class__.__name__)
+
+        msg = "Established connection to device '{}' (as instance of class '{}.{}') with prompts: '{}'.".format(
+            self.name,
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self._state_prompts
+        )
+        self._established = True
         self._log(level=logging.INFO, msg=msg)
-        self._log(level=logging.INFO, msg=self._state_prompts)
+
+    def is_established(self):
+        return self._established
+
+    def add_neighbour_device(self, neighbour_device, bidirectional=True):
+        """
+        Adds neighbour device to this device.
+
+        :param neighbour_device: device object or string with device name.
+        :param bidirectional: If True then this device will be added to f_device.
+        :return: None
+        """
+        if self._neighbour_devices is None:
+            self._neighbour_devices = list()
+        if neighbour_device not in self._neighbour_devices:
+            self._neighbour_devices.append(neighbour_device)
+        if bidirectional:
+            neighbour_device.add_neighbour_device(neighbour_device=self, bidirectional=False)
+
+    def get_neighbour_devices(self, device_type):
+        """
+        Returns list of neighbour devices of passed type.
+
+        :param device_type: type of device. If None then all neighbour devices will be returned.
+        :return: list of devices.
+        """
+        neighbour_devices = list()
+        if self._neighbour_devices is not None:
+            if device_type is None:
+                neighbour_devices = copy_list(src=self._neighbour_devices, deep_copy=False)
+            else:
+                for device in self._neighbour_devices:
+                    if isinstance(device, device_type):
+                        neighbour_devices.append(device)
+        return neighbour_devices
 
     def calc_timeout_for_command(self, passed_timeout, configurations):
         command_timeout = None
@@ -201,6 +258,20 @@ class TextualDevice(object):
 
     def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False,
                    log_stacktrace_on_fail=True):
+        """
+        Goes to specific state.
+
+        :param state: Name to state to change on the device.
+        :param timeout: Timeout for changing state, if negative then timeout from commands are taken.
+        :param rerun: How many times rerun the procedure before it fails.
+        :param send_enter_after_changed_state: If True then enter is sent after state is changed. False nothing is sent.
+        :param log_stacktrace_on_fail: Set True to have stacktrace in logs when failed, otherwise False.
+        :return: None
+        :raise: DeviceChangeStateFailure if cannot change the state of device.
+        """
+        if not self.is_established():
+            self.establish_connection()
+
         dest_state = state
 
         if self.current_state == dest_state:
@@ -556,8 +627,9 @@ class TextualDevice(object):
             raise exc
 
     def _stop_prompts_observers(self):
-        self._prompts_event.cancel()
-        self._prompts_event.remove_event_occurred_callback()
+        if self._prompts_event:
+            self._prompts_event.cancel()
+            self._prompts_event.remove_event_occurred_callback()
 
     def build_trigger_to_state(self, state):
         trigger = "GOTO_{}".format(state)

@@ -12,6 +12,11 @@ DEVICES:
       io_type: terminal
       variant: threaded
 
+  LOGICAL_TOPOLOGY:
+    UNIX_LOCAL:
+      - SCPI
+      - UNIX_REMOTE
+
   UNIX_LOCAL:
     DEVICE_CLASS: moler.device.unixlocal.UnixLocal
     INITIAL_STATE: UNIX_LOCAL

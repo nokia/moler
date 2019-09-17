@@ -12,6 +12,7 @@ import pytest
 
 from moler.util.moler_test import MolerTest
 from moler.connection_observer import ConnectionObserver
+from moler.device import DeviceFactory
 
 
 def test_get_device_may_not_use_both__name_and_device_class(device_factory):
@@ -150,6 +151,24 @@ def test_can_select_all_devices_loaded_from_config_file(moler_config, device_fac
 
     assert device.__module__ == 'moler.device.unixlocal'
     assert device.__class__.__name__ == 'UnixLocal'
+
+
+def test_can_select_neighbour_devices_loaded_from_config_file_(moler_config, device_factory):
+    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
+    moler_config.load_config(config=conn_config, config_type='yaml')
+
+    device_factory.create_all_devices()
+    unix_local = device_factory.get_device(name='UNIX_LOCAL', establish_connection=False)
+    import moler.device.scpi
+    import moler.device.unixlocal
+    neighbours = unix_local.get_neighbour_devices(device_type=moler.device.scpi.Scpi)
+    assert 1 == len(neighbours)
+    assert isinstance(neighbours[0], moler.device.scpi.Scpi)
+    assert unix_local in neighbours[0].get_neighbour_devices(device_type=None)
+    assert unix_local in neighbours[0].get_neighbour_devices(device_type=moler.device.unixlocal.UnixLocal)
+    assert unix_local in device_factory.get_devices_by_type(device_type=None)
+    assert unix_local in device_factory.get_devices_by_type(device_type=moler.device.unixlocal.UnixLocal)
+    unix_local.goto_state(state=unix_local.initial_state)
 
 
 def test_can_select_device_loaded_from_env_variable(moler_config, monkeypatch, device_factory):
