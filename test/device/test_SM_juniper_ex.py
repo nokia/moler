@@ -22,7 +22,7 @@ def test_juniper_ex_proxy_pc_device(device_connection, juniper_ex_proxy_pc_outpu
 def juniper_ex_output():
     output = {
         "UNIX_LOCAL": {
-            'TERM=xterm-mono ssh -l cli_login cli_host': 'admin@switch>',
+            'TERM=xterm-mono ssh -l cli_login -o ServerAliveInterval=7 -o ServerAliveCountMax=2 cli_host': 'admin@switch>',
             'su': 'local_root_prompt'
         },
         "UNIX_LOCAL_ROOT": {
@@ -44,14 +44,14 @@ def juniper_ex_output():
 def juniper_ex_proxy_pc_output():
     output = {
         "UNIX_LOCAL": {
-            'TERM=xterm-mono ssh -l proxy_pc_login proxy_pc_host': 'proxy_pc#',
+            'TERM=xterm-mono ssh -l proxy_pc_login -o ServerAliveInterval=7 -o ServerAliveCountMax=2 proxy_pc_host': 'proxy_pc#',
             'su': 'local_root_prompt'
         },
         "UNIX_LOCAL_ROOT": {
             'exit': 'moler_bash#'
         },
         "PROXY_PC": {
-            'TERM=xterm-mono ssh -l cli_login cli_host': 'admin@switch>',
+            'TERM=xterm-mono ssh -l cli_login -o ServerAliveInterval=7 -o ServerAliveCountMax=2 cli_host': 'admin@switch>',
             'exit': 'moler_bash#'
         },
         "CLI": {

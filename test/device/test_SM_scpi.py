@@ -44,7 +44,7 @@ def scpi_output():
 def scpi_proxy_pc_output():
     output = {
         "UNIX_LOCAL": {
-            'TERM=xterm-mono ssh -l proxy_pc_login proxy_pc_host': 'proxy_pc#',
+            'TERM=xterm-mono ssh -l proxy_pc_login -o ServerAliveInterval=7 -o ServerAliveCountMax=2 proxy_pc_host': 'proxy_pc#',
             'su': 'local_root_prompt'
         },
         "PROXY_PC": {
