@@ -35,7 +35,8 @@ class Ssh(GenericTelnetSsh):
     def __init__(self, connection, login, password, host, prompt=None, expected_prompt='>', port=0,
                  known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
                  term_mono="TERM=xterm-mono", newline_chars=None, encrypt_password=True, runner=None,
-                 target_newline="\n", allowed_newline_after_prompt=False, repeat_password=True, options=None,
+                 target_newline="\n", allowed_newline_after_prompt=False, repeat_password=True,
+                 options='-o ServerAliveInterval=7 -o ServerAliveCountMax=2',
                  failure_exceptions_indication=None, prompt_after_login=None):
         """
         Moler class of Unix command ssh.
@@ -241,7 +242,8 @@ user$"""
 
 COMMAND_KWARGS_prompt = {
     "login": "user", "password": "english", "set_prompt": r'export PS1="\\u$"',
-    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": r"host.*#|user\$"
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": r"host.*#|user\$",
+    "options": None,
 }
 
 COMMAND_RESULT_prompt = {}
@@ -261,7 +263,7 @@ user$"""
 COMMAND_KWARGS_2prompts = {
     "login": "user", "password": "english", "set_prompt": r'export PS1="\\u$"',
     "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": r"user\$",
-    "prompt_after_login": r"host.*#",
+    "prompt_after_login": r"host.*#", "options": None,
 }
 
 COMMAND_RESULT_2prompts = {}
@@ -326,7 +328,8 @@ host:~ #"""
 
 COMMAND_KWARGS_keygen = {
     "login": "user", "password": "english", "known_hosts_on_failure": "keygen",
-    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#",
+    "options": None,
 }
 
 COMMAND_RESULT_keygen = {}
@@ -353,7 +356,8 @@ host:~ #"""
 
 COMMAND_KWARGS_2_passwords = {
     "login": "user", "password": ["english", "englishroot"],
-    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#",
+    "options": None,
 }
 
 COMMAND_RESULT_2_passwords = {}
@@ -381,7 +385,8 @@ host:~ #"""
 
 COMMAND_KWARGS_2_passwords_repeat = {
     "login": "user", "password": "english", "repeat_password": True,
-    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#",
+    "options": None,
 }
 
 COMMAND_RESULT_2_passwords_repeat = {}
@@ -416,7 +421,8 @@ host:~ #"""
 
 COMMAND_KWARGS_resize_window = {
     "login": "user", "password": "english", "known_hosts_on_failure": "keygen",
-    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#",
+    "options": None,
 }
 
 COMMAND_RESULT_resize_window = {}
@@ -472,7 +478,7 @@ host:~ #"""
 
 COMMAND_KWARGS_failure_exception = {
     "login": "user", "password": "english", "known_hosts_on_failure": "keygen",
-    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#",
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#", "options": None,
     "failure_exceptions_indication":
         r"/home/user/.bash_profile: Permission denied|Could not chdir to home directory /home/user: Permission denied",
 }
