@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
@@ -41,15 +41,16 @@ class TextualEvent(Event):
         """
         lines = data.splitlines(True)
         for line in lines:
-            if self._last_not_full_line is not None:
-                line = self._last_not_full_line + line
-                self._last_not_full_line = None
-            is_full_line = self.is_new_line(line)
-            if is_full_line:
-                line = self._strip_new_lines_chars(line)
-            else:
-                self._last_not_full_line = line
-            self.on_new_line(line, is_full_line)
+            if not self.done():
+                if self._last_not_full_line is not None:
+                    line = self._last_not_full_line + line
+                    self._last_not_full_line = None
+                is_full_line = self.is_new_line(line)
+                if is_full_line:
+                    line = self._strip_new_lines_chars(line)
+                else:
+                    self._last_not_full_line = line
+                self.on_new_line(line, is_full_line)
 
     def is_new_line(self, line):
         """
