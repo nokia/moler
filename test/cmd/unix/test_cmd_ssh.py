@@ -18,7 +18,7 @@ def test_calling_ssh_returns_result_parsed_from_command_output(buffer_connection
     buffer_connection.remote_inject_response([command_output])
 
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
-                  host="host.domain.net", expected_prompt="host:.*#")
+                  host="host.domain.net", expected_prompt="host:.*#", options=None)
     assert "TERM=xterm-mono ssh -l user host.domain.net" == ssh_cmd.command_string
     assert ssh_cmd() is not None
 
@@ -28,7 +28,8 @@ def test_ssh_failed_with_multiple_passwords(buffer_connection, command_output_2_
     buffer_connection.remote_inject_response([command_output])
 
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
-                  host="host.domain.net", expected_prompt="host:.*#", prompt="starthost:~ >", repeat_password=False)
+                  host="host.domain.net", expected_prompt="host:.*#", prompt="starthost:~ >", repeat_password=False,
+                  options=None)
     assert "TERM=xterm-mono ssh -l user host.domain.net" == ssh_cmd.command_string
     with pytest.raises(CommandFailure):
         ssh_cmd()
@@ -39,7 +40,7 @@ def test_ssh_failed_host_key_verification(buffer_connection, command_output_fail
     buffer_connection.remote_inject_response([command_output])
 
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
-                  host="host.domain.net", expected_prompt="server:.*#", prompt="host:~ #")
+                  host="host.domain.net", expected_prompt="server:.*#", prompt="host:~ #", options=None)
     assert "TERM=xterm-mono ssh -l user host.domain.net" == ssh_cmd.command_string
     with pytest.raises(CommandFailure):
         ssh_cmd()
@@ -50,7 +51,7 @@ def test_ssh_failed_permission_denied(buffer_connection, command_output_permissi
     buffer_connection.remote_inject_response([command_output])
 
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
-                  host="host.domain.net", expected_prompt="host:.*#")
+                  host="host.domain.net", expected_prompt="host:.*#", options=None)
     assert "TERM=xterm-mono ssh -l user host.domain.net" == ssh_cmd.command_string
     with pytest.raises(CommandFailure):
         ssh_cmd()
@@ -61,7 +62,8 @@ def test_ssh_failed_known_hosts(buffer_connection, command_output_failed_known_h
     buffer_connection.remote_inject_response([command_output])
 
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english", prompt="client:~ #",
-                  host="host.domain.net", expected_prompt="host:.*#", known_hosts_on_failure='badvalue')
+                  host="host.domain.net", expected_prompt="host:.*#", known_hosts_on_failure='badvalue',
+                  options=None)
     assert "TERM=xterm-mono ssh -l user host.domain.net" == ssh_cmd.command_string
     with pytest.raises(CommandFailure):
         ssh_cmd()
@@ -73,7 +75,7 @@ def test_ssh_timeout_with_wrong_change_prompt(buffer_connection, command_output_
 
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
                   set_prompt=r'export PS1="\\u$"', host="host.domain.net", prompt="client.*>",
-                  expected_prompt=r"wrong_user\$", prompt_after_login=r"host.*#",)
+                  expected_prompt=r"wrong_user\$", prompt_after_login=r"host.*#", options=None)
 
     with pytest.raises(CommandTimeout):
         ssh_cmd(timeout=0.2)
@@ -85,7 +87,7 @@ def test_ssh_timeout_with_wrong_change_prompt_after_login(buffer_connection, com
 
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
                   set_prompt=r'export PS1="\\u$"', host="host.domain.net", prompt="client.*>",
-                  expected_prompt=r"user\$", prompt_after_login=r"wronghost.*#", )
+                  expected_prompt=r"user\$", prompt_after_login=r"wronghost.*#", options=None)
 
     with pytest.raises(CommandTimeout):
         ssh_cmd(timeout=0.2)
@@ -93,7 +95,7 @@ def test_ssh_timeout_with_wrong_change_prompt_after_login(buffer_connection, com
 
 def test_ssh_returns_proper_command_string(buffer_connection):
     ssh_cmd = Ssh(buffer_connection, login="user", password="english",
-                  host="host.domain.net", expected_prompt="host:.*#")
+                  host="host.domain.net", expected_prompt="host:.*#", options=None)
     assert "TERM=xterm-mono ssh -l user host.domain.net" == ssh_cmd.command_string
 
 

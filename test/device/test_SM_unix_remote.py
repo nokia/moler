@@ -25,7 +25,7 @@ def test_unix_remote_proxy_pc_device(device_connection, unix_remote_proxy_pc_out
 def unix_remote_output():
     output = {
         "UNIX_LOCAL": {
-            'TERM=xterm-mono ssh -l remote_login remote_host': 'remote#',
+            'TERM=xterm-mono ssh -l remote_login -o ServerAliveInterval=7 -o ServerAliveCountMax=2 remote_host': 'remote#',
             'su': 'local_root_prompt'
         },
         "UNIX_LOCAL_ROOT": {
@@ -47,7 +47,7 @@ def unix_remote_output():
 def unix_remote_proxy_pc_output():
     output = {
         "UNIX_LOCAL": {
-            'TERM=xterm-mono ssh -l proxy_pc_login proxy_pc_host': 'proxy_pc#',
+            'TERM=xterm-mono ssh -l proxy_pc_login -o ServerAliveInterval=7 -o ServerAliveCountMax=2 proxy_pc_host': 'proxy_pc#',
             'su': 'local_root_prompt'
         },
         "UNIX_LOCAL_ROOT": {
@@ -58,7 +58,7 @@ def unix_remote_proxy_pc_output():
             'su': 'remote_root_prompt'
         },
         "PROXY_PC": {
-            'TERM=xterm-mono ssh -l remote_login remote_host': 'remote#',
+            'TERM=xterm-mono ssh -l remote_login -o ServerAliveInterval=7 -o ServerAliveCountMax=2 remote_host': 'remote#',
             'exit': 'moler_bash#'
         },
         "UNIX_REMOTE_ROOT": {
