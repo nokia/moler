@@ -132,7 +132,7 @@ class AbstractDevice(object):
     @abc.abstractmethod
     def run(self, cmd_name, **kwargs):
         """
-        Wrapper for simple use command: creates command, runs it and waits till it ends:
+        Wrapper for simple use command: creates command, runs it and waits till it ends.
 
         :param cmd_name: name of class of command.
         :param kwargs: dict with parameters for command constructor.
@@ -142,7 +142,7 @@ class AbstractDevice(object):
     @abc.abstractmethod
     def start(self, cmd_name, **kwargs):
         """
-        Wrapper for simple use command: creates command, runs it and waits till it ends:
+        Wrapper for simple use command: creates command and runs it.
 
         :param cmd_name: name of class of command.
         :param kwargs: dict with parameters for command constructor.
