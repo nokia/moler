@@ -64,6 +64,7 @@ class AbstractDevice(object):
 
     @abc.abstractmethod
     def on_connection_lost(self, connection):
+        pass
 
     @abc.abstractmethod
     def get_cmd(self, cmd_name, cmd_params=None, check_state=True, for_state=None):
@@ -77,6 +78,7 @@ class AbstractDevice(object):
          returned.
         :return: Instance of command
         """
+        pass
 
     @abc.abstractmethod
     def get_event(self, event_name, event_params=None, check_state=True, for_state=None):
@@ -100,6 +102,7 @@ class AbstractDevice(object):
 
         Command/observer object is created locally
         """
+        pass
 
     @abc.abstractmethod
     def start(self, cmd_name, **kwargs):
@@ -114,3 +117,4 @@ class AbstractDevice(object):
 
         Command/observer object is created locally
         """
+        pass
