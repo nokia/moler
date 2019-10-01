@@ -24,6 +24,25 @@ class AbstractDevice(object):
         :return: String with the name of current state.
         """
 
+    @property
+    @abc.abstractmethod
+    def name(self):
+        """
+        Getter of device name.
+
+        :return: String with the device name.
+        """
+
+    @name.setter
+    @abc.abstractmethod
+    def name(self, value):
+        """
+        Setter for device name.
+
+        :param value: String with device name.
+        :return: None
+        """
+
     @abc.abstractmethod
     def is_established(self):
         """
