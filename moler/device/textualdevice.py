@@ -26,10 +26,11 @@ from moler.exceptions import CommandWrongState, DeviceFailure, EventWrongState, 
 from moler.helpers import copy_dict, update_dict
 from moler.helpers import copy_list
 from moler.instance_loader import create_instance_from_class_fullname
+from moler.device.abstract_device import AbstractDevice
 
 
 # TODO: name, logger/logger_name as param
-class TextualDevice(object):
+class TextualDevice(AbstractDevice):
     cmds = "cmd"
     events = "event"
 
@@ -37,7 +38,7 @@ class TextualDevice(object):
     connection_hops = "CONNECTION_HOPS"
 
     def __init__(self, sm_params=None, name=None, io_connection=None, io_type=None, variant=None,
-                 io_constructor_kwargs={}, initial_state=None):
+                 io_constructor_kwargs=None, initial_state=None):
         """
         Create Device communicating over io_connection
         CAUTION: Device owns (takes over ownership) of connection. It will be open when device "is born" and close when
@@ -53,6 +54,8 @@ class TextualDevice(object):
                         (if not given then default one is taken)
         :param initial_state: name of initial state. State machine tries to enter this state just after creation.
         """
+        if io_constructor_kwargs is None:
+            io_constructor_kwargs = dict()
         sm_params = copy_dict(sm_params, deep_copy=True)
         io_constructor_kwargs = copy_dict(io_constructor_kwargs, deep_copy=True)
         self.initial_state = initial_state if initial_state is not None else "NOT_CONNECTED"
