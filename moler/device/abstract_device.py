@@ -18,11 +18,19 @@ class AbstractDevice(object):
     @property
     @abc.abstractmethod
     def current_state(self):
-        return self.state
+        """
+        Getter of current state.
+
+        :return: String with the name of current state.
+        """
 
     @abc.abstractmethod
     def is_established(self):
-        pass
+        """
+        Checks if connection is established to real device.
+
+        :return: True if connection is established, False otherwise.
+        """
 
     @abc.abstractmethod
     def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False,
@@ -42,7 +50,6 @@ class AbstractDevice(object):
         :param bidirectional: If True then this device will be added to f_device.
         :return: None
         """
-        pass
 
     @abc.abstractmethod
     def get_neighbour_devices(self, device_type):
@@ -52,7 +59,6 @@ class AbstractDevice(object):
         :param device_type: type of device. If None then all neighbour devices will be returned.
         :return: list of devices.
         """
-        pass
 
     @abc.abstractmethod
     def configure_logger(self, name, propagate):
@@ -70,6 +76,7 @@ class AbstractDevice(object):
     def get_cmd(self, cmd_name, cmd_params=None, check_state=True, for_state=None):
         """
         Returns instance of command connected with the device.
+
         :param cmd_name: name of commands, name of class (without package), for example "cd".
         :param cmd_params: dict with command parameters.
         :param check_state: if True then before execute of command the state of device will be check if the same
@@ -100,6 +107,7 @@ class AbstractDevice(object):
 
         :param cmd_name: name of class of command.
         :param kwargs: dict with parameters for command constructor.
+        :return: object from command get_result (mainly dict).
         """
 
     @abc.abstractmethod
