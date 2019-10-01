@@ -119,4 +119,3 @@ class AbstractDevice(object):
         Command/observer object is created locally
         """
         pass
-
