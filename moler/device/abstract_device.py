@@ -78,12 +78,12 @@ class AbstractDevice(object):
          returned.
         :return: Instance of command
         """
-        pass
 
     @abc.abstractmethod
     def get_event(self, event_name, event_params=None, check_state=True, for_state=None):
         """
         Return instance of event connected with the device.
+
         :param event_name: name of event, name of class (without package).
         :param event_params: dict with event parameters.
         :param check_state: if True then before execute of event the state of device will be check if the same
@@ -96,25 +96,18 @@ class AbstractDevice(object):
     @abc.abstractmethod
     def run(self, cmd_name, **kwargs):
         """
-        Wrapper for simple use:
+        Wrapper for simple use command: creates command, runs it and waits till it ends:
 
-        return ux.run('cd', path="/home/user/")
-
-        Command/observer object is created locally
+        :param cmd_name: name of class of command.
+        :param kwargs: dict with parameters for command constructor.
         """
-        pass
 
     @abc.abstractmethod
     def start(self, cmd_name, **kwargs):
         """
-        Wrapper for simple use:
+        Wrapper for simple use command: creates command, runs it and waits till it ends:
 
-        localhost_ping = ux.start('ping', destination="localhost", options="-c 5")
-        ...
-        result = localhost_ping.await_finish()
-
-        result = await localhost_ping  # py3 notation
-
-        Command/observer object is created locally
+        :param cmd_name: name of class of command.
+        :param kwargs: dict with parameters for command constructor.
+        :return: command object
         """
-        pass
