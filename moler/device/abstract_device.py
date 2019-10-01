@@ -35,11 +35,24 @@ class AbstractDevice(object):
     @abc.abstractmethod
     def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False,
                    log_stacktrace_on_fail=True):
-        pass
+        """
+        Goes to state.
+
+        :param state: name of state to go.
+        :param timeout: Time in seconds when break transitions if still not success.
+        :param rerun: How many times try to rerun command(s) when device is still not in requested state.
+        :param send_enter_after_changed_state: Set True to send enter after enters proper state.
+        :param log_stacktrace_on_fail: Set True to log exceptions if command to enter state failed.
+        :return: None
+        """
 
     @abc.abstractmethod
     def establish_connection(self):
-        pass
+        """
+        Establishes connection to real device.
+
+        :return: None
+        """
 
     @abc.abstractmethod
     def add_neighbour_device(self, neighbour_device, bidirectional=True):
@@ -62,15 +75,31 @@ class AbstractDevice(object):
 
     @abc.abstractmethod
     def configure_logger(self, name, propagate):
-        pass
+        """
+        Configures logger.
+
+        :param name: Name of logger
+        :param propagate: Set True if you want to propagate logs, False otherwise (recommended)
+        :return: None
+        """
 
     @abc.abstractmethod
     def on_connection_made(self, connection):
-        pass
+        """
+        Method to call by Moler framework when connection is established.
+
+        :param connection: Connection object.
+        :return: None
+        """
 
     @abc.abstractmethod
     def on_connection_lost(self, connection):
-        pass
+        """
+        Method to call by Moler framework when connection is lost.
+
+        :param connection: Connection object.
+        :return: None
+        """
 
     @abc.abstractmethod
     def get_cmd(self, cmd_name, cmd_params=None, check_state=True, for_state=None):
