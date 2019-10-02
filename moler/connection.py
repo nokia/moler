@@ -245,12 +245,13 @@ class ObservableConnection(Connection):
         Incoming-IO API:
         external-IO should call this method when data is received
         """
+        extra = {'transfer_direction': '<', 'encoder': lambda data: data.encode(encoding='utf-8', errors="replace")}
         self._log_data(msg=data, level=RAW_DATA,
-                       extra={'transfer_direction': '<', 'encoder': lambda data: data.encode('utf-8')})
+                       extra=extra)
 
         decoded_data = self.decode(data)
         self._log_data(msg=decoded_data, level=logging.INFO,
-                       extra={'transfer_direction': '<', 'encoder': lambda data: data.encode('utf-8')})
+                       extra=extra)
 
         self.notify_observers(decoded_data)
 
