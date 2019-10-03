@@ -18,7 +18,7 @@ from moler.exceptions import ParsingDone
 class CommandChangingPrompt(CommandTextualGeneric):
     """Base class for textual commands."""
 
-    def __init__(self, connection, expected_prompt, prompt=None, newline_chars=None, runner=None):
+    def __init__(self, connection, expected_prompt, prompt=None, newline_chars=None, runner=None, target_newline="\n"):
         """
         Base class for textual commands which change prompt.
 
@@ -31,6 +31,8 @@ class CommandChangingPrompt(CommandTextualGeneric):
                                                     runner=runner)
         self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(expected_prompt)  # Expected prompt on device
         #                                                                                      after command execution.
+        self.ret_required = False
+        self.target_newline = target_newline
 
     def on_new_line(self, line, is_full_line):
         try:
@@ -43,3 +45,11 @@ class CommandChangingPrompt(CommandTextualGeneric):
             if not self.done():
                 self.set_result(self.current_ret)
                 raise ParsingDone()
+
+    @abc.abstractmethod
+    def build_command_string(self):
+        """
+        Returns string with command constructed with parameters of object.
+
+        :return:  String with command.
+        """
