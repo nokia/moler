@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Generic Unix/Linux module
+Generic command class for commands changing prompt
 """
 
 __author__ = 'Marcin Usielski'
@@ -11,15 +11,16 @@ import abc
 import six
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
+from moler.exceptions import ParsingDone
 
 
 @six.add_metaclass(abc.ABCMeta)
 class CommandChangingPrompt(CommandTextualGeneric):
     """Base class for textual commands."""
 
-    def __init__(self, connection, prompt=None, newline_chars=None, runner=None):
+    def __init__(self, connection, expected_prompt, prompt=None, newline_chars=None, runner=None):
         """
-        Base class for textual commands.
+        Base class for textual commands which change prompt.
 
         :param connection: connection to device.
         :param prompt: expected prompt sending by device after command execution. Maybe String or compiled re.
@@ -28,3 +29,17 @@ class CommandChangingPrompt(CommandTextualGeneric):
         """
         super(CommandChangingPrompt, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                                     runner=runner)
+        self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(expected_prompt)  # Expected prompt on device
+        #                                                                                      after command execution.
+
+    def on_new_line(self, line, is_full_line):
+        try:
+            self._is_expected_prompt(line)
+        except ParsingDone:
+            pass  # line has been fully parsed by one of above parse-methods
+
+    def _is_expected_prompt(self, line):
+        if self._regex_helper.search_compiled(self._re_expected_prompt, line):
+            if not self.done():
+                self.set_result(self.current_ret)
+                raise ParsingDone()
