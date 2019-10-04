@@ -56,20 +56,19 @@ class CommandChangingPrompt(CommandTextualGeneric):
         self._sent_prompt = False
         self._sent = False
 
-    def _generic_on_new_line(self, line, is_full_line):
+    def on_new_line(self, line, is_full_line):
         """
         Parses the output of the command.
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
         :return: None
-        :raises: ParsingDone if any line matched the regex.
         """
         try:
             self._settings_after_login(line, is_full_line)
             self._detect_prompt_after_exception(line)
         except ParsingDone:
-            raise
+            pass
 
     def _detect_prompt_after_exception(self, line):
         """
