@@ -112,12 +112,13 @@ class Ssh(GenericTelnetSsh):
         :return: Nothing
         """
         try:
-            self._generic_on_new_line(line=line, is_full_line=is_full_line)
+            # self._generic_on_new_line(line=line, is_full_line=is_full_line)
             self._check_if_resize(line)
             self._get_hosts_file_if_displayed(line)
             self._push_yes_if_needed(line)
             self._id_dsa(line)
             self._host_key_verification(line)
+            super(Ssh, self).on_new_line(line=line, is_full_line=is_full_line)
         except ParsingDone:
             pass
         if is_full_line:
