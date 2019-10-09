@@ -117,9 +117,9 @@ class Ssh(GenericTelnetSsh):
             self._push_yes_if_needed(line)
             self._id_dsa(line)
             self._host_key_verification(line)
-            super(Ssh, self).on_new_line(line=line, is_full_line=is_full_line)
         except ParsingDone:
             pass
+        super(Ssh, self).on_new_line(line=line, is_full_line=is_full_line)
 
     def _host_key_verification(self, line):
         """

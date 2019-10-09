@@ -120,9 +120,9 @@ class GenericTelnetSsh(CommandChangingPrompt):
             self._send_login_if_requested(line)
             self._send_password_if_requested(line)
             self._just_connected(line)
-            super(GenericTelnetSsh, self).on_new_line(line=line, is_full_line=is_full_line)
         except ParsingDone:
             pass
+        super(GenericTelnetSsh, self).on_new_line(line=line, is_full_line=is_full_line)
 
     def _parse_failure_indication(self, line):
         """
