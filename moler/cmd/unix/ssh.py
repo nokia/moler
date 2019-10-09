@@ -120,8 +120,6 @@ class Ssh(GenericTelnetSsh):
             super(Ssh, self).on_new_line(line=line, is_full_line=is_full_line)
         except ParsingDone:
             pass
-        if is_full_line:
-            self._sent = False  # Clear flag for multi passwords connections
 
     def _host_key_verification(self, line):
         """

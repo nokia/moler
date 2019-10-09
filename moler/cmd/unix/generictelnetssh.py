@@ -104,7 +104,6 @@ class GenericTelnetSsh(CommandChangingPrompt):
         # self._sent_timeout = False
         # self._sent_prompt = False
         self._sent_login = False
-        self._sent = False
         self._last_password = ""
 
     def on_new_line(self, line, is_full_line):
@@ -121,8 +120,6 @@ class GenericTelnetSsh(CommandChangingPrompt):
             self._send_login_if_requested(line)
             self._send_password_if_requested(line)
             self._just_connected(line)
-            # self._settings_after_login(line, is_full_line)
-            # self._detect_prompt_after_exception(line)
             super(GenericTelnetSsh, self).on_new_line(line=line, is_full_line=is_full_line)
         except ParsingDone:
             pass

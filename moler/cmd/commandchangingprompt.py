@@ -69,6 +69,8 @@ class CommandChangingPrompt(CommandTextualGeneric):
             self._detect_prompt_after_exception(line)
         except ParsingDone:
             pass
+        if self._sent and is_full_line:
+            self._sent = False
 
     def _detect_prompt_after_exception(self, line):
         """
