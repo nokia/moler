@@ -29,7 +29,7 @@ class Wait4prompts(TextualEvent):
             pass
 
     def _parse_prompts(self, line):
-        for prompt_regex in self.compiled_prompts_regex.keys():
+        for prompt_regex in sorted(self.compiled_prompts_regex.keys()):
             if self._regex_helper.search_compiled(prompt_regex, line):
                 current_ret = {
                     'line': line,
