@@ -96,7 +96,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
         if (not sent) and self._is_target_prompt(line) and (not is_full_line or self.allowed_newline_after_prompt):
             if self._all_after_login_settings_sent() or self._no_after_login_settings_needed():
                 if not self.done():
-                    self.set_result({})
+                    self.set_result(self.current_ret)
                     raise ParsingDone()
 
     def _send_after_login_settings(self, line):
