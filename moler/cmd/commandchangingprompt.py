@@ -18,10 +18,9 @@ from moler.exceptions import ParsingDone
 class CommandChangingPrompt(CommandTextualGeneric):
     """Base class for textual commands to change prompt."""
 
-    def __init__(self, connection, newline_chars=None, prompt=None, runner=None,
-                 expected_prompt=r'^>\s*', set_timeout=None, set_prompt=None,
-                 target_newline="\n",
-                 allowed_newline_after_prompt=False, prompt_after_login=None):
+    def __init__(self, connection, newline_chars=None, prompt=None, runner=None, expected_prompt=r'^>\s*',
+                 set_timeout=None, set_prompt=None, target_newline="\n", allowed_newline_after_prompt=False,
+                 prompt_after_login=None):
         """
         Moler base class for commands that change prompt.
 
