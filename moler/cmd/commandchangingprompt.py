@@ -44,13 +44,13 @@ class CommandChangingPrompt(CommandTextualGeneric):
         self._re_prompt_after_login = self._re_expected_prompt
         if prompt_after_login:
             self._re_prompt_after_login = CommandTextualGeneric._calculate_prompt(prompt_after_login)
-        self._re_failure_exceptions_indication = None
         self.set_timeout = set_timeout
         self.set_prompt = set_prompt
         self.target_newline = target_newline
         self.allowed_newline_after_prompt = allowed_newline_after_prompt
 
         # Internal variables
+        self._re_failure_exceptions_indication = None
         self._sent_timeout = False
         self._sent_prompt = False
         self._sent = False
