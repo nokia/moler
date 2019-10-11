@@ -5,27 +5,41 @@ Exit telnet command
 import re
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
-from moler.cmd.unix.genericunix import GenericUnixCommand
+from moler.cmd.commandchangingprompt import CommandChangingPrompt
 from moler.exceptions import ParsingDone
 
-__author__ = 'Michal Ernst'
+__author__ = 'Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018-2019, Nokia'
-__email__ = 'michal.ernst@nokia.com'
+__email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 
-class ExitTelnet(GenericUnixCommand):
+class ExitTelnet(CommandChangingPrompt):
     _re_telnet_prompt = re.compile(r"telnet>", re.IGNORECASE)
 
-    def __init__(self, connection, prompt=None, newline_chars=None, expected_prompt=r'moler_bash#', runner=None,
-                 target_newline="\n"):
+    def __init__(self, connection, newline_chars=None, prompt=None, runner=None, expected_prompt=r'moler_bash#',
+                 set_timeout=None, set_prompt=None, target_newline="\n", allowed_newline_after_prompt=False,
+                 prompt_after_login=None):
         """
-        :param connection:
-        :param prompt: Prompt of the starting shell
-        :param expected_prompt: Prompt of the target shell reached after quit command
-        :param newline_chars:
+        Class for exit telnet command.
+
+        :param connection: moler connection to device, terminal when command is executed.
+        :param prompt: prompt on start system (where command telnet starts).
+        :param expected_prompt: prompt on server (where command telnet connects).
+        :param set_timeout: Command to set timeout after telnet connects.
+        :param set_prompt: Command to set prompt after telnet connects.
+        :param newline_chars: characters to split lines.
+        :param runner: Runner to run command.
+        :param target_newline: newline chars on remote system where ssh connects.
+        :param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt.
+        :param prompt_after_login: prompt after login before send export PS1. If you do not change prompt exporting PS1
+         then leave it None.
         """
         super(ExitTelnet, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
-                                         runner=runner)
+                                         runner=runner, expected_prompt=expected_prompt, set_timeout=set_timeout,
+                                         set_prompt=set_prompt, target_newline=target_newline,
+                                         allowed_newline_after_prompt=allowed_newline_after_prompt,
+                                         prompt_after_login=prompt_after_login)
+
         self.target_newline = target_newline
         self.ret_required = False
         self._command_sent = False
@@ -44,7 +58,7 @@ class ExitTelnet(GenericUnixCommand):
         """
         try:
             self._is_telnet_prompt(line)
-            self._is_target_prompt(line)
+            super(ExitTelnet, self).on_new_line(line=line, is_full_line=is_full_line)
         except ParsingDone:
             pass
 
@@ -59,17 +73,6 @@ class ExitTelnet(GenericUnixCommand):
             self._command_sent = True
 
             raise ParsingDone
-
-    def _is_target_prompt(self, line):
-        """
-        Check that telnet prompt is in incoming line
-        :param line: Line to process,
-        :return: Nothing
-        """
-        if self._regex_helper.search_compiled(self._re_expected_prompt, line):
-            if not self.done():
-                self.set_result({})
-                raise ParsingDone
 
     def _detect_start_of_cmd_output(self, line, is_full_line):
         """

@@ -101,13 +101,11 @@ class Telnet(GenericTelnetSsh):
         :return: None
         """
         try:
-            self._generic_on_new_line(line=line, is_full_line=is_full_line)
             self._send_commands_before_establish_connection_if_requested(line, is_full_line)
             self._send_commands_after_establish_connection_if_requested(line, is_full_line)
         except ParsingDone:
             pass
-        if is_full_line:
-            self._sent = False  # Clear flag for multi passwords connections
+        super(Telnet, self).on_new_line(line=line, is_full_line=is_full_line)
 
     def _send_telnet_commands(self, line, is_full_line, commands):
         """

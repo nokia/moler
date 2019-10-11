@@ -173,7 +173,6 @@ class CommandTextualGeneric(Command):
 
         :return:  String with command.
         """
-        pass
 
     def on_new_line(self, line, is_full_line):
         """
@@ -274,7 +273,6 @@ class CommandTextualGeneric(Command):
 
         :return: None
         """
-        pass
 
     def on_success(self):
         """
@@ -282,7 +280,6 @@ class CommandTextualGeneric(Command):
 
         :return: None
         """
-        pass
 
     def on_done(self):
         """
@@ -290,7 +287,6 @@ class CommandTextualGeneric(Command):
 
         :return: None
         """
-        pass
 
     def on_timeout(self):
         """

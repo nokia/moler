@@ -112,7 +112,6 @@ class Ssh(GenericTelnetSsh):
         :return: Nothing
         """
         try:
-            self._generic_on_new_line(line=line, is_full_line=is_full_line)
             self._check_if_resize(line)
             self._get_hosts_file_if_displayed(line)
             self._push_yes_if_needed(line)
@@ -120,8 +119,7 @@ class Ssh(GenericTelnetSsh):
             self._host_key_verification(line)
         except ParsingDone:
             pass
-        if is_full_line:
-            self._sent = False  # Clear flag for multi passwords connections
+        super(Ssh, self).on_new_line(line=line, is_full_line=is_full_line)
 
     def _host_key_verification(self, line):
         """
