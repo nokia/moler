@@ -63,9 +63,9 @@ class Su(CommandChangingPrompt):
         """
         cmd = "su"
         if self.options:
-            cmd = cmd + " " + self.options
+            cmd = "{} {}".format(cmd, self.options)
         if self.login:
-            cmd = cmd + " " + self.login
+            cmd = "{} {}".format(cmd, self.login)
         return cmd
 
     def on_new_line(self, line, is_full_line):
