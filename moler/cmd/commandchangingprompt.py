@@ -18,19 +18,19 @@ from moler.exceptions import ParsingDone
 class CommandChangingPrompt(CommandTextualGeneric):
     """Base class for textual commands to change prompt."""
 
-    def __init__(self, connection, newline_chars=None, prompt=None, runner=None, expected_prompt=r'^>\s*',
+    def __init__(self, connection, prompt, expected_prompt, newline_chars=None, runner=None,
                  set_timeout=None, set_prompt=None, target_newline="\n", allowed_newline_after_prompt=False,
                  prompt_after_login=None):
         """
         Moler base class for commands that change prompt.
 
         :param connection: moler connection to device, terminal when command is executed.
-        :param prompt: prompt on start system (where command telnet starts).
-        :param expected_prompt: prompt on server (where command telnet connects).
-        :param set_timeout: Command to set timeout after telnet connects.
-        :param set_prompt: Command to set prompt after telnet connects.
+        :param prompt: prompt on start system (where command starts).
+        :param expected_prompt: prompt on server (where command connects).
         :param newline_chars: characters to split lines.
         :param runner: Runner to run command.
+        :param set_timeout: Command to set timeout after telnet connects.
+        :param set_prompt: Command to set prompt after telnet connects.
         :param target_newline: newline chars on remote system where ssh connects.
         :param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt.
         :param prompt_after_login: prompt after login before send export PS1. If you do not change prompt exporting PS1
