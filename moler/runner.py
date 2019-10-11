@@ -31,7 +31,6 @@ class ConnectionObserverRunner(object):
     @abstractmethod
     def shutdown(self):
         """Cleanup used resources."""
-        pass
 
     @abstractmethod
     def submit(self, connection_observer):
@@ -39,7 +38,6 @@ class ConnectionObserverRunner(object):
         Submit connection observer to background execution.
         Returns Future that could be used to await for connection_observer done.
         """
-        pass
 
     @abstractmethod
     def wait_for(self, connection_observer, connection_observer_future, timeout=10.0):
@@ -51,7 +49,6 @@ class ConnectionObserverRunner(object):
         :param timeout: Max time (in float seconds) you want to await before you give up.
         :return:
         """
-        pass
 
     @abstractmethod
     def wait_for_iterator(self, connection_observer, connection_observer_future):
@@ -65,7 +62,6 @@ class ConnectionObserverRunner(object):
         :param connection_observer_future: Future of connection-observer returned from submit().
         :return: iterator
         """
-        pass
 
     @abstractmethod
     def feed(self, connection_observer):
@@ -74,7 +70,6 @@ class ConnectionObserverRunner(object):
         This is a place where runner is a glue between words of connection and connection-observer.
         Should be called from background-processing of connection observer.
         """
-        pass
 
     @abstractmethod
     def timeout_change(self, timedelta):
@@ -83,7 +78,6 @@ class ConnectionObserverRunner(object):
         :param timedelta: delta timeout in float seconds
         :return: Nothing
         """
-        pass
 
     def __enter__(self):
         return self
