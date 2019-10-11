@@ -76,7 +76,6 @@ class AtCmd(Command):
     @abstractmethod
     def parse_command_output(self):
         """Should be used to parse specific AT command output and set result"""
-        pass
 
     def set_at_command_string(self, command_base_string, execute_params=None):
         """
