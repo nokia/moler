@@ -53,7 +53,6 @@ class Wait4prompts(TextualEvent):
             compiled_patterns[compiled_pattern] = patterns[pattern]
         return compiled_patterns
 
-
     def _decode_line(self, line):
         """
         Decodes line if necessary. Put here code to remove colors from terminal etc.
