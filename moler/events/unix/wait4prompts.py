@@ -7,6 +7,8 @@ import re
 
 from moler.events.textualevent import TextualEvent
 from moler.exceptions import ParsingDone
+from moler.helpers import remove_xterm_window_title_hack
+from operator import attrgetter
 
 
 class Wait4prompts(TextualEvent):
@@ -29,7 +31,7 @@ class Wait4prompts(TextualEvent):
             pass
 
     def _parse_prompts(self, line):
-        for prompt_regex in sorted(self.compiled_prompts_regex.keys()):
+        for prompt_regex in sorted(self.compiled_prompts_regex.keys(), key=attrgetter('pattern')):
             if self._regex_helper.search_compiled(prompt_regex, line):
                 current_ret = {
                     'line': line,
@@ -50,6 +52,16 @@ class Wait4prompts(TextualEvent):
                 compiled_pattern = pattern
             compiled_patterns[compiled_pattern] = patterns[pattern]
         return compiled_patterns
+
+    def _decode_line(self, line):
+        """
+        Decodes line if necessary. Put here code to remove colors from terminal etc.
+
+        :param line: line from device to decode.
+        :return: decoded line.
+        """
+        line = remove_xterm_window_title_hack(line)
+        return line
 
 
 EVENT_OUTPUT = """

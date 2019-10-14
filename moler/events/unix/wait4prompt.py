@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 import datetime
 
 from moler.events.shared.wait4 import Wait4
+from moler.helpers import remove_xterm_window_title_hack
 
 
 class Wait4prompt(Wait4):
@@ -19,6 +20,16 @@ class Wait4prompt(Wait4):
         """
         super(Wait4prompt, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times,
                                           detect_patterns=[prompt], match='any')
+
+    def _decode_line(self, line):
+        """
+        Decodes line if necessary. Put here code to remove colors from terminal etc.
+
+        :param line: line from device to decode.
+        :return: decoded line.
+        """
+        line = remove_xterm_window_title_hack(line)
+        return line
 
 
 EVENT_OUTPUT = """
