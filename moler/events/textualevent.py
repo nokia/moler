@@ -50,7 +50,8 @@ class TextualEvent(Event):
                     line = self._strip_new_lines_chars(line)
                 else:
                     self._last_not_full_line = line
-                self.on_new_line(line, is_full_line)
+                decoded_line = self._decode_line(line=line)
+                self.on_new_line(line=decoded_line, is_full_line=is_full_line)
 
     def is_new_line(self, line):
         """
@@ -77,3 +78,12 @@ class TextualEvent(Event):
         :return: Nothing
         """
         self._last_not_full_line = None
+
+    def _decode_line(self, line):
+        """
+        Decodes line if necessary. Put here code to remove colors from terminal etc.
+
+        :param line: line from device to decode.
+        :return: decoded line.
+        """
+        return line
