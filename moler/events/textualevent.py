@@ -29,15 +29,14 @@ class TextualEvent(Event):
         Write your own implementation to do something useful
         :param line: Line to parse, new lines are trimmed
         :param is_full_line: True if new line character was removed from line, False otherwise
-        :return: Nothing
+        :return: None
         """
-        pass
 
     def data_received(self, data):
         """
         Called by framework when any data are sent by device
         :param data: List of strings sent by device
-        :return: Nothing
+        :return: None
         """
         lines = data.splitlines(True)
         for line in lines:
