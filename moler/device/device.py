@@ -42,35 +42,11 @@ class DeviceFactory(object):
             dev = cls._devices[name]
             if establish_connection and not dev.is_established():
                 dev.goto_state(state=dev.initial_state)
-            return dev
-
-        if connection_hops:
-            if "CONNECTION_HOPS" not in connection_hops.keys():
-                new_connection_hops = dict()
-                new_connection_hops["CONNECTION_HOPS"] = connection_hops
-
-                connection_hops = new_connection_hops
-
-        if not establish_connection:
-            initial_state = None
-        device_class, connection_desc, connection_hops, initial_state = cls._try_take_named_device_params(name,
-                                                                                                          device_class,
-                                                                                                          connection_desc,
-                                                                                                          connection_hops,
-                                                                                                          initial_state)
-        if device_class and (not connection_desc):
-            connection_desc = cls._try_select_device_connection_desc(device_class, connection_desc)
-
-        device = cls._create_device(name, device_class, connection_desc, connection_hops, initial_state)
-        if establish_connection:
-            device.goto_state(state=device.initial_state)
-
-        if name:
-            cls._devices[name] = device
         else:
-            cls._devices[device.name] = device
-
-        return device
+            dev = cls._get_device_first_time(name=name, device_class=device_class, connection_desc=connection_desc,
+                                             connection_hops=connection_hops, initial_state=initial_state,
+                                             establish_connection=establish_connection)
+        return dev
 
     @classmethod
     def get_devices_by_type(cls, device_type):
@@ -130,3 +106,31 @@ class DeviceFactory(object):
         for device in cls._devices.values():
             del device
         cls._devices = {}
+
+    @classmethod
+    def _get_device_first_time(cls, name, device_class, connection_desc, connection_hops, initial_state,
+                               establish_connection):
+        if connection_hops:
+            if "CONNECTION_HOPS" not in connection_hops.keys():
+                new_connection_hops = dict()
+                new_connection_hops["CONNECTION_HOPS"] = connection_hops
+
+                connection_hops = new_connection_hops
+
+        if not establish_connection:
+            initial_state = None
+        device_class, connection_desc, connection_hops, initial_state = cls._try_take_named_device_params(
+            name, device_class, connection_desc, connection_hops, initial_state)
+        if device_class and (not connection_desc):
+            connection_desc = cls._try_select_device_connection_desc(device_class, connection_desc)
+
+        device = cls._create_device(name, device_class, connection_desc, connection_hops, initial_state)
+        if establish_connection:
+            device.goto_state(state=device.initial_state)
+
+        if name:
+            cls._devices[name] = device
+        else:
+            cls._devices[device.name] = device
+
+        return device
