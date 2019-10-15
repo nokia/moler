@@ -44,9 +44,9 @@ class DeviceFactory(object):
             if establish_connection and not dev.is_established():
                 dev.goto_state(state=dev.initial_state)
         else:
-            dev = cls._get_device_first_time(name=name, device_class=device_class, connection_desc=connection_desc,
-                                             connection_hops=connection_hops, initial_state=initial_state,
-                                             establish_connection=establish_connection)
+            dev = cls._create_device(name=name, device_class=device_class, connection_desc=connection_desc,
+                                     connection_hops=connection_hops, initial_state=initial_state,
+                                     establish_connection=establish_connection)
         return dev
 
     @classmethod
@@ -89,28 +89,13 @@ class DeviceFactory(object):
         return device_class, connection_desc, connection_hops, initial_state
 
     @classmethod
-    def _create_device(cls, name, device_class, connection_desc, connection_hops, initial_state):
-        constructor_parameters = {
-            "name": name,
-            "io_type": connection_desc["io_type"],
-            "variant": connection_desc["variant"],
-            "sm_params": connection_hops,
-            "initial_state": initial_state
-        }
-        device = create_instance_from_class_fullname(class_fullname=device_class,
-                                                     constructor_parameters=constructor_parameters)
-
-        return device
-
-    @classmethod
     def _clear(cls):
         for device in cls._devices.values():
             del device
         cls._devices = {}
 
     @classmethod
-    def _get_device_first_time(cls, name, device_class, connection_desc, connection_hops, initial_state,
-                               establish_connection):
+    def _create_device(cls, name, device_class, connection_desc, connection_hops, initial_state, establish_connection):
         """
         Creates and returns connection instance of given io_type/variant.
 
@@ -136,7 +121,16 @@ class DeviceFactory(object):
         if device_class and (not connection_desc):
             connection_desc = cls._try_select_device_connection_desc(device_class, connection_desc)
 
-        device = cls._create_device(name, device_class, connection_desc, connection_hops, initial_state)
+        constructor_parameters = {
+            "name": name,
+            "io_type": connection_desc["io_type"],
+            "variant": connection_desc["variant"],
+            "sm_params": connection_hops,
+            "initial_state": initial_state
+        }
+        device = create_instance_from_class_fullname(class_fullname=device_class,
+                                                     constructor_parameters=constructor_parameters)
+
         if establish_connection:
             device.goto_state(state=device.initial_state)
 
