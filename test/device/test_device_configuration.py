@@ -369,6 +369,15 @@ def test_cannot_load_configuration_when_already_loaded_from_another_dict(moler_c
     assert "Reloading configuration during Moler execution is not supported!" in str(err.value)
 
 
+def test_create_device_without_hops():
+    connection_desc = {
+        "io_type": "terminal",
+        "variant": "threaded"
+    }
+    dev = DeviceFactory.get_device(connection_desc=connection_desc, device_class='moler.device.unixlocal.UnixLocal')
+    assert dev is not None
+
+
 def test_cannot_load_configuration_when_already_loaded_from_another_file(moler_config):
     from moler.exceptions import MolerException
 
