@@ -9,6 +9,7 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 from moler.config import devices as devices_config
 from moler.instance_loader import create_instance_from_class_fullname
 from moler.helpers import copy_list
+from moler.exceptions import WrongUsage
 
 
 class DeviceFactory(object):
@@ -34,9 +35,9 @@ class DeviceFactory(object):
         :return: requested device.
         """
         if (not name) and (not device_class):
-            raise AssertionError("Provide either 'name' or 'device_class' parameter (none given)")
+            raise WrongUsage("Provide either 'name' or 'device_class' parameter (none given)")
         if name and device_class:
-            raise AssertionError("Use either 'name' or 'device_class' parameter (not both)")
+            raise WrongUsage("Use either 'name' or 'device_class' parameter (not both)")
 
         if name in cls._devices.keys():
             dev = cls._devices[name]
@@ -110,6 +111,17 @@ class DeviceFactory(object):
     @classmethod
     def _get_device_first_time(cls, name, device_class, connection_desc, connection_hops, initial_state,
                                establish_connection):
+        """
+        Creates and returns connection instance of given io_type/variant.
+
+        :param name: name of device defined in configuration.
+        :param device_class: 'moler.device.unixlocal', 'moler.device.unixremote', ...
+        :param connection_desc: 'io_type' and 'variant' of device connection.
+        :param connection_hops: connection hops to create device SM.
+        :param initial_state: initial state for device e.g. UNIX_REMOTE.
+        :param establish_connection: True to open connection, False if it does not matter.
+        :return: requested device.
+        """
         if connection_hops:
             if "CONNECTION_HOPS" not in connection_hops.keys():
                 new_connection_hops = dict()
