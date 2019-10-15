@@ -277,7 +277,7 @@ def test_return_new_device_when_call_another_time_same_desc_device(device_factor
 
 
 def test_cannot_load_config_from_when_path_or_from_env_var_not_provide(moler_config):
-    with pytest.raises(WrongUsage) as err:
+    with pytest.raises(AssertionError) as err:
         moler_config.load_config()
 
     assert "Provide either 'config' or 'from_env_var' parameter (none given)" in str(err.value)
