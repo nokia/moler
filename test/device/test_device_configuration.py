@@ -374,7 +374,8 @@ def test_create_device_without_hops():
         "io_type": "terminal",
         "variant": "threaded"
     }
-    dev = DeviceFactory.get_device(connection_desc=connection_desc, device_class='moler.device.unixlocal.UnixLocal')
+    dev = DeviceFactory.get_device(connection_desc=connection_desc, device_class='moler.device.unixlocal.UnixLocal',
+                                   connection_hops=dict())
     assert dev is not None
 
 
