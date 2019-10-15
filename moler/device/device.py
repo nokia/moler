@@ -122,7 +122,7 @@ class DeviceFactory(object):
         :param establish_connection: True to open connection, False if it does not matter.
         :return: requested device.
         """
-        if connection_hops:
+        if connection_hops is not None:
             if "CONNECTION_HOPS" not in connection_hops.keys():
                 new_connection_hops = dict()
                 new_connection_hops["CONNECTION_HOPS"] = connection_hops
