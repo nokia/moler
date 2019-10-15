@@ -51,6 +51,8 @@ class DeviceFactory(object):
 
                 connection_hops = new_connection_hops
 
+        if not establish_connection:
+            initial_state = None
         device_class, connection_desc, connection_hops, initial_state = cls._try_take_named_device_params(name,
                                                                                                           device_class,
                                                                                                           connection_desc,
@@ -60,7 +62,8 @@ class DeviceFactory(object):
             connection_desc = cls._try_select_device_connection_desc(device_class, connection_desc)
 
         device = cls._create_device(name, device_class, connection_desc, connection_hops, initial_state)
-        device.goto_state(state=device.initial_state)
+        if establish_connection:
+            device.goto_state(state=device.initial_state)
 
         if name:
             cls._devices[name] = device
