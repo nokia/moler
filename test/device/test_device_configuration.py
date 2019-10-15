@@ -13,17 +13,18 @@ import pytest
 from moler.util.moler_test import MolerTest
 from moler.connection_observer import ConnectionObserver
 from moler.device import DeviceFactory
+from moler.exceptions import WrongUsage
 
 
 def test_get_device_may_not_use_both__name_and_device_class(device_factory):
-    with pytest.raises(AssertionError) as err:
+    with pytest.raises(WrongUsage) as err:
         device_factory.get_device(name='UNIX_LOCAL', device_class='moler.device.unixlocal', connection_desc={},
                                   connection_hops={})
     assert "Use either 'name' or 'device_class' parameter (not both)" in str(err.value)
 
 
 def test_get_device_must_use_either_name_or_device_class(device_factory):
-    with pytest.raises(AssertionError) as err:
+    with pytest.raises(WrongUsage) as err:
         device_factory.get_device(connection_desc={}, connection_hops={})
     assert "Provide either 'name' or 'device_class' parameter (none given)" in str(err.value)
 
@@ -276,7 +277,7 @@ def test_return_new_device_when_call_another_time_same_desc_device(device_factor
 
 
 def test_cannot_load_config_from_when_path_or_from_env_var_not_provide(moler_config):
-    with pytest.raises(AssertionError) as err:
+    with pytest.raises(WrongUsage) as err:
         moler_config.load_config()
 
     assert "Provide either 'config' or 'from_env_var' parameter (none given)" in str(err.value)
