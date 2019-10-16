@@ -14,6 +14,7 @@ from moler.exceptions import WrongUsage
 
 class DeviceFactory(object):
     _devices = {}
+    _devices_params = {}
 
     @classmethod
     def create_all_devices(cls):
@@ -47,6 +48,21 @@ class DeviceFactory(object):
             dev = cls._create_device(name=name, device_class=device_class, connection_desc=connection_desc,
                                      connection_hops=connection_hops, initial_state=initial_state,
                                      establish_connection=establish_connection)
+        return dev
+
+    @classmethod
+    def get_cloned_device(cls, source_device, new_name,  initial_state=None, establish_connection=True):
+        if new_name in cls._devices.keys():
+            return cls._devices[new_name]  # or raise exception?
+        if initial_state is None:
+            initial_state = source_device.current_state
+        source_name = source_device.name
+        device_class = cls._devices_params[source_name]['class_fullname']
+        constructor_parameters = cls._devices_params[source_name]['constructor_parameters']
+        constructor_parameters["initial_state"] = initial_state
+        dev = cls._create_instance_and_remember_it(
+            device_class=device_class, constructor_parameters=constructor_parameters,
+            establish_connection=establish_connection, name=new_name)
         return dev
 
     @classmethod
@@ -128,15 +144,24 @@ class DeviceFactory(object):
             "sm_params": connection_hops,
             "initial_state": initial_state
         }
+        dev = cls._create_instance_and_remember_it(
+            device_class=device_class, constructor_parameters=constructor_parameters,
+            establish_connection=establish_connection, name=name)
+        return dev
+
+    @classmethod
+    def _create_instance_and_remember_it(cls, device_class, constructor_parameters, establish_connection, name):
         device = create_instance_from_class_fullname(class_fullname=device_class,
                                                      constructor_parameters=constructor_parameters)
 
         if establish_connection:
             device.goto_state(state=device.initial_state)
 
-        if name:
-            cls._devices[name] = device
-        else:
-            cls._devices[device.name] = device
+        if not name:
+            name = device.name
+        cls._devices[name] = device
+        cls._devices_params[name] = dict()
+        cls._devices_params[name]['class_fullname'] = device_class
+        cls._devices_params[name]['constructor_parameters'] = constructor_parameters
 
         return device
