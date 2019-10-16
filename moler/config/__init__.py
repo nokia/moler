@@ -12,6 +12,7 @@ from contextlib import contextmanager
 
 from moler.helpers import compare_objects
 from moler.exceptions import MolerException
+from moler.exceptions import WrongUsage
 from . import connections as conn_cfg
 from . import devices as dev_cfg
 from . import loggers as log_cfg
@@ -83,7 +84,7 @@ def load_config(config=None, from_env_var=None, config_type='yaml'):
     assert (config_type == 'dict') or (config_type == 'yaml')  # no other format supported yet
     if not config:
         if not from_env_var:
-            raise AssertionError("Provide either 'config' or 'from_env_var' parameter (none given)")
+            raise WrongUsage("Provide either 'config' or 'from_env_var' parameter (none given)")
         if from_env_var not in os.environ:
             raise KeyError("Environment variable '{}' is not set".format(from_env_var))
         path = os.environ[from_env_var]
