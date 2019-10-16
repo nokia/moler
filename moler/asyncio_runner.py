@@ -538,7 +538,8 @@ class AsyncioRunner(ConnectionObserverRunner):
                 # observers should not raise exceptions during data parsing
                 # but if they do so - we fix it
                 with observer_lock:
-                    connection_observer.set_exception(exc)
+                    tb = exc.__traceback__ if hasattr(exc, "__traceback__") else sys.exc_info()[2]
+                    connection_observer.set_exception(exc, exc_traceback=tb)
             finally:
                 if connection_observer.done() and not connection_observer.cancelled():
                     if connection_observer._exception:
@@ -750,11 +751,12 @@ class AsyncioInThreadRunner(AsyncioRunner):
         except concurrent.futures.CancelledError:
             connection_observer.cancel()
             return None
-        except Exception as err:
-            err_msg = "{} raised {!r}".format(connection_observer, err)
+        except Exception as exc:
+            err_msg = "{} raised {!r}".format(connection_observer, exc)
             self.logger.debug(err_msg)
-            if connection_observer._exception != err:
-                connection_observer.set_exception(err)
+            if connection_observer._exception != exc:
+                tb = exc.__traceback__ if hasattr(exc, "__traceback__") else sys.exc_info()[2]
+                connection_observer.set_exception(exc, exc_traceback=tb)
             return None  # will be reraised during call to connection_observer.result()
         finally:
             # protect against leaking coroutines

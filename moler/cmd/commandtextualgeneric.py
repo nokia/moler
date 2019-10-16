@@ -10,6 +10,7 @@ __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 import abc
 import logging
 import re
+import traceback
 
 import six
 
@@ -244,26 +245,38 @@ class CommandTextualGeneric(Command):
         self.break_cmd()
         return super(CommandTextualGeneric, self).cancel()
 
-    def set_exception(self, exception):
+    def set_exception(self, exception, exc_traceback=None):
         """
         Set exception object as failure for command object.
 
-        :param exception: An exception object to set.
-        :return: None.
+        Traceback should be used only if exception was caught inside
+        try .. except block::
+
+            try:
+                some_action()
+            except Exception as exc:
+                _, _, exc_traceback = sys.exc_info()
+                conn_observer.set_exception(exc, exc_traceback)
+
+        :param exception: Exception to set
+        :param exc_traceback: Traceback to set
+        :return: None
         """
         if self.done() or not self.wait_for_prompt_on_exception:
-            super(CommandTextualGeneric, self).set_exception(exception=exception)
+            super(CommandTextualGeneric, self).set_exception(exception=exception, exc_traceback=exc_traceback)
         else:
+            trback_str = "\n" + " ".join(traceback.format_tb(exc_traceback)) if exc_traceback else ""
             if self._stored_exception is None:
                 self._log(logging.INFO,
-                          "{}.{} has set exception {!r}".format(self.__class__.__module__, self, exception),
+                          "{}.{} has set exception {!r}{}".format(self.__class__.__module__, self,
+                                                                    exception, trback_str),
                           levels_to_go_up=2)
                 self._stored_exception = exception
             else:
                 self._log(logging.INFO,
-                          "{}.{} tried set exception {!r} on already set exception {!r}".format(
+                          "{}.{} tried set exception {!r}{} on already set exception {!r}".format(
                               self.__class__.__module__,
-                              self, exception,
+                              self, exception, trback_str,
                               self._stored_exception),
                           levels_to_go_up=2)
 

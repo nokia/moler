@@ -12,6 +12,7 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 import atexit
 import concurrent.futures
 import logging
+import sys
 import threading
 import time
 from abc import abstractmethod, ABCMeta
@@ -438,7 +439,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 # observers should not raise exceptions during data parsing
                 # but if they do so - we fix it
                 with observer_lock:
-                    connection_observer.set_exception(exc)
+                    tb = exc.__traceback__ if hasattr(exc, "__traceback__") else sys.exc_info()[2]
+                    connection_observer.set_exception(exc, exc_traceback=tb)
             finally:
                 if connection_observer.done() and not connection_observer.cancelled():
                     if connection_observer._exception:

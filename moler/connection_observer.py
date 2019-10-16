@@ -7,6 +7,7 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 import logging
 import threading
 import time
+import traceback
 from abc import abstractmethod, ABCMeta
 
 from six import add_metaclass
@@ -261,17 +262,27 @@ class ConnectionObserver(object):
         """
         pass
 
-    def set_exception(self, exception):
+    def set_exception(self, exception, exc_traceback=None):
         """
         Should be used to indicate some failure during observation.
 
+        Traceback should be used only if exception was caught inside
+        try .. except block::
+
+            try:
+                some_action()
+            except Exception as exc:
+                _, _, exc_traceback = sys.exc_info()
+                conn_observer.set_exception(exc, exc_traceback)
+
         :param exception: Exception to set
+        :param exc_traceback: Traceback to set
         :return: None
         """
-        self._set_exception_without_done(exception)
+        self._set_exception_without_done(exception, exc_traceback=exc_traceback)
         self._is_done = True
 
-    def _set_exception_without_done(self, exception):
+    def _set_exception_without_done(self, exception, exc_traceback=None):
         """
         Should be used to indicate some failure during observation. This method does not finish connection observer
         object!
@@ -279,14 +290,15 @@ class ConnectionObserver(object):
         :param exception: exception to set
         :return: None
         """
+        trback_str = "\n" + " ".join(traceback.format_tb(exc_traceback)) if exc_traceback else ""
         if self._is_done:
             self._log(logging.WARNING,
-                      "Attempt to set exception {!r} on already done {}".format(exception, self),
+                      "Attempt to set exception {!r} on already done {}{}".format(exception, self, trback_str),
                       levels_to_go_up=2)
             return
         ConnectionObserver._change_unraised_exception(new_exception=exception, observer=self)
         self._log(logging.INFO,
-                  "{}.{} has set exception {!r}".format(self.__class__.__module__, self, exception),
+                  "{}.{} has set exception {!r}{}".format(self.__class__.__module__, self, exception, trback_str),
                   levels_to_go_up=2)
 
     def result(self):
