@@ -142,6 +142,19 @@ def test_can_select_device_loaded_from_config_file(moler_config, device_factory)
     assert device.__class__.__name__ == 'UnixLocal'
 
 
+def test_can_clone_device(moler_config, device_factory):
+    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
+    moler_config.load_config(config=conn_config, config_type='yaml')
+
+    device_org = device_factory.get_device(name='UNIX_LOCAL')
+    assert device_org is not None
+    device_cloned = device_factory.get_cloned_device(source_device=device_org, new_name="CLONED_UNIX_LOCAL")
+    assert device_cloned is not None
+    assert device_org != device_cloned
+    device_cached_cloned = device_factory.get_cloned_device(source_device=device_org, new_name="CLONED_UNIX_LOCAL")
+    assert device_cloned == device_cached_cloned
+
+
 def test_can_select_all_devices_loaded_from_config_file(moler_config, device_factory):
     conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
     moler_config.load_config(config=conn_config, config_type='yaml')
