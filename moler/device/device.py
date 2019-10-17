@@ -111,6 +111,7 @@ class DeviceFactory(object):
         for device in cls._devices.values():
             del device
         cls._devices = {}
+        cls._devices_params = {}
 
     @classmethod
     def _create_device(cls, name, device_class, connection_desc, connection_hops, initial_state, establish_connection):
