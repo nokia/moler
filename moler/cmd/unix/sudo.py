@@ -102,7 +102,7 @@ class Sudo(GenericUnixCommand):
             if self.timeout_from_embedded_command and prev_cmd_timeout != new_cmd_timeout:
                 timedelta = new_cmd_timeout - prev_cmd_timeout
                 self.extend_timeout(timedelta=timedelta)
-            self.current_ret["cmd_ret"] = self.cmd_object.current_ret
+            self.current_ret = self.cmd_object.current_ret
             if self.cmd_object.done():
                 try:
                     self.cmd_object.result()
@@ -198,7 +198,7 @@ root
 user@client:~/moler$ """
 
 COMMAND_RESULT_whoami = {
-    "cmd_ret": {"USER": "root"}
+    "USER": "root"
 }
 
 COMMAND_KWARGS_whoami = {
@@ -251,12 +251,10 @@ Starting Nmap 6.47 ( http://nmap.org ) at 2019-06-21 14:33 CEST
 user@client:~/moler$ """
 
 COMMAND_RESULT_dynamic_timeout = {
-    'cmd_ret': {
-        'SYN_STEALTH_SCAN': {
-            'DONE': '8.35',
-            'ETC': '14:57',
-            'REMAINING': '0:22:08'
-        }
+    'SYN_STEALTH_SCAN': {
+        'DONE': '8.35',
+        'ETC': '14:57',
+        'REMAINING': '0:22:08'
     }
 }
 
@@ -283,31 +281,29 @@ lrwxrwxrwx  1 root root      10 Mar 20  2015 logsremote -> /mnt/logs/
 user@client:~/moler$ """
 
 COMMAND_RESULT_ls = {
-    "cmd_ret": {
-        "total": {
-            "raw": "8",
-            "bytes": 8,
-        },
+    "total": {
+        "raw": "8",
+        "bytes": 8,
+    },
 
-        "files": {
-            "bin": {"permissions": "drwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root",
-                    "size_bytes": 4096, "size_raw": "4096", "date": "Sep 25  2014", "name": "bin", },
-            "btslog2": {"permissions": "drwxr-xr-x", "hard_links_count": 5, "owner": "root", "group": "root",
-                        "size_bytes": 4096, "size_raw": "4096", "date": "Mar 20  2015", "name": "btslog2", },
-            "getfzmip.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1, "owner": "root", "group": "root",
-                             "size_bytes": 51, "size_raw": "51", "date": "Dec 15 10:48", "name": "getfzmip.txt", },
-            "getfzmip.txt-old.20171215-104858.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1,
-                                                     "owner": "root",
-                                                     "group": "root", "size_bytes": 24, "size_raw": "24",
-                                                     "date": "Dec 15 10:48",
-                                                     "name": "getfzmip.txt-old.20171215-104858.txt", },
-            "bcn": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root",
-                    "size_bytes": 4,
-                    "size_raw": "4", "date": "Mar 20  2015", "name": "bcn", "link": "/bcn"},
-            "logsremote": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root",
-                           "size_bytes": 10, "size_raw": "10", "date": "Mar 20  2015", "name": "logsremote",
-                           "link": "/mnt/logs/"},
-        },
+    "files": {
+        "bin": {"permissions": "drwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root",
+                "size_bytes": 4096, "size_raw": "4096", "date": "Sep 25  2014", "name": "bin", },
+        "btslog2": {"permissions": "drwxr-xr-x", "hard_links_count": 5, "owner": "root", "group": "root",
+                    "size_bytes": 4096, "size_raw": "4096", "date": "Mar 20  2015", "name": "btslog2", },
+        "getfzmip.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1, "owner": "root", "group": "root",
+                         "size_bytes": 51, "size_raw": "51", "date": "Dec 15 10:48", "name": "getfzmip.txt", },
+        "getfzmip.txt-old.20171215-104858.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1,
+                                                 "owner": "root",
+                                                 "group": "root", "size_bytes": 24, "size_raw": "24",
+                                                 "date": "Dec 15 10:48",
+                                                 "name": "getfzmip.txt-old.20171215-104858.txt", },
+        "bcn": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root",
+                "size_bytes": 4,
+                "size_raw": "4", "date": "Mar 20  2015", "name": "bcn", "link": "/bcn"},
+        "logsremote": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root",
+                       "size_bytes": 10, "size_raw": "10", "date": "Mar 20  2015", "name": "logsremote",
+                       "link": "/mnt/logs/"},
     },
 }
 
