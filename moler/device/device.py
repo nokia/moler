@@ -60,6 +60,8 @@ class DeviceFactory(object):
         device_class = cls._devices_params[source_name]['class_fullname']
         constructor_parameters = cls._devices_params[source_name]['constructor_parameters']
         constructor_parameters["initial_state"] = initial_state
+        if constructor_parameters["name"]:
+            constructor_parameters["name"] = new_name
         dev = cls._create_instance_and_remember_it(
             device_class=device_class, constructor_parameters=constructor_parameters,
             establish_connection=establish_connection, name=new_name)

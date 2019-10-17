@@ -151,8 +151,12 @@ def test_can_clone_device(moler_config, device_factory):
     device_cloned = device_factory.get_cloned_device(source_device=device_org, new_name="CLONED_UNIX_LOCAL")
     assert device_cloned is not None
     assert device_org != device_cloned
+    assert device_org.io_connection != device_cloned.io_connection
+    assert device_org.io_connection.moler_connection != device_cloned.io_connection.moler_connection
+    assert device_org.io_connection.name != device_cloned.io_connection.name
     device_cached_cloned = device_factory.get_cloned_device(source_device=device_org, new_name="CLONED_UNIX_LOCAL")
     assert device_cloned == device_cached_cloned
+    device_cached_cloned.goto_state('UNIX_LOCAL')
 
 
 def test_can_select_all_devices_loaded_from_config_file(moler_config, device_factory):
