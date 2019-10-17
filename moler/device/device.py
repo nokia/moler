@@ -51,7 +51,7 @@ class DeviceFactory(object):
         return dev
 
     @classmethod
-    def get_cloned_device(cls, source_device, new_name,  initial_state=None, establish_connection=True):
+    def get_cloned_device(cls, source_device, new_name, initial_state=None, establish_connection=True):
         if new_name in cls._devices.keys():
             return cls._devices[new_name]  # or raise exception?
         if initial_state is None:
