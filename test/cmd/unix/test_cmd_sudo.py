@@ -106,11 +106,11 @@ def command_output_and_expected_result():
 [sudo] password for user: 
 /home/user/moler
 ute@debdev:~/moler$ """
-    result = {"cmd_ret": {
+    result = {
         'current_path': 'moler',
         'full_path': '/home/user/moler',
         'path_to_current': '/home/user'
-    }}
+    }
     return output, result
 
 
