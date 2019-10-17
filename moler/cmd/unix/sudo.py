@@ -45,6 +45,7 @@ class Sudo(GenericUnixCommand):
         self._sent_sudo_password = False
         self._sent_command_string = False
         self.newline_seq = "\n"
+        self._line_for_sudo = False
 
     def build_command_string(self):
         """
@@ -69,9 +70,9 @@ class Sudo(GenericUnixCommand):
             self._parse_sudo_password(line)
             self._parse_command_not_found(line)
             self._parse_sudo_error(line)
-            self._process_embedded_command(line, is_full_line)
+            # self._process_embedded_command(line, is_full_line)
         except ParsingDone:
-            pass
+            self._line_for_sudo = True
         super(Sudo, self).on_new_line(line, is_full_line)
 
     def start(self, timeout=None, *args, **kwargs):
@@ -80,24 +81,52 @@ class Sudo(GenericUnixCommand):
             self.timeout_from_embedded_command = False
         return super(Sudo, self).start(timeout=timeout, args=args, kwargs=kwargs)
 
-    def _process_embedded_command(self, line, is_full_line):
+    def data_received(self, data):
+        """
+        Overrides data_received to filter some information to embedded command.
+
+        :param data: List of strings sent by device.
+        :return: None
+        """
+        lines = data.splitlines(True)
+        for line in lines:
+            partial_data = line
+            if self._last_not_full_line is not None:
+                line = "{}{}".format(self._last_not_full_line, line)
+                self._last_not_full_line = None
+            is_full_line = self.has_endline_char(line)
+            if is_full_line:
+                line = self._strip_new_lines_chars(line)
+            else:
+                self._last_not_full_line = line
+            if self._cmd_output_started:
+                decoded_line = self._decode_line(line=line)
+                self._line_for_sudo = False
+                self.on_new_line(line=decoded_line, is_full_line=is_full_line)
+                if not self._line_for_sudo:
+                    self._process_embedded_command(partial_data=partial_data)
+            else:
+                self._detect_start_of_cmd_output(line, is_full_line)
+                if self._concatenate_before_command_starts and not self._cmd_output_started and is_full_line:
+                    self._last_not_full_line = line
+            if self.done() and self.do_not_process_after_done:
+                break
+
+    def _process_embedded_command(self, partial_data):
         """
         Processes embedded command, passes output from device to embedded command.
 
-        :param line: Line from device
-        :param is_full_line: True if line had new line chars, False otherwise.
+        :param partial_data: Line from device filtered by sudo, only for embedded command.
         :return: None.
-        :raises: ParsingDone if sudo has embedded command object.
         """
         if self.cmd_object:
             if not self._sent_command_string:
                 self._sent_command_string = True
                 cs = "{}{}".format(self.cmd_object.command_string, self.newline_seq)
                 self.cmd_object.data_received(cs)
-            if is_full_line:
-                line = "{}{}".format(line, self.newline_seq)
+
             prev_cmd_timeout = self.cmd_object.timeout
-            self.cmd_object.data_received(line)
+            self.cmd_object.data_received(partial_data)
             new_cmd_timeout = self.cmd_object.timeout
             if self.timeout_from_embedded_command and prev_cmd_timeout != new_cmd_timeout:
                 timedelta = new_cmd_timeout - prev_cmd_timeout
@@ -108,7 +137,6 @@ class Sudo(GenericUnixCommand):
                     self.cmd_object.result()
                 except Exception as ex:
                     self.set_exception(ex)
-            raise ParsingDone()
 
     # sudo: pwd: command not found
     _re_sudo_command_not_found = re.compile(r"sudo:.*command not found", re.I)
@@ -181,13 +209,15 @@ class Sudo(GenericUnixCommand):
         else:
             if not self.cmd_object:
                 # _validate_start is called before running command on connection, so we raise exception instead of setting it
-                raise CommandFailure(self,
-                                     "Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor. Please specific parameter.")
+                raise CommandFailure(
+                    self,
+                    "Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor. Please specific parameter.")
         if self.cmd_object and self.cmd_object.done():
             # _validate_start is called before running command on connection, so we raise exception instead of setting it
-            raise CommandFailure(self,
-                                 "Not allowed to run again the embeded command (embeded command is done): {}.".format(
-                                     self.cmd_object))
+            raise CommandFailure(
+                self,
+                "Not allowed to run again the embeded command (embeded command is done): {}.".format(
+                    self.cmd_object))
         self.timeout = self.cmd_object.timeout
 
 
