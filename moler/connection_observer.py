@@ -7,7 +7,7 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 import logging
 import threading
 import time
-import traceback
+import cgitb
 from abc import abstractmethod, ABCMeta
 
 from six import add_metaclass
@@ -290,13 +290,14 @@ class ConnectionObserver(object):
         :param exception: exception to set
         :return: None
         """
-        trback_str = "\n" + " ".join(traceback.format_tb(exc_traceback)) if exc_traceback else ""
+        e_info = (exception.__class__, exception, exc_traceback)
+        trback_str = "\n" + cgitb.text(e_info)
         if self._is_done:
             self._log(logging.WARNING,
                       "Attempt to set exception {!r} on already done {}{}".format(exception, self, trback_str),
                       levels_to_go_up=2)
             return
-        ConnectionObserver._change_unraised_exception(new_exception=exception, observer=self)
+        ConnectionObserver._change_unraised_exception(new_exception=exception, exc_traceback=exc_traceback, observer=self)
         self._log(logging.INFO,
                   "{}.{} has set exception {!r}{}".format(self.__class__.__module__, self, exception, trback_str),
                   levels_to_go_up=2)
@@ -350,7 +351,7 @@ class ConnectionObserver(object):
                 return list_of_exceptions
 
     @staticmethod
-    def _change_unraised_exception(new_exception, observer):
+    def _change_unraised_exception(new_exception, observer, exc_traceback=None):
         with ConnectionObserver._exceptions_lock:
             old_exception = observer._exception
             ConnectionObserver._log_unraised_exceptions(observer)

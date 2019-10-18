@@ -11,6 +11,7 @@ import abc
 import logging
 import re
 import traceback
+import cgitb
 
 import six
 
@@ -265,7 +266,8 @@ class CommandTextualGeneric(Command):
         if self.done() or not self.wait_for_prompt_on_exception:
             super(CommandTextualGeneric, self).set_exception(exception=exception, exc_traceback=exc_traceback)
         else:
-            trback_str = "\n" + " ".join(traceback.format_tb(exc_traceback)) if exc_traceback else ""
+            e_info = (exception.__class__, exception, exc_traceback)
+            trback_str = "\n" + cgitb.text(e_info) if exc_traceback else ""
             if self._stored_exception is None:
                 self._log(logging.INFO,
                           "{}.{} has set exception {!r}{}".format(self.__class__.__module__, self,
