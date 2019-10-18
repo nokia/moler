@@ -125,6 +125,7 @@ def test_sudo_forwards_nonsudo_specific_connection_data_into_embedded_command(bu
                                   ("/home/user/moler", True),
                                   ("ute@debdev:~/moler$", False)]
 
+
 @pytest.fixture()
 def command_output_and_expected_result():
     output = """user@client:~/moler$ sudo pwd
