@@ -81,36 +81,51 @@ class Sudo(GenericUnixCommand):
             self.timeout_from_embedded_command = False
         return super(Sudo, self).start(timeout=timeout, args=args, kwargs=kwargs)
 
-    def data_received(self, data):
-        """
-        Overrides data_received to filter some information to embedded command.
+    # def data_received(self, data):
+    #     """
+    #     Overrides data_received to filter some information to embedded command.
+    #
+    #     :param data: List of strings sent by device.
+    #     :return: None
+    #     """
+    #     lines = data.splitlines(True)
+    #     for line in lines:
+    #         partial_data = line
+    #         if self._last_not_full_line is not None:
+    #             line = "{}{}".format(self._last_not_full_line, line)
+    #             self._last_not_full_line = None
+    #         is_full_line = self.has_endline_char(line)
+    #         if is_full_line:
+    #             line = self._strip_new_lines_chars(line)
+    #         else:
+    #             self._last_not_full_line = line
+    #         if self._cmd_output_started:
+    #             decoded_line = self._decode_line(line=line)
+    #             self._line_for_sudo = False
+    #             self.on_new_line(line=decoded_line, is_full_line=is_full_line)
+    #             if not self._line_for_sudo:
+    #                 self._process_embedded_command(partial_data=partial_data)
+    #         else:
+    #             self._detect_start_of_cmd_output(line, is_full_line)
+    #             if self._concatenate_before_command_starts and not self._cmd_output_started and is_full_line:
+    #                 self._last_not_full_line = line
+    #         if self.done() and self.do_not_process_after_done:
+    #             break
 
-        :param data: List of strings sent by device.
-        :return: None
+    def _process_line_from_command(self, current_chunk, line, is_full_line):
         """
-        lines = data.splitlines(True)
-        for line in lines:
-            partial_data = line
-            if self._last_not_full_line is not None:
-                line = "{}{}".format(self._last_not_full_line, line)
-                self._last_not_full_line = None
-            is_full_line = self.has_endline_char(line)
-            if is_full_line:
-                line = self._strip_new_lines_chars(line)
-            else:
-                self._last_not_full_line = line
-            if self._cmd_output_started:
-                decoded_line = self._decode_line(line=line)
-                self._line_for_sudo = False
-                self.on_new_line(line=decoded_line, is_full_line=is_full_line)
-                if not self._line_for_sudo:
-                    self._process_embedded_command(partial_data=partial_data)
-            else:
-                self._detect_start_of_cmd_output(line, is_full_line)
-                if self._concatenate_before_command_starts and not self._cmd_output_started and is_full_line:
-                    self._last_not_full_line = line
-            if self.done() and self.do_not_process_after_done:
-                break
+        Processes line from command.
+
+        :param current_chunk: Chunk of line sent by connection.
+        :param line: Line of output (current_chunk plus previous chunks of this line - if any) without newline char(s).
+        :param is_full_line: True if line had newline char(s). False otherwise.
+        :return: None.
+        """
+        decoded_line = self._decode_line(line=line)
+        self._line_for_sudo = False
+        self.on_new_line(line=decoded_line, is_full_line=is_full_line)
+        if not self._line_for_sudo:
+            self._process_embedded_command(partial_data=current_chunk)
 
     def _process_embedded_command(self, partial_data):
         """
