@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Generic Unix/Linux module
+Generic class for all command with textual output.
 """
 
 __author__ = 'Marcin Usielski, Michal Ernst'
@@ -22,7 +22,7 @@ from threading import Lock
 class CommandTextualGeneric(Command):
     """Base class for textual commands."""
 
-    _re_default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')  # When user provides no prompt
+    _re_default_prompt = re.compile(r'^[^<]*[$%#>~]\s*$')  # When user provides no prompt
     _default_newline_chars = ("\n", "\r")  # New line chars on device, not system with script!
 
     def __init__(self, connection, prompt=None, newline_chars=None, runner=None):
@@ -157,25 +157,6 @@ class CommandTextualGeneric(Command):
             if self.done() and self.do_not_process_after_done:
                 break
 
-        # for line in lines:
-        #     if self._last_not_full_line is not None:
-        #         line = "{}{}".format(self._last_not_full_line, line)
-        #         self._last_not_full_line = None
-        #     is_full_line = self.has_endline_char(line)
-        #     if is_full_line:
-        #         line = self._strip_new_lines_chars(line)
-        #     else:
-        #         self._last_not_full_line = line
-        #     if self._cmd_output_started:
-        #         decoded_line = self._decode_line(line=line)
-        #         self.on_new_line(line=decoded_line, is_full_line=is_full_line)
-        #     else:
-        #         self._detect_start_of_cmd_output(line, is_full_line)
-        #         if self._concatenate_before_command_starts and not self._cmd_output_started and is_full_line:
-        #             self._last_not_full_line = line
-        #     if self.done() and self.do_not_process_after_done:
-        #         break
-
     def _process_line_from_command(self, current_chunk, line, is_full_line):
         """
         Processes line from command.
@@ -203,9 +184,9 @@ class CommandTextualGeneric(Command):
         """
         Concatenates (if necessary) previous chunk(s) of line and current.
 
-        :param current_chunk: line from device (full line or incomplete one).
-        :return: Concatenated (if necessary) line from device without newline char(s). Flag: True if line had newline
-         char(s), False otherwise.
+        :param current_chunk: line from connection (full line or incomplete one).
+        :return: Concatenated (if necessary) line from connection without newline char(s). Flag: True if line had
+         newline char(s), False otherwise.
         """
         line = current_chunk
         if self._last_not_full_line is not None:
@@ -243,7 +224,8 @@ class CommandTextualGeneric(Command):
                     self.set_result(self.current_ret)
             else:
                 self._log(lvl=logging.DEBUG,
-                          msg="Found candidate for final prompt but current ret is None or empty, required not None nor empty.")
+                          msg="Found candidate for final prompt but current ret is None or empty, required not None"
+                              " nor empty.")
 
     def is_end_of_cmd_output(self, line):
         """
