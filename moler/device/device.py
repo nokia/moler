@@ -66,7 +66,7 @@ class DeviceFactory(object):
             return cls._devices[new_name]  # or raise exception?
         if initial_state is None:
             initial_state = source_device.current_state
-        if six.string_types(source_device):
+        if isinstance(source_device, six.string_types):
             source_name = source_device
             source_device = cls.get_device(name=source_name)
         source_name = source_device.name
