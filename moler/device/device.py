@@ -71,8 +71,8 @@ class DeviceFactory(object):
             if cached_cloned_from == source_name:
                 return cls._devices[new_name]
             else:
-                msg = "Attempt to create device '{}' as clone of '{}' but device with such name already created as"
-                " clone of '{}'.".format(new_name, source_name, cached_cloned_from)
+                msg = "Attempt to create device '{}' as clone of '{}' but device with such name already created as" \
+                    " clone of '{}'.".format(new_name, source_name, cached_cloned_from)
                 raise WrongUsage(msg)
         if initial_state is None:
             initial_state = source_device.current_state
