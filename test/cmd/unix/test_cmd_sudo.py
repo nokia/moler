@@ -13,6 +13,7 @@ from moler.cmd.unix.cp import Cp
 from moler.exceptions import CommandTimeout
 from moler.exceptions import CommandFailure
 import pytest
+import mock
 
 
 def test_calling_by_command_object(buffer_connection, command_output_and_expected_result):
@@ -100,17 +101,42 @@ def test_failing_with_both_parameters(buffer_connection, command_output_cp_fails
         cmd_sudo(timeout=0.2)
 
 
+def test_sudo_forwards_nonsudo_specific_connection_data_into_embedded_command(buffer_connection):
+    command_output_chunks = ["user@client:~/moler$ sudo pwd",  # sudo specific - command echo
+                             "\r\n",
+                             "[sudo] password for user:",  # sudo specific - should not be forwarded
+                             "\r\n",
+                             "/home/user/moler",  # pwd first chunk
+                             "\r\n",
+                             "ute@debdev:~/moler$"]
+    buffer_connection.remote_inject_response(command_output_chunks)
+    on_new_line_params = []
+    original_on_new_line = Pwd.on_new_line
+
+    def pwd_on_new_line(self, line, is_full_line):
+        on_new_line_params.append((line, is_full_line))
+        original_on_new_line(self, line, is_full_line)
+
+    cmd_pwd = Pwd(connection=buffer_connection.moler_connection)
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass", cmd_object=cmd_pwd)
+    with mock.patch.object(Pwd, "on_new_line", pwd_on_new_line):
+        cmd_sudo()
+    assert on_new_line_params == [("/home/user/moler", False),
+                                  ("/home/user/moler", True),
+                                  ("ute@debdev:~/moler$", False)]
+
+
 @pytest.fixture()
 def command_output_and_expected_result():
     output = """user@client:~/moler$ sudo pwd
 [sudo] password for user: 
 /home/user/moler
 ute@debdev:~/moler$ """
-    result = {"cmd_ret": {
+    result = {
         'current_path': 'moler',
         'full_path': '/home/user/moler',
         'path_to_current': '/home/user'
-    }}
+    }
     return output, result
 
 
