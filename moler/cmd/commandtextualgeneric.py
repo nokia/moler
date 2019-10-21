@@ -122,6 +122,11 @@ class CommandTextualGeneric(Command):
 
     @staticmethod
     def _calculate_prompt(prompt):
+        """
+        Calculates prompt as regex from passed prompt.
+        :param prompt: Prompt as regex  in string or as compiled regex object.
+        :return: Compiled regex object.
+        """
         if not prompt:
             prompt = CommandTextualGeneric._re_default_prompt
         if isinstance(prompt, six.string_types):
