@@ -16,6 +16,16 @@ import re
 class Gzip(GenericUnixCommand):
     def __init__(self, connection, file_name, compressed_file_name=None, options=None, overwrite=False,
                  prompt=None, newline_chars=None, runner=None):
+        """
+        :param connection: Moler connection to device, terminal when command is executed.
+        :param file_name: Name of file to be compressed.
+        :param compressed_file_name: Name of output compressed file if you want to specify other than default.
+        :param options: Options of command gzip.
+        :param overwrite: If true allows to overwrite existing file.
+        :param prompt: prompt (on system where command runs).
+        :param newline_chars: Characters to split lines - list.
+        :param runner: Runner to run command.
+        """
         super(Gzip, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.file_name = file_name
         self.compressed_file_name = compressed_file_name
@@ -24,6 +34,10 @@ class Gzip(GenericUnixCommand):
         self.ret_required = False
 
     def build_command_string(self):
+        """
+        Builds command string from parameters passed to object.
+        :return: String representation of command to send over connection to device.
+        """
         cmd = 'gzip'
         if self.options:
             cmd = '{} {}'.format(cmd, self.options)
@@ -33,6 +47,12 @@ class Gzip(GenericUnixCommand):
         return cmd
 
     def on_new_line(self, line, is_full_line):
+        """
+        Put your parsing code here.
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: Nothing
+        """
         try:
             self._asks_to_overwrite(line)
             self._command_failure(line)
@@ -40,9 +60,15 @@ class Gzip(GenericUnixCommand):
             pass
         return super(Gzip, self).on_new_line(line, is_full_line)
 
-    _re_overwrite = re.compile(r"gzip:\s+(?P<COMPRESSED_FILE_NAME>.*)\s+already exists")
+    _re_overwrite = re.compile(
+        r"gzip:\s+(?P<COMPRESSED_FILE_NAME>.*)\s+already exists; do you wish to overwrite \(y or n\)?")
 
     def _asks_to_overwrite(self, line):
+        """
+        Parse line containing overwriting warning.
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches.
+        """
         if self._regex_helper.search_compiled(self._re_overwrite, line):
             if self.overwrite:
                 self.connection.sendline('y')
@@ -56,6 +82,11 @@ class Gzip(GenericUnixCommand):
     _re_error = re.compile(r"gzip:\s(?P<ERROR_MSG>.*)")
 
     def _command_failure(self, line):
+        """
+        Parse line containing error.
+        :param line: Line from device.
+        :return: Nothing but raises ParsingDone if regex matches.
+        """
         if self._regex_helper.search_compiled(self._re_error, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG"))))
             raise ParsingDone
