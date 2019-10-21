@@ -10,6 +10,7 @@ from moler.config import devices as devices_config
 from moler.instance_loader import create_instance_from_class_fullname
 from moler.helpers import copy_list
 from moler.exceptions import WrongUsage
+import six
 
 
 class DeviceFactory(object):
@@ -52,10 +53,22 @@ class DeviceFactory(object):
 
     @classmethod
     def get_cloned_device(cls, source_device, new_name, initial_state=None, establish_connection=True):
+        """
+        Creates (if necessary) and returns new device based on existed device.
+
+        :param source_device: Reference to base device or name of base device.
+        :param new_name: Name of new device.
+        :param initial_state: Initial state of created device. If None then state of source device will be used.
+        :param establish_connection: True to open connection, False if it does not matter.
+        :return: Device object.
+        """
         if new_name in cls._devices.keys():
             return cls._devices[new_name]  # or raise exception?
         if initial_state is None:
             initial_state = source_device.current_state
+        if six.string_types(source_device):
+            source_name = source_device
+            source_device = cls.get_device(name=source_name)
         source_name = source_device.name
         device_class = cls._devices_params[source_name]['class_fullname']
         constructor_parameters = cls._devices_params[source_name]['constructor_parameters']
