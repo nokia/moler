@@ -62,14 +62,21 @@ class DeviceFactory(object):
         :param establish_connection: True to open connection, False if it does not matter.
         :return: Device object.
         """
-        if new_name in cls._devices.keys():
-            return cls._devices[new_name]  # or raise exception?
         if isinstance(source_device, six.string_types):
             source_name = source_device
             source_device = cls.get_device(name=source_name)
+        source_name = source_device.name
+        if new_name in cls._devices.keys():
+            cached_cloned_from = cls._devices_params[new_name]['cloned_from']
+            if cached_cloned_from == source_name:
+                return cls._devices[new_name]
+            else:
+                msg = "Attempt to create device '{}' as clone of '{}' but device with such name already created as"
+                " clone of '{}'.".format(new_name, source_name, cached_cloned_from)
+                raise WrongUsage(msg)
         if initial_state is None:
             initial_state = source_device.current_state
-        source_name = source_device.name
+
         device_class = cls._devices_params[source_name]['class_fullname']
         constructor_parameters = cls._devices_params[source_name]['constructor_parameters']
         constructor_parameters["initial_state"] = initial_state
@@ -78,6 +85,7 @@ class DeviceFactory(object):
         dev = cls._create_instance_and_remember_it(
             device_class=device_class, constructor_parameters=constructor_parameters,
             establish_connection=establish_connection, name=new_name)
+        cls._devices_params[new_name]['cloned_from'] = source_name
         return dev
 
     @classmethod
@@ -169,7 +177,6 @@ class DeviceFactory(object):
     def _create_instance_and_remember_it(cls, device_class, constructor_parameters, establish_connection, name):
         device = create_instance_from_class_fullname(class_fullname=device_class,
                                                      constructor_parameters=constructor_parameters)
-
         if establish_connection:
             device.goto_state(state=device.initial_state)
 
@@ -179,5 +186,6 @@ class DeviceFactory(object):
         cls._devices_params[name] = dict()
         cls._devices_params[name]['class_fullname'] = device_class
         cls._devices_params[name]['constructor_parameters'] = constructor_parameters
+        cls._devices_params[name]['cloned_from'] = None
 
         return device
