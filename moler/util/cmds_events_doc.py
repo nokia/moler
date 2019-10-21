@@ -13,7 +13,7 @@ from argparse import ArgumentParser
 from datetime import datetime
 from importlib import import_module
 from os import walk, sep
-from os.path import abspath, join, relpath, exists, split
+from os.path import abspath, join, relpath, exists, split, dirname
 from pprint import pformat
 
 from moler.command import Command
@@ -65,9 +65,13 @@ def _walk_moler_python_files(path, *args):
     :type path:
     :rtype: str
     """
+    repo_path = abspath(join(dirname(__file__), '..', '..', ))
+
+    if path != abspath(path):
+        path = join(repo_path, path)
+
     observer = "event" if "events" in split(path) else "command"
     print("Processing {}s test from path: '{}'".format(observer, path))
-    repo_path = abspath(join(path, '..', '..'))
 
     for (dirpath, _, filenames) in walk(path):
         for filename in filenames:

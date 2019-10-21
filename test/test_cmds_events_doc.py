@@ -34,10 +34,10 @@ def _list_in_path(listing_type):
         file_list = [f for root, dirs, files in walk(abs_test_path) for f in files if isfile(join(root, f))]
     elif listing_type == 'fullpath':
         file_list = [path.join(cmd_dir_under_test, root.split(abs_test_path)[1], f) for root, dirs, files in walk(abs_test_path)
-                     for f in files if isfile(join(root, f)) and '__init__' not in f and '.pyc' not in f]
+                     for f in files if isfile(join(root, f)) and '__init__' not in f and '.pyc' not in f and f.endswith('.py')]
     elif listing_type == 'only_py':
         file_list = [f for root, dirs, files in walk(abs_test_path)
-                     for f in files if isfile(join(root, f)) and '__init__' not in f and '.pyc' not in f]
+                     for f in files if isfile(join(root, f)) and '__init__' not in f and '.pyc' not in f and f.endswith('.py')]
 
     return file_list
 
