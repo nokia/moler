@@ -64,11 +64,11 @@ class DeviceFactory(object):
         """
         if new_name in cls._devices.keys():
             return cls._devices[new_name]  # or raise exception?
-        if initial_state is None:
-            initial_state = source_device.current_state
         if isinstance(source_device, six.string_types):
             source_name = source_device
             source_device = cls.get_device(name=source_name)
+        if initial_state is None:
+            initial_state = source_device.current_state
         source_name = source_device.name
         device_class = cls._devices_params[source_name]['class_fullname']
         constructor_parameters = cls._devices_params[source_name]['constructor_parameters']
