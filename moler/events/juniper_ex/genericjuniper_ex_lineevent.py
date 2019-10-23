@@ -9,8 +9,6 @@ __email__ = 'michal.ernst@nokia.com'
 
 import abc
 import six
-import datetime
-
 from moler.events.lineevent import LineEvent
 
 
