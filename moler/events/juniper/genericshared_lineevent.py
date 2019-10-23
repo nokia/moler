@@ -18,15 +18,14 @@ class GenericJuniperLineEvent(LineEvent):
     pass
 
 
-EVENT_OUTPUT_single_pattern = """
-    user@host01:~> TERM=xterm-mono telnet -4 host.domain.net 1500
-    Login:
-    Login:user
-    Password:
-    Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
-    Have a lot of fun...
-    CLIENT5 [] has just connected!
-    host:~ #"""
+EVENT_OUTPUT_single_pattern = """user@host01:~> TERM=xterm-mono telnet -4 host.domain.net 1500
+Login:
+Login:user
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+CLIENT5 [] has just connected!
+host:~ #"""
 
 EVENT_KWARGS_single_pattern = {
     "detect_patterns": [r'host:.*#'],

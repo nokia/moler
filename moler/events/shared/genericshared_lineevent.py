@@ -18,8 +18,7 @@ class GenericSharedLineEvent(LineEvent):
     pass
 
 
-EVENT_OUTPUT_single_pattern = """
-user@host01:~> TERM=xterm-mono telnet -4 host.domain.net 1500
+EVENT_OUTPUT_single_pattern = """user@host01:~> TERM=xterm-mono telnet -4 host.domain.net 1500
 Login:
 Login:user
 Password:
