@@ -7,10 +7,10 @@ __email__ = 'agnieszka.bylica@nokia.com, tomasz.krol@nokia.com, marcin.usielski@
 
 import re
 import datetime
-from moler.events.lineevent import LineEvent
+from moler.events.unix.genericunix_lineevent import GenericUnixLineEvent
 
 
-class PingNoResponse(LineEvent):
+class PingNoResponse(GenericUnixLineEvent):
 
     _re_detect_pattern = re.compile(r'(no\s+answer\s+yet\s+for.*)|(.*Destination\s+Host\s+Unreachable)')
 

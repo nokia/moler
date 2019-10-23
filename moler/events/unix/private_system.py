@@ -6,10 +6,10 @@ __email__ = 'marcin.usielski@nokia.com'
 import datetime
 import re
 
-from moler.events.lineevent import LineEvent
+from moler.events.unix.genericunix_lineevent import GenericUnixLineEvent
 
 
-class PrivateSystem(LineEvent):
+class PrivateSystem(GenericUnixLineEvent):
     # There were 2 failed login attempts since the last successful login
     _re_warning = [
         re.compile(r"You are about to access a private system. This system is for the use of"),

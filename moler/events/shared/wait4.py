@@ -6,10 +6,10 @@ __email__ = 'tomasz.krol@nokia.com'
 
 import datetime
 
-from moler.events.lineevent import LineEvent
+from moler.events.shared.genericshared_lineevent import GenericSharedLineEvent
 
 
-class Wait4(LineEvent):
+class Wait4(GenericSharedLineEvent):
     def __init__(self, detect_patterns, connection, match='any', till_occurs_times=-1, runner=None):
         """
         Event for Wait4 - universal event observer.

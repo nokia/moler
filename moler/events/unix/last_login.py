@@ -7,11 +7,11 @@ import datetime
 import re
 from dateutil import parser
 
-from moler.events.textualevent import TextualEvent
+from moler.events.unix.genericunix_textualevent import GenericUnixTextualEvent
 from moler.exceptions import ParsingDone
 
 
-class LastLogin(TextualEvent):
+class LastLogin(GenericUnixTextualEvent):
     def __init__(self, connection, till_occurs_times=-1, runner=None):
         """
         Event for 'Last login ... from ...'

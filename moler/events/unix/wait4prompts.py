@@ -5,13 +5,13 @@ __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 import datetime
 import re
 
-from moler.events.textualevent import TextualEvent
+from moler.events.unix.genericunix_textualevent import GenericUnixTextualEvent
 from moler.exceptions import ParsingDone
 from moler.helpers import remove_xterm_window_title_hack
 from operator import attrgetter
 
 
-class Wait4prompts(TextualEvent):
+class Wait4prompts(GenericUnixTextualEvent):
     def __init__(self, connection, prompts, till_occurs_times=-1, runner=None):
         """
         Event for waiting for prompt
