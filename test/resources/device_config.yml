@@ -21,6 +21,9 @@ DEVICES:
     DEVICE_CLASS: moler.device.unixlocal.UnixLocal
     INITIAL_STATE: UNIX_LOCAL
 
+  UNIX_LOCAL_CLONED_VIA_YAML:
+    CLONED: UNIX_LOCAL
+
   UNIX_REMOTE:
     DEVICE_CLASS: moler.device.unixremote.UnixRemote
     INITIAL_STATE: UNIX_LOCAL
