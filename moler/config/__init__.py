@@ -148,7 +148,9 @@ def load_device_from_config(config):
         for device_name in config['DEVICES']:
             device_def = config['DEVICES'][device_name]
             if 'CLONED' in device_def:
-                cloned_devices[device_name] = device_def['CLONED']
+                cloned_devices[device_name] = dict()
+                cloned_devices[device_name]['source'] = device_def['CLONED']
+                cloned_devices[device_name]['state'] = device_def.get('INITIAL_STATE', None)
             else:  # create all devices defined directly
                 dev_cfg.define_device(
                     name=device_name,
@@ -159,8 +161,11 @@ def load_device_from_config(config):
                 )
 
     from moler.device.device import DeviceFactory
-    for device_name, cloned_from in cloned_devices.items():
-        DeviceFactory.get_cloned_device(source_device=cloned_from, new_name=device_name, establish_connection=False)
+    for device_name, device_desc in cloned_devices.items():
+        cloned_from = device_desc['source']
+        initial_state = device_desc['state']
+        DeviceFactory.get_cloned_device(source_device=cloned_from, new_name=device_name, initial_state=initial_state,
+                                        establish_connection=False)
     if create_at_startup is True:
         DeviceFactory.create_all_devices()
     _load_topology(topology=topology)
