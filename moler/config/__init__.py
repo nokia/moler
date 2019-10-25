@@ -133,6 +133,7 @@ def load_device_from_config(config):
     create_at_startup = False
     topology = None
     cloned_devices = dict()
+    cloned_id = 'CLONED_FROM'
 
     if 'DEVICES' in config:
         if 'DEFAULT_CONNECTION' in config['DEVICES']:
@@ -147,9 +148,9 @@ def load_device_from_config(config):
 
         for device_name in config['DEVICES']:
             device_def = config['DEVICES'][device_name]
-            if 'CLONED' in device_def:
+            if cloned_id in device_def:
                 cloned_devices[device_name] = dict()
-                cloned_devices[device_name]['source'] = device_def['CLONED']
+                cloned_devices[device_name]['source'] = device_def[cloned_id]
                 cloned_devices[device_name]['state'] = device_def.get('INITIAL_STATE', None)
             else:  # create all devices defined directly
                 dev_cfg.define_device(
