@@ -10,7 +10,7 @@ __email__ = 'michal.ernst@nokia.com'
 import abc
 import six
 from moler.events.textualevent import TextualEvent
-from moler.helpers import remove_xterm_window_title_hack
+from moler.helpers import remove_all_known_special_chars
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -23,5 +23,5 @@ class GenericSharedTextualEvent(TextualEvent):
         :param line: line from device to decode.
         :return: decoded line.
         """
-        line = remove_xterm_window_title_hack(line)
+        line = remove_all_known_special_chars(line)
         return line

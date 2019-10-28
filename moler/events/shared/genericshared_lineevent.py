@@ -11,7 +11,7 @@ import abc
 import six
 import datetime
 from moler.events.lineevent import LineEvent
-from moler.helpers import remove_xterm_window_title_hack
+from moler.helpers import remove_all_known_special_chars
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -24,7 +24,7 @@ class GenericSharedLineEvent(LineEvent):
         :param line: line from device to decode.
         :return: decoded line.
         """
-        line = remove_xterm_window_title_hack(line)
+        line = remove_all_known_special_chars(line)
         return line
 
 

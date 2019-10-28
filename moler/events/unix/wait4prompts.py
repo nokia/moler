@@ -7,7 +7,6 @@ import re
 
 from moler.events.unix.genericunix_textualevent import GenericUnixTextualEvent
 from moler.exceptions import ParsingDone
-from moler.helpers import remove_xterm_window_title_hack
 from operator import attrgetter
 
 
