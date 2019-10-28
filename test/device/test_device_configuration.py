@@ -142,6 +142,82 @@ def test_can_select_device_loaded_from_config_file(moler_config, device_factory)
     assert device.__class__.__name__ == 'UnixLocal'
 
 
+def test_can_clone_device(moler_config, device_factory):
+    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
+    moler_config.load_config(config=conn_config, config_type='yaml')
+
+    device_org_name = 'UNIX_LOCAL'
+    device_cloned_name = 'CLONED_UNIX_LOCAL1'
+    device_org = device_factory.get_device(name=device_org_name)
+    assert device_org is not None
+    device_cloned = device_factory.get_cloned_device(source_device=device_org, new_name=device_cloned_name)
+    assert device_cloned is not None
+    assert device_org != device_cloned
+    assert device_org.io_connection != device_cloned.io_connection
+    assert device_org.io_connection.moler_connection != device_cloned.io_connection.moler_connection
+    assert device_org.io_connection.name != device_cloned.io_connection.name
+    device_cached_cloned = device_factory.get_cloned_device(source_device=device_org, new_name=device_cloned_name)
+    assert device_cloned == device_cached_cloned
+    device_cached_cloned.goto_state('UNIX_LOCAL')
+
+
+def test_can_clone_device_via_name(moler_config, device_factory):
+    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
+    moler_config.load_config(config=conn_config, config_type='yaml')
+
+    device_org_name = 'UNIX_LOCAL'
+    device_cloned_name = 'CLONED_UNIX_LOCAL2'
+    device_org = device_factory.get_device(name=device_org_name)
+    assert device_org is not None
+    device_cloned = device_factory.get_cloned_device(source_device=device_org_name, new_name=device_cloned_name)
+    assert device_cloned is not None
+    assert device_org != device_cloned
+    assert device_org.io_connection != device_cloned.io_connection
+    assert device_org.io_connection.moler_connection != device_cloned.io_connection.moler_connection
+    assert device_org.io_connection.name != device_cloned.io_connection.name
+    device_cached_cloned = device_factory.get_cloned_device(source_device=device_org, new_name=device_cloned_name)
+    assert device_cloned == device_cached_cloned
+    device_cached_cloned.goto_state('UNIX_LOCAL')
+
+
+def test_can_clone_device_via_yaml(moler_config, device_factory):
+    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
+    moler_config.load_config(config=conn_config, config_type='yaml')
+
+    device_org_name = 'UNIX_LOCAL'
+    device_cloned_name = 'UNIX_LOCAL_CLONED_VIA_YAML'
+    device_org = device_factory.get_device(name=device_org_name)
+    assert device_org is not None
+    device_cloned = device_factory.get_device(name=device_cloned_name)
+    assert device_cloned is not None
+    assert type(device_org) is type(device_cloned)
+    assert device_org != device_cloned
+    assert device_org.io_connection != device_cloned.io_connection
+    assert device_org.io_connection.moler_connection != device_cloned.io_connection.moler_connection
+    assert device_org.io_connection.name != device_cloned.io_connection.name
+    device_cached_cloned = device_factory.get_cloned_device(source_device=device_org, new_name=device_cloned_name)
+    assert device_cloned == device_cached_cloned
+
+
+def test_cannot_clone_device_the_same_name_different_sources(moler_config, device_factory):
+    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
+    moler_config.load_config(config=conn_config, config_type='yaml')
+
+    device_org_name = 'UNIX_LOCAL'
+    device_org_name_remote = 'UNIX_REMOTE_PROXY_PC'
+    device_cloned_name = 'CLONED_UNIX_LOCAL3'
+    device_org = device_factory.get_device(name=device_org_name)
+    device_org_remote = device_factory.get_device(name=device_org_name_remote, initial_state='UNIX_LOCAL')
+    assert device_org is not None
+
+    device_cloned = device_factory.get_cloned_device(source_device=device_org_name, new_name=device_cloned_name,
+                                                     initial_state='UNIX_LOCAL')
+    assert device_cloned is not None
+    with pytest.raises(WrongUsage):
+        device_factory.get_cloned_device(source_device=device_org_remote, new_name=device_cloned_name,
+                                         initial_state='UNIX_LOCAL')
+
+
 def test_can_select_all_devices_loaded_from_config_file(moler_config, device_factory):
     conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
     moler_config.load_config(config=conn_config, config_type='yaml')
