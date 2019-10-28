@@ -6,10 +6,10 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 
 
 import datetime
-from moler.events.lineevent import LineEvent
+from moler.events.unix.genericunix_lineevent import GenericUnixLineEvent
 
 
-class Shutdown(LineEvent):
+class Shutdown(GenericUnixLineEvent):
 
     def __init__(self, connection, till_occurs_times=-1, runner=None):
         """

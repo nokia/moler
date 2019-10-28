@@ -6,10 +6,10 @@ __email__ = 'marcin.usielski@nokia.com'
 import datetime
 import re
 
-from moler.events.lineevent import LineEvent
+from moler.events.unix.genericunix_lineevent import GenericUnixLineEvent
 
 
-class WarningDefaultPassword(LineEvent):
+class WarningDefaultPassword(GenericUnixLineEvent):
     # There were 2 failed login attempts since the last successful login
     _re_warning = re.compile(
         r'Warning: you are using default password, please change it as soon as possible', re.I)

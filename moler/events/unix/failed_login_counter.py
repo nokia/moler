@@ -6,10 +6,10 @@ __email__ = 'marcin.usielski@nokia.com'
 import datetime
 import re
 
-from moler.events.lineevent import LineEvent
+from moler.events.unix.genericunix_lineevent import GenericUnixLineEvent
 
 
-class FailedLoginCounter(LineEvent):
+class FailedLoginCounter(GenericUnixLineEvent):
     # There were 2 failed login attempts since the last successful login
     _re_attempts = re.compile(
         r'There (?:were|was|have been) (?P<ATTEMPTS_NR>\d+) (?:failed|unsuccessful) login attempts? '

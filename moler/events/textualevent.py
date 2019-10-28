@@ -5,10 +5,12 @@ __copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
+import six
 from moler.event import Event
 from moler.cmd import RegexHelper
 
 
+@six.add_metaclass(abc.ABCMeta)
 class TextualEvent(Event):
     _default_newline_chars = ("\n", "\r")  # New line chars on device, not system with script!
 
