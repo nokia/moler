@@ -108,6 +108,16 @@ def remove_xterm_window_title_hack(line):
     return line
 
 
+def remove_all_known_special_chars(line):
+    """
+    :param line: line from terminal
+    :return: line without all known special chars
+    """
+    line = remove_escape_codes(line)
+    line = remove_xterm_window_title_hack(line)
+    return line
+
+
 def create_object_from_name(full_class_name, constructor_params):
     name_splitted = full_class_name.split('.')
     module_name = ".".join(name_splitted[:-1])
