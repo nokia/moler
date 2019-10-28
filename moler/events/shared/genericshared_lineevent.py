@@ -11,11 +11,21 @@ import abc
 import six
 import datetime
 from moler.events.lineevent import LineEvent
+from moler.helpers import remove_xterm_window_title_hack
 
 
 @six.add_metaclass(abc.ABCMeta)
 class GenericSharedLineEvent(LineEvent):
-    pass
+
+    def _decode_line(self, line):
+        """
+        Decodes line if necessary. Put here code to remove colors from terminal etc.
+
+        :param line: line from device to decode.
+        :return: decoded line.
+        """
+        line = remove_xterm_window_title_hack(line)
+        return line
 
 
 EVENT_OUTPUT_single_pattern = """user@host01:~> TERM=xterm-mono telnet -4 host.domain.net 1500

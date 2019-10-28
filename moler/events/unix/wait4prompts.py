@@ -53,16 +53,6 @@ class Wait4prompts(GenericUnixTextualEvent):
             compiled_patterns[compiled_pattern] = patterns[pattern]
         return compiled_patterns
 
-    def _decode_line(self, line):
-        """
-        Decodes line if necessary. Put here code to remove colors from terminal etc.
-
-        :param line: line from device to decode.
-        :return: decoded line.
-        """
-        line = remove_xterm_window_title_hack(line)
-        return line
-
 
 EVENT_OUTPUT = """
 user@host01:~> TERM=xterm-mono telnet -4 host.domain.net 1500

@@ -21,16 +21,6 @@ class Wait4prompt(Wait4):
         super(Wait4prompt, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times,
                                           detect_patterns=[prompt], match='any')
 
-    def _decode_line(self, line):
-        """
-        Decodes line if necessary. Put here code to remove colors from terminal etc.
-
-        :param line: line from device to decode.
-        :return: decoded line.
-        """
-        line = remove_xterm_window_title_hack(line)
-        return line
-
 
 EVENT_OUTPUT = """
 user@host01:~> TERM=xterm-mono telnet -4 host.domain.net 1500
