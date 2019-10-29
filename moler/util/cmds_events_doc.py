@@ -65,10 +65,7 @@ def _walk_moler_python_files(path, *args):
     :type path:
     :rtype: str
     """
-    repo_path = abspath(join(dirname(__file__), '..', '..', ))
-
-    if path != abspath(path):
-        path = join(repo_path, path)
+    repo_path = abspath(join(path, '..', '..'))
 
     observer = "event" if "events" in split(path) else "command"
     print("Processing {}s test from path: '{}'".format(observer, path))
@@ -78,8 +75,7 @@ def _walk_moler_python_files(path, *args):
             if filename.endswith('__init__.py'):
                 continue
             if filename.endswith('.py'):
-                rel_path = join(dirpath, filename)
-                abs_path = abspath(rel_path)
+                abs_path = join(dirpath, filename)
                 in_moler_path = relpath(abs_path, repo_path)
                 yield in_moler_path
 
