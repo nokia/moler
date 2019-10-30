@@ -34,8 +34,10 @@ class CommandTextualGeneric(Command):
         :param newline_chars:  new line chars on device (a list).
         :param runner: runner to run command.
         """
-        self._command_string_right_index = 20  # Right index of substring of command_string passed as _cmd_escaped. Set
-        # 0 to disable functionality of substring.
+        self._command_string_right_index = 20  # Right (from 0 to this) index of substring of command_string passed
+        # as _cmd_escaped. Set 0 to disable functionality of substring.
+        self._command_string_left_index = 20  # Left (from this to the end) index of substring of command_string passed
+        # as _cmd_escaped. Set 0 to disable functionality of substring.
         self.__command_string = None  # String representing command on device
         self._cmd_escaped = None  # Escaped regular expression string with command
         super(CommandTextualGeneric, self).__init__(connection=connection, runner=runner)
@@ -96,10 +98,25 @@ class CommandTextualGeneric(Command):
         """
         self._cmd_escaped = None
         if self.__command_string is not None:
-            sub_command_string = self.__command_string
-            if self._command_string_right_index != 0:
-                sub_command_string = self.__command_string[:self._command_string_right_index]
-            self._cmd_escaped = re.compile(re.escape(sub_command_string))
+            if self._command_string_right_index != 0 or self._command_string_left_index != 0:
+                sub_command_start_string = None
+                sub_command_finish_string = None
+                if self._command_string_right_index != 0:
+                    sub_command_start_string = re.escape(self.__command_string[:self._command_string_right_index])
+                    re_sub_command_string = sub_command_start_string
+                if self._command_string_left_index != 0:
+                    cmd_len = len(self.__command_string)
+                    if self._command_string_left_index >= cmd_len:
+                        sub_command_finish_string = re.escape(self.__command_string)
+                    else:
+                        sub_command_finish_string = re.escape(self.__command_string[:-self._command_string_left_index])
+                    re_sub_command_string = sub_command_finish_string
+                if sub_command_finish_string and sub_command_start_string:
+                    re_sub_command_string = "{}|{}".format(sub_command_start_string, sub_command_finish_string)
+                self._cmd_escaped = re.compile(re_sub_command_string)
+            else:
+                sub_command_string = self.__command_string
+                self._cmd_escaped = re.compile(re.escape(sub_command_string))
 
     @property
     def _is_done(self):
