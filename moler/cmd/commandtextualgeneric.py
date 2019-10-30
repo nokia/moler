@@ -99,10 +99,10 @@ class CommandTextualGeneric(Command):
         self._cmd_escaped = None
         if self.__command_string is not None:
             if self._command_string_right_index != 0 or self._command_string_left_index != 0:
-                self._cmd_escaped = re.compile(self._build_command_string_slice())
+                sub_command_string = self._build_command_string_slice()
             else:
-                sub_command_string = self.__command_string
-                self._cmd_escaped = re.compile(re.escape(sub_command_string))
+                sub_command_string = re.escape(self.__command_string)
+            self._cmd_escaped = re.compile(sub_command_string)
 
     def _build_command_string_slice(self):
         """
