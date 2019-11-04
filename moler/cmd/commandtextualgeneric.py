@@ -120,7 +120,7 @@ class CommandTextualGeneric(Command):
             if self._max_index_from_end >= cmd_len:
                 sub_command_finish_string = re.escape(self.__command_string)
             else:
-                sub_command_finish_string = re.escape(self.__command_string[:-self._max_index_from_end])
+                sub_command_finish_string = re.escape(self.__command_string[-self._max_index_from_end])
             re_sub_command_string = sub_command_finish_string
         if sub_command_finish_string and sub_command_start_string:
             re_sub_command_string = "{}|{}".format(sub_command_start_string, sub_command_finish_string)
