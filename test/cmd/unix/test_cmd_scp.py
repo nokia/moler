@@ -20,14 +20,14 @@ def test_scp_returns_proper_command_string(buffer_connection):
 
 def test_scp_works_properly_on_slice_string(buffer_connection):
     slice_index = 17
-    scp_cmd = Scp(connection=buffer_connection.moler_connection, source="user@127.0.0.1:/tmp/WHERE/snapshot.zip",
+    scp_cmd = Scp(connection=buffer_connection.moler_connection, source="user@127.0.0.1:/tmp/WHERE/archive_with_long_name.zip",
                   dest="/home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots",
                   options="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r -P 22")
     scp_cmd._max_index_from_beginning = slice_index
     scp_cmd._max_index_from_end = slice_index
-    command_string = r"scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r -P 22 user@127.0.0.1:/tmp/WHERE/snapshot.zip /home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots"
+    command_string = r"scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r -P 22 user@127.0.0.1:/tmp/WHERE/archive_with_long_name.zip /home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots"
     beginning_command_string = r"scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r -P 22 user@127.0.0.1:/tmp/"
-    finish_command_string = r"snapshot.zip /home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots"
+    finish_command_string = r"archive_with_long_name.zip /home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots"
     not_existing = r"No existng string in the command string"
 
     assert command_string == scp_cmd.command_string
@@ -41,14 +41,14 @@ def test_scp_works_properly_on_slice_string(buffer_connection):
 
 def test_scp_works_properly_on_slice_string_beginning(buffer_connection):
     slice_index = 17
-    scp_cmd = Scp(connection=buffer_connection.moler_connection, source="user@127.0.0.1:/tmp/WHERE/snapshot.zip",
+    scp_cmd = Scp(connection=buffer_connection.moler_connection, source="user@127.0.0.1:/tmp/WHERE/archive_with_long_name.zip",
                   dest="/home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots",
                   options="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r -P 22")
     scp_cmd._max_index_from_beginning = slice_index
     scp_cmd._max_index_from_end = 0
-    command_string = r"scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r -P 22 user@127.0.0.1:/tmp/WHERE/snapshot.zip /home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots"
+    command_string = r"scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r -P 22 user@127.0.0.1:/tmp/WHERE/archive_with_long_name.zip /home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots"
     beginning_command_string = r"scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r -P 22 user@127.0.0.1:/tmp/"
-    finish_command_string = r"snapshot.zip /home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots"
+    finish_command_string = r"archive_with_long_name.zip /home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots"
     not_existing = r"No existng string in the command string"
 
     assert command_string == scp_cmd.command_string
@@ -62,14 +62,14 @@ def test_scp_works_properly_on_slice_string_beginning(buffer_connection):
 
 def test_scp_works_properly_on_slice_string_end(buffer_connection):
     slice_index = 17
-    scp_cmd = Scp(connection=buffer_connection.moler_connection, source="user@127.0.0.1:/tmp/WHERE/snapshot.zip",
+    scp_cmd = Scp(connection=buffer_connection.moler_connection, source="user@127.0.0.1:/tmp/WHERE/archive_with_long_name.zip",
                   dest="/home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots",
                   options="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r -P 22")
     scp_cmd._max_index_from_beginning = 0
     scp_cmd._max_index_from_end = slice_index
-    command_string = r"scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r -P 22 user@127.0.0.1:/tmp/WHERE/snapshot.zip /home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots"
+    command_string = r"scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r -P 22 user@127.0.0.1:/tmp/WHERE/archive_with_long_name.zip /home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots"
     beginning_command_string = r"scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r -P 22 user@127.0.0.1:/tmp/"
-    finish_command_string = r"snapshot.zip /home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots"
+    finish_command_string = r"archive_with_long_name.zip /home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots"
     not_existing = r"No existng string in the command string"
 
     assert command_string == scp_cmd.command_string
