@@ -67,6 +67,14 @@ jobs:
     - ls -laR
     - cat *.log
   - stage: docs
+    python: 3.7
+    install:
+    - pip install -U pip
+    - pip install -U sphinx
+    before_script:
+    - python3 -V
+    env:
+    - NAME="Docs"
     script:
       - cd docs
       - sphinx-apidoc -f -o source/ ../moler/
