@@ -366,7 +366,7 @@ class CommandTextualGeneric(Command):
             self.newline_after_command_string, self.wait_for_prompt_on_exception, self._stored_exception,
             self.current_ret, self._newline_chars, self._concatenate_before_command_starts,
             self._max_index_from_beginning, self._max_index_from_end)
-        self._log(logging.DEBUG, msg, levels_to_go_up=2)
+        self._log(lvl=logging.INFO, msg=msg, levels_to_go_up=2)
 
     def has_any_result(self):
         """
