@@ -41,18 +41,41 @@ class TextualEvent(Event):
         :return: None
         """
         lines = data.splitlines(True)
-        for line in lines:
+        for current_chunk in lines:
             if not self.done():
-                if self._last_not_full_line is not None:
-                    line = self._last_not_full_line + line
-                    self._last_not_full_line = None
-                is_full_line = self.is_new_line(line)
-                if is_full_line:
-                    line = self._strip_new_lines_chars(line)
-                else:
-                    self._last_not_full_line = line
-                decoded_line = self._decode_line(line=line)
-                self.on_new_line(line=decoded_line, is_full_line=is_full_line)
+                line, is_full_line = self._update_from_cached_incomplete_line(current_chunk=current_chunk)
+                self._process_line_from_output(line=line, current_chunk=current_chunk, is_full_line=is_full_line)
+
+    def _process_line_from_output(self, current_chunk, line, is_full_line):
+        """
+        Processes line from connection (device) output.
+
+        :param current_chunk: Chunk of line sent by connection.
+        :param line: Line of output (current_chunk plus previous chunks of this line - if any) without newline char(s).
+        :param is_full_line: True if line had newline char(s). False otherwise.
+        :return: None.
+        """
+        decoded_line = self._decode_line(line=line)
+        self.on_new_line(line=decoded_line, is_full_line=is_full_line)
+
+    def _update_from_cached_incomplete_line(self, current_chunk):
+        """
+        Concatenates (if necessary) previous chunk(s) of line and current.
+
+        :param current_chunk: line from connection (full line or incomplete one).
+        :return: Concatenated (if necessary) line from connection without newline char(s). Flag: True if line had
+         newline char(s), False otherwise.
+        """
+        line = current_chunk
+        if self._last_not_full_line is not None:
+            line = "{}{}".format(self._last_not_full_line, line)
+            self._last_not_full_line = None
+        is_full_line = self.is_new_line(line)
+        if is_full_line:
+            line = self._strip_new_lines_chars(line)
+        else:
+            self._last_not_full_line = line
+        return line, is_full_line
 
     def is_new_line(self, line):
         """
