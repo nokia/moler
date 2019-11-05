@@ -8,6 +8,7 @@ __email__ = 'sylwester.golonka@nokia.com, marcin.usielski@nokia.com'
 
 from moler.cmd.unix.scp import Scp
 from moler.exceptions import CommandFailure
+import re
 import pytest
 
 
@@ -16,6 +17,68 @@ def test_scp_returns_proper_command_string(buffer_connection):
                   dest="ute@localhost:/home/ute")
     assert "scp /home/ute/test ute@localhost:/home/ute" == scp_cmd.command_string
 
+
+def test_scp_works_properly_on_slice_string(buffer_connection):
+    slice_index = 17
+    scp_cmd = Scp(connection=buffer_connection.moler_connection, source="user@127.0.0.1:/tmp/WHERE/archive_with_long_name.zip",
+                  dest="/home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots",
+                  options="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r -P 22")
+    scp_cmd._max_index_from_beginning = slice_index
+    scp_cmd._max_index_from_end = slice_index
+    command_string = r"scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r -P 22 user@127.0.0.1:/tmp/WHERE/archive_with_long_name.zip /home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots"
+    beginning_command_string = r"scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r -P 22 user@127.0.0.1:/tmp/"
+    finish_command_string = r"archive_with_long_name.zip /home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots"
+    not_existing = r"No existng string in the command string"
+
+    assert command_string == scp_cmd.command_string
+    m = re.search(scp_cmd._cmd_escaped, beginning_command_string)
+    assert m.group(0) == beginning_command_string[:slice_index]
+    m = re.search(scp_cmd._cmd_escaped, finish_command_string)
+    assert m.group(0) == finish_command_string[-slice_index:]
+    m = re.search(scp_cmd._cmd_escaped, not_existing)
+    assert m is None
+
+
+def test_scp_works_properly_on_slice_string_beginning(buffer_connection):
+    slice_index = 17
+    scp_cmd = Scp(connection=buffer_connection.moler_connection, source="user@127.0.0.1:/tmp/WHERE/archive_with_long_name.zip",
+                  dest="/home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots",
+                  options="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r -P 22")
+    scp_cmd._max_index_from_beginning = slice_index
+    scp_cmd._max_index_from_end = 0
+    command_string = r"scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r -P 22 user@127.0.0.1:/tmp/WHERE/archive_with_long_name.zip /home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots"
+    beginning_command_string = r"scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r -P 22 user@127.0.0.1:/tmp/"
+    finish_command_string = r"archive_with_long_name.zip /home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots"
+    not_existing = r"No existng string in the command string"
+
+    assert command_string == scp_cmd.command_string
+    m = re.search(scp_cmd._cmd_escaped, beginning_command_string)
+    assert m.group(0) == beginning_command_string[:slice_index]
+    m = re.search(scp_cmd._cmd_escaped, finish_command_string)
+    assert m is None
+    m = re.search(scp_cmd._cmd_escaped, not_existing)
+    assert m is None
+
+
+def test_scp_works_properly_on_slice_string_end(buffer_connection):
+    slice_index = 17
+    scp_cmd = Scp(connection=buffer_connection.moler_connection, source="user@127.0.0.1:/tmp/WHERE/archive_with_long_name.zip",
+                  dest="/home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots",
+                  options="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r -P 22")
+    scp_cmd._max_index_from_beginning = 0
+    scp_cmd._max_index_from_end = slice_index
+    command_string = r"scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r -P 22 user@127.0.0.1:/tmp/WHERE/archive_with_long_name.zip /home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots"
+    beginning_command_string = r"scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r -P 22 user@127.0.0.1:/tmp/"
+    finish_command_string = r"archive_with_long_name.zip /home/user/logs/VeryLongPathWithVeryDetailedInformation/Full_Auto_Pipeline_snapshots"
+    not_existing = r"No existng string in the command string"
+
+    assert command_string == scp_cmd.command_string
+    m = re.search(scp_cmd._cmd_escaped, beginning_command_string)
+    assert m is None
+    m = re.search(scp_cmd._cmd_escaped, finish_command_string)
+    assert m.group(0) == finish_command_string[-slice_index:]
+    m = re.search(scp_cmd._cmd_escaped, not_existing)
+    assert m is None
 
 def test_scp_raise_exception_failure(buffer_connection):
     command_output = """
