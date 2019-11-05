@@ -26,7 +26,7 @@ author = 'Nokia'
 # The short X.Y version
 version = '1.0.0'
 # The full version, including alpha/beta/rc tags
-release = 'beta'
+release = 'stable'
 
 
 # -- General configuration ---------------------------------------------------
@@ -38,10 +38,7 @@ release = 'beta'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.githubpages',
-]
+extensions = ['sphinx.ext.autodoc']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
