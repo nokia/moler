@@ -7,10 +7,10 @@ __author__ = 'Dawid Gwizdz'
 __copyright__ = 'Copyright (C) 2019, Nokia'
 __email__ = 'dawid.gwizdz@nokia.com'
 
+import re
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
-import re
 
 
 class Gzip(GenericUnixCommand):
@@ -31,6 +31,7 @@ class Gzip(GenericUnixCommand):
         self.compressed_file_name = compressed_file_name
         self.options = options
         self.overwrite = overwrite
+        self.answered_files = set()
         self.ret_required = False
 
     def build_command_string(self):
@@ -70,13 +71,16 @@ class Gzip(GenericUnixCommand):
         :return: Nothing but raises ParsingDone if regex matches.
         """
         if self._regex_helper.search_compiled(self._re_overwrite, line):
-            if self.overwrite:
-                self.connection.sendline('y')
-            else:
-                self.connection.sendline('n')
-                self.set_exception(
-                    CommandFailure(
-                        self, "ERROR: {} already exists".format(self._regex_helper.group("COMPRESSED_FILE_NAME"))))
+            compressed_file_name = self._regex_helper.group("COMPRESSED_FILE_NAME")
+            if compressed_file_name not in self.answered_files:
+                if self.overwrite:
+                    self.connection.sendline('y')
+                else:
+                    self.connection.sendline('n')
+                    self.set_exception(
+                        CommandFailure(
+                            self, "ERROR: {} already exists".format(compressed_file_name)))
+                self.answered_files.add(compressed_file_name)
             raise ParsingDone
 
     _re_error = re.compile(r"gzip:\s(?P<ERROR_MSG>.*)")
