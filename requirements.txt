@@ -3,7 +3,7 @@ ptyprocess
 pyyaml >= 5.1
 six
 transitions
-apscheduler
+apscheduler == 3.6.1
 trollius; python_version < '3'
 deepdiff == 3.3.0; python_version < '3'
 deepdiff; python_version > '3'

@@ -33,8 +33,8 @@ def test_calling_by_command_object_without_slicing(buffer_connection, command_ou
 
     cmd_pwd = Pwd(connection=buffer_connection.moler_connection)
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass", cmd_object=cmd_pwd)
-    cmd_sudo._command_string_left_index = 0
-    cmd_sudo._command_string_right_index = 0
+    cmd_sudo._max_index_from_end = 0
+    cmd_sudo._max_index_from_beginning = 0
     assert "sudo pwd" == cmd_sudo.command_string
     result = cmd_sudo()
     assert result == expected_result
