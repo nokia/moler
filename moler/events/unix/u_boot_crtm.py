@@ -6,11 +6,11 @@ __email__ = 'michal.ernst@nokia.com'
 import datetime
 import re
 
-from moler.events.textualevent import TextualEvent
+from moler.events.unix.genericunix_textualevent import GenericUnixTextualEvent
 from moler.exceptions import ParsingDone
 
 
-class UBootCrtm(TextualEvent):
+class UBootCrtm(GenericUnixTextualEvent):
     def __init__(self, connection, till_occurs_times=-1, runner=None):
         """
         Event for 'Site is resetting due to Fault'

@@ -10,10 +10,12 @@ from moler.config import devices as devices_config
 from moler.instance_loader import create_instance_from_class_fullname
 from moler.helpers import copy_list
 from moler.exceptions import WrongUsage
+import six
 
 
 class DeviceFactory(object):
     _devices = {}
+    _devices_params = {}
 
     @classmethod
     def create_all_devices(cls):
@@ -47,6 +49,43 @@ class DeviceFactory(object):
             dev = cls._create_device(name=name, device_class=device_class, connection_desc=connection_desc,
                                      connection_hops=connection_hops, initial_state=initial_state,
                                      establish_connection=establish_connection)
+        return dev
+
+    @classmethod
+    def get_cloned_device(cls, source_device, new_name, initial_state=None, establish_connection=True):
+        """
+        Creates (if necessary) and returns new device based on existed device.
+
+        :param source_device: Reference to base device or name of base device.
+        :param new_name: Name of new device.
+        :param initial_state: Initial state of created device. If None then state of source device will be used.
+        :param establish_connection: True to open connection, False if it does not matter.
+        :return: Device object.
+        """
+        if isinstance(source_device, six.string_types):
+            source_name = source_device
+            source_device = cls.get_device(name=source_name)
+        source_name = source_device.name
+        if new_name in cls._devices.keys():
+            cached_cloned_from = cls._devices_params[new_name]['cloned_from']
+            if cached_cloned_from == source_name:
+                return cls._devices[new_name]
+            else:
+                msg = "Attempt to create device '{}' as clone of '{}' but device with such name already created as" \
+                    " clone of '{}'.".format(new_name, source_name, cached_cloned_from)
+                raise WrongUsage(msg)
+        if initial_state is None:
+            initial_state = source_device.current_state
+
+        device_class = cls._devices_params[source_name]['class_fullname']
+        constructor_parameters = cls._devices_params[source_name]['constructor_parameters']
+        constructor_parameters["initial_state"] = initial_state
+        if constructor_parameters["name"]:
+            constructor_parameters["name"] = new_name
+        dev = cls._create_instance_and_remember_it(
+            device_class=device_class, constructor_parameters=constructor_parameters,
+            establish_connection=establish_connection, name=new_name)
+        cls._devices_params[new_name]['cloned_from'] = source_name
         return dev
 
     @classmethod
@@ -93,6 +132,7 @@ class DeviceFactory(object):
         for device in cls._devices.values():
             del device
         cls._devices = {}
+        cls._devices_params = {}
 
     @classmethod
     def _create_device(cls, name, device_class, connection_desc, connection_hops, initial_state, establish_connection):
@@ -128,15 +168,24 @@ class DeviceFactory(object):
             "sm_params": connection_hops,
             "initial_state": initial_state
         }
+        dev = cls._create_instance_and_remember_it(
+            device_class=device_class, constructor_parameters=constructor_parameters,
+            establish_connection=establish_connection, name=name)
+        return dev
+
+    @classmethod
+    def _create_instance_and_remember_it(cls, device_class, constructor_parameters, establish_connection, name):
         device = create_instance_from_class_fullname(class_fullname=device_class,
                                                      constructor_parameters=constructor_parameters)
-
         if establish_connection:
             device.goto_state(state=device.initial_state)
 
-        if name:
-            cls._devices[name] = device
-        else:
-            cls._devices[device.name] = device
+        if not name:
+            name = device.name
+        cls._devices[name] = device
+        cls._devices_params[name] = dict()
+        cls._devices_params[name]['class_fullname'] = device_class
+        cls._devices_params[name]['constructor_parameters'] = constructor_parameters
+        cls._devices_params[name]['cloned_from'] = None
 
         return device

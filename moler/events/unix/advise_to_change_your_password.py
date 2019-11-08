@@ -6,11 +6,11 @@ __email__ = 'marcin.usielski@nokia.com'
 import datetime
 import re
 
-from moler.events.textualevent import TextualEvent
+from moler.events.unix.genericunix_textualevent import GenericUnixTextualEvent
 from moler.exceptions import ParsingDone
 
 
-class AdviseToChangeYourPassword(TextualEvent):
+class AdviseToChangeYourPassword(GenericUnixTextualEvent):
     def __init__(self, connection, till_occurs_times=-1, runner=None):
         """
         Event for advise to change password.

@@ -45,6 +45,7 @@ class Sudo(GenericUnixCommand):
         self._sent_sudo_password = False
         self._sent_command_string = False
         self.newline_seq = "\n"
+        self._line_for_sudo = False
 
     def build_command_string(self):
         """
@@ -69,9 +70,8 @@ class Sudo(GenericUnixCommand):
             self._parse_sudo_password(line)
             self._parse_command_not_found(line)
             self._parse_sudo_error(line)
-            self._process_embedded_command(line, is_full_line)
         except ParsingDone:
-            pass
+            self._line_for_sudo = True
         super(Sudo, self).on_new_line(line, is_full_line)
 
     def start(self, timeout=None, *args, **kwargs):
@@ -80,35 +80,46 @@ class Sudo(GenericUnixCommand):
             self.timeout_from_embedded_command = False
         return super(Sudo, self).start(timeout=timeout, args=args, kwargs=kwargs)
 
-    def _process_embedded_command(self, line, is_full_line):
+    def _process_line_from_command(self, current_chunk, line, is_full_line):
+        """
+        Processes line from command.
+
+        :param current_chunk: Chunk of line sent by connection.
+        :param line: Line of output (current_chunk plus previous chunks of this line - if any) without newline char(s).
+        :param is_full_line: True if line had newline char(s). False otherwise.
+        :return: None.
+        """
+        decoded_line = self._decode_line(line=line)
+        self._line_for_sudo = False
+        self.on_new_line(line=decoded_line, is_full_line=is_full_line)
+        if not self._line_for_sudo:
+            self._process_embedded_command(partial_data=current_chunk)
+
+    def _process_embedded_command(self, partial_data):
         """
         Processes embedded command, passes output from device to embedded command.
 
-        :param line: Line from device
-        :param is_full_line: True if line had new line chars, False otherwise.
+        :param partial_data: Line from device filtered by sudo, only for embedded command.
         :return: None.
-        :raises: ParsingDone if sudo has embedded command object.
         """
         if self.cmd_object:
             if not self._sent_command_string:
                 self._sent_command_string = True
                 cs = "{}{}".format(self.cmd_object.command_string, self.newline_seq)
                 self.cmd_object.data_received(cs)
-            if is_full_line:
-                line = "{}{}".format(line, self.newline_seq)
+
             prev_cmd_timeout = self.cmd_object.timeout
-            self.cmd_object.data_received(line)
+            self.cmd_object.data_received(partial_data)
             new_cmd_timeout = self.cmd_object.timeout
             if self.timeout_from_embedded_command and prev_cmd_timeout != new_cmd_timeout:
                 timedelta = new_cmd_timeout - prev_cmd_timeout
                 self.extend_timeout(timedelta=timedelta)
-            self.current_ret["cmd_ret"] = self.cmd_object.current_ret
+            self.current_ret = self.cmd_object.current_ret
             if self.cmd_object.done():
                 try:
                     self.cmd_object.result()
                 except Exception as ex:
                     self.set_exception(ex)
-            raise ParsingDone()
 
     # sudo: pwd: command not found
     _re_sudo_command_not_found = re.compile(r"sudo:.*command not found", re.I)
@@ -168,7 +179,8 @@ class Sudo(GenericUnixCommand):
         """
         super(Sudo, self)._validate_start(*args, **kwargs)
         if self.cmd_object and self.cmd_class_name:
-            # _validate_start is called before running command on connection, so we raise exception instead of setting it
+            # _validate_start is called before running command on connection, so we raise exception instead
+            # of setting it
             raise CommandFailure(self,
                                  "both 'cmd_object' and 'cmd_class_name' parameters provided. Please specify only one.")
 
@@ -180,14 +192,19 @@ class Sudo(GenericUnixCommand):
             self.cmd_object = create_object_from_name(self.cmd_class_name, params)
         else:
             if not self.cmd_object:
-                # _validate_start is called before running command on connection, so we raise exception instead of setting it
-                raise CommandFailure(self,
-                                     "Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor. Please specific parameter.")
+                # _validate_start is called before running command on connection, so we raise exception
+                # instead of setting it
+                raise CommandFailure(
+                    self,
+                    "Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor."
+                    "Please specific parameter.")
         if self.cmd_object and self.cmd_object.done():
-            # _validate_start is called before running command on connection, so we raise exception instead of setting it
-            raise CommandFailure(self,
-                                 "Not allowed to run again the embeded command (embeded command is done): {}.".format(
-                                     self.cmd_object))
+            # _validate_start is called before running command on connection, so we raise exception
+            # instead of setting it
+            raise CommandFailure(
+                self,
+                "Not allowed to run again the embeded command (embeded command is done): {}.".format(
+                    self.cmd_object))
         self.timeout = self.cmd_object.timeout
 
 
@@ -198,7 +215,7 @@ root
 user@client:~/moler$ """
 
 COMMAND_RESULT_whoami = {
-    "cmd_ret": {"USER": "root"}
+    "USER": "root"
 }
 
 COMMAND_KWARGS_whoami = {
@@ -251,12 +268,10 @@ Starting Nmap 6.47 ( http://nmap.org ) at 2019-06-21 14:33 CEST
 user@client:~/moler$ """
 
 COMMAND_RESULT_dynamic_timeout = {
-    'cmd_ret': {
-        'SYN_STEALTH_SCAN': {
-            'DONE': '8.35',
-            'ETC': '14:57',
-            'REMAINING': '0:22:08'
-        }
+    'SYN_STEALTH_SCAN': {
+        'DONE': '8.35',
+        'ETC': '14:57',
+        'REMAINING': '0:22:08'
     }
 }
 
@@ -283,31 +298,29 @@ lrwxrwxrwx  1 root root      10 Mar 20  2015 logsremote -> /mnt/logs/
 user@client:~/moler$ """
 
 COMMAND_RESULT_ls = {
-    "cmd_ret": {
-        "total": {
-            "raw": "8",
-            "bytes": 8,
-        },
+    "total": {
+        "raw": "8",
+        "bytes": 8,
+    },
 
-        "files": {
-            "bin": {"permissions": "drwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root",
-                    "size_bytes": 4096, "size_raw": "4096", "date": "Sep 25  2014", "name": "bin", },
-            "btslog2": {"permissions": "drwxr-xr-x", "hard_links_count": 5, "owner": "root", "group": "root",
-                        "size_bytes": 4096, "size_raw": "4096", "date": "Mar 20  2015", "name": "btslog2", },
-            "getfzmip.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1, "owner": "root", "group": "root",
-                             "size_bytes": 51, "size_raw": "51", "date": "Dec 15 10:48", "name": "getfzmip.txt", },
-            "getfzmip.txt-old.20171215-104858.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1,
-                                                     "owner": "root",
-                                                     "group": "root", "size_bytes": 24, "size_raw": "24",
-                                                     "date": "Dec 15 10:48",
-                                                     "name": "getfzmip.txt-old.20171215-104858.txt", },
-            "bcn": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root",
-                    "size_bytes": 4,
-                    "size_raw": "4", "date": "Mar 20  2015", "name": "bcn", "link": "/bcn"},
-            "logsremote": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root",
-                           "size_bytes": 10, "size_raw": "10", "date": "Mar 20  2015", "name": "logsremote",
-                           "link": "/mnt/logs/"},
-        },
+    "files": {
+        "bin": {"permissions": "drwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root",
+                "size_bytes": 4096, "size_raw": "4096", "date": "Sep 25  2014", "name": "bin", },
+        "btslog2": {"permissions": "drwxr-xr-x", "hard_links_count": 5, "owner": "root", "group": "root",
+                    "size_bytes": 4096, "size_raw": "4096", "date": "Mar 20  2015", "name": "btslog2", },
+        "getfzmip.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1, "owner": "root", "group": "root",
+                         "size_bytes": 51, "size_raw": "51", "date": "Dec 15 10:48", "name": "getfzmip.txt", },
+        "getfzmip.txt-old.20171215-104858.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1,
+                                                 "owner": "root",
+                                                 "group": "root", "size_bytes": 24, "size_raw": "24",
+                                                 "date": "Dec 15 10:48",
+                                                 "name": "getfzmip.txt-old.20171215-104858.txt", },
+        "bcn": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root",
+                "size_bytes": 4,
+                "size_raw": "4", "date": "Mar 20  2015", "name": "bcn", "link": "/bcn"},
+        "logsremote": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root",
+                       "size_bytes": 10, "size_raw": "10", "date": "Mar 20  2015", "name": "logsremote",
+                       "link": "/mnt/logs/"},
     },
 }
 

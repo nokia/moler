@@ -12,6 +12,14 @@ moler.io.raw.memory module
     :undoc-members:
     :show-inheritance:
 
+moler.io.raw.subprocess module
+------------------------------
+
+.. automodule:: moler.io.raw.subprocess
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.io.raw.tcp module
 -----------------------
 
@@ -24,6 +32,14 @@ moler.io.raw.tcpserverpiped module
 ----------------------------------
 
 .. automodule:: moler.io.raw.tcpserverpiped
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+moler.io.raw.terminal module
+----------------------------
+
+.. automodule:: moler.io.raw.terminal
     :members:
     :undoc-members:
     :show-inheritance:

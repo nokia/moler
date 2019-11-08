@@ -6,6 +6,7 @@ Subpackages
 
 .. toctree::
 
+    moler.io.asyncio
     moler.io.raw
 
 Submodules

@@ -11,6 +11,7 @@ from moler.exceptions import WrongUsage
 from moler.util.moler_test import MolerTest
 import time
 import pytest
+import sys
 
 try:
     import asyncio
@@ -102,6 +103,7 @@ def test_thread_test_job():
     assert (3 == values['number'])
 
 
+@pytest.mark.skipif(sys.version_info < (3, 4), reason="requires python3.4 or higher")
 def test_asyncio_test_job():
     loop = asyncio.get_event_loop()
     Scheduler.change_kind("asyncio")

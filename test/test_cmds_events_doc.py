@@ -12,6 +12,7 @@ __copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'michal.plichta@nokia.com, michal.ernst@nokia.com'
 
 cmd_dir_under_test = 'moler/cmd/'
+repo_path = abspath(join(dirname(__file__), '..'))
 
 
 # --------------- helper functions ---------------
@@ -26,7 +27,6 @@ def _list_in_path(listing_type):
     :return: list of files
     :rtype: list(str)
     """
-    repo_path = abspath(join(dirname(__file__), '..'))
     abs_test_path = join(repo_path, cmd_dir_under_test)
     file_list = []
 
@@ -34,10 +34,10 @@ def _list_in_path(listing_type):
         file_list = [f for root, dirs, files in walk(abs_test_path) for f in files if isfile(join(root, f))]
     elif listing_type == 'fullpath':
         file_list = [path.join(cmd_dir_under_test, root.split(abs_test_path)[1], f) for root, dirs, files in walk(abs_test_path)
-                     for f in files if isfile(join(root, f)) and '__init__' not in f and '.pyc' not in f]
+                     for f in files if isfile(join(root, f)) and '__init__' not in f and '.pyc' not in f and f.endswith('.py')]
     elif listing_type == 'only_py':
         file_list = [f for root, dirs, files in walk(abs_test_path)
-                     for f in files if isfile(join(root, f)) and '__init__' not in f and '.pyc' not in f]
+                     for f in files if isfile(join(root, f)) and '__init__' not in f and '.pyc' not in f and f.endswith('.py')]
 
     return file_list
 
@@ -95,8 +95,10 @@ def test_functions_are_generators(func2test, method_param, base_class, expected)
 def test_walk_moler_python_files_is_generator_return_all_files_in_dir():
     from moler.util.cmds_events_doc import _walk_moler_python_files
 
+    abs_test_path = join(repo_path, cmd_dir_under_test)
+
     file_list = _list_in_path(listing_type='fullpath')
-    walker = _walk_moler_python_files(cmd_dir_under_test)
+    walker = _walk_moler_python_files(abs_test_path)
 
     list_from_generator = []
     for file in walker:
@@ -109,7 +111,9 @@ def test_walk_moler_commands_is_generator_return_all_files_in_dir():
     from six.moves import zip
 
     file_list = _list_in_path(listing_type='only_py')
-    walker = _walk_moler_commands(cmd_dir_under_test, Command)
+    abs_test_path = join(repo_path, cmd_dir_under_test)
+
+    walker = _walk_moler_commands(abs_test_path, Command)
 
     list_from_generator = []
     for cmd, file in zip(walker, file_list):

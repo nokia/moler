@@ -12,10 +12,34 @@ moler.util.cmds\_events\_doc module
     :undoc-members:
     :show-inheritance:
 
+moler.util.connection\_observer module
+--------------------------------------
+
+.. automodule:: moler.util.connection_observer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.util.converterhelper module
 ---------------------------------
 
 .. automodule:: moler.util.converterhelper
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+moler.util.devices\_SM module
+-----------------------------
+
+.. automodule:: moler.util.devices_SM
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+moler.util.loghelper module
+---------------------------
+
+.. automodule:: moler.util.loghelper
     :members:
     :undoc-members:
     :show-inheritance:

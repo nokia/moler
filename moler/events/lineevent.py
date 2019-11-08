@@ -6,13 +6,15 @@ __email__ = 'marcin.usielski@nokia.com, tomasz.krol@nokia.com'
 
 import datetime
 import re
-
+import abc
+import six
 from moler.events.textualevent import TextualEvent
 from moler.exceptions import NoDetectPatternProvided
 from moler.exceptions import WrongUsage
 from moler.helpers import instance_id, copy_list, convert_to_number
 
 
+@six.add_metaclass(abc.ABCMeta)
 class LineEvent(TextualEvent):
     def __init__(self, detect_patterns, connection=None, till_occurs_times=-1, match='any', runner=None):
         super(LineEvent, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times)
@@ -112,7 +114,7 @@ class LineEvent(TextualEvent):
 
         groups = tuple()
         for value in match.groups():
-            groups = groups + (self._convert_string_to_number(value), )
+            groups = groups + (self._convert_string_to_number(value),)
 
         current_ret["groups"] = groups
 
