@@ -46,6 +46,7 @@ class Sudo(GenericUnixCommand):
         self._sent_command_string = False
         self.newline_seq = "\n"
         self._line_for_sudo = False
+        self.ret_required = False
 
     def build_command_string(self):
         """
