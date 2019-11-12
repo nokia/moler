@@ -81,6 +81,11 @@ class Sudo(GenericUnixCommand):
             self.timeout_from_embedded_command = False
         return super(Sudo, self).start(timeout=timeout, args=args, kwargs=kwargs)
 
+    def is_end_of_cmd_output(self, line):
+        if not self.cmd_object.done() and not self._stored_exception:
+            return False
+        return super(Sudo, self).is_end_of_cmd_output(line)
+
     def _process_line_from_command(self, current_chunk, line, is_full_line):
         """
         Processes line from command.
@@ -94,7 +99,11 @@ class Sudo(GenericUnixCommand):
         self._line_for_sudo = False
         self.on_new_line(line=decoded_line, is_full_line=is_full_line)
         if not self._line_for_sudo:
+            was_embedded_command_done = self.cmd_object.done()
             self._process_embedded_command(partial_data=current_chunk)
+            if not was_embedded_command_done and self.cmd_object.done():
+                # process again because prompt was sent
+                self.on_new_line(line=decoded_line, is_full_line=is_full_line)
 
     def _process_embedded_command(self, partial_data):
         """
@@ -206,6 +215,7 @@ class Sudo(GenericUnixCommand):
                 self,
                 "Not allowed to run again the embeded command (embeded command is done): {}.".format(
                     self.cmd_object))
+        self.ret_required = self.cmd_object.ret_required
         self.timeout = self.cmd_object.timeout
 
 
