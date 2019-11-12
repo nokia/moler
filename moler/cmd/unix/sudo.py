@@ -82,6 +82,12 @@ class Sudo(GenericUnixCommand):
         return super(Sudo, self).start(timeout=timeout, args=args, kwargs=kwargs)
 
     def is_end_of_cmd_output(self, line):
+        """
+        Checks if end of command output is reached.
+
+        :param line: Line from device.
+        :return: True if end of command output is reached, False otherwise.
+        """
         if not self.cmd_object.done() and not self._stored_exception:
             return False
         return super(Sudo, self).is_end_of_cmd_output(line)
