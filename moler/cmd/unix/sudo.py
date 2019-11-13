@@ -105,9 +105,9 @@ class Sudo(GenericUnixCommand):
         self._line_for_sudo = False
         self.on_new_line(line=decoded_line, is_full_line=is_full_line)
         if not self._line_for_sudo:
-            was_embedded_command_done = self.cmd_object.done()
+            embedded_command_done = self.cmd_object.done()
             self._process_embedded_command(partial_data=current_chunk)
-            if not was_embedded_command_done and self.cmd_object.done():
+            if not embedded_command_done and self.cmd_object.done():
                 # process again because prompt was sent
                 self.on_new_line(line=decoded_line, is_full_line=is_full_line)
 
