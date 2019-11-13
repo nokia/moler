@@ -167,3 +167,11 @@ class AbstractDevice(object):
         :param kwargs: dict with parameters for command constructor.
         :return: command object
         """
+
+    @abc.abstractmethod
+    def close_and_forget(self):
+        """
+        Closes device, if any command or device is attached to this device they will be finished.
+
+        :return: None
+        """

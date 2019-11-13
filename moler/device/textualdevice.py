@@ -130,6 +130,17 @@ class TextualDevice(AbstractDevice):
         self._established = True
         self._log(level=logging.INFO, msg=msg)
 
+    def close_and_forget(self):
+        """
+        Closes device, if any command or device is attached to this device they will be finished.
+
+        :return: None
+        """
+        if self.is_established():
+            self._established = False
+            self.io_connection.close()
+            self.io_connection = None
+
     def is_established(self):
         return self._established
 
@@ -527,7 +538,7 @@ class TextualDevice(AbstractDevice):
 
         localhost_ping = ux.start('ping', destination="localhost", options="-c 5")
         ...
-        result = localhost_ping.await_finish()
+        result = localhost_ping.await_done()
 
         result = await localhost_ping  # py3 notation
 

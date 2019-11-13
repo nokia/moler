@@ -70,7 +70,7 @@ def test_documentation_exists():
 
 def test_buffer_connection_returns_threadconnection_with_moler_conn():
     from moler.io.raw.memory import ThreadedFifoBuffer
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     from moler.util.cmds_events_doc import _buffer_connection
 
     buff_conn = _buffer_connection()
