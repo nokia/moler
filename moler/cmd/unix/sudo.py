@@ -346,3 +346,15 @@ COMMAND_KWARGS_ls = {
     "cmd_params": {"options": "-l"},
     "password": "pass",
 }
+
+COMMAND_OUTPUT_ifconfigdown = """
+moler_bash# sudo ifconfig lo down
+moler_bash#"""
+
+COMMAND_RESULT_ifconfigdown = {}
+
+COMMAND_KWARGS_ifconfigdown = {
+    "cmd_class_name": "moler.cmd.unix.ifconfig.Ifconfig",
+    "password": "pass",
+    "cmd_params": {"options": "lo down"},
+}
