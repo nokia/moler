@@ -28,7 +28,7 @@ import os
 import time
 from functools import partial
 
-from moler.connection import ObservableConnection
+from moler.observable_connection import ObservableConnection
 from twisted.internet import reactor, task
 from twisted.internet.defer import Deferred
 from twisted.internet.protocol import Protocol, ClientFactory

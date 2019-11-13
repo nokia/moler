@@ -30,7 +30,7 @@ import os
 import threading
 import time
 
-from moler.connection import ObservableConnection
+from moler.observable_connection import ObservableConnection
 from moler.io.raw import tcp
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))  # allow finding modules in examples/

@@ -13,7 +13,7 @@ import importlib
 
 import pytest
 
-from moler.connection import ObservableConnection
+from moler.observable_connection import ObservableConnection
 from moler.events.lineevent import LineEvent
 from moler.helpers import instance_id
 

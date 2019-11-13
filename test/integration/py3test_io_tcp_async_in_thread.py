@@ -18,7 +18,7 @@ import threading
 
 
 def test_can_get_connection():
-    from moler.connection import get_connection
+    from moler.connection_factory import get_connection
     tcp_connection = get_connection(io_type='tcp', variant='asyncio-in-thread', host='localhost', port=2345)
     assert tcp_connection is not None
 
@@ -30,7 +30,7 @@ def test_can_open_and_close_connection(tcp_connection_class,
     - it is integration tests
     - anyway open needs close as cleanup to not have resources leaking in tests
     """
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
     moler_conn = ObservableConnection()
@@ -46,7 +46,7 @@ def test_can_open_and_close_connection(tcp_connection_class,
 
 def test_closing_closed_connection_does_nothing(tcp_connection_class,
                                                 integration_tcp_server_and_pipe):
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
     moler_conn = ObservableConnection()
@@ -64,7 +64,7 @@ def test_closing_closed_connection_does_nothing(tcp_connection_class,
 
 def test_can_open_and_close_connection_as_context_manager(tcp_connection_class,
                                                           integration_tcp_server_and_pipe):
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
     moler_conn = ObservableConnection()
@@ -83,7 +83,7 @@ def test_can_open_and_close_connection_as_context_manager(tcp_connection_class,
 # external-IO 'send' method works on bytes; moler_connection performs encoding
 def test_can_send_binary_data_over_connection(tcp_connection_class,
                                               integration_tcp_server_and_pipe):
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
     moler_conn = ObservableConnection()  # no decoder, just pass bytes 1:1
@@ -105,7 +105,7 @@ def test_can_send_binary_data_over_connection(tcp_connection_class,
 # and moler-connection forwards it to anyone subscribed
 def test_can_receive_binary_data_from_connection(tcp_connection_class,
                                                  integration_tcp_server_and_pipe):
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
     received_data = bytearray()
     receiver_called = threading.Event()
@@ -129,7 +129,7 @@ def test_can_work_with_multiple_connections(tcp_connection_class,
                                             integration_tcp_server_and_pipe,
                                             integration_second_tcp_server_and_pipe):
     """Check open/close/send/receive on multiple connections"""
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     (tcp_server0, tcp_server0_pipe) = integration_tcp_server_and_pipe
     (tcp_server1, tcp_server1_pipe) = integration_second_tcp_server_and_pipe
     received_data = [bytearray(), bytearray()]
@@ -272,7 +272,7 @@ def test_get_asyncio_loop_thread_returns_running_thread_and_loop():
 
 def test_connection_has_running_loop_after_open(tcp_connection_class,
                                                 integration_tcp_server_and_pipe):
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
     moler_conn = ObservableConnection()
@@ -283,7 +283,7 @@ def test_connection_has_running_loop_after_open(tcp_connection_class,
 
 def test_connection_has_not_stopped_loop_after_close(tcp_connection_class,
                                                      integration_tcp_server_and_pipe):
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
     moler_conn = ObservableConnection()
@@ -298,7 +298,7 @@ def test_connections_use_same_loop(tcp_connection_class,
                                    integration_tcp_server_and_pipe,
                                    integration_second_tcp_server_and_pipe):
     # same loop means also same thread since asyncio has one loop in thread
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     (tcp_server0, tcp_server0_pipe) = integration_tcp_server_and_pipe
     (tcp_server1, tcp_server1_pipe) = integration_second_tcp_server_and_pipe
 

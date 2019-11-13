@@ -81,7 +81,7 @@ def test_terminal_lsof(terminal_connection):
 
 @pytest.yield_fixture()
 def terminal_connection():
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
 
     moler_conn = ObservableConnection()
     terminal = ThreadedTerminal(moler_connection=moler_conn)

@@ -33,9 +33,9 @@ import os
 import threading
 import time
 
-from moler.connection import ObservableConnection
+from moler.observable_connection import ObservableConnection
 from moler.io.raw import tcp
-from moler.connection import get_connection, ConnectionFactory
+from moler.connection_factory import get_connection, ConnectionFactory
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))  # allow finding modules in examples/
 

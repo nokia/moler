@@ -261,7 +261,7 @@ def memory_connection_class(request):
 @pytest.fixture
 def memory_connection(memory_connection_class):
     connection_class = memory_connection_class
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     moler_conn = ObservableConnection(decoder=lambda data: data.decode("utf-8"),
                                       encoder=lambda data: data.encode("utf-8"))
     connection = connection_class(moler_connection=moler_conn)
@@ -271,7 +271,7 @@ def memory_connection(memory_connection_class):
 @pytest.fixture
 def memory_connection_without_decoder(memory_connection_class):
     connection_class = memory_connection_class
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     moler_conn = ObservableConnection(encoder=lambda data: data.encode("utf-8"))
     connection = connection_class(moler_connection=moler_conn)
     return connection

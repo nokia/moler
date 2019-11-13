@@ -33,7 +33,7 @@ import os
 import threading
 import time
 
-from moler.connection import get_connection
+from moler.connection_factory import get_connection
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))  # allow finding modules in examples/
 

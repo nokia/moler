@@ -18,7 +18,7 @@ import importlib
 
 import pytest
 from moler.command import Command
-from moler.connection import ObservableConnection
+from moler.observable_connection import ObservableConnection
 from moler.helpers import instance_id
 from moler.io.raw.memory import FifoBuffer
 

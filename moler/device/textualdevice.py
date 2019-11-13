@@ -20,7 +20,7 @@ import traceback
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.config.loggers import configure_device_logger
-from moler.connection import get_connection
+from moler.connection_factory import get_connection
 from moler.device.state_machine import StateMachine
 from moler.exceptions import CommandWrongState, DeviceFailure, EventWrongState, DeviceChangeStateFailure
 from moler.helpers import copy_dict, update_dict

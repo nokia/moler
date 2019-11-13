@@ -1,5 +1,5 @@
 from moler.cmd.unix.ps import Ps
-from moler.connection import ObservableConnection, get_connection
+from moler.observable_connection import ObservableConnection, get_connection
 from moler.io.raw.terminal import ThreadedTerminal
 
 # v.1 - combine all manually

@@ -12,7 +12,7 @@ import pytest
 
 
 def test_get_connection_without_variant_selection_raises_KeyError():
-    from moler.connection import get_connection
+    from moler.connection_factory import get_connection
 
     with pytest.raises(KeyError) as err:
         get_connection(io_type='tcp', host='localhost', port=2345)
@@ -20,7 +20,7 @@ def test_get_connection_without_variant_selection_raises_KeyError():
 
 
 def test_can_select_connection_variant_from_buildin_connections(connections_config):
-    from moler.connection import get_connection
+    from moler.connection_factory import get_connection
 
     connections_config.set_default_variant(io_type='tcp', variant='threaded')
     conn = get_connection(io_type='tcp', host='localhost', port=2345)
@@ -30,7 +30,7 @@ def test_can_select_connection_variant_from_buildin_connections(connections_conf
 
 def test_cannot_select_nonexisting_connection_variant(connections_config):
     """Non-existing means not registered inside ConnectionFactory"""
-    from moler.connection import get_connection
+    from moler.connection_factory import get_connection
 
     connections_config.set_default_variant(io_type='tcp', variant='yedi_magic')
     with pytest.raises(KeyError) as err:
@@ -40,7 +40,7 @@ def test_cannot_select_nonexisting_connection_variant(connections_config):
 
 def test_can_select_connection_variant_from_plugin_connections(builtin_connection_factories,
                                                                connections_config):
-    from moler.connection import ConnectionFactory, get_connection
+    from moler.connection_factory import ConnectionFactory, get_connection
 
     class DummyTcpConnection(object):
         def __init__(self, host, port):
@@ -54,7 +54,7 @@ def test_can_select_connection_variant_from_plugin_connections(builtin_connectio
 
 
 def test_get_connection_may_not_use_both__name_and_io_type():
-    from moler.connection import get_connection
+    from moler.connection_factory import get_connection
 
     with pytest.raises(AssertionError) as err:
         get_connection(name='www_server_1',
@@ -63,7 +63,7 @@ def test_get_connection_may_not_use_both__name_and_io_type():
 
 
 def test_get_connection_must_use_either_name_or_io_type():
-    from moler.connection import get_connection
+    from moler.connection_factory import get_connection
 
     with pytest.raises(AssertionError) as err:
         get_connection(host='localhost', port=2345)
@@ -71,7 +71,7 @@ def test_get_connection_must_use_either_name_or_io_type():
 
 
 def test_can_select_connection_by_name(connections_config):
-    from moler.connection import get_connection
+    from moler.connection_factory import get_connection
 
     connections_config.define_connection(name="www_server_1",
                                          io_type='tcp',
@@ -86,7 +86,7 @@ def test_can_select_connection_by_name(connections_config):
 
 def test_cannot_select_connection_by_nonexisting_name(connections_config):
     """Non-existing means here not defined inside configuration"""
-    from moler.connection import get_connection
+    from moler.connection_factory import get_connection
 
     connections_config.set_default_variant(io_type='tcp', variant='threaded')
     with pytest.raises(KeyError) as err:
@@ -95,7 +95,7 @@ def test_cannot_select_connection_by_nonexisting_name(connections_config):
 
 
 def test_can_select_connection_loaded_from_config_file(moler_config):
-    from moler.connection import get_connection
+    from moler.connection_factory import get_connection
 
     conn_config = os.path.join(os.path.dirname(__file__), "resources", "www_servers_connections.yml")
     moler_config.load_config(config=conn_config, config_type='yaml')
@@ -108,7 +108,7 @@ def test_can_select_connection_loaded_from_config_file(moler_config):
 
 
 def test_can_select_connection_loaded_from_env_variable(moler_config, monkeypatch):
-    from moler.connection import get_connection
+    from moler.connection_factory import get_connection
 
     conn_config = os.path.join(os.path.dirname(__file__), "resources", "www_servers_connections.yml")
     monkeypatch.setitem(os.environ, 'MOLER_CONFIG', conn_config)
@@ -122,7 +122,7 @@ def test_can_select_connection_loaded_from_env_variable(moler_config, monkeypatc
 
 
 def test_can_select_connection_loaded_from_dict(moler_config):
-    from moler.connection import get_connection
+    from moler.connection_factory import get_connection
 
     configuration_in_dict = {'NAMED_CONNECTIONS':
                                  {'www_server_1': {'io_type': 'tcp', 'host': 'localhost', 'port': 2344}},
@@ -169,5 +169,5 @@ def builtin_connection_factories():
     import moler.config.connections as connection_cfg
     yield
     # restore since tests may overwrite builtins
-    connection_cfg.register_builtin_connections(moler.connection.ConnectionFactory,
-                                                moler.connection.ObservableConnection)
+    connection_cfg.register_builtin_connections(moler.connection_factory.ConnectionFactory,
+                                                moler.observable_connection.ObservableConnection)
