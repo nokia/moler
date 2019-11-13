@@ -205,5 +205,3 @@ class Connection(object):
                 log_into_logger(self.logger, level, msg, extra=extra_params, levels_to_go_up=levels_to_go_up)
             except Exception as err:
                 print(err)  # logging errors should not propagate
-
-
