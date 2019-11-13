@@ -204,6 +204,14 @@ moler.cmd.unix.gunzip module
     :undoc-members:
     :show-inheritance:
 
+moler.cmd.unix.gzip module
+--------------------------
+
+.. automodule:: moler.cmd.unix.gzip
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.cmd.unix.hciconfig module
 -------------------------------
 
