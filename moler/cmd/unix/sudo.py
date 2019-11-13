@@ -46,6 +46,7 @@ class Sudo(GenericUnixCommand):
         self._sent_command_string = False
         self.newline_seq = "\n"
         self._line_for_sudo = False
+        self.ret_required = False
 
     def build_command_string(self):
         """
@@ -80,6 +81,17 @@ class Sudo(GenericUnixCommand):
             self.timeout_from_embedded_command = False
         return super(Sudo, self).start(timeout=timeout, args=args, kwargs=kwargs)
 
+    def is_end_of_cmd_output(self, line):
+        """
+        Checks if end of command output is reached.
+
+        :param line: Line from device.
+        :return: True if end of command output is reached, False otherwise.
+        """
+        if not self.cmd_object.done() and not self._stored_exception:
+            return False
+        return super(Sudo, self).is_end_of_cmd_output(line)
+
     def _process_line_from_command(self, current_chunk, line, is_full_line):
         """
         Processes line from command.
@@ -93,7 +105,11 @@ class Sudo(GenericUnixCommand):
         self._line_for_sudo = False
         self.on_new_line(line=decoded_line, is_full_line=is_full_line)
         if not self._line_for_sudo:
+            embedded_command_done = self.cmd_object.done()
             self._process_embedded_command(partial_data=current_chunk)
+            if not embedded_command_done and self.cmd_object.done():
+                # process again because prompt was sent
+                self.on_new_line(line=decoded_line, is_full_line=is_full_line)
 
     def _process_embedded_command(self, partial_data):
         """
@@ -205,6 +221,7 @@ class Sudo(GenericUnixCommand):
                 self,
                 "Not allowed to run again the embeded command (embeded command is done): {}.".format(
                     self.cmd_object))
+        self.ret_required = self.cmd_object.ret_required
         self.timeout = self.cmd_object.timeout
 
 
@@ -328,4 +345,16 @@ COMMAND_KWARGS_ls = {
     "cmd_class_name": "moler.cmd.unix.ls.Ls",
     "cmd_params": {"options": "-l"},
     "password": "pass",
+}
+
+COMMAND_OUTPUT_ifconfigdown = """
+moler_bash# sudo ifconfig lo down
+moler_bash#"""
+
+COMMAND_RESULT_ifconfigdown = {}
+
+COMMAND_KWARGS_ifconfigdown = {
+    "cmd_class_name": "moler.cmd.unix.ifconfig.Ifconfig",
+    "password": "pass",
+    "cmd_params": {"options": "lo down"},
 }
