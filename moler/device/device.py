@@ -174,6 +174,15 @@ class DeviceFactory(object):
         return dev
 
     @classmethod
+    def forget_device_handler(cls, device_name):
+        if device_name in cls._devices_params:
+            del cls._devices_params[device_name]
+        if device_name in cls._devices:
+            del cls._devices[device_name]
+        if device_name in devices_config.named_devices:
+            del devices_config.named_devices[device_name]
+
+    @classmethod
     def _create_instance_and_remember_it(cls, device_class, constructor_parameters, establish_connection, name):
         device = create_instance_from_class_fullname(class_fullname=device_class,
                                                      constructor_parameters=constructor_parameters)
@@ -187,5 +196,5 @@ class DeviceFactory(object):
         cls._devices_params[name]['class_fullname'] = device_class
         cls._devices_params[name]['constructor_parameters'] = constructor_parameters
         cls._devices_params[name]['cloned_from'] = None
-
+        device.register_handler_to_notify_to_forget_device(handler=cls.forget_device_handler)
         return device

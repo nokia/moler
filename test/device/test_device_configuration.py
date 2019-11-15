@@ -161,6 +161,36 @@ def test_can_clone_device(moler_config, device_factory):
     device_cached_cloned.goto_state('UNIX_LOCAL')
 
 
+def test_clone_and_foreget_device(moler_config, device_factory):
+    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
+    moler_config.load_config(config=conn_config, config_type='yaml')
+
+    device_org_name = 'UNIX_LOCAL'
+    device_cloned_name = 'CLONED_UNIX_LOCAL_TO_FORGET'
+    device_org = device_factory.get_device(name=device_org_name)
+    assert device_org is not None
+    with pytest.raises(KeyError):
+        device_factory.get_device(name=device_cloned_name)
+    device_cloned = device_factory.get_cloned_device(source_device=device_org, new_name=device_cloned_name)
+    assert device_cloned is not None
+    device_cloned.goto_state('UNIX_LOCAL')
+    cmd_ping = device_cloned.get_cmd(cmd_name="ping", cmd_params={"destination": 'localhost', "options": "-w 3"})
+    cmd_ping.start()
+    device_cloned.close_and_forget()
+    with pytest.raises(WrongUsage):
+        cmd_ping.await_done()
+    with pytest.raises(KeyError):
+        device_factory.get_device(name=device_cloned_name)
+    # We can clone device with the same name again!
+    device_cloned_again = device_factory.get_cloned_device(source_device=device_org, new_name=device_cloned_name)
+    assert device_cloned != device_cloned_again
+    cmd_ping = device_cloned_again.get_cmd(cmd_name="ping", cmd_params={"destination": 'localhost', "options": "-w 1"})
+    cmd_ping()
+    device_cloned_again.close_and_forget()
+    with pytest.raises(KeyError):
+        device_factory.get_device(name=device_cloned_name)
+        
+
 def test_can_clone_device_via_name(moler_config, device_factory):
     conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
     moler_config.load_config(config=conn_config, config_type='yaml')

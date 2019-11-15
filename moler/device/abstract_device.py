@@ -15,6 +15,9 @@ import abc
 @six.add_metaclass(abc.ABCMeta)
 class AbstractDevice(object):
 
+    def __init__(self):
+        self._forget_handlers = list()
+
     @property
     @abc.abstractmethod
     def current_state(self):
@@ -175,3 +178,16 @@ class AbstractDevice(object):
 
         :return: None
         """
+
+    def register_handler_to_notify_to_forget_device(self, handler):
+        """
+        Registers handler to notify when device should be forgot.
+
+        :param handler: callable with parameter device_name to call when device should be forgot.
+        :return: None
+        """
+        self._forget_handlers.append(handler)
+
+    def close_and_forget(self):
+        for handler in self._forget_handlers:
+            handler(device_name=self.name)

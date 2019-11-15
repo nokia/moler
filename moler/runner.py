@@ -449,7 +449,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         moler_conn = connection_observer.connection
         self.logger.debug("subscribing for data {}".format(connection_observer))
         with observer_lock:
-            moler_conn.subscribe(secure_data_received)
+            moler_conn.subscribe(observer=secure_data_received,
+                                 connection_closed_handler=connection_observer.connection_closed_handler)
             # after subscription we have data path so observer is started
             remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                                   from_start_time=connection_observer.start_time)
@@ -463,7 +464,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             if not feed_done.is_set():
                 moler_conn = connection_observer.connection
                 self.logger.debug("unsubscribing {}".format(connection_observer))
-                moler_conn.unsubscribe(subscribed_data_receiver)
+                moler_conn.unsubscribe(observer=subscribed_data_receiver,
+                                       connection_closed_handler=connection_observer.connection_closed_handler)
                 # after unsubscription we break data path so observer is finished
                 remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                                       from_start_time=connection_observer.start_time)

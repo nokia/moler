@@ -57,6 +57,7 @@ class Connection(object):
         self.newline = newline
         self.data_logger = logging.getLogger('moler.{}'.format(self.name))
         self.logger = Connection._select_logger(logger_name, self._name)
+        self._is_open = True
 
     @property
     def name(self):
@@ -121,6 +122,8 @@ class Connection(object):
     # TODO: should timeout be property of IO? We timeout whole connection-observer.
     def send(self, data, timeout=30, encrypt=False, levels_to_go_up=2):
         """Outgoing-IO API: Send data over external-IO."""
+        if not self.is_open():
+            return
         msg = data
         if encrypt:
             length = len(data)
@@ -176,6 +179,20 @@ class Connection(object):
         """Process data from Incoming-IO"""
         decoded_data = self._decoder(data)
         return decoded_data
+
+    def close(self):
+        """
+        Closes connection with notifying all observers about closing.
+        :return: None
+        """
+        self._is_open = False
+
+    def is_open(self):
+        """
+        Call to check if connection is open.
+        :return: True if connection is open, False otherwise.
+        """
+        return self._is_open
 
     def _unknown_send(self, data2send):
         err_msg = "Can't send('{}')".format(data2send)

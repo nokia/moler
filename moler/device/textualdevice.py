@@ -54,6 +54,7 @@ class TextualDevice(AbstractDevice):
                         (if not given then default one is taken)
         :param initial_state: name of initial state. State machine tries to enter this state just after creation.
         """
+        super(TextualDevice, self).__init__()
         if io_constructor_kwargs is None:
             io_constructor_kwargs = dict()
         sm_params = copy_dict(sm_params, deep_copy=True)
@@ -136,10 +137,13 @@ class TextualDevice(AbstractDevice):
 
         :return: None
         """
+        self._stop_prompts_observers()
         if self.is_established():
             self._established = False
+            self.io_connection.moler_connection.close()
             self.io_connection.close()
-            self.io_connection = None
+            self.io_connection
+        super(TextualDevice, self).close_and_forget()
 
     def is_established(self):
         return self._established

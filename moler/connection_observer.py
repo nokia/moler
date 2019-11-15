@@ -253,6 +253,19 @@ class ConnectionObserver(object):
         self._result = result
         self._is_done = True
 
+    def connection_closed_handler(self):
+        """
+        Called by Moler (ObservableConnection) when connection is closed.
+
+        :return: None
+        """
+        if not self.done():
+            connection_name = self.get_logger_name()
+            msg = "'{}' is not done but connection '{}' is about to be closed.".format(self, connection_name)
+            ex = WrongUsage(msg)
+            self.set_exception(ex)
+        self.cancel()
+
     @abstractmethod
     def data_received(self, data):
         """

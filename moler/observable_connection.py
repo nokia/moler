@@ -53,6 +53,7 @@ class ObservableConnection(Connection):
         super(ObservableConnection, self).__init__(how2send, encoder, decoder, name=name, newline=newline,
                                                    logger_name=logger_name)
         self._observers = dict()
+        self._connection_closed_handlers = dict()
         self._observers_lock = Lock()
 
     def data_received(self, data):
@@ -60,6 +61,8 @@ class ObservableConnection(Connection):
         Incoming-IO API:
         external-IO should call this method when data is received
         """
+        if not self.is_open():
+            return
         extra = {'transfer_direction': '<', 'encoder': lambda data: data.encode(encoding='utf-8', errors="replace")}
         self._log_data(msg=data, level=RAW_DATA,
                        extra=extra)
@@ -70,10 +73,12 @@ class ObservableConnection(Connection):
 
         self.notify_observers(decoded_data)
 
-    def subscribe(self, observer):
+    def subscribe(self, observer, connection_closed_handler):
         """
         Subscribe for 'data-received notification'
-        :param observer: function to be called
+
+        :param observer: function to be called to notify when data received.
+        :param connection_closed_handler: callable to be called when connection is closed.
         """
         with self._observers_lock:
             self._log(level=TRACE, msg="subscribe({})".format(observer))
@@ -81,20 +86,34 @@ class ObservableConnection(Connection):
 
             if observer_key not in self._observers:
                 self._observers[observer_key] = value
+                self._connection_closed_handlers[observer_key] = connection_closed_handler
 
-    def unsubscribe(self, observer):
+    def unsubscribe(self, observer, connection_closed_handler):
         """
         Unsubscribe from 'data-received notification'
         :param observer: function that was previously subscribed
+        :param connection_closed_handler: callable to be called when connection is closed.
         """
         with self._observers_lock:
             self._log(level=TRACE, msg="unsubscribe({})".format(observer))
             observer_key, _ = self._get_observer_key_value(observer)
-            if observer_key in self._observers:
+            if observer_key in self._observers and observer_key in self._connection_closed_handlers:
                 del self._observers[observer_key]
+                del self._connection_closed_handlers[observer_key]
             else:
                 self._log(level=logging.WARNING,
-                          msg="{} was not subscribed".format(observer), levels_to_go_up=2)
+                          msg="{} and {} were not both subscribed.".format(observer, connection_closed_handler),
+                          levels_to_go_up=2)
+
+    def close(self):
+        """
+        Closes connection with notifying all observers about closing.
+        :return: None
+        """
+
+        for handler in list(self._connection_closed_handlers.values()):
+            handler()
+        super(ObservableConnection, self).close()
 
     def notify_observers(self, data):
         """Notify all subscribed observers about data received on connection"""
