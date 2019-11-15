@@ -189,7 +189,7 @@ def test_clone_and_foreget_device(moler_config, device_factory):
     device_cloned_again.close_and_forget()
     with pytest.raises(KeyError):
         device_factory.get_device(name=device_cloned_name)
-        
+
 
 def test_can_clone_device_via_name(moler_config, device_factory):
     conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
