@@ -11,6 +11,8 @@ from moler.instance_loader import create_instance_from_class_fullname
 from moler.helpers import copy_list
 from moler.exceptions import WrongUsage
 import six
+import functools
+from threading import Thread
 
 
 class DeviceFactory(object):
@@ -19,6 +21,11 @@ class DeviceFactory(object):
 
     @classmethod
     def create_all_devices(cls):
+        """
+        Creates all devices from config.
+
+        :return: None
+        """
         for device_name in devices_config.named_devices:
             cls.get_device(name=device_name)
 
@@ -184,6 +191,15 @@ class DeviceFactory(object):
 
     @classmethod
     def _create_instance_and_remember_it(cls, device_class, constructor_parameters, establish_connection, name):
+        """
+        Creates instance of device class.
+
+        :param device_class: Full class name of device (with package)
+        :param constructor_parameters: Constructor parameters of device
+        :param establish_connection: True then connect to device immediately and change state. False to do not connect.
+        :param name: Name of device.
+        :return: Instance of device.
+        """
         device = create_instance_from_class_fullname(class_fullname=device_class,
                                                      constructor_parameters=constructor_parameters)
         if establish_connection:
@@ -196,5 +212,6 @@ class DeviceFactory(object):
         cls._devices_params[name]['class_fullname'] = device_class
         cls._devices_params[name]['constructor_parameters'] = constructor_parameters
         cls._devices_params[name]['cloned_from'] = None
-        device.register_handler_to_notify_to_forget_device(handler=cls.forget_device_handler)
+        handler = functools.partial(cls.forget_device_handler, name)
+        device.register_handler_to_notify_to_forget_device(handler=handler)
         return device

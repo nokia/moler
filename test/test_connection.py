@@ -13,6 +13,7 @@ import pytest
 def do_nothing_func():
     pass
 
+
 def test_can_attach_external_outgoing_io_to_moler_connection():
     from moler.connection import Connection
 

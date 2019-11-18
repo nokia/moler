@@ -171,14 +171,6 @@ class AbstractDevice(object):
         :return: command object
         """
 
-    @abc.abstractmethod
-    def close_and_forget(self):
-        """
-        Closes device, if any command or device is attached to this device they will be finished.
-
-        :return: None
-        """
-
     def register_handler_to_notify_to_forget_device(self, handler):
         """
         Registers handler to notify when device should be forgot.
@@ -189,5 +181,10 @@ class AbstractDevice(object):
         self._forget_handlers.append(handler)
 
     def close_and_forget(self):
+        """
+        Closes device, if any command or device is attached to this device they will be finished.
+
+        :return: None
+        """
         for handler in self._forget_handlers:
-            handler(device_name=self.name)
+            handler()
