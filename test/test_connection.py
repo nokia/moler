@@ -456,7 +456,6 @@ def test_subscription_doesnt_block_subscriber_to_be_garbage_collected():
 
     class Subscriber(object):
         def __del__(self):
-            print("del from Subscriber")
             garbage_collected_subscribers.append('Subscriber')
 
     class CloseSubscriber(object):
