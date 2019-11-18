@@ -85,8 +85,11 @@ def test_can_receive_binary_data_from_connection(tcp_connection_class,
         received_data.extend(data)
         receiver_called.set()
 
+    def connection_closed_handler():
+        pass
+
     moler_conn = ObservableConnection()  # no decoder, just pass bytes 1:1
-    moler_conn.subscribe(receiver)       # build forwarding path
+    moler_conn.subscribe(receiver, connection_closed_handler)       # build forwarding path
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     with connection.open():
         time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection

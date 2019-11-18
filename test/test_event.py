@@ -51,10 +51,10 @@ def test_event_is_running(do_nothing_command__for_major_base_class):
     wait4 = do_nothing_command__for_major_base_class
 
     class TheConnection(object):
-        def subscribe(self, observer):
+        def subscribe(self, observer, connection_closed_handler):
             pass
 
-        def unsubscribe(self, observer):
+        def unsubscribe(self, observer, connection_closed_handler):
             pass
 
     wait4.connection = TheConnection()
