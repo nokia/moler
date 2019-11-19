@@ -183,6 +183,12 @@ class DeviceFactory(object):
 
     @classmethod
     def forget_device_handler(cls, device_name):
+        """
+        Function to call to forget device.
+
+        :param device_name: Name of device
+        :return: None
+        """
         with cls._lock_device:
             if device_name in cls._devices_params:
                 del cls._devices_params[device_name]
