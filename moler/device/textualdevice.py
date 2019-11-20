@@ -142,8 +142,10 @@ class TextualDevice(AbstractDevice):
             self._established = False
             self.io_connection.moler_connection.close()
             self.io_connection.close()
-            self.io_connection
         super(TextualDevice, self).close_and_forget()
+        msg = "Device '{}' is closed.".format(self.name)
+        self._log(level=logging.INFO, msg=msg)
+        self._close_logger()
 
     def is_established(self):
         return self._established
@@ -200,6 +202,9 @@ class TextualDevice(AbstractDevice):
             self.device_data_logger = configure_device_logger(connection_name=name, propagate=propagate)
 
         self.io_connection.moler_connection.set_data_logger(self.device_data_logger)
+
+    def _close_logger(self):
+        self.device_data_logger.handlers = []
 
     @abc.abstractmethod
     def _prepare_transitions(self):

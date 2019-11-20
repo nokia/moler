@@ -16,9 +16,12 @@ import threading
 
 
 class DeviceFactory(object):
+    _lock_device = threading.Lock()
+
     _devices = {}
     _devices_params = {}
-    _lock_device = threading.Lock()
+    _alias_names = {}  # key is alias, value is real name
+    _already_used_names = set()
 
     @classmethod
     def create_all_devices(cls):
@@ -68,11 +71,10 @@ class DeviceFactory(object):
         """
         with cls._lock_device:
             if isinstance(source_device, six.string_types):
-                source_name = source_device
-                source_device = cls._get_device_without_lock(name=source_name, device_class=None, connection_desc=None,
-                                                             connection_hops=None, initial_state=None,
-                                                             establish_connection=True)
-            source_name = source_device.name
+                source_device = cls._get_device_without_lock(name=source_device, device_class=None,
+                                                             connection_desc=None, connection_hops=None,
+                                                             initial_state=None, establish_connection=True)
+            source_name = source_device.name  # name already translated to alias.
             if new_name in cls._devices.keys():
                 cached_cloned_from = cls._devices_params[new_name]['cloned_from']
                 if cached_cloned_from == source_name:
@@ -92,6 +94,7 @@ class DeviceFactory(object):
             dev = cls._create_instance_and_remember_it(
                 device_class=device_class, constructor_parameters=constructor_parameters,
                 establish_connection=establish_connection, name=new_name)
+            new_name = dev.name
             cls._devices_params[new_name]['cloned_from'] = source_name
         return dev
 
@@ -141,6 +144,8 @@ class DeviceFactory(object):
             del device
         cls._devices = {}
         cls._devices_params = {}
+        cls._alias_names = {}  # key is alias, value is real name
+        cls._already_used_names = set()
 
     @classmethod
     def _create_device(cls, name, device_class, connection_desc, connection_hops, initial_state, establish_connection):
@@ -208,6 +213,10 @@ class DeviceFactory(object):
         :param name: Name of device.
         :return: Instance of device.
         """
+        org_name = name
+        if name:
+            name = cls._register_name_for_device(name=name)
+            constructor_parameters['name'] = name
         device = create_instance_from_class_fullname(class_fullname=device_class,
                                                      constructor_parameters=constructor_parameters)
         if establish_connection:
@@ -227,8 +236,9 @@ class DeviceFactory(object):
     @classmethod
     def _get_device_without_lock(cls, name, device_class, connection_desc, connection_hops, initial_state,
                                  establish_connection):
-        if name in cls._devices.keys():
-            dev = cls._devices[name]
+        new_name = cls._get_translated_name_for_device(name)
+        if new_name in cls._devices.keys():
+            dev = cls._devices[new_name]
             if establish_connection and not dev.is_established():
                 dev.goto_state(state=dev.initial_state)
         else:
@@ -236,3 +246,22 @@ class DeviceFactory(object):
                                      connection_hops=connection_hops, initial_state=initial_state,
                                      establish_connection=establish_connection)
         return dev
+
+    @classmethod
+    def _register_name_for_device(cls, name):
+        new_device_name = name
+        if name in cls._alias_names:
+            nr = 2
+            while new_device_name in cls._already_used_names:
+                new_device_name = "{}_{}".format(name, nr)
+                nr += 1
+        cls._alias_names[name] = new_device_name
+        cls._already_used_names.add(new_device_name)
+        return new_device_name
+
+    @classmethod
+    def _get_translated_name_for_device(cls, name):
+        new_name = name
+        if name in cls._alias_names:
+            new_name = cls._alias_names[name]
+        return new_name
