@@ -39,6 +39,7 @@ class ThreadedTerminal(IOConnection):
         self._shell_operable = Event()
         self._export_sent = False
         self.pulling_thread = None
+        self.read_buffer = ""
 
         self._select_timeout = select_timeout
         self._read_buffer_size = read_buffer_size
@@ -65,10 +66,11 @@ class ThreadedTerminal(IOConnection):
             retry = 0
             is_operable = False
 
-            while (retry < 3) and (not is_operable):
+            while (retry < 10) and (not is_operable):
                 is_operable = self._shell_operable.wait(timeout=1)
                 if not is_operable:
-                    self.logger.warning("Terminal open but not fully operable yet")
+                    self.logger.warning(
+                        "Terminal open but not fully operable yet.\nREAD_BUFFER: '{}'".format(self.read_buffer))
                     self._terminal.write('\n')
                     retry += 1
 
@@ -92,7 +94,6 @@ class ThreadedTerminal(IOConnection):
 
     def pull_data(self, pulling_done):
         """Pull data from ThreadedTerminal connection."""
-        read_buffer = ""
         reads = []
 
         while not pulling_done.is_set():
@@ -111,13 +112,14 @@ class ThreadedTerminal(IOConnection):
                     if self._shell_operable.is_set():
                         self.data_received(data)
                     else:
-                        read_buffer = read_buffer + data
-                        if re.search(self.target_prompt, read_buffer, re.MULTILINE):
+                        self.read_buffer = self.read_buffer + data
+                        self.logger.warning("<|{}".format(self.read_buffer.encode("UTF-8", "replace")))
+                        if re.search(self.target_prompt, self.read_buffer, re.MULTILINE):
                             self._notify_on_connect()
                             self._shell_operable.set()
-                            data = re.sub(self.target_prompt, '', read_buffer, re.MULTILINE)
+                            data = re.sub(self.target_prompt, '', self.read_buffer, re.MULTILINE)
                             self.data_received(data)
-                        elif not self._export_sent and re.search(self.first_prompt, read_buffer, re.MULTILINE):
+                        elif not self._export_sent and re.search(self.first_prompt, self.read_buffer, re.MULTILINE):
                             self.send(self.set_prompt_cmd)
                             self._export_sent = True
                 except EOFError:
