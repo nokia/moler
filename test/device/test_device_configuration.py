@@ -161,6 +161,22 @@ def test_can_clone_device(moler_config, device_factory):
     device_cached_cloned.goto_state('UNIX_LOCAL')
 
 
+def test_close_defined_yaml_device(moler_config, device_factory):
+    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
+    moler_config.load_config(config=conn_config, config_type='yaml')
+
+    device_org_name = 'UNIX_LOCAL'
+    device_org = device_factory.get_device(name=device_org_name)
+    assert device_org is not None
+    device_org.close_and_forget()
+    with pytest.raises(KeyError):
+        device_factory.get_device(name=device_org_name)
+    clear_all_cfg()
+    moler_config.load_config(config=conn_config, config_type='yaml')
+    device_2 = device_factory.get_device(name=device_org_name)
+    assert device_2 != device_org
+
+
 def test_clone_and_foreget_device(moler_config, device_factory):
     conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
     moler_config.load_config(config=conn_config, config_type='yaml')
