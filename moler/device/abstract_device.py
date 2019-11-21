@@ -175,10 +175,11 @@ class AbstractDevice(object):
         """
         Registers handler to notify when device should be forgot.
 
-        :param handler: callable with parameter device_name to call when device should be forgot.
+        :param handler: callable to call when device should be forgot.
         :return: None
         """
-        self._forget_handlers.append(handler)
+        if handler not in self._forget_handlers:
+            self._forget_handlers.append(handler)
 
     def close_and_forget(self):
         """
