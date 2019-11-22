@@ -224,6 +224,7 @@ class DeviceFactory(object):
 
         if not name:
             name = device.name
+            org_name = name
         cls._devices[name] = device
         cls._devices_params[name] = dict()
         cls._devices_params[name]['class_fullname'] = device_class
@@ -231,6 +232,7 @@ class DeviceFactory(object):
         cls._devices_params[name]['cloned_from'] = None
         handler = functools.partial(cls.forget_device_handler, name)
         device.register_handler_to_notify_to_forget_device(handler=handler)
+        device.alias_name = org_name
         return device
 
     @classmethod

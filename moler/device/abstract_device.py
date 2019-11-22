@@ -46,6 +46,27 @@ class AbstractDevice(object):
         :return: None
         """
 
+    @property
+    @abc.abstractmethod
+    def alias_name(self):
+        """
+        Getter of device alias name. If you clone devices and forget them then if you want to create with already used
+        name then device will be created with different name but alias name will be as you want.
+
+        :return: String with the device alias name.
+        """
+
+    @name.setter
+    @abc.abstractmethod
+    def alias_name(self, value):
+        """
+        Setter for device alias name. If you clone devices and forget them then if you want to create with already used
+        name then device will be created with different name but alias name will be as you want.
+
+        :param value: String with device name.
+        :return: None
+        """
+
     @abc.abstractmethod
     def is_established(self):
         """
