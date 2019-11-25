@@ -231,7 +231,7 @@ class DeviceFactory(object):
         cls._devices_params[name]['constructor_parameters'] = constructor_parameters
         cls._devices_params[name]['cloned_from'] = None
         handler = functools.partial(cls.forget_device_handler, name)
-        device.register_handler_to_notify_to_forget_device(handler=handler)
+        device.register_device_removal_callback(callback=handler)
         device.public_name = org_name
         return device
 

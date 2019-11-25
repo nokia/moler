@@ -134,7 +134,7 @@ class TextualDevice(AbstractDevice):
 
     def remove(self):
         """
-        Closes device, if any command or device is attached to this device they will be finished.
+        Closes device, if any command or event is attached to this device they will be finished.
 
         :return: None
         """

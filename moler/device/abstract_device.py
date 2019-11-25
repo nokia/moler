@@ -16,7 +16,7 @@ import abc
 class AbstractDevice(object):
 
     def __init__(self):
-        self._forget_handlers = list()
+        self._remove_callbacks = list()
 
     @property
     @abc.abstractmethod
@@ -194,21 +194,21 @@ class AbstractDevice(object):
         :return: command object
         """
 
-    def register_handler_to_notify_to_forget_device(self, handler):
+    def register_device_removal_callback(self, callback):
         """
-        Registers handler to notify when device should be forgot.
+        Registers callable to be called (notified) when device is removed.
 
-        :param handler: callable to call when device should be forgot.
+        :param callback: callable to call when device is being removed.
         :return: None
         """
-        if handler not in self._forget_handlers:
-            self._forget_handlers.append(handler)
+        if callback not in self._remove_callbacks:
+            self._remove_callbacks.append(callback)
 
     def remove(self):
         """
-        Closes device, if any command or device is attached to this device they will be finished.
+        Closes device, if any command or event is attached to this device they will be finished.
 
         :return: None
         """
-        for handler in self._forget_handlers:
-            handler()
+        for callback in self._remove_callbacks:
+            callback()
