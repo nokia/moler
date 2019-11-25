@@ -85,7 +85,7 @@ def test_can_ignore_timeout_of_embedded_command_if_direct_timeout_provided(buffe
     cmd_pwd = Pwd(connection=buffer_connection.moler_connection)
     cmd_pwd.timeout = 0.8
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass", cmd_object=cmd_pwd)
-    cmd_sudo.terminating_timeout = 0  # no additional timeout for Ctrl-C..till..prompt (shutdown after cmd timeout)
+    cmd_sudo.terminating_timeout = 0  # no additional sudo timeout for Ctrl-C..till..prompt (shutdown after cmd timeout)
     start_time = time.time()
     with pytest.raises(CommandTimeout):
         cmd_sudo(timeout=0.5)
