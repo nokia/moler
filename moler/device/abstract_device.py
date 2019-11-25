@@ -202,7 +202,7 @@ class AbstractDevice(object):
         if handler not in self._forget_handlers:
             self._forget_handlers.append(handler)
 
-    def close_and_forget(self):
+    def remove(self):
         """
         Closes device, if any command or device is attached to this device they will be finished.
 

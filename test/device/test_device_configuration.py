@@ -168,7 +168,7 @@ def test_close_defined_yaml_device(moler_config, device_factory):
     device_org_name = 'UNIX_LOCAL'
     device_org = device_factory.get_device(name=device_org_name)
     assert device_org is not None
-    device_org.close_and_forget()
+    device_org.remove()
     with pytest.raises(KeyError):
         device_factory.get_device(name=device_org_name)
     clear_all_cfg()
@@ -191,8 +191,8 @@ def test_clone_device_from_cloned_device_device(moler_config, device_factory):
     assert device_cloned != device_recloned
     assert device_cloned != device_org
     assert device_recloned != device_org
-    device_cloned.close_and_forget()
-    device_recloned.close_and_forget()
+    device_cloned.remove()
+    device_recloned.remove()
     with pytest.raises(KeyError):
         device_factory.get_device(name=device_cloned_name)
     with pytest.raises(KeyError):
@@ -218,7 +218,7 @@ def test_clone_and_foreget_device(moler_config, device_factory):
     device_cloned.goto_state('UNIX_LOCAL')
     cmd_ping = device_cloned.get_cmd(cmd_name="ping", cmd_params={"destination": 'localhost', "options": "-w 3"})
     cmd_ping.start()
-    device_cloned.close_and_forget()
+    device_cloned.remove()
     with pytest.raises(WrongUsage):
         cmd_ping.await_done()
     with pytest.raises(KeyError):
@@ -232,7 +232,7 @@ def test_clone_and_foreget_device(moler_config, device_factory):
     assert device_cloned_again.external_name == device_cloned_name
     cmd_ping = device_cloned_again.get_cmd(cmd_name="ping", cmd_params={"destination": 'localhost', "options": "-w 1"})
     cmd_ping()
-    device_cloned_again.close_and_forget()
+    device_cloned_again.remove()
     with pytest.raises(KeyError):
         device_factory.get_device(name=device_cloned_name)
 

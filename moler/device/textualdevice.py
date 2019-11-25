@@ -132,7 +132,7 @@ class TextualDevice(AbstractDevice):
         self._established = True
         self._log(level=logging.INFO, msg=msg)
 
-    def close_and_forget(self):
+    def remove(self):
         """
         Closes device, if any command or device is attached to this device they will be finished.
 
@@ -143,7 +143,7 @@ class TextualDevice(AbstractDevice):
             self._established = False
             self.io_connection.moler_connection.close()
             self.io_connection.close()
-        super(TextualDevice, self).close_and_forget()
+        super(TextualDevice, self).remove()
         msg = "Device '{}' is closed.".format(self.name)
         self._log(level=logging.INFO, msg=msg)
         self._close_logger()
