@@ -59,6 +59,17 @@ class DeviceFactory(object):
         return dev
 
     @classmethod
+    def remove_device(cls, name=None):
+        """
+        Removes device. All commands and events are being finished when device is removed.
+
+        :param name: name of device..
+        :return: None.
+        """
+        dev = cls.get_device(name=name)
+        dev.remove()
+
+    @classmethod
     def get_cloned_device(cls, source_device, new_name, initial_state=None, establish_connection=True):
         """
         Creates (if necessary) and returns new device based on existed device.

@@ -203,7 +203,7 @@ def test_clone_device_from_cloned_device_device(moler_config, device_factory):
         device_factory.get_cloned_device(source_device=device_cloned, new_name=device_recloned_name)
 
 
-def test_clone_and_foreget_device(moler_config, device_factory):
+def test_clone_and_forget_device(moler_config, device_factory):
     conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
     moler_config.load_config(config=conn_config, config_type='yaml')
 
@@ -232,9 +232,11 @@ def test_clone_and_foreget_device(moler_config, device_factory):
     assert device_cloned_again.public_name == device_cloned_name
     cmd_ping = device_cloned_again.get_cmd(cmd_name="ping", cmd_params={"destination": 'localhost', "options": "-w 1"})
     cmd_ping()
-    device_cloned_again.remove()
+    device_factory.remove_device(name=device_cloned_name)
     with pytest.raises(KeyError):
         device_factory.get_device(name=device_cloned_name)
+    with pytest.raises(KeyError):
+        device_factory.remove_device(name=device_cloned_name)
 
 
 def test_can_clone_device_via_name(moler_config, device_factory):
