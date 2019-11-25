@@ -226,10 +226,10 @@ def test_clone_and_foreget_device(moler_config, device_factory):
     # We can clone device with the same name again!
     device_cloned_again = device_factory.get_cloned_device(source_device=device_org, new_name=device_cloned_name)
     assert device_cloned != device_cloned_again
-    device_by_alias = device_factory.get_device(name=device_cloned_again.external_name)
+    device_by_alias = device_factory.get_device(name=device_cloned_again.public_name)
     assert device_by_alias == device_cloned_again
     assert device_cloned_again.name != device_cloned_name
-    assert device_cloned_again.external_name == device_cloned_name
+    assert device_cloned_again.public_name == device_cloned_name
     cmd_ping = device_cloned_again.get_cmd(cmd_name="ping", cmd_params={"destination": 'localhost', "options": "-w 1"})
     cmd_ping()
     device_cloned_again.remove()

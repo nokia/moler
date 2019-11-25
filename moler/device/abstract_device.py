@@ -48,20 +48,22 @@ class AbstractDevice(object):
 
     @property
     @abc.abstractmethod
-    def external_name(self):
+    def public_name(self):
         """
-        Getter of device alias name. If you clone devices and forget them then if you want to create with already used
-        name then device will be created with different name but alias name will be as you want.
+        Getter for publicly used device name.
+
+        Internal name of device (.name attribute) may be modified by device itself  in some circumstances (to not
+        overwrite logs). However, public_name is guaranteed to be preserved as it was set by external/client code.
 
         :return: String with the device alias name.
         """
 
-    @external_name.setter
+    @public_name.setter
     @abc.abstractmethod
-    def external_name(self, value):
+    def public_name(self, value):
         """
-        Setter for device alias name. If you clone devices and forget them then if you want to create with already used
-        name then device will be created with different name but alias name will be as you want.
+        Setter for publicly used device name. If you clone devices and forget them then if you want to create with
+        already used name then device will be created with different name but public name will be as you want.
 
         :param value: String with device name.
         :return: None

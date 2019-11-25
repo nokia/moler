@@ -232,7 +232,7 @@ class DeviceFactory(object):
         cls._devices_params[name]['cloned_from'] = None
         handler = functools.partial(cls.forget_device_handler, name)
         device.register_handler_to_notify_to_forget_device(handler=handler)
-        device.external_name = org_name
+        device.public_name = org_name
         return device
 
     @classmethod
