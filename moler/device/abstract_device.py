@@ -62,7 +62,7 @@ class AbstractDevice(object):
     @abc.abstractmethod
     def public_name(self, value):
         """
-        Setter for publicly used device name. If you clone devices and forget them then if you want to create with
+        Setter for publicly used device name. If you clone devices and close them then if you want to create with
         already used name then device will be created with different name but public name will be as you want.
 
         :param value: String with device name.
