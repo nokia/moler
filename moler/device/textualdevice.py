@@ -107,7 +107,7 @@ class TextualDevice(AbstractDevice):
             self.__class__.__name__,
         )
         self._log(level=logging.DEBUG, msg=msg)
-        self._alias_name = None
+        self._external_name = None
 
     def establish_connection(self):
         """
@@ -263,7 +263,7 @@ class TextualDevice(AbstractDevice):
         self._name = value
 
     @property
-    def alias_name(self):
+    def external_name(self):
         """
         Getter of device alias name. If you clone devices and forget them then if you want to create with already used
         name then device will be created with different name but alias name will be as you want.
@@ -271,12 +271,12 @@ class TextualDevice(AbstractDevice):
         :return: String with the device alias name.
         """
         ret = self.name
-        if self._alias_name:
-            ret = self._alias_name
+        if self._external_name:
+            ret = self._external_name
         return ret
 
-    @alias_name.setter
-    def alias_name(self, value):
+    @external_name.setter
+    def external_name(self, value):
         """
         Setter for device alias name. If you clone devices and forget them then if you want to create with already used
         name then device will be created with different name but alias name will be as you want.
@@ -284,7 +284,7 @@ class TextualDevice(AbstractDevice):
         :param value: String with device name.
         :return: None
         """
-        self._alias_name = value
+        self._external_name = value
 
     def _log(self, level, msg, extra=None):
         if self.logger:
