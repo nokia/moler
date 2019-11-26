@@ -15,6 +15,14 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 
 # TODO: name, logger/logger_name as param
 class UnixLocal(TextualDevice):
+    r"""
+    UnixLocal device class.
+
+    Example of device in yaml configuration file:
+    UNIX_1:
+        DEVICE_CLASS: moler.device.unixlocal.UnixLocal
+    """
+
     unix_local = "UNIX_LOCAL"
     unix_local_root = "UNIX_LOCAL_ROOT"
 
@@ -216,10 +224,3 @@ class UnixLocal(TextualDevice):
             parameters = copy_dict(src=parameters, deep_copy=True)
             del parameters['timeout']
         return parameters
-
-
-"""
-Example of device in yaml configuration file:
-  UNIX_1:
-    DEVICE_CLASS: moler.device.unixlocal.UnixLocal
-"""
