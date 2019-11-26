@@ -13,13 +13,10 @@ from moler.helpers import call_base_class_method_with_same_name
 
 @call_base_class_method_with_same_name
 class JuniperEX(JuniperGeneric):
-    """Juniperex device class."""
+    r"""
+    Juniperex device class.
 
-    pass
-
-
-"""
-Example of device in yaml configuration file:
+    Example of device in yaml configuration file:
     - with PROXY_PC:
       JUNIPER_EX_PROXY_PC:
         DEVICE_CLASS: moler.device.juniper_ex.JuniperEX
@@ -55,4 +52,6 @@ Example of device in yaml configuration file:
                 host: cli_host
                 login: cli_login
                 password: password
-"""
+    """
+
+    pass
