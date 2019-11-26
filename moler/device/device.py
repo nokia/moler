@@ -20,7 +20,8 @@ class DeviceFactory(object):
 
     _devices = {}
     _devices_params = {}
-    _alias_names = {}  # key is alias, value is real name
+    _unique_names = {}  # key is public_name, value is internal name (generated from public_name) unique for any
+    # instance of device
     _already_used_names = set()
 
     @classmethod
@@ -155,7 +156,7 @@ class DeviceFactory(object):
             del device
         cls._devices = {}
         cls._devices_params = {}
-        cls._alias_names = {}  # key is alias, value is real name
+        cls._unique_names = {}  # key is alias, value is real name
         cls._already_used_names = set()
 
     @classmethod
@@ -226,7 +227,7 @@ class DeviceFactory(object):
         """
         org_name = name
         if name:
-            name = cls._register_name_for_device(name=name)
+            name = cls._calculate_unique_name(name=name)
             constructor_parameters['name'] = name
         device = create_instance_from_class_fullname(class_fullname=device_class,
                                                      constructor_parameters=constructor_parameters)
@@ -249,7 +250,7 @@ class DeviceFactory(object):
     @classmethod
     def _get_device_without_lock(cls, name, device_class, connection_desc, connection_hops, initial_state,
                                  establish_connection):
-        new_name = cls._get_translated_name_for_device(name)
+        new_name = cls._get_unique_name(name)
         if new_name in cls._devices.keys():
             dev = cls._devices[new_name]
             if establish_connection and not dev.has_established_connection():
@@ -261,20 +262,20 @@ class DeviceFactory(object):
         return dev
 
     @classmethod
-    def _register_name_for_device(cls, name):
+    def _calculate_unique_name(cls, name):
         new_device_name = name
-        if name in cls._alias_names:
+        if name in cls._unique_names:
             nr = 2
             while new_device_name in cls._already_used_names:
                 new_device_name = "{}_{}".format(name, nr)
                 nr += 1
-        cls._alias_names[name] = new_device_name
+        cls._unique_names[name] = new_device_name
         cls._already_used_names.add(new_device_name)
         return new_device_name
 
     @classmethod
-    def _get_translated_name_for_device(cls, name):
+    def _get_unique_name(cls, name):
         new_name = name
-        if name in cls._alias_names:
-            new_name = cls._alias_names[name]
+        if name in cls._unique_names:
+            new_name = cls._unique_names[name]
         return new_name
