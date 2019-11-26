@@ -74,7 +74,7 @@ def test_can_use_timeout_of_embedded_command(buffer_connection, command_output_a
     with pytest.raises(CommandTimeout):
         cmd_sudo()
     duration = time.time() - start_time
-    assert duration > 0.2
+    assert duration >= 0.2
     assert duration < 0.5
 
 
@@ -90,7 +90,7 @@ def test_can_ignore_timeout_of_embedded_command_if_direct_timeout_provided(buffe
     with pytest.raises(CommandTimeout):
         cmd_sudo(timeout=0.5)
     duration = time.time() - start_time
-    assert duration > 0.5
+    assert duration >= 0.5
     assert duration < 0.8
 
 
