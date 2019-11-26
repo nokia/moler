@@ -70,7 +70,7 @@ class ThreadedTerminal(IOConnection):
                 is_operable = self._shell_operable.wait(timeout=1)
                 if not is_operable:
                     self.logger.warning(
-                        "Terminal open but not fully operable yet.\nREAD_BUFFER: '{}'".format(self.read_buffer))
+                        "Terminal open but not fully operable yet.\nREAD_BUFFER: '{}'".format(self.read_buffer.encode("UTF-8", "replace")))
                     self._terminal.write('\n')
                     retry += 1
 
@@ -113,7 +113,6 @@ class ThreadedTerminal(IOConnection):
                         self.data_received(data)
                     else:
                         self.read_buffer = self.read_buffer + data
-                        self.logger.warning("<|{}".format(self.read_buffer.encode("UTF-8", "replace")))
                         if re.search(self.target_prompt, self.read_buffer, re.MULTILINE):
                             self._notify_on_connect()
                             self._shell_operable.set()
