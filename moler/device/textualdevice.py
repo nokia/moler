@@ -260,7 +260,8 @@ class TextualDevice(AbstractDevice):
 
     @name.setter
     def name(self, value):
-        self._name = value
+        if not self._name:
+            self._name = value
 
     @property
     def public_name(self):
@@ -286,7 +287,8 @@ class TextualDevice(AbstractDevice):
         :param value: String with device name.
         :return: None
         """
-        self._public_name = value
+        if not self._public_name:
+            self._public_name = value
 
     def _log(self, level, msg, extra=None):
         if self.logger:
