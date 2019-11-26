@@ -192,8 +192,8 @@ class Netstat(GenericUnixCommand):
 
     # default         123.123.123.123  0.0.0.0         UG        0 0          0 eth0
     _re_routing_table = re.compile(
-        r"(?P<DESTINATION>\S*)\s+(?P<GATEWAY>\S*)\s+(?P<GENMASK>\S*)\s+(?P<FLAGS>[A-Z]*)\s+(?P<MSS>\d*)"
-        r"\s+(?P<WINDOW>\d*)\s+(?P<IRTT>\d*)\s+(?P<INTERFACE>\S*)$")
+        r"(?P<PROTO>\S+)\s{1,10}(?P<RECVQ>\d+)?\s*(?P<SENDQ>\d+)?\s*(?P<LADDRESS>\S+:\S+)\s+(?P<FADDRESS>\S+:\S+)"
+        r"?\s+(?P<STATE>\S+)\s*(?P<PID>\d+/\S+|-)?")
 
     def _parse_routing_table(self, line):
         """
