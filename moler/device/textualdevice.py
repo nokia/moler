@@ -141,7 +141,7 @@ class TextualDevice(AbstractDevice):
         self._stop_prompts_observers()
         if self.is_established():
             self._established = False
-            self.io_connection.moler_connection.close()
+            # self.io_connection.moler_connection.shutdown()
             self.io_connection.close()
         super(TextualDevice, self).remove()
         msg = "Device '{}' is closed.".format(self.name)

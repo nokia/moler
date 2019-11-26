@@ -82,6 +82,7 @@ class ThreadedTerminal(IOConnection):
         if self.pulling_thread:
             self.pulling_thread.join()
             self.pulling_thread = None
+        self.moler_connection.shutdown()
         super(ThreadedTerminal, self).close()
 
         if self._terminal and self._terminal.isalive():
@@ -91,7 +92,8 @@ class ThreadedTerminal(IOConnection):
 
     def send(self, data):
         """Write data into ThreadedTerminal connection."""
-        self._terminal.write(data)
+        if self._terminal:
+            self._terminal.write(data)
 
     def pull_data(self, pulling_done):
         """Pull data from ThreadedTerminal connection."""

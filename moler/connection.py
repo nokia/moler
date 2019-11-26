@@ -180,7 +180,7 @@ class Connection(object):
         decoded_data = self._decoder(data)
         return decoded_data
 
-    def close(self):
+    def shutdown(self):
         """
         Closes connection with notifying all observers about closing.
         :return: None

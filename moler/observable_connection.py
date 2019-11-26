@@ -105,7 +105,7 @@ class ObservableConnection(Connection):
                           msg="{} and {} were not both subscribed.".format(observer, connection_closed_handler),
                           levels_to_go_up=2)
 
-    def close(self):
+    def shutdown(self):
         """
         Closes connection with notifying all observers about closing.
         :return: None
@@ -113,7 +113,7 @@ class ObservableConnection(Connection):
 
         for handler in list(self._connection_closed_handlers.values()):
             handler()
-        super(ObservableConnection, self).close()
+        super(ObservableConnection, self).shutdown()
 
     def notify_observers(self, data):
         """Notify all subscribed observers about data received on connection"""
