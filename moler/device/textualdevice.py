@@ -139,7 +139,7 @@ class TextualDevice(AbstractDevice):
         :return: None
         """
         self._stop_prompts_observers()
-        if self.is_established():
+        if self.has_established_connection():
             self._established = False
             # self.io_connection.moler_connection.shutdown()
             self.io_connection.close()
@@ -148,7 +148,7 @@ class TextualDevice(AbstractDevice):
         self._log(level=logging.INFO, msg=msg)
         self._close_logger()
 
-    def is_established(self):
+    def has_established_connection(self):
         return self._established
 
     def add_neighbour_device(self, neighbour_device, bidirectional=True):
@@ -319,7 +319,7 @@ class TextualDevice(AbstractDevice):
         :return: None
         :raise: DeviceChangeStateFailure if cannot change the state of device.
         """
-        if not self.is_established():
+        if not self.has_established_connection():
             self.establish_connection()
 
         dest_state = state

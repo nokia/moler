@@ -252,7 +252,7 @@ class DeviceFactory(object):
         new_name = cls._get_translated_name_for_device(name)
         if new_name in cls._devices.keys():
             dev = cls._devices[new_name]
-            if establish_connection and not dev.is_established():
+            if establish_connection and not dev.has_established_connection():
                 dev.goto_state(state=dev.initial_state)
         else:
             dev = cls._create_device(name=name, device_class=device_class, connection_desc=connection_desc,

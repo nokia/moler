@@ -70,7 +70,7 @@ class AbstractDevice(object):
         """
 
     @abc.abstractmethod
-    def is_established(self):
+    def has_established_connection(self):
         """
         Checks if connection is established to real device.
 
