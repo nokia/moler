@@ -49,6 +49,14 @@ moler.connection module
     :undoc-members:
     :show-inheritance:
 
+moler.connection\_factory module
+--------------------------------
+
+.. automodule:: moler.connection_factory
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.connection\_observer module
 ---------------------------------
 
@@ -93,6 +101,14 @@ moler.instance\_loader module
 -----------------------------
 
 .. automodule:: moler.instance_loader
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+moler.observable\_connection module
+-----------------------------------
+
+.. automodule:: moler.observable_connection
     :members:
     :undoc-members:
     :show-inheritance:
