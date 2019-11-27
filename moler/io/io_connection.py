@@ -44,6 +44,8 @@ class IOConnection(object):
         """
         Specific constructor of external-IO should store information
         how to establish connection (like host/port info)
+
+        :param moler_connection: object of abstract class moler.connection.Connection
         """
         super(IOConnection, self).__init__()
         self._connect_subscribers = list()

@@ -360,7 +360,7 @@ async def start_subprocess_in_terminal(protocol_class, cmd=None, cwd=None, env=N
 
 
 async def terminal_io_test():
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
 
     received_data = []
 

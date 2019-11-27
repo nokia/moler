@@ -15,6 +15,9 @@ import abc
 @six.add_metaclass(abc.ABCMeta)
 class AbstractDevice(object):
 
+    def __init__(self):
+        self._remove_callbacks = list()
+
     @property
     @abc.abstractmethod
     def current_state(self):
@@ -43,8 +46,31 @@ class AbstractDevice(object):
         :return: None
         """
 
+    @property
     @abc.abstractmethod
-    def is_established(self):
+    def public_name(self):
+        """
+        Getter for publicly used device name.
+
+        Internal name of device (.name attribute) may be modified by device itself  in some circumstances (to not
+        overwrite logs). However, public_name is guaranteed to be preserved as it was set by external/client code.
+
+        :return: String with the device alias name.
+        """
+
+    @public_name.setter
+    @abc.abstractmethod
+    def public_name(self, value):
+        """
+        Setter for publicly used device name. If you clone devices and close them then if you want to create with
+        already used name then device will be created with different name but public name will be as you want.
+
+        :param value: String with device name.
+        :return: None
+        """
+
+    @abc.abstractmethod
+    def has_established_connection(self):
         """
         Checks if connection is established to real device.
 
@@ -167,3 +193,22 @@ class AbstractDevice(object):
         :param kwargs: dict with parameters for command constructor.
         :return: command object
         """
+
+    def register_device_removal_callback(self, callback):
+        """
+        Registers callable to be called (notified) when device is removed.
+
+        :param callback: callable to call when device is being removed.
+        :return: None
+        """
+        if callback not in self._remove_callbacks:
+            self._remove_callbacks.append(callback)
+
+    def remove(self):
+        """
+        Closes device, if any command or event is attached to this device they will be finished.
+
+        :return: None
+        """
+        for callback in self._remove_callbacks:
+            callback()

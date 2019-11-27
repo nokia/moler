@@ -83,7 +83,7 @@ def pytest_runtest_logreport(report):
 @yield_fixture
 def buffer_connection():
     from moler.io.raw.memory import ThreadedFifoBuffer
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     from moler.config.loggers import configure_device_logger
 
     class RemoteConnection(ThreadedFifoBuffer):
@@ -149,7 +149,7 @@ def nice_cmd():
 @yield_fixture
 def device_connection():
     from moler.io.raw.memory import ThreadedFifoBuffer
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     from moler.config.loggers import configure_device_logger
 
     class RemoteConnection(ThreadedFifoBuffer):

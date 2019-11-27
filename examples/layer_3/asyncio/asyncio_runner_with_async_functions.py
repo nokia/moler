@@ -36,7 +36,7 @@ import os
 import time
 import asyncio
 
-from moler.connection import get_connection
+from moler.connection_factory import get_connection
 from moler.runner_factory import get_runner
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))  # allow finding modules in examples/

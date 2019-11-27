@@ -16,11 +16,8 @@ __copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
-import weakref
-from threading import Lock
 import six
 
-import moler.config.connections as connection_cfg
 from moler.config.loggers import RAW_DATA, TRACE
 from moler.exceptions import WrongUsage
 from moler.helpers import instance_id
@@ -60,6 +57,7 @@ class Connection(object):
         self.newline = newline
         self.data_logger = logging.getLogger('moler.{}'.format(self.name))
         self.logger = Connection._select_logger(logger_name, self._name)
+        self._is_open = True
 
     @property
     def name(self):
@@ -124,6 +122,8 @@ class Connection(object):
     # TODO: should timeout be property of IO? We timeout whole connection-observer.
     def send(self, data, timeout=30, encrypt=False, levels_to_go_up=2):
         """Outgoing-IO API: Send data over external-IO."""
+        if not self.is_open():
+            return
         msg = data
         if encrypt:
             length = len(data)
@@ -180,6 +180,20 @@ class Connection(object):
         decoded_data = self._decoder(data)
         return decoded_data
 
+    def shutdown(self):
+        """
+        Closes connection with notifying all observers about closing.
+        :return: None
+        """
+        self._is_open = False
+
+    def is_open(self):
+        """
+        Call to check if connection is open.
+        :return: True if connection is open, False otherwise.
+        """
+        return self._is_open
+
     def _unknown_send(self, data2send):
         err_msg = "Can't send('{}')".format(data2send)
         err_msg += "\nYou haven't installed sending method of external-IO system"
@@ -208,306 +222,3 @@ class Connection(object):
                 log_into_logger(self.logger, level, msg, extra=extra_params, levels_to_go_up=levels_to_go_up)
             except Exception as err:
                 print(err)  # logging errors should not propagate
-
-
-class ObservableConnection(Connection):
-    """
-    Allows objects to subscribe for notification about connection's data-received.
-    Subscription is made by registering function to be called with this data (may be object's method).
-    Function should have signature like:
-
-    def observer(data):
-        # handle that data
-    """
-
-    def __init__(self, how2send=None, encoder=identity_transformation, decoder=identity_transformation,
-                 name=None, newline='\n', logger_name=""):
-        """
-        Create Connection via registering external-IO
-
-        :param how2send: any callable performing outgoing IO
-        :param encoder: callable converting data to bytes
-        :param decoder: callable restoring data from bytes
-        :param name: name assigned to connection
-        :param logger_name: take that logger from logging
-
-        Logger is retrieved by logging.getLogger(logger_name)
-        If logger_name == "" - take logger "moler.connection.<name>"
-        If logger_name is None - don't use logging
-        """
-        super(ObservableConnection, self).__init__(how2send, encoder, decoder, name=name, newline=newline,
-                                                   logger_name=logger_name)
-        self._observers = dict()
-        self._observers_lock = Lock()
-
-    def data_received(self, data):
-        """
-        Incoming-IO API:
-        external-IO should call this method when data is received
-        """
-        extra = {'transfer_direction': '<', 'encoder': lambda data: data.encode(encoding='utf-8', errors="replace")}
-        self._log_data(msg=data, level=RAW_DATA,
-                       extra=extra)
-
-        decoded_data = self.decode(data)
-        self._log_data(msg=decoded_data, level=logging.INFO,
-                       extra=extra)
-
-        self.notify_observers(decoded_data)
-
-    def subscribe(self, observer):
-        """
-        Subscribe for 'data-received notification'
-        :param observer: function to be called
-        """
-        with self._observers_lock:
-            self._log(level=TRACE, msg="subscribe({})".format(observer))
-            observer_key, value = self._get_observer_key_value(observer)
-
-            if observer_key not in self._observers:
-                self._observers[observer_key] = value
-
-    def unsubscribe(self, observer):
-        """
-        Unsubscribe from 'data-received notification'
-        :param observer: function that was previously subscribed
-        """
-        with self._observers_lock:
-            self._log(level=TRACE, msg="unsubscribe({})".format(observer))
-            observer_key, _ = self._get_observer_key_value(observer)
-            if observer_key in self._observers:
-                del self._observers[observer_key]
-            else:
-                self._log(level=logging.WARNING,
-                          msg="{} was not subscribed".format(observer), levels_to_go_up=2)
-
-    def notify_observers(self, data):
-        """Notify all subscribed observers about data received on connection"""
-        # need copy since calling subscribers may change self._observers
-        current_subscribers = list(self._observers.values())
-        for self_or_none, observer_function in current_subscribers:
-            try:
-                self._log(level=TRACE, msg=r'notifying {}({!r})'.format(observer_function, repr(data)))
-                try:
-                    if self_or_none is None:
-                        observer_function(data)
-                    else:
-                        observer_self = self_or_none
-                        observer_function(observer_self, data)
-                except Exception:
-                    self.logger.exception(msg=r'Exception inside: {}({!r})'.format(observer_function, repr(data)))
-            except ReferenceError:
-                pass  # ignore: weakly-referenced object no longer exists
-
-    @staticmethod
-    def _get_observer_key_value(observer):
-        """
-        Subscribing methods of objects is tricky::
-
-            class TheObserver(object):
-                def __init__(self):
-                    self.received_data = []
-
-                def on_new_data(self, data):
-                    self.received_data.append(data)
-
-            observer1 = TheObserver()
-            observer2 = TheObserver()
-
-            subscribe(observer1.on_new_data)
-            subscribe(observer2.on_new_data)
-            subscribe(observer2.on_new_data)
-
-        Even if it looks like 2 different subscriptions they all
-        pass 3 different bound-method objects (different id()).
-        So, to differentiate them we need to "unwind" out of them:
-        1) self                      - 2 different id()
-        2) function object of class  - all 3 have same id()
-
-        Observer key is pair: (self-id, function-id)
-        """
-        try:
-            self_or_none = six.get_method_self(observer)
-            self_id = instance_id(self_or_none)
-            self_or_none = weakref.proxy(self_or_none)
-        except AttributeError:
-            self_id = 0  # default for not bound methods
-            self_or_none = None
-
-        try:
-            func = six.get_method_function(observer)
-        except AttributeError:
-            func = observer
-        function_id = instance_id(func)
-
-        observer_key = (self_id, function_id)
-        observer_value = (self_or_none, weakref.proxy(func))
-        return observer_key, observer_value
-
-
-def _moler_logger_log(level, msg):
-    logger = logging.getLogger('moler')
-    logger.log(level, msg)
-
-
-class ConnectionFactory(object):
-    """
-    ConnectionFactory creates plugin-system: external code can register
-    "construction recipe" that will be used to create specific connection.
-
-    "Construction recipe" means: class to be used or any other callable that can
-    produce instance of connection.
-
-    Specific means type/variant pair.
-    Type is: memory, tcp, udp, ssh, ...
-    Variant is: threaded, asyncio, twisted, ...
-
-    Connection means here: external-IO-connection + moler-connection.
-    Another words - fully operable connection doing IO and data dispatching,
-    ready to be used by ConnectionObserver.
-
-    ConnectionFactory responsibilities:
-    - register "recipe" how to build given type/variant of connection
-    - return connection instance created via utilizing registered "recipe"
-    """
-    _constructors_registry = {}
-
-    @classmethod
-    def register_construction(cls, io_type, variant, constructor):
-        """
-        Register constructor that will return "connection construction recipe"
-
-        :param io_type: 'tcp', 'memory', 'ssh', ...
-        :param variant: implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
-        :param constructor: callable building connection object
-        :return: None
-        """
-        if not callable(constructor):
-            err_msg = "constructor must be callable not {}".format(constructor)
-            _moler_logger_log(level=logging.DEBUG, msg=err_msg)
-            raise ValueError(err_msg)
-        cls._constructors_registry[(io_type, variant)] = constructor
-
-    @classmethod
-    def get_connection(cls, io_type, variant, **constructor_kwargs):
-        """
-        Return connection instance of given io_type/variant
-
-        :param io_type: 'tcp', 'memory', 'ssh', ...
-        :param variant: implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
-        :param constructor_kwargs: arguments specific for given io_type
-        :return: requested connection
-        """
-        key = (io_type, variant)
-        if key not in cls._constructors_registry:
-            err_msg = "No constructor registered for [{}] connection".format(key)
-            _moler_logger_log(level=logging.DEBUG, msg=err_msg)
-            raise KeyError(err_msg)
-        constructor = cls._constructors_registry[key]
-        connection = constructor(**constructor_kwargs)
-        # TODO: enhance error reporting:
-        # not giving port for tcp connection results in not helpful:
-        # TypeError: tcp_thd_conn() takes at least 1 argument (1 given)
-        # try to use funcsigs.signature to give more detailed missing-param
-        return connection
-
-    @classmethod
-    def available_variants(cls, io_type):
-        """
-        Return variants available for given io_type
-
-        :param io_type: 'tcp', 'memory', 'ssh', ...
-        :return: list of variants, ex. ['threaded', 'twisted']
-        """
-        available = [vt for io, vt in cls._constructors_registry if io == io_type]
-        return available
-
-
-def get_connection(name=None, io_type=None, variant=None, **constructor_kwargs):
-    """
-    Return connection instance of given io_type/variant
-
-    :param name: name of connection defined in configuration
-    :param io_type: 'tcp', 'memory', 'ssh', ...
-    :param variant: implementation variant, ex. 'threaded', 'twisted', 'asyncio', ...
-    :param constructor_kwargs: arguments specific for given io_type
-    :return: requested connection
-
-    You may provide either 'name' or 'io_type' but not both.
-    If you provide 'name' then it is searched inside configuration
-    to find io_type and constructor_kwargs assigned to that name.
-
-    If variant is not given then it is taken from configuration.
-    """
-    if (not name) and (not io_type):
-        err_msg = "Provide either 'name' or 'io_type' parameter (none given)"
-        _moler_logger_log(level=logging.DEBUG, msg=err_msg)
-        raise AssertionError(err_msg)
-    if name and io_type:
-        err_msg = "Use either 'name' or 'io_type' parameter (not both)"
-        _moler_logger_log(level=logging.DEBUG, msg=err_msg)
-        raise AssertionError(err_msg)
-    io_type, constructor_kwargs = _try_take_named_connection_params(name, io_type, **constructor_kwargs)
-    variant = _try_select_io_type_variant(io_type, variant)
-
-    io_conn = _try_get_connection_with_name(io_type, variant, **constructor_kwargs)
-    return io_conn
-
-
-def _try_take_named_connection_params(name, io_type, **constructor_kwargs):
-    if name:
-        if name not in connection_cfg.named_connections:
-            whats_wrong = "was not defined inside configuration"
-            err_msg = "Connection named '{}' {}".format(name, whats_wrong)
-            _moler_logger_log(level=logging.DEBUG, msg=err_msg)
-            raise KeyError(err_msg)
-        org_kwargs = constructor_kwargs
-        io_type, constructor_kwargs = connection_cfg.named_connections[name]
-        # assume connection constructor allows 'name' parameter
-        constructor_kwargs['name'] = name
-        # update with kwargs directly passed and not present in named_connections
-        for argname in org_kwargs:
-            if argname not in constructor_kwargs:
-                constructor_kwargs[argname] = org_kwargs[argname]
-        # TODO: shell we overwrite named_connections kwargs with the ones from org_kwargs ???
-    return io_type, constructor_kwargs
-
-
-def _try_select_io_type_variant(io_type, variant):
-    if variant is None:
-        if io_type in connection_cfg.default_variant:
-            variant = connection_cfg.default_variant[io_type]
-    if variant is None:
-        whats_wrong = "No variant selected"
-        selection_method = "directly or via configuration"
-        err_msg = "{} ({}) for '{}' connection".format(whats_wrong,
-                                                       selection_method,
-                                                       io_type)
-        _moler_logger_log(level=logging.DEBUG, msg=err_msg)
-        raise KeyError(err_msg)
-    if variant not in ConnectionFactory.available_variants(io_type):
-        whats_wrong = "is not registered inside ConnectionFactory"
-        err_msg = "'{}' variant of '{}' connection {}".format(variant,
-                                                              io_type,
-                                                              whats_wrong)
-        _moler_logger_log(level=logging.DEBUG, msg=err_msg)
-        raise KeyError(err_msg)
-    return variant
-
-
-def _try_get_connection_with_name(io_type, variant, **constructor_kwargs):
-    try:
-        return ConnectionFactory.get_connection(io_type, variant, **constructor_kwargs)
-    except TypeError as err:
-        if "unexpected keyword argument 'name'" in str(err):
-            # 'name' parameter not allowed in connection constructor
-            del constructor_kwargs['name']
-            return ConnectionFactory.get_connection(io_type, variant,
-                                                    **constructor_kwargs)
-        _moler_logger_log(level=logging.DEBUG, msg=repr(err))
-        raise
-
-
-# actions during import
-connection_cfg.register_builtin_connections(ConnectionFactory, ObservableConnection)
-connection_cfg.set_defaults()

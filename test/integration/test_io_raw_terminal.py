@@ -74,14 +74,14 @@ def test_terminal_whoami_ls(terminal_connection):
 
 def test_terminal_lsof(terminal_connection):
     terminal = terminal_connection
-    cmd = Lsof(connection=terminal, options="| grep python")
-    ret = cmd(timeout=30)
+    cmd = Lsof(connection=terminal, options="| grep python | wc -l")
+    ret = cmd(timeout=300)
     assert ret["NUMBER"] > 1
 
 
 @pytest.yield_fixture()
 def terminal_connection():
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
 
     moler_conn = ObservableConnection()
     terminal = ThreadedTerminal(moler_connection=moler_conn)

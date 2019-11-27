@@ -20,7 +20,7 @@ import traceback
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.config.loggers import configure_device_logger
-from moler.connection import get_connection
+from moler.connection_factory import get_connection
 from moler.device.state_machine import StateMachine
 from moler.exceptions import CommandWrongState, DeviceFailure, EventWrongState, DeviceChangeStateFailure
 from moler.helpers import copy_dict, update_dict
@@ -54,6 +54,7 @@ class TextualDevice(AbstractDevice):
                         (if not given then default one is taken)
         :param initial_state: name of initial state. State machine tries to enter this state just after creation.
         """
+        super(TextualDevice, self).__init__()
         if io_constructor_kwargs is None:
             io_constructor_kwargs = dict()
         sm_params = copy_dict(sm_params, deep_copy=True)
@@ -106,6 +107,7 @@ class TextualDevice(AbstractDevice):
             self.__class__.__name__,
         )
         self._log(level=logging.DEBUG, msg=msg)
+        self._public_name = None
 
     def establish_connection(self):
         """
@@ -130,7 +132,23 @@ class TextualDevice(AbstractDevice):
         self._established = True
         self._log(level=logging.INFO, msg=msg)
 
-    def is_established(self):
+    def remove(self):
+        """
+        Closes device, if any command or event is attached to this device they will be finished.
+
+        :return: None
+        """
+        self._stop_prompts_observers()
+        if self.has_established_connection():
+            self._established = False
+            # self.io_connection.moler_connection.shutdown()
+            self.io_connection.close()
+        super(TextualDevice, self).remove()
+        msg = "Device '{}' is closed.".format(self.name)
+        self._log(level=logging.INFO, msg=msg)
+        self._close_logger()
+
+    def has_established_connection(self):
         return self._established
 
     def add_neighbour_device(self, neighbour_device, bidirectional=True):
@@ -186,6 +204,9 @@ class TextualDevice(AbstractDevice):
 
         self.io_connection.moler_connection.set_data_logger(self.device_data_logger)
 
+    def _close_logger(self):
+        self.device_data_logger.handlers = []
+
     @abc.abstractmethod
     def _prepare_transitions(self):
         pass
@@ -239,7 +260,35 @@ class TextualDevice(AbstractDevice):
 
     @name.setter
     def name(self, value):
-        self._name = value
+        if not self._name:
+            self._name = value
+
+    @property
+    def public_name(self):
+        """
+        Getter for publicly used device name.
+
+        Internal name of device (.name attribute) may be modified by device itself  in some circumstances (to not
+        overwrite logs). However, public_name is guaranteed to be preserved as it was set by external/client code.
+
+        :return: String with the device alias name.
+        """
+        ret = self.name
+        if self._public_name:
+            ret = self._public_name
+        return ret
+
+    @public_name.setter
+    def public_name(self, value):
+        """
+        Setter for publicly used device name. If you clone devices and close them then if you want to create with
+        already used name then device will be created with different name but public name will be as you want.
+
+        :param value: String with device name.
+        :return: None
+        """
+        if not self._public_name:
+            self._public_name = value
 
     def _log(self, level, msg, extra=None):
         if self.logger:
@@ -272,7 +321,7 @@ class TextualDevice(AbstractDevice):
         :return: None
         :raise: DeviceChangeStateFailure if cannot change the state of device.
         """
-        if not self.is_established():
+        if not self.has_established_connection():
             self.establish_connection()
 
         dest_state = state
@@ -527,7 +576,7 @@ class TextualDevice(AbstractDevice):
 
         localhost_ping = ux.start('ping', destination="localhost", options="-c 5")
         ...
-        result = localhost_ping.await_finish()
+        result = localhost_ping.await_done()
 
         result = await localhost_ping  # py3 notation
 

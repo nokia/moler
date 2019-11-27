@@ -1,6 +1,6 @@
 import time
 from moler.cmd.unix.ping import Ping
-from moler.connection import get_connection
+from moler.connection_factory import get_connection
 
 host = 'www.google.com'
 terminal = get_connection(io_type='terminal', variant='threaded')

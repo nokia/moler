@@ -37,7 +37,7 @@ import os
 import threading
 import time
 
-from moler.connection import get_connection
+from moler.connection_factory import get_connection
 from moler.exceptions import ConnectionObserverTimeout
 from moler.runner_factory import get_runner
 

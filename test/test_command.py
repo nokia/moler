@@ -18,7 +18,7 @@ import importlib
 
 import pytest
 from moler.command import Command
-from moler.connection import ObservableConnection
+from moler.observable_connection import ObservableConnection
 from moler.helpers import instance_id
 from moler.io.raw.memory import FifoBuffer
 
@@ -203,10 +203,10 @@ def test_command_is_running_after_sending_command_string(do_nothing_command__for
             assert data == 'ping localhost'  # ping command to be started on some shell
             assert ping.running()  # I'm in connection's send - command object should assume "real CMD (ping) is running"
 
-        def subscribe(self, observer):
+        def subscribe(self, observer, connection_closed_handler):
             pass
 
-        def unsubscribe(self, observer):
+        def unsubscribe(self, observer, connection_closed_handler):
             pass
 
     ping.connection = TheConnection()

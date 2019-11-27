@@ -27,7 +27,7 @@ import os
 import time
 
 import curio
-from moler.connection import ObservableConnection
+from moler.observable_connection import ObservableConnection
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))  # allow finding modules in examples/
 

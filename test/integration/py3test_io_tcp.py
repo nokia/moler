@@ -24,7 +24,7 @@ async def test_can_open_and_close_connection(tcp_connection_class,
     - it is integration tests
     - anyway open needs close as cleanup to not have resources leaking in tests
     """
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
     moler_conn = ObservableConnection()
@@ -41,7 +41,7 @@ async def test_can_open_and_close_connection(tcp_connection_class,
 @pytest.mark.asyncio
 async def test_closing_closed_connection_does_nothing(tcp_connection_class,
                                                       integration_tcp_server_and_pipe):
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
     moler_conn = ObservableConnection()
@@ -60,7 +60,7 @@ async def test_closing_closed_connection_does_nothing(tcp_connection_class,
 @pytest.mark.asyncio
 async def test_can_open_and_close_connection_as_context_manager(tcp_connection_class,
                                                                 integration_tcp_server_and_pipe):
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
     moler_conn = ObservableConnection()
@@ -80,7 +80,7 @@ async def test_can_open_and_close_connection_as_context_manager(tcp_connection_c
 @pytest.mark.asyncio
 async def test_can_send_binary_data_over_connection(tcp_connection_class,
                                                     integration_tcp_server_and_pipe):
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
     moler_conn = ObservableConnection()  # no decoder, just pass bytes 1:1
@@ -103,7 +103,7 @@ async def test_can_send_binary_data_over_connection(tcp_connection_class,
 @pytest.mark.asyncio
 async def test_can_receive_binary_data_from_connection(tcp_connection_class,
                                                        integration_tcp_server_and_pipe):
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
     received_data = bytearray()
     receiver_called = asyncio.Event()

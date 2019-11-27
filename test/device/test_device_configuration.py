@@ -161,6 +161,85 @@ def test_can_clone_device(moler_config, device_factory):
     device_cached_cloned.goto_state('UNIX_LOCAL')
 
 
+def test_close_defined_yaml_device(moler_config, device_factory):
+    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
+    moler_config.load_config(config=conn_config, config_type='yaml')
+
+    device_org_name = 'UNIX_LOCAL'
+    device_org = device_factory.get_device(name=device_org_name)
+    assert device_org is not None
+    device_org.remove()
+    with pytest.raises(KeyError):
+        device_factory.get_device(name=device_org_name)
+    clear_all_cfg()
+    moler_config.load_config(config=conn_config, config_type='yaml')
+    device_2 = device_factory.get_device(name=device_org_name)
+    assert device_2 != device_org
+
+
+def test_clone_device_from_cloned_device(moler_config, device_factory):
+    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
+    moler_config.load_config(config=conn_config, config_type='yaml')
+
+    device_org_name = 'UNIX_LOCAL'
+    device_cloned_name = 'UNIX_LOCAL_CLONED'
+    device_recloned_name = 'UNIX_LOCAL_RECLONED'
+    device_org = device_factory.get_device(name=device_org_name)
+    assert device_org is not None
+    device_cloned = device_factory.get_cloned_device(source_device=device_org, new_name=device_cloned_name)
+    device_recloned = device_factory.get_cloned_device(source_device=device_cloned, new_name=device_recloned_name)
+    assert device_cloned != device_recloned
+    assert device_cloned != device_org
+    assert device_recloned != device_org
+    device_cloned.remove()
+    device_recloned.remove()
+    with pytest.raises(KeyError):
+        device_factory.get_device(name=device_cloned_name)
+    with pytest.raises(KeyError):
+        device_factory.get_device(name=device_recloned_name)
+    with pytest.raises(KeyError):  # Cannot clone forgotten device.
+        device_factory.get_cloned_device(source_device=device_cloned_name, new_name=device_recloned_name)
+    with pytest.raises(KeyError):  # Cannot clone even passed reference to forgotten device.
+        device_factory.get_cloned_device(source_device=device_cloned, new_name=device_recloned_name)
+
+
+def test_clone_and_remove_device(moler_config, device_factory):
+    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
+    moler_config.load_config(config=conn_config, config_type='yaml')
+
+    device_org_name = 'UNIX_LOCAL'
+    device_cloned_name = 'CLONED_UNIX_LOCAL_TO_FORGET'
+    device_org = device_factory.get_device(name=device_org_name)
+    assert device_org is not None
+    with pytest.raises(KeyError):
+        device_factory.get_device(name=device_cloned_name)
+    device_cloned = device_factory.get_cloned_device(source_device=device_org, new_name=device_cloned_name)
+    assert device_cloned is not None
+    device_cloned.goto_state('UNIX_LOCAL')
+    cmd_ping = device_cloned.get_cmd(cmd_name="ping", cmd_params={"destination": 'localhost', "options": "-w 3"})
+    cmd_ping.start()
+    device_cloned.remove()
+    with pytest.raises(WrongUsage) as err:
+        cmd_ping.await_done()
+    assert "is about to be closed" in str(err.value)
+    with pytest.raises(KeyError):
+        device_factory.get_device(name=device_cloned_name)
+    # We can clone device with the same name again!
+    device_cloned_again = device_factory.get_cloned_device(source_device=device_org, new_name=device_cloned_name)
+    assert device_cloned != device_cloned_again
+    device_by_alias = device_factory.get_device(name=device_cloned_again.public_name)
+    assert device_by_alias == device_cloned_again
+    assert device_cloned_again.name != device_cloned_name
+    assert device_cloned_again.public_name == device_cloned_name
+    cmd_ping = device_cloned_again.get_cmd(cmd_name="ping", cmd_params={"destination": 'localhost', "options": "-w 1"})
+    cmd_ping()
+    device_factory.remove_device(name=device_cloned_name)
+    with pytest.raises(KeyError):
+        device_factory.get_device(name=device_cloned_name)
+    with pytest.raises(KeyError):
+        device_factory.remove_device(name=device_cloned_name)
+
+
 def test_can_clone_device_via_name(moler_config, device_factory):
     conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
     moler_config.load_config(config=conn_config, config_type='yaml')

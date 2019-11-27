@@ -10,6 +10,10 @@ import gc
 import pytest
 
 
+def do_nothing_func():
+    pass
+
+
 def test_can_attach_external_outgoing_io_to_moler_connection():
     from moler.connection import Connection
 
@@ -242,7 +246,7 @@ def test_changing_connection_name_switches_logger_if_default_logger_used():
 
 
 def test_can_notify_its_observer_about_data_comming_from_external_io(buffer_transport_class):
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
 
     moler_received_data = []
 
@@ -250,7 +254,7 @@ def test_can_notify_its_observer_about_data_comming_from_external_io(buffer_tran
         moler_received_data.append(data)
 
     moler_conn = ObservableConnection()
-    moler_conn.subscribe(buffer_observer)
+    moler_conn.subscribe(observer=buffer_observer, connection_closed_handler=do_nothing_func)
 
     used_io = buffer_transport_class(moler_connection=moler_conn)  # external-IO internally sets .how2send
     used_io.write(input_bytes=b"incoming data")  # inject to buffer for next line read
@@ -260,7 +264,7 @@ def test_can_notify_its_observer_about_data_comming_from_external_io(buffer_tran
 
 
 def test_can_notify_multiple_observers_about_data_comming_from_external_io(buffer_transport_class):
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
 
     class BufferObserver(object):
         def __init__(self):
@@ -273,8 +277,8 @@ def test_can_notify_multiple_observers_about_data_comming_from_external_io(buffe
     buffer_observer2 = BufferObserver()
 
     moler_conn = ObservableConnection()
-    moler_conn.subscribe(buffer_observer1.on_new_data)
-    moler_conn.subscribe(buffer_observer2.on_new_data)
+    moler_conn.subscribe(observer=buffer_observer1.on_new_data, connection_closed_handler=do_nothing_func)
+    moler_conn.subscribe(observer=buffer_observer2.on_new_data, connection_closed_handler=do_nothing_func)
 
     used_io = buffer_transport_class(moler_connection=moler_conn)  # external-IO internally sets .how2send
     used_io.write(input_bytes=b"incoming data")  # inject to buffer for next line read
@@ -285,7 +289,7 @@ def test_can_notify_multiple_observers_about_data_comming_from_external_io(buffe
 
 
 def test_notifies_only_subscribed_observers_about_data_comming_from_external_io(buffer_transport_class):
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
 
     class BufferObserver(object):
         def __init__(self):
@@ -299,8 +303,8 @@ def test_notifies_only_subscribed_observers_about_data_comming_from_external_io(
     buffer_observer3 = BufferObserver()
 
     moler_conn = ObservableConnection()
-    moler_conn.subscribe(buffer_observer1.on_new_data)
-    moler_conn.subscribe(buffer_observer2.on_new_data)
+    moler_conn.subscribe(observer=buffer_observer1.on_new_data, connection_closed_handler=do_nothing_func)
+    moler_conn.subscribe(observer=buffer_observer2.on_new_data, connection_closed_handler=do_nothing_func)
 
     used_io = buffer_transport_class(moler_connection=moler_conn)  # external-IO internally sets .how2send
     used_io.write(input_bytes=b"incoming data")  # inject to buffer for next line read
@@ -312,16 +316,16 @@ def test_notifies_only_subscribed_observers_about_data_comming_from_external_io(
 
 
 def test_notified_observer_may_stop_subscription_of_data_comming_from_external_io(buffer_transport_class):
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
 
     moler_conn = ObservableConnection()
     moler_received_data = []
 
     def one_time_observer(data):
         moler_received_data.append(data)
-        moler_conn.unsubscribe(one_time_observer)
+        moler_conn.unsubscribe(observer=one_time_observer, connection_closed_handler=do_nothing_func)
 
-    moler_conn.subscribe(one_time_observer)
+    moler_conn.subscribe(observer=one_time_observer, connection_closed_handler=do_nothing_func)
 
     used_io = buffer_transport_class(moler_connection=moler_conn)  # external-IO internally sets .how2send
     used_io.write(input_bytes=b"data 1")  # inject to buffer for next line read
@@ -334,7 +338,7 @@ def test_notified_observer_may_stop_subscription_of_data_comming_from_external_i
 
 
 def test_exception_in_observer_doesnt_break_connection_nor_other_observers(buffer_transport_class):
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
 
     moler_conn = ObservableConnection()
     moler_received_data = []
@@ -344,15 +348,15 @@ def test_exception_in_observer_doesnt_break_connection_nor_other_observers(buffe
 
     def one_time_observer(data):
         moler_received_data.append(data)
-        moler_conn.unsubscribe(one_time_observer)
+        moler_conn.unsubscribe(observer=one_time_observer, connection_closed_handler=do_nothing_func)
 
-    moler_conn.subscribe(failing_observer)
-    moler_conn.subscribe(one_time_observer)
+    moler_conn.subscribe(observer=failing_observer, connection_closed_handler=do_nothing_func)
+    moler_conn.subscribe(observer=one_time_observer, connection_closed_handler=do_nothing_func)
 
     used_io = buffer_transport_class(moler_connection=moler_conn)  # external-IO internally sets .how2send
     used_io.write(input_bytes=b"data 1")  # inject to buffer for next line read
     used_io.read()
-    moler_conn.unsubscribe(failing_observer)
+    moler_conn.unsubscribe(observer=failing_observer, connection_closed_handler=do_nothing_func)
 
     assert b"data 1" in moler_received_data
 
@@ -363,21 +367,22 @@ def test_repeated_unsubscription_does_nothing_but_logs_warning(buffer_transport_
     we don't want to raise exception when there is already
     "no such subscription" - just put warning to logs
     """
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
 
     moler_conn = ObservableConnection()
     moler_received_data = []
 
     def one_time_observer(data):
         moler_received_data.append(data)
-        moler_conn.unsubscribe(one_time_observer)
+        moler_conn.unsubscribe(observer=one_time_observer, connection_closed_handler=do_nothing_func)
 
-    moler_conn.subscribe(one_time_observer)
+    moler_conn.subscribe(observer=one_time_observer, connection_closed_handler=do_nothing_func)
 
     used_io = buffer_transport_class(moler_connection=moler_conn)  # external-IO internally sets .how2send
     used_io.write(input_bytes=b"data 1")  # inject to buffer for next line read
     used_io.read()
-    moler_conn.unsubscribe(one_time_observer)  # TODO: check warning in logs (when we set logging system)
+    moler_conn.unsubscribe(observer=one_time_observer, connection_closed_handler=do_nothing_func)  # TODO: check
+    # warning in logs (when we set logging system)
     used_io.write(input_bytes=b"data 2")  # inject to buffer for next line read
     used_io.read()
 
@@ -386,7 +391,7 @@ def test_repeated_unsubscription_does_nothing_but_logs_warning(buffer_transport_
 
 
 def test_single_unsubscription_doesnt_impact_other_subscribers():
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
 
     class TheObserver(object):
         def __init__(self):
@@ -417,21 +422,21 @@ def test_single_unsubscription_doesnt_impact_other_subscribers():
     callable2 = TheCallableClass()
 
     moler_conn = ObservableConnection()
-    moler_conn.subscribe(observer1.on_new_data)
-    moler_conn.subscribe(observer2.on_new_data)
-    moler_conn.subscribe(observer2.on_new_data)
-    moler_conn.unsubscribe(observer1.on_new_data)
-    moler_conn.unsubscribe(observer1.on_new_data)
+    moler_conn.subscribe(observer=observer1.on_new_data, connection_closed_handler=do_nothing_func)
+    moler_conn.subscribe(observer=observer2.on_new_data, connection_closed_handler=do_nothing_func)
+    moler_conn.subscribe(observer=observer2.on_new_data, connection_closed_handler=do_nothing_func)
+    moler_conn.unsubscribe(observer=observer1.on_new_data, connection_closed_handler=do_nothing_func)
+    moler_conn.unsubscribe(observer=observer1.on_new_data, connection_closed_handler=do_nothing_func)
 
-    moler_conn.subscribe(raw_fun1)
-    moler_conn.subscribe(raw_fun2)
-    moler_conn.subscribe(raw_fun2)
-    moler_conn.unsubscribe(raw_fun1)
+    moler_conn.subscribe(observer=raw_fun1, connection_closed_handler=do_nothing_func)
+    moler_conn.subscribe(observer=raw_fun2, connection_closed_handler=do_nothing_func)
+    moler_conn.subscribe(observer=raw_fun2, connection_closed_handler=do_nothing_func)
+    moler_conn.unsubscribe(observer=raw_fun1, connection_closed_handler=do_nothing_func)
 
-    moler_conn.subscribe(callable1)
-    moler_conn.subscribe(callable2)
-    moler_conn.subscribe(callable2)
-    moler_conn.unsubscribe(callable1)
+    moler_conn.subscribe(observer=callable1, connection_closed_handler=do_nothing_func)
+    moler_conn.subscribe(observer=callable2, connection_closed_handler=do_nothing_func)
+    moler_conn.subscribe(observer=callable2, connection_closed_handler=do_nothing_func)
+    moler_conn.unsubscribe(observer=callable1, connection_closed_handler=do_nothing_func)
 
     moler_conn.data_received("incoming data")
 
@@ -445,7 +450,7 @@ def test_single_unsubscription_doesnt_impact_other_subscribers():
 
 
 def test_subscription_doesnt_block_subscriber_to_be_garbage_collected():
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
 
     moler_conn = ObservableConnection()
     garbage_collected_subscribers = []
@@ -454,8 +459,12 @@ def test_subscription_doesnt_block_subscriber_to_be_garbage_collected():
         def __del__(self):
             garbage_collected_subscribers.append('Subscriber')
 
+    class CloseSubscriber(object):
+        pass
+
     subscr = Subscriber()
-    moler_conn.subscribe(subscr)
+    close_subscr = CloseSubscriber()
+    moler_conn.subscribe(subscr, close_subscr)
 
     del subscr
     gc.collect()
@@ -464,7 +473,7 @@ def test_subscription_doesnt_block_subscriber_to_be_garbage_collected():
 
 
 def test_garbage_collected_subscriber_is_not_notified():
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
 
     moler_conn = ObservableConnection()
     received_data = []
@@ -475,8 +484,8 @@ def test_garbage_collected_subscriber_is_not_notified():
 
     subscr1 = Subscriber()
     subscr2 = Subscriber()
-    moler_conn.subscribe(subscr1)
-    moler_conn.subscribe(subscr2)
+    moler_conn.subscribe(observer=subscr1, connection_closed_handler=do_nothing_func)
+    moler_conn.subscribe(observer=subscr2, connection_closed_handler=do_nothing_func)
 
     del subscr1
     gc.collect()

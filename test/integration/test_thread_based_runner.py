@@ -96,7 +96,7 @@ class NetworkDownDetector(ConnectionObserver):
 
 @pytest.fixture()
 def connection_observer():
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     moler_conn = ObservableConnection()
     observer = NetworkDownDetector(connection=moler_conn)
     return observer

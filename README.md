@@ -286,7 +286,7 @@ giving it connection to operate on:
 
     import time
     from moler.cmd.unix.ping import Ping
-    from moler.connection import get_connection
+    from moler.connection_factory import get_connection
 
     host = 'www.google.com'
     terminal = get_connection(io_type='terminal', variant='threaded')  # take connection
@@ -327,7 +327,7 @@ Library gives you freedom which part you want to reuse. We are fan's of "take wh
 * You can take connection or build it yourself:
 
    ```python
-   from moler.connection import ObservableConnection
+   from moler.observable_connection import ObservableConnection
    from moler.io.raw.terminal import ThreadedTerminal
 
    terminal_connection = ThreadedTerminal(moler_connection=ObservableConnection())

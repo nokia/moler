@@ -9,7 +9,7 @@ import time
 
 import pytest
 
-from moler.connection import ObservableConnection
+from moler.observable_connection import ObservableConnection
 from moler.connection_observer import ConnectionObserver
 from moler.helpers import instance_id
 
