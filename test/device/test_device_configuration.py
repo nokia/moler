@@ -219,8 +219,9 @@ def test_clone_and_remove_device(moler_config, device_factory):
     cmd_ping = device_cloned.get_cmd(cmd_name="ping", cmd_params={"destination": 'localhost', "options": "-w 3"})
     cmd_ping.start()
     device_cloned.remove()
-    with pytest.raises(WrongUsage):
+    with pytest.raises(WrongUsage) as err:
         cmd_ping.await_done()
+    assert "is about to be closed" in str(err.value)
     with pytest.raises(KeyError):
         device_factory.get_device(name=device_cloned_name)
     # We can clone device with the same name again!
