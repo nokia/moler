@@ -222,7 +222,8 @@ class Sudo(GenericUnixCommand):
                 "Not allowed to run again the embeded command (embeded command is done): {}.".format(
                     self.cmd_object))
         self.ret_required = self.cmd_object.ret_required
-        self.timeout = self.cmd_object.timeout
+        if self.timeout_from_embedded_command:
+            self.timeout = self.cmd_object.timeout
 
 
 COMMAND_OUTPUT_whoami = """

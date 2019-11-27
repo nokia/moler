@@ -14,6 +14,7 @@ from moler.exceptions import CommandTimeout
 from moler.exceptions import CommandFailure
 import pytest
 import mock
+import time
 
 
 def test_calling_by_command_object(buffer_connection, command_output_and_expected_result):
@@ -60,6 +61,37 @@ def test_failing_with_timeout(buffer_connection, command_output_and_expected_res
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass", cmd_object=cmd_pwd)
     with pytest.raises(CommandTimeout):
         cmd_sudo(timeout=0.1)
+
+
+def test_can_use_timeout_of_embedded_command(buffer_connection, command_output_and_expected_result_timeout):
+    command_output = command_output_and_expected_result_timeout
+    buffer_connection.remote_inject_response([command_output])
+    cmd_pwd = Pwd(connection=buffer_connection.moler_connection)
+    cmd_pwd.timeout = 0.2
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass", cmd_object=cmd_pwd)
+    cmd_sudo.terminating_timeout = 0  # no additional timeout for Ctrl-C..till..prompt (shutdown after cmd timeout)
+    start_time = time.time()
+    with pytest.raises(CommandTimeout):
+        cmd_sudo()
+    duration = time.time() - start_time
+    assert duration >= 0.2
+    assert duration < 0.5
+
+
+def test_can_ignore_timeout_of_embedded_command_if_direct_timeout_provided(buffer_connection,
+                                                                           command_output_and_expected_result_timeout):
+    command_output = command_output_and_expected_result_timeout
+    buffer_connection.remote_inject_response([command_output])
+    cmd_pwd = Pwd(connection=buffer_connection.moler_connection)
+    cmd_pwd.timeout = 0.8
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass", cmd_object=cmd_pwd)
+    cmd_sudo.terminating_timeout = 0  # no additional sudo timeout for Ctrl-C..till..prompt (shutdown after cmd timeout)
+    start_time = time.time()
+    with pytest.raises(CommandTimeout):
+        cmd_sudo(timeout=0.5)
+    duration = time.time() - start_time
+    assert duration >= 0.5
+    assert duration < 0.8
 
 
 def test_command_not_found(buffer_connection, command_output_command_not_found):
