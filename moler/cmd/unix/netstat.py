@@ -247,9 +247,9 @@ Active Internet connections (w/o servers)
 Proto Recv-Q Send-Q Local Address           Foreign Address         State
 tcp        0      0 localhost.localdo:20567 localhost.localdo:20570 ESTABLISHED
 tcp        0      0 localhost.localdo:20567 localhost.localdo:20568 ESTABLISHED
-sctp                localhost.localdo:65432                     LISTEN      29004/python3
-sctp       1        localhost.localdo:65435                     LISTEN      29034/python3
-sctp              1 localhost.localdo:65438   localhost.localdo:20537   LISTEN      29045/python3
+sctp                localhost.localdo:65432                     LISTEN
+sctp       1        localhost.localdo:65435                     LISTEN
+sctp              1 localhost.localdo:65438   localhost.localdo:20537   LISTEN
 Active UNIX domain sockets (w/o servers)
 Proto RefCnt Flags       Type       State         I-Node   Path
 unix  2      [ ]         DGRAM                    15365    /var/cache/samba/msg/846
@@ -284,22 +284,22 @@ COMMAND_RESULT = {
                               'recv-q': '0',
                               'send-q': '0',
                               'state': 'ESTABLISHED'},
-                             {'foreign address': 'None',
+                             {'foreign address': None,
                               'local address': 'localhost.localdo:65432',
                               'proto': 'sctp',
-                              'recv-q': 'None',
-                              'send-q': 'None',
+                              'recv-q': None,
+                              'send-q': None,
                               'state': 'LISTEN'},
-                             {'foreign address': 'None',
+                             {'foreign address': None,
                               'local address': 'localhost.localdo:65435',
                               'proto': 'sctp',
                               'recv-q': '1',
-                              'send-q': 'None',
+                              'send-q': None,
                               'state': 'LISTEN'},
                              {'foreign address': 'localhost.localdo:20537',
                               'local address': 'localhost.localdo:65438',
                               'proto': 'sctp',
-                              'recv-q': 'None',
+                              'recv-q': None,
                               'send-q': '1',
                               'state': 'LISTEN'}]
 }
@@ -421,25 +421,25 @@ COMMAND_RESULT_pid = {
                               'recv-q': '0',
                               'send-q': '0',
                               'state': 'ESTABLISHED'},
-                             {'foreign address': 'None',
+                             {'foreign address': None,
                               'local address': 'localhost.localdo:65432',
                               'pid/program name': '29004/sctp_1',
                               'proto': 'sctp',
-                              'recv-q': 'None',
-                              'send-q': 'None',
+                              'recv-q': None,
+                              'send-q': None,
                               'state': 'LISTEN'},
-                             {'foreign address': 'None',
+                             {'foreign address': None,
                               'local address': 'localhost.localdo:65435',
                               'pid/program name': '29034/sctp_2',
                               'proto': 'sctp',
                               'recv-q': '1',
-                              'send-q': 'None',
+                              'send-q': None,
                               'state': 'LISTEN'},
                              {'foreign address': 'localhost.localdo:20537',
                               'local address': 'localhost.localdo:65438',
                               'pid/program name': '29045/sctp_3',
                               'proto': 'sctp',
-                              'recv-q': 'None',
+                              'recv-q': None,
                               'send-q': '1',
                               'state': 'LISTEN'}],
     'UNIX_SOCKETS': [{'flags': '[ ]',
