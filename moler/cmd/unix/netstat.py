@@ -247,6 +247,9 @@ Active Internet connections (w/o servers)
 Proto Recv-Q Send-Q Local Address           Foreign Address         State
 tcp        0      0 localhost.localdo:20567 localhost.localdo:20570 ESTABLISHED
 tcp        0      0 localhost.localdo:20567 localhost.localdo:20568 ESTABLISHED
+sctp                localhost.localdo:65432                     LISTEN      29004/python3
+sctp       1        localhost.localdo:65432                     LISTEN      29004/python3
+sctp              1 localhost.localdo:65432   localhost.localdo:20537   LISTEN      29004/python3
 Active UNIX domain sockets (w/o servers)
 Proto RefCnt Flags       Type       State         I-Node   Path
 unix  2      [ ]         DGRAM                    15365    /var/cache/samba/msg/846
