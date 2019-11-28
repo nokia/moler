@@ -27,12 +27,13 @@ class Iperf(GenericUnixCommand):
        'Bandwidth Raw':            '9.84 Mbits/sec',
        'Bandwidth':                1230000,
        'Jitter':                   '1.830 ms',
-       'Lost_per_Total_Datagrams': '0/ 837   (0%)'}
+       'Lost_vs_Total_Datagrams':  (0, 837),
+       'Lost_Datagrams_ratio':     '0%'}
 
     Above dict represents iperf output like::
 
-      [ ID]   Interval         Transfer        Bandwidth         Jitter        Lost/Total Datagrams
-      [904]   0.0- 1.0 sec   1.17 MBytes   9.84 Mbits/sec   1.830 ms   0/ 837   (0%)
+      [ ID]   Interval       Transfer      Bandwidth        Jitter   Lost/Total Datagrams
+      [904]   0.0- 1.0 sec   1.17 MBytes   9.84 Mbits/sec   1.830 ms    0/ 837   (0%)
 
     Please note that numeric values are normalized to Bytes:
     - Transfer is in Bytes
@@ -106,7 +107,6 @@ class Iperf(GenericUnixCommand):
 
     # [  3] local 10.89.47.191 port 5016 connected with 10.89.47.150 port 56262
     # [  5] local 10.89.47.191 port 47384 connected with 10.89.47.150 port 5016
-    _re_connection_info = re.compile(r"(?P<ID>\[\s*\d*\])\s*(?P<ID_NAME>.*port\s*\d*\s*connected with.*)")
     _r_conn_info = r"(\[\s*\d*\])\s+local\s+(\S+)\s+port\s+(\d+)\s+connected with\s+(\S+)\s+port\s+(\d+)"
     _re_connection_info = re.compile(_r_conn_info)
 
@@ -141,17 +141,24 @@ class Iperf(GenericUnixCommand):
                     self._connection_dict[connection_id] = (local, "{}:{}".format(remote_host, "multiport"))
             raise ParsingDone
 
-    # udp:
-    # [ ID] Interval       Transfer     Bandwidth        Jitter   Lost/Total Datagrams
-    # [  3]  0.0- 1.0 sec   612 KBytes  5010 Kbits/sec   0.022 ms    0/  426 (0%)
-    #
     # tcp:
     # [ ID] Interval       Transfer     Bandwidth
     # [  4]  0.0- 1.0 sec   979 KBytes  8020 Kbits/sec
-    _re_rec = r"(?P<ID>\[\s*\d*\]|\[SUM\])\s+(?P<Interval>\d+.+sec)\s+(?P<Transfer>[\d\.]+\s+\w+)\s+(?P<Bandwidth>[\d\.]+\s+\w+/sec)"
-    _re_rec_udp_svr = _re_rec + r"\s+(?P<Jitter>\d+\.\d+\s\w+)\s+(?P<Lost_per_Total_Datagrams>\d+/\s*\d+\s*\([\d\.]+\%\))"
-    _re_iperf_record = re.compile(_re_rec)
-    _re_iperf_record_udp_svr = re.compile(_re_rec_udp_svr)
+    #
+    # udp:
+    # [ ID] Interval       Transfer     Bandwidth        Jitter   Lost/Total Datagrams
+    # [  3]  0.0- 1.0 sec   612 KBytes  5010 Kbits/sec   0.022 ms    0/  426 (0%)
+
+    _r_id = r"(?P<ID>\[\s*\d*\]|\[SUM\])"
+    _r_interval = r"(?P<Interval>\d+.+sec)"
+    _r_transfer = r"(?P<Transfer>[\d\.]+\s+\w+)"
+    _r_bandwidth = r"(?P<Bandwidth>[\d\.]+\s+\w+/sec)"
+    _r_jitter = r"(?P<Jitter>\d+\.\d+\s\w+)"
+    _r_datagrams = r"(?P<Lost_vs_Total_Datagrams>\d+/\s*\d+)\s*\((?P<Lost_Datagrams_ratio>[\d\.]+\%)\)"
+    _r_rec = r"{}\s+{}\s+{}\s+{}".format(_r_id, _r_interval, _r_transfer, _r_bandwidth)
+    _r_rec_udp_svr = r"{}\s+{}\s+{}".format(_r_rec, _r_jitter, _r_datagrams)
+    _re_iperf_record = re.compile(_r_rec)
+    _re_iperf_record_udp_svr = re.compile(_r_rec_udp_svr)
 
     def _parse_connection_info(self, line):
         iperf_record = {}
@@ -159,6 +166,9 @@ class Iperf(GenericUnixCommand):
             self._regex_helper.search_compiled(Iperf._re_iperf_record, line)):
             iperf_record = self._regex_helper.groupdict()
             connection_id = iperf_record.pop("ID")
+            if "Lost_vs_Total_Datagrams" in iperf_record:
+                lost, total = iperf_record["Lost_vs_Total_Datagrams"].split('/')
+                iperf_record["Lost_vs_Total_Datagrams"] = (int(lost), int(total))
             connection_name = self._connection_dict[connection_id]
             normalized_iperf_record = self._normalize_to_bytes(iperf_record)
             self._update_current_ret(connection_name, normalized_iperf_record)
@@ -284,77 +294,88 @@ COMMAND_RESULT_basic_server = {
                                                'Bandwidth': 1230000,
                                                'Interval': '0.0- 1.0 sec',
                                                'Jitter': '1.830 ms',
-                                               'Lost_per_Total_Datagrams': '0/ 837   (0%)',
+                                               'Lost_vs_Total_Datagrams': (0, 837),
+                                               'Lost_Datagrams_ratio': '0%',
                                                'Transfer Raw': '1.17 MBytes',
                                                'Transfer': 1226833},
                                               {'Bandwidth Raw': '9.94 Mbits/sec',
                                                'Bandwidth': 1242500,
                                                'Interval': '1.0- 2.0 sec',
                                                'Jitter': '1.846 ms',
-                                               'Lost_per_Total_Datagrams': '5/ 850   (0.59%)',
+                                               'Lost_vs_Total_Datagrams': (5, 850),
+                                               'Lost_Datagrams_ratio': '0.59%',
                                                'Transfer Raw': '1.18 MBytes',
                                                'Transfer': 1237319},
                                               {'Bandwidth Raw': '9.98 Mbits/sec',
                                                'Bandwidth': 1247500,
                                                'Interval': '2.0- 3.0 sec',
                                                'Jitter': '1.802 ms',
-                                               'Lost_per_Total_Datagrams': '2/ 851   (0.24%)',
+                                               'Lost_vs_Total_Datagrams': (2, 851),
+                                               'Lost_Datagrams_ratio': '0.24%',
                                                'Transfer Raw': '1.19 MBytes',
                                                'Transfer': 1247805},
                                               {'Bandwidth Raw': '10.0 Mbits/sec',
                                                'Bandwidth': 1250000,
                                                'Interval': '3.0- 4.0 sec',
                                                'Jitter': '1.830 ms',
-                                               'Lost_per_Total_Datagrams': '0/ 850   (0%)',
+                                               'Lost_vs_Total_Datagrams': (0, 850),
+                                               'Lost_Datagrams_ratio': '0%',
                                                'Transfer Raw': '1.19 MBytes',
                                                'Transfer': 1247805},
                                               {'Bandwidth Raw': '9.98 Mbits/sec',
                                                'Bandwidth': 1247500,
                                                'Interval': '4.0- 5.0 sec',
                                                'Jitter': '1.846 ms',
-                                               'Lost_per_Total_Datagrams': '1/ 850   (0.12%)',
+                                               'Lost_vs_Total_Datagrams': (1, 850),
+                                               'Lost_Datagrams_ratio': '0.12%',
                                                'Transfer Raw': '1.19 MBytes',
                                                'Transfer': 1247805},
                                               {'Bandwidth Raw': '10.0 Mbits/sec',
                                                'Bandwidth': 1250000,
                                                'Interval': '5.0- 6.0 sec',
                                                'Jitter': '1.806 ms',
-                                               'Lost_per_Total_Datagrams': '0/ 851   (0%)',
+                                               'Lost_vs_Total_Datagrams': (0, 851),
+                                               'Lost_Datagrams_ratio': '0%',
                                                'Transfer Raw': '1.19 MBytes',
                                                'Transfer': 1247805},
                                               {'Bandwidth Raw': '8.87 Mbits/sec',
                                                'Bandwidth': 1108750,
                                                'Interval': '6.0- 7.0 sec',
                                                'Jitter': '1.803 ms',
-                                               'Lost_per_Total_Datagrams': '1/ 755   (0.13%)',
+                                               'Lost_vs_Total_Datagrams': (1, 755),
+                                               'Lost_Datagrams_ratio': '0.13%',
                                                'Transfer Raw': '1.06 MBytes',
                                                'Transfer': 1111490},
                                               {'Bandwidth Raw': '10.0 Mbits/sec',
                                                'Bandwidth': 1250000,
                                                'Interval': '7.0- 8.0 sec',
                                                'Jitter': '1.831 ms',
-                                               'Lost_per_Total_Datagrams': '0/ 850   (0%)',
+                                               'Lost_vs_Total_Datagrams': (0, 850),
+                                               'Lost_Datagrams_ratio': '0%',
                                                'Transfer Raw': '1.19 MBytes',
                                                'Transfer': 1247805},
                                               {'Bandwidth Raw': '10.0 Mbits/sec',
                                                'Bandwidth': 1250000,
                                                'Interval': '8.0- 9.0 sec',
                                                'Jitter': '1.841 ms',
-                                               'Lost_per_Total_Datagrams': '0/ 850   (0%)',
+                                               'Lost_vs_Total_Datagrams': (0, 850),
+                                               'Lost_Datagrams_ratio': '0%',
                                                'Transfer Raw': '1.19 MBytes',
                                                'Transfer': 1247805},
                                               {'Bandwidth Raw': '10.0 Mbits/sec',
                                                'Bandwidth': 1250000,
                                                'Interval': '9.0-10.0 sec',
                                                'Jitter': '1.801 ms',
-                                               'Lost_per_Total_Datagrams': '0/ 851   (0%)',
+                                               'Lost_vs_Total_Datagrams': (0, 851),
+                                               'Lost_Datagrams_ratio': '0%',
                                                'Transfer Raw': '1.19 MBytes',
                                                'Transfer': 1247805},
                                               {'Bandwidth Raw': '9.86 Mbits/sec',
                                                'Bandwidth': 1232500,
                                                'Interval': '0.0-10.0 sec',
                                                'Jitter': '2.618 ms',
-                                               'Lost_per_Total_Datagrams': '9/ 8409  (0.11%)',
+                                               'Lost_vs_Total_Datagrams': (9, 8409),
+                                               'Lost_Datagrams_ratio': '0.11%',
                                                'Transfer Raw': '11.8 MBytes',
                                                'Transfer': 12373196}]},
     'INFO': ['Server listening on UDP port 5001', 'Receiving 1470 byte datagrams',
@@ -443,56 +464,64 @@ COMMAND_RESULT_bidirectional_udp_client = {
                                                        'Transfer': 3751936,
                                                        'Interval': '0.0- 6.0 sec',
                                                        'Bandwidth': 625000,
-                                                       'Lost_per_Total_Datagrams': '0/ 2552 (0%)',
+                                                       'Lost_vs_Total_Datagrams': (0, 2552),
+                                                       'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '5000 Kbits/sec'}],
         ("10.89.47.150:5016", "10.89.47.191:47384"): [{'Transfer Raw': '612 KBytes',
                                                        'Jitter': '0.011 ms',
                                                        'Transfer': 626688,
                                                        'Interval': '0.0- 1.0 sec',
                                                        'Bandwidth': 626250,
-                                                       'Lost_per_Total_Datagrams': '0/  426 (0%)',
+                                                       'Lost_vs_Total_Datagrams': (0, 426),
+                                                       'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '5010 Kbits/sec'},
                                                       {'Transfer Raw': '610 KBytes',
                                                        'Jitter': '0.012 ms',
                                                        'Transfer': 624640,
                                                        'Interval': '1.0- 2.0 sec',
                                                        'Bandwidth': 624750,
-                                                       'Lost_per_Total_Datagrams': '0/  425 (0%)',
+                                                       'Lost_vs_Total_Datagrams': (0, 425),
+                                                       'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '4998 Kbits/sec'},
                                                       {'Transfer Raw': '610 KBytes',
                                                        'Jitter': '0.017 ms',
                                                        'Transfer': 624640,
                                                        'Interval': '2.0- 3.0 sec',
                                                        'Bandwidth': 624750,
-                                                       'Lost_per_Total_Datagrams': '0/  425 (0%)',
+                                                       'Lost_vs_Total_Datagrams': (0, 425),
+                                                       'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '4998 Kbits/sec'},
                                                       {'Transfer Raw': '610 KBytes',
                                                        'Jitter': '0.019 ms',
                                                        'Transfer': 624640,
                                                        'Interval': '3.0- 4.0 sec',
                                                        'Bandwidth': 624750,
-                                                       'Lost_per_Total_Datagrams': '0/  425 (0%)',
+                                                       'Lost_vs_Total_Datagrams': (0, 425),
+                                                       'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '4998 Kbits/sec'},
                                                       {'Transfer Raw': '610 KBytes',
                                                        'Jitter': '0.014 ms',
                                                        'Transfer': 624640,
                                                        'Interval': '4.0- 5.0 sec',
                                                        'Bandwidth': 624750,
-                                                       'Lost_per_Total_Datagrams': '0/  425 (0%)',
+                                                       'Lost_vs_Total_Datagrams': (0, 425),
+                                                       'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '4998 Kbits/sec'},
                                                       {'Transfer Raw': '612 KBytes',
                                                        'Jitter': '0.017 ms',
                                                        'Transfer': 626688,
                                                        'Interval': '5.0- 6.0 sec',
                                                        'Bandwidth': 626250,
-                                                       'Lost_per_Total_Datagrams': '0/  426 (0%)',
+                                                       'Lost_vs_Total_Datagrams': (0, 426),
+                                                       'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '5010 Kbits/sec'},
                                                       {'Transfer Raw': '3664 KBytes',
                                                        'Jitter': '0.017 ms',
                                                        'Transfer': 3751936,
                                                        'Interval': '0.0- 6.0 sec',
                                                        'Bandwidth': 625000,
-                                                       'Lost_per_Total_Datagrams': '0/ 2552 (0%)',
+                                                       'Lost_vs_Total_Datagrams': (0, 2552),
+                                                       'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '5000 Kbits/sec'}]},
     'INFO': ['Server listening on UDP port 5016', 'Receiving 1470 byte datagrams',
              'UDP buffer size: 1024 KByte (default)',
@@ -585,56 +614,64 @@ COMMAND_RESULT_bidirectional_udp_server = {
                                                        'Transfer': 3751936,
                                                        'Interval': '0.0- 6.0 sec',
                                                        'Bandwidth': 625000,
-                                                       'Lost_per_Total_Datagrams': '0/ 2552 (0%)',
+                                                       'Lost_vs_Total_Datagrams': (0, 2552),
+                                                       'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '5000 Kbits/sec'}],
         ("10.89.47.191:5016", "10.89.47.150:56262"): [{'Transfer Raw': '612 KBytes',
                                                        'Jitter': '0.022 ms',
                                                        'Transfer': 626688,
                                                        'Interval': '0.0- 1.0 sec',
                                                        'Bandwidth': 626250,
-                                                       'Lost_per_Total_Datagrams': '0/  426 (0%)',
+                                                       'Lost_vs_Total_Datagrams': (0, 426),
+                                                       'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '5010 Kbits/sec'},
                                                       {'Transfer Raw': '610 KBytes',
                                                        'Jitter': '0.016 ms',
                                                        'Transfer': 624640,
                                                        'Interval': '1.0- 2.0 sec',
                                                        'Bandwidth': 624750,
-                                                       'Lost_per_Total_Datagrams': '0/  425 (0%)',
+                                                       'Lost_vs_Total_Datagrams': (0, 425),
+                                                       'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '4998 Kbits/sec'},
                                                       {'Transfer Raw': '610 KBytes',
                                                        'Jitter': '0.021 ms',
                                                        'Transfer': 624640,
                                                        'Interval': '2.0- 3.0 sec',
                                                        'Bandwidth': 624750,
-                                                       'Lost_per_Total_Datagrams': '0/  425 (0%)',
+                                                       'Lost_vs_Total_Datagrams': (0, 425),
+                                                       'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '4998 Kbits/sec'},
                                                       {'Transfer Raw': '610 KBytes',
                                                        'Jitter': '0.009 ms',
                                                        'Transfer': 624640,
                                                        'Interval': '3.0- 4.0 sec',
                                                        'Bandwidth': 624750,
-                                                       'Lost_per_Total_Datagrams': '0/  425 (0%)',
+                                                       'Lost_vs_Total_Datagrams': (0, 425),
+                                                       'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '4998 Kbits/sec'},
                                                       {'Transfer Raw': '612 KBytes',
                                                        'Jitter': '0.014 ms',
                                                        'Transfer': 626688,
                                                        'Interval': '4.0- 5.0 sec',
                                                        'Bandwidth': 626250,
-                                                       'Lost_per_Total_Datagrams': '0/  426 (0%)',
+                                                       'Lost_vs_Total_Datagrams': (0, 426),
+                                                       'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '5010 Kbits/sec'},
                                                       {'Transfer Raw': '610 KBytes',
                                                        'Jitter': '0.018 ms',
                                                        'Transfer': 624640,
                                                        'Interval': '5.0- 6.0 sec',
                                                        'Bandwidth': 624750,
-                                                       'Lost_per_Total_Datagrams': '0/  425 (0%)',
+                                                       'Lost_vs_Total_Datagrams': (0, 425),
+                                                       'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '4998 Kbits/sec'},
                                                       {'Transfer Raw': '3664 KBytes',
                                                        'Jitter': '0.018 ms',
                                                        'Transfer': 3751936,
                                                        'Interval': '0.0- 6.0 sec',
                                                        'Bandwidth': 625000,
-                                                       'Lost_per_Total_Datagrams': '0/ 2552 (0%)',
+                                                       'Lost_vs_Total_Datagrams': (0, 2552),
+                                                       'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '5000 Kbits/sec'}]},
     'INFO': ['Server listening on UDP port 5016',
              'Receiving 1470 byte datagrams',
