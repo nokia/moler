@@ -44,6 +44,51 @@ def test_iperf_raise_error_on_iperf_problem(buffer_connection, command_output_an
         iperf_cmd()
 
 
+def test_iperf_correctly_parses_bidirectional_udp_client_output(buffer_connection):
+    from moler.cmd.unix import iperf
+    buffer_connection.remote_inject_response([iperf.COMMAND_OUTPUT_bidirectional_udp_client])
+    iperf_cmd = iperf.Iperf(connection=buffer_connection.moler_connection,
+                            **iperf.COMMAND_KWARGS_bidirectional_udp_client)
+    res = iperf_cmd()
+    assert res == iperf.COMMAND_RESULT_bidirectional_udp_client
+
+
+def test_iperf_correctly_parses_bidirectional_udp_server_output(buffer_connection):
+    from moler.cmd.unix import iperf
+    buffer_connection.remote_inject_response([iperf.COMMAND_OUTPUT_bidirectional_udp_server])
+    iperf_cmd = iperf.Iperf(connection=buffer_connection.moler_connection,
+                            **iperf.COMMAND_KWARGS_bidirectional_udp_server)
+    res = iperf_cmd()
+    assert res == iperf.COMMAND_RESULT_bidirectional_udp_server
+
+
+def test_iperf_correctly_parses_basic_udp_server_output(buffer_connection):
+    from moler.cmd.unix import iperf
+    buffer_connection.remote_inject_response([iperf.COMMAND_OUTPUT_basic_server])
+    iperf_cmd = iperf.Iperf(connection=buffer_connection.moler_connection,
+                            **iperf.COMMAND_KWARGS_basic_server)
+
+    assert iperf_cmd() == iperf.COMMAND_RESULT_basic_server
+
+
+def test_iperf_correctly_parses_basic_tcp_client_output(buffer_connection):
+    from moler.cmd.unix import iperf
+    buffer_connection.remote_inject_response([iperf.COMMAND_OUTPUT_basic_client])
+    iperf_cmd = iperf.Iperf(connection=buffer_connection.moler_connection,
+                            **iperf.COMMAND_KWARGS_basic_client)
+
+    assert iperf_cmd() == iperf.COMMAND_RESULT_basic_client
+
+
+def test_iperf_correctly_parses_multiconnection_tcp_client_output(buffer_connection):
+    from moler.cmd.unix import iperf
+    buffer_connection.remote_inject_response([iperf.COMMAND_OUTPUT_multiple_connections])
+    iperf_cmd = iperf.Iperf(connection=buffer_connection.moler_connection,
+                            **iperf.COMMAND_KWARGS_multiple_connections)
+
+    assert iperf_cmd() == iperf.COMMAND_RESULT_multiple_connections
+
+
 @pytest.fixture
 def command_output_and_expected_result_on_bind_failed():
     output = """xyz@debian>iperf -s
