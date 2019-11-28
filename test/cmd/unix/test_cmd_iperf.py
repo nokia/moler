@@ -71,10 +71,8 @@ def test_iperf_creates_summary_connection_for_parallel_testing(buffer_connection
     iperf_cmd()
     stored_connections = iperf_cmd.result()['CONNECTIONS'].keys()
     #        local host:port      remote host:port
-    assert len(iperf_cmd._connection_dict.keys()) == 21
-    assert iperf_cmd._connection_dict['[SUM]'] == ('192.168.0.102:multiport', '192.168.0.100:5001')
-    # assert len(stored_connections) == 20
-    # assert ('192.168.0.102:multiports', '192.168.0.100:5001') in stored_connections
+    assert len(stored_connections) == 21
+    assert ('192.168.0.102:multiport', '192.168.0.100:5001') in stored_connections
 
 
 def test_iperf_correctly_parses_bidirectional_udp_client_output(buffer_connection):
@@ -118,8 +116,8 @@ def test_iperf_correctly_parses_multiconnection_tcp_client_output(buffer_connect
     buffer_connection.remote_inject_response([iperf.COMMAND_OUTPUT_multiple_connections])
     iperf_cmd = iperf.Iperf(connection=buffer_connection.moler_connection,
                             **iperf.COMMAND_KWARGS_multiple_connections)
-
-    assert iperf_cmd() == iperf.COMMAND_RESULT_multiple_connections
+    ret = iperf_cmd()
+    assert ret == iperf.COMMAND_RESULT_multiple_connections
 
 
 @pytest.fixture

@@ -148,7 +148,7 @@ class Iperf(GenericUnixCommand):
     # tcp:
     # [ ID] Interval       Transfer     Bandwidth
     # [  4]  0.0- 1.0 sec   979 KBytes  8020 Kbits/sec
-    _re_rec = r"(?P<ID>\[\s*\d*\])\s+(?P<Interval>\d+.+sec)\s+(?P<Transfer>[\d\.]+\s+\w+)\s+(?P<Bandwidth>[\d\.]+\s+\w+/sec)"
+    _re_rec = r"(?P<ID>\[\s*\d*\]|\[SUM\])\s+(?P<Interval>\d+.+sec)\s+(?P<Transfer>[\d\.]+\s+\w+)\s+(?P<Bandwidth>[\d\.]+\s+\w+/sec)"
     _re_rec_udp_svr = _re_rec + r"\s+(?P<Jitter>\d+\.\d+\s\w+)\s+(?P<Lost_per_Total_Datagrams>\d+/\s*\d+\s*\([\d\.]+\%\))"
     _re_iperf_record = re.compile(_re_rec)
     _re_iperf_record_udp_svr = re.compile(_re_rec_udp_svr)
@@ -801,6 +801,11 @@ COMMAND_RESULT_multiple_connections = {
                                                          'Bandwidth': 1625000,
                                                          'Interval': '0.0-10.7 sec',
                                                          'Transfer Raw': '16.6 MBytes',
-                                                         'Transfer': 17406361}]},
-    'INFO': ['Client connecting to 192.168.0.100, TCP port 5001', 'TCP window size: 16.0 KByte (default)',
-             '[SUM]  0.0-10.8 sec   344 MBytes   266 Mbits/sec']}
+                                                         'Transfer': 17406361}],
+        ("192.168.0.102:multiport", "192.168.0.100:5001"): [{'Transfer': 360710144,
+                                                             'Bandwidth': 33250000,
+                                                             'Transfer Raw': '344 MBytes',
+                                                             'Bandwidth Raw': '266 Mbits/sec',
+                                                             'Interval': '0.0-10.8 sec'}]},
+    'INFO': ['Client connecting to 192.168.0.100, TCP port 5001',
+             'TCP window size: 16.0 KByte (default)']}
