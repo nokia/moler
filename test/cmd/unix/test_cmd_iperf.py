@@ -44,6 +44,12 @@ def test_iperf_raise_error_on_iperf_problem(buffer_connection, command_output_an
         iperf_cmd()
 
 
+def test_iperf_raise_error_on_iperf_problem(buffer_connection):
+    with pytest.raises(AttributeError) as err:
+        Iperf(connection=buffer_connection.moler_connection, options='-d -P 10')
+    assert "Unsupported options combination (--dualtest & --parallel)" in str(err.value)
+
+
 def test_iperf_stores_connections_as_host_port_tuple_for_local_and_remote(buffer_connection):
     from moler.cmd.unix import iperf
     buffer_connection.remote_inject_response([iperf.COMMAND_OUTPUT_bidirectional_udp_server])

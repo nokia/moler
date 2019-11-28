@@ -40,13 +40,19 @@ class Iperf(GenericUnixCommand):
     """
     def __init__(self, connection, options, prompt=None, newline_chars=None, runner=None):
         super(Iperf, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
-        self.options = options
+        self.options = self._validate_options(options)
         self.current_ret['CONNECTIONS'] = dict()
         self.current_ret['INFO'] = list()
 
         # private values
         self._connection_dict = dict()
         self._converter_helper = ConverterHelper()
+
+    @staticmethod
+    def _validate_options(options):
+        if (('-d' in options) or ('--dualtest' in options)) and (('-P' in options) or ('--parallel' in options)):
+            raise AttributeError("Unsupported options combination (--dualtest & --parallel)")
+        return options
 
     def build_command_string(self):
         cmd = 'iperf ' + str(self.options)
