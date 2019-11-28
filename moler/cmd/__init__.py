@@ -37,5 +37,8 @@ class RegexHelper(object):
     def group(self, number):
         return self._match.group(number)
 
+    def groups(self):
+        return self._match.groups()
+
     def groupdict(self):
         return self._match.groupdict()
