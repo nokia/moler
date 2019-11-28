@@ -64,6 +64,27 @@ class Iperf(GenericUnixCommand):
             return 'udp'
         return 'tcp'
 
+    @property
+    def client(self):
+        return ('-c ' in self.options) or ('--client ' in self.options)
+
+    @property
+    def server(self):
+        return self.options.startswith('-s') or (' -s' in self.options) or ('--server' in self.options)
+
+    @property
+    def parallel_client(self):
+        if self.client:
+            return ('-P ' in self.options) or ('--parallel ' in self.options)
+        if len(self._connection_dict.keys()) > 1:
+            # all local connections must be same otherwise it is --dualtest requested from server
+            first_local = self._connection_dict.values()[0]
+            for local, _ in self._connection_dict.values():
+                if local != first_local:
+                    return False
+            return True
+        return False
+
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
@@ -107,7 +128,17 @@ class Iperf(GenericUnixCommand):
 
     def _parse_headers(self, line):
         if self._regex_helper.search_compiled(Iperf._re_headers, line):
-            # ignore headers
+            if self.parallel_client:
+                # header line is after connections
+                # so, we can create virtual Summary connection
+                local, remote = self._connection_dict.values()[0]
+                local_host, local_port = local.split(":")
+                remote_host, remote_port = remote.split(":")
+                connection_id = '[SUM]'
+                if self.client:
+                    self._connection_dict[connection_id] = ("{}:{}".format(local_host, "multiport"), remote)
+                else:
+                    self._connection_dict[connection_id] = (local, "{}:{}".format(remote_host, "multiport"))
             raise ParsingDone
 
     # udp:

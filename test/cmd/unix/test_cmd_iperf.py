@@ -63,6 +63,20 @@ def test_iperf_stores_connections_as_host_port_tuple_for_local_and_remote(buffer
     assert ('10.89.47.191:47384', '10.89.47.150:5016') in stored_connections
 
 
+def test_iperf_creates_summary_connection_for_parallel_testing(buffer_connection):
+    from moler.cmd.unix import iperf
+    buffer_connection.remote_inject_response([iperf.COMMAND_OUTPUT_multiple_connections])
+    iperf_cmd = iperf.Iperf(connection=buffer_connection.moler_connection,
+                            **iperf.COMMAND_KWARGS_multiple_connections)
+    iperf_cmd()
+    stored_connections = iperf_cmd.result()['CONNECTIONS'].keys()
+    #        local host:port      remote host:port
+    assert len(iperf_cmd._connection_dict.keys()) == 21
+    assert iperf_cmd._connection_dict['[SUM]'] == ('192.168.0.102:multiport', '192.168.0.100:5001')
+    # assert len(stored_connections) == 20
+    # assert ('192.168.0.102:multiports', '192.168.0.100:5001') in stored_connections
+
+
 def test_iperf_correctly_parses_bidirectional_udp_client_output(buffer_connection):
     from moler.cmd.unix import iperf
     buffer_connection.remote_inject_response([iperf.COMMAND_OUTPUT_bidirectional_udp_client])
