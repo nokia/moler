@@ -44,6 +44,19 @@ def test_iperf_raise_error_on_iperf_problem(buffer_connection, command_output_an
         iperf_cmd()
 
 
+def test_iperf_stores_connections_as_host_port_tuple_for_local_and_remote(buffer_connection):
+    from moler.cmd.unix import iperf
+    buffer_connection.remote_inject_response([iperf.COMMAND_OUTPUT_bidirectional_udp_server])
+    iperf_cmd = iperf.Iperf(connection=buffer_connection.moler_connection,
+                            **iperf.COMMAND_KWARGS_bidirectional_udp_server)
+    iperf_cmd()
+    stored_connections = iperf_cmd.result()['CONNECTIONS'].keys()
+    #        local host:port      remote host:port
+    assert len(stored_connections) == 2
+    assert ('10.89.47.191:5016', '10.89.47.150:56262') in stored_connections
+    assert ('10.89.47.191:47384', '10.89.47.150:5016') in stored_connections
+
+
 def test_iperf_correctly_parses_bidirectional_udp_client_output(buffer_connection):
     from moler.cmd.unix import iperf
     buffer_connection.remote_inject_response([iperf.COMMAND_OUTPUT_bidirectional_udp_client])
