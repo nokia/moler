@@ -41,7 +41,7 @@ class Iperf(GenericUnixCommand):
     """
     def __init__(self, connection, options, prompt=None, newline_chars=None, runner=None):
         super(Iperf, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
-        self.options = self._validate_options(options)
+        self.port, self.options = self._validate_options(options)
         self.current_ret['CONNECTIONS'] = dict()
         self.current_ret['INFO'] = list()
 
@@ -49,11 +49,16 @@ class Iperf(GenericUnixCommand):
         self._connection_dict = dict()
         self._converter_helper = ConverterHelper()
 
-    @staticmethod
-    def _validate_options(options):
+    _re_port = re.compile(r"(?P<PORT_OPTION>\-p|\-\-port)\s+(?P<PORT>\d+)")
+
+    def _validate_options(self, options):
         if (('-d' in options) or ('--dualtest' in options)) and (('-P' in options) or ('--parallel' in options)):
             raise AttributeError("Unsupported options combination (--dualtest & --parallel)")
-        return options
+        if self._regex_helper.search_compiled(Iperf._re_port, options):
+            port = int(self._regex_helper.group('PORT'))
+        else:
+            port = 5001
+        return port, options
 
     def build_command_string(self):
         cmd = 'iperf ' + str(self.options)
@@ -132,14 +137,19 @@ class Iperf(GenericUnixCommand):
                 # header line is after connections
                 # so, we can create virtual Summary connection
                 local, remote = self._connection_dict.values()[0]
-                local_host, local_port = local.split(":")
-                remote_host, remote_port = remote.split(":")
+                local_host, local_port, remote_host, remote_port = self._split_connection_name((local, remote))
                 connection_id = '[SUM]'
                 if self.client:
                     self._connection_dict[connection_id] = ("{}:{}".format(local_host, "multiport"), remote)
                 else:
                     self._connection_dict[connection_id] = (local, "{}:{}".format(remote_host, "multiport"))
             raise ParsingDone
+
+    def _split_connection_name(self, connection_name):
+        local, remote = connection_name
+        local_host, local_port = local.split(":")
+        remote_host, remote_port = remote.split(":")
+        return local_host, local_port, remote_host, remote_port
 
     # tcp:
     # [ ID] Interval       Transfer     Bandwidth
@@ -166,15 +176,26 @@ class Iperf(GenericUnixCommand):
             self._regex_helper.search_compiled(Iperf._re_iperf_record, line)):
             iperf_record = self._regex_helper.groupdict()
             connection_id = iperf_record.pop("ID")
-            start, end = iperf_record["Interval"].split('-')
-            iperf_record["Interval"] = (float(start), float(end))
-            if "Lost_vs_Total_Datagrams" in iperf_record:
-                lost, total = iperf_record["Lost_vs_Total_Datagrams"].split('/')
-                iperf_record["Lost_vs_Total_Datagrams"] = (int(lost), int(total))
+            iperf_record = self._detailed_parse_interval(iperf_record)
+            iperf_record = self._detailed_parse_datagrams(iperf_record)
             connection_name = self._connection_dict[connection_id]
             normalized_iperf_record = self._normalize_to_bytes(iperf_record)
             self._update_current_ret(connection_name, normalized_iperf_record)
+            self._parse_final_record(connection_name)
             raise ParsingDone
+
+    @staticmethod
+    def _detailed_parse_interval(iperf_record):
+        start, end = iperf_record["Interval"].split('-')
+        iperf_record["Interval"] = (float(start), float(end))
+        return iperf_record
+
+    @staticmethod
+    def _detailed_parse_datagrams(iperf_record):
+        if "Lost_vs_Total_Datagrams" in iperf_record:
+            lost, total = iperf_record["Lost_vs_Total_Datagrams"].split('/')
+            iperf_record["Lost_vs_Total_Datagrams"] = (int(lost), int(total))
+        return iperf_record
 
     def _update_current_ret(self, connection_name, info_dict):
         if connection_name in self.current_ret['CONNECTIONS']:
@@ -182,6 +203,22 @@ class Iperf(GenericUnixCommand):
         else:
             connection_dict = {connection_name: [info_dict]}
             self.current_ret['CONNECTIONS'].update(connection_dict)
+
+    def _parse_final_record(self, connection_name):
+        last_record = self.current_ret['CONNECTIONS'][connection_name][-1]
+        if self._is_final_record(last_record):
+            local_host, local_port, remote_host, remote_port = self._split_connection_name(connection_name)
+            if self.port == int(remote_port):  # client record
+                result_connection = (local_host, "{}:{}".format(remote_host, remote_port))
+            else:  # server record
+                result_connection = ("{}:{}".format(local_host, local_port), remote_host)
+            self.current_ret['CONNECTIONS'][result_connection] = {'report': last_record}
+
+    @staticmethod
+    def _is_final_record(last_record):
+        start, _ = last_record['Interval']
+        return start == 0.0
+
 
     # [  5] Sent 2552 datagrams
     # [  5] Server Report:
@@ -259,7 +296,10 @@ COMMAND_RESULT_basic_client = {
             {'Bandwidth Raw': '221 Mbits/sec', 'Bandwidth': 27625000, 'Transfer Raw': '26.4 MBytes',
              'Transfer': 27682406, 'Interval': (9.0, 10.0)},
             {'Bandwidth Raw': '222 Mbits/sec', 'Bandwidth': 27750000, 'Transfer Raw': '265 MBytes',
-             'Transfer': 277872640, 'Interval': (0.0, 10.0)}]},
+             'Transfer': 277872640, 'Interval': (0.0, 10.0)}],
+         ("192.168.0.102", "192.168.0.100:5001"):
+            {'report': {'Transfer': 277872640, 'Bandwidth': 27750000, 'Transfer Raw': '265 MBytes',
+                        'Bandwidth Raw': '222 Mbits/sec', 'Interval': (0.0, 10.0)}}},
     'INFO': ['Client connecting to 10.1.1.1, TCP port 5001', 'TCP window size: 16384 Byte (default)']
 }
 
@@ -379,7 +419,15 @@ COMMAND_RESULT_basic_server = {
                                                'Lost_vs_Total_Datagrams': (9, 8409),
                                                'Lost_Datagrams_ratio': '0.11%',
                                                'Transfer Raw': '11.8 MBytes',
-                                               'Transfer': 12373196}]},
+                                               'Transfer': 12373196}],
+        ("10.1.1.1:5001", "10.6.2.5"): {'report': {'Lost_Datagrams_ratio': '0.11%',
+                                                   'Jitter': '2.618 ms',
+                                                   'Transfer': 12373196,
+                                                   'Interval': (0.0, 10.0),
+                                                   'Transfer Raw': '11.8 MBytes',
+                                                   'Bandwidth': 1232500,
+                                                   'Lost_vs_Total_Datagrams': (9, 8409),
+                                                   'Bandwidth Raw': '9.86 Mbits/sec'}}},
     'INFO': ['Server listening on UDP port 5001', 'Receiving 1470 byte datagrams',
              'UDP buffer size: 8.00 KByte (default)']}
 
@@ -524,7 +572,23 @@ COMMAND_RESULT_bidirectional_udp_client = {
                                                        'Bandwidth': 625000,
                                                        'Lost_vs_Total_Datagrams': (0, 2552),
                                                        'Lost_Datagrams_ratio': '0%',
-                                                       'Bandwidth Raw': '5000 Kbits/sec'}]},
+                                                       'Bandwidth Raw': '5000 Kbits/sec'}],
+        ("10.89.47.150", "10.89.47.191:5016"): {'report': {'Lost_Datagrams_ratio': '0%',
+                                                           'Jitter': '0.017 ms',
+                                                           'Transfer': 3751936,
+                                                           'Interval': (0.0, 6.0),
+                                                           'Transfer Raw': '3664 KBytes',
+                                                           'Bandwidth': 625000,
+                                                           'Lost_vs_Total_Datagrams': (0, 2552),
+                                                           'Bandwidth Raw': '5000 Kbits/sec'}},
+        ("10.89.47.150:5016", "10.89.47.191"): {'report': {'Lost_Datagrams_ratio': '0%',
+                                                           'Jitter': '0.017 ms',
+                                                           'Transfer': 3751936,
+                                                           'Interval': (0.0, 6.0),
+                                                           'Transfer Raw': '3664 KBytes',
+                                                           'Bandwidth': 625000,
+                                                           'Lost_vs_Total_Datagrams': (0, 2552),
+                                                           'Bandwidth Raw': '5000 Kbits/sec'}}},
     'INFO': ['Server listening on UDP port 5016', 'Receiving 1470 byte datagrams',
              'UDP buffer size: 1024 KByte (default)',
              'Client connecting to 10.89.47.191, UDP port 5016',
@@ -674,7 +738,23 @@ COMMAND_RESULT_bidirectional_udp_server = {
                                                        'Bandwidth': 625000,
                                                        'Lost_vs_Total_Datagrams': (0, 2552),
                                                        'Lost_Datagrams_ratio': '0%',
-                                                       'Bandwidth Raw': '5000 Kbits/sec'}]},
+                                                       'Bandwidth Raw': '5000 Kbits/sec'}],
+        ("10.89.47.191", "10.89.47.150:5016"): {'report': {'Lost_Datagrams_ratio': u'0%',
+                                                           'Jitter': '0.017 ms',
+                                                           'Transfer': 3751936,
+                                                           'Interval': (0.0, 6.0),
+                                                           'Transfer Raw': '3664 KBytes',
+                                                           'Bandwidth': 625000,
+                                                           'Lost_vs_Total_Datagrams': (0, 2552),
+                                                           'Bandwidth Raw': '5000 Kbits/sec'}},
+        ("10.89.47.191:5016", "10.89.47.150"): {'report': {'Lost_Datagrams_ratio': '0%',
+                                                           'Jitter': '0.018 ms',
+                                                           'Transfer': 3751936,
+                                                           'Interval': (0.0, 6.0),
+                                                           'Transfer Raw': '3664 KBytes',
+                                                           'Bandwidth': 625000,
+                                                           'Lost_vs_Total_Datagrams': (0, 2552),
+                                                           'Bandwidth Raw': '5000 Kbits/sec'}}},
     'INFO': ['Server listening on UDP port 5016',
              'Receiving 1470 byte datagrams',
              'UDP buffer size: 1024 KByte (default)',
@@ -845,6 +925,11 @@ COMMAND_RESULT_multiple_connections = {
                                                              'Bandwidth': 33250000,
                                                              'Transfer Raw': '344 MBytes',
                                                              'Bandwidth Raw': '266 Mbits/sec',
-                                                             'Interval': (0.0, 10.8)}]},
+                                                             'Interval': (0.0, 10.8)}],
+        ("192.168.0.102", "192.168.0.100:5001"): {'report': {'Transfer': 360710144,
+                                                             'Bandwidth': 33250000,
+                                                             'Transfer Raw': '344 MBytes',
+                                                             'Bandwidth Raw': '266 Mbits/sec',
+                                                             'Interval': (0.0, 10.8)}}},
     'INFO': ['Client connecting to 192.168.0.100, TCP port 5001',
              'TCP window size: 16.0 KByte (default)']}

@@ -58,9 +58,11 @@ def test_iperf_stores_connections_as_host_port_tuple_for_local_and_remote(buffer
     iperf_cmd()
     stored_connections = iperf_cmd.result()['CONNECTIONS'].keys()
     #        local host:port      remote host:port
-    assert len(stored_connections) == 2
+    assert len(stored_connections) == 4
     assert ('10.89.47.191:5016', '10.89.47.150:56262') in stored_connections
     assert ('10.89.47.191:47384', '10.89.47.150:5016') in stored_connections
+    assert ('10.89.47.191:5016', '10.89.47.150') in stored_connections
+    assert ('10.89.47.191', '10.89.47.150:5016') in stored_connections
 
 
 def test_iperf_creates_summary_connection_for_parallel_testing(buffer_connection):
@@ -71,8 +73,9 @@ def test_iperf_creates_summary_connection_for_parallel_testing(buffer_connection
     iperf_cmd()
     stored_connections = iperf_cmd.result()['CONNECTIONS'].keys()
     #        local host:port      remote host:port
-    assert len(stored_connections) == 21
-    assert ('192.168.0.102:multiport', '192.168.0.100:5001') in stored_connections
+    assert len(stored_connections) == 22
+    assert ('192.168.0.102:multiport', '192.168.0.100:5001') in stored_connections  # summary
+    assert ('192.168.0.102', '192.168.0.100:5001') in stored_connections  # result
 
 
 def test_iperf_correctly_parses_bidirectional_udp_client_output(buffer_connection):
@@ -98,8 +101,8 @@ def test_iperf_correctly_parses_basic_udp_server_output(buffer_connection):
     buffer_connection.remote_inject_response([iperf.COMMAND_OUTPUT_basic_server])
     iperf_cmd = iperf.Iperf(connection=buffer_connection.moler_connection,
                             **iperf.COMMAND_KWARGS_basic_server)
-
-    assert iperf_cmd() == iperf.COMMAND_RESULT_basic_server
+    ret = iperf_cmd()
+    assert ret == iperf.COMMAND_RESULT_basic_server
 
 
 def test_iperf_correctly_parses_basic_tcp_client_output(buffer_connection):
@@ -107,8 +110,8 @@ def test_iperf_correctly_parses_basic_tcp_client_output(buffer_connection):
     buffer_connection.remote_inject_response([iperf.COMMAND_OUTPUT_basic_client])
     iperf_cmd = iperf.Iperf(connection=buffer_connection.moler_connection,
                             **iperf.COMMAND_KWARGS_basic_client)
-
-    assert iperf_cmd() == iperf.COMMAND_RESULT_basic_client
+    res = iperf_cmd()
+    assert res == iperf.COMMAND_RESULT_basic_client
 
 
 def test_iperf_correctly_parses_multiconnection_tcp_client_output(buffer_connection):
