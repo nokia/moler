@@ -109,7 +109,7 @@ class TextualDevice(AbstractDevice):
         )
         self._log(level=logging.DEBUG, msg=msg)
         self._public_name = None
-        atexit.register(self.__del__)
+        atexit.register(self.remove)
 
     def establish_connection(self):
         """
@@ -229,9 +229,6 @@ class TextualDevice(AbstractDevice):
     def from_named_connection(cls, connection_name):
         io_conn = get_connection(name=connection_name)
         return cls(io_connection=io_conn)
-
-    def __del__(self):
-        self.remove()
 
     def _collect_cmds_for_state_machine(self):
         for state in self._get_available_states():
