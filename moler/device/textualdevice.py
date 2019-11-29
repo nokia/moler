@@ -17,6 +17,7 @@ import pkgutil
 import re
 import time
 import traceback
+import atexit
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.config.loggers import configure_device_logger
@@ -108,6 +109,7 @@ class TextualDevice(AbstractDevice):
         )
         self._log(level=logging.DEBUG, msg=msg)
         self._public_name = None
+        atexit.register(self.__del__)
 
     def establish_connection(self):
         """
@@ -230,6 +232,7 @@ class TextualDevice(AbstractDevice):
 
     def __del__(self):
         self._stop_prompts_observers()
+        self.io_connection.close()
 
     def _collect_cmds_for_state_machine(self):
         for state in self._get_available_states():
