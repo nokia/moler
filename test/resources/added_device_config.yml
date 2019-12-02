@@ -1,0 +1,17 @@
+LOGGER:
+  PATH: /tmp/
+  RAW_LOG: True
+  DATE_FORMAT: '%d %H:%M:%S'
+  MODE: write
+
+DEVICES:
+  CREATE_AT_STARTUP: False
+
+  DEFAULT_CONNECTION:
+    CONNECTION_DESC:
+      io_type: terminal
+      variant: threaded
+
+  ADDED_UNIX_LOCAL:
+    DEVICE_CLASS: moler.device.unixlocal.UnixLocal
+    INITIAL_STATE: UNIX_LOCAL
