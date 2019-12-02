@@ -132,14 +132,22 @@ def test_cannot_select_device_by_nonexisting_name(device_factory):
     assert "Device named 'UNIX_LOCAL' was not defined inside configuration" in str(err.value)
 
 
-def test_can_select_device_loaded_from_config_file(moler_config, device_factory):
+def test_load_config_and_load_new_devices(moler_config, device_factory):
     conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
     moler_config.load_config(config=conn_config, config_type='yaml')
 
-    device = device_factory.get_device(name='UNIX_LOCAL')
 
-    assert device.__module__ == 'moler.device.unixlocal'
-    assert device.__class__.__name__ == 'UnixLocal'
+def test_can_select_device_loaded_from_config_file(moler_config, device_factory):
+    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
+    add_conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "added_device_config.yml")
+    moler_config.load_config(config=conn_config, config_type='yaml')
+    moler_config.load_config(config=add_conn_config, config_type='yaml')
+
+    device = device_factory.get_device(name='UNIX_LOCAL')
+    added_device = device_factory.get_device(name='ADDED_UNIX_LOCAL')
+    for device in (device, added_device):
+        assert device.__module__ == 'moler.device.unixlocal'
+        assert device.__class__.__name__ == 'UnixLocal'
 
 
 def test_can_clone_device(moler_config, device_factory):
