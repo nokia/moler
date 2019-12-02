@@ -59,7 +59,7 @@ def configs_are_same(config_list, config_to_find):
     """
     for config in config_list:
         diff = compare_objects(config, config_to_find)
-        if diff is None:
+        if not diff:
             return True
     return False
 
