@@ -158,7 +158,9 @@ def load_device_from_config(config, add_only):
             device_def = config['DEVICES'][device_name]
             # check if device name is already used
             if _is_device_already_created(device_name):
-                raise WrongUsage("Requested to create device '{}' but device with such name is already created.".format(device_name))
+                # TODO: Raise only if different description of device
+                raise WrongUsage("Requested to create device '{}' but device with such name is already created.".
+                                 format(device_name))
             if cloned_id in device_def:
                 cloned_devices[device_name] = dict()
                 cloned_devices[device_name]['source'] = device_def[cloned_id]
