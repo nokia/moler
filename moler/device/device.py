@@ -15,17 +15,6 @@ import functools
 import threading
 
 
-class DeviceCleanup(object):
-    def __init__(self, name, device_class, connection_desc, connection_hops, initial_state, establish_connection):
-        self.dev = DeviceFactory._get_device_without_lock(name=name, device_class=device_class, connection_desc=connection_desc,
-                                           connection_hops=connection_hops, initial_state=initial_state,
-                                           establish_connection=establish_connection)
-    def __enter__(self):
-        return self.dev
-    def __exit__(self, type, value, traceback):
-        self.dev.remove()
-
-
 class DeviceFactory(object):
     _lock_device = threading.Lock()
 
