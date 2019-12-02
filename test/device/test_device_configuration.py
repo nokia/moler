@@ -495,8 +495,7 @@ def test_can_load_configuration_when_already_loaded_from_same_dict(moler_config,
     moler_config.load_config(config=conn_config, config_type='dict')
 
 
-def test_cannot_load_configuration_when_already_loaded_from_another_dict(moler_config):
-    from moler.exceptions import MolerException
+def test_cannot_load_configuration_with_the_same_device_loaded_from_another_dict(moler_config):
 
     conn_config = {
         'LOGGER': {
@@ -526,10 +525,8 @@ def test_cannot_load_configuration_when_already_loaded_from_another_dict(moler_c
         }
     }
     moler_config.load_config(config=conn_config, config_type='dict')
-    with pytest.raises(MolerException) as err:
+    with pytest.raises(WrongUsage) as err:
         moler_config.load_config(config=new_conn_config, config_type='dict')
-
-    assert "Reloading configuration during Moler execution is not supported!" in str(err.value)
 
 
 def test_create_device_without_hops():
@@ -540,21 +537,6 @@ def test_create_device_without_hops():
     dev = DeviceFactory.get_device(connection_desc=connection_desc, device_class='moler.device.unixlocal.UnixLocal',
                                    connection_hops=dict())
     assert dev is not None
-
-
-def test_cannot_load_configuration_when_already_loaded_from_another_file(moler_config):
-    from moler.exceptions import MolerException
-
-    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
-    conn_config2 = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config2.yml")
-
-    moler_config.load_config(config=conn_config, config_type='yaml')
-    with pytest.raises(MolerException) as err:
-        moler_config.load_config(config=conn_config2, config_type='yaml')
-
-    assert "Trial to load '{}' config while '{}' config already loaded".format(conn_config2, conn_config) in str(
-            err.value)
-    assert "Reloading configuration during Moler execution is not supported!" in str(err.value)
 
 
 def test_can_load_configuration_when_already_loaded_from_same_file(moler_config, device_factory):
