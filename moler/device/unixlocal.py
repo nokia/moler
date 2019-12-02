@@ -45,13 +45,6 @@ class UnixLocal(TextualDevice):
                                         io_constructor_kwargs=io_constructor_kwargs,
                                         variant=variant, initial_state=initial_state)
 
-    def remove(self):
-        """
-        Device cleanup.
-        """
-        self.goto_state(UnixLocal.unix_local)
-        super(UnixLocal, self).remove()
-
     def _get_default_sm_configuration(self):
         """
         Create State Machine default configuration.

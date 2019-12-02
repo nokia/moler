@@ -15,6 +15,17 @@ import functools
 import threading
 
 
+class DeviceCleanup(object):
+    def __init__(self, name, device_class, connection_desc, connection_hops, initial_state, establish_connection):
+        self.dev = DeviceFactory._get_device_without_lock(name=name, device_class=device_class, connection_desc=connection_desc,
+                                           connection_hops=connection_hops, initial_state=initial_state,
+                                           establish_connection=establish_connection)
+    def __enter__(self):
+        return self.dev
+    def __exit__(self, type, value, traceback):
+        self.dev.remove()
+
+
 class DeviceFactory(object):
     _lock_device = threading.Lock()
 
@@ -33,6 +44,16 @@ class DeviceFactory(object):
         """
         for device_name in devices_config.named_devices:
             cls.get_device(name=device_name)
+
+    @classmethod
+    def remove_all_devices(cls):
+        """
+        Remove all created devices.
+
+        :return: None
+        """
+        for device in cls._devices.keys():
+            cls._devices[device].remove()
 
     @classmethod
     def get_device(cls, name=None, device_class=None, connection_desc=None, connection_hops=None, initial_state=None,
