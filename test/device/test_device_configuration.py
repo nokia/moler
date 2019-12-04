@@ -499,7 +499,10 @@ def test_can_load_configuration_when_already_loaded_from_same_dict(moler_config,
         }
     }
     moler_config.load_config(config=conn_config, config_type='dict')
+    devices1 = device_factory.get_devices_by_type(None)
     moler_config.load_config(config=conn_config, config_type='dict')
+    devices2 = device_factory.get_devices_by_type(None)
+    assert devices1 == devices2
 
 
 def test_can_load_configuration_with_the_same_named_device_loaded_from_another_dict_the_same_params(moler_config,
