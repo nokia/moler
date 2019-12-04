@@ -157,14 +157,10 @@ def load_device_from_config(config, add_only):
 
         for device_name in config['DEVICES']:
             device_def = config['DEVICES'][device_name]
+
             # check if device name is already used
-            if _is_device_already_created(device_name):
-                msg = DeviceFactory.have_devices_different_construct_parameters(device_name,
-                                                                                config['DEVICES'][device_name])
-                if msg:
-                    raise WrongUsage(msg)
-                else:
-                    continue
+            if not _is_necessary_to_create_device(device_name, device_def):
+                continue
             if cloned_id in device_def:
                 cloned_devices[device_name] = dict()
                 cloned_devices[device_name]['source'] = device_def[cloned_id]
@@ -188,14 +184,23 @@ def load_device_from_config(config, add_only):
     _load_topology(topology=topology)
 
 
-def _is_device_already_created(name):
+def _is_necessary_to_create_device(name, requested_device_def):
+    """
+
+    :param name: Name of device
+    :param requested_device_def: Definition of device requested to create/
+    :return: True if device doesn't exist. False if device already exists.
+    :
+    """
     from moler.device.device import DeviceFactory
     try:
         DeviceFactory.get_device(name)
+        msg = DeviceFactory.have_devices_different_construct_parameters(name, requested_device_def)
+        if msg:
+            raise WrongUsage(msg)
+        return False  # Device exists and have the same construct parameters
     except KeyError:
-        #  Device is not defined yet.
-        return False
-    return True
+        return True
 
 
 def load_logger_from_config(config):
