@@ -502,6 +502,43 @@ def test_can_load_configuration_when_already_loaded_from_same_dict(moler_config,
     moler_config.load_config(config=conn_config, config_type='dict')
 
 
+def test_can_load_configuration_with_the_same_named_device_loaded_from_another_dict_the_same_params(moler_config,
+                                                                                                    device_factory):
+
+    conn_config = {
+        'LOGGER': {
+            'PATH': '/tmp/',
+            'RAW_LOG': True,
+            'DATE_FORMAT': '%d %H:%M:%S'
+        },
+        'DEVICES': {
+            'UNIX_LOCAL': {
+                'DEVICE_CLASS': 'moler.device.unixlocal.UnixLocal',
+                'INITIAL_STATE': 'UNIX_LOCAL'
+            }
+        }
+    }
+
+    new_conn_config = {
+        'LOGGER': {
+            'PATH': '/tmp/different',
+            'RAW_LOG': True,
+            'DATE_FORMAT': '%d %H:%M:%S'
+        },
+        'DEVICES': {
+            'UNIX_LOCAL': {
+                'DEVICE_CLASS': 'moler.device.unixlocal.UnixLocal',
+                'INITIAL_STATE': 'UNIX_LOCAL'
+            }
+        }
+    }
+    moler_config.load_config(config=conn_config, config_type='dict')
+    device1 = device_factory.get_device("UNIX_LOCAL")
+    moler_config.load_config(config=new_conn_config, config_type='dict')
+    device2 = device_factory.get_device("UNIX_LOCAL")
+    assert device1 == device2
+
+
 def test_cannot_load_configuration_with_the_same_named_device_loaded_from_another_dict_different_class(moler_config):
 
     conn_config = {
