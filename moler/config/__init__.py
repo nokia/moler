@@ -77,8 +77,7 @@ def load_config(config=None, from_env_var=None, config_type='yaml'):
     add_devices_only = False
 
     if "NOT_LOADED_YET" in loaded_config:
-        loaded_config = list()
-        loaded_config.append(config)
+        loaded_config = [config]
     elif configs_are_same(config_list=loaded_config, config_to_find=config):
         return
     else:
@@ -142,6 +141,8 @@ def load_device_from_config(config, add_only):
     cloned_devices = dict()
     cloned_id = 'CLONED_FROM'
 
+    from moler.device.device import DeviceFactory
+
     if 'DEVICES' in config:
         if 'DEFAULT_CONNECTION' in config['DEVICES']:
             default_conn = config['DEVICES'].pop('DEFAULT_CONNECTION')
@@ -158,9 +159,12 @@ def load_device_from_config(config, add_only):
             device_def = config['DEVICES'][device_name]
             # check if device name is already used
             if _is_device_already_created(device_name):
-                # TODO: Raise only if different description of device
-                raise WrongUsage("Requested to create device '{}' but device with such name is already created.".
-                                 format(device_name))
+                msg = DeviceFactory.have_devices_different_construct_parameters(device_name,
+                                                                                config['DEVICES'][device_name])
+                if msg:
+                    raise WrongUsage(msg)
+                else:
+                    continue
             if cloned_id in device_def:
                 cloned_devices[device_name] = dict()
                 cloned_devices[device_name]['source'] = device_def[cloned_id]
@@ -174,7 +178,6 @@ def load_device_from_config(config, add_only):
                     initial_state=device_def.get('INITIAL_STATE', None),
                 )
 
-    from moler.device.device import DeviceFactory
     for device_name, device_desc in cloned_devices.items():
         cloned_from = device_desc['source']
         initial_state = device_desc['state']
