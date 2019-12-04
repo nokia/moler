@@ -406,7 +406,7 @@ def test_log_error_when_the_same_prompts_in_more_then_one_state(moler_config, de
     }
     with pytest.raises(MolerException) as err:
         moler_config.load_config(config=conn_config, config_type='dict')
-        device = device_factory.get_device(name='UNIX_LOCAL_THE_SAME_PROMPTS')
+        device_factory.get_device(name='UNIX_LOCAL_THE_SAME_PROMPTS')
 
     assert "Incorrect device configuration. The same prompts for state" in str(err.value)
 
@@ -532,11 +532,15 @@ def test_can_load_configuration_with_the_same_named_device_loaded_from_another_d
             }
         }
     }
+    import moler.device.unixlocal
     moler_config.load_config(config=conn_config, config_type='dict')
     device1 = device_factory.get_device("UNIX_LOCAL")
+    devices1 = device_factory.get_devices_by_type(moler.device.unixlocal.UnixLocal)
     moler_config.load_config(config=new_conn_config, config_type='dict')
     device2 = device_factory.get_device("UNIX_LOCAL")
+    devices2 = device_factory.get_devices_by_type(moler.device.unixlocal.UnixLocal)
     assert device1 == device2
+    assert devices1 == devices2
 
 
 def test_cannot_load_configuration_with_the_same_named_device_loaded_from_another_dict_different_class(moler_config):
