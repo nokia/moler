@@ -495,7 +495,7 @@ def test_can_load_configuration_when_already_loaded_from_same_dict(moler_config,
     moler_config.load_config(config=conn_config, config_type='dict')
 
 
-def test_cannot_load_configuration_with_the_same_device_loaded_from_another_dict(moler_config):
+def test_cannot_load_configuration_with_the_same_named_device_loaded_from_another_dict_different_class(moler_config):
 
     conn_config = {
         'LOGGER': {
@@ -521,6 +521,49 @@ def test_cannot_load_configuration_with_the_same_device_loaded_from_another_dict
             'UNIX_LOCAL': {
                 'DEVICE_CLASS': 'moler.device.unixremote.UnixRemote',
                 'INITIAL_STATE': 'UNIX_REMOTE'
+            }
+        }
+    }
+    moler_config.load_config(config=conn_config, config_type='dict')
+    with pytest.raises(WrongUsage) as err:
+        moler_config.load_config(config=new_conn_config, config_type='dict')
+
+
+def test_cannot_load_configuration_with_the_same_named_device_loaded_from_another_dict_different_hops(moler_config):
+
+    conn_config = {
+        'LOGGER': {
+            'PATH': '/tmp/',
+            'RAW_LOG': True,
+            'DATE_FORMAT': '%d %H:%M:%S'
+        },
+        'DEVICES': {
+            'UNIX_LOCAL': {
+                'DEVICE_CLASS': 'moler.device.unixlocal.UnixLocal',
+                'INITIAL_STATE': 'UNIX_LOCAL'
+            }
+        }
+    }
+
+    new_conn_config = {
+        'LOGGER': {
+            'PATH': '/tmp/',
+            'RAW_LOG': True,
+            'DATE_FORMAT': '%d %H:%M:%S'
+        },
+        'DEVICES': {
+            'UNIX_LOCAL': {
+                'DEVICE_CLASS': 'moler.device.unixlocal.UnixLocal',
+                'CONNECTION_HOPS': {
+                    'UNIX_LOCAL': {
+                        'UNIX_LOCAL_ROOT': {
+                            "command_params": {
+                                "password": "root_password",
+                                "expected_prompt": r'local_root_prompt',
+                            }
+                        }
+                    }
+                }
             }
         }
     }
