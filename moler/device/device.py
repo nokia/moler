@@ -242,7 +242,7 @@ class DeviceFactory(object):
                                 ". \nDiff: {}".format(already_device_name, already_hops, current_hops, diff)
         else:
             different_msg = "Device '{}' already created as instance of class '{}' and now requested as instance of " \
-                             "class '{}'".format(already_device_name, already_full_class, current_full_class)
+                            "class '{}'".format(already_device_name, already_full_class, current_full_class)
         return different_msg
 
     @classmethod
