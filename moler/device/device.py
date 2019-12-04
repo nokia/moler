@@ -238,8 +238,8 @@ class DeviceFactory(object):
             current_hops = requested_device_def.get('CONNECTION_HOPS', default_hops)
             diff = compare_objects(already_hops, current_hops)
             if diff:
-                different_msg = "Device '{}' already created with parameters: '{}' but now requested with params '{}'" \
-                                ". \nDiff: {}".format(already_device_name, already_hops, current_hops, diff)
+                different_msg = "Device '{}' already created with SM parameters: '{}' but now requested with SM" \
+                                " params: {}. \nDiff: {}".format(already_device_name, already_hops, current_hops, diff)
         else:
             different_msg = "Device '{}' already created as instance of class '{}' and now requested as instance of " \
                             "class '{}'".format(already_device_name, already_full_class, current_full_class)

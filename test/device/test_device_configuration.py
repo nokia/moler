@@ -446,6 +446,13 @@ def test_cannot_load_config_from_when_path_or_from_env_var_not_provide(moler_con
     assert "Provide either 'config' or 'from_env_var' parameter (none given)" in str(err.value)
 
 
+def test_cannot_load_config_from_when_wrong_config_type_provided(moler_config):
+    with pytest.raises(WrongUsage) as err:
+        moler_config.load_config(config_type="wrong_type")
+
+    assert "Unsupported config_type" in str(err.value)
+
+
 def test_can_select_device_loaded_from_config_dict(moler_config, device_factory):
     ConnectionObserver.get_unraised_exceptions(True)
 
@@ -527,6 +534,7 @@ def test_cannot_load_configuration_with_the_same_named_device_loaded_from_anothe
     moler_config.load_config(config=conn_config, config_type='dict')
     with pytest.raises(WrongUsage) as err:
         moler_config.load_config(config=new_conn_config, config_type='dict')
+    assert "and now requested as instance of class" in str(err.value)
 
 
 def test_cannot_load_configuration_with_the_same_named_device_loaded_from_another_dict_different_hops(moler_config):
@@ -570,6 +578,7 @@ def test_cannot_load_configuration_with_the_same_named_device_loaded_from_anothe
     moler_config.load_config(config=conn_config, config_type='dict')
     with pytest.raises(WrongUsage) as err:
         moler_config.load_config(config=new_conn_config, config_type='dict')
+    assert "but now requested with SM params" in str(err.value)
 
 
 def test_create_device_without_hops():
