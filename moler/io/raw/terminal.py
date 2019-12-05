@@ -115,15 +115,23 @@ class ThreadedTerminal(IOConnection):
                     if self._shell_operable.is_set():
                         self.data_received(data)
                     else:
-                        self.read_buffer = self.read_buffer + data
-                        if re.search(self.target_prompt, self.read_buffer, re.MULTILINE):
-                            self._notify_on_connect()
-                            self._shell_operable.set()
-                            data = re.sub(self.target_prompt, '', self.read_buffer, re.MULTILINE)
-                            self.data_received(data)
-                        elif not self._export_sent and re.search(self.first_prompt, self.read_buffer, re.MULTILINE):
-                            self.send(self.set_prompt_cmd)
-                            self._export_sent = True
+                        self._verify_shell_is_operable(data)
                 except EOFError:
                     self._notify_on_disconnect()
                     pulling_done.set()
+
+    def _verify_shell_is_operable(self, data):
+        self.read_buffer = self.read_buffer + data
+        lines = self.read_buffer.splitlines()
+
+        for line in lines:
+            if re.search(self.set_prompt_cmd.strip(), line):
+                continue
+            if re.search(self.target_prompt, line):
+                self._notify_on_connect()
+                self._shell_operable.set()
+                data = re.sub(self.target_prompt, '', self.read_buffer, re.MULTILINE)
+                self.data_received(data)
+            elif not self._export_sent and re.search(self.first_prompt, self.read_buffer, re.MULTILINE):
+                self.send(self.set_prompt_cmd)
+                self._export_sent = True
