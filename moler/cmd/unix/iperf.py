@@ -23,9 +23,6 @@ import re
 import warnings
 
 
-warnings.warn("Iperf command is deprecated - use Iperf2 instead", DeprecationWarning, stacklevel=2)
-
-
 class Iperf(GenericUnixCommand):
     """
     Run iperf command and return its statistics
@@ -58,6 +55,7 @@ class Iperf(GenericUnixCommand):
         # private values
         self._connection_dict = dict()
         self._converter_helper = ConverterHelper()
+        warnings.warn("Iperf command is deprecated - use Iperf2 instead", DeprecationWarning, stacklevel=2)
 
     def build_command_string(self):
         cmd = 'iperf ' + str(self.options)
