@@ -114,9 +114,8 @@ class Iperf(GenericUnixCommand):
     _re_iperf_record_udp_svr = re.compile(_re_ci_udp_svr)
 
     def _parse_connection_info(self, line):
-        iperf_record = {}
-        if (self._regex_helper.search_compiled(Iperf._re_iperf_record_udp_svr, line) or
-            self._regex_helper.search_compiled(Iperf._re_iperf_record, line)):
+        regex_found = self._regex_helper.search_compiled
+        if regex_found(Iperf._re_iperf_record_udp_svr, line) or regex_found(Iperf._re_iperf_record, line):
             iperf_record = self._regex_helper.groupdict()
             connection_id = iperf_record.pop("ID")
             connection_name = self._connection_dict[connection_id]
