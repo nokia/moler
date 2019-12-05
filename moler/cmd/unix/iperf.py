@@ -171,9 +171,8 @@ class Iperf(GenericUnixCommand):
     _re_iperf_record_udp_svr = re.compile(_r_rec_udp_svr)
 
     def _parse_connection_info(self, line):
-        iperf_record = {}
-        if (self._regex_helper.search_compiled(Iperf._re_iperf_record_udp_svr, line) or
-            self._regex_helper.search_compiled(Iperf._re_iperf_record, line)):
+        regex_found = self._regex_helper.search_compiled
+        if regex_found(Iperf._re_iperf_record_udp_svr, line) or regex_found(Iperf._re_iperf_record, line):
             iperf_record = self._regex_helper.groupdict()
             connection_id = iperf_record.pop("ID")
             iperf_record = self._detailed_parse_interval(iperf_record)
@@ -218,7 +217,6 @@ class Iperf(GenericUnixCommand):
     def _is_final_record(last_record):
         start, _ = last_record['Interval']
         return start == 0.0
-
 
     # [  5] Sent 2552 datagrams
     # [  5] Server Report:
