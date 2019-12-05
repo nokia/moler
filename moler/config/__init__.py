@@ -195,7 +195,7 @@ def _is_device_creation_needed(name, requested_device_def):
     from moler.device.device import DeviceFactory
     try:
         DeviceFactory.get_device(name)
-        msg = DeviceFactory.have_devices_different_construct_parameters(name, requested_device_def)
+        msg = DeviceFactory.differences_bewteen_devices_descriptions(name, requested_device_def)
         if msg:
             raise WrongUsage(msg)
         return False  # Device exists and have the same construct parameters

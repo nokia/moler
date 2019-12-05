@@ -217,7 +217,7 @@ class DeviceFactory(object):
                 del devices_config.named_devices[device_name]
 
     @classmethod
-    def have_devices_different_construct_parameters(cls, already_device_name, requested_device_def):
+    def differences_bewteen_devices_descriptions(cls, already_device_name, requested_device_def):
         """
         Checks if two device description are the same.
 
