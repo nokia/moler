@@ -265,7 +265,7 @@ class Iperf2(GenericUnixCommand):
     # [  5] Sent 2552 datagrams
     # [  5] Server Report:
     # ------------------------------------------------------------
-    _re_ornaments = re.compile(r"(?P<ORNAMENTS>----*|\[\s*ID\].*)", re.IGNORECASE)
+    _re_ornaments = re.compile(r"(?P<ORNAMENTS>----*|Server Report:|\[\s*ID\].*)", re.IGNORECASE)
 
     def _parse_connection_headers(self, line):
         if not self._regex_helper.search_compiled(Iperf2._re_ornaments, line):
@@ -636,8 +636,7 @@ COMMAND_RESULT_bidirectional_udp_client = {
              'Client connecting to 10.89.47.191, UDP port 5016',
              'Sending 1470 byte datagrams, IPG target: 2352.00 us (kalman adjust)',
              'UDP buffer size: 1024 KByte (default)',
-             '[  4] Sent 2552 datagrams',
-             '[  4] Server Report:']}
+             '[  4] Sent 2552 datagrams']}
 
 
 COMMAND_OUTPUT_bidirectional_udp_server = """
@@ -803,8 +802,7 @@ COMMAND_RESULT_bidirectional_udp_server = {
              'Client connecting to 10.89.47.150, UDP port 5016',
              'Sending 1470 byte datagrams, IPG target: 2352.00 us (kalman adjust)',
              'UDP buffer size: 1024 KByte (default)',
-             '[  5] Sent 2552 datagrams',
-             '[  5] Server Report:']}
+             '[  5] Sent 2552 datagrams']}
 
 
 COMMAND_OUTPUT_multiple_connections = """
