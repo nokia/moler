@@ -73,7 +73,7 @@ class Iperf2(GenericUnixCommand):
 
         COMMAND_RESULT = {
             'CONNECTIONS': {
-                ("10.89.47.191:5016", "10.89.47.150"): {'report': {'Lost_Datagrams_ratio': '0%',
+                ("10.89.47.150", "10.89.47.191:5016"): {'report': {'Lost_Datagrams_ratio': '0%',
                                                                    'Jitter': '0.018 ms',
                                                                    'Transfer': 3751936,
                                                                    'Interval': (0.0, 6.0),
@@ -82,6 +82,11 @@ class Iperf2(GenericUnixCommand):
                                                                    'Lost_vs_Total_Datagrams': (0, 2552),
                                                                    'Bandwidth Raw': '5000 Kbits/sec'}}},
 
+    Please note that connection name for iperf result is pair with format
+    (client_IP, server_IP:server_port)
+
+    Iperf statistics are stored under connection name with format
+    (client_IP:client_port, server_IP:server_port) for each stats
     """
     def __init__(self, connection, options, prompt=None, newline_chars=None, runner=None):
         super(Iperf2, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
@@ -164,7 +169,11 @@ class Iperf2(GenericUnixCommand):
             connection_id, local_host, local_port, remote_host, remote_port = self._regex_helper.groups()
             local = "{}:{}".format(local_host, local_port)
             remote = "{}:{}".format(remote_host, remote_port)
-            connection_dict = {connection_id: (local, remote)}
+            if self.port == int(remote_port):
+                from_client, to_server = local, remote
+            else:
+                from_client, to_server = remote, local
+            connection_dict = {connection_id: (from_client, to_server)}
             self._connection_dict.update(connection_dict)
             raise ParsingDone
 
@@ -180,20 +189,17 @@ class Iperf2(GenericUnixCommand):
             if self.parallel_client:
                 # header line is after connections
                 # so, we can create virtual Summary connection
-                local, remote = self._connection_dict.values()[0]
-                local_host, local_port, remote_host, remote_port = self._split_connection_name((local, remote))
+                client, server = self._connection_dict.values()[0]
+                client_host, client_port, server_host, server_port = self._split_connection_name((client, server))
                 connection_id = '[SUM]'
-                if self.client:
-                    self._connection_dict[connection_id] = ("{}:{}".format(local_host, "multiport"), remote)
-                else:
-                    self._connection_dict[connection_id] = (local, "{}:{}".format(remote_host, "multiport"))
+                self._connection_dict[connection_id] = ("{}:{}".format(client_host, "multiport"), server)
             raise ParsingDone
 
     def _split_connection_name(self, connection_name):
-        local, remote = connection_name
-        local_host, local_port = local.split(":")
-        remote_host, remote_port = remote.split(":")
-        return local_host, local_port, remote_host, remote_port
+        client, server = connection_name
+        client_host, client_port = client.split(":")
+        server_host, server_port = server.split(":")
+        return client_host, client_port, server_host, server_port
 
     # tcp:
     # [ ID] Interval       Transfer     Bandwidth
@@ -250,11 +256,9 @@ class Iperf2(GenericUnixCommand):
     def _parse_final_record(self, connection_name):
         last_record = self.current_ret['CONNECTIONS'][connection_name][-1]
         if self._is_final_record(last_record):
-            local_host, local_port, remote_host, remote_port = self._split_connection_name(connection_name)
-            if self.port == int(remote_port):  # client record
-                result_connection = (local_host, "{}:{}".format(remote_host, remote_port))
-            else:  # server record
-                result_connection = ("{}:{}".format(local_host, local_port), remote_host)
+            client_host, client_port, server_host, server_port = self._split_connection_name(connection_name)
+            from_client, to_server = client_host, "{}:{}".format(server_host, server_port)
+            result_connection = (from_client, to_server)
             self.current_ret['CONNECTIONS'][result_connection] = {'report': last_record}
 
     @staticmethod
@@ -374,7 +378,7 @@ COMMAND_KWARGS_basic_server = {
 
 COMMAND_RESULT_basic_server = {
     'CONNECTIONS': {
-        ("10.1.1.1:5001", "10.6.2.5:32781"): [{'Bandwidth Raw': '9.84 Mbits/sec',
+        ("10.6.2.5:32781", "10.1.1.1:5001"): [{'Bandwidth Raw': '9.84 Mbits/sec',
                                                'Bandwidth': 1230000,
                                                'Interval': (0.0, 1.0),
                                                'Jitter': '1.830 ms',
@@ -462,7 +466,7 @@ COMMAND_RESULT_basic_server = {
                                                'Lost_Datagrams_ratio': '0.11%',
                                                'Transfer Raw': '11.8 MBytes',
                                                'Transfer': 12373196}],
-        ("10.1.1.1:5001", "10.6.2.5"): {'report': {'Lost_Datagrams_ratio': '0.11%',
+        ("10.6.2.5", "10.1.1.1:5001"): {'report': {'Lost_Datagrams_ratio': '0.11%',
                                                    'Jitter': '2.618 ms',
                                                    'Transfer': 12373196,
                                                    'Interval': (0.0, 10.0),
@@ -559,7 +563,7 @@ COMMAND_RESULT_bidirectional_udp_client = {
                                                        'Lost_vs_Total_Datagrams': (0, 2552),
                                                        'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '5000 Kbits/sec'}],
-        ("10.89.47.150:5016", "10.89.47.191:47384"): [{'Transfer Raw': '612 KBytes',
+        ("10.89.47.191:47384", "10.89.47.150:5016"): [{'Transfer Raw': '612 KBytes',
                                                        'Jitter': '0.011 ms',
                                                        'Transfer': 626688,
                                                        'Interval': (0.0, 1.0),
@@ -623,7 +627,7 @@ COMMAND_RESULT_bidirectional_udp_client = {
                                                            'Bandwidth': 625000,
                                                            'Lost_vs_Total_Datagrams': (0, 2552),
                                                            'Bandwidth Raw': '5000 Kbits/sec'}},
-        ("10.89.47.150:5016", "10.89.47.191"): {'report': {'Lost_Datagrams_ratio': '0%',
+        ("10.89.47.191", "10.89.47.150:5016"): {'report': {'Lost_Datagrams_ratio': '0%',
                                                            'Jitter': '0.017 ms',
                                                            'Transfer': 3751936,
                                                            'Interval': (0.0, 6.0),
@@ -724,7 +728,7 @@ COMMAND_RESULT_bidirectional_udp_server = {
                                                        'Lost_vs_Total_Datagrams': (0, 2552),
                                                        'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '5000 Kbits/sec'}],
-        ("10.89.47.191:5016", "10.89.47.150:56262"): [{'Transfer Raw': '612 KBytes',
+        ("10.89.47.150:56262", "10.89.47.191:5016"): [{'Transfer Raw': '612 KBytes',
                                                        'Jitter': '0.022 ms',
                                                        'Transfer': 626688,
                                                        'Interval': (0.0, 1.0),
@@ -788,7 +792,7 @@ COMMAND_RESULT_bidirectional_udp_server = {
                                                            'Bandwidth': 625000,
                                                            'Lost_vs_Total_Datagrams': (0, 2552),
                                                            'Bandwidth Raw': '5000 Kbits/sec'}},
-        ("10.89.47.191:5016", "10.89.47.150"): {'report': {'Lost_Datagrams_ratio': '0%',
+        ("10.89.47.150", "10.89.47.191:5016"): {'report': {'Lost_Datagrams_ratio': '0%',
                                                            'Jitter': '0.018 ms',
                                                            'Transfer': 3751936,
                                                            'Interval': (0.0, 6.0),
