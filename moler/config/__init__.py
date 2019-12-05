@@ -159,7 +159,7 @@ def load_device_from_config(config, add_only):
             device_def = config['DEVICES'][device_name]
 
             # check if device name is already used
-            if not _is_necessary_to_create_device(device_name, device_def):
+            if not _is_device_creation_needed(device_name, device_def):
                 continue
             if cloned_id in device_def:
                 cloned_devices[device_name] = dict()
@@ -184,7 +184,7 @@ def load_device_from_config(config, add_only):
     _load_topology(topology=topology)
 
 
-def _is_necessary_to_create_device(name, requested_device_def):
+def _is_device_creation_needed(name, requested_device_def):
     """
 
     :param name: Name of device
