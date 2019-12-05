@@ -59,10 +59,10 @@ def test_iperf_stores_connections_as_host_port_tuple_for_local_and_remote(buffer
     stored_connections = iperf_cmd.result()['CONNECTIONS'].keys()
     #        local host:port      remote host:port
     assert len(stored_connections) == 4
-    assert ('10.89.47.150:56262', '10.89.47.191:5016') in stored_connections
-    assert ('10.89.47.191:47384', '10.89.47.150:5016') in stored_connections
-    assert ('10.89.47.150', '10.89.47.191:5016') in stored_connections
-    assert ('10.89.47.191', '10.89.47.150:5016') in stored_connections
+    assert ('192.168.0.10:56262', '192.168.0.12:5016') in stored_connections
+    assert ('192.168.0.12:47384', '192.168.0.10:5016') in stored_connections
+    assert ('192.168.0.10', '192.168.0.12:5016') in stored_connections
+    assert ('192.168.0.12', '192.168.0.10:5016') in stored_connections
 
 
 def test_iperf_creates_summary_connection_for_parallel_testing(buffer_connection):

@@ -47,15 +47,15 @@ class Iperf2(GenericUnixCommand):
 
     Returned value contains iperf report in following format:
     at client side
-    $ iperf -c 10.89.47.191 -u -p 5016 -f k -i 1.0 -t 6.0 --dualtest -b 5000.0k
+    $ iperf -c 192.168.0.12 -u -p 5016 -f k -i 1.0 -t 6.0 --dualtest -b 5000.0k
     client connecting as
-    Client connecting to 10.89.47.191, UDP port 5016
-    [  3] local 10.89.47.150 port 5016 connected with 10.89.47.191 port 47384
+    Client connecting to 192.168.0.12, UDP port 5016
+    [  3] local 192.168.0.10 port 5016 connected with 192.168.0.12 port 47384
     is reported by client as::
 
         COMMAND_RESULT = {
             'CONNECTIONS': {
-                ("10.89.47.150", "10.89.47.191:5016"): {'report': {'Lost_Datagrams_ratio': '0%',
+                ("192.168.0.10", "192.168.0.12:5016"): {'report': {'Lost_Datagrams_ratio': '0%',
                                                                    'Jitter': '0.017 ms',
                                                                    'Transfer': 3751936,
                                                                    'Interval': (0.0, 6.0),
@@ -68,12 +68,12 @@ class Iperf2(GenericUnixCommand):
     $ iperf -s -u -p 5016 -f k -i 1.0
     Server listening on UDP port 5016
     client connecting as
-    [  3] local 10.89.47.191 port 5016 connected with 10.89.47.150 port 56262
+    [  3] local 192.168.0.12 port 5016 connected with 192.168.0.10 port 56262
     is reported by server as::
 
         COMMAND_RESULT = {
             'CONNECTIONS': {
-                ("10.89.47.150", "10.89.47.191:5016"): {'report': {'Lost_Datagrams_ratio': '0%',
+                ("192.168.0.10", "192.168.0.12:5016"): {'report': {'Lost_Datagrams_ratio': '0%',
                                                                    'Jitter': '0.018 ms',
                                                                    'Transfer': 3751936,
                                                                    'Interval': (0.0, 6.0),
@@ -159,8 +159,8 @@ class Iperf2(GenericUnixCommand):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("FAILURE_MSG"))))
             raise ParsingDone
 
-    # [  3] local 10.89.47.191 port 5016 connected with 10.89.47.150 port 56262
-    # [  5] local 10.89.47.191 port 47384 connected with 10.89.47.150 port 5016
+    # [  3] local 192.168.0.12 port 5016 connected with 192.168.0.10 port 56262
+    # [  5] local 192.168.0.12 port 47384 connected with 192.168.0.10 port 5016
     _r_conn_info = r"(\[\s*\d*\])\s+local\s+(\S+)\s+port\s+(\d+)\s+connected with\s+(\S+)\s+port\s+(\d+)"
     _re_connection_info = re.compile(_r_conn_info)
 
@@ -479,19 +479,19 @@ COMMAND_RESULT_basic_server = {
 
 
 COMMAND_OUTPUT_bidirectional_udp_client = """
-ute@IAV-KRA-TL160:~$ iperf -c 10.89.47.191 -u -p 5016 -f k -i 1.0 -t 6.0 --dualtest -b 5000.0k
+ute@IAV-KRA-TL160:~$ iperf -c 192.168.0.12 -u -p 5016 -f k -i 1.0 -t 6.0 --dualtest -b 5000.0k
 ------------------------------------------------------------
 Server listening on UDP port 5016
 Receiving 1470 byte datagrams
 UDP buffer size: 1024 KByte (default)
 ------------------------------------------------------------
 ------------------------------------------------------------
-Client connecting to 10.89.47.191, UDP port 5016
+Client connecting to 192.168.0.12, UDP port 5016
 Sending 1470 byte datagrams, IPG target: 2352.00 us (kalman adjust)
 UDP buffer size: 1024 KByte (default)
 ------------------------------------------------------------
-[  4] local 10.89.47.150 port 56262 connected with 10.89.47.191 port 5016
-[  3] local 10.89.47.150 port 5016 connected with 10.89.47.191 port 47384
+[  4] local 192.168.0.10 port 56262 connected with 192.168.0.12 port 5016
+[  3] local 192.168.0.10 port 5016 connected with 192.168.0.12 port 47384
 [ ID] Interval       Transfer     Bandwidth
 [  4]  0.0- 1.0 sec   613 KBytes  5022 Kbits/sec
 [  3]  0.0- 1.0 sec   612 KBytes  5010 Kbits/sec   0.011 ms    0/  426 (0%)
@@ -514,13 +514,13 @@ ute@IAV-KRA-TL160:~$"""
 
 
 COMMAND_KWARGS_bidirectional_udp_client = {
-    'options': '-c 10.89.47.191 -u -p 5016 -f k -i 1.0 -t 6.0 --dualtest -b 5000.0k'
+    'options': '-c 192.168.0.12 -u -p 5016 -f k -i 1.0 -t 6.0 --dualtest -b 5000.0k'
 }
 
 
 COMMAND_RESULT_bidirectional_udp_client = {
     'CONNECTIONS': {
-        ("10.89.47.150:56262", "10.89.47.191:5016"): [{'Transfer': 627712,
+        ("192.168.0.10:56262", "192.168.0.12:5016"): [{'Transfer': 627712,
                                                        'Bandwidth': 627750,
                                                        'Transfer Raw': '613 KBytes',
                                                        'Bandwidth Raw': '5022 Kbits/sec',
@@ -563,7 +563,7 @@ COMMAND_RESULT_bidirectional_udp_client = {
                                                        'Lost_vs_Total_Datagrams': (0, 2552),
                                                        'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '5000 Kbits/sec'}],
-        ("10.89.47.191:47384", "10.89.47.150:5016"): [{'Transfer Raw': '612 KBytes',
+        ("192.168.0.12:47384", "192.168.0.10:5016"): [{'Transfer Raw': '612 KBytes',
                                                        'Jitter': '0.011 ms',
                                                        'Transfer': 626688,
                                                        'Interval': (0.0, 1.0),
@@ -619,7 +619,7 @@ COMMAND_RESULT_bidirectional_udp_client = {
                                                        'Lost_vs_Total_Datagrams': (0, 2552),
                                                        'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '5000 Kbits/sec'}],
-        ("10.89.47.150", "10.89.47.191:5016"): {'report': {'Lost_Datagrams_ratio': '0%',
+        ("192.168.0.10", "192.168.0.12:5016"): {'report': {'Lost_Datagrams_ratio': '0%',
                                                            'Jitter': '0.017 ms',
                                                            'Transfer': 3751936,
                                                            'Interval': (0.0, 6.0),
@@ -627,7 +627,7 @@ COMMAND_RESULT_bidirectional_udp_client = {
                                                            'Bandwidth': 625000,
                                                            'Lost_vs_Total_Datagrams': (0, 2552),
                                                            'Bandwidth Raw': '5000 Kbits/sec'}},
-        ("10.89.47.191", "10.89.47.150:5016"): {'report': {'Lost_Datagrams_ratio': '0%',
+        ("192.168.0.12", "192.168.0.10:5016"): {'report': {'Lost_Datagrams_ratio': '0%',
                                                            'Jitter': '0.017 ms',
                                                            'Transfer': 3751936,
                                                            'Interval': (0.0, 6.0),
@@ -637,7 +637,7 @@ COMMAND_RESULT_bidirectional_udp_client = {
                                                            'Bandwidth Raw': '5000 Kbits/sec'}}},
     'INFO': ['Server listening on UDP port 5016', 'Receiving 1470 byte datagrams',
              'UDP buffer size: 1024 KByte (default)',
-             'Client connecting to 10.89.47.191, UDP port 5016',
+             'Client connecting to 192.168.0.12, UDP port 5016',
              'Sending 1470 byte datagrams, IPG target: 2352.00 us (kalman adjust)',
              'UDP buffer size: 1024 KByte (default)',
              '[  4] Sent 2552 datagrams']}
@@ -650,13 +650,13 @@ Server listening on UDP port 5016
 Receiving 1470 byte datagrams
 UDP buffer size: 1024 KByte (default)
 ------------------------------------------------------------
-[  3] local 10.89.47.191 port 5016 connected with 10.89.47.150 port 56262
+[  3] local 192.168.0.12 port 5016 connected with 192.168.0.10 port 56262
 ------------------------------------------------------------
-Client connecting to 10.89.47.150, UDP port 5016
+Client connecting to 192.168.0.10, UDP port 5016
 Sending 1470 byte datagrams, IPG target: 2352.00 us (kalman adjust)
 UDP buffer size: 1024 KByte (default)
 ------------------------------------------------------------
-[  5] local 10.89.47.191 port 47384 connected with 10.89.47.150 port 5016
+[  5] local 192.168.0.12 port 47384 connected with 192.168.0.10 port 5016
 [ ID] Interval       Transfer     Bandwidth        Jitter   Lost/Total Datagrams
 [  3]  0.0- 1.0 sec   612 KBytes  5010 Kbits/sec   0.022 ms    0/  426 (0%)
 [  5]  0.0- 1.0 sec   613 KBytes  5022 Kbits/sec
@@ -685,7 +685,7 @@ COMMAND_KWARGS_bidirectional_udp_server = {
 
 COMMAND_RESULT_bidirectional_udp_server = {
     'CONNECTIONS': {
-        ("10.89.47.191:47384", "10.89.47.150:5016"): [{'Transfer': 627712,
+        ("192.168.0.12:47384", "192.168.0.10:5016"): [{'Transfer': 627712,
                                                        'Bandwidth': 627750,
                                                        'Transfer Raw': '613 KBytes',
                                                        'Bandwidth Raw': '5022 Kbits/sec',
@@ -728,7 +728,7 @@ COMMAND_RESULT_bidirectional_udp_server = {
                                                        'Lost_vs_Total_Datagrams': (0, 2552),
                                                        'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '5000 Kbits/sec'}],
-        ("10.89.47.150:56262", "10.89.47.191:5016"): [{'Transfer Raw': '612 KBytes',
+        ("192.168.0.10:56262", "192.168.0.12:5016"): [{'Transfer Raw': '612 KBytes',
                                                        'Jitter': '0.022 ms',
                                                        'Transfer': 626688,
                                                        'Interval': (0.0, 1.0),
@@ -784,7 +784,7 @@ COMMAND_RESULT_bidirectional_udp_server = {
                                                        'Lost_vs_Total_Datagrams': (0, 2552),
                                                        'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '5000 Kbits/sec'}],
-        ("10.89.47.191", "10.89.47.150:5016"): {'report': {'Lost_Datagrams_ratio': u'0%',
+        ("192.168.0.12", "192.168.0.10:5016"): {'report': {'Lost_Datagrams_ratio': u'0%',
                                                            'Jitter': '0.017 ms',
                                                            'Transfer': 3751936,
                                                            'Interval': (0.0, 6.0),
@@ -792,7 +792,7 @@ COMMAND_RESULT_bidirectional_udp_server = {
                                                            'Bandwidth': 625000,
                                                            'Lost_vs_Total_Datagrams': (0, 2552),
                                                            'Bandwidth Raw': '5000 Kbits/sec'}},
-        ("10.89.47.150", "10.89.47.191:5016"): {'report': {'Lost_Datagrams_ratio': '0%',
+        ("192.168.0.10", "192.168.0.12:5016"): {'report': {'Lost_Datagrams_ratio': '0%',
                                                            'Jitter': '0.018 ms',
                                                            'Transfer': 3751936,
                                                            'Interval': (0.0, 6.0),
@@ -803,7 +803,7 @@ COMMAND_RESULT_bidirectional_udp_server = {
     'INFO': ['Server listening on UDP port 5016',
              'Receiving 1470 byte datagrams',
              'UDP buffer size: 1024 KByte (default)',
-             'Client connecting to 10.89.47.150, UDP port 5016',
+             'Client connecting to 192.168.0.10, UDP port 5016',
              'Sending 1470 byte datagrams, IPG target: 2352.00 us (kalman adjust)',
              'UDP buffer size: 1024 KByte (default)',
              '[  5] Sent 2552 datagrams']}
