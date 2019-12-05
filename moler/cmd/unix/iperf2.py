@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Iperf command module.
+Iperf2 command module.
+
+It is refactored Iperf module changing data format returned.
+New format doesn't require additional post processing of values inside returned dict
+(it was the case with old one)
+
+Moreover, new format provides final report - see bellow.
 """
 
-__author__ = 'Adrianna Pienkowska'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'adrianna.pienkowska@nokia.com'
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2019, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
 
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
@@ -15,7 +21,7 @@ from moler.exceptions import ParsingDone
 import re
 
 
-class Iperf(GenericUnixCommand):
+class Iperf2(GenericUnixCommand):
     """
     Run iperf command and return its statistics
 
@@ -30,7 +36,7 @@ class Iperf(GenericUnixCommand):
        'Lost_vs_Total_Datagrams':  (0, 837),
        'Lost_Datagrams_ratio':     '0%'}
 
-    Above dict represents iperf output like::
+    Above dict represents single line of iperf output like::
 
       [ ID]   Interval       Transfer      Bandwidth        Jitter   Lost/Total Datagrams
       [904]   0.0- 1.0 sec   1.17 MBytes   9.84 Mbits/sec   1.830 ms    0/ 837   (0%)
@@ -38,9 +44,47 @@ class Iperf(GenericUnixCommand):
     Please note that numeric values are normalized to Bytes:
     - Transfer is in Bytes
     - Bandwith is in Bytes/sec
+
+    Returned value contains iperf report in following format:
+    at client side
+    $ iperf -c 10.89.47.191 -u -p 5016 -f k -i 1.0 -t 6.0 --dualtest -b 5000.0k
+    client connecting as
+    Client connecting to 10.89.47.191, UDP port 5016
+    [  3] local 10.89.47.150 port 5016 connected with 10.89.47.191 port 47384
+    is reported by client as::
+
+        COMMAND_RESULT = {
+            'CONNECTIONS': {
+                ("10.89.47.150", "10.89.47.191:5016"): {'report': {'Lost_Datagrams_ratio': '0%',
+                                                                   'Jitter': '0.017 ms',
+                                                                   'Transfer': 3751936,
+                                                                   'Interval': (0.0, 6.0),
+                                                                   'Transfer Raw': '3664 KBytes',
+                                                                   'Bandwidth': 625000,
+                                                                   'Lost_vs_Total_Datagrams': (0, 2552),
+                                                                   'Bandwidth Raw': '5000 Kbits/sec'}},
+
+    at server side
+    $ iperf -s -u -p 5016 -f k -i 1.0
+    Server listening on UDP port 5016
+    client connecting as
+    [  3] local 10.89.47.191 port 5016 connected with 10.89.47.150 port 56262
+    is reported by server as::
+
+        COMMAND_RESULT = {
+            'CONNECTIONS': {
+                ("10.89.47.191:5016", "10.89.47.150"): {'report': {'Lost_Datagrams_ratio': '0%',
+                                                                   'Jitter': '0.018 ms',
+                                                                   'Transfer': 3751936,
+                                                                   'Interval': (0.0, 6.0),
+                                                                   'Transfer Raw': '3664 KBytes',
+                                                                   'Bandwidth': 625000,
+                                                                   'Lost_vs_Total_Datagrams': (0, 2552),
+                                                                   'Bandwidth Raw': '5000 Kbits/sec'}}},
+
     """
     def __init__(self, connection, options, prompt=None, newline_chars=None, runner=None):
-        super(Iperf, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+        super(Iperf2, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.port, self.options = self._validate_options(options)
         self.current_ret['CONNECTIONS'] = dict()
         self.current_ret['INFO'] = list()
@@ -54,7 +98,7 @@ class Iperf(GenericUnixCommand):
     def _validate_options(self, options):
         if (('-d' in options) or ('--dualtest' in options)) and (('-P' in options) or ('--parallel' in options)):
             raise AttributeError("Unsupported options combination (--dualtest & --parallel)")
-        if self._regex_helper.search_compiled(Iperf._re_port, options):
+        if self._regex_helper.search_compiled(Iperf2._re_port, options):
             port = int(self._regex_helper.group('PORT'))
         else:
             port = 5001
@@ -101,12 +145,12 @@ class Iperf(GenericUnixCommand):
                 self._parse_connection_headers(line)
             except ParsingDone:
                 pass
-        return super(Iperf, self).on_new_line(line, is_full_line)
+        return super(Iperf2, self).on_new_line(line, is_full_line)
 
     _re_command_failure = re.compile(r"(?P<FAILURE_MSG>.*failed.*|.*error.*|.*command not found.*|.*iperf:.*)")
 
     def _command_failure(self, line):
-        if self._regex_helper.search_compiled(Iperf._re_command_failure, line):
+        if self._regex_helper.search_compiled(Iperf2._re_command_failure, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("FAILURE_MSG"))))
             raise ParsingDone
 
@@ -116,7 +160,7 @@ class Iperf(GenericUnixCommand):
     _re_connection_info = re.compile(_r_conn_info)
 
     def _parse_connection_name_and_id(self, line):
-        if self._regex_helper.search_compiled(Iperf._re_connection_info, line):
+        if self._regex_helper.search_compiled(Iperf2._re_connection_info, line):
             connection_id, local_host, local_port, remote_host, remote_port = self._regex_helper.groups()
             local = "{}:{}".format(local_host, local_port)
             remote = "{}:{}".format(remote_host, remote_port)
@@ -132,7 +176,7 @@ class Iperf(GenericUnixCommand):
     _re_headers = re.compile(r"\[\s+ID\]\s+Interval\s+Transfer\s+Bandwidth")
 
     def _parse_headers(self, line):
-        if self._regex_helper.search_compiled(Iperf._re_headers, line):
+        if self._regex_helper.search_compiled(Iperf2._re_headers, line):
             if self.parallel_client:
                 # header line is after connections
                 # so, we can create virtual Summary connection
@@ -172,7 +216,7 @@ class Iperf(GenericUnixCommand):
 
     def _parse_connection_info(self, line):
         regex_found = self._regex_helper.search_compiled
-        if regex_found(Iperf._re_iperf_record_udp_svr, line) or regex_found(Iperf._re_iperf_record, line):
+        if regex_found(Iperf2._re_iperf_record_udp_svr, line) or regex_found(Iperf2._re_iperf_record, line):
             iperf_record = self._regex_helper.groupdict()
             connection_id = iperf_record.pop("ID")
             iperf_record = self._detailed_parse_interval(iperf_record)
@@ -224,7 +268,7 @@ class Iperf(GenericUnixCommand):
     _re_ornaments = re.compile(r"(?P<ORNAMENTS>----*|\[\s*ID\].*)", re.IGNORECASE)
 
     def _parse_connection_headers(self, line):
-        if not self._regex_helper.search_compiled(Iperf._re_ornaments, line):
+        if not self._regex_helper.search_compiled(Iperf2._re_ornaments, line):
             self.current_ret['INFO'].append(line.strip())
             raise ParsingDone
 
