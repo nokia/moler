@@ -97,8 +97,11 @@ class Iperf2(GenericUnixCommand):
         # private values
         self._connection_dict = dict()
         self._converter_helper = ConverterHelper()
+        self._got_server_report_hdr = False
+        self._got_server_report = False
+        self._stopping_server = False
 
-    _re_port = re.compile(r"(?P<PORT_OPTION>\-p|\-\-port)\s+(?P<PORT>\d+)")
+    _re_port = re.compile(r"(?P<PORT_OPTION>\-\-port|\-p)\s+(?P<PORT>\d+)")
 
     def _validate_options(self, options):
         if (('-d' in options) or ('--dualtest' in options)) and (('-P' in options) or ('--parallel' in options)):
@@ -118,6 +121,35 @@ class Iperf2(GenericUnixCommand):
         if self.options.startswith('-u') or (' -u' in self.options) or ('--udp' in self.options):
             return 'udp'
         return 'tcp'
+
+    _re_interval = re.compile(r"(?P<INTERVAL_OPTION>\-\-interval|\-i)\s+(?P<INTERVAL>[\d\.]+)")
+
+    @property
+    def interval(self):
+        if self._regex_helper.search_compiled(Iperf2._re_interval, self.options):
+            return float(self._regex_helper.group('INTERVAL'))
+        return 0.0
+
+    _re_time = re.compile(r"(?P<TIME_OPTION>\-\-time|\-t)\s+(?P<TIME>[\d\.]+)")
+
+    @property
+    def time(self):
+        if self._regex_helper.search_compiled(Iperf2._re_time, self.options):
+            return float(self._regex_helper.group('TIME'))
+        return 10.0
+
+    @property
+    def dualtest(self):
+        return ('--dualtest' in self.options) or ('-d' in self.options)
+
+    @property
+    def works_in_dualtest(self):
+        if self.client:
+            return self.dualtest
+        if self.parallel_client:
+            return False
+        connections = self._connection_dict.values()
+        return len(connections) > 1
 
     @property
     def client(self):
@@ -147,10 +179,31 @@ class Iperf2(GenericUnixCommand):
                 self._parse_connection_name_and_id(line)
                 self._parse_headers(line)
                 self._parse_connection_info(line)
+                self._parse_too_early_ctrl_c(line)
+                self._parse_svr_report_header(line)
                 self._parse_connection_headers(line)
             except ParsingDone:
                 pass
         return super(Iperf2, self).on_new_line(line, is_full_line)
+
+    def is_end_of_cmd_output(self, line):
+        """
+        Checks if end of command is reached.
+
+        For iperf server we can't await prompt since at server it is not displayed
+
+        :param line: Line from device.
+        :return:
+        """
+        if self.server:
+            if self._has_all_reports():
+                if not self._stopping_server:
+                    self.break_cmd()
+                    self._stopping_server = True
+                return super(Iperf2, self).is_end_of_cmd_output(line)
+            return False
+        else:
+            return super(Iperf2, self).is_end_of_cmd_output(line)
 
     _re_command_failure = re.compile(r"(?P<FAILURE_MSG>.*failed.*|.*error.*|.*command not found.*|.*iperf:.*)")
 
@@ -231,6 +284,8 @@ class Iperf2(GenericUnixCommand):
             normalized_iperf_record = self._normalize_to_bytes(iperf_record)
             self._update_current_ret(connection_name, normalized_iperf_record)
             self._parse_final_record(connection_name)
+            if self.protocol == 'udp' and self._got_server_report_hdr:
+                self._got_server_report = True
             raise ParsingDone
 
     @staticmethod
@@ -256,24 +311,59 @@ class Iperf2(GenericUnixCommand):
     def _parse_final_record(self, connection_name):
         last_record = self.current_ret['CONNECTIONS'][connection_name][-1]
         if self._is_final_record(last_record):
+            if self.parallel_client and ('multiport' not in connection_name[0]):
+                return  # for parallel we take report only from [SUM] final record
             client_host, client_port, server_host, server_port = self._split_connection_name(connection_name)
             from_client, to_server = client_host, "{}:{}".format(server_host, server_port)
             result_connection = (from_client, to_server)
             self.current_ret['CONNECTIONS'][result_connection] = {'report': last_record}
 
-    @staticmethod
-    def _is_final_record(last_record):
-        start, _ = last_record['Interval']
-        return start == 0.0
+    def _is_final_record(self, last_record):
+        start, end = last_record['Interval']
+        if self.interval and (self.interval < self.time):  # interval reports
+            final = (start == 0.0) and (end > self.interval)
+        else:  # only final report
+            final = start == 0.0
+        return final
+
+    def _has_all_reports(self):
+        if 'CONNECTIONS' not in self.current_ret:
+            return False
+        if len(self._connection_dict) < 1:
+            return False
+        result = self.current_ret['CONNECTIONS']
+        connections = self._connection_dict.values()
+        client_host, client_port, server_host, server_port = self._split_connection_name(connections[0])
+        from_client, to_server = client_host, "{}:{}".format(server_host, self.port)
+        has_client_report = (from_client, to_server) in result
+        if self.works_in_dualtest:  # need two reports
+            if len(self._connection_dict) < 2:
+                return False
+            from_server, to_client = server_host, "{}:{}".format(client_host, self.port)
+            has_server_report = ((from_server, to_client) in result)
+            all_reports = has_client_report and has_server_report
+            works_as_client = True  # in dualtest both server and client work as client
+        else:
+            all_reports = has_client_report
+            works_as_client = self.client
+        # udp client additionally awaits server report
+        if self.protocol == 'udp' and works_as_client:
+            all_reports = all_reports and self._got_server_report
+        return all_reports
+
 
     # [  5] Sent 2552 datagrams
-    # [  5] Server Report:
     # ------------------------------------------------------------
-    _re_ornaments = re.compile(r"(?P<ORNAMENTS>----*|Server Report:|\[\s*ID\].*)", re.IGNORECASE)
+    _re_ornaments = re.compile(r"(?P<ORNAMENTS>----*|\[\s*ID\].*)", re.IGNORECASE)
 
     def _parse_connection_headers(self, line):
         if not self._regex_helper.search_compiled(Iperf2._re_ornaments, line):
             self.current_ret['INFO'].append(line.strip())
+            raise ParsingDone
+
+    def _parse_svr_report_header(self, line):
+        if "Server Report:" in line:
+            self._got_server_report_hdr = True
             raise ParsingDone
 
     def _normalize_to_bytes(self, input_dict):
@@ -292,9 +382,18 @@ class Iperf2(GenericUnixCommand):
                 new_dict[key] = raw_value
         return new_dict
 
+    # ^CWaiting for server threads to complete. Interrupt again to force quit
+    _re_interrupt_again = re.compile(r"Interrupt again to force quit")
+
+    def _parse_too_early_ctrl_c(self, line):
+        # Happens at script execution. Scripts are quicker then humans.
+        if self._regex_helper.search_compiled(Iperf2._re_interrupt_again, line):
+            self.break_cmd()  # send Ctrl-C once more
+            raise ParsingDone
+
 
 COMMAND_OUTPUT_basic_client = """
-xyz@debian:~$ iperf -c 10.1.1.1
+xyz@debian:~$ iperf -c 10.1.1.1 -i 1
 ------------------------------------------------------------
 Client connecting to 10.1.1.1, TCP port 5001
 TCP window size: 16384 Byte (default)
@@ -315,7 +414,7 @@ TCP window size: 16384 Byte (default)
 xyz@debian:~$"""
 
 COMMAND_KWARGS_basic_client = {
-    'options': '-c 10.1.1.1'
+    'options': '-c 10.1.1.1 -i 1'
 }
 
 COMMAND_RESULT_basic_client = {
@@ -351,7 +450,7 @@ COMMAND_RESULT_basic_client = {
 
 
 COMMAND_OUTPUT_basic_server = """
-xyz@debian:~$ iperf -u
+xyz@debian:~$ iperf -u -i 1
 ------------------------------------------------------------
 Server listening on UDP port 5001
 Receiving 1470 byte datagrams
@@ -373,7 +472,7 @@ UDP buffer size: 8.00 KByte (default)
 xyz@debian:~$"""
 
 COMMAND_KWARGS_basic_server = {
-    'options': '-u'
+    'options': '-u -i 1'
 }
 
 COMMAND_RESULT_basic_server = {
