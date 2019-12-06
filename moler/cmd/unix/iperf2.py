@@ -351,7 +351,6 @@ class Iperf2(GenericUnixCommand):
             all_reports = all_reports and self._got_server_report
         return all_reports
 
-
     # [  5] Sent 2552 datagrams
     # ------------------------------------------------------------
     _re_ornaments = re.compile(r"(?P<ORNAMENTS>----*|\[\s*ID\].*)", re.IGNORECASE)
