@@ -85,8 +85,9 @@ class Event(ConnectionObserver):
         :return: None
         """
         msg = "Notify for event:  '{}.{}'".format(self.__class__.__module__, self)
+        self._log(lvl=logging.INFO, msg=msg)
         if self.callback:
             msg = "{} with callback '{}'.".format(msg, self.callback)
         else:
             msg = "{} without callback.".format(msg)
-        self._log(lvl=logging.INFO, msg=msg)
+        self._log(lvl=logging.DEBUG, msg=msg)
