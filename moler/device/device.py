@@ -37,6 +37,16 @@ class DeviceFactory(object):
             cls.get_device(name=device_name)
 
     @classmethod
+    def remove_all_devices(cls):
+        """
+        Remove all created devices.
+
+        :return: None
+        """
+        for device in cls._devices.keys():
+            cls._devices[device].remove()
+
+    @classmethod
     def get_device(cls, name=None, device_class=None, connection_desc=None, connection_hops=None, initial_state=None,
                    establish_connection=True):
         """

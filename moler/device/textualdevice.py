@@ -138,6 +138,7 @@ class TextualDevice(AbstractDevice):
 
         :return: None
         """
+        self.goto_state(TextualDevice.not_connected)
         self._stop_prompts_observers()
         if self.has_established_connection():
             self._established = False
