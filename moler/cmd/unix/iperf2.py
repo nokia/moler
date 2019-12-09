@@ -165,7 +165,7 @@ class Iperf2(GenericUnixCommand):
             return ('-P ' in self.options) or ('--parallel ' in self.options)
         if len(self._connection_dict.keys()) > 1:
             # all local connections must be same otherwise it is --dualtest requested from server
-            first_local = self._connection_dict.values()[0]
+            first_local = list(self._connection_dict.values())[0]
             for local, _ in self._connection_dict.values():
                 if local != first_local:
                     return False
@@ -242,7 +242,7 @@ class Iperf2(GenericUnixCommand):
             if self.parallel_client:
                 # header line is after connections
                 # so, we can create virtual Summary connection
-                client, server = self._connection_dict.values()[0]
+                client, server = list(self._connection_dict.values())[0]
                 client_host, client_port, server_host, server_port = self._split_connection_name((client, server))
                 connection_id = '[SUM]'
                 self._connection_dict[connection_id] = ("{}:{}".format(client_host, "multiport"), server)
@@ -332,7 +332,7 @@ class Iperf2(GenericUnixCommand):
         if len(self._connection_dict) < 1:
             return False
         result = self.current_ret['CONNECTIONS']
-        connections = self._connection_dict.values()
+        connections = list(self._connection_dict.values())
         client_host, client_port, server_host, server_port = self._split_connection_name(connections[0])
         from_client, to_server = client_host, "{}:{}".format(server_host, self.port)
         has_client_report = (from_client, to_server) in result
