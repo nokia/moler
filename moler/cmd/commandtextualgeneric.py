@@ -271,8 +271,14 @@ class CommandTextualGeneric(Command):
         :param line: line from device.
         :return: line without new lines chars.
         """
-        for char in self._newline_chars:
-            line = line.rstrip(char)
+        if len(line) >= 1:
+            last_char = line[-1]
+            while last_char in self._newline_chars:
+                line = line.rstrip(last_char)
+                if len(line) >= 1:
+                    last_char = line[-1]
+                else:
+                    last_char = None
         return line
 
     def _detect_start_of_cmd_output(self, line, is_full_line):
