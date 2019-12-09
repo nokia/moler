@@ -17,7 +17,7 @@ from . import connections as conn_cfg
 from . import devices as dev_cfg
 from . import loggers as log_cfg
 
-loaded_config = "NOT_LOADED_YET"
+loaded_config = ["NOT_LOADED_YET"]
 
 
 @contextmanager
@@ -49,16 +49,19 @@ def read_yaml_configfile(path):
         raise MolerException(error)
 
 
-def configs_are_same(config1, config2):
+def configs_are_same(config_list, config_to_find):
     """
     Utility function to check if two configs are identical (deep comparison)
 
-    :param config1: first config to compare
-    :param config2: second config to compare
-    :return: bool
+    :param config_list: list of configs to compare
+    :param config_to_find: second config to compare
+    :return: bool, True if config_to_find is in config_list, False otherwise.
     """
-    diff = compare_objects(config1, config2)
-    return not diff
+    for config in config_list:
+        diff = compare_objects(config, config_to_find)
+        if not diff:
+            return True
+    return False
 
 
 def load_config(config=None, from_env_var=None, config_type='yaml'):
@@ -71,20 +74,22 @@ def load_config(config=None, from_env_var=None, config_type='yaml'):
     :return: None
     """
     global loaded_config
+    add_devices_only = False
 
-    if loaded_config == "NOT_LOADED_YET":
-        loaded_config = config
-    elif configs_are_same(loaded_config, config):
+    if "NOT_LOADED_YET" in loaded_config:
+        loaded_config = [config]
+    elif configs_are_same(config_list=loaded_config, config_to_find=config):
         return
     else:
-        why = "Reloading configuration during Moler execution is not supported!"
-        error = "Trial to load '{}' config while '{}' config already loaded.\n{}".format(config, loaded_config, why)
-        raise MolerException(error)
+        # Config was already loaded and now we have to add new devices.
+        add_devices_only = True
+        loaded_config.append(config)
 
-    assert (config_type == 'dict') or (config_type == 'yaml')  # no other format supported yet
+    if (config_type != 'dict') and (config_type != 'yaml'):  # no other format supported yet
+        raise WrongUsage("Unsupported config_type: '{}'. Allowed are: 'dict' or 'yaml'.".format(config_type))
     if not config:
         if not from_env_var:
-            raise WrongUsage("Provide either 'config' or 'from_env_var' parameter (none given)")
+            raise WrongUsage("Provide either 'config' or 'from_env_var' parameter (none given).")
         if from_env_var not in os.environ:
             raise KeyError("Environment variable '{}' is not set".format(from_env_var))
         path = os.environ[from_env_var]
@@ -96,9 +101,10 @@ def load_config(config=None, from_env_var=None, config_type='yaml'):
     elif config_type == 'dict':
         assert isinstance(config, dict)
     # TODO: check schema
-    load_logger_from_config(config)
-    load_connection_from_config(config)
-    load_device_from_config(config)
+    if add_devices_only is False:
+        load_logger_from_config(config)
+        load_connection_from_config(config)
+    load_device_from_config(config=config, add_only=add_devices_only)
 
 
 def load_connection_from_config(config):
@@ -129,17 +135,20 @@ def _load_topology(topology):
                 device.add_neighbour_device(neighbour_device=neighbour_device, bidirectional=True)
 
 
-def load_device_from_config(config):
+def load_device_from_config(config, add_only):
     create_at_startup = False
     topology = None
     cloned_devices = dict()
     cloned_id = 'CLONED_FROM'
 
+    from moler.device.device import DeviceFactory
+
     if 'DEVICES' in config:
         if 'DEFAULT_CONNECTION' in config['DEVICES']:
             default_conn = config['DEVICES'].pop('DEFAULT_CONNECTION')
-            conn_desc = default_conn['CONNECTION_DESC']
-            dev_cfg.set_default_connection(**conn_desc)
+            if add_only is False:
+                conn_desc = default_conn['CONNECTION_DESC']
+                dev_cfg.set_default_connection(**conn_desc)
 
         if 'CREATE_AT_STARTUP' in config['DEVICES']:
             create_at_startup = config['DEVICES'].pop('CREATE_AT_STARTUP')
@@ -148,6 +157,10 @@ def load_device_from_config(config):
 
         for device_name in config['DEVICES']:
             device_def = config['DEVICES'][device_name]
+
+            # check if device name is already used
+            if not _is_device_creation_needed(device_name, device_def):
+                continue
             if cloned_id in device_def:
                 cloned_devices[device_name] = dict()
                 cloned_devices[device_name]['source'] = device_def[cloned_id]
@@ -161,7 +174,6 @@ def load_device_from_config(config):
                     initial_state=device_def.get('INITIAL_STATE', None),
                 )
 
-    from moler.device.device import DeviceFactory
     for device_name, device_desc in cloned_devices.items():
         cloned_from = device_desc['source']
         initial_state = device_desc['state']
@@ -170,6 +182,25 @@ def load_device_from_config(config):
     if create_at_startup is True:
         DeviceFactory.create_all_devices()
     _load_topology(topology=topology)
+
+
+def _is_device_creation_needed(name, requested_device_def):
+    """
+
+    :param name: Name of device
+    :param requested_device_def: Definition of device requested to create/
+    :return: True if device doesn't exist. False if device already exists.
+    :
+    """
+    from moler.device.device import DeviceFactory
+    try:
+        DeviceFactory.get_device(name)
+        msg = DeviceFactory.differences_bewteen_devices_descriptions(name, requested_device_def)
+        if msg:
+            raise WrongUsage(msg)
+        return False  # Device exists and have the same construct parameters
+    except KeyError:
+        return True
 
 
 def load_logger_from_config(config):
@@ -201,6 +232,6 @@ def reconfigure_logging_path(logging_path):
 def clear():
     """Cleanup Moler's configuration"""
     global loaded_config
-    loaded_config = "NOT_LOADED_YET"
+    loaded_config = ["NOT_LOADED_YET"]
     conn_cfg.clear()
     dev_cfg.clear()

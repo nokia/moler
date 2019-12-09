@@ -10,6 +10,8 @@ from moler.config import devices as devices_config
 from moler.instance_loader import create_instance_from_class_fullname
 from moler.helpers import copy_list
 from moler.exceptions import WrongUsage
+from moler.helpers import copy_dict
+from moler.helpers import compare_objects
 import six
 import functools
 import threading
@@ -41,7 +43,7 @@ class DeviceFactory(object):
         Return connection instance of given io_type/variant.
 
         :param name: name of device defined in configuration.
-        :param device_class: 'moler.device.unixlocal', 'moler.device.unixremote', ...
+        :param device_class: 'moler.device.unixlocal.UnixLocal', 'moler.device.unixremote.UnixRemote', ...
         :param connection_desc: 'io_type' and 'variant' of device connection.
         :param connection_hops: connection hops to create device SM.
         :param initial_state: initial state for device e.g. UNIX_REMOTE.
@@ -213,6 +215,35 @@ class DeviceFactory(object):
                 del cls._devices[device_name]
             if device_name in devices_config.named_devices:
                 del devices_config.named_devices[device_name]
+
+    @classmethod
+    def differences_bewteen_devices_descriptions(cls, already_device_name, requested_device_def):
+        """
+        Checks if two device description are the same.
+
+        :param already_device_name: Name of device already created by Moler
+        :param requested_device_def: Description od device provided to create. The name is the same as above.
+        :return: Empty string if descriptions are the same, if not the string with differences.
+        """
+        already_created_device = cls.get_device(already_device_name)
+        already_device_def = copy_dict(DeviceFactory._devices_params[already_created_device.name], True)
+
+        different_msg = ""
+        already_full_class = already_device_def['class_fullname']
+        current_full_class = requested_device_def['DEVICE_CLASS']
+        if already_full_class == current_full_class:
+            default_hops = dict()
+            already_hops = already_device_def['constructor_parameters']['sm_params'].get('CONNECTION_HOPS',
+                                                                                         default_hops)
+            current_hops = requested_device_def.get('CONNECTION_HOPS', default_hops)
+            diff = compare_objects(already_hops, current_hops)
+            if diff:
+                different_msg = "Device '{}' already created with SM parameters: '{}' but now requested with SM" \
+                                " params: {}. \nDiff: {}".format(already_device_name, already_hops, current_hops, diff)
+        else:
+            different_msg = "Device '{}' already created as instance of class '{}' and now requested as instance of " \
+                            "class '{}'".format(already_device_name, already_full_class, current_full_class)
+        return different_msg
 
     @classmethod
     def _create_instance_and_remember_it(cls, device_class, constructor_parameters, establish_connection, name):

@@ -132,14 +132,22 @@ def test_cannot_select_device_by_nonexisting_name(device_factory):
     assert "Device named 'UNIX_LOCAL' was not defined inside configuration" in str(err.value)
 
 
-def test_can_select_device_loaded_from_config_file(moler_config, device_factory):
+def test_load_config_and_load_new_devices(moler_config, device_factory):
     conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
     moler_config.load_config(config=conn_config, config_type='yaml')
 
-    device = device_factory.get_device(name='UNIX_LOCAL')
 
-    assert device.__module__ == 'moler.device.unixlocal'
-    assert device.__class__.__name__ == 'UnixLocal'
+def test_can_select_device_loaded_from_config_file(moler_config, device_factory):
+    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
+    add_conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "added_device_config.yml")
+    moler_config.load_config(config=conn_config, config_type='yaml')
+    moler_config.load_config(config=add_conn_config, config_type='yaml')
+
+    device = device_factory.get_device(name='UNIX_LOCAL')
+    added_device = device_factory.get_device(name='ADDED_UNIX_LOCAL')
+    for device in (device, added_device):
+        assert device.__module__ == 'moler.device.unixlocal'
+        assert device.__class__.__name__ == 'UnixLocal'
 
 
 def test_can_clone_device(moler_config, device_factory):
@@ -398,7 +406,7 @@ def test_log_error_when_the_same_prompts_in_more_then_one_state(moler_config, de
     }
     with pytest.raises(MolerException) as err:
         moler_config.load_config(config=conn_config, config_type='dict')
-        device = device_factory.get_device(name='UNIX_LOCAL_THE_SAME_PROMPTS')
+        device_factory.get_device(name='UNIX_LOCAL_THE_SAME_PROMPTS')
 
     assert "Incorrect device configuration. The same prompts for state" in str(err.value)
 
@@ -436,6 +444,13 @@ def test_cannot_load_config_from_when_path_or_from_env_var_not_provide(moler_con
         moler_config.load_config()
 
     assert "Provide either 'config' or 'from_env_var' parameter (none given)" in str(err.value)
+
+
+def test_cannot_load_config_from_when_wrong_config_type_provided(moler_config):
+    with pytest.raises(WrongUsage) as err:
+        moler_config.load_config(config_type="wrong_type")
+
+    assert "Unsupported config_type" in str(err.value)
 
 
 def test_can_select_device_loaded_from_config_dict(moler_config, device_factory):
@@ -484,11 +499,54 @@ def test_can_load_configuration_when_already_loaded_from_same_dict(moler_config,
         }
     }
     moler_config.load_config(config=conn_config, config_type='dict')
+    devices1 = device_factory.get_devices_by_type(None)
     moler_config.load_config(config=conn_config, config_type='dict')
+    devices2 = device_factory.get_devices_by_type(None)
+    assert devices1 == devices2
 
 
-def test_cannot_load_configuration_when_already_loaded_from_another_dict(moler_config):
-    from moler.exceptions import MolerException
+def test_can_load_configuration_with_the_same_named_device_loaded_from_another_dict_the_same_params(moler_config,
+                                                                                                    device_factory):
+
+    conn_config = {
+        'LOGGER': {
+            'PATH': '/tmp/',
+            'RAW_LOG': True,
+            'DATE_FORMAT': '%d %H:%M:%S'
+        },
+        'DEVICES': {
+            'UNIX_LOCAL': {
+                'DEVICE_CLASS': 'moler.device.unixlocal.UnixLocal',
+                'INITIAL_STATE': 'UNIX_LOCAL'
+            }
+        }
+    }
+
+    new_conn_config = {
+        'LOGGER': {
+            'PATH': '/tmp/different',
+            'RAW_LOG': True,
+            'DATE_FORMAT': '%d %H:%M:%S'
+        },
+        'DEVICES': {
+            'UNIX_LOCAL': {
+                'DEVICE_CLASS': 'moler.device.unixlocal.UnixLocal',
+                'INITIAL_STATE': 'UNIX_LOCAL'
+            }
+        }
+    }
+    import moler.device.unixlocal
+    moler_config.load_config(config=conn_config, config_type='dict')
+    device1 = device_factory.get_device("UNIX_LOCAL")
+    devices1 = device_factory.get_devices_by_type(moler.device.unixlocal.UnixLocal)
+    moler_config.load_config(config=new_conn_config, config_type='dict')
+    device2 = device_factory.get_device("UNIX_LOCAL")
+    devices2 = device_factory.get_devices_by_type(moler.device.unixlocal.UnixLocal)
+    assert device1 == device2
+    assert devices1 == devices2
+
+
+def test_cannot_load_configuration_with_the_same_named_device_loaded_from_another_dict_different_class(moler_config):
 
     conn_config = {
         'LOGGER': {
@@ -518,10 +576,53 @@ def test_cannot_load_configuration_when_already_loaded_from_another_dict(moler_c
         }
     }
     moler_config.load_config(config=conn_config, config_type='dict')
-    with pytest.raises(MolerException) as err:
+    with pytest.raises(WrongUsage) as err:
         moler_config.load_config(config=new_conn_config, config_type='dict')
+    assert "and now requested as instance of class" in str(err.value)
 
-    assert "Reloading configuration during Moler execution is not supported!" in str(err.value)
+
+def test_cannot_load_configuration_with_the_same_named_device_loaded_from_another_dict_different_hops(moler_config):
+
+    conn_config = {
+        'LOGGER': {
+            'PATH': '/tmp/',
+            'RAW_LOG': True,
+            'DATE_FORMAT': '%d %H:%M:%S'
+        },
+        'DEVICES': {
+            'UNIX_LOCAL': {
+                'DEVICE_CLASS': 'moler.device.unixlocal.UnixLocal',
+                'INITIAL_STATE': 'UNIX_LOCAL'
+            }
+        }
+    }
+
+    new_conn_config = {
+        'LOGGER': {
+            'PATH': '/tmp/',
+            'RAW_LOG': True,
+            'DATE_FORMAT': '%d %H:%M:%S'
+        },
+        'DEVICES': {
+            'UNIX_LOCAL': {
+                'DEVICE_CLASS': 'moler.device.unixlocal.UnixLocal',
+                'CONNECTION_HOPS': {
+                    'UNIX_LOCAL': {
+                        'UNIX_LOCAL_ROOT': {
+                            "command_params": {
+                                "password": "root_password",
+                                "expected_prompt": r'local_root_prompt',
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    moler_config.load_config(config=conn_config, config_type='dict')
+    with pytest.raises(WrongUsage) as err:
+        moler_config.load_config(config=new_conn_config, config_type='dict')
+    assert "but now requested with SM params" in str(err.value)
 
 
 def test_create_device_without_hops():
@@ -532,21 +633,6 @@ def test_create_device_without_hops():
     dev = DeviceFactory.get_device(connection_desc=connection_desc, device_class='moler.device.unixlocal.UnixLocal',
                                    connection_hops=dict())
     assert dev is not None
-
-
-def test_cannot_load_configuration_when_already_loaded_from_another_file(moler_config):
-    from moler.exceptions import MolerException
-
-    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
-    conn_config2 = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config2.yml")
-
-    moler_config.load_config(config=conn_config, config_type='yaml')
-    with pytest.raises(MolerException) as err:
-        moler_config.load_config(config=conn_config2, config_type='yaml')
-
-    assert "Trial to load '{}' config while '{}' config already loaded".format(conn_config2, conn_config) in str(
-            err.value)
-    assert "Reloading configuration during Moler execution is not supported!" in str(err.value)
 
 
 def test_can_load_configuration_when_already_loaded_from_same_file(moler_config, device_factory):

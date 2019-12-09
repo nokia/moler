@@ -21,6 +21,20 @@ class UnixLocal(TextualDevice):
     Example of device in yaml configuration file:
     UNIX_1:
         DEVICE_CLASS: moler.device.unixlocal.UnixLocal
+
+    UNIX_2:
+        DEVICE_CLASS: moler.device.unixlocal.UnixLocal
+        'CONNECTION_HOPS': {
+                    'UNIX_LOCAL': {
+                        'UNIX_LOCAL_ROOT': {
+                            "command_params": {
+                                "password": "root_password",
+                                "expected_prompt": r'local_root_prompt',
+                            }
+                        }
+                    }
+                }
+
     """
 
     unix_local = "UNIX_LOCAL"
