@@ -1089,8 +1089,7 @@ TCP window size: 85.3 KByte (default)
 [  5]  0.0- 5.0 sec  2160256 KBytes  3535024 Kbits/sec
 [  6]  0.0- 5.0 sec  2361856 KBytes  3864920 Kbits/sec
 [SUM]  0.0- 5.0 sec  6920960 KBytes  11325398 Kbits/sec
-xyz@debian:~$ 
-"""
+xyz@debian:~$"""
 
 
 COMMAND_KWARGS_multiple_connections_server = {
@@ -1125,7 +1124,5 @@ COMMAND_RESULT_multiple_connections_server = {
                                                            'Bandwidth Raw': '11325398 Kbits/sec',
                                                            'Interval': (0.0, 5.0)}}},
     'INFO': ['Server listening on TCP port 5016',
-             'TCP window size: 85.3 KByte (default)',
-             'xyz@debian:~$']
+             'TCP window size: 85.3 KByte (default)']
 }
-
