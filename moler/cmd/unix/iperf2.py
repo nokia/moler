@@ -327,8 +327,6 @@ class Iperf2(GenericUnixCommand):
         return final
 
     def _has_all_reports(self):
-        if 'CONNECTIONS' not in self.current_ret:
-            return False
         if len(self._connection_dict) < 1:
             return False
         result = self.current_ret['CONNECTIONS']
@@ -449,7 +447,7 @@ COMMAND_RESULT_basic_client = {
 
 
 COMMAND_OUTPUT_basic_server = """
-xyz@debian:~$ iperf -u -i 1
+xyz@debian:~$ iperf -s -u -i 1
 ------------------------------------------------------------
 Server listening on UDP port 5001
 Receiving 1470 byte datagrams
@@ -471,7 +469,7 @@ UDP buffer size: 8.00 KByte (default)
 xyz@debian:~$"""
 
 COMMAND_KWARGS_basic_server = {
-    'options': '-u -i 1'
+    'options': '-s -u -i 1'
 }
 
 COMMAND_RESULT_basic_server = {
@@ -777,7 +775,7 @@ ute@2-7-TL166:~$"""
 
 
 COMMAND_KWARGS_bidirectional_udp_server = {
-    'options': '-u -p 5016 -f k -i 1.0'
+    'options': '-s -u -p 5016 -f k -i 1.0'
 }
 
 
