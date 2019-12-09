@@ -164,10 +164,10 @@ class Iperf2(GenericUnixCommand):
         if self.client:
             return ('-P ' in self.options) or ('--parallel ' in self.options)
         if len(self._connection_dict.keys()) > 1:
-            # all local connections must be same otherwise it is --dualtest requested from server
-            first_local = list(self._connection_dict.values())[0]
-            for local, _ in self._connection_dict.values():
-                if local != first_local:
+            # all remote connections must be same otherwise it is --dualtest requested from server
+            _, first_remote = list(self._connection_dict.values())[0]
+            for _, remote in self._connection_dict.values():
+                if remote != first_remote:
                     return False
             return True
         return False
@@ -197,13 +197,16 @@ class Iperf2(GenericUnixCommand):
         """
         if self.server:
             if self._has_all_reports():
-                if not self._stopping_server:
-                    self.break_cmd()
-                    self._stopping_server = True
+                self._stop_server()
                 return super(Iperf2, self).is_end_of_cmd_output(line)
             return False
         else:
             return super(Iperf2, self).is_end_of_cmd_output(line)
+
+    def _stop_server(self):
+        if not self._stopping_server:
+            self.break_cmd()
+            self._stopping_server = True
 
     _re_command_failure = re.compile(r"(?P<FAILURE_MSG>.*failed.*|.*error.*|.*command not found.*|.*iperf:.*)")
 
@@ -335,8 +338,6 @@ class Iperf2(GenericUnixCommand):
         from_client, to_server = client_host, "{}:{}".format(server_host, self.port)
         has_client_report = (from_client, to_server) in result
         if self.works_in_dualtest:  # need two reports
-            if len(self._connection_dict) < 2:
-                return False
             from_server, to_client = server_host, "{}:{}".format(client_host, self.port)
             has_server_report = ((from_server, to_client) in result)
             all_reports = has_client_report and has_server_report
@@ -575,7 +576,7 @@ COMMAND_RESULT_basic_server = {
 
 
 COMMAND_OUTPUT_bidirectional_udp_client = """
-ute@IAV-KRA-TL160:~$ iperf -c 192.168.0.12 -u -p 5016 -f k -i 1.0 -t 6.0 --dualtest -b 5000.0k
+abc@debian:~$ iperf -c 192.168.0.12 -u -p 5016 -f k -i 1.0 -t 6.0 --dualtest -b 5000.0k
 ------------------------------------------------------------
 Server listening on UDP port 5016
 Receiving 1470 byte datagrams
@@ -606,7 +607,7 @@ UDP buffer size: 1024 KByte (default)
 [  3]  0.0- 6.0 sec  3664 KBytes  5000 Kbits/sec   0.017 ms    0/ 2552 (0%)
 [  4] Server Report:
 [  4]  0.0- 6.0 sec  3664 KBytes  5000 Kbits/sec   0.017 ms    0/ 2552 (0%)
-ute@IAV-KRA-TL160:~$"""
+abc@debian:~$"""
 
 
 COMMAND_KWARGS_bidirectional_udp_client = {
@@ -740,7 +741,7 @@ COMMAND_RESULT_bidirectional_udp_client = {
 
 
 COMMAND_OUTPUT_bidirectional_udp_server = """
-ute@2-7-TL166:~$ iperf -s -u -p 5016 -f k -i 1.0
+xyz@debian:~$ iperf -s -u -p 5016 -f k -i 1.0
 ------------------------------------------------------------
 Server listening on UDP port 5016
 Receiving 1470 byte datagrams
@@ -771,7 +772,7 @@ UDP buffer size: 1024 KByte (default)
 [  5] Sent 2552 datagrams
 [  5] Server Report:
 [  5]  0.0- 6.0 sec  3664 KBytes  5000 Kbits/sec   0.017 ms    0/ 2552 (0%)
-ute@2-7-TL166:~$"""
+xyz@debian:~$"""
 
 
 COMMAND_KWARGS_bidirectional_udp_server = {
@@ -1073,3 +1074,58 @@ COMMAND_RESULT_multiple_connections = {
                                                              'Interval': (0.0, 10.8)}}},
     'INFO': ['Client connecting to 192.168.0.100, TCP port 5001',
              'TCP window size: 16.0 KByte (default)']}
+
+COMMAND_OUTPUT_multiple_connections_server = """
+xyz@debian:~$ iperf -s -p 5016 -f k
+------------------------------------------------------------
+Server listening on TCP port 5016
+TCP window size: 85.3 KByte (default)
+------------------------------------------------------------
+[  4] local 192.168.0.12 port 5016 connected with 192.168.0.10 port 42520
+[  5] local 192.168.0.12 port 5016 connected with 192.168.0.10 port 42522
+[  6] local 192.168.0.12 port 5016 connected with 192.168.0.10 port 42524
+[ ID] Interval       Transfer     Bandwidth
+[  4]  0.0- 5.0 sec  2398848 KBytes  3926238 Kbits/sec
+[  5]  0.0- 5.0 sec  2160256 KBytes  3535024 Kbits/sec
+[  6]  0.0- 5.0 sec  2361856 KBytes  3864920 Kbits/sec
+[SUM]  0.0- 5.0 sec  6920960 KBytes  11325398 Kbits/sec
+xyz@debian:~$ 
+"""
+
+
+COMMAND_KWARGS_multiple_connections_server = {
+    'options': '-s -p 5016 -f k'
+}
+
+COMMAND_RESULT_multiple_connections_server = {
+    'CONNECTIONS': {
+        ('192.168.0.10:42520', '192.168.0.12:5016'): [{'Transfer': 2456420352,
+                                                       'Bandwidth': 490779750,
+                                                       'Transfer Raw': '2398848 KBytes',
+                                                       'Bandwidth Raw': '3926238 Kbits/sec',
+                                                       'Interval': (0.0, 5.0)}],
+        ('192.168.0.10:42524', '192.168.0.12:5016'): [{'Transfer': 2418540544,
+                                                       'Bandwidth': 483115000,
+                                                       'Transfer Raw': '2361856 KBytes',
+                                                       'Bandwidth Raw': '3864920 Kbits/sec',
+                                                       'Interval': (0.0, 5.0)}],
+        ('192.168.0.10:42522', '192.168.0.12:5016'): [{'Transfer': 2212102144,
+                                                       'Bandwidth': 441878000,
+                                                       'Transfer Raw': '2160256 KBytes',
+                                                       'Bandwidth Raw': '3535024 Kbits/sec',
+                                                       'Interval': (0.0, 5.0)}],
+        ('192.168.0.10:multiport', '192.168.0.12:5016'): [{'Transfer': 7087063040,
+                                                           'Bandwidth': 1415674750,
+                                                           'Transfer Raw': '6920960 KBytes',
+                                                           'Bandwidth Raw': '11325398 Kbits/sec',
+                                                           'Interval': (0.0, 5.0)}],
+        ('192.168.0.10', '192.168.0.12:5016'): {'report': {'Transfer': 7087063040,
+                                                           'Bandwidth': 1415674750,
+                                                           'Transfer Raw': '6920960 KBytes',
+                                                           'Bandwidth Raw': '11325398 Kbits/sec',
+                                                           'Interval': (0.0, 5.0)}}},
+    'INFO': ['Server listening on TCP port 5016',
+             'TCP window size: 85.3 KByte (default)',
+             'xyz@debian:~$']
+}
+
