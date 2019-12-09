@@ -7,6 +7,7 @@ __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 import functools
 import abc
 import six
+import logging
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import MolerException
 from moler.exceptions import ResultAlreadySet
@@ -84,8 +85,9 @@ class Event(ConnectionObserver):
         :return: None
         """
         msg = "Notify for event:  '{}.{}'".format(self.__class__.__module__, self)
+        self._log(lvl=logging.INFO, msg=msg)
         if self.callback:
             msg = "{} with callback '{}'.".format(msg, self.callback)
         else:
             msg = "{} without callback.".format(msg)
-        self.logger.info(msg=msg)
+        self._log(lvl=logging.DEBUG, msg=msg)
