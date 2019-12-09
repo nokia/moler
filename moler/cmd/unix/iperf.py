@@ -61,12 +61,6 @@ class Iperf(GenericUnixCommand):
         cmd = 'iperf ' + str(self.options)
         return cmd
 
-    @property
-    def protocol(self):
-        if self.options.startswith('-u') or (' -u' in self.options) or ('--udp' in self.options):
-            return 'udp'
-        return 'tcp'
-
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
