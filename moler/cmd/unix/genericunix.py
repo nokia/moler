@@ -13,7 +13,7 @@ import six
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.exceptions import CommandFailure
-from moler.helpers import remove_all_known_special_chars
+from moler.helpers import remove_escape_codes
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -30,7 +30,7 @@ class GenericUnixCommand(CommandTextualGeneric):
         """
         super(GenericUnixCommand, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                                  runner=runner)
-        self.remove_all_known_special_chars_from_terminal_output = True
+        self.remove_colors_from_terminal_output = True
 
     def on_new_line(self, line, is_full_line):
         """
@@ -61,6 +61,6 @@ class GenericUnixCommand(CommandTextualGeneric):
         :param line: Line with special chars, raw string from device
         :return: line without special chars.
         """
-        if self.remove_all_known_special_chars_from_terminal_output:
-            line = remove_all_known_special_chars(line)
+        if self.remove_colors_from_terminal_output:
+            line = remove_escape_codes(line)
         return line

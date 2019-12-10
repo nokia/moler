@@ -178,7 +178,7 @@ class CommandTextualGeneric(Command):
             if self._cmd_output_started:
                 self._process_line_from_command(line=line, current_chunk=current_chunk, is_full_line=is_full_line)
             else:
-                self._detect_start_of_cmd_output(self._decode_line(line=line), is_full_line)
+                self._detect_start_of_cmd_output(line, is_full_line)
                 self._cache_line_before_command_start(line=line, is_full_line=is_full_line)
             if self.done() and self.do_not_process_after_done:
                 break
