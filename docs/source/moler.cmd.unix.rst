@@ -84,6 +84,14 @@ moler.cmd.unix.date module
     :undoc-members:
     :show-inheritance:
 
+moler.cmd.unix.devmem module
+----------------------------
+
+.. automodule:: moler.cmd.unix.devmem
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.cmd.unix.df module
 ------------------------
 
@@ -304,6 +312,14 @@ moler.cmd.unix.iperf module
 ---------------------------
 
 .. automodule:: moler.cmd.unix.iperf
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+moler.cmd.unix.iperf2 module
+----------------------------
+
+.. automodule:: moler.cmd.unix.iperf2
     :members:
     :undoc-members:
     :show-inheritance:
