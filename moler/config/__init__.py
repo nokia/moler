@@ -87,11 +87,11 @@ def load_config(config=None, from_env_var=None, **kwargs):
         add_devices_only = True
         loaded_config.append(config)
 
-    if not isinstance(config, six.string_types) and not isinstance(config, dict):  # no other format supported yet
+    if config is None and from_env_var is None:
+        raise WrongUsage("Provide either 'config' or 'from_env_var' parameter (none given).")
+    elif not from_env_var and (not isinstance(config, six.string_types) and not isinstance(config, dict)):  # no other format supported yet
         raise WrongUsage("Unsupported config type: '{}'. Allowed are: 'dict' or 'yaml'.".format(type(config)))
     if not config:
-        if not from_env_var:
-            raise WrongUsage("Provide either 'config' or 'from_env_var' parameter (none given).")
         if from_env_var not in os.environ:
             raise KeyError("Environment variable '{}' is not set".format(from_env_var))
         path = os.environ[from_env_var]
