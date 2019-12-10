@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import codecs
@@ -22,7 +22,7 @@ class ThreadedTerminal(IOConnection):
     """
 
     def __init__(self, moler_connection, cmd="/bin/bash", select_timeout=0.002,
-                 read_buffer_size=4096, first_prompt=r'[%$#]+', target_prompt=r'^moler_bash#',
+                 read_buffer_size=4096, first_prompt=r'[%$#]+', target_prompt=r'moler_bash#',
                  set_prompt_cmd='export PS1="moler_bash# "\n', dimensions=(100, 300)):
         """
         :param moler_connection: Moler's connection to join with
@@ -48,6 +48,7 @@ class ThreadedTerminal(IOConnection):
         self.target_prompt = target_prompt
         self._cmd = [cmd]
         self.set_prompt_cmd = set_prompt_cmd
+        self._re_set_prompt_cmd = re.sub("['\"].*['\"]", "", self.set_prompt_cmd.strip())
 
     def open(self):
         """Open ThreadedTerminal connection & start thread pulling data from it."""
@@ -115,15 +116,21 @@ class ThreadedTerminal(IOConnection):
                     if self._shell_operable.is_set():
                         self.data_received(data)
                     else:
-                        self.read_buffer = self.read_buffer + data
-                        if re.search(self.target_prompt, self.read_buffer, re.MULTILINE):
-                            self._notify_on_connect()
-                            self._shell_operable.set()
-                            data = re.sub(self.target_prompt, '', self.read_buffer, re.MULTILINE)
-                            self.data_received(data)
-                        elif not self._export_sent and re.search(self.first_prompt, self.read_buffer, re.MULTILINE):
-                            self.send(self.set_prompt_cmd)
-                            self._export_sent = True
+                        self._verify_shell_is_operable(data)
                 except EOFError:
                     self._notify_on_disconnect()
                     pulling_done.set()
+
+    def _verify_shell_is_operable(self, data):
+        self.read_buffer = self.read_buffer + data
+        lines = self.read_buffer.splitlines()
+
+        for line in lines:
+            if not re.search(self._re_set_prompt_cmd, line) and re.search(self.target_prompt, line):
+                self._notify_on_connect()
+                self._shell_operable.set()
+                data = re.sub(self.target_prompt, '', self.read_buffer, re.MULTILINE)
+                self.data_received(data)
+            elif not self._export_sent and re.search(self.first_prompt, self.read_buffer, re.MULTILINE):
+                self.send(self.set_prompt_cmd)
+                self._export_sent = True
