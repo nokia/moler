@@ -64,7 +64,7 @@ def configs_are_same(config_list, config_to_find):
     return False
 
 
-def load_config(config=None, from_env_var=None, **kwargs):
+def load_config(config=None, from_env_var=None, *args, **kwargs):
     """
     Load Moler's configuration from config file.
 

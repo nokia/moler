@@ -128,10 +128,27 @@ def test_can_select_connection_loaded_from_env_variable(moler_config, monkeypatc
                                      'config_type': "dict"},  # test backward compatibility
                                     {'config': {'NAMED_CONNECTIONS': {'www_server_1': {'io_type': 'tcp', 'host': 'localhost', 'port': 2344}},
                                                 'IO_TYPES': {'default_variant': {'tcp': 'threaded'}}}}])
-def test_can_select_connection_loaded_from_dict(moler_config, params):
+def test_can_select_connection_loaded_from_dict_as_keyword_args(moler_config, params):
     from moler.connection_factory import get_connection
 
     moler_config.load_config(**params)
+
+    conn = get_connection(name='www_server_1')
+    assert conn.__module__ == 'moler.io.raw.tcp'
+    assert conn.__class__.__name__ == 'ThreadedTcp'
+    assert conn.host == 'localhost'
+    assert conn.port == 2344
+
+
+@pytest.mark.parametrize('args', [({'NAMED_CONNECTIONS': {'www_server_1': {'io_type': 'tcp', 'host': 'localhost', 'port': 2344}},
+                                    'IO_TYPES': {'default_variant': {'tcp': 'threaded'}}},
+                                   None, 'dict'),  # test backward compatibility
+                                  ({'NAMED_CONNECTIONS': {'www_server_1': {'io_type': 'tcp', 'host': 'localhost', 'port': 2344}},
+                                    'IO_TYPES': {'default_variant': {'tcp': 'threaded'}}},)])
+def test_can_select_connection_loaded_from_dict_as_positional_args(moler_config, args):
+    from moler.connection_factory import get_connection
+
+    moler_config.load_config(*args)
 
     conn = get_connection(name='www_server_1')
     assert conn.__module__ == 'moler.io.raw.tcp'
