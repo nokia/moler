@@ -6,7 +6,7 @@ Event is a type of ConnectionObserver.
 """
 
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import importlib
@@ -81,6 +81,7 @@ def test_event_whole_output(buffer_connection):
     from moler.events.unix.wait4prompt import Wait4prompt
     output = "bash\n"
     event = Wait4prompt(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
+    event.enable_log_occurrence()
     event.start(timeout=0.1)
     buffer_connection.moler_connection.data_received(output.encode("utf-8"))
     event.await_done()

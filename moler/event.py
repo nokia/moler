@@ -47,7 +47,7 @@ class Event(ConnectionObserver):
         else:
             raise MolerException("Cannot assign already assigned 'self.callback'.")
 
-    def enable_occurred_log(self):
+    def enable_log_occurrence(self):
         self._log_every_occurrence = True
 
     def disable_log_occurrence(self):
