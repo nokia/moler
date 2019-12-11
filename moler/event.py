@@ -26,6 +26,7 @@ class Event(ConnectionObserver):
         self.callback_params = dict()
         self._occurred = []
         self.till_occurs_times = till_occurs_times
+        self._log_every_occurrence = True
         self.event_name = Event.observer_name
 
     def __str__(self):
@@ -45,6 +46,12 @@ class Event(ConnectionObserver):
             self.callback = callback
         else:
             raise MolerException("Cannot assign already assigned 'self.callback'.")
+
+    def enable_occurred_log(self):
+        self._log_every_occurrence = True
+
+    def disable_log_occurrence(self):
+        self._log_every_occurrence = False
 
     def remove_event_occurred_callback(self):
         self.callback = None
@@ -85,7 +92,8 @@ class Event(ConnectionObserver):
         :return: None
         """
         msg = "Notify for event:  '{}.{}'".format(self.__class__.__module__, self)
-        self._log(lvl=logging.INFO, msg=msg)
+        if self._log_every_occurrence:
+            self._log(lvl=logging.INFO, msg=msg)
         if self.callback:
             msg = "{} with callback '{}'.".format(msg, self.callback)
         else:

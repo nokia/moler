@@ -652,7 +652,7 @@ class TextualDevice(AbstractDevice):
             callback_params={
                 "event": self._prompts_event,
             })
-
+        self._prompts_event.disable_log_occurrence()
         self._prompts_event.start()
 
     def _prepare_reverse_state_prompts_dict(self):
