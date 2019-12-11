@@ -30,7 +30,7 @@ class Event(ConnectionObserver):
         self.timeout = 60 * 60 * 24 * 356 * 100  # [sec]
         self.callback = None
         self.callback_params = dict()
-        self._occurred = []
+        self._occurred = None
         self.till_occurs_times = till_occurs_times
         self._log_every_occurrence = True
         self.event_name = Event.observer_name

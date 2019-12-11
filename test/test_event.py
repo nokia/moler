@@ -17,6 +17,7 @@ from moler.observable_connection import ObservableConnection
 from moler.events.lineevent import LineEvent
 from moler.helpers import instance_id
 from moler.exceptions import MolerException
+from moler.exceptions import ResultAlreadySet
 
 
 def test_event_has_means_to_retrieve_embedded_detect_pattern(lineevent_class):
@@ -76,6 +77,7 @@ def test_event_cannot_assign_callback_when_assigned(buffer_connection):
     from moler.events.unix.wait4prompt import Wait4prompt
     event = Wait4prompt(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
     event.add_event_occurred_callback(fake_callback, callback_params=dict())
+    event.enable_log_occurrence()
 
     with pytest.raises(MolerException) as ex:
         event.add_event_occurred_callback(fake_callback)
@@ -101,13 +103,14 @@ def test_event_output_in_parts(buffer_connection):
 
     event.await_done()
     assert event.done() is True
+    with pytest.raises(ResultAlreadySet):
+        event.event_occurred("data")
 
 
 def test_event_whole_output(buffer_connection):
     from moler.events.unix.wait4prompt import Wait4prompt
     output = "bash\n"
     event = Wait4prompt(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
-    event.enable_log_occurrence()
     event.start(timeout=0.1)
     buffer_connection.moler_connection.data_received(output.encode("utf-8"))
     event.await_done()
