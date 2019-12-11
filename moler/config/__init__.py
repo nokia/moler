@@ -89,7 +89,7 @@ def load_config(config=None, from_env_var=None, **kwargs):
     if config is None and from_env_var is None:
         raise WrongUsage("Provide either 'config' or 'from_env_var' parameter (none given).")
     elif not from_env_var and (not isinstance(config, six.string_types) and not isinstance(config, dict)):  # no other format supported yet
-        raise WrongUsage("Unsupported config type: '{}'. Allowed are: 'dict' or 'yaml'.".format(type(config)))
+        raise WrongUsage("Unsupported config type: '{}'. Allowed are: 'dict' or 'str' holding config filename (file is in YAML format).".format(type(config)))
     if not config:
         if from_env_var not in os.environ:
             raise KeyError("Environment variable '{}' is not set".format(from_env_var))
