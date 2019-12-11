@@ -68,11 +68,10 @@ def load_config(config=None, from_env_var=None, **kwargs):
     """
     Load Moler's configuration from config file.
 
-    config_type parameter is deprached and since 1.4.0 not need to provide. Type of config is autodetecting.
-
+    Load Moler's configuration from config file.
     :param config: either dict or config filename directly provided (overwrites 'from_env_var' if both given).
     :type config: dict or str
-    :param from_env_var: name of environment variable storing config filename
+    :param from_env_var: name of environment variable storing config filename (file is in YAML format)
     :return: None
     """
     global loaded_config
