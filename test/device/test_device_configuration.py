@@ -447,6 +447,7 @@ def test_cannot_load_config_from_when_path_or_from_env_var_not_provide(moler_con
 
 
 @pytest.mark.parametrize('params', [{'config': (), 'config_type': "wrong_type"},  # test backward compatibility
+                                    {'from_env_var': 'AAA', 'config': [1, 2]},
                                     {'config': ()}])
 def test_cannot_load_config_from_when_wrong_config_type_provided(moler_config, params):
     with pytest.raises(WrongUsage) as err:

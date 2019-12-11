@@ -86,9 +86,10 @@ def load_config(config=None, from_env_var=None, **kwargs):
         add_devices_only = True
         loaded_config.append(config)
 
+    wrong_type_config = not isinstance(config, six.string_types) and not isinstance(config, dict)
     if config is None and from_env_var is None:
         raise WrongUsage("Provide either 'config' or 'from_env_var' parameter (none given).")
-    elif not from_env_var and (not isinstance(config, six.string_types) and not isinstance(config, dict)):  # no other format supported yet
+    elif (not from_env_var and wrong_type_config) or (config and wrong_type_config):
         raise WrongUsage("Unsupported config type: '{}'. Allowed are: 'dict' or 'str' holding config filename (file is in YAML format).".format(type(config)))
     if not config:
         if from_env_var not in os.environ:
