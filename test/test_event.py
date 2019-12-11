@@ -87,6 +87,9 @@ def test_event_cannot_assign_callback_when_assigned(buffer_connection):
     event.remove_event_occurred_callback()
     event.add_event_occurred_callback(fake_callback2)
 
+    ret = event.get_last_occurrence()
+    assert ret is None
+
 
 def test_event_output_in_parts(buffer_connection):
     from moler.events.unix.wait4prompt import Wait4prompt
