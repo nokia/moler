@@ -185,6 +185,17 @@ def test_close_defined_yaml_device(moler_config, device_factory):
     assert device_2 != device_org
 
 
+def test_can_remove_device_twice(moler_config, device_factory):
+    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
+    moler_config.load_config(config=conn_config, config_type='yaml')
+
+    device_org_name = 'UNIX_LOCAL'
+    device_org = device_factory.get_device(name=device_org_name)
+    assert device_org is not None
+    device_org.remove()
+    device_org.remove()
+
+
 def test_clone_device_from_cloned_device(moler_config, device_factory):
     conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
     moler_config.load_config(config=conn_config, config_type='yaml')
