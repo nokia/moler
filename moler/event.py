@@ -51,12 +51,14 @@ class Event(ConnectionObserver):
 
         return ret
 
-    def add_event_occurred_callback(self, callback, callback_params):
+    def add_event_occurred_callback(self, callback, callback_params=None):
         if not self.callback:
+            if callback_params is None:
+                callback_params = dict()
             partial_callback = functools.partial(callback, **callback_params)
             self.callback = partial_callback
         else:
-            raise MolerException("Cannot assign a callback '{}' to event '{}' when another callback '{}'is already "
+            raise MolerException("Cannot assign a callback '{}' to event '{}' when another callback '{}' is already "
                                  "assigned".format(callback, self, self.callback))
 
     def enable_log_occurrence(self):
