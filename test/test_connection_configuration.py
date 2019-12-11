@@ -107,7 +107,7 @@ def test_can_select_connection_loaded_from_config_file(moler_config):
     assert conn.port == 2345
 
 
-@pytest.mark.parametrize('params', [{'from_env_var': "MOLER_CONFIG", 'config_type': "yaml"},
+@pytest.mark.parametrize('params', [{'from_env_var': "MOLER_CONFIG", 'config_type': "yaml"},  # test backward compatibility
                                     {'from_env_var': "MOLER_CONFIG"}])
 def test_can_select_connection_loaded_from_env_variable(moler_config, monkeypatch, params):
     from moler.connection_factory import get_connection
@@ -125,7 +125,7 @@ def test_can_select_connection_loaded_from_env_variable(moler_config, monkeypatc
 
 @pytest.mark.parametrize('params', [{'config': {'NAMED_CONNECTIONS': {'www_server_1': {'io_type': 'tcp', 'host': 'localhost', 'port': 2344}},
                                                 'IO_TYPES': {'default_variant': {'tcp': 'threaded'}}},
-                                     'config_type': "dict"},
+                                     'config_type': "dict"},  # test backward compatibility
                                     {'config': {'NAMED_CONNECTIONS': {'www_server_1': {'io_type': 'tcp', 'host': 'localhost', 'port': 2344}},
                                                 'IO_TYPES': {'default_variant': {'tcp': 'threaded'}}}}])
 def test_can_select_connection_loaded_from_dict(moler_config, params):
