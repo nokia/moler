@@ -138,6 +138,8 @@ class TextualDevice(AbstractDevice):
 
         :return: None
         """
+        if not self.has_established_connection():
+            return
         self.goto_state(TextualDevice.not_connected)
         self._stop_prompts_observers()
         if self.has_established_connection():
@@ -652,7 +654,7 @@ class TextualDevice(AbstractDevice):
             callback_params={
                 "event": self._prompts_event,
             })
-
+        self._prompts_event.disable_log_occurrence()
         self._prompts_event.start()
 
     def _prepare_reverse_state_prompts_dict(self):

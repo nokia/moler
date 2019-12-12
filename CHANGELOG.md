@@ -1,7 +1,18 @@
-## moler 1.7.0
+## moler 1.4.0
 
 ### Deprecated
 * `config_type` parameter of `load_config()` is not needed, configuration type is autodetected
+
+
+## moler 1.3.1
+
+### Added
+* option to disable log every occurrence for events
+* backward compatibility for load_device_from_config
+
+### Fixed
+* correct device remove functionality functionality
+
 
 ## moler 1.3.0
 

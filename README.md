@@ -1,4 +1,4 @@
-[![image](https://img.shields.io/badge/pypi-v1.3.0-blue.svg)](https://pypi.org/project/moler/)
+[![image](https://img.shields.io/badge/pypi-v1.3.1-blue.svg)](https://pypi.org/project/moler/)
 [![image](https://img.shields.io/badge/python-2.7%20%7C%203.5%20%7C%203.6%20%7C%203.7-blue.svg)](https://pypi.org/project/moler/)
 [![Build Status](https://travis-ci.org/nokia/moler.svg?branch=master)](https://travis-ci.org/nokia/moler)
 [![Coverage Status](https://coveralls.io/repos/github/nokia/moler/badge.svg?branch=master)](https://coveralls.io/github/nokia/moler?branch=master)
@@ -11,6 +11,10 @@
 2. [Moler usage examples](#moler-usage-examples)
 3. [API design reasoning](#api-design-reasoning)
 4. [Designed API](#designed-api)
+
+# Changelog
+View our [chronological list](https://github.com/nokia/moler/blob/master/CHANGELOG.md) of user-facing changes, large and small, made to the Moler project.
+
 
 # Moler
 Moler ([name origin](https://github.com/nokia/moler/wiki#moler-name-origin)) is Python library
