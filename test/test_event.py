@@ -6,7 +6,7 @@ Event is a type of ConnectionObserver.
 """
 
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import importlib
@@ -16,6 +16,8 @@ import pytest
 from moler.observable_connection import ObservableConnection
 from moler.events.lineevent import LineEvent
 from moler.helpers import instance_id
+from moler.exceptions import MolerException
+from moler.exceptions import ResultAlreadySet
 
 
 def test_event_has_means_to_retrieve_embedded_detect_pattern(lineevent_class):
@@ -65,6 +67,32 @@ def test_event_is_running(do_nothing_command__for_major_base_class):
     wait4.cancel()
 
 
+def test_event_cannot_assign_callback_when_assigned(buffer_connection):
+    def fake_callback():
+        pass
+
+    def fake_callback2():
+        pass
+
+    from moler.events.unix.wait4prompt import Wait4prompt
+    event = Wait4prompt(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
+    event.add_event_occurred_callback(fake_callback, callback_params=dict())
+    event.enable_log_occurrence()
+
+    with pytest.raises(MolerException) as ex:
+        event.add_event_occurred_callback(fake_callback)
+    assert "is already assigned" in str(ex)
+    with pytest.raises(MolerException) as ex:
+        event.add_event_occurred_callback(fake_callback2)
+    assert "is already assigned" in str(ex)
+
+    event.remove_event_occurred_callback()
+    event.add_event_occurred_callback(fake_callback2)
+
+    ret = event.get_last_occurrence()
+    assert ret is None
+
+
 def test_event_output_in_parts(buffer_connection):
     from moler.events.unix.wait4prompt import Wait4prompt
     outputs = ["ba", "sh\n"]
@@ -75,6 +103,8 @@ def test_event_output_in_parts(buffer_connection):
 
     event.await_done()
     assert event.done() is True
+    with pytest.raises(ResultAlreadySet):
+        event.event_occurred("data")
 
 
 def test_event_whole_output(buffer_connection):
