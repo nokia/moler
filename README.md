@@ -12,6 +12,10 @@
 3. [API design reasoning](#api-design-reasoning)
 4. [Designed API](#designed-api)
 
+# Changelog
+View our [chronological list](https://github.com/nokia/moler/blob/master/CHANGELOG.md) of user-facing changes, large and small, made to the Moler project.
+
+
 # Moler
 Moler ([name origin](https://github.com/nokia/moler/wiki#moler-name-origin)) is Python library
 that provides "bricks" for building  automated tests.
