@@ -636,6 +636,45 @@ def test_cannot_load_configuration_with_the_same_named_device_loaded_from_anothe
     assert "but now requested with SM params" in str(err.value)
 
 
+def test_load_device_from_config(moler_config, device_factory):
+    config1 = {
+        'LOGGER': {
+            'PATH': '/tmp/',
+            'RAW_LOG': True,
+            'DATE_FORMAT': '%d %H:%M:%S'
+        },
+        'DEVICES': {
+            'UNIX_LOCAL': {
+                'DEVICE_CLASS': 'moler.device.unixlocal.UnixLocal',
+                'INITIAL_STATE': 'UNIX_LOCAL'
+            }
+        }
+    }
+    config2 = {
+        'LOGGER': {
+            'PATH': '/tmp/',
+            'RAW_LOG': True,
+            'DATE_FORMAT': '%d %H:%M:%S'
+        },
+        'DEVICES': {
+            'UNIX_LOCAL2': {
+                'DEVICE_CLASS': 'moler.device.unixlocal.UnixLocal',
+                'INITIAL_STATE': 'UNIX_LOCAL'
+            }
+        }
+    }
+    moler_config.load_config(config1, None, 'dict')
+    dev1_prev = device_factory.get_device("UNIX_LOCAL")
+    with pytest.raises(KeyError):
+        device_factory.get_device("UNIX_LOCAL2")
+
+    moler_config.load_device_from_config(config2)
+    dev = device_factory.get_device('UNIX_LOCAL2')
+    assert dev is not None
+    dev1_after = device_factory.get_device('UNIX_LOCAL')
+    assert dev1_prev == dev1_after
+
+
 def test_create_device_without_hops():
     connection_desc = {
         "io_type": "terminal",

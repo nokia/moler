@@ -135,7 +135,7 @@ def _load_topology(topology):
                 device.add_neighbour_device(neighbour_device=neighbour_device, bidirectional=True)
 
 
-def load_device_from_config(config, add_only):
+def load_device_from_config(config, add_only=False):
     create_at_startup = False
     topology = None
     cloned_devices = dict()
