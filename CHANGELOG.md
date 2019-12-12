@@ -1,3 +1,13 @@
+## moler 1.3.1
+
+### Added
+* option to disable log every occurrence for events
+* backward compatibility for load_device_from_config
+
+### Fixed
+* correct device remove functionality functionality
+
+
 ## moler 1.3.0
 
 ### Added
