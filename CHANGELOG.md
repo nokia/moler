@@ -1,3 +1,9 @@
+## moler 1.4.0
+
+### Deprecated
+* `config_type` parameter of `load_config()` is not needed, configuration type is autodetected
+
+
 ## moler 1.3.1
 
 ### Added
