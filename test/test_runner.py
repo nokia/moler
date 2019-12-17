@@ -89,6 +89,56 @@ def test_runner_doesnt_impact_unrised_observer_exception_while_taking_observer_r
         assert timeout in ConnectionObserver._not_raised_exceptions
 
 
+def test_CancellableFuture_str_casting_shows_embedded_future():
+    import threading
+    from moler.runner import CancellableFuture
+    from concurrent.futures import ThreadPoolExecutor
+
+    def fun_with_future_result(delay):
+        time.sleep(delay)
+        return delay * 2
+
+    executor = ThreadPoolExecutor()
+    observer_lock = threading.Lock()
+    stop_feeding = threading.Event()
+    feed_done = threading.Event()
+    connection_observer_future = executor.submit(fun_with_future_result, delay=0.1)
+    c_future = CancellableFuture(connection_observer_future, observer_lock, stop_feeding, feed_done)
+    connection_observer_future_as_str = str(connection_observer_future)
+    c_future_as_str = str(c_future)
+    assert c_future_as_str == "CancellableFuture({})".format(connection_observer_future_as_str)
+    executor.shutdown()
+
+
+def test_CancellableFuture_can_force_cancel_of_embedded_future():
+    import threading
+    from moler.runner import CancellableFuture
+    from concurrent.futures import ThreadPoolExecutor
+    from moler.exceptions import MolerException
+
+    executor = ThreadPoolExecutor()
+    observer_lock = threading.Lock()
+    stop_feeding = threading.Event()
+    feed_done = threading.Event()
+
+    def fun_with_future_result(delay, should_stop):
+        start_time = time.time()
+        while not should_stop.is_set() and ((time.time() - start_time) < delay):
+            time.sleep(0.01)
+        return delay * 2
+
+    connection_observer_future = executor.submit(fun_with_future_result, delay=0.5, should_stop=stop_feeding)
+    assert "state=pending" in str(connection_observer_future)
+    c_future = CancellableFuture(connection_observer_future, observer_lock,
+                                 stop_feeding, feed_done, stop_timeout=0.2)
+    time.sleep(0.1)  # let thread switch happen
+    assert "state=running" in str(connection_observer_future)
+    with pytest.raises(MolerException) as exc:
+        c_future.cancel(no_wait=False)
+    time.sleep(0.1)
+    assert "state=finished" in str(connection_observer_future)
+    assert "Failed to stop thread-running function within 0.2 sec" in exc.value
+
 # --------------------------- resources ---------------------------
 
 
