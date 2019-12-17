@@ -58,12 +58,40 @@ def test_iperf_stores_connections_as_host_port_tuple_for_local_and_remote(buffer
                               **iperf2.COMMAND_KWARGS_bidirectional_udp_server)
     iperf_cmd()
     stored_connections = iperf_cmd.result()['CONNECTIONS'].keys()
+    #      local port@host      remote port@host
+    assert len(stored_connections) == 4
+    assert ('56262@192.168.0.10', '5016@192.168.0.12') in stored_connections
+    assert ('47384@192.168.0.12', '5016@192.168.0.10') in stored_connections
+    assert ('192.168.0.10', '5016@192.168.0.12') in stored_connections
+    assert ('192.168.0.12', '5016@192.168.0.10') in stored_connections
+
+
+def test_iperf_stores_connections_as_port_at_host_tuple_for_local_and_remote(buffer_connection):
+    from moler.cmd.unix import iperf2
+    buffer_connection.remote_inject_response([iperf2.COMMAND_OUTPUT_bidirectional_udp_server])
+    iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
+                              **iperf2.COMMAND_KWARGS_bidirectional_udp_server)
+    iperf_cmd()
+    stored_connections = iperf_cmd.result()['CONNECTIONS'].keys()
     #        local host:port      remote host:port
     assert len(stored_connections) == 4
-    assert ('192.168.0.10:56262', '192.168.0.12:5016') in stored_connections
-    assert ('192.168.0.12:47384', '192.168.0.10:5016') in stored_connections
-    assert ('192.168.0.10', '192.168.0.12:5016') in stored_connections
-    assert ('192.168.0.12', '192.168.0.10:5016') in stored_connections
+    assert ('56262@192.168.0.10', '5016@192.168.0.12') in stored_connections
+    assert ('47384@192.168.0.12', '5016@192.168.0.10') in stored_connections
+    assert ('192.168.0.10', '5016@192.168.0.12') in stored_connections
+    assert ('192.168.0.12', '5016@192.168.0.10') in stored_connections
+
+
+def test_iperf_stores_ipv6_connections_as_port_at_host_tuple_for_local_and_remote(buffer_connection):
+    from moler.cmd.unix import iperf2
+    buffer_connection.remote_inject_response([iperf2.COMMAND_OUTPUT_tcp_ipv6_client])
+    iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
+                              **iperf2.COMMAND_KWARGS_tcp_ipv6_client)
+    iperf_cmd()
+    stored_connections = iperf_cmd.result()['CONNECTIONS'].keys()
+    #      local port@host      remote port@host
+    assert len(stored_connections) == 2
+    assert ("49597@fd00::2:0", "5901@fd00::1:0") in stored_connections
+    assert ("fd00::2:0", "5901@fd00::1:0") in stored_connections
 
 
 def test_iperf_creates_summary_connection_for_parallel_testing(buffer_connection):
@@ -75,8 +103,8 @@ def test_iperf_creates_summary_connection_for_parallel_testing(buffer_connection
     stored_connections = iperf_cmd.result()['CONNECTIONS'].keys()
     #        local host:port      remote host:port
     assert len(stored_connections) == 22
-    assert ('192.168.0.102:multiport', '192.168.0.100:5001') in stored_connections  # summary
-    assert ('192.168.0.102', '192.168.0.100:5001') in stored_connections  # result
+    assert ('multiport@192.168.0.102', '5001@192.168.0.100') in stored_connections  # summary
+    assert ('192.168.0.102', '5001@192.168.0.100') in stored_connections  # result
 
 
 def test_iperf_correctly_parses_bidirectional_udp_client_output(buffer_connection):
@@ -113,6 +141,24 @@ def test_iperf_correctly_parses_basic_tcp_client_output(buffer_connection):
                               **iperf2.COMMAND_KWARGS_basic_client)
     res = iperf_cmd()
     assert res == iperf2.COMMAND_RESULT_basic_client
+
+
+def test_iperf_correctly_parses_tcp_ipv6_client_output(buffer_connection):
+    from moler.cmd.unix import iperf2
+    buffer_connection.remote_inject_response([iperf2.COMMAND_OUTPUT_tcp_ipv6_client])
+    iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
+                              **iperf2.COMMAND_KWARGS_tcp_ipv6_client)
+    res = iperf_cmd()
+    assert res == iperf2.COMMAND_RESULT_tcp_ipv6_client
+
+
+def test_iperf_correctly_parses_tcp_ipv6_server_output(buffer_connection):
+    from moler.cmd.unix import iperf2
+    buffer_connection.remote_inject_response([iperf2.COMMAND_OUTPUT_tcp_ipv6_server])
+    iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
+                              **iperf2.COMMAND_KWARGS_tcp_ipv6_server)
+    res = iperf_cmd()
+    assert res == iperf2.COMMAND_RESULT_tcp_ipv6_server
 
 
 def test_iperf_correctly_parses_multiconnection_tcp_client_output(buffer_connection):

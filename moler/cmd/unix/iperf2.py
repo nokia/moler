@@ -55,7 +55,7 @@ class Iperf2(GenericUnixCommand):
 
         COMMAND_RESULT = {
             'CONNECTIONS': {
-                ("192.168.0.10", "192.168.0.12:5016"): {'report': {'Lost_Datagrams_ratio': '0%',
+                ("192.168.0.10", "5016@192.168.0.12"): {'report': {'Lost_Datagrams_ratio': '0%',
                                                                    'Jitter': '0.017 ms',
                                                                    'Transfer': 3751936,
                                                                    'Interval': (0.0, 6.0),
@@ -73,7 +73,7 @@ class Iperf2(GenericUnixCommand):
 
         COMMAND_RESULT = {
             'CONNECTIONS': {
-                ("192.168.0.10", "192.168.0.12:5016"): {'report': {'Lost_Datagrams_ratio': '0%',
+                ("192.168.0.10", "5016@192.168.0.12"): {'report': {'Lost_Datagrams_ratio': '0%',
                                                                    'Jitter': '0.018 ms',
                                                                    'Transfer': 3751936,
                                                                    'Interval': (0.0, 6.0),
@@ -83,10 +83,10 @@ class Iperf2(GenericUnixCommand):
                                                                    'Bandwidth Raw': '5000 Kbits/sec'}}},
 
     Please note that connection name for iperf result is pair with format
-    (client_IP, server_IP:server_port)
+    (client_IP, server_port@server_IP)
 
     Iperf statistics are stored under connection name with format
-    (client_IP:client_port, server_IP:server_port) for each stats
+    (client_port@client_IP, server_port@server_IP) for each stats
     """
     def __init__(self, connection, options, prompt=None, newline_chars=None, runner=None):
         super(Iperf2, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
@@ -217,14 +217,15 @@ class Iperf2(GenericUnixCommand):
 
     # [  3] local 192.168.0.12 port 5016 connected with 192.168.0.10 port 56262
     # [  5] local 192.168.0.12 port 47384 connected with 192.168.0.10 port 5016
+    # [  4] local fd00::2:0 port 49597 connected with fd00::1:0 port 5901
     _r_conn_info = r"(\[\s*\d*\])\s+local\s+(\S+)\s+port\s+(\d+)\s+connected with\s+(\S+)\s+port\s+(\d+)"
     _re_connection_info = re.compile(_r_conn_info)
 
     def _parse_connection_name_and_id(self, line):
         if self._regex_helper.search_compiled(Iperf2._re_connection_info, line):
             connection_id, local_host, local_port, remote_host, remote_port = self._regex_helper.groups()
-            local = "{}:{}".format(local_host, local_port)
-            remote = "{}:{}".format(remote_host, remote_port)
+            local = "{}@{}".format(local_port, local_host)
+            remote = "{}@{}".format(remote_port, remote_host)
             if self.port == int(remote_port):
                 from_client, to_server = local, remote
             else:
@@ -248,13 +249,13 @@ class Iperf2(GenericUnixCommand):
                 client, server = list(self._connection_dict.values())[0]
                 client_host, client_port, server_host, server_port = self._split_connection_name((client, server))
                 connection_id = '[SUM]'
-                self._connection_dict[connection_id] = ("{}:{}".format(client_host, "multiport"), server)
+                self._connection_dict[connection_id] = ("{}@{}".format("multiport", client_host), server)
             raise ParsingDone
 
     def _split_connection_name(self, connection_name):
         client, server = connection_name
-        client_host, client_port = client.split(":")
-        server_host, server_port = server.split(":")
+        client_port, client_host = client.split("@")
+        server_port, server_host = server.split("@")
         return client_host, client_port, server_host, server_port
 
     # tcp:
@@ -317,7 +318,7 @@ class Iperf2(GenericUnixCommand):
             if self.parallel_client and ('multiport' not in connection_name[0]):
                 return  # for parallel we take report only from [SUM] final record
             client_host, client_port, server_host, server_port = self._split_connection_name(connection_name)
-            from_client, to_server = client_host, "{}:{}".format(server_host, server_port)
+            from_client, to_server = client_host, "{}@{}".format(server_port, server_host)
             result_connection = (from_client, to_server)
             self.current_ret['CONNECTIONS'][result_connection] = {'report': last_record}
 
@@ -335,10 +336,10 @@ class Iperf2(GenericUnixCommand):
         result = self.current_ret['CONNECTIONS']
         connections = list(self._connection_dict.values())
         client_host, client_port, server_host, server_port = self._split_connection_name(connections[0])
-        from_client, to_server = client_host, "{}:{}".format(server_host, self.port)
+        from_client, to_server = client_host, "{}@{}".format(self.port, server_host)
         has_client_report = (from_client, to_server) in result
         if self.works_in_dualtest:  # need two reports
-            from_server, to_client = server_host, "{}:{}".format(client_host, self.port)
+            from_server, to_client = server_host, "{}@{}".format(self.port, client_host)
             has_server_report = ((from_server, to_client) in result)
             all_reports = has_client_report and has_server_report
             works_as_client = True  # in dualtest both server and client work as client
@@ -417,7 +418,7 @@ COMMAND_KWARGS_basic_client = {
 
 COMMAND_RESULT_basic_client = {
     'CONNECTIONS':
-        {("192.168.0.102:49597", "192.168.0.100:5001"): [
+        {("49597@192.168.0.102", "5001@192.168.0.100"): [
             {'Bandwidth Raw': '240 Mbits/sec', 'Bandwidth': 30000000, 'Transfer Raw': '28.6 MBytes',
              'Transfer': 29989273, 'Interval': (0.0, 1.0)},
             {'Bandwidth Raw': '217 Mbits/sec', 'Bandwidth': 27125000, 'Transfer Raw': '25.9 MBytes',
@@ -440,7 +441,7 @@ COMMAND_RESULT_basic_client = {
              'Transfer': 27682406, 'Interval': (9.0, 10.0)},
             {'Bandwidth Raw': '222 Mbits/sec', 'Bandwidth': 27750000, 'Transfer Raw': '265 MBytes',
              'Transfer': 277872640, 'Interval': (0.0, 10.0)}],
-         ("192.168.0.102", "192.168.0.100:5001"):
+         ("192.168.0.102", "5001@192.168.0.100"):
             {'report': {'Transfer': 277872640, 'Bandwidth': 27750000, 'Transfer Raw': '265 MBytes',
                         'Bandwidth Raw': '222 Mbits/sec', 'Interval': (0.0, 10.0)}}},
     'INFO': ['Client connecting to 10.1.1.1, TCP port 5001', 'TCP window size: 16384 Byte (default)']
@@ -475,7 +476,7 @@ COMMAND_KWARGS_basic_server = {
 
 COMMAND_RESULT_basic_server = {
     'CONNECTIONS': {
-        ("10.6.2.5:32781", "10.1.1.1:5001"): [{'Bandwidth Raw': '9.84 Mbits/sec',
+        ("32781@10.6.2.5", "5001@10.1.1.1"): [{'Bandwidth Raw': '9.84 Mbits/sec',
                                                'Bandwidth': 1230000,
                                                'Interval': (0.0, 1.0),
                                                'Jitter': '1.830 ms',
@@ -563,7 +564,7 @@ COMMAND_RESULT_basic_server = {
                                                'Lost_Datagrams_ratio': '0.11%',
                                                'Transfer Raw': '11.8 MBytes',
                                                'Transfer': 12373196}],
-        ("10.6.2.5", "10.1.1.1:5001"): {'report': {'Lost_Datagrams_ratio': '0.11%',
+        ("10.6.2.5", "5001@10.1.1.1"): {'report': {'Lost_Datagrams_ratio': '0.11%',
                                                    'Jitter': '2.618 ms',
                                                    'Transfer': 12373196,
                                                    'Interval': (0.0, 10.0),
@@ -573,6 +574,120 @@ COMMAND_RESULT_basic_server = {
                                                    'Bandwidth Raw': '9.86 Mbits/sec'}}},
     'INFO': ['Server listening on UDP port 5001', 'Receiving 1470 byte datagrams',
              'UDP buffer size: 8.00 KByte (default)']}
+
+
+COMMAND_OUTPUT_tcp_ipv6_server = """
+xyz@debian:~$ iperf -s -V -p 5901 -i 1.0
+------------------------------------------------------------
+Server listening on TCP port 5901
+TCP window size: 85.3 KByte (default)
+------------------------------------------------------------
+[  4] local fd00::1:0 port 5901 connected with fd00::2:0 port 48836
+[ ID] Interval       Transfer     Bandwidth
+[  4]  0.0- 1.0 sec  2.97 GBytes  25.6 Gbits/sec
+[  4]  1.0- 2.0 sec  2.65 GBytes  22.7 Gbits/sec
+[  4]  2.0- 3.0 sec  3.23 GBytes  27.7 Gbits/sec
+[  4]  3.0- 4.0 sec  2.94 GBytes  25.3 Gbits/sec
+[  4]  0.0- 4.0 sec  11.8 GBytes  25.3 Gbits/sec
+xyz@debian:~$"""
+
+
+COMMAND_KWARGS_tcp_ipv6_server = {
+    'options': '-s -V -p 5901 -i 1.0'
+}
+
+COMMAND_RESULT_tcp_ipv6_server = {
+    'CONNECTIONS': {
+        ("48836@fd00::2:0", "5901@fd00::1:0"): [{'Transfer': 3189013217,
+                                                 'Bandwidth': 3200000000,
+                                                 'Transfer Raw': '2.97 GBytes',
+                                                 'Bandwidth Raw': '25.6 Gbits/sec',
+                                                 'Interval': (0.0, 1.0)},
+                                                {'Transfer': 2845415833,
+                                                 'Bandwidth': 2837500000,
+                                                 'Transfer Raw': '2.65 GBytes',
+                                                 'Bandwidth Raw': '22.7 Gbits/sec',
+                                                 'Interval': (1.0, 2.0)},
+                                                {'Transfer': 3468186091,
+                                                 'Bandwidth': 3462500000,
+                                                 'Transfer Raw': '3.23 GBytes',
+                                                 'Bandwidth Raw': '27.7 Gbits/sec',
+                                                 'Interval': (2.0, 3.0)},
+                                                {'Transfer': 3156800962,
+                                                 'Bandwidth': 3162500000,
+                                                 'Transfer Raw': '2.94 GBytes',
+                                                 'Bandwidth Raw': '25.3 Gbits/sec',
+                                                 'Interval': (3.0, 4.0)},
+                                                {'Transfer': 12670153523,
+                                                 'Bandwidth': 3162500000,
+                                                 'Transfer Raw': '11.8 GBytes',
+                                                 'Bandwidth Raw': '25.3 Gbits/sec',
+                                                 'Interval': (0.0, 4.0)}],
+        ("fd00::2:0", "5901@fd00::1:0"): {'report': {'Transfer': 12670153523,
+                                                     'Bandwidth': 3162500000,
+                                                     'Transfer Raw': '11.8 GBytes',
+                                                     'Bandwidth Raw': '25.3 Gbits/sec',
+                                                     'Interval': (0.0, 4.0)}}},
+    'INFO': ['Server listening on TCP port 5901',
+             'TCP window size: 85.3 KByte (default)']}
+
+
+COMMAND_OUTPUT_tcp_ipv6_client = """
+xyz@debian:~$ iperf -c fd00::1:0 -V -p 5901 -i 1.0
+------------------------------------------------------------
+Client connecting to fd00::1:0, TCP port 5901
+TCP window size: 2565 Byte (default)
+------------------------------------------------------------
+[  3] local fd00::2:0 port 49597 connected with fd00::1:0 port 5901
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0- 1.0 sec  28.6 MBytes   240 Mbits/sec
+[  3]  1.0- 2.0 sec  25.9 MBytes   217 Mbits/sec
+[  3]  2.0- 3.0 sec  26.5 MBytes   222 Mbits/sec
+[  3]  3.0- 4.0 sec  26.6 MBytes   223 Mbits/sec
+[  3]  4.0- 5.0 sec  26.0 MBytes   218 Mbits/sec
+[  3]  5.0- 6.0 sec  26.2 MBytes   220 Mbits/sec
+[  3]  6.0- 7.0 sec  26.8 MBytes   224 Mbits/sec
+[  3]  7.0- 8.0 sec  26.0 MBytes   218 Mbits/sec
+[  3]  8.0- 9.0 sec  25.8 MBytes   216 Mbits/sec
+[  3]  9.0-10.0 sec  26.4 MBytes   221 Mbits/sec
+[  3]  0.0-10.0 sec   265 MBytes   222 Mbits/sec
+xyz@debian:~$"""
+
+
+COMMAND_KWARGS_tcp_ipv6_client = {
+    'options': '-c fd00::1:0 -V -p 5901 -i 1.0'
+}
+
+COMMAND_RESULT_tcp_ipv6_client = {
+    'CONNECTIONS':
+        {("49597@fd00::2:0", "5901@fd00::1:0"): [
+            {'Bandwidth Raw': '240 Mbits/sec', 'Bandwidth': 30000000, 'Transfer Raw': '28.6 MBytes',
+             'Transfer': 29989273, 'Interval': (0.0, 1.0)},
+            {'Bandwidth Raw': '217 Mbits/sec', 'Bandwidth': 27125000, 'Transfer Raw': '25.9 MBytes',
+             'Transfer': 27158118, 'Interval': (1.0, 2.0)},
+            {'Bandwidth Raw': '222 Mbits/sec', 'Bandwidth': 27750000, 'Transfer Raw': '26.5 MBytes',
+             'Transfer': 27787264, 'Interval': (2.0, 3.0)},
+            {'Bandwidth Raw': '223 Mbits/sec', 'Bandwidth': 27875000, 'Transfer Raw': '26.6 MBytes',
+             'Transfer': 27892121, 'Interval': (3.0, 4.0)},
+            {'Bandwidth Raw': '218 Mbits/sec', 'Bandwidth': 27250000, 'Transfer Raw': '26.0 MBytes',
+             'Transfer': 27262976, 'Interval': (4.0, 5.0)},
+            {'Bandwidth Raw': '220 Mbits/sec', 'Bandwidth': 27500000, 'Transfer Raw': '26.2 MBytes',
+             'Transfer': 27472691, 'Interval': (5.0, 6.0)},
+            {'Bandwidth Raw': '224 Mbits/sec', 'Bandwidth': 28000000, 'Transfer Raw': '26.8 MBytes',
+             'Transfer': 28101836, 'Interval': (6.0, 7.0)},
+            {'Bandwidth Raw': '218 Mbits/sec', 'Bandwidth': 27250000, 'Transfer Raw': '26.0 MBytes',
+             'Transfer': 27262976, 'Interval': (7.0, 8.0)},
+            {'Bandwidth Raw': '216 Mbits/sec', 'Bandwidth': 27000000, 'Transfer Raw': '25.8 MBytes',
+             'Transfer': 27053260, 'Interval': (8.0, 9.0)},
+            {'Bandwidth Raw': '221 Mbits/sec', 'Bandwidth': 27625000, 'Transfer Raw': '26.4 MBytes',
+             'Transfer': 27682406, 'Interval': (9.0, 10.0)},
+            {'Bandwidth Raw': '222 Mbits/sec', 'Bandwidth': 27750000, 'Transfer Raw': '265 MBytes',
+             'Transfer': 277872640, 'Interval': (0.0, 10.0)}],
+         ("fd00::2:0", "5901@fd00::1:0"):
+            {'report': {'Transfer': 277872640, 'Bandwidth': 27750000, 'Transfer Raw': '265 MBytes',
+                        'Bandwidth Raw': '222 Mbits/sec', 'Interval': (0.0, 10.0)}}},
+    'INFO': ['Client connecting to fd00::1:0, TCP port 5901', 'TCP window size: 2565 Byte (default)']
+}
 
 
 COMMAND_OUTPUT_bidirectional_udp_client = """
@@ -617,7 +732,7 @@ COMMAND_KWARGS_bidirectional_udp_client = {
 
 COMMAND_RESULT_bidirectional_udp_client = {
     'CONNECTIONS': {
-        ("192.168.0.10:56262", "192.168.0.12:5016"): [{'Transfer': 627712,
+        ("56262@192.168.0.10", "5016@192.168.0.12"): [{'Transfer': 627712,
                                                        'Bandwidth': 627750,
                                                        'Transfer Raw': '613 KBytes',
                                                        'Bandwidth Raw': '5022 Kbits/sec',
@@ -660,7 +775,7 @@ COMMAND_RESULT_bidirectional_udp_client = {
                                                        'Lost_vs_Total_Datagrams': (0, 2552),
                                                        'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '5000 Kbits/sec'}],
-        ("192.168.0.12:47384", "192.168.0.10:5016"): [{'Transfer Raw': '612 KBytes',
+        ("47384@192.168.0.12", "5016@192.168.0.10"): [{'Transfer Raw': '612 KBytes',
                                                        'Jitter': '0.011 ms',
                                                        'Transfer': 626688,
                                                        'Interval': (0.0, 1.0),
@@ -716,7 +831,7 @@ COMMAND_RESULT_bidirectional_udp_client = {
                                                        'Lost_vs_Total_Datagrams': (0, 2552),
                                                        'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '5000 Kbits/sec'}],
-        ("192.168.0.10", "192.168.0.12:5016"): {'report': {'Lost_Datagrams_ratio': '0%',
+        ("192.168.0.10", "5016@192.168.0.12"): {'report': {'Lost_Datagrams_ratio': '0%',
                                                            'Jitter': '0.017 ms',
                                                            'Transfer': 3751936,
                                                            'Interval': (0.0, 6.0),
@@ -724,7 +839,7 @@ COMMAND_RESULT_bidirectional_udp_client = {
                                                            'Bandwidth': 625000,
                                                            'Lost_vs_Total_Datagrams': (0, 2552),
                                                            'Bandwidth Raw': '5000 Kbits/sec'}},
-        ("192.168.0.12", "192.168.0.10:5016"): {'report': {'Lost_Datagrams_ratio': '0%',
+        ("192.168.0.12", "5016@192.168.0.10"): {'report': {'Lost_Datagrams_ratio': '0%',
                                                            'Jitter': '0.017 ms',
                                                            'Transfer': 3751936,
                                                            'Interval': (0.0, 6.0),
@@ -782,7 +897,7 @@ COMMAND_KWARGS_bidirectional_udp_server = {
 
 COMMAND_RESULT_bidirectional_udp_server = {
     'CONNECTIONS': {
-        ("192.168.0.12:47384", "192.168.0.10:5016"): [{'Transfer': 627712,
+        ("47384@192.168.0.12", "5016@192.168.0.10"): [{'Transfer': 627712,
                                                        'Bandwidth': 627750,
                                                        'Transfer Raw': '613 KBytes',
                                                        'Bandwidth Raw': '5022 Kbits/sec',
@@ -825,7 +940,7 @@ COMMAND_RESULT_bidirectional_udp_server = {
                                                        'Lost_vs_Total_Datagrams': (0, 2552),
                                                        'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '5000 Kbits/sec'}],
-        ("192.168.0.10:56262", "192.168.0.12:5016"): [{'Transfer Raw': '612 KBytes',
+        ("56262@192.168.0.10", "5016@192.168.0.12"): [{'Transfer Raw': '612 KBytes',
                                                        'Jitter': '0.022 ms',
                                                        'Transfer': 626688,
                                                        'Interval': (0.0, 1.0),
@@ -881,7 +996,7 @@ COMMAND_RESULT_bidirectional_udp_server = {
                                                        'Lost_vs_Total_Datagrams': (0, 2552),
                                                        'Lost_Datagrams_ratio': '0%',
                                                        'Bandwidth Raw': '5000 Kbits/sec'}],
-        ("192.168.0.12", "192.168.0.10:5016"): {'report': {'Lost_Datagrams_ratio': u'0%',
+        ("192.168.0.12", "5016@192.168.0.10"): {'report': {'Lost_Datagrams_ratio': u'0%',
                                                            'Jitter': '0.017 ms',
                                                            'Transfer': 3751936,
                                                            'Interval': (0.0, 6.0),
@@ -889,7 +1004,7 @@ COMMAND_RESULT_bidirectional_udp_server = {
                                                            'Bandwidth': 625000,
                                                            'Lost_vs_Total_Datagrams': (0, 2552),
                                                            'Bandwidth Raw': '5000 Kbits/sec'}},
-        ("192.168.0.10", "192.168.0.12:5016"): {'report': {'Lost_Datagrams_ratio': '0%',
+        ("192.168.0.10", "5016@192.168.0.12"): {'report': {'Lost_Datagrams_ratio': '0%',
                                                            'Jitter': '0.018 ms',
                                                            'Transfer': 3751936,
                                                            'Interval': (0.0, 6.0),
@@ -962,112 +1077,112 @@ COMMAND_KWARGS_multiple_connections = {
 
 COMMAND_RESULT_multiple_connections = {
     'CONNECTIONS': {
-        ("192.168.0.102:57246", "192.168.0.100:5001"): [{'Bandwidth Raw': '14.5 Mbits/sec',
+        ("57246@192.168.0.102", "5001@192.168.0.100"): [{'Bandwidth Raw': '14.5 Mbits/sec',
                                                          'Bandwidth': 1812500,
                                                          'Interval': (0.0, 10.7),
                                                          'Transfer Raw': '18.5 MBytes',
                                                          'Transfer': 19398656}],
-        ("192.168.0.102:57247", "192.168.0.100:5001"): [{'Bandwidth Raw': '14.1 Mbits/sec',
+        ("57247@192.168.0.102", "5001@192.168.0.100"): [{'Bandwidth Raw': '14.1 Mbits/sec',
                                                          'Bandwidth': 1762500,
                                                          'Interval': (0.0, 10.8),
                                                          'Transfer Raw': '18.1 MBytes',
                                                          'Transfer': 18979225}],
-        ("192.168.0.102:57248", "192.168.0.100:5001"): [{'Bandwidth Raw': '13.9 Mbits/sec',
+        ("57248@192.168.0.102", "5001@192.168.0.100"): [{'Bandwidth Raw': '13.9 Mbits/sec',
                                                          'Bandwidth': 1737500,
                                                          'Interval': (0.0, 10.7),
                                                          'Transfer Raw': '17.6 MBytes',
                                                          'Transfer': 18454937}],
-        ("192.168.0.102:57249", "192.168.0.100:5001"): [{'Bandwidth Raw': '13.2 Mbits/sec',
+        ("57249@192.168.0.102", "5001@192.168.0.100"): [{'Bandwidth Raw': '13.2 Mbits/sec',
                                                          'Bandwidth': 1650000,
                                                          'Interval': (0.0, 10.8),
                                                          'Transfer Raw': '17.0 MBytes',
                                                          'Transfer': 17825792}],
-        ("192.168.0.102:57250", "192.168.0.100:5001"): [{'Bandwidth Raw': '14.3 Mbits/sec',
+        ("57250@192.168.0.102", "5001@192.168.0.100"): [{'Bandwidth Raw': '14.3 Mbits/sec',
                                                          'Bandwidth': 1787500,
                                                          'Interval': (0.0, 10.8),
                                                          'Transfer Raw': '18.4 MBytes',
                                                          'Transfer': 19293798}],
-        ("192.168.0.102:57251", "192.168.0.100:5001"): [{'Bandwidth Raw': '13.1 Mbits/sec',
+        ("57251@192.168.0.102", "5001@192.168.0.100"): [{'Bandwidth Raw': '13.1 Mbits/sec',
                                                          'Bandwidth': 1637500,
                                                          'Interval': (0.0, 10.6),
                                                          'Transfer Raw': '16.6 MBytes',
                                                          'Transfer': 17406361}],
-        ("192.168.0.102:57252", "192.168.0.100:5001"): [{'Bandwidth Raw': '13.0 Mbits/sec',
+        ("57252@192.168.0.102", "5001@192.168.0.100"): [{'Bandwidth Raw': '13.0 Mbits/sec',
                                                          'Bandwidth': 1625000,
                                                          'Interval': (0.0, 10.8),
                                                          'Transfer Raw': '16.8 MBytes',
                                                          'Transfer': 17616076}],
-        ("192.168.0.102:57253", "192.168.0.100:5001"): [{'Bandwidth Raw': '13.1 Mbits/sec',
+        ("57253@192.168.0.102", "5001@192.168.0.100"): [{'Bandwidth Raw': '13.1 Mbits/sec',
                                                          'Bandwidth': 1637500,
                                                          'Interval': (0.0, 10.8),
                                                          'Transfer Raw': '16.8 MBytes',
                                                          'Transfer': 17616076}],
-        ("192.168.0.102:57254", "192.168.0.100:5001"): [{'Bandwidth Raw': '14.0 Mbits/sec',
+        ("57254@192.168.0.102", "5001@192.168.0.100"): [{'Bandwidth Raw': '14.0 Mbits/sec',
                                                          'Bandwidth': 1750000,
                                                          'Interval': (0.0, 10.7),
                                                          'Transfer Raw': '18.0 MBytes',
                                                          'Transfer': 18874368}],
-        ("192.168.0.102:57255", "192.168.0.100:5001"): [{'Bandwidth Raw': '13.7 Mbits/sec',
+        ("57255@192.168.0.102", "5001@192.168.0.100"): [{'Bandwidth Raw': '13.7 Mbits/sec',
                                                          'Bandwidth': 1712500,
                                                          'Interval': (0.0, 10.7),
                                                          'Transfer Raw': '17.5 MBytes',
                                                          'Transfer': 18350080}],
-        ("192.168.0.102:57256", "192.168.0.100:5001"): [{'Bandwidth Raw': '13.9 Mbits/sec',
+        ("57256@192.168.0.102", "5001@192.168.0.100"): [{'Bandwidth Raw': '13.9 Mbits/sec',
                                                          'Bandwidth': 1737500,
                                                          'Interval': (0.0, 10.7),
                                                          'Transfer Raw': '17.8 MBytes',
                                                          'Transfer': 18664652}],
-        ("192.168.0.102:57257", "192.168.0.100:5001"): [{'Bandwidth Raw': '14.1 Mbits/sec',
+        ("57257@192.168.0.102", "5001@192.168.0.100"): [{'Bandwidth Raw': '14.1 Mbits/sec',
                                                          'Bandwidth': 1762500,
                                                          'Interval': (0.0, 10.8),
                                                          'Transfer Raw': '18.2 MBytes',
                                                          'Transfer': 19084083}],
-        ("192.168.0.102:57258", "192.168.0.100:5001"): [{'Bandwidth Raw': '13.8 Mbits/sec',
+        ("57258@192.168.0.102", "5001@192.168.0.100"): [{'Bandwidth Raw': '13.8 Mbits/sec',
                                                          'Bandwidth': 1725000,
                                                          'Interval': (0.0, 10.8),
                                                          'Transfer Raw': '17.8 MBytes',
                                                          'Transfer': 18664652}],
-        ("192.168.0.102:57259", "192.168.0.100:5001"): [{'Bandwidth Raw': '13.1 Mbits/sec',
+        ("57259@192.168.0.102", "5001@192.168.0.100"): [{'Bandwidth Raw': '13.1 Mbits/sec',
                                                          'Bandwidth': 1637500,
                                                          'Interval': (0.0, 10.6),
                                                          'Transfer Raw': '16.6 MBytes',
                                                          'Transfer': 17406361}],
-        ("192.168.0.102:57260", "192.168.0.100:5001"): [{'Bandwidth Raw': '13.1 Mbits/sec',
+        ("57260@192.168.0.102", "5001@192.168.0.100"): [{'Bandwidth Raw': '13.1 Mbits/sec',
                                                          'Bandwidth': 1637500,
                                                          'Interval': (0.0, 10.6),
                                                          'Transfer Raw': '16.5 MBytes',
                                                          'Transfer': 17301504}],
-        ("192.168.0.102:57261", "192.168.0.100:5001"): [{'Bandwidth Raw': '13.0 Mbits/sec',
+        ("57261@192.168.0.102", "5001@192.168.0.100"): [{'Bandwidth Raw': '13.0 Mbits/sec',
                                                          'Bandwidth': 1625000,
                                                          'Interval': (0.0, 10.6),
                                                          'Transfer Raw': '16.5 MBytes',
                                                          'Transfer': 17301504}],
-        ("192.168.0.102:57262", "192.168.0.100:5001"): [{'Bandwidth Raw': '12.9 Mbits/sec',
+        ("57262@192.168.0.102", "5001@192.168.0.100"): [{'Bandwidth Raw': '12.9 Mbits/sec',
                                                          'Bandwidth': 1612500,
                                                          'Interval': (0.0, 10.7),
                                                          'Transfer Raw': '16.5 MBytes',
                                                          'Transfer': 17301504}],
-        ("192.168.0.102:57263", "192.168.0.100:5001"): [{'Bandwidth Raw': '13.0 Mbits/sec',
+        ("57263@192.168.0.102", "5001@192.168.0.100"): [{'Bandwidth Raw': '13.0 Mbits/sec',
                                                          'Bandwidth': 1625000,
                                                          'Interval': (0.0, 10.7),
                                                          'Transfer Raw': '16.6 MBytes',
                                                          'Transfer': 17406361}],
-        ("192.168.0.102:57264", "192.168.0.100:5001"): [{'Bandwidth Raw': '12.3 Mbits/sec',
+        ("57264@192.168.0.102", "5001@192.168.0.100"): [{'Bandwidth Raw': '12.3 Mbits/sec',
                                                          'Bandwidth': 1537500,
                                                          'Interval': (0.0, 10.7),
                                                          'Transfer Raw': '15.6 MBytes',
                                                          'Transfer': 16357785}],
-        ("192.168.0.102:57265", "192.168.0.100:5001"): [{'Bandwidth Raw': '13.0 Mbits/sec',
+        ("57265@192.168.0.102", "5001@192.168.0.100"): [{'Bandwidth Raw': '13.0 Mbits/sec',
                                                          'Bandwidth': 1625000,
                                                          'Interval': (0.0, 10.7),
                                                          'Transfer Raw': '16.6 MBytes',
                                                          'Transfer': 17406361}],
-        ("192.168.0.102:multiport", "192.168.0.100:5001"): [{'Transfer': 360710144,
+        ("multiport@192.168.0.102", "5001@192.168.0.100"): [{'Transfer': 360710144,
                                                              'Bandwidth': 33250000,
                                                              'Transfer Raw': '344 MBytes',
                                                              'Bandwidth Raw': '266 Mbits/sec',
                                                              'Interval': (0.0, 10.8)}],
-        ("192.168.0.102", "192.168.0.100:5001"): {'report': {'Transfer': 360710144,
+        ("192.168.0.102", "5001@192.168.0.100"): {'report': {'Transfer': 360710144,
                                                              'Bandwidth': 33250000,
                                                              'Transfer Raw': '344 MBytes',
                                                              'Bandwidth Raw': '266 Mbits/sec',
@@ -1098,27 +1213,27 @@ COMMAND_KWARGS_multiple_connections_server = {
 
 COMMAND_RESULT_multiple_connections_server = {
     'CONNECTIONS': {
-        ('192.168.0.10:42520', '192.168.0.12:5016'): [{'Transfer': 2456420352,
+        ('42520@192.168.0.10', '5016@192.168.0.12'): [{'Transfer': 2456420352,
                                                        'Bandwidth': 490779750,
                                                        'Transfer Raw': '2398848 KBytes',
                                                        'Bandwidth Raw': '3926238 Kbits/sec',
                                                        'Interval': (0.0, 5.0)}],
-        ('192.168.0.10:42524', '192.168.0.12:5016'): [{'Transfer': 2418540544,
+        ('42524@192.168.0.10', '5016@192.168.0.12'): [{'Transfer': 2418540544,
                                                        'Bandwidth': 483115000,
                                                        'Transfer Raw': '2361856 KBytes',
                                                        'Bandwidth Raw': '3864920 Kbits/sec',
                                                        'Interval': (0.0, 5.0)}],
-        ('192.168.0.10:42522', '192.168.0.12:5016'): [{'Transfer': 2212102144,
+        ('42522@192.168.0.10', '5016@192.168.0.12'): [{'Transfer': 2212102144,
                                                        'Bandwidth': 441878000,
                                                        'Transfer Raw': '2160256 KBytes',
                                                        'Bandwidth Raw': '3535024 Kbits/sec',
                                                        'Interval': (0.0, 5.0)}],
-        ('192.168.0.10:multiport', '192.168.0.12:5016'): [{'Transfer': 7087063040,
+        ('multiport@192.168.0.10', '5016@192.168.0.12'): [{'Transfer': 7087063040,
                                                            'Bandwidth': 1415674750,
                                                            'Transfer Raw': '6920960 KBytes',
                                                            'Bandwidth Raw': '11325398 Kbits/sec',
                                                            'Interval': (0.0, 5.0)}],
-        ('192.168.0.10', '192.168.0.12:5016'): {'report': {'Transfer': 7087063040,
+        ('192.168.0.10', '5016@192.168.0.12'): {'report': {'Transfer': 7087063040,
                                                            'Bandwidth': 1415674750,
                                                            'Transfer Raw': '6920960 KBytes',
                                                            'Bandwidth Raw': '11325398 Kbits/sec',
