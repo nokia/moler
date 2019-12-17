@@ -1,11 +1,17 @@
+## moler 1.4.0
+
+### Changed
+* connection name returned by iperf2 uses "port@host" format to not confuse on IPv6 (fd00::1:0:5901 -> 5901@fd00::1:0)
+
+
 ## moler 1.3.1
 
 ### Added
-* option to disable log every occurrence for events
-* backward compatibility for load_device_from_config
+* possibility to enable/disable logging each occurrence of event
+* backward compatibility for load_device_from_config()
 
 ### Fixed
-* correct device remove functionality functionality
+* device closing (dev.remove() method) fails if device was already closed
 
 
 ## moler 1.3.0
