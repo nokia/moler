@@ -136,7 +136,7 @@ def test_CancellableFuture_can_force_cancel_of_embedded_future():
         c_future.cancel(no_wait=False)
     time.sleep(0.1)
     assert "state=finished" in str(connection_observer_future)
-    assert "Failed to stop thread-running function within 0.2 sec" in exc.value
+    assert "Failed to stop thread-running function within 0.2 sec" in str(exc.value)
 
 
 def test_ThreadPoolExecutorRunner_logs_about_reused_executor():
