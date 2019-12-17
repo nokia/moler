@@ -128,7 +128,6 @@ def test_CancellableFuture_can_force_cancel_of_embedded_future():
         return delay * 2
 
     connection_observer_future = executor.submit(fun_with_future_result, delay=0.5, should_stop=stop_feeding)
-    assert "state=pending" in str(connection_observer_future)
     c_future = CancellableFuture(connection_observer_future, observer_lock,
                                  stop_feeding, feed_done, stop_timeout=0.2)
     time.sleep(0.1)  # let thread switch happen
@@ -138,6 +137,21 @@ def test_CancellableFuture_can_force_cancel_of_embedded_future():
     time.sleep(0.1)
     assert "state=finished" in str(connection_observer_future)
     assert "Failed to stop thread-running function within 0.2 sec" in exc.value
+
+
+def test_ThreadPoolExecutorRunner_logs_about_reused_executor():
+    import logging
+    from concurrent.futures import ThreadPoolExecutor
+    from moler.runner import ThreadPoolExecutorRunner
+
+    logger = logging.getLogger('moler.runner.thread-pool')
+    external_executor = ThreadPoolExecutor()
+    with mock.patch.object(logger, "debug") as log_debug:
+        ThreadPoolExecutorRunner(executor=external_executor)
+
+    assert mock.call("reusing provided executor {!r}".format(external_executor)) in log_debug.mock_calls
+    external_executor.shutdown()
+
 
 # --------------------------- resources ---------------------------
 
