@@ -71,6 +71,24 @@ def test_time_out_observer_sets_exception_inside_observer_before_calling_on_time
             time_out_observer(conn_observer, timeout=2.3, passed_time=2.32, runner_logger=mock.MagicMock())
 
 
+def test_runner_doesnt_impact_unrised_observer_exception_while_taking_observer_result(connection_observer,
+                                                                                      observer_runner):
+    from moler.runner import time_out_observer, result_for_runners
+    from moler.exceptions import ConnectionObserverTimeout
+
+    with observer_runner:
+        connection_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
+        observer_runner.submit(connection_observer)
+        time_out_observer(connection_observer, timeout=2.3, passed_time=2.32, runner_logger=mock.MagicMock())
+
+    timeout = connection_observer._exception
+    assert timeout in ConnectionObserver._not_raised_exceptions
+    try:
+        result_for_runners(connection_observer)
+    except ConnectionObserverTimeout as timeout:
+        assert timeout in ConnectionObserver._not_raised_exceptions
+
+
 # --------------------------- resources ---------------------------
 
 
