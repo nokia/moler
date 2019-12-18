@@ -23,70 +23,38 @@ import re
 
 class Iperf2(GenericUnixCommand):
     """
-    Run iperf command and return its statistics
+    Run iperf command, return its statistics and report.
 
-    Statistics are given as list of dicts like::
-
-      {'Interval':                 (0.0, 1.0),
-       'Transfer Raw':             '1.17 MBytes',
-       'Transfer':                 1226833,
-       'Bandwidth Raw':            '9.84 Mbits/sec',
-       'Bandwidth':                1230000,
-       'Jitter':                   '1.830 ms',
-       'Lost_vs_Total_Datagrams':  (0, 837),
-       'Lost_Datagrams_ratio':     '0%'}
-
-    Above dict represents single line of iperf output like::
+    Single line of iperf output may look like::
 
       [ ID]   Interval       Transfer      Bandwidth        Jitter   Lost/Total Datagrams
       [904]   0.0- 1.0 sec   1.17 MBytes   9.84 Mbits/sec   1.830 ms    0/ 837   (0%)
 
-    Please note that numeric values are normalized to Bytes:
-    - Transfer is in Bytes
-    - Bandwith is in Bytes/sec
+    It represents data transfer statistics reported per given interval.
+    This line is parsed out and produces statistics record as python dict.
+    (examples can be found at bottom of iperf2.py source code)
+    Some keys inside dict are normalized to Bytes.
+    In such case you will see both: raw and normalized values::
 
-    Returned value contains iperf report in following format:
-    at client side
-    $ iperf -c 192.168.0.12 -u -p 5016 -f k -i 1.0 -t 6.0 --dualtest -b 5000.0k
-    client connecting as
-    Client connecting to 192.168.0.12, UDP port 5016
-    [  3] local 192.168.0.10 port 5016 connected with 192.168.0.12 port 47384
-    is reported by client as::
-
-        COMMAND_RESULT = {
-            'CONNECTIONS': {
-                ("192.168.0.10", "5016@192.168.0.12"): {'report': {'Lost_Datagrams_ratio': '0%',
-                                                                   'Jitter': '0.017 ms',
-                                                                   'Transfer': 3751936,
-                                                                   'Interval': (0.0, 6.0),
-                                                                   'Transfer Raw': '3664 KBytes',
-                                                                   'Bandwidth': 625000,
-                                                                   'Lost_vs_Total_Datagrams': (0, 2552),
-                                                                   'Bandwidth Raw': '5000 Kbits/sec'}},
-
-    at server side
-    $ iperf -s -u -p 5016 -f k -i 1.0
-    Server listening on UDP port 5016
-    client connecting as
-    [  3] local 192.168.0.12 port 5016 connected with 192.168.0.10 port 56262
-    is reported by server as::
-
-        COMMAND_RESULT = {
-            'CONNECTIONS': {
-                ("192.168.0.10", "5016@192.168.0.12"): {'report': {'Lost_Datagrams_ratio': '0%',
-                                                                   'Jitter': '0.018 ms',
-                                                                   'Transfer': 3751936,
-                                                                   'Interval': (0.0, 6.0),
-                                                                   'Transfer Raw': '3664 KBytes',
-                                                                   'Bandwidth': 625000,
-                                                                   'Lost_vs_Total_Datagrams': (0, 2552),
-                                                                   'Bandwidth Raw': '5000 Kbits/sec'}}},
-
-    Please note that connection name for iperf result is pair with format
-    (client_IP, server_port@server_IP)
+      'Transfer Raw':     '1.17 MBytes',
+      'Transfer':         1226833,           # Bytes
+      'Bandwidth Raw':    '9.84 Mbits/sec',
+      'Bandwidth':        1230000,           # Bytes/sec
 
     Iperf statistics are stored under connection name with format
-    (client_port@client_IP, server_port@server_IP) for each stats
+    (client_port@client_IP, server_port@server_IP)
+    It represents iperf output line (iperf server example below) like::
+
+      [  3] local 192.168.0.12 port 5016 connected with 192.168.0.10 port 56262
+      ("56262@192.168.0.10", "5016@192.168.0.12"): [<statistics dicts here>]
+
+    Iperf returned value has also additional connection named "report connection".
+    It has format
+    (client_IP, server_port@server_IP)
+    So, for above example you should expect structure like::
+
+      ("192.168.0.10", "5016@192.168.0.12"): {'report': {<report dict here>}}
+
     """
     def __init__(self, connection, options, prompt=None, newline_chars=None, runner=None):
         super(Iperf2, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
