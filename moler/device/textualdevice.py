@@ -141,7 +141,6 @@ class TextualDevice(AbstractDevice):
         if not self.has_established_connection():
             return
         self.goto_state(TextualDevice.not_connected)
-        self._stop_prompts_observers()
         if self.has_established_connection():
             self._established = False
             # self.io_connection.moler_connection.shutdown()
@@ -629,6 +628,7 @@ class TextualDevice(AbstractDevice):
         self.io_connection.open()
 
     def _close_connection(self, source_state, dest_state, timeout):
+        self._stop_prompts_observers()
         self.io_connection.close()
 
     def _prompts_observer_callback(self, event):
@@ -685,6 +685,7 @@ class TextualDevice(AbstractDevice):
         if self._prompts_event:
             self._prompts_event.cancel()
             self._prompts_event.remove_event_occurred_callback()
+            self._prompts_event = None
 
     def build_trigger_to_state(self, state):
         trigger = "GOTO_{}".format(state)
