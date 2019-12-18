@@ -3,6 +3,9 @@
 ### Changed
 * connection name returned by iperf2 uses "port@host" format to not confuse on IPv6 (fd00::1:0:5901 -> 5901@fd00::1:0)
 
+### Deprecated
+* `config_type` parameter of `load_config()` is not needed, configuration type is autodetected
+
 
 ## moler 1.3.1
 

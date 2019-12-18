@@ -64,13 +64,14 @@ def configs_are_same(config_list, config_to_find):
     return False
 
 
-def load_config(config=None, from_env_var=None, config_type='yaml'):
+def load_config(config=None, from_env_var=None, *args, **kwargs):
     """
-    Load Moler's configuration from config file
+    Load Moler's configuration from config file.
 
-    :param config: either dict or config filename directly provided (overwrites 'from_env_var' if both given)
-    :param from_env_var: name of environment variable storing config filename
-    :param config_type: 'dict' ('config' param is dict) or 'yaml' ('config' is filename of file with YAML content)
+    Load Moler's configuration from config file.
+    :param config: either dict or config filename directly provided (overwrites 'from_env_var' if both given).
+    :type config: dict or str
+    :param from_env_var: name of environment variable storing config filename (file is in YAML format)
     :return: None
     """
     global loaded_config
@@ -85,21 +86,19 @@ def load_config(config=None, from_env_var=None, config_type='yaml'):
         add_devices_only = True
         loaded_config.append(config)
 
-    if (config_type != 'dict') and (config_type != 'yaml'):  # no other format supported yet
-        raise WrongUsage("Unsupported config_type: '{}'. Allowed are: 'dict' or 'yaml'.".format(config_type))
+    wrong_type_config = not isinstance(config, six.string_types) and not isinstance(config, dict)
+    if config is None and from_env_var is None:
+        raise WrongUsage("Provide either 'config' or 'from_env_var' parameter (none given).")
+    elif (not from_env_var and wrong_type_config) or (config and wrong_type_config):
+        raise WrongUsage("Unsupported config type: '{}'. Allowed are: 'dict' or 'str' holding config filename (file is in YAML format).".format(type(config)))
     if not config:
-        if not from_env_var:
-            raise WrongUsage("Provide either 'config' or 'from_env_var' parameter (none given).")
         if from_env_var not in os.environ:
             raise KeyError("Environment variable '{}' is not set".format(from_env_var))
         path = os.environ[from_env_var]
         config = read_yaml_configfile(path)
-    elif config_type == 'yaml':
-        assert isinstance(config, six.string_types)
+    elif isinstance(config, six.string_types):
         path = config
         config = read_yaml_configfile(path)
-    elif config_type == 'dict':
-        assert isinstance(config, dict)
     # TODO: check schema
     if add_devices_only is False:
         load_logger_from_config(config)
