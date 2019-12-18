@@ -144,7 +144,7 @@ class Event(ConnectionObserver):
 
     def _log_occurred(self):
         """
-        Logs info about notify when callback is not define.
+        Logs info about notify when callback is not defined.
 
         :return: None
         """
