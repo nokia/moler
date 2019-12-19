@@ -204,6 +204,7 @@ class Sudo(GenericUnixCommand):
         Validates passed parameters to create embedded command object.
 
         :return: None
+        :raise: CommandFailure if command parameters are wrong.
         """
         if self._validated_embedded_parameters:
             return
@@ -231,6 +232,7 @@ class Sudo(GenericUnixCommand):
     def _build_command_object(self):
         """
         Builds command object from passed parameters to sudo command.
+
         :return: None
         """
         self._validate_passed_object_or_command_parameters()
