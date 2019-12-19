@@ -25,6 +25,7 @@ def test_calling_by_command_class(buffer_connection, command_output_and_expected
                     cmd_class_name="moler.cmd.unix.pwd.Pwd")
     assert "sudo pwd" == cmd_sudo.command_string
     result = cmd_sudo()
+    assert "sudo pwd" == cmd_sudo.command_string
     assert result == expected_result
 
 
