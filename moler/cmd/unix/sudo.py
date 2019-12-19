@@ -194,7 +194,7 @@ class Sudo(GenericUnixCommand):
         :raises: CommandFailure if error in command settings.
         """
         super(Sudo, self)._validate_start(*args, **kwargs)
-
+        self._validate_passed_object_or_command_parameters()
         self.ret_required = self.cmd_object.ret_required
         if self.timeout_from_embedded_command:
             self.timeout = self.cmd_object.timeout
