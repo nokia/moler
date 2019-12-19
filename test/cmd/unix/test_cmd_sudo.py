@@ -121,6 +121,15 @@ def test_no_parameters(buffer_connection):
         cmd_sudo()
 
 
+def test_no_parameters_command_string(buffer_connection):
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass")
+    command_string = None
+    assert command_string is None
+    with pytest.raises(CommandFailure):
+        command_string = cmd_sudo.command_string
+    assert command_string is None
+
+
 def test_failing_with_embedded_command_fails(buffer_connection, command_output_cp_fails):
     command_output = command_output_cp_fails
     buffer_connection.remote_inject_response([command_output])
