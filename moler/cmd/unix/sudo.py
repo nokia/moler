@@ -153,7 +153,7 @@ class Sudo(GenericUnixCommand):
             raise ParsingDone()
 
     # sudo: /usr/bin/sudo must be owned by uid 0 and have the setuid bit set
-    _re_sudo_error = re.compile(r"sudo:.*must be owned by uid\s+\d+\s+and have the setuid bit set", re.I)
+    _re_sudo_error = re.compile(r"sudo:.*must be owned by uid\s+\d+\s+and have the setuid bit set|usage: sudo", re.I)
 
     def _parse_sudo_error(self, line):
         """
