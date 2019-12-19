@@ -17,6 +17,13 @@ import mock
 import time
 
 
+def test_sudo_with_wrong_command_parameters(buffer_connection):
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass",
+                    cmd_class_name="moler.cmd.unix.ssh.Ssh", cmd_params={"login": "login"})
+    with pytest.raises(TypeError):
+        cmd_sudo(timeout=0.1)
+
+
 def test_calling_by_command_class(buffer_connection, command_output_and_expected_result):
     command_output, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
