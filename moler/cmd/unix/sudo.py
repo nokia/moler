@@ -47,6 +47,7 @@ class Sudo(GenericUnixCommand):
         self.newline_seq = "\n"
         self._line_for_sudo = False
         self.ret_required = False
+        self._validated_embedded_parameters = False
 
     def build_command_string(self):
         """
@@ -54,9 +55,8 @@ class Sudo(GenericUnixCommand):
 
         :return: String representation of command to send over connection to device.
         """
-        cmd = "sudo"
-        if self.cmd_object:
-            cmd = "sudo {}".format(self.cmd_object.command_string)
+        self._build_command_object()
+        cmd = "sudo {}".format(self.cmd_object.command_string)
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -194,36 +194,54 @@ class Sudo(GenericUnixCommand):
         :raises: CommandFailure if error in command settings.
         """
         super(Sudo, self)._validate_start(*args, **kwargs)
+
+        self.ret_required = self.cmd_object.ret_required
+        if self.timeout_from_embedded_command:
+            self.timeout = self.cmd_object.timeout
+
+    def _validate_passed_object_or_command_parameters(self):
+        """
+        Validates passed parameters to create embedded command object.
+
+        :return: None
+        """
+        if self._validated_embedded_parameters:
+            return
+        if not self.cmd_class_name and not self.cmd_object:
+            # _validate_start is called before running command on connection, so we raise exception
+            # instead of setting it
+            raise CommandFailure(
+                self,
+                "Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor."
+                "Please specific parameter.")
         if self.cmd_object and self.cmd_class_name:
             # _validate_start is called before running command on connection, so we raise exception instead
             # of setting it
             raise CommandFailure(self,
                                  "both 'cmd_object' and 'cmd_class_name' parameters provided. Please specify only one.")
-
-        if self.cmd_class_name:
-            params = copy_dict(self.cmd_params)
-            params["connection"] = self.connection
-            params['prompt'] = self._re_prompt
-            params["newline_chars"] = self._newline_chars
-            self.cmd_object = create_object_from_name(self.cmd_class_name, params)
-        else:
-            if not self.cmd_object:
-                # _validate_start is called before running command on connection, so we raise exception
-                # instead of setting it
-                raise CommandFailure(
-                    self,
-                    "Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor."
-                    "Please specific parameter.")
         if self.cmd_object and self.cmd_object.done():
             # _validate_start is called before running command on connection, so we raise exception
             # instead of setting it
             raise CommandFailure(
                 self,
-                "Not allowed to run again the embeded command (embeded command is done): {}.".format(
+                "Not allowed to run again the embedded command (embedded command is done): {}.".format(
                     self.cmd_object))
-        self.ret_required = self.cmd_object.ret_required
-        if self.timeout_from_embedded_command:
-            self.timeout = self.cmd_object.timeout
+        self._validated_embedded_parameters = True
+
+    def _build_command_object(self):
+        """
+        Builds command object from passed parameters to sudo command.
+        :return: None
+        """
+        self._validate_passed_object_or_command_parameters()
+        if self.cmd_object:
+            return
+        else:
+            params = copy_dict(self.cmd_params)
+            params["connection"] = self.connection
+            params['prompt'] = self._re_prompt
+            params["newline_chars"] = self._newline_chars
+            self.cmd_object = create_object_from_name(self.cmd_class_name, params)
 
 
 COMMAND_OUTPUT_whoami = """

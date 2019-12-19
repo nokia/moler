@@ -17,6 +17,17 @@ import mock
 import time
 
 
+def test_calling_by_command_class(buffer_connection, command_output_and_expected_result):
+    command_output, expected_result = command_output_and_expected_result
+    buffer_connection.remote_inject_response([command_output])
+
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass",
+                    cmd_class_name="moler.cmd.unix.pwd.Pwd")
+    assert "sudo pwd" == cmd_sudo.command_string
+    result = cmd_sudo()
+    assert result == expected_result
+
+
 def test_calling_by_command_object(buffer_connection, command_output_and_expected_result):
     command_output, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
