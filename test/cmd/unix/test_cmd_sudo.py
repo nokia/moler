@@ -17,6 +17,25 @@ import mock
 import time
 
 
+def test_sudo_with_wrong_command_parameters(buffer_connection):
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass",
+                    cmd_class_name="moler.cmd.unix.ssh.Ssh", cmd_params={"login": "login"})
+    with pytest.raises(TypeError):
+        cmd_sudo(timeout=0.1)
+
+
+def test_calling_by_command_class(buffer_connection, command_output_and_expected_result):
+    command_output, expected_result = command_output_and_expected_result
+    buffer_connection.remote_inject_response([command_output])
+
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass",
+                    cmd_class_name="moler.cmd.unix.pwd.Pwd")
+    assert "sudo pwd" == cmd_sudo.command_string
+    result = cmd_sudo()
+    assert "sudo pwd" == cmd_sudo.command_string
+    assert result == expected_result
+
+
 def test_calling_by_command_object(buffer_connection, command_output_and_expected_result):
     command_output, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
@@ -107,6 +126,15 @@ def test_no_parameters(buffer_connection):
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass")
     with pytest.raises(CommandFailure):
         cmd_sudo()
+
+
+def test_no_parameters_command_string(buffer_connection):
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass")
+    command_string = None
+    assert command_string is None
+    with pytest.raises(CommandFailure):
+        command_string = cmd_sudo.command_string
+    assert command_string is None
 
 
 def test_failing_with_embedded_command_fails(buffer_connection, command_output_cp_fails):

@@ -75,8 +75,12 @@ class CommandTextualGeneric(Command):
         :return: String with command_string.
         """
         if not self.__command_string:
-            self.__command_string = self.build_command_string()
-            self._build_command_string_escaped()
+            try:
+                self.__command_string = "CANNOT BUILD COMMAND STRING"  # To avoid infinite recursion if
+                # build_command_string raises an exception.
+                self.__command_string = self.build_command_string()
+            finally:
+                self._build_command_string_escaped()
         return self.__command_string
 
     @command_string.setter
