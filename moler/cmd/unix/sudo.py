@@ -47,7 +47,7 @@ class Sudo(GenericUnixCommand):
         self.newline_seq = "\n"
         self._line_for_sudo = False
         self.ret_required = False
-        self._validated_embedded_parameters = False
+        self._validated_embedded_parameters = False  # Validate parameters only once
 
     def build_command_string(self):
         """
@@ -207,7 +207,7 @@ class Sudo(GenericUnixCommand):
         :raise: CommandFailure if command parameters are wrong.
         """
         if self._validated_embedded_parameters:
-            return
+            return  # Validate parameters only once
         if not self.cmd_class_name and not self.cmd_object:
             # _validate_start is called before running command on connection, so we raise exception
             # instead of setting it
