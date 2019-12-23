@@ -139,6 +139,7 @@ class TextualDevice(AbstractDevice):
         :return: None
         """
         if not self.has_established_connection():
+            super(TextualDevice, self).remove()
             return
         self.goto_state(TextualDevice.not_connected)
         if self.has_established_connection():

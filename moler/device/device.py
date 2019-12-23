@@ -25,6 +25,15 @@ class DeviceFactory(object):
     _unique_names = {}  # key is public_name, value is internal name (generated from public_name) unique for any
     # instance of device
     _already_used_names = set()
+    _was_any_device_deleted = False
+
+    @classmethod
+    def was_any_device_deleted(cls):
+        """
+        Checks if any device was deleted.
+        :return: True if any device was deleted, False otherwise
+        """
+        return cls._was_any_device_deleted
 
     @classmethod
     def create_all_devices(cls):
@@ -41,11 +50,12 @@ class DeviceFactory(object):
         """
         Remove all created devices.
 
-        :return: None
+        :return: None1
         """
-        devices = copy_dict(cls._devices, deep_copy=False)
-        for device in devices:
-            cls._devices[device].remove()
+        devices = copy_list(cls._devices.keys(), deep_copy=False)
+        for device_name in devices:
+            cls.remove_device(name=device_name)
+        devices_config.clear()
 
     @classmethod
     def get_device(cls, name=None, device_class=None, connection_desc=None, connection_hops=None, initial_state=None,
@@ -73,7 +83,7 @@ class DeviceFactory(object):
         return dev
 
     @classmethod
-    def remove_device(cls, name=None):
+    def remove_device(cls, name):
         """
         Removes device. All commands and events are being finished when device is removed.
 
@@ -82,6 +92,7 @@ class DeviceFactory(object):
         """
         dev = cls.get_device(name=name)
         dev.remove()
+        cls._was_any_device_deleted = True
 
     @classmethod
     def get_cloned_device(cls, source_device, new_name, initial_state=None, establish_connection=True):
@@ -171,6 +182,7 @@ class DeviceFactory(object):
         cls._devices_params = {}
         cls._unique_names = {}  # key is alias, value is real name
         cls._already_used_names = set()
+        cls._was_any_device_deleted = False
 
     @classmethod
     def _create_device(cls, name, device_class, connection_desc, connection_hops, initial_state, establish_connection):
@@ -226,9 +238,10 @@ class DeviceFactory(object):
                 del cls._devices[device_name]
             if device_name in devices_config.named_devices:
                 del devices_config.named_devices[device_name]
+            cls._was_any_device_deleted = True
 
     @classmethod
-    def differences_bewteen_devices_descriptions(cls, already_device_name, requested_device_def):
+    def differences_between_devices_descriptions(cls, already_device_name, requested_device_def):
         """
         Checks if two device description are the same.
 
