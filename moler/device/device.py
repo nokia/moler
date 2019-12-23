@@ -43,7 +43,8 @@ class DeviceFactory(object):
 
         :return: None
         """
-        for device in cls._devices.keys():
+        devices = copy_dict(cls._devices, deep_copy=False)
+        for device in devices:
             cls._devices[device].remove()
 
     @classmethod
