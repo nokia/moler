@@ -50,7 +50,7 @@ class DeviceFactory(object):
         """
         Remove all created devices.
 
-        :return: None1
+        :return: None
         """
         devices = copy_list(cls._devices.keys(), deep_copy=False)
         for device_name in devices:
