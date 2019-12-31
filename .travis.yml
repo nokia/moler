@@ -20,16 +20,16 @@ before_script:
   - python3 -V
 
 script:
-  - pycodestyle moler
-  - python -m pytest -s -vv test
+  - python -m pycodestyle moler
+  - python -m pytest test
   - python -m pytest --mccabe moler
-  - coverage run -m pytest -c py3pytest.ini --random  -s -vv
+  - coverage run -m pytest -c py3pytest.ini --random
 
 after_success:
   - coveralls
 
 after_failure:
-  - ls -laR
+  - echo "----------------------- LOGS -----------------------"
   - cat *.log
 
 #stages:
