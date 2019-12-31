@@ -1,5 +1,5 @@
 language: python
-dist: bionic
+dist: xenial
 matrix:
   include:
     - python: 2.7
@@ -29,7 +29,7 @@ script:
   - if [[ $TRAVIS_PYTHON_VERSION == *"3."* ]]; then coverage run -m pytest -c py3pytest.ini --random; fi
 
 after_success:
-  - coveralls
+  - if [[ $TRAVIS_PYTHON_VERSION == *"3."* ]]; then coveralls; fi
 
 after_failure:
   - echo "----------------------- LOGS -----------------------"
