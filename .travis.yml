@@ -1,4 +1,5 @@
 language: python
+dist: bionic
 matrix:
   include:
     - python: 2.7
@@ -18,12 +19,12 @@ install:
 before_script:
   - python2 -V
   - python3 -V
+  - python -V
 
 script:
   - python -m pycodestyle moler
-  - python -m pytest test
   - python -m pytest --mccabe moler
-  - coverage run -m pytest -c py3pytest.ini --random
+  - coverage run -m pytest -c py3pytest.ini --random --mccabe
 
 after_success:
   - coveralls
