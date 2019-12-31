@@ -6,7 +6,7 @@ matrix:
       env: ASYNC=
     - python: 3.6.10
       env: ASYNC=pytest-asyncio
-    - python: 3.7.4
+    - python: 3.7.3
       env: ASYNC=pytest-asyncio
     - python: 3.8.1
       env: ASYNC=pytest-asyncio
@@ -21,13 +21,13 @@ before_script:
 
 script:
   - python -m pycodestyle --statistics --count moler
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.7.17 ]]; then python -m pytest --random test; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.6.10 ]]; then python -m pytest -c py3pytest.ini --random --mccabe; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.7.4 ]]; then coverage run -m pytest -c py3pytest.ini --random --mccabe; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.8.1 ]]; then python -m pytest --mccabe moler; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == *"2.7"* ]]; then python -m pytest --random -s -vv test; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == *"3.6"* ]]; then python -m pytest -c py3pytest.ini --random --mccabe -s -vv; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == *"3.7"* ]]; then coverage run -m pytest -c py3pytest.ini --random --mccabe -s -vv; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == *"3.8"* ]]; then python -m pytest --mccabe -s -vv moler; fi
 
 after_success:
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.7.4 ]]; then coveralls; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == *"3.7"* ]]; then coveralls; fi
 
 after_failure:
   - echo "----------------------- LOGS -----------------------"
