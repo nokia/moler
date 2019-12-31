@@ -2,11 +2,11 @@ language: python
 dist: xenial
 matrix:
   include:
-    - python: 2.7
+    - python: 2.7.17
       env: ASYNC=
-    - python: 3.6
+    - python: 3.6.10
       env: ASYNC=pytest-asyncio
-    - python: 3.7.4
+    - python: 3.7.1
       env: ASYNC=pytest-asyncio
     - python: 3.8.1
       env: ASYNC=pytest-asyncio
@@ -25,11 +25,11 @@ script:
   - python -m pycodestyle moler
   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then python -m pytest test; fi
   - if [[ $TRAVIS_PYTHON_VERSION == *"3."* ]]; then python -m pytest --mccabe moler; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.8 ]]; then python -m pytest -c py3pytest.ini --random --mccabe; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.8.1 ]]; then python -m pytest -c py3pytest.ini --random --mccabe; fi
   - if [[ $TRAVIS_PYTHON_VERSION == *"3."* ]]; then coverage run -m pytest -c py3pytest.ini --random; fi
 
 after_success:
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.7 ]]; then coveralls; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.7.1 ]]; then coveralls; fi
 
 after_failure:
   - echo "----------------------- LOGS -----------------------"
