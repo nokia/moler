@@ -6,7 +6,7 @@ matrix:
       env: ASYNC=
     - python: 3.6
       env: ASYNC=pytest-asyncio
-    - python: 3.7.5
+    - python: 3.7.4
       env: ASYNC=pytest-asyncio
     - python: 3.8.1
       env: ASYNC=pytest-asyncio
@@ -25,6 +25,7 @@ script:
   - python -m pycodestyle moler
   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then python -m pytest test; fi
   - if [[ $TRAVIS_PYTHON_VERSION == *"3."* ]]; then python -m pytest --mccabe moler; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.8 ]]; then python -m pytest -c py3pytest.ini --random --mccabe; fi
   - if [[ $TRAVIS_PYTHON_VERSION == *"3."* ]]; then coverage run -m pytest -c py3pytest.ini --random; fi
 
 after_success:
