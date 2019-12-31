@@ -17,7 +17,7 @@ from types import FunctionType, MethodType
 
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import MolerException
-from moler.exceptions import MolerStatusException
+from moler.exceptions import ExecutionException
 
 
 class MolerTest(object):
@@ -35,7 +35,8 @@ class MolerTest(object):
         """
         Makes an error (fail the test) and (optional) continue the test flow.
         :param msg: Message to show.
-        :param raise_exception: If True then raise an exception, if False then only show msg and mark error in logs.
+        :param raise_exception: If True then raise an exception (if not in try except block then test will be
+         terminated), if False then only show msg and mark error in logs.
         :param dump: If defined then dump object.
         :return: Nothing.
         """
@@ -133,7 +134,8 @@ class MolerTest(object):
         MolerTest._was_error = False
         MolerTest._was_steps_end = False
         if err_msg:
-            prefix = "There were errors in previous Moler test. Please check Moler logs for details. List of them:\n"
+            prefix = "Moler caught some error messages during execution. Please check Moler logs for details."\
+                     " List of them:\n"
             err_msg = "{} {}".format(prefix, err_msg)
             MolerTest._error(err_msg)
 
@@ -150,9 +152,9 @@ class MolerTest(object):
             occured_exceptions.append(caught_exception)
 
         if was_error_in_last_execution:
-            err_msg += "There were error messages in Moler execution. Please check Moler logs for details.\n"
+            err_msg += "Moler caught some error messages during execution. Please check Moler logs for details.\n"
         if len(occured_exceptions) > 0:
-            err_msg += "There were unhandled exceptions in Moler.\n"
+            err_msg += "There were unhandled exceptions from test caught by Moler.\n"
             for i, exc in enumerate(occured_exceptions, 1):
                 try:
                     import traceback
@@ -162,7 +164,7 @@ class MolerTest(object):
                     err_msg += repr(exc)
 
         if len(MolerTest._list_of_errors) > 0:
-            err_msg += "There were error messages in Moler execution:\n"
+            err_msg += "Moler caught some error messages during execution:\n"
 
             for i, msg in enumerate(MolerTest._list_of_errors, 1):
                 err_msg += "  {}) >>{}<<\n".format(i, msg)
@@ -177,7 +179,7 @@ class MolerTest(object):
             MolerTest._error(err_msg)
             MolerTest._was_error = False
             MolerTest._list_of_errors = list()
-            raise MolerStatusException(err_msg)
+            raise ExecutionException(err_msg)
 
     @staticmethod
     def _check_steps_end():
@@ -185,14 +187,14 @@ class MolerTest(object):
             err_msg = "Method 'steps_end()' was not called or parameter 'check_steps_end' was not set properly.\n."
             MolerTest._error(err_msg)
             MolerTest._was_error = False
-            raise MolerStatusException(err_msg)
+            raise ExecutionException(err_msg)
 
     @staticmethod
     def _decorate(obj=None, check_steps_end=False):
         # check that decorated function is not statimethod or classmethod
         if not obj:
-            raise MolerStatusException("Decorator for 'staticmethod' or 'classmethod' not implemented yet.",
-                                       )
+            raise ExecutionException("Decorator for 'staticmethod' or 'classmethod' not implemented yet.",
+                                     )
 
         if hasattr(obj, "__dict__"):
             if obj.__dict__.items():
@@ -208,7 +210,7 @@ class MolerTest(object):
             else:
                 obj = MolerTest._wrapper(obj, check_steps_end=check_steps_end)
         else:
-            raise MolerStatusException("No '__dict__' in decorated object.")
+            raise ExecutionException("No '__dict__' in decorated object.")
 
         return obj
 

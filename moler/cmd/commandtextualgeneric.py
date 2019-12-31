@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Generic Unix/Linux module
+Generic class for all command with textual output.
 """
 
 __author__ = 'Marcin Usielski, Michal Ernst'
@@ -15,23 +15,36 @@ import six
 
 from moler.cmd import RegexHelper
 from moler.command import Command
+from threading import Lock
 
 
 @six.add_metaclass(abc.ABCMeta)
 class CommandTextualGeneric(Command):
-    _re_default_prompt = re.compile(r'^[^<]*[\$|%|#|>|~]\s*$')  # When user provides no prompt
+    """Base class for textual commands."""
+
+    _re_default_prompt = re.compile(r'^[^<]*[$%#>~]\s*$')  # When user provides no prompt
     _default_newline_chars = ("\n", "\r")  # New line chars on device, not system with script!
 
     def __init__(self, connection, prompt=None, newline_chars=None, runner=None):
         """
-        :param connection: connection to device
-        :param prompt: expected prompt sending by device after command execution. Maybe String or compiled re
-        :param newline_chars:  new line chars on device
+        Base class for textual commands.
+
+        :param connection: connection to device.
+        :param prompt: expected prompt sending by device after command execution. Maybe String or compiled re.
+        :param newline_chars:  new line chars on device (a list).
+        :param runner: runner to run command.
         """
-        super(CommandTextualGeneric, self).__init__(connection=connection, runner=runner)
+        self._max_index_from_beginning = 20  # Right (from 0 to this) index of substring of command_string passed
+        # as _cmd_escaped. Set 0 to disable functionality of substring.
+        self._max_index_from_end = 20  # Left (from this to the end) index of substring of command_string passed
+        # as _cmd_escaped. Set 0 to disable functionality of substring.
         self.__command_string = None  # String representing command on device
-        self.current_ret = dict()  # Placeholder for result as-it-grows, before final write into self._result
         self._cmd_escaped = None  # Escaped regular expression string with command
+        super(CommandTextualGeneric, self).__init__(connection=connection, runner=runner)
+        self.terminating_timeout = 3.0  # value for terminating command if it timeouts. Set positive value for command
+        #                                 if they can do anything if timeout. Set 0 for command if it cannot do
+        #                                 anything if timeout.
+        self.current_ret = dict()  # Placeholder for result as-it-grows, before final write into self._result
         self._cmd_output_started = False  # If false parsing is not passed to command
         self._regex_helper = RegexHelper()  # Object to regular expression matching
         self.ret_required = True  # # Set False for commands not returning parsed result
@@ -41,24 +54,104 @@ class CommandTextualGeneric(Command):
         self._newline_chars = newline_chars  # New line characters on device
         self.do_not_process_after_done = True  # Set True if you want to break processing data when command is done. If
         # False then on_new_line will be called after done if more lines are in the same data package.
+        self.newline_after_command_string = True  # Set True if you want to send a new line char(s) after command
+        # string (sendline from connection)- most cases. Set False if you want to sent command string without adding
+        # new line char(s) - send from connection.
+        self.wait_for_prompt_on_exception = True  # Set True to wait for command prompt on failure. Set False to cancel
+        # command immediately on failure.
+        self._concatenate_before_command_starts = True  # Set True to concatenate all strings from connection before
+        # command starts, False to split lines on every new line char
+        self._stored_exception = None  # Exception stored before it is passed to base class when command is done.
+        self._lock_is_done = Lock()
 
         if not self._newline_chars:
             self._newline_chars = CommandTextualGeneric._default_newline_chars
 
     @property
     def command_string(self):
+        """
+        Getter for command_string.
+
+        :return: String with command_string.
+        """
         if not self.__command_string:
-            self.__command_string = self.build_command_string()
-            self._cmd_escaped = re.escape(self.__command_string)
+            try:
+                self.__command_string = "CANNOT BUILD COMMAND STRING"  # To avoid infinite recursion if
+                # build_command_string raises an exception.
+                self.__command_string = self.build_command_string()
+            finally:
+                self._build_command_string_escaped()
         return self.__command_string
 
     @command_string.setter
     def command_string(self, command_string):
+        """
+        Setter for command_string.
+
+        :param command_string: Stting with command to set.
+        :return: None.
+        """
         self.__command_string = command_string
-        self._cmd_escaped = re.escape(command_string)
+        self._build_command_string_escaped()
+
+    def _build_command_string_escaped(self):
+        """
+        Builds escaped command string for regular expression based on command_string property .
+
+        :return: None
+        """
+        self._cmd_escaped = None
+        if self.__command_string is not None:
+            if self._max_index_from_beginning != 0 or self._max_index_from_end != 0:
+                sub_command_string = self._build_command_string_slice()
+            else:
+                sub_command_string = re.escape(self.__command_string)
+            self._cmd_escaped = re.compile(sub_command_string)
+
+    def _build_command_string_slice(self):
+        """
+        Builds slice of command string.
+
+        :return: String with regex with command slice.
+        """
+        sub_command_start_string = None
+        sub_command_finish_string = None
+        if self._max_index_from_beginning != 0:
+            sub_command_start_string = re.escape(self.__command_string[:self._max_index_from_beginning])
+            re_sub_command_string = sub_command_start_string
+        if self._max_index_from_end != 0:
+            sub_command_finish_string = re.escape(self.__command_string[-self._max_index_from_end:])
+            re_sub_command_string = sub_command_finish_string
+        if sub_command_finish_string and sub_command_start_string:
+            re_sub_command_string = "{}|{}".format(sub_command_start_string, sub_command_finish_string)
+        return re_sub_command_string
+
+    @property
+    def _is_done(self):
+        return super(CommandTextualGeneric, self)._is_done
+
+    @_is_done.setter
+    def _is_done(self, value):
+        with self._lock_is_done:
+            if self._stored_exception:
+                exception = self._stored_exception
+                self._stored_exception = None
+                super(CommandTextualGeneric, self)._set_exception_without_done(exception=exception)
+            if value and not self._is_done:
+                self.on_done()
+                if self._stored_exception or self.cancelled():
+                    self.on_failure()
+                else:
+                    self.on_success()
+            super(CommandTextualGeneric, self.__class__)._is_done.fset(self, value)
 
     @staticmethod
     def _calculate_prompt(prompt):
+        """
+        Calculates prompt as regex from passed prompt.
+        :param prompt: Prompt as regex  in string or as compiled regex object.
+        :return: Compiled regex object.
+        """
         if not prompt:
             prompt = CommandTextualGeneric._re_default_prompt
         if isinstance(prompt, six.string_types):
@@ -67,9 +160,10 @@ class CommandTextualGeneric(Command):
 
     def has_endline_char(self, line):
         """
-        Method to check if line has chars of new line at the right side
-        :param line: String to check
-        :return: True if any new line char was found, False otherwise
+        Method to check if line has chars of new line at the right side.
+
+        :param line: String to check.
+        :return: True if any new line char was found, False otherwise.
         """
         if line.endswith(self._newline_chars):
             return True
@@ -77,100 +171,240 @@ class CommandTextualGeneric(Command):
 
     def data_received(self, data):
         """
-        Called by framework when any data are sent by device
-        :param data: List of strings sent by device
-        :return: Nothing
+        Called by framework when any data are sent by device.
+
+        :param data: List of strings sent by device.
+        :return: None.
         """
         lines = data.splitlines(True)
-        for line in lines:
-            if self._last_not_full_line is not None:
-                line = self._last_not_full_line + line
-                self._last_not_full_line = None
-            is_full_line = self.has_endline_char(line)
-            if is_full_line:
-                line = self._strip_new_lines_chars(line)
-            else:
-                self._last_not_full_line = line
+        for current_chunk in lines:
+            line, is_full_line = self._update_from_cached_incomplete_line(current_chunk=current_chunk)
             if self._cmd_output_started:
-                self.on_new_line(line, is_full_line)
-            elif is_full_line:
-                self._detect_start_of_cmd_output(line)
+                self._process_line_from_command(line=line, current_chunk=current_chunk, is_full_line=is_full_line)
+            else:
+                self._detect_start_of_cmd_output(self._decode_line(line=line), is_full_line)
+                self._cache_line_before_command_start(line=line, is_full_line=is_full_line)
             if self.done() and self.do_not_process_after_done:
                 break
+
+    def _process_line_from_command(self, current_chunk, line, is_full_line):
+        """
+        Processes line from command.
+
+        :param current_chunk: Chunk of line sent by connection.
+        :param line: Line of output (current_chunk plus previous chunks of this line - if any) without newline char(s).
+        :param is_full_line: True if line had newline char(s). False otherwise.
+        :return: None.
+        """
+        decoded_line = self._decode_line(line=line)
+        self.on_new_line(line=decoded_line, is_full_line=is_full_line)
+
+    def _cache_line_before_command_start(self, line, is_full_line):
+        """
+        Stores output before command starts.
+
+        :param line: Line from device.
+        :param is_full_line: True if line had new line char at the end. False otherwise.
+        :return: None.
+        """
+        if self._concatenate_before_command_starts and not self._cmd_output_started and is_full_line:
+            self._last_not_full_line = line
+
+    def _update_from_cached_incomplete_line(self, current_chunk):
+        """
+        Concatenates (if necessary) previous chunk(s) of line and current.
+
+        :param current_chunk: line from connection (full line or incomplete one).
+        :return: Concatenated (if necessary) line from connection without newline char(s). Flag: True if line had
+         newline char(s), False otherwise.
+        """
+        line = current_chunk
+        if self._last_not_full_line is not None:
+            line = "{}{}".format(self._last_not_full_line, line)
+            self._last_not_full_line = None
+        is_full_line = self.has_endline_char(line)
+        if is_full_line:
+            line = self._strip_new_lines_chars(line)
+        else:
+            self._last_not_full_line = line
+        return line, is_full_line
 
     @abc.abstractmethod
     def build_command_string(self):
         """
-        :return:  String with command
+        Returns string with command constructed with parameters of object.
+
+        :return:  String with command.
         """
-        pass
 
     def on_new_line(self, line, is_full_line):
         """
         Method to parse command output. Will be called after line with command echo.
-        Write your own implementation but don't forget to call on_new_line from base class
+        Write your own implementation but don't forget to call on_new_line from base class in most cases.
+
         :param line: Line to parse, new lines are trimmed
         :param is_full_line: True if new line character was removed from line, False otherwise
-        :return: Nothing
+        :return: None
         """
         if self.is_end_of_cmd_output(line):
-            if (self.ret_required and self.has_any_result()) or not self.ret_required:
+            if self._stored_exception:
+                self._is_done = True
+            elif (self.ret_required and self.has_any_result()) or not self.ret_required:
                 if not self.done():
                     self.set_result(self.current_ret)
             else:
                 self._log(lvl=logging.DEBUG,
-                          msg="Found candidate for final prompt but current ret is None or empty, required not None nor empty.")
+                          msg="Found candidate for final prompt but current ret is None or empty, required not None"
+                              " nor empty.")
 
     def is_end_of_cmd_output(self, line):
+        """
+        Checks if end of command is reached.
+
+        :param line: Line from device.
+        :return:
+        """
         if self._regex_helper.search_compiled(self._re_prompt, line):
             return True
         return False
 
     def _strip_new_lines_chars(self, line):
         """
-        :param line: line from device
-        :return: line without new lines chars
+        Removes new line char(s) from line.
+
+        :param line: line from device.
+        :return: line without new lines chars.
         """
-        for char in self._newline_chars:
-            line = line.rstrip(char)
+        if len(line) >= 1:
+            last_char = line[-1]
+            while last_char in self._newline_chars:
+                line = line.rstrip(last_char)
+                if len(line) >= 1:
+                    last_char = line[-1]
+                else:
+                    last_char = None
         return line
 
-    def _detect_start_of_cmd_output(self, line):
+    def _detect_start_of_cmd_output(self, line, is_full_line):
         """
-        :param line: line to check if echo of command is sent by device
-        :return: Nothing
+        Checks if command stated.
+
+        :param line: line to check if echo of command is sent by device.
+        :param is_full_line: True if line ends with new line char, False otherwise.
+        :return: None.
         """
-        if self._regex_helper.search(self._cmd_escaped, line):
-            self._cmd_output_started = True
+        if (is_full_line and self.newline_after_command_string) or not self.newline_after_command_string:
+            if self._regex_helper.search_compiled(self._cmd_escaped, line):
+                self._cmd_output_started = True
 
     def break_cmd(self):
         """
-        Send ctrl+c to device to break command execution
-        :return:
+        Send ctrl+c to device to break command execution.
+
+        :return: None
         """
         self.connection.send("\x03")  # ctrl+c
 
     def cancel(self):
         """
-        Called by framework to cancel the command
-        :return:
+        Called by framework to cancel the command.
+
+        :return: False if already cancelled or already done, True otherwise.
         """
         self.break_cmd()
         return super(CommandTextualGeneric, self).cancel()
 
+    def set_exception(self, exception):
+        """
+        Set exception object as failure for command object.
+
+        :param exception: An exception object to set.
+        :return: None.
+        """
+        if self.done() or not self.wait_for_prompt_on_exception:
+            super(CommandTextualGeneric, self).set_exception(exception=exception)
+        else:
+            if self._stored_exception is None:
+                self._log(logging.INFO,
+                          "{}.{} has set exception {!r}".format(self.__class__.__module__, self, exception),
+                          levels_to_go_up=2)
+                self._stored_exception = exception
+            else:
+                self._log(logging.INFO,
+                          "{}.{} tried set exception {!r} on already set exception {!r}".format(
+                              self.__class__.__module__,
+                              self, exception,
+                              self._stored_exception),
+                          levels_to_go_up=2)
+
+    def on_failure(self):
+        """
+        Callback called by framework when command is just about to finish with failure. Set ret is called.
+
+        :return: None
+        """
+
+    def on_success(self):
+        """
+        Callback called by framework when command is just about to finish with success. Set ret is called.
+
+        :return: None
+        """
+
+    def on_done(self):
+        """
+        Callback called by framework when command is just about to finish.
+
+        :return: None
+        """
+
     def on_timeout(self):
         """
-        Callback called by framework when timeout occurs
-        :return: Nothing
+        Callback called by framework when timeout occurs.
+
+        :return: None.
         """
         if self.break_on_timeout:
             self.break_cmd()
+        msg = ("Timeout when command_string='{}', _cmd_escaped='{}', _cmd_output_started='{}', ret_required='{}', "
+               "break_on_timeout='{}', _last_not_full_line='{}', _re_prompt='{}', do_not_process_after_done='{}', "
+               "newline_after_command_string='{}', wait_for_prompt_on_exception='{}', _stored_exception='{}', "
+               "current_ret='{}', _newline_chars='{}', _concatenate_before_command_starts='{}', "
+               "_command_string_right_index='{}', _command_string_left_index='{}'.").format(
+            self.__command_string, self._cmd_escaped, self._cmd_output_started, self.ret_required,
+            self.break_on_timeout, self._last_not_full_line, self._re_prompt, self.do_not_process_after_done,
+            self.newline_after_command_string, self.wait_for_prompt_on_exception, self._stored_exception,
+            self.current_ret, self._newline_chars, self._concatenate_before_command_starts,
+            self._max_index_from_beginning, self._max_index_from_end)
+        self._log(lvl=logging.INFO, msg=msg, levels_to_go_up=2)
 
     def has_any_result(self):
         """
-        :return: True if current_ret has collected any data. Otherwise False
+        Checks if any result was already set by command.
+
+        :return: True if current_ret has collected any data. Otherwise False.
         """
         is_ret = False
         if self.current_ret:
             is_ret = True
         return is_ret
+
+    def send_command(self):
+        """
+        Sends command string over connection.
+
+        :return: None
+        """
+        if self.newline_after_command_string:
+            self.connection.sendline(self.command_string)
+        else:
+            self.connection.send(self.command_string)
+
+    def _decode_line(self, line):
+        """
+        Decodes line if necessary. Put here code to remove colors from terminal etc.
+
+        :param line: line from device to decode.
+        :return: decoded line.
+        """
+        return line

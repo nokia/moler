@@ -13,7 +13,7 @@ from argparse import ArgumentParser
 from datetime import datetime
 from importlib import import_module
 from os import walk, sep
-from os.path import abspath, join, relpath, exists, split
+from os.path import abspath, join, relpath, exists, split, dirname
 from pprint import pformat
 
 from moler.command import Command
@@ -24,7 +24,7 @@ from moler.helpers import compare_objects
 def _buffer_connection():
     """External-io based on memory FIFO-buffer"""
     from moler.io.raw.memory import ThreadedFifoBuffer
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
 
     class RemoteConnection(ThreadedFifoBuffer):
         def remote_inject_response(self, input_strings, delay=0.0):
@@ -65,17 +65,17 @@ def _walk_moler_python_files(path, *args):
     :type path:
     :rtype: str
     """
+    repo_path = abspath(join(path, '..', '..'))
+
     observer = "event" if "events" in split(path) else "command"
     print("Processing {}s test from path: '{}'".format(observer, path))
-    repo_path = abspath(join(path, '..', '..'))
 
     for (dirpath, _, filenames) in walk(path):
         for filename in filenames:
             if filename.endswith('__init__.py'):
                 continue
             if filename.endswith('.py'):
-                rel_path = join(dirpath, filename)
-                abs_path = abspath(rel_path)
+                abs_path = join(dirpath, filename)
                 in_moler_path = relpath(abs_path, repo_path)
                 yield in_moler_path
 

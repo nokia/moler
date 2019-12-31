@@ -1,0 +1,18 @@
+# Copyright (C) 2019 Nokia
+
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2019, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
+
+############################################
+
+Goal of this workshop is to incrementally build simple test
+using commands and events of Moler.
+
+Test topic - check that:
+1. there was network outage on given host machine
+2. outage duration was less then 3 seconds
+
+Workshop will show how to:
+ * use commands in foreground and background
+ * use events and perform online reaction on events happening in background

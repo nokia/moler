@@ -55,6 +55,13 @@ def test_converterhelper_seconds():
     assert 'm' == unit
 
 
+def test_converterhelper_seconds_ms():
+    from moler.util.converterhelper import ConverterHelper
+    converter = ConverterHelper.get_converter_helper()
+    value = converter.to_seconds(0.408, "ms")
+    assert pytest.approx(0.000408, 0.000001) == value
+
+
 def test_converterhelper_seconds_wrong_unit():
     from moler.util.converterhelper import ConverterHelper
     converter = ConverterHelper.get_converter_helper()
@@ -88,3 +95,15 @@ def test_regex_helper():
     assert match is not None
     assert match == regex_helper.get_match()
     assert regex_helper.group(1) == "ABC"
+
+
+def test_groups_at_regex_helper():
+    import re
+    from moler.cmd import RegexHelper
+    regex_helper = RegexHelper()
+    if regex_helper.search_compiled(re.compile(r"(\d+)_([A-Z]+)(\w+),(\d+)"), "111_ABCef,222"):
+        ones, uppers, lowers, twos = regex_helper.groups()
+    assert ones == '111'
+    assert uppers == 'ABC'
+    assert lowers == 'ef'
+    assert twos == '222'

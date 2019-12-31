@@ -3,9 +3,9 @@
 Top command module.
 """
 
-__author__ = 'Adrianna Pienkowska, Michal Ernst'
+__author__ = 'Adrianna Pienkowska, Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018-2019, Nokia'
-__email__ = 'adrianna.pienkowska@nokia.com, michal.ernst@nokia.com'
+__email__ = 'adrianna.pienkowska@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import re
 
@@ -15,19 +15,21 @@ from moler.exceptions import ParsingDone
 
 
 class Top(GenericUnixCommand):
-    def __init__(self, connection, options=None, prompt=None, newline_chars=None, runner=None):
+    def __init__(self, connection, options=None, prompt=None, newline_chars=None, runner=None, n=1):
         """
         Top command.
         :param connection: moler connection to device, terminal when command is executed.
         :param options: options of top command for unix.
         :param prompt: prompt on system where ping is executed.
         :param newline_chars: characters to split lines.
-        :param runner: Runner to run command
+        :param runner: Runner to run command.
+        :param n: Specifies number of measurements.
         """
         super(Top, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.options = options
         self._processes_list_headers = list()
         self.current_ret = dict()
+        self.n = n
 
     def build_command_string(self):
         """
@@ -36,9 +38,9 @@ class Top(GenericUnixCommand):
         """
         cmd = "top"
         if self.options:
-            cmd = cmd + " " + self.options + " n 1"
-        else:
-            cmd = cmd + " " + "n 1"
+            cmd = "{} {}".format(cmd, self.options)
+        if self.n:
+            cmd = "{} n {}".format(cmd, self.n)
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -400,4 +402,25 @@ COMMAND_RESULT_batch_mode = {
             'load average': [0.14, 0.13, 0.14],
             'up time': '3 days, 7:59',
             'users': 1}
+}
+
+COMMAND_KWARGS_grep = {"options": r"-b -n 1 | grep ^%Cpu\(s\):", 'n': None}
+
+COMMAND_OUTPUT_grep = """
+top -b -n 1 | grep ^%Cpu\\(s\\):
+%Cpu(s):  2.7 us,  0.7 sy,  0.0 ni, 96.6 id,  0.1 wa,  0.0 hi,  0.0 si,  0.0 st
+xyz@debian:~$
+"""
+
+COMMAND_RESULT_grep = {
+    '%Cpu': {
+        'user processes': 2.7,
+        'system processes': 0.7,
+        'not used': 96.6,
+        'upgraded nice': 0.0,
+        'steal time': 0.0,
+        'IO operations': 0.1,
+        'hardware interrupts': 0.0,
+        'software interrupts': 0.0
+    }
 }

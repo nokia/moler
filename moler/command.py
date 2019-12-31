@@ -15,11 +15,13 @@ __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
+from abc import ABCMeta
+
+from six import add_metaclass
+
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import NoCommandStringProvided
 from moler.helpers import instance_id
-from six import add_metaclass
-from abc import ABCMeta
 
 
 @add_metaclass(ABCMeta)
@@ -30,7 +32,7 @@ class Command(ConnectionObserver):
         :param connection: connection used to start CMD and receive its output
         """
         super(Command, self).__init__(connection=connection, runner=runner)
-        self.command_string = ''
+        self.command_string = None
         self.cmd_name = Command.observer_name
 
     def __str__(self):
@@ -43,18 +45,26 @@ class Command(ConnectionObserver):
         # check base class invariants first
         super(Command, self)._validate_start(*args, **kwargs)
         # then what is needed for command
-        if not self.command_string:
+        if self.command_string is None:
             # no chance to start CMD
             raise NoCommandStringProvided(self)
 
     def get_long_desc(self):
-        return "Command '{}.{}':'{}'".format(self.__class__.__module__, self.__class__.__name__, self.command_string)
+        return "Command {}.{}".format(self.__class__.__module__, self)
 
     def get_short_desc(self):
-        return "Command '{}.{}'".format(self.__class__.__module__, self.__class__.__name__)
+        return "Command {}.{}(id:{})".format(self.__class__.__module__, self.__class__.__name__, instance_id(self))
 
     def is_command(self):
         """
         :return: True if instance of ConnectionObserver is a command. False if not a command.
         """
         return True
+
+    def send_command(self):
+        """
+        Sends command string over connection.
+
+        :return: Nothing
+        """
+        self.connection.sendline(self.command_string)

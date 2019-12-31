@@ -10,6 +10,7 @@ import pytest
 import time
 from moler.event_awaiter import EventAwaiter
 from moler.exceptions import CommandTimeout
+from moler.command_scheduler import CommandScheduler
 
 
 def test_two_commands_uptime_whoami(buffer_connection, command_output_and_expected_result_uptime_whoami):
@@ -19,8 +20,10 @@ def test_two_commands_uptime_whoami(buffer_connection, command_output_and_expect
     uptime_cmd = Uptime(connection=buffer_connection.moler_connection)
     whoami_cmd = Whoami(connection=buffer_connection.moler_connection)
     uptime_cmd.start(timeout=2)
+    time.sleep(0.005)
     whoami_cmd.start(timeout=2)
     time.sleep(0.05)
+    assert CommandScheduler.is_waiting_for_execution(connection_observer=whoami_cmd) is True
     buffer_connection.moler_connection.data_received(command_output[0].encode("utf-8"))
     time.sleep(0.2)
     buffer_connection.moler_connection.data_received(command_output[1].encode("utf-8"))
@@ -29,6 +32,7 @@ def test_two_commands_uptime_whoami(buffer_connection, command_output_and_expect
     ret_whoami = whoami_cmd.result()
     assert ret_uptime == expected_result[0]
     assert ret_whoami == expected_result[1]
+    assert CommandScheduler.is_waiting_for_execution(connection_observer=whoami_cmd) is False
 
 
 def test_two_commands_uptime(buffer_connection, command_output_and_expected_result_uptime):

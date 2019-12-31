@@ -19,6 +19,7 @@ import select
 import socket
 import sys
 import threading
+import contextlib
 
 from moler.io.io_exceptions import ConnectionTimeout
 from moler.io.io_exceptions import RemoteEndpointDisconnected
@@ -53,7 +54,11 @@ class Tcp(object):
         self.socket = None
 
     def open(self):
-        """Open TCP connection."""
+        """
+        Open TCP connection.
+
+        Should allow for using as context manager: with connection.open():
+        """
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         blocking = 1
         if sys.platform.startswith('java'):  # Program runs under Jython
@@ -62,9 +67,14 @@ class Tcp(object):
         self._debug('connecting to {}'.format(self))
         self.socket.connect((self.host, self.port))
         self._debug('connection {} is open'.format(self))
+        return contextlib.closing(self)
 
     def close(self):
-        """Close TCP connection."""
+        """
+        Close TCP connection.
+
+        Connection should allow for calling close on closed/not-open connection.
+        """
         if self.socket is not None:
             self._debug('closing {}'.format(self))
             self.socket.close()
@@ -72,7 +82,9 @@ class Tcp(object):
         self._debug('connection {} is closed'.format(self))
 
     def __enter__(self):
-        self.open()
+        """While working as context manager connection should auto-open if it's not open yet."""
+        if self.socket is None:
+            self.open()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -171,12 +183,13 @@ class ThreadedTcp(Tcp):
 
     def open(self):
         """Open TCP connection & start thread pulling data from it."""
-        super(ThreadedTcp, self).open()
+        ret = super(ThreadedTcp, self).open()
         done = threading.Event()
         self.pulling_thread = TillDoneThread(target=self.pull_data,
                                              done_event=done,
                                              kwargs={'pulling_done': done})
         self.pulling_thread.start()
+        return ret
 
     def close(self):
         """Close TCP connection & stop pulling thread."""

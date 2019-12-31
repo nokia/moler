@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__author__ = 'Grzegorz Latuszek, Michal Ernst'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com'
 
 import logging
 import time
+
 import pytest
 
 
@@ -77,7 +78,6 @@ def test_multiline_formatter_puts_direction_info_into_direction_area():
 
 
 def test_RawFileHandler_appends_binary_message_into_logfile():
-    import os
     import os.path
     from moler.config.loggers import RAW_DATA, RawFileHandler
     cwd = os.getcwd()
@@ -101,7 +101,7 @@ def test_RawDataFormatter_uses_encoder_of_log_record():
     binary_msg = b"1 0.000000000    127.0.0.1 \xe2\x86\x92 127.0.0.1    ICMP 98 Echo (ping) request  id=0x693b, seq=48/12288, ttl=64"
     decoded_msg = binary_msg.decode(encoding='utf-8')
     record = logging.LogRecord(name=None, level=RAW_DATA, pathname="", lineno=0,
-                               msg=decoded_msg,         # this is used - not bytes data
+                               msg=decoded_msg,  # this is used - not bytes data
                                args=(), exc_info=None)
     record.encoder = lambda data: data.encode('utf-8')  # must be combined with encoder
     # Raw logger (and its formatter) may get already decoded data
@@ -134,7 +134,6 @@ def test_RawTraceFormatter_produces_yaml_record():
 
 
 def test_RawFileHandler_logs_only_records_with_level_equal_to_RAW_DATA():
-    import os
     import os.path
     from moler.config.loggers import RAW_DATA, TRACE, RawFileHandler
     cwd = os.getcwd()
@@ -144,10 +143,10 @@ def test_RawFileHandler_logs_only_records_with_level_equal_to_RAW_DATA():
     binary_msg2 = b"2 0.000000000    127.0.0.1 \xe2\x86\x92 127.0.0.1    ICMP 98 Echo (ping) request  id=0x693b, seq=48/12288, ttl=64"
     binary_msg3 = b"3 0.000000000    127.0.0.1 \xe2\x86\x92 127.0.0.1    ICMP 98 Echo (ping) request  id=0x693b, seq=48/12288, ttl=64"
     record1 = logging.LogRecord(name=None, pathname="", lineno=0,
-                                msg=binary_msg1, level=TRACE,          # too low level
+                                msg=binary_msg1, level=TRACE,  # too low level
                                 args=(), exc_info=None)
     record2 = logging.LogRecord(name=None, pathname="", lineno=0,
-                                msg=binary_msg2, level=RAW_DATA,       # expected level
+                                msg=binary_msg2, level=RAW_DATA,  # expected level
                                 args=(), exc_info=None)
     record3 = logging.LogRecord(name=None, pathname="", lineno=0,
                                 msg=binary_msg3, level=logging.DEBUG,  # too high level
@@ -267,7 +266,7 @@ def test_raw_trace_log_can_be_yaml_loaded(monkeypatch):
             raw_trace_logfile_full_path = hndl.baseFilename
     with open(raw_trace_logfile_full_path, mode='r') as logfh:
 
-        raw_log_records = yaml.load(logfh)
+        raw_log_records = yaml.load(logfh, Loader=yaml.FullLoader)
 
         assert len(raw_log_records) == 3
         rec1 = raw_log_records[0]
@@ -287,3 +286,32 @@ def test_raw_trace_log_can_be_yaml_loaded(monkeypatch):
         assert rec3[time3]['offset'] == 34
     for filename in created_files:
         os.remove(filename)
+
+
+def test_reconfigure_moler_loggers():
+    import moler.config.loggers as m_logger
+    import os
+    import mock
+    from logging import FileHandler
+
+    dummy_handler = [FileHandler(filename=os.path.join(m_logger._logging_path, 'moler.log'))]
+
+    @mock.patch("moler.config.loggers.set_logging_path")
+    @mock.patch("moler.config.loggers._create_logs_folder")
+    @mock.patch("moler.config.loggers.active_loggers", ["dummy_logger"])
+    @mock.patch("logging.FileHandler.close")
+    @mock.patch("logging.FileHandler._open")
+    @mock.patch("copy.copy", return_value=dummy_handler)
+    def reconfigure_moler_loggers(set_logging_path_mocked, _create_logs_folder_mocked, close_mocked, _open_mocked, copy_mocked):
+        new_path = "/new_path"
+        m_logger.reconfigure_logging_path(new_path)
+
+        set_logging_path_mocked.assert_called_once()
+        _create_logs_folder_mocked.assert_called_once()
+        copy_mocked.assert_called_once()
+        close_mocked.assert_called_once()
+        _open_mocked.assert_called_once()
+
+        assert new_path in dummy_handler[0].baseFilename
+
+    reconfigure_moler_loggers()

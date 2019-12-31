@@ -1,4 +1,4 @@
-[![image](https://img.shields.io/badge/pypi-v0.6.0-blue.svg)](https://pypi.org/project/moler/)
+[![image](https://img.shields.io/badge/pypi-v1.3.1-blue.svg)](https://pypi.org/project/moler/)
 [![image](https://img.shields.io/badge/python-2.7%20%7C%203.5%20%7C%203.6%20%7C%203.7-blue.svg)](https://pypi.org/project/moler/)
 [![Build Status](https://travis-ci.org/nokia/moler.svg?branch=master)](https://travis-ci.org/nokia/moler)
 [![Coverage Status](https://coveralls.io/repos/github/nokia/moler/badge.svg?branch=master)](https://coveralls.io/github/nokia/moler?branch=master)
@@ -12,7 +12,12 @@
 3. [API design reasoning](#api-design-reasoning)
 4. [Designed API](#designed-api)
 
+# Changelog
+View our [chronological list](https://github.com/nokia/moler/blob/master/CHANGELOG.md) of user-facing changes, large and small, made to the Moler project.
+
+
 # ![moler logo](graphics/moler_logo_small.png)
+# Moler
 Moler ([name origin](https://github.com/nokia/moler/wiki#moler-name-origin)) is Python library
 that provides "bricks" for building  automated tests.
 All these "bricks" have clearly defined responsibilities, have similar API,
@@ -286,11 +291,11 @@ giving it connection to operate on:
 
     import time
     from moler.cmd.unix.ping import Ping
-    from moler.connection import get_connection
+    from moler.connection_factory import get_connection
 
     host = 'www.google.com'
     terminal = get_connection(io_type='terminal', variant='threaded')  # take connection
-    with terminal:
+    with terminal.open():
         ping_cmd = Ping(connection=terminal.moler_connection,
                         destination=host, options="-w 6")
         print("Start pinging {} ...".format(host))
@@ -327,7 +332,7 @@ Library gives you freedom which part you want to reuse. We are fan's of "take wh
 * You can take connection or build it yourself:
 
    ```python
-   from moler.connection import ObservableConnection
+   from moler.observable_connection import ObservableConnection
    from moler.io.raw.terminal import ThreadedTerminal
 
    terminal_connection = ThreadedTerminal(moler_connection=ObservableConnection())

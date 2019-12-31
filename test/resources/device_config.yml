@@ -2,15 +2,144 @@ LOGGER:
   PATH: /tmp/
   RAW_LOG: True
   DATE_FORMAT: '%d %H:%M:%S'
+  MODE: write
 
 DEVICES:
-  CREATE_AT_STARTUP: True
+  CREATE_AT_STARTUP: False
 
   DEFAULT_CONNECTION:
     CONNECTION_DESC:
       io_type: terminal
       variant: threaded
 
-  UNIX:
-    DEVICE_CLASS: moler.device.unixremote.UnixLocal
+  LOGICAL_TOPOLOGY:
+    UNIX_LOCAL:
+      - SCPI
+      - UNIX_REMOTE
+
+  UNIX_LOCAL:
+    DEVICE_CLASS: moler.device.unixlocal.UnixLocal
     INITIAL_STATE: UNIX_LOCAL
+
+  UNIX_LOCAL_CLONED_VIA_YAML:
+    CLONED_FROM: UNIX_LOCAL
+
+  UNIX_REMOTE:
+    DEVICE_CLASS: moler.device.unixremote.UnixRemote
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        UNIX_REMOTE:
+          execute_command: ssh # default value
+          command_params:
+            expected_prompt: 'remote#'
+            host: remote_host
+            login: remote_login
+            password: login
+            set_timeout: null
+
+  UNIX_REMOTE_PROXY_PC:
+    DEVICE_CLASS: moler.device.unixremote.UnixRemote
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      PROXY_PC:
+        UNIX_REMOTE:
+          execute_command: ssh
+          command_params:
+            host: remote_host
+            login: remote_login
+            password: password
+            expected_prompt: "remote#"
+            set_timeout: null
+      UNIX_LOCAL:
+        PROXY_PC:
+          execute_command: ssh
+          command_params:
+            expected_prompt: "proxy_pc#"
+            host: proxy_pc_host
+            login: proxy_pc_login
+            password: password
+            set_timeout: null
+      UNIX_REMOTE:
+        PROXY_PC:
+          command_params:
+            expected_prompt: "proxy_pc#"
+
+  JUNIPER_EX:
+    DEVICE_CLASS: moler.device.juniper_ex.JuniperEX
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        CLI:
+          execute_command: ssh # default value
+          command_params:
+            host: cli_host
+            login: cli_login
+            password: password
+
+  JUNIPER_EX_PROXY_PC:
+    DEVICE_CLASS: moler.device.juniper_ex.JuniperEX
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      PROXY_PC:
+        CLI:
+          execute_command: ssh
+          command_params:
+            host: cli_host
+            login: cli_login
+            password: password
+      UNIX_LOCAL:
+        PROXY_PC:
+          execute_command: ssh
+          command_params:
+            expected_prompt: "proxy_pc#"
+            host: proxy_pc_host
+            login: proxy_pc_login
+            password: password
+            set_timeout: null
+      CLI:
+        PROXY_PC:
+          execute_command: exit
+          command_params:
+            expected_prompt: "proxy_pc#"
+
+  SCPI:
+    DEVICE_CLASS: moler.device.scpi.Scpi
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        SCPI:
+          execute_command: telnet # default value
+          command_params:
+            expected_prompt: SCPI>
+            host: 10.0.0.1
+            port: 99999
+            set_timeout: null
+
+  SCPI_PROXY_PC:
+    DEVICE_CLASS: moler.device.scpi.Scpi
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      PROXY_PC:
+        SCPI:
+          execute_command: telnet # default value
+          command_params:
+            expected_prompt: SCPI>
+            host: 10.0.0.1
+            port: 99999
+            set_timeout: null
+      SCPI:
+        PROXY_PC:
+          execute_command: exit_telnet # default value
+          command_params:
+            expected_prompt: "proxy_pc#"
+      UNIX_LOCAL:
+        PROXY_PC:
+          execute_command: ssh
+          command_params:
+            expected_prompt: "proxy_pc#"
+            host: proxy_pc_host
+            login: proxy_pc_login
+            password: password
+            set_timeout: null
+
