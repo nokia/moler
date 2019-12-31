@@ -23,14 +23,16 @@ before_script:
 
 script:
   - python -m pycodestyle moler
-  - python -m pytest --mccabe moler
-  - coverage run -m pytest -c py3pytest.ini --random --mccabe
+  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then python -m pytest test; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == *"3."* ]]; then python -m pytest --mccabe moler; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == *"3."* ]]; then coverage run -m pytest -c py3pytest.ini --random; fi
 
 after_success:
   - coveralls
 
 after_failure:
   - echo "----------------------- LOGS -----------------------"
+  - ls -lah *.log
   - cat *.log
 
 #stages:
