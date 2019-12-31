@@ -7,16 +7,16 @@
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](./LICENSE)
 
 # Table of Contents
-1. [Moler info](#moler)
-2. [Moler usage examples](#moler-usage-examples)
-3. [API design reasoning](#api-design-reasoning)
-4. [Designed API](#designed-api)
+1. [Changelog](#changelog)
+2. [Moler info](#moler)
+3. [Moler usage examples](#moler-usage-examples)
+4. [API design reasoning](#api-design-reasoning)
+5. [Designed API](#designed-api)
 
 # Changelog
-View our [chronological list](https://github.com/nokia/moler/blob/master/CHANGELOG.md) of user-facing changes, large and small, made to the Moler project.
+View our [chronological list](./CHANGELOG.md) of user-facing changes, large and small, made to the Moler project.
 
-
-# ![moler logo](graphics/moler_logo_small.png)
+![moler logo](https://i.imgur.com/mkPutdC.png)
 # Moler
 Moler ([name origin](https://github.com/nokia/moler/wiki#moler-name-origin)) is Python library
 that provides "bricks" for building  automated tests.
