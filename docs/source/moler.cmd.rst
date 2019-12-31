@@ -7,7 +7,30 @@ Subpackages
 .. toctree::
 
     moler.cmd.at
+    moler.cmd.juniper
+    moler.cmd.juniper_ex
+    moler.cmd.scpi
     moler.cmd.unix
+
+Submodules
+----------
+
+moler.cmd.commandchangingprompt module
+--------------------------------------
+
+.. automodule:: moler.cmd.commandchangingprompt
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+moler.cmd.commandtextualgeneric module
+--------------------------------------
+
+.. automodule:: moler.cmd.commandtextualgeneric
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

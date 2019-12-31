@@ -2,6 +2,7 @@
 """
 SCP command module.
 """
+
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
@@ -15,7 +16,7 @@ __email__ = 'sylwester.golonka@nokia.com, marcin.usielski@nokia.com, michal.erns
 
 class Scp(GenericUnixCommand):
     def __init__(self, connection, source, dest, password="", options="", prompt=None, newline_chars=None,
-                 known_hosts_on_failure='keygen', encrypt_password=True, runner=None):
+                 known_hosts_on_failure='keygen', encrypt_password=True, runner=None, repeat_password=True):
         """
         Represents Unix command scp.
 
@@ -28,6 +29,7 @@ class Scp(GenericUnixCommand):
         :param known_hosts_on_failure: "rm" or "keygen" how to deal with error. If empty then scp fails.
         :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text
         :param runner: Runner to run command
+        :param repeat_password: If True then repeat last password if no more provided. If False then exception is set.
         """
         super(Scp, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.source = source
@@ -44,6 +46,8 @@ class Scp(GenericUnixCommand):
             self._passwords = [password]
         else:
             self._passwords = list(password)  # copy of list of passwords to modify
+        self.repeat_password = repeat_password
+        self._last_password = ""
 
     def build_command_string(self):
         """
@@ -63,8 +67,8 @@ class Scp(GenericUnixCommand):
         Put your parsing code here.
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
-        :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :param is_full_line: True if line had new line chars, False otherwise.
+        :return: None.
         """
         try:
             self._know_hosts_verification(line)
@@ -79,35 +83,38 @@ class Scp(GenericUnixCommand):
             self._sent_password = False  # Clear flag for multi passwords connections
         return super(Scp, self).on_new_line(line, is_full_line)
 
-    _re_parse_success = re.compile(r'^(?P<FILENAME>\S+)\s+.*\d+\%.*')
+    _re_parse_success = re.compile(r'^(?P<FILENAME>\S+)\s+.*\d+%.*')
 
     def _parse_success(self, line):
         """
         Parses line if success.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if matches success
+        :return: None.
+        :raises ParsingDone: if matches success.
         """
         if self._regex_helper.search_compiled(Scp._re_parse_success, line):
             if 'FILE_NAMES' not in self.current_ret.keys():
                 self.current_ret['FILE_NAMES'] = list()
 
             self.current_ret['FILE_NAMES'].append(self._regex_helper.group('FILENAME'))
-            raise ParsingDone
+            raise ParsingDone()
 
     _re_parse_failed = re.compile(
-        r'(?P<FAILED>cannot access|Could not|no such|denied|not a regular file|Is a directory|No route to host|lost connection)')
+        r'cannot access|Could not|no such|denied|not a regular file|Is a directory|No route to host|"'
+        r'lost connection|Not a directory', re.IGNORECASE)
 
     def _parse_failed(self, line):
         """
         Parses line if failed.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if matches fail
+        :return: None.
+        :raises ParsingDone: if matches fail.
         """
         if self._regex_helper.search_compiled(Scp._re_parse_failed, line):
             self.set_exception(CommandFailure(self, "Command failed in line >>{}<<.".format(line)))
-            raise ParsingDone
+            raise ParsingDone()
 
     _re_parse_permission_denied = re.compile(
         r'Permission denied, please try again|Permission denied \(publickey,password\)')
@@ -117,14 +124,20 @@ class Scp(GenericUnixCommand):
         Sends password if necessary.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if password was sent.
+        :return: None.
+        :raises  ParsingDone: if password was sent.
         """
         if (not self._sent_password) and self._is_password_requested(line):
             try:
                 pwd = self._passwords.pop(0)
+                self._last_password = pwd
                 self.connection.sendline(pwd, encrypt=self.encrypt_password)
             except IndexError:
-                self.set_exception(CommandFailure(self, "Password was requested but no more passwords provided."))
+                if self.repeat_password:
+                    self.connection.sendline(self._last_password, encrypt=self.encrypt_password)
+                else:
+                    self.set_exception(CommandFailure(self, "Password was requested but no more passwords provided."))
+                    self.break_cmd()
             self._sent_password = True
             raise ParsingDone()
 
@@ -135,7 +148,7 @@ class Scp(GenericUnixCommand):
         Parses line if password is requested.
 
         :param line: Line from device.
-        :return: Match object if matches, otherwise None
+        :return: Match object if matches, otherwise None.
         """
         return self._regex_helper.search_compiled(Scp._re_password, line)
 
@@ -144,20 +157,22 @@ class Scp(GenericUnixCommand):
         Sends yes to device if needed.
 
         :param line: Line from device.
-        :return: Nothing
+        :return: None.
+        :raises ParsingDone: if line handled by this method.
         """
         if (not self._sent_continue_connecting) and self._parse_continue_connecting(line):
             self.connection.sendline('yes')
             self._sent_continue_connecting = True
+            raise ParsingDone()
 
-    _re_continue_connecting = re.compile(r'\(yes\/no\)|\'yes\'\sor\s\'no\'')
+    _re_continue_connecting = re.compile(r'\(yes/no\)|\'yes\'\sor\s\'no\'')
 
     def _parse_continue_connecting(self, line):
         """
         Parses continue connecting.
 
         :param line: Line from device.
-        :return: Match object if matches, None otherwise
+        :return: Match object if matches, None otherwise.
         """
         return self._regex_helper.search_compiled(Scp._re_continue_connecting, line)
 
@@ -167,11 +182,14 @@ class Scp(GenericUnixCommand):
         """
         Parses hosts file.
 
-        :param line: Line from device
-        :return: Nothing
+        :param line: Line from device.
+        :return: None.
+        :raises ParsingDone: if line handled by this method.
+
         """
         if (self.known_hosts_on_failure is not None) and self._regex_helper.search_compiled(Scp._re_host_key, line):
             self._hosts_file = self._regex_helper.group("PATH")
+            raise ParsingDone()
 
     _re_id_dsa = re.compile("id_dsa:", re.IGNORECASE)
 
@@ -181,22 +199,25 @@ class Scp(GenericUnixCommand):
         """
         Parses host key verification.
 
-        :param line: Line from device
-        :return: Nothing
+        :param line: Line from device.
+        :return: None.
+        :raises ParsingDone: if line handled by this method.
         """
         if self._regex_helper.search_compiled(Scp._re_id_dsa, line):
             self.connection.sendline("")
+            raise ParsingDone()
         elif self._regex_helper.search_compiled(Scp._re_host_key_verification_failure, line):
             if self._hosts_file:
-                self.handle_failed_host_key_verification()
+                self._handle_failed_host_key_verification()
             else:
                 self.set_exception(CommandFailure(self, "Command failed in line >>{}<<.".format(line)))
+            raise ParsingDone()
 
-    def handle_failed_host_key_verification(self):
+    def _handle_failed_host_key_verification(self):
         """
         Handles failed host key verification.
 
-        :return: Nothing
+        :return: None.
         """
         if "rm" == self.known_hosts_on_failure:
             self.connection.sendline("\nrm -f " + self._hosts_file)

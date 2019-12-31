@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import importlib
@@ -9,7 +9,7 @@ import time
 
 import pytest
 
-from moler.connection import ObservableConnection
+from moler.observable_connection import ObservableConnection
 from moler.connection_observer import ConnectionObserver
 from moler.helpers import instance_id
 
@@ -28,6 +28,7 @@ def test_calling_start_on_connection_observer_returns_itself(do_nothing_connecti
     connection_observer = do_nothing_connection_observer__for_major_base_class
     connection_observer.connection = connection_to_remote.moler_connection
     assert connection_observer == connection_observer.start()
+    connection_observer.cancel()
 
 
 # str representation of class instances may be specific for given class - means: each derived class
@@ -128,6 +129,7 @@ def test_connection_observer_is_running_after_it_calls_start(do_nothing_connecti
     connection_observer.connection = connection_to_remote.moler_connection
     connection_observer.start()  # start background-run of connection_observer-future
     assert connection_observer.running()
+    connection_observer.cancel()
 
 
 def test_connection_observer_is_not_running_after_it_is_done(do_nothing_connection_observer__for_major_base_class,
@@ -151,9 +153,10 @@ def test_connection_observer_call_passes_positional_arguments_to_start(
 
     connection_observer = ParametrizedObserver()
 
-    connection_observer(1., 23, "foo")
+    connection_observer.start(1., 23, "foo")
 
     assert called_with_params == [23, "foo"]
+    connection_observer.cancel()
 
 
 def test_connection_observer_call_passes_keyword_arguments_to_start(
@@ -167,9 +170,10 @@ def test_connection_observer_call_passes_keyword_arguments_to_start(
 
     observer = ParametrizedObserver()
 
-    observer(param2="foo", param1=23)
+    observer.start(timeout=1.0, param2="foo", param1=23)
 
     assert called_with_params == [23, "foo"]
+    observer.cancel()
 
 
 def test_connection_observer_is_done_after_setting_result(do_nothing_connection_observer__for_major_base_class):
@@ -254,8 +258,7 @@ def test_can_retrieve_connection_observer_result_after_setting_result(
     assert connection_observer.result() == 14361
 
 
-def test_setting_result_multiple_times_raises_CommandResultAlreadySet(
-        do_nothing_connection_observer__for_major_base_class):
+def test_setting_result_multiple_times_raises_ResultAlreadySet(do_nothing_connection_observer__for_major_base_class):
     connection_observer = do_nothing_connection_observer__for_major_base_class
     from moler.exceptions import ResultAlreadySet
     # We start feeding connection-observer with data coming from connection
@@ -264,6 +267,20 @@ def test_setting_result_multiple_times_raises_CommandResultAlreadySet(
     connection_observer.set_result(14361)
     with pytest.raises(ResultAlreadySet) as error:
         connection_observer.set_result(78990)  # connection_observer internally tries to overwrite the result
+
+    assert error.value.connection_observer == connection_observer
+    assert str(error.value) == 'for {}'.format(str(connection_observer))
+
+
+def test_setting_result_after_set_exception_raises_ResultAlreadySet(do_nothing_connection_observer__for_major_base_class):
+    connection_observer = do_nothing_connection_observer__for_major_base_class
+    from moler.exceptions import ResultAlreadySet
+    # set_exception() and set_result() may come from different threads (runner/external-io) - so,
+    # we must be secured against race
+    exc = Exception("exception in runner")
+    connection_observer.set_exception(exc)
+    with pytest.raises(ResultAlreadySet) as error:
+        connection_observer.set_result(78990)  # trial to overwrite exception with the result
 
     assert error.value.connection_observer == connection_observer
     assert str(error.value) == 'for {}'.format(str(connection_observer))
@@ -415,6 +432,7 @@ def test_connection_observer_one_exception():
     none_exceptions = ConnectionObserver.get_unraised_exceptions(True)
     assert 0 == len(none_exceptions)
     cmd.set_exception(CommandTimeout(cmd, 0.1))
+    cmd._is_done = True
     active_exceptions = ConnectionObserver.get_unraised_exceptions(True)
     assert 1 == len(active_exceptions)
     try:
@@ -432,15 +450,22 @@ def test_connection_observer_exception_do_not_remove():
     time.sleep(0.1)
     from moler.cmd.unix.ls import Ls
     from moler.exceptions import CommandTimeout
+    from moler.exceptions import WrongUsage
     cmd = Ls(None)
     none_exceptions = ConnectionObserver.get_unraised_exceptions(True)
     assert 0 == len(none_exceptions)
     cmd.set_exception(CommandTimeout(cmd, 0.1))
+    cmd._is_done = True
     active_exceptions = ConnectionObserver.get_unraised_exceptions(False)
     assert 1 == len(active_exceptions)
     cmd = Ls(None)
-    cmd.set_exception(CommandTimeout(cmd, 0.1))
+    ctoe = CommandTimeout(cmd, 0.1)
+    cwue = WrongUsage(cmd, "Another exception")
+    cmd.set_exception(ctoe)
+    cmd._is_done = True
+    cmd.set_exception(cwue)
     active_exceptions = ConnectionObserver.get_unraised_exceptions(False)
+    assert ctoe == active_exceptions[1]
     assert 2 == len(active_exceptions)
     active_exceptions = ConnectionObserver.get_unraised_exceptions(True)
     assert 2 == len(active_exceptions)
@@ -451,12 +476,14 @@ def test_connection_observer_exception_do_not_remove():
 # --------------------------- resources ---------------------------
 
 
-@pytest.fixture(params=['connection_observer.ConnectionObserver', 'command.Command'])
+@pytest.yield_fixture(params=['connection_observer.ConnectionObserver', 'command.Command'])
 def connection_observer_major_base_class(request):
     module_name, class_name = request.param.rsplit('.', 1)
     module = importlib.import_module('moler.{}'.format(module_name))
     klass = getattr(module, class_name)
-    return klass
+    yield klass
+    # remove exceptions collected inside ConnectionObserver
+    ConnectionObserver.get_unraised_exceptions(remove=True)
 
 
 def do_nothing_connection_observer_class(base_class):

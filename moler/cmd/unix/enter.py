@@ -4,7 +4,7 @@ enter command module.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 
@@ -27,7 +27,7 @@ class Enter(GenericUnixCommand):
         """
         :return: String representation of command to send over connection to device.
         """
-        return " "
+        return ""
 
 
 COMMAND_OUTPUT_ver_execute = """

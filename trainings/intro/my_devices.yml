@@ -1,0 +1,16 @@
+LOGGER:
+  PATH: /home/moler/gitrepos/moler/trainings/logs
+  RAW_LOG: True
+
+DEVICES:
+  MyRemoteMachine:
+    DEVICE_CLASS: moler.device.unixremote.UnixRemote
+    CONNECTION_HOPS:
+      UNIX_LOCAL:                   # from state
+        UNIX_REMOTE:                # to state
+          execute_command: ssh      # via command
+          command_params:           # with params
+            expected_prompt: moler@ute-image
+            host: localhost
+            login: moler
+            password: moler

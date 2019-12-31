@@ -6,6 +6,10 @@ Subpackages
 
 .. toctree::
 
+    moler.events.juniper
+    moler.events.juniper_ex
+    moler.events.scpi
+    moler.events.shared
     moler.events.unix
 
 Submodules

@@ -12,6 +12,8 @@ import datetime
 import importlib
 import logging
 import re
+from functools import wraps
+from types import FunctionType, MethodType
 
 import deepdiff
 
@@ -94,6 +96,28 @@ def remove_escape_codes(line):
     return line
 
 
+_re_remove_xterm_window_title_hack = re.compile(r'\x1b\x5d0;.*\x07')  # Regex to remove xterm hack for set window title
+
+
+def remove_xterm_window_title_hack(line):
+    """
+    :param line: line from terminal
+    :return: line without xterm windows title hack
+    """
+    line = re.sub(_re_remove_xterm_window_title_hack, "", line)
+    return line
+
+
+def remove_all_known_special_chars(line):
+    """
+    :param line: line from terminal
+    :return: line without all known special chars
+    """
+    line = remove_escape_codes(line)
+    line = remove_xterm_window_title_hack(line)
+    return line
+
+
 def create_object_from_name(full_class_name, constructor_params):
     name_splitted = full_class_name.split('.')
     module_name = ".".join(name_splitted[:-1])
@@ -139,6 +163,33 @@ def compare_objects(first_object, second_object, ignore_order=False, report_repe
     return diff
 
 
+def convert_to_number(value):
+    """
+    Convert value to Python number type.
+    :param value: value to convert
+    :return: converted value if possible, otherwise original
+    """
+    if value and is_digit(value):
+        try:
+            value = int(value)
+        except ValueError:
+            value = float(value)
+    return value
+
+
+def is_digit(value):
+    """
+    Check that value is digit.
+    :param value: value to check
+    :return: True if value is digit, otherwise False
+    """
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
+
+
 class ForwardingHandler(logging.Handler):
     """
     Take log record and pass it to target_logger
@@ -163,3 +214,50 @@ class ForwardingHandler(logging.Handler):
             record.levelname = "DEBUG"
 
         self.target_logger.handle(record)
+
+
+def call_base_class_method_with_same_name(obj):
+    """
+    Run base class method.
+
+    :param obj: class object which methods will be decorated.
+    :return: class object with decorated methods
+    """
+    if hasattr(obj, "__dict__"):
+        if obj.__dict__.items():
+            for attributeName in dir(obj):
+                attribute = getattr(obj, attributeName)
+
+                if "_decorate" in dir(attribute):
+                    if isinstance(attribute, (FunctionType, MethodType)):
+                        setattr(obj, attributeName, _wrapper(method=attribute, obj=obj))
+
+    return obj
+
+
+def mark_to_call_base_class_method_with_same_name(func):
+    """
+    Mark method which base class method with same name will be call.
+    :param func: function to mark.
+    :return: marked function
+    """
+    func._decorate = True
+    return func
+
+
+def _wrapper(method, obj):
+    if hasattr(method, '_already_decorated') and method._already_decorated:
+        return method
+
+    @wraps(method)
+    def wrapped(*args, **kwargs):
+        base_method = getattr(obj.__bases__[0], method.__name__)
+        base_result = base_method(*args, **kwargs)
+
+        result = method(*args, **kwargs)
+        update_dict(base_result, result)
+
+        return base_result
+
+    wrapped._already_decorated = True
+    return wrapped

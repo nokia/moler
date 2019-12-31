@@ -11,14 +11,14 @@ import pytest
 
 
 def test_missing_constructor_raises_KeyError():
-    from moler.connection import ConnectionFactory
+    from moler.connection_factory import ConnectionFactory
     with pytest.raises(KeyError) as err:
         ConnectionFactory.get_connection(io_type='memory', variant='superquick')
-    assert "No constructor registered for [('memory', 'superquick')] connection" in str(err)
+    assert "No constructor registered for [('memory', 'superquick')] connection" in str(err.value)
 
 
 def test_factory_has_buildin_constructors_active_by_default():
-    from moler.connection import get_connection
+    from moler.connection_factory import get_connection
 
     conn = get_connection(io_type='memory', variant='threaded')
     assert conn.__module__ == 'moler.io.raw.memory'
@@ -31,7 +31,7 @@ def test_factory_has_buildin_constructors_active_by_default():
 
 def test_returned_connections_have_moler_integrated_connection(builtin_variant,
                                                                builtin_io_type_example):
-    from moler.connection import get_connection
+    from moler.connection_factory import get_connection
 
     io_type, kwargs = builtin_io_type_example
     conn = get_connection(io_type=io_type, variant=builtin_variant, **kwargs)
@@ -40,17 +40,17 @@ def test_returned_connections_have_moler_integrated_connection(builtin_variant,
 
 
 def test_registered_constructor_must_be_callable():
-    from moler.connection import ConnectionFactory
+    from moler.connection_factory import ConnectionFactory
     with pytest.raises(ValueError) as err:
         ConnectionFactory.register_construction(io_type='memory',
                                                 variant='superquick',
                                                 constructor=[1, 2])
-    assert "constructor must be callable not" in str(err)
+    assert "constructor must be callable not" in str(err.value)
 
 
 def test_can_plugin_alternative_connection_instead_of_builtin_one(builtin_connection_factories):
-    from moler.connection import ConnectionFactory, get_connection
-    from moler.connection import ObservableConnection
+    from moler.connection_factory import ConnectionFactory, get_connection
+    from moler.observable_connection import ObservableConnection
 
     class DummyTcpConnection(object):
         def __init__(self, host, port):
@@ -88,5 +88,5 @@ def builtin_connection_factories():
     import moler.config.connections as connection_cfg
     yield
     # restore since tests may overwrite builtins
-    connection_cfg.register_builtin_connections(moler.connection.ConnectionFactory,
-                                                moler.connection.ObservableConnection)
+    connection_cfg.register_builtin_connections(moler.connection_factory.ConnectionFactory,
+                                                moler.observable_connection.ObservableConnection)

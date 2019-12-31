@@ -28,6 +28,14 @@ moler.config.loggers module
     :undoc-members:
     :show-inheritance:
 
+moler.config.runners module
+---------------------------
+
+.. automodule:: moler.config.runners
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

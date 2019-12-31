@@ -1,0 +1,8 @@
+DEVICES:
+  MyMachine1:
+    DEVICE_CLASS: moler.device.unixlocal.UnixLocal
+
+  MyMachine2:
+    DEVICE_CLASS: moler.device.unixlocal.UnixLocal
+
+# copy this file into workshop1/config/my_devices.yml

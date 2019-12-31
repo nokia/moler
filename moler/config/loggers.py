@@ -4,16 +4,20 @@ Configure logging for Moler's needs
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import codecs
 import logging
 import os
 import sys
+import copy
+import re
+import pkg_resources
+import platform
 
-logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
-active_loggers = []  # TODO: use set()      # Active loggers created by Moler
+_logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
+active_loggers = set()  # Active loggers created by Moler
 date_format = "%d %H:%M:%S"
 
 # new logging levels
@@ -24,11 +28,83 @@ TEST_CASE = 45
 
 debug_level = None  # means: inactive
 raw_logs_active = False
+write_mode = "a"
+
+moler_logo = """
+                        %%%%%%%%%%%%%%%%%%%%%
+                   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+           %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  %%%%%%%%%%%%
+     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    %%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%      %%%%%%%%%%%%%
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        %%%%%%%%%%%%%%%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%                     %%%%%%%%%%%%%%%%
+  %%%%%%%%%%%%%%%%%%%%%                          %%%%%%%%%%%%%%%%%%
+ %%%%%%%%%%%%%%%%%%%%                           %%%%%%%%%%%%%%%%%%%
+ %%%%%%%%%%%%%%%%%%                            %%%%%%%%%%%%%%%%%%%%%
+ %%%%%%%%%%%%%%%%       $$                    %%%%%%%%%%%%%%%%%%%%%%
+ %%%%%%%%%%%%%%%                            %%%%%%%%%%%%%%%%%%%%%%%%
+ %%%%%%%%%%%%%%                          %%%%, %%%%%%%%%%%%%%%%%%%%%
+ %%%%%%%%%%%%%                                %%%%%%%%%%%%%%%%%%%%%
+  %%%%%%%%%%%%                              %%%%%%%%%%%%%%%%%%%%%%%
+  %%%%%%%%%%%                               %%%%%%%%%%%%%%%%%%%%%%
+   %%%%%%%%%                                   %%%%%%%%%%%%%%%%%%%
+    %%%%%%%%                                     %%%%%%%%%%%%%%%%
+     %%%%%%    https://github.com/nokia/moler     %%%%%%%%%%%%%%
+
+    %%%%     %%%%   %%%%%%%%%%   %%%       %%%%%%%%%% %%%%%%%%%%
+    %%%%%   %%%%%  %%%       %%  %%%       %%%        %%%     %%%
+    %% %%% %%% %%  %%%       %%  %%%       %%%%%%%%%  %%% %%%%%%%
+    %%  %%%%%  %%  %%%       %%  %%%       %%%        %%%   %%%
+    %%   %%%   %%   %%%%%%%%%%%  %%%%%%%%% %%%%%%%%%% %%%     %%%
+"""
+
+
+def _get_moler_version():
+    setup_py_path = os.path.join(os.path.dirname(__file__), "..", "..", "setup.py")
+
+    if "site-packages" in setup_py_path:
+        try:
+            return pkg_resources.get_distribution("moler").version
+        except pkg_resources.DistributionNotFound:
+            return _get_moler_version_cloned_from_git_repository(setup_py_path)
+    else:
+        return _get_moler_version_cloned_from_git_repository(setup_py_path)
+
+
+def _get_moler_version_cloned_from_git_repository(setup_py_path):
+    version = "UNKNOWN"
+
+    if os.path.isfile(setup_py_path):
+        with open(setup_py_path, "r") as f:
+            for line in f:
+                search_version = re.search(r'version\s*=\s*\'(?P<VERSION>\d+\.\d+\.\d+)', line)
+                if search_version:
+                    version = search_version.group("VERSION")
+
+    return "{} cloned from git repository".format(version)
+
+
+def set_write_mode(mode):
+    global write_mode
+    if mode.lower() in ["a", "append"]:
+        write_mode = "a"
+    elif mode.lower() in ["w", "write"]:
+        write_mode = "w"
 
 
 def set_logging_path(path):
-    global logging_path
-    logging_path = path
+    global _logging_path
+    _logging_path = path
+
+
+def get_logging_path():
+    global _logging_path
+    return _logging_path
 
 
 def set_date_format(format):
@@ -65,6 +141,30 @@ def want_raw_logs():
     return raw_logs_active
 
 
+def reconfigure_logging_path(log_path):
+    """
+    Set up new logging path when Moler script is running
+    :param log_path: new log path when logs will be stored
+    :return: None
+    """
+    old_logging_path = _logging_path
+    set_logging_path(log_path)
+    _create_logs_folder(log_path)
+    _reopen_all_logfiles_in_new_path(old_logging_path=old_logging_path, new_logging_path=log_path)
+
+
+def _reopen_all_logfiles_in_new_path(old_logging_path, new_logging_path):
+    for logger_name in active_loggers:
+        logger = logging.getLogger(logger_name)
+        logger_handlers = copy.copy(logger.handlers)
+
+        for handler in logger_handlers:
+            if isinstance(handler, logging.FileHandler):
+                handler.close()
+                handler.baseFilename = handler.baseFilename.replace(old_logging_path, new_logging_path)
+                handler.stream = handler._open()
+
+
 def debug_level_or_info_level():
     """
     If debugging is active we want to have details inside logs
@@ -87,8 +187,9 @@ def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filt
     :param filter: filter for file logger
     :return:  logging.FileHandler object
     """
+    global write_mode
     logger = logging.getLogger(logger_name)
-    cfh = logging.FileHandler(log_filename, 'w')
+    cfh = logging.FileHandler(log_filename, write_mode)
     cfh.setLevel(log_level)
     cfh.setFormatter(formatter)
     if filter:
@@ -109,7 +210,7 @@ def _add_new_file_handler(logger_name,
     :return: None
     """
 
-    logfile_full_path = os.path.join(logging_path, log_file)
+    logfile_full_path = os.path.join(_logging_path, log_file)
 
     _prepare_logs_folder(logfile_full_path)
     setup_new_file_handler(logger_name=logger_name,
@@ -126,10 +227,11 @@ def _add_raw_file_handler(logger_name, log_file):
     :param log_file: Path to logfile. Final logfile location is logging_path + log_file
     :return: None
     """
-    logfile_full_path = os.path.join(logging_path, log_file)
+    global write_mode
+    logfile_full_path = os.path.join(_logging_path, log_file)
     _prepare_logs_folder(logfile_full_path)
     logger = logging.getLogger(logger_name)
-    rfh = RawFileHandler(filename=logfile_full_path, mode='wb')
+    rfh = RawFileHandler(filename=logfile_full_path, mode='{}b'.format(write_mode))
     logger.addHandler(rfh)
 
 
@@ -140,10 +242,11 @@ def _add_raw_trace_file_handler(logger_name, log_file):
     :param log_file: Path to logfile. Final logfile location is logging_path + log_file
     :return: None
     """
-    logfile_full_path = os.path.join(logging_path, log_file)
+    global write_mode
+    logfile_full_path = os.path.join(_logging_path, log_file)
     _prepare_logs_folder(logfile_full_path)
     logger = logging.getLogger(logger_name)
-    trace_rfh = RawFileHandler(filename=logfile_full_path, mode='w')
+    trace_rfh = RawFileHandler(filename=logfile_full_path, mode=write_mode)
     # exchange Formatter
     raw_trace_formatter = RawTraceFormatter()
     trace_rfh.setFormatter(raw_trace_formatter)
@@ -172,7 +275,7 @@ def create_logger(name,
                                   log_level=log_level,
                                   formatter=logging.Formatter(fmt=log_format,
                                                               datefmt=datefmt))
-        active_loggers.append(name)
+        active_loggers.add(name)
     return logger
 
 
@@ -191,7 +294,7 @@ def configure_moler_main_logger():
                                                                                  datefmt=date_format))
 
         if want_debug_details():
-            debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(name)-30s %(threadName)22s %(transfer_direction)s|%(message)s"
+            debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(name)-30s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() %(transfer_direction)s|%(message)s"
             _add_new_file_handler(logger_name='moler',
                                   log_file='moler.debug.log',
                                   log_level=debug_level,
@@ -201,7 +304,11 @@ def configure_moler_main_logger():
                                   formatter=MultilineWithDirectionFormatter(fmt=debug_log_format,
                                                                             datefmt=date_format))
 
-        logger.info("More logs in: {}".format(logging_path))
+        logger.info(moler_logo)
+        msg = "Using specific packages version:\nPython: {}\nmoler: {}".format(platform.python_version(),
+                                                                               _get_moler_version())
+        logger.info(msg)
+        logger.info("More logs in: {}".format(_logging_path))
 
 
 def configure_runner_logger(runner_name):
@@ -211,7 +318,7 @@ def configure_runner_logger(runner_name):
         create_logger(name=logger_name,
                       log_file='moler.runner.{}.log'.format(runner_name),
                       log_level=debug_level_or_info_level(),
-                      log_format="%(asctime)s.%(msecs)03d %(levelname)-10s |%(message)s",
+                      log_format="%(asctime)s.%(msecs)03d %(levelname)-12s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() |%(message)s",
                       datefmt=date_format
                       # log_format="%(asctime)s %(levelname)-10s %(subarea)-30s: |%(message)s"
                       )
@@ -223,8 +330,9 @@ def configure_device_logger(connection_name, propagate=False):
     if logger_name not in active_loggers:
         logger = create_logger(name=logger_name, log_level=TRACE)
         logger.propagate = propagate
-        conn_formatter = MultilineWithDirectionFormatter(fmt="%(asctime)s.%(msecs)03d %(transfer_direction)s|%(message)s",
-                                                         datefmt=date_format)
+        conn_formatter = MultilineWithDirectionFormatter(
+            fmt="%(asctime)s.%(msecs)03d %(transfer_direction)s|%(message)s",
+            datefmt=date_format)
         _add_new_file_handler(logger_name=logger_name,
                               log_file='{}.log'.format(logger_name),
                               log_level=logging.INFO,
@@ -248,6 +356,15 @@ def _prepare_logs_folder(logfile_full_path):
     :return: Nome
     """
     logdir = os.path.dirname(logfile_full_path)
+    _create_logs_folder(logdir)
+
+
+def _create_logs_folder(logdir):
+    """
+    Create log folder
+    :param logdir: path to log folder
+    :return: None
+    """
     if not os.path.exists(logdir):
         os.makedirs(logdir)
 

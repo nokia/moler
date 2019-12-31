@@ -6,35 +6,35 @@ Event is a type of ConnectionObserver.
 """
 
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import importlib
 
 import pytest
 
-from moler.connection import ObservableConnection
+from moler.observable_connection import ObservableConnection
 from moler.events.lineevent import LineEvent
 from moler.helpers import instance_id
+from moler.exceptions import MolerException
+from moler.exceptions import ResultAlreadySet
 
 
 def test_event_has_means_to_retrieve_embedded_detect_pattern(lineevent_class):
-    event_instance = lineevent_class()
-    assert hasattr(event_instance, "detect_pattern")
+    event_instance = lineevent_class(detect_patterns=[])
     assert hasattr(event_instance, "detect_patterns")
 
 
 def test_str_conversion_of_event_object():
     class Wait4(LineEvent):
         def __init__(self, connection=None):
-            super(Wait4, self).__init__(connection=connection)
-            self.detect_pattern = 'Connection close'
+            super(Wait4, self).__init__(connection=connection, detect_patterns=['Connection close'])
 
         def data_received(self, data):
             pass  # not important now
 
     wait4 = Wait4()
-    assert 'Wait4("Connection close", id:{})'.format(instance_id(wait4)) == str(wait4)
+    assert "Wait4(['Connection close'], id:{})".format(instance_id(wait4)) == str(wait4)
 
 
 def test_event_string_is_required_to_start_command(lineevent_class):
@@ -42,8 +42,7 @@ def test_event_string_is_required_to_start_command(lineevent_class):
     moler_conn = ObservableConnection()
 
     event_class = do_nothing_command_class(base_class=lineevent_class)
-    event = event_class(connection=moler_conn)
-    assert not event.detect_pattern  # ensure it is empty before starting command
+    event = event_class(connection=moler_conn, detect_patterns=[])
     assert not event.detect_patterns  # ensure it is empty before starting command
 
     with pytest.raises(NoDetectPatternProvided) as error:
@@ -54,13 +53,44 @@ def test_event_is_running(do_nothing_command__for_major_base_class):
     wait4 = do_nothing_command__for_major_base_class
 
     class TheConnection(object):
-        def subscribe(self, observer):
+        def subscribe(self, observer, connection_closed_handler):
+            pass
+
+        def unsubscribe(self, observer, connection_closed_handler):
             pass
 
     wait4.connection = TheConnection()
-    wait4.detect_pattern = 'Connection lose'
+    wait4.detect_patterns = ['Connection lose']
     assert not wait4.running()
     wait4.start()  # start the event-future
+    assert wait4.running()
+    wait4.cancel()
+
+
+def test_event_cannot_assign_callback_when_assigned(buffer_connection):
+    def fake_callback():
+        pass
+
+    def fake_callback2():
+        pass
+
+    from moler.events.unix.wait4prompt import Wait4prompt
+    event = Wait4prompt(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
+    event.add_event_occurred_callback(fake_callback, callback_params=dict())
+    event.enable_log_occurrence()
+
+    with pytest.raises(MolerException) as ex:
+        event.add_event_occurred_callback(fake_callback)
+    assert "is already assigned" in str(ex)
+    with pytest.raises(MolerException) as ex:
+        event.add_event_occurred_callback(fake_callback2)
+    assert "is already assigned" in str(ex)
+
+    event.remove_event_occurred_callback()
+    event.add_event_occurred_callback(fake_callback2)
+
+    ret = event.get_last_occurrence()
+    assert ret is None
 
 
 def test_event_output_in_parts(buffer_connection):
@@ -73,6 +103,8 @@ def test_event_output_in_parts(buffer_connection):
 
     event.await_done()
     assert event.done() is True
+    with pytest.raises(ResultAlreadySet):
+        event.event_occurred("data")
 
 
 def test_event_whole_output(buffer_connection):
@@ -84,6 +116,23 @@ def test_event_whole_output(buffer_connection):
     event.await_done()
     assert event.done() is True
 
+
+def test_event_get_last_occurrence(buffer_connection):
+    from moler.events.unix.wait4prompt import Wait4prompt
+    output = "bash\n"
+    dict_output = {'line': u'bash', 'matched': u'bash', 'named_groups': {}, 'groups': (), 'time': 0}
+    event = Wait4prompt(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
+    event.start(timeout=0.1)
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    event.await_done()
+    occurrence = event.get_last_occurrence()
+    occurrence['time'] = 0
+    assert occurrence == dict_output
+
+
+def test_get_not_supported_parser():
+    le = LineEvent(connection=None, detect_patterns=['Sample pattern'], match='not_supported_value')
+    le._get_parser()
 
 # --------------------------- resources ---------------------------
 

@@ -25,7 +25,7 @@ def test_calling_connection_observer_as_function(ping_lines_as_bytes,
     detect_network_down = NetworkDownDetector(connection=moler_conn)
 
     ext_io_remote_side.inject(input_bytes=ping_lines_as_bytes, delay=0.2)
-    with ext_io_connection:
+    with ext_io_connection.open():
         # ------------------------------------------------+
         result = detect_network_down()  # <-- as function |
         # ------------------------------------------------+
@@ -42,7 +42,7 @@ def test_connection_observer_behaves_like_future(ping_lines_as_bytes,
     network_down_detector = NetworkDownDetector(connection=moler_conn)
 
     ext_io_remote_side.inject(input_bytes=ping_lines_as_bytes, delay=0.2)
-    with ext_io_connection:
+    with ext_io_connection.open():
         # ---------------------------------------------------------------------+
         future = network_down_detector.start()                  # <- as future |
         assert not future.done()                                # <- as future |
@@ -82,7 +82,7 @@ class NetworkDownDetector(ConnectionObserver):
 @pytest.yield_fixture(params=['FIFO-in-memory'])
 def ext_io_connection(request):
     from moler.io.raw.memory import ThreadedFifoBuffer
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     moler_conn = ObservableConnection(decoder=lambda data: data.decode("utf-8"))
     connection = ThreadedFifoBuffer(moler_connection=moler_conn)
     return connection

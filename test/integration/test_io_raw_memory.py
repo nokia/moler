@@ -19,6 +19,9 @@ import pytest
 # TODO: test open/close for threaded FIFO
 
 
+def connection_closed_handler():
+    pass
+
 def test_can_assign_name_to_connection(memory_connection_class):
     from moler.connection import Connection
 
@@ -146,8 +149,8 @@ def test_can_send_and_receive_data_from_connection(memory_connection_without_dec
     def receiver(data):
         received_data.extend(data)
 
-    moler_conn.subscribe(receiver)
-    with connection:
+    moler_conn.subscribe(receiver, connection_closed_handler)
+    with connection.open():
         connection.write(b"command to be echoed")
         connection.read()
         assert b'command to be echoed' == received_data
@@ -167,8 +170,8 @@ def test_will_not_receive_data_from_connection_when_echo_is_off(memory_connectio
     def receiver(data):
         received_data.extend(data)
 
-    moler_conn.subscribe(receiver)
-    with connection:
+    moler_conn.subscribe(receiver, connection_closed_handler)
+    with connection.open():
         connection.write(b"command to be echoed")
         connection.read()
         assert b'' == received_data
@@ -187,8 +190,8 @@ def test_can_inject_data_with_specified_delay(memory_connection_without_decoder)
             assert b'msg1\nmsg2\nmsg3\n' == received_data
             assert (duration > 0.7) and (duration < 0.8)
 
-    moler_conn.subscribe(receiver)
-    with connection:
+    moler_conn.subscribe(receiver, connection_closed_handler)
+    with connection.open():
         connection.inject(input_bytes=[b"msg1\n", b"msg2\n", b"msg3\n"],
                           delay=0.25)
         connection.read()
@@ -202,8 +205,8 @@ def test_inject_response_awaits_nearest_write_before_responding(memory_connectio
     def receiver(data):
         received_data.extend(data)
 
-    moler_conn.subscribe(receiver)
-    with connection:
+    moler_conn.subscribe(receiver, connection_closed_handler)
+    with connection.open():
         connection.inject_response(input_bytes=[b'response\n'])
         connection.read()
         assert b'' == received_data  # injection not active yet
@@ -219,8 +222,8 @@ def test_can_receive_data_from_ext_io_into_moler_connection(memory_connection):
     def receiver(data):
         received_data['data'] += data
 
-    connection.moler_connection.subscribe(receiver)
-    with connection:
+    connection.moler_connection.subscribe(receiver, connection_closed_handler)
+    with connection.open():
         connection.write(b"command to be echoed")
         connection.read()
         assert 'command to be echoed' == received_data['data']
@@ -239,8 +242,8 @@ def test_can_send_data_into_ext_io_from_moler_connection(memory_connection_witho
     def receiver(data):
         received_data.extend(data)
 
-    moler_conn.subscribe(receiver)
-    with connection:
+    moler_conn.subscribe(receiver, connection_closed_handler)
+    with connection.open():
         moler_conn.send("command to be echoed")
         connection.read()
         assert b'command to be echoed' == received_data
@@ -261,7 +264,7 @@ def memory_connection_class(request):
 @pytest.fixture
 def memory_connection(memory_connection_class):
     connection_class = memory_connection_class
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     moler_conn = ObservableConnection(decoder=lambda data: data.decode("utf-8"),
                                       encoder=lambda data: data.encode("utf-8"))
     connection = connection_class(moler_connection=moler_conn)
@@ -271,7 +274,7 @@ def memory_connection(memory_connection_class):
 @pytest.fixture
 def memory_connection_without_decoder(memory_connection_class):
     connection_class = memory_connection_class
-    from moler.connection import ObservableConnection
+    from moler.observable_connection import ObservableConnection
     moler_conn = ObservableConnection(encoder=lambda data: data.encode("utf-8"))
     connection = connection_class(moler_connection=moler_conn)
     return connection

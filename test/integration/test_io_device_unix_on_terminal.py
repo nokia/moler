@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
 
-from moler.device.unixremote import UnixLocal
+from moler.device.unixlocal import UnixLocal
 from moler.exceptions import DeviceFailure
 
 
 def test_unix_device_can_execute_cmds():
     unix = UnixLocal(io_type='terminal', variant='threaded')
+    unix.establish_connection()
 
     cmd = unix.get_cmd(
         cmd_name='ls',
@@ -29,6 +30,7 @@ def test_unix_device_can_execute_cmds():
 
 def test_device_unix_can_not_execute_cmds_in_incorect_state():
     unix = UnixLocal(io_type='terminal', variant='threaded')
+    unix.establish_connection()
 
     unix.goto_state(UnixLocal.not_connected)
 

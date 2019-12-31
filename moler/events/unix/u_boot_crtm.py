@@ -6,18 +6,19 @@ __email__ = 'michal.ernst@nokia.com'
 import datetime
 import re
 
-from moler.events.textualevent import TextualEvent
+from moler.events.unix.genericunix_textualevent import GenericUnixTextualEvent
 from moler.exceptions import ParsingDone
 
 
-class UBootCrtm(TextualEvent):
-    def __init__(self, connection, till_occurs_times=-1):
+class UBootCrtm(GenericUnixTextualEvent):
+    def __init__(self, connection, till_occurs_times=-1, runner=None):
         """
         Event for 'Site is resetting due to Fault'
         :param connection: moler connection to device, terminal when command is executed
         :param till_occurs_times: number of event occurrence
+        :param runner: Runner to run event
         """
-        super(UBootCrtm, self).__init__(connection=connection, till_occurs_times=till_occurs_times)
+        super(UBootCrtm, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times)
         self.current_ret = dict()
 
     def on_new_line(self, line, is_full_line):

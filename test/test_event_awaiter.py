@@ -6,7 +6,7 @@ __email__ = 'marcin.usielski@nokia.com'
 
 from moler.events.unix.wait4prompt import Wait4prompt
 from moler.event_awaiter import EventAwaiter
-from moler.connection import ObservableConnection
+from moler.observable_connection import ObservableConnection
 
 
 def test_events_true_all():
