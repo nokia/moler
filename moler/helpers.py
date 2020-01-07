@@ -4,7 +4,7 @@ Utility/common code of library.
 """
 
 __author__ = 'Grzegorz Latuszek, Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import copy
@@ -108,6 +108,18 @@ def remove_xterm_window_title_hack(line):
     return line
 
 
+_re_remove_terminal_last_cmd_status = re.compile(r'\x1b]777;notify;.*\x07')
+
+
+def remove_terminal_last_cmd_status(line):
+    """
+        :param line: line from terminal
+        :return: line without terminal last cmd status
+        """
+    line = re.sub(_re_remove_terminal_last_cmd_status, "", line)
+    return line
+
+
 def remove_all_known_special_chars(line):
     """
     :param line: line from terminal
@@ -115,6 +127,7 @@ def remove_all_known_special_chars(line):
     """
     line = remove_escape_codes(line)
     line = remove_xterm_window_title_hack(line)
+    line = remove_terminal_last_cmd_status(line)
     return line
 
 
