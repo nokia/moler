@@ -185,6 +185,29 @@ def test_close_defined_yaml_device(moler_config, device_factory):
     assert device_2 != device_org
 
 
+def test_load_devices_after_deletion(moler_config, device_factory):
+    clear_all_cfg()
+    conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
+
+    moler_config.load_config(config=conn_config)
+    devices_loaded1 = device_factory.get_devices_by_type(None)
+    device_org_name = 'UNIX_LOCAL'
+    device_org = device_factory.get_device(name=device_org_name)
+    assert device_org is not None
+
+    device_factory.remove_all_devices()
+    devices_removed = device_factory.get_devices_by_type(None)
+    assert len(devices_removed) == 0
+    with pytest.raises(KeyError):
+        device_factory.get_device(name=device_org_name)
+
+    moler_config.load_config(config=conn_config)
+    devices_loaded2 = device_factory.get_devices_by_type(None)
+    device_2 = device_factory.get_device(name=device_org_name)
+    assert device_2 != device_org
+    assert len(devices_loaded1) == len(devices_loaded2)
+
+
 def test_can_remove_device_twice(moler_config, device_factory):
     conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
     moler_config.load_config(config=conn_config, config_type='yaml')
@@ -507,7 +530,7 @@ def test_can_load_configuration_when_already_loaded_from_same_dict(moler_config,
         },
         'DEVICES': {
             'UNIX_LOCAL': {
-                'DEVICE_CLASS': 'moler.device.unixremote.UnixLocal',
+                'DEVICE_CLASS': 'moler.device.unixlocal.UnixLocal',
                 'INITIAL_STATE': 'UNIX_LOCAL'
             }
         }

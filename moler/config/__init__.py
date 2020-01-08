@@ -76,15 +76,18 @@ def load_config(config=None, from_env_var=None, *args, **kwargs):
     """
     global loaded_config
     add_devices_only = False
+    from moler.device import DeviceFactory
 
     if "NOT_LOADED_YET" in loaded_config:
         loaded_config = [config]
-    elif configs_are_same(config_list=loaded_config, config_to_find=config):
+    elif not DeviceFactory.was_any_device_deleted() and configs_are_same(config_list=loaded_config,
+                                                                         config_to_find=config):
         return
     else:
         # Config was already loaded and now we have to add new devices.
         add_devices_only = True
-        loaded_config.append(config)
+        if not configs_are_same(config_list=loaded_config, config_to_find=config):
+            loaded_config.append(config)
 
     wrong_type_config = not isinstance(config, six.string_types) and not isinstance(config, dict)
     if config is None and from_env_var is None:
@@ -139,7 +142,6 @@ def load_device_from_config(config, add_only=False):
     topology = None
     cloned_devices = dict()
     cloned_id = 'CLONED_FROM'
-
     from moler.device.device import DeviceFactory
 
     if 'DEVICES' in config:
@@ -194,7 +196,7 @@ def _is_device_creation_needed(name, requested_device_def):
     from moler.device.device import DeviceFactory
     try:
         DeviceFactory.get_device(name)
-        msg = DeviceFactory.differences_bewteen_devices_descriptions(name, requested_device_def)
+        msg = DeviceFactory.differences_between_devices_descriptions(name, requested_device_def)
         if msg:
             raise WrongUsage(msg)
         return False  # Device exists and have the same construct parameters

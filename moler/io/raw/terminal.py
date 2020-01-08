@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import codecs
@@ -12,6 +12,7 @@ from ptyprocess import PtyProcessUnicode
 
 from moler.io.io_connection import IOConnection
 from moler.io.raw import TillDoneThread
+from moler.helpers import remove_all_known_special_chars
 
 
 class ThreadedTerminal(IOConnection):
@@ -111,7 +112,6 @@ class ThreadedTerminal(IOConnection):
             if self._terminal.fd in reads:
                 try:
                     data = self._terminal.read(self._read_buffer_size)
-                    self.logger.debug("<|{}".format(data.encode("UTF-8", "replace")))
 
                     if self._shell_operable.is_set():
                         self.data_received(data)
@@ -126,6 +126,7 @@ class ThreadedTerminal(IOConnection):
         lines = self.read_buffer.splitlines()
 
         for line in lines:
+            line = remove_all_known_special_chars(line)
             if not re.search(self._re_set_prompt_cmd, line) and re.search(self.target_prompt, line):
                 self._notify_on_connect()
                 self._shell_operable.set()
