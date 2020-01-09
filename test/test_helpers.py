@@ -11,6 +11,7 @@ import mock
 import pytest
 from moler.exceptions import WrongUsage
 
+
 def test_instance_id_returns_id_in_hex_form_without_0x():
     from moler.helpers import instance_id
     from six.moves import builtins
@@ -138,4 +139,12 @@ def test_groups_without_match_object():
     regex_helper = RegexHelper()
     with pytest.raises(WrongUsage) as exc:
         regex_helper.groups()
+    assert "Nothing was matched before calling" in str(exc)
+
+
+def test_groupdict_without_match_object():
+    from moler.cmd import RegexHelper
+    regex_helper = RegexHelper()
+    with pytest.raises(WrongUsage) as exc:
+        regex_helper.groupdict()
     assert "Nothing was matched before calling" in str(exc)
