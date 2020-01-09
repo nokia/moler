@@ -4,11 +4,12 @@ Tests for helpers functions/classes.
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import mock
 import pytest
+from moler.exceptions import WrongUsage
 
 
 def test_instance_id_returns_id_in_hex_form_without_0x():
@@ -107,3 +108,43 @@ def test_groups_at_regex_helper():
     assert uppers == 'ABC'
     assert lowers == 'ef'
     assert twos == '222'
+
+
+def test_search_compiled_none():
+    from moler.cmd import RegexHelper
+    regex_helper = RegexHelper()
+    with pytest.raises(WrongUsage) as exc:
+        regex_helper.search_compiled(None, '123')
+    assert "search_compiled is None" in str(exc)
+
+
+def test_match_compiled_none():
+    from moler.cmd import RegexHelper
+    regex_helper = RegexHelper()
+    with pytest.raises(WrongUsage) as exc:
+        regex_helper.match_compiled(None, '123')
+    assert "match_compiled is None" in str(exc)
+
+
+def test_group_without_match_object():
+    from moler.cmd import RegexHelper
+    regex_helper = RegexHelper()
+    with pytest.raises(WrongUsage) as exc:
+        regex_helper.group(1)
+    assert "Nothing was matched before calling" in str(exc)
+
+
+def test_groups_without_match_object():
+    from moler.cmd import RegexHelper
+    regex_helper = RegexHelper()
+    with pytest.raises(WrongUsage) as exc:
+        regex_helper.groups()
+    assert "Nothing was matched before calling" in str(exc)
+
+
+def test_groupdict_without_match_object():
+    from moler.cmd import RegexHelper
+    regex_helper = RegexHelper()
+    with pytest.raises(WrongUsage) as exc:
+        regex_helper.groupdict()
+    assert "Nothing was matched before calling" in str(exc)
