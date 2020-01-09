@@ -42,7 +42,8 @@ class RegexHelper(object):
         :return: Match object.
         """
         if compiled is None:
-            exp = WrongUsage("{} parameter compiled passed to search_compiled is None. Expected not None.".format(self))
+            exp = WrongUsage("{} parameter compiled passed to search_compiled is None. Expected not None."
+                             " String is '{}'.".format(self, string))
             raise exp
         self._match = compiled.search(string)
         return self._match
@@ -68,7 +69,8 @@ class RegexHelper(object):
         :return: Match object.
         """
         if compiled is None:
-            exp = WrongUsage("{} parameter compiled passed to match_compiled is None. Expected not None.".format(self))
+            exp = WrongUsage("{} parameter compiled passed to match_compiled is None. Expected not None."
+                             " String is '{}.".format(self, string))
             raise exp
         self._match = compiled.match(string)
         return self._match
@@ -89,7 +91,7 @@ class RegexHelper(object):
         :return: Match object.
         """
         if self._match is None:
-            exp = WrongUsage("{}. Nothing was matched before calling group in RegexHelper")
+            exp = WrongUsage("{}. Nothing was matched before calling group in RegexHelper.".format(self))
             raise exp
         return self._match.group(number)
 
@@ -100,7 +102,7 @@ class RegexHelper(object):
         :return: Groups from match object.
         """
         if self._match is None:
-            exp = WrongUsage("{}. Nothing was matched before calling groups in RegexHelper")
+            exp = WrongUsage("{}. Nothing was matched before calling groups in RegexHelper.".format(self))
             raise exp
         return self._match.groups()
 
@@ -111,6 +113,6 @@ class RegexHelper(object):
         :return: Groupdict from match object.
         """
         if self._match is None:
-            exp = WrongUsage("{}. Nothing was matched before calling groupdict in RegexHelper")
+            exp = WrongUsage("{}. Nothing was matched before calling groupdict in RegexHelper".format(self))
             raise exp
         return self._match.groupdict()
