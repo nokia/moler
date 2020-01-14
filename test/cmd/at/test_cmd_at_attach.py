@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Testing AtGetIMSI commands.
+Testing AtCmdAttach commands.
 """
 
 __author__ = 'Grzegorz Latuszek'
@@ -41,7 +41,6 @@ def test_calling_at_cmd_attach_timeouts_after_1sec(buffer_connection):
     duration = time.time() - start_time
     assert duration > 1.0
     assert duration < 1.2
-    print("{!r}".format(error.value))
 
 
 def test_calling_at_cmd_attach_timeouts_on_no_output(buffer_connection):
@@ -58,7 +57,6 @@ def test_calling_at_cmd_attach_timeouts_on_no_output(buffer_connection):
     assert duration > 1.0
     assert duration < 1.2
     assert at_cmd_attach.command_output == ''
-    print("{!r}".format(error.value))
 
 
 def test_calling_at_cmd_attach_fails_on_erroneous_output(buffer_connection):
@@ -72,20 +70,3 @@ def test_calling_at_cmd_attach_fails_on_erroneous_output(buffer_connection):
 
     with pytest.raises(AtCommandFailure) as error:
         at_cmd_attach()
-    print("{!r}".format(error.value))
-
-
-#
-# def test_at_cmd_get_imsi_raises_AtCommandModeNotSupported_when_instantiated_in_read_mode():
-#     from moler.cmd.at.get_imsi import AtCmdGetIMSI, AtCommandModeNotSupported
-#     with pytest.raises(AtCommandModeNotSupported):
-#         AtCmdGetIMSI(operation="read")
-#
-#
-# def test_calling_at_cmd_get_imsi_in_test_mode_returns_empty_result(buffer_connection):
-#     from moler.cmd.at import get_imsi
-#     buffer_connection.remote_inject_response([get_imsi.COMMAND_OUTPUT_ver_test])
-#     at_cmd_get_imsi = get_imsi.AtCmdGetIMSI(connection=buffer_connection.moler_connection,
-#                                             **get_imsi.COMMAND_KWARGS_ver_test)
-#     result = at_cmd_get_imsi()
-#     assert result == {}

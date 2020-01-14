@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-AT+CIMI .
+AT+CGATT=1 . Attach
 
 AT commands specification:
 https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=1515
@@ -10,8 +10,6 @@ https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?
 __author__ = ' Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2020, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
-
-import re
 
 from moler.cmd.at.at import AtCmd, AtCommandModeNotSupported
 
@@ -56,5 +54,3 @@ COMMAND_KWARGS_ver_execute = {'operation': 'execute'}
 COMMAND_RESULT_ver_execute = {}
 
 # -----------------------------------------------------------------------------
-
-
