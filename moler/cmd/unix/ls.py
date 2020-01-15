@@ -32,7 +32,7 @@ class Ls(GenericUnixCommand):
         :param prompt: prompt (on system where command runs).
         :param newline_chars: Characters to split lines - list.
         :param options: Options of unix ls command
-        :param options: path to list
+        :param path: path to list
         :param runner: Runner to run command.
         """
         super(Ls, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
@@ -235,6 +235,45 @@ host:~ #"""
 COMMAND_KWARGS_ver_long = {"options": "-l"}
 
 COMMAND_RESULT_ver_long = {
+
+    "total": {
+        "raw": "8",
+        "bytes": 8,
+    },
+
+    "files": {
+        "bin": {"permissions": "drwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root",
+                "size_bytes": 4096, "size_raw": "4096", "date": "Sep 25  2014", "name": "bin", },
+        "btslog2": {"permissions": "drwxr-xr-x", "hard_links_count": 5, "owner": "root", "group": "root",
+                    "size_bytes": 4096, "size_raw": "4096", "date": "Mar 20  2015", "name": "btslog2", },
+        "getfzmip.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1, "owner": "root", "group": "root",
+                         "size_bytes": 51, "size_raw": "51", "date": "Dec 15 10:48", "name": "getfzmip.txt", },
+        "getfzmip.txt-old.20171215-104858.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1, "owner": "root",
+                                                 "group": "root", "size_bytes": 24, "size_raw": "24",
+                                                 "date": "Dec 15 10:48",
+                                                 "name": "getfzmip.txt-old.20171215-104858.txt", },
+        "bcn": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root", "size_bytes": 4,
+                "size_raw": "4", "date": "Mar 20  2015", "name": "bcn", "link": "/bcn"},
+        "logsremote": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root",
+                       "size_bytes": 10, "size_raw": "10", "date": "Mar 20  2015", "name": "logsremote",
+                       "link": "/mnt/logs/"},
+    },
+}
+
+COMMAND_OUTPUT_ver_long_path = """
+host:~ # ls -l ~/
+total 8
+drwxr-xr-x  2 root root    4096 Sep 25  2014 bin
+drwxr-xr-x  5 root root    4096 Mar 20  2015 btslog2
+-rw-r--r--  1 root root      51 Dec 15 10:48 getfzmip.txt
+-rw-r--r--  1 root root      24 Dec 15 10:48 getfzmip.txt-old.20171215-104858.txt
+lrwxrwxrwx  1 root root       4 Mar 20  2015 bcn -> /bcn
+lrwxrwxrwx  1 root root      10 Mar 20  2015 logsremote -> /mnt/logs/
+host:~ #"""
+
+COMMAND_KWARGS_ver_long_path = {"options": "-l", "path": "~/"}
+
+COMMAND_RESULT_ver_long_path = {
 
     "total": {
         "raw": "8",
