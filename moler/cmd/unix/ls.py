@@ -3,9 +3,9 @@
 Ls command module.
 """
 
-__author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__author__ = 'Marcin Usielski, Michal Ernst'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import re
 
@@ -24,7 +24,7 @@ class Ls(GenericUnixCommand):
     _re_long = re.compile(r"([\w-]{10})\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S.*\S)\s+(\S+)\s*$")
     _re_long_links = re.compile(r"([\w-]{10})\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S.*\S)\s+(\S+)\s+->\s+(\S+)\s*$")
 
-    def __init__(self, connection, prompt=None, newline_chars=None, options=None, runner=None):
+    def __init__(self, connection, prompt=None, newline_chars=None, options=None, path=None, runner=None):
         """
         Unix command ls
 
@@ -32,6 +32,7 @@ class Ls(GenericUnixCommand):
         :param prompt: prompt (on system where command runs).
         :param newline_chars: Characters to split lines - list.
         :param options: Options of unix ls command
+        :param path: path to list
         :param runner: Runner to run command.
         """
         super(Ls, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
@@ -39,6 +40,7 @@ class Ls(GenericUnixCommand):
         self.current_ret["files"] = dict()
         # Parameters defined by calling the command
         self.options = options
+        self.path = path
 
     def get_dirs(self):
         """
@@ -73,6 +75,8 @@ class Ls(GenericUnixCommand):
         cmd = "ls"
         if self.options:
             cmd = "{} {}".format(cmd, self.options)
+        if self.path:
+            cmd = "{} {}".format(cmd, self.path)
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -256,6 +260,45 @@ COMMAND_RESULT_ver_long = {
     },
 }
 
+COMMAND_OUTPUT_ver_long_path = """
+host:~ # ls -l ~/
+total 8
+drwxr-xr-x  2 root root    4096 Sep 25  2014 bin
+drwxr-xr-x  5 root root    4096 Mar 20  2015 btslog2
+-rw-r--r--  1 root root      51 Dec 15 10:48 getfzmip.txt
+-rw-r--r--  1 root root      24 Dec 15 10:48 getfzmip.txt-old.20171215-104858.txt
+lrwxrwxrwx  1 root root       4 Mar 20  2015 bcn -> /bcn
+lrwxrwxrwx  1 root root      10 Mar 20  2015 logsremote -> /mnt/logs/
+host:~ #"""
+
+COMMAND_KWARGS_ver_long_path = {"options": "-l", "path": "~/"}
+
+COMMAND_RESULT_ver_long_path = {
+
+    "total": {
+        "raw": "8",
+        "bytes": 8,
+    },
+
+    "files": {
+        "bin": {"permissions": "drwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root",
+                "size_bytes": 4096, "size_raw": "4096", "date": "Sep 25  2014", "name": "bin", },
+        "btslog2": {"permissions": "drwxr-xr-x", "hard_links_count": 5, "owner": "root", "group": "root",
+                    "size_bytes": 4096, "size_raw": "4096", "date": "Mar 20  2015", "name": "btslog2", },
+        "getfzmip.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1, "owner": "root", "group": "root",
+                         "size_bytes": 51, "size_raw": "51", "date": "Dec 15 10:48", "name": "getfzmip.txt", },
+        "getfzmip.txt-old.20171215-104858.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1, "owner": "root",
+                                                 "group": "root", "size_bytes": 24, "size_raw": "24",
+                                                 "date": "Dec 15 10:48",
+                                                 "name": "getfzmip.txt-old.20171215-104858.txt", },
+        "bcn": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root", "size_bytes": 4,
+                "size_raw": "4", "date": "Mar 20  2015", "name": "bcn", "link": "/bcn"},
+        "logsremote": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root",
+                       "size_bytes": 10, "size_raw": "10", "date": "Mar 20  2015", "name": "logsremote",
+                       "link": "/mnt/logs/"},
+    },
+}
+
 COMMAND_OUTPUT_ver_plain = """
 host:~ # ls
 .ansible               dot1ag-13.2.tgz                       .kde4
@@ -265,6 +308,26 @@ host:~ #"""
 COMMAND_KWARGS_ver_plain = {}
 
 COMMAND_RESULT_ver_plain = {
+    "files": {
+        ".ansible": {"name": ".ansible"},
+        "dot1ag-13.2.tgz": {"name": "dot1ag-13.2.tgz"},
+        ".kde4": {"name": ".kde4"},
+        ".bash_history": {"name": ".bash_history"},
+        "Downloads": {"name": "Downloads"},
+    },
+}
+
+COMMAND_OUTPUT_specific_path = """
+host:~ # ls ~/
+.ansible               dot1ag-13.2.tgz                       .kde4
+.bash_history          Downloads
+host:~ #"""
+
+COMMAND_KWARGS_specific_path = {
+    'path': '~/'
+}
+
+COMMAND_RESULT_specific_path = {
     "files": {
         ".ansible": {"name": ".ansible"},
         "dot1ag-13.2.tgz": {"name": "dot1ag-13.2.tgz"},
