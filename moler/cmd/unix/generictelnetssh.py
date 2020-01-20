@@ -74,6 +74,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
                                                allowed_newline_after_prompt=allowed_newline_after_prompt,
                                                prompt_after_login=prompt_after_login)
 
+        self.timeout = 90
         # Parameters defined by calling the command
         self._re_failure_exceptions_indication = None
         if failure_exceptions_indication:

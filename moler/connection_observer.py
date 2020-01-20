@@ -47,7 +47,7 @@ class ConnectionObserver(object):
         self.runner = runner if runner else get_runner()
         self._future = None
         self.start_time = 0.0  # means epoch: 1970-01-01 00:00:00
-        self.__timeout = 7.0  # default
+        self.__timeout = 17.0  # default
         self.terminating_timeout = 0.0  # value for terminating connection_observer when it timeouts. Set positive value
         #                                 for command if they can do anything if timeout. Set 0 for observer or command
         #                                 if it cannot do anything if timeout.
