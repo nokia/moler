@@ -276,15 +276,15 @@ def _wrapper(method, obj):
     return wrapped
 
 
-def non_printable_chars_to_hex(input_str):
+def non_printable_chars_to_hex(source):
     """
     Converts input string into hex for all non printable chars, printable chars remain unchanged.
-    :param input_str: input string.
+    :param source: input string.
     :return: output string witch exchanged chars.
     """
     import string
     output = ""
-    for char in input_str:
+    for char in source:
         if char not in string.printable or char in ['\n', '\r']:
             output += "\\x{}".format(char.encode('utf-8').hex())
         else:
@@ -292,13 +292,13 @@ def non_printable_chars_to_hex(input_str):
     return output
 
 
-def all_chars_to_hex(input_str):
+def all_chars_to_hex(source):
     """
     Converts input string into hex for all chars.
-    :param input_str: input string.
+    :param source: input string.
     :return: output string witch exchanged chars.
     """
     output = ""
-    for char in input_str:
+    for char in source:
         output += "\\x{}".format(char.encode('utf-8').hex())
     return output
