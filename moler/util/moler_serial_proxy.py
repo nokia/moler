@@ -71,6 +71,7 @@ class AtConsoleProxy(object):
         Return context manager to allow for:  with connection.open() as conn:
         """
         self._serial_io.open()
+        self.send("ATE1")  # activate echo of AT commands
         return contextlib.closing(self)
 
     def close(self):
@@ -141,3 +142,5 @@ if __name__ == '__main__':
             print("serial transmission of cmd '{}' returned: {}".format(cmd, resp))
         except serial.SerialException as err:
             print("serial transmission of cmd '{}' failed: {!r}".format(cmd, err))
+
+# TODO: remove newlines from io/proxy responsibility.

@@ -97,9 +97,11 @@ def test_constructing_proxy_creates_underlying_ioserial():
 
 def test_opening_proxy_opens_underlying_ioserial():
     from moler.util import moler_serial_proxy
+
     with mock.patch("moler.util.moler_serial_proxy.IOSerial.open") as serial_io_open:
-        io = moler_serial_proxy.AtConsoleProxy(port="COM5")
-        io.open()
+        with mock.patch("moler.util.moler_serial_proxy.AtConsoleProxy.send"):
+            io = moler_serial_proxy.AtConsoleProxy(port="COM5")
+            io.open()
     serial_io_open.assert_called_once_with()
 
 
@@ -130,12 +132,20 @@ def test_can_use_proxy_as_context_manager(serial_connection_of_ioserial):
 
 def test_sending_over_proxy_sends_over_underlying_ioserial(serial_connection_of_ioserial):
     from moler.util.moler_serial_proxy import AtConsoleProxy
-    with mock.patch("moler.util.moler_serial_proxy.IOSerial.send") as serial_io_send:
 
-        with AtConsoleProxy(port="COM5") as proxy:
+    with AtConsoleProxy(port="COM5") as proxy:
+        with mock.patch("moler.util.moler_serial_proxy.IOSerial.send") as serial_io_send:
             proxy.send(cmd='AT')
 
-        serial_io_send.assert_called_once_with('AT')
+    serial_io_send.assert_called_once_with('AT')
+
+
+def test_opening_proxy_activates_at_echo(serial_connection_of_ioserial):
+    from moler.util import moler_serial_proxy
+    with mock.patch("moler.util.moler_serial_proxy.IOSerial.send") as serial_io_send:
+        io = moler_serial_proxy.AtConsoleProxy(port="COM5")
+        io.open()
+    serial_io_send.assert_called_once_with('ATE1')
 
 
 def test_reading_proxy_reads_data_from_underlying_ioserial(serial_connection_of_ioserial):
