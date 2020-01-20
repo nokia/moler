@@ -134,13 +134,23 @@ class AtConsoleProxy(object):
 
 
 if __name__ == '__main__':
+    print("starting COM5 proxy ...")
     with AtConsoleProxy(port="COM5") as proxy:
-        cmd = "AT"
-        try:
-            proxy.send(cmd)
-            resp = proxy.await_response(timeout=4)
-            print("serial transmission of cmd '{}' returned: {}".format(cmd, resp))
-        except serial.SerialException as err:
-            print("serial transmission of cmd '{}' failed: {!r}".format(cmd, err))
+        echo_resp = proxy.await_response(timeout=4)
+        for line in echo_resp:
+            print(line)
+        while True:
+            cmd = raw_input("COM5> ")
+            if "exit" in cmd:
+                break
+            try:
+                proxy.send(cmd)
+                resp = proxy.await_response(timeout=4)
+                for line in echo_resp:
+                    print(line)
+                print("serial transmission of cmd '{}' returned: {}".format(cmd, resp))
+            except serial.SerialException as err:
+                print("serial transmission of cmd '{}' failed: {!r}".format(cmd, err))
+
 
 # TODO: remove newlines from io/proxy responsibility.
