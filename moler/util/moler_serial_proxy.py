@@ -59,8 +59,8 @@ class IOSerial(object):
         return out_lines
 
 
-class SerialProxy(object):
-    """Class to proxy serial connection into stdin/stdout"""
+class AtConsoleProxy(object):
+    """Class to proxy AT commands console into stdin/stdout"""
     def __init__(self, port):
         self._serial_io = IOSerial(port=port)
 
@@ -133,7 +133,7 @@ class SerialProxy(object):
 
 
 if __name__ == '__main__':
-    with SerialProxy(port="COM5") as proxy:
+    with AtConsoleProxy(port="COM5") as proxy:
         cmd = "AT"
         try:
             proxy.send(cmd)
