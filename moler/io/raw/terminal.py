@@ -38,8 +38,8 @@ class ThreadedTerminal(IOConnection):
         :param dimensions: dimensions of the psuedoterminal
         """
         super(ThreadedTerminal, self).__init__(moler_connection=moler_connection)
-        self.debug_hex_on_non_printable_chars = False  # Set True to log incoming non printable chars as hex.
-        self.debug_hex_on_all_chars = False  # Set False to log incoming data as hex
+        self.debug_hex_on_non_printable_chars = False # Set True to log incoming non printable chars as hex.
+        self.debug_hex_on_all_chars = False # Set False to log incoming data as hex
         self._terminal = None
         self._shell_operable = Event()
         self._export_sent = False
@@ -117,9 +117,9 @@ class ThreadedTerminal(IOConnection):
                 try:
                     data = self._terminal.read(self._read_buffer_size)
                     if self.debug_hex_on_all_chars:
-                        self.logger.debug(all_chars_to_hex(data))
+                        self.logger.debug("incoming data: '{}'.".format(all_chars_to_hex(data)))
                     if self.debug_hex_on_non_printable_chars:
-                        self.logger.debug(non_printable_chars_to_hex(data))
+                        self.logger.debug("incoming data: '{}'.".format(non_printable_chars_to_hex(data)))
 
                     if self._shell_operable.is_set():
                         self.data_received(data)
