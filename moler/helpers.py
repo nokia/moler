@@ -286,7 +286,7 @@ def non_printable_chars_to_hex(source):
     output = ""
     for char in source:
         if char not in string.printable or char in ['\n', '\r']:
-            output += "\\x{}".format(char.encode('utf-8').hex())
+            output += "\\x{:02x}".format(ord(char))
         else:
             output += char
     return output
@@ -300,5 +300,5 @@ def all_chars_to_hex(source):
     """
     output = ""
     for char in source:
-        output += "\\x{}".format(char.encode('utf-8').hex())
+        output += "\\x{:02x}".format(ord(char))
     return output
