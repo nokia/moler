@@ -112,6 +112,7 @@ class ThreadedTerminal(IOConnection):
             if self._terminal.fd in reads:
                 try:
                     data = self._terminal.read(self._read_buffer_size)
+                    print("terminal data: '{}'.".format(self._encode_line(data)))
 
                     if self._shell_operable.is_set():
                         self.data_received(data)
@@ -135,3 +136,13 @@ class ThreadedTerminal(IOConnection):
             elif not self._export_sent and re.search(self.first_prompt, self.read_buffer, re.MULTILINE):
                 self.send(self.set_prompt_cmd)
                 self._export_sent = True
+
+    def _encode_line(self, input_str):
+        import string
+        output = ""
+        for char in input_str:
+            if char not in string.printable or char in ['\n', '\r']:
+                output += "\\x{}".format(char.encode('utf-8').hex())
+            else:
+                output += char
+        return output
