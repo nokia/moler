@@ -16,18 +16,21 @@ import pytest
 import mock
 
 
-def test_constructing_proxy_doesnt_open_serial_connection():
+# -------------- IOSerial
+
+
+def test_constructing_ioserial_doesnt_open_serial_connection():
     from moler.util import moler_serial_proxy
 
-    proxy = moler_serial_proxy.SerialProxy(port="COM5")
+    proxy = moler_serial_proxy.IOSerial(port="COM5")
     assert proxy._serial_connection is None
 
 
-def test_opening_proxy_correctly_constructs_serial_connection():
+def test_opening_ioserial_correctly_constructs_serial_connection():
     from moler.util import moler_serial_proxy
     with mock.patch("moler.util.moler_serial_proxy.serial.Serial") as serial_conn:
-        proxy = moler_serial_proxy.SerialProxy(port="COM5")
-        proxy.open()
+        io = moler_serial_proxy.IOSerial(port="COM5")
+        io.open()
     serial_conn.assert_called_once_with(port="COM5",
                                         baudrate=115200,
                                         stopbits=serial.STOPBITS_ONE,
@@ -36,19 +39,80 @@ def test_opening_proxy_correctly_constructs_serial_connection():
                                         xonxoff=1)
 
 
-def test_closing_proxy_correctly_closes_serial_connection():
+def test_closing_ioserial_correctly_closes_serial_connection(serial_connection_of_ioserial):
     from moler.util import moler_serial_proxy
-    with mock.patch("moler.util.moler_serial_proxy.serial.Serial") as serial_conn:
-        serial_conn_instance = mock.Mock()
-        serial_conn.return_value = serial_conn_instance
-        serial_conn_instance.close = mock.Mock()
+
+    io = moler_serial_proxy.IOSerial(port="COM5")
+    io.open()
+    io.close()
+    serial_connection_of_ioserial.close.assert_called_once_with()
+
+
+def test_can_use_ioserial_as_context_manager(serial_connection_of_ioserial):
+    from moler.util.moler_serial_proxy import IOSerial
+    with mock.patch.object(IOSerial, "open") as io_open:
+        with mock.patch.object(IOSerial, "close") as io_close:
+
+            with IOSerial(port="COM5"):  # IOSerial may work as context manager
+                io_open.assert_called_once_with()
+            io_close.assert_called_once_with()
+
+    with mock.patch.object(IOSerial, "close") as proxy_close:
+
+        with IOSerial(port="COM5").open():  # and IOSerial.open() may work same
+            pass
+        proxy_close.assert_called_once_with()
+
+
+def test_ioserial_can_send_data_towards_serial_connection(serial_connection_of_ioserial):
+    from moler.util.moler_serial_proxy import IOSerial
+
+    with IOSerial(port="COM5") as io:
+        io.send(cmd='AT')
+
+    serial_connection_of_ioserial.write.assert_called_once_with('AT\r\n')
+    serial_connection_of_ioserial.flush.assert_called_once_with()
+
+
+def test_ioserial_can_read_data_from_serial_connection(serial_connection_of_ioserial):
+    from moler.util.moler_serial_proxy import IOSerial
+
+    serial_connection_of_ioserial.readlines.return_value = ["AT\r\n", "OK"]
+
+    with IOSerial(port="COM5") as proxy:
+        response = proxy.read()
+
+    assert response == ['AT', 'OK']
+
+
+# -------------- SerialProxy
+
+
+def test_constructing_proxy_creates_underlying_ioserial():
+    from moler.util import moler_serial_proxy
+    with mock.patch("moler.util.moler_serial_proxy.IOSerial.__init__", return_value=None) as serial_io:
+        moler_serial_proxy.SerialProxy(port="COM5")
+    serial_io.assert_called_once_with(port="COM5")
+
+
+def test_opening_proxy_opens_underlying_ioserial():
+    from moler.util import moler_serial_proxy
+    with mock.patch("moler.util.moler_serial_proxy.IOSerial.open") as serial_io_open:
+        io = moler_serial_proxy.SerialProxy(port="COM5")
+        io.open()
+    serial_io_open.assert_called_once_with()
+
+
+def test_closing_proxy_closes_underlying_ioserial(serial_connection_of_ioserial):
+    from moler.util import moler_serial_proxy
+    with mock.patch("moler.util.moler_serial_proxy.IOSerial.close") as serial_io_close:
         proxy = moler_serial_proxy.SerialProxy(port="COM5")
         proxy.open()
         proxy.close()
-        serial_conn_instance.close.assert_called_once_with()
+    serial_io_close.assert_called_once_with()
 
 
-def test_can_use_proxy_as_context_manager():
+def test_can_use_proxy_as_context_manager(serial_connection_of_ioserial):
     from moler.util.moler_serial_proxy import SerialProxy
     with mock.patch.object(SerialProxy, "open") as proxy_open:
         with mock.patch.object(SerialProxy, "close") as proxy_close:
@@ -57,36 +121,27 @@ def test_can_use_proxy_as_context_manager():
                 proxy_open.assert_called_once_with()
             proxy_close.assert_called_once_with()
 
-    with mock.patch("moler.util.moler_serial_proxy.serial.Serial"):
-        with mock.patch.object(SerialProxy, "close") as proxy_close:
+    with mock.patch.object(SerialProxy, "close") as proxy_close:
 
-            with SerialProxy(port="COM5").open():  # and SerialProxy.open() may work same
-                pass
-            proxy_close.assert_called_once_with()
+        with SerialProxy(port="COM5").open():  # and SerialProxy.open() may work same
+            pass
+        proxy_close.assert_called_once_with()
 
 
-def test_proxy_can_send_data_towards_serial_connection():
+def test_sending_over_proxy_sends_over_underlying_ioserial(serial_connection_of_ioserial):
     from moler.util.moler_serial_proxy import SerialProxy
-    with mock.patch("moler.util.moler_serial_proxy.serial.Serial") as serial_conn:
-        serial_conn_instance = mock.Mock()
-        serial_conn.return_value = serial_conn_instance
-        serial_conn_instance.write = mock.Mock()
-        serial_conn_instance.flush = mock.Mock()
+    with mock.patch("moler.util.moler_serial_proxy.IOSerial.send") as serial_io_send:
 
         with SerialProxy(port="COM5") as proxy:
             proxy.send(cmd='AT')
 
-        serial_conn_instance.write.assert_called_once_with('AT\r\n')
-        serial_conn_instance.flush.assert_called_once_with()
+        serial_io_send.assert_called_once_with('AT')
 
 
-def test_proxy_can_read_data_from_serial_connection():
+def test_reading_proxy_reads_data_from_underlying_ioserial(serial_connection_of_ioserial):
     from moler.util.moler_serial_proxy import SerialProxy
-    with mock.patch("moler.util.moler_serial_proxy.serial.Serial") as serial_conn:
-        serial_conn_instance = mock.Mock()
-        serial_conn.return_value = serial_conn_instance
-        serial_conn_instance.readlines = mock.Mock()
-        serial_conn_instance.readlines.return_value = ["AT\r\n", "OK"]
+    with mock.patch("moler.util.moler_serial_proxy.IOSerial.read") as serial_io_read:
+        serial_io_read.return_value = ["AT", "OK"]
 
         with SerialProxy(port="COM5") as proxy:
             response = proxy.read()
@@ -112,7 +167,7 @@ def test_proxy_can_check_if_at_output_is_complete():
     assert output_2_full is True
 
 
-def test_proxy_can_await_data_from_serial_connection_within_specified_timeout():
+def test_proxy_can_await_data_from_serial_connection_within_specified_timeout(serial_connection_of_ioserial):
     from moler.util.moler_serial_proxy import SerialProxy
 
     def incomming_data():
@@ -121,16 +176,15 @@ def test_proxy_can_await_data_from_serial_connection_within_specified_timeout():
         time.sleep(0.3)
         yield "OK"
 
-    with mock.patch("moler.util.moler_serial_proxy.serial.Serial"):
-        with mock.patch.object(SerialProxy, "read", return_value=incomming_data()):
+    with mock.patch.object(SerialProxy, "read", return_value=incomming_data()):
 
-            with SerialProxy(port="COM5") as proxy:
-                response = proxy.await_response(timeout=0.6)
+        with SerialProxy(port="COM5") as proxy:
+            response = proxy.await_response(timeout=0.6)
 
-            assert response == ['AT', 'OK']
+        assert response == ['AT', 'OK']
 
 
-def test_proxy_can_timeout_if_no_complete_response_before_timeout():
+def test_proxy_can_timeout_if_no_complete_response_before_timeout(serial_connection_of_ioserial):
     from moler.util.moler_serial_proxy import SerialProxy
 
     def incomming_data():
@@ -139,21 +193,31 @@ def test_proxy_can_timeout_if_no_complete_response_before_timeout():
         time.sleep(0.3)
         yield "OK"
 
-    with mock.patch("moler.util.moler_serial_proxy.serial.Serial"):
-        with mock.patch.object(SerialProxy, "read", return_value=incomming_data()):
 
-            with SerialProxy(port="COM5") as proxy:
-                with pytest.raises(serial.SerialException) as err:
-                    proxy.await_response(timeout=0.4)
+    with mock.patch.object(SerialProxy, "read", return_value=incomming_data()):
 
-            assert "Awaiting serial response took" in str(err.value)
-            assert "> 0.4 sec timeout" in str(err.value)
-            assert "Received: ['AT', 'OK']" in str(err.value)
+        with SerialProxy(port="COM5") as proxy:
+            with pytest.raises(serial.SerialException) as err:
+                proxy.await_response(timeout=0.4)
 
-        with mock.patch.object(SerialProxy, "read", return_value=incomming_data()):
+        assert "Awaiting serial response took" in str(err.value)
+        assert "> 0.4 sec timeout" in str(err.value)
+        assert "Received: ['AT', 'OK']" in str(err.value)
 
-            with SerialProxy(port="COM5") as proxy:
-                with pytest.raises(serial.SerialException) as err:
-                    proxy.await_response(timeout=0.2)
+    with mock.patch.object(SerialProxy, "read", return_value=incomming_data()):
 
-            assert "Received: ['AT']" in str(err.value)
+        with SerialProxy(port="COM5") as proxy:
+            with pytest.raises(serial.SerialException) as err:
+                proxy.await_response(timeout=0.2)
+
+        assert "Received: ['AT']" in str(err.value)
+
+
+# ----------------------------------- resources
+
+@pytest.fixture
+def serial_connection_of_ioserial():
+    from serial import Serial
+    with mock.patch("moler.util.moler_serial_proxy.serial.Serial") as serial_conn:  # mocking class
+        serial_conn.return_value = mock.Mock(spec=Serial)  # return value from Serial() is instance of Serial
+        yield serial_conn.return_value  # returning instance that will be used by calling class

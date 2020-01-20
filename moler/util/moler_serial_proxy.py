@@ -3,10 +3,16 @@ import time
 import contextlib
 
 
-class SerialProxy(object):
-    """Class to proxy serial connection into stdin/stdout"""
-    def __init__(self, port):
+class IOSerial(object):
+    """Serial-IO connection."""
+    def __init__(self, port, baudrate=115200, stopbits=serial.STOPBITS_ONE,
+                 parity=serial.PARITY_NONE, timeout=2, xonxoff=1):
         self.port = port
+        self.baudrate = baudrate
+        self.stopbits = stopbits
+        self.parity = parity
+        self.timeout = timeout
+        self.xonxoff = xonxoff
         self._serial_connection = None
 
     def open(self):
@@ -18,11 +24,11 @@ class SerialProxy(object):
         """
         print("opening serial port {}".format(self.port))
         self._serial_connection = serial.Serial(port=self.port,
-                                                baudrate=115200,
-                                                stopbits=serial.STOPBITS_ONE,
-                                                parity=serial.PARITY_NONE,
-                                                timeout=2,
-                                                xonxoff=1)
+                                                baudrate=self.baudrate,
+                                                stopbits=self.stopbits,
+                                                parity=self.parity,
+                                                timeout=self.timeout,
+                                                xonxoff=self.xonxoff)
         return contextlib.closing(self)
 
     def close(self):
@@ -46,10 +52,46 @@ class SerialProxy(object):
         self._serial_connection.flush()
 
     def read(self):
-        """Returns generator object providing subsequent lines read from serial connection"""
+        """Returns subsequent lines read from serial connection"""
         lines = self._serial_connection.readlines()
         out_lines = [ln.strip('\r\n') for ln in lines]
         print("read serial port output: {}".format(out_lines))
+        return out_lines
+
+
+class SerialProxy(object):
+    """Class to proxy serial connection into stdin/stdout"""
+    def __init__(self, port):
+        self._serial_io = IOSerial(port=port)
+
+    def open(self):
+        """
+        Open underlying serial connection.
+
+        Return context manager to allow for:  with connection.open() as conn:
+        """
+        self._serial_io.open()
+        return contextlib.closing(self)
+
+    def close(self):
+        """Close underlying serial connection."""
+        self._serial_io.close()
+
+    def __enter__(self):
+        self.open()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+        return False  # reraise exceptions if any
+
+    def send(self, cmd):
+        """Send data over underlying serial connection"""
+        self._serial_io.send(cmd)
+
+    def read(self):
+        """Returns subsequent lines read from underlying serial connection"""
+        out_lines = self._serial_io.read()
         return out_lines
 
     def await_response(self, timeout=4.0):
