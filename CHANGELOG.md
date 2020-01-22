@@ -1,3 +1,17 @@
+## moler 1.5.0
+
+### Added
+* Termianl binary debug
+
+### Improved
+* CI pipeline
+* ls command
+
+### Changed
+* Redefined timeout for telnet and ssh
+* RegexHelper checks if parameter is not None
+
+
 ## moler 1.4.0
 
 ### Changed

@@ -12,6 +12,14 @@ moler.cmd.at.at module
     :undoc-members:
     :show-inheritance:
 
+moler.cmd.at.attach module
+--------------------------
+
+.. automodule:: moler.cmd.at.attach
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.cmd.at.get\_imsi module
 -----------------------------
 
