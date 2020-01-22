@@ -38,8 +38,12 @@ def test_terminal_cmd_whoami_during_ping(terminal_connection):
 
 def test_terminal_cmd_whoami(terminal_connection):
     terminal = terminal_connection
+    terminal.debug_hex_on_non_printable_chars = True
+    terminal.debug_hex_on_all_chars = True
     cmd = Whoami(connection=terminal)
     ret = cmd()
+    terminal.debug_hex_on_non_printable_chars = False
+    terminal.debug_hex_on_all_chars = False
     assert 'USER' in ret
     assert ret['USER'] is not None
     assert getpass.getuser() == ret['USER']

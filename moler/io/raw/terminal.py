@@ -13,6 +13,8 @@ from ptyprocess import PtyProcessUnicode
 from moler.io.io_connection import IOConnection
 from moler.io.raw import TillDoneThread
 from moler.helpers import remove_all_known_special_chars
+from moler.helpers import all_chars_to_hex
+from moler.helpers import non_printable_chars_to_hex
 
 
 class ThreadedTerminal(IOConnection):
@@ -36,6 +38,8 @@ class ThreadedTerminal(IOConnection):
         :param dimensions: dimensions of the psuedoterminal
         """
         super(ThreadedTerminal, self).__init__(moler_connection=moler_connection)
+        self.debug_hex_on_non_printable_chars = False  # Set True to log incoming non printable chars as hex.
+        self.debug_hex_on_all_chars = False  # Set True to log incoming data as hex.
         self._terminal = None
         self._shell_operable = Event()
         self._export_sent = False
@@ -112,6 +116,10 @@ class ThreadedTerminal(IOConnection):
             if self._terminal.fd in reads:
                 try:
                     data = self._terminal.read(self._read_buffer_size)
+                    if self.debug_hex_on_all_chars:
+                        self.logger.debug("incoming data: '{}'.".format(all_chars_to_hex(data)))
+                    if self.debug_hex_on_non_printable_chars:
+                        self.logger.debug("incoming data: '{}'.".format(non_printable_chars_to_hex(data)))
 
                     if self._shell_operable.is_set():
                         self.data_received(data)
