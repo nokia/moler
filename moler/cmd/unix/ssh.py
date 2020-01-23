@@ -228,7 +228,7 @@ COMMAND_RESULT = {}
 
 COMMAND_OUTPUT_prompt = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
-Do you want to continue (yes/no)? yes
+Do you want to continue (yes/no/[fingerprint])? yes
 To edit this message please edit /etc/ssh_banner
 You may put information to /etc/ssh_banner who is owner of this PC
 Password:
