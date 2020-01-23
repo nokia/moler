@@ -21,7 +21,7 @@ class Ssh(GenericTelnetSsh):
     _re_host_key = re.compile(r"Add correct host key in (?P<HOSTS_FILE>\S+) to get rid of this message", re.IGNORECASE)
 
     # Do you want to continue (yes/no)?
-    _re_yes_no = re.compile(r"\(yes/no\)\?|'yes' or 'no':", re.IGNORECASE)
+    _re_yes_no = re.compile(r"\(yes/no.*\)\?|'yes' or 'no':", re.IGNORECASE)
 
     # id_dsa:
     _re_id_dsa = re.compile(r"id_dsa:", re.IGNORECASE)
