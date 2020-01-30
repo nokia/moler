@@ -69,7 +69,7 @@ class AtConsoleProxy(object):
 
         Return context manager to allow for:  with connection.open() as conn:
         """
-        print("{}> opening serial port {}".format(hostname, self._serial_io.port))
+        print("{}  opening serial port {}".format(hostname, self._serial_io.port))
         self._serial_io.open()
         self.send("ATE1")  # activate echo of AT commands
         return contextlib.closing(self)
@@ -77,9 +77,9 @@ class AtConsoleProxy(object):
     def close(self):
         """Close underlying serial connection."""
         if self.verbose:
-            print("{}:{}> closing serial port {}".format(hostname, devname, self._serial_io.port))
+            print("{}:{}  closing serial port {}".format(hostname, devname, self._serial_io.port))
         self._serial_io.close()
-        print("{}> serial port {} closed".format(hostname, self._serial_io.port))
+        print("{}  serial port {} closed".format(hostname, self._serial_io.port))
 
     def __enter__(self):
         self.open()
@@ -92,21 +92,21 @@ class AtConsoleProxy(object):
     def send(self, cmd):
         """Send data over underlying serial connection"""
         if self.verbose:
-            print("{}:{}> sending AT command '{}'".format(hostname, devname, cmd))
+            print("{}:{}  sending AT command '{}'".format(hostname, devname, cmd))
         self._serial_io.send(cmd)
 
     def read(self):
         """Returns subsequent lines read from underlying serial connection"""
         out_lines = self._serial_io.read()
         if self.verbose:
-            print("{}:{}> read serial port output: {}".format(hostname, devname, out_lines))
+            print("{}:{}  read serial port output: {}".format(hostname, devname, out_lines))
         return out_lines
 
     def await_response(self, timeout=4.0):
         """Returns generator object providing subsequent lines read from serial connection within timeout"""
         out_lines = []
         if self.verbose:
-            print("{}:{}> awaiting {} sec for serial port response".format(hostname, devname, timeout))
+            print("{}:{}  awaiting {} sec for serial port response".format(hostname, devname, timeout))
         start_time = time.time()
         for line in self.read():
             read_duration = time.time() - start_time
@@ -116,7 +116,7 @@ class AtConsoleProxy(object):
                 self.validate_no_at_error(out_lines)
                 if self.is_at_output_complete(out_lines):
                     if self.verbose:
-                        print("{}:{}> complete AT response received after {} sec".format(hostname, devname, read_duration))
+                        print("{}:{}  complete AT response received after {} sec".format(hostname, devname, read_duration))
                     return out_lines
             else:
                 self.check_for_timeout(read_duration, timeout, out_lines)
@@ -171,7 +171,7 @@ if __name__ == '__main__':
                     print(line)
             except serial.SerialException as err:
                 if options.verbose:
-                    print("{}:{}> serial transmission of cmd '{}' failed: {!r}".format(hostname, devname, cmd, err))
+                    print("{}:{}  serial transmission of cmd '{}' failed: {!r}".format(hostname, devname, cmd, err))
 
 
 # TODO: remove newlines from io/proxy responsibility.
