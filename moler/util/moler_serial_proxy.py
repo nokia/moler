@@ -1,6 +1,9 @@
 import serial
 import time
 import contextlib
+import platform
+
+hostname = platform.node()
 
 
 class IOSerial(object):
@@ -22,7 +25,6 @@ class IOSerial(object):
 
         Return context manager to allow for:  with connection.open() as conn:
         """
-        print("opening serial port {}".format(self.port))
         self._serial_connection = serial.Serial(port=self.port,
                                                 baudrate=self.baudrate,
                                                 stopbits=self.stopbits,
@@ -33,9 +35,7 @@ class IOSerial(object):
 
     def close(self):
         """Close established connection."""
-        print("closing serial port {}".format(self.port))
         self._serial_connection.close()
-        print("serial port {} closed".format(self.port))
 
     def __enter__(self):
         self.open()
@@ -47,7 +47,6 @@ class IOSerial(object):
 
     def send(self, cmd):
         """Sends data over serial connection"""
-        print("sending AT command '{}'".format(cmd))
         self._serial_connection.write("{}\r\n".format(cmd))
         self._serial_connection.flush()
 
@@ -55,14 +54,14 @@ class IOSerial(object):
         """Returns subsequent lines read from serial connection"""
         lines = self._serial_connection.readlines()
         out_lines = [ln.strip('\r\n') for ln in lines]
-        print("read serial port output: {}".format(out_lines))
         return out_lines
 
 
 class AtConsoleProxy(object):
     """Class to proxy AT commands console into stdin/stdout"""
-    def __init__(self, port):
+    def __init__(self, port, verbose=False):
         self._serial_io = IOSerial(port=port)
+        self.verbose = verbose
 
     def open(self):
         """
@@ -70,13 +69,17 @@ class AtConsoleProxy(object):
 
         Return context manager to allow for:  with connection.open() as conn:
         """
+        print("{}> opening serial port {}".format(hostname, self._serial_io.port))
         self._serial_io.open()
         self.send("ATE1")  # activate echo of AT commands
         return contextlib.closing(self)
 
     def close(self):
         """Close underlying serial connection."""
+        if self.verbose:
+            print("{}:{}> closing serial port {}".format(hostname, devname, self._serial_io.port))
         self._serial_io.close()
+        print("{}> serial port {} closed".format(hostname, self._serial_io.port))
 
     def __enter__(self):
         self.open()
@@ -88,17 +91,22 @@ class AtConsoleProxy(object):
 
     def send(self, cmd):
         """Send data over underlying serial connection"""
+        if self.verbose:
+            print("{}:{}> sending AT command '{}'".format(hostname, devname, cmd))
         self._serial_io.send(cmd)
 
     def read(self):
         """Returns subsequent lines read from underlying serial connection"""
         out_lines = self._serial_io.read()
+        if self.verbose:
+            print("{}:{}> read serial port output: {}".format(hostname, devname, out_lines))
         return out_lines
 
     def await_response(self, timeout=4.0):
         """Returns generator object providing subsequent lines read from serial connection within timeout"""
         out_lines = []
-        print("awaiting {} sec for serial port response".format(timeout))
+        if self.verbose:
+            print("{}:{}> awaiting {} sec for serial port response".format(hostname, devname, timeout))
         start_time = time.time()
         for line in self.read():
             read_duration = time.time() - start_time
@@ -107,7 +115,8 @@ class AtConsoleProxy(object):
                 self.check_for_timeout(read_duration, timeout, out_lines)
                 self.validate_no_at_error(out_lines)
                 if self.is_at_output_complete(out_lines):
-                    print("serial response received after {} sec".format(read_duration))
+                    if self.verbose:
+                        print("{}:{}> complete AT response received after {} sec".format(hostname, devname, read_duration))
                     return out_lines
             else:
                 self.check_for_timeout(read_duration, timeout, out_lines)
@@ -134,23 +143,35 @@ class AtConsoleProxy(object):
 
 
 if __name__ == '__main__':
-    print("starting COM5 proxy ...")
-    with AtConsoleProxy(port="COM5") as proxy:
+    import argparse
+
+    def get_options():
+        parser = argparse.ArgumentParser(description="Proxy AT console between serial port and stdin/stdout")
+        parser.add_argument('serial_devname', help='serial device name like COM5, ttyS4')
+        parser.add_argument('--verbose', action='store_true', help='show proxy internal processing')
+        args = parser.parse_args()
+        return args
+
+    options = get_options()
+    devname = options.serial_devname
+
+    print("starting {} proxy at {} ...".format(devname, hostname))
+    with AtConsoleProxy(port=options.serial_devname, verbose=options.verbose) as proxy:
         echo_resp = proxy.await_response(timeout=4)
         for line in echo_resp:
             print(line)
         while True:
-            cmd = raw_input("COM5> ")
-            if "exit" in cmd:
+            cmd = raw_input("{}:{}> ".format(hostname, devname))
+            if "exit_serial_proxy" in cmd:
                 break
             try:
                 proxy.send(cmd)
                 resp = proxy.await_response(timeout=4)
-                for line in echo_resp:
+                for line in resp:
                     print(line)
-                print("serial transmission of cmd '{}' returned: {}".format(cmd, resp))
             except serial.SerialException as err:
-                print("serial transmission of cmd '{}' failed: {!r}".format(cmd, err))
+                if options.verbose:
+                    print("{}:{}> serial transmission of cmd '{}' failed: {!r}".format(hostname, devname, cmd, err))
 
 
 # TODO: remove newlines from io/proxy responsibility.
