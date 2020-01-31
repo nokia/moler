@@ -143,3 +143,25 @@ DEVICES:
             password: password
             set_timeout: null
 
+  AT_REMOTE:
+    DEVICE_CLASS: moler.device.atremote.AtRemote
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        UNIX_REMOTE:
+          execute_command: ssh # default value
+          command_params:
+            expected_prompt: 'remote#'
+            host: remote_host
+            login: remote_login
+            password: passwd4remote
+            set_timeout: null
+      UNIX_REMOTE:
+        AT_REMOTE:
+          execute_command: run_script # default value
+          command_params:
+            script_command: python -i moler_serial_proxy.py COM5
+            prompt: 'COM5>'  #  ^OK$
+      AT_REMOTE:
+        UNIX_REMOTE:
+          execute_command: exit_serial_proxy # default value
