@@ -15,11 +15,12 @@ from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.exceptions import CommandFailure
 from moler.helpers import remove_all_known_special_chars
 
+cmd_failure_causes = r'command not found|No such file or directory|running it may require superuser privileges|Cannot find device'
+
 
 @six.add_metaclass(abc.ABCMeta)
 class GenericUnixCommand(CommandTextualGeneric):
-    _re_fail = re.compile(r'command not found|No such file or directory|running it may require superuser privileges'
-                          r'|Cannot find device', re.I)
+    _re_fail = re.compile(cmd_failure_causes, re.I)
 
     def __init__(self, connection, prompt=None, newline_chars=None, runner=None):
         """

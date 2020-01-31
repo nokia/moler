@@ -9,39 +9,79 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 
 import re
 
-from moler.cmd.unix.run_script import RunScript
+from moler.cmd.commandchangingprompt import CommandChangingPrompt
+from moler.cmd.unix.genericunix import cmd_failure_causes
+from moler.exceptions import ParsingDone
 from moler.exceptions import CommandFailure
 
 
-class RunSerialProxy(RunScript):
+class RunSerialProxy(CommandChangingPrompt):
 
-    def __init__(self, connection, serial_devname, prompt=None, newline_chars=None, runner=None):
+    def __init__(self, connection, serial_devname, prompt=None, newline_chars=None, target_newline="\n", runner=None):
         """
         :param connection: Moler connection to device, terminal when command is executed.
         :param serial_devname: name of serial device to be proxied (f.ex. COM5, ttyS4).
-        :param newline_chars: Characters to split lines - list.
+        :param prompt: prompt where we start from
+        :param newline_chars: Characters to split local lines - list.
+        :param target_newline: Character to split remote lines.
         :param runner: Runner to run command.
         """
-        # Note: prompt parameter is ignored (new prompt calculated below)
-        #       however, that parameter is required to fit in API of TextualDevice.get_cmd()
-        proxy_prompt = "{}>".format(serial_devname)
-        proxy_command = "python -i moler_serial_proxy.py {}".format(serial_devname)
-        # TODO: investigate error_regex=re.compile("error", re.I) param - no proxy on remote, serial device already occupied,
-        # error in python code of proxy - will see stack trace on python shell (should exit that shell)
-        super(RunSerialProxy, self).__init__(connection=connection, script_command=proxy_command, prompt=proxy_prompt,
-                                             newline_chars=newline_chars, runner=runner)
+        self.serial_devname = serial_devname
+        proxy_prompt = r"{}>".format(serial_devname)
+        super(RunSerialProxy, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
+                                             runner=runner, expected_prompt=proxy_prompt, target_newline=target_newline)
         self.ret_required = False
 
-    # def on_new_line(self, line, is_full_line):
-    #     """
-    #     Put your parsing code here.
-    #     :param line: Line to process, can be only part of line. New line chars are removed from line.
-    #     :param is_full_line: True if line had new line chars, False otherwise
-    #     :return: Nothing
-    #     """
-    #     if self.error_regex and self._regex_helper.search_compiled(self.error_regex, line):
-    #         self.set_exception(CommandFailure(self, "Found error regex in line '{}'".format(line)))
-    #     return super(RunSerialProxy, self).on_new_line(line, is_full_line)
+    def build_command_string(self):
+        """
+        Builds command string from parameters passed to object.
+        :return: String representation of command to send over connection to device.
+        """
+        proxy_command = "python -i moler_serial_proxy.py {}".format(self.serial_devname)
+        return proxy_command
+
+    def on_new_line(self, line, is_full_line):
+        """
+        Parses the output of the command.
+
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise.
+        :return: None.
+        """
+        try:
+            self._exit_from_python_shell(line)
+            self._check_command_failure(line)
+        except ParsingDone:
+            pass
+        super(RunSerialProxy, self).on_new_line(line=line, is_full_line=is_full_line)
+
+    # error in python code of proxy - will show Traceback on python shell
+    _re_command_fail = re.compile(r"{}|traceback".format(cmd_failure_causes), re.I)
+
+    def _check_command_failure(self, line):
+        """
+        Checks if line has info about command failure.
+
+        :param line: Line from device.
+        :return: None
+        :raise ParsingDone: if regex matches.
+        """
+        if self._regex_helper.search_compiled(self._re_command_fail, line):
+            self.set_exception(CommandFailure(self, "Found error regex in line '{}'".format(line)))
+            raise ParsingDone
+
+    _re_python_prompt = re.compile(r'>>>\s')
+
+    def _exit_from_python_shell(self, line):
+        """
+        Exit from python after detecting python interactive shell
+
+        :param line: Line to process
+        :return: Nothing
+        """
+        if self._regex_helper.search_compiled(self._re_python_prompt, line):
+            self.connection.send("exit()")
+            raise ParsingDone
 
 
 COMMAND_OUTPUT = """
