@@ -36,11 +36,9 @@ class AtRemote(UnixRemote):
                password: password
       UNIX_REMOTE:
         AT_REMOTE:
-          execute_command: run_script # default value
+          execute_command: run_serial_proxy # default value
           command_params:
-            script_command: python -i moler_serial_proxy.py COM5
-            #error_regex: ERROR
-            prompt: 'COM5>'  #  ^OK$
+            serial_devname: 'COM5'
       AT_REMOTE:
         UNIX_REMOTE:
           execute_command: exit_serial_proxy # default value
@@ -78,13 +76,9 @@ class AtRemote(UnixRemote):
             TextualDevice.connection_hops: {
                 UnixRemote.unix_remote: {  # from
                     AtRemote.at_remote: {  # to
-                        "execute_command": "run_script",  # TODO: run_moler_serial_proxy
-                        "command_params": {  # with parameters
-                            "script_command": "python -i moler_serial_proxy.py COM5",
-                            "prompt": 'COM5>'
-                        },
+                        "execute_command": "run_serial_proxy",
                         "required_command_params": [
-                            # TODO: serial_devname: COM5
+                            "serial_devname"
                         ]
                     },
                 },
@@ -130,10 +124,11 @@ class AtRemote(UnixRemote):
         Prepare textual prompt for each state for State Machine without proxy_pc state.
         :return: textual prompt for each state without proxy_pc state.
         """
+        hops_config = self._configurations[TextualDevice.connection_hops]
+        serial_devname = hops_config[UnixRemote.unix_remote][AtRemote.at_remote]["command_params"]["serial_devname"]
+        proxy_prompt = "{}>".format(serial_devname)
         state_prompts = {
-            AtRemote.at_remote:
-                self._configurations[TextualDevice.connection_hops][UnixRemote.unix_remote][AtRemote.at_remote][
-                    "command_params"]["prompt"],
+            AtRemote.at_remote: proxy_prompt
         }
         return state_prompts
 
@@ -143,11 +138,11 @@ class AtRemote(UnixRemote):
         Prepare newline char for each state for State Machine without proxy_pc state.
         :return: newline char for each state without proxy_pc state.
         """
+        hops_config = self._configurations[TextualDevice.connection_hops]
         newline_chars = {
             # same newlines as UnixRemote.unix_remote where proxy is started
             AtRemote.at_remote:
-                self._configurations[TextualDevice.connection_hops][UnixRemote.unix_local][UnixRemote.unix_remote][
-                    "command_params"]["target_newline"],
+                hops_config[UnixRemote.unix_local][UnixRemote.unix_remote]["command_params"]["target_newline"],
         }
         return newline_chars
 
@@ -206,7 +201,6 @@ class AtRemote(UnixRemote):
         remote_ux_root_exit_params = hops_config[UnixRemote.unix_remote_root][UnixRemote.unix_remote]["command_params"]
         remote_ux_prompt = remote_ux_root_exit_params["expected_prompt"]
         hops_config[AtRemote.at_remote][UnixRemote.unix_remote]["command_params"]["prompt"] = remote_ux_prompt
-
 
     def _get_packages_for_state(self, state, observer):
         """

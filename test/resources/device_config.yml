@@ -158,10 +158,9 @@ DEVICES:
             set_timeout: null
       UNIX_REMOTE:
         AT_REMOTE:
-          execute_command: run_script # default value
+          execute_command: run_serial_proxy # default value
           command_params:
-            script_command: python -i moler_serial_proxy.py COM5
-            prompt: 'COM5>'  #  ^OK$
+            serial_devname: 'COM5'  #  ^OK$
       AT_REMOTE:
         UNIX_REMOTE:
           execute_command: exit_serial_proxy # default value
