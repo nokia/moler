@@ -11,13 +11,13 @@ __author__ = ' Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2020, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
-from moler.cmd.at.at import AtCmd, AtCommandModeNotSupported
+from moler.cmd.at.at import At, AtCommandModeNotSupported
 
 
-class AtCmdAttach(AtCmd):
+class Attach(At):
     def __init__(self, connection=None, operation='execute'):
-        """Create instance of AtCmdAttach class"""
-        super(AtCmdAttach, self).__init__(connection, operation)
+        """Create instance of Attach class"""
+        super(Attach, self).__init__(connection, operation)
         if operation != 'execute':
             raise AtCommandModeNotSupported("{} operation no supported for: {}".format(operation, self))
         self.set_at_command_string(command_base_string="AT+CGATT=1")

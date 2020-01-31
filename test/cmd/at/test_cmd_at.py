@@ -40,9 +40,9 @@ def test_at_cmd_string_extended_with_operation_sign_when_instantiated_in_no_defa
 
 
 def test_at_cmd_string_extended_with_params_when_additional_params_in_execute_mode_provided():
-    from moler.cmd.at.at import AtCmd
+    from moler.cmd.at.at import At
 
-    class AtCmdWithArgs(AtCmd):
+    class AtCmdWithArgs(At):
         def __init__(self, connection=None, operation="execute", context_id=None, option=None, action=None):
             super(AtCmdWithArgs, self).__init__(connection, operation)
             self.set_at_command_string(command_base_string="AT+CMD",
@@ -90,9 +90,9 @@ def test_at_cmd_raises_AtCommandModeNotSupported_when_instantiated_in_incorrect_
 
 @pytest.fixture
 def at_cmd_test_class():
-    from moler.cmd.at.at import AtCmd
+    from moler.cmd.at.at import At
 
-    class AtCmdTest(AtCmd):
+    class AtCmdTest(At):
         def __init__(self, connection=None, operation="execute"):
             super(AtCmdTest, self).__init__(connection, operation)
             self.set_at_command_string("AT+CMD")

@@ -25,10 +25,10 @@ class AtCommandFailure(Exception):
     pass
 
 
-class AtCmd(Command):
+class At(Command):
     def __init__(self, connection=None, operation="execute"):
         """
-        Create instance of AtCmd class - base class for all AT commands
+        Create instance of At class - base class for all AT commands
         :param connection: connection used to send command and receive its output
         :param operation: "execute", "read", "test" (not all AT commands support all modes)
         """
@@ -36,7 +36,7 @@ class AtCmd(Command):
             raise AtCommandModeNotSupported("{} mode not supported for command".format(operation))
         self.operation = operation
         self.command_output = ''
-        super(AtCmd, self).__init__(connection)
+        super(At, self).__init__(connection)
 
     def is_at_cmd_success(self):
         return "OK" in self.command_output

@@ -13,13 +13,13 @@ __email__ = 'kamil.kania@nokia.com, grzegorz.latuszek@nokia.com'
 
 import re
 
-from moler.cmd.at.at import AtCmd, AtCommandModeNotSupported
+from moler.cmd.at.at import At, AtCommandModeNotSupported
 
 
-class AtCmdGetIMSI(AtCmd):
+class GetImsi(At):
     def __init__(self, connection=None, operation='execute'):
-        """Create instance of AtCmdGetIMSI class"""
-        super(AtCmdGetIMSI, self).__init__(connection, operation)
+        """Create instance of GetImsi class"""
+        super(GetImsi, self).__init__(connection, operation)
         if operation == 'read':
             raise AtCommandModeNotSupported("{} operation no supported for: {}".format(operation, self))
         self.set_at_command_string(command_base_string="AT+CIMI")
