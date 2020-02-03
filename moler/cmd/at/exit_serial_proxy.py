@@ -15,6 +15,8 @@ class ExitSerialProxy(CommandTextualGeneric):
         super(ExitSerialProxy, self).__init__(connection=connection, prompt=prompt,
                                               newline_chars=newline_chars, runner=runner)
         self.ret_required = False
+        self.target_newline = "\n"
+        self._python_shell_exit_sent = False
 
     def build_command_string(self):
         """command string to exit from moler_serial_proxy"""
@@ -35,8 +37,6 @@ class ExitSerialProxy(CommandTextualGeneric):
         else:
             return super(ExitSerialProxy, self).on_new_line(line, is_full_line)
 
-    _re_python_prompt = re.compile(r'>>>\s')
-
     def _exit_from_python_shell(self, line):
         """
         Exit from python after detecting python interactive shell
@@ -44,9 +44,16 @@ class ExitSerialProxy(CommandTextualGeneric):
         :param line: Line to process
         :return: Nothing
         """
-        if self._regex_helper.search_compiled(self._re_python_prompt, line):
-            self.connection.send("exit()")
+        if (not self._python_shell_exit_sent) and self._in_python_shell(line):
+            self.connection.send("exit(){}".format(self.target_newline))
+            self._python_shell_exit_sent = True
             raise ParsingDone
+
+    _re_python_prompt = re.compile(r'>>>\s')
+
+    def _in_python_shell(self, line):
+        return self._regex_helper.search_compiled(self._re_python_prompt, line)
+
 
 # -----------------------------------------------------------------------------
 # Following documentation is required for library CI.

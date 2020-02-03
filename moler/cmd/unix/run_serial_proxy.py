@@ -31,6 +31,7 @@ class RunSerialProxy(CommandChangingPrompt):
         super(RunSerialProxy, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                              runner=runner, expected_prompt=proxy_prompt, target_newline=target_newline)
         self.ret_required = False
+        self._python_shell_exit_sent = False
 
     def build_command_string(self):
         """
@@ -70,8 +71,6 @@ class RunSerialProxy(CommandChangingPrompt):
             self.set_exception(CommandFailure(self, "Found error regex in line '{}'".format(line)))
             raise ParsingDone
 
-    _re_python_prompt = re.compile(r'>>>\s')
-
     def _exit_from_python_shell(self, line):
         """
         Exit from python after detecting python interactive shell
@@ -79,9 +78,15 @@ class RunSerialProxy(CommandChangingPrompt):
         :param line: Line to process
         :return: Nothing
         """
-        if self._regex_helper.search_compiled(self._re_python_prompt, line):
-            self.connection.send("exit()")
+        if (not self._python_shell_exit_sent) and self._in_python_shell(line):
+            self.connection.send("exit(){}".format(self.target_newline))
+            self._python_shell_exit_sent = True
             raise ParsingDone
+
+    _re_python_prompt = re.compile(r'>>>\s')
+
+    def _in_python_shell(self, line):
+        return self._regex_helper.search_compiled(self._re_python_prompt, line)
 
 
 COMMAND_OUTPUT = """

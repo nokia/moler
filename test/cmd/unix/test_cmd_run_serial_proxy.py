@@ -48,7 +48,7 @@ def test_command_exits_python_interactive_shell(buffer_connection):
     with pytest.raises(ParsingDone):
         with mock.patch.object(buffer_connection.moler_connection, "send") as connection_send:
             run._exit_from_python_shell(line=">>> ")
-    connection_send.assert_called_once_with("exit()")
+    connection_send.assert_called_once_with("exit()\n")
 
 
 failed_pycode = """python -i moler_serial_proxy.py COM5
