@@ -3,39 +3,69 @@
 AT+CIMI .
 
 AT commands specification:
-https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=1515
+google for: 3gpp specification 27.007
 (always check against latest version of standard)
 """
 
-__author__ = 'Lukasz Blaszkiewicz, Kamil Kania, Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'kamil.kania@nokia.com, grzegorz.latuszek@nokia.com'
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2020, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
 
 import re
 
-from moler.cmd.at.at import At, AtCommandModeNotSupported
+from moler.cmd.at.genericat import GenericAtCommand, AtCommandModeNotSupported
+from moler.exceptions import ParsingDone
 
 
-class GetImsi(At):
-    def __init__(self, connection=None, operation='execute'):
+class GetImsi(GenericAtCommand):
+    """
+    Command to get IMSI. Example output:
+
+    AT+CIMI
+    49009123123123
+    OK
+    """
+    def __init__(self, connection=None, operation='execute', prompt=None, newline_chars=None, runner=None):
         """Create instance of GetImsi class"""
-        super(GetImsi, self).__init__(connection, operation)
+        super(GetImsi, self).__init__(connection, operation, prompt=prompt,
+                                      newline_chars=newline_chars, runner=runner)
+        self.set_at_command_string(command_base_string="AT+CIMI")
         if operation == 'read':
             raise AtCommandModeNotSupported("{} operation no supported for: {}".format(operation, self))
-        self.set_at_command_string(command_base_string="AT+CIMI")
+        if operation == 'test':
+            self.ret_required = False  # empty response in test mode since +CIMI doesn't have subparameters
 
-    def parse_command_output(self):
+    def on_new_line(self, line, is_full_line):
         """
-        AT+CIMI
+        Method to parse command output. Will be called after line with command echo.
+
         49009123123123
         OK
+
+        Write your own implementation but don't forget to call on_new_line from base class
+
+        :param line: Line to parse, new lines are trimmed
+        :param is_full_line:  False for chunk of line; True on full line (NOTE: new line character removed)
+        :return: None
         """
-        if self.operation == "test":  # empty response in test mode since +CIMI doesn't have subparameters
-            self.set_result({})
-        else:
-            match = re.search(r"(?P<imsi>\d+)\nOK", self.command_output)
-            if match:
-                self.set_result(match.groupdict())
+        if is_full_line:
+            try:
+                self._parse_imsi_number(line)
+            except ParsingDone:
+                pass
+        return super(GetImsi, self).on_new_line(line, is_full_line)
+
+    _re_imsi = re.compile(r'^\s*(?P<imsi>\d+)\s*$')
+
+    def _parse_imsi_number(self, line):
+        """
+        Parse IMSI number that should look like:
+
+        49009123123123
+        """
+        if self._regex_helper.match_compiled(self._re_imsi, line):
+            imsi = self._regex_helper.group("imsi")
+            self.current_ret['imsi'] = imsi
 
 
 # -----------------------------------------------------------------------------
@@ -52,7 +82,7 @@ class GetImsi(At):
 # -----------------------------------------------------------------------------
 
 COMMAND_OUTPUT_ver_execute = """
-at+cimi
+AT+CIMI
 440801200189934
 OK
 """
@@ -66,7 +96,7 @@ COMMAND_RESULT_ver_execute = {
 # -----------------------------------------------------------------------------
 
 COMMAND_OUTPUT_ver_test = """
-at+cimi=?
+AT+CIMI=?
 OK
 """
 
