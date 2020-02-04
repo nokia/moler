@@ -10,7 +10,6 @@ __email__ = 'kamil.kania@nokia.com, grzegorz.latuszek@nokia.com'
 import pytest
 
 
-# --------------------------- testing base class ---------------------------
 def test_calling_at_cmd_get_imsi_returns_expected_result(buffer_connection):
     from moler.cmd.at import get_imsi
     at_cmd_get_imsi = get_imsi.GetImsi(connection=buffer_connection.moler_connection,
