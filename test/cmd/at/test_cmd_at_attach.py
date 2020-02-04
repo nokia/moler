@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Testing Attach commands.
+Testing Attach command.
 """
 
 __author__ = 'Grzegorz Latuszek'
@@ -10,7 +10,6 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 import pytest
 
 
-# --------------------------- testing base class ---------------------------
 def test_at_cmd_attach_has_default_timeout_180sec(buffer_connection):
     from moler.cmd.at import attach
     at_cmd_attach = attach.Attach(connection=buffer_connection.moler_connection,
