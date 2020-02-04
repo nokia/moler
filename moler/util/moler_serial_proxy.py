@@ -71,7 +71,17 @@ class AtConsoleProxy(object):
         """
         print("{}  opening serial port {}".format(hostname, self._serial_io.port))
         self._serial_io.open()
-        self.send("ATE1")  # activate echo of AT commands
+
+        def echo_by_print(msg):
+            print(msg)
+
+        # activate echo of AT commands
+        self.send_and_echo_response("ATE1", echo_function=echo_by_print)
+        # activate displaying error as codes (mandatory)
+        self.send_and_echo_response("AT+CMEE=1", echo_function=echo_by_print)
+        # activate displaying error as descriptions (optional)
+        self.send_and_echo_response("AT+CMEE=2", echo_function=echo_by_print)
+
         return contextlib.closing(self)
 
     def close(self):
@@ -94,6 +104,13 @@ class AtConsoleProxy(object):
         if self.verbose:
             print("{}:{}  sending AT command '{}'".format(hostname, devname, cmd))
         self._serial_io.send(cmd)
+
+    def send_and_echo_response(self, cmd, echo_function, timeout=4):
+        """Send data, await response and echo it"""
+        self.send(cmd)
+        resp = self.await_response(timeout=timeout)
+        for line in resp:
+            echo_function(line)
 
     def read(self):
         """Returns subsequent lines read from underlying serial connection"""
@@ -157,9 +174,6 @@ if __name__ == '__main__':
 
     print("starting {} proxy at {} ...".format(devname, hostname))
     with AtConsoleProxy(port=options.serial_devname, verbose=options.verbose) as proxy:
-        echo_resp = proxy.await_response(timeout=4)
-        for line in echo_resp:
-            print(line)
         while True:
             cmd = raw_input("{}:{}> ".format(hostname, devname))
             if "exit_serial_proxy" in cmd:

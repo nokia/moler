@@ -26,7 +26,7 @@ class AtCommandFailure(CommandFailure):
 
 
 class GenericAtCommand(CommandTextualGeneric):
-    _re_default_at_prompt = re.compile(r'^\s*(OK|ERROR|\+CM[ES]\s+ERROR:\s+[\w ]+)\s*$')  # When user provides no prompt
+    _re_default_at_prompt = re.compile(r'^\s*(OK|ERROR|\+CM[ES]\s+ERROR:\s*\S.+)\s*$')  # When user provides no prompt
 
     def __init__(self, connection, operation="execute", prompt=None, newline_chars=None, runner=None):
         """
@@ -77,7 +77,7 @@ class GenericAtCommand(CommandTextualGeneric):
         return match is not None
 
     _re_error = re.compile(r'^\s*ERROR\s*$')
-    _re_cme_error = re.compile(r'^\+(?P<ERR_TYPE>CM[ES])\s+ERROR:\s+(?P<ERROR>[\w ]+)', flags=re.IGNORECASE)
+    _re_cme_error = re.compile(r'^\+(?P<ERR_TYPE>CM[ES])\s+ERROR:\s*(?P<ERROR>\S.+)', flags=re.IGNORECASE)
 
     def _parse_error_response(self, line):
         """
