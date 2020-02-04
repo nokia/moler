@@ -29,7 +29,6 @@ class GetAttachState(GenericAtCommand):
         """Create instance of GetAttachState class"""
         super(GetAttachState, self).__init__(connection, operation="read", prompt=prompt,
                                              newline_chars=newline_chars, runner=runner)
-        self.timeout = 180
 
     def build_command_string(self):
         return "AT+CGATT?"
