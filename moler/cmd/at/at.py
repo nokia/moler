@@ -12,7 +12,7 @@ __copyright__ = 'Copyright (C) 2020, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
 
-from moler.cmd.at.genericat import GenericAtCommand, AtCommandModeNotSupported
+from moler.cmd.at.genericat import GenericAtCommand
 
 
 class At(GenericAtCommand):
