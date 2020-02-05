@@ -68,7 +68,17 @@ def test_ioserial_can_send_data_towards_serial_connection(serial_connection_of_i
     from moler.util.moler_serial_proxy import IOSerial
 
     with IOSerial(port="COM5") as io:
-        io.send(cmd='AT')
+        io.send(cmd='AT')  # data is sent as-is without any line ending added
+
+    serial_connection_of_ioserial.write.assert_called_once_with('AT')
+    serial_connection_of_ioserial.flush.assert_called_once_with()
+
+
+def test_ioserial_can_send_data_with_line_ending_towards_serial_connection(serial_connection_of_ioserial):
+    from moler.util.moler_serial_proxy import IOSerial
+
+    with IOSerial(port="COM5") as io:
+        io.send(cmd='AT\r\n')  # if you want line ending - add it
 
     serial_connection_of_ioserial.write.assert_called_once_with('AT\r\n')
     serial_connection_of_ioserial.flush.assert_called_once_with()
@@ -77,12 +87,12 @@ def test_ioserial_can_send_data_towards_serial_connection(serial_connection_of_i
 def test_ioserial_can_read_data_from_serial_connection(serial_connection_of_ioserial):
     from moler.util.moler_serial_proxy import IOSerial
 
-    serial_connection_of_ioserial.readlines.return_value = ["AT\r\n", "OK"]
+    serial_connection_of_ioserial.read.return_value = "AT\r\nOK\r\n"
 
     with IOSerial(port="COM5") as proxy:
         response = proxy.read()
 
-    assert response == ['AT', 'OK']
+    assert response == "AT\r\nOK\r\n"
 
 
 # -------------- AtConsoleProxy
@@ -154,7 +164,7 @@ def test_opening_proxy_activates_at_echo_and_detailed_error_status(serial_connec
 def test_reading_proxy_reads_data_from_underlying_ioserial(serial_connection_of_ioserial):
     from moler.util.moler_serial_proxy import AtConsoleProxy
     with mock.patch("moler.util.moler_serial_proxy.IOSerial.read") as serial_io_read:
-        serial_io_read.return_value = ["AT", "OK"]
+        serial_io_read.return_value = "AT\r\nOK\r\n"
 
         with AtConsoleProxy(port="COM5") as proxy:
             response = proxy.read()

@@ -47,14 +47,14 @@ class IOSerial(object):
 
     def send(self, cmd):
         """Sends data over serial connection"""
-        self._serial_connection.write("{}\r\n".format(cmd))
+        self._serial_connection.write(cmd)
         self._serial_connection.flush()
 
     def read(self):
-        """Returns subsequent lines read from serial connection"""
-        lines = self._serial_connection.readlines()
-        out_lines = [ln.strip('\r\n') for ln in lines]
-        return out_lines
+        """Returns data read from serial connection"""
+        # read all that is there or wait for one byte (blocking)
+        data = self._serial_connection.read(self._serial_connection.in_waiting or 1)
+        return data
 
 
 class AtConsoleProxy(object):
@@ -72,6 +72,11 @@ class AtConsoleProxy(object):
         print("{}  opening serial port {}".format(hostname, self._serial_io.port))
         self._serial_io.open()
 
+        self._apply_initial_configuration()
+
+        return contextlib.closing(self)
+
+    def _apply_initial_configuration(self):
         def echo_by_print(msg):
             print(msg)
 
@@ -81,8 +86,6 @@ class AtConsoleProxy(object):
         self.send_and_echo_response("AT+CMEE=1", echo_function=echo_by_print)
         # activate displaying error as descriptions (optional)
         self.send_and_echo_response("AT+CMEE=2", echo_function=echo_by_print)
-
-        return contextlib.closing(self)
 
     def close(self):
         """Close underlying serial connection."""
@@ -114,13 +117,14 @@ class AtConsoleProxy(object):
 
     def read(self):
         """Returns subsequent lines read from underlying serial connection"""
-        out_lines = self._serial_io.read()
+        out_data = self._serial_io.read()
+        out_lines = out_data.splitlines()
         if self.verbose:
             print("{}:{}  read serial port output: {}".format(hostname, devname, out_lines))
         return out_lines
 
     def await_response(self, timeout=4.0):
-        """Returns generator object providing subsequent lines read from serial connection within timeout"""
+        """Returns subsequent lines read from serial connection within timeout"""
         out_lines = []
         if self.verbose:
             print("{}:{}  awaiting {} sec for serial port response".format(hostname, devname, timeout))
@@ -188,4 +192,4 @@ if __name__ == '__main__':
                     print("{}:{}  serial transmission of cmd '{}' failed: {!r}".format(hostname, devname, cmd, err))
 
 
-# TODO: remove newlines from io/proxy responsibility.
+# TODO: remove newlines from proxy responsibility.
