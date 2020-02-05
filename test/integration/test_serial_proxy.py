@@ -99,7 +99,7 @@ def test_opening_proxy_opens_underlying_ioserial():
     from moler.util import moler_serial_proxy
 
     with mock.patch("moler.util.moler_serial_proxy.IOSerial.open") as serial_io_open:
-        with mock.patch("moler.util.moler_serial_proxy.AtConsoleProxy.send"):
+        with mock.patch("moler.util.moler_serial_proxy.AtConsoleProxy._apply_initial_configuration"):
             io = moler_serial_proxy.AtConsoleProxy(port="COM5")
             io.open()
     serial_io_open.assert_called_once_with()
@@ -108,44 +108,47 @@ def test_opening_proxy_opens_underlying_ioserial():
 def test_closing_proxy_closes_underlying_ioserial(serial_connection_of_ioserial):
     from moler.util import moler_serial_proxy
     with mock.patch("moler.util.moler_serial_proxy.IOSerial.close") as serial_io_close:
-        proxy = moler_serial_proxy.AtConsoleProxy(port="COM5")
-        proxy.open()
-        proxy.close()
+        with mock.patch("moler.util.moler_serial_proxy.AtConsoleProxy._apply_initial_configuration"):
+            proxy = moler_serial_proxy.AtConsoleProxy(port="COM5")
+            proxy.open()
+            proxy.close()
     serial_io_close.assert_called_once_with()
 
 
 def test_can_use_proxy_as_context_manager(serial_connection_of_ioserial):
     from moler.util.moler_serial_proxy import AtConsoleProxy
-    with mock.patch.object(AtConsoleProxy, "open") as proxy_open:
+    with mock.patch("moler.util.moler_serial_proxy.AtConsoleProxy._apply_initial_configuration"):
+        with mock.patch.object(AtConsoleProxy, "open") as proxy_open:
+            with mock.patch.object(AtConsoleProxy, "close") as proxy_close:
+
+                with AtConsoleProxy(port="COM5"):  # AtConsoleProxy may work as context manager
+                    proxy_open.assert_called_once_with()
+                proxy_close.assert_called_once_with()
+
         with mock.patch.object(AtConsoleProxy, "close") as proxy_close:
-
-            with AtConsoleProxy(port="COM5"):  # AtConsoleProxy may work as context manager
-                proxy_open.assert_called_once_with()
+            with AtConsoleProxy(port="COM5").open():  # and AtConsoleProxy.open() may work same
+                pass
             proxy_close.assert_called_once_with()
-
-    with mock.patch.object(AtConsoleProxy, "close") as proxy_close:
-
-        with AtConsoleProxy(port="COM5").open():  # and AtConsoleProxy.open() may work same
-            pass
-        proxy_close.assert_called_once_with()
 
 
 def test_sending_over_proxy_sends_over_underlying_ioserial(serial_connection_of_ioserial):
     from moler.util.moler_serial_proxy import AtConsoleProxy
 
-    with AtConsoleProxy(port="COM5") as proxy:
-        with mock.patch("moler.util.moler_serial_proxy.IOSerial.send") as serial_io_send:
-            proxy.send(cmd='AT')
+    with mock.patch("moler.util.moler_serial_proxy.AtConsoleProxy._apply_initial_configuration"):
+        with AtConsoleProxy(port="COM5") as proxy:
+            with mock.patch("moler.util.moler_serial_proxy.IOSerial.send") as serial_io_send:
+                proxy.send(cmd='AT')
 
     serial_io_send.assert_called_once_with('AT')
 
 
-def test_opening_proxy_activates_at_echo(serial_connection_of_ioserial):
+def test_opening_proxy_activates_at_echo_and_detailed_error_status(serial_connection_of_ioserial):
     from moler.util import moler_serial_proxy
-    with mock.patch("moler.util.moler_serial_proxy.IOSerial.send") as serial_io_send:
-        io = moler_serial_proxy.AtConsoleProxy(port="COM5")
-        io.open()
-    serial_io_send.assert_called_once_with('ATE1')
+    with mock.patch("moler.util.moler_serial_proxy.AtConsoleProxy.await_response", return_value=[]):
+        with mock.patch("moler.util.moler_serial_proxy.IOSerial.send") as serial_io_send:
+            io = moler_serial_proxy.AtConsoleProxy(port="COM5")
+            io.open()
+    assert serial_io_send.mock_calls == [mock.call('ATE1'), mock.call('AT+CMEE=1'), mock.call('AT+CMEE=2')]
 
 
 def test_reading_proxy_reads_data_from_underlying_ioserial(serial_connection_of_ioserial):
@@ -187,9 +190,10 @@ def test_proxy_can_await_data_from_serial_connection_within_specified_timeout(se
         yield "OK"
 
     with mock.patch.object(AtConsoleProxy, "read", return_value=incomming_data()):
+        with mock.patch("moler.util.moler_serial_proxy.AtConsoleProxy._apply_initial_configuration"):
 
-        with AtConsoleProxy(port="COM5") as proxy:
-            response = proxy.await_response(timeout=0.6)
+            with AtConsoleProxy(port="COM5") as proxy:
+                response = proxy.await_response(timeout=0.6)
 
         assert response == ['AT', 'OK']
 
@@ -203,24 +207,24 @@ def test_proxy_can_timeout_if_no_complete_response_before_timeout(serial_connect
         time.sleep(0.3)
         yield "OK"
 
+    with mock.patch("moler.util.moler_serial_proxy.AtConsoleProxy._apply_initial_configuration"):
+        with mock.patch.object(AtConsoleProxy, "read", return_value=incomming_data()):
 
-    with mock.patch.object(AtConsoleProxy, "read", return_value=incomming_data()):
+            with AtConsoleProxy(port="COM5") as proxy:
+                with pytest.raises(serial.SerialException) as err:
+                    proxy.await_response(timeout=0.4)
 
-        with AtConsoleProxy(port="COM5") as proxy:
-            with pytest.raises(serial.SerialException) as err:
-                proxy.await_response(timeout=0.4)
+            assert "Awaiting serial response took" in str(err.value)
+            assert "> 0.4 sec timeout" in str(err.value)
+            assert "Received: ['AT', 'OK']" in str(err.value)
 
-        assert "Awaiting serial response took" in str(err.value)
-        assert "> 0.4 sec timeout" in str(err.value)
-        assert "Received: ['AT', 'OK']" in str(err.value)
+        with mock.patch.object(AtConsoleProxy, "read", return_value=incomming_data()):
 
-    with mock.patch.object(AtConsoleProxy, "read", return_value=incomming_data()):
+            with AtConsoleProxy(port="COM5") as proxy:
+                with pytest.raises(serial.SerialException) as err:
+                    proxy.await_response(timeout=0.2)
 
-        with AtConsoleProxy(port="COM5") as proxy:
-            with pytest.raises(serial.SerialException) as err:
-                proxy.await_response(timeout=0.2)
-
-        assert "Received: ['AT']" in str(err.value)
+            assert "Received: ['AT']" in str(err.value)
 
 
 # ----------------------------------- resources
