@@ -1,6 +1,5 @@
 import serial
 import time
-import contextlib
 import platform
 
 hostname = platform.node()
@@ -31,7 +30,7 @@ class IOSerial(object):
                                                 parity=self.parity,
                                                 timeout=self.timeout,
                                                 xonxoff=self.xonxoff)
-        return contextlib.closing(self)
+        return self
 
     def close(self):
         """Close established connection."""
@@ -57,6 +56,15 @@ class IOSerial(object):
         return data
 
 
+class IoThreadedSerial(IOSerial):
+    """Threaded Serial-IO connection."""
+    def __init__(self, port, baudrate=115200, stopbits=serial.STOPBITS_ONE,
+                 parity=serial.PARITY_NONE, timeout=2, xonxoff=1):
+        super(IoThreadedSerial, self).__init__(port=port, baudrate=baudrate, stopbits=stopbits,
+                                               parity=parity, timeout=timeout, xonxoff=xonxoff)
+        self.pulling_thread = None
+
+
 class AtConsoleProxy(object):
     """Class to proxy AT commands console into stdin/stdout"""
     def __init__(self, port, verbose=False):
@@ -74,7 +82,7 @@ class AtConsoleProxy(object):
 
         self._apply_initial_configuration()
 
-        return contextlib.closing(self)
+        return self
 
     def _apply_initial_configuration(self):
         def echo_by_print(msg):
