@@ -14,6 +14,7 @@ from moler.device.proxy_pc import ProxyPc
 from moler.device.unixlocal import UnixLocal
 from moler.device.unixremote import UnixRemote
 from moler.helpers import call_base_class_method_with_same_name, mark_to_call_base_class_method_with_same_name
+from moler.cmd.at.genericat import GenericAtCommand
 
 
 @call_base_class_method_with_same_name
@@ -126,9 +127,10 @@ class AtRemote(UnixRemote):
         """
         hops_config = self._configurations[TextualDevice.connection_hops]
         serial_devname = hops_config[UnixRemote.unix_remote][AtRemote.at_remote]["command_params"]["serial_devname"]
-        proxy_prompt = "{}>".format(serial_devname)
+        proxy_prompt = "{}> port READY".format(serial_devname)
+        at_cmds_prompt = GenericAtCommand._re_default_at_prompt.pattern
         state_prompts = {
-            AtRemote.at_remote: proxy_prompt
+            AtRemote.at_remote: "{}|{}".format(proxy_prompt, at_cmds_prompt)
         }
         return state_prompts
 
@@ -219,3 +221,5 @@ class AtRemote(UnixRemote):
                 return available[observer]
 
         return available
+
+# TODO: possible hardening: observer for >>> prompt; anytime caught it sends 'exit()'

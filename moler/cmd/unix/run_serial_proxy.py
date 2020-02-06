@@ -32,6 +32,7 @@ class RunSerialProxy(CommandChangingPrompt):
                                              runner=runner, expected_prompt=proxy_prompt, target_newline=target_newline)
         self.ret_required = False
         self._python_shell_exit_sent = False
+        self.allowed_newline_after_prompt = True
 
     def build_command_string(self):
         """

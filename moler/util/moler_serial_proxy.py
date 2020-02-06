@@ -122,14 +122,16 @@ class AtToStdout(serial.threaded.LineReader):
 
     def connection_made(self, transport):
         super(AtToStdout, self).connection_made(transport)
-        msg = "{}  opened".format(self.prefix)
-        sys.stdout.write('{}\n'.format(msg))
+        if self.verbose:
+            msg = "{} opened".format(self.prefix)
+            sys.stdout.write('{}\n'.format(msg))
 
     def connection_lost(self, exc):
         if exc:
             traceback.print_exc(exc)
-        msg = "{}  closed".format(self.prefix)
-        sys.stdout.write('{}\n'.format(msg))
+        if self.verbose:
+            msg = "{} closed".format(self.prefix)
+            sys.stdout.write('{}\n'.format(msg))
 
     def handle_line(self, line):
         if self.verbose:
@@ -189,6 +191,7 @@ class AtConsoleProxy(object):
         self._serial_io.open()
 
         self._apply_initial_configuration()
+        print("{}:{}> port READY".format(hostname, self._serial_io.port))
 
         return self
 
