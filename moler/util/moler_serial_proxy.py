@@ -1,8 +1,15 @@
 import serial
 import serial.threaded
+import threading
 import time
 import sys
 import platform
+import traceback
+from contextlib import contextmanager
+try:
+    input = raw_input
+except NameError:
+    pass
 
 hostname = platform.node()
 
@@ -61,40 +68,43 @@ class IOSerial(object):
 class SerialToStdout(serial.threaded.Protocol):
     """serial->stdout"""
 
-    def __init__(self, prefix, verbose=False):
+    def __init__(self, prefix):
         self.prefix = prefix
-        self.verbose = verbose
 
     def __call__(self):
         return self
 
     def connection_made(self, transport):
         """Called when reader thread is started"""
-        sys.stdout.write('{}  port opened\n'.format(self.prefix))
+        sys.stdout.write('{} opened\n'.format(self.prefix))
 
     def connection_lost(self, exc):
         """
         Called when the serial port is closed or the reader loop terminated
         otherwise.
         """
-        sys.stdout.write('{}  connection_lost({!r})\n'.format(self.prefix, exc))
+        if exc:
+            sys.stdout.write('{} closed({!r})\n'.format(self.prefix, exc))
+        else:
+            sys.stdout.write('{} closed\n'.format(self.prefix))
         if isinstance(exc, Exception):
             raise exc
 
     def data_received(self, data):
         """Called with snippets received from the serial port"""
-        if self.verbose:
-            print("{}  data received from serial port: {}".format(self.prefix, data))
         sys.stdout.write(data)
 
 
 class IoThreadedSerial(IOSerial):
     """Threaded Serial-IO connection."""
-    def __init__(self, port, baudrate=115200, stopbits=serial.STOPBITS_ONE,
+    def __init__(self, port, protocol_factory, baudrate=115200, stopbits=serial.STOPBITS_ONE,
                  parity=serial.PARITY_NONE, timeout=2, xonxoff=1):
         super(IoThreadedSerial, self).__init__(port=port, baudrate=baudrate, stopbits=stopbits,
                                                parity=parity, timeout=timeout, xonxoff=xonxoff)
         self.pulling_thread = None
+        self.protocol_factory = protocol_factory
+        self.transport = None
+        self.protocol = None
 
     def open(self):
         """
@@ -104,15 +114,18 @@ class IoThreadedSerial(IOSerial):
         Return context manager to allow for:  with connection.open() as conn:
         """
         super(IoThreadedSerial, self).open()
-        ser_to_stdout = SerialToStdout("{}:{}".format(hostname, self._serial_connection.port), verbose=False)
-        self.pulling_thread = serial.threaded.ReaderThread(self._serial_connection, ser_to_stdout)
+        self.pulling_thread = serial.threaded.ReaderThread(self._serial_connection, self.protocol_factory)
         self.pulling_thread.start()
         transport, protocol = self.pulling_thread.connect()
+        self.transport = transport
+        self.protocol = protocol
         return self
 
     def close(self):
         """Close the serial port and exit reader thread"""
-        self.pulling_thread.close()
+        if self.pulling_thread:
+            self.pulling_thread.close()
+            self.pulling_thread = None
 
 
 class AtConsoleProxy(object):
@@ -221,10 +234,85 @@ class AtConsoleProxy(object):
             raise serial.SerialException(err_str)
 
 
+class AtToStdout(serial.threaded.LineReader):
+    """ATserial->stdout"""
+
+    def __init__(self, prefix):
+        super(AtToStdout, self).__init__()
+        self.prefix = prefix
+        self.awaited_output = None
+        self._collect = threading.Event()
+        self._data_access = threading.Lock()
+        self._collected_data = ''
+        self._await = threading.Event()
+        self._found = threading.Event()
+
+    def __call__(self):
+        return self
+
+    def connection_made(self, transport):
+        sys.stdout.write('{} >>> opened\n'.format(self.prefix))
+        super(AtToStdout, self).connection_made(transport)
+        msg = "{}:{}  opened".format(hostname, transport)
+        sys.stdout.write('{}\n'.format(msg))
+
+    def connection_lost(self, exc):
+        if exc:
+            traceback.print_exc(exc)
+        msg = "{}:{}  closed".format(hostname, self.transport)
+        sys.stdout.write('{}\n'.format(msg))
+
+    def handle_line(self, data):
+        sys.stdout.write('line received: {!r}\n'.format(data))
+        sys.stdout.write(data.encode(self.ENCODING, self.UNICODE_HANDLING) + b'\n')
+        print(data)
+
+    def write_line(self, text):
+        sys.stdout.write('sending line: {!r}\n'.format(text))
+        super(AtToStdout, self).write_line(text)
+
+    def data_received(self, data):
+        """Called with snippets received from the serial port"""
+        # operates inside "reader thread"
+        sys.stdout.write('data received: {!r}\n'.format(data))
+        super(AtToStdout, self).data_received(data)
+    #     if self._collect.is_set():
+    #         with self._data_access:
+    #             self._collected_data = self._collected_data + data
+    #             if self._await.is_set():
+    #                 if self.awaited_output in self._collected_data:
+    #                     self._found.set()
+
+    @contextmanager
+    def _collect_output(self):
+        try:
+            self._collect.set()
+            yield
+        finally:
+            self._collect.clear()
+            with self._data_access:
+                self._collected_data = ''
+
+    @contextmanager
+    def send_and_await_response(self, data, timeout):
+        """Await till data comes"""
+        # to be used in "sender thread"
+        with self._collect_output():
+            try:
+                yield  # here client code will do AT send
+                self.awaited_output = data
+                self._found.clear()
+                self._await.set()
+            finally:
+                self.awaited_output = None
+
+
 class AtConsoleProxy2(object):
     """Class to proxy AT commands console into stdin/stdout"""
     def __init__(self, port, verbose=False):
-        self._serial_io = IoThreadedSerial(port=port)
+        ser_to_stdout = SerialToStdout("{}:{}  port".format(hostname, port))
+        ser_to_stdout = AtToStdout("{}:{}  port".format(hostname, port))
+        self._serial_io = IoThreadedSerial(port=port, protocol_factory=ser_to_stdout)
         self.verbose = verbose
 
     def open(self):
@@ -257,7 +345,8 @@ class AtConsoleProxy2(object):
         """Send data over underlying serial connection"""
         if self.verbose:
             print("{}:{}  sending AT command '{}'".format(hostname, devname, cmd))
-        self._serial_io.send(cmd)
+        # self._serial_io.send(cmd)
+        self._serial_io.protocol.write_line(cmd)
 
 
 if __name__ == '__main__':
@@ -289,11 +378,11 @@ if __name__ == '__main__':
     #                 print("{}:{}  serial transmission of cmd '{}' failed: {!r}".format(hostname, devname, cmd, err))
     with AtConsoleProxy2(port=options.serial_devname, verbose=options.verbose) as proxy:
         while True:
-            cmd = raw_input()
+            cmd = input()
             if "exit_serial_proxy" in cmd:
                 break
             try:
-                proxy.send(cmd + "\r\n")
+                proxy.send(cmd)
             except serial.SerialException as err:
                 if options.verbose:
                     print("{}:{}  serial transmission of cmd '{}' failed: {!r}".format(hostname, devname, cmd, err))
