@@ -535,19 +535,21 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                         else:
                             break
             else:
-                if connection_observer.inactivity_timeout > 0.0:
-                    if (connection_observer.last_feed_time + connection_observer.inactivity_timeout) > current_time:
-                        connection_observer.on_inactivity()
-                        connection_observer.last_feed_time = current_time
+                self._call_on_inactivity(connection_observer=connection_observer, current_time=current_time)
 
             if self._in_shutdown:
                 self.logger.debug("shutdown so cancelling {}".format(connection_observer))
                 connection_observer.cancel()
             time.sleep(self._tick)  # give moler_conn a chance to feed observer
 
+    def _call_on_inactivity(self, connection_observer, current_time):
+        if connection_observer.inactivity_timeout > 0.0:
+            if (connection_observer.last_feed_time + connection_observer.inactivity_timeout) > current_time:
+                connection_observer.on_inactivity()
+                connection_observer.last_feed_time = current_time
+
     def timeout_change(self, timedelta):
         pass
-
 
 # utilities to be used by runners
 
