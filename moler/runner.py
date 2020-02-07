@@ -6,7 +6,7 @@ to make it exchangeable (threads, asyncio, twisted, curio)
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import atexit
@@ -543,6 +543,13 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             time.sleep(self._tick)  # give moler_conn a chance to feed observer
 
     def _call_on_inactivity(self, connection_observer, current_time):
+        """
+        Call on_inactivity on connection_observer if needed.
+
+        :param connection_observer: ConnectionObserver object.
+        :param current_time: current time in seconds.
+        :return: None
+        """
         if connection_observer.inactivity_timeout > 0.0 and connection_observer.last_feed_time is not None:
             if (connection_observer.last_feed_time + connection_observer.inactivity_timeout) > current_time:
                 connection_observer.on_inactivity()
@@ -550,6 +557,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
     def timeout_change(self, timedelta):
         pass
+
 
 # utilities to be used by runners
 

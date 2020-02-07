@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019 Nokia'
+__copyright__ = 'Copyright (C) 2018-2020 Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
@@ -339,7 +339,7 @@ class ConnectionObserver(object):
 
     def on_inactivity(self):
         """
-        Callback called when in no data are sent by connection.
+        Callback called when in self.inactivity_timeout seconds no data are sent by connection.
 
         :return: None
         """
