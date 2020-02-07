@@ -12,6 +12,8 @@ __copyright__ = 'Copyright (C) 2020, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
 import re
+import abc
+import six
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
@@ -25,6 +27,7 @@ class AtCommandFailure(CommandFailure):
     pass
 
 
+@six.add_metaclass(abc.ABCMeta)
 class GenericAtCommand(CommandTextualGeneric):
     _re_default_at_prompt = re.compile(r'^\s*(OK|ERROR|\+CM[ES]\s+ERROR:\s*\S.+)\s*$')  # When user provides no prompt
 
