@@ -72,6 +72,7 @@ class GetRevisionId(GenericAtCommand):
         """
         return 'revision' in self.current_ret
 
+
 # -----------------------------------------------------------------------------
 # Following documentation is required for library CI.
 # It is used to perform command self-test.

@@ -72,6 +72,7 @@ class GetManufacturerId(GenericAtCommand):
         """
         return 'manufacturer' in self.current_ret
 
+
 # -----------------------------------------------------------------------------
 # Following documentation is required for library CI.
 # It is used to perform command self-test.
