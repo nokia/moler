@@ -5,7 +5,6 @@ import time
 import sys
 import platform
 import traceback
-from contextlib import contextmanager
 try:
     input = raw_input
 except NameError:
@@ -102,8 +101,7 @@ class IoThreadedSerial(IOSerial):
         self.protocol.send(cmd)
 
     def send_and_await_response(self, line, response, timeout=4):
-        with self.protocol.send_and_await_response(line, response, timeout) as response_found:
-            pass
+        self.protocol.send_and_await_response(line, response, timeout)
 
 
 class AtToStdout(serial.threaded.LineReader):
@@ -134,8 +132,11 @@ class AtToStdout(serial.threaded.LineReader):
             sys.stdout.write('{}\n'.format(msg))
 
     def handle_line(self, line):
+        # works in reader thread
         if self.verbose:
             print("received line: {!r}".format(line))
+        if not line:
+            return  # don't output empty lines
         print(line)
         if self._await.is_set():
             if self.awaited_output and (self.awaited_output in line):
@@ -149,7 +150,6 @@ class AtToStdout(serial.threaded.LineReader):
         super(AtToStdout, self).write_line(line)
         # self.transport.serial.flush()  # TODO: do we need it
 
-    @contextmanager
     def send_and_await_response(self, line, response, timeout=4):
         """Await till data comes"""
         # to be used in "sender thread"
@@ -161,13 +161,13 @@ class AtToStdout(serial.threaded.LineReader):
             self._await.set()
 
             self.send(line)
-
             response_found = self._found.wait(timeout)
+
             if self.verbose:
                 print("{!r} {!r} response_found: {!r}".format(line, response, response_found))
             self._found.clear()
             self._await.clear()
-            yield response_found
+            return response_found
         finally:
             self.awaited_output = None
             self._found.clear()
@@ -176,10 +176,11 @@ class AtToStdout(serial.threaded.LineReader):
 
 class AtConsoleProxy(object):
     """Class to proxy AT commands console into stdin/stdout"""
-    def __init__(self, port, verbose=False):
+    def __init__(self, port, verbose=False, at_echo=False):
         ser_to_stdout = AtToStdout("{}:{}  port".format(hostname, port), verbose=verbose)
         self._serial_io = IoThreadedSerial(port=port, protocol_factory=ser_to_stdout)
         self.verbose = verbose
+        self.at_echo = at_echo
 
     def open(self):
         """
@@ -196,12 +197,14 @@ class AtConsoleProxy(object):
         return self
 
     def _apply_initial_configuration(self):
-        # activate echo of AT commands
+        # activate echo of AT commands (just to see following configuration commands)
         self._serial_io.send_and_await_response("ATE1", response='OK')
         # activate displaying error as codes (mandatory)
         self._serial_io.send_and_await_response("AT+CMEE=1", response='OK')
         # activate displaying error as descriptions (optional)
         self._serial_io.send_and_await_response("AT+CMEE=2", response='OK')
+        if not self.at_echo:
+            self._serial_io.send_and_await_response("ATE0", response='OK')  # deactivate AT echo
 
     def close(self):
         """Close underlying serial connection."""
@@ -232,6 +235,7 @@ if __name__ == '__main__':
         parser = argparse.ArgumentParser(description="Proxy AT console between serial port and stdin/stdout")
         parser.add_argument('serial_devname', help='serial device name like COM5, ttyS4')
         parser.add_argument('--verbose', action='store_true', help='show proxy internal processing')
+        parser.add_argument('--at_echo', action='store_true', help='ativate echo by AT (not needed if terminal does echo)')
         args = parser.parse_args()
         return args
 
@@ -240,7 +244,7 @@ if __name__ == '__main__':
 
     print("starting {} proxy at {} ...".format(devname, hostname))
 
-    with AtConsoleProxy(port=options.serial_devname, verbose=options.verbose) as proxy:
+    with AtConsoleProxy(port=options.serial_devname, verbose=options.verbose, at_echo=options.at_echo) as proxy:
         while True:
             cmd = input()
             if "exit_serial_proxy" in cmd:
