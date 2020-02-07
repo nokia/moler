@@ -5,7 +5,7 @@ Moler's device has 2 main responsibilities:
 - be the state machine that controls which commands may run in given state
 """
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
@@ -75,6 +75,7 @@ class TextualDevice(AbstractDevice):
         self._state_prompts = dict()
         self._reverse_state_prompts_dict = dict()
         self._prompts_event = None
+        self._kept_state = None
         self._configurations = dict()
         self._newline_chars = dict()  # key is state, value is chars to send as newline
         if io_connection:
@@ -310,9 +311,12 @@ class TextualDevice(AbstractDevice):
         if self.current_state != state:
             self._log(logging.INFO, "Changed state from '%s' into '%s'" % (self.current_state, state))
             self.SM.set_state(state=state)
+        if self._kept_state is not None and self.current_state != self._kept_state:
+            self.goto_state(state=self._kept_state, timeout=-1, rerun=0, send_enter_after_changed_state=False,
+                            log_stacktrace_on_fail=True, keep_state=True)
 
     def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False,
-                   log_stacktrace_on_fail=True):
+                   log_stacktrace_on_fail=True, keep_state=True):
         """
         Goes to specific state.
 
@@ -321,6 +325,8 @@ class TextualDevice(AbstractDevice):
         :param rerun: How many times rerun the procedure before it fails.
         :param send_enter_after_changed_state: If True then enter is sent after state is changed. False nothing is sent.
         :param log_stacktrace_on_fail: Set True to have stacktrace in logs when failed, otherwise False.
+        :param keep_state: if True and state is changed without goto_state then device tried to change state to state
+        defined by goto_state.
         :return: None
         :raise: DeviceChangeStateFailure if cannot change the state of device.
         """
@@ -332,6 +338,7 @@ class TextualDevice(AbstractDevice):
         if self.current_state == dest_state:
             return
 
+        self._kept_state = None
         self._log(logging.DEBUG, "Go to state '%s' from '%s'" % (dest_state, self.current_state))
 
         is_dest_state = False
@@ -352,6 +359,8 @@ class TextualDevice(AbstractDevice):
                 next_stage_timeout = timeout - (time.time() - start_time)
                 if next_stage_timeout <= 0:
                     is_timeout = True
+        if keep_state:
+            self._kept_state = dest_state
 
     def _get_next_state(self, dest_state):
         next_state = None

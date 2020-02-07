@@ -5,7 +5,7 @@ Moler's device has 2 main responsibilities:
 - be the state machine that controls which commands may run in given state
 """
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019, Nokia'
+__copyright__ = 'Copyright (C) 2019-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import six
@@ -79,7 +79,7 @@ class AbstractDevice(object):
 
     @abc.abstractmethod
     def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False,
-                   log_stacktrace_on_fail=True):
+                   log_stacktrace_on_fail=True, keep_state=True):
         """
         Goes to state.
 
@@ -88,6 +88,8 @@ class AbstractDevice(object):
         :param rerun: How many times try to rerun command(s) when device is still not in requested state.
         :param send_enter_after_changed_state: Set True to send enter after enters proper state.
         :param log_stacktrace_on_fail: Set True to log exceptions if command to enter state failed.
+        :param keep_state: if True and state is changed without goto_state then device tried to change state to state
+        defined by goto_state.
         :return: None
         """
 
