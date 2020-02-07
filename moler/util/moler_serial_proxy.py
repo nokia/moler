@@ -161,7 +161,7 @@ class AtToStdout(serial.threaded.LineReader):
             self._await.set()
 
             self.send(line)
-            response_found = self._found.wait(timeout)
+            response_found = self.await_response_event(timeout)
 
             if self.verbose:
                 print("{!r} {!r} response_found: {!r}".format(line, response, response_found))
@@ -172,6 +172,11 @@ class AtToStdout(serial.threaded.LineReader):
             self.awaited_output = None
             self._found.clear()
             self._await.clear()
+
+    def await_response_event(self, timeout=4):
+        """Await till reading thread sets found event"""
+        response_found = self._found.wait(timeout)
+        return response_found
 
 
 class AtConsoleProxy(object):
@@ -214,11 +219,13 @@ class AtConsoleProxy(object):
         print("{}  serial port {} closed".format(hostname, self._serial_io.port))
 
     def __enter__(self):
-        self.open()
+        if self._serial_io.pulling_thread is None:
+            self.open()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
+        if self._serial_io.pulling_thread is not None:
+            self.close()
         return False  # reraise exceptions if any
 
     def send(self, cmd):
