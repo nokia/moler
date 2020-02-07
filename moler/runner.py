@@ -433,7 +433,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                     return  # even not unsubscribed secure_data_received() won't pass data to done observer
                 with observer_lock:
                     connection_observer.data_received(data)
-                connection_observer.last_feed_time = time.time()
+                    connection_observer.last_feed_time = time.time()
 
             except Exception as exc:  # TODO: handling stacktrace
                 # observers should not raise exceptions during data parsing
@@ -543,7 +543,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             time.sleep(self._tick)  # give moler_conn a chance to feed observer
 
     def _call_on_inactivity(self, connection_observer, current_time):
-        if connection_observer.inactivity_timeout > 0.0:
+        if connection_observer.inactivity_timeout > 0.0 and connection_observer.last_feed_time is not None:
             if (connection_observer.last_feed_time + connection_observer.inactivity_timeout) > current_time:
                 connection_observer.on_inactivity()
                 connection_observer.last_feed_time = current_time
