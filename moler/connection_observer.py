@@ -46,6 +46,9 @@ class ConnectionObserver(object):
         self._exception = None
         self.runner = runner if runner else get_runner()
         self._future = None
+        self.inactivity_timeout = 0.0  # If positive value and no data are sent by connection in this time then method
+        #                                on_inactivity will be called.
+        self.last_feed_time = None  # Time of last called data_received or on_inactivity.
         self.start_time = 0.0  # means epoch: 1970-01-01 00:00:00
         self.__timeout = 20.0  # default
         self.terminating_timeout = 0.0  # value for terminating connection_observer when it timeouts. Set positive value
@@ -333,6 +336,14 @@ class ConnectionObserver(object):
         msg = "Extended timeout from %.2f with delta %.2f to %.2f" % (prev_timeout, timedelta, self.timeout)
         self.runner.timeout_change(timedelta)
         self._log(logging.INFO, msg)
+
+    def on_inactivity(self):
+        """
+        Callback called when in no data are sent by connection.
+
+        :return: None
+        """
+        pass
 
     @ClassProperty
     def observer_name(cls):

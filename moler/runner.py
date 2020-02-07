@@ -433,6 +433,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                     return  # even not unsubscribed secure_data_received() won't pass data to done observer
                 with observer_lock:
                     connection_observer.data_received(data)
+                connection_observer.last_feed_time = time.time()
 
             except Exception as exc:  # TODO: handling stacktrace
                 # observers should not raise exceptions during data parsing
@@ -509,7 +510,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             if connection_observer.done():
                 self.logger.debug("done {}".format(connection_observer))
                 break
-            run_duration = time.time() - start_time
+            current_time = time.time()
+            run_duration = current_time - start_time
             # we need to check connection_observer.timeout at each round since timeout may change
             # during lifetime of connection_observer
             timeout = connection_observer.timeout
@@ -532,6 +534,11 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                             connection_observer.in_terminating = True
                         else:
                             break
+            else:
+                if connection_observer.inactivity_timeout > 0.0:
+                    if (connection_observer.last_feed_time + connection_observer.inactivity_timeout) > current_time:
+                        connection_observer.on_inactivity()
+                        connection_observer.last_feed_time = current_time
 
             if self._in_shutdown:
                 self.logger.debug("shutdown so cancelling {}".format(connection_observer))
