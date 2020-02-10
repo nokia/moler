@@ -88,7 +88,7 @@ class AbstractDevice(object):
         :param rerun: How many times try to rerun command(s) when device is still not in requested state.
         :param send_enter_after_changed_state: Set True to send enter after enters proper state.
         :param log_stacktrace_on_fail: Set True to log exceptions if command to enter state failed.
-        :param keep_state: if True and state is changed without goto_state then device tried to change state to state
+        :param keep_state: if True and state is changed without goto_state then device tries to change state to state
         defined by goto_state.
         :return: None
         """

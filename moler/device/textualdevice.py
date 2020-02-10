@@ -331,7 +331,7 @@ class TextualDevice(AbstractDevice):
         :param rerun: How many times rerun the procedure before it fails.
         :param send_enter_after_changed_state: If True then enter is sent after state is changed. False nothing is sent.
         :param log_stacktrace_on_fail: Set True to have stacktrace in logs when failed, otherwise False.
-        :param keep_state: if True and state is changed without goto_state then device tried to change state to state
+        :param keep_state: if True and state is changed without goto_state then device tries to change state to state
         defined by goto_state.
         :return: None
         :raise: DeviceChangeStateFailure if cannot change the state of device.
@@ -346,7 +346,6 @@ class TextualDevice(AbstractDevice):
             if keep_state:
                 self._kept_state = dest_state
             return
-        print("Go to state '%s' from '%s'" % (dest_state, self.current_state))
         self._log(logging.DEBUG, "Go to state '%s' from '%s'" % (dest_state, self.current_state))
 
         is_dest_state = False
