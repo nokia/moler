@@ -64,8 +64,9 @@ class TextualDevice(AbstractDevice):
         self.goto_states_triggers = []
         self._name = name
         self.device_data_logger = None
+        self.timeout_keep_state = 10  # Timeout for background goto state after unexpected state change.
 
-        # Below line will modify self extending it with methods and atributes od StateMachine
+        # Below line will modify self extending it with methods and attributes od StateMachine
         # For eg. it will add attribute self.state
         self.SM = StateMachine(model=self, states=self.states, initial=TextualDevice.not_connected,
                                auto_transitions=False,
@@ -312,8 +313,13 @@ class TextualDevice(AbstractDevice):
             self._log(logging.INFO, "Changed state from '%s' into '%s'" % (self.current_state, state))
             self.SM.set_state(state=state)
         if self._kept_state is not None and self.current_state != self._kept_state:
-            self.goto_state(state=self._kept_state, timeout=-1, rerun=0, send_enter_after_changed_state=False,
-                            log_stacktrace_on_fail=True, keep_state=True)
+            state = self._kept_state
+            try:
+                self.goto_state(state=state, timeout=self.timeout_keep_state, rerun=0,
+                                send_enter_after_changed_state=False, log_stacktrace_on_fail=False, keep_state=True)
+            except DeviceChangeStateFailure:
+                self._log(level=logging.WARNING, msg="Cannot properly go to state: '{}' in background.".format(state))
+                self._kept_state = state
 
     def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False,
                    log_stacktrace_on_fail=True, keep_state=True):
@@ -330,15 +336,17 @@ class TextualDevice(AbstractDevice):
         :return: None
         :raise: DeviceChangeStateFailure if cannot change the state of device.
         """
+        self._kept_state = None
         if not self.has_established_connection():
             self.establish_connection()
 
         dest_state = state
 
         if self.current_state == dest_state:
+            if keep_state:
+                self._kept_state = dest_state
             return
-
-        self._kept_state = None
+        print("Go to state '%s' from '%s'" % (dest_state, self.current_state))
         self._log(logging.DEBUG, "Go to state '%s' from '%s'" % (dest_state, self.current_state))
 
         is_dest_state = False
