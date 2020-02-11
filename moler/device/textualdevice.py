@@ -110,6 +110,7 @@ class TextualDevice(AbstractDevice):
         )
         self._log(level=logging.DEBUG, msg=msg)
         self._public_name = None
+        self._warning_was_sent = False
 
     def establish_connection(self):
         """
@@ -318,7 +319,11 @@ class TextualDevice(AbstractDevice):
                 self.goto_state(state=state, timeout=self.timeout_keep_state, rerun=0,
                                 send_enter_after_changed_state=False, log_stacktrace_on_fail=False, keep_state=True)
             except DeviceChangeStateFailure:
-                self._log(level=logging.WARNING, msg="Cannot properly go to state: '{}' in background.".format(state))
+                level = logging.DEBUG
+                if not self._warning_was_sent:
+                    level = logging.WARNING
+                    self._warning_was_sent = True
+                self._log(level=level, msg="Cannot properly go to state: '{}' in background.".format(state))
                 self._kept_state = state
 
     def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False,
@@ -368,6 +373,7 @@ class TextualDevice(AbstractDevice):
                     is_timeout = True
         if keep_state:
             self._kept_state = dest_state
+        self._warning_was_sent = False
 
     def _get_next_state(self, dest_state):
         next_state = None
