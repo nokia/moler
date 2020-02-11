@@ -20,6 +20,7 @@ def test_iperf_returns_proper_command_string(buffer_connection):
 
 def test_iperf_can_set_direct_path_to_command_executable(buffer_connection):
      iperf_cmd = Iperf2(buffer_connection, options='-c 10.1.1.1 -M 1300 -m')
+     assert "iperf -c 10.1.1.1 -M 1300 -m" == iperf_cmd.command_string
      iperf_cmd.command_path = 'adb shell /data/data/com.magicandroidapps.iperf/bin/'
      assert "adb shell /data/data/com.magicandroidapps.iperf/bin/iperf -c 10.1.1.1 -M 1300 -m" == iperf_cmd.command_string
 
