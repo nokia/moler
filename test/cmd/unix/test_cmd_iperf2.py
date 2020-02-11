@@ -18,6 +18,12 @@ def test_iperf_returns_proper_command_string(buffer_connection):
      assert "iperf -c 10.1.1.1 -M 1300 -m" == iperf_cmd.command_string
 
 
+def test_iperf_can_set_direct_path_to_command_executable(buffer_connection):
+     iperf_cmd = Iperf2(buffer_connection, options='-c 10.1.1.1 -M 1300 -m')
+     iperf_cmd.command_path = 'adb shell /data/data/com.magicandroidapps.iperf/bin/'
+     assert "adb shell /data/data/com.magicandroidapps.iperf/bin/iperf -c 10.1.1.1 -M 1300 -m" == iperf_cmd.command_string
+
+
 def test_iperf_raise_error_on_bind_failed(buffer_connection, command_output_and_expected_result_on_bind_failed):
     iperf_cmd = Iperf2(connection=buffer_connection.moler_connection, options='-s')
     command_output, expected_result = command_output_and_expected_result_on_bind_failed
