@@ -554,10 +554,9 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         :param current_time: current time in seconds.
         :return: None
         """
-        if (connection_observer.life_status.inactivity_timeout > 0.0) and (
-                connection_observer.life_status.last_feed_time is not None):
-            expected_feed_timeout = connection_observer.life_status.last_feed_time +\
-                                    connection_observer.life_status.inactivity_timeout
+        life_status = connection_observer.life_status
+        if (life_status.inactivity_timeout > 0.0) and (life_status.last_feed_time is not None):
+            expected_feed_timeout = life_status.last_feed_time + life_status.inactivity_timeout
             if current_time > expected_feed_timeout:
                 connection_observer.on_inactivity()
                 connection_observer.life_status.last_feed_time = current_time
