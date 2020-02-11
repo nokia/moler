@@ -236,10 +236,11 @@ class AsyncioRunner(ConnectionObserverRunner):
         if impossible_future:
             return impossible_future
 
-        assert connection_observer.start_time > 0.0  # connection-observer lifetime should already been started
+        assert connection_observer.life_status.start_time > 0.0  # connection-observer lifetime should
+        # already been started
         observer_timeout = connection_observer.timeout
         remain_time, msg = his_remaining_time("remaining", timeout=observer_timeout,
-                                              from_start_time=connection_observer.start_time)
+                                              from_start_time=connection_observer.life_status.start_time)
         self.logger.debug("go background: {!r} - {}".format(connection_observer, msg))
 
         # Our submit consists of two steps:
@@ -256,7 +257,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         # should be as quick as possible.
         #
         # However, lifetime of connection_observer starts in connection_observer.start().
-        # It gains it's own timer so that timeout is calculated from that connection_observer.start_time
+        # It gains it's own timer so that timeout is calculated from that connection_observer.life_status.start_time
         # That lifetime may start even before this submit() if observer is command and we have commands queue.
         #
         # As a corner case runner.wait_for() may timeout before feeding coroutine has started.
@@ -326,8 +327,8 @@ class AsyncioRunner(ConnectionObserverRunner):
 
         max_timeout = timeout
         observer_timeout = connection_observer.timeout
-        # we count timeout from now if timeout is given; else we use .start_time and .timeout of observer
-        start_time = time.time() if max_timeout else connection_observer.start_time
+        # we count timeout from now if timeout is given; else we use .life_status.start_time and .timeout of observer
+        start_time = time.time() if max_timeout else connection_observer.life_status.start_time
         await_timeout = max_timeout if max_timeout else observer_timeout
         if max_timeout:
             remain_time, msg = his_remaining_time("await max.", timeout=max_timeout, from_start_time=start_time)
@@ -376,7 +377,7 @@ class AsyncioRunner(ConnectionObserverRunner):
                 del self._submitted_futures[id(future)]
 
     def _wait_for_time_out(self, connection_observer, connection_observer_future, timeout):
-        passed = time.time() - connection_observer.start_time
+        passed = time.time() - connection_observer.life_status.start_time
         future = connection_observer_future or connection_observer._future
         if future:
             with future.observer_lock:
@@ -559,7 +560,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         Should be called from background-processing of connection observer.
         """
         remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
-                                              from_start_time=connection_observer.start_time)
+                                              from_start_time=connection_observer.life_status.start_time)
         self.logger.debug("{} started, {}".format(connection_observer, msg))
         connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
 
@@ -567,7 +568,7 @@ class AsyncioRunner(ConnectionObserverRunner):
             subscribed_data_receiver = self._start_feeding(connection_observer, observer_lock)
 
         await asyncio.sleep(0.005)  # give control back before we start processing
-        start_time = connection_observer.start_time
+        start_time = connection_observer.life_status.start_time
 
         moler_conn = connection_observer.connection
         try:
@@ -616,7 +617,7 @@ class AsyncioRunner(ConnectionObserverRunner):
             # feed_done.set()
 
             remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
-                                                  from_start_time=connection_observer.start_time)
+                                                  from_start_time=connection_observer.life_status.start_time)
             connection_observer._log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
             self.logger.debug("{} finished, {}".format(connection_observer, msg))
         return None

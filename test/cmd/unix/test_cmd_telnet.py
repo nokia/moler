@@ -95,7 +95,7 @@ def test_telnet_with_additional_commands(buffer_connection):
                         cmds_before_establish_connection=['set binary'],
                         cmds_after_establish_connection=['mode character'])
     assert "TERM=xterm-mono telnet" == telnet_cmd.command_string
-    telnet_cmd.inactivity_timeout = 1
+    telnet_cmd.life_status.inactivity_timeout = 1
     telnet_cmd.start()
     time.sleep(0.1)
     buffer_connection.moler_connection.data_received(output1.encode("utf-8"))
@@ -135,7 +135,7 @@ def test_telnet_with_on_inactivity(buffer_connection):
                              cmds_before_establish_connection=['set binary'],
                              cmds_after_establish_connection=['mode character'])
     assert "TERM=xterm-mono telnet" == telnet_cmd.command_string
-    telnet_cmd.inactivity_timeout = 1
+    telnet_cmd.life_status.inactivity_timeout = 1
     telnet_cmd.start()
     time.sleep(0.1)
     buffer_connection.moler_connection.data_received(output1.encode("utf-8"))

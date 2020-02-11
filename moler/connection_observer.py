@@ -26,6 +26,7 @@ from moler.util.connection_observer import exception_stored_if_not_main_thread
 from moler.util.loghelper import log_into_logger
 from moler.runner_factory import get_runner
 from moler.command_scheduler import CommandScheduler
+from moler.util.connection_observer_life_status import ConnectionObserverLifeStatus
 
 
 @add_metaclass(ABCMeta)
@@ -46,22 +47,14 @@ class ConnectionObserver(object):
         self._exception = None
         self.runner = runner if runner else get_runner()
         self._future = None
-        self.inactivity_timeout = 0.0  # If positive value and no data are sent by connection in this time then method
-        #                                on_inactivity will be called.
-        self.last_feed_time = None  # Time of last called data_received or on_inactivity.
-        self.start_time = 0.0  # means epoch: 1970-01-01 00:00:00
+        self.life_status = ConnectionObserverLifeStatus()
+
         self.__timeout = 20.0  # default
         self.terminating_timeout = 0.0  # value for terminating connection_observer when it timeouts. Set positive value
         #                                 for command if they can do anything if timeout. Set 0 for observer or command
         #                                 if it cannot do anything if timeout.
         self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
         self.logger = logging.getLogger('moler.connection.{}'.format(self.get_logger_name()))
-
-        self.in_terminating = False  # Set True if ConnectionObserver object is just after __timeout but it can do
-        #                              something during terminating_timeout. False if the ConnectionObserver object runs
-        #                              during normal timeout. For Runners only!
-        self.was_on_timeout_called = False  # Set True if method on_timeout was called. False otherwise. For Runners
-        #                                     only!
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
@@ -134,7 +127,7 @@ class ConnectionObserver(object):
             # That is so, since observer lifetime starts with it's timeout-clock
             # and timeout is counted from calling observer.start()
             self._is_running = True
-            self.start_time = time.time()
+            self.life_status.start_time = time.time()
             # Besides not started parallelism machinery causing start-delay
             # we can have start-delay caused by commands queue on connection
             # (can't submit command to background-run till previous stops running)
@@ -189,7 +182,8 @@ class ConnectionObserver(object):
         #    connection_observer.start()
         # then we await it via:
         #    result = await connection_observer
-        # but above notation in terms of Python3 async code may also mean "start it and await completion", so it may look like:
+        # but above notation in terms of Python3 async code may also mean "start it and await completion", so it may
+        # look like:
         #    connection_observer = SomeObserver()
         #    result = await connection_observer
         return self.__iter__()
@@ -339,7 +333,7 @@ class ConnectionObserver(object):
 
     def on_inactivity(self):
         """
-        Callback called when no data is received on connection within self.inactivity_timeout seconds
+        Callback called when no data is received on connection within self.life_status.inactivity_timeout seconds
 
         :return: None
         """

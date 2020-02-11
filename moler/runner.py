@@ -89,8 +89,8 @@ class ConnectionObserverRunner(object):
 
 def time_out_observer(connection_observer, timeout, passed_time, runner_logger, kind="background_run"):
     """Set connection_observer status to timed-out"""
-    if not connection_observer.was_on_timeout_called:
-        connection_observer.was_on_timeout_called = True
+    if not connection_observer.life_status.was_on_timeout_called:
+        connection_observer.life_status.was_on_timeout_called = True
         if not connection_observer.done():
             if hasattr(connection_observer, "command_string"):
                 exception = CommandTimeout(connection_observer=connection_observer,
@@ -223,10 +223,11 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Submit connection observer to background execution.
         Returns Future that could be used to await for connection_observer done.
         """
-        assert connection_observer.start_time > 0.0  # connection-observer lifetime should already been started
+        assert connection_observer.life_status.start_time > 0.0  # connection-observer lifetime should already been
+        # started
         observer_timeout = connection_observer.timeout
         remain_time, msg = his_remaining_time("remaining", timeout=observer_timeout,
-                                              from_start_time=connection_observer.start_time)
+                                              from_start_time=connection_observer.life_status.start_time)
         self.logger.debug("go background: {!r} - {}".format(connection_observer, msg))
         # TODO: check dependency - connection_observer.connection
 
@@ -245,7 +246,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         # For concurrent.futures same is done via future.running() API.
         #
         # However, lifetime of connection_observer starts in connection_observer.start().
-        # It gains it's own timer so that timeout is calculated from that connection_observer.start_time
+        # It gains it's own timer so that timeout is calculated from that connection_observer.life_status.start_time
         # That lifetime may start even before this submit() if observer is command and we have commands queue.
         #
         # As a corner case runner.wait_for() may timeout before feeding thread has started.
@@ -277,7 +278,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
         c_future = CancellableFuture(connection_observer_future, observer_lock,
                                      stop_feeding, feed_done)
-        connection_observer.last_feed_time = time.time()
+        connection_observer.life_status.last_feed_time = time.time()
         return c_future
 
     def wait_for(self, connection_observer, connection_observer_future, timeout=None):
@@ -310,8 +311,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
         max_timeout = timeout
         observer_timeout = connection_observer.timeout
-        # we count timeout from now if timeout is given; else we use .start_time and .timeout of observer
-        start_time = time.time() if max_timeout else connection_observer.start_time
+        # we count timeout from now if timeout is given; else we use .life.status.start_time and .timeout of observer
+        start_time = time.time() if max_timeout else connection_observer.life_status.start_time
         await_timeout = max_timeout if max_timeout else observer_timeout
         if max_timeout:
             remain_time, msg = his_remaining_time("await max.", timeout=max_timeout, from_start_time=start_time)
@@ -333,7 +334,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             self._end_of_life_of_future_and_connection_observer(connection_observer, connection_observer_future)
         return None
 
-    def _execute_till_eol(self, connection_observer, connection_observer_future, max_timeout, await_timeout, remain_time):
+    def _execute_till_eol(self, connection_observer, connection_observer_future, max_timeout, await_timeout,
+                          remain_time):
         eol_remain_time = remain_time
         # either we wait forced-max-timeout or we check done-status each 0.1sec tick
         if eol_remain_time > 0.0:
@@ -347,7 +349,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 self._wait_for_time_out(connection_observer, connection_observer_future,
                                         timeout=await_timeout)
                 if connection_observer.terminating_timeout > 0.0:
-                    connection_observer.in_terminating = True
+                    connection_observer.life_status.in_terminating = True
                     done, not_done = wait([future], timeout=connection_observer.terminating_timeout)
                     if (future in done) or connection_observer.done():
                         self._cancel_submitted_future(connection_observer, future)
@@ -358,7 +360,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                     if (future in done) or connection_observer.done():
                         self._cancel_submitted_future(connection_observer, future)
                         return True
-                    already_passed = time.time() - connection_observer.start_time
+                    already_passed = time.time() - connection_observer.life_status.start_time
                     eol_timeout = connection_observer.timeout + connection_observer.terminating_timeout
                     eol_remain_time = eol_timeout - already_passed
                     timeout = connection_observer.timeout
@@ -366,8 +368,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                     if remain_time <= 0.0:
                         self._wait_for_time_out(connection_observer, connection_observer_future,
                                                 timeout=await_timeout)
-                        if not connection_observer.in_terminating:
-                            connection_observer.in_terminating = True
+                        if not connection_observer.life_status.in_terminating:
+                            connection_observer.life_status.in_terminating = True
         else:
             self._wait_for_not_started_connection_observer_is_done(connection_observer=connection_observer)
         return False
@@ -393,7 +395,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             future.cancel(no_wait=True)
 
     def _wait_for_time_out(self, connection_observer, connection_observer_future, timeout):
-        passed = time.time() - connection_observer.start_time
+        passed = time.time() - connection_observer.life_status.start_time
         future = connection_observer_future or connection_observer._future
         if future:
             with future.observer_lock:
@@ -434,7 +436,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                     return  # even not unsubscribed secure_data_received() won't pass data to done observer
                 with observer_lock:
                     connection_observer.data_received(data)
-                    connection_observer.last_feed_time = time.time()
+                    connection_observer.life_status.last_feed_time = time.time()
 
             except Exception as exc:  # TODO: handling stacktrace
                 # observers should not raise exceptions during data parsing
@@ -455,7 +457,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                                  connection_closed_handler=connection_observer.connection_closed_handler)
             # after subscription we have data path so observer is started
             remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
-                                                  from_start_time=connection_observer.start_time)
+                                                  from_start_time=connection_observer.life_status.start_time)
             connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
         if connection_observer.is_command():
             connection_observer.send_command()
@@ -470,8 +472,9 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                                        connection_closed_handler=connection_observer.connection_closed_handler)
                 # after unsubscription we break data path so observer is finished
                 remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
-                                                      from_start_time=connection_observer.start_time)
-                connection_observer._log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
+                                                      from_start_time=connection_observer.life_status.start_time)
+                connection_observer._log(logging.INFO,
+                                         "{} finished, {}".format(connection_observer.get_short_desc(), msg))
                 feed_done.set()
 
     def _feed_finish_callback(self, future, connection_observer, subscribed_data_receiver, feed_done, observer_lock):
@@ -485,7 +488,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Should be called from background-processing of connection observer.
         """
         remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
-                                              from_start_time=connection_observer.start_time)
+                                              from_start_time=connection_observer.life_status.start_time)
         self.logger.debug("thread started  for {}, {}".format(connection_observer, msg))
 
         if not subscribed_data_receiver:
@@ -496,13 +499,13 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         self._feed_loop(connection_observer, stop_feeding, observer_lock)
 
         remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
-                                              from_start_time=connection_observer.start_time)
+                                              from_start_time=connection_observer.life_status.start_time)
         self.logger.debug("thread finished for {}, {}".format(connection_observer, msg))
         self._stop_feeding(connection_observer, subscribed_data_receiver, feed_done, observer_lock)
         return None
 
     def _feed_loop(self, connection_observer, stop_feeding, observer_lock):
-        start_time = connection_observer.start_time
+        start_time = connection_observer.life_status.start_time
         while True:
             if stop_feeding.is_set():
                 # TODO: should it be renamed to 'cancelled' to be in sync with initial action?
@@ -516,10 +519,10 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             # we need to check connection_observer.timeout at each round since timeout may change
             # during lifetime of connection_observer
             timeout = connection_observer.timeout
-            if connection_observer.in_terminating:
+            if connection_observer.life_status.in_terminating:
                 timeout = connection_observer.terminating_timeout
             if (timeout is not None) and (run_duration >= timeout):
-                if connection_observer.in_terminating:
+                if connection_observer.life_status.in_terminating:
                     msg = "{} underlying real command failed to finish during {} seconds. It will be forcefully" \
                           " terminated".format(connection_observer, timeout)
                     self.logger.info(msg)
@@ -532,7 +535,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                                           runner_logger=self.logger)
                         if connection_observer.terminating_timeout >= 0.0:
                             start_time = time.time()
-                            connection_observer.in_terminating = True
+                            connection_observer.life_status.in_terminating = True
                         else:
                             break
             else:
@@ -551,10 +554,13 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         :param current_time: current time in seconds.
         :return: None
         """
-        if (connection_observer.inactivity_timeout > 0.0) and (connection_observer.last_feed_time is not None):
-            if (connection_observer.last_feed_time + connection_observer.inactivity_timeout) > current_time:
+        if (connection_observer.life_status.inactivity_timeout > 0.0) and (
+                connection_observer.life_status.last_feed_time is not None):
+            expected_feed_timeout = connection_observer.life_status.last_feed_time +\
+                                    connection_observer.life_status.inactivity_timeout
+            if current_time > expected_feed_timeout:
                 connection_observer.on_inactivity()
-                connection_observer.last_feed_time = current_time
+                connection_observer.life_status.last_feed_time = current_time
 
     def timeout_change(self, timedelta):
         pass
@@ -565,7 +571,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
 def his_remaining_time(prefix, timeout, from_start_time):
     """
-    Calculate remaining time of "he" object assuming that "he" has .start_time attribute
+    Calculate remaining time of "he" object assuming that "he" has .life_status.start_time attribute
 
     :param prefix: string to be used inside 'remaining time description'
     :param he: object to calculate remaining time for
@@ -595,7 +601,7 @@ def await_future_or_eol(connection_observer, remain_time, start_time, timeout, l
         now = time.time()
         already_passed = now - start_time
         remain_time = timeout - already_passed
-        observer_lifetime_passed = now - connection_observer.start_time
+        observer_lifetime_passed = now - connection_observer.life_status.start_time
         remain_observer_lifetime = connection_observer.timeout + connection_observer.terminating_timeout - observer_lifetime_passed
         # we timeout on earlier timeout (timeout or connection_observer.timeout)
         if remain_observer_lifetime <= 0.0:
