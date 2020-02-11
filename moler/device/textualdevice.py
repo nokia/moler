@@ -5,7 +5,7 @@ Moler's device has 2 main responsibilities:
 - be the state machine that controls which commands may run in given state
 """
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
@@ -64,8 +64,9 @@ class TextualDevice(AbstractDevice):
         self.goto_states_triggers = []
         self._name = name
         self.device_data_logger = None
+        self.timeout_keep_state = 10  # Timeout for background goto state after unexpected state change.
 
-        # Below line will modify self extending it with methods and atributes od StateMachine
+        # Below line will modify self extending it with methods and attributes od StateMachine
         # For eg. it will add attribute self.state
         self.SM = StateMachine(model=self, states=self.states, initial=TextualDevice.not_connected,
                                auto_transitions=False,
@@ -75,6 +76,7 @@ class TextualDevice(AbstractDevice):
         self._state_prompts = dict()
         self._reverse_state_prompts_dict = dict()
         self._prompts_event = None
+        self._kept_state = None
         self._configurations = dict()
         self._newline_chars = dict()  # key is state, value is chars to send as newline
         if io_connection:
@@ -108,6 +110,7 @@ class TextualDevice(AbstractDevice):
         )
         self._log(level=logging.DEBUG, msg=msg)
         self._public_name = None
+        self._warning_was_sent = False
 
     def establish_connection(self):
         """
@@ -310,9 +313,21 @@ class TextualDevice(AbstractDevice):
         if self.current_state != state:
             self._log(logging.INFO, "Changed state from '%s' into '%s'" % (self.current_state, state))
             self.SM.set_state(state=state)
+        if self._kept_state is not None and self.current_state != self._kept_state:
+            state = self._kept_state
+            try:
+                self.goto_state(state=state, timeout=self.timeout_keep_state, rerun=0,
+                                send_enter_after_changed_state=False, log_stacktrace_on_fail=False, keep_state=True)
+            except DeviceChangeStateFailure:
+                level = logging.DEBUG
+                if not self._warning_was_sent:
+                    level = logging.WARNING
+                    self._warning_was_sent = True
+                self._log(level=level, msg="Cannot properly go to state: '{}' in background.".format(state))
+                self._kept_state = state
 
     def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False,
-                   log_stacktrace_on_fail=True):
+                   log_stacktrace_on_fail=True, keep_state=True):
         """
         Goes to specific state.
 
@@ -321,17 +336,21 @@ class TextualDevice(AbstractDevice):
         :param rerun: How many times rerun the procedure before it fails.
         :param send_enter_after_changed_state: If True then enter is sent after state is changed. False nothing is sent.
         :param log_stacktrace_on_fail: Set True to have stacktrace in logs when failed, otherwise False.
+        :param keep_state: if True and state is changed without goto_state then device tries to change state to state
+        defined by goto_state.
         :return: None
         :raise: DeviceChangeStateFailure if cannot change the state of device.
         """
+        self._kept_state = None
         if not self.has_established_connection():
             self.establish_connection()
 
         dest_state = state
 
         if self.current_state == dest_state:
+            if keep_state:
+                self._kept_state = dest_state
             return
-
         self._log(logging.DEBUG, "Go to state '%s' from '%s'" % (dest_state, self.current_state))
 
         is_dest_state = False
@@ -352,6 +371,9 @@ class TextualDevice(AbstractDevice):
                 next_stage_timeout = timeout - (time.time() - start_time)
                 if next_stage_timeout <= 0:
                     is_timeout = True
+        if keep_state:
+            self._kept_state = dest_state
+        self._warning_was_sent = False
 
     def _get_next_state(self, dest_state):
         next_state = None
