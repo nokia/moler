@@ -339,7 +339,7 @@ class ConnectionObserver(object):
 
     def on_inactivity(self):
         """
-        Callback called when in self.inactivity_timeout seconds no data are sent by connection.
+        Callback called when no data is received on connection within self.inactivity_timeout seconds
 
         :return: None
         """
