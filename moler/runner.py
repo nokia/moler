@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2018 Nokia
+# Copyright (C) 2018-2020 Nokia
 """
 Runner abstraction goal is to hide concurrency machinery used
 to make it exchangeable (threads, asyncio, twisted, curio)
@@ -277,6 +277,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
         c_future = CancellableFuture(connection_observer_future, observer_lock,
                                      stop_feeding, feed_done)
+        connection_observer.last_feed_time = time.time()
         return c_future
 
     def wait_for(self, connection_observer, connection_observer_future, timeout=None):
@@ -550,7 +551,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         :param current_time: current time in seconds.
         :return: None
         """
-        if connection_observer.inactivity_timeout > 0.0 and connection_observer.last_feed_time is not None:
+        if (connection_observer.inactivity_timeout > 0.0) and (connection_observer.last_feed_time is not None):
             if (connection_observer.last_feed_time + connection_observer.inactivity_timeout) > current_time:
                 connection_observer.on_inactivity()
                 connection_observer.last_feed_time = current_time
