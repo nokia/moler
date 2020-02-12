@@ -71,12 +71,6 @@ class GenericAtCommand(CommandTextualGeneric):
     def _is_at_cmd_echo(self, line):
         return self._regex_helper.search_compiled(self._cmd_escaped, line)
 
-    _re_success = re.compile(r"^\s*OK\s*$")
-
-    def _is_at_cmd_success(self, line):
-        match = self._regex_helper.match_compiled(self._re_success, line)
-        return match is not None
-
     _re_error = re.compile(r'^\s*ERROR\s*$')
     _re_cme_error = re.compile(r'^\+(?P<ERR_TYPE>CM[ES])\s+ERROR:\s*(?P<ERROR>\S.+)', flags=re.IGNORECASE)
 

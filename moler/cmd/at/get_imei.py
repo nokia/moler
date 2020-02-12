@@ -108,18 +108,20 @@ class GetImei(GenericAtCommand):
                 self.current_ret["imei"] = "{}{}{}".format(imei_parts["tac"], imei_parts["snr"], imei_parts["cd"])
                 raise ParsingDone
 
-        elif self.sn_type == 'imeisv':
-            if self._regex_helper.match_compiled(self._re_imeisv, line):
-                imei_parts = self._regex_helper.groupdict()
-                self.current_ret.update(imei_parts)
-                self.current_ret["imeisv"] = "{}{}{}".format(imei_parts["tac"], imei_parts["snr"], imei_parts["svn"])
-                raise ParsingDone
-
-        elif self.sn_type == 'svn':
-            if self._regex_helper.match_compiled(self._re_svn, line):
-                svn = self._regex_helper.group("svn")
-                self.current_ret["svn"] = svn
-                raise ParsingDone
+        # TODO: 'imeisv' and 'svn' taken from latest AT standard; need real life examples to put into COMMAND_OUTPUT
+        #
+        # elif self.sn_type == 'imeisv':
+        #     if self._regex_helper.match_compiled(self._re_imeisv, line):
+        #         imei_parts = self._regex_helper.groupdict()
+        #         self.current_ret.update(imei_parts)
+        #         self.current_ret["imeisv"] = "{}{}{}".format(imei_parts["tac"], imei_parts["snr"], imei_parts["svn"])
+        #         raise ParsingDone
+        #
+        # elif self.sn_type == 'svn':
+        #     if self._regex_helper.match_compiled(self._re_svn, line):
+        #         svn = self._regex_helper.group("svn")
+        #         self.current_ret["svn"] = svn
+        #         raise ParsingDone
 
     def is_end_of_cmd_output(self, line):
         """
