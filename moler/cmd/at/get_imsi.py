@@ -64,6 +64,7 @@ class GetImsi(GenericAtCommand):
         if self._regex_helper.match_compiled(self._re_imsi, line):
             imsi = self._regex_helper.group("imsi")
             self.current_ret['imsi'] = imsi
+            raise ParsingDone
 
 
 # -----------------------------------------------------------------------------

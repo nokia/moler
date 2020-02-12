@@ -62,6 +62,7 @@ class GetRevisionId(GenericAtCommand):
         if self._regex_helper.match_compiled(self._re_revision, line):
             revision = self._regex_helper.group("revision")
             self.current_ret['revision'] = revision
+            raise ParsingDone
 
     def is_end_of_cmd_output(self, line):
         """

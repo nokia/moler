@@ -62,6 +62,7 @@ class GetManufacturerId(GenericAtCommand):
         if self._regex_helper.match_compiled(self._re_manufacturer, line):
             manufacturer = self._regex_helper.group("manufacturer")
             self.current_ret['manufacturer'] = manufacturer
+            raise ParsingDone
 
     def is_end_of_cmd_output(self, line):
         """

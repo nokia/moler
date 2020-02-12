@@ -65,6 +65,7 @@ class GetAttachState(GenericAtCommand):
         if self._regex_helper.match_compiled(self._re_attach_state, line):
             state_code = int(self._regex_helper.group("state_code"))
             self.current_ret['state'] = self._states[state_code]
+            raise ParsingDone
 
 
 # -----------------------------------------------------------------------------
