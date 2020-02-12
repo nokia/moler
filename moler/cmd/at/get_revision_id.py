@@ -28,7 +28,9 @@ class GetRevisionId(GenericAtCommand):
         """Create instance of GetRevisionId class"""
         super(GetRevisionId, self).__init__(connection, operation='execute', prompt=prompt,
                                             newline_chars=newline_chars, runner=runner)
-        self.set_at_command_string(command_base_string="AT+CGMR")
+
+    def build_command_string(self):
+        return "AT+CGMR"
 
     def on_new_line(self, line, is_full_line):
         """

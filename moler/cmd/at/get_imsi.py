@@ -25,15 +25,13 @@ class GetImsi(GenericAtCommand):
     49009123123123
     OK
     """
-    def __init__(self, connection=None, operation='execute', prompt=None, newline_chars=None, runner=None):
+    def __init__(self, connection=None, prompt=None, newline_chars=None, runner=None):
         """Create instance of GetImsi class"""
-        super(GetImsi, self).__init__(connection, operation, prompt=prompt,
+        super(GetImsi, self).__init__(connection, operation='execute', prompt=prompt,
                                       newline_chars=newline_chars, runner=runner)
-        self.set_at_command_string(command_base_string="AT+CIMI")
-        if operation == 'read':
-            raise AtCommandModeNotSupported("{} operation no supported for: {}".format(operation, self))
-        if operation == 'test':
-            self.ret_required = False  # empty response in test mode since +CIMI doesn't have subparameters
+
+    def build_command_string(self):
+        return "AT+CIMI"
 
     def on_new_line(self, line, is_full_line):
         """
@@ -87,19 +85,8 @@ AT+CIMI
 OK
 """
 
-COMMAND_KWARGS_ver_execute = {'operation': 'execute'}
+COMMAND_KWARGS_ver_execute = {}
 
 COMMAND_RESULT_ver_execute = {
     'imsi': '440801200189934'
 }
-
-# -----------------------------------------------------------------------------
-
-COMMAND_OUTPUT_ver_test = """
-AT+CIMI=?
-OK
-"""
-
-COMMAND_KWARGS_ver_test = {'operation': 'test'}
-
-COMMAND_RESULT_ver_test = {}

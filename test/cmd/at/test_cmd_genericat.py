@@ -31,36 +31,6 @@ def test_at_cmd_raises_CommandTimeout_when_no_OK_received_in_cmd_output(buffer_c
         at_cmd.await_done(timeout=0.1)
 
 
-@pytest.mark.parametrize("cmd_mode, expected_cmd_string",
-                         [("read", "AT+CMD?"),
-                          ("test", "AT+CMD=?")])
-def test_at_cmd_string_extended_with_operation_sign_when_instantiated_in_no_default_mode(cmd_mode, expected_cmd_string, at_cmd_test_class):
-    assert at_cmd_test_class("AT+CMD").command_string == "AT+CMD"  # default mode is "execute"
-    assert at_cmd_test_class("AT+CMD", operation=cmd_mode).command_string == expected_cmd_string
-
-
-def test_at_cmd_string_extended_with_params_when_additional_params_in_execute_mode_provided():
-    from moler.cmd.at.genericat import GenericAtCommand
-
-    class AtCmdWithArgs(GenericAtCommand):
-        def __init__(self, connection=None, operation="execute", context_id=None, option=None, action=None):
-            super(AtCmdWithArgs, self).__init__(connection, operation)
-            self.set_at_command_string(command_base_string="AT+CMD",
-                                       execute_params=[('context_id', context_id), ('option', option), ('action', action)])
-
-        def on_new_line(self, line, is_full_line):
-            self.current_ret = "result"
-
-    at_cmd = AtCmdWithArgs()
-    assert at_cmd.command_string == "AT+CMD"
-
-    at_cmd = AtCmdWithArgs(context_id=5)
-    assert at_cmd.command_string == "AT+CMD=5"
-
-    at_cmd = AtCmdWithArgs(context_id=2, option="off", action='reset')
-    assert at_cmd.command_string == "AT+CMD=2,off,reset"
-
-
 def test_calling_at_cmd_raises_AtCommandFailure_when_regular_ERROR_in_at_cmd_output_occurred(buffer_connection, at_cmd_test_class):
     from moler.cmd.at.genericat import AtCommandFailure
     buffer_connection.remote_inject_response(["AT+CMD\ndata\nERROR\n"])
@@ -101,7 +71,10 @@ def at_cmd_test_class():
     class AtCmdTest(GenericAtCommand):
         def __init__(self, at_command_string, connection=None, operation="execute"):
             super(AtCmdTest, self).__init__(connection, operation)
-            self.set_at_command_string(at_command_string)
+            self._at_command_string = at_command_string
+
+        def build_command_string(self):
+            return self._at_command_string
 
         def on_new_line(self, line, is_full_line):
             if is_full_line:

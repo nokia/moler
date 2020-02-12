@@ -46,9 +46,7 @@ class GenericAtCommand(CommandTextualGeneric):
                                                                                           self.__class__.__name__))
         if prompt is None:
             prompt = self._re_default_at_prompt
-        self.operation = operation
-        self._at_command_base_string = ""
-        self._at_command_execute_params = ""
+        self.operation = operation  # for 'read' command ends with '?', for 'test' ends with '=?'
         super(GenericAtCommand, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                                runner=runner)
         # TODO: do we have any way to stop AT cmd?
@@ -103,35 +101,3 @@ class GenericAtCommand(CommandTextualGeneric):
         elif self._regex_helper.match_compiled(self._re_error, line):
             self.set_exception(AtCommandFailure(self, "ERROR"))
             raise ParsingDone
-
-    def set_at_command_string(self, command_base_string, execute_params=None):  # TODO: *execute_params as pairs list
-        """
-        Build full command-string of AT-cmd
-
-        :param command_base_string: what AT command we run
-        :param execute_params: list of (param, value) for operation 'execute'. Need list - order is important.
-        :return: None
-        """
-        self._at_command_base_string = command_base_string
-        if execute_params:
-            params = ",".join(str(param_value) for param_name, param_value in execute_params if param_value or (param_value == 0))
-            # param_value == 0  may generate valid AT-cmd like:
-            # AT+CBST=0,0,0
-            self._at_command_execute_params = params
-
-    def build_command_string(self):
-        """
-        Returns string with command constructed with parameters of object.
-
-        :return:  String with command.
-        """
-        assert self._at_command_base_string, "You should call set_at_command_string()"
-        if self.operation == 'test':
-            cmd = "{}=?".format(self._at_command_base_string)
-        elif self.operation == "read":
-            cmd = "{}?".format(self._at_command_base_string)
-        elif self._at_command_execute_params:  # operation == "execute" with params
-            cmd = "{}={}".format(self._at_command_base_string, self._at_command_execute_params)
-        else:  # operation == "execute" without params
-            cmd = self._at_command_base_string
-        return cmd

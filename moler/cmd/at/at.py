@@ -29,8 +29,10 @@ class At(GenericAtCommand):
         """
         super(At, self).__init__(connection, operation="execute", prompt=prompt,
                                  newline_chars=newline_chars, runner=runner)
-        self.set_at_command_string(command_base_string="AT")
         self.ret_required = False
+
+    def build_command_string(self):
+        return "AT"
 
 
 # -----------------------------------------------------------------------------
