@@ -68,9 +68,9 @@ def test_ioserial_can_send_data_towards_serial_connection(serial_connection_of_i
     from moler.util.moler_serial_proxy import IOSerial
 
     with IOSerial(port="COM5") as io:
-        io.send(cmd='AT')  # data is sent as-is without any line ending added
+        io.send(cmd=b'AT')  # data is sent as-is without any line ending added
 
-    serial_connection_of_ioserial.write.assert_called_once_with('AT')
+    serial_connection_of_ioserial.write.assert_called_once_with(b'AT')
     serial_connection_of_ioserial.flush.assert_called_once_with()
 
 
@@ -78,9 +78,9 @@ def test_ioserial_can_send_data_with_line_ending_towards_serial_connection(seria
     from moler.util.moler_serial_proxy import IOSerial
 
     with IOSerial(port="COM5") as io:
-        io.send(cmd='AT\r\n')  # if you want line ending - add it
+        io.send(cmd=b'AT\r\n')  # if you want line ending - add it
 
-    serial_connection_of_ioserial.write.assert_called_once_with('AT\r\n')
+    serial_connection_of_ioserial.write.assert_called_once_with(b'AT\r\n')
     serial_connection_of_ioserial.flush.assert_called_once_with()
 
 
@@ -162,7 +162,7 @@ def test_sending_over_proxy_sends_over_underlying_ioserial(serial_connection_of_
         with AtConsoleProxy(port="COM5") as proxy:
             proxy.send(cmd='AT')
 
-    serial_connection_of_ioserial.write.assert_called_once_with('AT\r\n')
+    serial_connection_of_ioserial.write.assert_called_once_with(b'AT\r\n')
 
 
 def test_opening_proxy_activates_at_echo_and_detailed_error_status(serial_connection_of_ioserial):
@@ -172,10 +172,10 @@ def test_opening_proxy_activates_at_echo_and_detailed_error_status(serial_connec
         io = moler_serial_proxy.AtConsoleProxy(port="COM5")
         with io.open():
             pass
-        assert serial_connection_of_ioserial.write.mock_calls == [mock.call('ATE1\r\n'),
-                                                                  mock.call('AT+CMEE=1\r\n'),
-                                                                  mock.call('AT+CMEE=2\r\n'),
-                                                                  mock.call('ATE0\r\n'),]
+        assert serial_connection_of_ioserial.write.mock_calls == [mock.call(b'ATE1\r\n'),
+                                                                  mock.call(b'AT+CMEE=1\r\n'),
+                                                                  mock.call(b'AT+CMEE=2\r\n'),
+                                                                  mock.call(b'ATE0\r\n'),]
 
 
 # def test_reading_proxy_reads_data_from_underlying_ioserial(serial_connection_of_ioserial):
