@@ -72,7 +72,7 @@ class UnixLocal(TextualDevice):
                         "execute_command": "su",  # using command
                         "command_params": {  # with parameters
                             "password": "root_password",
-                            "expected_prompt": r'local_root_prompt',
+                            "expected_prompt": r'local_root_prompt',  # TODO: this should be required or r'^moler_bash$'
                             "target_newline": "\n"
                         },
                         "required_command_params": [
@@ -84,7 +84,7 @@ class UnixLocal(TextualDevice):
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
                             "target_newline": "\n",
-                            "expected_prompt": r'^moler_bash#'
+                            "expected_prompt": r'^moler_bash#'  # r'^moler_bash$'  $ is for user-prompt, # for root-prompt
                         },
                         "required_command_params": [
                         ]

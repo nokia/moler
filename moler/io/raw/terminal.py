@@ -25,7 +25,7 @@ class ThreadedTerminal(IOConnection):
     def __init__(self, moler_connection, cmd="/bin/bash", select_timeout=0.002,
                  read_buffer_size=4096, first_prompt=r'[%$#]+', target_prompt=r'moler_bash#',
                  set_prompt_cmd='export PS1="moler_bash# "\n', dimensions=(100, 300)):
-        """
+        """  # TODO: # 'export PS1="moler_bash\\$ "\n'  would give moler_bash# for root and moler_bash$ for user
         :param moler_connection: Moler's connection to join with
         :param cmd: command to run terminal
         :param select_timeout: timeout for reading data from terminal
