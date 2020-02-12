@@ -78,7 +78,7 @@ class Ss(GenericUnixCommand):
             self.connection_index = self.current_ret['Network Connections'].index(socket_dict)
             raise ParsingDone
 
-    # State       Recv-Q Send-Q       Local Address:Port      Peer Address:Port
+    # State       Recv-Q Send-Q       Local Address     Local interface     :Port      Peer Address:Port
     _re_parse_sctp_stream = re.compile(r"^\s+`-\s(?P<STATE>\w+-\w+|\w+)\s+(?P<RECV_Q>\d+)\s+(?P<SEND_Q>\d+)\s+"
                                        r"(?P<LOCAL_ADDR>\S+)%(?P<INTERFACE>\w+)(?:\s|:){1}(?P<LOCAL_PORT>\w+)\s+"
                                        r"(?P<PEER_ADDR>\S+)(?:\s|:){1}(?P<PEER_PORT>\S+)")
@@ -102,22 +102,22 @@ class Ss(GenericUnixCommand):
 
 COMMAND_OUTPUT = """
 root@fct-0a:~ >ss       
-Netid State      Recv-Q Send-Q                          Local Address:Port                                           Peer Address:Port                
-u_str SYN-SENT   0      0                       /var/run/rpcbind.sock 0                                                         * 0                    
-u_str ESTAB      0      0                 /run/systemd/journal/stdout 13348                                                     * 0                    
-u_str ESTAB      0      0                                           * 19336                                                     * 0                    
-u_str ESTAB      0      0             /var/run/dbus/system_bus_socket 19386                                                     * 0                    
-udp   ESTAB      0      0                             192.168.253.237:55635                                       192.168.253.237:20400                
-udp   ESTAB      0      0                             192.168.253.237:40537                                       192.168.253.237:20400                
-tcp   ESTAB      0      0                                   127.0.0.1:gpsd                                              127.0.0.1:40488                
-tcp   ESTAB      0      0                            ::ffff:127.0.0.1:60758                                      ::ffff:127.0.0.1:20483                
-tcp   ESTAB      0      0                       ::ffff:192.168.253.16:54930                                ::ffff:192.168.253.231:30500                
-sctp  ESTAB      0      0                              192.168.253.16:29211                                                     *:29211                
-      `- ESTAB   0      0                       192.168.253.16%etha01:29211                                        192.168.253.17:29211                
-sctp  LISTEN     0      128                            192.168.253.16:38462                                                     *:*                    
-      `- ESTAB   0      0                        192.168.253.1%etha01:38462                                        192.168.253.17:38462                
-sctp  LISTEN     0      128                              10.83.183.63:32742                                                     *:*                    
-      `- ESTAB   0      0                            10.83.183.63%fp0:32742                                          10.83.183.67:32742                
+Netid State      Recv-Q Send-Q                          Local Address:Port                                           Peer Address:Port
+u_str SYN-SENT   0      0                       /var/run/rpcbind.sock 0                                                         * 0
+u_str ESTAB      0      0                 /run/systemd/journal/stdout 13348                                                     * 0
+u_str ESTAB      0      0                                           * 19336                                                     * 0
+u_str ESTAB      0      0             /var/run/dbus/system_bus_socket 19386                                                     * 0
+udp   ESTAB      0      0                             192.168.253.237:55635                                       192.168.253.237:20400
+udp   ESTAB      0      0                             192.168.253.237:40537                                       192.168.253.237:20400
+tcp   ESTAB      0      0                                   127.0.0.1:gpsd                                              127.0.0.1:40488
+tcp   ESTAB      0      0                            ::ffff:127.0.0.1:60758                                      ::ffff:127.0.0.1:20483
+tcp   ESTAB      0      0                       ::ffff:192.168.253.16:54930                                ::ffff:192.168.253.231:30500
+sctp  ESTAB      0      0                              192.168.253.16:29211                                                     *:29211
+      `- ESTAB   0      0                       192.168.253.16%etha01:29211                                        192.168.253.17:29211
+sctp  LISTEN     0      128                            192.168.253.16:38462                                                     *:*
+      `- ESTAB   0      0                        192.168.253.1%etha01:38462                                        192.168.253.17:38462
+sctp  LISTEN     0      128                              10.83.183.63:32742                                                     *:*
+      `- ESTAB   0      0                            10.83.183.63%fp0:32742                                          10.83.183.67:32742
 root@fct-0a:~ >
 """
 
@@ -247,5 +247,4 @@ COMMAND_RESULT = {
                                           'Peer Port': '32742'}]
                              }]}
 
-COMMAND_KWARGS = {
-}
+COMMAND_KWARGS = {}
