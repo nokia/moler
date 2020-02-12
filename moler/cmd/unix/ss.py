@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Jakub Kupiec'
-__copyright__ = 'Copyright (C) 2019, Nokia'
+__copyright__ = 'Copyright (C) 2020, Nokia'
 __email__ = 'jakub.kupiec@nokia.com'
 
 import re
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
+from moler.helpers import convert_to_number
 
 
 class Ss(GenericUnixCommand):
     """Ss command class."""
 
-    def __init__(self, connection, options="", prompt=None, newline_chars=None, runner=None):
+    def __init__(self, connection, options='', prompt=None, newline_chars=None, runner=None):
         """
         Ss command.
 
@@ -24,10 +25,8 @@ class Ss(GenericUnixCommand):
         super(Ss, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         # Parameters defined by calling the command
         self.options = options
-        self._active = ''
         self.connection_index = 0
-        self.current_ret = dict()
-        self.current_ret['NETWORK_CONNECTION'] = []
+        self.current_ret['NETWORK_CONNECTIONS'] = []
 
     def build_command_string(self):
         """
@@ -68,14 +67,14 @@ class Ss(GenericUnixCommand):
             socket_dict = dict()
             socket_dict['netid'] = self._regex_helper.group("NETID")
             socket_dict['state'] = self._regex_helper.group("STATE")
-            socket_dict['recv-Q'] = self._regex_helper.group("RECV_Q")
-            socket_dict['send-Q'] = self._regex_helper.group("SEND_Q")
+            socket_dict['recv-Q'] = convert_to_number(self._regex_helper.group("RECV_Q"))
+            socket_dict['send-Q'] = convert_to_number(self._regex_helper.group("SEND_Q"))
             socket_dict['local_address'] = self._regex_helper.group("LOCAL_ADDR")
             socket_dict['local_port'] = self._regex_helper.group("LOCAL_PORT")
             socket_dict['peer_address'] = self._regex_helper.group("PEER_ADDR")
             socket_dict['peer_port'] = self._regex_helper.group("PEER_PORT")
-            self.current_ret['NETWORK_CONNECTION'].append(socket_dict)
-            self.connection_index = self.current_ret['NETWORK_CONNECTION'].index(socket_dict)
+            self.current_ret['NETWORK_CONNECTIONS'].append(socket_dict)
+            self.connection_index = self.current_ret['NETWORK_CONNECTIONS'].index(socket_dict)
             raise ParsingDone
 
     # State       Recv-Q Send-Q       Local Address     Local interface     :Port      Peer Address:Port
@@ -86,17 +85,17 @@ class Ss(GenericUnixCommand):
     def _parse_sctp_streams(self, line):
 
         if self._regex_helper.search_compiled(Ss._re_parse_sctp_stream, line):
-            self.current_ret['NETWORK_CONNECTION'][self.connection_index]['streams'] = []
+            self.current_ret['NETWORK_CONNECTIONS'][self.connection_index]['streams'] = []
             sctp_stream = dict()
             sctp_stream['state'] = self._regex_helper.group("STATE")
-            sctp_stream['recv-Q'] = self._regex_helper.group("RECV_Q")
-            sctp_stream['send-Q'] = self._regex_helper.group("SEND_Q")
+            sctp_stream['recv-Q'] = convert_to_number(self._regex_helper.group("RECV_Q"))
+            sctp_stream['send-Q'] = convert_to_number(self._regex_helper.group("SEND_Q"))
             sctp_stream['local_address'] = self._regex_helper.group("LOCAL_ADDR")
             sctp_stream['local_interface'] = self._regex_helper.group("INTERFACE")
             sctp_stream['local_port'] = self._regex_helper.group("LOCAL_PORT")
             sctp_stream['peer_address'] = self._regex_helper.group("PEER_ADDR")
             sctp_stream['peer_port'] = self._regex_helper.group("PEER_PORT")
-            self.current_ret['NETWORK_CONNECTION'][self.connection_index]['streams'].append(sctp_stream)
+            self.current_ret['NETWORK_CONNECTIONS'][self.connection_index]['streams'].append(sctp_stream)
             raise ParsingDone
 
 
@@ -123,128 +122,128 @@ root@fct-0a:~ >
 
 COMMAND_RESULT = {
 
-    'NETWORK_CONNECTION': [{'netid': 'u_str',
-                            'state': 'SYN-SENT',
-                            'recv-Q': '0',
-                            'send-Q': '0',
-                            'local_address': '/var/run/rpcbind.sock',
-                            'local_port': '0',
-                            'peer_address': '*',
-                            'peer_port': '0'},
-                           {'netid': 'u_str',
-                            'state': 'ESTAB',
-                            'recv-Q': '0',
-                            'send-Q': '0',
-                            'local_address': '/run/systemd/journal/stdout',
-                            'local_port': '13348',
-                            'peer_address': '*',
-                            'peer_port': '0'},
-                           {'netid': 'u_str',
-                            'state': 'ESTAB',
-                            'recv-Q': '0',
-                            'send-Q': '0',
-                            'local_address': '*',
-                            'local_port': '19336',
-                            'peer_address': '*',
-                            'peer_port': '0'},
-                           {'netid': 'u_str',
-                            'state': 'ESTAB',
-                            'recv-Q': '0',
-                            'send-Q': '0',
-                            'local_address': '/var/run/dbus/system_bus_socket',
-                            'local_port': '19386',
-                            'peer_address': '*',
-                            'peer_port': '0'},
-                           {'netid': 'udp',
-                            'state': 'ESTAB',
-                            'recv-Q': '0',
-                            'send-Q': '0',
-                            'local_address': '192.168.253.237',
-                            'local_port': '55635',
-                            'peer_address': '192.168.253.237',
-                            'peer_port': '20400'},
-                           {'netid': 'udp',
-                            'state': 'ESTAB',
-                            'recv-Q': '0',
-                            'send-Q': '0',
-                            'local_address': '192.168.253.237',
-                            'local_port': '40537',
-                            'peer_address': '192.168.253.237',
-                            'peer_port': '20400'},
-                           {'netid': 'tcp',
-                            'state': 'ESTAB',
-                            'recv-Q': '0',
-                            'send-Q': '0',
-                            'local_address': '127.0.0.1',
-                            'local_port': 'gpsd',
-                            'peer_address': '127.0.0.1',
-                            'peer_port': '40488'},
-                           {'netid': 'tcp',
-                            'state': 'ESTAB',
-                            'recv-Q': '0',
-                            'send-Q': '0',
-                            'local_address': '::ffff:127.0.0.1',
-                            'local_port': '60758',
-                            'peer_address': '::ffff:127.0.0.1',
-                            'peer_port': '20483'},
-                           {'netid': 'tcp',
-                            'state': 'ESTAB',
-                            'recv-Q': '0',
-                            'send-Q': '0',
-                            'local_address': '::ffff:192.168.253.16',
-                            'local_port': '54930',
-                            'peer_address': '::ffff:192.168.253.231',
-                            'peer_port': '30500'},
-                           {'netid': 'sctp',
-                            'state': 'ESTAB',
-                            'recv-Q': '0',
-                            'send-Q': '0',
-                            'local_address': '192.168.253.16',
-                            'local_port': '29211',
-                            'peer_address': '*',
-                            'peer_port': '29211',
-                            'streams': [{'state': 'ESTAB',
-                                         'recv-Q': '0',
-                                         'send-Q': '0',
-                                         'local_address': '192.168.253.16',
-                                         'local_interface': 'etha01',
-                                         'local_port': '29211',
-                                         'peer_address': '192.168.253.17',
-                                         'peer_port': '29211'}]
-                            },
-                           {'netid': 'sctp',
-                            'state': 'LISTEN',
-                            'recv-Q': '0',
-                            'send-Q': '128',
-                            'local_address': '192.168.253.16',
-                            'local_port': '38462',
-                            'peer_address': '*',
-                            'peer_port': '*',
-                            'streams': [{'state': 'ESTAB',
-                                         'recv-Q': '0',
-                                         'send-Q': '0',
-                                         'local_address': '192.168.253.1',
-                                         'local_interface': 'etha01',
-                                         'local_port': '38462',
-                                         'peer_address': '192.168.253.17',
-                                         'peer_port': '38462'}]
-                            },
-                           {'netid': 'sctp',
-                            'state': 'LISTEN',
-                            'recv-Q': '0',
-                            'send-Q': '128',
-                            'local_address': '10.83.183.63',
-                            'local_port': '32742',
-                            'peer_address': '*',
-                            'peer_port': '*',
-                            'streams': [{'state': 'ESTAB',
-                                         'recv-Q': '0',
-                                         'send-Q': '0',
-                                         'local_address': '10.83.183.63',
-                                         'local_interface': 'fp0',
-                                         'local_port': '32742',
-                                         'peer_address': '10.83.183.67',
-                                         'peer_port': '32742'}]
-                            }]}
+    'NETWORK_CONNECTIONS': [{'netid': 'u_str',
+                             'state': 'SYN-SENT',
+                             'recv-Q': 0,
+                             'send-Q': 0,
+                             'local_address': '/var/run/rpcbind.sock',
+                             'local_port': '0',
+                             'peer_address': '*',
+                             'peer_port': '0'},
+                            {'netid': 'u_str',
+                             'state': 'ESTAB',
+                             'recv-Q': 0,
+                             'send-Q': 0,
+                             'local_address': '/run/systemd/journal/stdout',
+                             'local_port': '13348',
+                             'peer_address': '*',
+                             'peer_port': '0'},
+                            {'netid': 'u_str',
+                             'state': 'ESTAB',
+                             'recv-Q': 0,
+                             'send-Q': 0,
+                             'local_address': '*',
+                             'local_port': '19336',
+                             'peer_address': '*',
+                             'peer_port': '0'},
+                            {'netid': 'u_str',
+                             'state': 'ESTAB',
+                             'recv-Q': 0,
+                             'send-Q': 0,
+                             'local_address': '/var/run/dbus/system_bus_socket',
+                             'local_port': '19386',
+                             'peer_address': '*',
+                             'peer_port': '0'},
+                            {'netid': 'udp',
+                             'state': 'ESTAB',
+                             'recv-Q': 0,
+                             'send-Q': 0,
+                             'local_address': '192.168.253.237',
+                             'local_port': '55635',
+                             'peer_address': '192.168.253.237',
+                             'peer_port': '20400'},
+                            {'netid': 'udp',
+                             'state': 'ESTAB',
+                             'recv-Q': 0,
+                             'send-Q': 0,
+                             'local_address': '192.168.253.237',
+                             'local_port': '40537',
+                             'peer_address': '192.168.253.237',
+                             'peer_port': '20400'},
+                            {'netid': 'tcp',
+                             'state': 'ESTAB',
+                             'recv-Q': 0,
+                             'send-Q': 0,
+                             'local_address': '127.0.0.1',
+                             'local_port': 'gpsd',
+                             'peer_address': '127.0.0.1',
+                             'peer_port': '40488'},
+                            {'netid': 'tcp',
+                             'state': 'ESTAB',
+                             'recv-Q': 0,
+                             'send-Q': 0,
+                             'local_address': '::ffff:127.0.0.1',
+                             'local_port': '60758',
+                             'peer_address': '::ffff:127.0.0.1',
+                             'peer_port': '20483'},
+                            {'netid': 'tcp',
+                             'state': 'ESTAB',
+                             'recv-Q': 0,
+                             'send-Q': 0,
+                             'local_address': '::ffff:192.168.253.16',
+                             'local_port': '54930',
+                             'peer_address': '::ffff:192.168.253.231',
+                             'peer_port': '30500'},
+                            {'netid': 'sctp',
+                             'state': 'ESTAB',
+                             'recv-Q': 0,
+                             'send-Q': 0,
+                             'local_address': '192.168.253.16',
+                             'local_port': '29211',
+                             'peer_address': '*',
+                             'peer_port': '29211',
+                             'streams': [{'state': 'ESTAB',
+                                          'recv-Q': 0,
+                                          'send-Q': 0,
+                                          'local_address': '192.168.253.16',
+                                          'local_interface': 'etha01',
+                                          'local_port': '29211',
+                                          'peer_address': '192.168.253.17',
+                                          'peer_port': '29211'}]
+                             },
+                            {'netid': 'sctp',
+                             'state': 'LISTEN',
+                             'recv-Q': 0,
+                             'send-Q': 128,
+                             'local_address': '192.168.253.16',
+                             'local_port': '38462',
+                             'peer_address': '*',
+                             'peer_port': '*',
+                             'streams': [{'state': 'ESTAB',
+                                          'recv-Q': 0,
+                                          'send-Q': 0,
+                                          'local_address': '192.168.253.1',
+                                          'local_interface': 'etha01',
+                                          'local_port': '38462',
+                                          'peer_address': '192.168.253.17',
+                                          'peer_port': '38462'}]
+                             },
+                            {'netid': 'sctp',
+                             'state': 'LISTEN',
+                             'recv-Q': 0,
+                             'send-Q': 128,
+                             'local_address': '10.83.183.63',
+                             'local_port': '32742',
+                             'peer_address': '*',
+                             'peer_port': '*',
+                             'streams': [{'state': 'ESTAB',
+                                          'recv-Q': 0,
+                                          'send-Q': 0,
+                                          'local_address': '10.83.183.63',
+                                          'local_interface': 'fp0',
+                                          'local_port': '32742',
+                                          'peer_address': '10.83.183.67',
+                                          'peer_port': '32742'}]
+                             }]}
 
 COMMAND_KWARGS = {}
