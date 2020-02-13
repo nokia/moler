@@ -66,6 +66,7 @@ class Sudo(CommandChangingPrompt):
         self._line_for_sudo = False
         self.ret_required = False
         self._validated_embedded_parameters = False  # Validate parameters only once
+        self._finish_on_final_prompt = False
 
     def build_command_string(self):
         """
@@ -158,6 +159,7 @@ class Sudo(CommandChangingPrompt):
                     self.cmd_object.result()
                 except Exception as ex:
                     self.set_exception(ex)
+                self._finish_on_final_prompt = True
 
     # sudo: pwd: command not found
     _re_sudo_command_not_found = re.compile(r"sudo:.*command not found", re.I)
@@ -172,6 +174,7 @@ class Sudo(CommandChangingPrompt):
         """
         if re.search(Sudo._re_sudo_command_not_found, line):
             self.set_exception(CommandFailure(self, "Command not found in line '{}'.".format(line)))
+            self._finish_on_final_prompt = True
             raise ParsingDone()
 
     # sudo: /usr/bin/sudo must be owned by uid 0 and have the setuid bit set
@@ -187,6 +190,7 @@ class Sudo(CommandChangingPrompt):
         """
         if re.search(Sudo._re_sudo_error, line):
             self.set_exception(CommandFailure(self, "Command sudo error found in line '{}'.".format(line)))
+            self._finish_on_final_prompt = True
             raise ParsingDone()
 
     # [sudo] password for user:

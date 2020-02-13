@@ -140,10 +140,11 @@ def test_no_parameters_command_string(buffer_connection):
 def test_failing_with_embedded_command_fails(buffer_connection, command_output_cp_fails):
     command_output = command_output_cp_fails
     buffer_connection.remote_inject_response([command_output])
-    cmd_cp = Cp(connection=buffer_connection.moler_connection, src="src.txt", dst="dst.txt")
+    cmd_cp = Cp(connection=buffer_connection.moler_connection, src="src.txt", dst="dst.txt", prompt="ute@debdev:")
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass", cmd_object=cmd_cp)
     with pytest.raises(CommandFailure):
-        cmd_sudo()
+        abc = cmd_sudo()
+        print("abc '{}'".format(abc))
 
 
 def test_failing_with_bit_fails(buffer_connection, command_output_cp_bit_fails):
