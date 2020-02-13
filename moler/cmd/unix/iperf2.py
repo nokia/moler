@@ -14,14 +14,15 @@ __copyright__ = 'Copyright (C) 2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
 
+import re
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.util.converterhelper import ConverterHelper
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
-import re
+from moler.publisher import Publisher
 
 
-class Iperf2(GenericUnixCommand):
+class Iperf2(GenericUnixCommand, Publisher):
     """
     Run iperf command, return its statistics and report.
 
@@ -289,6 +290,9 @@ class Iperf2(GenericUnixCommand):
             from_client, to_server = client_host, "{}@{}".format(server_port, server_host)
             result_connection = (from_client, to_server)
             self.current_ret['CONNECTIONS'][result_connection] = {'report': last_record}
+            self.notify_subscribers({'connection': result_connection, 'report': last_record})
+        else:
+            self.notify_subscribers({'connection': connection_name, 'data_record': last_record})
 
     def _is_final_record(self, last_record):
         start, end = last_record['Interval']

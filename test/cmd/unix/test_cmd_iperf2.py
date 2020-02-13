@@ -230,6 +230,68 @@ def test_iperf_sends_additional_ctrl_c_after_detecting_to_early_ctrl_c(buffer_co
     break_cmd_method.assert_called_once_with()
 
 
+iperf_server_output_start = """
+xyz@debian:~$ iperf -s -u -i 1
+------------------------------------------------------------
+Server listening on UDP port 5001
+Receiving 1470 byte datagrams
+UDP buffer size: 8.00 KByte (default)
+------------------------------------------------------------
+[904] local 10.1.1.1 port 5001 connected with 10.6.2.5 port 32781
+"""
+
+
+def test_iperf_publishes_records_to_subscribed_observers(buffer_connection):
+    from moler.cmd.unix import iperf2
+    conn = buffer_connection
+    conn.remote_inject_response([iperf_server_output_start])
+    iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
+                              options= '-s -u -i 1')
+    iperf_stats = []
+
+    def iperf_observer(iperf_record):
+        iperf_stats.append(iperf_record)
+
+    iperf_cmd.subscribe(subscriber=iperf_observer)
+    iperf_cmd.start()
+
+    assert len(iperf_stats) == 0
+    conn.inject(["[ ID]   Interval         Transfer        Bandwidth         Jitter        Lost/Total Datagrams\n"])
+    assert len(iperf_stats) == 0
+    conn.inject(["[904]   0.0- 1.0 sec   1.17 MBytes   9.84 Mbits/sec   1.830 ms   0/ 837   (0%)\n"])
+    assert len(iperf_stats) == 1
+    assert iperf_stats[0]['connection'] == ('32781@10.6.2.5', '5001@10.1.1.1')
+    # iperf progress lines produce data_records
+    assert iperf_stats[0]['data_record'] == {'Interval': (0.0, 1.0),
+                                             'Transfer': 1226833,
+                                             'Transfer Raw': u'1.17 MBytes',
+                                             'Bandwidth': 1230000,
+                                             'Bandwidth Raw': u'9.84 Mbits/sec',
+                                             'Jitter': u'1.830 ms',
+                                             'Lost_vs_Total_Datagrams': (0, 837),
+                                             'Lost_Datagrams_ratio': u'0%'}
+    conn.inject(["[904]   1.0- 2.0 sec   1.18 MBytes   9.94 Mbits/sec   1.846 ms   5/ 850   (0.59%)\n"])
+    assert len(iperf_stats) == 2
+    assert ('data_record' in iperf_stats[-1]) and ('report' not in iperf_stats[-1])
+    conn.inject(["[904]   9.0-10.0 sec   1.19 MBytes   10.0 Mbits/sec   1.801 ms   0/ 851   (0%)\n"])
+    assert len(iperf_stats) == 3
+    assert ('data_record' in iperf_stats[-1]) and ('report' not in iperf_stats[-1])
+    # last line of iperf progress produces report
+    conn.inject(["[904]   0.0-10.0 sec   11.8 MBytes   9.86 Mbits/sec   2.618 ms   9/ 8409  (0.11%)\n"])
+    assert len(iperf_stats) == 4
+    assert 'data_record' not in iperf_stats[-1]
+    assert iperf_stats[-1]['connection'] == ('10.6.2.5', '5001@10.1.1.1')
+    assert iperf_stats[-1]['report'] == {'Interval': (0.0, 10.0),
+                                         'Transfer': 12373196,
+                                         'Transfer Raw': u'11.8 MBytes',
+                                         'Bandwidth': 1232500,
+                                         'Bandwidth Raw': u'9.86 Mbits/sec',
+                                         'Jitter': u'2.618 ms',
+                                         'Lost_vs_Total_Datagrams': (9, 8409),
+                                         'Lost_Datagrams_ratio': u'0.11%'}
+    iperf_cmd.cancel()
+
+
 @pytest.fixture
 def command_output_and_expected_result_on_bind_failed():
     output = """xyz@debian>iperf -s
