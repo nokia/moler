@@ -17,6 +17,7 @@ class IOSerial(object):
     """Serial-IO connection."""
     def __init__(self, port, baudrate=115200, stopbits=serial.STOPBITS_ONE,
                  parity=serial.PARITY_NONE, timeout=2, xonxoff=1):
+        super(IOSerial, self).__init__()
         self.port = port
         self.baudrate = baudrate
         self.stopbits = stopbits
@@ -182,6 +183,7 @@ class AtToStdout(serial.threaded.LineReader):
 class AtConsoleProxy(object):
     """Class to proxy AT commands console into stdin/stdout"""
     def __init__(self, port, verbose=False, at_echo=False):
+        super(AtConsoleProxy, self).__init__()
         ser_to_stdout = AtToStdout("{}:{}  port".format(hostname, port), verbose=verbose)
         self._serial_io = IoThreadedSerial(port=port, protocol_factory=ser_to_stdout)
         self.verbose = verbose

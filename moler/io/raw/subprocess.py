@@ -8,7 +8,7 @@ __email__ = 'michal.plichta@nokia.com'
 
 class Subprocess(object):
     def __init__(self):
-        pass
+        super(Subprocess, self).__init__()
 
     def start(self):
         pass

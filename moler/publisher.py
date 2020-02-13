@@ -32,6 +32,7 @@ class Publisher(object):
 
     def __init__(self):
         """Create Publisher instance"""
+        super(Publisher, self).__init__()
         self._subscribers = dict()
         self._subscribers_lock = Lock()
 
