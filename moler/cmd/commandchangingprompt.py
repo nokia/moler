@@ -4,7 +4,7 @@ Generic command class for commands change prompt
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019, Nokia'
+__copyright__ = 'Copyright (C) 2019-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import abc
@@ -54,7 +54,8 @@ class CommandChangingPrompt(CommandTextualGeneric):
         self._sent_timeout = False
         self._sent_prompt = False
         self._sent = False
-        self._finish_on_final_prompt = True
+        self._finish_on_final_prompt = True  # Set True to finish Moler command by this generic after prompt after
+        # command output. False if you want to finish command in your class.
 
     def on_new_line(self, line, is_full_line):
         """

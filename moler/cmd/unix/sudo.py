@@ -106,18 +106,6 @@ class Sudo(CommandChangingPrompt):
             self.timeout_from_embedded_command = False
         return super(Sudo, self).start(timeout=timeout, args=args, kwargs=kwargs)
 
-    def is_end_of_cmd_output(self, line):
-        """
-        Checks if end of command output is reached.
-
-        :param line: Line from device.
-        :return: True if end of command output is reached, False otherwise.
-        """
-        if self.cmd_object:
-            if not self.cmd_object.done() and not self._stored_exception:
-                return False
-        return super(Sudo, self).is_end_of_cmd_output(line)
-
     def _process_line_from_command(self, current_chunk, line, is_full_line):
         """
         Processes line from command.
@@ -423,4 +411,18 @@ COMMAND_RESULT_i = {}
 
 COMMAND_KWARGS_i = {
     'sudo_params': '-i', 'expected_prompt': "root@host.*#"
+}
+
+COMMAND_OUTPUT_su = """
+moler_bash# sudo su
+root@host#"""
+
+COMMAND_RESULT_su = {}
+
+COMMAND_KWARGS_su = {
+    'expected_prompt': r"root@host.*#",
+    'cmd_class_name': 'moler.cmd.unix.su.Su',
+    'cmd_params': {  # params for su
+        'expected_prompt': r"root@host.*#"
+    }
 }
