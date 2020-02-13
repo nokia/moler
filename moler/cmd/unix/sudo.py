@@ -19,10 +19,10 @@ from moler.helpers import create_object_from_name
 class Sudo(CommandChangingPrompt):
     """Unix command sudo"""
 
-    def __init__(self, connection, password, sudo_params=None, cmd_object=None, cmd_class_name=None, cmd_params=None,
-                 prompt=None, newline_chars=None, runner=None, encrypt_password=True, expected_prompt=None,
-                 set_timeout=None, set_prompt=None, target_newline="\n", allowed_newline_after_prompt=False,
-                 prompt_after_login=None):
+    def __init__(self, connection, password=None, sudo_params=None, cmd_object=None, cmd_class_name=None,
+                 cmd_params=None, prompt=None, newline_chars=None, runner=None, encrypt_password=True,
+                 expected_prompt=None, set_timeout=None, set_prompt=None, target_newline="\n",
+                 allowed_newline_after_prompt=False, prompt_after_login=None):
         """
         Constructs object for Unix command sudo.
 
@@ -52,6 +52,8 @@ class Sudo(CommandChangingPrompt):
                                    allowed_newline_after_prompt=allowed_newline_after_prompt,
                                    prompt_after_login=prompt_after_login)
 
+        if password is None:
+            password = ""
         self.password = password
         self.cmd_object = cmd_object
         self.cmd_params = cmd_params
@@ -111,8 +113,9 @@ class Sudo(CommandChangingPrompt):
         :param line: Line from device.
         :return: True if end of command output is reached, False otherwise.
         """
-        if not self.cmd_object.done() and not self._stored_exception:
-            return False
+        if self.cmd_object:
+            if not self.cmd_object.done() and not self._stored_exception:
+                return False
         return super(Sudo, self).is_end_of_cmd_output(line)
 
     def _process_line_from_command(self, current_chunk, line, is_full_line):
@@ -127,12 +130,13 @@ class Sudo(CommandChangingPrompt):
         decoded_line = self._decode_line(line=line)
         self._line_for_sudo = False
         self.on_new_line(line=decoded_line, is_full_line=is_full_line)
-        if not self._line_for_sudo:
-            embedded_command_done = self.cmd_object.done()
-            self._process_embedded_command(partial_data=current_chunk)
-            if not embedded_command_done and self.cmd_object.done():
-                # process again because prompt was sent
-                self.on_new_line(line=decoded_line, is_full_line=is_full_line)
+        if self.cmd_object:
+            if not self._line_for_sudo:
+                embedded_command_done = self.cmd_object.done()
+                self._process_embedded_command(partial_data=current_chunk)
+                if not embedded_command_done and self.cmd_object.done():
+                    # process again because prompt was sent
+                    self.on_new_line(line=decoded_line, is_full_line=is_full_line)
 
     def _process_embedded_command(self, partial_data):
         """
@@ -221,9 +225,12 @@ class Sudo(CommandChangingPrompt):
         """
         super(Sudo, self)._validate_start(*args, **kwargs)
         self._validate_passed_object_or_command_parameters()
-        self.ret_required = self.cmd_object.ret_required
-        if self.timeout_from_embedded_command:
-            self.timeout = self.cmd_object.timeout
+        if self.cmd_object:
+            self.ret_required = self.cmd_object.ret_required
+            if self.timeout_from_embedded_command:
+                self.timeout = self.cmd_object.timeout
+        else:
+            self.ret_required = False
 
     def _validate_passed_object_or_command_parameters(self):
         """
@@ -253,6 +260,8 @@ class Sudo(CommandChangingPrompt):
                 self,
                 "Not allowed to run again the embedded command (embedded command is done): {}.".format(
                     self.cmd_object))
+        if not self.cmd_object:
+            self._finish_on_final_prompt = True
         self._validated_embedded_parameters = True
 
     def _build_command_object(self):
@@ -264,7 +273,7 @@ class Sudo(CommandChangingPrompt):
         self._validate_passed_object_or_command_parameters()
         if self.cmd_object:
             return
-        else:
+        elif self.cmd_class_name is not None:
             params = copy_dict(self.cmd_params)
             params["connection"] = self.connection
             params['prompt'] = self._re_prompt
@@ -404,4 +413,14 @@ COMMAND_KWARGS_ifconfigdown = {
     "cmd_class_name": "moler.cmd.unix.ifconfig.Ifconfig",
     "password": "pass",
     "cmd_params": {"options": "lo down"},
+}
+
+COMMAND_OUTPUT_i = """
+moler_bash# sudo -i
+root@host#"""
+
+COMMAND_RESULT_i = {}
+
+COMMAND_KWARGS_i = {
+    'sudo_params': '-i', 'expected_prompt': "root@host.*#"
 }

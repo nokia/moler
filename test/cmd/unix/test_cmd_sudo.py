@@ -4,7 +4,7 @@ Testing of sudo command.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 from moler.cmd.unix.sudo import Sudo
@@ -15,6 +15,16 @@ from moler.exceptions import CommandFailure
 import pytest
 import mock
 import time
+
+
+def test_sudo_with_parameter_i(buffer_connection):
+    command_output = """sudo -i
+root@host#"""
+    buffer_connection.remote_inject_response([command_output])
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass",
+                    sudo_params='-i', prompt="moler_bash#", expected_prompt="root@host.*#")
+    assert "sudo -i" == cmd_sudo.command_string
+    cmd_sudo(timeout=0.1)
 
 
 def test_sudo_with_wrong_command_parameters(buffer_connection):
