@@ -148,3 +148,19 @@ def test_groupdict_without_match_object():
     with pytest.raises(WrongUsage) as exc:
         regex_helper.groupdict()
     assert "Nothing was matched before calling" in str(exc)
+
+
+def test_all_chars_to_hex():
+    from moler.helpers import all_chars_to_hex
+    source = "a\n\rb" + chr(3) + chr(5)
+    expected_output = r"\x61\x0a\x0d\x62\x03\x05"
+    output = all_chars_to_hex(source=source)
+    assert output == expected_output
+
+
+def test_non_printable_chars_to_hex():
+    from moler.helpers import non_printable_chars_to_hex
+    source = "a\n\rb" + chr(3) + chr(5)
+    expected_output = r"a\x0a\x0db\x03\x05"
+    output = non_printable_chars_to_hex(source=source)
+    assert output == expected_output

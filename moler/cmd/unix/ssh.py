@@ -21,7 +21,7 @@ class Ssh(GenericTelnetSsh):
     _re_host_key = re.compile(r"Add correct host key in (?P<HOSTS_FILE>\S+) to get rid of this message", re.IGNORECASE)
 
     # Do you want to continue (yes/no)?
-    _re_yes_no = re.compile(r"\(yes/no\)\?|'yes' or 'no':", re.IGNORECASE)
+    _re_yes_no = re.compile(r"\(yes/no.*\)\?|'yes' or 'no':", re.IGNORECASE)
 
     # id_dsa:
     _re_id_dsa = re.compile(r"id_dsa:", re.IGNORECASE)
@@ -482,3 +482,23 @@ COMMAND_KWARGS_failure_exception = {
 }
 
 COMMAND_RESULT_failure_exception = {}
+
+COMMAND_OUTPUT_prompt_fingerprint = """
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+Do you want to continue (yes/no/[fingerprint])? yes
+To edit this message please edit /etc/ssh_banner
+You may put information to /etc/ssh_banner who is owner of this PC
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+host:~ #
+host:~ # export PS1="\\u$"
+user$"""
+
+COMMAND_KWARGS_prompt_fingerprint = {
+    "login": "user", "password": "english", "set_prompt": r'export PS1="\\u$"',
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": r"host.*#|user\$",
+    "options": None,
+}
+
+COMMAND_RESULT_prompt_fingerprint = {}

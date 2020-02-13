@@ -274,3 +274,31 @@ def _wrapper(method, obj):
 
     wrapped._already_decorated = True
     return wrapped
+
+
+def non_printable_chars_to_hex(source):
+    """
+    Converts input string into hex for all non printable chars, printable chars remain unchanged.
+    :param source: input string.
+    :return: output string witch exchanged chars.
+    """
+    import string
+    output = ""
+    for char in source:
+        if char not in string.printable or char in ['\n', '\r']:
+            output += "\\x{:02x}".format(ord(char))
+        else:
+            output += char
+    return output
+
+
+def all_chars_to_hex(source):
+    """
+    Converts input string into hex for all chars.
+    :param source: input string.
+    :return: output string witch exchanged chars.
+    """
+    output = ""
+    for char in source:
+        output += "\\x{:02x}".format(ord(char))
+    return output
