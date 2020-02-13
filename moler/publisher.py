@@ -71,7 +71,7 @@ class Publisher(object):
                     subscriber_function(subscriber_self, data)
             except ReferenceError:
                 pass  # ignore: weakly-referenced object no longer exists
-            except Exception: # we don't want subscriber bug to kill publisher
+            except Exception:  # we don't want subscriber bug to kill publisher
                 pass  # TODO: we may log it
 
     @staticmethod
