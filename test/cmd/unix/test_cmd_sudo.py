@@ -10,6 +10,7 @@ __email__ = 'marcin.usielski@nokia.com'
 from moler.cmd.unix.sudo import Sudo
 from moler.cmd.unix.pwd import Pwd
 from moler.cmd.unix.cp import Cp
+from moler.cmd.unix.su import Su
 from moler.exceptions import CommandTimeout
 from moler.exceptions import CommandFailure
 import pytest
@@ -44,6 +45,17 @@ def test_calling_by_command_class(buffer_connection, command_output_and_expected
     result = cmd_sudo()
     assert "sudo pwd" == cmd_sudo.command_string
     assert result == expected_result
+
+
+def test_calling_by_command_object_su(buffer_connection):
+    command_output = """sudo su
+root@host#"""
+    buffer_connection.remote_inject_response([command_output])
+
+    cmd_su = Su(connection=buffer_connection.moler_connection, expected_prompt="root@host.*#")
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, cmd_object=cmd_su, expected_prompt="root@host.*#")
+    assert "sudo su" == cmd_sudo.command_string
+    cmd_sudo()
 
 
 def test_calling_by_command_object(buffer_connection, command_output_and_expected_result):
