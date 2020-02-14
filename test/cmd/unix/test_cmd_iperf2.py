@@ -9,7 +9,6 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 
 import pytest
 import mock
-import time
 from moler.cmd.unix.iperf2 import Iperf2
 from moler.exceptions import CommandFailure
 
@@ -257,11 +256,9 @@ def test_iperf_publishes_records_to_subscribed_observers(buffer_connection):
     iperf_cmd.start()
 
     assert len(iperf_stats) == 0
-    conn.inject(["[ ID]   Interval         Transfer        Bandwidth         Jitter        Lost/Total Datagrams\n"])
-    time.sleep(0.1)
+    conn.remote_inject_line("[ ID]   Interval         Transfer        Bandwidth         Jitter        Lost/Total Datagrams")
     assert len(iperf_stats) == 0
-    conn.inject(["[904]   0.0- 1.0 sec   1.17 MBytes   9.84 Mbits/sec   1.830 ms   0/ 837   (0%)\n"])
-    time.sleep(0.1)
+    conn.remote_inject_line("[904]   0.0- 1.0 sec   1.17 MBytes   9.84 Mbits/sec   1.830 ms   0/ 837   (0%)")
     assert len(iperf_stats) == 1
     assert iperf_stats[0]['connection'] == ('32781@10.6.2.5', '5001@10.1.1.1')
     # iperf progress lines produce data_records
@@ -273,17 +270,14 @@ def test_iperf_publishes_records_to_subscribed_observers(buffer_connection):
                                              'Jitter': u'1.830 ms',
                                              'Lost_vs_Total_Datagrams': (0, 837),
                                              'Lost_Datagrams_ratio': u'0%'}
-    conn.inject(["[904]   1.0- 2.0 sec   1.18 MBytes   9.94 Mbits/sec   1.846 ms   5/ 850   (0.59%)\n"])
-    time.sleep(0.1)
+    conn.remote_inject_line("[904]   1.0- 2.0 sec   1.18 MBytes   9.94 Mbits/sec   1.846 ms   5/ 850   (0.59%)")
     assert len(iperf_stats) == 2
     assert ('data_record' in iperf_stats[-1]) and ('report' not in iperf_stats[-1])
-    conn.inject(["[904]   9.0-10.0 sec   1.19 MBytes   10.0 Mbits/sec   1.801 ms   0/ 851   (0%)\n"])
-    time.sleep(0.1)
+    conn.remote_inject_line("[904]   9.0-10.0 sec   1.19 MBytes   10.0 Mbits/sec   1.801 ms   0/ 851   (0%)")
     assert len(iperf_stats) == 3
     assert ('data_record' in iperf_stats[-1]) and ('report' not in iperf_stats[-1])
     # last line of iperf progress produces report
-    conn.inject(["[904]   0.0-10.0 sec   11.8 MBytes   9.86 Mbits/sec   2.618 ms   9/ 8409  (0.11%)\n"])
-    time.sleep(0.1)
+    conn.remote_inject_line("[904]   0.0-10.0 sec   11.8 MBytes   9.86 Mbits/sec   2.618 ms   9/ 8409  (0.11%)")
     assert len(iperf_stats) == 4
     assert 'data_record' not in iperf_stats[-1]
     assert iperf_stats[-1]['connection'] == ('10.6.2.5', '5001@10.1.1.1')

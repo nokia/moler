@@ -95,6 +95,17 @@ def buffer_connection():
             in_bytes = [data.encode("utf-8") for data in input_strings]
             self.inject_response(in_bytes, delay)
 
+        def remote_inject_line(self, line, add_newline=True, delay=0.0):
+            """
+            Simulate remote endpoint that sends full line.
+            Line is given as string.
+            """
+            if add_newline:
+                if not line.endswith("\n"):
+                    line = line + "\n"
+            line_as_bytes = line.encode("utf-8")
+            self.inject([line_as_bytes], delay)
+
     moler_conn = ObservableConnection(encoder=lambda data: data.encode("utf-8"),
                                       decoder=lambda data: data.decode("utf-8"),
                                       name="buffer")
