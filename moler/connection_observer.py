@@ -40,7 +40,7 @@ class ConnectionObserver(object):
         :param connection: connection used to receive data awaited for
         """
         self.life_status = ConnectionObserverLifeStatus()
-        self.connection = connection         
+        self.connection = connection
         self.__is_done = False
         self._is_cancelled = False
         self._result = None
