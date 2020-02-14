@@ -20,3 +20,4 @@ class ConnectionObserverLifeStatus(object):
         #                              during normal timeout. For Runners only!
         self.was_on_timeout_called = False  # Set True if method on_timeout was called. False otherwise. For Runners
         #                                     only!
+        self._is_running = False

@@ -39,15 +39,14 @@ class ConnectionObserver(object):
         Create instance of ConnectionObserver class
         :param connection: connection used to receive data awaited for
         """
-        self.connection = connection
-        self._is_running = False
+        self.life_status = ConnectionObserverLifeStatus()
+        self.connection = connection         
         self.__is_done = False
         self._is_cancelled = False
         self._result = None
         self._exception = None
         self.runner = runner if runner else get_runner()
         self._future = None
-        self.life_status = ConnectionObserverLifeStatus()
 
         self.__timeout = 20.0  # default
         self.terminating_timeout = 0.0  # value for terminating connection_observer when it timeouts. Set positive value
@@ -126,7 +125,7 @@ class ConnectionObserver(object):
             # (thread didn't get control, coro didn't start in async-loop)
             # That is so, since observer lifetime starts with it's timeout-clock
             # and timeout is counted from calling observer.start()
-            self._is_running = True
+            self.life_status._is_running = True
             self.life_status.start_time = time.time()
             # Besides not started parallelism machinery causing start-delay
             # we can have start-delay caused by commands queue on connection
@@ -206,7 +205,7 @@ class ConnectionObserver(object):
         if self.done():
             return self.result()
         with exception_stored_if_not_main_thread(self):
-            if not self._is_running:
+            if not self.life_status._is_running:
                 raise ConnectionObserverNotStarted(self)
             # check if already is running
             self.runner.wait_for(connection_observer=self, connection_observer_future=self._future, timeout=timeout)
@@ -235,9 +234,9 @@ class ConnectionObserver(object):
 
     def running(self):
         """Return True if the connection-observer is currently executing."""
-        if self.done() and self._is_running:
-            self._is_running = False
-        return self._is_running
+        if self.done() and self.life_status._is_running:
+            self.life_status._is_running = False
+        return self.life_status._is_running
 
     def done(self):
         """Return True if the connection-observer is already done."""
