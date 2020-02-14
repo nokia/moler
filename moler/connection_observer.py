@@ -49,9 +49,7 @@ class ConnectionObserver(object):
         self._future = None
 
         self.__timeout = 20.0  # default
-        self.terminating_timeout = 0.0  # value for terminating connection_observer when it timeouts. Set positive value
-        #                                 for command if they can do anything if timeout. Set 0 for observer or command
-        #                                 if it cannot do anything if timeout.
+
         self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
         self.logger = logging.getLogger('moler.connection.{}'.format(self.get_logger_name()))
 
@@ -96,6 +94,14 @@ class ConnectionObserver(object):
         self.__is_done = value
         if value:
             CommandScheduler.dequeue_running_on_connection(connection_observer=self)
+
+    @property
+    def terminating_timeout(self):
+        return self.life_status.terminating_timeout
+
+    @terminating_timeout.setter
+    def terminating_timeout(self, value):
+        self.life_status.terminating_timeout = value
 
     @property
     def timeout(self):

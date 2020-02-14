@@ -21,3 +21,6 @@ class ConnectionObserverLifeStatus(object):
         self.was_on_timeout_called = False  # Set True if method on_timeout was called. False otherwise. For Runners
         #                                     only!
         self._is_running = False
+        self.terminating_timeout = 0.0  # value for terminating connection_observer when it timeouts. Set positive value
+        #                                 for command if they can do anything if timeout. Set 0 for observer or command
+        #                                 if it cannot do anything if timeout.
