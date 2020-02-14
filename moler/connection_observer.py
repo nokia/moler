@@ -48,8 +48,6 @@ class ConnectionObserver(object):
         self.runner = runner if runner else get_runner()
         self._future = None
 
-        self.__timeout = 20.0  # default
-
         self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
         self.logger = logging.getLogger('moler.connection.{}'.format(self.get_logger_name()))
 
@@ -105,14 +103,14 @@ class ConnectionObserver(object):
 
     @property
     def timeout(self):
-        return self.__timeout
+        return self.life_status.timeout
 
     @timeout.setter
     def timeout(self, value):
         # levels_to_go_up=2 : extract caller info to log where .timeout=XXX has been called from
         self._log(logging.DEBUG, "Setting {} timeout to {} [sec]".format(ConnectionObserver.__base_str(self), value),
                   levels_to_go_up=2)
-        self.__timeout = value
+        self.life_status.timeout = value
 
     def get_logger_name(self):
         if self.connection and hasattr(self.connection, "name"):
