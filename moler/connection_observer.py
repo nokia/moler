@@ -97,7 +97,7 @@ class ConnectionObserver(object):
         return self.life_status.is_cancelled
 
     @_is_cancelled.setter
-    def _is_done(self, value):
+    def _is_cancelled(self, value):
         self.life_status.is_cancelled = value
 
     @property
