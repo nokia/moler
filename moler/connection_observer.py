@@ -41,7 +41,6 @@ class ConnectionObserver(object):
         """
         self.life_status = ConnectionObserverLifeStatus()
         self.connection = connection
-        self.__is_done = False
         self._is_cancelled = False
         self._result = None
         self._exception = None
@@ -85,11 +84,11 @@ class ConnectionObserver(object):
 
     @property
     def _is_done(self):
-        return self.__is_done
+        return self.life_status.is_done
 
     @_is_done.setter
     def _is_done(self, value):
-        self.__is_done = value
+        self.life_status.is_done = value
         if value:
             CommandScheduler.dequeue_running_on_connection(connection_observer=self)
 

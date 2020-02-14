@@ -25,3 +25,4 @@ class ConnectionObserverLifeStatus(object):
         #                                 for command if they can do anything if timeout. Set 0 for observer or command
         #                                 if it cannot do anything if timeout.
         self.timeout = 20.0  # default
+        self.is_done = False
