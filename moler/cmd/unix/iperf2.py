@@ -155,6 +155,27 @@ class Iperf2(GenericUnixCommand, Publisher):
                 pass
         return super(Iperf2, self).on_new_line(line, is_full_line)
 
+    def subscribe(self, subscriber):
+        """
+        Subscribe for notifications about iperf statistic as it comes.
+
+        Anytime we find iperf statistics line like:
+        [  3]  2.0- 3.0 sec   612 KBytes  5010 Kbits/sec   0.022 ms    0/  426 (0%)
+        such line is parsed and published to subscriber
+
+        Subscriber must be function or method with following signature (name doesn't matter):
+
+            def iperf_observer(from_client, to_server, data_record=None, report=None):
+                ...
+
+        Either data_record is published or report.
+        Report is published on last line of iperf statistics summarizing stats for whole period:
+        [904]   0.0-10.0 sec   11.8 MBytes   9.86 Mbits/sec   2.618 ms   9/ 8409  (0.11%)
+
+        :param subscriber: function to be called to notify about data.
+        """
+        super(Iperf2, self).subscribe(subscriber)
+
     def is_end_of_cmd_output(self, line):
         """
         Checks if end of command is reached.
@@ -290,9 +311,10 @@ class Iperf2(GenericUnixCommand, Publisher):
             from_client, to_server = client_host, "{}@{}".format(server_port, server_host)
             result_connection = (from_client, to_server)
             self.current_ret['CONNECTIONS'][result_connection] = {'report': last_record}
-            self.notify_subscribers({'connection': result_connection, 'report': last_record})
+            self.notify_subscribers(from_client=from_client, to_server=to_server, report=last_record)
         else:
-            self.notify_subscribers({'connection': connection_name, 'data_record': last_record})
+            from_client, to_server = connection_name
+            self.notify_subscribers(from_client=from_client, to_server=to_server, data_record=last_record)
 
     def _is_final_record(self, last_record):
         start, end = last_record['Interval']

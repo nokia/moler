@@ -249,7 +249,14 @@ def test_iperf_publishes_records_to_subscribed_observers(buffer_connection):
                               options= '-s -u -i 1')
     iperf_stats = []
 
-    def iperf_observer(iperf_record):
+    def iperf_observer(from_client, to_server, data_record=None, report=None):
+        iperf_record = {}
+        iperf_record['from_client'] = from_client
+        iperf_record['to_server'] = to_server
+        if data_record:
+            iperf_record['data_record'] = data_record
+        if report:
+            iperf_record['report'] = report
         iperf_stats.append(iperf_record)
 
     iperf_cmd.subscribe(subscriber=iperf_observer)
@@ -260,7 +267,8 @@ def test_iperf_publishes_records_to_subscribed_observers(buffer_connection):
     assert len(iperf_stats) == 0
     conn.remote_inject_line("[904]   0.0- 1.0 sec   1.17 MBytes   9.84 Mbits/sec   1.830 ms   0/ 837   (0%)")
     assert len(iperf_stats) == 1
-    assert iperf_stats[0]['connection'] == ('32781@10.6.2.5', '5001@10.1.1.1')
+    assert iperf_stats[0]['from_client'] == '32781@10.6.2.5'
+    assert iperf_stats[0]['to_server'] == '5001@10.1.1.1'
     # iperf progress lines produce data_records
     assert iperf_stats[0]['data_record'] == {'Interval': (0.0, 1.0),
                                              'Transfer': 1226833,
@@ -280,7 +288,8 @@ def test_iperf_publishes_records_to_subscribed_observers(buffer_connection):
     conn.remote_inject_line("[904]   0.0-10.0 sec   11.8 MBytes   9.86 Mbits/sec   2.618 ms   9/ 8409  (0.11%)")
     assert len(iperf_stats) == 4
     assert 'data_record' not in iperf_stats[-1]
-    assert iperf_stats[-1]['connection'] == ('10.6.2.5', '5001@10.1.1.1')
+    assert iperf_stats[-1]['from_client'] == '10.6.2.5'
+    assert iperf_stats[-1]['to_server'] == '5001@10.1.1.1'
     assert iperf_stats[-1]['report'] == {'Interval': (0.0, 10.0),
                                          'Transfer': 12373196,
                                          'Transfer Raw': u'11.8 MBytes',
