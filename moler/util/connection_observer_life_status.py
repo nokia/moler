@@ -26,3 +26,4 @@ class ConnectionObserverLifeStatus(object):
         #                                 if it cannot do anything if timeout.
         self.timeout = 20.0  # default
         self.is_done = False
+        self.is_cancelled = False
