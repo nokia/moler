@@ -59,21 +59,32 @@ class Publisher(object):
             if subscription_key in self._subscribers:
                 del self._subscribers[subscription_key]
 
-    def notify_subscribers(self, data):
-        """Notify all subscribers about data"""
+    def notify_subscribers(self, *args, **kwargs):
+        """Notify all subscribers passing them notification parameters"""
         # need copy since calling subscribers may change self._subscribers
         current_subscribers = list(self._subscribers.values())
         for self_or_none, subscriber_function in current_subscribers:
             try:
                 if self_or_none is None:
-                    subscriber_function(data)
+                    subscriber_function(*args, **kwargs)
                 else:
                     subscriber_self = self_or_none
-                    subscriber_function(subscriber_self, data)
+                    subscriber_function(subscriber_self, *args, **kwargs)
             except ReferenceError:
                 pass  # ignore: weakly-referenced object no longer exists
-            except Exception:  # we don't want subscriber bug to kill publisher
-                pass  # TODO: we may log it
+            except Exception as exc:  # we don't want subscriber bug to kill publisher
+                self.handle_subscriber_exception(self_or_none, subscriber_function, exc)
+
+    def handle_subscriber_exception(self, subscriber_owner, subscriber_function, raised_exception):
+        """
+        Handle exception raised by subscriber during publishing
+
+        :param subscriber_owner: instance of class whose method was subscribed (or None)
+        :param subscriber_function: subscribed class method or raw function
+        :param raised_exception: exception raised by subscriber during publishing
+        :return: None
+        """
+        pass  # TODO: we may log it
 
     @staticmethod
     def _get_subscriber_key_and_value(subscriber):

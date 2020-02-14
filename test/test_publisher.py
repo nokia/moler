@@ -7,6 +7,7 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 import gc
 
 import pytest
+import mock
 
 
 class Subscriber(object):
@@ -105,6 +106,80 @@ def test_exception_in_subscriber_doesnt_break_publisher_nor_other_subscribers():
     notifier.unsubscribe(subscriber=failing_observer)
 
     assert b"data 1" in received_data
+
+
+def test_subscriber_may_have_different_function_signature():
+    from moler.publisher import Publisher
+
+    notifier = Publisher()
+    received_data = []
+
+    def no_param_fun():
+        received_data.append("no_param_fun")
+
+    notifier.subscribe(subscriber=no_param_fun)
+    notifier.notify_subscribers()
+    assert received_data[-1] == "no_param_fun"
+    notifier.unsubscribe(subscriber=no_param_fun)
+
+    def single_param_fun(data):
+        received_data.append(("single_param_fun", data))
+
+    notifier.subscribe(subscriber=single_param_fun)
+    notifier.notify_subscribers(data=b"data 1")
+    assert received_data[-1] == ("single_param_fun", b"data 1")
+    notifier.unsubscribe(subscriber=single_param_fun)
+
+    def multi_param_fun(data, info, default=None):
+        received_data.append(("multi_param_fun", data, info, default))
+
+    notifier.subscribe(subscriber=multi_param_fun)
+    notifier.notify_subscribers(data="data1", info="INFO", default="DEF")
+    assert received_data[-1] == ("multi_param_fun", "data1", "INFO", "DEF")
+    notifier.notify_subscribers(data="data2", info="INFO")
+    assert received_data[-1] == ("multi_param_fun", "data2", "INFO", None)
+    notifier.unsubscribe(subscriber=multi_param_fun)
+
+    def variable_param_fun(*args, **kwargs):
+        received_data.append(("variable_param_fun", args, kwargs))
+
+    notifier.subscribe(subscriber=variable_param_fun)
+    notifier.notify_subscribers("data1", "INFO", "DEF")
+    assert received_data[-1] == ("variable_param_fun", ("data1", "INFO", "DEF"), {})
+    notifier.notify_subscribers(data="data2", info="INFO", default="DEF")
+    assert received_data[-1] == ("variable_param_fun", (), {"data": "data2", "info": "INFO", "default": "DEF"})
+    notifier.notify_subscribers("data3", info="INFO", default="DEF")
+    assert received_data[-1] == ("variable_param_fun", ("data3",), {"info": "INFO", "default": "DEF"})
+    notifier.unsubscribe(subscriber=variable_param_fun)
+
+
+def test_subscriber_must_have_function_signature_matching_the_one_expected_by_publisher():
+    from moler.publisher import Publisher
+
+    notifier = Publisher()
+    received_data = []
+
+    def compatible_fun(data, info, default=None):
+        received_data.append(("compatible_fun", data, info, default))
+
+    def incompatible_fun(data):
+        received_data.append(("incompatible_fun", data))
+
+    notifier.subscribe(subscriber=compatible_fun)
+    notifier.subscribe(subscriber=incompatible_fun)
+
+    def handle_exception(self, subscriber_owner, subscriber_function, raised_exception):
+        assert subscriber_owner is None
+        assert subscriber_function.__name__ == "incompatible_fun"
+        assert isinstance(raised_exception, TypeError)
+        assert "unexpected keyword argument 'info'" in str(raised_exception)
+
+    with mock.patch.object(notifier.__class__, "handle_subscriber_exception", handle_exception):
+        notifier.notify_subscribers(data="data1", info="INFO", default="DEF")
+        assert received_data == [("compatible_fun", "data1", "INFO", "DEF")]  # only 1 entry
+
+    notifier.unsubscribe(subscriber=compatible_fun)
+    notifier.unsubscribe(subscriber=incompatible_fun)
 
 
 def test_repeated_unsubscription_does_nothing_but_logs_warning():
