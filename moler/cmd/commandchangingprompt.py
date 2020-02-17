@@ -4,7 +4,7 @@ Generic command class for commands change prompt
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019, Nokia'
+__copyright__ = 'Copyright (C) 2019-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import abc
@@ -54,6 +54,8 @@ class CommandChangingPrompt(CommandTextualGeneric):
         self._sent_timeout = False
         self._sent_prompt = False
         self._sent = False
+        self._finish_on_final_prompt = True  # Set True to finish Moler command by this generic after prompt after
+        # command output. False if you want to finish command in your class.
 
     def on_new_line(self, line, is_full_line):
         """
@@ -95,8 +97,9 @@ class CommandChangingPrompt(CommandTextualGeneric):
             raise ParsingDone()
         if (not sent) and self._is_target_prompt(line) and (not is_full_line or self.allowed_newline_after_prompt):
             if self._all_after_login_settings_sent() or self._no_after_login_settings_needed():
-                if not self.done():
-                    self.set_result(self.current_ret)
+                if not self.done() and self._cmd_output_started:
+                    if self._finish_on_final_prompt:
+                        self.set_result(self.current_ret)
                     raise ParsingDone()
 
     def _send_after_login_settings(self, line):

@@ -4,17 +4,28 @@ Testing of sudo command.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 from moler.cmd.unix.sudo import Sudo
 from moler.cmd.unix.pwd import Pwd
 from moler.cmd.unix.cp import Cp
+from moler.cmd.unix.su import Su
 from moler.exceptions import CommandTimeout
 from moler.exceptions import CommandFailure
 import pytest
 import mock
 import time
+
+
+def test_sudo_with_parameter_i(buffer_connection):
+    command_output = """sudo -i
+root@host#"""
+    buffer_connection.remote_inject_response([command_output])
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass",
+                    sudo_params='-i', prompt="moler_bash#", expected_prompt="root@host.*#")
+    assert "sudo -i" == cmd_sudo.command_string
+    cmd_sudo(timeout=0.1)
 
 
 def test_sudo_with_wrong_command_parameters(buffer_connection):
@@ -34,6 +45,17 @@ def test_calling_by_command_class(buffer_connection, command_output_and_expected
     result = cmd_sudo()
     assert "sudo pwd" == cmd_sudo.command_string
     assert result == expected_result
+
+
+def test_calling_by_command_object_su(buffer_connection):
+    command_output = """sudo su
+root@host#"""
+    buffer_connection.remote_inject_response([command_output])
+
+    cmd_su = Su(connection=buffer_connection.moler_connection, expected_prompt="root@host.*#")
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, cmd_object=cmd_su, expected_prompt="root@host.*#")
+    assert "sudo su" == cmd_sudo.command_string
+    cmd_sudo()
 
 
 def test_calling_by_command_object(buffer_connection, command_output_and_expected_result):
@@ -140,10 +162,11 @@ def test_no_parameters_command_string(buffer_connection):
 def test_failing_with_embedded_command_fails(buffer_connection, command_output_cp_fails):
     command_output = command_output_cp_fails
     buffer_connection.remote_inject_response([command_output])
-    cmd_cp = Cp(connection=buffer_connection.moler_connection, src="src.txt", dst="dst.txt")
+    cmd_cp = Cp(connection=buffer_connection.moler_connection, src="src.txt", dst="dst.txt", prompt="ute@debdev:")
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass", cmd_object=cmd_cp)
     with pytest.raises(CommandFailure):
-        cmd_sudo()
+        abc = cmd_sudo()
+        print("abc '{}'".format(abc))
 
 
 def test_failing_with_bit_fails(buffer_connection, command_output_cp_bit_fails):
