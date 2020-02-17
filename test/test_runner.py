@@ -28,7 +28,7 @@ def test_can_use_runner_as_context_manager(connection_observer,
 
     with mock.patch.object(observer_runner.__class__, "shutdown", proxy_shutdown):
         with observer_runner:
-            connection_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
+            connection_observer.life_status.start_time = time.time()  # must start observer lifetime before runner.submit()
             observer_runner.submit(connection_observer)
 
     assert observer_runner in shutdown_call_params
@@ -46,7 +46,7 @@ def test_time_out_observer_can_set_proper_exception_inside_observer(conn_observe
         expected_timeout_class = ConnectionObserverTimeout
 
     with observer_runner:
-        conn_observer.start_time = time.time()
+        conn_observer.life_status.start_time = time.time()
         observer_runner.submit(conn_observer)
         time_out_observer(conn_observer, timeout=2.3, passed_time=2.32, runner_logger=mock.MagicMock())
 
@@ -66,7 +66,7 @@ def test_time_out_observer_sets_exception_inside_observer_before_calling_on_time
 
     with mock.patch.object(conn_observer.__class__, "on_timeout", on_timeout_handler):
         with observer_runner:
-            conn_observer.start_time = time.time()
+            conn_observer.life_status.start_time = time.time()
             observer_runner.submit(conn_observer)
             time_out_observer(conn_observer, timeout=2.3, passed_time=2.32, runner_logger=mock.MagicMock())
 
@@ -77,7 +77,7 @@ def test_runner_doesnt_impact_unrised_observer_exception_while_taking_observer_r
     from moler.exceptions import ConnectionObserverTimeout
 
     with observer_runner:
-        connection_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
+        connection_observer.life_status.start_time = time.time()  # must start observer lifetime before runner.submit()
         observer_runner.submit(connection_observer)
         time_out_observer(connection_observer, timeout=2.3, passed_time=2.32, runner_logger=mock.MagicMock())
 

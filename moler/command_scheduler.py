@@ -89,7 +89,7 @@ class CommandScheduler(object):
         else:
             if wait_for_slot:
                 self._add_command_to_queue(cmd=cmd)
-                start_time = cmd.start_time
+                start_time = cmd.life_status.start_time
                 if self._wait_for_slot_for_command(cmd=cmd):
                     self._submit(connection_observer=cmd)
                     return True

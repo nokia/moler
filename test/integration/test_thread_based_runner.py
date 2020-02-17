@@ -19,7 +19,7 @@ from moler.connection_observer import ConnectionObserver
 
 def test_can_submit_connection_observer_into_background(connection_observer,
                                                         observer_runner):
-    connection_observer.start_time = time.time()  # must start observer lifetime before runner.submit()
+    connection_observer.life_status.start_time = time.time()  # must start observer lifetime before runner.submit()
     connection_observer_future = observer_runner.submit(connection_observer)
     # see API of concurrent.futures.Future
     try:
