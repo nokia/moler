@@ -41,7 +41,7 @@ class UnixLocal(TextualDevice):
     unix_local_root = "UNIX_LOCAL_ROOT"
 
     def __init__(self, sm_params=None, name=None, io_connection=None, io_type=None, variant=None,
-                 io_constructor_kwargs={}, initial_state=None):
+                 io_constructor_kwargs=None, initial_state=None):
         """
         :param sm_params: dict with parameters of state machine for device
         :param name: name of device

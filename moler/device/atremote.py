@@ -10,7 +10,7 @@ __copyright__ = 'Copyright (C) 2020, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
 from moler.device.textualdevice import TextualDevice
-from moler.device.proxy_pc import ProxyPc
+# from moler.device.proxy_pc import ProxyPc  # TODO: allow jumping towards AT_REMOTE via proxy-pc
 from moler.device.unixlocal import UnixLocal
 from moler.device.unixremote import UnixRemote
 from moler.helpers import call_base_class_method_with_same_name, mark_to_call_base_class_method_with_same_name
@@ -47,7 +47,7 @@ class AtRemote(UnixRemote):
 
     at_remote = "AT_REMOTE"
 
-    def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, io_constructor_kwargs={},
+    def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, io_constructor_kwargs=None,
                  initial_state=None):
         """
         Create AT device communicating over io_connection
