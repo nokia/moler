@@ -60,12 +60,12 @@ def test_calling_at_cmd_attach_returns_expected_result(buffer_connection):
 
 def test_calling_at_cmd_attach_fails_on_erroneous_output(buffer_connection):
     from moler.cmd.at import attach
-    from moler.cmd.at.genericat import AtCommandFailure
+    from moler.exceptions import CommandFailure
 
     at_cmd_attach = attach.Attach(connection=buffer_connection.moler_connection,
                                   **attach.COMMAND_KWARGS_ver_execute)
     at_cmd_attach.timeout = 0.5
     buffer_connection.remote_inject_response(["AT+CGATT=1\nERROR\n"])
 
-    with pytest.raises(AtCommandFailure):
+    with pytest.raises(CommandFailure):
         at_cmd_attach()

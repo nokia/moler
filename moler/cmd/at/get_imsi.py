@@ -13,7 +13,7 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 
 import re
 
-from moler.cmd.at.genericat import GenericAtCommand, AtCommandModeNotSupported
+from moler.cmd.at.genericat import GenericAtCommand
 from moler.exceptions import ParsingDone
 
 

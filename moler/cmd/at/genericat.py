@@ -19,14 +19,6 @@ from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 
 
-class AtCommandModeNotSupported(Exception):
-    pass
-
-
-class AtCommandFailure(CommandFailure):
-    pass
-
-
 @six.add_metaclass(abc.ABCMeta)
 class GenericAtCommand(CommandTextualGeneric):
     _re_default_at_prompt = re.compile(r'^\s*(OK|ERROR|\+CM[ES]\s+ERROR:\s*\S.+)\s*$')  # When user provides no prompt
@@ -42,8 +34,7 @@ class GenericAtCommand(CommandTextualGeneric):
         :param runner: Runner to run command.
         """
         if operation not in ["execute", "read", "test"]:
-            raise AtCommandModeNotSupported("{} mode not supported for command {}".format(operation,
-                                                                                          self.__class__.__name__))
+            raise CommandFailure("{} mode not supported for command {}".format(operation, self.__class__.__name__))
         if prompt is None:
             prompt = self._re_default_at_prompt
         self.operation = operation  # for 'read' command ends with '?', for 'test' ends with '=?'
@@ -90,8 +81,8 @@ class GenericAtCommand(CommandTextualGeneric):
         if self._regex_helper.match_compiled(self._re_cme_error, line):
             error_type = self._regex_helper.group("ERR_TYPE")
             error_info = self._regex_helper.group("ERROR")
-            self.set_exception(AtCommandFailure(self, "{} ERROR: {}".format(error_type, error_info)))
+            self.set_exception(CommandFailure(self, "{} ERROR: {}".format(error_type, error_info)))
             raise ParsingDone
         elif self._regex_helper.match_compiled(self._re_error, line):
-            self.set_exception(AtCommandFailure(self, "ERROR"))
+            self.set_exception(CommandFailure(self, "ERROR"))
             raise ParsingDone

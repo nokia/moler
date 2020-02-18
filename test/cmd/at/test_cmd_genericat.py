@@ -32,32 +32,32 @@ def test_at_cmd_raises_CommandTimeout_when_no_OK_received_in_cmd_output(buffer_c
 
 
 def test_calling_at_cmd_raises_AtCommandFailure_when_regular_ERROR_in_at_cmd_output_occurred(buffer_connection, at_cmd_test_class):
-    from moler.cmd.at.genericat import AtCommandFailure
+    from moler.exceptions import CommandFailure
     buffer_connection.remote_inject_response(["AT+CMD\ndata\nERROR\n"])
     at_cmd = at_cmd_test_class("AT+CMD", connection=buffer_connection.moler_connection)
-    with pytest.raises(AtCommandFailure) as error:
+    with pytest.raises(CommandFailure) as error:
         at_cmd()
     assert 'AT+CMD' in str(error.value)
     assert "failed with >>ERROR<<" in str(error.value)
 
 
 def test_calling_at_cmd_raises_AtCommandFailure_with_error_msg_from_at_cmd_output(buffer_connection, at_cmd_test_class):
-    from moler.cmd.at.genericat import AtCommandFailure
+    from moler.exceptions import CommandFailure
     buffer_connection.remote_inject_response(["AT+CMD\n+CME ERROR: no connection to phone\n"])
     at_cmd = at_cmd_test_class("AT+CMD", connection=buffer_connection.moler_connection)
-    with pytest.raises(AtCommandFailure) as error:
+    with pytest.raises(CommandFailure) as error:
         at_cmd()
     assert "failed with >>CME ERROR: no connection to phone<<" in str(error.value)
     buffer_connection.remote_inject_response(["AT+CMD\n+CMS ERROR: Short message transfer rejected\n"])
     at_cmd = at_cmd_test_class("AT+CMD", connection=buffer_connection.moler_connection)
-    with pytest.raises(AtCommandFailure) as error:
+    with pytest.raises(CommandFailure) as error:
         at_cmd()
     assert "failed with >>CMS ERROR: Short message transfer rejected<<" in str(error.value)
 
 
 def test_at_cmd_raises_AtCommandModeNotSupported_when_instantiated_in_incorrect_mode(at_cmd_test_class):
-    from moler.cmd.at.genericat import AtCommandModeNotSupported
-    with pytest.raises(AtCommandModeNotSupported):
+    from moler.exceptions import CommandFailure
+    with pytest.raises(CommandFailure):
         at_cmd_test_class("AT+CMD", operation="magic_mode")
 
 
