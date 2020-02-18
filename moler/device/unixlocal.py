@@ -41,7 +41,7 @@ class UnixLocal(TextualDevice):
     unix_local_root = "UNIX_LOCAL_ROOT"
 
     def __init__(self, sm_params=None, name=None, io_connection=None, io_type=None, variant=None,
-                 io_constructor_kwargs={}, initial_state=None):
+                 io_constructor_kwargs=None, initial_state=None):
         """
         :param sm_params: dict with parameters of state machine for device
         :param name: name of device
@@ -72,7 +72,7 @@ class UnixLocal(TextualDevice):
                         "execute_command": "su",  # using command
                         "command_params": {  # with parameters
                             "password": "root_password",
-                            "expected_prompt": r'local_root_prompt',
+                            "expected_prompt": r'local_root_prompt',  # TODO: this should be required or r'^moler_bash$'
                             "target_newline": "\n"
                         },
                         "required_command_params": [
@@ -84,7 +84,7 @@ class UnixLocal(TextualDevice):
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
                             "target_newline": "\n",
-                            "expected_prompt": r'^moler_bash#'
+                            "expected_prompt": r'^moler_bash#'  # r'^moler_bash$'  $ is for user-prompt, # for root-prompt
                         },
                         "required_command_params": [
                         ]

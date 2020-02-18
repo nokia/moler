@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-AT+CIMI .
+AT+CGMR .
 
 AT commands specification:
 google for: 3gpp specification 27.007
@@ -17,28 +17,26 @@ from moler.cmd.at.genericat import GenericAtCommand
 from moler.exceptions import ParsingDone
 
 
-class GetImsi(GenericAtCommand):
+class GetRevisionId(GenericAtCommand):
     """
-    Command to get IMSI. Example output:
+    Command to get revision identification. Example output:
 
-    AT+CIMI
-    49009123123123
-    OK
+    AT+CGMR
+    MPSS.HE.1.5.2-00368-SM8150_GENFUSION_PACK-1  1  [Aug 07 2019 21:00:00]
     """
     def __init__(self, connection=None, prompt=None, newline_chars=None, runner=None):
-        """Create instance of GetImsi class"""
-        super(GetImsi, self).__init__(connection, operation='execute', prompt=prompt,
-                                      newline_chars=newline_chars, runner=runner)
+        """Create instance of GetRevisionId class"""
+        super(GetRevisionId, self).__init__(connection, operation='execute', prompt=prompt,
+                                            newline_chars=newline_chars, runner=runner)
 
     def build_command_string(self):
-        return "AT+CIMI"
+        return "AT+CGMR"
 
     def on_new_line(self, line, is_full_line):
         """
         Method to parse command output. Will be called after line with command echo.
 
-        49009123123123
-        OK
+        MPSS.HE.1.5.2-00368-SM8150_GENFUSION_PACK-1  1  [Aug 07 2019 21:00:00]
 
         Write your own implementation but don't forget to call on_new_line from base class
 
@@ -48,23 +46,34 @@ class GetImsi(GenericAtCommand):
         """
         if is_full_line:
             try:
-                self._parse_imsi_number(line)
+                self._parse_revision(line)
             except ParsingDone:
                 pass
-        return super(GetImsi, self).on_new_line(line, is_full_line)
+        return super(GetRevisionId, self).on_new_line(line, is_full_line)
 
-    _re_imsi = re.compile(r'^\s*(?P<imsi>\d+)\s*$')
+    _re_revision = re.compile(r'^\s*(?P<revision>\S.*)\s*$')
 
-    def _parse_imsi_number(self, line):
+    def _parse_revision(self, line):
         """
-        Parse IMSI number that should look like:
+        Parse revision identification that may look like:
 
-        49009123123123
+        MPSS.HE.1.5.2-00368-SM8150_GENFUSION_PACK-1  1  [Aug 07 2019 21:00:00]
         """
-        if self._regex_helper.match_compiled(self._re_imsi, line):
-            imsi = self._regex_helper.group("imsi")
-            self.current_ret['imsi'] = imsi
+        if self._regex_helper.match_compiled(self._re_revision, line):
+            revision = self._regex_helper.group("revision")
+            self.current_ret['revision'] = revision
             raise ParsingDone
+
+    def is_end_of_cmd_output(self, line):
+        """
+        Checks if end of command is reached.
+
+        AT+CGMR is not finished by OK, so it is finished when it detects revision
+
+        :param line: Line from device.
+        :return:
+        """
+        return 'revision' in self.current_ret
 
 
 # -----------------------------------------------------------------------------
@@ -81,13 +90,12 @@ class GetImsi(GenericAtCommand):
 # -----------------------------------------------------------------------------
 
 COMMAND_OUTPUT_ver_execute = """
-AT+CIMI
-440801200189934
-OK
+AT+CGMR
+MPSS.HE.1.5.2-00368-SM8150_GENFUSION_PACK-1  1  [Aug 07 2019 21:00:00]
 """
 
 COMMAND_KWARGS_ver_execute = {}
 
 COMMAND_RESULT_ver_execute = {
-    'imsi': '440801200189934'
+    'revision': 'MPSS.HE.1.5.2-00368-SM8150_GENFUSION_PACK-1  1  [Aug 07 2019 21:00:00]'
 }

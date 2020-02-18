@@ -18,7 +18,7 @@ from moler.device.unixlocal import UnixLocal
 class ProxyPc(UnixLocal):
     proxy_pc = "PROXY_PC"
 
-    def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, io_constructor_kwargs={},
+    def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, io_constructor_kwargs=None,
                  initial_state=None):
         """
         Create Unix device communicating over io_connection

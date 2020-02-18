@@ -16,6 +16,7 @@ import abc
 class AbstractDevice(object):
 
     def __init__(self):
+        super(AbstractDevice, self).__init__()
         self._remove_callbacks = list()
 
     @property

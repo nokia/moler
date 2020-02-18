@@ -1,3 +1,26 @@
+## moler 1.6.0
+
+### Added
+* Publisher class - Moler implementation of Publisher-Subscriber Design Pattern
+* Iperf2 command publishing intermediate reports to all subscribed "observers"
+* AT commands:
+   * at(AT)
+   * attach(AT+CGATT=1), detach(AT+CGATT=0), get_attach_state(AT+CGATT?)
+   * get_imei(AT+CGSN)
+   * get_imsi(AT+CIMI)
+   * get_manufacturer_id(AT+CGMI)
+   * get_revision_id(AT+CGMR)
+* moler_serial_proxy tool proxing between serial connection and stdio/stdout
+* AtRemote device being state machine capable to reach AT_REMOTE state and issue AT commands
+   * (controlling AT console available over serial connection on remote machine)
+
+### Improved
+* CommandTextualGeneric may set direct path to command executable
+   * (f.ex. OS may default 'iperf' to '/usr/bin/iperf' but user wants '/usr/local/bin/iperf')
+
+### Fixed
+* ConnectionObserver, AbstractDevice were unable to be used inside multiple inheritance
+
 ## moler 1.5.1
 
 ### Fixed

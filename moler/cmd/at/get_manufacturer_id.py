@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-AT+CIMI .
+AT+CGMI .
 
 AT commands specification:
 google for: 3gpp specification 27.007
@@ -17,28 +17,26 @@ from moler.cmd.at.genericat import GenericAtCommand
 from moler.exceptions import ParsingDone
 
 
-class GetImsi(GenericAtCommand):
+class GetManufacturerId(GenericAtCommand):
     """
-    Command to get IMSI. Example output:
+    Command to get manufacturer identification. Example output:
 
-    AT+CIMI
-    49009123123123
-    OK
+    AT+CGMI
+    QUALCOMM INCORPORATED
     """
     def __init__(self, connection=None, prompt=None, newline_chars=None, runner=None):
-        """Create instance of GetImsi class"""
-        super(GetImsi, self).__init__(connection, operation='execute', prompt=prompt,
-                                      newline_chars=newline_chars, runner=runner)
+        """Create instance of GetManufacturerId class"""
+        super(GetManufacturerId, self).__init__(connection, operation='execute', prompt=prompt,
+                                                newline_chars=newline_chars, runner=runner)
 
     def build_command_string(self):
-        return "AT+CIMI"
+        return "AT+CGMI"
 
     def on_new_line(self, line, is_full_line):
         """
         Method to parse command output. Will be called after line with command echo.
 
-        49009123123123
-        OK
+        QUALCOMM INCORPORATED
 
         Write your own implementation but don't forget to call on_new_line from base class
 
@@ -48,23 +46,34 @@ class GetImsi(GenericAtCommand):
         """
         if is_full_line:
             try:
-                self._parse_imsi_number(line)
+                self._parse_manufacturer(line)
             except ParsingDone:
                 pass
-        return super(GetImsi, self).on_new_line(line, is_full_line)
+        return super(GetManufacturerId, self).on_new_line(line, is_full_line)
 
-    _re_imsi = re.compile(r'^\s*(?P<imsi>\d+)\s*$')
+    _re_manufacturer = re.compile(r'^\s*(?P<manufacturer>\S.*)\s*$')
 
-    def _parse_imsi_number(self, line):
+    def _parse_manufacturer(self, line):
         """
-        Parse IMSI number that should look like:
+        Parse manufacturer identification that may look like:
 
-        49009123123123
+        QUALCOMM INCORPORATED
         """
-        if self._regex_helper.match_compiled(self._re_imsi, line):
-            imsi = self._regex_helper.group("imsi")
-            self.current_ret['imsi'] = imsi
+        if self._regex_helper.match_compiled(self._re_manufacturer, line):
+            manufacturer = self._regex_helper.group("manufacturer")
+            self.current_ret['manufacturer'] = manufacturer
             raise ParsingDone
+
+    def is_end_of_cmd_output(self, line):
+        """
+        Checks if end of command is reached.
+
+        AT+CGMI is not finished by OK, so it is finished when it detects manufacturer
+
+        :param line: Line from device.
+        :return:
+        """
+        return 'manufacturer' in self.current_ret
 
 
 # -----------------------------------------------------------------------------
@@ -81,13 +90,12 @@ class GetImsi(GenericAtCommand):
 # -----------------------------------------------------------------------------
 
 COMMAND_OUTPUT_ver_execute = """
-AT+CIMI
-440801200189934
-OK
+AT+CGMI
+QUALCOMM INCORPORATED
 """
 
 COMMAND_KWARGS_ver_execute = {}
 
 COMMAND_RESULT_ver_execute = {
-    'imsi': '440801200189934'
+    'manufacturer': 'QUALCOMM INCORPORATED'
 }

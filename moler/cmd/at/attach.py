@@ -3,7 +3,7 @@
 AT+CGATT=1 . Attach
 
 AT commands specification:
-https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=1515
+google for: 3gpp specification 27.007
 (always check against latest version of standard)
 """
 
@@ -11,24 +11,25 @@ __author__ = ' Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2020, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
-from moler.cmd.at.at import AtCmd, AtCommandModeNotSupported
+from moler.cmd.at.genericat import GenericAtCommand
 
 
-class AtCmdAttach(AtCmd):
-    def __init__(self, connection=None, operation='execute'):
-        """Create instance of AtCmdAttach class"""
-        super(AtCmdAttach, self).__init__(connection, operation)
-        if operation != 'execute':
-            raise AtCommandModeNotSupported("{} operation no supported for: {}".format(operation, self))
-        self.set_at_command_string(command_base_string="AT+CGATT=1")
+class Attach(GenericAtCommand):
+    """
+    Command to trigger attach. Example output:
+
+    AT+CGATT=1
+    OK
+    """
+    def __init__(self, connection=None, prompt=None, newline_chars=None, runner=None):
+        """Create instance of Attach class"""
+        super(Attach, self).__init__(connection, operation="execute", prompt=prompt,
+                                     newline_chars=newline_chars, runner=runner)
         self.timeout = 180
+        self.ret_required = False
 
-    def parse_command_output(self):
-        """
-        AT+CGATT=1
-        OK
-        """
-        self.set_result({})
+    def build_command_string(self):
+        return "AT+CGATT=1"
 
 
 # -----------------------------------------------------------------------------
@@ -49,8 +50,6 @@ AT+CGATT=1
 OK
 """
 
-COMMAND_KWARGS_ver_execute = {'operation': 'execute'}
+COMMAND_KWARGS_ver_execute = {}
 
 COMMAND_RESULT_ver_execute = {}
-
-# -----------------------------------------------------------------------------

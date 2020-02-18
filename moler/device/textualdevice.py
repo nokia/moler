@@ -19,6 +19,7 @@ import time
 import traceback
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
+from moler.connection_observer import ConnectionObserver
 from moler.config.loggers import configure_device_logger
 from moler.connection_factory import get_connection
 from moler.device.state_machine import StateMachine
@@ -469,12 +470,13 @@ class TextualDevice(AbstractDevice):
             for (cmd_class_name, cmd_module_name) in inspect.getmembers(module, inspect.isclass):
                 if cmd_module_name.__module__ == module_name:
                     cmd_class_obj = getattr(module, cmd_class_name)
-                    # like:  IpAddr --> ip_addr
-                    cmd_name = cmd_class_obj.observer_name
-                    # like:  IpAddr --> moler.cmd.unix.ip_addr.IpAddr
-                    cmd_class_fullname = "{}.{}".format(module_name, cmd_class_name)
+                    if issubclass(cmd_class_obj, ConnectionObserver):  # module may contain other classes (f.ex. exceptions)
+                        # like:  IpAddr --> ip_addr
+                        cmd_name = cmd_class_obj.observer_name
+                        # like:  IpAddr --> moler.cmd.unix.ip_addr.IpAddr
+                        cmd_class_fullname = "{}.{}".format(module_name, cmd_class_name)
 
-                    available_cmds.update({cmd_name: cmd_class_fullname})
+                        available_cmds.update({cmd_name: cmd_class_fullname})
         return available_cmds
 
     def _get_observer_in_state(self, observer_name, observer_type, for_state, **kwargs):

@@ -34,6 +34,7 @@ class CommandTextualGeneric(Command):
         :param newline_chars:  new line chars on device (a list).
         :param runner: runner to run command.
         """
+        self.command_path = None  # path to command executable - allow non standard locations like /usr/local/bin/
         self._max_index_from_beginning = 20  # Right (from 0 to this) index of substring of command_string passed
         # as _cmd_escaped. Set 0 to disable functionality of substring.
         self._max_index_from_end = 20  # Left (from this to the end) index of substring of command_string passed
@@ -74,11 +75,15 @@ class CommandTextualGeneric(Command):
 
         :return: String with command_string.
         """
-        if not self.__command_string:
+        if not self.__command_string or (self.command_path and not self.__command_string.startswith(self.command_path)):
             try:
                 self.__command_string = "CANNOT BUILD COMMAND STRING"  # To avoid infinite recursion if
                 # build_command_string raises an exception.
-                self.__command_string = self.build_command_string()
+                command_string = self.build_command_string()
+                if self.command_path:
+                    self.__command_string = "{}{}".format(self.command_path, command_string)
+                else:
+                    self.__command_string = command_string
             finally:
                 self._build_command_string_escaped()
         return self.__command_string

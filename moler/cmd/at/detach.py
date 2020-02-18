@@ -1,38 +1,34 @@
 # -*- coding: utf-8 -*-
 """
-AT .
+AT+CGATT=0 . Detach
 
 AT commands specification:
 google for: 3gpp specification 27.007
 (always check against latest version of standard)
 """
 
-__author__ = 'Grzegorz Latuszek'
+__author__ = ' Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2020, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
-
 
 from moler.cmd.at.genericat import GenericAtCommand
 
 
-class At(GenericAtCommand):
+class Detach(GenericAtCommand):
     """
-    Command to check if AT console is operable. Example output:
+    Command to trigger detach. Example output:
 
-    AT
+    AT+CGATT=0
     OK
     """
     def __init__(self, connection=None, prompt=None, newline_chars=None, runner=None):
-        """
-        Create instance of At class
-        :param connection: connection used to send command and receive its output
-        """
-        super(At, self).__init__(connection, operation="execute", prompt=prompt,
-                                 newline_chars=newline_chars, runner=runner)
+        """Create instance of Detach class"""
+        super(Detach, self).__init__(connection, operation="execute", prompt=prompt,
+                                     newline_chars=newline_chars, runner=runner)
         self.ret_required = False
 
     def build_command_string(self):
-        return "AT"
+        return "AT+CGATT=0"
 
 
 # -----------------------------------------------------------------------------
@@ -49,7 +45,7 @@ class At(GenericAtCommand):
 # -----------------------------------------------------------------------------
 
 COMMAND_OUTPUT_ver_execute = """
-AT
+AT+CGATT=0
 OK
 """
 

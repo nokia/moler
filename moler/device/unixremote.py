@@ -61,7 +61,7 @@ class UnixRemote(ProxyPc):
     unix_remote = "UNIX_REMOTE"
     unix_remote_root = "UNIX_REMOTE_ROOT"
 
-    def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, io_constructor_kwargs={},
+    def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, io_constructor_kwargs=None,
                  initial_state=None):
         """
         Create Unix device communicating over io_connection
