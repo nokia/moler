@@ -33,13 +33,13 @@ class GenericAtCommand(CommandTextualGeneric):
         :param newline_chars: Characters to split lines - list.
         :param runner: Runner to run command.
         """
-        if operation not in ["execute", "read", "test"]:
-            raise CommandFailure(self, "{} mode not supported".format(operation))
         if prompt is None:
             prompt = self._re_default_at_prompt
         self.operation = operation  # for 'read' command ends with '?', for 'test' ends with '=?'
         super(GenericAtCommand, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                                runner=runner)
+        if operation not in ["execute", "read", "test"]:
+            raise CommandFailure(self, "{} mode not supported".format(operation))
         # TODO: do we have any way to stop AT cmd?
         self.terminating_timeout = 0  # no additional timeout for Ctrl-C..till..prompt (shutdown after cmd timeout)
 
