@@ -7,6 +7,13 @@ New format doesn't require additional post processing of values inside returned 
 (it was the case with old one)
 
 Moreover, new format provides final report - see bellow.
+
+iperf2 was orphaned in the late 2000s at version 2.0.5
+Then in 2014, Bob (Robert) McMahon from Broadcom restarted development of iperf2
+Official iperf2 releases after 2.0.5: https://sourceforge.net/projects/iperf2/files/
+Important changes:
+- starting from 2.0.8 -b may be used to limit bandwidth at TCP
+- as a consequence -b doesn't force -u
 """
 
 __author__ = 'Grzegorz Latuszek'
