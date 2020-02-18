@@ -34,7 +34,7 @@ class GenericAtCommand(CommandTextualGeneric):
         :param runner: Runner to run command.
         """
         if operation not in ["execute", "read", "test"]:
-            raise CommandFailure("{} mode not supported for command {}".format(operation, self.__class__.__name__))
+            raise CommandFailure(self, "{} mode not supported".format(operation))
         if prompt is None:
             prompt = self._re_default_at_prompt
         self.operation = operation  # for 'read' command ends with '?', for 'test' ends with '=?'
