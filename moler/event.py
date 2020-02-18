@@ -47,7 +47,7 @@ class Event(ConnectionObserver):
         """Start background execution of command."""
         self._validate_start(*args, **kwargs)
         ret = super(Event, self).start(timeout, *args, **kwargs)
-        self._is_running = True
+        self.life_status._is_running = True
 
         return ret
 

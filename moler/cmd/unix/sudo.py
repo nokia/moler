@@ -4,28 +4,31 @@ Sudo command module.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
 
-from moler.cmd.unix.genericunix import GenericUnixCommand
+from moler.cmd.commandchangingprompt import CommandChangingPrompt
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 from moler.helpers import copy_dict
 from moler.helpers import create_object_from_name
 
 
-class Sudo(GenericUnixCommand):
+class Sudo(CommandChangingPrompt):
     """Unix command sudo"""
 
-    def __init__(self, connection, password, cmd_object=None, cmd_class_name=None, cmd_params=None, prompt=None,
-                 newline_chars=None, runner=None, encrypt_password=True):
+    def __init__(self, connection, password=None, sudo_params=None, cmd_object=None, cmd_class_name=None,
+                 cmd_params=None, prompt=None, newline_chars=None, runner=None, encrypt_password=True,
+                 expected_prompt=None, set_timeout=None, set_prompt=None, target_newline="\n",
+                 allowed_newline_after_prompt=False, prompt_after_login=None):
         """
         Constructs object for Unix command sudo.
 
         :param connection: Moler connection to device, terminal when command is executed.
         :param password: password for sudo.
+        :param sudo_params: params for sudo (not for command for sudo)
         :param cmd_object: object of command. Pass this object or cmd_class_name.
         :param cmd_class_name: full (with package) class name. Pass this name or cmd_object.
         :param cmd_params: params for cmd_class_name. If cmd_object is passed this parameter is ignored.
@@ -33,13 +36,30 @@ class Sudo(GenericUnixCommand):
         :param newline_chars: Characters to split lines - list.
         :param runner: Runner to run command.
         :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text.
+        :param set_timeout: Command to set timeout after telnet connects.
+        :param set_prompt: Command to set prompt after telnet connects.
+        :param target_newline: newline chars on remote system where ssh connects.
+        :param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt.
+        :param prompt_after_login: prompt after login before send export PS1. If you do not change prompt exporting PS1
+         then leave it None.
+
         """
-        super(Sudo, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+        if expected_prompt is None or expected_prompt == '':
+            expected_prompt = prompt
+        super(Sudo, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
+                                   runner=runner, expected_prompt=expected_prompt, set_timeout=set_timeout,
+                                   set_prompt=set_prompt, target_newline=target_newline,
+                                   allowed_newline_after_prompt=allowed_newline_after_prompt,
+                                   prompt_after_login=prompt_after_login)
+
+        if password is None:
+            password = ""
         self.password = password
         self.cmd_object = cmd_object
         self.cmd_params = cmd_params
         self.cmd_class_name = cmd_class_name
         self.encrypt_password = encrypt_password
+        self.sudo_params = sudo_params
         self.timeout_from_embedded_command = True  # Set True to set timeout from command or False to use timeout set in
         #  sudo command.
         self._sent_sudo_password = False
@@ -48,6 +68,7 @@ class Sudo(GenericUnixCommand):
         self._line_for_sudo = False
         self.ret_required = False
         self._validated_embedded_parameters = False  # Validate parameters only once
+        self._finish_on_final_prompt = False
 
     def build_command_string(self):
         """
@@ -56,7 +77,11 @@ class Sudo(GenericUnixCommand):
         :return: String representation of command to send over connection to device.
         """
         self._build_command_object()
-        cmd = "sudo {}".format(self.cmd_object.command_string)
+        cmd = "sudo"
+        if self.sudo_params:
+            cmd = "{} {}".format(cmd, self.sudo_params)
+        if self.cmd_object:
+            cmd = "{} {}".format(cmd, self.cmd_object.command_string)
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -81,17 +106,6 @@ class Sudo(GenericUnixCommand):
             self.timeout_from_embedded_command = False
         return super(Sudo, self).start(timeout=timeout, args=args, kwargs=kwargs)
 
-    def is_end_of_cmd_output(self, line):
-        """
-        Checks if end of command output is reached.
-
-        :param line: Line from device.
-        :return: True if end of command output is reached, False otherwise.
-        """
-        if not self.cmd_object.done() and not self._stored_exception:
-            return False
-        return super(Sudo, self).is_end_of_cmd_output(line)
-
     def _process_line_from_command(self, current_chunk, line, is_full_line):
         """
         Processes line from command.
@@ -104,12 +118,13 @@ class Sudo(GenericUnixCommand):
         decoded_line = self._decode_line(line=line)
         self._line_for_sudo = False
         self.on_new_line(line=decoded_line, is_full_line=is_full_line)
-        if not self._line_for_sudo:
-            embedded_command_done = self.cmd_object.done()
-            self._process_embedded_command(partial_data=current_chunk)
-            if not embedded_command_done and self.cmd_object.done():
-                # process again because prompt was sent
-                self.on_new_line(line=decoded_line, is_full_line=is_full_line)
+        if self.cmd_object:
+            if not self._line_for_sudo:
+                embedded_command_done = self.cmd_object.done()
+                self._process_embedded_command(partial_data=current_chunk)
+                if not embedded_command_done and self.cmd_object.done():
+                    # process again because prompt was sent
+                    self.on_new_line(line=decoded_line, is_full_line=is_full_line)
 
     def _process_embedded_command(self, partial_data):
         """
@@ -136,6 +151,7 @@ class Sudo(GenericUnixCommand):
                     self.cmd_object.result()
                 except Exception as ex:
                     self.set_exception(ex)
+                self._finish_on_final_prompt = True
 
     # sudo: pwd: command not found
     _re_sudo_command_not_found = re.compile(r"sudo:.*command not found", re.I)
@@ -150,6 +166,7 @@ class Sudo(GenericUnixCommand):
         """
         if re.search(Sudo._re_sudo_command_not_found, line):
             self.set_exception(CommandFailure(self, "Command not found in line '{}'.".format(line)))
+            self._finish_on_final_prompt = True
             raise ParsingDone()
 
     # sudo: /usr/bin/sudo must be owned by uid 0 and have the setuid bit set
@@ -165,6 +182,7 @@ class Sudo(GenericUnixCommand):
         """
         if re.search(Sudo._re_sudo_error, line):
             self.set_exception(CommandFailure(self, "Command sudo error found in line '{}'.".format(line)))
+            self._finish_on_final_prompt = True
             raise ParsingDone()
 
     # [sudo] password for user:
@@ -195,9 +213,12 @@ class Sudo(GenericUnixCommand):
         """
         super(Sudo, self)._validate_start(*args, **kwargs)
         self._validate_passed_object_or_command_parameters()
-        self.ret_required = self.cmd_object.ret_required
-        if self.timeout_from_embedded_command:
-            self.timeout = self.cmd_object.timeout
+        if self.cmd_object:
+            self.ret_required = self.cmd_object.ret_required
+            if self.timeout_from_embedded_command:
+                self.timeout = self.cmd_object.timeout
+        else:
+            self.ret_required = False
 
     def _validate_passed_object_or_command_parameters(self):
         """
@@ -208,12 +229,12 @@ class Sudo(GenericUnixCommand):
         """
         if self._validated_embedded_parameters:
             return  # Validate parameters only once
-        if not self.cmd_class_name and not self.cmd_object:
+        if not self.cmd_class_name and not self.cmd_object and not self.sudo_params:
             # _validate_start is called before running command on connection, so we raise exception
             # instead of setting it
             raise CommandFailure(
                 self,
-                "Neither 'cmd_class_name' nor 'cmd_object' was provided to Sudo constructor."
+                "Neither 'cmd_class_name' nor 'cmd_object' nor 'sudo_params' was provided to Sudo constructor."
                 "Please specific parameter.")
         if self.cmd_object and self.cmd_class_name:
             # _validate_start is called before running command on connection, so we raise exception instead
@@ -227,6 +248,8 @@ class Sudo(GenericUnixCommand):
                 self,
                 "Not allowed to run again the embedded command (embedded command is done): {}.".format(
                     self.cmd_object))
+        if not self.cmd_object:
+            self._finish_on_final_prompt = True
         self._validated_embedded_parameters = True
 
     def _build_command_object(self):
@@ -238,7 +261,7 @@ class Sudo(GenericUnixCommand):
         self._validate_passed_object_or_command_parameters()
         if self.cmd_object:
             return
-        else:
+        elif self.cmd_class_name is not None:
             params = copy_dict(self.cmd_params)
             params["connection"] = self.connection
             params['prompt'] = self._re_prompt
@@ -378,4 +401,28 @@ COMMAND_KWARGS_ifconfigdown = {
     "cmd_class_name": "moler.cmd.unix.ifconfig.Ifconfig",
     "password": "pass",
     "cmd_params": {"options": "lo down"},
+}
+
+COMMAND_OUTPUT_i = """
+moler_bash# sudo -i
+root@host#"""
+
+COMMAND_RESULT_i = {}
+
+COMMAND_KWARGS_i = {
+    'sudo_params': '-i', 'expected_prompt': "root@host.*#"
+}
+
+COMMAND_OUTPUT_su = """
+moler_bash# sudo su
+root@host#"""
+
+COMMAND_RESULT_su = {}
+
+COMMAND_KWARGS_su = {
+    'expected_prompt': r"root@host.*#",
+    'cmd_class_name': 'moler.cmd.unix.su.Su',
+    'cmd_params': {  # params for su
+        'expected_prompt': r"root@host.*#"
+    }
 }
