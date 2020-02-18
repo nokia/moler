@@ -31,7 +31,7 @@ def test_at_cmd_raises_CommandTimeout_when_no_OK_received_in_cmd_output(buffer_c
         at_cmd.await_done(timeout=0.1)
 
 
-def test_calling_at_cmd_raises_AtCommandFailure_when_regular_ERROR_in_at_cmd_output_occurred(buffer_connection, at_cmd_test_class):
+def test_calling_at_cmd_raises_CommandFailure_when_regular_ERROR_in_at_cmd_output_occurred(buffer_connection, at_cmd_test_class):
     from moler.exceptions import CommandFailure
     buffer_connection.remote_inject_response(["AT+CMD\ndata\nERROR\n"])
     at_cmd = at_cmd_test_class("AT+CMD", connection=buffer_connection.moler_connection)
@@ -41,7 +41,7 @@ def test_calling_at_cmd_raises_AtCommandFailure_when_regular_ERROR_in_at_cmd_out
     assert "failed with >>ERROR<<" in str(error.value)
 
 
-def test_calling_at_cmd_raises_AtCommandFailure_with_error_msg_from_at_cmd_output(buffer_connection, at_cmd_test_class):
+def test_calling_at_cmd_raises_CommandFailure_with_error_msg_from_at_cmd_output(buffer_connection, at_cmd_test_class):
     from moler.exceptions import CommandFailure
     buffer_connection.remote_inject_response(["AT+CMD\n+CME ERROR: no connection to phone\n"])
     at_cmd = at_cmd_test_class("AT+CMD", connection=buffer_connection.moler_connection)
@@ -55,7 +55,7 @@ def test_calling_at_cmd_raises_AtCommandFailure_with_error_msg_from_at_cmd_outpu
     assert "failed with >>CMS ERROR: Short message transfer rejected<<" in str(error.value)
 
 
-def test_at_cmd_raises_AtCommandModeNotSupported_when_instantiated_in_incorrect_mode(at_cmd_test_class):
+def test_at_cmd_raises_CommandFailure_when_instantiated_in_incorrect_mode(at_cmd_test_class):
     from moler.exceptions import CommandFailure
     with pytest.raises(CommandFailure):
         at_cmd_test_class("AT+CMD", operation="magic_mode")
@@ -70,8 +70,8 @@ def at_cmd_test_class():
 
     class AtCmdTest(GenericAtCommand):
         def __init__(self, at_command_string, connection=None, operation="execute"):
-            super(AtCmdTest, self).__init__(connection, operation)
             self._at_command_string = at_command_string
+            super(AtCmdTest, self).__init__(connection, operation)
 
         def build_command_string(self):
             return self._at_command_string
