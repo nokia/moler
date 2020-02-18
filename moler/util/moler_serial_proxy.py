@@ -4,6 +4,9 @@ import threading
 import sys
 import platform
 import traceback
+
+# https://stackoverflow.com/questions/4915361/whats-the-difference-between-raw-input-and-input-in-python-3
+# forcing 'input' to mean same in Python2 and Python3:
 try:
     input = raw_input
 except NameError:
