@@ -1,7 +1,6 @@
 import serial
 import serial.threaded
 import threading
-import time
 import sys
 import platform
 import traceback
