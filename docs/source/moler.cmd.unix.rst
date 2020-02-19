@@ -524,6 +524,14 @@ moler.cmd.unix.run\_script module
     :undoc-members:
     :show-inheritance:
 
+moler.cmd.unix.run\_serial\_proxy module
+----------------------------------------
+
+.. automodule:: moler.cmd.unix.run_serial_proxy
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.cmd.unix.scp module
 -------------------------
 
@@ -560,6 +568,14 @@ moler.cmd.unix.socat module
 ---------------------------
 
 .. automodule:: moler.cmd.unix.socat
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+moler.cmd.unix.ss module
+------------------------
+
+.. automodule:: moler.cmd.unix.ss
     :members:
     :undoc-members:
     :show-inheritance:

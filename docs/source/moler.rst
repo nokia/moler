@@ -113,6 +113,14 @@ moler.observable\_connection module
     :undoc-members:
     :show-inheritance:
 
+moler.publisher module
+----------------------
+
+.. automodule:: moler.publisher
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.runner module
 -------------------
 
