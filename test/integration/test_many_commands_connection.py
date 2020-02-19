@@ -123,7 +123,7 @@ host:~ # """)
     result = (
         {
             "UPTIME": '3 days  2:14',
-            "UPTIME_SECONDS": 8040,
+            "UPTIME_SECONDS": 267240,
             "USERS": 29,
         },
         {
@@ -146,12 +146,12 @@ host:~ # """)
     result = (
         {
             "UPTIME": '3 days  2:14',
-            "UPTIME_SECONDS": 8040,
+            "UPTIME_SECONDS": 267240,
             "USERS": 29,
         },
         {
             "UPTIME": '3 days  2:15',
-            "UPTIME_SECONDS": 8100,
+            "UPTIME_SECONDS": 267300,
             "USERS": 8,
         }
     )
