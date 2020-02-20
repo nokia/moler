@@ -75,7 +75,7 @@ class Uptime(GenericUnixCommand):
 
     # 137 day(s), 19:07
     # 3 days  2:14
-    _re_days = re.compile(r"(?P<DAYS>\d+) day(.*),\s+(?P<HRS>\d+):(?P<MINS>\d+)")
+    _re_days = re.compile(r"(?P<DAYS>\d+) day(.*),?\s+(?P<HRS>\d+):(?P<MINS>\d+)")
 
     # 2 day(s), 3 min
     _re_days_minutes = re.compile(r"(?P<DAYS>\d+) day(.*),\s+(?P<MINS>\d+)\s+min")
@@ -137,7 +137,7 @@ COMMAND_KWARGS_days_hours_minutes = {}
 
 COMMAND_RESULT_days_hours_minutes = {
     "UPTIME": '3 days  2:14',
-    "UPTIME_SECONDS": 8040,
+    "UPTIME_SECONDS": 267240,
     "USERS": 29
 }
 
