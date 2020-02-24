@@ -164,3 +164,26 @@ DEVICES:
       AT_REMOTE:
         UNIX_REMOTE:
           execute_command: exit_serial_proxy # default value
+
+  ADB_REMOTE:
+    DEVICE_CLASS: moler.device.adbremote.AdbRemote
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        UNIX_REMOTE:
+          execute_command: ssh # default value
+          command_params:
+            expected_prompt: 'remote#'
+            host: remote_host
+            login: remote_login
+            password: passwd4remote
+            set_timeout: null
+      UNIX_REMOTE:
+        ADB_REMOTE:
+          execute_command: adb_shell # default value; default command is:  adb shell
+          command_params:
+            serial_number: 'f57e6b77'  #  to create:  adb -s f57e6b77 shell
+            expected_prompt: 'shell@adbhost:/ $'
+      ADB_REMOTE:
+        UNIX_REMOTE:
+          execute_command: exit # default value
