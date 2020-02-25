@@ -29,8 +29,8 @@ def adb_remote_output():
             'su': 'remote_root_prompt',
             'adb -s f57e6b77 shell': 'shell@adbhost:/ $'
         },
-        "AT_REMOTE": {
-            'exit_serial_proxy': 'remote#',
+        "ADB_SHELL": {
+            'exit': 'remote#',
         },
         "UNIX_REMOTE_ROOT": {
             'exit': 'remote#',

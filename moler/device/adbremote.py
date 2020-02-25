@@ -224,6 +224,7 @@ class AdbRemote(UnixRemote):
             if available:
                 return available[observer]
         elif state == UnixRemote.unix_remote:  # this is unix extended with adb commands
-            available[UnixRemote.cmds].append('moler.cmd.adb')
+            if observer == TextualDevice.cmds:
+                available.append('moler.cmd.adb')
 
         return available

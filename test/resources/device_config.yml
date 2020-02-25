@@ -179,11 +179,11 @@ DEVICES:
             password: passwd4remote
             set_timeout: null
       UNIX_REMOTE:
-        ADB_REMOTE:
+        ADB_SHELL:
           execute_command: adb_shell # default value; default command is:  adb shell
           command_params:
             serial_number: 'f57e6b77'  #  to create:  adb -s f57e6b77 shell
-            expected_prompt: 'shell@adbhost:/ $'
-      ADB_REMOTE:
+            expected_prompt: 'shell@adbhost:/ \$'
+      ADB_SHELL:
         UNIX_REMOTE:
           execute_command: exit # default value
