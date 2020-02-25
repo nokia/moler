@@ -91,7 +91,7 @@ xyz@debian ~$ adb shell
 shell@adbhost:/ $ """
 
 COMMAND_KWARGS_one_device = {
-    'expected_prompt': 'shell@adbhost:/ $'
+    'expected_prompt': r'shell@adbhost:/ \$'
 }
 
 COMMAND_RESULT_one_device = {}
@@ -102,7 +102,7 @@ shell@adbhost:/ $ """
 
 COMMAND_KWARGS_selected_device = {
     'serial_number': 'f57e6b77',
-    'expected_prompt': 'shell@adbhost:/ $'
+    'expected_prompt': r'shell@adbhost:/ \$'
 }
 
 COMMAND_RESULT_selected_device = {}
