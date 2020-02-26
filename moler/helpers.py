@@ -155,7 +155,7 @@ def remove_fill_spaces_right_codes(multiline):
 
 
 # ESC [ H        Move Cursor Home to let it write from first column
-_re_overwritten_left_writes = re.compile(r"^[^\n\r]*\x1B\[H(.)", flags=re.DOTALL|re.MULTILINE)
+_re_overwritten_left_writes = re.compile(r"^[^\n\r]*\x1B\[H(.)", flags=re.DOTALL | re.MULTILINE)
 
 
 def remove_overwritten_left_write(multiline):
