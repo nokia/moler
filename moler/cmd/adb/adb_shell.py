@@ -13,6 +13,7 @@ from moler.cmd.commandchangingprompt import CommandChangingPrompt
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 from moler.cmd.unix.genericunix import cmd_failure_causes
+from moler.helpers import remove_all_known_special_chars
 
 
 class AdbShell(CommandChangingPrompt):
@@ -45,6 +46,7 @@ class AdbShell(CommandChangingPrompt):
                                        prompt_after_login=prompt_after_login)
         self.serial_number = serial_number
         self.ret_required = False
+        self.remove_all_known_special_chars_from_terminal_output = True
 
     def build_command_string(self):
         """
@@ -84,6 +86,17 @@ class AdbShell(CommandChangingPrompt):
         if self._regex_helper.search_compiled(AdbShell._re_command_fail, line):
             self.set_exception(CommandFailure(self, "Found error regex in line '{}'".format(line)))
             raise ParsingDone
+
+    def _decode_line(self, line):
+        """
+        Method to delete new line chars and other chars we don not need to parse in on_new_line (color escape character)
+
+        :param line: Line with special chars, raw string from device
+        :return: line without special chars.
+        """
+        if self.remove_all_known_special_chars_from_terminal_output:
+            line = remove_all_known_special_chars(line)
+        return line
 
 
 COMMAND_OUTPUT_one_device = """
