@@ -20,6 +20,14 @@ moler.util.connection\_observer module
     :undoc-members:
     :show-inheritance:
 
+moler.util.connection\_observer\_life\_status module
+----------------------------------------------------
+
+.. automodule:: moler.util.connection_observer_life_status
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.util.converterhelper module
 ---------------------------------
 
@@ -40,6 +48,14 @@ moler.util.loghelper module
 ---------------------------
 
 .. automodule:: moler.util.loghelper
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+moler.util.moler\_serial\_proxy module
+--------------------------------------
+
+.. automodule:: moler.util.moler_serial_proxy
     :members:
     :undoc-members:
     :show-inheritance:

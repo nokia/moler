@@ -12,6 +12,14 @@ moler.device.abstract\_device module
     :undoc-members:
     :show-inheritance:
 
+moler.device.atremote module
+----------------------------
+
+.. automodule:: moler.device.atremote
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.device.device module
 --------------------------
 
