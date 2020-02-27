@@ -37,12 +37,12 @@ class AtRemote(UnixRemote):
                password: password
       UNIX_REMOTE:
         AT_REMOTE:
-          execute_command: run_serial_proxy # default value
+          execute_command: plink_serial # default value
           command_params:
             serial_devname: 'COM5'
       AT_REMOTE:
         UNIX_REMOTE:
-          execute_command: exit_serial_proxy # default value
+          execute_command: ctrl_c # default value
     """
 
     at_remote = "AT_REMOTE"
@@ -77,7 +77,10 @@ class AtRemote(UnixRemote):
             TextualDevice.connection_hops: {
                 UnixRemote.unix_remote: {  # from
                     AtRemote.at_remote: {  # to
-                        "execute_command": "run_serial_proxy",
+                        "execute_command": "plink_serial",
+                        "command_params": {  # with parameters
+                            "target_newline": "\r\n"
+                        },
                         "required_command_params": [
                             "serial_devname"
                         ]
@@ -85,10 +88,12 @@ class AtRemote(UnixRemote):
                 },
                 AtRemote.at_remote: {  # from
                     UnixRemote.unix_remote: {  # to
-                        "execute_command": "exit_serial_proxy",  # using command
+                        "execute_command": "ctrl_c",  # using command
                         "command_params": {  # with parameters
-                            "prompt": r'^[^<]*[$%#>~]\s*$'
+                            "expected_prompt": 'remote_prompt',  # overwritten in _configure_state_machine
                         },
+                        "required_command_params": [
+                        ]
                     },
                 },
             }
@@ -141,10 +146,9 @@ class AtRemote(UnixRemote):
         :return: newline char for each state without proxy_pc state.
         """
         hops_config = self._configurations[TextualDevice.connection_hops]
+        hops_2_at_remote_config = hops_config[UnixRemote.unix_remote][AtRemote.at_remote]
         newline_chars = {
-            # same newlines as UnixRemote.unix_remote where proxy is started
-            AtRemote.at_remote:
-                hops_config[UnixRemote.unix_local][UnixRemote.unix_remote]["command_params"]["target_newline"],
+            AtRemote.at_remote: hops_2_at_remote_config["command_params"]["target_newline"],
         }
         return newline_chars
 
@@ -198,11 +202,11 @@ class AtRemote(UnixRemote):
         """
         super(AtRemote, self)._configure_state_machine(sm_params)
 
-        # copy prompt for AT_REMOTE/exit_serial_proxy from UNIX_REMOTE_ROOT/exit
+        # copy prompt for AT_REMOTE/ctrl_c from UNIX_REMOTE_ROOT/exit
         hops_config = self._configurations[TextualDevice.connection_hops]
         remote_ux_root_exit_params = hops_config[UnixRemote.unix_remote_root][UnixRemote.unix_remote]["command_params"]
         remote_ux_prompt = remote_ux_root_exit_params["expected_prompt"]
-        hops_config[AtRemote.at_remote][UnixRemote.unix_remote]["command_params"]["prompt"] = remote_ux_prompt
+        hops_config[AtRemote.at_remote][UnixRemote.unix_remote]["command_params"]["expected_prompt"] = remote_ux_prompt
 
     def _get_packages_for_state(self, state, observer):
         """
@@ -214,12 +218,13 @@ class AtRemote(UnixRemote):
         available = super(AtRemote, self)._get_packages_for_state(state, observer)
 
         if not available:
-            if AtRemote.at_remote:
-                available = {TextualDevice.cmds: ['moler.cmd.at'],
+            if state == AtRemote.at_remote:
+                available = {TextualDevice.cmds: ['moler.cmd.at', 'moler.cmd.unix.ctrl_c'],
                              TextualDevice.events: ['moler.events.shared']}
             if available:
                 return available[observer]
+        elif state == UnixRemote.unix_remote:  # this is unix extended with plink_serial command
+            if observer == TextualDevice.cmds:
+                available.append('moler.cmd.at.plink_serial')
 
         return available
-
-# TODO: possible hardening: observer for >>> prompt; anytime caught it sends 'exit()'

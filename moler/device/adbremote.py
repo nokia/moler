@@ -218,7 +218,7 @@ class AdbRemote(UnixRemote):
         available = super(AdbRemote, self)._get_packages_for_state(state, observer)
 
         if not available:
-            if AdbRemote.adb_shell:
+            if state == AdbRemote.adb_shell:
                 available = {TextualDevice.cmds: ['moler.cmd.unix'],
                              TextualDevice.events: ['moler.events.shared']}
             if available:

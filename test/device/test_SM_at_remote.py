@@ -16,6 +16,9 @@ def test_at_remote_device(device_connection, at_remote_output):
 
 @pytest.fixture
 def at_remote_output():
+    plink_cmd_string = 'plink -serial COM5 |& awk -v entry_prompt="COM5> port READY"' + \
+                       ' -v ctrlc="^C" -v exit_prompt="${PS1@P}"' + \
+                       " 'BEGIN {print entry_prompt} {print} END {print ctrlc; print exit_prompt}'"
     output = {
         "UNIX_LOCAL": {
             'TERM=xterm-mono ssh -l remote_login -o ServerAliveInterval=7 -o ServerAliveCountMax=2 remote_host': 'remote#',
@@ -27,10 +30,10 @@ def at_remote_output():
         "UNIX_REMOTE": {
             'exit': 'moler_bash#',
             'su': 'remote_root_prompt',
-            'python -i moler_serial_proxy.py COM5': 'COM5>'
+            plink_cmd_string: 'COM5>'
         },
         "AT_REMOTE": {
-            'exit_serial_proxy': 'remote#',
+            '\x03': '^C\nremote#',
         },
         "UNIX_REMOTE_ROOT": {
             'exit': 'remote#',
