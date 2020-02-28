@@ -15,9 +15,8 @@ from moler.cmd.at import plink_serial
 
 def test_command_prepares_correct_commandstring_to_send(buffer_connection):
     cmd = plink_serial.PlinkSerial(connection=buffer_connection.moler_connection, serial_devname="COM5")
-    expected_cmd_string = 'plink -serial COM5 |& awk -v entry_prompt="COM5> port READY"' + \
-                          ' -v ctrlc="^C" -v exit_prompt="${PS1@P}"' + \
-                          " 'BEGIN {print entry_prompt} {print} END {print ctrlc; print exit_prompt}'"
+    expected_cmd_string = 'plink -serial COM5 ' + \
+                          '|& awk \'BEGIN {print "COM5> port READY"} {print} END {print "^C"}\''
     assert expected_cmd_string == cmd.command_string
 
 

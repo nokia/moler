@@ -42,10 +42,8 @@ class PlinkSerial(CommandChangingPrompt):
         # we pipe via awk because:
         # 1) we want entry prompt like 'COM5> port READY' (plink -serial attaches AT console which is silent/no prompt)
         # 2) we want to remove all terminal ctrl codes (especially on cygwin + winpty environment)
-        # Because of piping we need to simulate Ctrl-C and final prompt after plink completion
-        awk_variables = '-v entry_prompt="{}> port READY" -v ctrlc="^C" -v exit_prompt={}'.format(self.serial_devname,
-                                                                                                  '"${PS1@P}"')
-        awk_cmd = 'awk ' + awk_variables + " 'BEGIN {print entry_prompt} {print} END {print ctrlc; print exit_prompt}'"
+        # 3) we need to simulate Ctrl-C output after plink completion to allow using ctrl_c unix command to stop plink
+        awk_cmd = 'awk \'BEGIN {print "COM5> port READY"} {print} END {print "^C"}\''
         proxy_command = "plink -serial {} |& {}".format(self.serial_devname, awk_cmd)
         return proxy_command
 
