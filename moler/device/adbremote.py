@@ -36,12 +36,12 @@ class AdbRemote(UnixRemote):
                login: login
                password: password
       UNIX_REMOTE:
-        ADB_REMOTE:
+        ADB_SHELL:
           execute_command: adb_shell # default value; default command is:  adb shell
           command_params:
             device_serial_number: 'f57e6b7d'  #  to create:  adb -s f57e6b7d shell
             expected_prompt: 'shell@adbhost: $'
-      ADB_REMOTE:
+      ADB_SHELL:
         UNIX_REMOTE:
           execute_command: exit # default value
     """
@@ -202,7 +202,7 @@ class AdbRemote(UnixRemote):
         """
         super(AdbRemote, self)._configure_state_machine(sm_params)
 
-        # copy prompt for ADB_REMOTE/exit from UNIX_REMOTE_ROOT/exit
+        # copy prompt for ADB_SHELL/exit from UNIX_REMOTE_ROOT/exit
         hops_config = self._configurations[TextualDevice.connection_hops]
         remote_ux_root_exit_params = hops_config[UnixRemote.unix_remote_root][UnixRemote.unix_remote]["command_params"]
         remote_ux_prompt = remote_ux_root_exit_params["expected_prompt"]
