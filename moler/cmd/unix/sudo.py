@@ -66,6 +66,7 @@ class Sudo(CommandChangingPrompt):
         self._sent_command_string = False
         self.newline_seq = "\n"
         self._line_for_sudo = False
+        self._command_output_started = False
         self.ret_required = False
         self._validated_embedded_parameters = False  # Validate parameters only once
         self._finish_on_final_prompt = False
@@ -94,6 +95,7 @@ class Sudo(CommandChangingPrompt):
         """
         try:
             self._parse_sudo_password(line)
+            self._process_wrong_password(line)
             self._parse_command_not_found(line)
             self._parse_sudo_error(line)
         except ParsingDone:
@@ -120,11 +122,13 @@ class Sudo(CommandChangingPrompt):
         self.on_new_line(line=decoded_line, is_full_line=is_full_line)
         if self.cmd_object:
             if not self._line_for_sudo:
-                embedded_command_done = self.cmd_object.done()
-                self._process_embedded_command(partial_data=current_chunk)
-                if not embedded_command_done and self.cmd_object.done():
-                    # process again because prompt was sent
-                    self.on_new_line(line=decoded_line, is_full_line=is_full_line)
+                if not self.done() or self._command_output_started:
+                    self._command_output_started = True
+                    embedded_command_done = self.cmd_object.done()
+                    self._process_embedded_command(partial_data=current_chunk)
+                    if not embedded_command_done and self.cmd_object.done():
+                        # process again because prompt was sent
+                        self.on_new_line(line=decoded_line, is_full_line=is_full_line)
 
     def _process_embedded_command(self, partial_data):
         """
@@ -169,8 +173,27 @@ class Sudo(CommandChangingPrompt):
             self._finish_on_final_prompt = True
             raise ParsingDone()
 
+    # Sorry, try again.
+    _re_sudo_sorry_try_again = re.compile(r"Sorry, try again.", re.I)
+
+    def _process_wrong_password(self, line):
+        """
+        Parses line for wrong password from sudo.
+
+        :param line: Line from device.
+        :return: None
+        :raises: ParsingDone if regex matches the line.
+        """
+        if re.search(Sudo._re_sudo_sorry_try_again, line):
+            if self._sent_sudo_password and not self._command_output_started:
+                self.set_exception(CommandFailure(self, "Command sudo error found in line '{}'.".format(line)))
+                self._finish_on_final_prompt = True
+                self._sent_sudo_password = False
+                raise ParsingDone()
+
     # sudo: /usr/bin/sudo must be owned by uid 0 and have the setuid bit set
-    _re_sudo_error = re.compile(r"sudo:.*must be owned by uid\s+\d+\s+and have the setuid bit set|usage: sudo", re.I)
+    _re_sudo_error = re.compile(r"sudo:.*must be owned by uid\s+\d+\s+and have the setuid bit set|usage: sudo|"
+                                r"sudo: \d+ incorrect password attempt", re.I)
 
     def _parse_sudo_error(self, line):
         """
