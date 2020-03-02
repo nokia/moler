@@ -391,7 +391,7 @@ class TextualDevice(AbstractDevice):
     def _trigger_change_state(self, next_state, timeout, rerun, send_enter_after_changed_state,
                               log_stacktrace_on_fail=True):
         self._log(logging.DEBUG, "'{}'. Changing state from '{}' into '{}'.".format(self.name, self.current_state,
-                                                                                  next_state))
+                                                                                    next_state))
         change_state_method = None
         # all state triggers used by SM are methods with names starting from "GOTO_"
         # for e.g. GOTO_REMOTE, GOTO_CONNECTED
