@@ -466,13 +466,14 @@ class TextualDevice(AbstractDevice):
         basic_module = importlib.import_module(package_name)
         try:
             mod_path = basic_module.__path__
+        except AttributeError:
+            module_available_cmds = self._load_cmds_from_module(module_name=package_name)
+            available_cmds.update(module_available_cmds)
+        else:
             for importer, modname, is_pkg in pkgutil.iter_modules(mod_path):
                 module_name = "{}.{}".format(package_name, modname)
                 module_available_cmds = self._load_cmds_from_module(module_name)
                 available_cmds.update(module_available_cmds)
-        except AttributeError:
-            module_available_cmds = self._load_cmds_from_module(module_name=package_name)
-            available_cmds.update(module_available_cmds)
 
         return available_cmds
 
