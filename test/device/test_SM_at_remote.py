@@ -16,9 +16,7 @@ def test_at_remote_device(device_connection, at_remote_output):
 
 @pytest.fixture
 def at_remote_output():
-    plink_cmd_string = 'plink -serial COM5 |& awk -v entry_prompt="COM5> port READY"' + \
-                       ' -v ctrlc="^C" -v exit_prompt="${PS1@P}"' + \
-                       " 'BEGIN {print entry_prompt} {print} END {print ctrlc; print exit_prompt}'"
+    plink_cmd_string = 'plink -serial COM5 |& awk \'BEGIN {print "COM5> port READY"} {print} END {print "^C"}\''
     output = {
         "UNIX_LOCAL": {
             'TERM=xterm-mono ssh -l remote_login -o ServerAliveInterval=7 -o ServerAliveCountMax=2 remote_host': 'remote#',
