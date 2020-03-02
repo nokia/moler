@@ -11,6 +11,7 @@ from moler.cmd.unix.sudo import Sudo
 from moler.cmd.unix.pwd import Pwd
 from moler.cmd.unix.cp import Cp
 from moler.cmd.unix.su import Su
+from moler.cmd.unix.whoami import Whoami
 from moler.exceptions import CommandTimeout
 from moler.exceptions import CommandFailure
 import pytest
@@ -197,6 +198,16 @@ def test_failing_with_both_parameters(buffer_connection, command_output_cp_fails
         cmd_sudo(timeout=0.2)
 
 
+def test_failing_with_wrong_password(buffer_connection, command_output_password_fails):
+    command_output = command_output_password_fails
+    buffer_connection.remote_inject_response([command_output])
+    cmd = Whoami(connection=buffer_connection.moler_connection)
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, cmd_object=cmd, password="pass")
+    with pytest.raises(CommandFailure):
+        cmd_sudo(timeout=0.2)
+    assert cmd_sudo._command_output_started is False
+
+
 def test_sudo_forwards_nonsudo_specific_connection_data_into_embedded_command(buffer_connection):
     command_output_chunks = ["user@client:~/moler$ sudo pwd",  # sudo specific - command echo
                              "\r\n",
@@ -260,6 +271,21 @@ def command_output_cp_bit_fails():
 sudo: /usr/bin/sudo must be owned by uid 0 and have the setuid bit set
 ute@debdev:~/moler$ """
     return output
+
+
+@pytest.fixture()
+def command_output_password_fails():
+    output = """sudo whoami
+[sudo] password for ute: 
+Sorry, try again.
+[sudo] password for ute: 
+Sorry, try again.
+[sudo] password for ute: 
+Sorry, try again.
+sudo: 3 incorrect password attempts
+[login]$ """
+    return output
+
 
 
 @pytest.fixture()
