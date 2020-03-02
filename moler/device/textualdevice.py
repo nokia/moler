@@ -361,9 +361,10 @@ class TextualDevice(AbstractDevice):
 
         while (not is_dest_state) and (not is_timeout):
             next_state = self._get_next_state(dest_state)
-            self._trigger_change_state(next_state=next_state, timeout=next_stage_timeout, rerun=rerun,
-                                       send_enter_after_changed_state=send_enter_after_changed_state,
-                                       log_stacktrace_on_fail=log_stacktrace_on_fail)
+            if self.current_state != dest_state:
+                self._trigger_change_state(next_state=next_state, timeout=next_stage_timeout, rerun=rerun,
+                                           send_enter_after_changed_state=send_enter_after_changed_state,
+                                           log_stacktrace_on_fail=log_stacktrace_on_fail)
 
             if self.current_state == dest_state:
                 is_dest_state = True
@@ -470,7 +471,8 @@ class TextualDevice(AbstractDevice):
             for (cmd_class_name, cmd_module_name) in inspect.getmembers(module, inspect.isclass):
                 if cmd_module_name.__module__ == module_name:
                     cmd_class_obj = getattr(module, cmd_class_name)
-                    if issubclass(cmd_class_obj, ConnectionObserver):  # module may contain other classes (f.ex. exceptions)
+                    if issubclass(cmd_class_obj,
+                                  ConnectionObserver):  # module may contain other classes (f.ex. exceptions)
                         # like:  IpAddr --> ip_addr
                         cmd_name = cmd_class_obj.observer_name
                         # like:  IpAddr --> moler.cmd.unix.ip_addr.IpAddr
