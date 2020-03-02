@@ -1,3 +1,23 @@
+## moler 1.7.0
+
+### Added
+* AdbRemote device being state machine capable to reach ADB_SHELL state
+   * allow firing android-linux commands from within android device
+* ADB commands:
+   * adb_shell
+* AT commands:
+   * plink_serial
+
+### Improved
+* AtRemote device uses 'plink -serial' to proxy serial into stdin/stdout
+* State Machines definition: commands allowed for state may be specified using module name
+   * previously (only packages): ['moler.cmd.at'], now: ['moler.cmd.at', 'moler.cmd.unix.ctrl_c']
+   * helps in code reuse while keeping commands under related device folder
+* Improved connection decoder inside ThreadedTerminal: cleaning output from VT100 terminal codes (not all)
+
+### Fixed
+* GenericAtCommand treats 'NO CARRIER' console output as error indication
+
 ## moler 1.6.0
 
 ### Added
