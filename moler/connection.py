@@ -12,7 +12,7 @@ Connection responsibilities:
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
@@ -153,12 +153,13 @@ class Connection(object):
         :return: Nothing
         """
 
-        characters = [ord(char) for char in self.newline]
-        newline_old = "0x" + ''.join("'{:02X}'".format(a) for a in characters)
-        characters = [ord(char) for char in newline_seq]
-        newline_new = "0x" + ''.join("'{:02X}'".format(a) for a in characters)
-        # 11 15:30:32.855 DEBUG        moler.connection.UnixRemote1    |changing newline seq old '0x'0D''0A'' -> new '0x'0A''
-        self._log(logging.DEBUG, "changing newline seq old '{}' -> new '{}'".format(newline_old, newline_new))
+        if self.newline != newline_seq:
+            characters = [ord(char) for char in self.newline]
+            newline_old = "0x" + ''.join("'{:02X}'".format(a) for a in characters)
+            characters = [ord(char) for char in newline_seq]
+            newline_new = "0x" + ''.join("'{:02X}'".format(a) for a in characters)
+            # 11 15:30:32.855 DEBUG        moler.connection.UnixRemote1    |changing newline seq old '0x'0D''0A'' -> new '0x'0A''
+            self._log(logging.DEBUG, "changing newline seq old '{}' -> new '{}'".format(newline_old, newline_new))
         self.newline = newline_seq
 
     def sendline(self, data, timeout=30, encrypt=False):
@@ -219,6 +220,7 @@ class Connection(object):
                 extra_params.update(extra)
             try:
                 # levels_to_go_up=1 : extract caller info to log where _log() has been called from
-                log_into_logger(self.logger, level, msg, extra=extra_params, levels_to_go_up=levels_to_go_up)
+                log_into_logger(logger=self.logger, level=level, msg=msg, extra=extra_params,
+                                levels_to_go_up=levels_to_go_up)
             except Exception as err:
                 print(err)  # logging errors should not propagate
