@@ -467,20 +467,33 @@ class TextualDevice(AbstractDevice):
     def _load_cmds_from_package(self, package_name):
         available_cmds = dict()
         basic_module = importlib.import_module(package_name)
-        for importer, modname, is_pkg in pkgutil.iter_modules(basic_module.__path__):
-            module_name = "{}.{}".format(package_name, modname)
-            module = importlib.import_module(module_name)
-            for (cmd_class_name, cmd_module_name) in inspect.getmembers(module, inspect.isclass):
-                if cmd_module_name.__module__ == module_name:
-                    cmd_class_obj = getattr(module, cmd_class_name)
-                    if issubclass(cmd_class_obj,
-                                  ConnectionObserver):  # module may contain other classes (f.ex. exceptions)
-                        # like:  IpAddr --> ip_addr
-                        cmd_name = cmd_class_obj.observer_name
-                        # like:  IpAddr --> moler.cmd.unix.ip_addr.IpAddr
-                        cmd_class_fullname = "{}.{}".format(module_name, cmd_class_name)
+        try:
+            mod_path = basic_module.__path__
+        except AttributeError:
+            module_available_cmds = self._load_cmds_from_module(module_name=package_name)
+            available_cmds.update(module_available_cmds)
+        else:
+            for importer, modname, is_pkg in pkgutil.iter_modules(mod_path):
+                module_name = "{}.{}".format(package_name, modname)
+                module_available_cmds = self._load_cmds_from_module(module_name)
+                available_cmds.update(module_available_cmds)
 
-                        available_cmds.update({cmd_name: cmd_class_fullname})
+        return available_cmds
+
+    def _load_cmds_from_module(self, module_name):
+        available_cmds = dict()
+
+        module = importlib.import_module(module_name)
+        for (cmd_class_name, cmd_module_name) in inspect.getmembers(module, inspect.isclass):
+            if cmd_module_name.__module__ == module_name:
+                cmd_class_obj = getattr(module, cmd_class_name)
+                if issubclass(cmd_class_obj, ConnectionObserver):  # module may contain other classes (f.ex. exceptions)
+                    # like:  IpAddr --> ip_addr
+                    cmd_name = cmd_class_obj.observer_name
+                    # like:  IpAddr --> moler.cmd.unix.ip_addr.IpAddr
+                    cmd_class_fullname = "{}.{}".format(module_name, cmd_class_name)
+
+                    available_cmds.update({cmd_name: cmd_class_fullname})
         return available_cmds
 
     def _get_observer_in_state(self, observer_name, observer_type, for_state, **kwargs):

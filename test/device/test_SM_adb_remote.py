@@ -7,16 +7,15 @@ import pytest
 from moler.util.devices_SM import iterate_over_device_states, get_device
 
 
-def test_at_remote_device(device_connection, at_remote_output):
-    at_remote = get_device(name="AT_REMOTE", connection=device_connection, device_output=at_remote_output,
-                           test_file_path=__file__)
+def test_adb_remote_device(device_connection, adb_remote_output):
+    adb_remote = get_device(name="ADB_REMOTE", connection=device_connection, device_output=adb_remote_output,
+                            test_file_path=__file__)
 
-    iterate_over_device_states(device=at_remote)
+    iterate_over_device_states(device=adb_remote)
 
 
 @pytest.fixture
-def at_remote_output():
-    plink_cmd_string = 'plink -serial COM5 |& awk \'BEGIN {print "COM5> port READY"} {print} END {print "^C"}\''
+def adb_remote_output():
     output = {
         "UNIX_LOCAL": {
             'TERM=xterm-mono ssh -l remote_login -o ServerAliveInterval=7 -o ServerAliveCountMax=2 remote_host': 'remote#',
@@ -28,10 +27,10 @@ def at_remote_output():
         "UNIX_REMOTE": {
             'exit': 'moler_bash#',
             'su': 'remote_root_prompt',
-            plink_cmd_string: 'COM5>'
+            'adb -s f57e6b77 shell': 'shell@adbhost:/ $'
         },
-        "AT_REMOTE": {
-            '\x03': '^C\nremote#',
+        "ADB_SHELL": {
+            'exit': 'remote#',
         },
         "UNIX_REMOTE_ROOT": {
             'exit': 'remote#',

@@ -96,16 +96,75 @@ def remove_escape_codes(line):
     return line
 
 
-_re_remove_xterm_window_title_hack = re.compile(r'\x1b\x5d0;.*\x07')  # Regex to remove xterm hack for set window title
+# ESC [ ? 12 h   Start the cursor blinking
+# ESC [ ? 12 l   Stop blinking the cursor
+# ESC [ ? 25 h   Show the cursor
+# ESC [ ? 25 l   Show the cursor
+_re_cursor_visibility_codes = re.compile(r"\x1B\[\?(12|25)[hl]")
 
 
-def remove_xterm_window_title_hack(line):
+def remove_cursor_visibility_codes(multiline):
     """
-    :param line: line from terminal
-    :return: line without xterm windows title hack
+    :param multiline: string from terminal holding single or multiple lines
+    :return: line(s) without terminal escape codes related to cursor visibility
     """
-    line = re.sub(_re_remove_xterm_window_title_hack, "", line)
-    return line
+    multiline = _re_cursor_visibility_codes.sub("", multiline)
+    return multiline
+
+
+# ESC [ <n> m    Text formatting as specified by <n>; <n> may mean bold/underline/some-color
+# ESC [ m        Switch off text formatting (back to defaults)
+_re_text_formatting_codes = re.compile(r"\x1B\[\d*m")
+
+
+def remove_text_formatting_codes(multiline):
+    """
+    :param multiline: string from terminal holding single or multiple lines
+    :return: line(s) without terminal escape codes related to text formatting
+    """
+    multiline = _re_text_formatting_codes.sub("", multiline)
+    return multiline
+
+
+# ESC ] 0 ; <string> BEL    Sets the console window’s (and icon) title to <string>.
+# ESC ] 2 ; <string> BEL    Sets the console window’s title to <string>.
+_re_console_title_codes = re.compile(r"\x1B\][02];[^\x07]+\x07")
+
+
+def remove_window_title_codes(multiline):
+    """
+    :param multiline: string from terminal holding single or multiple lines
+    :return: line(s) without terminal escape codes setting console window/icon title
+    """
+    multiline = _re_console_title_codes.sub("", multiline)
+    return multiline
+
+
+# ESC [ <n> C    Cursor forward (Right) by <n>
+# ESC [ <n> X    Erase <n> characters from the current cursor position by overwriting them with a space character.
+_re_space_fill_to_right_margin = re.compile(r"(\x1B\[\d+[XC])+(\r|\n)")
+
+
+def remove_fill_spaces_right_codes(multiline):
+    """
+    :param multiline: string from terminal holding single or multiple lines
+    :return: line(s) without spaces added till right VT-screen margin
+    """
+    multiline = _re_space_fill_to_right_margin.sub(r"\2", multiline)
+    return multiline
+
+
+# ESC [ H        Move Cursor Home to let it write from first column
+_re_overwritten_left_writes = re.compile(r"^[^\n\r]*\x1B\[H(.)", flags=re.DOTALL | re.MULTILINE)
+
+
+def remove_overwritten_left_write(multiline):
+    """
+    :param multiline: string from terminal holding single or multiple lines
+    :return: line without spaces added till right VT-screen margin
+    """
+    multiline = _re_overwritten_left_writes.sub(r"\1", multiline)
+    return multiline
 
 
 _re_remove_terminal_last_cmd_status = re.compile(r'\x1b]777;notify;.*\x07')
@@ -125,9 +184,13 @@ def remove_all_known_special_chars(line):
     :param line: line from terminal
     :return: line without all known special chars
     """
+    line = remove_overwritten_left_write(line)
     line = remove_escape_codes(line)
-    line = remove_xterm_window_title_hack(line)
+    line = remove_window_title_codes(line)
     line = remove_terminal_last_cmd_status(line)
+    line = remove_cursor_visibility_codes(line)
+    line = remove_fill_spaces_right_codes(line)
+    line = remove_text_formatting_codes(line)
     return line
 
 
