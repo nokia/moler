@@ -10,11 +10,10 @@ __copyright__ = 'Copyright (C) 2020, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
 from moler.device.textualdevice import TextualDevice
-# from moler.device.proxy_pc import ProxyPc  # TODO: allow jumping towards AT_REMOTE via proxy-pc
+# from moler.device.proxy_pc import ProxyPc  # TODO: allow jumping towards ADB_REMOTE via proxy-pc
 from moler.device.unixlocal import UnixLocal
 from moler.device.unixremote import UnixRemote
 from moler.helpers import call_base_class_method_with_same_name, mark_to_call_base_class_method_with_same_name
-from moler.cmd.at.genericat import GenericAtCommand
 
 
 @call_base_class_method_with_same_name
@@ -24,7 +23,7 @@ class AdbRemote(UnixRemote):
 
     Example of device in yaml configuration file:
     -without PROXY_PC:
-      AT_1:
+      ADB_1:
        DEVICE_CLASS: moler.device.adbremote.AdbRemote
        CONNECTION_HOPS:
          UNIX_LOCAL:

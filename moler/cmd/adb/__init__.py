@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Package for implementing Unix/Linux commands.
+Package for implementing ADB commands.
 """
 
 __author__ = 'Grzegorz Latuszek'
