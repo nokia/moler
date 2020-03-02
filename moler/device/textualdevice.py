@@ -435,10 +435,11 @@ class TextualDevice(AbstractDevice):
                                              "Retrying '{}' of '{}' times.".format(next_state, retrying, rerun))
                     if send_enter_after_changed_state:
                         self._send_enter_after_changed_state()
-        self.io_connection.moler_connection.change_newline_seq(self._get_newline(state=next_state))
-        if send_enter_after_changed_state:
-            self._send_enter_after_changed_state()
-        self._log(logging.DEBUG, "Successfully enter state '{}'".format(next_state))
+        if self.current_state == next_state:
+            self.io_connection.moler_connection.change_newline_seq(self._get_newline(state=next_state))
+            if send_enter_after_changed_state:
+                self._send_enter_after_changed_state()
+            self._log(logging.DEBUG, "{}: Successfully enter state '{}'".format(self.name, next_state))
 
     def on_connection_made(self, connection):
         self._set_state(TextualDevice.connected)
