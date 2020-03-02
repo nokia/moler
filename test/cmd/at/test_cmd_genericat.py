@@ -41,6 +41,16 @@ def test_calling_at_cmd_raises_CommandFailure_when_regular_ERROR_in_at_cmd_outpu
     assert "failed with >>ERROR<<" in str(error.value)
 
 
+def test_calling_at_cmd_raises_CommandFailure_when_NO_CARRIER_in_at_cmd_output_occurred(buffer_connection, at_cmd_test_class):
+    from moler.exceptions import CommandFailure
+    buffer_connection.remote_inject_response(["AT+CMD\ndata\nNO CARRIER\n"])
+    at_cmd = at_cmd_test_class("AT+CMD", connection=buffer_connection.moler_connection)
+    with pytest.raises(CommandFailure) as error:
+        at_cmd()
+    assert 'AT+CMD' in str(error.value)
+    assert "failed with >>NO CARRIER<<" in str(error.value)
+
+
 def test_calling_at_cmd_raises_CommandFailure_with_error_msg_from_at_cmd_output(buffer_connection, at_cmd_test_class):
     from moler.exceptions import CommandFailure
     buffer_connection.remote_inject_response(["AT+CMD\n+CME ERROR: no connection to phone\n"])

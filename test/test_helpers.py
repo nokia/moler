@@ -164,3 +164,62 @@ def test_non_printable_chars_to_hex():
     expected_output = r"a\x0a\x0db\x03\x05"
     output = non_printable_chars_to_hex(source=source)
     assert output == expected_output
+
+
+def test_removal_cursor_visibility_codes():
+    from moler.helpers import remove_cursor_visibility_codes
+    line = "\x1B[?25h\x1B[?25llogin\x1B[?25l :\x1B[?12h\x1B[?12l"
+    output = remove_cursor_visibility_codes(multiline=line)
+    assert "login :" == output
+    multiline = "\x1B[?25h\x1B[?25llogin\x1B[?25l :\x1B[?12h\x1B[?12l\n\x1B[?25h\x1B[?25l>"
+    output2 = remove_cursor_visibility_codes(multiline=multiline)
+    assert "login :\n>" == output2
+
+
+def test_removal_fill_spaces_right_codes():
+    from moler.helpers import remove_fill_spaces_right_codes
+    full_line = "login:\x1B[300X\x1B[24X\x1B[300C\n"
+    multiline = "login:\x1B[300X\x1B[24X\x1B[300C\n\x1B[300X\x1B[300C\n"
+    incomplete_line = "login:\x1B[300X\x1B[300C"
+    output1 = remove_fill_spaces_right_codes(multiline=full_line)
+    assert "login:\n" == output1
+    output2 = remove_fill_spaces_right_codes(multiline=multiline)
+    assert "login:\n\n" == output2
+    output3 = remove_fill_spaces_right_codes(multiline=incomplete_line)
+    assert incomplete_line == output3   # no conversion since no newline
+
+
+def test_removal_left_wrights_that_were_overwritten():
+    from moler.helpers import remove_overwritten_left_write
+    line = "\x1B[300X\x1B[300C\x1B[11;1H\x1B[?25h\x1B[?25l\x1B[HLast login:"
+    output = remove_overwritten_left_write(multiline=line)
+    assert "Last login:" == output
+    line2 = "\x1B[300X\x1B[300C\x1B[11;1H\x1B[?25h\x1B[?25l\x1B[H\x1B[32mLast login:"
+    output2 = remove_overwritten_left_write(multiline=line2)
+    assert "\x1B[32mLast login:" == output2
+    line3 = "\x1B[300X\x1B[300C\x1B[11;1H\x1B[?25h\x1B[?25l\x1B[H login:"
+    output3 = remove_overwritten_left_write(multiline=line3)
+    assert " login:" == output3
+    multiline = "\x1B[300X\x1B[300C\x1B[11;1H\x1B[?25h\x1B[?25l\x1B[H login:\nabc>\x1B[H\x1B[300X\nabc>\x1B[H password:"
+    output4 = remove_overwritten_left_write(multiline=multiline)
+    assert " login:\n\x1B[300X\n password:" == output4
+
+
+def test_removal_text_formating_codes():
+    from moler.helpers import remove_text_formatting_codes
+    line = "\x1B[32muser-lab0@PLKR-SC5G-PC11 \x1B[33m~\x1B[m"
+    output = remove_text_formatting_codes(multiline=line)
+    assert "user-lab0@PLKR-SC5G-PC11 ~" == output
+    multiline = "\x1B[32muser-lab0@PLKR-SC5G-PC11 \x1B[33m~\x1B[m$ adb shell\n\x1B[32mmsmnile:/ #\x1B[m"
+    output2 = remove_text_formatting_codes(multiline=multiline)
+    assert "user-lab0@PLKR-SC5G-PC11 ~$ adb shell\nmsmnile:/ #" == output2
+
+
+def test_removal_window_title_codes():
+    from moler.helpers import remove_window_title_codes
+    line = "\x1B]0;~\x07"
+    output = remove_window_title_codes(multiline=line)
+    assert "" == output
+    multiline = "\x1B]0;~\x07\n\x1B]2;~\x07"
+    output2 = remove_window_title_codes(multiline=multiline)
+    assert "\n" == output2

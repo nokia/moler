@@ -84,6 +84,25 @@ def mlr_conn_no_encoding(moler_conn_class, name):
     return moler_conn_class(name=name)
 
 
+def mlr_conn_no_encoding_partial_clean_vt100(moler_conn_class, name):
+    """Cleans some VT100 control-codes"""
+    from moler.helpers import remove_text_formatting_codes
+    from moler.helpers import remove_fill_spaces_right_codes
+    from moler.helpers import remove_cursor_visibility_codes
+    from moler.helpers import remove_window_title_codes
+    from moler.helpers import remove_overwritten_left_write
+
+    def vt100_cleaner(data):
+        decoded = remove_overwritten_left_write(multiline=data)
+        decoded = remove_text_formatting_codes(multiline=decoded)
+        decoded = remove_fill_spaces_right_codes(multiline=decoded)
+        decoded = remove_cursor_visibility_codes(multiline=decoded)
+        decoded = remove_window_title_codes(multiline=decoded)
+        return decoded
+
+    return moler_conn_class(name=name, decoder=vt100_cleaner)
+
+
 def mlr_conn_utf8(moler_conn_class, name):
     return moler_conn_class(encoder=lambda data: data.encode("utf-8"),
                             decoder=lambda data: data.decode("utf-8"),
@@ -144,7 +163,8 @@ def _register_builtin_unix_connections(connection_factory, moler_conn_class):
 
     def terminal_thd_conn(name=None):
         # ThreadedTerminal works on unicode so moler_connection must do no encoding
-        mlr_conn = mlr_conn_no_encoding(moler_conn_class, name=name)
+        # mlr_conn = mlr_conn_no_encoding(moler_conn_class, name=name)
+        mlr_conn = mlr_conn_no_encoding_partial_clean_vt100(moler_conn_class, name=name)
         io_conn = ThreadedTerminal(moler_connection=mlr_conn)  # TODO: add name, logger
         return io_conn
 

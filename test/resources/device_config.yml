@@ -158,9 +158,26 @@ DEVICES:
             set_timeout: null
       UNIX_REMOTE:
         AT_REMOTE:
-          execute_command: run_serial_proxy # default value
+          execute_command: plink_serial # default value
           command_params:
-            serial_devname: 'COM5'  #  ^OK$
-      AT_REMOTE:
+            serial_devname: 'COM5'
+
+  ADB_REMOTE:
+    DEVICE_CLASS: moler.device.adbremote.AdbRemote
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
         UNIX_REMOTE:
-          execute_command: exit_serial_proxy # default value
+          execute_command: ssh # default value
+          command_params:
+            expected_prompt: 'remote#'
+            host: remote_host
+            login: remote_login
+            password: passwd4remote
+            set_timeout: null
+      UNIX_REMOTE:
+        ADB_SHELL:
+          execute_command: adb_shell # default value; default command is:  adb shell
+          command_params:
+            serial_number: 'f57e6b77'  #  to create:  adb -s f57e6b77 shell
+            expected_prompt: 'shell@adbhost:/ \$'
