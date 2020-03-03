@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Dariusz Rosinski, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'dariusz.rosinski@nokia.com, marcin.usielski@nokia.com'
 
 import re
@@ -229,4 +229,17 @@ COMMAND_RESULT_V3 = [
      'CMD': '/sbin/dhcpcd --netconfig -L -E -HHH -c /etc/sysconfig/network/scripts/dhcpcd-hook -t 0 -h FZM-FDD-086-'},
     {'UID': 'root', 'PID': 5823, 'PPID': 2, 'C': 0, 'STIME': 'Mar09', 'TTY': '?', 'TIME': '00:00:03',
      'CMD': '[kworker/u8:2]'},
+]
+
+
+COMMAND_OUTPUT_aux = '''ps -aux
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root         1  0.0  0.1 139360  7220 ?        Ss   Mar01   1:16 /sbin/init
+client@server>'''
+
+COMMAND_KWARGS_aux = {"options": "-ef"}
+
+COMMAND_RESULT_aux = [
+    {'USER': 'root', 'PID': 1, '%CPU': 0.0, "%MEM": 0.1, 'VSZ': 139360, 'RSS': 7220, 'TTY': '?', 'STAT': 'Ss',
+     'START': 'Mar01', 'TIME': '1:16', 'COMMAND': '/sbin/init'}
 ]
