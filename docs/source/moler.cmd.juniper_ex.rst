@@ -1,5 +1,5 @@
-moler.cmd.juniper\_ex package
-=============================
+moler.cmd.juniper_ex package
+============================
 
 Subpackages
 -----------
@@ -12,8 +12,8 @@ Subpackages
 Submodules
 ----------
 
-moler.cmd.juniper\_ex.genericjuniperex module
----------------------------------------------
+moler.cmd.juniper_ex.genericjuniperex module
+--------------------------------------------
 
 .. automodule:: moler.cmd.juniper_ex.genericjuniperex
     :members:

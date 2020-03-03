@@ -1,5 +1,5 @@
-moler.cmd.juniper\_ex.cli package
-=================================
+moler.cmd.juniper_ex.cli package
+================================
 
 Module contents
 ---------------

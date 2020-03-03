@@ -28,8 +28,8 @@ moler.cmd.at.detach module
     :undoc-members:
     :show-inheritance:
 
-moler.cmd.at.exit\_serial\_proxy module
----------------------------------------
+moler.cmd.at.exit_serial_proxy module
+-------------------------------------
 
 .. automodule:: moler.cmd.at.exit_serial_proxy
     :members:
@@ -44,42 +44,50 @@ moler.cmd.at.genericat module
     :undoc-members:
     :show-inheritance:
 
-moler.cmd.at.get\_attach\_state module
---------------------------------------
+moler.cmd.at.get_attach_state module
+------------------------------------
 
 .. automodule:: moler.cmd.at.get_attach_state
     :members:
     :undoc-members:
     :show-inheritance:
 
-moler.cmd.at.get\_imei module
------------------------------
+moler.cmd.at.get_imei module
+----------------------------
 
 .. automodule:: moler.cmd.at.get_imei
     :members:
     :undoc-members:
     :show-inheritance:
 
-moler.cmd.at.get\_imsi module
------------------------------
+moler.cmd.at.get_imsi module
+----------------------------
 
 .. automodule:: moler.cmd.at.get_imsi
     :members:
     :undoc-members:
     :show-inheritance:
 
-moler.cmd.at.get\_manufacturer\_id module
------------------------------------------
+moler.cmd.at.get_manufacturer_id module
+---------------------------------------
 
 .. automodule:: moler.cmd.at.get_manufacturer_id
     :members:
     :undoc-members:
     :show-inheritance:
 
-moler.cmd.at.get\_revision\_id module
--------------------------------------
+moler.cmd.at.get_revision_id module
+-----------------------------------
 
 .. automodule:: moler.cmd.at.get_revision_id
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+moler.cmd.at.plink_serial module
+--------------------------------
+
+.. automodule:: moler.cmd.at.plink_serial
     :members:
     :undoc-members:
     :show-inheritance:

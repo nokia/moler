@@ -12,16 +12,16 @@ Subpackages
 Submodules
 ----------
 
-moler.io.io\_connection module
-------------------------------
+moler.io.io_connection module
+-----------------------------
 
 .. automodule:: moler.io.io_connection
     :members:
     :undoc-members:
     :show-inheritance:
 
-moler.io.io\_exceptions module
-------------------------------
+moler.io.io_exceptions module
+-----------------------------
 
 .. automodule:: moler.io.io_exceptions
     :members:

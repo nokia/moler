@@ -17,8 +17,8 @@ Subpackages
 Submodules
 ----------
 
-moler.asyncio\_runner module
-----------------------------
+moler.asyncio_runner module
+---------------------------
 
 .. automodule:: moler.asyncio_runner
     :members:
@@ -33,8 +33,8 @@ moler.command module
     :undoc-members:
     :show-inheritance:
 
-moler.command\_scheduler module
--------------------------------
+moler.command_scheduler module
+------------------------------
 
 .. automodule:: moler.command_scheduler
     :members:
@@ -49,16 +49,16 @@ moler.connection module
     :undoc-members:
     :show-inheritance:
 
-moler.connection\_factory module
---------------------------------
+moler.connection_factory module
+-------------------------------
 
 .. automodule:: moler.connection_factory
     :members:
     :undoc-members:
     :show-inheritance:
 
-moler.connection\_observer module
----------------------------------
+moler.connection_observer module
+--------------------------------
 
 .. automodule:: moler.connection_observer
     :members:
@@ -73,8 +73,8 @@ moler.event module
     :undoc-members:
     :show-inheritance:
 
-moler.event\_awaiter module
----------------------------
+moler.event_awaiter module
+--------------------------
 
 .. automodule:: moler.event_awaiter
     :members:
@@ -97,16 +97,16 @@ moler.helpers module
     :undoc-members:
     :show-inheritance:
 
-moler.instance\_loader module
------------------------------
+moler.instance_loader module
+----------------------------
 
 .. automodule:: moler.instance_loader
     :members:
     :undoc-members:
     :show-inheritance:
 
-moler.observable\_connection module
------------------------------------
+moler.observable_connection module
+----------------------------------
 
 .. automodule:: moler.observable_connection
     :members:
@@ -129,8 +129,8 @@ moler.runner module
     :undoc-members:
     :show-inheritance:
 
-moler.runner\_factory module
-----------------------------
+moler.runner_factory module
+---------------------------
 
 .. automodule:: moler.runner_factory
     :members:

@@ -4,24 +4,24 @@ moler.util package
 Submodules
 ----------
 
-moler.util.cmds\_events\_doc module
------------------------------------
+moler.util.cmds_events_doc module
+---------------------------------
 
 .. automodule:: moler.util.cmds_events_doc
     :members:
     :undoc-members:
     :show-inheritance:
 
-moler.util.connection\_observer module
---------------------------------------
+moler.util.connection_observer module
+-------------------------------------
 
 .. automodule:: moler.util.connection_observer
     :members:
     :undoc-members:
     :show-inheritance:
 
-moler.util.connection\_observer\_life\_status module
-----------------------------------------------------
+moler.util.connection_observer_life_status module
+-------------------------------------------------
 
 .. automodule:: moler.util.connection_observer_life_status
     :members:
@@ -36,8 +36,8 @@ moler.util.converterhelper module
     :undoc-members:
     :show-inheritance:
 
-moler.util.devices\_SM module
------------------------------
+moler.util.devices_SM module
+----------------------------
 
 .. automodule:: moler.util.devices_SM
     :members:
@@ -52,16 +52,16 @@ moler.util.loghelper module
     :undoc-members:
     :show-inheritance:
 
-moler.util.moler\_serial\_proxy module
---------------------------------------
+moler.util.moler_serial_proxy module
+------------------------------------
 
 .. automodule:: moler.util.moler_serial_proxy
     :members:
     :undoc-members:
     :show-inheritance:
 
-moler.util.moler\_test module
------------------------------
+moler.util.moler_test module
+----------------------------
 
 .. automodule:: moler.util.moler_test
     :members:

@@ -1,5 +1,5 @@
-moler.cmd.juniper\_ex.configure package
-=======================================
+moler.cmd.juniper_ex.configure package
+======================================
 
 Module contents
 ---------------

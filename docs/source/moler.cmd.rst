@@ -6,6 +6,7 @@ Subpackages
 
 .. toctree::
 
+    moler.cmd.adb
     moler.cmd.at
     moler.cmd.juniper
     moler.cmd.juniper_ex
