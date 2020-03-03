@@ -4,8 +4,8 @@ moler.cmd.scpi.scpi package
 Submodules
 ----------
 
-moler.cmd.scpi.scpi.exit\_telnet module
----------------------------------------
+moler.cmd.scpi.scpi.exit_telnet module
+--------------------------------------
 
 .. automodule:: moler.cmd.scpi.scpi.exit_telnet
     :members:
@@ -36,8 +36,8 @@ moler.cmd.scpi.scpi.read module
     :undoc-members:
     :show-inheritance:
 
-moler.cmd.scpi.scpi.run\_command module
----------------------------------------
+moler.cmd.scpi.scpi.run_command module
+--------------------------------------
 
 .. automodule:: moler.cmd.scpi.scpi.run_command
     :members:
