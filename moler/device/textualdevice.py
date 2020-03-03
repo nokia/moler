@@ -361,9 +361,10 @@ class TextualDevice(AbstractDevice):
 
         while (not is_dest_state) and (not is_timeout):
             next_state = self._get_next_state(dest_state)
-            self._trigger_change_state(next_state=next_state, timeout=next_stage_timeout, rerun=rerun,
-                                       send_enter_after_changed_state=send_enter_after_changed_state,
-                                       log_stacktrace_on_fail=log_stacktrace_on_fail)
+            if self.current_state != dest_state:
+                self._trigger_change_state(next_state=next_state, timeout=next_stage_timeout, rerun=rerun,
+                                           send_enter_after_changed_state=send_enter_after_changed_state,
+                                           log_stacktrace_on_fail=log_stacktrace_on_fail)
 
             if self.current_state == dest_state:
                 is_dest_state = True
@@ -389,7 +390,8 @@ class TextualDevice(AbstractDevice):
 
     def _trigger_change_state(self, next_state, timeout, rerun, send_enter_after_changed_state,
                               log_stacktrace_on_fail=True):
-        self._log(logging.DEBUG, "Changing state from '%s' into '%s'" % (self.current_state, next_state))
+        self._log(logging.DEBUG, "'{}'. Changing state from '{}' into '{}'.".format(self.name, self.current_state,
+                                                                                    next_state))
         change_state_method = None
         # all state triggers used by SM are methods with names starting from "GOTO_"
         # for e.g. GOTO_REMOTE, GOTO_CONNECTED
@@ -404,10 +406,10 @@ class TextualDevice(AbstractDevice):
         else:
             exc = DeviceFailure(
                 device=self.__class__.__name__,
-                message="Failed to change state to '{}'. "
+                message="{}. Failed to change state to '{}'. "
                         "Either target state does not exist in SM or there is no direct/indirect transition "
                         "towards target state. Try to change state machine definition. "
-                        "Available states: {}".format(next_state, self.states))
+                        "Available states: {}".format(self.name, next_state, self.states))
             if log_stacktrace_on_fail:
                 self._log(logging.ERROR, exc)
             raise exc
@@ -433,10 +435,11 @@ class TextualDevice(AbstractDevice):
                                              "Retrying '{}' of '{}' times.".format(next_state, retrying, rerun))
                     if send_enter_after_changed_state:
                         self._send_enter_after_changed_state()
-        self.io_connection.moler_connection.change_newline_seq(self._get_newline(state=next_state))
-        if send_enter_after_changed_state:
-            self._send_enter_after_changed_state()
-        self._log(logging.DEBUG, "Successfully enter state '{}'".format(next_state))
+        if self.current_state == next_state:
+            self.io_connection.moler_connection.change_newline_seq(self._get_newline(state=next_state))
+            if send_enter_after_changed_state:
+                self._send_enter_after_changed_state()
+            self._log(logging.DEBUG, "{}: Successfully enter state '{}'".format(self.name, next_state))
 
     def on_connection_made(self, connection):
         self._set_state(TextualDevice.connected)
