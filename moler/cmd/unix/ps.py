@@ -85,9 +85,7 @@ class Ps(GenericUnixCommand):
             for column_nr in range(max_column):
                 org_start_pos = self._header_pos[column_nr]
                 start_pos = line.find(" ", previous_end_pos)
-                if start_pos > org_start_pos:
-                    start_pos = org_start_pos
-                elif start_pos < 0:
+                if start_pos > org_start_pos or start_pos < 0:
                     start_pos = org_start_pos
                 if column_nr < max_column - 1:
                     end_pos = self._header_pos[column_nr + 1]
