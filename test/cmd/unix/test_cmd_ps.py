@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Dariusz Rosinski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'dariusz.rosinski@nokia.com'
+__author__ = 'Dariusz Rosinski, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__email__ = 'dariusz.rosinski@nokia.com, marcin.usielski@nokia.com'
 
 from moler.cmd.unix import ps
 
