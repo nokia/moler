@@ -8,7 +8,6 @@ import re
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
 
-
 """
 ps command module.
 Commad Ps is parsed to list of dictionary.
@@ -23,7 +22,6 @@ result knowledge
 
 
 class Ps(GenericUnixCommand):
-
     """Unix command ps."""
 
     def __init__(self, connection=None, options='', prompt=None, newline_chars=None, runner=None):
@@ -58,9 +56,16 @@ class Ps(GenericUnixCommand):
                 pass
         return super(Ps, self).on_new_line(line, is_full_line)
 
+    # USER       PID    VSZ SZ  MEM   RSS COMMAND
     _re_headers = re.compile(r"(?P<HEADERS>\s*(\S+)\s*)")
 
     def _parse_headers(self, line):
+        """
+        Parse headers from line of output.
+
+        :param line: Line from connection.
+        :return: None
+        """
         if self._headers is None:
             if self._regex_helper.search_compiled(Ps._re_headers, line):
                 matched = re.findall(r"\s*(\S+)\s*", line)
@@ -74,10 +79,19 @@ class Ps(GenericUnixCommand):
                         previous_pos = position + len(header)
                     raise ParsingDone()
 
+    # 123
     _re_integer = re.compile(r"^[+\-]?\d+$")
+
+    # 2.5
     _re_float = re.compile(r"^[+\-]?(\d+\.\d+|\.\d+|\d+\.)$")
 
     def _parse_line_data(self, line):
+        """
+        Parse data from output.
+
+        :param line: Line from connection.
+        :return: None
+        """
         if self._headers:
             item = dict()
             max_column = len(self._headers)
@@ -105,6 +119,11 @@ class Ps(GenericUnixCommand):
             raise ParsingDone()
 
     def build_command_string(self):
+        """
+        Builds string with command.
+
+        :return: String with command.
+        """
         cmd = "ps"
         if self.options:
             cmd = "{} {}".format(cmd, self.options)
@@ -243,7 +262,6 @@ COMMAND_RESULT_V3 = [
     {'UID': 'root', 'PID': 5823, 'PPID': 2, 'C': 0, 'STIME': 'Mar09', 'TTY': '?', 'TIME': '00:00:03',
      'CMD': '[kworker/u8:2]'},
 ]
-
 
 COMMAND_OUTPUT_aux = '''ps -aux
 USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
