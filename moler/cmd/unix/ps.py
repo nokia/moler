@@ -6,7 +6,7 @@ __email__ = 'dariusz.rosinski@nokia.com, marcin.usielski@nokia.com'
 
 import re
 from moler.cmd.unix.genericunix import GenericUnixCommand
-from moler.parser.table_text import TableText
+from moler.exceptions import ParsingDone
 
 
 """
@@ -39,11 +39,8 @@ class Ps(GenericUnixCommand):
         super(Ps, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.current_ret = list()
         self.options = options
-        self._cmd_line_found = False
-        self._column_line_found = False
-        self._columns = list()
-        self._space_columns = list()
-        self._parser = None
+        self._headers = None
+        self._header_pos = None
 
     def on_new_line(self, line, is_full_line):
         """
@@ -51,41 +48,63 @@ class Ps(GenericUnixCommand):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         if is_full_line:
-            # splitting columns according to column number
-            splitted_columns = self._split_columns_in_line(line)
-            # when columns names are set proceed with putting data to dictionary list
-            if self._columns and splitted_columns is not None:
-                # put correct value to specific column
-                parsed_line = self._parser.parse(line)
-                if parsed_line is not None:
-                    self.current_ret.append(parsed_line)
-            # assign splitted columns to parameter in Ps class; columns are printed as first line after ps command execution
-            if not self._column_line_found:
-                self._columns = splitted_columns
-                self._column_line_found = True
-                self._parser = TableText(self._columns, self._columns)
-                self._parser.parse(line)
-        # execute generic on_new_line
+            try:
+                self._parse_headers(line=line)
+                self._parse_line_data(line=line)
+            except ParsingDone:
+                pass
         return super(Ps, self).on_new_line(line, is_full_line)
 
-    def _split_columns_in_line(self, line):
-        """
-        Split line according to columns number.
+    _re_headers = re.compile(r"(?P<HEADERS>\s*(\S+)\s*)")
 
-        :param line: line from device to process
-        :return: list of columns or None
-        """
-        parsed_line = str.strip(str(line))
-        # split with whitespaces
-        parsed_line = re.split(r'\s+', parsed_line)
-        # If no enough columns leave this line
-        if len(self._columns) > len(parsed_line) or parsed_line == ['']:
-            parsed_line = None
-        # When data is avaliable proceed with parsing
-        return parsed_line
+    def _parse_headers(self, line):
+        if self._headers is None:
+            if self._regex_helper.search_compiled(Ps._re_headers, line):
+                matched = re.findall(r"\s*(\S+)\s*", line)
+                if matched:
+                    self._headers = matched
+                    self._header_pos = list()
+                    previous_pos = 0
+                    for header in self._headers:
+                        position = line.find(header, previous_pos)
+                        self._header_pos.append(position)
+                        previous_pos = position + len(header)
+                    raise ParsingDone()
+
+    _re_integer = re.compile(r"^[+\-]?\d+$")
+    _re_float = re.compile(r"^[+\-]?(\d+\.\d+|\.\d+|\d+\.)$")
+
+    def _parse_line_data(self, line):
+        if self._headers:
+            item = dict()
+            max_column = len(self._headers)
+            previous_end_pos = 0
+            for column_nr in range(max_column):
+                org_start_pos = self._header_pos[column_nr]
+                start_pos = line.find(" ", previous_end_pos)
+                if start_pos > org_start_pos:
+                    start_pos = org_start_pos
+                elif start_pos < 0:
+                    start_pos = org_start_pos
+                if column_nr < max_column - 1:
+                    end_pos = self._header_pos[column_nr + 1]
+                    end_pos = line.rfind(" ", start_pos, end_pos+1)
+                else:
+                    end_pos = len(line)
+
+                content = line[start_pos:end_pos]
+                content = content.strip()
+                if self._regex_helper.match_compiled(Ps._re_float, content):
+                    content = float(content)
+                elif self._regex_helper.match_compiled(Ps._re_integer, content):
+                    content = int(content)
+                item[self._headers[column_nr]] = content
+                previous_end_pos = end_pos
+            self.current_ret.append(item)
+            raise ParsingDone()
 
     def build_command_string(self):
         cmd = "ps"
@@ -112,8 +131,7 @@ root@DMICTRL:~# ps -o user,pid,vsz,osz,pmem,rss,cmd -e
  bin        814   1908  -  0.1   544 /sbin/portmap
  root       847   1772  -  0.1   712 /sbin/syslogd -r
  root       855   1664  -  0.0   500 /sbin/klogd -x
- root@DMICTRL:~#
- '''
+ root@DMICTRL:~#'''
 
 COMMAND_KWARGS = {"options": "-o user,pid,vsz,osz,pmem,rss,cmd -e"}
 
@@ -149,8 +167,7 @@ avahi-a+  4592     1  0  2017 ?        00:17:15 avahi-autoipd: [ens3] sleeping
 root      4593  4592  0  2017 ?        00:00:00 avahi-autoipd: [ens3] callout dispatcher
 root      4648     1  0  2017 ?        00:00:00 /sbin/dhcpcd --netconfig -L -E -HHH -c /etc/sysconfig/network/scripts/dhcpcd-hook -t 0 -h FZM-FDD-086-
 root      5823     2  0 Mar09 ?        00:00:03 [kworker/u8:2]
-FZM-FDD-086-ws-kvm:/home/rtg #
-'''
+FZM-FDD-086-ws-kvm:/home/rtg #'''
 
 COMMAND_KWARGS_V2 = {"options": "-ef"}
 
@@ -198,8 +215,7 @@ avahi-a+  4592     1  0  2017 ?     avahi-autoipd: [ens3] sleeping              
 root      4593  4592  0  2017 ?     avahi-autoipd: [ens3] callout dispatcher                                                                            00:00:00
 root      4648     1  0  2017 ?     /sbin/dhcpcd --netconfig -L -E -HHH -c /etc/sysconfig/network/scripts/dhcpcd-hook -t 0 -h FZM-FDD-086-              00:00:00
 root      5823     2  0 Mar09 ?     [kworker/u8:2]                                                                                                      00:00:03
-FZM-FDD-086-ws-kvm:/home/rtg #
-'''
+FZM-FDD-086-ws-kvm:/home/rtg #'''
 
 COMMAND_KWARGS_V3 = {"options": "-ef"}
 
@@ -237,9 +253,9 @@ USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
 root         1  0.0  0.1 139360  7220 ?        Ss   Mar01   1:16 /sbin/init
 client@server>'''
 
-COMMAND_KWARGS_aux = {"options": "-ef"}
+COMMAND_KWARGS_aux = {"options": "-aux"}
 
 COMMAND_RESULT_aux = [
-    {'USER': 'root', 'PID': 1, '%CPU': 0.0, "%MEM": 0.1, 'VSZ': 139360, 'RSS': 7220, 'TTY': '?', 'STAT': 'Ss',
-     'START': 'Mar01', 'TIME': '1:16', 'COMMAND': '/sbin/init'}
+    {'USER': 'root', 'PID': 1, '%CPU': float("0.0"), "%MEM": float("0.1"), 'VSZ': 139360, 'RSS': 7220, 'TTY': '?',
+     'STAT': 'Ss', 'START': 'Mar01', 'TIME': '1:16', 'COMMAND': '/sbin/init'}
 ]
