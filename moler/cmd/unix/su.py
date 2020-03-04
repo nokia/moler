@@ -18,7 +18,8 @@ class Su(CommandChangingPrompt):
 
     def __init__(self, connection, login=None, options=None, password=None, prompt=None, expected_prompt=None,
                  newline_chars=None, encrypt_password=True, target_newline="\n", runner=None, set_timeout=None,
-                 allowed_newline_after_prompt=False, set_prompt=None, prompt_after_login=None):
+                 allowed_newline_after_prompt=False, set_prompt=None, prompt_after_login=None, cmd_object=None,
+                 cmd_class_name=None, cmd_params=None):
         """
         Moler class of Unix command su.
 
@@ -37,6 +38,9 @@ class Su(CommandChangingPrompt):
         :param set_prompt: Command to set prompt after su success.
         :param prompt_after_login: prompt after login before send export PS1. If you do not change prompt exporting PS1
          then leave it None.
+        :param cmd_object: object of command. Pass this object or cmd_class_name.
+        :param cmd_class_name: full (with package) class name. Pass this name or cmd_object.
+        :param cmd_params: params for cmd_class_name. If cmd_object is passed this parameter is ignored.
         """
         super(Su, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                  runner=runner, expected_prompt=expected_prompt, set_timeout=set_timeout,
@@ -49,6 +53,9 @@ class Su(CommandChangingPrompt):
         self.options = options
         self.password = password
         self.encrypt_password = encrypt_password
+        self.cmd_object = cmd_object
+        self.cmd_params = cmd_params
+        self.cmd_class_name = cmd_class_name
 
         # Internal variables
         self._sent_password = False
@@ -66,6 +73,8 @@ class Su(CommandChangingPrompt):
             cmd = "{} {}".format(cmd, self.options)
         if self.login:
             cmd = "{} {}".format(cmd, self.login)
+        if self.cmd_object:
+            cmd = "{} -c '{}'".format(cmd, self.cmd_object.command_string)
         return cmd
 
     def on_new_line(self, line, is_full_line):
