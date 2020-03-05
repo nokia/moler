@@ -19,31 +19,10 @@ class TextualEvent(Event):
         self._last_not_full_line = None
         self._newline_chars = TextualEvent._default_newline_chars
         self._regex_helper = RegexHelper()  # Object to regular expression matching
-        self._paused = False
 
     def event_occurred(self, event_data):
         self._consume_already_parsed_fragment()
         super(TextualEvent, self).event_occurred(event_data)
-
-    def pause(self):
-        """
-        Pauses the event. Do not process till resume.
-
-        :return: None.
-        """
-        self._paused = True
-
-    def resume(self):
-        """
-        Resumes processing output from connection by the event.
-
-        :return: None.
-        """
-        self._paused = False
-
-    def data_received(self, data):
-
-            super(TextualEvent, self).data_received(data=data)
 
     @abc.abstractmethod
     def on_new_line(self, line, is_full_line):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import functools
@@ -34,6 +34,7 @@ class Event(ConnectionObserver):
         self.till_occurs_times = till_occurs_times
         self._log_every_occurrence = True
         self.event_name = Event.observer_name
+        self._paused = False
 
     def __str__(self):
         """
@@ -156,3 +157,19 @@ class Event(ConnectionObserver):
         else:
             msg = "{} without callback.".format(msg)
         self._log(lvl=logging.DEBUG, msg=msg)
+
+    def pause(self):
+        """
+        Pauses the event. Do not process till resume.
+
+        :return: None.
+        """
+        self._paused = True
+
+    def resume(self):
+        """
+        Resumes processing output from connection by the event.
+
+        :return: None.
+        """
+        self._paused = False
