@@ -73,7 +73,7 @@ class AdbShell(CommandChangingPrompt):
             pass
         super(AdbShell, self).on_new_line(line=line, is_full_line=is_full_line)
 
-    _re_command_fail = re.compile(r"{}".format(cmd_failure_causes), re.IGNORECASE)
+    _re_command_fail = re.compile(r"{}|^error:".format(cmd_failure_causes), re.IGNORECASE)
 
     def _command_failure(self, line):
         """
