@@ -62,7 +62,7 @@ class Sudo(CommandChangingPrompt):
         self.sudo_params = sudo_params
         self.timeout_from_embedded_command = True  # Set True to set timeout from command or False to use timeout set in
         #  sudo command.
-        self._sent_sudo_password = False
+        self._sent_password = False
         self._sent_command_string = False
         self.newline_seq = "\n"
         self._line_for_sudo = False
@@ -94,10 +94,10 @@ class Sudo(CommandChangingPrompt):
         :return: None.
         """
         try:
-            self._parse_sudo_password(line)
+            self._parse_password(line)
             self._process_wrong_password(line)
             self._parse_command_not_found(line)
-            self._parse_sudo_error(line)
+            self._parse_error(line)
         except ParsingDone:
             self._line_for_sudo = True
         super(Sudo, self).on_new_line(line, is_full_line)
@@ -185,17 +185,17 @@ class Sudo(CommandChangingPrompt):
         :raises: ParsingDone if regex matches the line.
         """
         if re.search(Sudo._re_sudo_sorry_try_again, line):
-            if self._sent_sudo_password and not self._command_output_started:
+            if self._sent_password and not self._command_output_started:
                 self.set_exception(CommandFailure(self, "Command sudo error found in line '{}'.".format(line)))
                 self._finish_on_final_prompt = True
-                self._sent_sudo_password = False
+                self._sent_password = False
                 raise ParsingDone()
 
     # sudo: /usr/bin/sudo must be owned by uid 0 and have the setuid bit set
     _re_sudo_error = re.compile(r"sudo:.*must be owned by uid\s+\d+\s+and have the setuid bit set|usage: sudo|"
                                 r"sudo: \d+ incorrect password attempt", re.I)
 
-    def _parse_sudo_error(self, line):
+    def _parse_error(self, line):
         """
         Parses if command not found is found in line.
 
@@ -211,7 +211,7 @@ class Sudo(CommandChangingPrompt):
     # [sudo] password for user:
     _re_sudo_password = re.compile(r"\[sudo\] password for.*:", re.I)
 
-    def _parse_sudo_password(self, line):
+    def _parse_password(self, line):
         """
         Parses if sudo waits for password.
 
@@ -220,9 +220,9 @@ class Sudo(CommandChangingPrompt):
         :raises: ParsingDone if regex matches the line.
         """
         if re.search(Sudo._re_sudo_password, line):
-            if not self._sent_sudo_password:
+            if not self._sent_password:
                 self.connection.sendline(self.password, encrypt=self.encrypt_password)
-                self._sent_sudo_password = True
+                self._sent_password = True
             raise ParsingDone()
 
     def _validate_start(self, *args, **kwargs):

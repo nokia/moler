@@ -4,7 +4,7 @@ Su command module.
 """
 
 __author__ = 'Agnieszka Bylica, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
@@ -13,8 +13,13 @@ from moler.cmd.unix.su import Su
 
 
 def test_su_returns_proper_command_string(buffer_connection):
-    telnet_cmd = Su(buffer_connection, login='xyz', options='-p', password="1234", prompt=None, newline_chars=None)
-    assert "su -p xyz" == telnet_cmd.command_string
+    cmd = Su(buffer_connection, login='xyz', options='-p', password="1234", prompt=None, newline_chars=None)
+    assert "su -p xyz" == cmd.command_string
+
+
+def test_su_returns_proper_command_string_pwd(buffer_connection):
+    cmd = Su(buffer_connection, cmd_class_name='moler.cmd.unix.pwd.Pwd')
+    assert "su -c 'pwd'" == cmd.command_string
 
 
 def test_su_catches_authentication_failure(buffer_connection, command_output_and_expected_result_auth):
