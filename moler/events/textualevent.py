@@ -19,6 +19,7 @@ class TextualEvent(Event):
         self._last_not_full_line = None
         self._newline_chars = TextualEvent._default_newline_chars
         self._regex_helper = RegexHelper()  # Object to regular expression matching
+        self._paused = False
 
     def event_occurred(self, event_data):
         self._consume_already_parsed_fragment()
@@ -76,7 +77,8 @@ class TextualEvent(Event):
         if is_full_line:
             line = self._strip_new_lines_chars(line)
         else:
-            self._last_not_full_line = line
+            if not self._paused:  # Don't do it if we pause event during processing current chunk.
+                self._last_not_full_line = line
         return line, is_full_line
 
     def is_new_line(self, line):
@@ -113,3 +115,20 @@ class TextualEvent(Event):
         :return: decoded line.
         """
         return line
+
+    def pause(self):
+        """
+        Pauses the event. Do not process till resume.
+
+        :return: None.
+        """
+        self._paused = True
+        self._last_not_full_line = None
+
+    def resume(self):
+        """
+        Resumes processing output from connection by the event.
+
+        :return: None.
+        """
+        self._paused = False

@@ -34,7 +34,6 @@ class Event(ConnectionObserver):
         self.till_occurs_times = till_occurs_times
         self._log_every_occurrence = True
         self.event_name = Event.observer_name
-        self._paused = False
 
     def __str__(self):
         """
@@ -158,18 +157,18 @@ class Event(ConnectionObserver):
             msg = "{} without callback.".format(msg)
         self._log(lvl=logging.DEBUG, msg=msg)
 
+    @abc.abstractmethod
     def pause(self):
         """
         Pauses the event. Do not process till resume.
 
         :return: None.
         """
-        self._paused = True
 
+    @abc.abstractmethod
     def resume(self):
         """
         Resumes processing output from connection by the event.
 
         :return: None.
         """
-        self._paused = False
