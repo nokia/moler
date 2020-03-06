@@ -185,6 +185,12 @@ class MyEvent(Event):
     def data_received(self, data):
         pass
 
+    def pause(self):
+        pass
+
+    def resume(self):
+        pass
+
 
 class MyCommand(Command):
     def __init__(self, connection=None, runner=None):

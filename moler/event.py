@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import functools
@@ -48,7 +48,6 @@ class Event(ConnectionObserver):
         self._validate_start(*args, **kwargs)
         ret = super(Event, self).start(timeout, *args, **kwargs)
         self.life_status._is_running = True
-
         return ret
 
     def add_event_occurred_callback(self, callback, callback_params=None):
@@ -156,3 +155,19 @@ class Event(ConnectionObserver):
         else:
             msg = "{} without callback.".format(msg)
         self._log(lvl=logging.DEBUG, msg=msg)
+
+    @abc.abstractmethod
+    def pause(self):
+        """
+        Pauses the event. Do not process till resume.
+
+        :return: None.
+        """
+
+    @abc.abstractmethod
+    def resume(self):
+        """
+        Resumes processing output from connection by the event.
+
+        :return: None.
+        """
