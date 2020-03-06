@@ -65,10 +65,10 @@ class Su(Sudo):
         cmd = "su"
         if self.options:
             cmd = "{} {}".format(cmd, self.options)
-        if self.login:
-            cmd = "{} {}".format(cmd, self.login)
         if self.cmd_object:
             cmd = "{} -c '{}'".format(cmd, self.cmd_object.command_string)
+        if self.login:
+            cmd = "{} {}".format(cmd, self.login)
         return cmd
 
     def _validate_passed_object_or_command_parameters(self):
@@ -126,16 +126,25 @@ COMMAND_KWARGS_su = {
 
 COMMAND_RESULT_su = {}
 
-# COMMAND_OUTPUT_su_option = """ su -c 'ls' xyz
-# Password:
-# Dokumenty Pobrane Publiczny Pulpit Szablony Wideo
-# xyz@debian:~$ """
-#
-# COMMAND_KWARGS_su_option = {
-#     'login': 'xyz', 'options': "-c 'ls'", 'password': '1234'
-# }
-#
-# COMMAND_RESULT_su_option = {}
+COMMAND_OUTPUT_su_option = """ su -c 'ls' xyz
+Password:
+Dokumenty Pobrane Publiczny Pulpit Szablony Wideo
+xyz@debian:~$"""
+
+COMMAND_KWARGS_su_option = {
+    'login': 'xyz', 'cmd_class_name': 'moler.cmd.unix.ls.Ls', 'password': '1234'
+}
+
+COMMAND_RESULT_su_option = {
+    'files': {
+        'Dokumenty': {'name': 'Dokumenty'},
+        'Pobrane': {'name': 'Pobrane'},
+        'Publiczny': {'name': 'Publiczny'},
+        'Pulpit': {'name': 'Pulpit'},
+        'Szablony': {'name': 'Szablony'},
+        'Wideo': {'name': 'Wideo'}
+    }
+}
 
 COMMAND_OUTPUT_newline_after_prompt = """
 xyz@debian:~$ su
