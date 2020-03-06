@@ -9,6 +9,8 @@ __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2020, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
+import logging
+
 from moler.device.textualdevice import TextualDevice
 # from moler.device.proxy_pc import ProxyPc  # TODO: allow jumping towards ADB_REMOTE via proxy-pc
 from moler.device.unixlocal import UnixLocal
@@ -174,7 +176,11 @@ class AdbRemote(UnixRemote):
             if adb_shell_prompt.endswith("$"):
                 adb_shell_root_prompt = adb_shell_prompt[:-1] + "#"
             else:
-                adb_shell_root_prompt = adb_shell_prompt
+                consequence = "Won't be able to detect {} state".format(AdbRemote.adb_shell_root)
+                fix = "Please provide configuration with 'expected_prompt' for {} state".format(AdbRemote.adb_shell_root)
+                self._log(logging.WARNING, "Unknown prompt for {} state. {}. {}.".format(AdbRemote.adb_shell_root,
+                                                                                         consequence, fix))
+                adb_shell_root_prompt = "Unknown_adb_root_prompt"
 
         state_prompts = {
             AdbRemote.adb_shell: adb_shell_prompt,
