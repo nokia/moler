@@ -10,6 +10,7 @@ __email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com'
 import pytest
 
 from moler.cmd.unix.su import Su
+from moler.exceptions import CommandFailure
 
 
 def test_su_returns_proper_command_string(buffer_connection):
@@ -86,6 +87,30 @@ def test_sudo_su_only_params(buffer_connection, command_output_and_expected_resu
                     cmd_params={'cmd_class_name': 'moler.cmd.unix.ls.Ls', 'cmd_params': {'options': '-l'}})
     ret = cmd_sudo()
     assert ret == expected_dict
+
+
+def test_failing_calling_twice_the_same_command_object(buffer_connection, command_output_and_expected_result_pwd):
+    from moler.cmd.unix.pwd import Pwd
+    command_output, expected_result = command_output_and_expected_result_pwd
+    buffer_connection.remote_inject_response([command_output])
+
+    cmd_pwd = Pwd(connection=buffer_connection.moler_connection)
+    cmd_su = Su(connection=buffer_connection.moler_connection, password="pass", cmd_object=cmd_pwd)
+    result = cmd_su()
+    assert result == expected_result
+    cmd_sudo = Su(connection=buffer_connection.moler_connection, password="pass", cmd_object=cmd_pwd)
+    with pytest.raises(CommandFailure):
+        cmd_sudo()
+
+
+def test_failing_with_both_parameters(buffer_connection):
+    from moler.cmd.unix.cp import Cp
+    cmd_cp = Cp(connection=buffer_connection.moler_connection, src="src", dst="dst")
+    cmd_sudo = Su(connection=buffer_connection.moler_connection, cmd_class_name="moler.cmd.unix.cp.Cp",
+                  cmd_object=cmd_cp, password="pass")
+    with pytest.raises(CommandFailure) as err:
+        cmd_sudo(timeout=0.2)
+    assert "Both 'cmd_object' and 'cmd_class_name' parameters were provided" in str(err.value)
 
 
 def test_su_catches_missing_binary_failure(buffer_connection):
@@ -168,5 +193,19 @@ moler_bash#"""
                            "size_bytes": 10, "size_raw": "10", "date": "Mar 20  2015", "name": "logsremote",
                            "link": "/mnt/logs/"},
         },
+    }
+    return output, result
+
+
+@pytest.fixture()
+def command_output_and_expected_result_pwd():
+    output = """user@client:~/moler$ su -c 'pwd'
+password: 
+/home/user/moler
+ute@debdev:~/moler$ """
+    result = {
+        'current_path': 'moler',
+        'full_path': '/home/user/moler',
+        'path_to_current': '/home/user'
     }
     return output, result

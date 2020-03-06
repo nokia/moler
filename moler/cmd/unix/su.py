@@ -82,8 +82,10 @@ class Su(Sudo):
         if self.cmd_object and self.cmd_class_name:
             # _validate_start is called before running command on connection, so we raise exception instead
             # of setting it
-            raise CommandFailure(self,
-                                 "both 'cmd_object' and 'cmd_class_name' parameters provided. Please specify only one.")
+            raise CommandFailure(
+                self,
+                "Both 'cmd_object' and 'cmd_class_name' parameters were provided. Please specify only one."
+            )
         if self.cmd_object and self.cmd_object.done():
             # _validate_start is called before running command on connection, so we raise exception
             # instead of setting it
