@@ -114,6 +114,37 @@ def test_iperf_creates_summary_connection_for_parallel_testing(buffer_connection
     assert ('192.168.0.102', '5001@192.168.0.100') in stored_connections  # result
 
 
+def test_iperf_ignores_multiple_echo_of_command(buffer_connection):
+    # running on cygwin may cause getting multiple echo even mixed with prompt
+    from moler.cmd.unix import iperf2
+
+    collected_lines = []
+    output_with_multiple_echo = "andromeda:/ # /bin/iperf -c 1.2.3.4 -p 5001 -f k -i 1.0 -t 6.0 --dualtest\n" + \
+                                "/bin/iperf -c 1.2.3.4 -p 5001 -f k -i 1.0 -t 6.0 -\n" + \
+                                "andromeda:/ # /bin/iperf -c 1.2.3.4 -p 5001 -f k -i 1.0 -t 6.0 --dualtest\n" + \
+                                "------------------------------------------------------------\n" + \
+                                "[  3] local 192.168.0.1 port 49597 connected with 1.2.3.4 port 5001\n" + \
+                                "[ ID] Interval       Transfer     Bandwidth\n" + \
+                                "[  3]  0.0- 1.0 sec  28.6 MBytes   240 Mbits/sec\n" + \
+                                "[  3]  0.0-10.0 sec   265 MBytes   222 Mbits/sec\n"+ \
+                                "andromeda:/ # "
+
+    buffer_connection.remote_inject_response([output_with_multiple_echo])
+    iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
+                              prompt='andromeda:/ # ',
+                              options='-c 1.2.3.4 -p 5001 -f k -i 1.0 -t 6.0 --dualtest')
+    iperf_cmd.command_path = '/bin/'
+    oryg_on_new_line = iperf_cmd.__class__.on_new_line
+
+    def on_new_line(self, line, is_full_line):
+        collected_lines.append(line)
+        oryg_on_new_line(self, line, is_full_line)
+
+    with mock.patch.object(iperf_cmd.__class__, "on_new_line", on_new_line):
+        iperf_cmd()
+    assert "andromeda:/ # /bin/iperf -c 1.2.3.4 -p 5001 -f k -i 1.0 -t 6.0 --dualtest" not in collected_lines
+
+
 def test_iperf_correctly_parses_bidirectional_udp_client_output(buffer_connection):
     from moler.cmd.unix import iperf2
     buffer_connection.remote_inject_response([iperf2.COMMAND_OUTPUT_bidirectional_udp_client])

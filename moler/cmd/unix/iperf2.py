@@ -162,6 +162,17 @@ class Iperf2(GenericUnixCommand, Publisher):
                 pass
         return super(Iperf2, self).on_new_line(line, is_full_line)
 
+    def _process_line_from_command(self, current_chunk, line, is_full_line):
+        decoded_line = self._decode_line(line=line)
+        if self._is_replicated_cmd_echo(line):
+            return
+        self.on_new_line(line=decoded_line, is_full_line=is_full_line)
+
+    def _is_replicated_cmd_echo(self, line):
+        prompt_and_command = r'{}\s*{}'.format(self._re_prompt.pattern, self.command_string)
+        found_echo = self._regex_helper.search(prompt_and_command, line)
+        return found_echo is not None
+
     def subscribe(self, subscriber):
         """
         Subscribe for notifications about iperf statistic as it comes.
