@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
@@ -19,6 +19,7 @@ class TextualEvent(Event):
         self._last_not_full_line = None
         self._newline_chars = TextualEvent._default_newline_chars
         self._regex_helper = RegexHelper()  # Object to regular expression matching
+        self._paused = False
 
     def event_occurred(self, event_data):
         self._consume_already_parsed_fragment()
@@ -36,15 +37,20 @@ class TextualEvent(Event):
 
     def data_received(self, data):
         """
-        Called by framework when any data are sent by device
-        :param data: List of strings sent by device
-        :return: None
+        Called by framework when any data are sent by device.
+
+        :param data: List of strings sent by device.
+        :return: None.
         """
-        lines = data.splitlines(True)
-        for current_chunk in lines:
-            if not self.done():
-                line, is_full_line = self._update_from_cached_incomplete_line(current_chunk=current_chunk)
-                self._process_line_from_output(line=line, current_chunk=current_chunk, is_full_line=is_full_line)
+        if not self._paused:
+            lines = data.splitlines(True)
+            for current_chunk in lines:
+                if not self.done():
+                    line, is_full_line = self._update_from_cached_incomplete_line(current_chunk=current_chunk)
+                    self._process_line_from_output(line=line, current_chunk=current_chunk, is_full_line=is_full_line)
+                    if self._paused:
+                        self._last_not_full_line = None
+                        break
 
     def _process_line_from_output(self, current_chunk, line, is_full_line):
         """
@@ -111,3 +117,20 @@ class TextualEvent(Event):
         :return: decoded line.
         """
         return line
+
+    def pause(self):
+        """
+        Pauses the event. Do not process till resume.
+
+        :return: None.
+        """
+        self._paused = True
+        self._last_not_full_line = None
+
+    def resume(self):
+        """
+        Resumes processing output from connection by the event.
+
+        :return: None.
+        """
+        self._paused = False

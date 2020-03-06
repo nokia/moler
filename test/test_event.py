@@ -6,7 +6,7 @@ Event is a type of ConnectionObserver.
 """
 
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import importlib
@@ -41,7 +41,7 @@ def test_event_string_is_required_to_start_command(lineevent_class):
     from moler.exceptions import NoDetectPatternProvided
     moler_conn = ObservableConnection()
 
-    event_class = do_nothing_command_class(base_class=lineevent_class)
+    event_class = do_nothing_connection_observer_class(base_class=lineevent_class)
     event = event_class(connection=moler_conn, detect_patterns=[])
     assert not event.detect_patterns  # ensure it is empty before starting command
 
@@ -153,19 +153,25 @@ def lineevent_class(request):
     return klass
 
 
-def do_nothing_command_class(base_class):
+def do_nothing_connection_observer_class(base_class):
     """Command class that can be instantiated (overwritten abstract methods); uses different base class"""
 
-    class DoNothingCommand(base_class):
+    class DoNothingConnectionObserver(base_class):
         def data_received(self, data):  # we need to overwrite it since it is @abstractmethod
             pass  # ignore incoming data
 
-    return DoNothingCommand
+        def pause(self):
+            pass
+
+        def resume(self):
+            pass
+
+    return DoNothingConnectionObserver
 
 
 @pytest.fixture
 def do_nothing_command_class__for_major_base_class(command_major_base_class):
-    klass = do_nothing_command_class(base_class=command_major_base_class)
+    klass = do_nothing_connection_observer_class(base_class=command_major_base_class)
     return klass
 
 
