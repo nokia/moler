@@ -11,7 +11,6 @@ import re
 
 from moler.cmd.unix.sudo import Sudo
 from moler.exceptions import CommandFailure
-from moler.exceptions import ParsingDone
 
 
 class Su(Sudo):

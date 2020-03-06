@@ -458,3 +458,17 @@ COMMAND_KWARGS_su = {
         'expected_prompt': r"root@host.*#"
     }
 }
+
+COMMAND_OUTPUT_sudo_su_pwd = """sudo su -c 'pwd -P'
+/home/auto/inv
+moler_bash#"""
+
+COMMAND_KWARGS_sudo_su_pwd = {
+    'cmd_class_name': 'moler.cmd.unix.su.Su',  # su as parameter of sudo
+    'cmd_params': {  # parameters for sudo
+        'cmd_class_name': 'moler.cmd.unix.pwd.Pwd',  # pwd as parameter for sudo
+        'cmd_params': {'options': '-P'}  # parameters for pwd
+    }
+}
+
+COMMAND_RESULT_sudo_su_pwd = {'full_path': '/home/auto/inv', 'path_to_current': '/home/auto', 'current_path': 'inv'}
