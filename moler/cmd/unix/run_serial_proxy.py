@@ -10,7 +10,7 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 import re
 
 from moler.cmd.commandchangingprompt import CommandChangingPrompt
-from moler.cmd.unix.genericunix import cmd_failure_causes
+from moler.cmd.unix.genericunix import r_cmd_failure_cause_alternatives
 from moler.exceptions import ParsingDone
 from moler.exceptions import CommandFailure
 
@@ -58,7 +58,7 @@ class RunSerialProxy(CommandChangingPrompt):
         super(RunSerialProxy, self).on_new_line(line=line, is_full_line=is_full_line)
 
     # error in python code of proxy - will show Traceback on python shell
-    _re_command_fail = re.compile(r"{}|traceback".format(cmd_failure_causes), re.I)
+    _re_command_fail = re.compile(r"{}|traceback".format(r_cmd_failure_cause_alternatives), re.IGNORECASE)
 
     def _check_command_failure(self, line):
         """

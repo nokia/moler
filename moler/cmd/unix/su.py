@@ -12,6 +12,7 @@ import re
 from moler.cmd.commandchangingprompt import CommandChangingPrompt
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
+from moler.cmd.unix.genericunix import r_cmd_failure_cause_alternatives
 
 
 class Su(CommandChangingPrompt):
@@ -106,7 +107,8 @@ class Su(CommandChangingPrompt):
 
             raise ParsingDone
 
-    _re_command_fail = re.compile(r"su:\s(invalid|unrecognized)\soption\s(?P<OPTION>.*)", re.IGNORECASE)
+    _re_command_fail = re.compile(r_cmd_failure_cause_alternatives, re.IGNORECASE)
+    _re_command_wrong_option = re.compile(r"su:\s(invalid|unrecognized)\soption\s(?P<OPTION>.*)", re.IGNORECASE)
     _re_wrong_username = re.compile(r"No\spasswd\sentry\sfor\suser\s(?P<USERNAME>.*)", re.IGNORECASE)
 
     def _command_failure(self, line):
@@ -117,11 +119,14 @@ class Su(CommandChangingPrompt):
         :return: None
         :raise ParsingDone: if regex matches.
         """
-        if self._regex_helper.search_compiled(Su._re_command_fail, line):
+        if self._regex_helper.search_compiled(Su._re_command_wrong_option, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("OPTION"))))
             raise ParsingDone
         elif self._regex_helper.search_compiled(Su._re_wrong_username, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("USERNAME"))))
+            raise ParsingDone
+        elif self._regex_helper.search_compiled(Su._re_command_fail, line):
+            self.set_exception(CommandFailure(self, "ERROR: {}".format(line)))
             raise ParsingDone
 
     _re_password = re.compile(r"Password:", re.IGNORECASE)
