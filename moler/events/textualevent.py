@@ -48,6 +48,9 @@ class TextualEvent(Event):
                 if not self.done():
                     line, is_full_line = self._update_from_cached_incomplete_line(current_chunk=current_chunk)
                     self._process_line_from_output(line=line, current_chunk=current_chunk, is_full_line=is_full_line)
+                    if self._paused:
+                        self._last_not_full_line = None
+                        break
 
     def _process_line_from_output(self, current_chunk, line, is_full_line):
         """
@@ -77,7 +80,7 @@ class TextualEvent(Event):
         if is_full_line:
             line = self._strip_new_lines_chars(line)
         else:
-            if not self._paused:  # Don't do it if we pause event during processing current chunk.
+            if self._paused:  # Don't do it if we pause event during processing current chunk.
                 self._last_not_full_line = line
         return line, is_full_line
 

@@ -160,6 +160,12 @@ def do_nothing_command_class(base_class):
         def data_received(self, data):  # we need to overwrite it since it is @abstractmethod
             pass  # ignore incoming data
 
+        def pause(self):
+            pass
+
+        def resume(self):
+            pass
+
     return DoNothingCommand
 
 

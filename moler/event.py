@@ -48,7 +48,6 @@ class Event(ConnectionObserver):
         self._validate_start(*args, **kwargs)
         ret = super(Event, self).start(timeout, *args, **kwargs)
         self.life_status._is_running = True
-
         return ret
 
     def add_event_occurred_callback(self, callback, callback_params=None):
