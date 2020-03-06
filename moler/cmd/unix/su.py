@@ -150,7 +150,7 @@ COMMAND_RESULT_su = {}
 COMMAND_OUTPUT_newline_after_prompt = """
 xyz@debian:~$ su
 Password:
-root@debian:/home/xyz# 
+root@debian:/home/xyz#
 """
 
 COMMAND_KWARGS_newline_after_prompt = {
