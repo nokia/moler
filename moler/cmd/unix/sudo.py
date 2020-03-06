@@ -196,7 +196,7 @@ class Sudo(CommandChangingPrompt):
 
     # sudo: /usr/bin/sudo must be owned by uid 0 and have the setuid bit set
     _re_sudo_error = re.compile(r"sudo:.*must be owned by uid\s+\d+\s+and have the setuid bit set|usage: sudo|"
-                                r"sudo: \d+ incorrect password attempt", re.I)
+                                r"sudo: \d+ incorrect password attempt|sudo: not found", re.I)
 
     def _get_error_regex(self):
         return Sudo._re_sudo_error
