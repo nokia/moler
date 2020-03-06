@@ -461,7 +461,7 @@ COMMAND_KWARGS_su = {
 
 COMMAND_OUTPUT_sudo_su_pwd = """sudo su -c 'pwd -P'
 /home/auto/inv
-moler_bash#"""
+user@host$"""
 
 COMMAND_KWARGS_sudo_su_pwd = {
     'cmd_class_name': 'moler.cmd.unix.su.Su',  # su as parameter of sudo
