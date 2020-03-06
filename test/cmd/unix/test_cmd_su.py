@@ -88,6 +88,9 @@ def test_sudo_su_only_params(buffer_connection, command_output_and_expected_resu
     assert ret == expected_dict
 
 
+
+
+
 @pytest.fixture
 def command_output_and_expected_result_auth():
     output = """xyz@debian:~/Moler$ su

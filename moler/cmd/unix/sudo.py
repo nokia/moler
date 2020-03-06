@@ -459,7 +459,7 @@ COMMAND_KWARGS_su = {
     }
 }
 
-COMMAND_OUTPUT_sudo_su_pwd = """sudo su -c 'pwd -P'
+COMMAND_OUTPUT_sudo_su_pwd = """user@host$ sudo su -c 'pwd -P'
 /home/auto/inv
 user@host$"""
 
