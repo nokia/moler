@@ -210,7 +210,7 @@ class Sudo(CommandChangingPrompt):
         :raises: ParsingDone if regex matches the line.
         """
         if re.search(self._get_error_regex(), line):
-            self.set_exception(CommandFailure(self, "Command sudo error found in line '{}'.".format(line)))
+            self.set_exception(CommandFailure(self, "Command su error found in line '{}'.".format(line)))
             self._finish_on_final_prompt = True
             raise ParsingDone()
 

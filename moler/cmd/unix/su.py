@@ -108,7 +108,9 @@ class Su(Sudo):
         return Su._re_su_wrong_password
 
     # No passwd entry for user
-    _re_su_error = re.compile(r"No passwd entry for user|su: invalid option|usage: su", re.I)
+    _re_su_error = re.compile(
+        r"No passwd entry for user|su:\s+(invalid|unrecognized)\s+option|usage:\s+su|su:\s+not found",
+        re.I)
 
     def _get_error_regex(self):
         return Su._re_su_error

@@ -88,7 +88,16 @@ def test_sudo_su_only_params(buffer_connection, command_output_and_expected_resu
     assert ret == expected_dict
 
 
+def test_su_catches_missing_binary_failure(buffer_connection):
+    from moler.exceptions import CommandFailure
 
+    buffer_connection.remote_inject_response(["xyz@debian:~/Moler$ su\n",
+                                              "/system/bin/sh: su: not found\n",
+                                              "xyz@debian:~/Moler$"])
+    su_cmd = Su(connection=buffer_connection.moler_connection)
+    with pytest.raises(CommandFailure) as err:
+        su_cmd()
+    assert "/system/bin/sh: su: not found" in str(err.value)
 
 
 @pytest.fixture
