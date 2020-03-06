@@ -42,12 +42,6 @@ class Su(Sudo):
         :param cmd_class_name: full (with package) class name. Pass this name or cmd_object.
         :param cmd_params: params for cmd_class_name. If cmd_object is passed this parameter is ignored.
         """
-        # super(Su, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
-        #                          runner=runner, expected_prompt=expected_prompt, set_timeout=set_timeout,
-        #                          set_prompt=set_prompt, target_newline=target_newline,
-        #                          allowed_newline_after_prompt=allowed_newline_after_prompt,
-        #                          prompt_after_login=prompt_after_login, cmd_object=cmd_object,
-        #                          cmd_class_name=cmd_class_name, cmd_params=cmd_params)
 
         super(Su, self).__init__(connection=connection, password=password, cmd_object=cmd_object,
                                  cmd_class_name=cmd_class_name, cmd_params=cmd_params, prompt=prompt,
@@ -60,11 +54,6 @@ class Su(Sudo):
         # Parameters defined by calling the command
         self.options = options
         self.login = login
-
-        # Internal variables
-        # self._sent_password = False
-        # self.current_ret = dict()
-        # self.current_ret['RESULT'] = list()
 
     def build_command_string(self):
         """
@@ -110,19 +99,20 @@ class Su(Sudo):
     # password:
     _re_su_password = re.compile(r"^\s*password*:", re.I)
 
-    def _parse_password(self, line):
-        """
-        Parses if sudo waits for password.
+    def _get_password_regex(self):
+        return Su._re_su_password
 
-        :param line: Line from device.
-        :return: None.
-        :raises: ParsingDone if regex matches the line.
-        """
-        if re.search(Su._re_su_password, line):
-            if not self._sent_password:
-                self.connection.sendline(self.password, encrypt=self.encrypt_password)
-                self._sent_password = True
-            raise ParsingDone()
+    # su: Authentication failure
+    _re_su_wrong_password = re.compile(r"su: Authentication failure", re.I)
+
+    def _get_wrong_password_regex(self):
+        return Su._re_su_wrong_password
+
+    # No passwd entry for user
+    _re_su_error = re.compile(r"No passwd entry for user|su: invalid option|usage: su", re.I)
+
+    def _get_error_regex(self):
+        return Su._re_su_error
 
 
 COMMAND_OUTPUT_su = """
