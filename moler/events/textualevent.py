@@ -80,8 +80,7 @@ class TextualEvent(Event):
         if is_full_line:
             line = self._strip_new_lines_chars(line)
         else:
-            if self._paused:  # Don't do it if we pause event during processing current chunk.
-                self._last_not_full_line = line
+            self._last_not_full_line = line
         return line, is_full_line
 
     def is_new_line(self, line):
