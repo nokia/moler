@@ -181,3 +181,8 @@ DEVICES:
           command_params:
             serial_number: 'f57e6b77'  #  to create:  adb -s f57e6b77 shell
             expected_prompt: 'shell@adbhost:/ \$'
+      ADB_SHELL:
+        ADB_SHELL_ROOT:
+          execute_command: su
+          command_params:
+            expected_prompt: 'shell@adbhost:/ \#'

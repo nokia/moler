@@ -46,6 +46,7 @@ class AdbRemote(UnixRemote):
     """
 
     adb_shell = "ADB_SHELL"
+    adb_shell_root = "ADB_SHELL_ROOT"
 
     def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, io_constructor_kwargs=None,
                  initial_state=None):
@@ -96,6 +97,27 @@ class AdbRemote(UnixRemote):
                         "required_command_params": [
                         ]
                     },
+                    AdbRemote.adb_shell_root: {  # to
+                        "execute_command": "su",  # using command
+                        "command_params": {  # with parameters
+                            "password": "provide_root_password_in_cfg",  # if su requires passwd and not given in cfg
+                            "expected_prompt": None,  # overwritten in _prepare_state_prompts...()
+                            "target_newline": None,  # overwritten in _prepare_newline_chars_...()
+                        },
+                        "required_command_params": [
+                        ]
+                    },
+                },
+                AdbRemote.adb_shell_root: {  # from
+                    AdbRemote.adb_shell: {  # to
+                        "execute_command": "exit",  # using command
+                        "command_params": {  # with parameters
+                            "expected_prompt": r'adb_prompt',  # overwritten in _configure_state_machine()
+                            "target_newline": "\n"
+                        },
+                        "required_command_params": [
+                        ]
+                    },
                 },
             }
         }
@@ -120,7 +142,19 @@ class AdbRemote(UnixRemote):
                     "action": [
                         "_execute_command_to_change_state"
                     ],
+                },
+                AdbRemote.adb_shell_root: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
                 }
+            },
+            AdbRemote.adb_shell_root: {
+                AdbRemote.adb_shell: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                },
             },
         }
         return transitions
@@ -132,9 +166,19 @@ class AdbRemote(UnixRemote):
         :return: textual prompt for each state without proxy_pc state.
         """
         hops_config = self._configurations[TextualDevice.connection_hops]
-        adb_prompt = hops_config[UnixRemote.unix_remote][AdbRemote.adb_shell]["command_params"]["expected_prompt"]
+        cfg_ux2adb = hops_config[UnixRemote.unix_remote][AdbRemote.adb_shell]
+        cfg_adb2adbroot = hops_config[AdbRemote.adb_shell][AdbRemote.adb_shell_root]
+        adb_shell_prompt = cfg_ux2adb["command_params"]["expected_prompt"]
+        adb_shell_root_prompt = cfg_adb2adbroot["command_params"]["expected_prompt"]
+        if adb_shell_root_prompt is None:
+            if adb_shell_prompt.endswith("$"):
+                adb_shell_root_prompt = adb_shell_prompt[:-1] + "#"
+            else:
+                adb_shell_root_prompt = adb_shell_prompt
+
         state_prompts = {
-            AdbRemote.adb_shell: adb_prompt
+            AdbRemote.adb_shell: adb_shell_prompt,
+            AdbRemote.adb_shell_root: adb_shell_root_prompt,
         }
         return state_prompts
 
@@ -145,9 +189,16 @@ class AdbRemote(UnixRemote):
         :return: newline char for each state without proxy_pc state.
         """
         hops_config = self._configurations[TextualDevice.connection_hops]
+        cfg_ux2adb = hops_config[UnixRemote.unix_remote][AdbRemote.adb_shell]
+        cfg_adb2adbroot = hops_config[AdbRemote.adb_shell][AdbRemote.adb_shell_root]
+        adb_shell_newline = cfg_ux2adb["command_params"]["target_newline"]
+        adb_shell_root_newline = cfg_adb2adbroot["command_params"]["target_newline"]
+        if adb_shell_root_newline is None:
+            adb_shell_root_newline = adb_shell_newline  # we are on same machine just changing to root
+
         newline_chars = {
-            AdbRemote.adb_shell:
-                hops_config[UnixRemote.unix_remote][AdbRemote.adb_shell]["command_params"]["target_newline"],
+            AdbRemote.adb_shell: adb_shell_newline,
+            AdbRemote.adb_shell_root: adb_shell_root_newline,
         }
         return newline_chars
 
@@ -163,32 +214,44 @@ class AdbRemote(UnixRemote):
                 UnixRemote.unix_remote: UnixLocal.unix_local,
                 UnixRemote.unix_remote_root: UnixLocal.unix_local,
                 AdbRemote.adb_shell: UnixLocal.unix_local,
+                AdbRemote.adb_shell_root: UnixLocal.unix_local,
             },
             UnixLocal.unix_local: {
                 UnixRemote.unix_remote_root: UnixRemote.unix_remote,
                 AdbRemote.adb_shell: UnixRemote.unix_remote,
+                AdbRemote.adb_shell_root: UnixRemote.unix_remote,
             },
             UnixLocal.unix_local_root: {
                 TextualDevice.not_connected: UnixLocal.unix_local,
                 UnixRemote.unix_remote: UnixLocal.unix_local,
                 UnixRemote.unix_remote_root: UnixLocal.unix_local,
                 AdbRemote.adb_shell: UnixLocal.unix_local,
+                AdbRemote.adb_shell_root: UnixLocal.unix_local,
             },
             UnixRemote.unix_remote: {
                 TextualDevice.not_connected: UnixLocal.unix_local,
                 UnixLocal.unix_local_root: UnixLocal.unix_local,
+                AdbRemote.adb_shell_root: AdbRemote.adb_shell,
             },
             UnixRemote.unix_remote_root: {
                 TextualDevice.not_connected: UnixRemote.unix_remote,
                 UnixLocal.unix_local: UnixRemote.unix_remote,
                 UnixLocal.unix_local_root: UnixRemote.unix_remote,
                 AdbRemote.adb_shell: UnixRemote.unix_remote,
+                AdbRemote.adb_shell_root: UnixRemote.unix_remote,
             },
             AdbRemote.adb_shell: {
                 TextualDevice.not_connected: UnixRemote.unix_remote,
                 UnixLocal.unix_local: UnixRemote.unix_remote,
                 UnixLocal.unix_local_root: UnixRemote.unix_remote,
                 UnixRemote.unix_remote_root: UnixRemote.unix_remote,
+            },
+            AdbRemote.adb_shell_root: {
+                TextualDevice.not_connected: AdbRemote.adb_shell,
+                UnixLocal.unix_local: AdbRemote.adb_shell,
+                UnixLocal.unix_local_root: AdbRemote.adb_shell,
+                UnixRemote.unix_remote: AdbRemote.adb_shell,
+                UnixRemote.unix_remote_root: AdbRemote.adb_shell,
             },
         }
         return state_hops
@@ -201,11 +264,19 @@ class AdbRemote(UnixRemote):
         """
         super(AdbRemote, self)._configure_state_machine(sm_params)
 
-        # copy prompt for ADB_SHELL/exit from UNIX_REMOTE_ROOT/exit
         hops_config = self._configurations[TextualDevice.connection_hops]
-        remote_ux_root_exit_params = hops_config[UnixRemote.unix_remote_root][UnixRemote.unix_remote]["command_params"]
-        remote_ux_prompt = remote_ux_root_exit_params["expected_prompt"]
-        hops_config[AdbRemote.adb_shell][UnixRemote.unix_remote]["command_params"]["expected_prompt"] = remote_ux_prompt
+
+        # copy prompt for ADB_SHELL/exit from UNIX_REMOTE_ROOT/exit
+        cfg_uxroot2ux = hops_config[UnixRemote.unix_remote_root][UnixRemote.unix_remote]
+        cfg_adb2ux = hops_config[AdbRemote.adb_shell][UnixRemote.unix_remote]
+        remote_ux_prompt = cfg_uxroot2ux["command_params"]["expected_prompt"]
+        cfg_adb2ux["command_params"]["expected_prompt"] = remote_ux_prompt
+
+        # copy prompt for ADB_SHELL_ROOT/exit from UNIX_REMOTE/adb shell
+        cfg_ux2adb = hops_config[UnixRemote.unix_remote][AdbRemote.adb_shell]
+        cfg_adbroot2adb = hops_config[AdbRemote.adb_shell_root][AdbRemote.adb_shell]
+        adb_shell_prompt = cfg_ux2adb["command_params"]["expected_prompt"]
+        cfg_adbroot2adb["command_params"]["expected_prompt"] = adb_shell_prompt
 
     def _get_packages_for_state(self, state, observer):
         """
@@ -217,7 +288,7 @@ class AdbRemote(UnixRemote):
         available = super(AdbRemote, self)._get_packages_for_state(state, observer)
 
         if not available:
-            if state == AdbRemote.adb_shell:
+            if (state == AdbRemote.adb_shell) or (state == AdbRemote.adb_shell_root):
                 available = {TextualDevice.cmds: ['moler.cmd.unix'],
                              TextualDevice.events: ['moler.events.shared']}
             if available:

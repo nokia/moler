@@ -31,6 +31,10 @@ def adb_remote_output():
         },
         "ADB_SHELL": {
             'exit': 'remote#',
+            'su': 'shell@adbhost:/ #',
+        },
+        "ADB_SHELL_ROOT": {
+            'exit': 'shell@adbhost:/ $',
         },
         "UNIX_REMOTE_ROOT": {
             'exit': 'remote#',
