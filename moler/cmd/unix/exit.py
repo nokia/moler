@@ -13,7 +13,7 @@ from moler.cmd.commandchangingprompt import CommandChangingPrompt
 
 class Exit(CommandChangingPrompt):
     def __init__(self, connection, prompt=None, expected_prompt='>', newline_chars=None, runner=None,
-                 target_newline="\n"):
+                 target_newline="\n", allowed_newline_after_prompt=False):
         """
         :param connection: connection to device.
         :param expected_prompt: prompt on device changed by this command.
@@ -23,7 +23,8 @@ class Exit(CommandChangingPrompt):
         :param target_newline: newline on device when command is finished and prompt is changed.
         """
         super(Exit, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner,
-                                   expected_prompt=expected_prompt, target_newline=target_newline)
+                                   expected_prompt=expected_prompt, target_newline=target_newline,
+                                   allowed_newline_after_prompt=allowed_newline_after_prompt)
 
     def build_command_string(self):
         """
