@@ -57,6 +57,12 @@ class CommandChangingPrompt(CommandTextualGeneric):
         self._finish_on_final_prompt = True  # Set True to finish Moler command by this generic after prompt after
         # command output. False if you want to finish command in your class.
 
+    def __str__(self):
+        base_str = super(CommandChangingPrompt, self).__str__()
+        expected_prompt = self._re_expected_prompt.pattern
+        # having expected prompt visible simplifies troubleshooting
+        return "{}, expected_prompt_regex:r'{}')".format(base_str[:-1], expected_prompt)
+
     def on_new_line(self, line, is_full_line):
         """
         Parses the output of the command.
