@@ -120,6 +120,10 @@ class ConnectionObserver(object):
                   levels_to_go_up=2)
         self.life_status.timeout = value
 
+    @property
+    def start_time(self):
+        return self.life_status.start_time
+
     def get_logger_name(self):
         if self.connection and hasattr(self.connection, "name"):
             return self.connection.name
