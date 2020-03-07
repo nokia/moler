@@ -94,7 +94,8 @@ class AdbRemote(UnixRemote):
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
                             "expected_prompt": r'remote_user_prompt',  # overwritten in _configure_state_machine()
-                            "target_newline": "\n"
+                            "target_newline": "\n",
+                            "allowed_newline_after_prompt": True,
                         },
                         "required_command_params": [
                         ]
@@ -272,10 +273,10 @@ class AdbRemote(UnixRemote):
 
         hops_config = self._configurations[TextualDevice.connection_hops]
 
-        # copy prompt for ADB_SHELL/exit from UNIX_REMOTE_ROOT/exit
-        cfg_uxroot2ux = hops_config[UnixRemote.unix_remote_root][UnixRemote.unix_remote]
+        # copy prompt for ADB_SHELL/exit from UNIX_LOCAL/ssh
+        cfg_uxloc2ux = hops_config[UnixLocal.unix_local][UnixRemote.unix_remote]
         cfg_adb2ux = hops_config[AdbRemote.adb_shell][UnixRemote.unix_remote]
-        remote_ux_prompt = cfg_uxroot2ux["command_params"]["expected_prompt"]
+        remote_ux_prompt = cfg_uxloc2ux["command_params"]["expected_prompt"]
         cfg_adb2ux["command_params"]["expected_prompt"] = remote_ux_prompt
 
         # copy prompt for ADB_SHELL_ROOT/exit from UNIX_REMOTE/adb shell
@@ -283,6 +284,13 @@ class AdbRemote(UnixRemote):
         cfg_adbroot2adb = hops_config[AdbRemote.adb_shell_root][AdbRemote.adb_shell]
         adb_shell_prompt = cfg_ux2adb["command_params"]["expected_prompt"]
         cfg_adbroot2adb["command_params"]["expected_prompt"] = adb_shell_prompt
+
+        cfg_adb2adbroot = hops_config[AdbRemote.adb_shell][AdbRemote.adb_shell_root]
+        adb_shell_root_prompt = cfg_adb2adbroot["command_params"]["expected_prompt"]
+        if adb_shell_root_prompt is None:
+            if adb_shell_prompt.endswith("$"):
+                adb_shell_root_prompt = adb_shell_prompt[:-1] + "#"
+                cfg_adb2adbroot["command_params"]["expected_prompt"] = adb_shell_root_prompt
 
     def _get_packages_for_state(self, state, observer):
         """
