@@ -316,16 +316,19 @@ class TextualDevice(AbstractDevice):
             self.SM.set_state(state=state)
         if self._kept_state is not None and self.current_state != self._kept_state:
             state = self._kept_state
+            self._kept_state = None
             try:
                 self.goto_state(state=state, timeout=self.timeout_keep_state, rerun=0,
                                 send_enter_after_changed_state=False, log_stacktrace_on_fail=False, keep_state=True)
-            except DeviceChangeStateFailure:
+            except Exception as ex:
                 level = logging.DEBUG
                 if not self._warning_was_sent:
                     level = logging.WARNING
                     self._warning_was_sent = True
-                self._log(level=level, msg="Cannot properly go to state: '{}' in background.".format(state))
-                self._kept_state = state
+                self._log(level=level, msg="Cannot properly go to state: '{}' in background with excprtion.".format(
+                    state, ex))
+                if self._kept_state is None:
+                    self._kept_state = state
 
     def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False,
                    log_stacktrace_on_fail=True, keep_state=True):
