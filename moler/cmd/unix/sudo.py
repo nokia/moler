@@ -62,7 +62,7 @@ class Sudo(CommandChangingPrompt):
         self.sudo_params = sudo_params
         self.timeout_from_embedded_command = True  # Set True to set timeout from command or False to use timeout set in
         #  sudo command.
-        self._sent_sudo_password = False
+        self._sent_password = False
         self._sent_command_string = False
         self.newline_seq = "\n"
         self._line_for_sudo = False
@@ -94,10 +94,10 @@ class Sudo(CommandChangingPrompt):
         :return: None.
         """
         try:
-            self._parse_sudo_password(line)
+            self._parse_password(line)
             self._process_wrong_password(line)
             self._parse_command_not_found(line)
-            self._parse_sudo_error(line)
+            self._parse_error(line)
         except ParsingDone:
             self._line_for_sudo = True
         super(Sudo, self).on_new_line(line, is_full_line)
@@ -176,6 +176,9 @@ class Sudo(CommandChangingPrompt):
     # Sorry, try again.
     _re_sudo_sorry_try_again = re.compile(r"Sorry, try again.", re.I)
 
+    def _get_wrong_password_regex(self):
+        return Sudo._re_sudo_sorry_try_again
+
     def _process_wrong_password(self, line):
         """
         Parses line for wrong password from sudo.
@@ -184,18 +187,21 @@ class Sudo(CommandChangingPrompt):
         :return: None
         :raises: ParsingDone if regex matches the line.
         """
-        if re.search(Sudo._re_sudo_sorry_try_again, line):
-            if self._sent_sudo_password and not self._command_output_started:
-                self.set_exception(CommandFailure(self, "Command sudo error found in line '{}'.".format(line)))
+        if re.search(self._get_wrong_password_regex(), line):
+            if self._sent_password and not self._command_output_started:
+                self.set_exception(CommandFailure(self, "Command error password found in line '{}'.".format(line)))
                 self._finish_on_final_prompt = True
-                self._sent_sudo_password = False
+                self._sent_password = False
                 raise ParsingDone()
 
     # sudo: /usr/bin/sudo must be owned by uid 0 and have the setuid bit set
     _re_sudo_error = re.compile(r"sudo:.*must be owned by uid\s+\d+\s+and have the setuid bit set|usage: sudo|"
-                                r"sudo: \d+ incorrect password attempt", re.I)
+                                r"sudo: \d+ incorrect password attempt|sudo: not found", re.I)
 
-    def _parse_sudo_error(self, line):
+    def _get_error_regex(self):
+        return Sudo._re_sudo_error
+
+    def _parse_error(self, line):
         """
         Parses if command not found is found in line.
 
@@ -203,15 +209,18 @@ class Sudo(CommandChangingPrompt):
         :return: None.
         :raises: ParsingDone if regex matches the line.
         """
-        if re.search(Sudo._re_sudo_error, line):
-            self.set_exception(CommandFailure(self, "Command sudo error found in line '{}'.".format(line)))
+        if re.search(self._get_error_regex(), line):
+            self.set_exception(CommandFailure(self, "Command su error found in line '{}'.".format(line)))
             self._finish_on_final_prompt = True
             raise ParsingDone()
 
     # [sudo] password for user:
     _re_sudo_password = re.compile(r"\[sudo\] password for.*:", re.I)
 
-    def _parse_sudo_password(self, line):
+    def _get_password_regex(self):
+        return Sudo._re_sudo_password
+
+    def _parse_password(self, line):
         """
         Parses if sudo waits for password.
 
@@ -219,10 +228,10 @@ class Sudo(CommandChangingPrompt):
         :return: None.
         :raises: ParsingDone if regex matches the line.
         """
-        if re.search(Sudo._re_sudo_password, line):
-            if not self._sent_sudo_password:
+        if re.search(self._get_password_regex(), line):
+            if not self._sent_password:
                 self.connection.sendline(self.password, encrypt=self.encrypt_password)
-                self._sent_sudo_password = True
+                self._sent_password = True
             raise ParsingDone()
 
     def _validate_start(self, *args, **kwargs):
@@ -262,8 +271,10 @@ class Sudo(CommandChangingPrompt):
         if self.cmd_object and self.cmd_class_name:
             # _validate_start is called before running command on connection, so we raise exception instead
             # of setting it
-            raise CommandFailure(self,
-                                 "both 'cmd_object' and 'cmd_class_name' parameters provided. Please specify only one.")
+            raise CommandFailure(
+                self,
+                "Both 'cmd_object' and 'cmd_class_name' parameters provided. Please specify only one."
+            )
         if self.cmd_object and self.cmd_object.done():
             # _validate_start is called before running command on connection, so we raise exception
             # instead of setting it
@@ -449,3 +460,17 @@ COMMAND_KWARGS_su = {
         'expected_prompt': r"root@host.*#"
     }
 }
+
+COMMAND_OUTPUT_sudo_su_pwd = """user@host$ sudo su -c 'pwd -P'
+/home/auto/inv
+user@host$"""
+
+COMMAND_KWARGS_sudo_su_pwd = {
+    'cmd_class_name': 'moler.cmd.unix.su.Su',  # su as parameter of sudo
+    'cmd_params': {  # parameters for sudo
+        'cmd_class_name': 'moler.cmd.unix.pwd.Pwd',  # pwd as parameter for sudo
+        'cmd_params': {'options': '-P'}  # parameters for pwd
+    }
+}
+
+COMMAND_RESULT_sudo_su_pwd = {'full_path': '/home/auto/inv', 'path_to_current': '/home/auto', 'current_path': 'inv'}
