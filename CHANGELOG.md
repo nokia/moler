@@ -1,3 +1,18 @@
+## moler 1.8.0
+
+### Added
+* AdbRemote device - new state ADB_SHELL_ROOT
+   * allow firing android-linux commands that need root
+* access to .start_time of any ConnectionObserver
+   * help in extending its timeout (calculating its "already passed life-time")
+
+### Improved
+* hardening Iperf2 against multiple echo at command startup (observed under cygwin)
+* better display of regexp patterns in logs - simplify troubleshooting
+* str(CommandChangingPrompt) display expected prompt regexp - simplify troubleshooting
+* cmd.unix.exit.Exit got new parameter allowed_newline_after_prompt
+   * allowed_newline_after_prompt=True helps to operate with cygwin
+
 ## moler 1.7.0
 
 ### Added
