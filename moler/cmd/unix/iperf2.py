@@ -65,6 +65,15 @@ class Iperf2(GenericUnixCommand, Publisher):
 
     """
     def __init__(self, connection, options, prompt=None, newline_chars=None, runner=None):
+        """
+        Create iperf2 command
+
+        :param connection: moler connection used by iperf command
+        :param options: iperf options (as in iperf documentation)
+        :param prompt: prompt (regexp) where iperf starts from, if None - default prompt regexp used
+        :param newline_chars: expected newline characters of iperf output
+        :param runner: runner used for command
+        """
         super(Iperf2, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.port, self.options = self._validate_options(options)
         self.current_ret['CONNECTIONS'] = dict()
