@@ -4,22 +4,21 @@ Su command module.
 """
 
 __author__ = 'Agnieszka Bylica, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import re
 
-from moler.cmd.commandchangingprompt import CommandChangingPrompt
+from moler.cmd.unix.sudo import Sudo
 from moler.exceptions import CommandFailure
-from moler.exceptions import ParsingDone
-from moler.cmd.unix.genericunix import r_cmd_failure_cause_alternatives
 
 
-class Su(CommandChangingPrompt):
+class Su(Sudo):
 
     def __init__(self, connection, login=None, options=None, password=None, prompt=None, expected_prompt=None,
                  newline_chars=None, encrypt_password=True, target_newline="\n", runner=None, set_timeout=None,
-                 allowed_newline_after_prompt=False, set_prompt=None, prompt_after_login=None):
+                 allowed_newline_after_prompt=False, set_prompt=None, prompt_after_login=None, cmd_object=None,
+                 cmd_class_name=None, cmd_params=None):
         """
         Moler class of Unix command su.
 
@@ -38,23 +37,22 @@ class Su(CommandChangingPrompt):
         :param set_prompt: Command to set prompt after su success.
         :param prompt_after_login: prompt after login before send export PS1. If you do not change prompt exporting PS1
          then leave it None.
+        :param cmd_object: object of command. Pass this object or cmd_class_name.
+        :param cmd_class_name: full (with package) class name. Pass this name or cmd_object.
+        :param cmd_params: params for cmd_class_name. If cmd_object is passed this parameter is ignored.
         """
-        super(Su, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
-                                 runner=runner, expected_prompt=expected_prompt, set_timeout=set_timeout,
-                                 set_prompt=set_prompt, target_newline=target_newline,
+
+        super(Su, self).__init__(connection=connection, password=password, cmd_object=cmd_object,
+                                 cmd_class_name=cmd_class_name, cmd_params=cmd_params, prompt=prompt,
+                                 newline_chars=newline_chars, runner=runner, encrypt_password=encrypt_password,
+                                 expected_prompt=expected_prompt, set_timeout=set_timeout, set_prompt=set_prompt,
+                                 target_newline=target_newline,
                                  allowed_newline_after_prompt=allowed_newline_after_prompt,
                                  prompt_after_login=prompt_after_login)
 
         # Parameters defined by calling the command
-        self.login = login
         self.options = options
-        self.password = password
-        self.encrypt_password = encrypt_password
-
-        # Internal variables
-        self._sent_password = False
-        self.current_ret = dict()
-        self.current_ret['RESULT'] = list()
+        self.login = login
 
     def build_command_string(self):
         """
@@ -62,111 +60,62 @@ class Su(CommandChangingPrompt):
 
         :return: String representation of command to send over connection to device.
         """
+        self._build_command_object()
         cmd = "su"
         if self.options:
             cmd = "{} {}".format(cmd, self.options)
+        if self.cmd_object:
+            cmd = "{} -c '{}'".format(cmd, self.cmd_object.command_string)
         if self.login:
             cmd = "{} {}".format(cmd, self.login)
         return cmd
 
-    def on_new_line(self, line, is_full_line):
+    def _validate_passed_object_or_command_parameters(self):
         """
-        Parses the output of the command.
+        Validates passed parameters to create embedded command object.
 
-        :param line: Line to process, can be only part of line. New line chars are removed from line.
-        :param is_full_line: True if line had new line chars, False otherwise.
-        :return: None.
-        """
-        try:
-            self._send_password_if_requested(line)
-            self._authentication_failure(line)
-            self._command_failure(line)
-            if is_full_line:
-                self._sent_password = False  # Clear flag for multi passwords connections
-                self._parse(line)
-        except ParsingDone:
-            pass
-        super(Su, self).on_new_line(line=line, is_full_line=is_full_line)
-
-    _re_authentication_fail = re.compile(r"su:\sAuthentication\sfailure(?P<AUTH>.*)"
-                                         r"|su:\sPermission denied\s(?P<PERM>.*)"
-                                         r"|su:\sincorrect password\s(?P<PASS>.*)", re.IGNORECASE)
-
-    def _authentication_failure(self, line):
-        """
-        Checks if line has info about authentication failure.
-
-        :param line: Line from device.
         :return: None
-        :raise ParsingDone: if regex matches.
+        :raise: CommandFailure if command parameters are wrong.
         """
-        if self._regex_helper.search_compiled(Su._re_authentication_fail, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}, {}, {}".format(self._regex_helper.group("AUTH"),
-                                                                               self._regex_helper.group("PERM"),
-                                                                               self._regex_helper.group("PASS"))))
+        if self._validated_embedded_parameters:
+            return  # Validate parameters only once
+        if self.cmd_object and self.cmd_class_name:
+            # _validate_start is called before running command on connection, so we raise exception instead
+            # of setting it
+            raise CommandFailure(
+                self,
+                "Both 'cmd_object' and 'cmd_class_name' parameters were provided. Please specify only one."
+            )
+        if self.cmd_object and self.cmd_object.done():
+            # _validate_start is called before running command on connection, so we raise exception
+            # instead of setting it
+            raise CommandFailure(
+                self,
+                "Not allowed to run again the embedded command (embedded command is done): {}.".format(
+                    self.cmd_object))
+        if not self.cmd_object:
+            self._finish_on_final_prompt = True
+        self._validated_embedded_parameters = True
 
-            raise ParsingDone
+    # password:
+    _re_su_password = re.compile(r"^\s*password*:", re.I)
 
-    _re_command_fail = re.compile(r_cmd_failure_cause_alternatives, re.IGNORECASE)
-    _re_command_wrong_option = re.compile(r"su:\s(invalid|unrecognized)\soption\s(?P<OPTION>.*)", re.IGNORECASE)
-    _re_wrong_username = re.compile(r"No\spasswd\sentry\sfor\suser\s(?P<USERNAME>.*)", re.IGNORECASE)
+    def _get_password_regex(self):
+        return Su._re_su_password
 
-    def _command_failure(self, line):
-        """
-        Checks if line has info about command failure.
+    # su: Authentication failure
+    _re_su_wrong_password = re.compile(r"su: Authentication failure", re.I)
 
-        :param line: Line from device.
-        :return: None
-        :raise ParsingDone: if regex matches.
-        """
-        if self._regex_helper.search_compiled(Su._re_command_wrong_option, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("OPTION"))))
-            raise ParsingDone
-        elif self._regex_helper.search_compiled(Su._re_wrong_username, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("USERNAME"))))
-            raise ParsingDone
-        elif self._regex_helper.search_compiled(Su._re_command_fail, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(line)))
-            raise ParsingDone
+    def _get_wrong_password_regex(self):
+        return Su._re_su_wrong_password
 
-    _re_password = re.compile(r"Password:", re.IGNORECASE)
+    # No passwd entry for user
+    _re_su_error = re.compile(
+        r"No passwd entry for user|su:\s+(invalid|unrecognized)\s+option|usage:\s+su|su:\s+not found",
+        re.I)
 
-    def _is_password_requested(self, line):
-        """
-        Checks if device waits for password.
-
-        :param line: Line from device.
-        :return: Match object if regex matches, None otherwise.
-        """
-        return self._regex_helper.search_compiled(Su._re_password, line)
-
-    def _send_password_if_requested(self, line):
-        """
-        Sends password.
-
-        :param line: Line from device.
-        :return: None
-        :raise ParsingDone: if regex matches.
-        """
-        if (not self._sent_password) and self._is_password_requested(line) and self.password:
-            self.connection.sendline(self.password, encrypt=self.encrypt_password)
-            self._sent_password = True
-            raise ParsingDone
-        elif (not self._sent_password) and self._is_password_requested(line) and (not self.password):
-            self.connection.sendline('')
-            raise ParsingDone
-
-    def _parse(self, line):
-        """
-        Add output to result.
-
-        :param line: Line from device
-        :return: None
-        :raise ParsingDone: if line matches the regex
-        """
-        if self._all_after_login_settings_sent() or self._no_after_login_settings_needed():
-            self.current_ret['RESULT'].append(line)
-            raise ParsingDone()
+    def _get_error_regex(self):
+        return Su._re_su_error
 
 
 COMMAND_OUTPUT_su = """
@@ -178,45 +127,55 @@ COMMAND_KWARGS_su = {
     'login': None, 'options': None, 'password': '1234', 'expected_prompt': 'root@debian:/home/xyz#'
 }
 
-COMMAND_RESULT_su = {'RESULT': []}
+COMMAND_RESULT_su = {}
 
-COMMAND_OUTPUT_su_option = """
-xyz@debian:~$ su -c 'ls' xyz
+COMMAND_OUTPUT_su_option = """ su -c 'ls' xyz
 Password:
 Dokumenty Pobrane Publiczny Pulpit Szablony Wideo
-xyz@debian:~$ """
+xyz@debian:~$"""
 
 COMMAND_KWARGS_su_option = {
-    'login': 'xyz', 'options': "-c 'ls'", 'password': '1234'
+    'login': 'xyz', 'cmd_class_name': 'moler.cmd.unix.ls.Ls', 'password': '1234'
 }
 
-COMMAND_RESULT_su_option = {'RESULT': ['Dokumenty Pobrane Publiczny Pulpit Szablony Wideo']}
+COMMAND_RESULT_su_option = {
+    'files': {
+        'Dokumenty': {'name': 'Dokumenty'},
+        'Pobrane': {'name': 'Pobrane'},
+        'Publiczny': {'name': 'Publiczny'},
+        'Pulpit': {'name': 'Pulpit'},
+        'Szablony': {'name': 'Szablony'},
+        'Wideo': {'name': 'Wideo'}
+    }
+}
 
 COMMAND_OUTPUT_newline_after_prompt = """
 xyz@debian:~$ su
 Password:
-root@debian:/home/xyz# """
+root@debian:/home/xyz#
+"""
 
 COMMAND_KWARGS_newline_after_prompt = {
     'login': None, 'options': None, 'password': '1234', 'expected_prompt': 'root@debian:/home/xyz#',
     'allowed_newline_after_prompt': True
 }
 
-COMMAND_RESULT_newline_after_prompt = {'RESULT': []}
+COMMAND_RESULT_newline_after_prompt = {}
 
 COMMAND_OUTPUT_newline_after_prompt_with_prompt_change = """
 xyz@debian:~$ su
 Password:
 root@debian:/home/xyz
 $ export PS1="${PS1::-4} #
-root@debian:/home/xyz # """
+root@debian:/home/xyz #
+"""
 
 COMMAND_KWARGS_newline_after_prompt_with_prompt_change = {
     'login': None, 'options': None, 'password': '1234', 'expected_prompt': 'root@debian:/home/xyz',
     'allowed_newline_after_prompt': True, 'set_prompt': r'export PS1="${PS1::-4} #"',
 }
 
-COMMAND_RESULT_newline_after_prompt_with_prompt_change = {'RESULT': [r'$ export PS1="${PS1::-4} #']}
+COMMAND_RESULT_newline_after_prompt_with_prompt_change = {}
 
 COMMAND_OUTPUT_set_timeout = """
 xyz@debian:~$ su
@@ -229,4 +188,4 @@ COMMAND_KWARGS_set_timeout = {
     'set_timeout': r'export TMOUT="2678400"',
 }
 
-COMMAND_RESULT_set_timeout = {'RESULT': []}
+COMMAND_RESULT_set_timeout = {}
