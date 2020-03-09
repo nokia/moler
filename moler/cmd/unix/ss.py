@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-__author__ = 'Jakub Kupiec'
+__author__ = 'Jakub Kupiec, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2020, Nokia'
-__email__ = 'jakub.kupiec@nokia.com'
+__email__ = 'jakub.kupiec@nokia.com, marcin.usielski@nokia.com'
 
 import re
 from moler.cmd.unix.genericunix import GenericUnixCommand
@@ -57,7 +57,7 @@ class Ss(GenericUnixCommand):
         return super(Ss, self).on_new_line(line, is_full_line)
 
     # Netid     State       Recv-Q Send-Q       Local Address:Port      Peer Address:Port
-    _re_parse_groups = re.compile(r"^(?P<NETID>\w+)\s+(?P<STATE>\w+-\w+|\w+)\s+(?P<RECV_Q>\d+)\s+(?P<SEND_Q>\d+)\s+"
+    _re_parse_groups = re.compile(r"^((?P<NETID>\w+)\s+)?(?P<STATE>\w+-\w+|\w+)\s+(?P<RECV_Q>\d+)\s+(?P<SEND_Q>\d+)\s+"
                                   r"(?P<LOCAL_ADDR>\S+)(?:\s|:){1}(?P<LOCAL_PORT>\w+)\s+(?P<PEER_ADDR>\S+)(?:\s|:){1}"
                                   r"(?P<PEER_PORT>\S+)")
 
@@ -247,3 +247,36 @@ COMMAND_RESULT = {
                              }]}
 
 COMMAND_KWARGS = {}
+
+COMMAND_OUTPUT_t = """ss -t
+State      Recv-Q Send-Q    Local Address:Port        Peer Address:Port   
+ESTAB      0      0           192.168.1.2:43839     108.160.162.37:http    
+ESTAB      0      0           192.168.1.2:43622     199.59.149.201:https 
+client@server$"""
+
+COMMAND_KWARGS_t = {'options': '-t'}
+
+COMMAND_RESULT_t = {
+    'NETWORK_CONNECTIONS': [
+        {
+            'local_address': '192.168.1.2',
+            'local_port': '43839',
+            'netid': None,
+            'peer_address': '108.160.162.37',
+            'peer_port': 'http',
+            'recv-Q': 0,
+            'send-Q': 0,
+            'state': 'ESTAB'
+        },
+        {
+            'local_address': '192.168.1.2',
+            'local_port': '43622',
+            'netid': None,
+            'peer_address': '199.59.149.201',
+            'peer_port': 'https',
+            'recv-Q': 0,
+            'send-Q': 0,
+            'state': 'ESTAB'
+        }
+    ]
+}
