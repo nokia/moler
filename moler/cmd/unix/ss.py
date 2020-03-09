@@ -249,9 +249,9 @@ COMMAND_RESULT = {
 COMMAND_KWARGS = {}
 
 COMMAND_OUTPUT_t = """ss -t
-State      Recv-Q Send-Q    Local Address:Port        Peer Address:Port   
-ESTAB      0      0           192.168.1.2:43839     108.160.162.37:http    
-ESTAB      0      0           192.168.1.2:43622     199.59.149.201:https 
+State      Recv-Q Send-Q    Local Address:Port        Peer Address:Port
+ESTAB      0      0           192.168.1.2:43839     108.160.162.37:http
+ESTAB      0      0           192.168.1.2:43622     199.59.149.201:https
 client@server$"""
 
 COMMAND_KWARGS_t = {'options': '-t'}
