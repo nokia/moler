@@ -60,8 +60,8 @@ moler.cmd.unix.cp module
     :undoc-members:
     :show-inheritance:
 
-moler.cmd.unix.ctrl_c module
-----------------------------
+moler.cmd.unix.ctrl\_c module
+-----------------------------
 
 .. automodule:: moler.cmd.unix.ctrl_c
     :members:
@@ -156,8 +156,8 @@ moler.cmd.unix.exit module
     :undoc-members:
     :show-inheritance:
 
-moler.cmd.unix.exit_telnet module
----------------------------------
+moler.cmd.unix.exit\_telnet module
+----------------------------------
 
 .. automodule:: moler.cmd.unix.exit_telnet
     :members:
@@ -276,32 +276,32 @@ moler.cmd.unix.ifconfig module
     :undoc-members:
     :show-inheritance:
 
-moler.cmd.unix.ip_addr module
------------------------------
+moler.cmd.unix.ip\_addr module
+------------------------------
 
 .. automodule:: moler.cmd.unix.ip_addr
     :members:
     :undoc-members:
     :show-inheritance:
 
-moler.cmd.unix.ip_link module
------------------------------
+moler.cmd.unix.ip\_link module
+------------------------------
 
 .. automodule:: moler.cmd.unix.ip_link
     :members:
     :undoc-members:
     :show-inheritance:
 
-moler.cmd.unix.ip_neigh module
-------------------------------
+moler.cmd.unix.ip\_neigh module
+-------------------------------
 
 .. automodule:: moler.cmd.unix.ip_neigh
     :members:
     :undoc-members:
     :show-inheritance:
 
-moler.cmd.unix.ip_route module
-------------------------------
+moler.cmd.unix.ip\_route module
+-------------------------------
 
 .. automodule:: moler.cmd.unix.ip_route
     :members:
@@ -516,16 +516,16 @@ moler.cmd.unix.route module
     :undoc-members:
     :show-inheritance:
 
-moler.cmd.unix.run_script module
---------------------------------
+moler.cmd.unix.run\_script module
+---------------------------------
 
 .. automodule:: moler.cmd.unix.run_script
     :members:
     :undoc-members:
     :show-inheritance:
 
-moler.cmd.unix.run_serial_proxy module
---------------------------------------
+moler.cmd.unix.run\_serial\_proxy module
+----------------------------------------
 
 .. automodule:: moler.cmd.unix.run_serial_proxy
     :members:

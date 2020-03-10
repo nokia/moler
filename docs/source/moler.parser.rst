@@ -4,8 +4,8 @@ moler.parser package
 Submodules
 ----------
 
-moler.parser.table_text module
-------------------------------
+moler.parser.table\_text module
+-------------------------------
 
 .. automodule:: moler.parser.table_text
     :members:
