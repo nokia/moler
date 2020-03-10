@@ -4,8 +4,8 @@ moler.device package
 Submodules
 ----------
 
-moler.device.abstract_device module
------------------------------------
+moler.device.abstract\_device module
+------------------------------------
 
 .. automodule:: moler.device.abstract_device
     :members:
@@ -36,8 +36,8 @@ moler.device.device module
     :undoc-members:
     :show-inheritance:
 
-moler.device.juniper_ex module
-------------------------------
+moler.device.juniper\_ex module
+-------------------------------
 
 .. automodule:: moler.device.juniper_ex
     :members:
@@ -52,8 +52,8 @@ moler.device.junipergeneric module
     :undoc-members:
     :show-inheritance:
 
-moler.device.proxy_pc module
-----------------------------
+moler.device.proxy\_pc module
+-----------------------------
 
 .. automodule:: moler.device.proxy_pc
     :members:
@@ -68,8 +68,8 @@ moler.device.scpi module
     :undoc-members:
     :show-inheritance:
 
-moler.device.state_machine module
----------------------------------
+moler.device.state\_machine module
+----------------------------------
 
 .. automodule:: moler.device.state_machine
     :members:

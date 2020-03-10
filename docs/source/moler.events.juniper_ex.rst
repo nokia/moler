@@ -1,19 +1,19 @@
-moler.events.juniper_ex package
-===============================
+moler.events.juniper\_ex package
+================================
 
 Submodules
 ----------
 
-moler.events.juniper_ex.genericjuniper_ex_lineevent module
-----------------------------------------------------------
+moler.events.juniper\_ex.genericjuniper\_ex\_lineevent module
+-------------------------------------------------------------
 
 .. automodule:: moler.events.juniper_ex.genericjuniper_ex_lineevent
     :members:
     :undoc-members:
     :show-inheritance:
 
-moler.events.juniper_ex.genericjuniper_ex_textualevent module
--------------------------------------------------------------
+moler.events.juniper\_ex.genericjuniper\_ex\_textualevent module
+----------------------------------------------------------------
 
 .. automodule:: moler.events.juniper_ex.genericjuniper_ex_textualevent
     :members:

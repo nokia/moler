@@ -4,24 +4,24 @@ moler.events.shared package
 Submodules
 ----------
 
-moler.events.shared.genericshared_lineevent module
---------------------------------------------------
+moler.events.shared.genericshared\_lineevent module
+---------------------------------------------------
 
 .. automodule:: moler.events.shared.genericshared_lineevent
     :members:
     :undoc-members:
     :show-inheritance:
 
-moler.events.shared.genericshared_textualevent module
------------------------------------------------------
+moler.events.shared.genericshared\_textualevent module
+------------------------------------------------------
 
 .. automodule:: moler.events.shared.genericshared_textualevent
     :members:
     :undoc-members:
     :show-inheritance:
 
-moler.events.shared.password_prompt module
-------------------------------------------
+moler.events.shared.password\_prompt module
+-------------------------------------------
 
 .. automodule:: moler.events.shared.password_prompt
     :members:
