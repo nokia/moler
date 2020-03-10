@@ -325,8 +325,8 @@ class TextualDevice(AbstractDevice):
                 if not self._warning_was_sent:
                     level = logging.WARNING
                     self._warning_was_sent = True
-                self._log(level=level, msg="Cannot properly go to state: '{}' in background with excprtion.".format(
-                    state, ex))
+                self._log(level=level, msg="Cannot properly go to state: '{}' in background with exception.".format(
+                    state, repr(ex)))
                 if self._kept_state is None:
                     self._kept_state = state
 
