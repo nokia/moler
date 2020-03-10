@@ -12,7 +12,7 @@ import re
 from moler.cmd.commandchangingprompt import CommandChangingPrompt
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
-from moler.cmd.unix.genericunix import cmd_failure_causes
+from moler.cmd.unix.genericunix import r_cmd_failure_cause_alternatives
 from moler.helpers import remove_all_known_special_chars
 
 
@@ -73,7 +73,7 @@ class AdbShell(CommandChangingPrompt):
             pass
         super(AdbShell, self).on_new_line(line=line, is_full_line=is_full_line)
 
-    _re_command_fail = re.compile(r"{}".format(cmd_failure_causes), re.IGNORECASE)
+    _re_command_fail = re.compile(r"{}|^error:".format(r_cmd_failure_cause_alternatives), re.IGNORECASE)
 
     def _command_failure(self, line):
         """

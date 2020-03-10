@@ -31,6 +31,17 @@ def test_calling_start_on_connection_observer_returns_itself(do_nothing_connecti
     connection_observer.cancel()
 
 
+def test_can_retrieve_connection_observer_start_time(do_nothing_connection_observer__for_major_base_class,
+                                                     connection_to_remote):
+    connection_observer = do_nothing_connection_observer__for_major_base_class
+    connection_observer.connection = connection_to_remote.moler_connection
+    time1 = time.time()
+    connection_observer.start()
+    time2 = time.time()
+    assert connection_observer.start_time >= time1
+    assert connection_observer.start_time <= time2
+
+
 # str representation of class instances may be specific for given class - means: each derived class
 # of ConnectionObserver may define its own __str__ conversion (or reuse the one from base class).
 # But that doesn't break connection-observer API conformance - it is just textual representation.

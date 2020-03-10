@@ -17,12 +17,14 @@ from moler.cmd import RegexHelper
 from moler.command import Command
 from threading import Lock
 
+r_default_prompt = r'^[^<]*[$%#>~]\s*$'  # When user provides no prompt
+
 
 @six.add_metaclass(abc.ABCMeta)
 class CommandTextualGeneric(Command):
     """Base class for textual commands."""
 
-    _re_default_prompt = re.compile(r'^[^<]*[$%#>~]\s*$')  # When user provides no prompt
+    _re_default_prompt = re.compile(r_default_prompt)  # When user provides no prompt
     _default_newline_chars = ("\n", "\r")  # New line chars on device, not system with script!
 
     def __init__(self, connection, prompt=None, newline_chars=None, runner=None):
@@ -376,8 +378,8 @@ class CommandTextualGeneric(Command):
                "newline_after_command_string='{}', wait_for_prompt_on_exception='{}', _stored_exception='{}', "
                "current_ret='{}', _newline_chars='{}', _concatenate_before_command_starts='{}', "
                "_command_string_right_index='{}', _command_string_left_index='{}'.").format(
-            self.__command_string, self._cmd_escaped, self._cmd_output_started, self.ret_required,
-            self.break_on_timeout, self._last_not_full_line, self._re_prompt, self.do_not_process_after_done,
+            self.__command_string, self._cmd_escaped.pattern, self._cmd_output_started, self.ret_required,
+            self.break_on_timeout, self._last_not_full_line, self._re_prompt.pattern, self.do_not_process_after_done,
             self.newline_after_command_string, self.wait_for_prompt_on_exception, self._stored_exception,
             self.current_ret, self._newline_chars, self._concatenate_before_command_starts,
             self._max_index_from_beginning, self._max_index_from_end)

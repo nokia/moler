@@ -65,6 +65,15 @@ class Iperf2(GenericUnixCommand, Publisher):
 
     """
     def __init__(self, connection, options, prompt=None, newline_chars=None, runner=None):
+        """
+        Create iperf2 command
+
+        :param connection: moler connection used by iperf command
+        :param options: iperf options (as in iperf documentation)
+        :param prompt: prompt (regexp) where iperf starts from, if None - default prompt regexp used
+        :param newline_chars: expected newline characters of iperf output
+        :param runner: runner used for command
+        """
         super(Iperf2, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.port, self.options = self._validate_options(options)
         self.current_ret['CONNECTIONS'] = dict()
@@ -161,6 +170,17 @@ class Iperf2(GenericUnixCommand, Publisher):
             except ParsingDone:
                 pass
         return super(Iperf2, self).on_new_line(line, is_full_line)
+
+    def _process_line_from_command(self, current_chunk, line, is_full_line):
+        decoded_line = self._decode_line(line=line)
+        if self._is_replicated_cmd_echo(line):
+            return
+        self.on_new_line(line=decoded_line, is_full_line=is_full_line)
+
+    def _is_replicated_cmd_echo(self, line):
+        prompt_and_command = r'{}\s*{}'.format(self._re_prompt.pattern, self.command_string)
+        found_echo = self._regex_helper.search(prompt_and_command, line)
+        return found_echo is not None
 
     def subscribe(self, subscriber):
         """
