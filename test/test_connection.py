@@ -6,6 +6,7 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 
 import binascii
 import gc
+from moler.util.moler_test import MolerTest
 
 import pytest
 
@@ -259,7 +260,7 @@ def test_can_notify_its_observer_about_data_comming_from_external_io(buffer_tran
     used_io = buffer_transport_class(moler_connection=moler_conn)  # external-IO internally sets .how2send
     used_io.write(input_bytes=b"incoming data")  # inject to buffer for next line read
     used_io.read()
-
+    MolerTest.sleep(1, True)  # Processing in separate thread so have to wait.
     assert b"incoming data" in moler_received_data
 
 
@@ -283,7 +284,7 @@ def test_can_notify_multiple_observers_about_data_comming_from_external_io(buffe
     used_io = buffer_transport_class(moler_connection=moler_conn)  # external-IO internally sets .how2send
     used_io.write(input_bytes=b"incoming data")  # inject to buffer for next line read
     used_io.read()
-
+    MolerTest.sleep(1, True)  # Processing in separate thread so have to wait.
     assert b"incoming data" in buffer_observer1.received_data
     assert b"incoming data" in buffer_observer2.received_data
 
@@ -309,7 +310,7 @@ def test_notifies_only_subscribed_observers_about_data_comming_from_external_io(
     used_io = buffer_transport_class(moler_connection=moler_conn)  # external-IO internally sets .how2send
     used_io.write(input_bytes=b"incoming data")  # inject to buffer for next line read
     used_io.read()
-
+    MolerTest.sleep(1, True)  # Processing in separate thread so have to wait.
     assert b"incoming data" in buffer_observer1.received_data
     assert b"incoming data" in buffer_observer2.received_data
     assert b"incoming data" not in buffer_observer3.received_data  # that one was not subscribed
@@ -332,7 +333,7 @@ def test_notified_observer_may_stop_subscription_of_data_comming_from_external_i
     used_io.read()
     used_io.write(input_bytes=b"data 2")  # inject to buffer for next line read
     used_io.read()
-
+    MolerTest.sleep(1, True)  # Processing in separate thread so have to wait.
     assert b"data 1" in moler_received_data
     assert b"data 2" not in moler_received_data  # because of unsubscription during notification
 
@@ -357,6 +358,7 @@ def test_exception_in_observer_doesnt_break_connection_nor_other_observers(buffe
     used_io.write(input_bytes=b"data 1")  # inject to buffer for next line read
     used_io.read()
     moler_conn.unsubscribe(observer=failing_observer, connection_closed_handler=do_nothing_func)
+    MolerTest.sleep(1, True)  # Processing in separate thread so have to wait.
 
     assert b"data 1" in moler_received_data
 
@@ -385,6 +387,8 @@ def test_repeated_unsubscription_does_nothing_but_logs_warning(buffer_transport_
     # warning in logs (when we set logging system)
     used_io.write(input_bytes=b"data 2")  # inject to buffer for next line read
     used_io.read()
+
+    MolerTest.sleep(1, True)  # Processing in separate thread so have to wait.
 
     assert b"data 1" in moler_received_data
     assert b"data 2" not in moler_received_data  # because of unsubscription during notification
@@ -439,6 +443,7 @@ def test_single_unsubscription_doesnt_impact_other_subscribers():
     moler_conn.unsubscribe(observer=callable1, connection_closed_handler=do_nothing_func)
 
     moler_conn.data_received("incoming data")
+    MolerTest.sleep(1, True)  # Processing in separate thread so have to wait.
 
     assert observer1.received_data == []
     assert observer2.received_data == ["incoming data"]
@@ -491,6 +496,7 @@ def test_garbage_collected_subscriber_is_not_notified():
     gc.collect()
 
     moler_conn.data_received("data")
+    MolerTest.sleep(1, True)  # Processing in separate thread so have to wait.
     assert len(received_data) == 1
 
 # --------------------------- resources ---------------------------

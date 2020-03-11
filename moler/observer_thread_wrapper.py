@@ -38,12 +38,14 @@ class ObserverThreadWrapper(object):
                 try:
                     self.logger.log(level=TRACE, msg=r'notifying {}({!r})'.format(self._observer, repr(data)))
                 except ReferenceError:
-                    pass  # ignore: weakly-referenced object no longer exists
+                    self._request_end = True  # self._observer is no more valid.
                 try:
                     if self._observer_self:
                         self._observer(self._observer_self, data)
                     else:
                         self._observer(data)
+                except ReferenceError:
+                    self._request_end = True  # self._observer is no more valid.
                 except Exception:
                     self.logger.exception(msg=r'Exception inside: {}({!r})'.format(self._observer, repr(data)))
             except queue.Empty:
