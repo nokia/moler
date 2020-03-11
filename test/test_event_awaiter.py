@@ -52,6 +52,8 @@ def test_events_true_any_all():
         connection.data_received(pattern)
     assert EventAwaiter.wait_for_any(timeout=0.1, events=events) is True
     done, not_done = EventAwaiter.separate_done_events(events)
+    for event in events:
+        event.await_done(0.1)
     assert 2 == len(done)
     assert 0 == len(not_done)
     EventAwaiter.cancel_all_events(events)
