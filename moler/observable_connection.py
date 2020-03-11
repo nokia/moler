@@ -12,7 +12,7 @@ Connection responsibilities:
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import weakref
@@ -23,6 +23,7 @@ from moler.connection import Connection
 from moler.connection import identity_transformation
 from moler.config.loggers import RAW_DATA, TRACE
 from moler.helpers import instance_id
+from moler.observer_thread_wrapper import ObserverThreadWrapper
 
 
 class ObservableConnection(Connection):
@@ -52,8 +53,8 @@ class ObservableConnection(Connection):
         """
         super(ObservableConnection, self).__init__(how2send, encoder, decoder, name=name, newline=newline,
                                                    logger_name=logger_name)
-        self._observers = dict()
         self._connection_closed_handlers = dict()
+        self._observer_wrappers = dict()
         self._observers_lock = Lock()
 
     def data_received(self, data):
@@ -84,8 +85,10 @@ class ObservableConnection(Connection):
             self._log(level=TRACE, msg="subscribe({})".format(observer))
             observer_key, value = self._get_observer_key_value(observer)
 
-            if observer_key not in self._observers:
-                self._observers[observer_key] = value
+            if observer_key not in self._observer_wrappers:
+                self_for_observer, observer_reference = value
+                self._observer_wrappers[observer_key] = ObserverThreadWrapper(
+                    observer=observer_reference, observer_self=self_for_observer, logger=self.logger)
                 self._connection_closed_handlers[observer_key] = connection_closed_handler
 
     def unsubscribe(self, observer, connection_closed_handler):
@@ -97,9 +100,10 @@ class ObservableConnection(Connection):
         with self._observers_lock:
             self._log(level=TRACE, msg="unsubscribe({})".format(observer))
             observer_key, _ = self._get_observer_key_value(observer)
-            if observer_key in self._observers and observer_key in self._connection_closed_handlers:
-                del self._observers[observer_key]
+            if observer_key in self._observer_wrappers and observer_key in self._connection_closed_handlers:
+                self._observer_wrappers[observer_key].request_stop()
                 del self._connection_closed_handlers[observer_key]
+                del self._observer_wrappers[observer_key]
             else:
                 self._log(level=logging.WARNING,
                           msg="{} and {} were not both subscribed.".format(observer, connection_closed_handler),
@@ -117,21 +121,24 @@ class ObservableConnection(Connection):
 
     def notify_observers(self, data):
         """Notify all subscribed observers about data received on connection"""
+        subscribers_wrappers = list(self._observer_wrappers.values())
+        for wrapper in subscribers_wrappers:
+            wrapper.feed(data=data)
         # need copy since calling subscribers may change self._observers
-        current_subscribers = list(self._observers.values())
-        for self_or_none, observer_function in current_subscribers:
-            try:
-                self._log(level=TRACE, msg=r'notifying {}({!r})'.format(observer_function, repr(data)))
-                try:
-                    if self_or_none is None:
-                        observer_function(data)
-                    else:
-                        observer_self = self_or_none
-                        observer_function(observer_self, data)
-                except Exception:
-                    self.logger.exception(msg=r'Exception inside: {}({!r})'.format(observer_function, repr(data)))
-            except ReferenceError:
-                pass  # ignore: weakly-referenced object no longer exists
+        # current_subscribers = list(self._observers.values())
+        # for self_or_none, observer_function in current_subscribers:
+        #     try:
+        #         self._log(level=TRACE, msg=r'notifying {}({!r})'.format(observer_function, repr(data)))
+        #         try:
+        #             if self_or_none is None:
+        #                 observer_function(data)
+        #             else:
+        #                 observer_self = self_or_none
+        #                 observer_function(observer_self, data)
+        #         except Exception:
+        #             self.logger.exception(msg=r'Exception inside: {}({!r})'.format(observer_function, repr(data)))
+        #     except ReferenceError:
+        #         pass  # ignore: weakly-referenced object no longer exists
 
     @staticmethod
     def _get_observer_key_value(observer):
