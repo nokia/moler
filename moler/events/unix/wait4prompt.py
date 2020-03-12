@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 import datetime
 
@@ -28,6 +28,7 @@ Login:user
 Password:
 Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
 Have a lot of fun...
+f6 FCT-E019-0-SmaLite \ufffd\ufffd\x7f \ufffd\ufffd\ufffd}"\ufffd\x02\ufffd?\ufffd\ufffd\ufffd\x08\ufffd\x05o\x1c
 CLIENT5 [] has just connected!
 host:~ #"""
 

@@ -29,6 +29,7 @@ def command_output_and_expected_result():
     data = """
 ute@debdev:~$ cat /home/test/test
 cat: /home/ute/test: Is a directory
+f6 FCT-E019-0-SmaLite \ufffd\ufffd\x7f \ufffd\ufffd\ufffd}"\ufffd\x02\ufffd?\ufffd\ufffd\ufffd\x08\ufffd\x05o\x1c
 ute@debdev:~$
     """
     result = {
