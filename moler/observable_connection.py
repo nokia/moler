@@ -63,10 +63,10 @@ class ObservableConnection(Connection):
         """
         if not self.is_open():
             return
-
         extra = {'transfer_direction': '<', 'encoder': lambda data: data.encode(encoding='utf-8', errors="replace")}
         self._log_data(msg=data, level=RAW_DATA,
                        extra=extra)
+        
         decoded_data = self.decode(data)
         self._log_data(msg=decoded_data, level=logging.INFO,
                        extra=extra)
