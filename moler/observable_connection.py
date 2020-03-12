@@ -71,9 +71,6 @@ class ObservableConnection(Connection):
 
         decoded_data = self.decode(data)
 
-        # Workaround for some terminals and python 2.7
-        decoded_data = u"".join(str(decoded_data.encode("utf-8", errors="replace"))) if sys.version_info < (3, 0) else \
-            decoded_data
         self._log_data(msg=decoded_data, level=logging.INFO,
                        extra=extra)
 

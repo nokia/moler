@@ -6,6 +6,7 @@ __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
 import six
+import sys
 from moler.event import Event
 from moler.cmd import RegexHelper
 
@@ -43,6 +44,8 @@ class TextualEvent(Event):
         :return: None.
         """
         if not self._paused:
+            # Workaround for some terminals and python 2.7
+            data = u"".join(str(data.encode("utf-8", errors="replace"))) if sys.version_info < (3, 0) else data
             lines = data.splitlines(True)
             for current_chunk in lines:
                 if not self.done():
