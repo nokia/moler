@@ -4,7 +4,7 @@ Generic class for all command with textual output.
 """
 
 __author__ = 'Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
@@ -12,6 +12,7 @@ import logging
 import re
 
 import six
+import sys
 
 from moler.cmd import RegexHelper
 from moler.command import Command
@@ -183,6 +184,8 @@ class CommandTextualGeneric(Command):
         :param data: List of strings sent by device.
         :return: None.
         """
+        # Workaround for some terminals and python 2.7
+        data = u"".join(str(data.encode("utf-8", errors="replace"))) if sys.version_info < (3, 0) else data
         lines = data.splitlines(True)
         for current_chunk in lines:
             line, is_full_line = self._update_from_cached_incomplete_line(current_chunk=current_chunk)
