@@ -120,25 +120,14 @@ class ObservableConnection(Connection):
         super(ObservableConnection, self).shutdown()
 
     def notify_observers(self, data):
-        """Notify all subscribed observers about data received on connection"""
+        """
+        Notify all subscribed observers about data received on connection.
+        :param data: data to send to all registered subscribers.
+        :return None
+        """
         subscribers_wrappers = list(self._observer_wrappers.values())
         for wrapper in subscribers_wrappers:
             wrapper.feed(data=data)
-        # need copy since calling subscribers may change self._observers
-        # current_subscribers = list(self._observers.values())
-        # for self_or_none, observer_function in current_subscribers:
-        #     try:
-        #         self._log(level=TRACE, msg=r'notifying {}({!r})'.format(observer_function, repr(data)))
-        #         try:
-        #             if self_or_none is None:
-        #                 observer_function(data)
-        #             else:
-        #                 observer_self = self_or_none
-        #                 observer_function(observer_self, data)
-        #         except Exception:
-        #             self.logger.exception(msg=r'Exception inside: {}({!r})'.format(observer_function, repr(data)))
-        #     except ReferenceError:
-        #         pass  # ignore: weakly-referenced object no longer exists
 
     @staticmethod
     def _get_observer_key_value(observer):

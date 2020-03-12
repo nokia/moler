@@ -14,7 +14,18 @@ except ImportError:
 
 
 class ObserverThreadWrapper(object):
+    """
+    Wrapper for observer registered in ObservableConnection.
+    """
+
     def __init__(self, observer, observer_self, logger):
+        """
+        Construct wrapper for observer.
+
+        :param observer: observer to wrap.
+        :param observer_self: self for observer if observer is method from object or None if observer is a function.
+        :param logger: logger to log.
+        """
         self._observer = observer
         self._observer_self = observer_self
         self._queue = queue.Queue()
@@ -26,12 +37,26 @@ class ObserverThreadWrapper(object):
         t.start()
 
     def feed(self, data):
+        """
+        Put data here.
+
+        :param data: data to put.
+        :return: None
+        """
         self._queue.put(data)
 
     def request_stop(self):
+        """
+        Call if you want to stop feed observer.
+        :return: None
+        """
         self._request_end = True
 
     def _loop_for_observer(self):
+        """
+        Loop to pass data (put by method feed) to observer.
+        :return: None
+        """
         while self._request_end is False:
             try:
                 data = self._queue.get(True, self._timeout_for_get_from_queue)

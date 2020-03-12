@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 from moler.events.unix.wait4prompt import Wait4prompt
