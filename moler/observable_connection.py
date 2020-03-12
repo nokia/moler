@@ -18,6 +18,7 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 import weakref
 import logging
 import six
+import sys
 from threading import Lock
 from moler.connection import Connection
 from moler.connection import identity_transformation
@@ -63,11 +64,15 @@ class ObservableConnection(Connection):
         """
         if not self.is_open():
             return
+
         extra = {'transfer_direction': '<', 'encoder': lambda data: data.encode(encoding='utf-8', errors="replace")}
         self._log_data(msg=data, level=RAW_DATA,
                        extra=extra)
 
         decoded_data = self.decode(data)
+
+        # Workaround for some terminals and python 2.7
+        decoded_data = u"".join(decoded_data).encode("utf-8") if sys.version_info < (3, 0) else decoded_data
         self._log_data(msg=decoded_data, level=logging.INFO,
                        extra=extra)
 
