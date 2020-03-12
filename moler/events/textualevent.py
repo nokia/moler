@@ -45,7 +45,7 @@ class TextualEvent(Event):
         """
         if not self._paused:
             # Workaround for some terminals and python 2.7
-            data = u"".join(str(data.encode("utf-8", errors="replace"))) if sys.version_info < (3, 0) else data
+            data = u"".join(str(data.encode("utf-8", errors="ignore"))) if sys.version_info < (3, 0) else data
             lines = data.splitlines(True)
             for current_chunk in lines:
                 if not self.done():
