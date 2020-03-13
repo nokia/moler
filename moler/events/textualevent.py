@@ -7,6 +7,7 @@ __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 import abc
 import six
 import sys
+import logging
 from moler.event import Event
 from moler.cmd import RegexHelper
 
@@ -59,7 +60,8 @@ class TextualEvent(Event):
                             break
             except UnicodeDecodeError as ex:
                 if self._ignore_unicode_errors:
-                    self._log(lvl=Warning, msg="Processing data from '{}' with unicode problem: '{}'.".format(self, ex))
+                    self._log(lvl=logging.WARNING,
+                              msg="Processing data from '{}' with unicode problem: '{}'.".format(self, ex))
                 else:
                     raise ex
 

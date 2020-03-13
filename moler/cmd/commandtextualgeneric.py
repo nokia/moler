@@ -197,7 +197,7 @@ class CommandTextualGeneric(Command):
                     break
         except UnicodeDecodeError as ex:
             if self._ignore_unicode_errors:
-                self._log(lvl=Warning, msg="Processing data from '{}' with unicode problem: '{}'.".format(self, ex))
+                self._log(lvl=logging.WARNING, msg="Processing data from '{}' with unicode problem: '{}'.".format(self, ex))
             else:
                 raise ex
 
