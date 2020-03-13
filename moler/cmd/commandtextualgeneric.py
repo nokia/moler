@@ -12,7 +12,6 @@ import logging
 import re
 
 import six
-import sys
 
 from moler.cmd import RegexHelper
 from moler.command import Command
@@ -67,6 +66,7 @@ class CommandTextualGeneric(Command):
         # command starts, False to split lines on every new line char
         self._stored_exception = None  # Exception stored before it is passed to base class when command is done.
         self._lock_is_done = Lock()
+        self._ignore_unicode_errors = True  # If True then UnicodeDecodeError will be logged not raised in data_received
 
         if not self._newline_chars:
             self._newline_chars = CommandTextualGeneric._default_newline_chars
@@ -196,7 +196,10 @@ class CommandTextualGeneric(Command):
                 if self.done() and self.do_not_process_after_done:
                     break
         except UnicodeDecodeError as ex:
-            self._log(lvl=Warning, msg="Processing data from '{}' with unicode problem: '{}'.".format(self, ex))
+            if self._ignore_unicode_errors:
+                self._log(lvl=Warning, msg="Processing data from '{}' with unicode problem: '{}'.".format(self, ex))
+            else:
+                raise ex
 
     def _process_line_from_command(self, current_chunk, line, is_full_line):
         """

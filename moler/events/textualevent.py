@@ -21,6 +21,7 @@ class TextualEvent(Event):
         self._newline_chars = TextualEvent._default_newline_chars
         self._regex_helper = RegexHelper()  # Object to regular expression matching
         self._paused = False
+        self._ignore_unicode_errors = True  # If True then UnicodeDecodeError will be logged not raised in data_received
 
     def event_occurred(self, event_data):
         self._consume_already_parsed_fragment()
@@ -57,7 +58,10 @@ class TextualEvent(Event):
                             self._last_not_full_line = None
                             break
             except UnicodeDecodeError as ex:
-                self._log(lvl=Warning, msg="Processing data from '{}' with unicode problem: '{}'".format(self, ex))
+                if self._ignore_unicode_errors:
+                    self._log(lvl=Warning, msg="Processing data from '{}' with unicode problem: '{}'.".format(self, ex))
+                else:
+                    raise ex
 
     def _process_line_from_output(self, current_chunk, line, is_full_line):
         """
