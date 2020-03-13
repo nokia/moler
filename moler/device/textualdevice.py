@@ -331,7 +331,7 @@ class TextualDevice(AbstractDevice):
                     self._kept_state = state
 
     def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False,
-                   log_stacktrace_on_fail=True, keep_state=True):
+                   log_stacktrace_on_fail=True, keep_state=False):
         """
         Goes to specific state.
 
