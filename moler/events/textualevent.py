@@ -44,16 +44,20 @@ class TextualEvent(Event):
         :return: None.
         """
         if not self._paused:
-            # Workaround for some terminals and python 2.7
-            data = u"".join(str(data.encode("utf-8", errors="ignore"))) if sys.version_info < (3, 0) else data
-            lines = data.splitlines(True)
-            for current_chunk in lines:
-                if not self.done():
-                    line, is_full_line = self._update_from_cached_incomplete_line(current_chunk=current_chunk)
-                    self._process_line_from_output(line=line, current_chunk=current_chunk, is_full_line=is_full_line)
-                    if self._paused:
-                        self._last_not_full_line = None
-                        break
+            try:
+                # Workaround for some terminals and python 2.7
+                data = u"".join(str(data.encode("utf-8", errors="ignore"))) if sys.version_info < (3, 0) else data
+                lines = data.splitlines(True)
+                for current_chunk in lines:
+                    if not self.done():
+                        line, is_full_line = self._update_from_cached_incomplete_line(current_chunk=current_chunk)
+                        self._process_line_from_output(line=line, current_chunk=current_chunk,
+                                                       is_full_line=is_full_line)
+                        if self._paused:
+                            self._last_not_full_line = None
+                            break
+            except UnicodeDecodeError as ex:
+                self._log(lvl=Warning, msg="Processing data from '{}' with unicode problem: '{}'".format(self, ex))
 
     def _process_line_from_output(self, current_chunk, line, is_full_line):
         """

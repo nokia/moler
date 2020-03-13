@@ -308,6 +308,7 @@ def configure_moler_main_logger():
         msg = "Using specific packages version:\nPython: {}\nmoler: {}".format(platform.python_version(),
                                                                                _get_moler_version())
         logger.info(msg)
+        logger.info("with special investigations for NJ.")
         logger.info("More logs in: {}".format(_logging_path))
 
 
