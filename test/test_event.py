@@ -210,13 +210,6 @@ def do_nothing_connection_observer_class(base_class):
     return DoNothingConnectionObserver
 
 
-def object_from_wait4prompt():
-
-
-
-    return Wait4promptUnicodeError()
-
-
 @pytest.fixture
 def do_nothing_command_class__for_major_base_class(command_major_base_class):
     klass = do_nothing_connection_observer_class(base_class=command_major_base_class)
