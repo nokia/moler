@@ -6,6 +6,8 @@ __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
 import six
+import sys
+import logging
 from moler.event import Event
 from moler.cmd import RegexHelper
 
@@ -20,6 +22,7 @@ class TextualEvent(Event):
         self._newline_chars = TextualEvent._default_newline_chars
         self._regex_helper = RegexHelper()  # Object to regular expression matching
         self._paused = False
+        self._ignore_unicode_errors = True  # If True then UnicodeDecodeError will be logged not raised in data_received
 
     def event_occurred(self, event_data):
         self._consume_already_parsed_fragment()
@@ -43,14 +46,24 @@ class TextualEvent(Event):
         :return: None.
         """
         if not self._paused:
-            lines = data.splitlines(True)
-            for current_chunk in lines:
-                if not self.done():
-                    line, is_full_line = self._update_from_cached_incomplete_line(current_chunk=current_chunk)
-                    self._process_line_from_output(line=line, current_chunk=current_chunk, is_full_line=is_full_line)
-                    if self._paused:
-                        self._last_not_full_line = None
-                        break
+            try:
+                # Workaround for some terminals and python 2.7
+                data = u"".join(str(data.encode("utf-8", errors="ignore"))) if sys.version_info < (3, 0) else data
+                lines = data.splitlines(True)
+                for current_chunk in lines:
+                    if not self.done():
+                        line, is_full_line = self._update_from_cached_incomplete_line(current_chunk=current_chunk)
+                        self._process_line_from_output(line=line, current_chunk=current_chunk,
+                                                       is_full_line=is_full_line)
+                        if self._paused:
+                            self._last_not_full_line = None
+                            break
+            except UnicodeDecodeError as ex:
+                if self._ignore_unicode_errors:
+                    self._log(lvl=logging.WARNING,
+                              msg="Processing data from '{}' with unicode problem: '{}'.".format(self, ex))
+                else:
+                    raise ex
 
     def _process_line_from_output(self, current_chunk, line, is_full_line):
         """

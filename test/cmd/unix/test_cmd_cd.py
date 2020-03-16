@@ -24,6 +24,46 @@ def test_cd_returns_proper_command_string(buffer_connection):
     assert "cd /home/user/" == cd_cmd.command_string
 
 
+def test_command_unicode_error(buffer_connection, command_output_and_expected_result):
+    command_output, expected_result = command_output_and_expected_result
+    from moler.cmd.unix.cd import Cd
+
+    class CdUnicodeError(Cd):
+        def __init__(self, *args, **kwargs):
+            self.raise_unicode = True
+            self.nr = 0
+            super(CdUnicodeError, self).__init__(*args, **kwargs)
+
+        def on_new_line(self, line, is_full_line):
+            if self.raise_unicode:
+                self.nr += 1
+                exc = UnicodeDecodeError("utf-8", b'abcdef', 0, 1, "Unknown")
+                raise exc
+            super(CdUnicodeError, self).on_new_line(line, is_full_line)
+
+    cmd = CdUnicodeError(connection=buffer_connection.moler_connection, path="/home/user/")
+    cmd_start_string = "{}\n".format(cmd.command_string)
+    cmd.start(timeout=0.1)
+    buffer_connection.moler_connection.data_received(cmd_start_string.encode("utf-8"))
+    cmd._ignore_unicode_errors = False
+    cmd.raise_unicode = True
+    buffer_connection.moler_connection.data_received("abc".encode("utf-8"))
+    cmd.raise_unicode = False
+    buffer_connection.moler_connection.data_received(command_output.encode("utf-8"))
+    with pytest.raises(UnicodeDecodeError):
+        cmd.await_done()
+
+    cmd = CdUnicodeError(connection=buffer_connection.moler_connection, path="/home/user/")
+    cmd.start(timeout=0.1)
+    buffer_connection.moler_connection.data_received(cmd_start_string.encode("utf-8"))
+    cmd._ignore_unicode_errors = True
+    cmd.raise_unicode = True
+    buffer_connection.moler_connection.data_received("abc".encode("utf-8"))
+    cmd.raise_unicode = False
+    buffer_connection.moler_connection.data_received(command_output.encode("utf-8"))
+    cmd.await_done()
+
+
 @pytest.fixture
 def command_output_and_expected_result():
     data = """
