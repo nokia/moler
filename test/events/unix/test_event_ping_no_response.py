@@ -50,9 +50,12 @@ def test_erase_not_full_line_on_pause(buffer_connection):
     tf.setDaemon(True)
     tf.start()
     start_time = time.time()
+    sleep_time = 0.0005
     while time.time() - start_time < 3:
         event.pause()
+        MolerTest.sleep(sleep_time)
         event.resume()
+        MolerTest.sleep(sleep_time)
     event.resume()
     run = False
     MolerTest.sleep(0.2)
