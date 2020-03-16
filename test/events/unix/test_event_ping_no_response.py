@@ -38,7 +38,17 @@ def test_event_ping_no_response(buffer_connection):
 
 def test_erase_not_full_line_on_pause(buffer_connection):
     output = "From 192.168.255.126 icmp_seq=1 Destination Host Unreachable"
-    event = PingNoResponse(connection=buffer_connection.moler_connection, till_occurs_times=2)
+    sleep_time = 0.0005
+    processed = {'process': 0}
+
+    class PingNoResponseDelay(PingNoResponse):
+        def _process_line_from_output(self, current_chunk, line, is_full_line):
+            processed['process'] += 1
+            MolerTest.sleep(seconds=sleep_time)
+            super(PingNoResponseDelay, self)._process_line_from_output(current_chunk=current_chunk,
+                                                                       line=line, is_full_line=is_full_line)
+
+    event = PingNoResponseDelay(connection=buffer_connection.moler_connection, till_occurs_times=2)
     event.start()
     run = True
 
@@ -50,8 +60,8 @@ def test_erase_not_full_line_on_pause(buffer_connection):
     tf.setDaemon(True)
     tf.start()
     start_time = time.time()
-    sleep_time = 0.0005
-    while time.time() - start_time < 3:
+
+    while time.time() - start_time < 4 or processed['process'] < 300:
         event.pause()
         MolerTest.sleep(sleep_time)
         event.resume()
