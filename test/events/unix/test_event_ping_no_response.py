@@ -55,6 +55,7 @@ def test_erase_not_full_line_on_pause(buffer_connection):
     def feed_in_separate_thread():
         while run:
             buffer_connection.moler_connection.data_received("abcde\nfghi\njkl".encode("utf-8"))
+            MolerTest.sleep(sleep_time/10)
     from threading import Thread
     tf = Thread(target=feed_in_separate_thread)
     tf.setDaemon(True)
