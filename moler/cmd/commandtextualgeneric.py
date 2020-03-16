@@ -4,7 +4,7 @@ Generic class for all command with textual output.
 """
 
 __author__ = 'Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
@@ -66,6 +66,7 @@ class CommandTextualGeneric(Command):
         # command starts, False to split lines on every new line char
         self._stored_exception = None  # Exception stored before it is passed to base class when command is done.
         self._lock_is_done = Lock()
+        self._ignore_unicode_errors = True  # If True then UnicodeDecodeError will be logged not raised in data_received
 
         if not self._newline_chars:
             self._newline_chars = CommandTextualGeneric._default_newline_chars
@@ -183,16 +184,22 @@ class CommandTextualGeneric(Command):
         :param data: List of strings sent by device.
         :return: None.
         """
-        lines = data.splitlines(True)
-        for current_chunk in lines:
-            line, is_full_line = self._update_from_cached_incomplete_line(current_chunk=current_chunk)
-            if self._cmd_output_started:
-                self._process_line_from_command(line=line, current_chunk=current_chunk, is_full_line=is_full_line)
+        try:
+            lines = data.splitlines(True)
+            for current_chunk in lines:
+                line, is_full_line = self._update_from_cached_incomplete_line(current_chunk=current_chunk)
+                if self._cmd_output_started:
+                    self._process_line_from_command(line=line, current_chunk=current_chunk, is_full_line=is_full_line)
+                else:
+                    self._detect_start_of_cmd_output(self._decode_line(line=line), is_full_line)
+                    self._cache_line_before_command_start(line=line, is_full_line=is_full_line)
+                if self.done() and self.do_not_process_after_done:
+                    break
+        except UnicodeDecodeError as ex:
+            if self._ignore_unicode_errors:
+                self._log(lvl=logging.WARNING, msg="Processing data from '{}' with unicode problem: '{}'.".format(self, ex))
             else:
-                self._detect_start_of_cmd_output(self._decode_line(line=line), is_full_line)
-                self._cache_line_before_command_start(line=line, is_full_line=is_full_line)
-            if self.done() and self.do_not_process_after_done:
-                break
+                raise ex
 
     def _process_line_from_command(self, current_chunk, line, is_full_line):
         """

@@ -130,6 +130,47 @@ def test_event_get_last_occurrence(buffer_connection):
     assert occurrence == dict_output
 
 
+def test_event_unicode_error(buffer_connection):
+    from moler.events.unix.wait4prompt import Wait4prompt
+
+    class Wait4promptUnicodeError(Wait4prompt):
+        def __init__(self, *args, **kwargs):
+            self.raise_unicode = True
+            self.nr = 0
+            super(Wait4promptUnicodeError, self).__init__(*args, **kwargs)
+
+        def on_new_line(self, line, is_full_line):
+            if self.raise_unicode:
+                self.nr += 1
+                exc = UnicodeDecodeError("utf-8", b'abcdef', 0, 1, "Unknown")
+                raise exc
+            super(Wait4promptUnicodeError, self).on_new_line(line, is_full_line)
+
+    output = "bash\n"
+    dict_output = {'line': u'abcbash', 'matched': u'bash', 'named_groups': {}, 'groups': (), 'time': 0}
+    event = Wait4promptUnicodeError(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
+    event._ignore_unicode_errors = False
+    event.raise_unicode = True
+    event.start(timeout=0.1)
+    buffer_connection.moler_connection.data_received("abc".encode("utf-8"))
+    event.raise_unicode = False
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    with pytest.raises(UnicodeDecodeError):
+        event.await_done()
+
+    event = Wait4promptUnicodeError(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
+    event._ignore_unicode_errors = True
+    event.raise_unicode = True
+    event.start(timeout=0.1)
+    buffer_connection.moler_connection.data_received("abc".encode("utf-8"))
+    event.raise_unicode = False
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    event.await_done()
+    occurrence = event.get_last_occurrence()
+    occurrence['time'] = 0
+    assert occurrence == dict_output
+
+
 def test_get_not_supported_parser():
     le = LineEvent(connection=None, detect_patterns=['Sample pattern'], match='not_supported_value')
     le._get_parser()
