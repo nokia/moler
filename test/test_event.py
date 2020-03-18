@@ -16,6 +16,7 @@ import pytest
 from moler.observable_connection import ObservableConnection
 from moler.events.lineevent import LineEvent
 from moler.helpers import instance_id
+from moler.util.moler_test import MolerTest
 from moler.exceptions import MolerException
 from moler.exceptions import ResultAlreadySet
 
@@ -153,7 +154,9 @@ def test_event_unicode_error(buffer_connection):
     event.raise_unicode = True
     event.start(timeout=0.1)
     buffer_connection.moler_connection.data_received("abc".encode("utf-8"))
+    MolerTest.sleep(0.01)
     event.raise_unicode = False
+    MolerTest.sleep(0.01)
     buffer_connection.moler_connection.data_received(output.encode("utf-8"))
     with pytest.raises(UnicodeDecodeError):
         event.await_done()

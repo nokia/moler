@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 from moler.events.unix.wait4prompt import Wait4prompt
@@ -52,8 +52,8 @@ def test_events_true_any_all():
         connection.data_received(pattern)
     assert EventAwaiter.wait_for_any(timeout=0.1, events=events) is True
     done, not_done = EventAwaiter.separate_done_events(events)
-    assert 2 == len(done)
-    assert 0 == len(not_done)
+    assert len(done) >= 1
+    assert len(not_done) <= 1
     EventAwaiter.cancel_all_events(events)
 
 

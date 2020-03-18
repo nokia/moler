@@ -7,11 +7,12 @@ Testing external-IO FIFO-mem-buffer connection
 """
 
 __author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
 import importlib
 import time
+from moler.util.moler_test import MolerTest
 
 import pytest
 
@@ -21,6 +22,7 @@ import pytest
 
 def connection_closed_handler():
     pass
+
 
 def test_can_assign_name_to_connection(memory_connection_class):
     from moler.connection import Connection
@@ -153,11 +155,13 @@ def test_can_send_and_receive_data_from_connection(memory_connection_without_dec
     with connection.open():
         connection.write(b"command to be echoed")
         connection.read()
+        MolerTest.sleep(1)
         assert b'command to be echoed' == received_data
 
         received_data = bytearray()  # cleanup
         connection.inject([b"async msg1\n", b"async msg2\n"])
         connection.read()
+        MolerTest.sleep(1)
         assert b'async msg1\nasync msg2\n' == received_data
 
 
@@ -209,9 +213,11 @@ def test_inject_response_awaits_nearest_write_before_responding(memory_connectio
     with connection.open():
         connection.inject_response(input_bytes=[b'response\n'])
         connection.read()
+        MolerTest.sleep(1)
         assert b'' == received_data  # injection not active yet
         connection.write(b'request\n')
         connection.read()
+        MolerTest.sleep(1)
         assert b'request\nresponse\n' == received_data
 
 
@@ -226,11 +232,13 @@ def test_can_receive_data_from_ext_io_into_moler_connection(memory_connection):
     with connection.open():
         connection.write(b"command to be echoed")
         connection.read()
+        MolerTest.sleep(1)
         assert 'command to be echoed' == received_data['data']
 
         received_data = {'data': ''}  # cleanup
         connection.inject(b"async msg")  # can also inject byte-by-byte
         connection.read()
+        MolerTest.sleep(1)
         assert 'async msg' == received_data['data']
 
 
@@ -246,6 +254,7 @@ def test_can_send_data_into_ext_io_from_moler_connection(memory_connection_witho
     with connection.open():
         moler_conn.send("command to be echoed")
         connection.read()
+        MolerTest.sleep(1)
         assert b'command to be echoed' == received_data
 
 

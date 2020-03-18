@@ -281,8 +281,8 @@ def test_sftp_returns_result_pwd_in_prompt(buffer_connection, command_output_and
     time.sleep(0.1)
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
-    assert sftp_cmd.current_ret == expected_result
     sftp_cmd.await_done()
+    assert sftp_cmd.current_ret == expected_result
     assert sftp_cmd.done() is True
 
 
@@ -367,8 +367,8 @@ def test_sftp_returns_result_of_fetching_file_with_progress_bar(buffer_connectio
     time.sleep(0.1)
     for output in command_output:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"))
-    assert sftp_cmd.current_ret == expected_result
     sftp_cmd.await_done()
+    assert sftp_cmd.current_ret == expected_result
     assert sftp_cmd.done() is True
 
 
