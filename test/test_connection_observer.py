@@ -12,6 +12,7 @@ import pytest
 from moler.observable_connection import ObservableConnection
 from moler.connection_observer import ConnectionObserver
 from moler.helpers import instance_id
+import datetime
 
 
 def test_connection_observer_instance_is_callable(connection_observer_major_base_class):
