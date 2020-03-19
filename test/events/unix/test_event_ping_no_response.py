@@ -8,6 +8,7 @@ __email__ = 'marcin.usielski@nokia.com'
 import time
 from moler.events.unix.ping_no_response import PingNoResponse
 from moler.util.moler_test import MolerTest
+import datetime
 
 
 def test_event_ping_no_response(buffer_connection):
