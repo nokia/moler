@@ -79,7 +79,7 @@ def test_can_get_incomming_data_from_external_io():
         def recv(self, bufsize):  # external-IO native naming for incoming data, f.ex. see socket
             size2read = bufsize if len(self.in_buff) >= bufsize else len(self.in_buff)
             data = self.in_buff[:size2read]
-            self.moler_connection.data_received(data)  # external-IO feeds Moler's connection
+            self.moler_connection.data_received(data, datetime.datetime.now())  # external-IO feeds Moler's connection
 
     used_io = ExternalIO()
     used_io.in_buff = "incoming data"
@@ -495,7 +495,7 @@ def test_garbage_collected_subscriber_is_not_notified():
     del subscr1
     gc.collect()
 
-    moler_conn.data_received("data")
+    moler_conn.data_received("data", datetime.datetime.now())
     MolerTest.sleep(1, True)  # Processing in separate thread so have to wait.
     assert len(received_data) == 1
 
@@ -525,5 +525,5 @@ def buffer_transport_class():
             if size2read > 0:
                 data = self.buffer[:size2read]
                 self.buffer = self.buffer[size2read:]
-                self.moler_connection.data_received(data)  # external-IO feeds Moler's connection
+                self.moler_connection.data_received(data, datetime.datetime.now())  # external-IO feeds Moler's connection
     return BufferTransport

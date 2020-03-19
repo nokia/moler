@@ -24,9 +24,9 @@ def test_two_commands_uptime_whoami(buffer_connection, command_output_and_expect
     whoami_cmd.start(timeout=2)
     time.sleep(0.05)
     assert CommandScheduler.is_waiting_for_execution(connection_observer=whoami_cmd) is True
-    buffer_connection.moler_connection.data_received(command_output[0].encode("utf-8"))
+    buffer_connection.moler_connection.data_received(command_output[0].encode("utf-8", datetime.datetime.now())
     time.sleep(0.2)
-    buffer_connection.moler_connection.data_received(command_output[1].encode("utf-8"))
+    buffer_connection.moler_connection.data_received(command_output[1].encode("utf-8", datetime.datetime.now())
     assert EventAwaiter.wait_for_all(timeout=2, events=[uptime_cmd, whoami_cmd]) is True
     ret_uptime = uptime_cmd.result()
     ret_whoami = whoami_cmd.result()
@@ -43,9 +43,9 @@ def test_two_commands_uptime(buffer_connection, command_output_and_expected_resu
     uptime1_cmd.start(timeout=2)
     uptime2_cmd.start(timeout=2)
     time.sleep(0.05)
-    buffer_connection.moler_connection.data_received(command_output[0].encode("utf-8"))
+    buffer_connection.moler_connection.data_received(command_output[0].encode("utf-8", datetime.datetime.now())
     time.sleep(0.2)
-    buffer_connection.moler_connection.data_received(command_output[1].encode("utf-8"))
+    buffer_connection.moler_connection.data_received(command_output[1].encode("utf-8", datetime.datetime.now())
     assert EventAwaiter.wait_for_all(timeout=2, events=(uptime1_cmd, uptime2_cmd)) is True
     uptime1_ret = uptime1_cmd.result()
     uptime2_ret = uptime2_cmd.result()
@@ -62,10 +62,10 @@ def test_timeout_before_command_sent(buffer_connection, command_output_and_expec
     uptime_cmd = Uptime(connection=buffer_connection.moler_connection, prompt="host:.*#")
     ping_cmd.start(timeout=2)
     time.sleep(0.05)
-    buffer_connection.moler_connection.data_received(command_output[0].encode("utf-8"))
+    buffer_connection.moler_connection.data_received(command_output[0].encode("utf-8", datetime.datetime.now())
     with pytest.raises(CommandTimeout):
         uptime_cmd(timeout=0.2)
-    buffer_connection.moler_connection.data_received(command_output[1].encode("utf-8"))
+    buffer_connection.moler_connection.data_received(command_output[1].encode("utf-8"), datetime.datetime.now())
     ping_cmd.await_done(timeout=0.2)
     ping_ret = ping_cmd.result()
     assert ping_ret == expected_result

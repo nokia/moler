@@ -38,6 +38,6 @@ lines 70-141/141 (END)"""
     time.sleep(0.1)
     outputs = [output1, output2, output3]
     for output in outputs:
-        buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     systemctl.await_done()
     assert systemctl.done() is True

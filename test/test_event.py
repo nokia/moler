@@ -100,7 +100,7 @@ def test_event_output_in_parts(buffer_connection):
     event = Wait4prompt(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
     event.start(timeout=0.1)
     for output in outputs:
-        buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
 
     event.await_done()
     assert event.done() is True
@@ -113,7 +113,7 @@ def test_event_whole_output(buffer_connection):
     output = "bash\n"
     event = Wait4prompt(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
     event.start(timeout=0.1)
-    buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     event.await_done()
     assert event.done() is True
 
@@ -124,7 +124,7 @@ def test_event_get_last_occurrence(buffer_connection):
     dict_output = {'line': u'bash', 'matched': u'bash', 'named_groups': {}, 'groups': (), 'time': 0}
     event = Wait4prompt(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
     event.start(timeout=0.1)
-    buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     event.await_done()
     occurrence = event.get_last_occurrence()
     occurrence['time'] = 0
@@ -153,11 +153,11 @@ def test_event_unicode_error(buffer_connection):
     event._ignore_unicode_errors = False
     event.raise_unicode = True
     event.start(timeout=0.1)
-    buffer_connection.moler_connection.data_received("abc".encode("utf-8"))
+    buffer_connection.moler_connection.data_received("abc".encode("utf-8"), datetime.datetime.now())
     MolerTest.sleep(0.01)
     event.raise_unicode = False
     MolerTest.sleep(0.01)
-    buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     with pytest.raises(UnicodeDecodeError):
         event.await_done()
 
@@ -165,9 +165,9 @@ def test_event_unicode_error(buffer_connection):
     event._ignore_unicode_errors = True
     event.raise_unicode = True
     event.start(timeout=0.1)
-    buffer_connection.moler_connection.data_received("abc".encode("utf-8"))
+    buffer_connection.moler_connection.data_received("abc".encode("utf-8"), datetime.datetime.now())
     event.raise_unicode = False
-    buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     event.await_done()
     occurrence = event.get_last_occurrence()
     occurrence['time'] = 0

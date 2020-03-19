@@ -26,7 +26,7 @@ def test_calling_connection_observer_returns_result(net_down_detector_and_ping_o
         for line in ping_lines:
             time.sleep(0.1)
             moler_conn = connection_observer.connection
-            moler_conn.data_received(line)
+            moler_conn.data_received(line, datetime.datetime.now())
 
     ext_io = threading.Thread(target=inject_data)
     try:
@@ -49,7 +49,7 @@ def test_connection_observer_behaves_like_future(net_down_detector_and_ping_outp
         for line in ping_lines:
             time.sleep(0.1)
             moler_conn = connection_observer.connection
-            moler_conn.data_received(line)
+            moler_conn.data_received(line, datetime.datetime.now())
 
     ext_io = threading.Thread(target=inject_data)
     try:

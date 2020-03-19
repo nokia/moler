@@ -98,11 +98,11 @@ def test_telnet_with_additional_commands(buffer_connection):
     telnet_cmd.life_status.inactivity_timeout = 1
     telnet_cmd.start()
     time.sleep(0.1)
-    buffer_connection.moler_connection.data_received(output1.encode("utf-8"))
+    buffer_connection.moler_connection.data_received(output1.encode("utf-8"), datetime.datetime.now())
     outputs = [output2, output3, output4, output5, output6]
     time.sleep(1.2)
     for output in outputs:
-        buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     telnet_cmd.await_done()
     assert telnet_cmd.done() is True
 
@@ -138,11 +138,11 @@ def test_telnet_with_on_inactivity(buffer_connection):
     telnet_cmd.life_status.inactivity_timeout = 1
     telnet_cmd.start()
     time.sleep(0.1)
-    buffer_connection.moler_connection.data_received(output1.encode("utf-8"))
+    buffer_connection.moler_connection.data_received(output1.encode("utf-8"), datetime.datetime.now())
     outputs = [output2, output3, output4, output5, output6]
     time.sleep(1.2)
     for output in outputs:
-        buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     telnet_cmd.await_done()
     assert telnet_cmd.done() is True
     assert telnet_cmd.on_inactivity_was_called is True

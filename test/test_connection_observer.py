@@ -390,7 +390,7 @@ def test_connection_observer_consumes_data_via_data_received_in_order_to_produce
     def feeder(observer):
         #            example output of 'du -s /home/greg'
         for line in ['7538128    /home/greg', 'ute@debian:~$']:  # here our "virtual connection" is just list
-            observer.data_received(line)
+            observer.data_received(line, datetime.datetime.now())
 
     class DiskUsageObserver(connection_observer_major_base_class):
         def data_received(self, data, timestamp):
@@ -411,7 +411,7 @@ def test_connection_observer_parses_data_inside_data_received_in_order_to_produc
     # any observer should do its parsing (if any needed) inside .data_received() or it should be called from within .data_received()
     def feeder(observer):
         for line in ['7538128    /home/greg', 'greg@debian:~$']:
-            observer.data_received(line)
+            observer.data_received(line, datetime.datetime.now())
 
     class DiskUsageObserver(connection_observer_major_base_class):
         def __init__(self):

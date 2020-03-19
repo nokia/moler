@@ -94,7 +94,7 @@ def test_runner_secures_observer_against_additional_data_after_observer_is_done(
 def test_runner_secures_observer_against_additional_data_after_runner_shutdown(observer_runner):
     """In-shutdown runner should not pass data to observer even before unsubscribe from moler-connection"""
     # Even without running background feeder
-    # we can use correctly constructed secure_data_received(data)
+    # we can use correctly constructed secure.data_received(data, datetime.datetime.now())
     # to block passing data from connection to observer while runner is in-shutdown state
     from moler.observable_connection import ObservableConnection
 
@@ -574,7 +574,7 @@ def test_can_await_connection_observer_to_complete(observer_and_awaited_data):
     def inject_data():
         time.sleep(0.1)
         moler_conn = connection_observer.connection
-        moler_conn.data_received(awaited_data)
+        moler_conn.data_received(awaited_data, datetime.datetime.now())
 
     ext_io = threading.Thread(target=inject_data)
     ext_io.start()
@@ -604,7 +604,7 @@ async def test_can_async_await_connection_observer_to_complete(observer_and_awai
     def inject_data():
         time.sleep(0.1)
         moler_conn = connection_observer.connection
-        moler_conn.data_received(awaited_data)
+        moler_conn.data_received(awaited_data, datetime.datetime.now())
 
     ext_io = threading.Thread(target=inject_data)
     ext_io.start()
@@ -776,7 +776,7 @@ def failing_net_down_detector(fail_on_data, fail_by_raising, runner):
         def data_received(self, data, timestamp):
             if data == fail_on_data:
                 raise fail_by_raising
-            return super(FailingNetworkDownDetector, self).data_received(data)
+            return super(FailingNetworkDownDetector, self).data_received(data, datetime.datetime.now())
 
     moler_conn = ObservableConnection()
     failing_detector = FailingNetworkDownDetector(connection=moler_conn, runner=runner)

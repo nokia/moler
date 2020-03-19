@@ -22,15 +22,15 @@ def test_event_ping_no_response(buffer_connection):
     event.add_event_occurred_callback(callback=callback_fun, callback_params={'param': counter})
     assert 0 == counter['nr']
     event.start()
-    buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     MolerTest.sleep(0.2)
     assert 1 == counter['nr']
     event.pause()
-    buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     MolerTest.sleep(0.2)
     assert 1 == counter['nr']
     event.resume()
-    buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     event.await_done()
     assert 2 == counter['nr']
     assert event.done() is True
@@ -54,7 +54,7 @@ def test_erase_not_full_line_on_pause(buffer_connection):
 
     def feed_in_separate_thread():
         while run:
-            buffer_connection.moler_connection.data_received("abcde\nfghi\njkl".encode("utf-8"))
+            buffer_connection.moler_connection.data_received("abcde\nfghi\njkl".encode("utf-8"), datetime.datetime.now())
             MolerTest.sleep(sleep_time/10)
     from threading import Thread
     tf = Thread(target=feed_in_separate_thread)
@@ -70,7 +70,7 @@ def test_erase_not_full_line_on_pause(buffer_connection):
     event.resume()
     run = False
     MolerTest.sleep(0.2)
-    buffer_connection.moler_connection.data_received(output.encode("utf-8"))
-    buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     event.await_done(timeout=1)
     assert event.done() is True
