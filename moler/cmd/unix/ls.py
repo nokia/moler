@@ -3,9 +3,9 @@
 Ls command module.
 """
 
-__author__ = 'Marcin Usielski, Michal Ernst'
+__author__ = 'Marcin Usielski, Michal Ernst, Marcin Szlapa'
 __copyright__ = 'Copyright (C) 2018-2020, Nokia'
-__email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
+__email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com, marcin.szlapa@nokia.com'
 
 import re
 
