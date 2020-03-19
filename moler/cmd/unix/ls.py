@@ -16,13 +16,13 @@ from moler.exceptions import ParsingDone
 
 
 class Ls(GenericUnixCommand):
-
     """Unix command ls"""
 
     _re_files_list = re.compile(r"\S{2,}")
     _re_total = re.compile(r"total\s+(\d+\S*)")
-    _re_long = re.compile(r"([\w-]{10})\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S.*\S)\s+(\S+)\s*$")
-    _re_long_links = re.compile(r"([\w-]{10})\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S.*\S)\s+(\S+)\s+->\s+(\S+)\s*$")
+    _re_long = re.compile(r"([\w-]{10}[\.\+]?)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S.*\S)\s+(\S+)\s*$")
+    _re_long_links = re.compile(
+        r"([\w-]{10}[\.\+]?)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S.*\S)\s+(\S+)\s+->\s+(\S+)\s*$")
 
     def __init__(self, connection, prompt=None, newline_chars=None, options=None, path=None, runner=None):
         """
@@ -346,4 +346,51 @@ COMMAND_KWARGS_no_output = {}
 COMMAND_RESULT_no_output = {
     "files": {
     },
+}
+
+COMMAND_OUTPUT_extra_acl_permission = """
+host:~ # ls -la ~/
+-rw-rw-r--  1 root root       88 Jan  3 08:12 getfzmip.txt
+-rw-rw-r--. 1 root root       88 Jan  3 08:12 getfzmip.txt-old.20171215-104858.txt
+-rw-rw----+ 1 root root     7296 Mar 19 08:31 bcn -> /bcn
+-rw-rw-r--+ 1 root root   105216 Mar 19 08:33 logsremote -> /mnt/logs/
+host:~ #"""
+
+COMMAND_KWARGS_extra_acl_permission = {"options": "-la", "path": "~/"}
+
+COMMAND_RESULT_extra_acl_permission = {
+    'files': {'bcn': {'date': 'Mar 19 08:31',
+                      'group': 'root',
+                      'hard_links_count': 1,
+                      'link': '/bcn',
+                      'name': 'bcn',
+                      'owner': 'root',
+                      'permissions': '-rw-rw----+',
+                      'size_bytes': 7296,
+                      'size_raw': '7296'},
+              'getfzmip.txt': {'date': 'Jan  3 08:12',
+                               'group': 'root',
+                               'hard_links_count': 1,
+                               'name': 'getfzmip.txt',
+                               'owner': 'root',
+                               'permissions': '-rw-rw-r--',
+                               'size_bytes': 88,
+                               'size_raw': '88'},
+              'getfzmip.txt-old.20171215-104858.txt': {'date': 'Jan  3 08:12',
+                                                       'group': 'root',
+                                                       'hard_links_count': 1,
+                                                       'name': 'getfzmip.txt-old.20171215-104858.txt',
+                                                       'owner': 'root',
+                                                       'permissions': '-rw-rw-r--.',
+                                                       'size_bytes': 88,
+                                                       'size_raw': '88'},
+              'logsremote': {'date': 'Mar 19 08:33',
+                             'group': 'root',
+                             'hard_links_count': 1,
+                             'link': '/mnt/logs/',
+                             'name': 'logsremote',
+                             'owner': 'root',
+                             'permissions': '-rw-rw-r--+',
+                             'size_bytes': 105216,
+                             'size_raw': '105216'}}
 }
