@@ -25,6 +25,8 @@ from moler.io.io_exceptions import ConnectionTimeout
 from moler.io.io_exceptions import RemoteEndpointDisconnected
 from moler.io.io_exceptions import RemoteEndpointNotConnected
 from moler.io.raw import TillDoneThread
+import datetime
+
 
 # TODO: logging - want to know what happens on GIVEN connection
 # TODO: logging - rethink details
@@ -205,7 +207,7 @@ class ThreadedTcp(Tcp):
                 data = self.receive(timeout=0.1)
                 if data:
                     # make Moler happy :-)
-                    self.moler_connection.data_received(data)  # (3)
+                    self.moler_connection.data_received(data, datetime.datetime.now())  # (3)
             except ConnectionTimeout:
                 continue
             except RemoteEndpointNotConnected:
