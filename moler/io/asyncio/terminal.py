@@ -101,7 +101,7 @@ class AsyncioTerminal(IOConnection):
         """Write data into AsyncioTerminal connection."""
         self._protocol.send(data)
 
-    def data_received(self, data):
+    def data_received(self, data, timestamp):
         """
         Await initial prompt of started shell command.
 
@@ -244,7 +244,7 @@ class PtySubprocessProtocol(asyncio.SubprocessProtocol):
     def on_pty_close(self, exc):
         pass
 
-    def data_received(self, data):
+    def data_received(self, data, timestamp):
         # Data has line endings intact, but is bytes in Python 3
         if self.forward_data:
             self.forward_data(data)
@@ -272,7 +272,7 @@ async def start_reading_pty(protocol, pty_fd):
             if hasattr(protocol, 'on_pty_open'):
                 protocol.on_pty_open()
 
-        def data_received(self, data):
+        def data_received(self, data, timestamp):
             if hasattr(protocol, 'data_received'):
                 protocol.data_received(data)
 

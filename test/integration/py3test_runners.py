@@ -68,7 +68,7 @@ def test_runner_secures_observer_against_additional_data_after_observer_is_done(
     """Done observer should not get data even before unsubscribe from moler-connection"""
     # correctly written observer looks like:
     #
-    # def data_received(self, data):
+    # def data_received(self, data, timestamp):
     #     if not self.done():
     #         parse(data)
     #
@@ -740,7 +740,7 @@ class NetworkDownDetector(ConnectionObserver):
         super(NetworkDownDetector, self).__init__(connection=connection, runner=runner)
         self.all_data_received = []
 
-    def data_received(self, data):
+    def data_received(self, data, timestamp):
         """
         Awaiting change like:
         64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms
@@ -773,7 +773,7 @@ def failing_net_down_detector(fail_on_data, fail_by_raising, runner):
     from moler.observable_connection import ObservableConnection
 
     class FailingNetworkDownDetector(NetworkDownDetector):
-        def data_received(self, data):
+        def data_received(self, data, timestamp):
             if data == fail_on_data:
                 raise fail_by_raising
             return super(FailingNetworkDownDetector, self).data_received(data)

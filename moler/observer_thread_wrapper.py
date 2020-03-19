@@ -36,14 +36,14 @@ class ObserverThreadWrapper(object):
         t.setDaemon(True)
         t.start()
 
-    def feed(self, data):
+    def feed(self, data, timestamp):
         """
         Put data here.
 
         :param data: data to put.
         :return: None
         """
-        self._queue.put(data)
+        self._queue.put((data, timestamp))
 
     def request_stop(self):
         """
@@ -59,16 +59,16 @@ class ObserverThreadWrapper(object):
         """
         while self._request_end is False:
             try:
-                data = self._queue.get(True, self._timeout_for_get_from_queue)
+                data, timestamp = self._queue.get(True, self._timeout_for_get_from_queue)
                 try:
                     self.logger.log(level=TRACE, msg=r'notifying {}({!r})'.format(self._observer, repr(data)))
                 except ReferenceError:
                     self._request_end = True  # self._observer is no more valid.
                 try:
                     if self._observer_self:
-                        self._observer(self._observer_self, data)
+                        self._observer(self._observer_self, data, timestamp)
                     else:
-                        self._observer(data)
+                        self._observer(data, timestamp)
                 except ReferenceError:
                     self._request_end = True  # self._observer is no more valid.
                 except Exception:

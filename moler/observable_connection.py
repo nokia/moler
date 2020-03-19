@@ -57,7 +57,7 @@ class ObservableConnection(Connection):
         self._observer_wrappers = dict()
         self._observers_lock = Lock()
 
-    def data_received(self, data):
+    def data_received(self, data, timestamp):
         """
         Incoming-IO API:
         external-IO should call this method when data is received
@@ -72,7 +72,7 @@ class ObservableConnection(Connection):
         self._log_data(msg=decoded_data, level=logging.INFO,
                        extra=extra)
 
-        self.notify_observers(decoded_data)
+        self.notify_observers(decoded_data, timestamp)
 
     def subscribe(self, observer, connection_closed_handler):
         """
@@ -119,7 +119,7 @@ class ObservableConnection(Connection):
             handler()
         super(ObservableConnection, self).shutdown()
 
-    def notify_observers(self, data):
+    def notify_observers(self, data, timestamp):
         """
         Notify all subscribed observers about data received on connection.
         :param data: data to send to all registered subscribers.
@@ -127,7 +127,7 @@ class ObservableConnection(Connection):
         """
         subscribers_wrappers = list(self._observer_wrappers.values())
         for wrapper in subscribers_wrappers:
-            wrapper.feed(data=data)
+            wrapper.feed(data=data, timestamp=timestamp)
 
     @staticmethod
     def _get_observer_key_value(observer):

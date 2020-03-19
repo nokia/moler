@@ -31,7 +31,7 @@ def test_str_conversion_of_event_object():
         def __init__(self, connection=None):
             super(Wait4, self).__init__(connection=connection, detect_patterns=['Connection close'])
 
-        def data_received(self, data):
+        def data_received(self, data, timestamp):
             pass  # not important now
 
     wait4 = Wait4()
@@ -201,7 +201,7 @@ def do_nothing_connection_observer_class(base_class):
     """Command class that can be instantiated (overwritten abstract methods); uses different base class"""
 
     class DoNothingConnectionObserver(base_class):
-        def data_received(self, data):  # we need to overwrite it since it is @abstractmethod
+        def data_received(self, data, timestamp):  # we need to overwrite it since it is @abstractmethod
             pass  # ignore incoming data
 
         def pause(self):

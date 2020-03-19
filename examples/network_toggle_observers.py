@@ -27,7 +27,7 @@ class NetworkToggleDetector(ConnectionObserver):
         self.detected_status = detected_status
         self.logger = logging.getLogger('moler.{}'.format(self))
 
-    def data_received(self, data):
+    def data_received(self, data, timestamp):
         """Awaiting ping output change"""
         if not self.done():
             if self.detect_pattern in data:

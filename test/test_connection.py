@@ -66,7 +66,7 @@ def test_can_get_incomming_data_from_external_io():
     moler_received_data = []
 
     class MConnection(Connection):
-        def data_received(self, data):
+        def data_received(self, data, timestamp):
             moler_received_data.append(data)
 
     m_connection = MConnection()
@@ -133,7 +133,7 @@ def test_can_decode_data_from_external_io__decoder_via_inheritance(buffer_transp
     moler_received_data = []
 
     class WordsConnection(Connection):
-        def data_received(self, data):
+        def data_received(self, data, timestamp):
             decoded_data = self.decode(data)
             moler_received_data.append(decoded_data)
 
@@ -154,7 +154,7 @@ def test_can_decode_data_from_external_io__decoder_via_composition(buffer_transp
     moler_received_data = []
 
     class WordsConnection(Connection):
-        def data_received(self, data):
+        def data_received(self, data, timestamp):
             decoded_data = self.decode(data)
             moler_received_data.append(decoded_data)
 

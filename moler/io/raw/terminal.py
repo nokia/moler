@@ -6,6 +6,7 @@ __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 import codecs
 import re
 import select
+import datetime
 from threading import Event
 
 from ptyprocess import PtyProcessUnicode
@@ -122,7 +123,7 @@ class ThreadedTerminal(IOConnection):
                         self.logger.debug("incoming data: '{}'.".format(non_printable_chars_to_hex(data)))
 
                     if self._shell_operable.is_set():
-                        self.data_received(data)
+                        self.data_received(data=data, timestamp=datetime.datetime.now())
                     else:
                         self._verify_shell_is_operable(data)
                 except EOFError:

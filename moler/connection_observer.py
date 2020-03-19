@@ -279,12 +279,11 @@ class ConnectionObserver(object):
         self.cancel()
 
     @abstractmethod
-    def data_received(self, data):
+    def data_received(self, data, timestamp):
         """
         Entry point where feeders pass data read from connection
         Here we perform data parsing to conclude in result setting
         """
-        pass
 
     def set_exception(self, exception):
         """

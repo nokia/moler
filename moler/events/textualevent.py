@@ -38,11 +38,12 @@ class TextualEvent(Event):
         :return: None
         """
 
-    def data_received(self, data):
+    def data_received(self, data, timestamp):
         """
         Called by framework when any data are sent by device.
 
         :param data: List of strings sent by device.
+        :param timestamp: time stamp with the moment when the data was read from connection.
         :return: None.
         """
         if not self._paused:

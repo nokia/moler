@@ -110,13 +110,13 @@ class IOConnection(object):
         """
         pass
 
-    def data_received(self, data):
+    def data_received(self, data, timestamp):
         """
         Having been given data bytes from external-IO:
 
         just forward it to Moler's connection:
         """
-        self.moler_connection.data_received(data)
+        self.moler_connection.data_received(data=data, timestamp=timestamp)
 
     def notify(self, callback, when):
         """
