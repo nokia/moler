@@ -11,6 +11,7 @@ import pytest
 import time
 from moler.cmd.unix.sftp import Sftp
 from moler.exceptions import CommandFailure
+import datetime
 
 
 def test_sftp_returns_proper_command_string(buffer_connection):

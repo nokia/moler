@@ -7,6 +7,7 @@ import time
 
 from moler.cmd.unix.passwd import Passwd
 from moler.exceptions import CommandFailure
+import datetime
 
 __author__ = 'Michal Ernst'
 __copyright__ = 'Copyright (C) 2018-2019, Nokia'

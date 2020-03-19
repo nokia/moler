@@ -11,6 +11,7 @@ import pytest
 import time
 from moler.cmd.unix.gunzip import Gunzip
 from moler.exceptions import CommandFailure, WrongUsage
+import datetime
 
 
 def test_gunzip_returns_proper_command_string(buffer_connection):

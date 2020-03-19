@@ -10,6 +10,7 @@ __email__ = 'michal.ernst@nokia.com'
 import time
 import pytest
 from moler.cmd.unix.systemctl import Systemctl
+import datetime
 
 
 def test_systemctl_sending_space_and_q(buffer_connection):

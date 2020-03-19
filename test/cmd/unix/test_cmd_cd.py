@@ -7,6 +7,7 @@ __copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'michal.ernst@nokia.com'
 
 import pytest
+import datetime
 from moler.util.moler_test import MolerTest
 
 

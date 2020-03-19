@@ -11,6 +11,7 @@ import pytest
 import time
 from moler.cmd.unix.telnet import Telnet
 from moler.exceptions import CommandFailure
+import datetime
 
 
 def test_calling_telnet_returns_result_parsed_from_command_output(buffer_connection, command_output_and_expected_result):
