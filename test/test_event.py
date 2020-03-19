@@ -10,7 +10,7 @@ __copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import importlib
-
+import datetime
 import pytest
 
 from moler.observable_connection import ObservableConnection
