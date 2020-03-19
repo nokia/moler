@@ -15,6 +15,7 @@ import time
 
 import pytest
 from moler.connection_observer import ConnectionObserver
+import datetime
 
 
 def test_calling_connection_observer_returns_result(net_down_detector_and_ping_output):
