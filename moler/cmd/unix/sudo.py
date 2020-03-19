@@ -141,10 +141,10 @@ class Sudo(CommandChangingPrompt):
             if not self._sent_command_string:
                 self._sent_command_string = True
                 cs = "{}{}".format(self.cmd_object.command_string, self.newline_seq)
-                self.cmd_object.data_received(cs)
+                self.cmd_object.data_received(cs, self._timestamp_last_data_read_from_connection)
 
             prev_cmd_timeout = self.cmd_object.timeout
-            self.cmd_object.data_received(partial_data)
+            self.cmd_object.data_received(partial_data, self._timestamp_last_data_read_from_connection)
             new_cmd_timeout = self.cmd_object.timeout
             if self.timeout_from_embedded_command and prev_cmd_timeout != new_cmd_timeout:
                 timedelta = new_cmd_timeout - prev_cmd_timeout

@@ -140,7 +140,7 @@ class ThreadedTerminal(IOConnection):
                 self._notify_on_connect()
                 self._shell_operable.set()
                 data = re.sub(self.target_prompt, '', self.read_buffer, re.MULTILINE)
-                self.data_received(data)
+                self.data_received(data=data, timestamp=datetime.datetime.now())
             elif not self._export_sent and re.search(self.first_prompt, self.read_buffer, re.MULTILINE):
                 self.send(self.set_prompt_cmd)
                 self._export_sent = True

@@ -528,7 +528,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         #
         # main purpose of secure_data_received() is to progress observer-life by data
         #
-        def secure_data_received(data):
+        def secure_data_received(data, timestamp):
             try:
                 if connection_observer.done() or self._in_shutdown:
                     return  # even not unsubscribed secure_data_received() won't pass data to done observer
