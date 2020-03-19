@@ -114,8 +114,11 @@ def test_can_receive_binary_data_from_connection(tcp_connection_class,
         received_data.extend(data)
         receiver_called.set()
 
+    def do_nothing_func():
+        pass
+
     moler_conn = ObservableConnection()  # no decoder, just pass bytes 1:1
-    moler_conn.subscribe(receiver)       # build forwarding path
+    moler_conn.subscribe(receiver, do_nothing_func)       # build forwarding path
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     with connection.open():  # TODO: async with connection.open():
         time.sleep(0.1)  # otherwise we have race between server's pipe and from-client-connection
@@ -135,18 +138,21 @@ def test_can_work_with_multiple_connections(tcp_connection_class,
     received_data = [bytearray(), bytearray()]
     receiver_called = [threading.Event(), threading.Event()]
 
-    def receiver0(data):
+    def receiver0(data, timestamp):
         received_data[0].extend(data)
         receiver_called[0].set()
 
-    def receiver1(data):
+    def receiver1(data, timestamp):
         received_data[1].extend(data)
         receiver_called[1].set()
 
+    def do_nothig_func():
+        pass
+
     moler_conn0 = ObservableConnection()
-    moler_conn0.subscribe(receiver0)
+    moler_conn0.subscribe(receiver0, do_nothig_func)
     moler_conn1 = ObservableConnection()
-    moler_conn1.subscribe(receiver1)
+    moler_conn1.subscribe(receiver1, do_nothig_func)
     connection0 = tcp_connection_class(moler_connection=moler_conn0, port=tcp_server0.port, host=tcp_server0.host)
     connection1 = tcp_connection_class(moler_connection=moler_conn1, port=tcp_server1.port, host=tcp_server1.host)
     with connection0.open():
