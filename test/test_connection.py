@@ -252,7 +252,7 @@ def test_can_notify_its_observer_about_data_comming_from_external_io(buffer_tran
 
     moler_received_data = []
 
-    def buffer_observer(data, timestamp):
+    def buffer_observer(data, time_recv):
         moler_received_data.append(data)
 
     moler_conn = ObservableConnection()
@@ -272,7 +272,7 @@ def test_can_notify_multiple_observers_about_data_comming_from_external_io(buffe
         def __init__(self):
             self.received_data = []
 
-        def on_new_data(self, data, timestamp):
+        def on_new_data(self, data, time_recv):
             self.received_data.append(data)
 
     buffer_observer1 = BufferObserver()
@@ -297,7 +297,7 @@ def test_notifies_only_subscribed_observers_about_data_comming_from_external_io(
         def __init__(self):
             self.received_data = []
 
-        def on_new_data(self, data, timestamp):
+        def on_new_data(self, data, time_recv):
             self.received_data.append(data)
 
     buffer_observer1 = BufferObserver()
@@ -323,7 +323,7 @@ def test_notified_observer_may_stop_subscription_of_data_comming_from_external_i
     moler_conn = ObservableConnection()
     moler_received_data = []
 
-    def one_time_observer(data, timestamp):
+    def one_time_observer(data, time_recv):
         moler_received_data.append(data)
         moler_conn.unsubscribe(observer=one_time_observer, connection_closed_handler=do_nothing_func)
 
@@ -348,7 +348,7 @@ def test_exception_in_observer_doesnt_break_connection_nor_other_observers(buffe
     def failing_observer(data):
         raise Exception("Fail inside observer")
 
-    def one_time_observer(data, timestamp):
+    def one_time_observer(data, time_recv):
         moler_received_data.append(data)
         moler_conn.unsubscribe(observer=one_time_observer, connection_closed_handler=do_nothing_func)
 
@@ -375,7 +375,7 @@ def test_repeated_unsubscription_does_nothing_but_logs_warning(buffer_transport_
     moler_conn = ObservableConnection()
     moler_received_data = []
 
-    def one_time_observer(data, timestamp):
+    def one_time_observer(data, time_recv):
         moler_received_data.append(data)
         moler_conn.unsubscribe(observer=one_time_observer, connection_closed_handler=do_nothing_func)
 
@@ -402,7 +402,7 @@ def test_single_unsubscription_doesnt_impact_other_subscribers():
         def __init__(self):
             self.received_data = []
 
-        def on_new_data(self, data, timestamp):
+        def on_new_data(self, data, time_recv):
             self.received_data.append(data)
 
     observer1 = TheObserver()
@@ -410,17 +410,17 @@ def test_single_unsubscription_doesnt_impact_other_subscribers():
 
     function_received_data = []
 
-    def raw_fun1(data, timestamp):
+    def raw_fun1(data, time_recv):
         function_received_data.append(data)
 
-    def raw_fun2(data, timestamp):
+    def raw_fun2(data, time_recv):
         function_received_data.append(data)
 
     class TheCallableClass(object):
         def __init__(self):
             self.received_data = []
 
-        def __call__(self, data, timestamp):
+        def __call__(self, data, time_recv):
             self.received_data.append(data)
 
     callable1 = TheCallableClass()
@@ -485,7 +485,7 @@ def test_garbage_collected_subscriber_is_not_notified():
     received_data = []
 
     class Subscriber(object):
-        def __call__(self, data, timestamp):
+        def __call__(self, data, time_recv):
             received_data.append(data)
 
     subscr1 = Subscriber()

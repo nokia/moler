@@ -110,7 +110,7 @@ def test_can_receive_binary_data_from_connection(tcp_connection_class,
     received_data = bytearray()
     receiver_called = threading.Event()
 
-    def receiver(data, timestamp):
+    def receiver(data, time_recv):
         received_data.extend(data)
         receiver_called.set()
 
@@ -138,11 +138,11 @@ def test_can_work_with_multiple_connections(tcp_connection_class,
     received_data = [bytearray(), bytearray()]
     receiver_called = [threading.Event(), threading.Event()]
 
-    def receiver0(data, timestamp):
+    def receiver0(data, time_recv):
         received_data[0].extend(data)
         receiver_called[0].set()
 
-    def receiver1(data, timestamp):
+    def receiver1(data, time_recv):
         received_data[1].extend(data)
         receiver_called[1].set()
 
