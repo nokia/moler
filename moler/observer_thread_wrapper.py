@@ -36,14 +36,14 @@ class ObserverThreadWrapper(object):
         t.setDaemon(True)
         t.start()
 
-    def feed(self, data, timestamp):
+    def feed(self, data, recv_time):
         """
         Put data here.
 
         :param data: data to put.
         :return: None
         """
-        self._queue.put((data, timestamp))
+        self._queue.put((data, recv_time))
 
     def request_stop(self):
         """

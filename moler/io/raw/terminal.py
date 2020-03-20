@@ -123,7 +123,7 @@ class ThreadedTerminal(IOConnection):
                         self.logger.debug("incoming data: '{}'.".format(non_printable_chars_to_hex(data)))
 
                     if self._shell_operable.is_set():
-                        self.data_received(data=data, timestamp=datetime.datetime.now())
+                        self.data_received(data=data, recv_time=datetime.datetime.now())
                     else:
                         self._verify_shell_is_operable(data)
                 except EOFError:
@@ -140,7 +140,7 @@ class ThreadedTerminal(IOConnection):
                 self._notify_on_connect()
                 self._shell_operable.set()
                 data = re.sub(self.target_prompt, '', self.read_buffer, re.MULTILINE)
-                self.data_received(data=data, timestamp=datetime.datetime.now())
+                self.data_received(data=data, recv_time=datetime.datetime.now())
             elif not self._export_sent and re.search(self.first_prompt, self.read_buffer, re.MULTILINE):
                 self.send(self.set_prompt_cmd)
                 self._export_sent = True

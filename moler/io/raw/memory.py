@@ -174,7 +174,7 @@ class FifoBuffer(IOConnection):
         if size2read > 0:
             data = self.buffer[:size2read]
             self.buffer = self.buffer[size2read:]
-            self.data_received(data, timestamp=datetime.datetime.now())
+            self.data_received(data, recv_time=datetime.datetime.now())
             return data
         else:
             return b''

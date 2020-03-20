@@ -81,7 +81,7 @@ class NetworkDownDetector(ConnectionObserver):
         super(NetworkDownDetector, self).__init__(connection=connection, runner=runner)
         self.all_data_received = []
 
-    def data_received(self, data, timestamp):
+    def data_received(self, data, recv_time):
         """
         Awaiting change like:
         64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms

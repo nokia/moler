@@ -145,7 +145,7 @@ def nice_cmd():
             super(NiceCommand, self).__init__(connection=connection)
             self.nice = nice
 
-        def data_received(self, data, timestamp):
+        def data_received(self, data, recv_time):
             if self.nice == 'nice':
                 self.set_result({'nice': 'nice'})
 

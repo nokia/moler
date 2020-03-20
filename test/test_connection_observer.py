@@ -58,7 +58,7 @@ def test_str_conversion_of_connection_observer_object():
             super(TransferCounter, self).__init__(connection=connection)
             self.received_bytes = 0
 
-        def data_received(self, data, timestamp):
+        def data_received(self, data, recv_time):
             self.received_bytes += len(data)
 
     transfer_received = TransferCounter()
@@ -85,7 +85,7 @@ def test_repr_conversion_of_connection_observer_object():
             super(TransferCounter, self).__init__(connection=connection)
             self.received_bytes = 0
 
-        def data_received(self, data, timestamp):
+        def data_received(self, data, recv_time):
             self.received_bytes += len(data)
 
     conn = SshConnection(target_host='127.0.0.1')
@@ -378,7 +378,7 @@ def test_connection_observer_has_data_received_api(connection_observer_major_bas
 
     # example of derived connection_observer implementing it's "data consumption logic"
     class AnyResponseObserver(connection_observer_class):
-        def data_received(self, data, timestamp):
+        def data_received(self, data, recv_time):
             if not self.done():
                 self.set_result(result=data)  # any first call to data_received sets result of connection_observer
 
@@ -394,7 +394,7 @@ def test_connection_observer_consumes_data_via_data_received_in_order_to_produce
             observer.data_received(line, datetime.datetime.now())
 
     class DiskUsageObserver(connection_observer_major_base_class):
-        def data_received(self, data, timestamp):
+        def data_received(self, data, recv_time):
             if not self.done():
                 self.set_result(result=data)
 
@@ -419,7 +419,7 @@ def test_connection_observer_parses_data_inside_data_received_in_order_to_produc
             """observing output of 'du -s /home/greg'"""
             super(DiskUsageObserver, self).__init__()
 
-        def data_received(self, data, timestamp):
+        def data_received(self, data, recv_time):
             # 7538128    /home/greg
             if not self.done():
                 size, path = data.split()
@@ -502,7 +502,7 @@ def do_nothing_connection_observer_class(base_class):
     """Observer class that can be instantiated (overwritten abstract methods); uses different base class"""
 
     class DoNothingObserver(base_class):
-        def data_received(self, data, timestamp):  # we need to overwrite it since it is @abstractmethod
+        def data_received(self, data, recv_time):  # we need to overwrite it since it is @abstractmethod
             pass  # ignore incoming data
 
     return DoNothingObserver

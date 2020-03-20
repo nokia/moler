@@ -67,8 +67,8 @@ class CommandTextualGeneric(Command):
         self._stored_exception = None  # Exception stored before it is passed to base class when command is done.
         self._lock_is_done = Lock()
         self._ignore_unicode_errors = True  # If True then UnicodeDecodeError will be logged not raised in data_received
-        self._timestamp_last_data_read_from_connection = None  # Time when data was real read from connection (not when
-        # was passed to command)
+        self._timestamp_last_data_read_from_connection = None  # Time when data was really read from connection (not
+        # when was passed to command)
 
         if not self._newline_chars:
             self._newline_chars = CommandTextualGeneric._default_newline_chars
@@ -179,15 +179,15 @@ class CommandTextualGeneric(Command):
             return True
         return False
 
-    def data_received(self, data, timestamp):
+    def data_received(self, data, recv_time):
         """
         Called by framework when any data are sent by device.
 
         :param data: List of strings sent by device.
-        :param timestamp: time stamp with the moment when the data was read from connection.
+        :param recv_time: time stamp with the moment when the data was read from connection.
         :return: None.
         """
-        self._timestamp_last_data_read_from_connection = timestamp
+        self._timestamp_last_data_read_from_connection = recv_time
         try:
             lines = data.splitlines(True)
             for current_chunk in lines:

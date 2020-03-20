@@ -39,7 +39,7 @@ def test_str_conversion_of_command_object():
             super(PingCmd, self).__init__(connection=connection)
             self.command_string = 'ping {}'.format(host)
 
-        def data_received(self, data, timestamp):
+        def data_received(self, data, recv_time):
             pass  # not important now
 
     ping = PingCmd()
@@ -58,7 +58,7 @@ def test_str_conversion_of_command_object_encodes_newline_for_display():
             super(PingCmd, self).__init__(connection=connection)
             self.command_string = 'ping {}\n'.format(host)
 
-        def data_received(self, data, timestamp):
+        def data_received(self, data, recv_time):
             pass  # not important now
 
     ping = PingCmd()
@@ -78,7 +78,7 @@ def test_repr_conversion_of_command_object():
             super(LsCmd, self).__init__(connection=connection)
             self.command_string = 'ls {}'.format(options)
 
-        def data_received(self, data, timestamp):
+        def data_received(self, data, recv_time):
             pass  # not important now
 
     ls = LsCmd(connection=moler_conn)
@@ -230,7 +230,7 @@ def command_major_base_class(request):
 def do_nothing_command_class(base_class):
     """Command class that can be instantiated (overwritten abstract methods); uses different base class"""
     class DoNothingCommand(base_class):
-        def data_received(self, data, timestamp):  # we need to overwrite it since it is @abstractmethod
+        def data_received(self, data, recv_time):  # we need to overwrite it since it is @abstractmethod
             pass  # ignore incoming data
     return DoNothingCommand
 
