@@ -318,10 +318,10 @@ class TextualDevice(AbstractDevice):
             self.SM.set_state(state=state)
         if self._kept_state is not None and self.current_state != self._kept_state:
             state = self._kept_state
-            self._kept_state = None
             try:
                 self.goto_state(state=state, timeout=self.timeout_keep_state, rerun=0,
-                                send_enter_after_changed_state=False, log_stacktrace_on_fail=False, keep_state=True)
+                                send_enter_after_changed_state=False, log_stacktrace_on_fail=False, keep_state=True,
+                                run_in_separate_thread=True, queue_if_goto_state_in_another_thread=False)
             except Exception as ex:
                 level = logging.DEBUG
                 if not self._warning_was_sent:
@@ -329,8 +329,6 @@ class TextualDevice(AbstractDevice):
                     self._warning_was_sent = True
                 self._log(level=level, msg="Cannot properly go to state: '{}' in background with exception.".format(
                     state, repr(ex)))
-                if self._kept_state is None:
-                    self._kept_state = state
 
     def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False,
                    log_stacktrace_on_fail=True, keep_state=False, run_in_separate_thread=False,
@@ -364,6 +362,9 @@ class TextualDevice(AbstractDevice):
             thread = threading.Thread(target=self._goto_state_execute,
                                       kwargs={
                                           'dest_state': state, 'keep_state': keep_state, 'timeout': timeout,
+                                          'rerun': rerun,
+                                          'send_enter_after_changed_state': send_enter_after_changed_state,
+                                          'log_stacktrace_on_fail': log_stacktrace_on_fail,
                                           'queue_if_goto_state_in_another_thread': queue_if_goto_state_in_another_thread
                                       })
             thread.setDaemon(True)
