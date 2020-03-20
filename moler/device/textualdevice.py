@@ -363,14 +363,33 @@ class TextualDevice(AbstractDevice):
         if run_in_separate_thread is True:
             thread = threading.Thread(target=self._goto_state_execute,
                                       kwargs={
-                                          'dest_state': state, 'keep_state': keep_state, 'timeout': timeout
+                                          'dest_state': state, 'keep_state': keep_state, 'timeout': timeout,
+                                          'queue_if_goto_state_in_another_thread': queue_if_goto_state_in_another_thread
                                       })
             thread.setDaemon(True)
             thread.start()
         else:
-            self._goto_state_execute(dest_state=state, keep_state=keep_state, timeout=timeout)
+            self._goto_state_execute(dest_state=state, keep_state=keep_state, timeout=timeout, rerun=rerun,
+                                     send_enter_after_changed_state=send_enter_after_changed_state,
+                                     log_stacktrace_on_fail=log_stacktrace_on_fail,
+                                     queue_if_goto_state_in_another_thread=queue_if_goto_state_in_another_thread)
 
-    def _goto_state_to_run_in_try(self, dest_state, keep_state, timeout):
+    def _goto_state_execute(self, dest_state, keep_state, timeout, rerun, send_enter_after_changed_state,
+                            log_stacktrace_on_fail, queue_if_goto_state_in_another_thread):
+        if self._goto_state_lock.acquire(queue_if_goto_state_in_another_thread):
+            try:
+                self._goto_state_to_run_in_try(dest_state=dest_state, keep_state=keep_state, timeout=timeout,
+                                               rerun=rerun,
+                                               send_enter_after_changed_state=send_enter_after_changed_state,
+                                               log_stacktrace_on_fail=log_stacktrace_on_fail)
+            finally:
+                self._goto_state_lock.release()
+        else:
+            self._log(logging.WARNING, "{}: Another thread in goto_state. Didn't try to go to '{}'.".format(
+                self.name, dest_state))
+
+    def _goto_state_to_run_in_try(self, dest_state, keep_state, timeout, rerun, send_enter_after_changed_state,
+                                  log_stacktrace_on_fail):
         if self.current_state == dest_state:
             if keep_state:
                 self._kept_state = dest_state
@@ -399,16 +418,6 @@ class TextualDevice(AbstractDevice):
         if keep_state:
             self._kept_state = dest_state
         self._warning_was_sent = False
-
-    def _goto_state_execute(self, dest_state, keep_state, timeout, queue_if_goto_state_in_another_thread):
-        if self._goto_state_lock.acquire(blocking=queue_if_goto_state_in_another_thread):
-            try:
-                self._goto_state_to_run_in_try(dest_state=dest_state, keep_state=keep_state, timeout=timeout)
-            finally:
-                self._goto_state_lock.release()
-        else:
-            self._log(logging.WARNING, "{}: Another thread in goto_state. Didn't try to go to '{}'.".format(
-                self.name, dest_state))
 
     def _get_next_state(self, dest_state):
         next_state = None
