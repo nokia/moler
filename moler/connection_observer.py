@@ -282,7 +282,12 @@ class ConnectionObserver(object):
     def data_received(self, data, recv_time):
         """
         Entry point where feeders pass data read from connection
-        Here we perform data parsing to conclude in result setting
+        Here we perform data parsing to conclude in result setting.
+
+        :param data: List of strings sent by device.
+        :param recv_time: time stamp with the moment when the data was read from connection.  Time is given as
+         datatime.datetime instance.
+        :return: None.
         """
 
     def set_exception(self, exception):
