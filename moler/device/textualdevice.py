@@ -17,6 +17,7 @@ import pkgutil
 import re
 import time
 import traceback
+import threading
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.connection_observer import ConnectionObserver
@@ -112,6 +113,7 @@ class TextualDevice(AbstractDevice):
         self._log(level=logging.DEBUG, msg=msg)
         self._public_name = None
         self._warning_was_sent = False
+        self._goto_state_lock = threading.Lock()
 
     def establish_connection(self):
         """
@@ -331,7 +333,8 @@ class TextualDevice(AbstractDevice):
                     self._kept_state = state
 
     def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False,
-                   log_stacktrace_on_fail=True, keep_state=False):
+                   log_stacktrace_on_fail=True, keep_state=False, run_in_separate_thread=False,
+                   queue_if_goto_state_in_another_thread=True):
         """
         Goes to specific state.
 
@@ -342,15 +345,32 @@ class TextualDevice(AbstractDevice):
         :param log_stacktrace_on_fail: Set True to have stacktrace in logs when failed, otherwise False.
         :param keep_state: if True and state is changed without goto_state then device tries to change state to state
         defined by goto_state.
+        :param run_in_separate_thread: if True then run goto_state in separate thread and return imiedetely to caller.
+         If False then run goto_state in the same thread and block flow.
+        :param queue_if_goto_state_in_another_thread: if True then wait for other thread(s) to finish goto_state (if
+         any). If False then do not execute goto_state if other thread is currently executing goto_state.
         :return: None
         :raise: DeviceChangeStateFailure if cannot change the state of device.
         """
         self._kept_state = None
         if not self.has_established_connection():
             self.establish_connection()
+        if self.current_state == state:
+            if keep_state:
+                self._kept_state = state
+            return
 
-        dest_state = state
+        if run_in_separate_thread is True:
+            thread = threading.Thread(target=self._goto_state_execute,
+                                      kwargs={
+                                          'dest_state': state, 'keep_state': keep_state, 'timeout': timeout
+                                      })
+            thread.setDaemon(True)
+            thread.start()
+        else:
+            self._goto_state_execute(dest_state=state, keep_state=keep_state, timeout=timeout)
 
+    def _goto_state_to_run_in_try(self, dest_state, keep_state, timeout):
         if self.current_state == dest_state:
             if keep_state:
                 self._kept_state = dest_state
@@ -379,6 +399,16 @@ class TextualDevice(AbstractDevice):
         if keep_state:
             self._kept_state = dest_state
         self._warning_was_sent = False
+
+    def _goto_state_execute(self, dest_state, keep_state, timeout, queue_if_goto_state_in_another_thread):
+        if self._goto_state_lock.acquire(blocking=queue_if_goto_state_in_another_thread):
+            try:
+                self._goto_state_to_run_in_try(dest_state=dest_state, keep_state=keep_state, timeout=timeout)
+            finally:
+                self._goto_state_lock.release()
+        else:
+            self._log(logging.WARNING, "{}: Another thread in goto_state. Didn't try to go to '{}'.".format(
+                self.name, dest_state))
 
     def _get_next_state(self, dest_state):
         next_state = None
