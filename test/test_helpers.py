@@ -223,3 +223,38 @@ def test_removal_window_title_codes():
     multiline = "\x1B]0;~\x07\n\x1B]2;~\x07"
     output2 = remove_window_title_codes(multiline=multiline)
     assert "\n" == output2
+
+
+def test_convert_to_int():
+    from moler.helpers import convert_to_int, compare_objects
+    sample_input = {'ResourcesUsageInfoResponses': [{'ENBC ': {'contextInfoList': [],
+                                                               'numContextInfo': '0',
+                                                               'numEnbUeS1APIds': '0',
+                                                               'numEnbUeX2APIds': '0',
+                                                               'numTeIds': '0'}},
+                                                    {'MAC 0': {'contextInfoList': [],
+                                                               'numCells': '0',
+                                                               'numContextInfos': '0',
+                                                               'poolId': '1',
+                                                               'userResourcesPerCell': [],
+                                                               'userResourcesPerPool': {
+                                                                   'contextType': 'EContextType_L2Pcell',
+                                                                   'numContexts': '0',
+                                                                   'numDRbs': '0'}}}]}
+
+    expected_output = {'ResourcesUsageInfoResponses': [{'ENBC ': {'contextInfoList': [],
+                                                                  'numContextInfo': 0,
+                                                                  'numEnbUeS1APIds': 0,
+                                                                  'numEnbUeX2APIds': 0,
+                                                                  'numTeIds': 0}},
+                                                       {'MAC 0': {'contextInfoList': [],
+                                                                  'numCells': 0,
+                                                                  'numContextInfos': 0,
+                                                                  'poolId': 1,
+                                                                  'userResourcesPerCell': [],
+                                                                  'userResourcesPerPool': {
+                                                                      'contextType': 'EContextType_L2Pcell',
+                                                                      'numContexts': 0,
+                                                                      'numDRbs': 0}}}]}
+
+    assert not compare_objects(convert_to_int(sample_input), expected_output)

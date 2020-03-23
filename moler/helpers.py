@@ -14,6 +14,7 @@ import logging
 import re
 from functools import wraps
 from types import FunctionType, MethodType
+from six import string_types
 
 import deepdiff
 
@@ -264,6 +265,24 @@ def is_digit(value):
         return True
     except ValueError:
         return False
+
+
+def convert_to_int(obj):
+    """
+    Convert element of object structure to int if it's possible.
+    :param obj: object to convert
+    """
+    if isinstance(obj, string_types):
+        try:
+            return int(obj)
+        except ValueError:
+            return obj
+    elif isinstance(obj, dict):
+        return {k: convert_to_int(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_to_int(v) for v in obj]
+    else:
+        return obj
 
 
 class ForwardingHandler(logging.Handler):
