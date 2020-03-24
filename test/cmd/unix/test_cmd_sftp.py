@@ -11,6 +11,7 @@ import pytest
 import time
 from moler.cmd.unix.sftp import Sftp
 from moler.exceptions import CommandFailure
+import datetime
 
 
 def test_sftp_returns_proper_command_string(buffer_connection):
@@ -250,7 +251,7 @@ def test_sftp_raise_not_confirmed_connection(buffer_connection, command_output_a
     command_output, expected_result = command_output_and_expected_result_not_confirmed
     time.sleep(0.2)
     for output in command_output:
-        buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     with pytest.raises(CommandFailure):
         sftp_cmd.await_done(timeout=2)
 
@@ -280,7 +281,7 @@ def test_sftp_returns_result_pwd_in_prompt(buffer_connection, command_output_and
     sftp_cmd.start()
     time.sleep(0.1)
     for output in command_output:
-        buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     sftp_cmd.await_done()
     assert sftp_cmd.current_ret == expected_result
     assert sftp_cmd.done() is True
@@ -323,7 +324,7 @@ def test_sftp_no_result(buffer_connection, command_output_and_expected_result_no
     sftp_cmd.start(timeout=1)
     time.sleep(0.1)
     for output in command_output:
-        buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     assert sftp_cmd.current_ret == expected_result
     sftp_cmd.await_done()
     assert sftp_cmd.done() is True
@@ -366,7 +367,7 @@ def test_sftp_returns_result_of_fetching_file_with_progress_bar(buffer_connectio
     sftp_cmd.start()
     time.sleep(0.1)
     for output in command_output:
-        buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     sftp_cmd.await_done()
     assert sftp_cmd.current_ret == expected_result
     assert sftp_cmd.done() is True

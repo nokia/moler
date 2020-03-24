@@ -19,6 +19,7 @@ import asyncio
 
 from moler.asyncio_runner import get_asyncio_loop_thread
 from moler.io.io_connection import IOConnection
+import datetime
 
 
 class AsyncioTcp(IOConnection):
@@ -45,7 +46,7 @@ class AsyncioTcp(IOConnection):
                 break
             self._debug('< {}'.format(data))
             # forward data to moler-connection
-            self.data_received(data)
+            self.data_received(data, datetime.datetime.now())
         self.connection_lost.set_result(True)  # makes Future done
 
     async def open(self):

@@ -445,7 +445,7 @@ def do_nothing_connection_observer():
     from moler.connection_observer import ConnectionObserver
 
     class DoNothingObserver(ConnectionObserver):
-        def data_received(self, data):  # we need to overwrite it since it is @abstractmethod
+        def data_received(self, data, recv_time):  # we need to overwrite it since it is @abstractmethod
             pass  # ignore incoming data
 
     observer = DoNothingObserver()

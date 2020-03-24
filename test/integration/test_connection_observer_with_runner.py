@@ -15,6 +15,7 @@ import time
 
 import pytest
 from moler.connection_observer import ConnectionObserver
+import datetime
 
 
 def test_calling_connection_observer_returns_result(net_down_detector_and_ping_output):
@@ -26,7 +27,7 @@ def test_calling_connection_observer_returns_result(net_down_detector_and_ping_o
         for line in ping_lines:
             time.sleep(0.1)
             moler_conn = connection_observer.connection
-            moler_conn.data_received(line)
+            moler_conn.data_received(line, datetime.datetime.now())
 
     ext_io = threading.Thread(target=inject_data)
     try:
@@ -49,7 +50,7 @@ def test_connection_observer_behaves_like_future(net_down_detector_and_ping_outp
         for line in ping_lines:
             time.sleep(0.1)
             moler_conn = connection_observer.connection
-            moler_conn.data_received(line)
+            moler_conn.data_received(line, datetime.datetime.now())
 
     ext_io = threading.Thread(target=inject_data)
     try:
@@ -78,7 +79,7 @@ class NetworkDownDetector(ConnectionObserver):
     def __init__(self, connection=None):
         super(NetworkDownDetector, self).__init__(connection=connection)
 
-    def data_received(self, data):
+    def data_received(self, data, recv_time):
         """
         Awaiting change like:
         64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms

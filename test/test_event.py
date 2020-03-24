@@ -10,7 +10,7 @@ __copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import importlib
-
+import datetime
 import pytest
 
 from moler.observable_connection import ObservableConnection
@@ -31,7 +31,7 @@ def test_str_conversion_of_event_object():
         def __init__(self, connection=None):
             super(Wait4, self).__init__(connection=connection, detect_patterns=['Connection close'])
 
-        def data_received(self, data):
+        def data_received(self, data, recv_time):
             pass  # not important now
 
     wait4 = Wait4()
@@ -100,7 +100,7 @@ def test_event_output_in_parts(buffer_connection):
     event = Wait4prompt(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
     event.start(timeout=0.1)
     for output in outputs:
-        buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
 
     event.await_done()
     assert event.done() is True
@@ -113,7 +113,7 @@ def test_event_whole_output(buffer_connection):
     output = "bash\n"
     event = Wait4prompt(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
     event.start(timeout=0.1)
-    buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     event.await_done()
     assert event.done() is True
 
@@ -124,7 +124,7 @@ def test_event_get_last_occurrence(buffer_connection):
     dict_output = {'line': u'bash', 'matched': u'bash', 'named_groups': {}, 'groups': (), 'time': 0}
     event = Wait4prompt(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
     event.start(timeout=0.1)
-    buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     event.await_done()
     occurrence = event.get_last_occurrence()
     occurrence['time'] = 0
@@ -153,11 +153,11 @@ def test_event_unicode_error(buffer_connection):
     event._ignore_unicode_errors = False
     event.raise_unicode = True
     event.start(timeout=0.1)
-    buffer_connection.moler_connection.data_received("abc".encode("utf-8"))
+    buffer_connection.moler_connection.data_received("abc".encode("utf-8"), datetime.datetime.now())
     MolerTest.sleep(0.01)
     event.raise_unicode = False
     MolerTest.sleep(0.01)
-    buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     with pytest.raises(UnicodeDecodeError):
         event.await_done()
 
@@ -165,9 +165,9 @@ def test_event_unicode_error(buffer_connection):
     event._ignore_unicode_errors = True
     event.raise_unicode = True
     event.start(timeout=0.1)
-    buffer_connection.moler_connection.data_received("abc".encode("utf-8"))
+    buffer_connection.moler_connection.data_received("abc".encode("utf-8"), datetime.datetime.now())
     event.raise_unicode = False
-    buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     event.await_done()
     occurrence = event.get_last_occurrence()
     occurrence['time'] = 0
@@ -201,7 +201,7 @@ def do_nothing_connection_observer_class(base_class):
     """Command class that can be instantiated (overwritten abstract methods); uses different base class"""
 
     class DoNothingConnectionObserver(base_class):
-        def data_received(self, data):  # we need to overwrite it since it is @abstractmethod
+        def data_received(self, data, recv_time):  # we need to overwrite it since it is @abstractmethod
             pass  # ignore incoming data
 
         def pause(self):

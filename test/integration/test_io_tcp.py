@@ -81,7 +81,7 @@ def test_can_receive_binary_data_from_connection(tcp_connection_class,
     received_data = bytearray()
     receiver_called = threading.Event()
 
-    def receiver(data):
+    def receiver(data, timestamp):
         received_data.extend(data)
         receiver_called.set()
 

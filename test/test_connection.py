@@ -9,6 +9,7 @@ import gc
 from moler.util.moler_test import MolerTest
 
 import pytest
+import datetime
 
 
 def do_nothing_func():
@@ -66,7 +67,7 @@ def test_can_get_incomming_data_from_external_io():
     moler_received_data = []
 
     class MConnection(Connection):
-        def data_received(self, data):
+        def data_received(self, data, recv_time):
             moler_received_data.append(data)
 
     m_connection = MConnection()
@@ -79,7 +80,7 @@ def test_can_get_incomming_data_from_external_io():
         def recv(self, bufsize):  # external-IO native naming for incoming data, f.ex. see socket
             size2read = bufsize if len(self.in_buff) >= bufsize else len(self.in_buff)
             data = self.in_buff[:size2read]
-            self.moler_connection.data_received(data)  # external-IO feeds Moler's connection
+            self.moler_connection.data_received(data, datetime.datetime.now())  # external-IO feeds Moler's connection
 
     used_io = ExternalIO()
     used_io.in_buff = "incoming data"
@@ -133,7 +134,7 @@ def test_can_decode_data_from_external_io__decoder_via_inheritance(buffer_transp
     moler_received_data = []
 
     class WordsConnection(Connection):
-        def data_received(self, data):
+        def data_received(self, data, recv_time):
             decoded_data = self.decode(data)
             moler_received_data.append(decoded_data)
 
@@ -154,7 +155,7 @@ def test_can_decode_data_from_external_io__decoder_via_composition(buffer_transp
     moler_received_data = []
 
     class WordsConnection(Connection):
-        def data_received(self, data):
+        def data_received(self, data, recv_time):
             decoded_data = self.decode(data)
             moler_received_data.append(decoded_data)
 
@@ -251,7 +252,7 @@ def test_can_notify_its_observer_about_data_comming_from_external_io(buffer_tran
 
     moler_received_data = []
 
-    def buffer_observer(data):
+    def buffer_observer(data, time_recv):
         moler_received_data.append(data)
 
     moler_conn = ObservableConnection()
@@ -271,7 +272,7 @@ def test_can_notify_multiple_observers_about_data_comming_from_external_io(buffe
         def __init__(self):
             self.received_data = []
 
-        def on_new_data(self, data):
+        def on_new_data(self, data, time_recv):
             self.received_data.append(data)
 
     buffer_observer1 = BufferObserver()
@@ -296,7 +297,7 @@ def test_notifies_only_subscribed_observers_about_data_comming_from_external_io(
         def __init__(self):
             self.received_data = []
 
-        def on_new_data(self, data):
+        def on_new_data(self, data, time_recv):
             self.received_data.append(data)
 
     buffer_observer1 = BufferObserver()
@@ -322,7 +323,7 @@ def test_notified_observer_may_stop_subscription_of_data_comming_from_external_i
     moler_conn = ObservableConnection()
     moler_received_data = []
 
-    def one_time_observer(data):
+    def one_time_observer(data, time_recv):
         moler_received_data.append(data)
         moler_conn.unsubscribe(observer=one_time_observer, connection_closed_handler=do_nothing_func)
 
@@ -347,7 +348,7 @@ def test_exception_in_observer_doesnt_break_connection_nor_other_observers(buffe
     def failing_observer(data):
         raise Exception("Fail inside observer")
 
-    def one_time_observer(data):
+    def one_time_observer(data, time_recv):
         moler_received_data.append(data)
         moler_conn.unsubscribe(observer=one_time_observer, connection_closed_handler=do_nothing_func)
 
@@ -374,7 +375,7 @@ def test_repeated_unsubscription_does_nothing_but_logs_warning(buffer_transport_
     moler_conn = ObservableConnection()
     moler_received_data = []
 
-    def one_time_observer(data):
+    def one_time_observer(data, time_recv):
         moler_received_data.append(data)
         moler_conn.unsubscribe(observer=one_time_observer, connection_closed_handler=do_nothing_func)
 
@@ -401,7 +402,7 @@ def test_single_unsubscription_doesnt_impact_other_subscribers():
         def __init__(self):
             self.received_data = []
 
-        def on_new_data(self, data):
+        def on_new_data(self, data, time_recv):
             self.received_data.append(data)
 
     observer1 = TheObserver()
@@ -409,17 +410,17 @@ def test_single_unsubscription_doesnt_impact_other_subscribers():
 
     function_received_data = []
 
-    def raw_fun1(data):
+    def raw_fun1(data, time_recv):
         function_received_data.append(data)
 
-    def raw_fun2(data):
+    def raw_fun2(data, time_recv):
         function_received_data.append(data)
 
     class TheCallableClass(object):
         def __init__(self):
             self.received_data = []
 
-        def __call__(self, data):
+        def __call__(self, data, time_recv):
             self.received_data.append(data)
 
     callable1 = TheCallableClass()
@@ -442,7 +443,7 @@ def test_single_unsubscription_doesnt_impact_other_subscribers():
     moler_conn.subscribe(observer=callable2, connection_closed_handler=do_nothing_func)
     moler_conn.unsubscribe(observer=callable1, connection_closed_handler=do_nothing_func)
 
-    moler_conn.data_received("incoming data")
+    moler_conn.data_received("incoming data", datetime.datetime.now())
     MolerTest.sleep(1, True)  # Processing in separate thread so have to wait.
 
     assert observer1.received_data == []
@@ -484,7 +485,7 @@ def test_garbage_collected_subscriber_is_not_notified():
     received_data = []
 
     class Subscriber(object):
-        def __call__(self, data):
+        def __call__(self, data, time_recv):
             received_data.append(data)
 
     subscr1 = Subscriber()
@@ -495,7 +496,7 @@ def test_garbage_collected_subscriber_is_not_notified():
     del subscr1
     gc.collect()
 
-    moler_conn.data_received("data")
+    moler_conn.data_received("data", datetime.datetime.now())
     MolerTest.sleep(1, True)  # Processing in separate thread so have to wait.
     assert len(received_data) == 1
 
@@ -525,5 +526,5 @@ def buffer_transport_class():
             if size2read > 0:
                 data = self.buffer[:size2read]
                 self.buffer = self.buffer[size2read:]
-                self.moler_connection.data_received(data)  # external-IO feeds Moler's connection
+                self.moler_connection.data_received(data, datetime.datetime.now())  # external-IO feeds Moler's connection
     return BufferTransport

@@ -167,7 +167,7 @@ class Connection(object):
         line = data + self.newline
         self.send(data=line, timeout=timeout, encrypt=encrypt, levels_to_go_up=3)
 
-    def data_received(self, data):
+    def data_received(self, data, recv_time):
         """Incoming-IO API: external-IO should call this method when data is received"""
         pass
 

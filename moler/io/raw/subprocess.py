@@ -22,7 +22,7 @@ class Subprocess(object):
     def receive(self, timeout=30):
         pass
 
-    def data_received(self, data):
+    def data_received(self, data, recv_time):
         pass
 
     def read_subprocess_output(self):
