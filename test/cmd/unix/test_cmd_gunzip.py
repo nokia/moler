@@ -11,6 +11,7 @@ import pytest
 import time
 from moler.cmd.unix.gunzip import Gunzip
 from moler.exceptions import CommandFailure, WrongUsage
+import datetime
 
 
 def test_gunzip_returns_proper_command_string(buffer_connection):
@@ -53,7 +54,7 @@ def test_gunzip_raise_error_on_cannot_overwrite_multiple_files(
     time.sleep(0.1)
     command_output, expected_result = command_output_and_expected_result_on_cannot_overwrite_multiple_files
     for output in command_output:
-        buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     with pytest.raises(CommandFailure):
         gunzip_cmd()
     gunzip_cmd.cancel()
@@ -68,7 +69,7 @@ def test_gunzip_raise_error_on_can_multiple_files(
     time.sleep(0.1)
     command_output, expected_result = command_output_and_expected_result_on_overwrite_multiple_files
     for output in command_output:
-        buffer_connection.moler_connection.data_received(output.encode("utf-8"))
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     gunzip_cmd.await_done(timeout=1)
     assert gunzip_cmd.done() is True
     gunzip_cmd.cancel()

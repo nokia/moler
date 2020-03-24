@@ -108,7 +108,7 @@ async def test_can_receive_binary_data_from_connection(tcp_connection_class,
     received_data = bytearray()
     receiver_called = asyncio.Event()
 
-    def receiver(data):
+    def receiver(data, time_recv):
         received_data.extend(data)
         receiver_called.set()
 

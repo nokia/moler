@@ -148,7 +148,7 @@ def test_can_send_and_receive_data_from_connection(memory_connection_without_dec
     moler_conn = connection.moler_connection
     received_data = bytearray()
 
-    def receiver(data):
+    def receiver(data, time_recv):
         received_data.extend(data)
 
     moler_conn.subscribe(receiver, connection_closed_handler)
@@ -171,7 +171,7 @@ def test_will_not_receive_data_from_connection_when_echo_is_off(memory_connectio
     moler_conn = connection.moler_connection
     received_data = bytearray()
 
-    def receiver(data):
+    def receiver(data, time_recv):
         received_data.extend(data)
 
     moler_conn.subscribe(receiver, connection_closed_handler)
@@ -187,7 +187,7 @@ def test_can_inject_data_with_specified_delay(memory_connection_without_decoder)
     received_data = bytearray()
     start_time = time.time()
 
-    def receiver(data):
+    def receiver(data, time_recv):
         received_data.extend(data)
         if b"msg3" in received_data:
             duration = time.time() - start_time
@@ -206,7 +206,7 @@ def test_inject_response_awaits_nearest_write_before_responding(memory_connectio
     moler_conn = connection.moler_connection
     received_data = bytearray()
 
-    def receiver(data):
+    def receiver(data, time_recv):
         received_data.extend(data)
 
     moler_conn.subscribe(receiver, connection_closed_handler)
@@ -225,7 +225,7 @@ def test_can_receive_data_from_ext_io_into_moler_connection(memory_connection):
     connection = memory_connection
     received_data = {'data': ''}  # expecting data decoded into str
 
-    def receiver(data):
+    def receiver(data, time_recv):
         received_data['data'] += data
 
     connection.moler_connection.subscribe(receiver, connection_closed_handler)
@@ -247,7 +247,7 @@ def test_can_send_data_into_ext_io_from_moler_connection(memory_connection_witho
     moler_conn = connection.moler_connection
     received_data = bytearray()
 
-    def receiver(data):
+    def receiver(data, time_recv):
         received_data.extend(data)
 
     moler_conn.subscribe(receiver, connection_closed_handler)

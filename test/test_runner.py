@@ -168,7 +168,7 @@ class NetworkDownDetector(ConnectionObserver):
         super(NetworkDownDetector, self).__init__(connection=connection, runner=runner)
         self.all_data_received = []
 
-    def data_received(self, data):
+    def data_received(self, data, recv_time):
         """
         Awaiting change like:
         64 bytes from 10.0.2.15: icmp_req=3 ttl=64 time=0.045 ms
@@ -182,7 +182,7 @@ class NetworkDownDetector(ConnectionObserver):
 
 
 class MyEvent(Event):
-    def data_received(self, data):
+    def data_received(self, data, recv_time):
         pass
 
     def pause(self):
@@ -197,7 +197,7 @@ class MyCommand(Command):
         super(MyCommand, self).__init__(connection=connection, runner=runner)
         self.command_string = 'hi'
 
-    def data_received(self, data):
+    def data_received(self, data, recv_time):
         pass
 
 

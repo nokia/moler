@@ -7,6 +7,7 @@ __copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'michal.ernst@nokia.com'
 
 import pytest
+import datetime
 from moler.util.moler_test import MolerTest
 
 
@@ -47,16 +48,16 @@ def test_command_unicode_error(buffer_connection, command_output_and_expected_re
     cmd_start_string = "{}\n".format(cmd.command_string)
     cmd.start()
     MolerTest.sleep(sleep_time)
-    buffer_connection.moler_connection.data_received(cmd_start_string.encode("utf-8"))
+    buffer_connection.moler_connection.data_received(cmd_start_string.encode("utf-8"), datetime.datetime.now())
     MolerTest.sleep(sleep_time)
     cmd._ignore_unicode_errors = False
     cmd.raise_unicode = True
     MolerTest.sleep(sleep_time)
-    buffer_connection.moler_connection.data_received("abc".encode("utf-8"))
+    buffer_connection.moler_connection.data_received("abc".encode("utf-8"), datetime.datetime.now())
     MolerTest.sleep(sleep_time)
     cmd.raise_unicode = False
     MolerTest.sleep(sleep_time)
-    buffer_connection.moler_connection.data_received(command_output.encode("utf-8"))
+    buffer_connection.moler_connection.data_received(command_output.encode("utf-8"), datetime.datetime.now())
     MolerTest.sleep(sleep_time)
     with pytest.raises(UnicodeDecodeError):
         cmd.await_done()
@@ -64,16 +65,16 @@ def test_command_unicode_error(buffer_connection, command_output_and_expected_re
     cmd = CdUnicodeError(connection=buffer_connection.moler_connection, path="/home/user/")
     cmd.start()
     MolerTest.sleep(sleep_time)
-    buffer_connection.moler_connection.data_received(cmd_start_string.encode("utf-8"))
+    buffer_connection.moler_connection.data_received(cmd_start_string.encode("utf-8"), datetime.datetime.now())
     MolerTest.sleep(sleep_time)
     cmd._ignore_unicode_errors = True
     cmd.raise_unicode = True
     MolerTest.sleep(sleep_time)
-    buffer_connection.moler_connection.data_received("abc".encode("utf-8"))
+    buffer_connection.moler_connection.data_received("abc".encode("utf-8"), datetime.datetime.now())
     MolerTest.sleep(sleep_time)
     cmd.raise_unicode = False
     MolerTest.sleep(sleep_time)
-    buffer_connection.moler_connection.data_received(command_output.encode("utf-8"))
+    buffer_connection.moler_connection.data_received(command_output.encode("utf-8"), datetime.datetime.now())
     MolerTest.sleep(sleep_time)
     cmd.await_done()
 
