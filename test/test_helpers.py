@@ -223,3 +223,29 @@ def test_removal_window_title_codes():
     multiline = "\x1B]0;~\x07\n\x1B]2;~\x07"
     output2 = remove_window_title_codes(multiline=multiline)
     assert "\n" == output2
+
+
+def test_convert_to_int():
+    from moler.helpers import convert_to_int, compare_objects
+
+    sample_input = {'KEY': [{'KEY1 ': {'contextInfoList': ['sample', '2', '4'],
+                                       'someIds': '0'}},
+                            {'KEY2': {'contextInfoList': [],
+                                      'num': '20',
+                                      'poolId': '1',
+                                      'user': {
+                                          'contextType': 'sample',
+                                          'numContexts': '3',
+                                          'num': '4'}}}]}
+
+    expected_output = {'KEY': [{'KEY1 ': {'contextInfoList': ['sample', 2, 4],
+                                          'someIds': 0}},
+                               {'KEY2': {'contextInfoList': [],
+                                         'num': 20,
+                                         'poolId': 1,
+                                         'user': {
+                                             'contextType': 'sample',
+                                             'numContexts': 3,
+                                             'num': 4}}}]}
+
+    assert not compare_objects(convert_to_int(sample_input), expected_output)
