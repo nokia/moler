@@ -323,25 +323,12 @@ class TextualDevice(AbstractDevice):
         if self.current_state != state:
             self._log(logging.INFO, "Changed state from '%s' into '%s'" % (self.current_state, state))
             self.SM.set_state(state=state)
-        self._log(level=logging.INFO, msg="\n\n***_set_state with: _kept_state: '{}', current_state: '{}'.".format(
-            self._kept_state, self.current_state))
         if self._kept_state is not None and self.current_state != self._kept_state:
             state = self._kept_state
-            try:
-                self.goto_state(state=state, timeout=self.timeout_keep_state, rerun=0,
-                                send_enter_after_changed_state=False, log_stacktrace_on_fail=False, keep_state=True,
-                                run_in_separate_thread=True, queue_if_goto_state_in_another_thread=True)
-            except Exception as ex:
-                level = logging.DEBUG
-                if not self._warning_was_sent:
-                    level = logging.WARNING
-                    self._warning_was_sent = True
-                self._log(level=level, msg="Cannot properly go to state: '{}' in background with exception.".format(
-                    state, repr(ex)))
+            self._recover_state(state=state)
 
     def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False,
-                   log_stacktrace_on_fail=True, keep_state=False, run_in_separate_thread=False,
-                   queue_if_goto_state_in_another_thread=True):
+                   log_stacktrace_on_fail=True, keep_state=False):
         """
         Goes to specific state.
 
@@ -352,10 +339,6 @@ class TextualDevice(AbstractDevice):
         :param log_stacktrace_on_fail: Set True to have stacktrace in logs when failed, otherwise False.
         :param keep_state: if True and state is changed without goto_state then device tries to change state to state
         defined by goto_state.
-        :param run_in_separate_thread: if True then run goto_state in separate thread and return immediately to caller.
-         If False then run goto_state in the same thread and block flow.
-        :param queue_if_goto_state_in_another_thread: if True then wait for other thread(s) to finish goto_state (if
-         any). If False then do not execute goto_state if other thread is currently executing goto_state.
         :return: None
         :raise: DeviceChangeStateFailure if cannot change the state of device.
         """
@@ -367,29 +350,30 @@ class TextualDevice(AbstractDevice):
                 self._kept_state = state
             return
 
-        if run_in_separate_thread is True:
-            with self._goto_state_thread_manipulation_lock:
-                state_options = {
-                    'dest_state': state, 'keep_state': keep_state, 'timeout': timeout,
-                    'rerun': rerun,
-                    'send_enter_after_changed_state': send_enter_after_changed_state,
-                    'log_stacktrace_on_fail': log_stacktrace_on_fail,
-                    'queue_if_goto_state_in_another_thread': queue_if_goto_state_in_another_thread,
-                    'ignore_exceptions': True
-                }
-                self._queue_states.put(state_options)
-                if self._thread_for_goto_state is None:
-                    thread = threading.Thread(target=self._goto_state_thread)
-                    thread.setDaemon(True)
-                    thread.start()
-                    self._thread_for_goto_state = thread
-        else:
-            self._goto_state_execute(dest_state=state, keep_state=keep_state, timeout=timeout, rerun=rerun,
-                                     send_enter_after_changed_state=send_enter_after_changed_state,
-                                     log_stacktrace_on_fail=log_stacktrace_on_fail,
-                                     queue_if_goto_state_in_another_thread=queue_if_goto_state_in_another_thread,
-                                     ignore_exceptions=False
-                                     )
+        self._queue_states.empty()
+        self._goto_state_execute(dest_state=state, keep_state=keep_state, timeout=timeout, rerun=rerun,
+                                 send_enter_after_changed_state=send_enter_after_changed_state,
+                                 log_stacktrace_on_fail=log_stacktrace_on_fail,
+                                 queue_if_goto_state_in_another_thread=True,
+                                 ignore_exceptions=False
+                                )
+
+    def _recover_state(self, state):
+        with self._goto_state_thread_manipulation_lock:
+            state_options = {
+                'dest_state': state, 'keep_state': True, 'timeout': self.timeout_keep_state,
+                'rerun': 0,
+                'send_enter_after_changed_state': False,
+                'log_stacktrace_on_fail': False,
+                'queue_if_goto_state_in_another_thread': False,
+                'ignore_exceptions': True
+            }
+            self._queue_states.put(state_options)
+            if self._thread_for_goto_state is None:
+                thread = threading.Thread(target=self._goto_state_thread)
+                thread.setDaemon(True)
+                thread.start()
+                self._thread_for_goto_state = thread
 
     def _goto_state_thread(self):
         while True:
