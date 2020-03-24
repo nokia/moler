@@ -351,12 +351,13 @@ class TextualDevice(AbstractDevice):
             return
 
         self._queue_states.empty()
-        self._goto_state_execute(dest_state=state, keep_state=keep_state, timeout=timeout, rerun=rerun,
-                                 send_enter_after_changed_state=send_enter_after_changed_state,
-                                 log_stacktrace_on_fail=log_stacktrace_on_fail,
-                                 queue_if_goto_state_in_another_thread=True,
-                                 ignore_exceptions=False
-                                )
+        self._goto_state_execute(
+            dest_state=state, keep_state=keep_state, timeout=timeout, rerun=rerun,
+            send_enter_after_changed_state=send_enter_after_changed_state,
+            log_stacktrace_on_fail=log_stacktrace_on_fail,
+            queue_if_goto_state_in_another_thread=True,
+            ignore_exceptions=False
+        )
 
     def _recover_state(self, state):
         with self._goto_state_thread_manipulation_lock:
