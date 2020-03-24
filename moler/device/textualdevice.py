@@ -343,7 +343,7 @@ class TextualDevice(AbstractDevice):
         :param log_stacktrace_on_fail: Set True to have stacktrace in logs when failed, otherwise False.
         :param keep_state: if True and state is changed without goto_state then device tries to change state to state
         defined by goto_state.
-        :param run_in_separate_thread: if True then run goto_state in separate thread and return imiedetely to caller.
+        :param run_in_separate_thread: if True then run goto_state in separate thread and return immediately to caller.
          If False then run goto_state in the same thread and block flow.
         :param queue_if_goto_state_in_another_thread: if True then wait for other thread(s) to finish goto_state (if
          any). If False then do not execute goto_state if other thread is currently executing goto_state.
