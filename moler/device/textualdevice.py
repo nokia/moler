@@ -29,6 +29,10 @@ from moler.helpers import copy_dict, update_dict
 from moler.helpers import copy_list
 from moler.instance_loader import create_instance_from_class_fullname
 from moler.device.abstract_device import AbstractDevice
+try:
+    import queue
+except ImportError:
+    import Queue as queue  # For python 2
 
 
 # TODO: name, logger/logger_name as param
@@ -114,6 +118,9 @@ class TextualDevice(AbstractDevice):
         self._public_name = None
         self._warning_was_sent = False
         self._goto_state_lock = threading.Lock()
+        self._goto_state_thread_manipulation_lock = threading.Lock()
+        self._queue_states = queue.Queue()
+        self._thread_for_goto_state = None
 
     def establish_connection(self):
         """
@@ -316,12 +323,14 @@ class TextualDevice(AbstractDevice):
         if self.current_state != state:
             self._log(logging.INFO, "Changed state from '%s' into '%s'" % (self.current_state, state))
             self.SM.set_state(state=state)
+        self._log(level=logging.INFO, msg="\n\n***_set_state with: _kept_state: '{}', current_state: '{}'.".format(
+            self._kept_state, self.current_state))
         if self._kept_state is not None and self.current_state != self._kept_state:
             state = self._kept_state
             try:
                 self.goto_state(state=state, timeout=self.timeout_keep_state, rerun=0,
                                 send_enter_after_changed_state=False, log_stacktrace_on_fail=False, keep_state=True,
-                                run_in_separate_thread=True, queue_if_goto_state_in_another_thread=False)
+                                run_in_separate_thread=True, queue_if_goto_state_in_another_thread=True)
             except Exception as ex:
                 level = logging.DEBUG
                 if not self._warning_was_sent:
@@ -359,30 +368,51 @@ class TextualDevice(AbstractDevice):
             return
 
         if run_in_separate_thread is True:
-            thread = threading.Thread(target=self._goto_state_execute,
-                                      kwargs={
-                                          'dest_state': state, 'keep_state': keep_state, 'timeout': timeout,
-                                          'rerun': rerun,
-                                          'send_enter_after_changed_state': send_enter_after_changed_state,
-                                          'log_stacktrace_on_fail': log_stacktrace_on_fail,
-                                          'queue_if_goto_state_in_another_thread': queue_if_goto_state_in_another_thread
-                                      })
-            thread.setDaemon(True)
-            thread.start()
+            with self._goto_state_thread_manipulation_lock:
+                state_options = {
+                    'dest_state': state, 'keep_state': keep_state, 'timeout': timeout,
+                    'rerun': rerun,
+                    'send_enter_after_changed_state': send_enter_after_changed_state,
+                    'log_stacktrace_on_fail': log_stacktrace_on_fail,
+                    'queue_if_goto_state_in_another_thread': queue_if_goto_state_in_another_thread,
+                    'ignore_exceptions': True
+                }
+                self._queue_states.put(state_options)
+                if self._thread_for_goto_state is None:
+                    thread = threading.Thread(target=self._goto_state_thread)
+                    thread.setDaemon(True)
+                    thread.start()
+                    self._thread_for_goto_state = thread
         else:
             self._goto_state_execute(dest_state=state, keep_state=keep_state, timeout=timeout, rerun=rerun,
                                      send_enter_after_changed_state=send_enter_after_changed_state,
                                      log_stacktrace_on_fail=log_stacktrace_on_fail,
-                                     queue_if_goto_state_in_another_thread=queue_if_goto_state_in_another_thread)
+                                     queue_if_goto_state_in_another_thread=queue_if_goto_state_in_another_thread,
+                                     ignore_exceptions=False
+                                     )
+
+    def _goto_state_thread(self):
+        while True:
+            with self._goto_state_thread_manipulation_lock:
+                try:
+                    goto_data = self._queue_states.get(True, 0.01)
+                except queue.Empty:
+                    self._thread_for_goto_state = None
+                    break
+                self._goto_state_execute(**goto_data)
 
     def _goto_state_execute(self, dest_state, keep_state, timeout, rerun, send_enter_after_changed_state,
-                            log_stacktrace_on_fail, queue_if_goto_state_in_another_thread):
+                            log_stacktrace_on_fail, queue_if_goto_state_in_another_thread,
+                            ignore_exceptions=False):
         if self._goto_state_lock.acquire(queue_if_goto_state_in_another_thread):
             try:
                 self._goto_state_to_run_in_try(dest_state=dest_state, keep_state=keep_state, timeout=timeout,
                                                rerun=rerun,
                                                send_enter_after_changed_state=send_enter_after_changed_state,
                                                log_stacktrace_on_fail=log_stacktrace_on_fail)
+            except Exception as ex:
+                if ignore_exceptions is False:
+                    raise ex
             finally:
                 self._goto_state_lock.release()
         else:
