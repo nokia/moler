@@ -13,7 +13,7 @@ with io.open(join(here, 'requirements.txt'), encoding='utf-8') as f:
 
 setup(
     name='moler',  # Required
-    version='1.8.0',  # Required
+    version='1.9.0',  # Required
     description='Moler is library to help in building automated tests',  # Required
     long_description=long_description,  # Optional
     long_description_content_type='text/markdown',  # Optional (see note above)
