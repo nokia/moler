@@ -19,14 +19,14 @@ import weakref
 import logging
 import six
 from threading import Lock
-from moler.connection import Connection
-from moler.connection import identity_transformation
+from moler.abstract_moler_connection import AbstractMolerConnection
+from moler.abstract_moler_connection import identity_transformation
 from moler.config.loggers import RAW_DATA, TRACE
 from moler.helpers import instance_id
 from moler.observer_thread_wrapper import ObserverThreadWrapper
 
 
-class ObservableConnection(Connection):
+class ObservableConnection(AbstractMolerConnection):
     """
     Allows objects to subscribe for notification about connection's data-received.
     Subscription is made by registering function to be called with this data (may be object's method).
