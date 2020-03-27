@@ -157,6 +157,14 @@ class Iperf2(GenericUnixCommand, Publisher):
             return True
         return False
 
+    @property
+    def singlerun_server(self):
+        if self.client:
+            return False
+        singlerun_param_nonlast = ('-P 1 ' in self.options) or ('--parallel 1 ' in self.options)
+        singlerun_param_as_last = self.options.endswith('-P 1') or self.options.endswith('--parallel 1')
+        return singlerun_param_nonlast or singlerun_param_as_last
+
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
@@ -222,7 +230,8 @@ class Iperf2(GenericUnixCommand, Publisher):
 
     def _stop_server(self):
         if not self._stopping_server:
-            self.break_cmd()
+            if not self.singlerun_server:
+                self.break_cmd()
             self._stopping_server = True
 
     _re_command_failure = re.compile(r"(?P<FAILURE_MSG>.*failed.*|.*error.*|.*command not found.*|.*iperf:.*)")
