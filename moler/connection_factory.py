@@ -185,5 +185,5 @@ def _try_get_connection_with_name(io_type, variant, **constructor_kwargs):
 
 
 # actions during import
-connection_cfg.register_builtin_connections(ConnectionFactory, ObservableConnection)
+connection_cfg.register_builtin_connections(ConnectionFactory, ThreadedMolerConnection)
 connection_cfg.set_defaults()
