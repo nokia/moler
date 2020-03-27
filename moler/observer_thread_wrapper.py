@@ -15,7 +15,7 @@ except ImportError:
 
 class ObserverThreadWrapper(object):
     """
-    Wrapper for observer registered in ObservableConnection.
+    Wrapper for observer registered in ThreadedMolerConnection (old name: ObservableConnection).
     """
 
     def __init__(self, observer, observer_self, logger):
