@@ -24,7 +24,7 @@ from moler.helpers import compare_objects
 def _buffer_connection():
     """External-io based on memory FIFO-buffer"""
     from moler.io.raw.memory import ThreadedFifoBuffer
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
     class RemoteConnection(ThreadedFifoBuffer):
         def remote_inject_response(self, input_strings, delay=0.0):
@@ -49,7 +49,7 @@ def _buffer_connection():
                 in_bytes = [data.decode("utf-8").encode("utf-8") for data in input_strings]
             self.inject(in_bytes, delay)
 
-    moler_conn = ObservableConnection(encoder=lambda data: data.encode("utf-8"),
+    moler_conn = ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
                                       decoder=lambda data: data.decode("utf-8"))
     ext_io_in_memory = RemoteConnection(moler_connection=moler_conn,
                                         echo=False)  # we don't want echo on it

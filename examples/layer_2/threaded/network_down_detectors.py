@@ -30,7 +30,7 @@ import os
 import threading
 import time
 
-from moler.observable_connection import ObservableConnection
+from moler.threaded_moler_connection import ThreadedMolerConnection
 from moler.io.raw import tcp
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))  # allow finding modules in examples/
@@ -85,7 +85,7 @@ def main(connections2observe4ip):
         host, port = address
         # 1. create Moler's connection that knows encoding
         decoder = lambda data: data.decode("utf-8")
-        moler_conn = ObservableConnection(decoder=decoder)
+        moler_conn = ThreadedMolerConnection(decoder=decoder)
         # 2. create external-IO connection gluing to Moler's connection
         conn_logger_name = 'threaded.tcp-connection({}:{})'.format(*address)
         conn_logger = logging.getLogger(conn_logger_name)

@@ -331,7 +331,7 @@ Library gives you freedom which part you want to reuse. We are fan's of "take wh
 * You can take connection or build it yourself:
 
    ```python
-   from moler.observable_connection import ObservableConnection
+   from moler.threaded_moler_connection import ThreadedMolerConnection
    from moler.io.raw.terminal import ThreadedTerminal
 
    terminal_connection = ThreadedTerminal(moler_connection=ObservableConnection())

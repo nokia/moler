@@ -83,7 +83,7 @@ def pytest_runtest_logreport(report):
 @yield_fixture
 def buffer_connection():
     from moler.io.raw.memory import ThreadedFifoBuffer
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
     from moler.config.loggers import configure_device_logger
 
     class RemoteConnection(ThreadedFifoBuffer):
@@ -106,7 +106,7 @@ def buffer_connection():
             line_as_bytes = line.encode("utf-8")
             self.inject([line_as_bytes], delay)
 
-    moler_conn = ObservableConnection(encoder=lambda data: data.encode("utf-8"),
+    moler_conn = ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
                                       decoder=lambda data: data.decode("utf-8"),
                                       name="buffer")
     ext_io_in_memory = RemoteConnection(moler_connection=moler_conn,
@@ -160,7 +160,7 @@ def nice_cmd():
 @yield_fixture
 def device_connection():
     from moler.io.raw.memory import ThreadedFifoBuffer
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
     from moler.config.loggers import configure_device_logger
 
     class RemoteConnection(ThreadedFifoBuffer):
@@ -212,7 +212,7 @@ def device_connection():
 
         send = write  # just alias to make base class happy :-)
 
-    moler_conn = ObservableConnection(encoder=lambda data: data.encode("utf-8"),
+    moler_conn = ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
                                       decoder=lambda data: data.decode("utf-8"),
                                       name="buffer")
     ext_io_in_memory = RemoteConnection(moler_connection=moler_conn,

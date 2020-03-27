@@ -1,9 +1,9 @@
 from moler.cmd.unix.ps import Ps
-from moler.observable_connection import ObservableConnection, get_connection
+from moler.threaded_moler_connection import ThreadedMolerConnection, get_connection
 from moler.io.raw.terminal import ThreadedTerminal
 
 # v.1 - combine all manually
-# moler_conn = ObservableConnection()
+# moler_conn = ThreadedMolerConnection()
 # terminal = ThreadedTerminal(moler_connection=moler_conn)
 # v.2 - let factory combine
 terminal = get_connection(io_type='terminal', variant='threaded')

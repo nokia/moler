@@ -18,7 +18,7 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 
 import logging
 import moler.config.connections as connection_cfg
-from moler.observable_connection import ObservableConnection
+from moler.threaded_moler_connection import ThreadedMolerConnection
 
 
 def get_connection(name=None, io_type=None, variant=None, **constructor_kwargs):

@@ -43,12 +43,12 @@ async def test_observer_gets_all_data_of_connection_after_it_is_submitted_to_bac
     # another words - runner is running over some time period
     # The only difference is that raw def function may use only standalone_runner (which is subset of observer_runner)
     # and inside test you exchange 'await asyncio.sleep()' with 'time.sleep()'
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
     with disabled_logging():
         durations = []
         for n in range(20):  # need to test multiple times to ensure there are no thread races
-            moler_conn = ObservableConnection()
+            moler_conn = ThreadedMolerConnection()
             net_down_detector = NetworkDownDetector(connection=moler_conn, runner=observer_runner)
             connection = net_down_detector.connection
             start_time = net_down_detector.life_status.start_time = time.time()
@@ -73,11 +73,11 @@ def test_runner_secures_observer_against_additional_data_after_observer_is_done(
     #         parse(data)
     #
     # This test checks if runners secure wrong-written-observers with missing 'if not self.done():'
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
     with disabled_logging():
         for n in range(20):  # need to test multiple times to ensure there are no thread races
-            moler_conn = ObservableConnection()
+            moler_conn = ThreadedMolerConnection()
             net_down_detector = NetworkDownDetector(connection=moler_conn, runner=observer_runner)
             net_down_detector.life_status.start_time = time.time()  # must start observer lifetime before runner.submit()
             connection = net_down_detector.connection
@@ -96,9 +96,9 @@ def test_runner_secures_observer_against_additional_data_after_runner_shutdown(o
     # Even without running background feeder
     # we can use correctly constructed secure.data_received(data, datetime.datetime.now())
     # to block passing data from connection to observer while runner is in-shutdown state
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
     # check if shutdown stops all observers running inside given runner
     net_down_detector1 = NetworkDownDetector(connection=moler_conn, runner=observer_runner)
     net_down_detector2 = NetworkDownDetector(connection=moler_conn, runner=observer_runner)
@@ -119,9 +119,9 @@ def test_runner_secures_observer_against_additional_data_after_runner_shutdown(o
 @pytest.mark.asyncio
 async def test_runner_unsubscribes_from_connection_after_runner_shutdown(observer_runner):
     # see - Raw 'def' usage note
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
     # check if shutdown unsubscribes all observers running inside given runner
     net_down_detector1 = NetworkDownDetector(connection=moler_conn, runner=observer_runner)
     net_down_detector2 = NetworkDownDetector(connection=moler_conn, runner=observer_runner)
@@ -475,7 +475,7 @@ def test_observer__on_timeout__is_called_once_at_timeout(connection_observer):
 
 
 def test_runner_shutdown_cancels_remaining_active_feeders_inside_main_thread(async_runner):
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
     connection_observer = NetworkDownDetector(connection=ObservableConnection(), runner=async_runner)
 
@@ -489,7 +489,7 @@ def test_runner_shutdown_cancels_remaining_active_feeders_inside_main_thread(asy
 
 
 def test_runner_shutdown_cancels_remaining_inactive_feeders_inside_main_thread(observer_runner):
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
     connection_observer = NetworkDownDetector(connection=ObservableConnection(), runner=observer_runner)
 
@@ -502,7 +502,7 @@ def test_runner_shutdown_cancels_remaining_inactive_feeders_inside_main_thread(o
 
 
 def test_runner_shutdown_cancels_remaining_feeders_inside_threads(observer_runner):
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
     observers_pool = []
     for idx in range(3):
@@ -530,7 +530,7 @@ def test_runner_shutdown_cancels_remaining_feeders_inside_threads(observer_runne
 
 # def test_observer__on_timeout__is_called_once_at_timeout_threads_races(observer_runner):
 #     from moler.exceptions import MolerTimeout
-#     from moler.observable_connection import ObservableConnection
+#     from moler.threaded_moler_connection import ThreadedMolerConnection
 #
 #     with disabled_logging():
 #         observers_pool = []
@@ -634,7 +634,7 @@ async def test_wait_for__is_prohibited_inside_async_def(async_runner):
     # can't raise in generic runner since why non-async-runner should bother about being used inside 'async def'
     # using them in such case is end-user error the same way as using time.sleep(2.41) inside 'async def'
     from moler.exceptions import WrongUsage
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
     # TODO: can we confidently check "called from async def"
     # https://stackoverflow.com/questions/30155138/how-can-i-write-asyncio-coroutines-that-optionally-act-as-regular-functions
@@ -658,7 +658,7 @@ async def test_wait_for__is_prohibited_inside_async_def(async_runner):
 @pytest.mark.asyncio
 async def test_wait_for__prohibited_inside_async_def_speaks_in_observer_API(async_runner):
     from moler.exceptions import WrongUsage
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
     connection_observer = NetworkDownDetector(connection=ObservableConnection(), runner=async_runner)
     connection_observer.start()  # internally calls async_runner.submit()
@@ -755,8 +755,8 @@ class NetworkDownDetector(ConnectionObserver):
 
 @pytest.yield_fixture()
 def connection_observer(observer_runner):
-    from moler.observable_connection import ObservableConnection
-    moler_conn = ObservableConnection()
+    from moler.threaded_moler_connection import ThreadedMolerConnection
+    moler_conn = ThreadedMolerConnection()
     observer = NetworkDownDetector(connection=moler_conn, runner=observer_runner)
     yield observer
     # remove exceptions collected inside ConnectionObserver
@@ -770,7 +770,7 @@ def net_down_detector(connection_observer):  # let name say what type of observe
 
 @contextlib.contextmanager
 def failing_net_down_detector(fail_on_data, fail_by_raising, runner):
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
     class FailingNetworkDownDetector(NetworkDownDetector):
         def data_received(self, data, recv_time):
@@ -778,7 +778,7 @@ def failing_net_down_detector(fail_on_data, fail_by_raising, runner):
                 raise fail_by_raising
             return super(FailingNetworkDownDetector, self).data_received(data, datetime.datetime.now())
 
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
     failing_detector = FailingNetworkDownDetector(connection=moler_conn, runner=runner)
     yield failing_detector
     # remove exceptions collected inside ConnectionObserver

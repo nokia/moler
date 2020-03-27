@@ -33,7 +33,7 @@ import os
 import threading
 import time
 
-from moler.observable_connection import ObservableConnection
+from moler.threaded_moler_connection import ThreadedMolerConnection
 from moler.io.raw import tcp
 from moler.connection_factory import get_connection, ConnectionFactory
 
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     # This constitutes plugin system - you can exchange connection implementation
 
     def tcp_thd_conn(port, host='localhost', name=None):
-        moler_conn = ObservableConnection(decoder=lambda data: data.decode("utf-8"))
+        moler_conn = ThreadedMolerConnection(decoder=lambda data: data.decode("utf-8"))
         conn_logger_name = 'threaded.tcp-connection({}:{})'.format(host, port)
         conn_logger = logging.getLogger(conn_logger_name)
         io_conn = tcp.ThreadedTcp(moler_connection=moler_conn,

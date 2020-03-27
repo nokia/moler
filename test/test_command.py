@@ -18,7 +18,7 @@ import importlib
 
 import pytest
 from moler.command import Command
-from moler.observable_connection import ObservableConnection
+from moler.threaded_moler_connection import ThreadedMolerConnection
 from moler.helpers import instance_id
 from moler.io.raw.memory import FifoBuffer
 
@@ -71,7 +71,7 @@ def test_repr_conversion_of_command_object():
     """
     repr() conversion shows same as str() plus embedded connection used by command
     """
-    moler_conn = ObservableConnection(decoder=lambda data: data.decode("utf-8"))
+    moler_conn = ThreadedMolerConnection(decoder=lambda data: data.decode("utf-8"))
 
     class LsCmd(Command):
         def __init__(self, options='-l', connection=None):
@@ -104,7 +104,7 @@ def test_repr_conversion_of_command_object():
 
 def test_command_string_is_required_to_start_command(command_major_base_class):
     from moler.exceptions import NoCommandStringProvided
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
 
     command_class = do_nothing_command_class(base_class=command_major_base_class)
     command = command_class(connection=moler_conn)
@@ -121,7 +121,7 @@ def test_command_string_is_required_to_start_command(command_major_base_class):
 def test_command_string_is_required_to_call_command(command_major_base_class):
     import threading
     from moler.exceptions import NoCommandStringProvided
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
 
     command_class = do_nothing_command_class(base_class=command_major_base_class)
     command = command_class(connection=moler_conn)

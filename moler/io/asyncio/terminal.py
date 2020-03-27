@@ -360,11 +360,11 @@ async def start_subprocess_in_terminal(protocol_class, cmd=None, cwd=None, env=N
 
 
 async def terminal_io_test():
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
     received_data = []
 
-    moler_conn = ObservableConnection(encoder=lambda data: data.encode("utf-8"),
+    moler_conn = ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
                                       decoder=lambda data: data.decode("utf-8"))
     terminal = AsyncioTerminal(moler_connection=moler_conn)
     cmds = ['pwd', 'ssh demo@test.rebex.net', 'password', 'ls\r', 'exit\r']
