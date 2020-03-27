@@ -267,7 +267,7 @@ class ConnectionObserver(object):
 
     def connection_closed_handler(self):
         """
-        Called by Moler (ObservableConnection) when connection is closed.
+        Called by Moler (ThreadedMolerConnection) when connection is closed.
 
         :return: None
         """
@@ -286,7 +286,7 @@ class ConnectionObserver(object):
 
         :param data: List of strings sent by device.
         :param recv_time: time stamp with the moment when the data was read from connection.  Time is given as
-         datatime.datetime instance.
+         datetime.datetime instance.
         :return: None.
         """
 
