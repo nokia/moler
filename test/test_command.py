@@ -83,15 +83,15 @@ def test_repr_conversion_of_command_object():
 
     ls = LsCmd(connection=moler_conn)
 
-    # (1) command with ObservableConnection to glued to ext-io
+    # (1) command with ThreadedMolerConnection to glued to ext-io
     assert 'LsCmd("ls -l", id:{}, using ThreadedMolerConnection(id:{})-->[?])'.format(instance_id(ls), instance_id(moler_conn)) == repr(ls)
-    # TODO: add test for <ObservableConnection( id:{}>
+    # TODO: add test for <ThreadedMolerConnection( id:{}>
 
-    # (2) command with ObservableConnection glued to ext-io
+    # (2) command with ThreadedMolerConnection glued to ext-io
     ext_io_connection = FifoBuffer(moler_connection=moler_conn)
     how2send_repr = repr(ext_io_connection.write)
     assert 'LsCmd("ls -l", id:{}, using ThreadedMolerConnection(id:{})-->[{}])'.format(instance_id(ls), instance_id(moler_conn), how2send_repr) == repr(ls)
-    # TODO: move ObservableConnection(id:{})-->[{}])'.format(instance_id(moler_conn), how2send_repr) into ObservableConnection __repr__ test
+    # TODO: move ThreadedMolerConnection(id:{})-->[{}])'.format(instance_id(moler_conn), how2send_repr) into ThreadedMolerConnection __repr__ test
     # TODO: and here just:
     # assert 'LsCmd("ls -l", id:{}, using {})'.format(instance_id(ls), repr(moler_conn)) == repr(ls)
 
