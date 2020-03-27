@@ -46,7 +46,7 @@ def ping_observing_task(address):
     # Lowest layer of Moler's usage (you manually glue all elements):
     # 1. create observer
     net_down_detector = NetworkDownDetector('10.0.2.15')
-    # 2. ObservableConnection is a proxy-glue between observer (speaks str)
+    # 2. ThreadedMolerConnection is a proxy-glue between observer (speaks str)
     #                                   and threaded-connection (speaks bytes)
     moler_conn = ThreadedMolerConnection(decoder=lambda data: data.decode("utf-8"))
     # 3a. glue from proxy to observer
