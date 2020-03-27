@@ -9,7 +9,7 @@ import time
 
 import pytest
 
-from moler.observable_connection import ObservableConnection
+from moler.threaded_moler_connection import ThreadedMolerConnection
 from moler.connection_observer import ConnectionObserver
 from moler.helpers import instance_id
 import datetime
@@ -537,6 +537,6 @@ def connection_to_remote():
             """Simulate remote endpoint that gets data"""
             return self.buffer
 
-    ext_io = RemoteConnection(moler_connection=ObservableConnection(encoder=lambda data: data.encode("utf-8"),
-                                                                    decoder=lambda data: data.decode("utf-8")))
+    ext_io = RemoteConnection(moler_connection=ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
+                                                                       decoder=lambda data: data.decode("utf-8")))
     return ext_io
