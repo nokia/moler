@@ -308,9 +308,9 @@ def test_connections_use_same_loop(tcp_connection_class,
     (tcp_server0, tcp_server0_pipe) = integration_tcp_server_and_pipe
     (tcp_server1, tcp_server1_pipe) = integration_second_tcp_server_and_pipe
 
-    connection0 = tcp_connection_class(moler_connection=ObservableConnection(),
+    connection0 = tcp_connection_class(moler_connection=ThreadedMolerConnection(),
                                        port=tcp_server0.port, host=tcp_server0.host)
-    connection1 = tcp_connection_class(moler_connection=ObservableConnection(),
+    connection1 = tcp_connection_class(moler_connection=ThreadedMolerConnection(),
                                        port=tcp_server1.port, host=tcp_server1.host)
     with connection0.open():
         with connection1.open():

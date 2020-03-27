@@ -547,9 +547,12 @@ class AsyncioRunner(ConnectionObserverRunner):
                     else:
                         self.logger.debug("{} returned: {}".format(connection_observer, connection_observer._result))
 
+        def close_handler_nothing():
+            pass
+
         moler_conn = connection_observer.connection
         self.logger.debug("subscribing for data {}".format(connection_observer))
-        moler_conn.subscribe(secure_data_received)
+        moler_conn.subscribe(secure_data_received, close_handler_nothing)
         if connection_observer.is_command():
             connection_observer.send_command()
         return secure_data_received  # to know what to unsubscribe
