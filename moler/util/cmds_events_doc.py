@@ -50,7 +50,7 @@ def _buffer_connection():
             self.inject(in_bytes, delay)
 
     moler_conn = ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
-                                      decoder=lambda data: data.decode("utf-8"))
+                                         decoder=lambda data: data.decode("utf-8"))
     ext_io_in_memory = RemoteConnection(moler_connection=moler_conn,
                                         echo=False)  # we don't want echo on it
     return ext_io_in_memory

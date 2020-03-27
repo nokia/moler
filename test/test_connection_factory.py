@@ -9,7 +9,6 @@ __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com'
 
 import pytest
 
-
 def test_missing_constructor_raises_KeyError():
     from moler.connection_factory import ConnectionFactory
     with pytest.raises(KeyError) as err:
@@ -89,4 +88,4 @@ def builtin_connection_factories():
     yield
     # restore since tests may overwrite builtins
     connection_cfg.register_builtin_connections(moler.connection_factory.ConnectionFactory,
-                                                moler.observable_connection.ObservableConnection)
+                                                moler.threaded_moler_connection.ThreadedMolerConnection)

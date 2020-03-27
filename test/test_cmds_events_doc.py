@@ -75,7 +75,7 @@ def test_buffer_connection_returns_threadconnection_with_moler_conn():
 
     buff_conn = _buffer_connection()
     assert isinstance(buff_conn, ThreadedFifoBuffer) is True
-    assert isinstance(buff_conn.moler_connection, ObservableConnection) is True
+    assert isinstance(buff_conn.moler_connection, ThreadedMolerConnection) is True
 
 
 @mark.parametrize('func2test,method_param,base_class, expected', [

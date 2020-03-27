@@ -365,7 +365,7 @@ async def terminal_io_test():
     received_data = []
 
     moler_conn = ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
-                                      decoder=lambda data: data.decode("utf-8"))
+                                         decoder=lambda data: data.decode("utf-8"))
     terminal = AsyncioTerminal(moler_connection=moler_conn)
     cmds = ['pwd', 'ssh demo@test.rebex.net', 'password', 'ls\r', 'exit\r']
     cmd_idx = [0]
