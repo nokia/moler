@@ -217,6 +217,24 @@ def test_iperf_correctly_parses_multiconnection_tcp_server_output(buffer_connect
     assert ret == iperf2.COMMAND_RESULT_multiple_connections_server
 
 
+def test_iperf_correctly_parses_singlerun_tcp_server_output(buffer_connection):
+    from moler.cmd.unix import iperf2
+    buffer_connection.remote_inject_response([iperf2.COMMAND_OUTPUT_singlerun_server])
+    iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
+                              **iperf2.COMMAND_KWARGS_singlerun_server)
+    ret = iperf_cmd()
+    assert ret == iperf2.COMMAND_RESULT_singlerun_server
+
+
+def test_iperf_correctly_parses_singlerun_udp_server_output(buffer_connection):
+    from moler.cmd.unix import iperf2
+    buffer_connection.remote_inject_response([iperf2.COMMAND_OUTPUT_singlerun_udp_server])
+    iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
+                              **iperf2.COMMAND_KWARGS_singlerun_udp_server)
+    ret = iperf_cmd()
+    assert ret == iperf2.COMMAND_RESULT_singlerun_udp_server
+
+
 def test_iperf_detecting_dualtest_at_client(buffer_connection):
     from moler.cmd.unix import iperf2
     iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
