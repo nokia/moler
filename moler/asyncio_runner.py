@@ -156,7 +156,8 @@ def handle_cancelled_feeder(connection_observer, observer_lock, subscribed_data_
             connection_observer.cancel()
         logger.debug("unsubscribing {}".format(connection_observer))
         moler_conn = connection_observer.connection
-        moler_conn.unsubscribe(subscribed_data_receiver)
+        moler_conn.unsubscribe(observer=subscribed_data_receiver,
+                               connection_closed_handler=connection_observer.connection_closed_handler)
 
 
 def cancel_remaining_feeders(loop, logger_name="moler.runner.asyncio", in_shutdown=False):
@@ -549,7 +550,8 @@ class AsyncioRunner(ConnectionObserverRunner):
 
         moler_conn = connection_observer.connection
         self.logger.debug("subscribing for data {}".format(connection_observer))
-        moler_conn.subscribe(secure_data_received)
+        moler_conn.subscribe(observer=secure_data_received,
+                             connection_closed_handler=connection_observer.connection_closed_handler)
         if connection_observer.is_command():
             connection_observer.send_command()
         return secure_data_received  # to know what to unsubscribe
@@ -613,7 +615,8 @@ class AsyncioRunner(ConnectionObserverRunner):
 
         finally:
             self.logger.debug("unsubscribing {}".format(connection_observer))
-            moler_conn.unsubscribe(subscribed_data_receiver)
+            moler_conn.unsubscribe(observer=subscribed_data_receiver,
+                                   connection_closed_handler=connection_observer.connection_closed_handler)
             # feed_done.set()
 
             remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,

@@ -28,7 +28,7 @@ import os
 import time
 from functools import partial
 
-from moler.observable_connection import ObservableConnection
+from moler.threaded_moler_connection import ThreadedMolerConnection
 from twisted.internet import reactor, task
 from twisted.internet.defer import Deferred
 from twisted.internet.protocol import Protocol, ClientFactory
@@ -47,9 +47,9 @@ def ping_observing_task(address):
     # Lowest layer of Moler's usage (you manually glue all elements):
     # 1. create observer
     net_down_detector = NetworkDownDetector('10.0.2.15')
-    # 2. ObservableConnection is a proxy-glue between observer (speaks str)
+    # 2. ThreadedMolerConnection is a proxy-glue between observer (speaks str)
     #                                   and twisted-connection (speaks bytes)
-    moler_conn = ObservableConnection(decoder=lambda data: data.decode("utf-8"))
+    moler_conn = ThreadedMolerConnection(decoder=lambda data: data.decode("utf-8"))
     # 3a. glue from proxy to observer
     moler_conn.subscribe(net_down_detector.data_received)
 

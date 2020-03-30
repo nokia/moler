@@ -11,7 +11,7 @@ import time
 import mock
 
 import pytest
-from moler.observable_connection import ObservableConnection
+from moler.threaded_moler_connection import ThreadedMolerConnection
 from moler.connection_observer import ConnectionObserver
 from moler.event import Event
 from moler.command import Command
@@ -203,14 +203,14 @@ class MyCommand(Command):
 
 @pytest.fixture()
 def connection_observer():
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
     observer = NetworkDownDetector(connection=moler_conn)
     return observer
 
 
 @pytest.fixture(params=['generic_observer', 'event', 'command'])
 def conn_observer(request):
-    moler_conn = ObservableConnection(how2send=mock.MagicMock())
+    moler_conn = ThreadedMolerConnection(how2send=mock.MagicMock())
     if request.param == 'generic_observer':
         observer = NetworkDownDetector(connection=moler_conn)
     elif request.param == 'event':

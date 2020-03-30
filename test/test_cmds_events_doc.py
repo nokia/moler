@@ -70,12 +70,12 @@ def test_documentation_exists():
 
 def test_buffer_connection_returns_threadconnection_with_moler_conn():
     from moler.io.raw.memory import ThreadedFifoBuffer
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
     from moler.util.cmds_events_doc import _buffer_connection
 
     buff_conn = _buffer_connection()
     assert isinstance(buff_conn, ThreadedFifoBuffer) is True
-    assert isinstance(buff_conn.moler_connection, ObservableConnection) is True
+    assert isinstance(buff_conn.moler_connection, ThreadedMolerConnection) is True
 
 
 @mark.parametrize('func2test,method_param,base_class, expected', [

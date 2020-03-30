@@ -248,14 +248,14 @@ def test_changing_connection_name_switches_logger_if_default_logger_used():
 
 
 def test_can_notify_its_observer_about_data_comming_from_external_io(buffer_transport_class):
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
     moler_received_data = []
 
     def buffer_observer(data, time_recv):
         moler_received_data.append(data)
 
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
     moler_conn.subscribe(observer=buffer_observer, connection_closed_handler=do_nothing_func)
 
     used_io = buffer_transport_class(moler_connection=moler_conn)  # external-IO internally sets .how2send
@@ -266,7 +266,7 @@ def test_can_notify_its_observer_about_data_comming_from_external_io(buffer_tran
 
 
 def test_can_notify_multiple_observers_about_data_comming_from_external_io(buffer_transport_class):
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
     class BufferObserver(object):
         def __init__(self):
@@ -278,7 +278,7 @@ def test_can_notify_multiple_observers_about_data_comming_from_external_io(buffe
     buffer_observer1 = BufferObserver()
     buffer_observer2 = BufferObserver()
 
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
     moler_conn.subscribe(observer=buffer_observer1.on_new_data, connection_closed_handler=do_nothing_func)
     moler_conn.subscribe(observer=buffer_observer2.on_new_data, connection_closed_handler=do_nothing_func)
 
@@ -291,7 +291,7 @@ def test_can_notify_multiple_observers_about_data_comming_from_external_io(buffe
 
 
 def test_notifies_only_subscribed_observers_about_data_comming_from_external_io(buffer_transport_class):
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
     class BufferObserver(object):
         def __init__(self):
@@ -304,7 +304,7 @@ def test_notifies_only_subscribed_observers_about_data_comming_from_external_io(
     buffer_observer2 = BufferObserver()
     buffer_observer3 = BufferObserver()
 
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
     moler_conn.subscribe(observer=buffer_observer1.on_new_data, connection_closed_handler=do_nothing_func)
     moler_conn.subscribe(observer=buffer_observer2.on_new_data, connection_closed_handler=do_nothing_func)
 
@@ -318,9 +318,9 @@ def test_notifies_only_subscribed_observers_about_data_comming_from_external_io(
 
 
 def test_notified_observer_may_stop_subscription_of_data_comming_from_external_io(buffer_transport_class):
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
     moler_received_data = []
 
     def one_time_observer(data, time_recv):
@@ -340,9 +340,9 @@ def test_notified_observer_may_stop_subscription_of_data_comming_from_external_i
 
 
 def test_exception_in_observer_doesnt_break_connection_nor_other_observers(buffer_transport_class):
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
     moler_received_data = []
 
     def failing_observer(data):
@@ -370,9 +370,9 @@ def test_repeated_unsubscription_does_nothing_but_logs_warning(buffer_transport_
     we don't want to raise exception when there is already
     "no such subscription" - just put warning to logs
     """
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
     moler_received_data = []
 
     def one_time_observer(data, time_recv):
@@ -396,7 +396,7 @@ def test_repeated_unsubscription_does_nothing_but_logs_warning(buffer_transport_
 
 
 def test_single_unsubscription_doesnt_impact_other_subscribers():
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
     class TheObserver(object):
         def __init__(self):
@@ -426,7 +426,7 @@ def test_single_unsubscription_doesnt_impact_other_subscribers():
     callable1 = TheCallableClass()
     callable2 = TheCallableClass()
 
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
     moler_conn.subscribe(observer=observer1.on_new_data, connection_closed_handler=do_nothing_func)
     moler_conn.subscribe(observer=observer2.on_new_data, connection_closed_handler=do_nothing_func)
     moler_conn.subscribe(observer=observer2.on_new_data, connection_closed_handler=do_nothing_func)
@@ -456,9 +456,9 @@ def test_single_unsubscription_doesnt_impact_other_subscribers():
 
 
 def test_subscription_doesnt_block_subscriber_to_be_garbage_collected():
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
     garbage_collected_subscribers = []
 
     class Subscriber(object):
@@ -479,9 +479,9 @@ def test_subscription_doesnt_block_subscriber_to_be_garbage_collected():
 
 
 def test_garbage_collected_subscriber_is_not_notified():
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
     received_data = []
 
     class Subscriber(object):

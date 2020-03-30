@@ -33,7 +33,7 @@ import os
 import threading
 import time
 
-from moler.observable_connection import ObservableConnection
+from moler.threaded_moler_connection import ThreadedMolerConnection
 from moler.io.raw import tcp
 from moler.connection_factory import get_connection, ConnectionFactory
 
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     # This constitutes plugin system - you can exchange connection implementation
 
     def tcp_thd_conn(port, host='localhost', name=None):
-        moler_conn = ObservableConnection(decoder=lambda data: data.decode("utf-8"))
+        moler_conn = ThreadedMolerConnection(decoder=lambda data: data.decode("utf-8"))
         conn_logger_name = 'threaded.tcp-connection({}:{})'.format(host, port)
         conn_logger = logging.getLogger(conn_logger_name)
         io_conn = tcp.ThreadedTcp(moler_connection=moler_conn,
@@ -159,19 +159,19 @@ LOG OUTPUT
 15:45:31 |moler.runner.thread-pool                 |created
 15:45:31 |moler.user.app-code                      |observe 10.0.2.15 on tcp://localhost:5671 using NetworkDownDetector(id:2e35240)
 15:45:31 |moler.runner.thread-pool                 |created own executor <concurrent.futures.thread.ThreadPoolExecutor object at 0x0000000002E35B00>
-15:45:31 |moler.runner.thread-pool                 |go background: NetworkDownDetector(id:2e35240, using ObservableConnection(id:2df4f28)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E350F0>>])
+15:45:31 |moler.runner.thread-pool                 |go background: NetworkDownDetector(id:2e35240, using ThreadedMolerConnection(id:2df4f28)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E350F0>>])
 15:45:31 |moler.user.app-code                      |observe 10.0.2.16 on tcp://localhost:5672 using NetworkDownDetector(id:2e356d8)
-15:45:31 |moler.runner.thread-pool                 |subscribing for data NetworkDownDetector(id:2e35240, using ObservableConnection(id:2df4f28)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E350F0>>])
-15:45:31 |moler.runner.thread-pool                 |go background: NetworkDownDetector(id:2e356d8, using ObservableConnection(id:2e35400)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E354A8>>])
-15:45:31 |moler.runner.thread-pool                 |subscribing for data NetworkDownDetector(id:2e356d8, using ObservableConnection(id:2e35400)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E354A8>>])
+15:45:31 |moler.runner.thread-pool                 |subscribing for data NetworkDownDetector(id:2e35240, using ThreadedMolerConnection(id:2df4f28)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E350F0>>])
+15:45:31 |moler.runner.thread-pool                 |go background: NetworkDownDetector(id:2e356d8, using ThreadedMolerConnection(id:2e35400)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E354A8>>])
+15:45:31 |moler.runner.thread-pool                 |subscribing for data NetworkDownDetector(id:2e356d8, using ThreadedMolerConnection(id:2e35400)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E354A8>>])
 15:45:31 |threaded.tcp-connection(localhost:5671)  |connecting to tcp://localhost:5671
 15:45:31 |threaded.tcp-connection(localhost:5672)  |connecting to tcp://localhost:5672
 15:45:31 |threaded.tcp-connection(localhost:5671)  |connection tcp://localhost:5671 is open
-15:45:31 |moler.runner.thread-pool                 |go foreground: NetworkDownDetector(id:2e35240, using ObservableConnection(id:2df4f28)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E350F0>>]) - await max. 10 [sec]
+15:45:31 |moler.runner.thread-pool                 |go foreground: NetworkDownDetector(id:2e35240, using ThreadedMolerConnection(id:2df4f28)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E350F0>>]) - await max. 10 [sec]
 15:45:31 |threaded.tcp-connection(localhost:5672)  |connection tcp://localhost:5672 is open
 15:45:31 |threaded.ping.tcp-server(5671 -> 55946)  |connection accepted - client at tcp://127.0.0.1:55946
 15:45:31 |threaded.ping.tcp-server(5672 -> 55947)  |connection accepted - client at tcp://127.0.0.1:55947
-15:45:31 |moler.runner.thread-pool                 |go foreground: NetworkDownDetector(id:2e356d8, using ObservableConnection(id:2e35400)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E354A8>>]) - await max. 10 [sec]
+15:45:31 |moler.runner.thread-pool                 |go foreground: NetworkDownDetector(id:2e356d8, using ThreadedMolerConnection(id:2e35400)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E354A8>>]) - await max. 10 [sec]
 15:45:31 |threaded.tcp-connection(localhost:5671)  |< b'\n'
 15:45:31 |moler.connection.2df4f28                 |
 
@@ -216,9 +216,9 @@ LOG OUTPUT
 15:45:37 |moler.connection.2e35400                 |ping: sendmsg: Network is unreachable
 
 15:45:37 |moler.NetworkDownDetector(id:2e356d8)    |Network 10.0.2.16 is down!
-15:45:37 |moler.runner.thread-pool                 |done & unsubscribing NetworkDownDetector(id:2e35240, using ObservableConnection(id:2df4f28)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E350F0>>])
+15:45:37 |moler.runner.thread-pool                 |done & unsubscribing NetworkDownDetector(id:2e35240, using ThreadedMolerConnection(id:2df4f28)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E350F0>>])
 15:45:37 |moler.runner.thread-pool                 |returning result NetworkDownDetector(id:2e35240)
-15:45:37 |moler.runner.thread-pool                 |done & unsubscribing NetworkDownDetector(id:2e356d8, using ObservableConnection(id:2e35400)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E354A8>>])
+15:45:37 |moler.runner.thread-pool                 |done & unsubscribing NetworkDownDetector(id:2e356d8, using ThreadedMolerConnection(id:2e35400)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E354A8>>])
 15:45:37 |moler.runner.thread-pool                 |returning result NetworkDownDetector(id:2e356d8)
 15:45:37 |moler.runner.thread-pool                 |shutting down
 15:45:37 |moler.runner.thread-pool                 |shutting down
@@ -228,12 +228,12 @@ LOG OUTPUT
 15:45:37 |moler.user.app-code                      |observe 10.0.2.15 on tcp://localhost:5671 using NetworkUpDetector(id:2e35630)
 15:45:37 |moler.user.app-code                      |Network 10.0.2.16 is down from 15:45:37
 15:45:37 |moler.user.app-code                      |observe 10.0.2.16 on tcp://localhost:5672 using NetworkUpDetector(id:2e35978)
-15:45:37 |moler.runner.thread-pool                 |go background: NetworkUpDetector(id:2e35978, using ObservableConnection(id:2e35400)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E354A8>>])
-15:45:37 |moler.runner.thread-pool                 |subscribing for data NetworkUpDetector(id:2e35978, using ObservableConnection(id:2e35400)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E354A8>>])
-15:45:37 |moler.runner.thread-pool                 |go background: NetworkUpDetector(id:2e35630, using ObservableConnection(id:2df4f28)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E350F0>>])
-15:45:37 |moler.runner.thread-pool                 |subscribing for data NetworkUpDetector(id:2e35630, using ObservableConnection(id:2df4f28)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E350F0>>])
-15:45:37 |moler.runner.thread-pool                 |go foreground: NetworkUpDetector(id:2e35978, using ObservableConnection(id:2e35400)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E354A8>>]) - await max. None [sec]
-15:45:37 |moler.runner.thread-pool                 |go foreground: NetworkUpDetector(id:2e35630, using ObservableConnection(id:2df4f28)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E350F0>>]) - await max. None [sec]
+15:45:37 |moler.runner.thread-pool                 |go background: NetworkUpDetector(id:2e35978, using ThreadedMolerConnection(id:2e35400)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E354A8>>])
+15:45:37 |moler.runner.thread-pool                 |subscribing for data NetworkUpDetector(id:2e35978, using ThreadedMolerConnection(id:2e35400)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E354A8>>])
+15:45:37 |moler.runner.thread-pool                 |go background: NetworkUpDetector(id:2e35630, using ThreadedMolerConnection(id:2df4f28)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E350F0>>])
+15:45:37 |moler.runner.thread-pool                 |subscribing for data NetworkUpDetector(id:2e35630, using ThreadedMolerConnection(id:2df4f28)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E350F0>>])
+15:45:37 |moler.runner.thread-pool                 |go foreground: NetworkUpDetector(id:2e35978, using ThreadedMolerConnection(id:2e35400)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E354A8>>]) - await max. None [sec]
+15:45:37 |moler.runner.thread-pool                 |go foreground: NetworkUpDetector(id:2e35630, using ThreadedMolerConnection(id:2df4f28)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E350F0>>]) - await max. None [sec]
 15:45:38 |threaded.tcp-connection(localhost:5671)  |< b'ping: sendmsg: Network is unreachable\n'
 15:45:38 |moler.connection.2df4f28                 |ping: sendmsg: Network is unreachable
 
@@ -254,9 +254,9 @@ LOG OUTPUT
 15:45:40 |moler.connection.2e35400                 |64 bytes from 10.0.2.16: icmp_req=7 ttl=64 time=0.123 ms
 
 15:45:40 |moler.NetworkUpDetector(id:2e35978)      |Network 10.0.2.16 is up!
-15:45:40 |moler.runner.thread-pool                 |done & unsubscribing NetworkUpDetector(id:2e35978, using ObservableConnection(id:2e35400)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E354A8>>])
+15:45:40 |moler.runner.thread-pool                 |done & unsubscribing NetworkUpDetector(id:2e35978, using ThreadedMolerConnection(id:2e35400)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E354A8>>])
 15:45:40 |moler.runner.thread-pool                 |returning result NetworkUpDetector(id:2e35978)
-15:45:40 |moler.runner.thread-pool                 |done & unsubscribing NetworkUpDetector(id:2e35630, using ObservableConnection(id:2df4f28)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E350F0>>])
+15:45:40 |moler.runner.thread-pool                 |done & unsubscribing NetworkUpDetector(id:2e35630, using ThreadedMolerConnection(id:2df4f28)-->[<bound method Tcp.send of <moler.io.raw.tcp.ThreadedTcp object at 0x0000000002E350F0>>])
 15:45:40 |moler.runner.thread-pool                 |returning result NetworkUpDetector(id:2e35630)
 15:45:40 |moler.runner.thread-pool                 |shutting down
 15:45:40 |moler.runner.thread-pool                 |NetworkUpDetector(id:2e35978) returned 1528983940.2635787

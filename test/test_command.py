@@ -18,7 +18,7 @@ import importlib
 
 import pytest
 from moler.command import Command
-from moler.observable_connection import ObservableConnection
+from moler.threaded_moler_connection import ThreadedMolerConnection
 from moler.helpers import instance_id
 from moler.io.raw.memory import FifoBuffer
 
@@ -71,7 +71,7 @@ def test_repr_conversion_of_command_object():
     """
     repr() conversion shows same as str() plus embedded connection used by command
     """
-    moler_conn = ObservableConnection(decoder=lambda data: data.decode("utf-8"))
+    moler_conn = ThreadedMolerConnection(decoder=lambda data: data.decode("utf-8"))
 
     class LsCmd(Command):
         def __init__(self, options='-l', connection=None):
@@ -83,15 +83,15 @@ def test_repr_conversion_of_command_object():
 
     ls = LsCmd(connection=moler_conn)
 
-    # (1) command with ObservableConnection to glued to ext-io
-    assert 'LsCmd("ls -l", id:{}, using ObservableConnection(id:{})-->[?])'.format(instance_id(ls), instance_id(moler_conn)) == repr(ls)
-    # TODO: add test for <ObservableConnection( id:{}>
+    # (1) command with ThreadedMolerConnection to glued to ext-io
+    assert 'LsCmd("ls -l", id:{}, using ThreadedMolerConnection(id:{})-->[?])'.format(instance_id(ls), instance_id(moler_conn)) == repr(ls)
+    # TODO: add test for <ThreadedMolerConnection( id:{}>
 
-    # (2) command with ObservableConnection glued to ext-io
+    # (2) command with ThreadedMolerConnection glued to ext-io
     ext_io_connection = FifoBuffer(moler_connection=moler_conn)
     how2send_repr = repr(ext_io_connection.write)
-    assert 'LsCmd("ls -l", id:{}, using ObservableConnection(id:{})-->[{}])'.format(instance_id(ls), instance_id(moler_conn), how2send_repr) == repr(ls)
-    # TODO: move ObservableConnection(id:{})-->[{}])'.format(instance_id(moler_conn), how2send_repr) into ObservableConnection __repr__ test
+    assert 'LsCmd("ls -l", id:{}, using ThreadedMolerConnection(id:{})-->[{}])'.format(instance_id(ls), instance_id(moler_conn), how2send_repr) == repr(ls)
+    # TODO: move ThreadedMolerConnection(id:{})-->[{}])'.format(instance_id(moler_conn), how2send_repr) into ThreadedMolerConnection __repr__ test
     # TODO: and here just:
     # assert 'LsCmd("ls -l", id:{}, using {})'.format(instance_id(ls), repr(moler_conn)) == repr(ls)
 
@@ -104,7 +104,7 @@ def test_repr_conversion_of_command_object():
 
 def test_command_string_is_required_to_start_command(command_major_base_class):
     from moler.exceptions import NoCommandStringProvided
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
 
     command_class = do_nothing_command_class(base_class=command_major_base_class)
     command = command_class(connection=moler_conn)
@@ -121,7 +121,7 @@ def test_command_string_is_required_to_start_command(command_major_base_class):
 def test_command_string_is_required_to_call_command(command_major_base_class):
     import threading
     from moler.exceptions import NoCommandStringProvided
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
 
     command_class = do_nothing_command_class(base_class=command_major_base_class)
     command = command_class(connection=moler_conn)
@@ -259,6 +259,6 @@ def connection_to_remote():
             """Simulate remote endpoint that gets data"""
             return self.buffer
 
-    ext_io = RemoteConnection(moler_connection=ObservableConnection(encoder=lambda data: data.encode("utf-8"),
-                                                                    decoder=lambda data: data.decode("utf-8")))
+    ext_io = RemoteConnection(moler_connection=ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
+                                                                       decoder=lambda data: data.decode("utf-8")))
     return ext_io

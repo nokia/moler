@@ -190,4 +190,4 @@ def builtin_connection_factories():
     yield
     # restore since tests may overwrite builtins
     connection_cfg.register_builtin_connections(moler.connection_factory.ConnectionFactory,
-                                                moler.observable_connection.ObservableConnection)
+                                                moler.threaded_moler_connection.ThreadedMolerConnection)

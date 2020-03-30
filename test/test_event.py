@@ -13,7 +13,7 @@ import importlib
 import datetime
 import pytest
 
-from moler.observable_connection import ObservableConnection
+from moler.threaded_moler_connection import ThreadedMolerConnection
 from moler.events.lineevent import LineEvent
 from moler.helpers import instance_id
 from moler.util.moler_test import MolerTest
@@ -40,7 +40,7 @@ def test_str_conversion_of_event_object():
 
 def test_event_string_is_required_to_start_command(lineevent_class):
     from moler.exceptions import NoDetectPatternProvided
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
 
     event_class = do_nothing_connection_observer_class(base_class=lineevent_class)
     event = event_class(connection=moler_conn, detect_patterns=[])

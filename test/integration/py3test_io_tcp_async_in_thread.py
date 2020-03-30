@@ -30,10 +30,10 @@ def test_can_open_and_close_connection(tcp_connection_class,
     - it is integration tests
     - anyway open needs close as cleanup to not have resources leaking in tests
     """
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     connection.open()
     connection.close()
@@ -46,10 +46,10 @@ def test_can_open_and_close_connection(tcp_connection_class,
 
 def test_closing_closed_connection_does_nothing(tcp_connection_class,
                                                 integration_tcp_server_and_pipe):
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     connection.open()
     connection.close()
@@ -64,10 +64,10 @@ def test_closing_closed_connection_does_nothing(tcp_connection_class,
 
 def test_can_open_and_close_connection_as_context_manager(tcp_connection_class,
                                                           integration_tcp_server_and_pipe):
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     with connection.open():
         pass
@@ -83,10 +83,10 @@ def test_can_open_and_close_connection_as_context_manager(tcp_connection_class,
 # external-IO 'send' method works on bytes; moler_connection performs encoding
 def test_can_send_binary_data_over_connection(tcp_connection_class,
                                               integration_tcp_server_and_pipe):
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
-    moler_conn = ObservableConnection()  # no decoder, just pass bytes 1:1
+    moler_conn = ThreadedMolerConnection()  # no decoder, just pass bytes 1:1
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     with connection.open():
         moler_conn.send(data=b'data to be send')  # TODO: await moler_conn.send(data=b'data to be send') ???
@@ -105,7 +105,7 @@ def test_can_send_binary_data_over_connection(tcp_connection_class,
 # and moler-connection forwards it to anyone subscribed
 def test_can_receive_binary_data_from_connection(tcp_connection_class,
                                                  integration_tcp_server_and_pipe):
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
     received_data = bytearray()
     receiver_called = threading.Event()
@@ -117,7 +117,7 @@ def test_can_receive_binary_data_from_connection(tcp_connection_class,
     def do_nothing_func():
         pass
 
-    moler_conn = ObservableConnection()  # no decoder, just pass bytes 1:1
+    moler_conn = ThreadedMolerConnection()  # no decoder, just pass bytes 1:1
     moler_conn.subscribe(receiver, do_nothing_func)       # build forwarding path
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     with connection.open():  # TODO: async with connection.open():
@@ -132,7 +132,7 @@ def test_can_work_with_multiple_connections(tcp_connection_class,
                                             integration_tcp_server_and_pipe,
                                             integration_second_tcp_server_and_pipe):
     """Check open/close/send/receive on multiple connections"""
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
     (tcp_server0, tcp_server0_pipe) = integration_tcp_server_and_pipe
     (tcp_server1, tcp_server1_pipe) = integration_second_tcp_server_and_pipe
     received_data = [bytearray(), bytearray()]
@@ -149,9 +149,9 @@ def test_can_work_with_multiple_connections(tcp_connection_class,
     def do_nothig_func():
         pass
 
-    moler_conn0 = ObservableConnection()
+    moler_conn0 = ThreadedMolerConnection()
     moler_conn0.subscribe(receiver0, do_nothig_func)
-    moler_conn1 = ObservableConnection()
+    moler_conn1 = ThreadedMolerConnection()
     moler_conn1.subscribe(receiver1, do_nothig_func)
     connection0 = tcp_connection_class(moler_connection=moler_conn0, port=tcp_server0.port, host=tcp_server0.host)
     connection1 = tcp_connection_class(moler_connection=moler_conn1, port=tcp_server1.port, host=tcp_server1.host)
@@ -278,10 +278,10 @@ def test_get_asyncio_loop_thread_returns_running_thread_and_loop():
 
 def test_connection_has_running_loop_after_open(tcp_connection_class,
                                                 integration_tcp_server_and_pipe):
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     connection.open()
     assert connection._async_tcp._stream_reader._loop.is_running()
@@ -289,10 +289,10 @@ def test_connection_has_running_loop_after_open(tcp_connection_class,
 
 def test_connection_has_not_stopped_loop_after_close(tcp_connection_class,
                                                      integration_tcp_server_and_pipe):
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     connection.open()
     async_loop_of_connection = connection._async_tcp._stream_reader._loop
@@ -304,13 +304,13 @@ def test_connections_use_same_loop(tcp_connection_class,
                                    integration_tcp_server_and_pipe,
                                    integration_second_tcp_server_and_pipe):
     # same loop means also same thread since asyncio has one loop in thread
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
     (tcp_server0, tcp_server0_pipe) = integration_tcp_server_and_pipe
     (tcp_server1, tcp_server1_pipe) = integration_second_tcp_server_and_pipe
 
-    connection0 = tcp_connection_class(moler_connection=ObservableConnection(),
+    connection0 = tcp_connection_class(moler_connection=ThreadedMolerConnection(),
                                        port=tcp_server0.port, host=tcp_server0.host)
-    connection1 = tcp_connection_class(moler_connection=ObservableConnection(),
+    connection1 = tcp_connection_class(moler_connection=ThreadedMolerConnection(),
                                        port=tcp_server1.port, host=tcp_server1.host)
     with connection0.open():
         with connection1.open():

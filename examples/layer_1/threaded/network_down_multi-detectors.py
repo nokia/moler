@@ -28,7 +28,7 @@ import threading
 import time
 from contextlib import closing
 
-from moler.observable_connection import ObservableConnection
+from moler.threaded_moler_connection import ThreadedMolerConnection
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))  # allow finding modules in examples/
 
@@ -47,7 +47,7 @@ def ping_observing_task(address, ping_ip):
     net_down_detector = NetworkDownDetector(ping_ip)
     net_drop_found = False
     net_up_detector = NetworkUpDetector(ping_ip)
-    moler_conn = ObservableConnection(decoder=lambda data: data.decode("utf-8"))
+    moler_conn = ThreadedMolerConnection(decoder=lambda data: data.decode("utf-8"))
     # 2. virtually "start" observer by making it data-listener
     moler_conn.subscribe(net_down_detector.data_received)
 

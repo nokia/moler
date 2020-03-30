@@ -24,10 +24,10 @@ async def test_can_open_and_close_connection(tcp_connection_class,
     - it is integration tests
     - anyway open needs close as cleanup to not have resources leaking in tests
     """
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     await connection.open()
     await connection.close()
@@ -41,10 +41,10 @@ async def test_can_open_and_close_connection(tcp_connection_class,
 @pytest.mark.asyncio
 async def test_closing_closed_connection_does_nothing(tcp_connection_class,
                                                       integration_tcp_server_and_pipe):
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     await connection.open()
     await connection.close()
@@ -60,10 +60,10 @@ async def test_closing_closed_connection_does_nothing(tcp_connection_class,
 @pytest.mark.asyncio
 async def test_can_open_and_close_connection_as_context_manager(tcp_connection_class,
                                                                 integration_tcp_server_and_pipe):
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
-    moler_conn = ObservableConnection()
+    moler_conn = ThreadedMolerConnection()
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     async with connection:
         pass
@@ -80,10 +80,10 @@ async def test_can_open_and_close_connection_as_context_manager(tcp_connection_c
 @pytest.mark.asyncio
 async def test_can_send_binary_data_over_connection(tcp_connection_class,
                                                     integration_tcp_server_and_pipe):
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
 
-    moler_conn = ObservableConnection()  # no decoder, just pass bytes 1:1
+    moler_conn = ThreadedMolerConnection()  # no decoder, just pass bytes 1:1
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     async with connection:
         moler_conn.send(data=b'data to be send')  # TODO: await moler_conn.send(data=b'data to be send') ???
@@ -103,7 +103,7 @@ async def test_can_send_binary_data_over_connection(tcp_connection_class,
 @pytest.mark.asyncio
 async def test_can_receive_binary_data_from_connection(tcp_connection_class,
                                                        integration_tcp_server_and_pipe):
-    from moler.observable_connection import ObservableConnection
+    from moler.threaded_moler_connection import ThreadedMolerConnection
     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
     received_data = bytearray()
     receiver_called = asyncio.Event()
@@ -112,7 +112,7 @@ async def test_can_receive_binary_data_from_connection(tcp_connection_class,
         received_data.extend(data)
         receiver_called.set()
 
-    moler_conn = ObservableConnection()  # no decoder, just pass bytes 1:1
+    moler_conn = ThreadedMolerConnection()  # no decoder, just pass bytes 1:1
     moler_conn.subscribe(receiver)       # build forwarding path
     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
     async with connection:  # TODO: async with connection.open():
