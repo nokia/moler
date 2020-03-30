@@ -1,3 +1,8 @@
+## moler 1.10.0
+
+### Fixed
+* Iperf2 command fails on parsing when used `with -s -P 1` options (single run server)
+
 ## moler 1.9.0
 
 ### Added
