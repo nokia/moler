@@ -157,6 +157,14 @@ class Iperf2(GenericUnixCommand, Publisher):
             return True
         return False
 
+    @property
+    def singlerun_server(self):
+        if self.client:
+            return False
+        singlerun_param_nonlast = ('-P 1 ' in self.options) or ('--parallel 1 ' in self.options)
+        singlerun_param_as_last = self.options.endswith('-P 1') or self.options.endswith('--parallel 1')
+        return singlerun_param_nonlast or singlerun_param_as_last
+
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             try:
@@ -222,7 +230,8 @@ class Iperf2(GenericUnixCommand, Publisher):
 
     def _stop_server(self):
         if not self._stopping_server:
-            self.break_cmd()
+            if not self.singlerun_server:
+                self.break_cmd()
             self._stopping_server = True
 
     _re_command_failure = re.compile(r"(?P<FAILURE_MSG>.*failed.*|.*error.*|.*command not found.*|.*iperf:.*)")
@@ -301,6 +310,9 @@ class Iperf2(GenericUnixCommand, Publisher):
             connection_id = iperf_record.pop("ID")
             iperf_record = self._detailed_parse_interval(iperf_record)
             iperf_record = self._detailed_parse_datagrams(iperf_record)
+            # [SUM]  0.0- 4.0 sec  1057980 KBytes  2165942 Kbits/sec   last line when server used with -P
+            if (not self.parallel_client) and (connection_id == '[SUM]'):
+                raise ParsingDone  # skip it
             connection_name = self._connection_dict[connection_id]
             normalized_iperf_record = self._normalize_to_bytes(iperf_record)
             self._update_current_ret(connection_name, normalized_iperf_record)
@@ -1211,6 +1223,7 @@ COMMAND_RESULT_multiple_connections = {
     'INFO': ['Client connecting to 192.168.0.100, TCP port 5001',
              'TCP window size: 16.0 KByte (default)']}
 
+
 COMMAND_OUTPUT_multiple_connections_server = """
 xyz@debian:~$ iperf -s -p 5016 -f k
 ------------------------------------------------------------
@@ -1226,7 +1239,6 @@ TCP window size: 85.3 KByte (default)
 [  6]  0.0- 5.0 sec  2361856 KBytes  3864920 Kbits/sec
 [SUM]  0.0- 5.0 sec  6920960 KBytes  11325398 Kbits/sec
 xyz@debian:~$"""
-
 
 COMMAND_KWARGS_multiple_connections_server = {
     'options': '-s -p 5016 -f k'
@@ -1261,4 +1273,137 @@ COMMAND_RESULT_multiple_connections_server = {
                                                            'Interval': (0.0, 5.0)}}},
     'INFO': ['Server listening on TCP port 5016',
              'TCP window size: 85.3 KByte (default)']
+}
+
+COMMAND_OUTPUT_singlerun_server = """
+xyz@debian:~$ iperf -s -p 5001 -f k -i 1.0 -P 1
+------------------------------------------------------------
+Server listening on TCP port 5001
+TCP window size: 85.3 KByte (default)
+------------------------------------------------------------
+[  4] local 192.168.44.50 port 5001 connected with 192.168.44.100 port 57272
+[ ID] Interval       Transfer     Bandwidth
+[  4]  0.0- 1.0 sec  232124 KBytes  1901558 Kbits/sec
+[  4]  1.0- 2.0 sec  158626 KBytes  1299464 Kbits/sec
+[  4]  2.0- 3.0 sec  191597 KBytes  1569562 Kbits/sec
+[  4]  3.0- 4.0 sec  243509 KBytes  1994828 Kbits/sec
+[  4]  0.0- 4.0 sec  825856 KBytes  1690728 Kbits/sec
+[SUM]  0.0- 4.0 sec  1057980 KBytes  2165942 Kbits/sec
+xyz@debian:~$"""
+
+COMMAND_KWARGS_singlerun_server = {
+    'options': '-s -p 5001 -f k -i 1.0 -P 1'
+}
+
+COMMAND_RESULT_singlerun_server = {
+    'CONNECTIONS': {
+        ('57272@192.168.44.100', '5001@192.168.44.50'): [{'Transfer': 237694976,
+                                                          'Bandwidth': 237694750,
+                                                          'Transfer Raw': '232124 KBytes',
+                                                          'Bandwidth Raw': '1901558 Kbits/sec',
+                                                          'Interval': (0.0, 1.0)},
+                                                         {'Transfer': 162433024,
+                                                          'Bandwidth': 162433000,
+                                                          'Transfer Raw': '158626 KBytes',
+                                                          'Bandwidth Raw': '1299464 Kbits/sec',
+                                                          'Interval': (1.0, 2.0)},
+                                                         {'Transfer': 196195328,
+                                                          'Bandwidth': 196195250,
+                                                          'Transfer Raw': '191597 KBytes',
+                                                          'Bandwidth Raw': '1569562 Kbits/sec',
+                                                          'Interval': (2.0, 3.0)},
+                                                         {'Transfer': 249353216,
+                                                          'Bandwidth': 249353500,
+                                                          'Transfer Raw': '243509 KBytes',
+                                                          'Bandwidth Raw': '1994828 Kbits/sec',
+                                                          'Interval': (3.0, 4.0)},
+                                                         {'Transfer': 845676544,
+                                                          'Bandwidth': 211341000,
+                                                          'Transfer Raw': '825856 KBytes',
+                                                          'Bandwidth Raw': '1690728 Kbits/sec',
+                                                          'Interval': (0.0, 4.0)}],
+        ('192.168.44.100', '5001@192.168.44.50'): {'report': {'Transfer': 845676544,
+                                                              'Bandwidth': 211341000,
+                                                              'Transfer Raw': '825856 KBytes',
+                                                              'Bandwidth Raw': '1690728 Kbits/sec',
+                                                              'Interval': (0.0, 4.0)}}},
+    'INFO': ['Server listening on TCP port 5001',
+             'TCP window size: 85.3 KByte (default)']
+}
+
+
+COMMAND_OUTPUT_singlerun_udp_server = """
+xyz@debian:~$ iperf -s -u -p 5001 -f k -i 1.0 -P 1
+------------------------------------------------------------
+Server listening on UDP port 5001
+Receiving 1470 byte datagrams
+UDP buffer size:  208 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.44.50 port 5001 connected with 192.168.44.100 port 42599
+[ ID] Interval       Transfer     Bandwidth        Jitter   Lost/Total Datagrams
+[  3]  0.0- 1.0 sec   129 KBytes  1058 Kbits/sec   0.033 ms    0/   90 (0%)
+[  3]  1.0- 2.0 sec   128 KBytes  1047 Kbits/sec   0.222 ms    0/   89 (0%)
+[  3]  2.0- 3.0 sec   128 KBytes  1047 Kbits/sec   0.022 ms    0/   89 (0%)
+[  3]  3.0- 4.0 sec   128 KBytes  1047 Kbits/sec   0.028 ms    0/   89 (0%)
+[  3]  0.0- 4.0 sec   512 KBytes  1049 Kbits/sec   0.028 ms    0/  357 (0%)
+[SUM]  0.0- 4.0 sec   642 KBytes  1313 Kbits/sec   0.033 ms    0/  447 (0%)
+xyz@debian:~$"""
+
+COMMAND_KWARGS_singlerun_udp_server = {
+    'options': '-s -u -p 5001 -f k -i 1.0 -P 1'
+}
+
+COMMAND_RESULT_singlerun_udp_server = {
+    'CONNECTIONS': {
+        ('42599@192.168.44.100', '5001@192.168.44.50'): [{'Lost_Datagrams_ratio': '0%',
+                                                          'Jitter': '0.033 ms',
+                                                          'Transfer': 132096,
+                                                          'Interval': (0.0, 1.0),
+                                                          'Transfer Raw': '129 KBytes',
+                                                          'Bandwidth': 132250,
+                                                          'Lost_vs_Total_Datagrams': (0, 90),
+                                                          'Bandwidth Raw': '1058 Kbits/sec'},
+                                                         {'Lost_Datagrams_ratio': '0%',
+                                                          'Jitter': '0.222 ms',
+                                                          'Transfer': 131072,
+                                                          'Interval': (1.0, 2.0),
+                                                          'Transfer Raw': '128 KBytes',
+                                                          'Bandwidth': 130875,
+                                                          'Lost_vs_Total_Datagrams': (0, 89),
+                                                          'Bandwidth Raw': '1047 Kbits/sec'},
+                                                         {'Lost_Datagrams_ratio': '0%',
+                                                          'Jitter': '0.022 ms',
+                                                          'Transfer': 131072,
+                                                          'Interval': (2.0, 3.0),
+                                                          'Transfer Raw': '128 KBytes',
+                                                          'Bandwidth': 130875,
+                                                          'Lost_vs_Total_Datagrams': (0, 89),
+                                                          'Bandwidth Raw': '1047 Kbits/sec'},
+                                                         {'Lost_Datagrams_ratio': '0%',
+                                                          'Jitter': '0.028 ms',
+                                                          'Transfer': 131072,
+                                                          'Interval': (3.0, 4.0),
+                                                          'Transfer Raw': '128 KBytes',
+                                                          'Bandwidth': 130875,
+                                                          'Lost_vs_Total_Datagrams': (0, 89),
+                                                          'Bandwidth Raw': '1047 Kbits/sec'},
+                                                         {'Lost_Datagrams_ratio': '0%',
+                                                          'Jitter': '0.028 ms',
+                                                          'Transfer': 524288,
+                                                          'Interval': (0.0, 4.0),
+                                                          'Transfer Raw': '512 KBytes',
+                                                          'Bandwidth': 131125,
+                                                          'Lost_vs_Total_Datagrams': (0, 357),
+                                                          'Bandwidth Raw': '1049 Kbits/sec'}],
+        ('192.168.44.100', '5001@192.168.44.50'): {'report': {'Lost_Datagrams_ratio': '0%',
+                                                              'Jitter': '0.028 ms',
+                                                              'Transfer': 524288,
+                                                              'Interval': (0.0, 4.0),
+                                                              'Transfer Raw': '512 KBytes',
+                                                              'Bandwidth': 131125,
+                                                              'Lost_vs_Total_Datagrams': (0, 357),
+                                                              'Bandwidth Raw': '1049 Kbits/sec'}}},
+    'INFO': ['Server listening on UDP port 5001',
+             'Receiving 1470 byte datagrams',
+             'UDP buffer size:  208 KByte (default)']
 }
