@@ -1,5 +1,8 @@
 ## moler 1.10.0
 
+### Improved
+* Classes Connection and ObservableConnection are deprecated now.
+
 ### Fixed
 * Iperf2 command fails on parsing when used `with -s -P 1` options (single run server)
 
