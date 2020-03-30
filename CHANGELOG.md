@@ -1,3 +1,14 @@
+## moler 1.9.0
+
+### Added
+* New method of converting string to int for whole dict.
+
+### Improved
+* Keep state in background does not block main flow
+* Timestamp is passed to data_received
+* Improvement parsing in command ls
+* Pack observers in separate threads.
+
 ## moler 1.8.0
 
 ### Added
