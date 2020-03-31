@@ -1,3 +1,24 @@
+## moler 1.10.0
+
+### Improved
+* Classes Connection and ObservableConnection are deprecated now. Their original code has been moved into
+ AbstractMolerConnection and ThreadedMolerConnection. Change made for code clarity.
+
+### Fixed
+* Iperf2 command fails on parsing when used `with -s -P 1` options (single run server)
+
+## moler 1.9.0
+
+### Added
+* New method of converting string to int for whole dict.
+
+### Improved
+* Keep state in background does not block main flow
+* data_received() of commands & events gets additional parameter: time when data was caught on connection
+* Improvement parsing in command ls.
+* Commands, events and callbacks data processing is done in separate thread to secure connection reads against blocking
+ them by commands/events/callbacks.
+
 ## moler 1.8.0
 
 ### Added
