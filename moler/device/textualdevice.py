@@ -121,6 +121,8 @@ class TextualDevice(AbstractDevice):
         self._goto_state_thread_manipulation_lock = threading.Lock()
         self._queue_states = queue.Queue()
         self._thread_for_goto_state = None
+        self.SM.state_change_log_callable = self._log
+        self.SM.current_state_callable = self._get_current_state
 
     def establish_connection(self):
         """
@@ -267,6 +269,9 @@ class TextualDevice(AbstractDevice):
     def current_state(self):
         return self.state
 
+    def _get_current_state(self):
+        return self.current_state
+
     @property
     def name(self):
         if self._name:
@@ -321,7 +326,6 @@ class TextualDevice(AbstractDevice):
 
     def _set_state(self, state):
         if self.current_state != state:
-            self._log(logging.INFO, "Changed state from '%s' into '%s'" % (self.current_state, state))
             self.SM.set_state(state=state)
         if self._kept_state is not None and self.current_state != self._kept_state:
             state = self._kept_state
