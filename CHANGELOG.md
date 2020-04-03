@@ -5,7 +5,8 @@
  AbstractMolerConnection and ThreadedMolerConnection. Change made for code clarity.
 
 ### Fixed
-* Iperf2 command fails on parsing when used `with -s -P 1` options (single run server)
+* Iperf2 command fails on parsing when used `with -s -P 1` options (single run server).
+* Log all state changes in devices.
 
 ## moler 1.9.0
 
