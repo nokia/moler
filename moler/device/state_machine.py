@@ -34,6 +34,13 @@ class StateMachine(transitions.Machine):
             self.logger.addHandler(forwarding_handler)
 
     def set_state(self, state, model=None):
+        """
+        Sets state of StateMachine.
+
+        :param state: name of state to set.
+        :param model: model.
+        :return: None.
+        """
         if self.state_change_log_callable:
             current_state = self.current_state_callable()
             if current_state != state:
