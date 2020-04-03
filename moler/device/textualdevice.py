@@ -270,6 +270,12 @@ class TextualDevice(AbstractDevice):
         return self.state
 
     def _get_current_state(self):
+        """
+        Pass reference to this method to state machine. State machine will call this method to read current state of
+        device.
+
+        :return: String with current state.
+        """
         return self.current_state
 
     @property
