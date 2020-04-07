@@ -249,7 +249,7 @@ class DeviceFactory(object):
         :param requested_device_def: Description od device provided to create. The name is the same as above.
         :return: Empty string if descriptions are the same, if not the string with differences.
         """
-        already_created_device = cls.get_device(already_device_name)
+        already_created_device = cls.get_device(already_device_name, establish_connection=False)
         already_device_def = copy_dict(DeviceFactory._devices_params[already_created_device.name], True)
 
         different_msg = ""

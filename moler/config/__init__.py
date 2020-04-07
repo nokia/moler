@@ -195,7 +195,7 @@ def _is_device_creation_needed(name, requested_device_def):
     """
     from moler.device.device import DeviceFactory
     try:
-        DeviceFactory.get_device(name)
+        DeviceFactory.get_device(name, establish_connection=False)
         msg = DeviceFactory.differences_between_devices_descriptions(name, requested_device_def)
         if msg:
             raise WrongUsage(msg)
