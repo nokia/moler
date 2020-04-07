@@ -2,9 +2,9 @@
 """
 Package Open Source functionality of Moler.
 """
-__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst, Tomasz Krol'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com, tomasz.krol@nokia.com'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
+__copyright__ = 'Copyright (C) 2018, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 named_devices = dict()
 default_connection = {"io_type": "terminal", "variant": "threaded"}
