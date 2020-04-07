@@ -17,6 +17,14 @@ Subpackages
 Submodules
 ----------
 
+moler.abstract\_moler\_connection module
+----------------------------------------
+
+.. automodule:: moler.abstract_moler_connection
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.asyncio\_runner module
 ----------------------------
 
@@ -113,6 +121,14 @@ moler.observable\_connection module
     :undoc-members:
     :show-inheritance:
 
+moler.observer\_thread\_wrapper module
+--------------------------------------
+
+.. automodule:: moler.observer_thread_wrapper
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.publisher module
 ----------------------
 
@@ -141,6 +157,14 @@ moler.scheduler module
 ----------------------
 
 .. automodule:: moler.scheduler
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+moler.threaded\_moler\_connection module
+----------------------------------------
+
+.. automodule:: moler.threaded_moler_connection
     :members:
     :undoc-members:
     :show-inheritance:
