@@ -3,7 +3,7 @@
 Package Open Source functionality of Moler.
 """
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 from moler.config import devices as devices_config
@@ -308,8 +308,11 @@ class DeviceFactory(object):
         new_name = cls._get_unique_name(name)
         if new_name in cls._devices.keys():
             dev = cls._devices[new_name]
-            if establish_connection and not dev.has_established_connection():
+            if initial_state:
+                dev.goto_state(state=initial_state)
+            elif establish_connection and not dev.has_established_connection():
                 dev.goto_state(state=dev.initial_state)
+
         else:
             dev = cls._create_device(name=name, device_class=device_class, connection_desc=connection_desc,
                                      connection_hops=connection_hops, initial_state=initial_state,
