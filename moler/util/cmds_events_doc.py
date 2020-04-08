@@ -226,7 +226,7 @@ def _run_command_parsing_test(moler_cmd, creation_str, buffer_io, cmd_output, cm
             cmd_result = _convert_str_to_unicode(cmd_result)
             result = _convert_str_to_unicode(result)
 
-        if isinstance(result, dict):
+        if isinstance(result, (dict, list)):
             diff = compare_objects(cmd_result, result, significant_digits=6, exclude_types=exclude_types)
         else:
             diff = False if isinstance(cmd_result, type(result)) else True
