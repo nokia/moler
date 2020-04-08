@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 openssl_x509_text_in module.
-
-:copyright: Nokia Networks
-:author: I_MOLER_DEV
-:contact: I_MOLER_DEV@internal.nsn.com
-:maintainer: I_MOLER_DEV
-:contact: I_MOLER_DEV@internal.nsn.com
 """
 
 __author__ = 'Marcin Szlapa, Tomasz Krol'
