@@ -10,3 +10,4 @@ deepdiff; python_version > '3'
 psutil
 python-dateutil
 pyserial
+cryptography
