@@ -179,4 +179,3 @@ COMMAND_KWARGS = {
 }
 
 COMMAND_RESULT = load_pem_x509_certificate(data=COMMAND_OUTPUT.encode(), backend=default_backend())
-
