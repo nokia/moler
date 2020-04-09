@@ -2,9 +2,9 @@
 """
 Moler related configuration
 """
-__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst, Tomasz Krol'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com, tomasz.krol@nokia.com'
 import os
 import six
 import yaml
@@ -195,7 +195,7 @@ def _is_device_creation_needed(name, requested_device_def):
     """
     from moler.device.device import DeviceFactory
     try:
-        DeviceFactory.get_device(name)
+        DeviceFactory.get_device(name, establish_connection=False)
         msg = DeviceFactory.differences_between_devices_descriptions(name, requested_device_def)
         if msg:
             raise WrongUsage(msg)
