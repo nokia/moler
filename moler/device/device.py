@@ -172,9 +172,13 @@ class DeviceFactory(object):
             if name not in devices_config.named_devices:
                 whats_wrong = "was not defined inside configuration"
                 raise KeyError("Device named '{}' {}".format(name, whats_wrong))
-            device_class, connection_desc, connection_hops, cfg_initial_state = devices_config.named_devices[name]
-            if initial_state is None:
-                initial_state = cfg_initial_state
+            cfg_device_class, cfg_connection_desc, cfg_connection_hops, cfg_initial_state = \
+                devices_config.named_devices[name]
+            device_class = cfg_device_class if device_class is None else device_class
+            connection_desc = cfg_connection_desc if connection_desc is None else connection_desc
+            connection_hops = cfg_connection_hops if connection_hops is None else connection_hops
+            initial_state = cfg_initial_state if initial_state is None else initial_state
+
         return device_class, connection_desc, connection_hops, initial_state
 
     @classmethod
