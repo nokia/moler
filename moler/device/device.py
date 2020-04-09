@@ -2,9 +2,11 @@
 """
 Package Open Source functionality of Moler.
 """
+
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst, Tomasz Krol'
 __copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com, tomasz.krol@nokia.com'
+
 
 from moler.config import devices as devices_config
 from moler.instance_loader import create_instance_from_class_fullname
@@ -170,7 +172,12 @@ class DeviceFactory(object):
             if name not in devices_config.named_devices:
                 whats_wrong = "was not defined inside configuration"
                 raise KeyError("Device named '{}' {}".format(name, whats_wrong))
-            device_class, connection_desc, connection_hops, initial_state = devices_config.named_devices[name]
+            cfg_device_class, cfg_connection_desc, cfg_connection_hops, cfg_initial_state = \
+                devices_config.named_devices[name]
+            device_class = cfg_device_class if device_class is None else device_class
+            connection_desc = cfg_connection_desc if connection_desc is None else connection_desc
+            connection_hops = cfg_connection_hops if connection_hops is None else connection_hops
+            initial_state = cfg_initial_state if initial_state is None else initial_state
 
         return device_class, connection_desc, connection_hops, initial_state
 
@@ -308,8 +315,11 @@ class DeviceFactory(object):
         new_name = cls._get_unique_name(name)
         if new_name in cls._devices.keys():
             dev = cls._devices[new_name]
-            if establish_connection and not dev.has_established_connection():
+            if initial_state:
+                dev.goto_state(state=initial_state)
+            elif establish_connection and not dev.has_established_connection():
                 dev.goto_state(state=dev.initial_state)
+
         else:
             dev = cls._create_device(name=name, device_class=device_class, connection_desc=connection_desc,
                                      connection_hops=connection_hops, initial_state=initial_state,
