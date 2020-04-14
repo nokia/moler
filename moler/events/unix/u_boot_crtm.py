@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'michal.ernst@nokia.com'
 
 import datetime
@@ -43,7 +43,7 @@ class UBootCrtm(GenericUnixTextualEvent):
 
     def _parse_u_boot_crtm(self, line):
         if self._regex_helper.search(UBootCrtm._re_u_boot_crtm, line):
-            self.current_ret["time"] = datetime.datetime.now()
+            self.current_ret["time"] = self._last_recv_time_data_read_from_connection
 
             raise ParsingDone
 
