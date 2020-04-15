@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Michal Ernst'
-__copyright__ = 'Copyright (C) 2019, Nokia'
+__copyright__ = 'Copyright (C) 2019-2020, Nokia'
 __email__ = 'michal.ernst@nokia.com'
 
 import datetime
@@ -46,7 +46,7 @@ class PasswordPrompt(GenericSharedTextualEvent):
         """
         if self._regex_helper.search_compiled(PasswordPrompt._re_password, line):
             current_ret = dict()
-            current_ret["time"] = datetime.datetime.now()
+            current_ret["time"] = self._last_recv_time_data_read_from_connection
             current_ret["line"] = line
             self.event_occurred(event_data=current_ret)
 

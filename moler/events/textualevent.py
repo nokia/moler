@@ -23,6 +23,8 @@ class TextualEvent(Event):
         self._regex_helper = RegexHelper()  # Object to regular expression matching
         self._paused = False
         self._ignore_unicode_errors = True  # If True then UnicodeDecodeError will be logged not raised in data_received
+        self._last_recv_time_data_read_from_connection = None  # Time moment when data was really received from
+        # connection (not when was passed to event).  Time is given as datetime.datetime instance
 
     def event_occurred(self, event_data):
         self._consume_already_parsed_fragment()
@@ -47,6 +49,7 @@ class TextualEvent(Event):
         :return: None.
         """
         if not self._paused:
+            self._last_recv_time_data_read_from_connection = recv_time
             try:
                 # Workaround for some terminals and python 2.7
                 data = u"".join(str(data.encode("utf-8", errors="ignore"))) if sys.version_info < (3, 0) else data

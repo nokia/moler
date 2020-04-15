@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019, Nokia'
+__copyright__ = 'Copyright (C) 2019-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import datetime
@@ -50,7 +50,7 @@ class LastLogin(GenericUnixTextualEvent):
         :raise: ParsingDone if regex matches the line.
         """
         if self._regex_helper.search(self._re_line, line):
-            self.current_ret["time"] = datetime.datetime.now()
+            self.current_ret["time"] = self._last_recv_time_data_read_from_connection
             self.current_ret["host"] = self._regex_helper.group("HOST")
             date_str = self._regex_helper.group("DATE")
             self.current_ret["date_raw"] = date_str

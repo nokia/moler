@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Marcin Usielski, Tomasz Krol'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com, tomasz.krol@nokia.com'
 
 import datetime
@@ -104,7 +104,7 @@ class LineEvent(TextualEvent):
     def _prepare_current_ret(self, line, match):
         current_ret = dict()
         current_ret["line"] = line
-        current_ret["time"] = datetime.datetime.now()
+        current_ret["time"] = self._last_recv_time_data_read_from_connection
 
         group_dict = match.groupdict()
         for named_group in match.groupdict():
