@@ -78,7 +78,9 @@ class OpensslX509TextIn(GenericUnixCommand):
     _re_certificate_error = re.compile(r"(?P<CERTIFICATE_ERROR>unable\s+to\s+load\s+certificate)")
 
     def _catch_certificate_error(self, line):
-        """"""
+        """
+        Catch command failure and raise exception.
+        """
         if self._regex_helper.search_compiled(OpensslX509TextIn._re_certificate_error, line):
             self.set_exception(CommandFailure(self, self._regex_helper.group("CERTIFICATE_ERROR")))
             raise ParsingDone
