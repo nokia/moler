@@ -75,6 +75,7 @@ class OpensslX509TextIn(GenericUnixCommand):
             self.current_ret = load_pem_x509_certificate(data=self._string_output.encode(), backend=default_backend())
             raise ParsingDone
 
+    # unable to load certificate
     _re_certificate_error = re.compile(r"(?P<CERTIFICATE_ERROR>unable\s+to\s+load\s+certificate)")
 
     def _catch_certificate_error(self, line):
@@ -184,17 +185,3 @@ COMMAND_KWARGS = {
 }
 
 COMMAND_RESULT = load_pem_x509_certificate(data=COMMAND_OUTPUT.encode(), backend=default_backend())
-
-
-COMMAND_OUTPUT_ERROR = """user@server:~> openssl x509 -text -in /etc/sample.pem
-unable to load certificate
-|548039730816:error:0D0680A8:asn1 encoding routines:asn1_check_tlen:wrong tag:../openssl-1.1.1a/crypto/asn1/tasn_dec.c:1130:
-|548039730816:error:0D07803A:asn1 encoding routines:asn1_item_embed_d2i:nested asn1 error:../openssl-1.1.1a/crypto/asn1/tasn_dec.c:290:Type=X509
-|548039730816:error:0906700D:PEM routines:PEM_ASN1_read_bio:ASN1 lib:../openssl-1.1.1a/crypto/pem/pem_oth.c:33:
-user@server:~>"""
-
-COMMAND_KWARGS_ERROR = {
-    "path": "/etc/sample.pem"
-}
-
-COMMAND_RESULT_ERROR = {}
