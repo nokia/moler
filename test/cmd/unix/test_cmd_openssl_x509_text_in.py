@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-RunSerialProxy command test module.
+OpensslX509TextIn command test module.
 """
 
 __author__ = 'Agnieszka Bylica'
