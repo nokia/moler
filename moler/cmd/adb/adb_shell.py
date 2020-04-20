@@ -17,6 +17,7 @@ from moler.helpers import remove_all_known_special_chars
 
 
 class AdbShell(CommandChangingPrompt):
+    re_generated_prompt = r'^adb_shell@{} \$'
 
     def __init__(self, connection, serial_number=None, prompt=None, expected_prompt=None,
                  newline_chars=None, target_newline="\n", runner=None, set_timeout=None,
@@ -46,7 +47,7 @@ class AdbShell(CommandChangingPrompt):
                 prompt_after_login = self._re_default_prompt
             if serial_number and (not set_prompt):
                 set_prompt = r'export PS1="adb_shell@{} \$ "'.format(serial_number)
-                expected_prompt = re.compile(r'^adb_shell@{} \$'.format(serial_number))
+                expected_prompt = re.compile(self.re_generated_prompt.format(serial_number))
         super(AdbShell, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                        runner=runner, expected_prompt=expected_prompt, set_timeout=set_timeout,
                                        set_prompt=set_prompt, target_newline=target_newline,
