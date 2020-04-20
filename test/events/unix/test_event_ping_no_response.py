@@ -15,6 +15,7 @@ def test_event_ping_no_response(buffer_connection):
     counter = dict()
     counter['nr'] = 0
     sleep_time = 0.4
+    max_timeout = 5.0
 
     def callback_fun(param):
         param['nr'] += 1
@@ -25,7 +26,11 @@ def test_event_ping_no_response(buffer_connection):
     assert 0 == counter['nr']
     event.start()
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
-    MolerTest.sleep(sleep_time)
+    start_time = time.time()
+    while time.time() - start_time <= max_timeout:
+        if 1 == counter['nr']:
+            break
+        MolerTest.sleep(sleep_time)
     assert 1 == counter['nr']
     event.pause()
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
@@ -34,6 +39,11 @@ def test_event_ping_no_response(buffer_connection):
     event.resume()
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     event.await_done()
+    start_time = time.time()
+    while time.time() - start_time <= max_timeout:
+        if 2 == counter['nr']:
+            break
+        MolerTest.sleep(sleep_time)
     assert 2 == counter['nr']
     assert event.done() is True
 

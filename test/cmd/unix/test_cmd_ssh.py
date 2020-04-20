@@ -4,7 +4,7 @@ Testing of ssh command.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 from moler.cmd.unix.ssh import Ssh
@@ -69,6 +69,19 @@ def test_ssh_failed_known_hosts(buffer_connection, command_output_failed_known_h
         ssh_cmd()
 
 
+def test_ssh_failed_authentication_failed(buffer_connection, command_output_authentication_failed):
+    command_output = command_output_authentication_failed
+    buffer_connection.remote_inject_response([command_output])
+
+    ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english", prompt="client:.*$",
+                  host="host.domain.net", expected_prompt="host:.*#")
+    expected_cmd_str = "TERM=xterm-mono ssh -l user -o ServerAliveInterval=7 -o ServerAliveCountMax=2 host.domain.net"
+    assert expected_cmd_str == ssh_cmd.command_string
+    with pytest.raises(CommandFailure) as err:
+        ssh_cmd()
+    assert "Authentication fail" in str(err.value)
+
+
 def test_ssh_timeout_with_wrong_change_prompt(buffer_connection, command_output_change_prompt):
     command_output = command_output_change_prompt
     buffer_connection.remote_inject_response([command_output])
@@ -97,6 +110,25 @@ def test_ssh_returns_proper_command_string(buffer_connection):
     ssh_cmd = Ssh(buffer_connection, login="user", password="english",
                   host="host.domain.net", expected_prompt="host:.*#", options=None)
     assert "TERM=xterm-mono ssh -l user host.domain.net" == ssh_cmd.command_string
+
+
+@pytest.fixture
+def command_output_authentication_failed():
+    data = """TERM=xterm-mono ssh -l user -o ServerAliveInterval=7 -o ServerAliveCountMax=2 host.domain.net
+
+You are about to access a private system. This system is for the use
+of authorized users only. All connections are logged to the extent and
+by means acceptable by the local legislation. Any unauthorized access
+or access attempts may be punished to the fullest extent possible
+under the applicable local legislation.
+
+Password: ***************
+Password: ***************
+Password: ***************
+user@host's password: ***************
+Authentication failed.
+client:~ $ """
+    return data
 
 
 @pytest.fixture

@@ -33,7 +33,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
     _re_failed_strings = re.compile(
         r"Permission denied|closed by foreign host|telnet:.*Name or service not known|No route to host|ssh: Could not|"
         "is not a typo you can use command-not-found to lookup the package|command not found|"
-        "Too many authentication failures|Received disconnect from",
+        "Too many authentication failures|Received disconnect from|Authentication failed",
         re.IGNORECASE)
 
     # CLIENT5 [] has just connected!
