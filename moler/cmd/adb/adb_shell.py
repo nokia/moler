@@ -20,7 +20,8 @@ class AdbShell(CommandChangingPrompt):
 
     def __init__(self, connection, serial_number=None, prompt=None, expected_prompt=None,
                  newline_chars=None, target_newline="\n", runner=None, set_timeout=None,
-                 allowed_newline_after_prompt=False, set_prompt=None, prompt_after_login=None):
+                 allowed_newline_after_prompt=False, set_prompt=None, prompt_after_login=None,
+                 prompt_from_serial_number=False):
         """
         Moler class of Unix command adb shell.
 
@@ -38,7 +39,14 @@ class AdbShell(CommandChangingPrompt):
         :param set_prompt: Command to set prompt after adb shell success.
         :param prompt_after_login: prompt after login before send export PS1. If you do not change prompt exporting PS1
          then leave it None.
+        :param prompt_from_serial_number: Generate expected_prompt from serial_number.
         """
+        if prompt_from_serial_number:
+            if not prompt_after_login:
+                prompt_after_login = self._re_default_prompt
+            if serial_number and (not set_prompt):
+                set_prompt = r'export PS1="adb_shell@{} \$ "'.format(serial_number)
+                expected_prompt = re.compile(r'^adb_shell@{} \$'.format(serial_number))
         super(AdbShell, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                        runner=runner, expected_prompt=expected_prompt, set_timeout=set_timeout,
                                        set_prompt=set_prompt, target_newline=target_newline,
@@ -119,3 +127,16 @@ COMMAND_KWARGS_selected_device = {
 }
 
 COMMAND_RESULT_selected_device = {}
+
+COMMAND_OUTPUT_serial_number_generated_prompt = """
+xyz@debian ~$ adb -s f57e6b77 shell
+shell@adbhost:/ $ 
+shell@adbhost:/ $ export PS1="adb_shell@f57e6b77 \$ "
+adb_shell@f57e6b77 $ """
+
+COMMAND_KWARGS_serial_number_generated_prompt = {
+    'serial_number': 'f57e6b77',
+    'prompt_from_serial_number': True
+}
+
+COMMAND_RESULT_serial_number_generated_prompt = {}

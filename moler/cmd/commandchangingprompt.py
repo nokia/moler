@@ -182,7 +182,8 @@ class CommandChangingPrompt(CommandTextualGeneric):
         :param line: Line from device
         :return: Match object or None
         """
-        return self._regex_helper.search_compiled(self._re_expected_prompt, line)
+        found = self._regex_helper.search_compiled(self._re_expected_prompt, line)
+        return found
 
     def _is_prompt_after_login(self, line):
         """
@@ -191,7 +192,8 @@ class CommandChangingPrompt(CommandTextualGeneric):
         :param line: Line from device
         :return: Match object or None
         """
-        return self._regex_helper.search_compiled(self._re_prompt_after_login, line)
+        found = self._regex_helper.search_compiled(self._re_prompt_after_login, line)
+        return found
 
     def _all_after_login_settings_sent(self):
         """
