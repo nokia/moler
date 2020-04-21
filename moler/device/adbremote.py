@@ -205,9 +205,10 @@ class AdbRemote(UnixRemote):
         return serial_number
 
     def _get_adb_shell_prompt(self, adb_shell_cmd_params):
+        adb_shell_prompt = None
         if 'expected_prompt' in adb_shell_cmd_params:
             adb_shell_prompt = adb_shell_cmd_params["expected_prompt"]
-        else:
+        if not adb_shell_prompt:
             # adb_shell@f57e6b77 $
             adb_shell_prompt = AdbShell.re_generated_prompt.format(self._serial_number)
         return adb_shell_prompt

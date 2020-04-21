@@ -42,7 +42,7 @@ class AdbShell(CommandChangingPrompt):
          then leave it None.
         :param prompt_from_serial_number: Generate expected_prompt from serial_number.
         """
-        if prompt_from_serial_number:
+        if prompt_from_serial_number and (not expected_prompt):
             if not prompt_after_login:
                 prompt_after_login = self._re_default_prompt
             if serial_number and (not set_prompt):
