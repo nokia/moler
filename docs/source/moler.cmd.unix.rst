@@ -452,6 +452,14 @@ moler.cmd.unix.ntpq module
     :undoc-members:
     :show-inheritance:
 
+moler.cmd.unix.openssl\_x509\_text\_in module
+---------------------------------------------
+
+.. automodule:: moler.cmd.unix.openssl_x509_text_in
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.cmd.unix.passwd module
 ----------------------------
 
