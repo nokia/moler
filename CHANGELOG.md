@@ -1,3 +1,13 @@
+## moler 1.11.0
+
+### Improved
+* Add catching error to openssl_x509_text_in command
+* New fail scenario for ssh
+* Openssl cmd
+* Store datetime when data was read on connection
+* Set establish_connection to False
+* Support initial_state for already created devices
+
 ## moler 1.10.0
 
 ### Improved
