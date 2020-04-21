@@ -129,9 +129,9 @@ COMMAND_KWARGS_selected_device = {
 
 COMMAND_RESULT_selected_device = {}
 
-COMMAND_OUTPUT_serial_number_generated_prompt = """
+COMMAND_OUTPUT_serial_number_generated_prompt = r"""
 xyz@debian ~$ adb -s f57e6b77 shell
-shell@adbhost:/ $ 
+shell@adbhost:/ $
 shell@adbhost:/ $ export PS1="adb_shell@f57e6b77 \$ "
 adb_shell@f57e6b77 $ """
 
