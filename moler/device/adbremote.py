@@ -15,6 +15,7 @@ from moler.device.textualdevice import TextualDevice
 # from moler.device.proxy_pc import ProxyPc  # TODO: allow jumping towards ADB_REMOTE via proxy-pc
 from moler.device.unixlocal import UnixLocal
 from moler.device.unixremote import UnixRemote
+from moler.cmd.adb.adb_shell import AdbShell
 from moler.helpers import call_base_class_method_with_same_name, mark_to_call_base_class_method_with_same_name
 
 
@@ -82,10 +83,11 @@ class AdbRemote(UnixRemote):
                     AdbRemote.adb_shell: {  # to
                         "execute_command": "adb_shell",
                         "command_params": {  # with parameters
-                            "target_newline": "\n"
+                            "target_newline": "\n",
+                            "prompt_from_serial_number": True,
                         },
                         "required_command_params": [
-                            "expected_prompt"  # TODO: if not required then we depend on default-unix-prompt regexp
+                            "serial_number",
                         ]
                     },
                 },
@@ -171,7 +173,8 @@ class AdbRemote(UnixRemote):
         hops_config = self._configurations[TextualDevice.connection_hops]
         cfg_ux2adb = hops_config[UnixRemote.unix_remote][AdbRemote.adb_shell]
         cfg_adb2adbroot = hops_config[AdbRemote.adb_shell][AdbRemote.adb_shell_root]
-        adb_shell_prompt = cfg_ux2adb["command_params"]["expected_prompt"]
+        adb_shell_cmd_params = cfg_ux2adb["command_params"]
+        adb_shell_prompt = self._get_adb_shell_prompt(adb_shell_cmd_params)
         adb_shell_root_prompt = cfg_adb2adbroot["command_params"]["expected_prompt"]
         if adb_shell_root_prompt is None:
             if adb_shell_prompt.endswith("$"):
@@ -188,6 +191,27 @@ class AdbRemote(UnixRemote):
             AdbRemote.adb_shell_root: adb_shell_root_prompt,
         }
         return state_prompts
+
+    @property
+    def _serial_number(self):
+        """
+        Retrieve serial_number based on required parameter of state machine.
+
+        :return: serial_number.
+        """
+        hops_config = self._configurations[TextualDevice.connection_hops]
+        cfg_ux2adb = hops_config[UnixRemote.unix_remote][AdbRemote.adb_shell]
+        serial_number = cfg_ux2adb["command_params"]["serial_number"]
+        return serial_number
+
+    def _get_adb_shell_prompt(self, adb_shell_cmd_params):
+        adb_shell_prompt = None
+        if 'expected_prompt' in adb_shell_cmd_params:
+            adb_shell_prompt = adb_shell_cmd_params["expected_prompt"]
+        if not adb_shell_prompt:
+            # adb_shell@f57e6b77 $
+            adb_shell_prompt = AdbShell.re_generated_prompt.format(self._serial_number)
+        return adb_shell_prompt
 
     @mark_to_call_base_class_method_with_same_name
     def _prepare_newline_chars_without_proxy_pc(self):
@@ -282,7 +306,7 @@ class AdbRemote(UnixRemote):
         # copy prompt for ADB_SHELL_ROOT/exit from UNIX_REMOTE/adb shell
         cfg_ux2adb = hops_config[UnixRemote.unix_remote][AdbRemote.adb_shell]
         cfg_adbroot2adb = hops_config[AdbRemote.adb_shell_root][AdbRemote.adb_shell]
-        adb_shell_prompt = cfg_ux2adb["command_params"]["expected_prompt"]
+        adb_shell_prompt = self._get_adb_shell_prompt(cfg_ux2adb["command_params"])
         cfg_adbroot2adb["command_params"]["expected_prompt"] = adb_shell_prompt
 
         cfg_adb2adbroot = hops_config[AdbRemote.adb_shell][AdbRemote.adb_shell_root]

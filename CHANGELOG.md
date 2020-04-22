@@ -1,3 +1,8 @@
+## moler 1.12.0
+
+### Improved
+* Allow AdbRemote device to have expected_prompt generated from serial_number of Android device
+
 ## moler 1.11.0
 
 ### Improved

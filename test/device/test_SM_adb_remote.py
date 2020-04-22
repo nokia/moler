@@ -27,14 +27,16 @@ def adb_remote_output():
         "UNIX_REMOTE": {
             'exit': 'moler_bash#',
             'su': 'remote_root_prompt',
-            'adb -s f57e6b77 shell': 'shell@adbhost:/ $'
+            'adb -s f57e6b77 shell': 'shell@adbhost:/ $',                    # adb shell is changing prompt so it triggers following 2 send-responses
+            '': 'shell@adbhost:/ $',                                         # to allow for self.connection.sendline("")              in _send_prompt_set()
+            'export PS1="adb_shell@f57e6b77 \\$ "': 'adb_shell@f57e6b77 $'   # to allow for self.connection.sendline(self.set_prompt) in _send_prompt_set()
         },
         "ADB_SHELL": {
             'exit': 'remote#',
-            'su': 'shell@adbhost:/ #',
+            'su': 'adb_shell@f57e6b77 #',
         },
         "ADB_SHELL_ROOT": {
-            'exit': 'shell@adbhost:/ $',
+            'exit': 'adb_shell@f57e6b77 $',
         },
         "UNIX_REMOTE_ROOT": {
             'exit': 'remote#',
