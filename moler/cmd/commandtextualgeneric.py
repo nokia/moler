@@ -285,6 +285,12 @@ class CommandTextualGeneric(Command):
         """
         if self._regex_helper.search_compiled(self._re_prompt, line):
             return True
+        # when command is broken via Ctrl-C then ^C may be appended to start of prompt
+        # if prompt regexp requires "at start of line" via r'^' then such ^C concatenation will falsify prompt
+        if (len(line) > 2) and line.startswith("^C"):
+            non_ctrl_c_started_line = line[2:]
+            if self._regex_helper.search_compiled(self._re_prompt, non_ctrl_c_started_line):
+                return True
         return False
 
     def _strip_new_lines_chars(self, line):
