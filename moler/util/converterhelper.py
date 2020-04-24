@@ -93,12 +93,12 @@ class ConverterHelper(object):
             raise ValueError("Unsupported unit '{}' for passed value: '{}'".format(unit, value))
         return ConverterHelper._seconds_multipliers[unit] * value
 
-    def to_number(self, value, raise_error=True):
+    def to_number(self, value, raise_exception=True):
         """
         Convert number to int or float.
 
         :param value: string with number inside
-        :param raise_error: if True then raise exception if cannot convert to numbet, If False then return 0.
+        :param raise_exception: if True then raise exception if cannot convert to number, If False then return 0.
         :return: int or float with value.
         """
         ret_val = 0
@@ -108,7 +108,7 @@ class ConverterHelper(object):
             try:
                 ret_val = float(value)
             except ValueError as ex:
-                if raise_error:
+                if raise_exception:
                     raise ex
         return ret_val
 

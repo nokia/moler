@@ -60,8 +60,8 @@ def test_converterhelper_number_wrong_format():
     from moler.util.converterhelper import ConverterHelper
     converter = ConverterHelper.get_converter_helper()
     with pytest.raises(ValueError):
-        converter.to_number(value="abc", raise_error=True)
-    val = converter.to_number(value="abc", raise_error=False)
+        converter.to_number(value="abc", raise_exception=True)
+    val = converter.to_number(value="abc", raise_exception=False)
     assert val == 0
 
 
