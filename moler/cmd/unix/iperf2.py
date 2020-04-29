@@ -86,6 +86,11 @@ class Iperf2(GenericUnixCommand, Publisher):
         self._got_server_report = False
         self._stopping_server = False
 
+    def __str__(self):
+        str_base_value = super(Iperf2, self).__str__()
+        str_value = "{}, awaited_prompt='{}')".format(str_base_value[:-1], self._re_prompt.pattern)
+        return str_value
+
     _re_port = re.compile(r"(?P<PORT_OPTION>\-\-port|\-p)\s+(?P<PORT>\d+)")
 
     def _validate_options(self, options):
