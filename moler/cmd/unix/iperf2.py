@@ -22,6 +22,8 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 
 
 import re
+import time
+import threading
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.util.converterhelper import ConverterHelper
 from moler.exceptions import CommandFailure
@@ -233,10 +235,20 @@ class Iperf2(GenericUnixCommand, Publisher):
         else:
             return super(Iperf2, self).is_end_of_cmd_output(line)
 
+    def _schedule_delayed_break(self, delay):
+
+        def do_break():
+            time.sleep(delay)
+            if not self.done():
+                self.break_cmd()
+
+        breaker = threading.Thread(name="iperf2_brk", target=do_break)
+        breaker.start()
+
     def _stop_server(self):
         if not self._stopping_server:
             if not self.singlerun_server:
-                self.break_cmd()
+                self._schedule_delayed_break(delay=1.0)
             self._stopping_server = True
 
     _re_command_failure = re.compile(r"(?P<FAILURE_MSG>.*failed.*|.*error.*|.*command not found.*|.*iperf:.*)")
