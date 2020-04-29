@@ -30,6 +30,7 @@ class Sshkeygen(GenericUnixCommand):
         super(Sshkeygen, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                         runner=runner)
 
+        self.ret_required = False
         self.options = options
         self.file = file
         self.passphrase = passphrase
