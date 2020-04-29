@@ -341,7 +341,7 @@ class Iperf2(GenericUnixCommand, Publisher):
             connection_name = self._connection_dict[connection_id]
             normalized_iperf_record = self._normalize_to_bytes(iperf_record)
             self._update_current_ret(connection_name, normalized_iperf_record)
-            if self._all_multiport_records_of_interval(connection_name):
+            if self._need_add_multiport_summary_record_of_interval(connection_name, normalized_iperf_record):
                 self._calculate_multiport_summary_record_of_interval(connection_name)
             self._parse_final_record(connection_name)
             if self.protocol == 'udp' and self._got_server_report_hdr:
@@ -371,13 +371,33 @@ class Iperf2(GenericUnixCommand, Publisher):
     def _all_multiport_records_of_interval(self, connection_name):
         client, server = connection_name
         client_port, client_host = client.split("@")
-        last_interval = self.current_ret['CONNECTIONS'][connection_name][-1]['Interval'][1]
+        last_interval = self.current_ret['CONNECTIONS'][connection_name][-1]['Interval']
         for conn_name in self._same_host_connections[client_host]:
             if conn_name not in self.current_ret['CONNECTIONS']:
                 return False
-            interval = self.current_ret['CONNECTIONS'][conn_name][-1]['Interval'][1]
-            if interval != last_interval:
+            if not self._get_last_record_of_interval(conn_name, last_interval):
                 return False
+        return True
+
+    def _get_last_record_of_interval(self, connection_name, interval):
+        last_rec = self.current_ret['CONNECTIONS'][connection_name][-1]
+        if last_rec['Interval'] == interval:
+            return last_rec
+        if len(self.current_ret['CONNECTIONS'][connection_name]) > 1:
+            pre_last_rec = self.current_ret['CONNECTIONS'][connection_name][-2]
+            if pre_last_rec['Interval'] == interval:
+                return pre_last_rec
+        return None
+
+    def _need_add_multiport_summary_record_of_interval(self, connection_name, last_iperf_record):
+        if not self.server:
+            return False
+        if not self.parallel_client:
+            return False
+        if self._is_final_record(last_iperf_record):
+            return False
+        if not self._all_multiport_records_of_interval(connection_name):
+            return False
         return True
 
     def _calculate_multiport_summary_record_of_interval(self, connection_name):
@@ -386,13 +406,15 @@ class Iperf2(GenericUnixCommand, Publisher):
         connections = self._same_host_connections[client_host]
 
         interval = self.current_ret['CONNECTIONS'][connection_name][-1]['Interval']
-        transfers = [self.current_ret['CONNECTIONS'][conn][-1]['Transfer'] for conn in connections]
-        raw_transfers = [self.current_ret['CONNECTIONS'][conn][-1]['Transfer Raw'] for conn in connections]
-        bandwidths = [self.current_ret['CONNECTIONS'][conn][-1]['Bandwidth'] for conn in connections]
-        raw_bandwidths = [self.current_ret['CONNECTIONS'][conn][-1]['Bandwidth Raw'] for conn in connections]
+        if interval == (4.0, 5.0):
+            pass
+        transfers = [self._get_last_record_of_interval(conn, interval)['Transfer'] for conn in connections]
+        raw_transfers = [self._get_last_record_of_interval(conn, interval)['Transfer Raw'] for conn in connections]
+        bandwidths = [self._get_last_record_of_interval(conn, interval)['Bandwidth'] for conn in connections]
+        raw_bandwidths = [self._get_last_record_of_interval(conn, interval)['Bandwidth Raw'] for conn in connections]
         if self.protocol == 'udp':
-            jitters = [self.current_ret['CONNECTIONS'][conn][-1]['Jitter'] for conn in connections]
-            ltds = [self.current_ret['CONNECTIONS'][conn][-1]['Lost_vs_Total_Datagrams'] for conn in connections]
+            jitters = [self._get_last_record_of_interval(conn, interval)['Jitter'] for conn in connections]
+            ltds = [self._get_last_record_of_interval(conn, interval)['Lost_vs_Total_Datagrams'] for conn in connections]
 
             jitter_unit = jitters[0].split()[1]  # 'Jitter': '0.821 ms'
             jitter_values = [float(jit.split()[0]) for jit in jitters]
@@ -1537,46 +1559,46 @@ COMMAND_RESULT_multiple_connections_udp_server = {
                                                          'Bandwidth': 125000,
                                                          'Lost_vs_Total_Datagrams': (0, 426),
                                                          'Bandwidth Raw': '1000 Kbits/sec'}],
-        ('multiport@192.168.44.1', '5016@192.168.44.130'): [{'Lost_Datagrams_ratio': '0%',
+        ('multiport@192.168.44.1', '5016@192.168.44.130'): [{'Lost_Datagrams_ratio': '0.00%',
                                                              'Jitter': '{} ms'.format(max(1.464, 1.541, 1.556)),
                                                              'Transfer': 123904+124928+124928,
                                                              'Interval': (0.0, 1.0),
-                                                             'Transfer Raw': '365 KBytes',
+                                                             'Transfer Raw': '365.0 KBytes',
                                                              'Bandwidth': 123500+125000+125000,
                                                              'Lost_vs_Total_Datagrams': (0+0+0, 84+85+85),
-                                                             'Bandwidth Raw': '2988 Kbits/sec'},
-                                                            {'Lost_Datagrams_ratio': '0%',
+                                                             'Bandwidth Raw': '2988.0 Kbits/sec'},
+                                                            {'Lost_Datagrams_ratio': '0.00%',
                                                              'Jitter': '{} ms'.format(max(0.565, 0.719, 0.654)),
                                                              'Transfer': 128000+125952+125952,
                                                              'Interval': (1.0, 2.0),
-                                                             'Transfer Raw': '371 KBytes',
+                                                             'Transfer Raw': '371.0 KBytes',
                                                              'Bandwidth': 127875+126375+126375,
                                                              'Lost_vs_Total_Datagrams': (0+0+0, 87+86+86),
-                                                             'Bandwidth Raw': '3045 Kbits/sec'},
-                                                            {'Lost_Datagrams_ratio': '0%',
+                                                             'Bandwidth Raw': '3045.0 Kbits/sec'},
+                                                            {'Lost_Datagrams_ratio': '0.00%',
                                                              'Jitter': '{} ms'.format(max(1.191, 0.376, 0.463)),
-                                                             'Transfer': 123904+125952+123904,
+                                                             'Transfer': 123904+123904+123904,
                                                              'Interval': (2.0, 3.0),
-                                                             'Transfer Raw': '363 KBytes',
+                                                             'Transfer Raw': '363.0 KBytes',
                                                              'Bandwidth': 123500+123500+123500,
                                                              'Lost_vs_Total_Datagrams': (0+0+0, 84+84+84),
-                                                             'Bandwidth Raw': '2964 Kbits/sec'},
-                                                            {'Lost_Datagrams_ratio': '0%',
+                                                             'Bandwidth Raw': '2964.0 Kbits/sec'},
+                                                            {'Lost_Datagrams_ratio': '0.00%',
                                                              'Jitter': '{} ms'.format(max(1.225, 1.470, 0.951)),
                                                              'Transfer': 125952+125952+125952,
                                                              'Interval': (3.0, 4.0),
-                                                             'Transfer Raw': '369 KBytes',
+                                                             'Transfer Raw': '369.0 KBytes',
                                                              'Bandwidth': 126375+126375+126375,
                                                              'Lost_vs_Total_Datagrams': (0+0+0, 86+86+86),
-                                                             'Bandwidth Raw': '3033 Kbits/sec'},
-                                                            {'Lost_Datagrams_ratio': '0%',
+                                                             'Bandwidth Raw': '3033.0 Kbits/sec'},
+                                                            {'Lost_Datagrams_ratio': '0.00%',
                                                              'Jitter': '{} ms'.format(max(1.273, 1.332, 0.821)),
                                                              'Transfer': 124928+124928+124928,
                                                              'Interval': (4.0, 5.0),
-                                                             'Transfer Raw': '366 KBytes',
+                                                             'Transfer Raw': '366.0 KBytes',
                                                              'Bandwidth': 125000+125000+125000,
                                                              'Lost_vs_Total_Datagrams': (0+0+0, 85+85+85),
-                                                             'Bandwidth Raw': '3000 Kbits/sec'},
+                                                             'Bandwidth Raw': '3000.0 Kbits/sec'},
                                                             {'Lost_Datagrams_ratio': '0%',
                                                              'Jitter': '1.556 ms',
                                                              'Transfer': 2251776,
