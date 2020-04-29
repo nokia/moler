@@ -83,6 +83,7 @@ class Iperf2(GenericUnixCommand, Publisher):
 
         # private values
         self._connection_dict = dict()
+        self._same_host_connections = dict()
         self._converter_helper = ConverterHelper()
         self._got_server_report_hdr = False
         self._got_server_report = False
@@ -271,10 +272,17 @@ class Iperf2(GenericUnixCommand, Publisher):
             remote = "{}@{}".format(remote_port, remote_host)
             if self.port == int(remote_port):
                 from_client, to_server = local, remote
+                client_host = local_host
             else:
                 from_client, to_server = remote, local
-            connection_dict = {connection_id: (from_client, to_server)}
+                client_host = remote_host
+            connection = (from_client, to_server)
+            connection_dict = {connection_id: connection}
             self._connection_dict.update(connection_dict)
+            if client_host not in self._same_host_connections:
+                self._same_host_connections[client_host] = [connection]
+            else:
+                self._same_host_connections[client_host].append(connection)
             raise ParsingDone
 
     # iperf output for: udp client, tcp client, tcp server
@@ -333,6 +341,8 @@ class Iperf2(GenericUnixCommand, Publisher):
             connection_name = self._connection_dict[connection_id]
             normalized_iperf_record = self._normalize_to_bytes(iperf_record)
             self._update_current_ret(connection_name, normalized_iperf_record)
+            if self._all_multiport_records_of_interval(connection_name):
+                self._calculate_multiport_summary_record_of_interval(connection_name)
             self._parse_final_record(connection_name)
             if self.protocol == 'udp' and self._got_server_report_hdr:
                 self._got_server_report = True
@@ -357,6 +367,59 @@ class Iperf2(GenericUnixCommand, Publisher):
         else:
             connection_dict = {connection_name: [info_dict]}
             self.current_ret['CONNECTIONS'].update(connection_dict)
+
+    def _all_multiport_records_of_interval(self, connection_name):
+        client, server = connection_name
+        client_port, client_host = client.split("@")
+        last_interval = self.current_ret['CONNECTIONS'][connection_name][-1]['Interval'][1]
+        for conn_name in self._same_host_connections[client_host]:
+            if conn_name not in self.current_ret['CONNECTIONS']:
+                return False
+            interval = self.current_ret['CONNECTIONS'][conn_name][-1]['Interval'][1]
+            if interval != last_interval:
+                return False
+        return True
+
+    def _calculate_multiport_summary_record_of_interval(self, connection_name):
+        client, server = connection_name
+        client_port, client_host = client.split("@")
+        connections = self._same_host_connections[client_host]
+
+        interval = self.current_ret['CONNECTIONS'][connection_name][-1]['Interval']
+        transfers = [self.current_ret['CONNECTIONS'][conn][-1]['Transfer'] for conn in connections]
+        raw_transfers = [self.current_ret['CONNECTIONS'][conn][-1]['Transfer Raw'] for conn in connections]
+        bandwidths = [self.current_ret['CONNECTIONS'][conn][-1]['Bandwidth'] for conn in connections]
+        raw_bandwidths = [self.current_ret['CONNECTIONS'][conn][-1]['Bandwidth Raw'] for conn in connections]
+        if self.protocol == 'udp':
+            jitters = [self.current_ret['CONNECTIONS'][conn][-1]['Jitter'] for conn in connections]
+            ltds = [self.current_ret['CONNECTIONS'][conn][-1]['Lost_vs_Total_Datagrams'] for conn in connections]
+
+            jitter_unit = jitters[0].split()[1]  # 'Jitter': '0.821 ms'
+            jitter_values = [float(jit.split()[0]) for jit in jitters]
+
+            lost_datagrams = sum([lost for lost, _ in ltds])
+            total_datagrams = sum([total for _, total in ltds])
+
+        raw_transfer_unit = raw_transfers[0].split()[1]  # 'Transfer Raw': '122 KBytes',
+        raw_transfer_values = [float(raw_trf.split()[0]) for raw_trf in raw_transfers]
+
+        raw_bandwidth_unit = raw_bandwidths[0].split()[1]  # 'Bandwidth Raw': '1000 Kbits/sec'
+        raw_bandwidth_values = [float(raw_bw.split()[0]) for raw_bw in raw_bandwidths]
+
+        sum_record = {
+            'Interval': interval,
+            'Transfer': sum(transfers),
+            'Transfer Raw': '{} {}'.format(sum(raw_transfer_values), raw_transfer_unit),
+            'Bandwidth': sum(bandwidths),
+            'Bandwidth Raw': '{} {}'.format(sum(raw_bandwidth_values), raw_bandwidth_unit),
+        }
+        if self.protocol == 'udp':
+            sum_record['Jitter'] = '{} {}'.format(max(jitter_values), jitter_unit)
+            sum_record['Lost_vs_Total_Datagrams'] = (lost_datagrams, total_datagrams)
+            sum_record['Lost_Datagrams_ratio'] = '{:.2f}%'.format(lost_datagrams*100/total_datagrams)
+
+        sum_connection_name = ('multiport@{}'.format(client_host), server)
+        self._update_current_ret(sum_connection_name, sum_record)
 
     def _parse_final_record(self, connection_name):
         last_record = self.current_ret['CONNECTIONS'][connection_name][-1]

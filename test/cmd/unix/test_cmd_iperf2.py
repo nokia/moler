@@ -217,6 +217,97 @@ def test_iperf_correctly_parses_multiconnection_tcp_server_output(buffer_connect
     assert ret == iperf2.COMMAND_RESULT_multiple_connections_server
 
 
+def test_iperf_server_detects_all_multiport_records_of_interval(buffer_connection):
+    from moler.cmd.unix import iperf2
+    from moler.exceptions import ParsingDone
+    iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
+                              **iperf2.COMMAND_KWARGS_multiple_connections_udp_server)
+    client_connection_lines = [
+        "[  1] local 192.168.44.130 port 5016 connected with 192.168.44.1 port 51914",
+        "[  2] local 192.168.44.130 port 5016 connected with 192.168.44.1 port 51915",
+        "[  3] local 192.168.44.130 port 5016 connected with 192.168.44.1 port 51916",
+    ]
+    for line in client_connection_lines:
+        try:
+            iperf_cmd._parse_connection_name_and_id(line)
+        except ParsingDone:
+            pass
+    parallel_client_1 = ('51914@192.168.44.1', '5016@192.168.44.130')
+    parallel_client_2 = ('51915@192.168.44.1', '5016@192.168.44.130')
+    parallel_client_3 = ('51916@192.168.44.1', '5016@192.168.44.130')
+
+    single_record = {'Lost_Datagrams_ratio': '0%',
+                     'Jitter': '1.2 ms',
+                     'Transfer': 123904,
+                     'Interval': (0.0, 1.0),
+                     'Transfer Raw': '121 KBytes',
+                     'Bandwidth': 123500,
+                     'Lost_vs_Total_Datagrams': (0, 84),
+                     'Bandwidth Raw': '988 Kbits/sec'}
+    iperf_cmd.current_ret['CONNECTIONS'][parallel_client_1] = [single_record]
+    iperf_cmd.current_ret['CONNECTIONS'][parallel_client_2] = [single_record]
+    assert iperf_cmd._all_multiport_records_of_interval(connection_name=parallel_client_2) is False
+    iperf_cmd.current_ret['CONNECTIONS'][parallel_client_3] = [single_record]
+    assert iperf_cmd._all_multiport_records_of_interval(connection_name=parallel_client_3) is True
+    second_record = dict(single_record)
+    second_record['Interval'] = (1.0, 2.0)
+    iperf_cmd.current_ret['CONNECTIONS'][parallel_client_1] = [second_record]
+    assert iperf_cmd._all_multiport_records_of_interval(connection_name=parallel_client_1) is False
+    iperf_cmd.current_ret['CONNECTIONS'][parallel_client_2] = [second_record]
+    assert iperf_cmd._all_multiport_records_of_interval(connection_name=parallel_client_2) is False
+    iperf_cmd.current_ret['CONNECTIONS'][parallel_client_3] = [second_record]
+    assert iperf_cmd._all_multiport_records_of_interval(connection_name=parallel_client_3) is True
+
+
+def test_iperf_server_can_calculate_multiport_summary_record_of_interval(buffer_connection):
+    from moler.cmd.unix import iperf2
+    from moler.exceptions import ParsingDone
+    iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
+                              **iperf2.COMMAND_KWARGS_multiple_connections_udp_server)
+    client_connection_lines = [
+        "[  1] local 192.168.44.130 port 5016 connected with 192.168.44.1 port 51914",
+        "[  2] local 192.168.44.130 port 5016 connected with 192.168.44.1 port 51915",
+        "[  3] local 192.168.44.130 port 5016 connected with 192.168.44.1 port 51916",
+    ]
+    for line in client_connection_lines:
+        try:
+            iperf_cmd._parse_connection_name_and_id(line)
+        except ParsingDone:
+            pass
+    parallel_client_1 = ('51914@192.168.44.1', '5016@192.168.44.130')
+    parallel_client_2 = ('51915@192.168.44.1', '5016@192.168.44.130')
+    parallel_client_3 = ('51916@192.168.44.1', '5016@192.168.44.130')
+
+    first_record = {'Lost_Datagrams_ratio': '0%',
+                    'Jitter': '1.2 ms',
+                    'Transfer': 123904,
+                    'Interval': (0.0, 1.0),
+                    'Transfer Raw': '121 KBytes',
+                    'Bandwidth': 123500,
+                    'Lost_vs_Total_Datagrams': (0, 84),
+                    'Bandwidth Raw': '988 Kbits/sec'}
+    second_record = dict(first_record)
+    second_record['Jitter'] = '0.98 ms'
+    third_record = dict(first_record)
+    third_record['Jitter'] = '1.48 ms'
+    iperf_cmd.current_ret['CONNECTIONS'][parallel_client_1] = [first_record]
+    iperf_cmd.current_ret['CONNECTIONS'][parallel_client_2] = [second_record]
+    iperf_cmd.current_ret['CONNECTIONS'][parallel_client_3] = [third_record]
+    iperf_cmd._calculate_multiport_summary_record_of_interval(parallel_client_3)
+    summary_connection = ('multiport@192.168.44.1', '5016@192.168.44.130')
+    assert summary_connection in iperf_cmd.current_ret['CONNECTIONS']
+    assert iperf_cmd.current_ret['CONNECTIONS'][summary_connection] == [{
+        'Interval': (0.0, 1.0),
+        'Transfer': 371712,
+        'Transfer Raw': '363.0 KBytes',
+        'Bandwidth': 370500,
+        'Bandwidth Raw': '2964.0 Kbits/sec',
+        'Jitter': '1.48 ms',
+        'Lost_vs_Total_Datagrams': (0, 252),
+        'Lost_Datagrams_ratio': '0.00%',
+    }]
+
+
 def test_iperf_correctly_parses_multiconnection_udp_server_output(buffer_connection):
     from moler.cmd.unix import iperf2
     buffer_connection.remote_inject_response([iperf2.COMMAND_OUTPUT_multiple_connections_udp_server])
