@@ -69,6 +69,8 @@ class CommandTextualGeneric(Command):
         self._ignore_unicode_errors = True  # If True then UnicodeDecodeError will be logged not raised in data_received
         self._last_recv_time_data_read_from_connection = None  # Time moment when data was really received from
         # connection (not when was passed to command).  Time is given as datetime.datetime instance
+        self._remove_ctrlc_chars_for_prompt = True  # after sending Ctrl-C response might be concatenated ^Cprompt
+        # This flag removes "^C" from prompt before processing prompt against self._re_prompt
 
         if not self._newline_chars:
             self._newline_chars = CommandTextualGeneric._default_newline_chars
@@ -285,6 +287,12 @@ class CommandTextualGeneric(Command):
         """
         if self._regex_helper.search_compiled(self._re_prompt, line):
             return True
+        # when command is broken via Ctrl-C then ^C may be appended to start of prompt
+        # if prompt regexp requires "at start of line" via r'^' then such ^C concatenation will falsify prompt
+        if self._remove_ctrlc_chars_for_prompt and (len(line) > 2) and line.startswith("^C"):
+            non_ctrl_c_started_line = line[2:]
+            if self._regex_helper.search_compiled(self._re_prompt, non_ctrl_c_started_line):
+                return True
         return False
 
     def _strip_new_lines_chars(self, line):
