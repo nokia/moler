@@ -114,11 +114,11 @@ host:~ # ssh-keygen
 Generating public/private rsa key pair.
 Enter file in which to save the key (/home/.ssh/id_rsa): /home/key
 /home/key already exists.
-Overwrite (y/n)? 
+Overwrite (y/n)?
 
-Enter passphrase (empty for no passphrase): 
+Enter passphrase (empty for no passphrase):
 
-Enter same passphrase again: 
+Enter same passphrase again:
 
 
 Your identification has been saved in /home/key.
