@@ -317,6 +317,26 @@ def test_iperf_correctly_parses_multiconnection_udp_server_output(buffer_connect
     assert ret == iperf2.COMMAND_RESULT_multiple_connections_udp_server
 
 
+def test_iperf_correctly_breaks_server_on_final_inactivity(buffer_connection):
+    from moler.cmd.unix import iperf2
+    cmd_output = iperf2.COMMAND_OUTPUT_multiple_connections_udp_server.split("\n")
+    prompt = cmd_output.pop()
+    cmd_output_without_prompt = "\n".join(cmd_output) + "\n"
+    buffer_connection.remote_inject_response([cmd_output_without_prompt])
+    iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
+                              **iperf2.COMMAND_KWARGS_multiple_connections_udp_server)
+
+    def injecting_break_cmd(self):
+        self.connection.send("\x03")  # ctrl+c
+        buffer_connection.remote_inject_line(line="^C", add_newline=False)
+        buffer_connection.remote_inject_line(line=prompt, add_newline=False)
+
+    iperf_cmd.break_on_timeout = False  # ensuring that break_cmd() is not called via on_timeout()
+    with mock.patch.object(iperf_cmd.__class__, "break_cmd", injecting_break_cmd):
+        ret = iperf_cmd()
+        assert ret == iperf2.COMMAND_RESULT_multiple_connections_udp_server
+
+
 def test_iperf_correctly_parses_singlerun_tcp_server_output(buffer_connection):
     from moler.cmd.unix import iperf2
     buffer_connection.remote_inject_response([iperf2.COMMAND_OUTPUT_singlerun_server])
