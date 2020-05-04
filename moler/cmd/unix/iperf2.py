@@ -438,14 +438,16 @@ class Iperf2(GenericUnixCommand, Publisher):
             sum_record['Lost_vs_Total_Datagrams'] = (lost_datagrams, total_datagrams)
             sum_record['Lost_Datagrams_ratio'] = '{:.2f}%'.format(lost_datagrams * 100 / total_datagrams)
 
-        sum_connection_name = ('multiport@{}'.format(client_host), server)
+        from_client = 'multiport@{}'.format(client_host)
+        sum_connection_name = (from_client, server)
         self._update_current_ret(sum_connection_name, sum_record)
+        self.notify_subscribers(from_client=from_client, to_server=server, data_record=sum_record)
 
     def _parse_final_record(self, connection_name):
+        if self.parallel_client and ('multiport' not in connection_name[0]):
+            return  # for parallel we take report / publish stats only from summary records
         last_record = self.current_ret['CONNECTIONS'][connection_name][-1]
         if self._is_final_record(last_record):
-            if self.parallel_client and ('multiport' not in connection_name[0]):
-                return  # for parallel we take report only from [SUM] final record
             client_host, client_port, server_host, server_port = self._split_connection_name(connection_name)
             from_client, to_server = client_host, "{}@{}".format(server_port, server_host)
             result_connection = (from_client, to_server)

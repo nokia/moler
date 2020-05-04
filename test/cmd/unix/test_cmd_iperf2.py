@@ -425,7 +425,7 @@ def test_iperf_publishes_records_to_subscribed_observers(buffer_connection):
     conn = buffer_connection
     conn.remote_inject_response([iperf_server_output_start])
     iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
-                              options= '-s -u -i 1')
+                              options='-s -u -i 1')
     iperf_stats = []
 
     def iperf_observer(from_client, to_server, data_record=None, report=None):
@@ -478,6 +478,35 @@ def test_iperf_publishes_records_to_subscribed_observers(buffer_connection):
                                          'Lost_vs_Total_Datagrams': (9, 8409),
                                          'Lost_Datagrams_ratio': u'0.11%'}
     iperf_cmd.cancel()
+
+
+def test_iperf_publishes_only_summary_records_when_handling_parallel_clients(buffer_connection):
+    from moler.cmd.unix import iperf2
+    buffer_connection.remote_inject_response([iperf2.COMMAND_OUTPUT_multiple_connections_udp_server])
+    iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
+                              **iperf2.COMMAND_KWARGS_multiple_connections_udp_server)
+    iperf_stats = {}
+    iperf_report = {}
+
+    def iperf_observer(from_client, to_server, data_record=None, report=None):
+        conn_name = (from_client, to_server)
+        if data_record:
+            if conn_name not in iperf_stats:
+                iperf_stats[conn_name] = []
+            iperf_stats[conn_name].append(data_record)
+        if report:
+            iperf_report[conn_name] = report
+
+    iperf_cmd.subscribe(subscriber=iperf_observer)
+    iperf_cmd()
+    # published stats should be as
+    summary_conn_name = ('multiport@192.168.44.1', '5016@192.168.44.130')
+    client_conn_name = ('192.168.44.1', '5016@192.168.44.130')
+    assert client_conn_name in iperf_report
+    assert summary_conn_name in iperf_stats
+    assert len(iperf_stats.keys()) == 1
+    expected_result = iperf2.COMMAND_RESULT_multiple_connections_udp_server
+    assert iperf_stats[summary_conn_name] == expected_result['CONNECTIONS'][summary_conn_name][:-1]
 
 
 @pytest.fixture
