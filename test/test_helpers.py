@@ -56,6 +56,24 @@ def test_converterhelper_seconds():
     assert 'm' == unit
 
 
+def test_converterhelper_number_wrong_format():
+    from moler.util.converterhelper import ConverterHelper
+    converter = ConverterHelper.get_converter_helper()
+    with pytest.raises(ValueError):
+        converter.to_number(value="abc", raise_exception=True)
+    val = converter.to_number(value="abc", raise_exception=False)
+    assert val == 0
+
+
+def test_converterhelper_number():
+    from moler.util.converterhelper import ConverterHelper
+    converter = ConverterHelper.get_converter_helper()
+    val = converter.to_number(value="1")
+    assert 1 == val
+    val = converter.to_number(value="0.1")
+    assert val == 0.1
+
+
 def test_converterhelper_seconds_ms():
     from moler.util.converterhelper import ConverterHelper
     converter = ConverterHelper.get_converter_helper()
