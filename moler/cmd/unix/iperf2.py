@@ -165,8 +165,6 @@ class Iperf2(GenericUnixCommand, Publisher):
 
     @property
     def singlerun_server(self):
-        if self.client:
-            return False
         singlerun_param_nonlast = ('-P 1 ' in self.options) or ('--parallel 1 ' in self.options)
         singlerun_param_as_last = self.options.endswith('-P 1') or self.options.endswith('--parallel 1')
         return singlerun_param_nonlast or singlerun_param_as_last
