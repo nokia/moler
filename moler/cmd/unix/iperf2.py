@@ -22,8 +22,6 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 
 
 import re
-import time
-import threading
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.util.converterhelper import ConverterHelper
 from moler.exceptions import CommandFailure
@@ -236,15 +234,17 @@ class Iperf2(GenericUnixCommand, Publisher):
         else:
             return super(Iperf2, self).is_end_of_cmd_output(line)
 
+    def on_inactivity(self):
+        """
+        Call when no data is received on connection within self.life_status.inactivity_timeout seconds.
+
+        :return: None
+        """
+        if self._stopping_server and (not self.done()):
+            self.break_cmd()
+
     def _schedule_delayed_break(self, delay):
-
-        def do_break():
-            time.sleep(delay)
-            if not self.done():
-                self.break_cmd()
-
-        breaker = threading.Thread(name="iperf2_brk", target=do_break)
-        breaker.start()
+        self.life_status.inactivity_timeout = 1.0  # will activate on_inactivity()
 
     def _stop_server(self):
         if not self._stopping_server:
