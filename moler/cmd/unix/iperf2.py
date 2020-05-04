@@ -1621,6 +1621,65 @@ COMMAND_RESULT_multiple_connections_udp_server = {
              'UDP buffer size:  208 KByte (default)']
 }
 
+COMMAND_OUTPUT_multiple_connections_udp_client = """
+vagrant@app-svr:~$ iperf -c 192.168.44.130 -u -p 5016 -f k -P 2 -i 1 -t 3.0 -b 1000.0k
+------------------------------------------------------------
+Client connecting to 192.168.44.130, UDP port 5016
+Sending 1470 byte datagrams, IPG target: 11760.00 us (kalman adjust)
+UDP buffer size: 1024 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.33.5 port 39154 connected with 192.168.44.130 port 5016
+[  4] local 192.168.33.5 port 55482 connected with 192.168.44.130 port 5016
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0- 1.0 sec   123 KBytes  1011 Kbits/sec
+[  4]  0.0- 1.0 sec   123 KBytes  1011 Kbits/sec
+[SUM]  0.0- 1.0 sec   247 KBytes  2023 Kbits/sec
+[  3]  1.0- 2.0 sec   123 KBytes  1011 Kbits/sec
+[  4]  1.0- 2.0 sec   123 KBytes  1011 Kbits/sec
+[SUM]  1.0- 2.0 sec   247 KBytes  2023 Kbits/sec
+[  3]  0.0- 3.0 sec   368 KBytes   999 Kbits/sec
+[  3] Sent 256 datagrams
+[  3] Server Report:
+[  3]  0.0- 3.0 sec   369 KBytes  1003 Kbits/sec   0.188 ms    0/  256 (0%)
+[  3] 0.00-3.01 sec  1 datagrams received out-of-order
+[  4]  0.0- 3.0 sec   368 KBytes   999 Kbits/sec
+[  4] Sent 256 datagrams
+[SUM]  0.0- 3.0 sec   735 KBytes  1999 Kbits/sec
+[SUM] Sent 512 datagrams
+[  4] Server Report:
+[  4]  0.0- 3.0 sec   366 KBytes   995 Kbits/sec   0.097 ms    1/  256 (0.39%)
+vagrant@app-svr:~$"""
+
+COMMAND_KWARGS_multiple_connections_udp_client = {
+    'options': '-c 192.168.44.130 -u -p 5016 -f k -P 2 -i 1 -t 3.0 -b 1000.0k'
+}
+
+COMMAND_RESULT_multiple_connections_udp_client = {
+    'CONNECTIONS': {
+        ('55482@192.168.33.5', '5016@192.168.44.130'): [{'Transfer': 125952, 'Bandwidth': 126375, 'Transfer Raw': u'123 KBytes', 'Bandwidth Raw': u'1011 Kbits/sec', 'Interval': (0.0, 1.0)},
+                                                        {'Transfer': 125952, 'Bandwidth': 126375, 'Transfer Raw': u'123 KBytes', 'Bandwidth Raw': u'1011 Kbits/sec', 'Interval': (1.0, 2.0)},
+                                                        {'Transfer': 376832, 'Bandwidth': 124875, 'Transfer Raw': u'368 KBytes', 'Bandwidth Raw': u'999 Kbits/sec', 'Interval': (0.0, 3.0)},
+                                                        {'Transfer': 374784, 'Bandwidth': 124375, 'Transfer Raw': u'366 KBytes', 'Bandwidth Raw': u'995 Kbits/sec', 'Interval': (0.0, 3.0),
+                                                         'Jitter': u'0.097 ms', 'Lost_vs_Total_Datagrams': (1, 256), 'Lost_Datagrams_ratio': u'0.39%'}],
+        ('39154@192.168.33.5', '5016@192.168.44.130'): [{'Transfer': 125952, 'Bandwidth': 126375, 'Transfer Raw': u'123 KBytes', 'Bandwidth Raw': u'1011 Kbits/sec', 'Interval': (0.0, 1.0)},
+                                                        {'Transfer': 125952, 'Bandwidth': 126375, 'Transfer Raw': u'123 KBytes', 'Bandwidth Raw': u'1011 Kbits/sec', 'Interval': (1.0, 2.0)},
+                                                        {'Transfer': 376832, 'Bandwidth': 124875, 'Transfer Raw': u'368 KBytes', 'Bandwidth Raw': u'999 Kbits/sec', 'Interval': (0.0, 3.0)},
+                                                        {'Transfer': 377856, 'Bandwidth': 125375, 'Transfer Raw': u'369 KBytes', 'Bandwidth Raw': u'1003 Kbits/sec', 'Interval': (0.0, 3.0),
+                                                         'Jitter': u'0.188 ms', 'Lost_vs_Total_Datagrams': (0, 256), 'Lost_Datagrams_ratio': u'0%'}],
+        ('multiport@192.168.33.5', '5016@192.168.44.130'): [{'Transfer': 252928, 'Bandwidth': 252875, 'Transfer Raw': u'247 KBytes', 'Bandwidth Raw': u'2023 Kbits/sec', 'Interval': (0.0, 1.0)},
+                                                            {'Transfer': 252928, 'Bandwidth': 252875, 'Transfer Raw': u'247 KBytes', 'Bandwidth Raw': u'2023 Kbits/sec', 'Interval': (1.0, 2.0)},
+                                                            {'Transfer': 752640, 'Bandwidth': 249875, 'Transfer Raw': u'735 KBytes', 'Bandwidth Raw': u'1999 Kbits/sec', 'Interval': (0.0, 3.0)}],
+        ('192.168.33.5', '5016@192.168.44.130'): {'report': {'Transfer': 752640, 'Bandwidth': 249875, 'Transfer Raw': u'735 KBytes', 'Bandwidth Raw': u'1999 Kbits/sec', 'Interval': (0.0, 3.0)}}
+    },
+    'INFO': ['Client connecting to 192.168.44.130, UDP port 5016',
+             'Sending 1470 byte datagrams, IPG target: 11760.00 us (kalman adjust)',
+             'UDP buffer size: 1024 KByte (default)',
+             '[  3] Sent 256 datagrams',
+             '[  3] 0.00-3.01 sec  1 datagrams received out-of-order',
+             '[  4] Sent 256 datagrams',
+             '[SUM] Sent 512 datagrams']
+}
+
 COMMAND_OUTPUT_singlerun_server = """
 xyz@debian:~$ iperf -s -p 5001 -f k -i 1.0 -P 1
 ------------------------------------------------------------

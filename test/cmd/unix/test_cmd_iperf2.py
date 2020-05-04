@@ -317,6 +317,15 @@ def test_iperf_correctly_parses_multiconnection_udp_server_output(buffer_connect
     assert ret == iperf2.COMMAND_RESULT_multiple_connections_udp_server
 
 
+def test_iperf_correctly_parses_multiconnection_udp_client_output(buffer_connection):
+    from moler.cmd.unix import iperf2
+    buffer_connection.remote_inject_response([iperf2.COMMAND_OUTPUT_multiple_connections_udp_client])
+    iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
+                              **iperf2.COMMAND_KWARGS_multiple_connections_udp_client)
+    ret = iperf_cmd()
+    assert ret == iperf2.COMMAND_RESULT_multiple_connections_udp_client
+
+
 def test_iperf_correctly_breaks_server_on_final_inactivity(buffer_connection):
     from moler.cmd.unix import iperf2
     cmd_output = iperf2.COMMAND_OUTPUT_multiple_connections_udp_server.split("\n")
@@ -485,6 +494,7 @@ def test_iperf_publishes_only_summary_records_when_handling_parallel_clients(buf
     buffer_connection.remote_inject_response([iperf2.COMMAND_OUTPUT_multiple_connections_udp_server])
     iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
                               **iperf2.COMMAND_KWARGS_multiple_connections_udp_server)
+    expected_result = iperf2.COMMAND_RESULT_multiple_connections_udp_server
     iperf_stats = {}
     iperf_report = {}
 
@@ -505,7 +515,22 @@ def test_iperf_publishes_only_summary_records_when_handling_parallel_clients(buf
     assert client_conn_name in iperf_report
     assert summary_conn_name in iperf_stats
     assert len(iperf_stats.keys()) == 1
-    expected_result = iperf2.COMMAND_RESULT_multiple_connections_udp_server
+    assert iperf_stats[summary_conn_name] == expected_result['CONNECTIONS'][summary_conn_name][:-1]
+
+    buffer_connection.remote_inject_response([iperf2.COMMAND_OUTPUT_multiple_connections_udp_client])
+    iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
+                              **iperf2.COMMAND_KWARGS_multiple_connections_udp_client)
+    expected_result = iperf2.COMMAND_RESULT_multiple_connections_udp_client
+    iperf_stats = {}
+    iperf_report = {}
+    iperf_cmd.subscribe(subscriber=iperf_observer)
+    iperf_cmd()
+    # published stats should be as
+    summary_conn_name = ('multiport@192.168.33.5', '5016@192.168.44.130')
+    client_conn_name = ('192.168.33.5', '5016@192.168.44.130')
+    assert client_conn_name in iperf_report
+    assert summary_conn_name in iperf_stats
+    assert len(iperf_stats.keys()) == 1
     assert iperf_stats[summary_conn_name] == expected_result['CONNECTIONS'][summary_conn_name][:-1]
 
 
