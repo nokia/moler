@@ -1,3 +1,8 @@
+## moler 1.13.0
+
+### Improved
+* Iperf2: calculate summary report at each interval when server handles client running in --parallel mode
+
 ## moler 1.12.0
 
 ### Improved
