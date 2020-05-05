@@ -81,10 +81,16 @@ class Iperf2(GenericUnixCommand, Publisher):
 
         # private values
         self._connection_dict = dict()
+        self._same_host_connections = dict()
         self._converter_helper = ConverterHelper()
         self._got_server_report_hdr = False
         self._got_server_report = False
         self._stopping_server = False
+
+    def __str__(self):
+        str_base_value = super(Iperf2, self).__str__()
+        str_value = "{}, awaited_prompt='{}')".format(str_base_value[:-1], self._re_prompt.pattern)
+        return str_value
 
     _re_port = re.compile(r"(?P<PORT_OPTION>\-\-port|\-p)\s+(?P<PORT>\d+)")
 
@@ -159,8 +165,6 @@ class Iperf2(GenericUnixCommand, Publisher):
 
     @property
     def singlerun_server(self):
-        if self.client:
-            return False
         singlerun_param_nonlast = ('-P 1 ' in self.options) or ('--parallel 1 ' in self.options)
         singlerun_param_as_last = self.options.endswith('-P 1') or self.options.endswith('--parallel 1')
         return singlerun_param_nonlast or singlerun_param_as_last
@@ -228,10 +232,22 @@ class Iperf2(GenericUnixCommand, Publisher):
         else:
             return super(Iperf2, self).is_end_of_cmd_output(line)
 
+    def on_inactivity(self):
+        """
+        Call when no data is received on connection within self.life_status.inactivity_timeout seconds.
+
+        :return: None
+        """
+        if self._stopping_server and (not self.done()):
+            self.break_cmd()
+
+    def _schedule_delayed_break(self, delay):
+        self.life_status.inactivity_timeout = 1.0  # will activate on_inactivity()
+
     def _stop_server(self):
         if not self._stopping_server:
             if not self.singlerun_server:
-                self.break_cmd()
+                self._schedule_delayed_break(delay=1.0)
             self._stopping_server = True
 
     _re_command_failure = re.compile(r"(?P<FAILURE_MSG>.*failed.*|.*error.*|.*command not found.*|.*iperf:.*)")
@@ -254,10 +270,17 @@ class Iperf2(GenericUnixCommand, Publisher):
             remote = "{}@{}".format(remote_port, remote_host)
             if self.port == int(remote_port):
                 from_client, to_server = local, remote
+                client_host = local_host
             else:
                 from_client, to_server = remote, local
-            connection_dict = {connection_id: (from_client, to_server)}
+                client_host = remote_host
+            connection = (from_client, to_server)
+            connection_dict = {connection_id: connection}
             self._connection_dict.update(connection_dict)
+            if client_host not in self._same_host_connections:
+                self._same_host_connections[client_host] = [connection]
+            else:
+                self._same_host_connections[client_host].append(connection)
             raise ParsingDone
 
     # iperf output for: udp client, tcp client, tcp server
@@ -316,6 +339,8 @@ class Iperf2(GenericUnixCommand, Publisher):
             connection_name = self._connection_dict[connection_id]
             normalized_iperf_record = self._normalize_to_bytes(iperf_record)
             self._update_current_ret(connection_name, normalized_iperf_record)
+            if self._need_add_multiport_summary_record_of_interval(connection_name, normalized_iperf_record):
+                self._calculate_multiport_summary_record_of_interval(connection_name)
             self._parse_final_record(connection_name)
             if self.protocol == 'udp' and self._got_server_report_hdr:
                 self._got_server_report = True
@@ -341,11 +366,88 @@ class Iperf2(GenericUnixCommand, Publisher):
             connection_dict = {connection_name: [info_dict]}
             self.current_ret['CONNECTIONS'].update(connection_dict)
 
+    def _all_multiport_records_of_interval(self, connection_name):
+        client, server = connection_name
+        client_port, client_host = client.split("@")
+        last_interval = self.current_ret['CONNECTIONS'][connection_name][-1]['Interval']
+        for conn_name in self._same_host_connections[client_host]:
+            if conn_name not in self.current_ret['CONNECTIONS']:
+                return False
+            if not self._get_last_record_of_interval(conn_name, last_interval):
+                return False
+        return True
+
+    def _get_last_record_of_interval(self, connection_name, interval):
+        last_rec = self.current_ret['CONNECTIONS'][connection_name][-1]
+        if last_rec['Interval'] == interval:
+            return last_rec
+        if len(self.current_ret['CONNECTIONS'][connection_name]) > 1:
+            pre_last_rec = self.current_ret['CONNECTIONS'][connection_name][-2]
+            if pre_last_rec['Interval'] == interval:
+                return pre_last_rec
+        return None
+
+    def _need_add_multiport_summary_record_of_interval(self, connection_name, last_iperf_record):
+        if not self.server:
+            return False
+        if not self.parallel_client:
+            return False
+        if self._is_final_record(last_iperf_record):
+            return False
+        if not self._all_multiport_records_of_interval(connection_name):
+            return False
+        return True
+
+    def _calculate_multiport_summary_record_of_interval(self, connection_name):
+        client, server = connection_name
+        client_port, client_host = client.split("@")
+        connections = self._same_host_connections[client_host]
+
+        interval = self.current_ret['CONNECTIONS'][connection_name][-1]['Interval']
+        if interval == (4.0, 5.0):
+            pass
+        transfers = [self._get_last_record_of_interval(conn, interval)['Transfer'] for conn in connections]
+        raw_transfers = [self._get_last_record_of_interval(conn, interval)['Transfer Raw'] for conn in connections]
+        bandwidths = [self._get_last_record_of_interval(conn, interval)['Bandwidth'] for conn in connections]
+        raw_bandwidths = [self._get_last_record_of_interval(conn, interval)['Bandwidth Raw'] for conn in connections]
+        if self.protocol == 'udp':
+            jitters = [self._get_last_record_of_interval(conn, interval)['Jitter'] for conn in connections]
+            ltds = [self._get_last_record_of_interval(conn, interval)['Lost_vs_Total_Datagrams'] for conn in connections]
+
+            jitter_unit = jitters[0].split()[1]  # 'Jitter': '0.821 ms'
+            jitter_values = [float(jit.split()[0]) for jit in jitters]
+
+            lost_datagrams = sum([lost for lost, _ in ltds])
+            total_datagrams = sum([total for _, total in ltds])
+
+        raw_transfer_unit = raw_transfers[0].split()[1]  # 'Transfer Raw': '122 KBytes',
+        raw_transfer_values = [float(raw_trf.split()[0]) for raw_trf in raw_transfers]
+
+        raw_bandwidth_unit = raw_bandwidths[0].split()[1]  # 'Bandwidth Raw': '1000 Kbits/sec'
+        raw_bandwidth_values = [float(raw_bw.split()[0]) for raw_bw in raw_bandwidths]
+
+        sum_record = {
+            'Interval': interval,
+            'Transfer': sum(transfers),
+            'Transfer Raw': '{} {}'.format(sum(raw_transfer_values), raw_transfer_unit),
+            'Bandwidth': sum(bandwidths),
+            'Bandwidth Raw': '{} {}'.format(sum(raw_bandwidth_values), raw_bandwidth_unit),
+        }
+        if self.protocol == 'udp':
+            sum_record['Jitter'] = '{} {}'.format(max(jitter_values), jitter_unit)
+            sum_record['Lost_vs_Total_Datagrams'] = (lost_datagrams, total_datagrams)
+            sum_record['Lost_Datagrams_ratio'] = '{:.2f}%'.format(lost_datagrams * 100 / total_datagrams)
+
+        from_client = 'multiport@{}'.format(client_host)
+        sum_connection_name = (from_client, server)
+        self._update_current_ret(sum_connection_name, sum_record)
+        self.notify_subscribers(from_client=from_client, to_server=server, data_record=sum_record)
+
     def _parse_final_record(self, connection_name):
+        if self.parallel_client and ('multiport' not in connection_name[0]):
+            return  # for parallel we take report / publish stats only from summary records
         last_record = self.current_ret['CONNECTIONS'][connection_name][-1]
         if self._is_final_record(last_record):
-            if self.parallel_client and ('multiport' not in connection_name[0]):
-                return  # for parallel we take report only from [SUM] final record
             client_host, client_port, server_host, server_port = self._split_connection_name(connection_name)
             from_client, to_server = client_host, "{}@{}".format(server_port, server_host)
             result_connection = (from_client, to_server)
@@ -1273,6 +1375,309 @@ COMMAND_RESULT_multiple_connections_server = {
                                                            'Interval': (0.0, 5.0)}}},
     'INFO': ['Server listening on TCP port 5016',
              'TCP window size: 85.3 KByte (default)']
+}
+
+COMMAND_OUTPUT_multiple_connections_udp_server = """
+vagrant@app-svr:~$ iperf -s -u -p 5016 -f k -i 1 -P 3
+------------------------------------------------------------
+Server listening on UDP port 5016
+Receiving 1470 byte datagrams
+UDP buffer size:  208 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.44.130 port 5016 connected with 192.168.44.1 port 51914
+[  6] local 192.168.44.130 port 5016 connected with 192.168.44.1 port 51916
+[  4] local 192.168.44.130 port 5016 connected with 192.168.44.1 port 51915
+[ ID] Interval       Transfer     Bandwidth        Jitter   Lost/Total Datagrams
+[  3]  0.0- 1.0 sec   122 KBytes  1000 Kbits/sec   1.556 ms    0/   85 (0%)
+[  6]  0.0- 1.0 sec   122 KBytes  1000 Kbits/sec   1.541 ms    0/   85 (0%)
+[  4]  0.0- 1.0 sec   121 KBytes   988 Kbits/sec   1.464 ms    0/   84 (0%)
+[  3]  1.0- 2.0 sec   123 KBytes  1011 Kbits/sec   0.654 ms    0/   86 (0%)
+[  6]  1.0- 2.0 sec   123 KBytes  1011 Kbits/sec   0.719 ms    0/   86 (0%)
+[  4]  1.0- 2.0 sec   125 KBytes  1023 Kbits/sec   0.565 ms    0/   87 (0%)
+[  3]  2.0- 3.0 sec   121 KBytes   988 Kbits/sec   0.463 ms    0/   84 (0%)
+[  6]  2.0- 3.0 sec   121 KBytes   988 Kbits/sec   0.376 ms    0/   84 (0%)
+[  4]  2.0- 3.0 sec   121 KBytes   988 Kbits/sec   1.191 ms    0/   84 (0%)
+[  3]  3.0- 4.0 sec   123 KBytes  1011 Kbits/sec   0.951 ms    0/   86 (0%)
+[  6]  3.0- 4.0 sec   123 KBytes  1011 Kbits/sec   1.470 ms    0/   86 (0%)
+[  4]  3.0- 4.0 sec   123 KBytes  1011 Kbits/sec   1.225 ms    0/   86 (0%)
+[  6]  4.0- 5.0 sec   122 KBytes  1000 Kbits/sec   1.332 ms    0/   85 (0%)
+[  6]  0.0- 5.0 sec   612 KBytes  1000 Kbits/sec   1.332 ms    0/  426 (0%)
+[  3]  4.0- 5.0 sec   122 KBytes  1000 Kbits/sec   0.821 ms    0/   85 (0%)
+[  3]  0.0- 5.0 sec   612 KBytes  1000 Kbits/sec   0.821 ms    0/  426 (0%)
+[  4]  4.0- 5.0 sec   122 KBytes  1000 Kbits/sec   1.273 ms    0/   85 (0%)
+[  4]  0.0- 5.0 sec   612 KBytes  1000 Kbits/sec   1.273 ms    0/  426 (0%)
+[SUM]  0.0- 5.0 sec  2199 KBytes  3596 Kbits/sec   1.556 ms    0/ 1532 (0%)
+vagrant@app-svr:~$"""
+
+COMMAND_KWARGS_multiple_connections_udp_server = {
+    'options': '-s -u -p 5016 -f k -i 1 -P 3'
+}
+
+COMMAND_RESULT_multiple_connections_udp_server = {
+    'CONNECTIONS': {
+        ('51915@192.168.44.1', '5016@192.168.44.130'): [{'Lost_Datagrams_ratio': '0%',
+                                                         'Jitter': '1.464 ms',
+                                                         'Transfer': 123904,
+                                                         'Interval': (0.0, 1.0),
+                                                         'Transfer Raw': '121 KBytes',
+                                                         'Bandwidth': 123500,
+                                                         'Lost_vs_Total_Datagrams': (0, 84),
+                                                         'Bandwidth Raw': '988 Kbits/sec'},
+                                                        {'Lost_Datagrams_ratio': '0%',
+                                                         'Jitter': '0.565 ms',
+                                                         'Transfer': 128000,
+                                                         'Interval': (1.0, 2.0),
+                                                         'Transfer Raw': '125 KBytes',
+                                                         'Bandwidth': 127875,
+                                                         'Lost_vs_Total_Datagrams': (0, 87),
+                                                         'Bandwidth Raw': '1023 Kbits/sec'},
+                                                        {'Lost_Datagrams_ratio': '0%',
+                                                         'Jitter': '1.191 ms',
+                                                         'Transfer': 123904,
+                                                         'Interval': (2.0, 3.0),
+                                                         'Transfer Raw': '121 KBytes',
+                                                         'Bandwidth': 123500,
+                                                         'Lost_vs_Total_Datagrams': (0, 84),
+                                                         'Bandwidth Raw': '988 Kbits/sec'},
+                                                        {'Lost_Datagrams_ratio': '0%',
+                                                         'Jitter': '1.225 ms',
+                                                         'Transfer': 125952,
+                                                         'Interval': (3.0, 4.0),
+                                                         'Transfer Raw': '123 KBytes',
+                                                         'Bandwidth': 126375,
+                                                         'Lost_vs_Total_Datagrams': (0, 86),
+                                                         'Bandwidth Raw': '1011 Kbits/sec'},
+                                                        {'Lost_Datagrams_ratio': '0%',
+                                                         'Jitter': '1.273 ms',
+                                                         'Transfer': 124928,
+                                                         'Interval': (4.0, 5.0),
+                                                         'Transfer Raw': '122 KBytes',
+                                                         'Bandwidth': 125000,
+                                                         'Lost_vs_Total_Datagrams': (0, 85),
+                                                         'Bandwidth Raw': '1000 Kbits/sec'},
+                                                        {'Lost_Datagrams_ratio': '0%',
+                                                         'Jitter': '1.273 ms',
+                                                         'Transfer': 626688,
+                                                         'Interval': (0.0, 5.0),
+                                                         'Transfer Raw': '612 KBytes',
+                                                         'Bandwidth': 125000,
+                                                         'Lost_vs_Total_Datagrams': (0, 426),
+                                                         'Bandwidth Raw': '1000 Kbits/sec'}],
+        ('51916@192.168.44.1', '5016@192.168.44.130'): [{'Lost_Datagrams_ratio': '0%',
+                                                         'Jitter': '1.541 ms',
+                                                         'Transfer': 124928,
+                                                         'Interval': (0.0, 1.0),
+                                                         'Transfer Raw': '122 KBytes',
+                                                         'Bandwidth': 125000,
+                                                         'Lost_vs_Total_Datagrams': (0, 85),
+                                                         'Bandwidth Raw': '1000 Kbits/sec'},
+                                                        {'Lost_Datagrams_ratio': '0%',
+                                                         'Jitter': '0.719 ms',
+                                                         'Transfer': 125952,
+                                                         'Interval': (1.0, 2.0),
+                                                         'Transfer Raw': '123 KBytes',
+                                                         'Bandwidth': 126375,
+                                                         'Lost_vs_Total_Datagrams': (0, 86),
+                                                         'Bandwidth Raw': '1011 Kbits/sec'},
+                                                        {'Lost_Datagrams_ratio': '0%',
+                                                         'Jitter': '0.376 ms',
+                                                         'Transfer': 123904,
+                                                         'Interval': (2.0, 3.0),
+                                                         'Transfer Raw': '121 KBytes',
+                                                         'Bandwidth': 123500,
+                                                         'Lost_vs_Total_Datagrams': (0, 84),
+                                                         'Bandwidth Raw': '988 Kbits/sec'},
+                                                        {'Lost_Datagrams_ratio': '0%',
+                                                         'Jitter': '1.470 ms',
+                                                         'Transfer': 125952,
+                                                         'Interval': (3.0, 4.0),
+                                                         'Transfer Raw': '123 KBytes',
+                                                         'Bandwidth': 126375,
+                                                         'Lost_vs_Total_Datagrams': (0, 86),
+                                                         'Bandwidth Raw': '1011 Kbits/sec'},
+                                                        {'Lost_Datagrams_ratio': '0%',
+                                                         'Jitter': '1.332 ms',
+                                                         'Transfer': 124928,
+                                                         'Interval': (4.0, 5.0),
+                                                         'Transfer Raw': '122 KBytes',
+                                                         'Bandwidth': 125000,
+                                                         'Lost_vs_Total_Datagrams': (0, 85),
+                                                         'Bandwidth Raw': '1000 Kbits/sec'},
+                                                        {'Lost_Datagrams_ratio': '0%',
+                                                         'Jitter': '1.332 ms',
+                                                         'Transfer': 626688,
+                                                         'Interval': (0.0, 5.0),
+                                                         'Transfer Raw': '612 KBytes',
+                                                         'Bandwidth': 125000,
+                                                         'Lost_vs_Total_Datagrams': (0, 426),
+                                                         'Bandwidth Raw': '1000 Kbits/sec'}],
+        ('51914@192.168.44.1', '5016@192.168.44.130'): [{'Lost_Datagrams_ratio': '0%',
+                                                         'Jitter': '1.556 ms',
+                                                         'Transfer': 124928,
+                                                         'Interval': (0.0, 1.0),
+                                                         'Transfer Raw': '122 KBytes',
+                                                         'Bandwidth': 125000,
+                                                         'Lost_vs_Total_Datagrams': (0, 85),
+                                                         'Bandwidth Raw': '1000 Kbits/sec'},
+                                                        {'Lost_Datagrams_ratio': '0%',
+                                                         'Jitter': '0.654 ms',
+                                                         'Transfer': 125952,
+                                                         'Interval': (1.0, 2.0),
+                                                         'Transfer Raw': '123 KBytes',
+                                                         'Bandwidth': 126375,
+                                                         'Lost_vs_Total_Datagrams': (0, 86),
+                                                         'Bandwidth Raw': '1011 Kbits/sec'},
+                                                        {'Lost_Datagrams_ratio': '0%',
+                                                         'Jitter': '0.463 ms',
+                                                         'Transfer': 123904,
+                                                         'Interval': (2.0, 3.0),
+                                                         'Transfer Raw': '121 KBytes',
+                                                         'Bandwidth': 123500,
+                                                         'Lost_vs_Total_Datagrams': (0, 84),
+                                                         'Bandwidth Raw': '988 Kbits/sec'},
+                                                        {'Lost_Datagrams_ratio': '0%',
+                                                         'Jitter': '0.951 ms',
+                                                         'Transfer': 125952,
+                                                         'Interval': (3.0, 4.0),
+                                                         'Transfer Raw': '123 KBytes',
+                                                         'Bandwidth': 126375,
+                                                         'Lost_vs_Total_Datagrams': (0, 86),
+                                                         'Bandwidth Raw': '1011 Kbits/sec'},
+                                                        {'Lost_Datagrams_ratio': '0%',
+                                                         'Jitter': '0.821 ms',
+                                                         'Transfer': 124928,
+                                                         'Interval': (4.0, 5.0),
+                                                         'Transfer Raw': '122 KBytes',
+                                                         'Bandwidth': 125000,
+                                                         'Lost_vs_Total_Datagrams': (0, 85),
+                                                         'Bandwidth Raw': '1000 Kbits/sec'},
+                                                        {'Lost_Datagrams_ratio': '0%',
+                                                         'Jitter': '0.821 ms',
+                                                         'Transfer': 626688,
+                                                         'Interval': (0.0, 5.0),
+                                                         'Transfer Raw': '612 KBytes',
+                                                         'Bandwidth': 125000,
+                                                         'Lost_vs_Total_Datagrams': (0, 426),
+                                                         'Bandwidth Raw': '1000 Kbits/sec'}],
+        ('multiport@192.168.44.1', '5016@192.168.44.130'): [{'Lost_Datagrams_ratio': '0.00%',
+                                                             'Jitter': '{} ms'.format(max(1.464, 1.541, 1.556)),
+                                                             'Transfer': 123904 + 124928 + 124928,
+                                                             'Interval': (0.0, 1.0),
+                                                             'Transfer Raw': '365.0 KBytes',
+                                                             'Bandwidth': 123500 + 125000 + 125000,
+                                                             'Lost_vs_Total_Datagrams': (0 + 0 + 0, 84 + 85 + 85),
+                                                             'Bandwidth Raw': '2988.0 Kbits/sec'},
+                                                            {'Lost_Datagrams_ratio': '0.00%',
+                                                             'Jitter': '{} ms'.format(max(0.565, 0.719, 0.654)),
+                                                             'Transfer': 128000 + 125952 + 125952,
+                                                             'Interval': (1.0, 2.0),
+                                                             'Transfer Raw': '371.0 KBytes',
+                                                             'Bandwidth': 127875 + 126375 + 126375,
+                                                             'Lost_vs_Total_Datagrams': (0 + 0 + 0, 87 + 86 + 86),
+                                                             'Bandwidth Raw': '3045.0 Kbits/sec'},
+                                                            {'Lost_Datagrams_ratio': '0.00%',
+                                                             'Jitter': '{} ms'.format(max(1.191, 0.376, 0.463)),
+                                                             'Transfer': 123904 + 123904 + 123904,
+                                                             'Interval': (2.0, 3.0),
+                                                             'Transfer Raw': '363.0 KBytes',
+                                                             'Bandwidth': 123500 + 123500 + 123500,
+                                                             'Lost_vs_Total_Datagrams': (0 + 0 + 0, 84 + 84 + 84),
+                                                             'Bandwidth Raw': '2964.0 Kbits/sec'},
+                                                            {'Lost_Datagrams_ratio': '0.00%',
+                                                             'Jitter': '{} ms'.format(max(1.225, 1.470, 0.951)),
+                                                             'Transfer': 125952 + 125952 + 125952,
+                                                             'Interval': (3.0, 4.0),
+                                                             'Transfer Raw': '369.0 KBytes',
+                                                             'Bandwidth': 126375 + 126375 + 126375,
+                                                             'Lost_vs_Total_Datagrams': (0 + 0 + 0, 86 + 86 + 86),
+                                                             'Bandwidth Raw': '3033.0 Kbits/sec'},
+                                                            {'Lost_Datagrams_ratio': '0.00%',
+                                                             'Jitter': '{} ms'.format(max(1.273, 1.332, 0.821)),
+                                                             'Transfer': 124928 + 124928 + 124928,
+                                                             'Interval': (4.0, 5.0),
+                                                             'Transfer Raw': '366.0 KBytes',
+                                                             'Bandwidth': 125000 + 125000 + 125000,
+                                                             'Lost_vs_Total_Datagrams': (0 + 0 + 0, 85 + 85 + 85),
+                                                             'Bandwidth Raw': '3000.0 Kbits/sec'},
+                                                            {'Lost_Datagrams_ratio': '0%',
+                                                             'Jitter': '1.556 ms',
+                                                             'Transfer': 2251776,
+                                                             'Interval': (0.0, 5.0),
+                                                             'Transfer Raw': '2199 KBytes',
+                                                             'Bandwidth': 449500,
+                                                             'Lost_vs_Total_Datagrams': (0, 1532),
+                                                             'Bandwidth Raw': '3596 Kbits/sec'}],
+        ('192.168.44.1', '5016@192.168.44.130'): {'report': {'Lost_Datagrams_ratio': '0%',
+                                                             'Jitter': '1.556 ms',
+                                                             'Transfer': 2251776,
+                                                             'Interval': (0.0, 5.0),
+                                                             'Transfer Raw': '2199 KBytes',
+                                                             'Bandwidth': 449500,
+                                                             'Lost_vs_Total_Datagrams': (0, 1532),
+                                                             'Bandwidth Raw': '3596 Kbits/sec'}},
+    },
+    'INFO': ['Server listening on UDP port 5016',
+             'Receiving 1470 byte datagrams',
+             'UDP buffer size:  208 KByte (default)']
+}
+
+COMMAND_OUTPUT_multiple_connections_udp_client = """
+vagrant@app-svr:~$ iperf -c 192.168.44.130 -u -p 5016 -f k -P 2 -i 1 -t 3.0 -b 1000.0k
+------------------------------------------------------------
+Client connecting to 192.168.44.130, UDP port 5016
+Sending 1470 byte datagrams, IPG target: 11760.00 us (kalman adjust)
+UDP buffer size: 1024 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.33.5 port 39154 connected with 192.168.44.130 port 5016
+[  4] local 192.168.33.5 port 55482 connected with 192.168.44.130 port 5016
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0- 1.0 sec   123 KBytes  1011 Kbits/sec
+[  4]  0.0- 1.0 sec   123 KBytes  1011 Kbits/sec
+[SUM]  0.0- 1.0 sec   247 KBytes  2023 Kbits/sec
+[  3]  1.0- 2.0 sec   123 KBytes  1011 Kbits/sec
+[  4]  1.0- 2.0 sec   123 KBytes  1011 Kbits/sec
+[SUM]  1.0- 2.0 sec   247 KBytes  2023 Kbits/sec
+[  3]  0.0- 3.0 sec   368 KBytes   999 Kbits/sec
+[  3] Sent 256 datagrams
+[  3] Server Report:
+[  3]  0.0- 3.0 sec   369 KBytes  1003 Kbits/sec   0.188 ms    0/  256 (0%)
+[  3] 0.00-3.01 sec  1 datagrams received out-of-order
+[  4]  0.0- 3.0 sec   368 KBytes   999 Kbits/sec
+[  4] Sent 256 datagrams
+[SUM]  0.0- 3.0 sec   735 KBytes  1999 Kbits/sec
+[SUM] Sent 512 datagrams
+[  4] Server Report:
+[  4]  0.0- 3.0 sec   366 KBytes   995 Kbits/sec   0.097 ms    1/  256 (0.39%)
+vagrant@app-svr:~$"""
+
+COMMAND_KWARGS_multiple_connections_udp_client = {
+    'options': '-c 192.168.44.130 -u -p 5016 -f k -P 2 -i 1 -t 3.0 -b 1000.0k'
+}
+
+COMMAND_RESULT_multiple_connections_udp_client = {
+    'CONNECTIONS': {
+        ('55482@192.168.33.5', '5016@192.168.44.130'): [{'Transfer': 125952, 'Bandwidth': 126375, 'Transfer Raw': u'123 KBytes', 'Bandwidth Raw': u'1011 Kbits/sec', 'Interval': (0.0, 1.0)},
+                                                        {'Transfer': 125952, 'Bandwidth': 126375, 'Transfer Raw': u'123 KBytes', 'Bandwidth Raw': u'1011 Kbits/sec', 'Interval': (1.0, 2.0)},
+                                                        {'Transfer': 376832, 'Bandwidth': 124875, 'Transfer Raw': u'368 KBytes', 'Bandwidth Raw': u'999 Kbits/sec', 'Interval': (0.0, 3.0)},
+                                                        {'Transfer': 374784, 'Bandwidth': 124375, 'Transfer Raw': u'366 KBytes', 'Bandwidth Raw': u'995 Kbits/sec', 'Interval': (0.0, 3.0),
+                                                         'Jitter': u'0.097 ms', 'Lost_vs_Total_Datagrams': (1, 256), 'Lost_Datagrams_ratio': u'0.39%'}],
+        ('39154@192.168.33.5', '5016@192.168.44.130'): [{'Transfer': 125952, 'Bandwidth': 126375, 'Transfer Raw': u'123 KBytes', 'Bandwidth Raw': u'1011 Kbits/sec', 'Interval': (0.0, 1.0)},
+                                                        {'Transfer': 125952, 'Bandwidth': 126375, 'Transfer Raw': u'123 KBytes', 'Bandwidth Raw': u'1011 Kbits/sec', 'Interval': (1.0, 2.0)},
+                                                        {'Transfer': 376832, 'Bandwidth': 124875, 'Transfer Raw': u'368 KBytes', 'Bandwidth Raw': u'999 Kbits/sec', 'Interval': (0.0, 3.0)},
+                                                        {'Transfer': 377856, 'Bandwidth': 125375, 'Transfer Raw': u'369 KBytes', 'Bandwidth Raw': u'1003 Kbits/sec', 'Interval': (0.0, 3.0),
+                                                         'Jitter': u'0.188 ms', 'Lost_vs_Total_Datagrams': (0, 256), 'Lost_Datagrams_ratio': u'0%'}],
+        ('multiport@192.168.33.5', '5016@192.168.44.130'): [{'Transfer': 252928, 'Bandwidth': 252875, 'Transfer Raw': u'247 KBytes', 'Bandwidth Raw': u'2023 Kbits/sec', 'Interval': (0.0, 1.0)},
+                                                            {'Transfer': 252928, 'Bandwidth': 252875, 'Transfer Raw': u'247 KBytes', 'Bandwidth Raw': u'2023 Kbits/sec', 'Interval': (1.0, 2.0)},
+                                                            {'Transfer': 752640, 'Bandwidth': 249875, 'Transfer Raw': u'735 KBytes', 'Bandwidth Raw': u'1999 Kbits/sec', 'Interval': (0.0, 3.0)}],
+        ('192.168.33.5', '5016@192.168.44.130'): {'report': {'Transfer': 752640, 'Bandwidth': 249875, 'Transfer Raw': u'735 KBytes', 'Bandwidth Raw': u'1999 Kbits/sec', 'Interval': (0.0, 3.0)}}
+    },
+    'INFO': ['Client connecting to 192.168.44.130, UDP port 5016',
+             'Sending 1470 byte datagrams, IPG target: 11760.00 us (kalman adjust)',
+             'UDP buffer size: 1024 KByte (default)',
+             '[  3] Sent 256 datagrams',
+             '[  3] 0.00-3.01 sec  1 datagrams received out-of-order',
+             '[  4] Sent 256 datagrams',
+             '[SUM] Sent 512 datagrams']
 }
 
 COMMAND_OUTPUT_singlerun_server = """
