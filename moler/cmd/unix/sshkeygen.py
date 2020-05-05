@@ -84,8 +84,8 @@ class Sshkeygen(GenericUnixCommand):
             self.connection.sendline(self.passphrase)
             raise ParsingDone()
 
-    # Enter file in which to save the key (/home/ute/.ssh/id_rsa):
-    _re_send_file_name = re.compile(r"Enter file in which to save the key \(/home/ute/.ssh/id_rsa\):")
+    # Enter file in which to save the key (/home/.ssh/id_rsa):
+    _re_send_file_name = re.compile(r"Enter file in which to save the key \(.*\):")
 
     def _parse_send_file_name(self, line):
         if re.search(Sshkeygen._re_send_file_name, line) and not self._file_name_sent:
@@ -111,7 +111,7 @@ class Sshkeygen(GenericUnixCommand):
 COMMAND_OUTPUT_NO_OPTIONS = """
 host:~ # ssh-keygen
 Generating public/private rsa key pair.
-Enter file in which to save the key (/home/.ssh/id_rsa): /home/key
+Enter file in which to save the key (/home/.ssh/id_rsa):
 /home/key already exists.
 Overwrite (y/n)?
 
@@ -145,7 +145,7 @@ COMMAND_RESULT_NO_OPTIONS = {}
 COMMAND_OUTPUT_WITH_OPTIONS = """
 host:~ # ssh-keygen -t rsa
 Generating public/private rsa key pair.
-Enter file in which to save the key (/home/.ssh/id_rsa): /home/key
+Enter file in which to save the key (/home/.ssh/id_rsa):
 /home/key already exists.
 Overwrite (y/n)?
 host:~ #"""
