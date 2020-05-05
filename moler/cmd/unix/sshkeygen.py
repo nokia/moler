@@ -63,10 +63,9 @@ class Sshkeygen(GenericUnixCommand):
             self._parse_send_file_name(line)
             self._parse_overwrite(line)
             self._parse_passphrase(line)
-
-            return super(Sshkeygen, self).on_new_line(line, is_full_line)
         except ParsingDone:
             pass
+        return super(Sshkeygen, self).on_new_line(line, is_full_line)
 
     # Enter passphrase (empty for no passphrase):
     _re_passphrase = re.compile(r"Enter passphrase \(empty for no passphrase\):")
@@ -96,7 +95,7 @@ class Sshkeygen(GenericUnixCommand):
             raise ParsingDone
 
     # Overwrite (y/n)?
-    _re_overwrite = re.compile(r"Overwrite (y/n)?")
+    _re_overwrite = re.compile(r"Overwrite \(y/n\)\?")
 
     def _parse_overwrite(self, line):
         if re.search(Sshkeygen._re_overwrite, line) and not self._overwrite_sent:
@@ -109,7 +108,7 @@ class Sshkeygen(GenericUnixCommand):
             raise ParsingDone
 
 
-COMMAND_OUTPUT = """
+COMMAND_OUTPUT_NO_OPTIONS = """
 host:~ # ssh-keygen
 Generating public/private rsa key pair.
 Enter file in which to save the key (/home/.ssh/id_rsa): /home/key
@@ -139,6 +138,18 @@ The key's randomart image is:
 +----[SHA256]-----+
 host:~ #"""
 
-COMMAND_KWARGS = {"file": "/home/key"}
+COMMAND_KWARGS_NO_OPTIONS = {"file": "/home/key"}
 
-COMMAND_RESULT = {}
+COMMAND_RESULT_NO_OPTIONS = {}
+
+COMMAND_OUTPUT_WITH_OPTIONS = """
+host:~ # ssh-keygen -t rsa
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/.ssh/id_rsa): /home/key
+/home/key already exists.
+Overwrite (y/n)?
+host:~ #"""
+
+COMMAND_KWARGS_WITH_OPTIONS = {"file": "/home/key", "options": "-t rsa", "overwrite": False}
+
+COMMAND_RESULT_WITH_OPTIONS = {}
