@@ -596,6 +596,14 @@ moler.cmd.unix.ssh module
     :undoc-members:
     :show-inheritance:
 
+moler.cmd.unix.sshkeygen module
+-------------------------------
+
+.. automodule:: moler.cmd.unix.sshkeygen
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.cmd.unix.su module
 ------------------------
 
