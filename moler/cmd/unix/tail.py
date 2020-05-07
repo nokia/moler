@@ -7,19 +7,33 @@ from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 import re
 
-__author__ = 'Sylwester Golonka'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'sylwester.golonka@nokia.com'
+__author__ = 'Sylwester Golonka, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__email__ = 'sylwester.golonka@nokia.com, marcin.usielski@nokia.com'
 
 
 class Tail(GenericUnixCommand):
     def __init__(self, connection, path, options=None, prompt=None, newline_chars=None, runner=None):
+        """
+        :param connection: Moler connection to device, terminal when command is executed.
+        :param path: path to file to tail.
+        :param options: options passed to command tail.
+        :param prompt: prompt (on system where command runs).
+        :param newline_chars: Characters to split lines - list.
+        :param runner: Runner to run command.
+        """
         super(Tail, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.path = path
         self.options = options
         self.current_ret["LINES"] = []
+        self._line_nr = 0
 
     def build_command_string(self):
+        """
+        Builds string with command.
+
+        :return: String with command.
+        """
         cmd = "tail"
         if self.options:
             cmd = "{} {} {}".format(cmd, self.path, self.options)
@@ -28,9 +42,20 @@ class Tail(GenericUnixCommand):
         return cmd
 
     def on_new_line(self, line, is_full_line):
+        """
+        Parses the output of the command.
+
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: None
+        """
         if is_full_line:
+            self._line_nr += 1
             try:
-                self._parse_error(line)
+                if self._line_nr > 1:
+                    self._re_fail = None
+                else:
+                    self._parse_error(line)
                 self._parse_line(line)
             except ParsingDone:
                 pass
