@@ -75,7 +75,7 @@ class Tail(GenericUnixCommand):
 
 
 COMMAND_OUTPUT = """
-ute@debdev:~$ tail /proc/meminfo
+user@host:~$ tail /proc/meminfo
 VmallocChunk:   34359608824 kB
 HardwareCorrupted:     0 kB
 AnonHugePages:         0 kB
@@ -86,7 +86,7 @@ HugePages_Surp:        0
 Hugepagesize:       2048 kB
 DirectMap4k:       53184 kB
 DirectMap2M:     4141056 kB
-ute@debdev:~$
+user@host:~$
 """
 
 COMMAND_RESULT = {'LINES': [u'VmallocChunk:   34359608824 kB',
@@ -99,7 +99,7 @@ COMMAND_RESULT = {'LINES': [u'VmallocChunk:   34359608824 kB',
                             u'Hugepagesize:       2048 kB',
                             u'DirectMap4k:       53184 kB',
                             u'DirectMap2M:     4141056 kB',
-                            u'ute@debdev:~$']}
+                            u'user@host:~$']}
 
 COMMAND_KWARGS = {
     "path": "/proc/meminfo"
