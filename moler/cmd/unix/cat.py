@@ -7,19 +7,33 @@ from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 import re
 
-__author__ = 'Sylwester Golonka'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'sylwester.golonka@nokia.com'
+__author__ = 'Sylwester Golonka, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__email__ = 'sylwester.golonka@nokia.com, marcin.usielski@nokia.com'
 
 
 class Cat(GenericUnixCommand):
     def __init__(self, connection, path, options=None, prompt=None, newline_chars=None, runner=None):
+        """
+        :param connection: Moler connection to device, terminal when command is executed.
+        :param path: path to file to cat.
+        :param options: options passed to command cat.
+        :param prompt: prompt (on system where command runs).
+        :param newline_chars: Characters to split lines - list.
+        :param runner: Runner to run command.
+        """
         super(Cat, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.path = path
         self.options = options
         self.current_ret["LINES"] = []
+        self._line_nr = 0
 
     def build_command_string(self):
+        """
+        Builds string with command.
+
+        :return: String with command.
+        """
         cmd = "cat"
         if self.options:
             cmd = "{} {} {}".format(cmd, self.path, self.options)
@@ -28,9 +42,20 @@ class Cat(GenericUnixCommand):
         return cmd
 
     def on_new_line(self, line, is_full_line):
+        """
+        Parses the output of the command.
+
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: None
+        """
         if is_full_line:
+            self._line_nr += 1
             try:
-                self._parse_error(line)
+                if self._line_nr > 1:
+                    self._re_fail = None
+                else:
+                    self._parse_error(line)
                 self._parse_line(line)
             except ParsingDone:
                 pass
@@ -49,8 +74,7 @@ class Cat(GenericUnixCommand):
         raise ParsingDone
 
 
-COMMAND_OUTPUT_no_parms = """
-ute@debdev:~$ cat /etc/network/interfaces
+COMMAND_OUTPUT_no_parms = """cat /etc/network/interfaces
 # This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
 
@@ -59,7 +83,7 @@ source /etc/network/interfaces.d/*
 
 auto lo
 iface lo inet loopback
-ute@debdev:~$
+user@host:~$
 """
 
 COMMAND_RESULT_no_parms = {
@@ -69,24 +93,40 @@ COMMAND_RESULT_no_parms = {
               '# The loopback network interface',
               'auto lo',
               'iface lo inet loopback',
-              'ute@debdev:~$']
+              'user@host:~$']
 
 }
 COMMAND_KWARGS_no_parms = {
     "path": "/etc/network/interfaces",
 }
 
-#
-COMMAND_OUTPUT_parms = """
-ute@debdev:~$ cat /etc/network/interfaces -b
+COMMAND_OUTPUT_cannot_open = """cat file.txt
+Some output
+No such file or directory
+user@host:~$"""
+
+COMMAND_RESULT_cannot_open = {
+    'LINES':
+        [
+            'Some output',
+            'No such file or directory',
+        ],
+}
+
+COMMAND_KWARGS_cannot_open = {
+    "path": "file.txt",
+}
+
+COMMAND_OUTPUT_parms = """cat /etc/network/interfaces -b
      1	# This file describes the network interfaces available on your system
      2	# and how to activate them. For more information, see interfaces(5).
      3	source /etc/network/interfaces.d/*
      4	# The loopback network interface
      5	auto lo
      6	iface lo inet loopback
-ute@debdev:~$
+user@host:~$
 """
+
 COMMAND_RESULT_parms = {
     'LINES': ['     1\t# This file describes the network interfaces available on your system',
               '     2\t# and how to activate them. For more information, see interfaces(5).',
@@ -94,9 +134,10 @@ COMMAND_RESULT_parms = {
               '     4\t# The loopback network interface',
               '     5\tauto lo',
               '     6\tiface lo inet loopback',
-              'ute@debdev:~$']
+              'user@host:~$']
 
 }
+
 COMMAND_KWARGS_parms = {
     "path": "/etc/network/interfaces",
     "options": "-b",
