@@ -4,7 +4,7 @@ Generic Unix/Linux module
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
@@ -57,7 +57,9 @@ class GenericUnixCommand(CommandTextualGeneric):
         :param line: Line from command output on device
         :return: Match object if find regex in line, None otherwise.
         """
-        return self._regex_helper.search_compiled(GenericUnixCommand._re_fail, line)
+        if self._re_fail:
+            return self._regex_helper.search_compiled(GenericUnixCommand._re_fail, line)
+        return False
 
     def _decode_line(self, line):
         """
