@@ -111,6 +111,75 @@ class Ssh(object):
         address = 'ssh://{}@{}:{}'.format(self.username,self.host, self.port)
         return address
 
+    def send(self, data):
+        """
+        Send data via Ssh connection.
+
+        :param data: data
+        :type data: bytes
+        """
+        # TODO: check if all data has been sent within timeout
+        try:
+            nb_bytes_sent = self.shell_channel.send(data)
+            # TODO: rework logging to have LogRecord with extra=direction
+            # TODO: separate data sent/received from other log records ?
+            self._debug('> [{} of {} bytes] {}'.format(nb_bytes_sent, len(data), data))
+        # socket.timeout – if no data could be sent before the timeout set by settimeout.
+        except socket.error as serr:
+            if (serr.errno == 10054) or (serr.errno == 10053) or ("Socket is closed" in str(serr)):
+                #self._close_ignoring_exceptions()
+                info = "{} during send msg '{}'".format(serr.errno, data)
+                raise RemoteEndpointDisconnected('Socket error: ' + info)
+            else:
+                raise  # let any other error be visible
+
+    def receive(self, timeout=30):
+        """
+        Receive data.
+
+        :param timeout: time-out, default 30 sec
+        :type timeout: float
+        """
+        self.settimeout(timeout=timeout)
+        data = self.recv()
+        return data
+
+    def recv(self):
+        """Receive data."""
+        if not self.shell_channel:
+            raise RemoteEndpointNotConnected()
+        try:
+            data = self.shell_channel.recv(self.receive_buffer_size)
+            # TODO: rework logging to have LogRecord with extra=direction
+            # TODO: separate data sent/received from other log records ?
+            self._debug('< [{} bytes] {}'.format(len(data), data))
+        except socket.timeout:
+            # don't want to show class name - just tcp address
+            # want same output from any implementation of Ssh-connection
+            info = "Timeout (> %.3f sec) on {}".format(self.timeout, self)
+            print(info)
+            raise ConnectionTimeout(info)
+        except socket.error as serr:
+            print("socket err: {}".format(serr))
+            if (serr.errno == 10054) or (serr.errno == 10053):
+                #self._close_ignoring_exceptions()
+                raise RemoteEndpointDisconnected(serr.errno)
+            else:
+                raise serr
+
+        if not data:
+            self._debug("channel closed")
+            #self._close_ignoring_exceptions()
+            raise RemoteEndpointDisconnected()
+
+        # lines = data.decode('utf-8')
+        # print("---------------------------------------------------------")
+        # print('< DECODED BYTES {}'.format(lines))
+        # print("=========================================================")
+        # print("\n".join(lines.splitlines()))  # or forward to moler connection
+
+        return data
+
     def _debug(self, msg):  # TODO: refactor to class decorator or so
         if self.logger:
             self.logger.debug(msg)
