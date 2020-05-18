@@ -43,20 +43,16 @@ def test_can_open_and_close_connection(ssh_connection_class):
     assert connection.ssh_client.get_transport() is None
 
 
+def test_can_open_and_close_connection_as_context_manager(ssh_connection_class):
 
-# def test_can_open_and_close_connection_as_context_manager(tcp_connection_class,
-#                                                           integration_tcp_server_and_pipe):
-#     from moler.threaded_moler_connection import ThreadedMolerConnection
-#     (tcp_server, tcp_server_pipe) = integration_tcp_server_and_pipe
-#
-#     moler_conn = ThreadedMolerConnection()
-#     connection = tcp_connection_class(moler_connection=moler_conn, port=tcp_server.port, host=tcp_server.host)
-#     with connection.open():
-#         pass
-#     dialog_with_server = _wait_for_last_message(tcp_server_pipe=tcp_server_pipe, last_message='Client disconnected',
-#                                                 timeout=5)
-#     assert 'Client connected' in dialog_with_server
-#     assert 'Client disconnected' in dialog_with_server
+    connection = ssh_connection_class(host='localhost', port=22, username='ute', password='ute')
+    with connection.open():
+        assert connection.shell_channel.get_transport().is_authenticated()
+    assert connection.ssh_client.get_transport() is None
+
+    with connection:
+        assert connection.shell_channel.get_transport().is_authenticated()
+    assert connection.ssh_client.get_transport() is None
 
 
 # --------------------------- resources ---------------------------

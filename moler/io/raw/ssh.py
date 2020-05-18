@@ -117,6 +117,6 @@ class Ssh(object):
         else:
             print(msg)
 
-conn1 = Ssh(host='192.168.44.50', port=22, username='vagrant', password='vagrant')
-conn1.open()
-conn1.close()
+# conn1 = Ssh(host='192.168.44.50', port=22, username='vagrant', password='vagrant')
+# conn1.open()
+# conn1.close()
