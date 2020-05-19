@@ -15,6 +15,7 @@ install:
 
 before_script:
   - python -V
+  - cat /etc/passwd
 
 script:
   - python -m pycodestyle --statistics --count moler
