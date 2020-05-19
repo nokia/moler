@@ -34,12 +34,19 @@ import datetime
 # TODO: logging - rethink details
 
 
-class Ssh(object):
-    """Implementation of Ssh connection using python Paramiko module"""
+class SshShell(object):
+    """
+    Implementation of 'remote shell over Ssh' connection using python Paramiko module
+
+    This connection is not intended for one-shot actions like execute_command of paramiko.
+    It's purpose is to provide continuous stream of bytes from remote shell.
+    Moreover, it works with Pty assigned to remote shell to enable interactive dialog
+    like asking for login or password.
+    """
     def __init__(self, host, port=22, username=None, password=None, receive_buffer_size=64 * 4096,
                  logger=None):
-        """Initialization of Ssh connection."""
-        super(Ssh, self).__init__()
+        """Initialization of SshShell connection."""
+        super(SshShell, self).__init__()
         # TODO: do we want connection.name?
         self.host = host
         self.port = port
@@ -61,7 +68,7 @@ class Ssh(object):
 
     def open(self):
         """
-        Open Ssh connection.
+        Open SshShell connection.
 
         Should allow for using as context manager: with connection.open():
         """
@@ -82,20 +89,25 @@ class Ssh(object):
 
     def close(self):
         """
-        Close Ssh connection. Close channel of that connection.
+        Close SshShell connection. Close channel of that connection.
 
         Connection should allow for calling close on closed/not-open connection.
         """
         self._debug('closing {}'.format(self))
         if self.shell_channel is not None:
             self._debug('  closing shell ssh channel {}'.format(self.shell_channel))
+        self._close()
+
+    def _close(self):
+        if self.shell_channel is not None:
             self.shell_channel.close()
             time.sleep(0.05)  # give Paramiko threads time to catch correct value of status variables
             self._debug('  closed  shell ssh channel {}'.format(self.shell_channel))
             self.shell_channel = None
         # TODO: don't close connection if there are still channels on it
-        self._debug('  closing ssh transport {}'.format(self.ssh_client._transport))
-        self.ssh_client.close()
+        if self.ssh_client.get_transport() is not None:
+            self._debug('  closing ssh transport {}'.format(self.ssh_client.get_transport()))
+            self.ssh_client.close()
         self._debug('connection {} is closed'.format(self))
 
     def __enter__(self):
@@ -114,11 +126,13 @@ class Ssh(object):
 
     def send(self, data):
         """
-        Send data via Ssh connection.
+        Send data via SshShell connection.
 
         :param data: data
         :type data: bytes
         """
+        if not self.shell_channel:
+            raise RemoteEndpointNotConnected()
         # TODO: check if all data has been sent within timeout
         try:
             nb_bytes_sent = self.shell_channel.send(data)
@@ -155,29 +169,15 @@ class Ssh(object):
             # TODO: separate data sent/received from other log records ?
             self._debug('< [{} bytes] {}'.format(len(data), data))
         except socket.timeout:
-            # don't want to show class name - just tcp address
-            # want same output from any implementation of Ssh-connection
-            info = "Timeout (> %.3f sec) on {}".format(self.timeout, self)
-            print(info)
+            # don't want to show class name - just ssh address
+            # want same output from any implementation of SshShell-connection
+            info = "Timeout (> {:.3f} sec) on {}".format(self.timeout, self)
             raise ConnectionTimeout(info)
-        except socket.error as serr:
-            print("socket err: {}".format(serr))
-            if (serr.errno == 10054) or (serr.errno == 10053):
-                # self._close_ignoring_exceptions()
-                raise RemoteEndpointDisconnected(serr.errno)
-            else:
-                raise serr
 
         if not data:
-            self._debug("channel closed")
-            # self._close_ignoring_exceptions()
+            self._debug("channel closed for {}".format(self))
+            self._close()
             raise RemoteEndpointDisconnected()
-
-        # lines = data.decode('utf-8')
-        # print("---------------------------------------------------------")
-        # print('< DECODED BYTES {}'.format(lines))
-        # print("=========================================================")
-        # print("\n".join(lines.splitlines()))  # or forward to moler connection
 
         return data
 
@@ -186,7 +186,3 @@ class Ssh(object):
             self.logger.debug(msg)
         else:
             print(msg)
-
-# conn1 = Ssh(host='192.168.44.50', port=22, username='vagrant', password='vagrant')
-# conn1.open()
-# conn1.close()
