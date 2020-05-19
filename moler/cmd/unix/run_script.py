@@ -4,7 +4,7 @@ Run script command
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
@@ -15,7 +15,8 @@ from moler.exceptions import CommandFailure
 
 class RunScript(GenericUnixCommand):
 
-    def __init__(self, connection, script_command, error_regex=re.compile("error", re.I), prompt=None, newline_chars=None, runner=None):
+    def __init__(self, connection, script_command, error_regex=re.compile("error", re.IGNORECASE),
+                 prompt=None, newline_chars=None, runner=None):
         """
         :param connection: Moler connection to device, terminal when command is executed.
         :param script_command: path to script to run.
