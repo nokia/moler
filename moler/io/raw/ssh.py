@@ -109,7 +109,7 @@ class Ssh(object):
         return False  # reraise exceptions if any
 
     def __str__(self):
-        address = 'ssh://{}@{}:{}'.format(self.username,self.host, self.port)
+        address = 'ssh://{}@{}:{}'.format(self.username, self.host, self.port)
         return address
 
     def send(self, data):
@@ -128,7 +128,7 @@ class Ssh(object):
         # socket.timeout – if no data could be sent before the timeout set by settimeout.
         except socket.error as serr:
             if (serr.errno == 10054) or (serr.errno == 10053) or ("Socket is closed" in str(serr)):
-                #self._close_ignoring_exceptions()
+                # self._close_ignoring_exceptions()
                 info = "{} during send msg '{}'".format(serr.errno, data)
                 raise RemoteEndpointDisconnected('Socket error: ' + info)
             else:
@@ -163,14 +163,14 @@ class Ssh(object):
         except socket.error as serr:
             print("socket err: {}".format(serr))
             if (serr.errno == 10054) or (serr.errno == 10053):
-                #self._close_ignoring_exceptions()
+                # self._close_ignoring_exceptions()
                 raise RemoteEndpointDisconnected(serr.errno)
             else:
                 raise serr
 
         if not data:
             self._debug("channel closed")
-            #self._close_ignoring_exceptions()
+            # self._close_ignoring_exceptions()
             raise RemoteEndpointDisconnected()
 
         # lines = data.decode('utf-8')
