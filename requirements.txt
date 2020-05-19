@@ -11,3 +11,4 @@ psutil
 python-dateutil
 pyserial
 cryptography
+paramiko
