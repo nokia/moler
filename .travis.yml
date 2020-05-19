@@ -15,7 +15,7 @@ install:
 
 before_script:
   - python -V
-  - cat /etc/passwd
+  - cat /etc/passwd | grep home
 
 script:
   - python -m pycodestyle --statistics --count moler
