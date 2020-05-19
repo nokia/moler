@@ -8,13 +8,13 @@ from moler.exceptions import CommandFailure
 import re
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019, Nokia'
+__copyright__ = 'Copyright (C) 2019-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 
 class RunCommand(GenericScpiState):
 
-    def __init__(self, connection, command, error_regex=re.compile(r"ERROR", re.I), prompt=None,
+    def __init__(self, connection, command, error_regex=re.compile(r"ERROR", re.IGNORECASE), prompt=None,
                  newline_chars=None, runner=None):
         """
         Class for command CONF for SCPI device.

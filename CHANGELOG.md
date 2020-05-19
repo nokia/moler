@@ -1,3 +1,8 @@
+## moler 1.14.0
+
+### Improved
+* Support for text files with content the same as errors from commands
+
 ## moler 1.13.0
 
 ### Improved
