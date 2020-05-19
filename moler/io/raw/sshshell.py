@@ -143,11 +143,15 @@ class SshShell(object):
             # TODO: rework logging to have LogRecord with extra=direction
             # TODO: separate data sent/received from other log records ?
             self._debug('> [{} of {} bytes] {}'.format(nb_bytes_sent, len(data), data))
-        # socket.timeout – if no data could be sent before the timeout set by settimeout.
+        except socket.timeout:  # if no data could be sent before the timeout set by settimeout.
+            # don't want to show class name - just ssh address
+            # want same output from any implementation of SshShell-connection
+            info = "Timeout (> {:.3f} sec) on {}".format(self.timeout, self)
+            raise ConnectionTimeout(info)
         except socket.error as serr:
-            if (serr.errno == 10054) or (serr.errno == 10053) or ("Socket is closed" in str(serr)):
-                # self._close_ignoring_exceptions()
-                info = "{} during send msg '{}'".format(serr.errno, data)
+            if "Socket is closed" in str(serr):
+                self._close()
+                info = "{} during send msg '{}'".format(serr, data)
                 raise RemoteEndpointDisconnected('Socket error: ' + info)
             else:
                 raise  # let any other error be visible
