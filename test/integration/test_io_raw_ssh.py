@@ -67,7 +67,6 @@ def test_can_send_and_receive_binary_data_over_connection(ssh_connection_class):
         if connection.shell_channel.recv_ready():  # some banner just after open ssh
             resp_bytes1 = connection.receive()
             response1 = resp_bytes1.decode("utf-8")
-            assert 'Last login' in response1
         #moler_conn.send(data=b'data to be send')
         request = "pwd\n"
         bytes2send = request.encode("utf-8")
