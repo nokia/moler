@@ -15,6 +15,9 @@ install:
 
 before_script:
   - python -V
+  - cat /etc/passwd | grep home
+  - sudo useradd molerssh -c MolerSshTest -l -m -p `python3 -c 'import crypt; print(crypt.crypt("moler_password", "mr"))'`
+  - cat /etc/passwd | grep home
 
 script:
   - python -m pycodestyle --statistics --count moler
@@ -25,6 +28,8 @@ script:
 
 after_success:
   - if [[ $TRAVIS_PYTHON_VERSION == *"3.7"* ]]; then coveralls; fi
+  - sudo userdel --remove --force molerssh
+  - cat /etc/passwd | grep home
 
 after_failure:
   - echo "----------------------- LOGS -----------------------"
