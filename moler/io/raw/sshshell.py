@@ -121,7 +121,11 @@ class SshShell(object):
         return False  # reraise exceptions if any
 
     def __str__(self):
-        address = 'ssh://{}@{}:{}'.format(self.username, self.host, self.port)
+        if self.shell_channel:
+            shell_channel_id = self.shell_channel.get_id()
+            address = 'ssh://{}@{}:{} [channel {}]'.format(self.username, self.host, self.port, shell_channel_id)
+        else:
+            address = 'ssh://{}@{}:{}'.format(self.username, self.host, self.port)
         return address
 
     def send(self, data):

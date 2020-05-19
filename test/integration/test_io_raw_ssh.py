@@ -55,6 +55,16 @@ def test_can_open_and_close_connection_as_context_manager(ssh_connection_class):
     assert connection.ssh_client.get_transport() is None
 
 
+def test_str_representation_of_connection(ssh_connection_class):
+
+    connection = ssh_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
+    assert str(connection) == "ssh://molerssh@localhost:22"
+    with connection.open():
+        shell_channel_id = connection.shell_channel.get_id()
+        assert str(connection) == "ssh://molerssh@localhost:22 [channel {}]".format(shell_channel_id)
+    assert str(connection) == "ssh://molerssh@localhost:22"
+
+
 # Note1: different external-IO connection may have different naming for their 'send' method
 # however, they are uniformed via glueing with moler_connection.send()
 # external-IO 'send' method works on bytes; moler_connection performs encoding
