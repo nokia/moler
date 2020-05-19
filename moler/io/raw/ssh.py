@@ -43,7 +43,7 @@ class Ssh(object):
         # TODO: do we want connection.name?
         self.host = host
         self.port = port
-        self.username = username if username is None else getpass.getuser()
+        self.username = getpass.getuser() if username is None else username
         self.password = password
         self.receive_buffer_size = receive_buffer_size
         self.logger = logger  # TODO: build default logger if given is None?

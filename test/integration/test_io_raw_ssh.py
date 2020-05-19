@@ -26,9 +26,9 @@ def test_can_open_and_close_connection(ssh_connection_class):
     from moler.threaded_moler_connection import ThreadedMolerConnection
 
     #moler_conn = ThreadedMolerConnection()
-    # connection = ssh_connection_class(moler_connection=moler_conn, port=22, host='192.168.44.50', port=22, username='vagrant', password='vagrant')
+    # connection = ssh_connection_class(moler_connection=moler_conn, port=22, host='localhost', port=22, username='molerssh', password='moler_password')
     # TODO - let it be runable on any CI machine - need SSH server in test
-    connection = ssh_connection_class(host='192.168.44.50', port=22, username='vagrant', password='vagrant')
+    connection = ssh_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
     assert connection.ssh_client.get_transport() is None
     assert connection.shell_channel is None
 
@@ -38,7 +38,6 @@ def test_can_open_and_close_connection(ssh_connection_class):
     assert connection.ssh_client.get_transport() == connection.shell_channel.get_transport()
     assert connection.shell_channel.get_transport().is_active()
     assert connection.shell_channel.get_transport().is_authenticated()
-    assert ('192.168.44.50', 22) == connection.shell_channel.get_transport().getpeername()
 
     connection.close()
     assert connection.ssh_client.get_transport() is None
@@ -46,7 +45,7 @@ def test_can_open_and_close_connection(ssh_connection_class):
 
 def test_can_open_and_close_connection_as_context_manager(ssh_connection_class):
 
-    connection = ssh_connection_class(host='192.168.44.50', port=22, username='vagrant', password='vagrant')
+    connection = ssh_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
     with connection.open():
         assert connection.shell_channel.get_transport().is_authenticated()
     assert connection.ssh_client.get_transport() is None
@@ -62,7 +61,7 @@ def test_can_open_and_close_connection_as_context_manager(ssh_connection_class):
 # Note2: we check sending and receiving together - checking send by its result on receive
 def test_can_send_and_receive_binary_data_over_connection(ssh_connection_class):
 
-    connection = ssh_connection_class(host='192.168.44.50', port=22, username='vagrant', password='vagrant')
+    connection = ssh_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
     with connection.open():
         time.sleep(0.1)
         if connection.shell_channel.recv_ready():  # some banner just after open ssh
