@@ -21,6 +21,7 @@ import threading
 import contextlib
 import paramiko
 import time
+import getpass
 
 from moler.io.io_exceptions import ConnectionTimeout
 from moler.io.io_exceptions import RemoteEndpointDisconnected
@@ -42,7 +43,7 @@ class Ssh(object):
         # TODO: do we want connection.name?
         self.host = host
         self.port = port
-        self.username = username
+        self.username = username if username is None else getpass.getuser()
         self.password = password
         self.receive_buffer_size = receive_buffer_size
         self.logger = logger  # TODO: build default logger if given is None?
