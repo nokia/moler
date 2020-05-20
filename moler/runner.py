@@ -76,7 +76,7 @@ class ConnectionObserverRunner(object):
         """
         Call this method to notify runner that timeout has been changed in observer
         :param timedelta: delta timeout in float seconds
-        :return: Nothing
+        :return: None
         """
 
     def __enter__(self):

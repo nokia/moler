@@ -19,7 +19,7 @@ class CommandScheduler(object):
         Waits for free slot and runs command when no other command is in run mode. If connection_observer is not
          a command then runs immediately.
         :param connection_observer: Object of ConnectionObserver to run. Maybe a command or an observer.
-        :return: Nothing
+        :return: None
         """
         scheduler = CommandScheduler._get_scheduler()
         if not connection_observer.is_command():  # Passed observer, not command.
@@ -151,7 +151,7 @@ class CommandScheduler(object):
         Removes command object from queue and/or current executed. It is safe to call this method many times for the
          same command object.
         :param cmd: Command object
-        :return: Nothing.
+        :return: None.
         """
         connection = cmd.connection
         lock = self._lock_for_connection(connection)
@@ -185,7 +185,7 @@ class CommandScheduler(object):
         """
         Adds command object to queue fot connection of command.
         :param cmd: Command object.
-        :return: Nothing.
+        :return: None.
         """
         connection = cmd.connection
         lock = self._lock_for_connection(connection)
@@ -206,7 +206,7 @@ class CommandScheduler(object):
         """
         Submits a connection_observer object (command or observer) in the runner.
         :param connection_observer: Connection observer (command or observer) object to submit
-        :return: Nothing
+        :return: None
         """
         runner = connection_observer.runner
         if not connection_observer._is_done and not runner._in_shutdown:

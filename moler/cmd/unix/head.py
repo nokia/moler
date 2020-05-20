@@ -50,7 +50,7 @@ class Head(GenericUnixCommand):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise.
-        :return: Nothing.
+        :return: None.
         """
         if is_full_line:
             try:
@@ -67,7 +67,7 @@ class Head(GenericUnixCommand):
         Parse errors in line and set exception in case of any errors were parsed.
 
         :param line: Line to process.
-        :return: Nothing but raises ParsingDone if line has the information to handle by this method.
+        :return: None but raises ParsingDone if line has the information to handle by this method.
         """
         if self._regex_helper.search_compiled(Head._re_parse_error, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
@@ -78,7 +78,7 @@ class Head(GenericUnixCommand):
         Append line to LINES list.
 
         :param line: Line to process.
-        :return: Nothing but raises ParsingDone if line has the information to handle by this method.
+        :return: None but raises ParsingDone if line has the information to handle by this method.
         """
         self.current_ret["LINES"].append(line)
         raise ParsingDone

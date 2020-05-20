@@ -42,7 +42,7 @@ class Uptime(GenericUnixCommand):
         Put your parsing code here.
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         if is_full_line:
             try:
@@ -62,7 +62,7 @@ class Uptime(GenericUnixCommand):
         """
         Parses uptime from device.
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if line matches regex.
+        :return: None but raises ParsingDone if line matches regex.
         """
         if self._regex_helper.search_compiled(Uptime._re_uptime_line, line):
             val = self._regex_helper.group("UPTIME_VAL")
@@ -115,7 +115,7 @@ class Uptime(GenericUnixCommand):
         """
         Parses date and time from line since when system has started.
         :param line: Line from device
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         if self._regex_helper.search_compiled(Uptime._re_date_time, line):
             self.current_ret["date"] = self._regex_helper.group("DATE")

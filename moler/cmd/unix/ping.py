@@ -50,7 +50,7 @@ class Ping(GenericUnixCommand):
         Put your parsing code here.
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         if is_full_line:
             try:
@@ -69,7 +69,7 @@ class Ping(GenericUnixCommand):
         """
         Parses packets from the line of command output
         :param line: Line of output of command.
-        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has information to handle by this method.
         """
         if self._regex_helper.search_compiled(Ping._re_trans_recv_loss_time, line):
             self.current_ret['packets_transmitted'] = self._converter_helper.to_number(
@@ -92,7 +92,7 @@ class Ping(GenericUnixCommand):
         """
         Parses packets from the line of command output
         :param line: Line of output of command.
-        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has information to handle by this method.
         """
         if self._regex_helper.search_compiled(Ping._re_trans_recv_loss_time_plus_errors, line):
             self.current_ret['packets_transmitted'] = int(self._regex_helper.group('PKTS_TRANS'))
@@ -114,7 +114,7 @@ class Ping(GenericUnixCommand):
         """
         Parses rrt info form the line of command output
         :param line: Line of output of command
-        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has information to handle by this method.
         """
         if self._regex_helper.search_compiled(Ping._re_min_avg_max_mdev_unit_time, line):
             unit = self._regex_helper.group('UNIT')

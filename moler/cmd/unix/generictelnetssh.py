@@ -133,7 +133,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
         Checks if line contains has just connected.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has information to handle by this method.
         """
         if self._regex_helper.search_compiled(GenericTelnetSsh._re_has_just_connected, line):
             self.connection.send(self.target_newline)
@@ -144,7 +144,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
         Sends login if requested by server.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if login was sent.
+        :return: None but raises ParsingDone if login was sent.
         """
         if (not self._sent_login) and self._is_login_requested(line) and self.login:
             self.connection.send("{}{}".format(self.login, self.target_newline))
@@ -157,7 +157,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
         Sends server if requested by server.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if password was sent.
+        :return: None but raises ParsingDone if password was sent.
         """
         if (not self._sent) and self._is_password_requested(line):
             try:

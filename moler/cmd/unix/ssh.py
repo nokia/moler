@@ -109,7 +109,7 @@ class Ssh(GenericTelnetSsh):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         try:
             self._check_if_resize(line)
@@ -126,7 +126,7 @@ class Ssh(GenericTelnetSsh):
         Checks regex host key verification.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         if self._regex_helper.search_compiled(Ssh._re_host_key_verification_failed, line):
             if self._hosts_file:
@@ -140,7 +140,7 @@ class Ssh(GenericTelnetSsh):
         Checks id dsa.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         if Ssh._re_id_dsa.search(line):
             self.connection.sendline("")
@@ -151,7 +151,7 @@ class Ssh(GenericTelnetSsh):
         Checks if line from device has info about hosts file.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         if (self.known_hosts_on_failure is not None) and self._regex_helper.search_compiled(Ssh._re_host_key, line):
             self._hosts_file = self._regex_helper.group("HOSTS_FILE")
@@ -162,7 +162,7 @@ class Ssh(GenericTelnetSsh):
         Checks if line from device has information about waiting for sent yes/no.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         if (not self._sent_continue_connecting) and self._regex_helper.search_compiled(Ssh._re_yes_no, line):
             self.connection.sendline('yes')
@@ -173,7 +173,7 @@ class Ssh(GenericTelnetSsh):
         """
         Handles situation when failed host key verification.
 
-        :return: Nothing.
+        :return: None.
         """
         exception = None
         if "rm" == self.known_hosts_on_failure:

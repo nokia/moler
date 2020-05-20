@@ -49,7 +49,7 @@ class Mpstat(GenericUnixCommand):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         if is_full_line:
             try:
@@ -75,7 +75,7 @@ class Mpstat(GenericUnixCommand):
         Parses values from mpstat output
 
         :param line: Line from device
-        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has information to handle by this method.
         """
         if self._regex_helper.search_compiled(Mpstat._re_headers, line):
             if self._regex_helper.group('CPU') != 'CPU':

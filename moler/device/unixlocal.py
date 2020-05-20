@@ -98,7 +98,7 @@ class UnixLocal(TextualDevice):
     def _prepare_transitions(self):
         """
         Prepare transitions to change states.
-        :return: Nothing.
+        :return: None.
         """
         super(UnixLocal, self)._prepare_transitions()
 
@@ -135,7 +135,7 @@ class UnixLocal(TextualDevice):
     def _prepare_state_prompts(self):
         """
         Prepare textual prompt for each state.
-        :return: Nothing.
+        :return: None.
         """
         super(UnixLocal, self)._prepare_state_prompts()
 
@@ -152,7 +152,7 @@ class UnixLocal(TextualDevice):
     def _prepare_newline_chars(self):
         """
         Prepare newline char for each state.
-        :return: Nothing.
+        :return: None.
         """
         super(UnixLocal, self)._prepare_newline_chars()
 
@@ -170,7 +170,7 @@ class UnixLocal(TextualDevice):
     def _prepare_state_hops(self):
         """
         Prepare hops for non direct transitions between states.
-        :return: Nothing.
+        :return: None.
         """
         state_hops = {
             UnixLocal.not_connected: {
@@ -197,7 +197,7 @@ class UnixLocal(TextualDevice):
         """
         Execute action when connection made.
         :param connection: device connection.
-        :return: Nothing.
+        :return: None.
         """
         self._set_state(UnixLocal.unix_local)
 
@@ -205,7 +205,7 @@ class UnixLocal(TextualDevice):
         """
         Execute action when connection lost.
         :param connection: device connection.
-        :return: Nothing.
+        :return: None.
         """
         self._set_state(UnixLocal.not_connected)
 
@@ -215,7 +215,7 @@ class UnixLocal(TextualDevice):
         :param source_state: device source state.
         :param dest_state: device destination state.
         :param timeout: transition timeout.
-        :return: Nothing.
+        :return: None.
         """
         configurations = self.get_configurations(source_state=source_state, dest_state=dest_state)
 

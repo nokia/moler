@@ -291,7 +291,7 @@ class AdbRemote(UnixRemote):
         """
         Configure device State Machine.
         :param sm_params: dict with parameters of state machine for device.
-        :return: Nothing.
+        :return: None.
         """
         super(AdbRemote, self)._configure_state_machine(sm_params)
 

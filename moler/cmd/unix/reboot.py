@@ -34,7 +34,7 @@ class Reboot(GenericUnixCommand):
         Method to parse command output. Will be called after line with command echo.
         :param line: Line to parse, new lines are trimmed
         :param is_full_line:  False for chunk of line; True on full line (NOTE: new line character removed)
-        :return: Nothing
+        :return: None
         """
         if is_full_line:
             self._catch_connection_closed(line)

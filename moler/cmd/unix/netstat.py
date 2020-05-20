@@ -46,7 +46,7 @@ class Netstat(GenericUnixCommand):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         try:
             if is_full_line:
@@ -69,7 +69,7 @@ class Netstat(GenericUnixCommand):
         Parse active connections or sockets in line. Set self._active to current type of connection.
 
         :param line: Line to process.
-        :return: Nothing but raises ParsingDone if line has the information to handle by this method.
+        :return: None but raises ParsingDone if line has the information to handle by this method.
         """
         if self._regex_helper.search_compiled(Netstat._re_active, line):
             self._active = self._regex_helper.group("ACTIVE")
@@ -86,7 +86,7 @@ class Netstat(GenericUnixCommand):
         Append those values to UNIX_SOCKETS list.
 
         :param line: Line to process.
-        :return: Nothing but raises ParsingDone if line has the information to handle by this method.
+        :return: None but raises ParsingDone if line has the information to handle by this method.
         """
         if self._active == "UNIX domain sockets":
             if "UNIX_SOCKETS" not in self.current_ret:
@@ -117,7 +117,7 @@ class Netstat(GenericUnixCommand):
         Append those values to INTERNET_CONNECTIONS list.
 
         :param line: Line to process.
-        :return: Nothing but raises ParsingDone if line has the information to handle by this method.
+        :return: None but raises ParsingDone if line has the information to handle by this method.
         """
         if self._active == "Internet connections":
             if "INTERNET_CONNECTIONS" not in self.current_ret:
@@ -145,7 +145,7 @@ class Netstat(GenericUnixCommand):
         Append those values to GROUP list.
 
         :param line: Line to process.
-        :return: Nothing but raises ParsingDone if line has the information to handle by this method.
+        :return: None but raises ParsingDone if line has the information to handle by this method.
         """
         if "g" in self.options and self._regex_helper.search_compiled(Netstat._re_groups, line):
             if "GROUP" not in self.current_ret:
@@ -169,7 +169,7 @@ class Netstat(GenericUnixCommand):
         Append those values to INTERFACE list.
 
         :param line: Line to process.
-        :return: Nothing but raises ParsingDone if line has the information to handle by this method.
+        :return: None but raises ParsingDone if line has the information to handle by this method.
         """
         if "i" in self.options and self._regex_helper.search_compiled(Netstat._re_interface, line):
             if "INTERFACE" not in self.current_ret:
@@ -202,7 +202,7 @@ class Netstat(GenericUnixCommand):
         Append those values to GROUP list.
 
         :param line: Line to process.
-        :return: Nothing but raises ParsingDone if line has the information to handle by this method.
+        :return: None but raises ParsingDone if line has the information to handle by this method.
         """
         if "r" in self.options and self._regex_helper.search_compiled(Netstat._re_routing_table, line):
             if "ROUTING_TABLE" not in self.current_ret:
@@ -229,7 +229,7 @@ class Netstat(GenericUnixCommand):
         Update those values to STATISTICS dictionary.
 
         :param line: Line to process.
-        :return: Nothing but raises ParsingDone if line has the information to handle by this method.
+        :return: None but raises ParsingDone if line has the information to handle by this method.
         """
         if "s" in self.options:
             if "STATISTICS" not in self.current_ret:

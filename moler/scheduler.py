@@ -51,7 +51,7 @@ class Scheduler(object):
         Static method to change type of scheduler
         :param scheduler_type: type of new scheduler. Allowed thread (default) or asyncio. If None then default multi
             threading model will be used.
-        :return: Nothing. If scheduler_type is not supported then it raises object of type moler.exceptions.WrongUsage
+        :return: None. If scheduler_type is not supported then it raises object of type moler.exceptions.WrongUsage
         """
         instance = Scheduler._get_instance()
         instance._swap_scheduler(scheduler_type)
@@ -85,7 +85,7 @@ class Scheduler(object):
         """
         :param new_scheduler_type: type of new scheduler. 'thread' or 'asyncio'. If None then default multi threading
             Moler model will be used.
-        :return: Nothing
+        :return: None
         """
         if new_scheduler_type is None:
             new_scheduler_type = 'thread'  # TODO: call method to detect default type of multi threading Moler model.
@@ -142,14 +142,14 @@ class Job(object):
     def start(self):
         """
         Method to start the job.
-        :return: Nothing
+        :return: None
         """
         self._job.resume()
 
     def cancel(self):
         """
         Method to stop the job
-        :return: Nothing
+        :return: None
         """
         self._job.pause()
 

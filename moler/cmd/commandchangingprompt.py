@@ -84,7 +84,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
         Detects start prompt.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if detects start prompt and any exception was set.
+        :return: None but raises ParsingDone if detects start prompt and any exception was set.
         """
         if self._stored_exception and self._regex_helper.search_compiled(self._re_prompt, line):
             self._is_done = True
@@ -96,7 +96,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
 
         :param line: Line from device.
         :param is_full_line: True if line had new line chars, False otherwise.
-        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has information to handle by this method.
         """
         sent = self._send_after_login_settings(line)
         if sent:
@@ -149,7 +149,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
         """
         Sends command to set timeout
 
-        :return: Nothing
+        :return: None
         """
         self.connection.sendline("")
         self.connection.sendline(self.set_timeout)
@@ -168,7 +168,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
         """
         Sends command to set prompt.
 
-        :return: Nothing
+        :return: None
         """
         self.connection.sendline("")
         self.connection.sendline(self.set_prompt)
