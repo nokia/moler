@@ -150,7 +150,7 @@ class AbstractMolerConnection(object):
         """
         Method to change newline char(s). Useful when connect from one point to another if newline chars change (i.e. "\n", "\n")
         :param newline_seq: Sequence of chars to send as new line char(s)
-        :return: Nothing
+        :return: None
         """
 
         if self.newline != newline_seq:

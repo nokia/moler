@@ -123,7 +123,7 @@ class IOConnection(object):
         Adds subscriber to list of functions to call
         :param callback: reference to function to call when connection is open/established
         :param when: connection state change
-        :return: Nothing
+        :return: None
         """
         if when == "connection_made":
             self.subscribe_on_connection_made(subscriber=callback)
@@ -134,7 +134,7 @@ class IOConnection(object):
         """
         Adds subscriber to list of functions to call when connection is open/established (also reopen after close)
         :param subscriber: reference to function to call when connection is open/established
-        :return: Nothing
+        :return: None
         """
         self._subscribe(self._connect_subscribers_lock, self._connect_subscribers, subscriber)
 
@@ -142,7 +142,7 @@ class IOConnection(object):
         """
         Adds subscriber to list of functions to call when connection is closed/disconnected
         :param subscriber: reference to function to call when connection is closed/disconnected
-        :return: Nothing
+        :return: None
         """
         self._subscribe(self._disconnect_subscribers_lock, self._disconnect_subscribers, subscriber)
 
@@ -150,7 +150,7 @@ class IOConnection(object):
         """
         Remove subscriber from list of functions to call when connection is open/established (also reopen after close)
         :param subscriber: reference to function registered by method subscribe_on_connection_made
-        :return: Nothing
+        :return: None
         """
         self._unsubscribe(self._connect_subscribers_lock, self._connect_subscribers, subscriber)
 
@@ -158,7 +158,7 @@ class IOConnection(object):
         """
         Remove subscriber from list of functions to call when connection is closed/disconnected
         :param subscriber: reference to function registered by method subscribe_on_connection_lost
-        :return: Nothing
+        :return: None
         """
         self._unsubscribe(self._disconnect_subscribers_lock, self._disconnect_subscribers, subscriber)
 

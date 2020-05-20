@@ -26,7 +26,7 @@ class MolerTest(object):
     def steps_end():
         """
         You should call this function at the end of your test code with Moler.
-        :return: Nothing
+        :return: None
         """
         MolerTest._was_steps_end = True
 
@@ -38,7 +38,7 @@ class MolerTest(object):
         :param raise_exception: If True then raise an exception (if not in try except block then test will be
          terminated), if False then only show msg and mark error in logs.
         :param dump: If defined then dump object.
-        :return: Nothing.
+        :return: None.
         """
         MolerTest._list_of_errors.append(msg)
         MolerTest._error(msg, raise_exception, dump)
@@ -49,7 +49,7 @@ class MolerTest(object):
         Shows the message
         :param msg: Message to show.
         :param dump: If defined then dump object.
-        :return: Nothing.
+        :return: None.
         """
         msg = MolerTest._get_string_message(msg, dump)
         MolerTest._logger.info(msg)
@@ -60,7 +60,7 @@ class MolerTest(object):
         Shows the message as warning.
         :param msg: Message to show.
         :param dump: If defined then dump object.
-        :return: Nothing
+        :return: None
         """
         msg = MolerTest._get_string_message(msg, dump)
         MolerTest._logger.warning(msg)

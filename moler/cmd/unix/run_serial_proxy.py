@@ -77,7 +77,7 @@ class RunSerialProxy(CommandChangingPrompt):
         Exit from python after detecting python interactive shell
 
         :param line: Line to process
-        :return: Nothing
+        :return: None
         """
         if (not self._python_shell_exit_sent) and self._in_python_shell(line):
             self.connection.send("exit(){}".format(self.target_newline))

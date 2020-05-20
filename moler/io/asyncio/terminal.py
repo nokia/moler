@@ -178,7 +178,7 @@ class AsyncioInThreadTerminal(IOConnection):
         Adds subscriber to list of functions to call
         :param callback: reference to function to call when connection is open/established
         :param when: connection state change
-        :return: Nothing
+        :return: None
         """
         self._async_terminal.notify(callback, when)
 

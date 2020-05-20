@@ -28,7 +28,7 @@ class ExitSerialProxy(CommandTextualGeneric):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         try:
             self._exit_from_python_shell(line)
@@ -42,7 +42,7 @@ class ExitSerialProxy(CommandTextualGeneric):
         Exit from python after detecting python interactive shell
 
         :param line: Line to process
-        :return: Nothing
+        :return: None
         """
         if (not self._python_shell_exit_sent) and self._in_python_shell(line):
             self.connection.send("exit(){}".format(self.target_newline))

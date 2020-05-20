@@ -56,7 +56,7 @@ class Echo(GenericUnixCommand):
         Put your parsing code here.
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         if is_full_line:
             try:
@@ -68,7 +68,7 @@ class Echo(GenericUnixCommand):
     def _parse_line(self, line):
         """
         :param line: string to append to RESULT
-        :return: Nothing but raises ParsingDone
+        :return: None but raises ParsingDone
         """
         self.current_ret["RESULT"].append(line)
         raise ParsingDone

@@ -122,7 +122,7 @@ class TextualEvent(Event):
     def _consume_already_parsed_fragment(self):
         """
         Clear already parsed fragment of line to not parse it twice when another fragment appears on device.
-        :return: Nothing
+        :return: None
         """
         self._last_not_full_line = None
 

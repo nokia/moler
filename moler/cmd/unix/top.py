@@ -48,7 +48,7 @@ class Top(GenericUnixCommand):
         Put your parsing code here.
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         if is_full_line:
             try:
@@ -69,7 +69,7 @@ class Top(GenericUnixCommand):
         """
         Parses errors from the line of command output
         :param line: Line of output of command.
-        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has information to handle by this method.
         """
         if self._regex_helper.search_compiled(Top._re_error, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG"))))
@@ -82,7 +82,7 @@ class Top(GenericUnixCommand):
         """
         Parses top row from the line of command output
         :param line: Line of output of command.
-        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has information to handle by this method.
         """
         if self._regex_helper.search_compiled(Top._re_top_row, line):
             command_name = self._regex_helper.group("TOP_ROW")
@@ -102,7 +102,7 @@ class Top(GenericUnixCommand):
         """
         Parses task row from the line of command output
         :param line: Line of output of command.
-        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has information to handle by this method.
         """
         if self._regex_helper.search_compiled(Top._re_task_row, line):
             total = int(self._regex_helper.group("TOTAL"))
@@ -123,7 +123,7 @@ class Top(GenericUnixCommand):
         """
         Parses cpu row from the line of command output
         :param line: Line of output of command.
-        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has information to handle by this method.
         """
         if self._regex_helper.search_compiled(Top._re_cpu_row, line):
             user_processed = float(self._regex_helper.group("US"))
@@ -148,7 +148,7 @@ class Top(GenericUnixCommand):
         """
         Parses memory rows from the line of command output
         :param line: Line of output of command.
-        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has information to handle by this method.
         """
         if self._regex_helper.search_compiled(Top._re_memory_rows, line):
             mem_type = self._regex_helper.group("MEM")
@@ -166,7 +166,7 @@ class Top(GenericUnixCommand):
         """
         Parses processes list headers from the line of command output
         :param line: Line of output of command.
-        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has information to handle by this method.
         """
         if self._regex_helper.search_compiled(Top._re_processes_header, line) and not self._processes_list_headers:
             self._processes_list_headers.extend(line.strip().split())
@@ -177,7 +177,7 @@ class Top(GenericUnixCommand):
         """
         Parses processes list from the line of command output
         :param line: Line of output of command.
-        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has information to handle by this method.
         """
         if self._processes_list_headers:
             processes_info = line.strip().split()

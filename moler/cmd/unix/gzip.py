@@ -52,7 +52,7 @@ class Gzip(GenericUnixCommand):
         Put your parsing code here.
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         try:
             self._asks_to_overwrite(line)
@@ -68,7 +68,7 @@ class Gzip(GenericUnixCommand):
         """
         Parse line containing overwriting warning.
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         if self._regex_helper.search_compiled(self._re_overwrite, line):
             compressed_file_name = self._regex_helper.group("COMPRESSED_FILE_NAME")
@@ -89,7 +89,7 @@ class Gzip(GenericUnixCommand):
         """
         Parse line containing error.
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         if self._regex_helper.search_compiled(self._re_error, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG"))))

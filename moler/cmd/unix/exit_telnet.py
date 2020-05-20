@@ -54,7 +54,7 @@ class ExitTelnet(CommandChangingPrompt):
         Put your parsing code here.
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         try:
             self._is_telnet_prompt(line)
@@ -66,7 +66,7 @@ class ExitTelnet(CommandChangingPrompt):
         """
         Check that telnet prompt is in incoming line
         :param line: Line to process,
-        :return: Nothing
+        :return: None
         """
         if self._regex_helper.search_compiled(ExitTelnet._re_telnet_prompt, line) and (not self._command_sent):
             self.connection.sendline("q")
@@ -78,7 +78,7 @@ class ExitTelnet(CommandChangingPrompt):
         """
         :param line: line to check if echo of command is sent by device
         :param is_full_line:
-        :return: Nothing
+        :return: None
         """
         self._cmd_output_started = True
 

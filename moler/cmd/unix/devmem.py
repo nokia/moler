@@ -60,7 +60,7 @@ class Devmem(GenericUnixCommand):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         if is_full_line:
             try:
@@ -76,7 +76,7 @@ class Devmem(GenericUnixCommand):
         Parse memory hexadecimal value in line.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has information to handle by this method.
         """
         if self._regex_helper.search(Devmem._re_memory_value, line):
             self.current_ret["VALUE"] = self._regex_helper.group("VALUE")

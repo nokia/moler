@@ -130,7 +130,7 @@ class Telnet(GenericTelnetSsh):
 
         :param line: Line from device.
         :param is_full_line: True if line had new line chars, False otherwise.
-        :return: Nothing but raises ParsingDone if any command was sent by this method.
+        :return: None but raises ParsingDone if any command was sent by this method.
         """
         if self._send_telnet_commands(line, is_full_line, self.cmds_before_establish_connection):
             raise ParsingDone()
@@ -141,7 +141,7 @@ class Telnet(GenericTelnetSsh):
 
         :param line: Line from device.
         :param is_full_line: True if line had new line chars, False otherwise.
-        :return: Nothing but raises ParsingDone if any command was sent by this method.
+        :return: None but raises ParsingDone if any command was sent by this method.
         """
         if self._telnet_command_mode:
             if self._send_telnet_commands(line, is_full_line, self.cmds_after_establish_connection):
@@ -153,7 +153,7 @@ class Telnet(GenericTelnetSsh):
         """
         Changes telnet mode to enter telnet commands not information from server.
 
-        :return: Nothing
+        :return: None
         """
         if not self._telnet_command_mode:
             self.connection.send(chr(0x1D))  # ctrl + ]
