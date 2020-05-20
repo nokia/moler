@@ -162,6 +162,25 @@ def test_send_can_push_remaining_data_within_timeout(ssh_connection_class):
         assert nb_bytes_sent == len(bytes2send)
 
 
+def test_send_detects_remote_end_closed(ssh_connection_class):
+    from moler.io.io_exceptions import RemoteEndpointDisconnected
+    connection = ssh_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
+    with connection.open():
+        time.sleep(0.1)
+        if connection.shell_channel.recv_ready():  # some banner just after open ssh
+            connection.receive()
+        request = "exit\n"
+        bytes2send = request.encode("utf-8")
+        connection.send(bytes2send)
+        time.sleep(0.1)
+        echo_bytes = connection.receive(timeout=0.5)
+        echo = echo_bytes.decode("utf-8")
+        assert "exit" in echo
+        with pytest.raises(RemoteEndpointDisconnected):
+            connection.send(bytes2send)
+        assert connection.shell_channel is None
+        assert connection.ssh_client.get_transport() is None
+
 # --------------------------- resources ---------------------------
 
 
