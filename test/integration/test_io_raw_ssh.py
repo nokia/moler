@@ -14,6 +14,7 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 import time
 import importlib
 import pytest
+import mock
 import threading
 
 
@@ -145,6 +146,20 @@ def test_send_can_timeout(ssh_connection_class):
             bytes2send = request.encode("utf-8")
             connection.send(bytes2send, timeout=0.001)
         assert "Timeout (> 0.001 sec) on ssh://molerssh@localhost:22" in str(exc.value)
+
+
+def test_send_can_push_remaining_data_within_timeout(ssh_connection_class):
+    connection = ssh_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
+    with connection.open():
+        time.sleep(0.1)
+        if connection.shell_channel.recv_ready():  # some banner just after open ssh
+            connection.receive()
+
+        big_data = "123456789 " * 10000
+        request = "echo {}\n".format(big_data)
+        bytes2send = request.encode("utf-8")
+        nb_bytes_sent = connection.send(bytes2send, timeout=0.1)
+        assert nb_bytes_sent == len(bytes2send)
 
 
 # --------------------------- resources ---------------------------

@@ -148,7 +148,7 @@ class SshShell(object):
             # TODO: separate data sent/received from other log records ?
             send_status = '[{} of {} bytes] {}'.format(nb_bytes_sent, nb_bytes_sent, data)
             self._debug('> {}'.format(send_status))
-
+            return nb_bytes_sent
         except socket.error as serr:
             if "Socket is closed" in str(serr):
                 self._close()
