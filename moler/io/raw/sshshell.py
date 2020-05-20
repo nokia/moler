@@ -177,6 +177,7 @@ class SshShell(object):
                 # want same output from any implementation of SshShell-connection
                 info = "Timeout (> {:.3f} sec) on {}, sent {}".format(timeout, self, send_status)
                 raise ConnectionTimeout(info)
+            data2send = data[nb_bytes_sent:]
         return nb_bytes_sent
 
     def receive(self, timeout=30.0):
