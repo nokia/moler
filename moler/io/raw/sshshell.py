@@ -22,6 +22,7 @@ import contextlib
 import paramiko
 import time
 import getpass
+from moler.helpers import instance_id
 
 from moler.io.io_exceptions import ConnectionTimeout
 from moler.io.io_exceptions import RemoteEndpointDisconnected
@@ -43,8 +44,10 @@ class SshShell(object):
     Moreover, it works with Pty assigned to remote shell to enable interactive dialog
     like asking for login or password.
     """
+    _channels_of_transport = {}  # key is instance_id(transport), value is list of channel IDs
+
     def __init__(self, host, port=22, username=None, password=None, receive_buffer_size=64 * 4096,
-                 logger=None):
+                 logger=None, existing_client=None):
         """Initialization of SshShell connection."""
         super(SshShell, self).__init__()
         # TODO: do we want connection.name?
@@ -55,11 +58,21 @@ class SshShell(object):
         self.receive_buffer_size = receive_buffer_size
         self.logger = logger  # TODO: build default logger if given is None?
 
-        self.ssh_client = paramiko.SSHClient()
+        self.ssh_client = existing_client if existing_client else paramiko.SSHClient()
         self.ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.shell_channel = None  # MOST IMPORTANT
         self.timeout = None
         self.await_send_ready_tick_resolution = 0.01
+
+    @classmethod
+    def from_sshshell(cls, sshshell, logger=None):
+        assert isinstance(sshshell, SshShell)
+        assert issubclass(cls, SshShell)
+        new_sshshell = cls(host=sshshell.host, port=sshshell.port,
+                           username=sshshell.username, password=sshshell.password,
+                           receive_buffer_size=sshshell.receive_buffer_size,
+                           logger=logger, existing_client=sshshell.ssh_client)
+        return new_sshshell
 
     def settimeout(self, timeout):
         if (self.timeout is None) or (timeout != self.timeout):
@@ -75,18 +88,49 @@ class SshShell(object):
         """
         self._debug('connecting to {}'.format(self))
 
-        self.ssh_client.connect(self.host, username=self.username, password=self.password)
         transport = self.ssh_client.get_transport()
+        if transport is None:
+            self.ssh_client.connect(self.host, username=self.username, password=self.password)
+            transport = self.ssh_client.get_transport()
+            action = "established"
+        else:
+            action = "reusing"
         transport_info = ['local version = {}'.format(transport.local_version),
                           'remote version = {}'.format(transport.remote_version),
                           'using socket = {}'.format(transport.sock)]
-        self._debug('  established Ssh transport: {}\n    {}'.format(transport,
-                                                                     "\n    ".join(transport_info)))
+        self._debug('  {} Ssh transport: {}\n    {}'.format(action, transport,
+                                                            "\n    ".join(transport_info)))
         self._debug('  opening shell ssh channel to {}'.format(self.host))
         self.shell_channel = self.ssh_client.invoke_shell()  # newly created channel will be connected to Pty
+        self._remember_channel_of_transport(self.shell_channel)
         self._debug('    established shell ssh channel {}'.format(self.shell_channel))
         self._debug('connection {} is open'.format(self))
         return contextlib.closing(self)
+
+    @classmethod
+    def _remember_channel_of_transport(cls, channel):
+        transport_id = instance_id(channel.get_transport())
+        channel_id = channel.get_id()
+        if transport_id in cls._channels_of_transport:
+            cls._channels_of_transport[transport_id].append(channel_id)
+        else:
+            cls._channels_of_transport[transport_id] = [channel_id]
+
+    @classmethod
+    def _forget_channel_of_transport(cls, channel):
+        transport_id = instance_id(channel.get_transport())
+        channel_id = channel.get_id()
+        if transport_id in cls._channels_of_transport:
+            cls._channels_of_transport[transport_id].remove(channel_id)
+            if len(cls._channels_of_transport[transport_id]) == 0:
+                del cls._channels_of_transport[transport_id]
+
+    @classmethod
+    def _num_channels_of_transport(cls, transport):
+        transport_id = instance_id(transport)
+        if transport_id in cls._channels_of_transport:
+            return len(cls._channels_of_transport[transport_id])
+        return 0
 
     def close(self):
         """
@@ -104,11 +148,13 @@ class SshShell(object):
             self.shell_channel.close()
             time.sleep(0.05)  # give Paramiko threads time to catch correct value of status variables
             self._debug('  closed  shell ssh channel {}'.format(self.shell_channel))
+            self._forget_channel_of_transport(self.shell_channel)
             self.shell_channel = None
-        # TODO: don't close connection if there are still channels on it
-        if self.ssh_client.get_transport() is not None:
-            self._debug('  closing ssh transport {}'.format(self.ssh_client.get_transport()))
-            self.ssh_client.close()
+        transport = self.ssh_client.get_transport()
+        if transport is not None:
+            if self._num_channels_of_transport(transport) == 0:
+                self._debug('  closing ssh transport {}'.format(self.ssh_client.get_transport()))
+                self.ssh_client.close()
         self._debug('connection {} is closed'.format(self))
 
     def __enter__(self):

@@ -56,6 +56,58 @@ def test_can_open_and_close_connection_as_context_manager(ssh_connection_class):
     assert connection.ssh_client.get_transport() is None
 
 
+def test_connection_created_from_existing_open_connection_reuses_its_transport(ssh_connection_class):
+
+    connection = ssh_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
+    with connection.open():
+        # no host, port, username, password since we want to create another connection to new shell
+        # towards same host/port using same credentials
+        reused_transport = connection.ssh_client.get_transport()
+        new_connection = ssh_connection_class.from_sshshell(sshshell=connection)
+
+        assert reused_transport is new_connection.ssh_client.get_transport()
+
+        assert new_connection.ssh_client.get_transport().is_authenticated()  # new one is authenticated
+        assert new_connection.shell_channel is None  # but not open yet (no shell on remote)
+        with new_connection.open():
+            assert new_connection.shell_channel is not None
+            assert new_connection.ssh_client.get_transport() is new_connection.shell_channel.get_transport()
+
+            assert reused_transport is new_connection.ssh_client.get_transport()
+
+            assert connection.shell_channel.get_transport().is_active()
+            assert connection.shell_channel.get_transport().is_authenticated()
+
+
+def test_opening_connection_created_from_existing_one_is_quicker(ssh_connection_class):
+
+    connection = ssh_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
+    start1 = time.time()
+    with connection.open():
+        end1 = time.time()
+        new_connection = ssh_connection_class.from_sshshell(sshshell=connection)
+        start2 = time.time()
+        with new_connection.open():
+            end2 = time.time()
+    full_open_duration = end1 - start1
+    reused_conn_open_duration = end2 - start2
+    assert reused_conn_open_duration < (0.1 * full_open_duration)
+
+
+def test_closing_connection_created_from_existing_one_is_not_closing_transport_till_last_channel(ssh_connection_class):
+
+    connection = ssh_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
+    with connection.open():
+        new_connection = ssh_connection_class.from_sshshell(sshshell=connection)
+        with new_connection.open():
+            assert connection.shell_channel.get_transport().is_authenticated()
+            assert new_connection.shell_channel.get_transport().is_authenticated()
+        assert new_connection.shell_channel is None
+        assert connection.shell_channel is not None
+        assert connection.shell_channel.get_transport().is_authenticated()
+    assert connection.shell_channel is None
+
+
 def test_str_representation_of_connection(ssh_connection_class):
 
     connection = ssh_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
