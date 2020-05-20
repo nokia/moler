@@ -59,6 +59,7 @@ class SshShell(object):
         self.ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.shell_channel = None  # MOST IMPORTANT
         self.timeout = None
+        self.await_send_ready_tick_resolution = 0.01
 
     def settimeout(self, timeout):
         if (self.timeout is None) or (timeout != self.timeout):
@@ -128,26 +129,26 @@ class SshShell(object):
             address = 'ssh://{}@{}:{}'.format(self.username, self.host, self.port)
         return address
 
-    def send(self, data):
+    def send(self, data, timeout=1):
         """
         Send data via SshShell connection.
 
         :param data: data
         :type data: bytes
+        :param timeout: max time to spend on sending all data, default 1 sec
+        :type timeout: float
         """
         if not self.shell_channel:
             raise RemoteEndpointNotConnected()
-        # TODO: check if all data has been sent within timeout
+        assert timeout > 0.0
         try:
-            nb_bytes_sent = self.shell_channel.send(data)
+            nb_bytes_sent = self._send(data, timeout)
+
             # TODO: rework logging to have LogRecord with extra=direction
             # TODO: separate data sent/received from other log records ?
-            self._debug('> [{} of {} bytes] {}'.format(nb_bytes_sent, len(data), data))
-        except socket.timeout:  # if no data could be sent before the timeout set by settimeout.
-            # don't want to show class name - just ssh address
-            # want same output from any implementation of SshShell-connection
-            info = "Timeout (> {:.3f} sec) on {}".format(self.timeout, self)
-            raise ConnectionTimeout(info)
+            send_status = '[{} of {} bytes] {}'.format(nb_bytes_sent, nb_bytes_sent, data)
+            self._debug('> {}'.format(send_status))
+
         except socket.error as serr:
             if "Socket is closed" in str(serr):
                 self._close()
@@ -156,11 +157,33 @@ class SshShell(object):
             else:
                 raise  # let any other error be visible
 
-    def receive(self, timeout=30):
+    def _send(self, data, timeout=1.0):
+        start_time = time.time()
+        nb_bytes_to_send = len(data)
+        nb_bytes_sent = 0
+        data2send = data
+        while True:
+            if self.shell_channel.send_ready():
+                chunk_bytes_sent = self.shell_channel.send(data2send)
+                nb_bytes_sent += chunk_bytes_sent
+            else:
+                time.sleep(self.await_send_ready_tick_resolution)
+                nb_bytes_sent = 0
+            if nb_bytes_sent >= nb_bytes_to_send:
+                break
+            if time.time() - start_time >= timeout:
+                send_status = '[{} of {} bytes] {}'.format(nb_bytes_sent, nb_bytes_to_send, data)
+                # don't want to show class name - just ssh address
+                # want same output from any implementation of SshShell-connection
+                info = "Timeout (> {:.3f} sec) on {}, sent {}".format(timeout, self, send_status)
+                raise ConnectionTimeout(info)
+        return nb_bytes_sent
+
+    def receive(self, timeout=30.0):
         """
         Receive data.
 
-        :param timeout: time-out, default 30 sec
+        :param timeout: max time to await for data, default 30 sec
         :type timeout: float
         """
         self.settimeout(timeout=timeout)
