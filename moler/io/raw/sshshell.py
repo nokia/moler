@@ -98,13 +98,14 @@ class SshShell(object):
         transport_info = ['local version = {}'.format(transport.local_version),
                           'remote version = {}'.format(transport.remote_version),
                           'using socket = {}'.format(transport.sock)]
-        self._debug('  {} Ssh transport: {}\n    {}'.format(action, transport,
-                                                            "\n    ".join(transport_info)))
-        self._debug('  opening shell ssh channel to {}'.format(self.host))
+        self._debug('  {} ssh transport to {}:{} {}\n    {}'.format(action, self.host, self.port, transport,
+                                                                    "\n    ".join(transport_info)))
         self.shell_channel = self.ssh_client.invoke_shell()  # newly created channel will be connected to Pty
         self._remember_channel_of_transport(self.shell_channel)
-        self._debug('    established shell ssh channel {}'.format(self.shell_channel))
-        self._debug('connection {} is open'.format(self))
+        self._debug('  established shell ssh to {}:{} [channel {}] {}'.format(self.host, self.port,
+                                                                              self.shell_channel.get_id(),
+                                                                              self.shell_channel))
+        self._info('connection {} is open'.format(self))
         return contextlib.closing(self)
 
     @classmethod
@@ -139,23 +140,25 @@ class SshShell(object):
         Connection should allow for calling close on closed/not-open connection.
         """
         self._debug('closing {}'.format(self))
-        if self.shell_channel is not None:
-            self._debug('  closing shell ssh channel {}'.format(self.shell_channel))
         self._close()
 
     def _close(self):
+        which_channel = ""
         if self.shell_channel is not None:
+            which_channel = "[channel {}] ".format(self.shell_channel.get_id())
             self.shell_channel.close()
             time.sleep(0.05)  # give Paramiko threads time to catch correct value of status variables
-            self._debug('  closed  shell ssh channel {}'.format(self.shell_channel))
+            self._debug('  closed shell ssh to {}:{} {}{}'.format(self.host, self.port,
+                                                                  which_channel,
+                                                                  self.shell_channel))
             self._forget_channel_of_transport(self.shell_channel)
             self.shell_channel = None
         transport = self.ssh_client.get_transport()
         if transport is not None:
             if self._num_channels_of_transport(transport) == 0:
-                self._debug('  closing ssh transport {}'.format(self.ssh_client.get_transport()))
+                self._debug('  closing ssh transport to {}:{} {}'.format(self.host, self.port, transport))
                 self.ssh_client.close()
-        self._debug('connection {} is closed'.format(self))
+        self._info('connection {} {}is closed'.format(self, which_channel))
 
     def __enter__(self):
         """While working as context manager connection should auto-open if it's not open yet."""
@@ -253,14 +256,16 @@ class SshShell(object):
             raise ConnectionTimeout(info)
 
         if not data:
-            self._debug("channel closed for {}".format(self))
+            self._debug("shell ssh channel closed for {}".format(self))
             self._close()
             raise RemoteEndpointDisconnected()
 
         return data
 
-    def _debug(self, msg):  # TODO: refactor to class decorator or so
+    def _debug(self, msg):
         if self.logger:
             self.logger.debug(msg)
-        else:
-            print(msg)
+
+    def _info(self, msg):
+        if self.logger:
+            self.logger.info(msg)
