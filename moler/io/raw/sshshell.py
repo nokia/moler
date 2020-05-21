@@ -191,8 +191,7 @@ class SshShell(object):
             raise RemoteEndpointNotConnected()
         assert timeout > 0.0
         try:
-            nb_bytes_sent = self._send(data, timeout)
-            return nb_bytes_sent
+            self._send(data, timeout)
         except socket.error as serr:
             if "Socket is closed" in str(serr):
                 self._close()
@@ -222,7 +221,6 @@ class SshShell(object):
                 info = "Timeout (> {:.3f} sec) on {}, sent {}".format(timeout, self, send_status)
                 raise ConnectionTimeout(info)
             data2send = data[nb_bytes_sent:]
-        return nb_bytes_sent
 
     def receive(self, timeout=30.0):
         """

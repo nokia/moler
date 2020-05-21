@@ -251,8 +251,19 @@ def test_send_can_push_remaining_data_within_timeout(ssh_connection_class):
         big_data = "123456789 " * 10000
         request = "echo {}\n".format(big_data)
         bytes2send = request.encode("utf-8")
-        nb_bytes_sent = connection.send(bytes2send, timeout=0.1)
-        assert nb_bytes_sent == len(bytes2send)
+
+        data_chunks_len = []
+        original_send = connection.shell_channel.send
+
+        def send_counting_chunks(data):
+            nb_bytes_sent = original_send(data)
+            data_chunks_len.append(nb_bytes_sent)
+            return nb_bytes_sent
+
+        with mock.patch.object(connection.shell_channel, "send", send_counting_chunks):
+            connection.send(bytes2send, timeout=0.1)
+        assert len(data_chunks_len) > 1  # indeed, there were chunks
+        assert sum(data_chunks_len) == len(bytes2send)
 
 
 def test_send_detects_remote_end_closed(ssh_connection_class):
