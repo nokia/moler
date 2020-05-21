@@ -192,11 +192,6 @@ class SshShell(object):
         assert timeout > 0.0
         try:
             nb_bytes_sent = self._send(data, timeout)
-
-            # TODO: rework logging to have LogRecord with extra=direction
-            # TODO: separate data sent/received from other log records ?
-            send_status = '[{} of {} bytes] {}'.format(nb_bytes_sent, nb_bytes_sent, data)
-            self._debug('> {}'.format(send_status))
             return nb_bytes_sent
         except socket.error as serr:
             if "Socket is closed" in str(serr):
@@ -246,9 +241,6 @@ class SshShell(object):
             raise RemoteEndpointNotConnected()
         try:
             data = self.shell_channel.recv(self.receive_buffer_size)
-            # TODO: rework logging to have LogRecord with extra=direction
-            # TODO: separate data sent/received from other log records ?
-            self._debug('< [{} bytes] {}'.format(len(data), data))
         except socket.timeout:
             # don't want to show class name - just ssh address
             # want same output from any implementation of SshShell-connection
