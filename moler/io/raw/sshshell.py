@@ -86,25 +86,26 @@ class SshShell(object):
 
         Should allow for using as context manager: with connection.open():
         """
-        self._debug('connecting to {}'.format(self))
+        if self.shell_channel is None:
+            self._debug('connecting to {}'.format(self))
 
-        transport = self.ssh_client.get_transport()
-        if transport is None:
-            self.ssh_client.connect(self.host, username=self.username, password=self.password)
             transport = self.ssh_client.get_transport()
-            action = "established"
-        else:
-            action = "reusing"
-        transport_info = ['local version = {}'.format(transport.local_version),
-                          'remote version = {}'.format(transport.remote_version),
-                          'using socket = {}'.format(transport.sock)]
-        self._debug('  {} ssh transport to {}:{} {}\n    {}'.format(action, self.host, self.port, transport,
-                                                                    "\n    ".join(transport_info)))
-        self.shell_channel = self.ssh_client.invoke_shell()  # newly created channel will be connected to Pty
-        self._remember_channel_of_transport(self.shell_channel)
-        self._debug('  established shell ssh to {}:{} [channel {}] {}'.format(self.host, self.port,
-                                                                              self.shell_channel.get_id(),
-                                                                              self.shell_channel))
+            if transport is None:
+                self.ssh_client.connect(self.host, username=self.username, password=self.password)
+                transport = self.ssh_client.get_transport()
+                action = "established"
+            else:
+                action = "reusing"
+            transport_info = ['local version = {}'.format(transport.local_version),
+                              'remote version = {}'.format(transport.remote_version),
+                              'using socket = {}'.format(transport.sock)]
+            self._debug('  {} ssh transport to {}:{} {}\n    {}'.format(action, self.host, self.port, transport,
+                                                                        "\n    ".join(transport_info)))
+            self.shell_channel = self.ssh_client.invoke_shell()  # newly created channel will be connected to Pty
+            self._remember_channel_of_transport(self.shell_channel)
+            self._debug('  established shell ssh to {}:{} [channel {}] {}'.format(self.host, self.port,
+                                                                                  self.shell_channel.get_id(),
+                                                                                  self.shell_channel))
         self._info('connection {} is open'.format(self))
         return contextlib.closing(self)
 
@@ -139,7 +140,8 @@ class SshShell(object):
 
         Connection should allow for calling close on closed/not-open connection.
         """
-        self._debug('closing {}'.format(self))
+        if self.shell_channel is not None:
+            self._debug('closing {}'.format(self))
         self._close()
 
     def _close(self):
@@ -162,8 +164,7 @@ class SshShell(object):
 
     def __enter__(self):
         """While working as context manager connection should auto-open if it's not open yet."""
-        if self.shell_channel is None:
-            self.open()
+        self.open()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
