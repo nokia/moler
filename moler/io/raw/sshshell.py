@@ -27,6 +27,7 @@ from moler.helpers import instance_id
 from moler.io.io_exceptions import ConnectionTimeout
 from moler.io.io_exceptions import RemoteEndpointDisconnected
 from moler.io.io_exceptions import RemoteEndpointNotConnected
+from moler.io.io_connection import IOConnection
 from moler.io.raw import TillDoneThread
 import datetime
 
@@ -60,7 +61,7 @@ class SshShell(object):
 
         self.ssh_client = existing_client if existing_client else paramiko.SSHClient()
         self.ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        self.shell_channel = None  # MOST IMPORTANT
+        self._shell_channel = None  # MOST IMPORTANT
         self.timeout = None
         self.await_send_ready_tick_resolution = 0.01
 
@@ -74,10 +75,18 @@ class SshShell(object):
                            logger=logger, existing_client=sshshell.ssh_client)
         return new_sshshell
 
+    @property
+    def shell_channel(self):
+        return self._shell_channel
+
+    @property
+    def ssh_transport(self):
+        return self.ssh_client.get_transport()
+
     def settimeout(self, timeout):
         if (self.timeout is None) or (timeout != self.timeout):
-            if self.shell_channel:
-                self.shell_channel.settimeout(timeout)
+            if self._shell_channel:
+                self._shell_channel.settimeout(timeout)
                 self.timeout = timeout
 
     def open(self):
@@ -86,7 +95,7 @@ class SshShell(object):
 
         Should allow for using as context manager: with connection.open():
         """
-        if self.shell_channel is None:
+        if self._shell_channel is None:
             self._debug('connecting to {}'.format(self))
 
             transport = self.ssh_client.get_transport()
@@ -101,11 +110,11 @@ class SshShell(object):
                               'using socket = {}'.format(transport.sock)]
             self._debug('  {} ssh transport to {}:{} {}\n    {}'.format(action, self.host, self.port, transport,
                                                                         "\n    ".join(transport_info)))
-            self.shell_channel = self.ssh_client.invoke_shell()  # newly created channel will be connected to Pty
-            self._remember_channel_of_transport(self.shell_channel)
+            self._shell_channel = self.ssh_client.invoke_shell()  # newly created channel will be connected to Pty
+            self._remember_channel_of_transport(self._shell_channel)
             self._debug('  established shell ssh to {}:{} [channel {}] {}'.format(self.host, self.port,
-                                                                                  self.shell_channel.get_id(),
-                                                                                  self.shell_channel))
+                                                                                  self._shell_channel.get_id(),
+                                                                                  self._shell_channel))
         self._info('connection {} is open'.format(self))
         return contextlib.closing(self)
 
@@ -140,21 +149,21 @@ class SshShell(object):
 
         Connection should allow for calling close on closed/not-open connection.
         """
-        if self.shell_channel is not None:
+        if self._shell_channel is not None:
             self._debug('closing {}'.format(self))
         self._close()
 
     def _close(self):
         which_channel = ""
-        if self.shell_channel is not None:
-            which_channel = "[channel {}] ".format(self.shell_channel.get_id())
-            self.shell_channel.close()
+        if self._shell_channel is not None:
+            which_channel = "[channel {}] ".format(self._shell_channel.get_id())
+            self._shell_channel.close()
             time.sleep(0.05)  # give Paramiko threads time to catch correct value of status variables
             self._debug('  closed shell ssh to {}:{} {}{}'.format(self.host, self.port,
                                                                   which_channel,
-                                                                  self.shell_channel))
-            self._forget_channel_of_transport(self.shell_channel)
-            self.shell_channel = None
+                                                                  self._shell_channel))
+            self._forget_channel_of_transport(self._shell_channel)
+            self._shell_channel = None
         transport = self.ssh_client.get_transport()
         if transport is not None:
             if self._num_channels_of_transport(transport) == 0:
@@ -172,8 +181,8 @@ class SshShell(object):
         return False  # reraise exceptions if any
 
     def __str__(self):
-        if self.shell_channel:
-            shell_channel_id = self.shell_channel.get_id()
+        if self._shell_channel:
+            shell_channel_id = self._shell_channel.get_id()
             address = 'ssh://{}@{}:{} [channel {}]'.format(self.username, self.host, self.port, shell_channel_id)
         else:
             address = 'ssh://{}@{}:{}'.format(self.username, self.host, self.port)
@@ -188,7 +197,7 @@ class SshShell(object):
         :param timeout: max time to spend on sending all data, default 1 sec
         :type timeout: float
         """
-        if not self.shell_channel:
+        if not self._shell_channel:
             raise RemoteEndpointNotConnected()
         assert timeout > 0.0
         try:
@@ -207,8 +216,8 @@ class SshShell(object):
         nb_bytes_sent = 0
         data2send = data
         while True:
-            if self.shell_channel.send_ready():
-                chunk_bytes_sent = self.shell_channel.send(data2send)
+            if self._shell_channel.send_ready():
+                chunk_bytes_sent = self._shell_channel.send(data2send)
                 nb_bytes_sent += chunk_bytes_sent
             else:
                 time.sleep(self.await_send_ready_tick_resolution)
@@ -236,10 +245,10 @@ class SshShell(object):
 
     def recv(self):
         """Receive data."""
-        if not self.shell_channel:
+        if not self._shell_channel:
             raise RemoteEndpointNotConnected()
         try:
-            data = self.shell_channel.recv(self.receive_buffer_size)
+            data = self._shell_channel.recv(self.receive_buffer_size)
         except socket.timeout:
             # don't want to show class name - just ssh address
             # want same output from any implementation of SshShell-connection
@@ -254,9 +263,115 @@ class SshShell(object):
         return data
 
     def _debug(self, msg):
+        th = threading.current_thread()
         if self.logger:
             self.logger.debug(msg)
+        print("{}: {}".format(th, msg))
 
     def _info(self, msg):
+        th = threading.current_thread()
         if self.logger:
             self.logger.info(msg)
+        print("{}: I: {}".format(th, msg))
+
+
+class ThreadedSshShell(IOConnection):
+    """
+    SshShell connection feeding Moler's connection inside dedicated thread.
+
+    This is external-IO usable for Moler since it has it's own runner
+    (thread) that can work in background and pull data from SshShell connection.
+    """
+
+    def __init__(self, moler_connection,
+                 host, port=22, username=None, password=None,
+                 receive_buffer_size=64 * 4096,
+                 logger=None,
+                 existing_client=None):
+        """Initialization of SshShell-threaded connection."""
+        super(ThreadedSshShell, self).__init__(moler_connection=moler_connection)
+        self.sshshell = SshShell(host=host, port=port, username=username, password=password,
+                                 receive_buffer_size=receive_buffer_size,
+                                 logger=logger, existing_client=existing_client)
+        self.pulling_thread = None
+
+    @classmethod
+    def from_sshshell(cls, moler_connection, sshshell, logger=None):
+        assert isinstance(sshshell, SshShell)
+        assert issubclass(cls, ThreadedSshShell)
+        new_sshshell = cls(moler_connection=moler_connection, host=sshshell.host, port=sshshell.port,
+                           username=sshshell.username, password=sshshell.password,
+                           receive_buffer_size=sshshell.receive_buffer_size,
+                           logger=logger, existing_client=sshshell.ssh_client)
+        return new_sshshell
+
+    @property
+    def ssh_transport(self):
+        return self.sshshell.ssh_transport
+
+    @property
+    def shell_channel(self):
+        return self.sshshell.shell_channel
+
+    def __str__(self):
+        address = self.sshshell.__str__()
+        return address
+
+    def open(self):
+        """Open SshShell connection & start thread pulling data from it."""
+        self.sshshell.open()
+        done = threading.Event()
+        self.pulling_thread = TillDoneThread(target=self.pull_data,
+                                             done_event=done,
+                                             kwargs={'pulling_done': done})
+        self.pulling_thread.start()
+        return contextlib.closing(self)
+
+    def close(self):
+        """Close SshShell connection & stop pulling thread."""
+        if self.pulling_thread:
+            self.pulling_thread.join()  # pull_data() will do self.sshshell.close()
+            self.pulling_thread = None
+
+    def send(self, data, timeout=1):
+        """
+        Send data via SshShell connection.
+
+        :param data: data
+        :type data: bytes
+        :param timeout: max time to spend on sending all data, default 1 sec
+        :type timeout: float
+        """
+        self.sshshell.send(data=data, timeout=timeout)
+
+    def receive(self):
+        """
+        Pull data bytes from external-IO:
+
+            data = io_connection.receive()
+
+        data is intended to forward into Moler's connection:
+
+            self.moler_connection.data_received(data)
+
+        """
+        data = self.sshshell.recv()
+        return data
+
+    def pull_data(self, pulling_done):
+        """Pull data from SshShell connection."""
+        self.sshshell.settimeout(timeout=0.1)
+        while not pulling_done.is_set():
+            try:
+                data = self.receive()
+                if data:
+                    print(data)
+                    self.data_received(data, datetime.datetime.now())  # (3)
+            except ConnectionTimeout:
+                continue
+            except RemoteEndpointNotConnected:
+                break
+            except RemoteEndpointDisconnected:
+                break
+        self.sshshell._debug("CLOSING")
+        self.sshshell.close()
