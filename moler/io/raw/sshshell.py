@@ -345,23 +345,17 @@ class ThreadedSshShell(IOConnection):
         self.pulling_thread = TillDoneThread(target=self.pull_data,
                                              done_event=self._pulling_done,
                                              kwargs={'pulling_done': self._pulling_done})
-        print("STARTING IN MAIN THREAD")
         self.pulling_thread.start()
-        print("STARTED IN MAIN THREAD")
         return contextlib.closing(self)
 
     def close(self):
         """Close SshShell connection & stop pulling thread."""
         self._pulling_done.set()
-        print("CLOSING IN MAIN THREAD")
         with self._shell_lock:
             self.sshshell.close()
-            print("CLOSED IN MAIN THREAD")
         if self.pulling_thread:
-            print("JOINING IN MAIN THREAD")
             self.pulling_thread.join()
             self.pulling_thread = None
-            print("JOINED IN MAIN THREAD")
 
     def send(self, data, timeout=1):
         """
@@ -385,9 +379,7 @@ class ThreadedSshShell(IOConnection):
             self.moler_connection.data_received(data)
 
         """
-        print("NEED READ IN PULL THREAD")
         with self._shell_lock:
-            print("READING IN PULL THREAD")
             data = self.sshshell.recv()
         return data
 
@@ -397,7 +389,6 @@ class ThreadedSshShell(IOConnection):
             try:
                 data = self.receive()
                 if data:
-                    print(data)
                     self.data_received(data, datetime.datetime.now())  # (3)
             except ConnectionTimeout:
                 continue
@@ -405,8 +396,6 @@ class ThreadedSshShell(IOConnection):
                 break
             except RemoteEndpointDisconnected:
                 break
-        print("EXITING PULL THREAD")
         with self._shell_lock:
-            print("CLOSING IN PULL THREAD")
             if self.shell_channel is not None:
                 self.sshshell.close()
