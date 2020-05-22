@@ -16,7 +16,6 @@ __copyright__ = 'Copyright (C) 2020, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
 import socket
-import sys
 import threading
 import contextlib
 import paramiko
@@ -30,10 +29,6 @@ from moler.io.io_exceptions import RemoteEndpointNotConnected
 from moler.io.io_connection import IOConnection
 from moler.io.raw import TillDoneThread
 import datetime
-
-
-# TODO: logging - want to know what happens on GIVEN connection
-# TODO: logging - rethink details
 
 
 class SshShell(object):
@@ -76,14 +71,10 @@ class SshShell(object):
         return new_sshshell
 
     @property
-    def shell_channel(self):
-        return self._shell_channel
-
-    @property
-    def ssh_transport(self):
+    def _ssh_transport(self):
         return self.ssh_client.get_transport()
 
-    def settimeout(self, timeout):
+    def _settimeout(self, timeout):
         if (self.timeout is None) or (timeout != self.timeout):
             if self._shell_channel:
                 self._shell_channel.settimeout(timeout)
@@ -239,16 +230,16 @@ class SshShell(object):
         :param timeout: max time to await for data, default 30 sec
         :type timeout: float
         """
-        self.settimeout(timeout=timeout)
-        data = self.recv()
+        self._settimeout(timeout=timeout)
+        data = self._recv()
         return data
 
-    def recv(self):
+    def _recv(self):
         """Receive data."""
         if not self._shell_channel:
             raise RemoteEndpointNotConnected()
         try:
-            # ensure we will never block in recv()
+            # ensure we will never block in channel.recv()
             if not self._shell_channel.gettimeout():
                 self._shell_channel.settimeout(self.await_ready_tick_resolution)
             data = self._shell_channel.recv(self.receive_buffer_size)
@@ -320,12 +311,12 @@ class ThreadedSshShell(IOConnection):
         return new_sshshell
 
     @property
-    def ssh_transport(self):
-        return self.sshshell.ssh_transport
+    def _ssh_transport(self):
+        return self.sshshell._ssh_transport
 
     @property
-    def shell_channel(self):
-        return self.sshshell.shell_channel
+    def _shell_channel(self):
+        return self.sshshell._shell_channel
 
     def __str__(self):
         address = self.sshshell.__str__()
@@ -333,16 +324,16 @@ class ThreadedSshShell(IOConnection):
 
     def open(self):
         """Open SshShell connection & start thread pulling data from it."""
-        was_closed = self.shell_channel is None
+        was_closed = self._shell_channel is None
         self.sshshell.open()
-        is_open = self.shell_channel is not None
+        is_open = self._shell_channel is not None
         if was_closed and is_open:
             self._notify_on_connect()
         if self.pulling_thread is None:
             # set reading timeout in same thread where we open shell and before starting pulling thread
-            self.sshshell.settimeout(timeout=self.pulling_timeout)
+            self.sshshell._settimeout(timeout=self.pulling_timeout)
             self._pulling_done.clear()
-            self.pulling_thread = TillDoneThread(target=self.pull_data,
+            self.pulling_thread = TillDoneThread(target=self._pull_data,
                                                  done_event=self._pulling_done,
                                                  kwargs={'pulling_done': self._pulling_done})
             self.pulling_thread.start()
@@ -352,7 +343,7 @@ class ThreadedSshShell(IOConnection):
         """Close SshShell connection & stop pulling thread."""
         self._pulling_done.set()
         if self.pulling_thread:
-            self.pulling_thread.join()  # pull_data will do self.sshshell.close()
+            self.pulling_thread.join()  # _pull_data will do self.sshshell.close()
             self.pulling_thread = None
 
     def send(self, data, timeout=1):
@@ -377,10 +368,10 @@ class ThreadedSshShell(IOConnection):
             self.moler_connection.data_received(data)
 
         """
-        data = self.sshshell.recv()
+        data = self.sshshell._recv()
         return data
 
-    def pull_data(self, pulling_done):
+    def _pull_data(self, pulling_done):
         """Pull data from SshShell connection."""
         already_notified = False
         while not pulling_done.is_set():
@@ -396,8 +387,8 @@ class ThreadedSshShell(IOConnection):
                 self._notify_on_disconnect()
                 already_notified = True
                 break
-        was_open = self.shell_channel is not None
+        was_open = self._shell_channel is not None
         self.sshshell.close()
-        is_closed = self.shell_channel is None
+        is_closed = self._shell_channel is None
         if was_open and is_closed and (not already_notified):
             self._notify_on_disconnect()

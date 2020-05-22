@@ -24,8 +24,8 @@ def test_can_create_passive_sshshell_connection_using_same_api(passive_sshshell_
 
     connection = passive_sshshell_connection_class(host='localhost', port=22,
                                                    username='molerssh', password='moler_password')
-    assert connection.ssh_transport is None
-    assert connection.shell_channel is None
+    assert connection._ssh_transport is None
+    assert connection._shell_channel is None
     assert hasattr(connection, "receive")
 
 
@@ -40,8 +40,8 @@ def test_can_create_active_sshshell_connection_using_same_api(active_sshshell_co
     connection = active_sshshell_connection_class(moler_connection=moler_conn,
                                                   host='localhost', port=22,
                                                   username='molerssh', password='moler_password')
-    assert connection.ssh_transport is None
-    assert connection.shell_channel is None
+    assert connection._ssh_transport is None
+    assert connection._shell_channel is None
     assert hasattr(connection, "data_received")
 
 
@@ -54,31 +54,31 @@ def test_can_open_and_close_connection(sshshell_connection):
     connection = sshshell_connection
 
     connection.open()
-    assert connection.ssh_transport is not None
-    assert connection.shell_channel is not None
-    assert connection.ssh_transport == connection.shell_channel.get_transport()
-    assert connection.ssh_transport.is_active()
-    assert connection.ssh_transport.is_authenticated()
+    assert connection._ssh_transport is not None
+    assert connection._shell_channel is not None
+    assert connection._ssh_transport == connection._shell_channel.get_transport()
+    assert connection._ssh_transport.is_active()
+    assert connection._ssh_transport.is_authenticated()
 
     connection.close()
-    assert connection.shell_channel is None
-    assert connection.ssh_transport is None
+    assert connection._shell_channel is None
+    assert connection._ssh_transport is None
 
 
 def test_can_open_and_close_connection_as_context_manager(sshshell_connection):
 
     connection = sshshell_connection
     with connection.open():
-        assert connection.ssh_transport.is_authenticated()
-        assert connection.shell_channel is not None
-    assert connection.ssh_transport is None
-    assert connection.shell_channel is None
+        assert connection._ssh_transport.is_authenticated()
+        assert connection._shell_channel is not None
+    assert connection._ssh_transport is None
+    assert connection._shell_channel is None
 
     with connection:
-        assert connection.ssh_transport.is_authenticated()
-        assert connection.shell_channel is not None
-    assert connection.ssh_transport is None
-    assert connection.shell_channel is None
+        assert connection._ssh_transport.is_authenticated()
+        assert connection._shell_channel is not None
+    assert connection._ssh_transport is None
+    assert connection._shell_channel is None
 
 
 def test_passive_connection_created_from_existing_open_connection_reuses_its_transport(passive_sshshell_connection_class):
@@ -86,36 +86,36 @@ def test_passive_connection_created_from_existing_open_connection_reuses_its_tra
     source_connection = passive_sshshell_connection_class(host='localhost', port=22,
                                                           username='molerssh', password='moler_password')
     with source_connection.open():
-        source_transport = source_connection.ssh_transport
+        source_transport = source_connection._ssh_transport
         # no host, port, username, password since we want to create another connection to new shell
         # towards same host/port using same credentials
         new_connection = passive_sshshell_connection_class.from_sshshell(sshshell=source_connection)
 
-        assert source_transport is new_connection.ssh_transport
+        assert source_transport is new_connection._ssh_transport
 
-        assert new_connection.ssh_transport.is_authenticated()  # new one is authenticated
-        assert new_connection.shell_channel is None  # but not open yet (no shell on remote)
+        assert new_connection._ssh_transport.is_authenticated()  # new one is authenticated
+        assert new_connection._shell_channel is None  # but not open yet (no shell on remote)
         with new_connection.open():
-            assert new_connection.shell_channel is not None
-            assert source_transport is new_connection.ssh_transport  # no change after open()
+            assert new_connection._shell_channel is not None
+            assert source_transport is new_connection._ssh_transport  # no change after open()
 
 
 def test_passive_connection_created_from_existing_nonopen_connection_will_share_same_transport(passive_sshshell_connection_class):
 
     source_connection = passive_sshshell_connection_class(host='localhost', port=22,
                                                           username='molerssh', password='moler_password')
-    assert source_connection.ssh_transport is None
+    assert source_connection._ssh_transport is None
     new_connection = passive_sshshell_connection_class.from_sshshell(sshshell=source_connection)
     with source_connection.open():
-        source_transport = source_connection.ssh_transport
+        source_transport = source_connection._ssh_transport
 
-        assert source_transport is new_connection.ssh_transport
+        assert source_transport is new_connection._ssh_transport
 
-        assert new_connection.ssh_transport.is_authenticated()  # new one is authenticated
-        assert new_connection.shell_channel is None  # but not open yet (no shell on remote)
+        assert new_connection._ssh_transport.is_authenticated()  # new one is authenticated
+        assert new_connection._shell_channel is None  # but not open yet (no shell on remote)
         with new_connection.open():
-            assert new_connection.shell_channel is not None
-            assert source_transport is new_connection.ssh_transport  # no change after open()
+            assert new_connection._shell_channel is not None
+            assert source_transport is new_connection._ssh_transport  # no change after open()
 
 
 def test_active_connection_created_from_existing_open_connection_reuses_its_transport(active_sshshell_connection_class):
@@ -130,7 +130,7 @@ def test_active_connection_created_from_existing_open_connection_reuses_its_tran
                                                          host='localhost', port=22,
                                                          username='molerssh', password='moler_password')
     with source_connection.open():
-        source_transport = source_connection.ssh_transport
+        source_transport = source_connection._ssh_transport
 
         # no host, port, username, password since we want to create another connection to new shell
         # towards same host/port using same credentials
@@ -142,13 +142,13 @@ def test_active_connection_created_from_existing_open_connection_reuses_its_tran
         new_connection = active_sshshell_connection_class.from_sshshell(sshshell=source_connection,
                                                                         moler_connection=another_moler_conn)
 
-        assert source_transport is new_connection.ssh_transport
+        assert source_transport is new_connection._ssh_transport
 
-        assert new_connection.ssh_transport.is_authenticated()  # new one is authenticated
-        assert new_connection.shell_channel is None  # but not open yet (no shell on remote)
+        assert new_connection._ssh_transport.is_authenticated()  # new one is authenticated
+        assert new_connection._shell_channel is None  # but not open yet (no shell on remote)
         with new_connection.open():
-            assert new_connection.shell_channel is not None
-            assert source_transport is new_connection.ssh_transport  # no change after open()
+            assert new_connection._shell_channel is not None
+            assert source_transport is new_connection._ssh_transport  # no change after open()
 
 
 def test_active_connection_created_from_existing_nonopen_connection_will_share_same_transport(sshshell_connection,
@@ -159,19 +159,19 @@ def test_active_connection_created_from_existing_nonopen_connection_will_share_s
                                              encoder=lambda data: data.encode("utf-8"))
 
     source_connection = sshshell_connection  # source might be either passive or active
-    assert source_connection.ssh_transport is None
+    assert source_connection._ssh_transport is None
     new_connection = active_sshshell_connection_class.from_sshshell(sshshell=source_connection,
                                                                     moler_connection=new_moler_conn)
     with source_connection.open():
-        source_transport = source_connection.ssh_transport
+        source_transport = source_connection._ssh_transport
 
-        assert source_transport is new_connection.ssh_transport
+        assert source_transport is new_connection._ssh_transport
 
-        assert new_connection.ssh_transport.is_authenticated()  # new one is authenticated
-        assert new_connection.shell_channel is None  # but not open yet (no shell on remote)
+        assert new_connection._ssh_transport.is_authenticated()  # new one is authenticated
+        assert new_connection._shell_channel is None  # but not open yet (no shell on remote)
         with new_connection.open():
-            assert new_connection.shell_channel is not None
-            assert source_transport is new_connection.ssh_transport  # no change after open()
+            assert new_connection._shell_channel is not None
+            assert source_transport is new_connection._ssh_transport  # no change after open()
 
 
 def test_logging_for_open_close_of_passive_connection(passive_sshshell_connection_class, mocked_logger):
@@ -277,12 +277,12 @@ def test_closing_connection_created_from_existing_one_is_not_closing_transport_t
         else:
             new_connection = sshshell_connection.__class__.from_sshshell(sshshell=connection)
         with new_connection.open():
-            assert connection.shell_channel.get_transport().is_authenticated()
-            assert new_connection.shell_channel.get_transport().is_authenticated()
-        assert new_connection.shell_channel is None
-        assert connection.shell_channel is not None
-        assert connection.shell_channel.get_transport().is_authenticated()
-    assert connection.shell_channel is None
+            assert connection._shell_channel.get_transport().is_authenticated()
+            assert new_connection._shell_channel.get_transport().is_authenticated()
+        assert new_connection._shell_channel is None
+        assert connection._shell_channel is not None
+        assert connection._shell_channel.get_transport().is_authenticated()
+    assert connection._shell_channel is None
 
 
 def test_str_representation_of_connection(sshshell_connection):
@@ -299,7 +299,7 @@ def test_str_representation_of_connection(sshshell_connection):
                                                    username='molerssh', password='moler_password')
     assert str(connection) == "ssh://molerssh@localhost:22"
     with connection.open():
-        shell_channel_id = connection.shell_channel.get_id()
+        shell_channel_id = connection._shell_channel.get_id()
         assert str(connection) == "ssh://molerssh@localhost:22 [channel {}]".format(shell_channel_id)
     assert str(connection) == "ssh://molerssh@localhost:22"
 
@@ -311,7 +311,7 @@ def test_can_send_and_receive_binary_data_over_passive_connection(passive_sshshe
                                                    username='molerssh', password='moler_password')
     with connection.open():
         time.sleep(0.1)
-        if connection.shell_channel.recv_ready():  # some banner just after open ssh
+        if connection._shell_channel.recv_ready():  # some banner just after open ssh
             connection.receive()
         request = "pwd\n"
         bytes2send = request.encode("utf-8")
@@ -372,7 +372,7 @@ def test_receive_on_passive_connection_is_timeout_protected(passive_sshshell_con
     connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
     with connection.open():
         time.sleep(0.3)
-        if connection.shell_channel.recv_ready():  # some banner just after open ssh
+        if connection._shell_channel.recv_ready():  # some banner just after open ssh
             connection.receive()
         with pytest.raises(ConnectionTimeout) as exc:
             connection.receive(timeout=0.2)
@@ -384,7 +384,7 @@ def test_passive_connection_receive_detects_remote_end_close(passive_sshshell_co
     connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
     with connection.open():
         time.sleep(0.1)
-        if connection.shell_channel.recv_ready():  # some banner just after open ssh
+        if connection._shell_channel.recv_ready():  # some banner just after open ssh
             connection.receive()
         request = "exit\n"
         bytes2send = request.encode("utf-8")
@@ -395,8 +395,8 @@ def test_passive_connection_receive_detects_remote_end_close(passive_sshshell_co
         assert "exit" in echo
         with pytest.raises(RemoteEndpointDisconnected):
             connection.receive(timeout=0.5)
-        assert connection.shell_channel is None
-        assert connection.ssh_transport is None
+        assert connection._shell_channel is None
+        assert connection._ssh_transport is None
 
 
 def test_active_connection_pulling_detects_remote_end_close(active_sshshell_connection):
@@ -424,8 +424,8 @@ def test_active_connection_pulling_detects_remote_end_close(active_sshshell_conn
         echo = "".join(received_data)
         assert "exit" in echo
         time.sleep(0.1)  # allow threads switch
-        assert connection.shell_channel is None  # means already closed
-        assert connection.ssh_transport is None
+        assert connection._shell_channel is None  # means already closed
+        assert connection._ssh_transport is None
 
 
 def test_send_can_timeout(sshshell_connection):
@@ -448,14 +448,14 @@ def test_send_can_push_remaining_data_within_timeout(sshshell_connection):
         bytes2send = request.encode("utf-8")
 
         data_chunks_len = []
-        original_send = connection.shell_channel.send
+        original_send = connection._shell_channel.send
 
         def send_counting_chunks(data):
             nb_bytes_sent = original_send(data)
             data_chunks_len.append(nb_bytes_sent)
             return nb_bytes_sent
 
-        with mock.patch.object(connection.shell_channel, "send", send_counting_chunks):
+        with mock.patch.object(connection._shell_channel, "send", send_counting_chunks):
             connection.send(bytes2send, timeout=0.1)
         assert len(data_chunks_len) > 1  # indeed, there were chunks
         assert sum(data_chunks_len) == len(bytes2send)
@@ -466,7 +466,7 @@ def test_passive_connection_send_detects_remote_end_closed(passive_sshshell_conn
     connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
     with connection.open():
         time.sleep(0.1)
-        if connection.shell_channel.recv_ready():  # some banner just after open ssh
+        if connection._shell_channel.recv_ready():  # some banner just after open ssh
             connection.receive()
         request = "exit\n"
         bytes2send = request.encode("utf-8")
@@ -476,8 +476,8 @@ def test_passive_connection_send_detects_remote_end_closed(passive_sshshell_conn
 
         with pytest.raises(RemoteEndpointDisconnected):
             connection.send(bytes2send)
-        assert connection.shell_channel is None
-        assert connection.ssh_transport is None
+        assert connection._shell_channel is None
+        assert connection._ssh_transport is None
 
 
 def test_active_connection_send_detects_remote_end_closed(active_sshshell_connection):
