@@ -44,15 +44,24 @@ class SshShell(object):
 
     def __init__(self, host, port=22, username=None, password=None, receive_buffer_size=64 * 4096,
                  logger=None, existing_client=None):
-        """Initialization of SshShell connection."""
+        """
+        Initialization of SshShell connection.
+
+        :param host: host of ssh server where we want to connect
+        :param port: port of ssh server
+        :param username: username for password based login
+        :param password: password for password based login
+        :param receive_buffer_size:
+        :param logger: logger to use (None means no logging)
+        :param existing_client: (internal use) for reusing ssh transport of existing sshshell
+        """
         super(SshShell, self).__init__()
-        # TODO: do we want connection.name?
         self.host = host
         self.port = port
         self.username = getpass.getuser() if username is None else username
         self.password = password
         self.receive_buffer_size = receive_buffer_size
-        self.logger = logger  # TODO: build default logger if given is None?
+        self.logger = logger
 
         self.ssh_client = existing_client if existing_client else paramiko.SSHClient()
         self.ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -62,6 +71,16 @@ class SshShell(object):
 
     @classmethod
     def from_sshshell(cls, sshshell, logger=None):
+        """
+        Build new sshshell based on existing one - it will reuse its transport
+
+        No need to provide host, port and login credentials - they will be reused.
+        You should use this constructor if you are connecting towards same host/port using same credentials.
+
+        :param sshshell: existing connection to reuse it's ssh transport
+        :param logger: new logger for new connection
+        :return: instance of new sshshell connection with reused ssh transport
+        """
         assert isinstance(sshshell, SshShell)
         assert issubclass(cls, SshShell)
         new_sshshell = cls(host=sshshell.host, port=sshshell.port,
@@ -82,9 +101,13 @@ class SshShell(object):
 
     def open(self):
         """
-        Open SshShell connection.
+        Open Ssh channel to remote shell.
 
-        Should allow for using as context manager: with connection.open():
+        If SshShell was created with "reused ssh transport" then no new transport is created - just shell channel.
+        (such connection establishment is quicker)
+        Else - before creating channel we create ssh transport and perform full login with provided credentials.
+
+        May be used as context manager: with connection.open():
         """
         if self._shell_channel is None:
             self._debug('connecting to {}'.format(self))
@@ -138,7 +161,8 @@ class SshShell(object):
         """
         Close SshShell connection. Close channel of that connection.
 
-        Connection should allow for calling close on closed/not-open connection.
+        If SshShell was created with "reused ssh transport" then closing will close only ssh channel of remote shell.
+        Ssh transport will be closed after it's last channel is closed.
         """
         if self._shell_channel is not None:
             self._debug('closing {}'.format(self))
@@ -289,7 +313,18 @@ class ThreadedSshShell(IOConnection):
                  receive_buffer_size=64 * 4096,
                  logger=None,
                  existing_client=None):
-        """Initialization of SshShell-threaded connection."""
+        """
+        Initialization of SshShell-threaded connection.
+
+        :param moler_connection: moler-dispatching-connection to use for data forwarding
+        :param host: host of ssh server where we want to connect
+        :param port: port of ssh server
+        :param username: username for password based login
+        :param password: password for password based login
+        :param receive_buffer_size:
+        :param logger: logger to use (None means no logging)
+        :param existing_client: (internal use) for reusing ssh transport of existing sshshell
+        """
         super(ThreadedSshShell, self).__init__(moler_connection=moler_connection)
         self.sshshell = SshShell(host=host, port=port, username=username, password=password,
                                  receive_buffer_size=receive_buffer_size,
@@ -300,6 +335,17 @@ class ThreadedSshShell(IOConnection):
 
     @classmethod
     def from_sshshell(cls, moler_connection, sshshell, logger=None):
+        """
+        Build new sshshell based on existing one - it will reuse its transport
+
+        No need to provide host, port and login credentials - they will be reused.
+        You should use this constructor if you are connecting towards same host/port using same credentials.
+
+        :param moler_connection: moler-connection may not be reused; we need fresh one
+        :param sshshell: existing connection to reuse it's ssh transport
+        :param logger: new logger for new connection
+        :return: instance of new sshshell connection with reused ssh transport
+        """
         if isinstance(sshshell, ThreadedSshShell):
             sshshell = sshshell.sshshell
         assert isinstance(sshshell, SshShell)
@@ -323,7 +369,15 @@ class ThreadedSshShell(IOConnection):
         return address
 
     def open(self):
-        """Open SshShell connection & start thread pulling data from it."""
+        """
+        Open Ssh channel to remote shell & start thread pulling data from it.
+
+        If SshShell was created with "reused ssh transport" then no new transport is created - just shell channel.
+        (such connection establishment is quicker)
+        Else - before creating channel we create ssh transport and perform full login with provided credentials.
+
+        May be used as context manager: with connection.open():
+        """
         was_closed = self._shell_channel is None
         self.sshshell.open()
         is_open = self._shell_channel is not None
@@ -340,7 +394,12 @@ class ThreadedSshShell(IOConnection):
         return contextlib.closing(self)
 
     def close(self):
-        """Close SshShell connection & stop pulling thread."""
+        """
+        Close SshShell connection. Close channel of that connection & stop pulling thread.
+
+        If SshShell was created with "reused ssh transport" then closing will close only ssh channel of remote shell.
+        Ssh transport will be closed after it's last channel is closed.
+        """
         self._pulling_done.set()
         if self.pulling_thread:
             self.pulling_thread.join()  # _pull_data will do self.sshshell.close()
