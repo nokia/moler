@@ -419,11 +419,11 @@ def test_active_connection_pulling_detects_remote_end_close(active_sshshell_conn
         request = "exit\n"
         # sending is not directly via sshshell-io but via moler_connection that does encoding and forwarding
         moler_conn.send(data=request)
-        receiver_called.wait(timeout=0.5)
+        receiver_called.wait(timeout=0.4)
         moler_conn.unsubscribe(receiver, connection_closed_handler)
         echo = "".join(received_data)
         assert "exit" in echo
-        time.sleep(0.1)  # allow threads switch
+        time.sleep(0.3)  # allow threads switch
         assert connection._shell_channel is None  # means already closed
         assert connection._ssh_transport is None
 
