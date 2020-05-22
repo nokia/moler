@@ -174,22 +174,11 @@ def test_active_connection_created_from_existing_nonopen_connection_will_share_s
             assert source_transport is new_connection.ssh_transport  # no change after open()
 
 
-def test_logging_of_open_and_close_connection(passive_sshshell_connection_class):
-    class MyLogger(object):
-        def __init__(self):
-            self.calls = []
-
-        def debug(self, msg):
-            msg_without_details = msg.split(" |", 1)
-            self.calls.append("DEBUG: " + msg_without_details[0])
-
-        def info(self, msg):
-            msg_without_details = msg.split(" |", 1)
-            self.calls.append(" INFO: " + msg_without_details[0])
-
-    logger = MyLogger()
-    connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password',
-                                      logger=logger)
+def test_logging_for_open_close_of_passive_connection(passive_sshshell_connection_class, mocked_logger):
+    logger = mocked_logger
+    connection = passive_sshshell_connection_class(host='localhost', port=22,
+                                                   username='molerssh', password='moler_password',
+                                                   logger=logger)
     with connection.open():
         new_connection = passive_sshshell_connection_class.from_sshshell(sshshell=connection, logger=logger)
         with new_connection.open():
@@ -211,19 +200,61 @@ def test_logging_of_open_and_close_connection(passive_sshshell_connection_class)
                             ' INFO: connection ssh://molerssh@localhost:22 [channel 0] is closed']
 
 
-def test_opening_connection_created_from_existing_one_is_quicker(passive_sshshell_connection_class):
+def test_logging_for_open_close_of_active_connection(active_sshshell_connection_class, mocked_logger):
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
-    connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
+    logger = mocked_logger
+    moler_conn = ThreadedMolerConnection(decoder=lambda data: data.decode("utf-8"),
+                                         encoder=lambda data: data.encode("utf-8"))
+    another_moler_conn = ThreadedMolerConnection(decoder=lambda data: data.decode("utf-8"),
+                                                 encoder=lambda data: data.encode("utf-8"))
+    connection = active_sshshell_connection_class(moler_connection=moler_conn,
+                                                  host='localhost', port=22,
+                                                  username='molerssh', password='moler_password',
+                                                  logger=logger)
+    with connection.open():
+        new_connection = active_sshshell_connection_class.from_sshshell(sshshell=connection,
+                                                                        moler_connection=another_moler_conn,
+                                                                        logger=logger)
+        with new_connection.open():
+            pass
+    assert logger.calls == ['DEBUG: connecting to ssh://molerssh@localhost:22',
+                            'DEBUG:   established ssh transport to localhost:22',
+                            'DEBUG:   established shell ssh to localhost:22 [channel 0]',
+                            ' INFO: connection ssh://molerssh@localhost:22 [channel 0] is open',
+                            'DEBUG: connecting to ssh://molerssh@localhost:22',
+                            'DEBUG:   reusing ssh transport to localhost:22',
+                            'DEBUG:   established shell ssh to localhost:22 [channel 1]',
+                            ' INFO: connection ssh://molerssh@localhost:22 [channel 1] is open',
+                            'DEBUG: closing ssh://molerssh@localhost:22 [channel 1]',
+                            'DEBUG:   closed shell ssh to localhost:22 [channel 1]',
+                            ' INFO: connection ssh://molerssh@localhost:22 [channel 1] is closed',
+                            'DEBUG: closing ssh://molerssh@localhost:22 [channel 0]',
+                            'DEBUG:   closed shell ssh to localhost:22 [channel 0]',
+                            'DEBUG:   closing ssh transport to localhost:22',
+                            ' INFO: connection ssh://molerssh@localhost:22 [channel 0] is closed']
+
+
+def test_opening_connection_created_from_existing_one_is_quicker(sshshell_connection):
+    from moler.threaded_moler_connection import ThreadedMolerConnection
+
+    connection = sshshell_connection
     start1 = time.time()
     with connection.open():
         end1 = time.time()
-        new_connection = passive_sshshell_connection_class.from_sshshell(sshshell=connection)
+        if hasattr(connection, "moler_connection"):  # active connection
+            another_moler_conn = ThreadedMolerConnection(decoder=lambda data: data.decode("utf-8"),
+                                                         encoder=lambda data: data.encode("utf-8"))
+            new_connection = sshshell_connection.__class__.from_sshshell(moler_connection=another_moler_conn,
+                                                                         sshshell=connection)
+        else:
+            new_connection = sshshell_connection.__class__.from_sshshell(sshshell=connection)
         start2 = time.time()
         with new_connection.open():
             end2 = time.time()
     full_open_duration = end1 - start1
     reused_conn_open_duration = end2 - start2
-    assert reused_conn_open_duration < (0.1 * full_open_duration)
+    assert (reused_conn_open_duration * 5 ) < full_open_duration
 
 
 def test_closing_connection_created_from_existing_one_is_not_closing_transport_till_last_channel(passive_sshshell_connection_class):
@@ -454,6 +485,7 @@ def sshshell_connection(request):
         connection = connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
     return connection
 
+
 @pytest.fixture
 def active_sshshell_connection(active_sshshell_connection_class):
     from moler.threaded_moler_connection import ThreadedMolerConnection
@@ -463,3 +495,21 @@ def active_sshshell_connection(active_sshshell_connection_class):
     connection = connection_class(moler_connection=moler_conn,
                                   host='localhost', port=22, username='molerssh', password='moler_password')
     return connection
+
+
+@pytest.fixture
+def mocked_logger():
+    class MyLogger(object):
+        def __init__(self):
+            self.calls = []
+
+        def debug(self, msg):
+            msg_without_details = msg.split(" |", 1)
+            self.calls.append("DEBUG: " + msg_without_details[0])
+
+        def info(self, msg):
+            msg_without_details = msg.split(" |", 1)
+            self.calls.append(" INFO: " + msg_without_details[0])
+
+    logger = MyLogger()
+    return logger

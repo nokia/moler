@@ -63,7 +63,7 @@ class SshShell(object):
         self.ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self._shell_channel = None  # MOST IMPORTANT
         self.timeout = None
-        self.await_send_ready_tick_resolution = 0.01
+        self.await_ready_tick_resolution = 0.01
 
     @classmethod
     def from_sshshell(cls, sshshell, logger=None):
@@ -220,7 +220,7 @@ class SshShell(object):
                 chunk_bytes_sent = self._shell_channel.send(data2send)
                 nb_bytes_sent += chunk_bytes_sent
             else:
-                time.sleep(self.await_send_ready_tick_resolution)
+                time.sleep(self.await_ready_tick_resolution)
                 nb_bytes_sent = 0
             if nb_bytes_sent >= nb_bytes_to_send:
                 break
@@ -248,6 +248,9 @@ class SshShell(object):
         if not self._shell_channel:
             raise RemoteEndpointNotConnected()
         try:
+            # ensure we will never block in recv()
+            if not self._shell_channel.gettimeout():
+                self._shell_channel.settimeout(self.await_ready_tick_resolution)
             data = self._shell_channel.recv(self.receive_buffer_size)
         except socket.timeout:
             # don't want to show class name - just ssh address
@@ -305,6 +308,9 @@ class ThreadedSshShell(IOConnection):
                                  receive_buffer_size=receive_buffer_size,
                                  logger=logger, existing_client=existing_client)
         self.pulling_thread = None
+        self.pulling_timeout = 0.1
+        self._pulling_done = threading.Event()
+        self._shell_lock = threading.Lock()
 
     @classmethod
     def from_sshshell(cls, moler_connection, sshshell, logger=None):
@@ -333,18 +339,29 @@ class ThreadedSshShell(IOConnection):
     def open(self):
         """Open SshShell connection & start thread pulling data from it."""
         self.sshshell.open()
-        done = threading.Event()
+        # set reading timeout in same thread where we open shell and before starting pulling thread
+        self.sshshell.settimeout(timeout=self.pulling_timeout)
+        self._pulling_done.clear()
         self.pulling_thread = TillDoneThread(target=self.pull_data,
-                                             done_event=done,
-                                             kwargs={'pulling_done': done})
+                                             done_event=self._pulling_done,
+                                             kwargs={'pulling_done': self._pulling_done})
+        print("STARTING IN MAIN THREAD")
         self.pulling_thread.start()
+        print("STARTED IN MAIN THREAD")
         return contextlib.closing(self)
 
     def close(self):
         """Close SshShell connection & stop pulling thread."""
+        self._pulling_done.set()
+        print("CLOSING IN MAIN THREAD")
+        with self._shell_lock:
+            self.sshshell.close()
+            print("CLOSED IN MAIN THREAD")
         if self.pulling_thread:
-            self.pulling_thread.join()  # pull_data() will do self.sshshell.close()
+            print("JOINING IN MAIN THREAD")
+            self.pulling_thread.join()
             self.pulling_thread = None
+            print("JOINED IN MAIN THREAD")
 
     def send(self, data, timeout=1):
         """
@@ -368,12 +385,14 @@ class ThreadedSshShell(IOConnection):
             self.moler_connection.data_received(data)
 
         """
-        data = self.sshshell.recv()
+        print("NEED READ IN PULL THREAD")
+        with self._shell_lock:
+            print("READING IN PULL THREAD")
+            data = self.sshshell.recv()
         return data
 
     def pull_data(self, pulling_done):
         """Pull data from SshShell connection."""
-        self.sshshell.settimeout(timeout=0.1)
         while not pulling_done.is_set():
             try:
                 data = self.receive()
@@ -386,5 +405,8 @@ class ThreadedSshShell(IOConnection):
                 break
             except RemoteEndpointDisconnected:
                 break
-        self.sshshell._debug("CLOSING")
-        self.sshshell.close()
+        print("EXITING PULL THREAD")
+        with self._shell_lock:
+            print("CLOSING IN PULL THREAD")
+            if self.shell_channel is not None:
+                self.sshshell.close()
