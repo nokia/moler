@@ -239,22 +239,29 @@ def test_opening_connection_created_from_existing_one_is_quicker(sshshell_connec
     from moler.threaded_moler_connection import ThreadedMolerConnection
 
     connection = sshshell_connection
-    start1 = time.time()
-    with connection.open():
-        end1 = time.time()
-        if hasattr(connection, "moler_connection"):  # active connection
-            another_moler_conn = ThreadedMolerConnection(decoder=lambda data: data.decode("utf-8"),
-                                                         encoder=lambda data: data.encode("utf-8"))
-            new_connection = sshshell_connection.__class__.from_sshshell(moler_connection=another_moler_conn,
-                                                                         sshshell=connection)
-        else:
-            new_connection = sshshell_connection.__class__.from_sshshell(sshshell=connection)
-        start2 = time.time()
-        with new_connection.open():
-            end2 = time.time()
-    full_open_duration = end1 - start1
-    reused_conn_open_duration = end2 - start2
-    assert (reused_conn_open_duration * 5 ) < full_open_duration
+    if hasattr(connection, "moler_connection"):  # active connection
+        another_moler_conn = ThreadedMolerConnection(decoder=lambda data: data.decode("utf-8"),
+                                                     encoder=lambda data: data.encode("utf-8"))
+        new_connection = sshshell_connection.__class__.from_sshshell(moler_connection=another_moler_conn,
+                                                                     sshshell=connection)
+    else:
+        new_connection = sshshell_connection.__class__.from_sshshell(sshshell=connection)
+
+    full_open_durations = []
+    reused_conn_open_durations = []
+    for cnt in range(10):
+        start1 = time.time()
+        with connection.open():
+            end1 = time.time()
+            start2 = time.time()
+            with new_connection.open():
+                end2 = time.time()
+        full_open_durations.append(end1 - start1)
+        reused_conn_open_durations.append(end2 - start2)
+
+    avr_full_open_duration = sum(full_open_durations) / len(full_open_durations)
+    avr_reused_conn_open_duration = sum(reused_conn_open_durations) / len(reused_conn_open_durations)
+    assert (avr_reused_conn_open_duration * 5 ) < avr_full_open_duration
 
 
 def test_closing_connection_created_from_existing_one_is_not_closing_transport_till_last_channel(sshshell_connection):
@@ -323,7 +330,6 @@ def test_can_send_and_receive_binary_data_over_active_connection(active_sshshell
     receiver_called = threading.Event()
 
     def receiver(data, timestamp):
-        print(">>>>" + data)
         received_data.append(data)
         if "home" in data:
             receiver_called.set()
@@ -361,7 +367,7 @@ def test_cant_receive_from_not_opened_connection(sshshell_connection):
         connection.receive()
 
 
-def test_receive_is_timeout_protected(passive_sshshell_connection_class):
+def test_receive_on_passive_connection_is_timeout_protected(passive_sshshell_connection_class):
     from moler.io.io_exceptions import ConnectionTimeout
     connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
     with connection.open():
@@ -373,7 +379,7 @@ def test_receive_is_timeout_protected(passive_sshshell_connection_class):
         assert "Timeout (> 0.200 sec) on ssh://molerssh@localhost:22" in str(exc.value)
 
 
-def test_receive_detects_remote_end_close(passive_sshshell_connection_class):
+def test_passive_connection_receive_detects_remote_end_close(passive_sshshell_connection_class):
     from moler.io.io_exceptions import RemoteEndpointDisconnected
     connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
     with connection.open():
@@ -390,6 +396,35 @@ def test_receive_detects_remote_end_close(passive_sshshell_connection_class):
         with pytest.raises(RemoteEndpointDisconnected):
             connection.receive(timeout=0.5)
         assert connection.shell_channel is None
+        assert connection.ssh_transport is None
+
+
+def test_active_connection_pulling_detects_remote_end_close(active_sshshell_connection):
+    received_data = ['']
+    receiver_called = threading.Event()
+
+    def receiver(data, timestamp):
+        received_data.append(data)
+        if "exit" in data:
+            receiver_called.set()
+
+    def connection_closed_handler():
+        pass
+
+    connection = active_sshshell_connection
+    moler_conn = connection.moler_connection
+    with connection.open():
+        time.sleep(0.1)
+        moler_conn.subscribe(receiver, connection_closed_handler)
+        request = "exit\n"
+        # sending is not directly via sshshell-io but via moler_connection that does encoding and forwarding
+        moler_conn.send(data=request)
+        receiver_called.wait(timeout=0.5)
+        moler_conn.unsubscribe(receiver, connection_closed_handler)
+        echo = "".join(received_data)
+        assert "exit" in echo
+        time.sleep(0.1)  # allow threads switch
+        assert connection.shell_channel is None  # means already closed
         assert connection.ssh_transport is None
 
 
@@ -426,7 +461,7 @@ def test_send_can_push_remaining_data_within_timeout(sshshell_connection):
         assert sum(data_chunks_len) == len(bytes2send)
 
 
-def test_send_detects_remote_end_closed(passive_sshshell_connection_class):
+def test_passive_connection_send_detects_remote_end_closed(passive_sshshell_connection_class):
     from moler.io.io_exceptions import RemoteEndpointDisconnected
     connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
     with connection.open():
@@ -437,52 +472,27 @@ def test_send_detects_remote_end_closed(passive_sshshell_connection_class):
         bytes2send = request.encode("utf-8")
         connection.send(bytes2send)
         time.sleep(0.1)
-        echo_bytes = connection.receive(timeout=0.5)
-        echo = echo_bytes.decode("utf-8")
-        assert "exit" in echo
+        connection.receive(timeout=0.5)  # ignore echo (tested elsewhere)
+
         with pytest.raises(RemoteEndpointDisconnected):
             connection.send(bytes2send)
         assert connection.shell_channel is None
         assert connection.ssh_transport is None
 
-#
-# def test_threaded_sshshell_send_detects_remote_end_closed(active_sshshell_connection_class):
-#     from moler.io.io_exceptions import RemoteEndpointDisconnected
-#     from moler.io.raw.sshshell import ThreadedSshShell
-#     received_data = [b'']
-#     receiver_called = threading.Event()
-#
-#     def receiver(data, timestamp):
-#         print(">>>>" + data)
-#         received_data[0] = data
-#         if "exit" in received_data.decode("utf-8"):
-#             receiver_called.set()
-#
-#     def connection_closed_handler():
-#         pass
-#
-#     connection = sshshell_connection
-#     with connection.open():
-#         time.sleep(0.1)
-#         if connection.shell_channel.recv_ready():  # some banner just after open ssh
-#             connection.receive()
-#         request = "exit\n"
-#         bytes2send = request.encode("utf-8")
-#         if isinstance(connection, ThreadedSshShell):
-#             connection.moler_connection.subscribe(receiver, connection_closed_handler)
-#         connection.send(bytes2send)
-#         time.sleep(0.1)
-#         if isinstance(connection, ThreadedSshShell):
-#             receiver_called.wait(timeout=0.5)
-#             echo_bytes = received_data
-#         else:
-#             echo_bytes = connection.receive(timeout=0.5)
-#         echo = echo_bytes.decode("utf-8")
-#         assert "exit" in echo
-#         with pytest.raises(RemoteEndpointDisconnected):
-#             connection.send(bytes2send)
-#         assert connection.shell_channel is None
-#         assert connection.ssh_transport is None
+
+def test_active_connection_send_detects_remote_end_closed(active_sshshell_connection):
+    from moler.io.io_exceptions import RemoteEndpointNotConnected
+
+    connection = active_sshshell_connection
+    moler_conn = connection.moler_connection
+    with connection.open():
+        time.sleep(0.1)
+        moler_conn.send(data="exit\n")
+        time.sleep(0.5)  # allow active connection to get command echo (tested elsewhere) and react on remote end close
+
+        with pytest.raises(RemoteEndpointNotConnected):
+            moler_conn.send(data="exit\n")
+
 
 # --------------------------- resources ---------------------------
 
