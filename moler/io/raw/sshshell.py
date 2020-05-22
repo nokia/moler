@@ -333,7 +333,11 @@ class ThreadedSshShell(IOConnection):
 
     def open(self):
         """Open SshShell connection & start thread pulling data from it."""
+        was_closed = self.shell_channel is None
         self.sshshell.open()
+        is_open = self.shell_channel is not None
+        if was_closed and is_open:
+            self._notify_on_connect()
         if self.pulling_thread is None:
             # set reading timeout in same thread where we open shell and before starting pulling thread
             self.sshshell.settimeout(timeout=self.pulling_timeout)
@@ -378,6 +382,7 @@ class ThreadedSshShell(IOConnection):
 
     def pull_data(self, pulling_done):
         """Pull data from SshShell connection."""
+        already_notified = False
         while not pulling_done.is_set():
             try:
                 data = self.receive()
@@ -388,5 +393,11 @@ class ThreadedSshShell(IOConnection):
             except RemoteEndpointNotConnected:
                 break
             except RemoteEndpointDisconnected:
+                self._notify_on_disconnect()
+                already_notified = True
                 break
+        was_open = self.shell_channel is not None
         self.sshshell.close()
+        is_closed = self.shell_channel is None
+        if was_open and is_closed and (not already_notified):
+            self._notify_on_disconnect()

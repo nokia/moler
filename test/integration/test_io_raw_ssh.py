@@ -494,6 +494,60 @@ def test_active_connection_send_detects_remote_end_closed(active_sshshell_connec
             moler_conn.send(data="exit\n")
 
 
+def test_active_connection_can_notify_on_establishing_and_closing_connection(active_sshshell_connection):
+    notifications = []
+
+    def on_connection_made(connection):
+        notifications.append(("made", time.time(), connection))
+
+    def on_connection_lost(connection):
+        notifications.append(("lost", time.time(), connection))
+
+    connection = active_sshshell_connection
+    connection.notify(callback=on_connection_made, when="connection_made")
+    connection.notify(callback=on_connection_lost, when="connection_lost")
+    before_open_time = time.time()
+    with connection.open():
+        after_open_time = time.time()
+        time.sleep(0.1)
+        before_close_time = time.time()
+        time.sleep(0.1)
+    after_close_time = time.time()
+
+    assert len(notifications) == 2
+    assert "made" == notifications[0][0]
+    assert "lost" == notifications[1][0]
+    assert connection is notifications[0][2]
+    assert connection is notifications[1][2]
+    made_time = notifications[0][1]
+    lost_time = notifications[1][1]
+
+    assert before_open_time < made_time < after_open_time
+    assert before_close_time < lost_time < after_close_time
+
+
+def test_active_connection_can_notify_on_losing_connection(active_sshshell_connection):
+    lost_time = []
+
+    def on_connection_lost(connection):
+        lost_time.append(time.time())
+
+    connection = active_sshshell_connection
+    moler_conn = connection.moler_connection
+    connection.notify(callback=on_connection_lost, when="connection_lost")
+    with connection.open():
+        time.sleep(0.1)
+        moler_conn.send(data="exit\n")
+        before_exit_from_remote_time = time.time()
+        time.sleep(0.5)
+        before_close_time = time.time()
+
+    assert len(lost_time) == 1
+    connection_lost_time = lost_time[0]
+
+    assert before_exit_from_remote_time < connection_lost_time < before_close_time
+
+
 # --------------------------- resources ---------------------------
 
 
