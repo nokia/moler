@@ -275,6 +275,17 @@ class SshShell(object):
         print("{}: I: {}".format(th, msg))
 
 
+##################################################################################################################
+# SshShell and ThreadedSshShell differ in API - ThreadedSshShell gets moler_connection
+# It is intentional architecture decision: SshShell has much looser binding with moler.
+# Thanks to this it's reuse possibility is wider.
+# As a consequence ThreadedSshShell uses SshShell via composition.
+#
+# Moreover, SshShell is passive connection - needs pulling for data
+#           and ThreadedSshShell is active connection - pushes data by itself (same model as asyncio, Twisted, etc)
+###################################################################################################################
+
+
 class ThreadedSshShell(IOConnection):
     """
     SshShell connection feeding Moler's connection inside dedicated thread.
@@ -297,6 +308,8 @@ class ThreadedSshShell(IOConnection):
 
     @classmethod
     def from_sshshell(cls, moler_connection, sshshell, logger=None):
+        if isinstance(sshshell, ThreadedSshShell):
+            sshshell = sshshell.sshshell
         assert isinstance(sshshell, SshShell)
         assert issubclass(cls, ThreadedSshShell)
         new_sshshell = cls(moler_connection=moler_connection, host=sshshell.host, port=sshshell.port,

@@ -18,6 +18,33 @@ import mock
 import threading
 
 
+def test_can_create_passive_sshshell_connection_using_same_api(passive_sshshell_connection_class):
+    # sshshell active and passive connections differ in API.
+    # but we want to have all connections of class 'passive sshshell' to have same API
+
+    connection = passive_sshshell_connection_class(host='localhost', port=22,
+                                                   username='molerssh', password='moler_password')
+    assert connection.ssh_transport is None
+    assert connection.shell_channel is None
+    assert hasattr(connection, "receive")
+
+
+def test_can_create_active_sshshell_connection_using_same_api(active_sshshell_connection_class):
+    # we want to have all connections of class 'active sshshell' to share same API
+
+    from moler.threaded_moler_connection import ThreadedMolerConnection
+
+    moler_conn = ThreadedMolerConnection(decoder=lambda data: data.decode("utf-8"),
+                                         encoder=lambda data: data.encode("utf-8"))
+
+    connection = active_sshshell_connection_class(moler_connection=moler_conn,
+                                                  host='localhost', port=22,
+                                                  username='molerssh', password='moler_password')
+    assert connection.ssh_transport is None
+    assert connection.shell_channel is None
+    assert hasattr(connection, "data_received")
+
+
 def test_can_open_and_close_connection(sshshell_connection):
     """
     Not so atomic test (checks 2 things) but:
@@ -25,17 +52,16 @@ def test_can_open_and_close_connection(sshshell_connection):
     - anyway open needs close as cleanup to not have resources leaking in tests
     """
     connection = sshshell_connection
-    assert connection.ssh_transport is None
-    assert connection.shell_channel is None
 
     connection.open()
     assert connection.ssh_transport is not None
     assert connection.shell_channel is not None
     assert connection.ssh_transport == connection.shell_channel.get_transport()
-    assert connection.shell_channel.get_transport().is_active()
-    assert connection.shell_channel.get_transport().is_authenticated()
+    assert connection.ssh_transport.is_active()
+    assert connection.ssh_transport.is_authenticated()
 
     connection.close()
+    assert connection.shell_channel is None
     assert connection.ssh_transport is None
 
 
@@ -43,38 +69,112 @@ def test_can_open_and_close_connection_as_context_manager(sshshell_connection):
 
     connection = sshshell_connection
     with connection.open():
-        assert connection.shell_channel.get_transport().is_authenticated()
+        assert connection.ssh_transport.is_authenticated()
+        assert connection.shell_channel is not None
     assert connection.ssh_transport is None
+    assert connection.shell_channel is None
 
     with connection:
-        assert connection.shell_channel.get_transport().is_authenticated()
+        assert connection.ssh_transport.is_authenticated()
+        assert connection.shell_channel is not None
     assert connection.ssh_transport is None
+    assert connection.shell_channel is None
 
 
-def test_connection_created_from_existing_open_connection_reuses_its_transport(sshshell_connection_class):
+def test_passive_connection_created_from_existing_open_connection_reuses_its_transport(passive_sshshell_connection_class):
 
-    connection = sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
-    with connection.open():
+    source_connection = passive_sshshell_connection_class(host='localhost', port=22,
+                                                          username='molerssh', password='moler_password')
+    with source_connection.open():
+        source_transport = source_connection.ssh_transport
         # no host, port, username, password since we want to create another connection to new shell
         # towards same host/port using same credentials
-        reused_transport = connection.ssh_transport
-        new_connection = sshshell_connection_class.from_sshshell(sshshell=connection)
+        new_connection = passive_sshshell_connection_class.from_sshshell(sshshell=source_connection)
 
-        assert reused_transport is new_connection.ssh_transport
+        assert source_transport is new_connection.ssh_transport
 
         assert new_connection.ssh_transport.is_authenticated()  # new one is authenticated
         assert new_connection.shell_channel is None  # but not open yet (no shell on remote)
         with new_connection.open():
             assert new_connection.shell_channel is not None
-            assert new_connection.ssh_transport is new_connection.shell_channel.get_transport()
-
-            assert reused_transport is new_connection.ssh_transport
-
-            assert connection.shell_channel.get_transport().is_active()
-            assert connection.shell_channel.get_transport().is_authenticated()
+            assert source_transport is new_connection.ssh_transport  # no change after open()
 
 
-def test_logging_of_open_and_close_connection(sshshell_connection_class):
+def test_passive_connection_created_from_existing_nonopen_connection_will_share_same_transport(passive_sshshell_connection_class):
+
+    source_connection = passive_sshshell_connection_class(host='localhost', port=22,
+                                                          username='molerssh', password='moler_password')
+    assert source_connection.ssh_transport is None
+    new_connection = passive_sshshell_connection_class.from_sshshell(sshshell=source_connection)
+    with source_connection.open():
+        source_transport = source_connection.ssh_transport
+
+        assert source_transport is new_connection.ssh_transport
+
+        assert new_connection.ssh_transport.is_authenticated()  # new one is authenticated
+        assert new_connection.shell_channel is None  # but not open yet (no shell on remote)
+        with new_connection.open():
+            assert new_connection.shell_channel is not None
+            assert source_transport is new_connection.ssh_transport  # no change after open()
+
+
+def test_active_connection_created_from_existing_open_connection_reuses_its_transport(active_sshshell_connection_class):
+    from moler.threaded_moler_connection import ThreadedMolerConnection
+
+    moler_conn = ThreadedMolerConnection(decoder=lambda data: data.decode("utf-8"),
+                                         encoder=lambda data: data.encode("utf-8"))
+    another_moler_conn = ThreadedMolerConnection(decoder=lambda data: data.decode("utf-8"),
+                                                 encoder=lambda data: data.encode("utf-8"))
+
+    source_connection = active_sshshell_connection_class(moler_connection=moler_conn,
+                                                         host='localhost', port=22,
+                                                         username='molerssh', password='moler_password')
+    with source_connection.open():
+        source_transport = source_connection.ssh_transport
+
+        # no host, port, username, password since we want to create another connection to new shell
+        # towards same host/port using same credentials
+        ##################################################################################
+        # CAUTION: they should not share same moler connection (hoever, it is not blocked)
+        #          If they do you should be aware what you are doing
+        #          You are multiplexing io-streams into single moler-connection
+        ##################################################################################
+        new_connection = active_sshshell_connection_class.from_sshshell(sshshell=source_connection,
+                                                                        moler_connection=another_moler_conn)
+
+        assert source_transport is new_connection.ssh_transport
+
+        assert new_connection.ssh_transport.is_authenticated()  # new one is authenticated
+        assert new_connection.shell_channel is None  # but not open yet (no shell on remote)
+        with new_connection.open():
+            assert new_connection.shell_channel is not None
+            assert source_transport is new_connection.ssh_transport  # no change after open()
+
+
+def test_active_connection_created_from_existing_nonopen_connection_will_share_same_transport(sshshell_connection,
+                                                                                              active_sshshell_connection_class):
+    from moler.threaded_moler_connection import ThreadedMolerConnection
+
+    new_moler_conn = ThreadedMolerConnection(decoder=lambda data: data.decode("utf-8"),
+                                             encoder=lambda data: data.encode("utf-8"))
+
+    source_connection = sshshell_connection  # source might be either passive or active
+    assert source_connection.ssh_transport is None
+    new_connection = active_sshshell_connection_class.from_sshshell(sshshell=source_connection,
+                                                                    moler_connection=new_moler_conn)
+    with source_connection.open():
+        source_transport = source_connection.ssh_transport
+
+        assert source_transport is new_connection.ssh_transport
+
+        assert new_connection.ssh_transport.is_authenticated()  # new one is authenticated
+        assert new_connection.shell_channel is None  # but not open yet (no shell on remote)
+        with new_connection.open():
+            assert new_connection.shell_channel is not None
+            assert source_transport is new_connection.ssh_transport  # no change after open()
+
+
+def test_logging_of_open_and_close_connection(passive_sshshell_connection_class):
     class MyLogger(object):
         def __init__(self):
             self.calls = []
@@ -86,10 +186,10 @@ def test_logging_of_open_and_close_connection(sshshell_connection_class):
             self.calls.append(("INFO", msg))
 
     logger = MyLogger()
-    connection = sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password',
+    connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password',
                                       logger=logger)
     with connection.open():
-        new_connection = sshshell_connection_class.from_sshshell(sshshell=connection, logger=logger)
+        new_connection = passive_sshshell_connection_class.from_sshshell(sshshell=connection, logger=logger)
         with new_connection.open():
             pass
     assert logger.calls[0] == ('DEBUG', 'connecting to ssh://molerssh@localhost:22')
@@ -116,13 +216,13 @@ def test_logging_of_open_and_close_connection(sshshell_connection_class):
     assert logger.calls[10] == ('INFO', 'connection ssh://molerssh@localhost:22 [channel 1] is closed')
 
 
-def test_opening_connection_created_from_existing_one_is_quicker(sshshell_connection_class):
+def test_opening_connection_created_from_existing_one_is_quicker(passive_sshshell_connection_class):
 
-    connection = sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
+    connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
     start1 = time.time()
     with connection.open():
         end1 = time.time()
-        new_connection = sshshell_connection_class.from_sshshell(sshshell=connection)
+        new_connection = passive_sshshell_connection_class.from_sshshell(sshshell=connection)
         start2 = time.time()
         with new_connection.open():
             end2 = time.time()
@@ -131,11 +231,11 @@ def test_opening_connection_created_from_existing_one_is_quicker(sshshell_connec
     assert reused_conn_open_duration < (0.1 * full_open_duration)
 
 
-def test_closing_connection_created_from_existing_one_is_not_closing_transport_till_last_channel(sshshell_connection_class):
+def test_closing_connection_created_from_existing_one_is_not_closing_transport_till_last_channel(passive_sshshell_connection_class):
 
-    connection = sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
+    connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
     with connection.open():
-        new_connection = sshshell_connection_class.from_sshshell(sshshell=connection)
+        new_connection = passive_sshshell_connection_class.from_sshshell(sshshell=connection)
         with new_connection.open():
             assert connection.shell_channel.get_transport().is_authenticated()
             assert new_connection.shell_channel.get_transport().is_authenticated()
@@ -145,9 +245,9 @@ def test_closing_connection_created_from_existing_one_is_not_closing_transport_t
     assert connection.shell_channel is None
 
 
-def test_str_representation_of_connection(sshshell_connection_class):
+def test_str_representation_of_connection(passive_sshshell_connection_class):
 
-    connection = sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
+    connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
     assert str(connection) == "ssh://molerssh@localhost:22"
     with connection.open():
         shell_channel_id = connection.shell_channel.get_id()
@@ -159,9 +259,9 @@ def test_str_representation_of_connection(sshshell_connection_class):
 # however, they are uniformed via glueing with moler_connection.send()
 # external-IO 'send' method works on bytes; moler_connection performs encoding
 # Note2: we check sending and receiving together - checking send by its result on receive
-def test_can_send_and_receive_binary_data_over_connection(sshshell_connection_class):
+def test_can_send_and_receive_binary_data_over_connection(passive_sshshell_connection_class):
 
-    connection = sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
+    connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
     with connection.open():
         time.sleep(0.1)
         if connection.shell_channel.recv_ready():  # some banner just after open ssh
@@ -183,18 +283,18 @@ def test_cant_send_over_not_opened_connection(sshshell_connection):
         connection.send(b'ls -l\n')
 
 
-def test_cant_receive_from_not_opened_connection(sshshell_connection_class):
+def test_cant_receive_from_not_opened_connection(sshshell_connection):
     from moler.io.io_exceptions import RemoteEndpointNotConnected
-    connection = sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
+    connection = sshshell_connection
     with pytest.raises(RemoteEndpointNotConnected):
         connection.receive()
 
 
-def test_receive_is_timeout_protected(sshshell_connection_class):
+def test_receive_is_timeout_protected(passive_sshshell_connection_class):
     from moler.io.io_exceptions import ConnectionTimeout
-    connection = sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
+    connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
     with connection.open():
-        time.sleep(0.1)
+        time.sleep(0.3)
         if connection.shell_channel.recv_ready():  # some banner just after open ssh
             connection.receive()
         with pytest.raises(ConnectionTimeout) as exc:
@@ -202,9 +302,9 @@ def test_receive_is_timeout_protected(sshshell_connection_class):
         assert "Timeout (> 0.200 sec) on ssh://molerssh@localhost:22" in str(exc.value)
 
 
-def test_receive_detects_remote_end_close(sshshell_connection_class):
+def test_receive_detects_remote_end_close(passive_sshshell_connection_class):
     from moler.io.io_exceptions import RemoteEndpointDisconnected
-    connection = sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
+    connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
     with connection.open():
         time.sleep(0.1)
         if connection.shell_channel.recv_ready():  # some banner just after open ssh
@@ -222,13 +322,10 @@ def test_receive_detects_remote_end_close(sshshell_connection_class):
         assert connection.ssh_transport is None
 
 
-def test_send_can_timeout(sshshell_connection_class):
+def test_send_can_timeout(sshshell_connection):
     from moler.io.io_exceptions import ConnectionTimeout
-    connection = sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
+    connection = sshshell_connection
     with connection.open():
-        time.sleep(0.1)
-        if connection.shell_channel.recv_ready():  # some banner just after open ssh
-            connection.receive()
         with pytest.raises(ConnectionTimeout) as exc:
             big_data = "123456789 " * 10000
             request = "echo {}\n".format(big_data)
@@ -237,13 +334,9 @@ def test_send_can_timeout(sshshell_connection_class):
         assert "Timeout (> 0.001 sec) on ssh://molerssh@localhost:22" in str(exc.value)
 
 
-def test_send_can_push_remaining_data_within_timeout(sshshell_connection_class):
-    connection = sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
+def test_send_can_push_remaining_data_within_timeout(sshshell_connection):
+    connection = sshshell_connection
     with connection.open():
-        time.sleep(0.1)
-        if connection.shell_channel.recv_ready():  # some banner just after open ssh
-            connection.receive()
-
         big_data = "123456789 " * 10000
         request = "echo {}\n".format(big_data)
         bytes2send = request.encode("utf-8")
@@ -262,9 +355,9 @@ def test_send_can_push_remaining_data_within_timeout(sshshell_connection_class):
         assert sum(data_chunks_len) == len(bytes2send)
 
 
-def test_send_detects_remote_end_closed(sshshell_connection_class):
+def test_send_detects_remote_end_closed(passive_sshshell_connection_class):
     from moler.io.io_exceptions import RemoteEndpointDisconnected
-    connection = sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
+    connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
     with connection.open():
         time.sleep(0.1)
         if connection.shell_channel.recv_ready():  # some banner just after open ssh
@@ -282,7 +375,7 @@ def test_send_detects_remote_end_closed(sshshell_connection_class):
         assert connection.ssh_transport is None
 
 #
-# def test_threaded_sshshell_send_detects_remote_end_closed(threaded_sshshell_connection_class):
+# def test_threaded_sshshell_send_detects_remote_end_closed(active_sshshell_connection_class):
 #     from moler.io.io_exceptions import RemoteEndpointDisconnected
 #     from moler.io.raw.sshshell import ThreadedSshShell
 #     received_data = [b'']
@@ -323,27 +416,40 @@ def test_send_detects_remote_end_closed(sshshell_connection_class):
 # --------------------------- resources ---------------------------
 
 
-@pytest.fixture(params=['io.raw.sshshell.SshShell'])
-def sshshell_connection_class(request):
-    module_name, class_name = request.param.rsplit('.', 1)
-    module = importlib.import_module('moler.{}'.format(module_name))
+def import_class(packet_prefixed_class_name):
+    module_name, class_name = packet_prefixed_class_name.rsplit('.', 1)
+    module = importlib.import_module(module_name)
     connection_class = getattr(module, class_name)
     return connection_class
 
+#########################################################################
+# Connection like SshShell is passive connection - needs pulling for data
+# uses receive() API
+#########################################################################
+@pytest.fixture(params=['io.raw.sshshell.SshShell'])
+def passive_sshshell_connection_class(request):
+    connection_class = import_class('moler.' + request.param)
+    return connection_class
 
-@pytest.fixture
-def threaded_sshshell_connection_class():
-    from moler.io.raw.sshshell import ThreadedSshShell
-    return ThreadedSshShell
+
+######################################################################################################################
+# Connection like ThreadedSshShell is active connections - pushes data by itself (same model as asyncio, Twisted, etc)
+# uses data_received() API which delivers data to embedded moler_connection
+######################################################################################################################
+@pytest.fixture(params=['io.raw.sshshell.ThreadedSshShell'])
+def active_sshshell_connection_class(request):
+    connection_class = import_class('moler.' + request.param)
+    return connection_class
 
 
-# @pytest.fixture(params=['io.raw.sshshell.ThreadedSshShell'])
 @pytest.fixture(params=['io.raw.sshshell.SshShell', 'io.raw.sshshell.ThreadedSshShell'])
 def sshshell_connection(request):
     from moler.threaded_moler_connection import ThreadedMolerConnection
-    module_name, class_name = request.param.rsplit('.', 1)
-    module = importlib.import_module('moler.{}'.format(module_name))
-    connection_class = getattr(module, class_name)
+    connection_class = import_class('moler.' + request.param)
+    ######################################################################################
+    # SshShell and ThreadedSshShell differ in API - ThreadedSshShell gets moler_connection
+    # Why - see comment in sshshell.py
+    ######################################################################################
     if "Threaded" in request.param:
         moler_conn = ThreadedMolerConnection(decoder=lambda data: data.decode("utf-8"),
                                              encoder=lambda data: data.encode("utf-8"))
@@ -354,9 +460,9 @@ def sshshell_connection(request):
     return connection
 
 @pytest.fixture
-def threaded_sshshell_connection(threaded_sshshell_connection_class):
+def active_sshshell_connection(active_sshshell_connection_class):
     from moler.threaded_moler_connection import ThreadedMolerConnection
-    connection_class = threaded_sshshell_connection_class
+    connection_class = active_sshshell_connection_class
     moler_conn = ThreadedMolerConnection(decoder=lambda data: data.decode("utf-8"),
                                          encoder=lambda data: data.encode("utf-8"))
     connection = connection_class(moler_connection=moler_conn,
