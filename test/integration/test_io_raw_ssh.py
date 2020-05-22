@@ -548,6 +548,45 @@ def test_active_connection_can_notify_on_losing_connection(active_sshshell_conne
     assert before_exit_from_remote_time < connection_lost_time < before_close_time
 
 
+def test_active_connection_with_unexpected_exception_inside_pull_thread_should_always_close_connection(active_sshshell_connection):
+    # This requirement is against leaking resources caused by not closed ssh
+    import logging
+    lost_conn = []
+
+    def on_connection_lost(connection):
+        lost_conn.append(connection)
+
+    def exc_raiser(self):
+        raise IndexError()
+
+    connection = active_sshshell_connection
+    connection.notify(callback=on_connection_lost, when="connection_lost")
+
+    with connection.open():
+        time.sleep(0.1)
+        with mock.patch("moler.io.raw.sshshell.SshShell._recv", exc_raiser):
+            time.sleep(0.5)
+
+    assert connection._shell_channel is None
+    assert connection._ssh_transport is None
+    assert connection in lost_conn
+
+    logging_records = []
+
+    def log_handler(record):
+        logging_records.append(record)
+
+    logger = logging.getLogger("sshshell-io")
+    connection.sshshell.logger = logger
+    with connection.open():
+        time.sleep(0.1)
+        with mock.patch.object(logger, "handle", log_handler):
+            with mock.patch("moler.io.raw.sshshell.SshShell._recv", exc_raiser):
+                time.sleep(0.5)
+    assert logging_records
+    print(logging_records[0])
+    assert logging_records[0].exc_info is not None
+
 # --------------------------- resources ---------------------------
 
 

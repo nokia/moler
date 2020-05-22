@@ -446,6 +446,13 @@ class ThreadedSshShell(IOConnection):
                 self._notify_on_disconnect()
                 already_notified = True
                 break
+            except Exception as err:
+                err_msg = "Unexpected {!r} during pulling for data in {}".format(err, self)
+                if self.sshshell.logger:
+                    self.sshshell.logger.exception(err_msg)
+                else:
+                    print("ERROR: {}".format(err_msg))
+                break
         was_open = self._shell_channel is not None
         self.sshshell.close()
         is_closed = self._shell_channel is None
