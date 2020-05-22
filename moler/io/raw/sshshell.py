@@ -108,13 +108,13 @@ class SshShell(object):
             transport_info = ['local version = {}'.format(transport.local_version),
                               'remote version = {}'.format(transport.remote_version),
                               'using socket = {}'.format(transport.sock)]
-            self._debug('  {} ssh transport to {}:{} {}\n    {}'.format(action, self.host, self.port, transport,
-                                                                        "\n    ".join(transport_info)))
+            self._debug('  {} ssh transport to {}:{} |{}\n    {}'.format(action, self.host, self.port, transport,
+                                                                         "\n    ".join(transport_info)))
             self._shell_channel = self.ssh_client.invoke_shell()  # newly created channel will be connected to Pty
             self._remember_channel_of_transport(self._shell_channel)
-            self._debug('  established shell ssh to {}:{} [channel {}] {}'.format(self.host, self.port,
-                                                                                  self._shell_channel.get_id(),
-                                                                                  self._shell_channel))
+            self._debug('  established shell ssh to {}:{} [channel {}] |{}'.format(self.host, self.port,
+                                                                                   self._shell_channel.get_id(),
+                                                                                   self._shell_channel))
         self._info('connection {} is open'.format(self))
         return contextlib.closing(self)
 
@@ -159,15 +159,15 @@ class SshShell(object):
             which_channel = "[channel {}] ".format(self._shell_channel.get_id())
             self._shell_channel.close()
             time.sleep(0.05)  # give Paramiko threads time to catch correct value of status variables
-            self._debug('  closed shell ssh to {}:{} {}{}'.format(self.host, self.port,
-                                                                  which_channel,
-                                                                  self._shell_channel))
+            self._debug('  closed shell ssh to {}:{} {}|{}'.format(self.host, self.port,
+                                                                   which_channel,
+                                                                   self._shell_channel))
             self._forget_channel_of_transport(self._shell_channel)
             self._shell_channel = None
         transport = self.ssh_client.get_transport()
         if transport is not None:
             if self._num_channels_of_transport(transport) == 0:
-                self._debug('  closing ssh transport to {}:{} {}'.format(self.host, self.port, transport))
+                self._debug('  closing ssh transport to {}:{} |{}'.format(self.host, self.port, transport))
                 self.ssh_client.close()
         self._info('connection {} {}is closed'.format(self, which_channel))
 

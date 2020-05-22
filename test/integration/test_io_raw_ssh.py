@@ -180,10 +180,12 @@ def test_logging_of_open_and_close_connection(passive_sshshell_connection_class)
             self.calls = []
 
         def debug(self, msg):
-            self.calls.append(("DEBUG", msg))
+            msg_without_details = msg.split(" |", 1)
+            self.calls.append("DEBUG: " + msg_without_details[0])
 
         def info(self, msg):
-            self.calls.append(("INFO", msg))
+            msg_without_details = msg.split(" |", 1)
+            self.calls.append(" INFO: " + msg_without_details[0])
 
     logger = MyLogger()
     connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password',
@@ -192,28 +194,21 @@ def test_logging_of_open_and_close_connection(passive_sshshell_connection_class)
         new_connection = passive_sshshell_connection_class.from_sshshell(sshshell=connection, logger=logger)
         with new_connection.open():
             pass
-    assert logger.calls[0] == ('DEBUG', 'connecting to ssh://molerssh@localhost:22')
-    assert logger.calls[1][0] == 'DEBUG'
-    assert 'established ssh transport to localhost:22' in logger.calls[1][1]
-    assert logger.calls[2][0] == 'DEBUG'
-    assert 'established shell ssh to localhost:22 [channel 0]' in logger.calls[2][1]
-    assert logger.calls[3] == ('INFO', 'connection ssh://molerssh@localhost:22 [channel 0] is open')
-    assert logger.calls[4] == ('DEBUG', 'connecting to ssh://molerssh@localhost:22')
-    assert logger.calls[5][0] == 'DEBUG'
-    assert 'reusing ssh transport to localhost:22' in logger.calls[5][1]
-    assert logger.calls[6][0] == 'DEBUG'
-    assert 'established shell ssh to localhost:22 [channel 1]' in logger.calls[6][1]
-    assert logger.calls[7] == ('INFO', 'connection ssh://molerssh@localhost:22 [channel 1] is open')
-    assert logger.calls[8] == ('DEBUG', 'closing ssh://molerssh@localhost:22 [channel 1]')
-    assert logger.calls[9][0] == 'DEBUG'
-    assert 'closed shell ssh to localhost:22 [channel 1]' in logger.calls[9][1]
-    assert logger.calls[10] == ('INFO', 'connection ssh://molerssh@localhost:22 [channel 1] is closed')
-    assert logger.calls[11] == ('DEBUG', 'closing ssh://molerssh@localhost:22 [channel 0]')
-    assert logger.calls[12][0] == 'DEBUG'
-    assert 'closed shell ssh to localhost:22 [channel 0]' in logger.calls[12][1]
-    assert logger.calls[13][0] == 'DEBUG'
-    assert 'closing ssh transport to localhost:22' in logger.calls[13][1]
-    assert logger.calls[10] == ('INFO', 'connection ssh://molerssh@localhost:22 [channel 1] is closed')
+    assert logger.calls == ['DEBUG: connecting to ssh://molerssh@localhost:22',
+                            'DEBUG:   established ssh transport to localhost:22',
+                            'DEBUG:   established shell ssh to localhost:22 [channel 0]',
+                            ' INFO: connection ssh://molerssh@localhost:22 [channel 0] is open',
+                            'DEBUG: connecting to ssh://molerssh@localhost:22',
+                            'DEBUG:   reusing ssh transport to localhost:22',
+                            'DEBUG:   established shell ssh to localhost:22 [channel 1]',
+                            ' INFO: connection ssh://molerssh@localhost:22 [channel 1] is open',
+                            'DEBUG: closing ssh://molerssh@localhost:22 [channel 1]',
+                            'DEBUG:   closed shell ssh to localhost:22 [channel 1]',
+                            ' INFO: connection ssh://molerssh@localhost:22 [channel 1] is closed',
+                            'DEBUG: closing ssh://molerssh@localhost:22 [channel 0]',
+                            'DEBUG:   closed shell ssh to localhost:22 [channel 0]',
+                            'DEBUG:   closing ssh transport to localhost:22',
+                            ' INFO: connection ssh://molerssh@localhost:22 [channel 0] is closed']
 
 
 def test_opening_connection_created_from_existing_one_is_quicker(passive_sshshell_connection_class):
