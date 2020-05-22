@@ -297,24 +297,53 @@ def test_str_representation_of_connection(sshshell_connection):
     assert str(connection) == "ssh://molerssh@localhost:22"
 
 
-# Note1: different external-IO connection may have different naming for their 'send' method
-# however, they are uniformed via glueing with moler_connection.send()
-# external-IO 'send' method works on bytes; moler_connection performs encoding
-# Note2: we check sending and receiving together - checking send by its result on receive
-def test_can_send_and_receive_binary_data_over_connection(passive_sshshell_connection_class):
+# Note: we check sending and receiving together - checking send by its result on receive
+def test_can_send_and_receive_binary_data_over_passive_connection(passive_sshshell_connection_class):
 
-    connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
+    connection = passive_sshshell_connection_class(host='localhost', port=22,
+                                                   username='molerssh', password='moler_password')
     with connection.open():
         time.sleep(0.1)
         if connection.shell_channel.recv_ready():  # some banner just after open ssh
-            resp_bytes1 = connection.receive()
-        #moler_conn.send(data=b'data to be send')
+            connection.receive()
         request = "pwd\n"
         bytes2send = request.encode("utf-8")
         connection.send(bytes2send)
         time.sleep(0.1)
         resp_bytes = connection.receive()
         response = resp_bytes.decode("utf-8")
+        assert '/home/' in response
+
+
+# Note1 different active external-IO connections may have different naming for their 'send' method
+# however, they are uniformed via glueing with moler_connection.send()
+# external-IO 'send' method works on bytes; moler_connection performs encoding
+def test_can_send_and_receive_binary_data_over_active_connection(active_sshshell_connection):
+    received_data = ['']
+    receiver_called = threading.Event()
+
+    def receiver(data, timestamp):
+        print(">>>>" + data)
+        received_data.append(data)
+        if "home" in data:
+            receiver_called.set()
+
+    def connection_closed_handler():
+        pass
+
+    connection = active_sshshell_connection
+    moler_conn = connection.moler_connection
+    with connection.open():  # started pulling thread will forward initial banner of server
+        time.sleep(0.1)  # into embedded moler_connection. It will be just logged there.
+        # ------------------------------------------------------------------------------
+        # only after subscribing on moler_connection we will have client to consume pushed connection data
+        moler_conn.subscribe(receiver, connection_closed_handler)
+        request = "pwd\n"
+        # sending is not directly via sshshell-io but via moler_connection that does encoding and forwarding
+        moler_conn.send(data=request)
+        receiver_called.wait(timeout=0.5)
+        moler_conn.unsubscribe(receiver, connection_closed_handler)
+        response = "".join(received_data)
         assert '/home/' in response
 
 
