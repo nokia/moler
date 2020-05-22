@@ -266,16 +266,12 @@ class SshShell(object):
         return data
 
     def _debug(self, msg):
-        th = threading.current_thread()
         if self.logger:
             self.logger.debug(msg)
-        print("{}: {}".format(th, msg))
 
     def _info(self, msg):
-        th = threading.current_thread()
         if self.logger:
             self.logger.info(msg)
-        print("{}: I: {}".format(th, msg))
 
 
 ##################################################################################################################
@@ -310,7 +306,6 @@ class ThreadedSshShell(IOConnection):
         self.pulling_thread = None
         self.pulling_timeout = 0.1
         self._pulling_done = threading.Event()
-        self._shell_lock = threading.Lock()
 
     @classmethod
     def from_sshshell(cls, moler_connection, sshshell, logger=None):
@@ -339,22 +334,21 @@ class ThreadedSshShell(IOConnection):
     def open(self):
         """Open SshShell connection & start thread pulling data from it."""
         self.sshshell.open()
-        # set reading timeout in same thread where we open shell and before starting pulling thread
-        self.sshshell.settimeout(timeout=self.pulling_timeout)
-        self._pulling_done.clear()
-        self.pulling_thread = TillDoneThread(target=self.pull_data,
-                                             done_event=self._pulling_done,
-                                             kwargs={'pulling_done': self._pulling_done})
-        self.pulling_thread.start()
+        if self.pulling_thread is None:
+            # set reading timeout in same thread where we open shell and before starting pulling thread
+            self.sshshell.settimeout(timeout=self.pulling_timeout)
+            self._pulling_done.clear()
+            self.pulling_thread = TillDoneThread(target=self.pull_data,
+                                                 done_event=self._pulling_done,
+                                                 kwargs={'pulling_done': self._pulling_done})
+            self.pulling_thread.start()
         return contextlib.closing(self)
 
     def close(self):
         """Close SshShell connection & stop pulling thread."""
         self._pulling_done.set()
-        with self._shell_lock:
-            self.sshshell.close()
         if self.pulling_thread:
-            self.pulling_thread.join()
+            self.pulling_thread.join()  # pull_data will do self.sshshell.close()
             self.pulling_thread = None
 
     def send(self, data, timeout=1):
@@ -379,8 +373,7 @@ class ThreadedSshShell(IOConnection):
             self.moler_connection.data_received(data)
 
         """
-        with self._shell_lock:
-            data = self.sshshell.recv()
+        data = self.sshshell.recv()
         return data
 
     def pull_data(self, pulling_done):
@@ -396,6 +389,4 @@ class ThreadedSshShell(IOConnection):
                 break
             except RemoteEndpointDisconnected:
                 break
-        with self._shell_lock:
-            if self.shell_channel is not None:
-                self.sshshell.close()
+        self.sshshell.close()
