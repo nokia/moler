@@ -257,11 +257,18 @@ def test_opening_connection_created_from_existing_one_is_quicker(sshshell_connec
     assert (reused_conn_open_duration * 5 ) < full_open_duration
 
 
-def test_closing_connection_created_from_existing_one_is_not_closing_transport_till_last_channel(passive_sshshell_connection_class):
+def test_closing_connection_created_from_existing_one_is_not_closing_transport_till_last_channel(sshshell_connection):
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
-    connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
+    connection = sshshell_connection
     with connection.open():
-        new_connection = passive_sshshell_connection_class.from_sshshell(sshshell=connection)
+        if hasattr(connection, "moler_connection"):  # active connection
+            another_moler_conn = ThreadedMolerConnection(decoder=lambda data: data.decode("utf-8"),
+                                                         encoder=lambda data: data.encode("utf-8"))
+            new_connection = sshshell_connection.__class__.from_sshshell(moler_connection=another_moler_conn,
+                                                                         sshshell=connection)
+        else:
+            new_connection = sshshell_connection.__class__.from_sshshell(sshshell=connection)
         with new_connection.open():
             assert connection.shell_channel.get_transport().is_authenticated()
             assert new_connection.shell_channel.get_transport().is_authenticated()
@@ -271,9 +278,18 @@ def test_closing_connection_created_from_existing_one_is_not_closing_transport_t
     assert connection.shell_channel is None
 
 
-def test_str_representation_of_connection(passive_sshshell_connection_class):
+def test_str_representation_of_connection(sshshell_connection):
+    from moler.threaded_moler_connection import ThreadedMolerConnection
 
-    connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
+    if hasattr(sshshell_connection, "moler_connection"):  # active connection
+        another_moler_conn = ThreadedMolerConnection(decoder=lambda data: data.decode("utf-8"),
+                                                     encoder=lambda data: data.encode("utf-8"))
+        connection = sshshell_connection.__class__(moler_connection=another_moler_conn,
+                                                   host='localhost', port=22,
+                                                   username='molerssh', password='moler_password')
+    else:
+        connection = sshshell_connection.__class__(host='localhost', port=22,
+                                                   username='molerssh', password='moler_password')
     assert str(connection) == "ssh://molerssh@localhost:22"
     with connection.open():
         shell_channel_id = connection.shell_channel.get_id()
