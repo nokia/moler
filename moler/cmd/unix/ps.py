@@ -275,3 +275,11 @@ COMMAND_RESULT_aux = [
     {'USER': 'root', 'PID': 1, '%CPU': float("0.0"), "%MEM": float("0.1"), 'VSZ': 139360, 'RSS': 7220, 'TTY': '?',
      'STAT': 'Ss', 'START': 'Mar01', 'TIME': '1:16', 'COMMAND': '/sbin/init'}
 ]
+
+COMMAND_OUTPUT_no_results = '''ps -fC some_process
+UID        PID  PPID  C STIME TTY          TIME CMD
+client@server>'''
+
+COMMAND_KWARGS_no_results = {"options": "-fC some_process"}
+
+COMMAND_RESULT_no_results = []
