@@ -39,6 +39,7 @@ class Ps(GenericUnixCommand):
         self.options = options
         self._headers = None
         self._header_pos = None
+        self.ret_required = False
 
     def on_new_line(self, line, is_full_line):
         """
