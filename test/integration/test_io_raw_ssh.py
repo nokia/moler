@@ -587,6 +587,36 @@ def test_active_connection_with_unexpected_exception_inside_pull_thread_should_a
     print(logging_records[0])
     assert logging_records[0].exc_info is not None
 
+
+def test_can_assign_name_to_connection(active_sshshell_connection_class):
+    from moler.connection import Connection
+
+    moler_conn = Connection()
+    connection = active_sshshell_connection_class(moler_connection=moler_conn, host='localhost',
+                                                  name="ctrl_server")
+    assert connection.name == "ctrl_server"
+
+
+def test_uses_moler_connection_name_if_none_given(active_sshshell_connection_class):
+    from moler.connection import Connection
+
+    moler_conn = Connection()
+    moler_conn.name = "srv2"
+    connection = active_sshshell_connection_class(moler_connection=moler_conn, host='localhost')
+    assert connection.name == moler_conn.name
+
+
+def test_overwrites_moler_connection_name_with_own_one(active_sshshell_connection_class):
+    from moler.connection import Connection
+
+    moler_conn = Connection()
+    # during construction
+    connection = active_sshshell_connection_class(moler_connection=moler_conn, host='localhost', name="web_srv")
+    assert moler_conn.name == "web_srv"
+    # during direct attribute set
+    connection.name = "http_srv"
+    assert moler_conn.name == "http_srv"
+
 # --------------------------- resources ---------------------------
 
 

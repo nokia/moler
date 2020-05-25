@@ -311,6 +311,7 @@ class ThreadedSshShell(IOConnection):
     def __init__(self, moler_connection,
                  host, port=22, username=None, password=None,
                  receive_buffer_size=64 * 4096,
+                 name=None,
                  logger=None,
                  existing_client=None):
         """
@@ -322,6 +323,7 @@ class ThreadedSshShell(IOConnection):
         :param username: username for password based login
         :param password: password for password based login
         :param receive_buffer_size:
+        :param name: name assigned to connection
         :param logger: logger to use (None means no logging)
         :param existing_client: (internal use) for reusing ssh transport of existing sshshell
         """
@@ -329,6 +331,8 @@ class ThreadedSshShell(IOConnection):
         self.sshshell = SshShell(host=host, port=port, username=username, password=password,
                                  receive_buffer_size=receive_buffer_size,
                                  logger=logger, existing_client=existing_client)
+        if name:
+            self.moler_connection.name = name
         self.pulling_thread = None
         self.pulling_timeout = 0.1
         self._pulling_done = threading.Event()
@@ -355,6 +359,20 @@ class ThreadedSshShell(IOConnection):
                            receive_buffer_size=sshshell.receive_buffer_size,
                            logger=logger, existing_client=sshshell.ssh_client)
         return new_sshshell
+
+    @property
+    def name(self):
+        """Get name of connection"""
+        return self.moler_connection.name
+
+    @name.setter
+    def name(self, value):
+        """
+        Set name of connection
+
+        Io and embedded Moler's connection compose "one logical connection".
+        """
+        self.moler_connection.name = value
 
     @property
     def _ssh_transport(self):
