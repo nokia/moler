@@ -333,18 +333,18 @@ class ThreadedSshShell(IOConnection):
         If logger_name is None - don't use logging
         """
         if name:
-            self.moler_connection.name = name
+            moler_connection.name = name
         super(ThreadedSshShell, self).__init__(moler_connection=moler_connection)
-        logger = self._select_logger(logger_name, self.name, moler_connection)
+        self.logger = self._select_logger(logger_name, self.name, moler_connection)
         self.sshshell = SshShell(host=host, port=port, username=username, password=password,
                                  receive_buffer_size=receive_buffer_size,
-                                 logger=logger, existing_client=existing_client)
+                                 logger=self.logger, existing_client=existing_client)
         self.pulling_thread = None
         self.pulling_timeout = 0.1
         self._pulling_done = threading.Event()
 
     @classmethod
-    def from_sshshell(cls, moler_connection, sshshell, logger_name=""):
+    def from_sshshell(cls, moler_connection, sshshell, name=None, logger_name=""):
         """
         Build new sshshell based on existing one - it will reuse its transport
 
@@ -362,7 +362,7 @@ class ThreadedSshShell(IOConnection):
         assert issubclass(cls, ThreadedSshShell)
         new_sshshell = cls(moler_connection=moler_connection, host=sshshell.host, port=sshshell.port,
                            username=sshshell.username, password=sshshell.password,
-                           receive_buffer_size=sshshell.receive_buffer_size,
+                           receive_buffer_size=sshshell.receive_buffer_size, name=name,
                            logger_name=logger_name, existing_client=sshshell.ssh_client)
         return new_sshshell
 

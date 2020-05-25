@@ -212,28 +212,32 @@ def test_logging_for_open_close_of_active_connection(active_sshshell_connection_
         connection = active_sshshell_connection_class(moler_connection=moler_conn,
                                                       host='localhost', port=22,
                                                       username='molerssh', password='moler_password',
-                                                      logger_name="")
+                                                      name="source_sshshell", logger_name="")
         with connection.open():
             new_connection = active_sshshell_connection_class.from_sshshell(sshshell=connection,
                                                                             moler_connection=another_moler_conn,
-                                                                            logger_name="")
+                                                                            name="cloned_sshshell", logger_name="")
             with new_connection.open():
                 pass
     assert logger.calls == ['DEBUG: connecting to ssh://molerssh@localhost:22',
                             'DEBUG:   established ssh transport to localhost:22',
                             'DEBUG:   established shell ssh to localhost:22 [channel 0]',
                             ' INFO: connection ssh://molerssh@localhost:22 [channel 0] is open',
+                            " INFO: Connection to: 'source_sshshell' has been opened.",
                             'DEBUG: connecting to ssh://molerssh@localhost:22',
                             'DEBUG:   reusing ssh transport to localhost:22',
                             'DEBUG:   established shell ssh to localhost:22 [channel 1]',
                             ' INFO: connection ssh://molerssh@localhost:22 [channel 1] is open',
+                            " INFO: Connection to: 'cloned_sshshell' has been opened.",
                             'DEBUG: closing ssh://molerssh@localhost:22 [channel 1]',
                             'DEBUG:   closed shell ssh to localhost:22 [channel 1]',
                             ' INFO: connection ssh://molerssh@localhost:22 [channel 1] is closed',
+                            " INFO: Connection to: 'cloned_sshshell' has been closed.",
                             'DEBUG: closing ssh://molerssh@localhost:22 [channel 0]',
                             'DEBUG:   closed shell ssh to localhost:22 [channel 0]',
                             'DEBUG:   closing ssh transport to localhost:22',
-                            ' INFO: connection ssh://molerssh@localhost:22 [channel 0] is closed']
+                            ' INFO: connection ssh://molerssh@localhost:22 [channel 0] is closed',
+                            " INFO: Connection to: 'source_sshshell' has been closed."]
 
 
 def test_opening_connection_created_from_existing_one_is_quicker(sshshell_connection):
@@ -618,6 +622,26 @@ def test_overwrites_moler_connection_name_with_own_one(active_sshshell_connectio
     connection.name = "http_srv"
     assert moler_conn.name == "http_srv"
 
+
+def test_can_use_provided_logger(active_sshshell_connection_class):
+    from moler.connection import Connection
+    import logging
+
+    moler_conn = Connection()
+    connection = active_sshshell_connection_class(moler_connection=moler_conn, host='localhost',
+                                                  logger_name="conn.web_srv")
+    assert isinstance(connection.logger, logging.Logger)
+    assert connection.logger.name == "conn.web_srv"
+
+
+def test_can_switch_off_logging(active_sshshell_connection_class):
+    from moler.connection import Connection
+
+    moler_conn = Connection()
+    connection = active_sshshell_connection_class(moler_connection=moler_conn, host='localhost',
+                                                  logger_name=None)
+    assert connection.logger is None
+
 # --------------------------- resources ---------------------------
 
 
@@ -686,7 +710,7 @@ def mocked_logger():
             msg_without_details = msg.split(" |", 1)
             self.calls.append("DEBUG: " + msg_without_details[0])
 
-        def info(self, msg):
+        def info(self, msg, **kwargs):
             msg_without_details = msg.split(" |", 1)
             self.calls.append(" INFO: " + msg_without_details[0])
 
