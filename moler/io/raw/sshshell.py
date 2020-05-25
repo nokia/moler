@@ -21,6 +21,7 @@ import contextlib
 import paramiko
 import time
 import getpass
+import logging
 from moler.helpers import instance_id
 
 from moler.io.io_exceptions import ConnectionTimeout
@@ -312,7 +313,7 @@ class ThreadedSshShell(IOConnection):
                  host, port=22, username=None, password=None,
                  receive_buffer_size=64 * 4096,
                  name=None,
-                 logger=None,
+                 logger_name="",
                  existing_client=None):
         """
         Initialization of SshShell-threaded connection.
@@ -324,21 +325,26 @@ class ThreadedSshShell(IOConnection):
         :param password: password for password based login
         :param receive_buffer_size:
         :param name: name assigned to connection
-        :param logger: logger to use (None means no logging)
+        :param logger_name: take that logger from logging
         :param existing_client: (internal use) for reusing ssh transport of existing sshshell
+
+        Logger is retrieved by logging.getLogger(logger_name)
+        If logger_name == "" - take default logger "<moler-connection-logger>.io"
+        If logger_name is None - don't use logging
         """
+        if name:
+            self.moler_connection.name = name
         super(ThreadedSshShell, self).__init__(moler_connection=moler_connection)
+        logger = self._select_logger(logger_name, self.name, moler_connection)
         self.sshshell = SshShell(host=host, port=port, username=username, password=password,
                                  receive_buffer_size=receive_buffer_size,
                                  logger=logger, existing_client=existing_client)
-        if name:
-            self.moler_connection.name = name
         self.pulling_thread = None
         self.pulling_timeout = 0.1
         self._pulling_done = threading.Event()
 
     @classmethod
-    def from_sshshell(cls, moler_connection, sshshell, logger=None):
+    def from_sshshell(cls, moler_connection, sshshell, logger_name=""):
         """
         Build new sshshell based on existing one - it will reuse its transport
 
@@ -357,7 +363,7 @@ class ThreadedSshShell(IOConnection):
         new_sshshell = cls(moler_connection=moler_connection, host=sshshell.host, port=sshshell.port,
                            username=sshshell.username, password=sshshell.password,
                            receive_buffer_size=sshshell.receive_buffer_size,
-                           logger=logger, existing_client=sshshell.ssh_client)
+                           logger_name=logger_name, existing_client=sshshell.ssh_client)
         return new_sshshell
 
     @property
@@ -373,6 +379,26 @@ class ThreadedSshShell(IOConnection):
         Io and embedded Moler's connection compose "one logical connection".
         """
         self.moler_connection.name = value
+
+    @staticmethod
+    def _select_logger(logger_name, connection_name, moler_connection):
+        if logger_name is None:
+            return None  # don't use logging
+        default_logger_name = "moler.connection.{}.io".format(connection_name)
+        if logger_name:
+            name = logger_name
+        else:
+            # take it from moler_connection.logger and extend by ".io"
+            if moler_connection.logger is None:
+                name = default_logger_name
+            else:
+                name = "{}.io".format(moler_connection.logger.name)
+        logger = logging.getLogger(name)
+        if name and (name != default_logger_name):
+            msg = "using '{}' logger - not default '{}'".format(name,
+                                                                default_logger_name)
+            logger.log(level=logging.WARNING, msg=msg)
+        return logger
 
     @property
     def _ssh_transport(self):

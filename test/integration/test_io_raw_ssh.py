@@ -208,16 +208,17 @@ def test_logging_for_open_close_of_active_connection(active_sshshell_connection_
                                          encoder=lambda data: data.encode("utf-8"))
     another_moler_conn = ThreadedMolerConnection(decoder=lambda data: data.decode("utf-8"),
                                                  encoder=lambda data: data.encode("utf-8"))
-    connection = active_sshshell_connection_class(moler_connection=moler_conn,
-                                                  host='localhost', port=22,
-                                                  username='molerssh', password='moler_password',
-                                                  logger=logger)
-    with connection.open():
-        new_connection = active_sshshell_connection_class.from_sshshell(sshshell=connection,
-                                                                        moler_connection=another_moler_conn,
-                                                                        logger=logger)
-        with new_connection.open():
-            pass
+    with mock.patch("moler.io.raw.sshshell.ThreadedSshShell._select_logger", lambda self, x,y,z: logger):
+        connection = active_sshshell_connection_class(moler_connection=moler_conn,
+                                                      host='localhost', port=22,
+                                                      username='molerssh', password='moler_password',
+                                                      logger_name="")
+        with connection.open():
+            new_connection = active_sshshell_connection_class.from_sshshell(sshshell=connection,
+                                                                            moler_connection=another_moler_conn,
+                                                                            logger_name="")
+            with new_connection.open():
+                pass
     assert logger.calls == ['DEBUG: connecting to ssh://molerssh@localhost:22',
                             'DEBUG:   established ssh transport to localhost:22',
                             'DEBUG:   established shell ssh to localhost:22 [channel 0]',
