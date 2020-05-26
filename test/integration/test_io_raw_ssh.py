@@ -703,6 +703,7 @@ def test_changing_connection_name_switches_logger_if_default_logger_used(active_
 
     connection.name = "DEF"
     assert connection.logger.name == "moler.connection.DEF.io"
+    assert connection.sshshell.logger.name == "moler.connection.DEF.io"
 
     # default logger via default naming
     moler_conn = Connection()
@@ -711,6 +712,7 @@ def test_changing_connection_name_switches_logger_if_default_logger_used(active_
                                                   logger_name="moler.connection.ABC.io")
     connection.name = "DEF"
     assert connection.logger.name == "moler.connection.DEF.io"
+    assert connection.sshshell.logger.name == "moler.connection.DEF.io"
 
 
 def test_connection_factory_has_sshshell_constructor_active_by_default():

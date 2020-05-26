@@ -386,6 +386,7 @@ class ThreadedSshShell(IOConnection):
         self.moler_connection.name = value
         if was_using_default_logger:
             self.logger = logging.getLogger(self._default_logger_name(self.name))
+            self.sshshell.logger = self.logger
 
     @staticmethod
     def _select_logger(logger_name, connection_name, moler_connection):
