@@ -23,6 +23,7 @@ import time
 import getpass
 import logging
 from moler.helpers import instance_id
+from moler.config.loggers import TRACE
 
 from moler.io.io_exceptions import ConnectionTimeout
 from moler.io.io_exceptions import RemoteEndpointDisconnected
@@ -377,14 +378,22 @@ class ThreadedSshShell(IOConnection):
         Set name of connection
 
         Io and embedded Moler's connection compose "one logical connection".
+
+        If connection is using default logger ("moler.connection.<name>.io")
+        then modify logger after connection name change.
         """
+        if self.logger:
+            self.logger.log(msg=r'changing name: {} --> {}'.format(self.name, value), level=TRACE)
+        was_using_default_logger = (self.logger is not None) and (self.logger.name == self._default_logger_name(self.name))
         self.moler_connection.name = value
+        if was_using_default_logger:
+            self.logger = logging.getLogger(self._default_logger_name(self.name))
 
     @staticmethod
     def _select_logger(logger_name, connection_name, moler_connection):
         if logger_name is None:
             return None  # don't use logging
-        default_logger_name = "moler.connection.{}.io".format(connection_name)
+        default_logger_name = ThreadedSshShell._default_logger_name(connection_name)
         if logger_name:
             name = logger_name
         else:
@@ -395,10 +404,13 @@ class ThreadedSshShell(IOConnection):
                 name = "{}.io".format(moler_connection.logger.name)
         logger = logging.getLogger(name)
         if name and (name != default_logger_name):
-            msg = "using '{}' logger - not default '{}'".format(name,
-                                                                default_logger_name)
+            msg = "using '{}' logger - not default '{}'".format(name, default_logger_name)
             logger.log(level=logging.WARNING, msg=msg)
         return logger
+
+    @staticmethod
+    def _default_logger_name(connection_name):
+        return "moler.connection.{}.io".format(connection_name)
 
     @property
     def _ssh_transport(self):

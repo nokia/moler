@@ -642,6 +642,76 @@ def test_can_switch_off_logging(active_sshshell_connection_class):
                                                   logger_name=None)
     assert connection.logger is None
 
+
+def test_can_use_default_logger_based_on_connection_name(active_sshshell_connection_class):
+    from moler.connection import Connection
+    import logging
+
+    moler_conn = Connection()
+    connection = active_sshshell_connection_class(moler_connection=moler_conn, host='localhost', name="ABC")
+    assert isinstance(connection.logger, logging.Logger)
+    assert connection.logger.name == "moler.connection.ABC.io"
+
+    moler_conn = Connection()
+    connection = active_sshshell_connection_class(moler_connection=moler_conn, host='localhost')
+    assert isinstance(connection.logger, logging.Logger)
+    assert connection.logger.name == "moler.connection.{}.io".format(connection.name)
+
+
+def test_can_use_default_logger_based_on_moler_connection_name(active_sshshell_connection_class):
+    from moler.connection import Connection
+    import logging
+
+    moler_conn = Connection(name="ABC", logger_name="conn.DEF")
+    connection = active_sshshell_connection_class(moler_connection=moler_conn, host='localhost')
+    assert isinstance(connection.logger, logging.Logger)
+    assert connection.logger.name == "conn.DEF.io"
+
+
+def test_changing_connection_name_doesnt_switch_logger_if_external_logger_used(active_sshshell_connection_class):
+    from moler.connection import Connection
+
+    moler_conn = Connection()
+    connection = active_sshshell_connection_class(moler_connection=moler_conn, host='localhost',
+                                                  name="ABC",
+                                                  logger_name="conn.ABC")
+    assert connection.logger.name == "conn.ABC"
+    connection.name = "DEF"
+    assert connection.logger.name == "conn.ABC"
+
+
+def test_changing_connection_name_doesnt_activate_logger_if_logging_is_off(active_sshshell_connection_class):
+    from moler.connection import Connection
+
+    moler_conn = Connection()
+    connection = active_sshshell_connection_class(moler_connection=moler_conn, host='localhost',
+                                                  name="ABC",
+                                                  logger_name=None)
+    assert connection.logger is None
+    connection.name = "DEF"
+    assert connection.logger is None
+
+
+def test_changing_connection_name_switches_logger_if_default_logger_used(active_sshshell_connection_class):
+    from moler.connection import Connection
+
+    # default logger generated internally by connection
+    moler_conn = Connection()
+    connection = active_sshshell_connection_class(moler_connection=moler_conn, host='localhost',
+                                                  name="ABC")
+    assert connection.logger.name == "moler.connection.ABC.io"
+
+    connection.name = "DEF"
+    assert connection.logger.name == "moler.connection.DEF.io"
+
+    # default logger via default naming
+    moler_conn = Connection()
+    connection = active_sshshell_connection_class(moler_connection=moler_conn, host='localhost',
+                                                  name="ABC",
+                                                  logger_name="moler.connection.ABC.io")
+    connection.name = "DEF"
+    assert connection.logger.name == "moler.connection.DEF.io"
+
 # --------------------------- resources ---------------------------
 
 
