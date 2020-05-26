@@ -103,6 +103,19 @@ def mlr_conn_no_encoding_partial_clean_vt100(moler_conn_class, name):
     return moler_conn_class(name=name, decoder=vt100_cleaner)
 
 
+def mlr_conn_utf8_with_clean_vt100(moler_conn_class, name):
+    from moler.helpers import remove_all_known_special_chars
+
+    def utf8decoder_with_vt100_cleaner(data):
+        decoded = data.decode("utf-8")
+        decoded = remove_all_known_special_chars(decoded)
+        return decoded
+
+    return moler_conn_class(name=name,
+                            encoder=lambda data: data.encode("utf-8"),
+                            decoder=utf8decoder_with_vt100_cleaner)
+
+
 def mlr_conn_utf8(moler_conn_class, name):
     return moler_conn_class(encoder=lambda data: data.encode("utf-8"),
                             decoder=lambda data: data.decode("utf-8"),
@@ -112,6 +125,7 @@ def mlr_conn_utf8(moler_conn_class, name):
 def _register_builtin_connections(connection_factory, moler_conn_class):
     from moler.io.raw.memory import ThreadedFifoBuffer
     from moler.io.raw.tcp import ThreadedTcp
+    from moler.io.raw.sshshell import ThreadedSshShell
 
     def mem_thd_conn(name=None, echo=True, **kwargs):  # kwargs to pass  logger_name
         mlr_conn = mlr_conn_utf8(moler_conn_class, name=name)
@@ -125,6 +139,14 @@ def _register_builtin_connections(connection_factory, moler_conn_class):
                               port=port, host=host, **kwargs)  # TODO: add name
         return io_conn
 
+    def sshshell_thd_conn(host, port=22, username=None, password=None, name=None, **kwargs):
+        mlr_conn = mlr_conn_utf8_with_clean_vt100(moler_conn_class, name=name)
+        io_conn = ThreadedSshShell(moler_connection=mlr_conn,  # TODO: add name
+                                   host=host, port=port,
+                                   username=username, password=password,
+                                   **kwargs)  # receive_buffer_size, logger_name, other login credentials
+        return io_conn
+
     # TODO: unify passing logger to io_conn (logger/logger_name - see above comments)
     connection_factory.register_construction(io_type="memory",
                                              variant="threaded",
@@ -132,6 +154,9 @@ def _register_builtin_connections(connection_factory, moler_conn_class):
     connection_factory.register_construction(io_type="tcp",
                                              variant="threaded",
                                              constructor=tcp_thd_conn)
+    connection_factory.register_construction(io_type="sshshell",
+                                             variant="threaded",
+                                             constructor=sshshell_thd_conn)
 
 
 def _register_python3_builtin_connections(connection_factory, moler_conn_class):

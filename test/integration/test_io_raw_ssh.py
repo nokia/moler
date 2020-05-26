@@ -712,6 +712,21 @@ def test_changing_connection_name_switches_logger_if_default_logger_used(active_
     connection.name = "DEF"
     assert connection.logger.name == "moler.connection.DEF.io"
 
+
+def test_connection_factory_has_sshshell_constructor_active_by_default():
+    from moler.connection_factory import get_connection
+
+    conn = get_connection(io_type='sshshell', variant='threaded',
+                          host='localhost', port=2222, username="moler", password="moler_passwd")
+    assert conn.__module__ == 'moler.io.raw.sshshell'
+    assert conn.__class__.__name__ == 'ThreadedSshShell'
+    assert hasattr(conn, 'moler_connection')
+    assert conn.sshshell.host == "localhost"
+    assert conn.sshshell.port == 2222
+    assert conn.sshshell.username == "moler"
+    assert conn.sshshell.password == "moler_passwd"
+
+
 # --------------------------- resources ---------------------------
 
 
