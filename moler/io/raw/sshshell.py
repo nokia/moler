@@ -382,8 +382,6 @@ class ThreadedSshShell(IOConnection):
         If connection is using default logger ("moler.connection.<name>.io")
         then modify logger after connection name change.
         """
-        if self.logger:
-            self.logger.log(msg=r'changing name: {} --> {}'.format(self.name, value), level=TRACE)
         was_using_default_logger = (self.logger is not None) and (self.logger.name == self._default_logger_name(self.name))
         self.moler_connection.name = value
         if was_using_default_logger:
