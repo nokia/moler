@@ -727,6 +727,19 @@ def test_connection_factory_has_sshshell_constructor_active_by_default():
     assert conn.sshshell.password == "moler_passwd"
 
 
+def test_connection_factory_can_build_sshshell_based_on_other_sshshell_for_sshtransport_reuse():
+    from moler.connection_factory import get_connection
+
+    conn1 = get_connection(io_type='sshshell', variant='threaded',
+                           host='localhost', port=2222, username="moler", password="moler_passwd")
+    conn2 = get_connection(io_type='sshshell', variant='threaded',
+                           reuse_ssh_of_shell=conn1)
+    assert conn2.sshshell.host == "localhost"
+    assert conn2.sshshell.port == 2222
+    assert conn2.sshshell.username == "moler"
+    assert conn2.sshshell.password == "moler_passwd"
+
+
 # --------------------------- resources ---------------------------
 
 

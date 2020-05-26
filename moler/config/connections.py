@@ -139,12 +139,21 @@ def _register_builtin_connections(connection_factory, moler_conn_class):
                               port=port, host=host, **kwargs)  # TODO: add name
         return io_conn
 
-    def sshshell_thd_conn(host, port=22, username=None, password=None, name=None, **kwargs):
+    def sshshell_thd_conn(host=None, port=None, username=None, password=None, name=None,
+                          reuse_ssh_of_shell=None, **kwargs):
         mlr_conn = mlr_conn_utf8_with_clean_vt100(moler_conn_class, name=name)
-        io_conn = ThreadedSshShell(moler_connection=mlr_conn,  # TODO: add name
-                                   host=host, port=port,
-                                   username=username, password=password,
-                                   **kwargs)  # receive_buffer_size, logger_name, other login credentials
+        if reuse_ssh_of_shell:
+            assert (host is None) and (port is None) and (username is None) and (password is None)
+            io_conn = ThreadedSshShell.from_sshshell(moler_connection=mlr_conn,  # TODO: add name
+                                                     sshshell=reuse_ssh_of_shell,
+                                                     **kwargs)  # logger_name
+        else:
+            if port is None:
+                port = 22
+            io_conn = ThreadedSshShell(moler_connection=mlr_conn,  # TODO: add name
+                                       host=host, port=port,
+                                       username=username, password=password,
+                                       **kwargs)  # receive_buffer_size, logger_name, other login credentials
         return io_conn
 
     # TODO: unify passing logger to io_conn (logger/logger_name - see above comments)
