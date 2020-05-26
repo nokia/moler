@@ -50,6 +50,7 @@ def clear():
 def set_defaults():
     """Set defaults for connections configuration"""
     set_default_variant(io_type="terminal", variant="threaded")
+    set_default_variant(io_type="sshshell", variant="threaded")
 
 
 def _running_python_3_5_or_above():
