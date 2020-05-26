@@ -594,7 +594,7 @@ def test_active_connection_with_unexpected_exception_inside_pull_thread_should_a
 
 
 def test_can_assign_name_to_connection(active_sshshell_connection_class):
-    from moler.connection import Connection
+    from moler.abstract_moler_connection import AbstractMolerConnection as Connection
 
     moler_conn = Connection()
     connection = active_sshshell_connection_class(moler_connection=moler_conn, host='localhost',
@@ -603,7 +603,7 @@ def test_can_assign_name_to_connection(active_sshshell_connection_class):
 
 
 def test_uses_moler_connection_name_if_none_given(active_sshshell_connection_class):
-    from moler.connection import Connection
+    from moler.abstract_moler_connection import AbstractMolerConnection as Connection
 
     moler_conn = Connection()
     moler_conn.name = "srv2"
@@ -612,7 +612,7 @@ def test_uses_moler_connection_name_if_none_given(active_sshshell_connection_cla
 
 
 def test_overwrites_moler_connection_name_with_own_one(active_sshshell_connection_class):
-    from moler.connection import Connection
+    from moler.abstract_moler_connection import AbstractMolerConnection as Connection
 
     moler_conn = Connection()
     # during construction
@@ -624,7 +624,7 @@ def test_overwrites_moler_connection_name_with_own_one(active_sshshell_connectio
 
 
 def test_can_use_provided_logger(active_sshshell_connection_class):
-    from moler.connection import Connection
+    from moler.abstract_moler_connection import AbstractMolerConnection as Connection
     import logging
 
     moler_conn = Connection()
@@ -635,7 +635,7 @@ def test_can_use_provided_logger(active_sshshell_connection_class):
 
 
 def test_can_switch_off_logging(active_sshshell_connection_class):
-    from moler.connection import Connection
+    from moler.abstract_moler_connection import AbstractMolerConnection as Connection
 
     moler_conn = Connection()
     connection = active_sshshell_connection_class(moler_connection=moler_conn, host='localhost',
@@ -644,7 +644,7 @@ def test_can_switch_off_logging(active_sshshell_connection_class):
 
 
 def test_can_use_default_logger_based_on_connection_name(active_sshshell_connection_class):
-    from moler.connection import Connection
+    from moler.abstract_moler_connection import AbstractMolerConnection as Connection
     import logging
 
     moler_conn = Connection()
@@ -659,7 +659,7 @@ def test_can_use_default_logger_based_on_connection_name(active_sshshell_connect
 
 
 def test_can_use_default_logger_based_on_moler_connection_name(active_sshshell_connection_class):
-    from moler.connection import Connection
+    from moler.abstract_moler_connection import AbstractMolerConnection as Connection
     import logging
 
     moler_conn = Connection(name="ABC", logger_name="conn.DEF")
@@ -669,7 +669,7 @@ def test_can_use_default_logger_based_on_moler_connection_name(active_sshshell_c
 
 
 def test_changing_connection_name_doesnt_switch_logger_if_external_logger_used(active_sshshell_connection_class):
-    from moler.connection import Connection
+    from moler.abstract_moler_connection import AbstractMolerConnection as Connection
 
     moler_conn = Connection()
     connection = active_sshshell_connection_class(moler_connection=moler_conn, host='localhost',
@@ -681,7 +681,7 @@ def test_changing_connection_name_doesnt_switch_logger_if_external_logger_used(a
 
 
 def test_changing_connection_name_doesnt_activate_logger_if_logging_is_off(active_sshshell_connection_class):
-    from moler.connection import Connection
+    from moler.abstract_moler_connection import AbstractMolerConnection as Connection
 
     moler_conn = Connection()
     connection = active_sshshell_connection_class(moler_connection=moler_conn, host='localhost',
@@ -693,7 +693,7 @@ def test_changing_connection_name_doesnt_activate_logger_if_logging_is_off(activ
 
 
 def test_changing_connection_name_switches_logger_if_default_logger_used(active_sshshell_connection_class):
-    from moler.connection import Connection
+    from moler.abstract_moler_connection import AbstractMolerConnection as Connection
 
     # default logger generated internally by connection
     moler_conn = Connection()
