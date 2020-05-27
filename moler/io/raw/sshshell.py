@@ -23,6 +23,7 @@ import time
 import getpass
 import logging
 from moler.helpers import instance_id
+from moler.util.loghelper import log_into_logger
 from moler.config.loggers import TRACE
 
 from moler.io.io_exceptions import ConnectionTimeout
@@ -282,13 +283,19 @@ class SshShell(object):
 
         return data
 
-    def _debug(self, msg):
-        if self.logger:
-            self.logger.debug(msg)
+    def _debug(self, msg, levels_to_go_up=2):
+        self._log(level=logging.DEBUG, msg=msg, levels_to_go_up=levels_to_go_up)
 
-    def _info(self, msg):
+    def _info(self, msg, levels_to_go_up=2):
+        self._log(level=logging.INFO, msg=msg, levels_to_go_up=levels_to_go_up)
+
+    def _log(self, msg, level, levels_to_go_up=1):
         if self.logger:
-            self.logger.info(msg)
+            try:
+                # levels_to_go_up=1 : extract caller info to log where _log() has been called from
+                log_into_logger(logger=self.logger, level=level, msg=msg, levels_to_go_up=levels_to_go_up)
+            except Exception as err:
+                print(err)  # logging errors should not propagate
 
 
 ##################################################################################################################
