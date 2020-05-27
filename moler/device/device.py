@@ -226,10 +226,14 @@ class DeviceFactory(object):
         if device_class and (not connection_desc):
             connection_desc = cls._try_select_device_connection_desc(device_class, connection_desc)
 
+        conn_desc = dict(connection_desc)
+        io_type = conn_desc.pop("io_type")
+        variant = conn_desc.pop("variant", None)
         constructor_parameters = {
             "name": name,
-            "io_type": connection_desc["io_type"],
-            "variant": connection_desc["variant"],
+            "io_type": io_type,
+            "variant": variant,
+            "io_constructor_kwargs": conn_desc,
             "sm_params": connection_hops,
             "initial_state": initial_state
         }
