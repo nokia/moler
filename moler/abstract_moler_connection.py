@@ -72,6 +72,8 @@ class AbstractMolerConnection(object):
         If connection is using default logger ("moler.connection.<name>")
         then modify logger after connection name change.
         """
+        if self._name == value:
+            return
         self._log(level=TRACE, msg=r'changing name: {} --> {}'.format(self._name, value), levels_to_go_up=2)
         if self._using_default_logger():
             self.logger = AbstractMolerConnection._select_logger(logger_name="", connection_name=value)
