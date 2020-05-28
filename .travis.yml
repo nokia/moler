@@ -21,6 +21,8 @@ before_script:
   - cat /etc/passwd | grep home
   - sudo useradd molerssh -c MolerSshTest -l -m -p `python3 -c 'import crypt; print(crypt.crypt("moler_password", "mr"))'`
   - cat /etc/passwd | grep home
+  - which scp
+  - sshpass -p moler_password ssh molerssh@localhost pwd
   - sshpass -p moler_password scp adb_simulation.sh molerssh@localhost:/home/molerssh/adb_simulation.sh
   - sshpass -p moler_password ssh molerssh@localhost 'chmod +x ~/adb_simulation.sh'
   - sshpass -p moler_password ssh molerssh@localhost 'echo "alias adb=~/adb_simulation.sh" >> ~/.profile'
