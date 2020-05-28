@@ -7,6 +7,9 @@ matrix:
     - python: 3.7.3
     - python: 3.8.1
 
+before_install:
+  - sudo apt-get -y install sshpass
+
 install:
   - pip install -U pip
   - pip install -U pycodestyle coveralls pytest pytest-mccabe pytest-random
