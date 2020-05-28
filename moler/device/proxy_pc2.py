@@ -64,6 +64,17 @@ class ProxyPc2(UnixLocal):
                                        io_constructor_kwargs=io_constructor_kwargs,
                                        sm_params=sm_params, initial_state=initial_state)
 
+    def goto_state(self, state, *args, **kwargs):
+        """Goes to specific state."""
+        if ((state == UNIX_LOCAL) or (state == UNIX_LOCAL_ROOT)) and (not self._use_local_unix_state):
+            used_io = "{} {}".format(self.io_connection.__class__.__name__, self.io_connection)
+            msg = "Device {} has no {}/{} states".format(self, UNIX_LOCAL, UNIX_LOCAL_ROOT)
+            why = "since it uses following io: {}".format(used_io)
+            fix = 'You need io of type "terminal" to have unix-local states'
+            err_msg = "{} {}. {}.".format(msg, why, fix)
+            raise ValueError(err_msg)
+        super(ProxyPc2, self).goto_state(state=state, *args, **kwargs)
+
     def _get_default_sm_configuration(self):
         """
         Create State Machine default configuration.
