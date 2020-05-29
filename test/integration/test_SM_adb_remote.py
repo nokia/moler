@@ -7,18 +7,13 @@ from moler.device import DeviceFactory
 
 
 def test_adb_remote_device(loaded_adb_device_config, alternative_connection_hops):
-    # adb_remote = DeviceFactory.get_device(name="ADB_LHOST")
-    # assert adb_remote.current_state == "UNIX_LOCAL"
+    adb_remote = DeviceFactory.get_device(name="ADB_LHOST")
+    assert adb_remote.current_state == "UNIX_LOCAL"
 
     # adb_remote = DeviceFactory.get_device(name="ADB_AT_LOCALHOST", initial_state="UNIX_REMOTE",
     #                                       connection_hops=alternative_connection_hops)
     #
     # assert adb_remote.current_state == "PROXY_PC"
-
-    adb_remote = DeviceFactory.get_device(name="ADB_LHOST", device_class="moler.device.proxy_pc2.ProxyPc2",
-                                          initial_state="PROXY_PC")
-
-    assert adb_remote.current_state == "PROXY_PC"
 
     # adb_remote.goto_state("ADB_SHELL")
     # assert adb_remote.current_state == "ADB_SHELL"
@@ -60,10 +55,11 @@ def loaded_adb_device_config():
             DEVICE_CLASS: moler.device.adbremote2.AdbRemote2
             INITIAL_STATE: UNIX_LOCAL  # ADB_SHELL
             CONNECTION_DESC:
-                io_type: sshshell
-                host: localhost
-                username: molerssh         # change to login: to have ssh-cmd parity? username jest paramiko
-                password: moler_password
+                io_type: terminal
+                #io_type: sshshell
+                #host: localhost
+                #username: molerssh         # change to login: to have ssh-cmd parity? username jest paramiko
+                #password: moler_password
             CONNECTION_HOPS:
                 UNIX_LOCAL:
                     UNIX_REMOTE:

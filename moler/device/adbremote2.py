@@ -86,7 +86,7 @@ class AdbRemote2(UnixRemote):
         :return: default sm configuration.
         """
         if isinstance(self.io_connection, ThreadedSshShell):
-            self._get_default_sm_configuration_notconnected_directto_remote()
+            pass  # self._get_default_sm_configuration_notconnected_directto_remote()
         else:
             config = super(AdbRemote2, self)._get_default_sm_configuration()
         if self._use_proxy_pc:
