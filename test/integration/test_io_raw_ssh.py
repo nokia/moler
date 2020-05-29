@@ -821,5 +821,8 @@ def mocked_logger():
             msg_without_details = msg.split(" |", 1)
             self.calls.append(" INFO: " + msg_without_details[0])
 
+        def isEnabledFor(level):
+            return True
+
     logger = MyLogger()
     return logger
