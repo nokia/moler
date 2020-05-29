@@ -828,7 +828,8 @@ def mocked_logger():
             logger.debug(msg)
         elif level == logging.INFO:
             logger.info(msg)
-        raise ValueError("unexpected logging level = {}".format(level))
+        else:
+            raise ValueError("unexpected logging level = {}".format(level))
 
     with mock.patch("moler.io.raw.sshshell.SshShell._log", mocked_log):
         logger = MyLogger()
