@@ -179,14 +179,16 @@ def test_close_defined_yaml_device(moler_config, device_factory):
     device_org.remove()
     with pytest.raises(KeyError):
         device_factory.get_device(name=device_org_name)
-    clear_all_cfg()
+
+    moler_config.clear()
+    device_factory._clear()
+
     moler_config.load_config(config=conn_config, config_type='yaml')
     device_2 = device_factory.get_device(name=device_org_name)
     assert device_2 != device_org
 
 
 def test_load_devices_after_deletion(moler_config, device_factory):
-    clear_all_cfg()
     conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
 
     moler_config.load_config(config=conn_config)
@@ -719,41 +721,46 @@ def test_can_load_configuration_when_already_loaded_from_same_file(moler_config,
 
 # --------------------------- resources ---------------------------
 
+
 @pytest.yield_fixture
-def moler_config():
+def moler_config(clear_all_cfg):
     import moler.config as moler_cfg
-    # restore since tests may change configuration
-    clear_all_cfg()
     yield moler_cfg
-    # restore since tests may change configuration
-    clear_all_cfg()
 
 
 @pytest.yield_fixture
-def device_config():
+def device_config(clear_all_cfg):
     import moler.config.devices as dev_cfg
-    # restore since tests may change configuration
-    clear_all_cfg()
     yield dev_cfg
-    # restore since tests may change configuration
-    clear_all_cfg()
 
 
 @pytest.yield_fixture
-def device_factory():
+def device_factory(clear_all_cfg):
     from moler.device.device import DeviceFactory as dev_factory
-    # restore since tests may change configuration
-    clear_all_cfg()
     yield dev_factory
-    # restore since tests may change configuration
-    clear_all_cfg()
 
 
+@pytest.yield_fixture
 def clear_all_cfg():
+    import mock
     import moler.config as moler_cfg
+    import moler.config.connections as conn_cfg
     import moler.config.devices as dev_cfg
     from moler.device.device import DeviceFactory as dev_factory
 
-    moler_cfg.clear()
-    dev_cfg.clear()
-    dev_factory._clear()
+    empty_loaded_config = ["NOT_LOADED_YET"]
+    default_connection = {"io_type": "terminal", "variant": "threaded"}
+
+    print(">>>>>> BEFORE 3 mocking   default_variant={}".format(conn_cfg.default_variant))
+    with mock.patch.object(conn_cfg, "default_variant", {}):
+        with mock.patch.object(conn_cfg, "named_connections", {}):
+            with mock.patch.object(moler_cfg, "loaded_config", empty_loaded_config):
+                with mock.patch.object(dev_cfg, "named_devices", {}):
+                    with mock.patch.object(dev_cfg, "default_connection", default_connection):
+                        with mock.patch.object(dev_factory, "_devices", {}):
+                            with mock.patch.object(dev_factory, "_devices_params", {}):
+                                with mock.patch.object(dev_factory, "_unique_names", {}):
+                                    with mock.patch.object(dev_factory, "_already_used_names", set()):
+                                        with mock.patch.object(dev_factory, "_was_any_device_deleted", False):
+                                            yield conn_cfg
+    print(">>>>>> AFTER 3 mocking   default_variant={}".format(conn_cfg.default_variant))
