@@ -43,10 +43,24 @@ def test_proxy_pc_with_terminal_can_use_unix_local_states(loaded_proxy_pc_config
     dev.remove()
 
 
+# ------------------------------------------------------------
+
 @pytest.fixture()
-def loaded_adb_device_config():
-    import yaml
+def devices_config():
+    import mock
     import moler.config.devices as dev_cfg
+
+    empty_named_devices = {}
+    empty_default_connection = {}
+
+    with mock.patch.object(dev_cfg, "named_devices", empty_named_devices):
+        with mock.patch.object(dev_cfg, "default_connection", empty_default_connection):
+            yield
+
+
+@pytest.fixture()
+def loaded_adb_device_config(devices_config):
+    import yaml
     from moler.config import load_device_from_config
 
     adb_dev_config_yaml = """
@@ -78,14 +92,10 @@ def loaded_adb_device_config():
     adb_dev_config = yaml.load(adb_dev_config_yaml, Loader=yaml.FullLoader)
     load_device_from_config(adb_dev_config)
 
-    yield
-    dev_cfg.clear()
-
 
 @pytest.fixture()
-def loaded_proxy_pc_config():
+def loaded_proxy_pc_config(devices_config):
     import yaml
-    import moler.config.devices as dev_cfg
     from moler.config import load_device_from_config
 
     config_yaml = """
@@ -109,9 +119,6 @@ def loaded_proxy_pc_config():
     """
     dev_config = yaml.load(config_yaml, Loader=yaml.FullLoader)
     load_device_from_config(dev_config)
-
-    yield
-    dev_cfg.clear()
 
 
 @pytest.fixture()
