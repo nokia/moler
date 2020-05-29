@@ -9,17 +9,29 @@ __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
-from moler.device.proxy_pc import ProxyPc
+from moler.device.textualdevice import TextualDevice
+from moler.device.unixlocal import UnixLocal
+from moler.device.proxy_pc2 import ProxyPc2, PROXY_PC
 from moler.helpers import call_base_class_method_with_same_name, mark_to_call_base_class_method_with_same_name
 
 
+# helper variables to improve readability of state machines
+# f.ex. moler.device.textualdevice introduces state TextualDevice.not_connected = "NOT_CONNECTED"
+NOT_CONNECTED = TextualDevice.not_connected
+CONNECTION_HOPS = TextualDevice.connection_hops
+UNIX_LOCAL = UnixLocal.unix_local
+UNIX_LOCAL_ROOT = UnixLocal.unix_local_root
+UNIX_REMOTE = "UNIX_REMOTE"
+UNIX_REMOTE_ROOT = "UNIX_REMOTE_ROOT"
+
+
 @call_base_class_method_with_same_name
-class UnixRemote2(ProxyPc):
+class UnixRemote2(ProxyPc2):
     r"""
-    UnixRemote device class.
+    UnixRemote2 device class.
 
     Example of device in yaml configuration file:
-    - with PROXY_PC:
+    - with PROXY_PC and io "terminal":
       UNIX_1:
        DEVICE_CLASS: moler.device.unixremote2.UnixRemote2
        CONNECTION_HOPS:
@@ -44,7 +56,31 @@ class UnixRemote2(ProxyPc):
                host: host_ip
                login: login
                password: password
-    -without PROXY_PC:
+
+    - with PROXY_PC and remote-access-io like "sshshell":
+      UNIX_1:
+       DEVICE_CLASS: moler.device.unixremote2.UnixRemote2
+       CONNECTION_DESC:
+         io_type: sshshell
+         host: host_ip
+         username: login
+         password: password
+       CONNECTION_HOPS:
+         PROXY_PC:
+           UNIX_REMOTE:
+             execute_command: ssh # default value
+             command_params:
+               expected_prompt: unix_remote_prompt
+               host: host_ip
+               login: login
+               password: password
+         UNIX_REMOTE:
+           PROXY_PC:
+             execute_command: exit # default value
+             command_params:
+               expected_prompt: proxy_pc_prompt
+
+    -without PROXY_PC and io "terminal":
       UNIX_1:
        DEVICE_CLASS: moler.device.unixremote2.UnixRemote2
        CONNECTION_HOPS:
@@ -56,11 +92,17 @@ class UnixRemote2(ProxyPc):
                host: host_ip
                login: login
                password: password
+
+    -without PROXY_PC and remote-access-io like "sshshell":
+      UNIX_1:
+       DEVICE_CLASS: moler.device.unixremote2.UnixRemote2
+       CONNECTION_DESC:
+         io_type: sshshell
+         host: host_ip
+         username: login
+         password: password
+       (no need for CONNECTION_HOPS since we jump directly from NOT_CONNECTED to UNIX_REMOTE using sshshell)
     """
-
-    unix_remote = "UNIX_REMOTE"
-    unix_remote_root = "UNIX_REMOTE_ROOT"
-
     def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, io_constructor_kwargs=None,
                  initial_state=None):
         """
@@ -75,11 +117,11 @@ class UnixRemote2(ProxyPc):
                         (if not given then default one is taken)
         :param initial_state: name of initial state. State machine tries to enter this state just after creation.
         """
-        initial_state = initial_state if initial_state is not None else UnixRemote.unix_remote
-        super(UnixRemote, self).__init__(name=name, io_connection=io_connection,
-                                         io_type=io_type, variant=variant,
-                                         io_constructor_kwargs=io_constructor_kwargs,
-                                         sm_params=sm_params, initial_state=initial_state)
+        initial_state = initial_state if initial_state is not None else UNIX_REMOTE
+        super(UnixRemote2, self).__init__(name=name, io_connection=io_connection,
+                                          io_type=io_type, variant=variant,
+                                          io_constructor_kwargs=io_constructor_kwargs,
+                                          sm_params=sm_params, initial_state=initial_state)
 
     @mark_to_call_base_class_method_with_same_name
     def _get_default_sm_configuration_with_proxy_pc(self):
@@ -88,9 +130,9 @@ class UnixRemote2(ProxyPc):
         :return: default sm configuration with proxy_pc state.
         """
         config = {
-            UnixRemote.connection_hops: {
-                UnixRemote.proxy_pc: {  # from
-                    UnixRemote.unix_remote: {  # to
+            CONNECTION_HOPS: {
+                PROXY_PC: {  # from
+                    UNIX_REMOTE: {  # to
                         "execute_command": "ssh",  # using command
                         "command_params": {  # with parameters
                             "target_newline": "\n"
@@ -103,8 +145,8 @@ class UnixRemote2(ProxyPc):
                         ]
                     },
                 },
-                UnixRemote.unix_remote: {  # from
-                    UnixRemote.proxy_pc: {  # to
+                UNIX_REMOTE: {  # from
+                    PROXY_PC: {  # to
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
                             "target_newline": "\n"
@@ -113,7 +155,7 @@ class UnixRemote2(ProxyPc):
                             "expected_prompt"
                         ]
                     },
-                    UnixRemote.unix_remote_root: {  # to
+                    UNIX_REMOTE_ROOT: {  # to
                         "execute_command": "su",  # using command
                         "command_params": {  # with parameters
                             "password": "root_password",
@@ -124,8 +166,8 @@ class UnixRemote2(ProxyPc):
                         ]
                     },
                 },
-                UnixRemote.unix_remote_root: {  # from
-                    UnixRemote.unix_remote: {  # to
+                UNIX_REMOTE_ROOT: {  # from
+                    UNIX_REMOTE: {  # to
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
                             "target_newline": "\n",
@@ -146,9 +188,9 @@ class UnixRemote2(ProxyPc):
         :return: default sm configuration without proxy_pc state.
         """
         config = {
-            UnixRemote.connection_hops: {
-                UnixRemote.unix_local: {  # from
-                    UnixRemote.unix_remote: {  # to
+            CONNECTION_HOPS: {
+                UNIX_LOCAL: {  # from
+                    UNIX_REMOTE: {  # to
                         "execute_command": "ssh",  # using command
                         "command_params": {  # with parameters
                             "target_newline": "\n"
@@ -161,8 +203,8 @@ class UnixRemote2(ProxyPc):
                         ]
                     },
                 },
-                UnixRemote.unix_remote: {  # from
-                    UnixRemote.unix_local: {  # to
+                UNIX_REMOTE: {  # from
+                    UNIX_LOCAL: {  # to
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
                             "expected_prompt": r'^moler_bash#',
@@ -171,7 +213,7 @@ class UnixRemote2(ProxyPc):
                         "required_command_params": [
                         ]
                     },
-                    UnixRemote.unix_remote_root: {  # to
+                    UNIX_REMOTE_ROOT: {  # to
                         "execute_command": "su",  # using command
                         "command_params": {  # with parameters
                             "password": "root_password",
@@ -182,8 +224,8 @@ class UnixRemote2(ProxyPc):
                         ]
                     },
                 },
-                UnixRemote.unix_remote_root: {  # from
-                    UnixRemote.unix_remote: {  # to
+                UNIX_REMOTE_ROOT: {  # from
+                    UNIX_REMOTE: {  # to
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
                             "expected_prompt": r'remote_user_prompt',
@@ -204,27 +246,27 @@ class UnixRemote2(ProxyPc):
         :return: transitions with proxy_pc state.
         """
         transitions = {
-            UnixRemote.proxy_pc: {
-                UnixRemote.unix_remote: {
+            PROXY_PC: {
+                UNIX_REMOTE: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
                 }
             },
-            UnixRemote.unix_remote: {
-                UnixRemote.proxy_pc: {
+            UNIX_REMOTE: {
+                PROXY_PC: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
                 },
-                UnixRemote.unix_remote_root: {
+                UNIX_REMOTE_ROOT: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
                 }
             },
-            UnixRemote.unix_remote_root: {
-                UnixRemote.unix_remote: {
+            UNIX_REMOTE_ROOT: {
+                UNIX_REMOTE: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
@@ -240,27 +282,27 @@ class UnixRemote2(ProxyPc):
         :return: transitions without proxy_pc state.
         """
         transitions = {
-            UnixRemote.unix_remote: {
-                UnixRemote.unix_local: {
+            UNIX_REMOTE: {
+                UNIX_LOCAL: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
                 },
-                UnixRemote.unix_remote_root: {
+                UNIX_REMOTE_ROOT: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
                 }
             },
-            UnixRemote.unix_local: {
-                UnixRemote.unix_remote: {
+            UNIX_LOCAL: {
+                UNIX_REMOTE: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
                 }
             },
-            UnixRemote.unix_remote_root: {
-                UnixRemote.unix_remote: {
+            UNIX_REMOTE_ROOT: {
+                UNIX_REMOTE: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
@@ -275,13 +317,12 @@ class UnixRemote2(ProxyPc):
         Prepare textual prompt for each state for State Machine with proxy_pc state.
         :return: textual prompt for each state with proxy_pc state.
         """
+        hops_cfg = self._configurations[CONNECTION_HOPS]
         state_prompts = {
-            UnixRemote.unix_remote:
-                self._configurations[UnixRemote.connection_hops][UnixRemote.proxy_pc][UnixRemote.unix_remote][
-                    "command_params"]["expected_prompt"],
-            UnixRemote.unix_remote_root:
-                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.unix_remote_root][
-                    "command_params"]["expected_prompt"],
+            UNIX_REMOTE:
+                hops_cfg[PROXY_PC][UNIX_REMOTE]["command_params"]["expected_prompt"],
+            UNIX_REMOTE_ROOT:
+                hops_cfg[UNIX_REMOTE][UNIX_REMOTE_ROOT]["command_params"]["expected_prompt"],
         }
         return state_prompts
 
@@ -291,16 +332,14 @@ class UnixRemote2(ProxyPc):
         Prepare textual prompt for each state for State Machine without proxy_pc state.
         :return: textual prompt for each state without proxy_pc state.
         """
+        hops_cfg = self._configurations[CONNECTION_HOPS]
         state_prompts = {
-            UnixRemote.unix_remote:
-                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_local][UnixRemote.unix_remote][
-                    "command_params"]["expected_prompt"],
-            UnixRemote.unix_remote_root:
-                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.unix_remote_root][
-                    "command_params"]["expected_prompt"],
-            UnixRemote.unix_local:
-                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.unix_local][
-                    "command_params"]["expected_prompt"],
+            UNIX_REMOTE:
+                hops_cfg[UNIX_LOCAL][UNIX_REMOTE]["command_params"]["expected_prompt"],
+            UNIX_REMOTE_ROOT:
+                hops_cfg[UNIX_REMOTE][UNIX_REMOTE_ROOT]["command_params"]["expected_prompt"],
+            UNIX_LOCAL:
+                hops_cfg[UNIX_REMOTE][UNIX_LOCAL]["command_params"]["expected_prompt"],
         }
         return state_prompts
 
@@ -310,13 +349,12 @@ class UnixRemote2(ProxyPc):
         Prepare newline char for each state for State Machine with proxy_pc state.
         :return: newline char for each state with proxy_pc state.
         """
+        hops_cfg = self._configurations[CONNECTION_HOPS]
         newline_chars = {
-            UnixRemote.unix_remote:
-                self._configurations[UnixRemote.connection_hops][UnixRemote.proxy_pc][UnixRemote.unix_remote][
-                    "command_params"]["target_newline"],
-            UnixRemote.unix_remote_root:
-                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.unix_remote_root][
-                    "command_params"]["target_newline"],
+            UNIX_REMOTE:
+                hops_cfg[PROXY_PC][UNIX_REMOTE]["command_params"]["target_newline"],
+            UNIX_REMOTE_ROOT:
+                hops_cfg[UNIX_REMOTE][UNIX_REMOTE_ROOT]["command_params"]["target_newline"],
         }
         return newline_chars
 
@@ -326,16 +364,14 @@ class UnixRemote2(ProxyPc):
         Prepare newline char for each state for State Machine without proxy_pc state.
         :return: newline char for each state without proxy_pc state.
         """
+        hops_cfg = self._configurations[CONNECTION_HOPS]
         newline_chars = {
-            UnixRemote.unix_remote:
-                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_local][UnixRemote.unix_remote][
-                    "command_params"]["target_newline"],
-            UnixRemote.unix_local:
-                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.unix_local][
-                    "command_params"]["target_newline"],
-            UnixRemote.unix_remote_root:
-                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.unix_remote_root][
-                    "command_params"]["target_newline"],
+            UNIX_REMOTE:
+                hops_cfg[UNIX_LOCAL][UNIX_REMOTE]["command_params"]["target_newline"],
+            UNIX_LOCAL:
+                hops_cfg[UNIX_REMOTE][UNIX_LOCAL]["command_params"]["target_newline"],
+            UNIX_REMOTE_ROOT:
+                hops_cfg[UNIX_REMOTE][UNIX_REMOTE_ROOT]["command_params"]["target_newline"],
         }
         return newline_chars
 
@@ -346,35 +382,35 @@ class UnixRemote2(ProxyPc):
         :return: non direct transitions for each state with proxy_pc state.
         """
         state_hops = {
-            UnixRemote.not_connected: {
-                UnixRemote.unix_remote: UnixRemote.unix_local,
-                UnixRemote.proxy_pc: UnixRemote.unix_local,
-                UnixRemote.unix_local_root: UnixRemote.unix_local,
-                UnixRemote.unix_remote_root: UnixRemote.unix_local
+            NOT_CONNECTED: {
+                UNIX_REMOTE: UNIX_LOCAL,
+                PROXY_PC: UNIX_LOCAL,
+                UNIX_LOCAL_ROOT: UNIX_LOCAL,
+                UNIX_REMOTE_ROOT: UNIX_LOCAL
             },
-            UnixRemote.unix_remote: {
-                UnixRemote.not_connected: UnixRemote.proxy_pc,
-                UnixRemote.unix_local: UnixRemote.proxy_pc,
-                UnixRemote.unix_local_root: UnixRemote.proxy_pc
+            UNIX_REMOTE: {
+                NOT_CONNECTED: PROXY_PC,
+                UNIX_LOCAL: PROXY_PC,
+                UNIX_LOCAL_ROOT: PROXY_PC
             },
-            UnixRemote.unix_local_root: {
-                UnixRemote.unix_remote: UnixRemote.unix_local,
-                UnixRemote.unix_remote_root: UnixRemote.unix_local
+            UNIX_LOCAL_ROOT: {
+                UNIX_REMOTE: UNIX_LOCAL,
+                UNIX_REMOTE_ROOT: UNIX_LOCAL
             },
-            UnixRemote.proxy_pc: {
-                UnixRemote.not_connected: UnixRemote.unix_local,
-                UnixRemote.unix_local_root: UnixRemote.unix_local,
-                UnixRemote.unix_remote_root: UnixRemote.unix_remote
+            PROXY_PC: {
+                NOT_CONNECTED: UNIX_LOCAL,
+                UNIX_LOCAL_ROOT: UNIX_LOCAL,
+                UNIX_REMOTE_ROOT: UNIX_REMOTE
             },
-            UnixRemote.unix_local: {
-                UnixRemote.unix_remote: UnixRemote.proxy_pc,
-                UnixRemote.unix_remote_root: UnixRemote.proxy_pc
+            UNIX_LOCAL: {
+                UNIX_REMOTE: PROXY_PC,
+                UNIX_REMOTE_ROOT: PROXY_PC
             },
-            UnixRemote.unix_remote_root: {
-                UnixRemote.not_connected: UnixRemote.unix_remote,
-                UnixRemote.unix_local: UnixRemote.unix_remote,
-                UnixRemote.unix_local_root: UnixRemote.unix_remote,
-                UnixRemote.proxy_pc: UnixRemote.unix_remote,
+            UNIX_REMOTE_ROOT: {
+                NOT_CONNECTED: UNIX_REMOTE,
+                UNIX_LOCAL: UNIX_REMOTE,
+                UNIX_LOCAL_ROOT: UNIX_REMOTE,
+                PROXY_PC: UNIX_REMOTE,
             }
         }
         return state_hops
@@ -386,27 +422,27 @@ class UnixRemote2(ProxyPc):
         :return: non direct transitions for each state without proxy_pc state.
         """
         state_hops = {
-            UnixRemote.not_connected: {
-                UnixRemote.unix_remote: UnixRemote.unix_local,
-                UnixRemote.unix_local_root: UnixRemote.unix_local,
-                UnixRemote.unix_remote_root: UnixRemote.unix_local,
+            NOT_CONNECTED: {
+                UNIX_REMOTE: UNIX_LOCAL,
+                UNIX_LOCAL_ROOT: UNIX_LOCAL,
+                UNIX_REMOTE_ROOT: UNIX_LOCAL,
             },
-            UnixRemote.unix_local: {
-                UnixRemote.unix_remote_root: UnixRemote.unix_remote
+            UNIX_LOCAL: {
+                UNIX_REMOTE_ROOT: UNIX_REMOTE
             },
-            UnixRemote.unix_local_root: {
-                UnixRemote.unix_remote: UnixRemote.unix_local,
-                UnixRemote.unix_remote_root: UnixRemote.unix_local
+            UNIX_LOCAL_ROOT: {
+                UNIX_REMOTE: UNIX_LOCAL,
+                UNIX_REMOTE_ROOT: UNIX_LOCAL
             },
-            UnixRemote.unix_remote: {
-                UnixRemote.not_connected: UnixRemote.unix_local,
-                UnixRemote.unix_local_root: UnixRemote.unix_local
+            UNIX_REMOTE: {
+                NOT_CONNECTED: UNIX_LOCAL,
+                UNIX_LOCAL_ROOT: UNIX_LOCAL
             },
-            UnixRemote.unix_remote_root: {
-                UnixRemote.not_connected: UnixRemote.unix_remote,
-                UnixRemote.unix_local: UnixRemote.unix_remote,
-                UnixRemote.unix_local_root: UnixRemote.unix_remote,
-                UnixRemote.proxy_pc: UnixRemote.unix_remote,
+            UNIX_REMOTE_ROOT: {
+                NOT_CONNECTED: UNIX_REMOTE,
+                UNIX_LOCAL: UNIX_REMOTE,
+                UNIX_LOCAL_ROOT: UNIX_REMOTE,
+                PROXY_PC: UNIX_REMOTE,
             }
         }
         return state_hops
@@ -417,18 +453,15 @@ class UnixRemote2(ProxyPc):
         :param sm_params: dict with parameters of state machine for device.
         :return: Nothing.
         """
-        super(UnixRemote, self)._configure_state_machine(sm_params)
+        super(UnixRemote2, self)._configure_state_machine(sm_params)
 
+        hops_cfg = self._configurations[CONNECTION_HOPS]
         if self._use_proxy_pc:
-            self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote_root][UnixRemote.unix_remote][
-                "command_params"]["expected_prompt"] = \
-                self._configurations[UnixRemote.connection_hops][UnixRemote.proxy_pc][UnixRemote.unix_remote][
-                    "command_params"]["expected_prompt"]
+            hops_cfg[UNIX_REMOTE_ROOT][UNIX_REMOTE]["command_params"]["expected_prompt"] = \
+                hops_cfg[PROXY_PC][UNIX_REMOTE]["command_params"]["expected_prompt"]
         else:
-            self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote_root][UnixRemote.unix_remote][
-                "command_params"]["expected_prompt"] = \
-                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_local][UnixRemote.unix_remote][
-                    "command_params"]["expected_prompt"]
+            hops_cfg[UNIX_REMOTE_ROOT][UNIX_REMOTE]["command_params"]["expected_prompt"] = \
+                hops_cfg[UNIX_LOCAL][UNIX_REMOTE]["command_params"]["expected_prompt"]
 
     def _get_packages_for_state(self, state, observer):
         """
@@ -437,12 +470,12 @@ class UnixRemote2(ProxyPc):
         :param observer: observer type, available: cmd, events
         :return: available cmds or events for specific device state.
         """
-        available = super(UnixRemote, self)._get_packages_for_state(state, observer)
+        available = super(UnixRemote2, self)._get_packages_for_state(state, observer)
 
         if not available:
-            if state == UnixRemote.unix_remote or state == UnixRemote.unix_remote_root:
-                available = {UnixRemote.cmds: ['moler.cmd.unix'],
-                             UnixRemote.events: ['moler.events.shared', 'moler.events.unix']}
+            if state == UNIX_REMOTE or state == UNIX_REMOTE_ROOT:
+                available = {UnixRemote2.cmds: ['moler.cmd.unix'],
+                             UnixRemote2.events: ['moler.events.shared', 'moler.events.unix']}
             if available:
                 return available[observer]
 
