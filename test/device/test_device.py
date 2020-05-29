@@ -89,15 +89,10 @@ def configure_net_1_connection():
     import mock
     from moler.config import connections as conn_cfg
 
-    empty_default_variant = {}
-    empty_named_connections = {}
-
-    print(">>>>>> BEFORE 2 mocking   default_variant={}".format(conn_cfg.default_variant))
-    with mock.patch.object(conn_cfg, "default_variant", empty_default_variant):
-        with mock.patch.object(conn_cfg, "named_connections", empty_named_connections):
+    with mock.patch.object(conn_cfg, "default_variant", {}):
+        with mock.patch.object(conn_cfg, "named_connections", {}):
 
             conn_cfg.set_default_variant(io_type='memory', variant="threaded")
             conn_cfg.define_connection(name='net_1', io_type='memory')
 
             yield
-    print(">>>>>> AFTER 2 mocking   default_variant={}".format(conn_cfg.default_variant))

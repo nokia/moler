@@ -751,7 +751,6 @@ def clear_all_cfg():
     empty_loaded_config = ["NOT_LOADED_YET"]
     default_connection = {"io_type": "terminal", "variant": "threaded"}
 
-    print(">>>>>> BEFORE 3 mocking   default_variant={}".format(conn_cfg.default_variant))
     with mock.patch.object(conn_cfg, "default_variant", {}):
         with mock.patch.object(conn_cfg, "named_connections", {}):
             with mock.patch.object(moler_cfg, "loaded_config", empty_loaded_config):
@@ -763,4 +762,3 @@ def clear_all_cfg():
                                     with mock.patch.object(dev_factory, "_already_used_names", set()):
                                         with mock.patch.object(dev_factory, "_was_any_device_deleted", False):
                                             yield conn_cfg
-    print(">>>>>> AFTER 3 mocking   default_variant={}".format(conn_cfg.default_variant))

@@ -19,7 +19,6 @@ named_connections = {}
 def set_default_variant(io_type, variant):
     """Set variant to use as default when requesting 'io_type' connection"""
     default_variant[io_type] = variant
-    print(">>>>>> set_default_variant(io_type, variant): default_variant={}".format(default_variant))
 
 
 def define_connection(name, io_type, **constructor_kwargs):
@@ -46,7 +45,6 @@ def clear():
     """Cleanup configuration related to connections"""
     default_variant.clear()
     named_connections.clear()
-    print(">>>>>> default_variant.clear(): default_variant={}".format(default_variant))
 
 
 def set_defaults():
