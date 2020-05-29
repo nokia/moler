@@ -177,10 +177,15 @@ def moler_config():
 
 @pytest.yield_fixture
 def connections_config():
+    import mock
     import moler.config.connections as conn_cfg
-    yield conn_cfg
-    # restore since tests may change configuration
-    conn_cfg.clear()
+
+    empty_default_variant = {}
+    empty_named_connections = {}
+
+    with mock.patch.object(conn_cfg, "default_variant", empty_default_variant):
+        with mock.patch.object(conn_cfg, "named_connections", empty_named_connections):
+            yield conn_cfg
 
 
 @pytest.yield_fixture
