@@ -35,24 +35,19 @@ class UnixRemote2(ProxyPc2):
       UNIX_1:
        DEVICE_CLASS: moler.device.unixremote2.UnixRemote2
        CONNECTION_HOPS:
-         PROXY_PC:
-           UNIX_REMOTE:
-             execute_command: ssh # default value
-             command_params:
-               expected_prompt: unix_remote_prompt
-               host: host_ip
-               login: login
-               password: password
-         UNIX_REMOTE:
-           PROXY_PC:
-             execute_command: exit # default value
-             command_params:
-               expected_prompt: proxy_pc_prompt
          UNIX_LOCAL:
            PROXY_PC:
              execute_command: ssh # default value
              command_params:
                expected_prompt: proxy_pc_prompt
+               host: host_ip
+               login: login
+               password: password
+         PROXY_PC:
+           UNIX_REMOTE:
+             execute_command: ssh # default value
+             command_params:
+               expected_prompt: unix_remote_prompt
                host: host_ip
                login: login
                password: password
@@ -74,11 +69,6 @@ class UnixRemote2(ProxyPc2):
                host: host_ip
                login: login
                password: password
-         UNIX_REMOTE:
-           PROXY_PC:
-             execute_command: exit # default value
-             command_params:
-               expected_prompt: proxy_pc_prompt
 
     -without PROXY_PC and io "terminal":
       UNIX_1:
@@ -187,56 +177,85 @@ class UnixRemote2(ProxyPc2):
         Return State Machine default configuration without proxy_pc state.
         :return: default sm configuration without proxy_pc state.
         """
-        config = {
-            CONNECTION_HOPS: {
-                UNIX_LOCAL: {  # from
-                    UNIX_REMOTE: {  # to
-                        "execute_command": "ssh",  # using command
-                        "command_params": {  # with parameters
-                            "target_newline": "\n"
+        if self._use_local_unix_state:
+            config = {
+                CONNECTION_HOPS: {
+                    UNIX_LOCAL: {  # from
+                        UNIX_REMOTE: {  # to
+                            "execute_command": "ssh",  # using command
+                            "command_params": {  # with parameters
+                                "target_newline": "\n"
+                            },
+                            "required_command_params": [
+                                "host",
+                                "login",
+                                "password",
+                                "expected_prompt"
+                            ]
                         },
-                        "required_command_params": [
-                            "host",
-                            "login",
-                            "password",
-                            "expected_prompt"
-                        ]
                     },
-                },
-                UNIX_REMOTE: {  # from
-                    UNIX_LOCAL: {  # to
-                        "execute_command": "exit",  # using command
-                        "command_params": {  # with parameters
-                            "expected_prompt": r'^moler_bash#',
-                            "target_newline": "\n"
+                    UNIX_REMOTE: {  # from
+                        UNIX_LOCAL: {  # to
+                            "execute_command": "exit",  # using command
+                            "command_params": {  # with parameters
+                                "expected_prompt": r'^moler_bash#',
+                                "target_newline": "\n"
+                            },
+                            "required_command_params": [
+                            ]
                         },
-                        "required_command_params": [
-                        ]
-                    },
-                    UNIX_REMOTE_ROOT: {  # to
-                        "execute_command": "su",  # using command
-                        "command_params": {  # with parameters
-                            "password": "root_password",
-                            "expected_prompt": r'remote_root_prompt',
-                            "target_newline": "\n"
+                        UNIX_REMOTE_ROOT: {  # to
+                            "execute_command": "su",  # using command
+                            "command_params": {  # with parameters
+                                "password": "root_password",
+                                "expected_prompt": r'remote_root_prompt',
+                                "target_newline": "\n"
+                            },
+                            "required_command_params": [
+                            ]
                         },
-                        "required_command_params": [
-                        ]
                     },
-                },
-                UNIX_REMOTE_ROOT: {  # from
-                    UNIX_REMOTE: {  # to
-                        "execute_command": "exit",  # using command
-                        "command_params": {  # with parameters
-                            "expected_prompt": r'remote_user_prompt',
-                            "target_newline": "\n"
+                    UNIX_REMOTE_ROOT: {  # from
+                        UNIX_REMOTE: {  # to
+                            "execute_command": "exit",  # using command
+                            "command_params": {  # with parameters
+                                "expected_prompt": r'remote_user_prompt',
+                                "target_newline": "\n"
+                            },
+                            "required_command_params": [
+                            ]
                         },
-                        "required_command_params": [
-                        ]
-                    },
+                    }
                 }
             }
-        }
+        else:
+            config = {
+                CONNECTION_HOPS: {
+                    UNIX_REMOTE: {  # from
+                        UNIX_REMOTE_ROOT: {  # to
+                            "execute_command": "su",  # using command
+                            "command_params": {  # with parameters
+                                "password": "root_password",
+                                "expected_prompt": r'remote_root_prompt',
+                                "target_newline": "\n"
+                            },
+                            "required_command_params": [
+                            ]
+                        },
+                    },
+                    UNIX_REMOTE_ROOT: {  # from
+                        UNIX_REMOTE: {  # to
+                            "execute_command": "exit",  # using command
+                            "command_params": {  # with parameters
+                                "expected_prompt": r'remote_user_prompt',
+                                "target_newline": "\n"
+                            },
+                            "required_command_params": [
+                            ]
+                        },
+                    }
+                }
+            }
         return config
 
     @mark_to_call_base_class_method_with_same_name
@@ -281,35 +300,76 @@ class UnixRemote2(ProxyPc2):
         Prepare transitions to change states without proxy_pc state.
         :return: transitions without proxy_pc state.
         """
-        transitions = {
-            UNIX_REMOTE: {
+        if self._use_local_unix_state:
+            transitions = {
                 UNIX_LOCAL: {
-                    "action": [
-                        "_execute_command_to_change_state"
-                    ],
+                    UNIX_REMOTE: {
+                        "action": [
+                            "_execute_command_to_change_state"
+                        ],
+                    }
+                },
+                UNIX_REMOTE: {
+                    UNIX_LOCAL: {
+                        "action": [
+                            "_execute_command_to_change_state"
+                        ],
+                    },
+                    UNIX_REMOTE_ROOT: {
+                        "action": [
+                            "_execute_command_to_change_state"
+                        ],
+                    }
                 },
                 UNIX_REMOTE_ROOT: {
-                    "action": [
-                        "_execute_command_to_change_state"
-                    ],
-                }
-            },
-            UNIX_LOCAL: {
-                UNIX_REMOTE: {
-                    "action": [
-                        "_execute_command_to_change_state"
-                    ],
-                }
-            },
-            UNIX_REMOTE_ROOT: {
-                UNIX_REMOTE: {
-                    "action": [
-                        "_execute_command_to_change_state"
-                    ],
+                    UNIX_REMOTE: {
+                        "action": [
+                            "_execute_command_to_change_state"
+                        ],
+                    }
                 }
             }
-        }
+        else:  # directly from NOT_CONNECTED to UNIX_REMOTE
+            transitions = {
+                NOT_CONNECTED: {
+                    UNIX_REMOTE: {
+                        "action": [
+                            "_open_connection"
+                        ],
+                    }
+                },
+                UNIX_REMOTE: {
+                    NOT_CONNECTED: {
+                        "action": [
+                            "_close_connection"
+                        ],
+                    },
+                    UNIX_REMOTE_ROOT: {
+                        "action": [
+                            "_execute_command_to_change_state"
+                        ],
+                    }
+                },
+                UNIX_REMOTE_ROOT: {
+                    UNIX_REMOTE: {
+                        "action": [
+                            "_execute_command_to_change_state"
+                        ],
+                    }
+                }
+            }
         return transitions
+
+    def on_connection_made(self, connection):
+        """
+        Execute action when connection made.
+        :param connection: device connection.
+        :return: Nothing.
+        """
+        if self._use_local_unix_state or self._use_proxy_pc:
+            super(UnixRemote2, self).on_connection_made(connection)
+        else:
+            self._set_state(UNIX_REMOTE)
 
     @mark_to_call_base_class_method_with_same_name
     def _prepare_state_prompts_with_proxy_pc(self):
@@ -333,14 +393,21 @@ class UnixRemote2(ProxyPc2):
         :return: textual prompt for each state without proxy_pc state.
         """
         hops_cfg = self._configurations[CONNECTION_HOPS]
-        state_prompts = {
-            UNIX_REMOTE:
-                hops_cfg[UNIX_LOCAL][UNIX_REMOTE]["command_params"]["expected_prompt"],
-            UNIX_REMOTE_ROOT:
-                hops_cfg[UNIX_REMOTE][UNIX_REMOTE_ROOT]["command_params"]["expected_prompt"],
-            UNIX_LOCAL:
-                hops_cfg[UNIX_REMOTE][UNIX_LOCAL]["command_params"]["expected_prompt"],
-        }
+        if self._use_local_unix_state:
+            state_prompts = {
+                UNIX_REMOTE:
+                    hops_cfg[UNIX_LOCAL][UNIX_REMOTE]["command_params"]["expected_prompt"],
+                UNIX_REMOTE_ROOT:
+                    hops_cfg[UNIX_REMOTE][UNIX_REMOTE_ROOT]["command_params"]["expected_prompt"],
+                UNIX_LOCAL:
+                    hops_cfg[UNIX_REMOTE][UNIX_LOCAL]["command_params"]["expected_prompt"],
+            }
+        else:  # directly from NOT_CONNECTED to UNIX_REMOTE via open connection
+            state_prompts = {
+                # UNIX_REMOTE: TODO: detect prompt after establishing connection or set PS1
+                UNIX_REMOTE_ROOT:
+                    hops_cfg[UNIX_REMOTE][UNIX_REMOTE_ROOT]["command_params"]["expected_prompt"],
+            }
         return state_prompts
 
     @mark_to_call_base_class_method_with_same_name
@@ -365,14 +432,21 @@ class UnixRemote2(ProxyPc2):
         :return: newline char for each state without proxy_pc state.
         """
         hops_cfg = self._configurations[CONNECTION_HOPS]
-        newline_chars = {
-            UNIX_REMOTE:
-                hops_cfg[UNIX_LOCAL][UNIX_REMOTE]["command_params"]["target_newline"],
-            UNIX_LOCAL:
-                hops_cfg[UNIX_REMOTE][UNIX_LOCAL]["command_params"]["target_newline"],
-            UNIX_REMOTE_ROOT:
-                hops_cfg[UNIX_REMOTE][UNIX_REMOTE_ROOT]["command_params"]["target_newline"],
-        }
+        if self._use_local_unix_state:
+            newline_chars = {
+                UNIX_REMOTE:
+                    hops_cfg[UNIX_LOCAL][UNIX_REMOTE]["command_params"]["target_newline"],
+                UNIX_LOCAL:
+                    hops_cfg[UNIX_REMOTE][UNIX_LOCAL]["command_params"]["target_newline"],
+                UNIX_REMOTE_ROOT:
+                    hops_cfg[UNIX_REMOTE][UNIX_REMOTE_ROOT]["command_params"]["target_newline"],
+            }
+        else:  # directly from NOT_CONNECTED to UNIX_REMOTE via open connection
+            newline_chars = {
+                # UNIX_REMOTE: TODO: hot to get it?
+                UNIX_REMOTE_ROOT:
+                    hops_cfg[UNIX_REMOTE][UNIX_REMOTE_ROOT]["command_params"]["target_newline"],
+            }
         return newline_chars
 
     @mark_to_call_base_class_method_with_same_name
@@ -381,38 +455,56 @@ class UnixRemote2(ProxyPc2):
         Prepare non direct transitions for each state for State Machine with proxy_pc state.
         :return: non direct transitions for each state with proxy_pc state.
         """
-        state_hops = {
-            NOT_CONNECTED: {
-                UNIX_REMOTE: UNIX_LOCAL,
-                PROXY_PC: UNIX_LOCAL,
-                UNIX_LOCAL_ROOT: UNIX_LOCAL,
-                UNIX_REMOTE_ROOT: UNIX_LOCAL
-            },
-            UNIX_REMOTE: {
-                NOT_CONNECTED: PROXY_PC,
-                UNIX_LOCAL: PROXY_PC,
-                UNIX_LOCAL_ROOT: PROXY_PC
-            },
-            UNIX_LOCAL_ROOT: {
-                UNIX_REMOTE: UNIX_LOCAL,
-                UNIX_REMOTE_ROOT: UNIX_LOCAL
-            },
-            PROXY_PC: {
-                NOT_CONNECTED: UNIX_LOCAL,
-                UNIX_LOCAL_ROOT: UNIX_LOCAL,
-                UNIX_REMOTE_ROOT: UNIX_REMOTE
-            },
-            UNIX_LOCAL: {
-                UNIX_REMOTE: PROXY_PC,
-                UNIX_REMOTE_ROOT: PROXY_PC
-            },
-            UNIX_REMOTE_ROOT: {
-                NOT_CONNECTED: UNIX_REMOTE,
-                UNIX_LOCAL: UNIX_REMOTE,
-                UNIX_LOCAL_ROOT: UNIX_REMOTE,
-                PROXY_PC: UNIX_REMOTE,
+        if self._use_local_unix_state:
+            state_hops = {
+                NOT_CONNECTED: {
+                    UNIX_REMOTE: UNIX_LOCAL,
+                    PROXY_PC: UNIX_LOCAL,
+                    UNIX_LOCAL_ROOT: UNIX_LOCAL,
+                    UNIX_REMOTE_ROOT: UNIX_LOCAL
+                },
+                UNIX_LOCAL: {
+                    UNIX_REMOTE: PROXY_PC,
+                    UNIX_REMOTE_ROOT: PROXY_PC
+                },
+                UNIX_LOCAL_ROOT: {
+                    UNIX_REMOTE: UNIX_LOCAL,
+                    UNIX_REMOTE_ROOT: UNIX_LOCAL
+                },
+                PROXY_PC: {
+                    NOT_CONNECTED: UNIX_LOCAL,
+                    UNIX_LOCAL_ROOT: UNIX_LOCAL,
+                    UNIX_REMOTE_ROOT: UNIX_REMOTE
+                },
+                UNIX_REMOTE: {
+                    NOT_CONNECTED: PROXY_PC,
+                    UNIX_LOCAL: PROXY_PC,
+                    UNIX_LOCAL_ROOT: PROXY_PC
+                },
+                UNIX_REMOTE_ROOT: {
+                    NOT_CONNECTED: UNIX_REMOTE,
+                    UNIX_LOCAL: UNIX_REMOTE,
+                    UNIX_LOCAL_ROOT: UNIX_REMOTE,
+                    PROXY_PC: UNIX_REMOTE,
+                }
             }
-        }
+        else:
+            state_hops = {
+                NOT_CONNECTED: {
+                    UNIX_REMOTE: PROXY_PC,
+                    UNIX_REMOTE_ROOT: PROXY_PC
+                },
+                PROXY_PC: {
+                    UNIX_REMOTE_ROOT: UNIX_REMOTE
+                },
+                UNIX_REMOTE: {
+                    NOT_CONNECTED: PROXY_PC,
+                },
+                UNIX_REMOTE_ROOT: {
+                    NOT_CONNECTED: UNIX_REMOTE,
+                    PROXY_PC: UNIX_REMOTE,
+                }
+            }
         return state_hops
 
     @mark_to_call_base_class_method_with_same_name
@@ -421,30 +513,39 @@ class UnixRemote2(ProxyPc2):
         Prepare non direct transitions for each state for State Machine without proxy_pc state.
         :return: non direct transitions for each state without proxy_pc state.
         """
-        state_hops = {
-            NOT_CONNECTED: {
-                UNIX_REMOTE: UNIX_LOCAL,
-                UNIX_LOCAL_ROOT: UNIX_LOCAL,
-                UNIX_REMOTE_ROOT: UNIX_LOCAL,
-            },
-            UNIX_LOCAL: {
-                UNIX_REMOTE_ROOT: UNIX_REMOTE
-            },
-            UNIX_LOCAL_ROOT: {
-                UNIX_REMOTE: UNIX_LOCAL,
-                UNIX_REMOTE_ROOT: UNIX_LOCAL
-            },
-            UNIX_REMOTE: {
-                NOT_CONNECTED: UNIX_LOCAL,
-                UNIX_LOCAL_ROOT: UNIX_LOCAL
-            },
-            UNIX_REMOTE_ROOT: {
-                NOT_CONNECTED: UNIX_REMOTE,
-                UNIX_LOCAL: UNIX_REMOTE,
-                UNIX_LOCAL_ROOT: UNIX_REMOTE,
-                PROXY_PC: UNIX_REMOTE,
+        if self._use_local_unix_state:
+            state_hops = {
+                NOT_CONNECTED: {
+                    UNIX_REMOTE: UNIX_LOCAL,
+                    UNIX_LOCAL_ROOT: UNIX_LOCAL,
+                    UNIX_REMOTE_ROOT: UNIX_LOCAL,
+                },
+                UNIX_LOCAL: {
+                    UNIX_REMOTE_ROOT: UNIX_REMOTE
+                },
+                UNIX_LOCAL_ROOT: {
+                    UNIX_REMOTE: UNIX_LOCAL,
+                    UNIX_REMOTE_ROOT: UNIX_LOCAL
+                },
+                UNIX_REMOTE: {
+                    NOT_CONNECTED: UNIX_LOCAL,
+                    UNIX_LOCAL_ROOT: UNIX_LOCAL
+                },
+                UNIX_REMOTE_ROOT: {
+                    NOT_CONNECTED: UNIX_REMOTE,
+                    UNIX_LOCAL: UNIX_REMOTE,
+                    UNIX_LOCAL_ROOT: UNIX_REMOTE,
+                }
             }
-        }
+        else:
+            state_hops = {
+                NOT_CONNECTED: {
+                    UNIX_REMOTE_ROOT: UNIX_REMOTE,
+                },
+                UNIX_REMOTE_ROOT: {
+                    NOT_CONNECTED: UNIX_REMOTE,
+                }
+            }
         return state_hops
 
     def _configure_state_machine(self, sm_params):
@@ -460,8 +561,11 @@ class UnixRemote2(ProxyPc2):
             hops_cfg[UNIX_REMOTE_ROOT][UNIX_REMOTE]["command_params"]["expected_prompt"] = \
                 hops_cfg[PROXY_PC][UNIX_REMOTE]["command_params"]["expected_prompt"]
         else:
-            hops_cfg[UNIX_REMOTE_ROOT][UNIX_REMOTE]["command_params"]["expected_prompt"] = \
-                hops_cfg[UNIX_LOCAL][UNIX_REMOTE]["command_params"]["expected_prompt"]
+            if self._use_local_unix_state:
+                hops_cfg[UNIX_REMOTE_ROOT][UNIX_REMOTE]["command_params"]["expected_prompt"] = \
+                    hops_cfg[UNIX_LOCAL][UNIX_REMOTE]["command_params"]["expected_prompt"]
+            else:
+                pass  # TODO: where to take it from?
 
     def _get_packages_for_state(self, state, observer):
         """
@@ -473,7 +577,7 @@ class UnixRemote2(ProxyPc2):
         available = super(UnixRemote2, self)._get_packages_for_state(state, observer)
 
         if not available:
-            if state == UNIX_REMOTE or state == UNIX_REMOTE_ROOT:
+            if (state == UNIX_REMOTE) or (state == UNIX_REMOTE_ROOT):
                 available = {UnixRemote2.cmds: ['moler.cmd.unix'],
                              UnixRemote2.events: ['moler.events.shared', 'moler.events.unix']}
             if available:

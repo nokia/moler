@@ -248,6 +248,7 @@ class ProxyPc2(UnixLocal):
                 UNIX_LOCAL:
                     self._configurations[CONNECTION_HOPS][PROXY_PC][UNIX_LOCAL]["command_params"]["expected_prompt"],
             }
+        # TODO: else detect prompt after establishing connection
         return state_prompts
 
     def _prepare_state_prompts_without_proxy_pc(self):

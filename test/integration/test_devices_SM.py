@@ -43,6 +43,31 @@ def test_proxy_pc_with_terminal_can_use_unix_local_states(loaded_proxy_pc_config
     dev.remove()
 
 
+def test_unix_remote_with_sshshell(loaded_unix_remote_config):
+    dev = DeviceFactory.get_device(name="UX_REMOTE")
+    assert dev.current_state == "UNIX_REMOTE"
+    dev.remove()
+
+
+def test_unix_remote_with_sshshell_cant_use_unix_local_states(loaded_unix_remote_config):
+    with pytest.raises(ValueError) as err:
+        DeviceFactory.get_device(name="UX_REMOTE", initial_state="UNIX_LOCAL")
+    assert "has no UNIX_LOCAL/UNIX_LOCAL_ROOT states" in str(err.value)
+    assert "since it uses following io: ThreadedSshShell" in str(err.value)
+    assert 'You need io of type "terminal" to have unix-local states' in str(err.value)
+
+
+def test_unix_remote_with_terminal_can_use_unix_local_states(loaded_proxy_pc_config, uxlocal2uxremote_connection_hops):
+    # check backward compatibility
+    dev = DeviceFactory.get_device(name="PROXY",
+                                   initial_state="UNIX_LOCAL",
+                                   connection_hops=uxlocal2uxremote_connection_hops,
+                                   connection_desc={"io_type": "terminal"})
+    assert dev.current_state == "UNIX_LOCAL"
+    # dev.goto_state("UNIX_REMOTE")
+    # assert dev.current_state == "UNIX_REMOTE"
+    dev.remove()
+
 # ------------------------------------------------------------
 
 @pytest.fixture()
@@ -122,6 +147,26 @@ def loaded_proxy_pc_config(devices_config):
 
 
 @pytest.fixture()
+def loaded_unix_remote_config(devices_config):
+    import yaml
+    from moler.config import load_device_from_config
+
+    config_yaml = """
+    DEVICES:
+        UX_REMOTE:
+            DEVICE_CLASS: moler.device.unixremote2.UnixRemote2
+            CONNECTION_DESC:
+                io_type: sshshell
+                host: localhost
+                username: molerssh
+                password: moler_password
+            # using sshshell it jumps NOT_CONNECTED -> REMOTE_UNIX
+    """
+    dev_config = yaml.load(config_yaml, Loader=yaml.FullLoader)
+    load_device_from_config(dev_config)
+
+
+@pytest.fixture()
 def alternative_connection_hops():
     import yaml
 
@@ -151,4 +196,29 @@ def uxlocal2proxypc_connection_hops():
                     expected_prompt: '$'
     """
     hops = yaml.load(hops_yaml, Loader=yaml.FullLoader)
+    return hops
+
+
+@pytest.fixture()
+def proxypc2uxremote_connection_hops():
+    import yaml
+
+    hops_yaml = """
+        PROXY_PC:
+            UNIX_REMOTE:
+                execute_command: ssh
+                command_params:
+                    host: localhost
+                    login: molerssh
+                    password: moler_password
+                    expected_prompt: '$'
+    """
+    hops = yaml.load(hops_yaml, Loader=yaml.FullLoader)
+    return hops
+
+
+@pytest.fixture()
+def uxlocal2uxremote_connection_hops(uxlocal2proxypc_connection_hops, proxypc2uxremote_connection_hops):
+    hops = uxlocal2proxypc_connection_hops
+    hops.update(proxypc2uxremote_connection_hops)
     return hops
