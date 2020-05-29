@@ -823,13 +823,13 @@ def mocked_logger():
             msg_without_details = msg.split(" |", 1)
             self.calls.append(" INFO: " + msg_without_details[0])
 
-    def mocked_log_into_logger(logger, level, msg, extra=None, levels_to_go_up=0):
+    def mocked_log(self, msg, level, levels_to_go_up=1):
         if level == logging.DEBUG:
             logger.debug(msg)
         elif level == logging.INFO:
             logger.info(msg)
-        raise ValueError("unexpected logging level")
+        raise ValueError("unexpected logging level = {}".format(level))
 
-    with mock.patch("moler.io.raw.sshshell.log_into_logger", mocked_log_into_logger):
+    with mock.patch("moler.io.raw.sshshell.SshShell._log", mocked_log):
         logger = MyLogger()
         yield logger
