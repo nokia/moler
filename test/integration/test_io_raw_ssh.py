@@ -809,6 +809,8 @@ def active_sshshell_connection(active_sshshell_connection_class):
 
 @pytest.fixture
 def mocked_logger():
+    import logging
+
     class MyLogger(object):
         def __init__(self):
             self.calls = []
@@ -821,8 +823,13 @@ def mocked_logger():
             msg_without_details = msg.split(" |", 1)
             self.calls.append(" INFO: " + msg_without_details[0])
 
-        def isEnabledFor(level):
-            return True
+    def mocked_log_into_logger(logger, level, msg, extra=None, levels_to_go_up=0):
+        if level == logging.DEBUG:
+            logger.debug(msg)
+        elif level == logging.INFO:
+            logger.info(msg)
+        raise ValueError("unexpected logging level")
 
-    logger = MyLogger()
-    return logger
+    with mock.patch("moler.io.raw.sshshell.log_into_logger", mocked_log_into_logger):
+        logger = MyLogger()
+        yield logger
