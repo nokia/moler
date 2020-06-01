@@ -85,9 +85,10 @@ class PduAten(ProxyPc):
                         "command_params": {  # with parameters
                             "expected_prompt": r'^>',
                             "set_timeout": None,
-                            "target_newline": "\n",
+                            "target_newline": "\r\n",
                             "login": "teladmin",
-                            "password": "telpwd"
+                            "password": "telpwd",
+                            "encrypt_password": False,
                         },
                         "required_command_params": [
                             "host",
@@ -121,13 +122,14 @@ class PduAten(ProxyPc):
                     PduAten.pdu: {  # to
                         "execute_command": "telnet",  # using command
                         "command_params": {  # with parameters
-                            "target_newline": "\r\n",
-                            "expected_prompt": r'\w+>',
+                            "expected_prompt": r'^>',
                             "set_timeout": None,
+                            "target_newline": "\r\n",
+                            "login": "teladmin",
+                            "password": "telpwd"
                         },
                         "required_command_params": [
                             "host",
-                            "port",
                         ]
                     },
                 },
