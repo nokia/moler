@@ -22,6 +22,7 @@ def test_adb_remote_device(loaded_adb_device_config, alternative_connection_hops
 def test_proxy_pc_with_sshshell(loaded_proxy_pc_config):
     dev = DeviceFactory.get_device(name="PROXY")
     assert dev.current_state == "PROXY_PC"
+    assert dev._state_prompts["PROXY_PC"].startswith('sshproxy')
     dev.remove()
 
 
@@ -45,10 +46,31 @@ def test_proxy_pc_with_terminal_can_use_unix_local_states(loaded_proxy_pc_config
     dev.remove()
 
 
-def test_unix_remote_with_sshshell(loaded_unix_remote_config):
+def test_unix_remote_with_sshshell_only(loaded_unix_remote_config):
     dev = DeviceFactory.get_device(name="UX_REMOTE")
     assert dev.current_state == "UNIX_REMOTE"
-    assert dev._state_prompts["UNIX_REMOTE"].startswith('molerssh@')
+    assert dev._state_prompts["UNIX_REMOTE"].startswith('molerssh')
+    dev.remove()
+
+
+def test_unix_remote_with_sshshell_via_proxy_pc(loaded_unix_remote_config, proxypc2uxremote_connection_hops):
+    dev = DeviceFactory.get_device(name="UX_REMOTE", initial_state="PROXY_PC",
+                                   connection_desc={'io_type': 'sshshell',
+                                                    'host': 'localhost',
+                                                    'username': 'sshproxy',
+                                                    'password': 'proxy_password'},
+                                   connection_hops=proxypc2uxremote_connection_hops)
+    assert dev._use_proxy_pc is True
+    assert dev.current_state == "PROXY_PC"
+    assert dev._state_prompts["PROXY_PC"].startswith('sshproxy')
+    dev.goto_state("UNIX_REMOTE")
+    assert dev.current_state == "UNIX_REMOTE"
+    #dev.goto_state("UNIX_REMOTE_ROOT")
+    #assert dev.current_state == "UNIX_REMOTE_ROOT"
+    dev.goto_state("PROXY_PC")
+    assert dev.current_state == "PROXY_PC"
+    dev.goto_state("NOT_CONNECTED")
+    assert dev.current_state == "NOT_CONNECTED"
     dev.remove()
 
 
@@ -207,6 +229,11 @@ def proxypc2uxremote_connection_hops():
                     login: molerssh
                     password: moler_password
                     expected_prompt: 'molerssh@\S+'
+        UNIX_REMOTE:
+            UNIX_REMOTE_ROOT:
+                command_params:
+                    password: root_passwd
+                    expected_prompt: 'root@\S+#'
     """
     hops = yaml.load(hops_yaml, Loader=yaml.FullLoader)
     return hops

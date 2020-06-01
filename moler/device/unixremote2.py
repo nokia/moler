@@ -9,6 +9,7 @@ __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
 __copyright__ = 'Copyright (C) 2018-2019, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
+import re
 from moler.device.textualdevice import TextualDevice
 from moler.device.unixlocal import UnixLocal
 from moler.device.proxy_pc2 import ProxyPc2, PROXY_PC
@@ -145,7 +146,7 @@ class UnixRemote2(ProxyPc2):
                     UNIX_REMOTE_ROOT: {  # to
                         "execute_command": "su",  # using command
                         "command_params": {  # with parameters
-                            "password": "root_password",
+                            "password": "root_password",  # TODO: detect missing if sbd goes to ux-root
                             "expected_prompt": r'remote_root_prompt',
                             "target_newline": "\n"
                         },
@@ -366,11 +367,25 @@ class UnixRemote2(ProxyPc2):
         :param connection: device connection.
         :return: Nothing.
         """
-        if self._use_local_unix_state or self._use_proxy_pc:
+        if self._use_local_unix_state:
             super(UnixRemote2, self).on_connection_made(connection)
+        elif self._use_proxy_pc:
+            self._set_state(PROXY_PC)
+            self._detect_after_open_prompt(self._set_after_open_prompt)
         else:
             self._set_state(UNIX_REMOTE)
-            self._detect_after_open_prompt()
+            self._detect_after_open_prompt(self._set_after_open_prompt)
+
+    def _set_after_open_prompt(self, event):
+        occurrence = event.get_last_occurrence()
+        prompt = occurrence['groups'][0]
+        state = self._get_current_state()
+        with self._state_prompts_lock:
+            self._state_prompts[state] = re.escape(prompt.rstrip())
+            if state == UNIX_REMOTE:
+                self._update_ux_root2ux()
+            elif state == PROXY_PC:
+                self._update_ux2proxy()
 
     @mark_to_call_base_class_method_with_same_name
     def _prepare_state_prompts_with_proxy_pc(self):
@@ -405,7 +420,7 @@ class UnixRemote2(ProxyPc2):
             }
         else:  # directly from NOT_CONNECTED to UNIX_REMOTE via open connection
             state_prompts = {
-                # UNIX_REMOTE: TODO: detect prompt after establishing connection or set PS1
+                # UNIX_REMOTE: detect prompt after establishing connection: _detect_after_open_prompt()
                 UNIX_REMOTE_ROOT:
                     hops_cfg[UNIX_REMOTE][UNIX_REMOTE_ROOT]["command_params"]["expected_prompt"],
             }
@@ -556,17 +571,20 @@ class UnixRemote2(ProxyPc2):
         :return: Nothing.
         """
         super(UnixRemote2, self)._configure_state_machine(sm_params)
+        self._update_ux_root2ux()
+        self._update_ux2proxy()
 
+    def _update_ux_root2ux(self):
         hops_cfg = self._configurations[CONNECTION_HOPS]
-        if self._use_proxy_pc:
-            hops_cfg[UNIX_REMOTE_ROOT][UNIX_REMOTE]["command_params"]["expected_prompt"] = \
-                hops_cfg[PROXY_PC][UNIX_REMOTE]["command_params"]["expected_prompt"]
-        else:
-            if self._use_local_unix_state:
-                hops_cfg[UNIX_REMOTE_ROOT][UNIX_REMOTE]["command_params"]["expected_prompt"] = \
-                    hops_cfg[UNIX_LOCAL][UNIX_REMOTE]["command_params"]["expected_prompt"]
-            else:
-                pass  # TODO: where to take it from?
+        if UNIX_REMOTE in self._state_prompts:
+            ux_remote_prompt = self._state_prompts[UNIX_REMOTE]
+            hops_cfg[UNIX_REMOTE_ROOT][UNIX_REMOTE]["command_params"]["expected_prompt"] = ux_remote_prompt
+
+    def _update_ux2proxy(self):
+        hops_cfg = self._configurations[CONNECTION_HOPS]
+        if PROXY_PC in self._state_prompts:
+            proxy_prompt = self._state_prompts[PROXY_PC]
+            hops_cfg[UNIX_REMOTE][PROXY_PC]["command_params"]["expected_prompt"] = proxy_prompt
 
     def _get_packages_for_state(self, state, observer):
         """

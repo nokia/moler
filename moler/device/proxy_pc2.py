@@ -220,7 +220,7 @@ class ProxyPc2(UnixLocal):
             super(ProxyPc2, self).on_connection_made(connection)
         else:
             self._set_state(PROXY_PC)
-            self._detect_after_open_prompt()
+            self._detect_after_open_prompt(self._set_after_open_prompt)
 
     def on_connection_lost(self, connection):
         """
@@ -230,12 +230,12 @@ class ProxyPc2(UnixLocal):
         """
         self._set_state(NOT_CONNECTED)
 
-    def _detect_after_open_prompt(self):
+    def _detect_after_open_prompt(self, set_callback):
         self._after_open_prompt_detector = Wait4(detect_patterns=[r'^(.+)echo DETECTING PROMPT'],
                                                  connection=self.io_connection.moler_connection,
                                                  till_occurs_times=1)
         detector = self._after_open_prompt_detector
-        detector.add_event_occurred_callback(callback=self._set_after_open_prompt,
+        detector.add_event_occurred_callback(callback=set_callback,
                                              callback_params={"event": detector})
         self.io_connection.moler_connection.sendline("echo DETECTING PROMPT")
         self._after_open_prompt_detector.start(timeout=self._prompt_detector_timeout)
@@ -275,7 +275,7 @@ class ProxyPc2(UnixLocal):
                 UNIX_LOCAL:
                     self._configurations[CONNECTION_HOPS][PROXY_PC][UNIX_LOCAL]["command_params"]["expected_prompt"],
             }
-        # TODO: else detect prompt after establishing connection
+        # else detects prompt after establishing connection: _detect_after_open_prompt() & _set_after_open_prompt()
         return state_prompts
 
     def _prepare_state_prompts_without_proxy_pc(self):
