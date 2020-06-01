@@ -85,11 +85,12 @@ class PduAten(ProxyPc):
                         "command_params": {  # with parameters
                             "expected_prompt": r'^>',
                             "set_timeout": None,
-                            "target_newline": "\r\n",
+                            "target_newline": "\n",
+                            "login": "teladmin",
+                            "password": "telpwd"
                         },
                         "required_command_params": [
                             "host",
-                            "port",
                         ]
                     },
                 },
@@ -270,8 +271,8 @@ class PduAten(ProxyPc):
 
         if not available:
             if state == PduAten.pdu:
-                available = {PduAten.cmds: ['moler.cmd.PduAten.pdu'],
-                             PduAten.events: ['moler.events.unix', 'moler.events.pdu']}
+                available = {PduAten.cmds: ['moler.cmd.pdu_aten.pdu'],
+                             PduAten.events: ['moler.events.unix', 'moler.events.pdu_aten']}
             if available:
                 return available[observer]
 
