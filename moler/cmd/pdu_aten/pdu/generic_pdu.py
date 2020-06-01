@@ -13,10 +13,9 @@ __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
-
 cmd_failure_causes = ['not found',
                       'Invalid command',
-                     ]
+                      ]
 r_cmd_failure_cause_alternatives = r'{}'.format("|".join(cmd_failure_causes))
 
 

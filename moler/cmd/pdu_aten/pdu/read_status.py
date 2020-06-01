@@ -57,7 +57,6 @@ class ReadStatus(GenericPdu):
             self.current_ret["STATUS"] = value
             raise ParsingDone()
 
-
     # on
     _re_value = re.compile(r"(?P<VALUE>on|off)", re.IGNORECASE)
 
