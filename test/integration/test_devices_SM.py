@@ -40,6 +40,8 @@ def test_proxy_pc_with_terminal_can_use_unix_local_states(loaded_proxy_pc_config
                                    connection_hops=uxlocal2proxypc_connection_hops,
                                    connection_desc={"io_type": "terminal"})
     assert dev.current_state == "UNIX_LOCAL"
+    dev.goto_state("PROXY_PC")
+    assert dev.current_state == "PROXY_PC"
     dev.remove()
 
 
@@ -130,17 +132,9 @@ def loaded_proxy_pc_config(devices_config):
             CONNECTION_DESC:
                 io_type: sshshell
                 host: localhost
-                username: molerssh         # change to login: to have ssh-cmd parity? username is paramiko naming
-                password: moler_password   # openSSH (linux ssh cmd) uses -l login_name
-            CONNECTION_HOPS:
-                UNIX_LOCAL:  # ignored since if using sshshell it jumps NOT_CONNECTED -> PROXY_PC
-                    PROXY_PC:
-                        execute_command: ssh
-                        command_params:
-                            host: localhost
-                            login: molerssh  
-                            password: moler_password
-                            expected_prompt: '$'
+                username: sshproxy         # change to login: to have ssh-cmd parity? username is paramiko naming
+                password: proxy_password   # openSSH (linux ssh cmd) uses -l login_name
+            # no CONNECTION_HOPS since if using sshshell it jumps NOT_CONNECTED -> PROXY_PC
     """
     dev_config = yaml.load(config_yaml, Loader=yaml.FullLoader)
     load_device_from_config(dev_config)
@@ -191,9 +185,9 @@ def uxlocal2proxypc_connection_hops():
                 execute_command: ssh
                 command_params:
                     host: localhost
-                    login: molerssh
-                    password: moler_password
-                    expected_prompt: '$'
+                    login: sshproxy
+                    password: proxy_password
+                    expected_prompt: 'sshproxy@\S+'
     """
     hops = yaml.load(hops_yaml, Loader=yaml.FullLoader)
     return hops
@@ -211,7 +205,7 @@ def proxypc2uxremote_connection_hops():
                     host: localhost
                     login: molerssh
                     password: moler_password
-                    expected_prompt: '$'
+                    expected_prompt: 'molerssh@\S+'
     """
     hops = yaml.load(hops_yaml, Loader=yaml.FullLoader)
     return hops

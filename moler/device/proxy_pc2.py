@@ -14,6 +14,7 @@ import abc
 from moler.device.textualdevice import TextualDevice
 from moler.device.unixlocal import UnixLocal
 from moler.io.raw.terminal import ThreadedTerminal
+from moler.events.shared.wait4 import Wait4
 
 # helper variables to improve readability of state machines
 # f.ex. moler.device.textualdevice introduces state TextualDevice.not_connected = "NOT_CONNECTED"
@@ -56,13 +57,21 @@ class ProxyPc2(UnixLocal):
         """
         self._use_local_unix_state = want_local_unix_state(io_type, io_connection)
         base_state = UNIX_LOCAL if self._use_local_unix_state else NOT_CONNECTED
-        self._use_proxy_pc = self._is_proxy_pc_in_sm_params(sm_params, PROXY_PC)
+        self._use_proxy_pc = self._should_use_proxy_pc(sm_params, PROXY_PC)
         base_or_final_state = PROXY_PC if self._use_proxy_pc else base_state
         initial_state = initial_state if initial_state is not None else base_or_final_state
         super(ProxyPc2, self).__init__(name=name, io_connection=io_connection,
                                        io_type=io_type, variant=variant,
                                        io_constructor_kwargs=io_constructor_kwargs,
                                        sm_params=sm_params, initial_state=initial_state)
+        self._prompt_detector_timeout = 0.5
+        self._after_open_prompt_detector = None
+
+    def _should_use_proxy_pc(self, sm_params, proxy):
+        proxy_in_config = self._is_proxy_pc_in_sm_params(sm_params, proxy)
+        if (not proxy_in_config) and (not self._use_local_unix_state) and (self.__class__.__name__ == 'ProxyPc2'):
+            return True  # ProxyPc is target of connection open
+        return proxy_in_config
 
     def goto_state(self, state, *args, **kwargs):
         """Goes to specific state."""
@@ -211,6 +220,7 @@ class ProxyPc2(UnixLocal):
             super(ProxyPc2, self).on_connection_made(connection)
         else:
             self._set_state(PROXY_PC)
+            self._detect_after_open_prompt()
 
     def on_connection_lost(self, connection):
         """
@@ -219,6 +229,23 @@ class ProxyPc2(UnixLocal):
         :return: Nothing.
         """
         self._set_state(NOT_CONNECTED)
+
+    def _detect_after_open_prompt(self):
+        self._after_open_prompt_detector = Wait4(detect_patterns=[r'^(.+)echo DETECTING PROMPT'],
+                                                 connection=self.io_connection.moler_connection,
+                                                 till_occurs_times=1)
+        detector = self._after_open_prompt_detector
+        detector.add_event_occurred_callback(callback=self._set_after_open_prompt,
+                                             callback_params={"event": detector})
+        self.io_connection.moler_connection.sendline("echo DETECTING PROMPT")
+        self._after_open_prompt_detector.start(timeout=self._prompt_detector_timeout)
+
+    def _set_after_open_prompt(self, event):
+        occurrence = event.get_last_occurrence()
+        prompt = occurrence['groups'][0]
+        state = self._get_current_state()
+        with self._state_prompts_lock:
+            self._state_prompts[state] = prompt.rstrip()
 
     def _prepare_state_prompts(self):
         """
