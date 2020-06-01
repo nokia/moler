@@ -48,6 +48,7 @@ def test_proxy_pc_with_terminal_can_use_unix_local_states(loaded_proxy_pc_config
 def test_unix_remote_with_sshshell(loaded_unix_remote_config):
     dev = DeviceFactory.get_device(name="UX_REMOTE")
     assert dev.current_state == "UNIX_REMOTE"
+    assert dev._state_prompts["UNIX_REMOTE"].startswith('molerssh@')
     dev.remove()
 
 

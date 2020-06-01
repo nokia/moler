@@ -141,9 +141,6 @@ class UnixRemote2(ProxyPc2):
                         "command_params": {  # with parameters
                             "target_newline": "\n"
                         },
-                        "required_command_params": [
-                            "expected_prompt"
-                        ]
                     },
                     UNIX_REMOTE_ROOT: {  # to
                         "execute_command": "su",  # using command
@@ -169,6 +166,9 @@ class UnixRemote2(ProxyPc2):
                 }
             }
         }
+        if self._use_local_unix_state:
+            config['CONNECTION_HOPS'][UNIX_REMOTE][PROXY_PC]["required_command_params"] = ["expected_prompt"]
+            # if we jump NOT_CONNECTED --open connection-> PROXY_PC then prompt will be detected
         return config
 
     @mark_to_call_base_class_method_with_same_name
@@ -370,6 +370,7 @@ class UnixRemote2(ProxyPc2):
             super(UnixRemote2, self).on_connection_made(connection)
         else:
             self._set_state(UNIX_REMOTE)
+            self._detect_after_open_prompt()
 
     @mark_to_call_base_class_method_with_same_name
     def _prepare_state_prompts_with_proxy_pc(self):
