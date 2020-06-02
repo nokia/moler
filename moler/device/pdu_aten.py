@@ -89,6 +89,8 @@ class PduAten(ProxyPc):
                             "login": "teladmin",
                             "password": "telpwd",
                             "encrypt_password": False,
+                            "send_enter_after_connection": False,
+                            "cmds_before_establish_connection":  ['unset binary'],
                         },
                         "required_command_params": [
                             "host",
@@ -126,7 +128,10 @@ class PduAten(ProxyPc):
                             "set_timeout": None,
                             "target_newline": "\r\n",
                             "login": "teladmin",
-                            "password": "telpwd"
+                            "password": "telpwd",
+                            "encrypt_password": False,
+                            "send_enter_after_connection": False,
+                            "cmds_before_establish_connection": ['unset binary'],
                         },
                         "required_command_params": [
                             "host",
