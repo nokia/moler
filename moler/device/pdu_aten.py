@@ -20,7 +20,7 @@ class PduAten(ProxyPc):
 
     Example of device in yaml configuration file:
     - with PROXY_PC:
-        PDU_1:
+      PDU_1:
         DEVICE_CLASS: moler.device.pdu_aten.PduAten
         CONNECTION_HOPS:
           PROXY_PC:
@@ -88,7 +88,7 @@ class PduAten(ProxyPc):
                             "target_newline": "\r\n",
                             "login": "teladmin",
                             "password": "telpwd",
-                            "encrypt_password": False,
+                            "encrypt_password": True,
                             "send_enter_after_connection": False,
                             "cmds_before_establish_connection":  ['unset binary'],
                         },

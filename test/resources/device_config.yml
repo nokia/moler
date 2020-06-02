@@ -143,6 +143,43 @@ DEVICES:
             password: password
             set_timeout: null
 
+  PDU:
+    DEVICE_CLASS: moler.device.pdu_aten.PduAten
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        PDU:
+          execute_command: telnet # default value
+          command_params:
+            host: 10.0.0.1
+            cmds_before_establish_connection: null
+
+  PDU_PROXY_PC:
+    DEVICE_CLASS: moler.device.pdu_aten.PduAten
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      PROXY_PC:
+        PDU:
+          execute_command: telnet # default value
+          command_params:
+            host: 10.0.0.1
+            cmds_before_establish_connection: null
+      PDU:
+        PROXY_PC:
+          execute_command: exit_telnet # default value
+          command_params:
+            expected_prompt: "proxy_pc#"
+      UNIX_LOCAL:
+        PROXY_PC:
+          execute_command: ssh
+          command_params:
+            expected_prompt: "proxy_pc#"
+            host: proxy_pc_host
+            login: proxy_pc_login
+            password: password
+            set_timeout: null
+
+
   AT_REMOTE:
     DEVICE_CLASS: moler.device.atremote.AtRemote
     INITIAL_STATE: UNIX_LOCAL
