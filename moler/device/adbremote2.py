@@ -14,7 +14,7 @@ import logging
 from moler.device.textualdevice import TextualDevice
 # from moler.device.proxy_pc import ProxyPc  # TODO: allow jumping towards ADB_REMOTE via proxy-pc
 from moler.device.unixlocal import UnixLocal
-from moler.device.unixremote import UnixRemote
+from moler.device.unixremote2 import UnixRemote2, UNIX_REMOTE, UNIX_REMOTE_ROOT
 from moler.cmd.adb.adb_shell import AdbShell
 from moler.io.raw.sshshell import ThreadedSshShell
 from moler.helpers import call_base_class_method_with_same_name, mark_to_call_base_class_method_with_same_name
@@ -22,22 +22,21 @@ from moler.helpers import call_base_class_method_with_same_name, mark_to_call_ba
 # helper variables to improve readability of state machines
 # f.ex. moler.device.textualdevice introduces state TextualDevice.not_connected = "NOT_CONNECTED"
 NOT_CONNECTED = TextualDevice.not_connected
+CONNECTION_HOPS = TextualDevice.connection_hops
 UNIX_LOCAL = UnixLocal.unix_local
 UNIX_LOCAL_ROOT = UnixLocal.unix_local_root
-UNIX_REMOTE = UnixRemote.unix_remote
-UNIX_REMOTE_ROOT = UnixRemote.unix_remote_root
-
 ADB_SHELL = "ADB_SHELL"
 ADB_SHELL_ROOT = "ADB_SHELL_ROOT"
 
 
 @call_base_class_method_with_same_name
-class AdbRemote2(UnixRemote):
+class AdbRemote2(UnixRemote2):
     r"""
     AdbRemote device class.
 
     Example of device in yaml configuration file:
-    -without PROXY_PC:
+
+    -without PROXY_PC and io "terminal":
       ADB_1:
        DEVICE_CLASS: moler.device.adbremote2.AdbRemote2
        CONNECTION_HOPS:
@@ -49,15 +48,26 @@ class AdbRemote2(UnixRemote):
                host: host_ip
                login: login
                password: password
-      UNIX_REMOTE:
-        ADB_SHELL:
-          execute_command: adb_shell # default value; default command is:  adb shell
-          command_params:
-            device_serial_number: 'f57e6b7d'  #  to create:  adb -s f57e6b7d shell
-            expected_prompt: 'shell@adbhost: $'
-      ADB_SHELL:
-        UNIX_REMOTE:
-          execute_command: exit # default value
+         UNIX_REMOTE:
+           ADB_SHELL:
+             execute_command: adb_shell # default value
+             command_params:
+               device_serial_number: 'f57e6b7d'
+
+    -without PROXY_PC and remote-access-io like "sshshell":
+      ADB_1:
+       DEVICE_CLASS: moler.device.adbremote2.AdbRemote2
+       CONNECTION_DESC:
+         io_type: sshshell
+         host: host_ip
+         username: login
+         password: password
+       CONNECTION_HOPS:
+         UNIX_REMOTE:
+           ADB_SHELL:
+             execute_command: adb_shell # default value
+             command_params:
+               device_serial_number: 'f57e6b7d'
     """
 
     def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, io_constructor_kwargs=None,
@@ -74,27 +84,11 @@ class AdbRemote2(UnixRemote):
                         (if not given then default one is taken)
         :param initial_state: name of initial state. State machine tries to enter this state just after creation.
         """
-        initial_state = initial_state if initial_state is not None else AdbRemote2.adb_shell
+        initial_state = initial_state if initial_state is not None else ADB_SHELL
         super(AdbRemote2, self).__init__(name=name, io_connection=io_connection,
                                          io_type=io_type, variant=variant,
                                          io_constructor_kwargs=io_constructor_kwargs,
                                          sm_params=sm_params, initial_state=initial_state)
-
-    def _get_default_sm_configuration(self):
-        """
-        Create State Machine default configuration.
-        :return: default sm configuration.
-        """
-        if isinstance(self.io_connection, ThreadedSshShell):
-            pass  # self._get_default_sm_configuration_notconnected_directto_remote()
-        else:
-            config = super(AdbRemote2, self)._get_default_sm_configuration()
-        if self._use_proxy_pc:
-            default_config = self._get_default_sm_configuration_with_proxy_pc()
-        else:
-            default_config = self._get_default_sm_configuration_without_proxy_pc()
-        self._update_dict(config, default_config)
-        return config
 
     @mark_to_call_base_class_method_with_same_name
     def _get_default_sm_configuration_without_proxy_pc(self):
@@ -102,8 +96,8 @@ class AdbRemote2(UnixRemote):
         Return State Machine default configuration without proxy_pc state.
         :return: default sm configuration without proxy_pc state.
         """
-        config = {  # TODO: shell we use direct-string names of config dicts? change simplicity vs readability
-            TextualDevice.connection_hops: {
+        config = {
+            CONNECTION_HOPS: {
                 UNIX_REMOTE: {  # from
                     ADB_SHELL: {  # to
                         "execute_command": "adb_shell",
@@ -245,7 +239,7 @@ class AdbRemote2(UnixRemote):
         Prepare textual prompt for each state for State Machine without proxy_pc state.
         :return: textual prompt for each state without proxy_pc state.
         """
-        hops_config = self._configurations[TextualDevice.connection_hops]
+        hops_config = self._configurations[CONNECTION_HOPS]
         cfg_ux2adb = hops_config[UNIX_REMOTE][ADB_SHELL]
         cfg_adb2adbroot = hops_config[ADB_SHELL][ADB_SHELL_ROOT]
         adb_shell_cmd_params = cfg_ux2adb["command_params"]
@@ -274,7 +268,7 @@ class AdbRemote2(UnixRemote):
 
         :return: serial_number.
         """
-        hops_config = self._configurations[TextualDevice.connection_hops]
+        hops_config = self._configurations[CONNECTION_HOPS]
         cfg_ux2adb = hops_config[UNIX_REMOTE][ADB_SHELL]
         serial_number = cfg_ux2adb["command_params"]["serial_number"]
         return serial_number
@@ -294,7 +288,7 @@ class AdbRemote2(UnixRemote):
         Prepare newline char for each state for State Machine without proxy_pc state.
         :return: newline char for each state without proxy_pc state.
         """
-        hops_config = self._configurations[TextualDevice.connection_hops]
+        hops_config = self._configurations[CONNECTION_HOPS]
         cfg_ux2adb = hops_config[UNIX_REMOTE][ADB_SHELL]
         cfg_adb2adbroot = hops_config[ADB_SHELL][ADB_SHELL_ROOT]
         adb_shell_newline = cfg_ux2adb["command_params"]["target_newline"]
@@ -370,13 +364,13 @@ class AdbRemote2(UnixRemote):
         """
         super(AdbRemote2, self)._configure_state_machine(sm_params)
 
-        hops_config = self._configurations[TextualDevice.connection_hops]
+        hops_config = self._configurations[CONNECTION_HOPS]
 
         # copy prompt for ADB_SHELL/exit from UNIX_LOCAL/ssh
-        cfg_uxloc2ux = hops_config[UNIX_LOCAL][UNIX_REMOTE]
-        cfg_adb2ux = hops_config[ADB_SHELL][UNIX_REMOTE]
-        remote_ux_prompt = cfg_uxloc2ux["command_params"]["expected_prompt"]
-        cfg_adb2ux["command_params"]["expected_prompt"] = remote_ux_prompt
+        # cfg_uxloc2ux = hops_config[UNIX_LOCAL][UNIX_REMOTE]
+        # cfg_adb2ux = hops_config[ADB_SHELL][UNIX_REMOTE]
+        # remote_ux_prompt = cfg_uxloc2ux["command_params"]["expected_prompt"]
+        # cfg_adb2ux["command_params"]["expected_prompt"] = remote_ux_prompt
 
         # copy prompt for ADB_SHELL_ROOT/exit from UNIX_REMOTE/adb shell
         cfg_ux2adb = hops_config[UNIX_REMOTE][ADB_SHELL]
@@ -390,6 +384,16 @@ class AdbRemote2(UnixRemote):
             if adb_shell_prompt.endswith("$"):
                 adb_shell_root_prompt = adb_shell_prompt[:-1] + "#"
                 cfg_adb2adbroot["command_params"]["expected_prompt"] = adb_shell_root_prompt
+
+    def _update_depending_on_ux_prompt(self):
+        self._update_ux_root2ux()
+        self._update_adbshell2ux()
+
+    def _update_adbshell2ux(self):
+        hops_cfg = self._configurations[CONNECTION_HOPS]
+        if UNIX_REMOTE in self._state_prompts:
+            ux_remote_prompt = self._state_prompts[UNIX_REMOTE]
+            hops_cfg[ADB_SHELL][UNIX_REMOTE]["command_params"]["expected_prompt"] = ux_remote_prompt
 
     def _get_packages_for_state(self, state, observer):
         """

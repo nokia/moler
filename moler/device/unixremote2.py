@@ -384,7 +384,7 @@ class UnixRemote2(ProxyPc2):
         with self._state_prompts_lock:
             self._state_prompts[state] = re.escape(prompt.rstrip())
             if state == UNIX_REMOTE:
-                self._update_ux_root2ux()
+                self._update_depending_on_ux_prompt()
             elif state == PROXY_PC:
                 self._update_ux2proxy()
 
@@ -572,8 +572,11 @@ class UnixRemote2(ProxyPc2):
         :return: Nothing.
         """
         super(UnixRemote2, self)._configure_state_machine(sm_params)
-        self._update_ux_root2ux()
+        self._update_depending_on_ux_prompt()
         self._update_ux2proxy()
+
+    def _update_depending_on_ux_prompt(self):
+        self._update_ux_root2ux()
 
     def _update_ux_root2ux(self):
         hops_cfg = self._configurations[CONNECTION_HOPS]

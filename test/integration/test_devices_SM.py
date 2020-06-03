@@ -6,19 +6,6 @@ import pytest
 from moler.device import DeviceFactory
 
 
-def test_adb_remote_device(loaded_adb_device_config, alternative_connection_hops):
-    adb_remote = DeviceFactory.get_device(name="ADB_LHOST")
-    assert adb_remote.current_state == "UNIX_LOCAL"
-
-    # adb_remote = DeviceFactory.get_device(name="ADB_AT_LOCALHOST", initial_state="UNIX_REMOTE",
-    #                                       connection_hops=alternative_connection_hops)
-    #
-    # assert adb_remote.current_state == "PROXY_PC"
-
-    # adb_remote.goto_state("ADB_SHELL")
-    # assert adb_remote.current_state == "ADB_SHELL"
-
-
 def test_proxy_pc_with_sshshell(loaded_proxy_pc_config):
     dev = DeviceFactory.get_device(name="PROXY")
     assert dev.current_state == "PROXY_PC"
@@ -110,6 +97,19 @@ def test_unix_remote_with_terminal_can_use_unix_local_states(loaded_unix_remote_
     assert dev.current_state == "NOT_CONNECTED"
     dev.remove()
 
+
+def test_adb_remote_with_sshshell_only(loaded_adb_device_config):
+    adb_remote = DeviceFactory.get_device(name="ADB_LHOST")
+    assert adb_remote.current_state == "ADB_SHELL"
+
+    # adb_remote = DeviceFactory.get_device(name="ADB_AT_LOCALHOST", initial_state="UNIX_REMOTE",
+    #                                       connection_hops=alternative_connection_hops)
+    #
+    # assert adb_remote.current_state == "PROXY_PC"
+
+    # adb_remote.goto_state("ADB_SHELL")
+    # assert adb_remote.current_state == "ADB_SHELL"
+
 # ------------------------------------------------------------
 
 
@@ -171,22 +171,12 @@ def loaded_adb_device_config(empty_moler_config):
     DEVICES:
         ADB_LHOST:
             DEVICE_CLASS: moler.device.adbremote2.AdbRemote2
-            INITIAL_STATE: UNIX_LOCAL  # ADB_SHELL
             CONNECTION_DESC:
-                io_type: terminal
-                #io_type: sshshell
-                #host: localhost
-                #username: molerssh         # change to login: to have ssh-cmd parity? username jest paramiko
-                #password: moler_password
+                io_type: sshshell
+                host: localhost
+                username: molerssh
+                password: moler_password
             CONNECTION_HOPS:
-                UNIX_LOCAL:
-                    UNIX_REMOTE:
-                        execute_command: ssh
-                        command_params:
-                            host: localhost
-                            login: molerssh  # openSSH (linux ssh cmd) uzywa -l login_name
-                            password: moler_password
-                            expected_prompt: '$'
                 UNIX_REMOTE:
                     ADB_SHELL:
                         execute_command: adb_shell
