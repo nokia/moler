@@ -22,7 +22,6 @@ def test_adb_remote_device(loaded_adb_device_config, alternative_connection_hops
 def test_proxy_pc_with_sshshell(loaded_proxy_pc_config):
     dev = DeviceFactory.get_device(name="PROXY")
     assert dev.current_state == "PROXY_PC"
-    assert dev._state_prompts["PROXY_PC"].startswith('sshproxy')
     dev.remove()
 
 
@@ -49,7 +48,10 @@ def test_proxy_pc_with_terminal_can_use_unix_local_states(loaded_proxy_pc_config
 def test_unix_remote_with_sshshell_only(loaded_unix_remote_config):
     dev = DeviceFactory.get_device(name="UX_REMOTE")
     assert dev.current_state == "UNIX_REMOTE"
-    assert dev._state_prompts["UNIX_REMOTE"].startswith('molerssh')
+    dev.goto_state("UNIX_REMOTE_ROOT")  # can't test; need to know root password on CI machine
+    assert dev.current_state == "UNIX_REMOTE_ROOT"
+    dev.goto_state("NOT_CONNECTED")
+    assert dev.current_state == "NOT_CONNECTED"
     dev.remove()
 
 
@@ -62,11 +64,10 @@ def test_unix_remote_with_sshshell_via_proxy_pc(loaded_unix_remote_config, proxy
                                    connection_hops=proxypc2uxremote_connection_hops)
     assert dev._use_proxy_pc is True
     assert dev.current_state == "PROXY_PC"
-    assert dev._state_prompts["PROXY_PC"].startswith('sshproxy')
     dev.goto_state("UNIX_REMOTE")
     assert dev.current_state == "UNIX_REMOTE"
-    #dev.goto_state("UNIX_REMOTE_ROOT")
-    #assert dev.current_state == "UNIX_REMOTE_ROOT"
+    dev.goto_state("UNIX_REMOTE_ROOT")  # can't test; need to know root password on CI machine
+    assert dev.current_state == "UNIX_REMOTE_ROOT"
     dev.goto_state("PROXY_PC")
     assert dev.current_state == "PROXY_PC"
     dev.goto_state("NOT_CONNECTED")
@@ -82,34 +83,81 @@ def test_unix_remote_with_sshshell_cant_use_unix_local_states(loaded_unix_remote
     assert 'You need io of type "terminal" to have unix-local states' in str(err.value)
 
 
-def test_unix_remote_with_terminal_can_use_unix_local_states(loaded_proxy_pc_config, uxlocal2uxremote_connection_hops):
+def test_unix_remote_with_terminal_can_use_unix_local_states(loaded_unix_remote_config, uxlocal2uxremote_connection_hops):
     # check backward compatibility
-    dev = DeviceFactory.get_device(name="PROXY",
+    dev = DeviceFactory.get_device(name="UX_REMOTE",
                                    initial_state="UNIX_LOCAL",
                                    connection_hops=uxlocal2uxremote_connection_hops,
                                    connection_desc={"io_type": "terminal"})
     assert dev.current_state == "UNIX_LOCAL"
-    # dev.goto_state("UNIX_REMOTE")
-    # assert dev.current_state == "UNIX_REMOTE"
+    dev.goto_state("PROXY_PC")
+    assert dev.current_state == "PROXY_PC"
+    dev.goto_state("UNIX_REMOTE")
+    assert dev.current_state == "UNIX_REMOTE"
+    dev.goto_state("UNIX_REMOTE_ROOT")  # can't test; need to know root password on CI machine
+    assert dev.current_state == "UNIX_REMOTE_ROOT"
+    dev.goto_state("PROXY_PC")
+    assert dev.current_state == "PROXY_PC"
+    dev.goto_state("UNIX_LOCAL")
+    assert dev.current_state == "UNIX_LOCAL"
+    dev.goto_state("NOT_CONNECTED")
+    assert dev.current_state == "NOT_CONNECTED"
     dev.remove()
 
 # ------------------------------------------------------------
 
+
+@pytest.fixture
+def empty_connections_config():
+    import mock
+    import moler.config.connections as conn_cfg
+
+    default_variant = {"terminal": "threaded", "sshshell": "threaded"}
+
+    with mock.patch.object(conn_cfg, "default_variant", default_variant):
+        with mock.patch.object(conn_cfg, "named_connections", {}):
+            yield conn_cfg
+
+
 @pytest.fixture()
-def devices_config():
+def empty_devices_config():
     import mock
     import moler.config.devices as dev_cfg
 
     empty_named_devices = {}
-    empty_default_connection = {}
+    default_connection = {"io_type": "terminal", "variant": "threaded"}
 
     with mock.patch.object(dev_cfg, "named_devices", empty_named_devices):
-        with mock.patch.object(dev_cfg, "default_connection", empty_default_connection):
+        with mock.patch.object(dev_cfg, "default_connection", default_connection):
             yield
 
 
+@pytest.fixture
+def empty_devfactory_config():
+    import mock
+    from moler.device.device import DeviceFactory as dev_factory
+
+    with mock.patch.object(dev_factory, "_devices", {}):
+        with mock.patch.object(dev_factory, "_devices_params", {}):
+            with mock.patch.object(dev_factory, "_unique_names", {}):
+                with mock.patch.object(dev_factory, "_already_used_names", set()):
+                    with mock.patch.object(dev_factory, "_was_any_device_deleted", False):
+                        yield
+
+
+@pytest.fixture
+def empty_moler_config(empty_connections_config, empty_devices_config, empty_devfactory_config):
+    import mock
+    import moler.config as moler_cfg
+
+    empty_loaded_config = ["NOT_LOADED_YET"]
+
+    with mock.patch.object(moler_cfg, "loaded_config", empty_loaded_config):
+        yield
+
+
 @pytest.fixture()
-def loaded_adb_device_config(devices_config):
+def loaded_adb_device_config(empty_moler_config):
     import yaml
     from moler.config import load_device_from_config
 
@@ -144,7 +192,7 @@ def loaded_adb_device_config(devices_config):
 
 
 @pytest.fixture()
-def loaded_proxy_pc_config(devices_config):
+def loaded_proxy_pc_config(empty_moler_config):
     import yaml
     from moler.config import load_device_from_config
 
@@ -164,7 +212,7 @@ def loaded_proxy_pc_config(devices_config):
 
 
 @pytest.fixture()
-def loaded_unix_remote_config(devices_config):
+def loaded_unix_remote_config(empty_moler_config):
     import yaml
     from moler.config import load_device_from_config
 
@@ -178,6 +226,12 @@ def loaded_unix_remote_config(devices_config):
                 username: molerssh
                 password: moler_password
             # using sshshell it jumps NOT_CONNECTED -> REMOTE_UNIX
+            CONNECTION_HOPS:
+                UNIX_REMOTE:
+                    UNIX_REMOTE_ROOT:
+                        command_params:
+                            password: uteadmin #root_passwd
+                            expected_prompt: 'root@\S+#'
     """
     dev_config = yaml.load(config_yaml, Loader=yaml.FullLoader)
     load_device_from_config(dev_config)
@@ -232,7 +286,7 @@ def proxypc2uxremote_connection_hops():
         UNIX_REMOTE:
             UNIX_REMOTE_ROOT:
                 command_params:
-                    password: root_passwd
+                    password: uteadmin #root_passwd
                     expected_prompt: 'root@\S+#'
     """
     hops = yaml.load(hops_yaml, Loader=yaml.FullLoader)

@@ -167,9 +167,10 @@ class UnixRemote2(ProxyPc2):
                 }
             }
         }
-        if self._use_local_unix_state:
-            config['CONNECTION_HOPS'][UNIX_REMOTE][PROXY_PC]["required_command_params"] = ["expected_prompt"]
-            # if we jump NOT_CONNECTED --open connection-> PROXY_PC then prompt will be detected
+        # if self._use_local_unix_state:
+        #     config['CONNECTION_HOPS'][UNIX_REMOTE][PROXY_PC]["command_params"]["expected_prompt"]
+        #     is copied from  [UNIX_LOCAL][PROXY_PC]["command_params"]["expected_prompt"]
+        # or if we jump NOT_CONNECTED --open connection-> PROXY_PC then prompt will be detected
         return config
 
     @mark_to_call_base_class_method_with_same_name
