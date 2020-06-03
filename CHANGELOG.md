@@ -1,3 +1,10 @@
+## moler 1.15.0
+
+### Improved
+* Documentation fix for return value
+* Add ret_required=False
+* Pdu Aten
+
 ## moler 1.14.0
 
 ### Improved
