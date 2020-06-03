@@ -22,6 +22,8 @@ def test_adb_remote_device(loaded_adb_device_config, alternative_connection_hops
 def test_proxy_pc_with_sshshell(loaded_proxy_pc_config):
     dev = DeviceFactory.get_device(name="PROXY")
     assert dev.current_state == "PROXY_PC"
+    dev.goto_state("NOT_CONNECTED")
+    assert dev.current_state == "NOT_CONNECTED"
     dev.remove()
 
 
@@ -42,14 +44,18 @@ def test_proxy_pc_with_terminal_can_use_unix_local_states(loaded_proxy_pc_config
     assert dev.current_state == "UNIX_LOCAL"
     dev.goto_state("PROXY_PC")
     assert dev.current_state == "PROXY_PC"
+    dev.goto_state("UNIX_LOCAL")
+    assert dev.current_state == "UNIX_LOCAL"
+    dev.goto_state("NOT_CONNECTED")
+    assert dev.current_state == "NOT_CONNECTED"
     dev.remove()
 
 
 def test_unix_remote_with_sshshell_only(loaded_unix_remote_config):
     dev = DeviceFactory.get_device(name="UX_REMOTE")
     assert dev.current_state == "UNIX_REMOTE"
-    dev.goto_state("UNIX_REMOTE_ROOT")  # can't test; need to know root password on CI machine
-    assert dev.current_state == "UNIX_REMOTE_ROOT"
+    # dev.goto_state("UNIX_REMOTE_ROOT")  # can't test; need to know root password on CI machine
+    # assert dev.current_state == "UNIX_REMOTE_ROOT"
     dev.goto_state("NOT_CONNECTED")
     assert dev.current_state == "NOT_CONNECTED"
     dev.remove()
@@ -66,8 +72,8 @@ def test_unix_remote_with_sshshell_via_proxy_pc(loaded_unix_remote_config, proxy
     assert dev.current_state == "PROXY_PC"
     dev.goto_state("UNIX_REMOTE")
     assert dev.current_state == "UNIX_REMOTE"
-    dev.goto_state("UNIX_REMOTE_ROOT")  # can't test; need to know root password on CI machine
-    assert dev.current_state == "UNIX_REMOTE_ROOT"
+    # dev.goto_state("UNIX_REMOTE_ROOT")  # can't test; need to know root password on CI machine
+    # assert dev.current_state == "UNIX_REMOTE_ROOT"
     dev.goto_state("PROXY_PC")
     assert dev.current_state == "PROXY_PC"
     dev.goto_state("NOT_CONNECTED")
@@ -94,8 +100,8 @@ def test_unix_remote_with_terminal_can_use_unix_local_states(loaded_unix_remote_
     assert dev.current_state == "PROXY_PC"
     dev.goto_state("UNIX_REMOTE")
     assert dev.current_state == "UNIX_REMOTE"
-    dev.goto_state("UNIX_REMOTE_ROOT")  # can't test; need to know root password on CI machine
-    assert dev.current_state == "UNIX_REMOTE_ROOT"
+    # dev.goto_state("UNIX_REMOTE_ROOT")  # can't test; need to know root password on CI machine
+    # assert dev.current_state == "UNIX_REMOTE_ROOT"
     dev.goto_state("PROXY_PC")
     assert dev.current_state == "PROXY_PC"
     dev.goto_state("UNIX_LOCAL")
@@ -286,7 +292,7 @@ def proxypc2uxremote_connection_hops():
         UNIX_REMOTE:
             UNIX_REMOTE_ROOT:
                 command_params:
-                    password: uteadmin #root_passwd
+                    password: root_passwd
                     expected_prompt: 'root@\S+#'
     """
     hops = yaml.load(hops_yaml, Loader=yaml.FullLoader)
