@@ -4,7 +4,7 @@ Telnet command module.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
@@ -21,7 +21,7 @@ class Telnet(GenericTelnetSsh):
                  newline_chars=None, cmds_before_establish_connection=None, cmds_after_establish_connection=None,
                  telnet_prompt=r"^\s*telnet>\s*", encrypt_password=True, runner=None, target_newline="\n",
                  allowed_newline_after_prompt=False, repeat_password=True, failure_exceptions_indication=None,
-                 prompt_after_login=None):
+                 prompt_after_login=None, send_enter_after_connection=True):
         """
         Moler class of Unix command telnet.
 
@@ -49,6 +49,8 @@ class Telnet(GenericTelnetSsh):
          was found.
         :param prompt_after_login: prompt after login before send export PS1. If you do not change prompt exporting PS1
          then leave it None.
+        :param send_enter_after_connection: set True to send new line char(s) after connection is established, False
+         otherwise.
         """
         super(Telnet, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner,
                                      port=port, host=host, login=login, password=password,
@@ -58,7 +60,8 @@ class Telnet(GenericTelnetSsh):
                                      allowed_newline_after_prompt=allowed_newline_after_prompt,
                                      repeat_password=repeat_password,
                                      failure_exceptions_indication=failure_exceptions_indication,
-                                     prompt_after_login=prompt_after_login
+                                     prompt_after_login=prompt_after_login,
+                                     send_enter_after_connection=send_enter_after_connection
                                      )
 
         self.prefix = prefix
