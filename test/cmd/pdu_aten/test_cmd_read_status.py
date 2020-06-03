@@ -30,6 +30,7 @@ def test_read_status_failure(buffer_connection, command_output):
 @pytest.fixture
 def command_output():
     data = """read status o01 wrong_format
+
 Invalid command or exceed max command length
 
 >"""
