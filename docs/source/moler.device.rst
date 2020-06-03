@@ -52,6 +52,14 @@ moler.device.junipergeneric module
     :undoc-members:
     :show-inheritance:
 
+moler.device.pdu\_aten module
+-----------------------------
+
+.. automodule:: moler.device.pdu_aten
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.device.proxy\_pc module
 -----------------------------
 
