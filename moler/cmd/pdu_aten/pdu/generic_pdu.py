@@ -54,6 +54,5 @@ class GenericPdu(GenericPduAten):
         :param line: Line from command output on device
         :return: Match object if find regex in line, None otherwise.
         """
-        if self._re_fail:
-            return self._regex_helper.search_compiled(self._re_fail, line)
-        return False
+        ret = self._regex_helper.search_compiled(self._re_fail, line) if self._re_fail else None
+        return ret
