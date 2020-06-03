@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Command read status..
+Command read status.
 """
 
 import re
@@ -19,6 +19,8 @@ class ReadStatus(GenericPdu):
         Class for command read status for PDU Aten device.
 
         :param connection: connection to device.
+        :param outlet: outlet id.
+        :param output_format: format of output. Maybe be None for simple format.
         :param prompt: expected prompt sending by device after command execution. Maybe String or compiled re.
         :param newline_chars:  new line chars on device (a list).
         :param runner: runner to run command.

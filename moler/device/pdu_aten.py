@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-PduAten device class
+PduAten device class.
 """
 
 __author__ = 'Marcin Usielski'
@@ -90,7 +90,7 @@ class PduAten(ProxyPc):
                             "password": "telpwd",
                             "encrypt_password": True,
                             "send_enter_after_connection": False,
-                            "cmds_before_establish_connection":  ['unset binary'],
+                            "cmds_before_establish_connection": ['unset binary'],
                         },
                         "required_command_params": [
                             "host",
