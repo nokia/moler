@@ -134,6 +134,32 @@ def test_adb_remote_with_sshshell_via_proxy_pc(loaded_adb_device_config, proxypc
     dev.remove()
 
 
+def test_adb_remote_with_terminal_can_use_unix_local_states(loaded_adb_device_config, uxlocal2adbshell_connection_hops):
+    # check backward compatibility
+    dev = DeviceFactory.get_device(name="ADB_LHOST",
+                                   initial_state="UNIX_LOCAL",
+                                   connection_hops=uxlocal2adbshell_connection_hops,
+                                   connection_desc={"io_type": "terminal"})
+    assert dev.current_state == "UNIX_LOCAL"
+    dev.goto_state("PROXY_PC")
+    assert dev.current_state == "PROXY_PC"
+    dev.goto_state("UNIX_REMOTE")
+    assert dev.current_state == "UNIX_REMOTE"
+    dev.goto_state("ADB_SHELL")
+    assert dev.current_state == "ADB_SHELL"
+    # dev.goto_state("ADB_SHELL_ROOT")  # can't test; need to know root password on CI machine
+    # assert dev.current_state == "ADB_SHELL_ROOT"
+    dev.goto_state("UNIX_REMOTE")
+    assert dev.current_state == "UNIX_REMOTE"
+    dev.goto_state("PROXY_PC")
+    assert dev.current_state == "PROXY_PC"
+    dev.goto_state("UNIX_LOCAL")
+    assert dev.current_state == "UNIX_LOCAL"
+    dev.goto_state("NOT_CONNECTED")
+    assert dev.current_state == "NOT_CONNECTED"
+    dev.remove()
+
+
 # ------------------------------------------------------------
 
 
@@ -366,4 +392,12 @@ def proxypc2adbshell_connection_hops(proxypc2uxremote_connection_hops,
     hops = proxypc2uxremote_connection_hops
     hops.update(adbshell2adbshellroot_connection_hops)
     hops.update(ux2adbshell_connection_hops)
+    return hops
+
+
+@pytest.fixture()
+def uxlocal2adbshell_connection_hops(uxlocal2proxypc_connection_hops,
+                                     proxypc2adbshell_connection_hops):
+    hops = uxlocal2proxypc_connection_hops
+    hops.update(proxypc2adbshell_connection_hops)
     return hops
