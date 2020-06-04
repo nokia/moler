@@ -48,6 +48,8 @@ after_success:
 
 after_failure:
   - echo "----------------------- LOGS -----------------------"
+  - whoami
+  - pwd
   - ls -lah *.log
   - export LINE='------------------------------------------------------------------------------------------------'
   - for log in `ls -1 *.log`; do echo $LINE; echo ---; echo --- $log; echo ---; echo $LINE; cat $log; done
