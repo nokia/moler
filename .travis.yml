@@ -47,10 +47,11 @@ after_success:
 after_failure:
   - echo "----------------------- LOGS -----------------------"
   - ls -lah *.log
-  - find ./test/integration -name "*.log" -print
-  - echo ----------------------------------------- ./test/integration/moler.ADB_LHOST.log
-  - cat ./test/integration/moler.ADB_LHOST.log
-  - echo ----------------------------------------- ./test/integration/moler.debug.log
-  - cat ./test/integration/moler.debug.log
+  - find ./ -name "moler.ADB_LHOST.log" -print
+  - echo ----------------------------------------- moler.ADB_LHOST.log
+  - cat `find ./ -name "moler.ADB_LHOST.log" -print`
+  - echo ----------------------------------------- moler.debug.log
+  - find ./ -name "moler.debug.log" -print
+  - cat `find ./ -name "moler.debug.log" -print`
   - export LINE='------------------------------------------------------------------------------------------------'
   - for log in `ls -1 *.log`; do echo $LINE; echo ---; echo --- $log; echo ---; echo $LINE; cat $log; done
