@@ -386,7 +386,7 @@ class UnixRemote2(ProxyPc2):
             if state == UNIX_REMOTE:
                 self._update_depending_on_ux_prompt()
             elif state == PROXY_PC:
-                self._update_ux2proxy()
+                self._update_depending_on_proxy_prompt()
 
     @mark_to_call_base_class_method_with_same_name
     def _prepare_state_prompts_with_proxy_pc(self):
@@ -573,10 +573,13 @@ class UnixRemote2(ProxyPc2):
         """
         super(UnixRemote2, self)._configure_state_machine(sm_params)
         self._update_depending_on_ux_prompt()
-        self._update_ux2proxy()
+        self._update_depending_on_proxy_prompt()
 
     def _update_depending_on_ux_prompt(self):
         self._update_ux_root2ux()
+
+    def _update_depending_on_proxy_prompt(self):
+        self._update_ux2proxy()
 
     def _update_ux_root2ux(self):
         hops_cfg = self._configurations[CONNECTION_HOPS]
