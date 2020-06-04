@@ -147,7 +147,7 @@ class UnixRemote2(ProxyPc2):
                         "execute_command": "su",  # using command
                         "command_params": {  # with parameters
                             "password": "root_password",  # TODO: detect missing if sbd goes to ux-root
-                            "expected_prompt": r'remote_root_prompt',
+                            "expected_prompt": r'provide_root_prompt_in_cfg',
                             "target_newline": "\n"
                         },
                         "required_command_params": [
@@ -210,7 +210,7 @@ class UnixRemote2(ProxyPc2):
                             "execute_command": "su",  # using command
                             "command_params": {  # with parameters
                                 "password": "root_password",
-                                "expected_prompt": r'remote_root_prompt',
+                                "expected_prompt": r'provide_root_prompt_in_cfg',
                                 "target_newline": "\n"
                             },
                             "required_command_params": [
@@ -238,7 +238,7 @@ class UnixRemote2(ProxyPc2):
                             "execute_command": "su",  # using command
                             "command_params": {  # with parameters
                                 "password": "root_password",
-                                "expected_prompt": r'remote_root_prompt',
+                                "expected_prompt": r'provide_root_prompt_in_cfg',
                                 "target_newline": "\n"
                             },
                             "required_command_params": [

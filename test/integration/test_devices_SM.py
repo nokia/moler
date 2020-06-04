@@ -48,13 +48,13 @@ def test_unix_remote_with_sshshell_only(loaded_unix_remote_config):
     dev.remove()
 
 
-def test_unix_remote_with_sshshell_via_proxy_pc(loaded_unix_remote_config, proxypc2uxremote_connection_hops):
+def test_unix_remote_with_sshshell_via_proxy_pc(loaded_unix_remote_config, proxypc2uxroot_connection_hops):
     dev = DeviceFactory.get_device(name="UX_REMOTE", initial_state="PROXY_PC",
                                    connection_desc={'io_type': 'sshshell',
                                                     'host': 'localhost',
                                                     'username': 'sshproxy',
                                                     'password': 'proxy_password'},
-                                   connection_hops=proxypc2uxremote_connection_hops)
+                                   connection_hops=proxypc2uxroot_connection_hops)
     assert dev._use_proxy_pc is True
     assert dev.current_state == "PROXY_PC"
     dev.goto_state("UNIX_REMOTE")
@@ -109,13 +109,30 @@ def test_adb_remote_with_sshshell_only(loaded_adb_device_config):
     assert dev.current_state == "NOT_CONNECTED"
     dev.remove()
 
-    # adb_remote = DeviceFactory.get_device(name="ADB_AT_LOCALHOST", initial_state="UNIX_REMOTE",
-    #                                       connection_hops=alternative_connection_hops)
-    #
-    # assert adb_remote.current_state == "PROXY_PC"
 
-    # adb_remote.goto_state("ADB_SHELL")
-    # assert adb_remote.current_state == "ADB_SHELL"
+def test_adb_remote_with_sshshell_via_proxy_pc(loaded_adb_device_config, proxypc2adbshell_connection_hops):
+    dev = DeviceFactory.get_device(name="ADB_LHOST", initial_state="PROXY_PC",
+                                   connection_desc={'io_type': 'sshshell',
+                                                    'host': 'localhost',
+                                                    'username': 'sshproxy',
+                                                    'password': 'proxy_password'},
+                                   connection_hops=proxypc2adbshell_connection_hops)
+    assert dev._use_proxy_pc is True
+    assert dev.current_state == "PROXY_PC"
+    dev.goto_state("UNIX_REMOTE")
+    assert dev.current_state == "UNIX_REMOTE"
+    dev.goto_state("ADB_SHELL")
+    assert dev.current_state == "ADB_SHELL"
+    # dev.goto_state("ADB_SHELL_ROOT")  # can't test; need to know root password on CI machine
+    # assert dev.current_state == "ADB_SHELL_ROOT"
+    dev.goto_state("UNIX_REMOTE")
+    assert dev.current_state == "UNIX_REMOTE"
+    dev.goto_state("PROXY_PC")
+    assert dev.current_state == "PROXY_PC"
+    dev.goto_state("NOT_CONNECTED")
+    assert dev.current_state == "NOT_CONNECTED"
+    dev.remove()
+
 
 # ------------------------------------------------------------
 
@@ -239,26 +256,11 @@ def loaded_unix_remote_config(empty_moler_config):
                 UNIX_REMOTE:
                     UNIX_REMOTE_ROOT:
                         command_params:
-                            password: uteadmin #root_passwd
+                            password: root_passwd
                             expected_prompt: 'root@\S+#'
     """
     dev_config = yaml.load(config_yaml, Loader=yaml.FullLoader)
     load_device_from_config(dev_config)
-
-
-@pytest.fixture()
-def alternative_connection_hops():
-    import yaml
-
-    hops_yaml = """
-        UNIX_REMOTE:
-            ADB_SHELL:
-                execute_command: adb_shell
-                command_params:
-                    serial_number: '1234567890'
-    """
-    hops = yaml.load(hops_yaml, Loader=yaml.FullLoader)
-    return hops
 
 
 @pytest.fixture()
@@ -292,6 +294,16 @@ def proxypc2uxremote_connection_hops():
                     login: molerssh
                     password: moler_password
                     expected_prompt: 'molerssh@\S+'
+    """
+    hops = yaml.load(hops_yaml, Loader=yaml.FullLoader)
+    return hops
+
+
+@pytest.fixture()
+def ux2uxroot_connection_hops():
+    import yaml
+
+    hops_yaml = """
         UNIX_REMOTE:
             UNIX_REMOTE_ROOT:
                 command_params:
@@ -303,7 +315,55 @@ def proxypc2uxremote_connection_hops():
 
 
 @pytest.fixture()
-def uxlocal2uxremote_connection_hops(uxlocal2proxypc_connection_hops, proxypc2uxremote_connection_hops):
+def proxypc2uxroot_connection_hops(proxypc2uxremote_connection_hops, ux2uxroot_connection_hops):
+    hops = proxypc2uxremote_connection_hops
+    hops.update(ux2uxroot_connection_hops)
+    return hops
+
+
+@pytest.fixture()
+def uxlocal2uxremote_connection_hops(uxlocal2proxypc_connection_hops,
+                                     proxypc2uxroot_connection_hops):
     hops = uxlocal2proxypc_connection_hops
-    hops.update(proxypc2uxremote_connection_hops)
+    hops.update(proxypc2uxroot_connection_hops)
+    return hops
+
+
+@pytest.fixture()
+def ux2adbshell_connection_hops():
+    import yaml
+
+    hops_yaml = """
+        UNIX_REMOTE:
+            ADB_SHELL:
+                execute_command: adb_shell
+                command_params:
+                    serial_number: '1234567890'
+    """
+    hops = yaml.load(hops_yaml, Loader=yaml.FullLoader)
+    return hops
+
+
+@pytest.fixture()
+def adbshell2adbshellroot_connection_hops():
+    import yaml
+
+    hops_yaml = """
+        ADB_SHELL:
+            ADB_SHELL_ROOT:
+                execute_command: su
+                command_params:
+                    password: root_passwd
+                    expected_prompt: 'root@\S+#'
+    """
+    hops = yaml.load(hops_yaml, Loader=yaml.FullLoader)
+    return hops
+
+
+@pytest.fixture()
+def proxypc2adbshell_connection_hops(proxypc2uxremote_connection_hops,
+                                     ux2adbshell_connection_hops, adbshell2adbshellroot_connection_hops):
+    hops = proxypc2uxremote_connection_hops
+    hops.update(adbshell2adbshellroot_connection_hops)
+    hops.update(ux2adbshell_connection_hops)
     return hops

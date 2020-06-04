@@ -12,11 +12,10 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 import logging
 
 from moler.device.textualdevice import TextualDevice
-# from moler.device.proxy_pc import ProxyPc  # TODO: allow jumping towards ADB_REMOTE via proxy-pc
 from moler.device.unixlocal import UnixLocal
+from moler.device.proxy_pc2 import ProxyPc2, PROXY_PC
 from moler.device.unixremote2 import UnixRemote2, UNIX_REMOTE, UNIX_REMOTE_ROOT
 from moler.cmd.adb.adb_shell import AdbShell
-from moler.io.raw.sshshell import ThreadedSshShell
 from moler.helpers import call_base_class_method_with_same_name, mark_to_call_base_class_method_with_same_name
 
 # helper variables to improve readability of state machines
@@ -36,6 +35,55 @@ class AdbRemote2(UnixRemote2):
 
     Example of device in yaml configuration file:
 
+    - with PROXY_PC and io "terminal":
+      ADB_1:
+       DEVICE_CLASS: moler.device.adbremote2.AdbRemote2
+       CONNECTION_HOPS:
+         UNIX_LOCAL:
+           PROXY_PC:
+             execute_command: ssh # default value
+             command_params:
+               expected_prompt: proxy_pc_prompt
+               host: host_ip
+               login: login
+               password: password
+         PROXY_PC:
+           UNIX_REMOTE:
+             execute_command: ssh # default value
+             command_params:
+               expected_prompt: unix_remote_prompt
+               host: host_ip
+               login: login
+               password: password
+         UNIX_REMOTE:
+           ADB_SHELL:
+             execute_command: adb_shell # default value
+             command_params:
+               serial_number: 'f57e6b7d'
+
+    - with PROXY_PC and remote-access-io like "sshshell":
+      ADB_1:
+       DEVICE_CLASS: moler.device.adbremote2.AdbRemote2
+       CONNECTION_DESC:
+         io_type: sshshell
+         host: host_ip
+         username: login
+         password: password
+       CONNECTION_HOPS:
+         PROXY_PC:
+           UNIX_REMOTE:
+             execute_command: ssh # default value
+             command_params:
+               expected_prompt: unix_remote_prompt
+               host: host_ip
+               login: login
+               password: password
+         UNIX_REMOTE:
+           ADB_SHELL:
+             execute_command: adb_shell # default value
+             command_params:
+               serial_number: 'f57e6b7d'
+
     -without PROXY_PC and io "terminal":
       ADB_1:
        DEVICE_CLASS: moler.device.adbremote2.AdbRemote2
@@ -52,7 +100,7 @@ class AdbRemote2(UnixRemote2):
            ADB_SHELL:
              execute_command: adb_shell # default value
              command_params:
-               device_serial_number: 'f57e6b7d'
+               serial_number: 'f57e6b7d'
 
     -without PROXY_PC and remote-access-io like "sshshell":
       ADB_1:
@@ -67,7 +115,7 @@ class AdbRemote2(UnixRemote2):
            ADB_SHELL:
              execute_command: adb_shell # default value
              command_params:
-               device_serial_number: 'f57e6b7d'
+               serial_number: 'f57e6b7d'
     """
 
     def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, io_constructor_kwargs=None,
@@ -91,11 +139,17 @@ class AdbRemote2(UnixRemote2):
                                          sm_params=sm_params, initial_state=initial_state)
 
     @mark_to_call_base_class_method_with_same_name
+    def _get_default_sm_configuration_with_proxy_pc(self):
+        config = self._get_default_sm_configuration_for_adbshell()
+        return config
+
+    @mark_to_call_base_class_method_with_same_name
     def _get_default_sm_configuration_without_proxy_pc(self):
-        """
-        Return State Machine default configuration without proxy_pc state.
-        :return: default sm configuration without proxy_pc state.
-        """
+        config = self._get_default_sm_configuration_for_adbshell()
+        return config
+
+    @staticmethod
+    def _get_default_sm_configuration_for_adbshell():
         config = {
             CONNECTION_HOPS: {
                 UNIX_REMOTE: {  # from
@@ -148,11 +202,17 @@ class AdbRemote2(UnixRemote2):
         return config
 
     @mark_to_call_base_class_method_with_same_name
+    def _prepare_transitions_with_proxy_pc(self):
+        transitions = self._prepare_transitions_for_sshshell()
+        return transitions
+
+    @mark_to_call_base_class_method_with_same_name
     def _prepare_transitions_without_proxy_pc(self):
-        """
-        Prepare transitions to change states without proxy_pc state.
-        :return: transitions without proxy_pc state.
-        """
+        transitions = self._prepare_transitions_for_sshshell()
+        return transitions
+
+    @staticmethod
+    def _prepare_transitions_for_sshshell():
         transitions = {
             UNIX_REMOTE: {
                 ADB_SHELL: {
@@ -184,11 +244,16 @@ class AdbRemote2(UnixRemote2):
         return transitions
 
     @mark_to_call_base_class_method_with_same_name
+    def _prepare_state_prompts_with_proxy_pc(self):
+        state_prompts = self._prepare_state_prompts_for_sshshell()
+        return state_prompts
+
+    @mark_to_call_base_class_method_with_same_name
     def _prepare_state_prompts_without_proxy_pc(self):
-        """
-        Prepare textual prompt for each state for State Machine without proxy_pc state.
-        :return: textual prompt for each state without proxy_pc state.
-        """
+        state_prompts = self._prepare_state_prompts_for_sshshell()
+        return state_prompts
+
+    def _prepare_state_prompts_for_sshshell(self):
         hops_config = self._configurations[CONNECTION_HOPS]
         cfg_ux2adb = hops_config[UNIX_REMOTE][ADB_SHELL]
         cfg_adb2adbroot = hops_config[ADB_SHELL][ADB_SHELL_ROOT]
@@ -233,11 +298,16 @@ class AdbRemote2(UnixRemote2):
         return adb_shell_prompt
 
     @mark_to_call_base_class_method_with_same_name
+    def _prepare_newline_chars_with_proxy_pc(self):
+        newline_chars = self._prepare_newline_chars_for_sshshell()
+        return newline_chars
+
+    @mark_to_call_base_class_method_with_same_name
     def _prepare_newline_chars_without_proxy_pc(self):
-        """
-        Prepare newline char for each state for State Machine without proxy_pc state.
-        :return: newline char for each state without proxy_pc state.
-        """
+        newline_chars = self._prepare_newline_chars_for_sshshell()
+        return newline_chars
+
+    def _prepare_newline_chars_for_sshshell(self):
         hops_config = self._configurations[CONNECTION_HOPS]
         cfg_ux2adb = hops_config[UNIX_REMOTE][ADB_SHELL]
         cfg_adb2adbroot = hops_config[ADB_SHELL][ADB_SHELL_ROOT]
@@ -253,11 +323,107 @@ class AdbRemote2(UnixRemote2):
         return newline_chars
 
     @mark_to_call_base_class_method_with_same_name
+    def _prepare_state_hops_with_proxy_pc(self):
+        if self._use_local_unix_state:
+            state_hops = {
+                NOT_CONNECTED: {
+                    UNIX_LOCAL_ROOT: UNIX_LOCAL,
+                    PROXY_PC: UNIX_LOCAL,
+                    UNIX_REMOTE: UNIX_LOCAL,
+                    UNIX_REMOTE_ROOT: UNIX_LOCAL,
+                    ADB_SHELL: UNIX_LOCAL,
+                    ADB_SHELL_ROOT: UNIX_LOCAL,
+                },
+                UNIX_LOCAL: {
+                    UNIX_REMOTE: PROXY_PC,
+                    UNIX_REMOTE_ROOT: PROXY_PC,
+                    ADB_SHELL: PROXY_PC,
+                    ADB_SHELL_ROOT: PROXY_PC,
+                },
+                UNIX_LOCAL_ROOT: {
+                    NOT_CONNECTED: UNIX_LOCAL,
+                    PROXY_PC: UNIX_LOCAL,
+                    UNIX_REMOTE: UNIX_LOCAL,
+                    UNIX_REMOTE_ROOT: UNIX_LOCAL,
+                    ADB_SHELL: UNIX_LOCAL,
+                    ADB_SHELL_ROOT: UNIX_LOCAL,
+                },
+                PROXY_PC: {
+                    NOT_CONNECTED: UNIX_LOCAL,
+                    UNIX_LOCAL_ROOT: UNIX_LOCAL,
+                    UNIX_REMOTE_ROOT: UNIX_REMOTE,
+                    ADB_SHELL: UNIX_REMOTE,
+                    ADB_SHELL_ROOT: UNIX_REMOTE,
+                },
+                UNIX_REMOTE: {
+                    NOT_CONNECTED: PROXY_PC,
+                    UNIX_LOCAL: PROXY_PC,
+                    UNIX_LOCAL_ROOT: PROXY_PC,
+                    ADB_SHELL_ROOT: ADB_SHELL,
+                },
+                UNIX_REMOTE_ROOT: {
+                    NOT_CONNECTED: UNIX_REMOTE,
+                    UNIX_LOCAL: UNIX_REMOTE,
+                    UNIX_LOCAL_ROOT: UNIX_REMOTE,
+                    PROXY_PC: UNIX_REMOTE,
+                    ADB_SHELL: UNIX_REMOTE,
+                    ADB_SHELL_ROOT: UNIX_REMOTE,
+                },
+                ADB_SHELL: {
+                    NOT_CONNECTED: UNIX_REMOTE,
+                    UNIX_LOCAL: UNIX_REMOTE,
+                    UNIX_LOCAL_ROOT: UNIX_REMOTE,
+                    PROXY_PC: UNIX_REMOTE,
+                    UNIX_REMOTE_ROOT: UNIX_REMOTE,
+                },
+                ADB_SHELL_ROOT: {
+                    NOT_CONNECTED: ADB_SHELL,
+                    UNIX_LOCAL: ADB_SHELL,
+                    UNIX_LOCAL_ROOT: ADB_SHELL,
+                    PROXY_PC: ADB_SHELL,
+                    UNIX_REMOTE: ADB_SHELL,
+                    UNIX_REMOTE_ROOT: ADB_SHELL,
+                },
+            }
+        else:
+            state_hops = {
+                NOT_CONNECTED: {
+                    UNIX_REMOTE: PROXY_PC,
+                    UNIX_REMOTE_ROOT: PROXY_PC,
+                    ADB_SHELL: PROXY_PC,
+                    ADB_SHELL_ROOT: PROXY_PC,
+                },
+                PROXY_PC: {
+                    UNIX_REMOTE_ROOT: UNIX_REMOTE,
+                    ADB_SHELL: UNIX_REMOTE,
+                    ADB_SHELL_ROOT: UNIX_REMOTE,
+                },
+                UNIX_REMOTE: {
+                    NOT_CONNECTED: PROXY_PC,
+                    ADB_SHELL_ROOT: ADB_SHELL,
+                },
+                UNIX_REMOTE_ROOT: {
+                    NOT_CONNECTED: UNIX_REMOTE,
+                    PROXY_PC: UNIX_REMOTE,
+                    ADB_SHELL: UNIX_REMOTE,
+                    ADB_SHELL_ROOT: UNIX_REMOTE,
+                },
+                ADB_SHELL: {
+                    NOT_CONNECTED: UNIX_REMOTE,
+                    PROXY_PC: UNIX_REMOTE,
+                    UNIX_REMOTE_ROOT: UNIX_REMOTE,
+                },
+                ADB_SHELL_ROOT: {
+                    NOT_CONNECTED: ADB_SHELL,
+                    PROXY_PC: ADB_SHELL,
+                    UNIX_REMOTE: ADB_SHELL,
+                    UNIX_REMOTE_ROOT: ADB_SHELL,
+                },
+            }
+        return state_hops
+
+    @mark_to_call_base_class_method_with_same_name
     def _prepare_state_hops_without_proxy_pc(self):
-        """
-        Prepare non direct transitions for each state for State Machine without proxy_pc state.
-        :return: non direct transitions for each state without proxy_pc state.
-        """
         if self._use_local_unix_state:
             state_hops = {
                 NOT_CONNECTED: {

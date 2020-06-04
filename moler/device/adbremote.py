@@ -41,7 +41,7 @@ class AdbRemote(UnixRemote):
         ADB_SHELL:
           execute_command: adb_shell # default value; default command is:  adb shell
           command_params:
-            device_serial_number: 'f57e6b7d'  #  to create:  adb -s f57e6b7d shell
+            serial_number: 'f57e6b7d'  #  to create:  adb -s f57e6b7d shell
             expected_prompt: 'shell@adbhost: $'
       ADB_SHELL:
         UNIX_REMOTE:
