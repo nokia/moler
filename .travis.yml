@@ -21,10 +21,12 @@ before_script:
   - cat /etc/passwd | grep home
   - sudo useradd molerssh -c MolerSshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("moler_password", "mr"))'`
   - sudo useradd sshproxy -c Proxy4SshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("proxy_password", "mr"))'`
+  - sudo useradd adbshell -c AdbShell4SshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("adb_password", "mr"))'`
   - cat /etc/passwd | grep home
   - which scp
   - sshpass -p moler_password ssh -oStrictHostKeyChecking=no molerssh@localhost pwd
   - sshpass -p proxy_password ssh -oStrictHostKeyChecking=no sshproxy@localhost pwd
+  - sshpass -p adb_password ssh -oStrictHostKeyChecking=no adbshell@localhost pwd
   - sshpass -p moler_password scp adb_simulation.sh molerssh@localhost:/home/molerssh/adb_simulation.sh
   - sshpass -p moler_password ssh molerssh@localhost 'chmod +x ~/adb_simulation.sh'
   - sshpass -p moler_password ssh molerssh@localhost 'echo "alias adb=~/adb_simulation.sh" >> ~/.profile'
