@@ -4,7 +4,7 @@ Nmap command module.
 """
 
 __author__ = 'Yeshu Yang, Marcin Usielski, Bartosz Odziomek'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'yeshu.yang@nokia-sbell.com, marcin.usielski@nokia.com, bartosz.odziomek@nokia.com'
 
 import re
@@ -12,6 +12,7 @@ import re
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
 from moler.exceptions import CommandFailure
+from moler.util.converterhelper import ConverterHelper
 
 
 class Nmap(GenericUnixCommand):
@@ -31,6 +32,7 @@ class Nmap(GenericUnixCommand):
         self.ip = ip
         self.is_ping = is_ping
         self.timeout = 120  # Time in seconds
+        self._converter_helper = ConverterHelper.get_converter_helper()
 
     def build_command_string(self):
         """
@@ -154,8 +156,10 @@ class Nmap(GenericUnixCommand):
 
     def _parse_extend_timeout(self, line):
         if self._regex_helper.search_compiled(Nmap._re_extend_timeout, line):
-            timedelta = int(self._regex_helper.group("HOURS")) * 3600 + int(
-                self._regex_helper.group("MINUTES")) * 60 + int(self._regex_helper.group("SECONDS"))
+            timedelta = self._converter_helper.to_number(
+                self._regex_helper.group("HOURS")) * 3600 + self._converter_helper.to_number(
+                self._regex_helper.group("MINUTES")) * 60 + self._converter_helper.to_number(
+                self._regex_helper.group("SECONDS"))
             self.extend_timeout(timedelta=timedelta)
 
 
