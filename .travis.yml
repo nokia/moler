@@ -45,4 +45,5 @@ after_success:
 after_failure:
   - echo "----------------------- LOGS -----------------------"
   - ls -lah *.log
-  - cat *.log
+  - export LINE='------------------------------------------------------------------------------------------------'
+  - for log in `ls -1 *.log`; do echo $LINE; echo ---; echo --- $log; echo ---; echo $LINE; cat $log; done
