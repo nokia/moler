@@ -339,31 +339,33 @@ class AdbRemote2(UnixRemote2):
         :return: Nothing.
         """
         super(AdbRemote2, self)._configure_state_machine(sm_params)
-
-        hops_config = self._configurations[CONNECTION_HOPS]
-
-        # copy prompt for ADB_SHELL_ROOT/exit from UNIX_REMOTE/adb shell
-        cfg_ux2adb = hops_config[UNIX_REMOTE][ADB_SHELL]
-        cfg_adbroot2adb = hops_config[ADB_SHELL_ROOT][ADB_SHELL]
-        adb_shell_prompt = self._get_adb_shell_prompt(cfg_ux2adb["command_params"])
-        cfg_adbroot2adb["command_params"]["expected_prompt"] = adb_shell_prompt
-
-        cfg_adb2adbroot = hops_config[ADB_SHELL][ADB_SHELL_ROOT]
-        adb_shell_root_prompt = cfg_adb2adbroot["command_params"]["expected_prompt"]
-        if adb_shell_root_prompt is None:
-            if adb_shell_prompt.endswith("$"):
-                adb_shell_root_prompt = adb_shell_prompt[:-1] + "#"
-                cfg_adb2adbroot["command_params"]["expected_prompt"] = adb_shell_root_prompt
+        self._update_depending_on_adbshell_prompt()
 
     def _update_depending_on_ux_prompt(self):
         self._update_ux_root2ux()
         self._update_adbshell2ux()
+
+    def _update_depending_on_adbshell_prompt(self):
+        self._update_adbshellroot2adbshell()
 
     def _update_adbshell2ux(self):
         hops_cfg = self._configurations[CONNECTION_HOPS]
         if UNIX_REMOTE in self._state_prompts:
             ux_remote_prompt = self._state_prompts[UNIX_REMOTE]
             hops_cfg[ADB_SHELL][UNIX_REMOTE]["command_params"]["expected_prompt"] = ux_remote_prompt
+
+    def _update_adbshellroot2adbshell(self):
+        hops_cfg = self._configurations[CONNECTION_HOPS]
+        if ADB_SHELL in self._state_prompts:
+            adb_shell_prompt = self._state_prompts[ADB_SHELL]
+            hops_cfg[ADB_SHELL_ROOT][ADB_SHELL]["command_params"]["expected_prompt"] = adb_shell_prompt
+
+            cfg_adb2adbroot = hops_cfg[ADB_SHELL][ADB_SHELL_ROOT]
+            adb_shell_root_prompt = cfg_adb2adbroot["command_params"]["expected_prompt"]
+            if adb_shell_root_prompt is None:
+                if adb_shell_prompt.endswith("$"):
+                    adb_shell_root_prompt = adb_shell_prompt[:-1] + "#"
+                    cfg_adb2adbroot["command_params"]["expected_prompt"] = adb_shell_root_prompt
 
     def _get_packages_for_state(self, state, observer):
         """
