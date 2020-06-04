@@ -33,11 +33,13 @@ before_script:
 
 
 script:
-  - python -m pycodestyle --statistics --count moler
-  - if [[ $TRAVIS_PYTHON_VERSION == *"2.7"* ]]; then python -m pytest --random -s -vv test; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == *"3.6"* ]]; then python -m pytest -c py3pytest.ini --random --mccabe -s -vv; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == *"3.7"* ]]; then coverage run -m pytest -c py3pytest.ini --random --mccabe -s -vv; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == *"3.8"* ]]; then python -m pytest --mccabe -s -vv moler; fi
+  - #python -m pycodestyle --statistics --count moler
+  - #if [[ $TRAVIS_PYTHON_VERSION == *"2.7"* ]]; then python -m pytest --random -s -vv test; fi
+  - #if [[ $TRAVIS_PYTHON_VERSION == *"3.6"* ]]; then python -m pytest -c py3pytest.ini --random --mccabe -s -vv; fi
+  - #if [[ $TRAVIS_PYTHON_VERSION == *"3.7"* ]]; then coverage run -m pytest -c py3pytest.ini --random --mccabe -s -vv; fi
+  - #if [[ $TRAVIS_PYTHON_VERSION == *"3.8"* ]]; then python -m pytest --mccabe -s -vv moler; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == *"3.6"* ]]; then python -m pytest -c py3pytest.ini -k adb_remote_with_sshshell_only -s -vv; fi
+
 
 after_success:
   - if [[ $TRAVIS_PYTHON_VERSION == *"3.7"* ]]; then coveralls; fi
@@ -47,11 +49,5 @@ after_success:
 after_failure:
   - echo "----------------------- LOGS -----------------------"
   - ls -lah *.log
-  - find ./ -name "moler.ADB_LHOST.log" -print
-  - echo ----------------------------------------- moler.ADB_LHOST.log
-  - cat `find ./ -name "moler.ADB_LHOST.log" -print`
-  - echo ----------------------------------------- moler.debug.log
-  - find ./ -name "moler.debug.log" -print
-  - cat `find ./ -name "moler.debug.log" -print`
   - export LINE='------------------------------------------------------------------------------------------------'
   - for log in `ls -1 *.log`; do echo $LINE; echo ---; echo --- $log; echo ---; echo $LINE; cat $log; done
