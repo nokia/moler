@@ -99,8 +99,15 @@ def test_unix_remote_with_terminal_can_use_unix_local_states(loaded_unix_remote_
 
 
 def test_adb_remote_with_sshshell_only(loaded_adb_device_config):
-    adb_remote = DeviceFactory.get_device(name="ADB_LHOST")
-    assert adb_remote.current_state == "ADB_SHELL"
+    dev = DeviceFactory.get_device(name="ADB_LHOST")
+    assert dev.current_state == "ADB_SHELL"
+    # dev.goto_state("ADB_SHELL_ROOT")  # can't test; need to know root password on CI machine
+    # assert dev.current_state == "ADB_SHELL_ROOT"
+    dev.goto_state("UNIX_REMOTE")
+    assert dev.current_state == "UNIX_REMOTE"
+    dev.goto_state("NOT_CONNECTED")
+    assert dev.current_state == "NOT_CONNECTED"
+    dev.remove()
 
     # adb_remote = DeviceFactory.get_device(name="ADB_AT_LOCALHOST", initial_state="UNIX_REMOTE",
     #                                       connection_hops=alternative_connection_hops)
@@ -182,6 +189,12 @@ def loaded_adb_device_config(empty_moler_config):
                         execute_command: adb_shell
                         command_params:
                             serial_number: '1234567890'
+                ADB_SHELL:
+                    ADB_SHELL_ROOT:
+                        execute_command: su
+                        command_params:
+                            password: root_passwd
+                            expected_prompt: 'root@\S+#'
     """
     adb_dev_config = yaml.load(adb_dev_config_yaml, Loader=yaml.FullLoader)
     load_device_from_config(adb_dev_config)

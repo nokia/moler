@@ -147,56 +147,6 @@ class AdbRemote2(UnixRemote2):
         }
         return config
 
-    def _prepare_transitions(self):
-        """
-        Prepare transitions to change states.
-        :return: Nothing.
-        """
-        if isinstance(self.io_connection, ThreadedSshShell):
-            self._prepare_transitions_notconnected_directto_remote()
-        else:
-            super(AdbRemote2, self)._prepare_transitions()
-        if self._use_proxy_pc:
-            transitions = self._prepare_transitions_with_proxy_pc()
-        else:
-            transitions = self._prepare_transitions_without_proxy_pc()
-        self._add_transitions(transitions=transitions)
-
-    def _prepare_transitions_notconnected_directto_remote(self):
-        """
-        Prepare transitions to change states between NOT_CONNECTLED and UNIX_REMOTE directly via sshshell.
-        :return: Nothing.
-        """
-        transitions = {
-            NOT_CONNECTED: {
-                UNIX_REMOTE: {
-                    "action": [
-                        "_open_connection"
-                    ],
-                }
-            },
-            UNIX_REMOTE: {
-                NOT_CONNECTED: {
-                    "action": [
-                        "_close_connection"
-                    ],
-                },
-                UNIX_REMOTE_ROOT: {
-                    "action": [
-                        "_execute_command_to_change_state"
-                    ]
-                }
-            },
-            UNIX_REMOTE_ROOT: {
-                UNIX_REMOTE: {
-                    "action": [
-                        "_execute_command_to_change_state"
-                    ]
-                }
-            }
-        }
-        self._add_transitions(transitions=transitions)
-
     @mark_to_call_base_class_method_with_same_name
     def _prepare_transitions_without_proxy_pc(self):
         """
@@ -308,52 +258,78 @@ class AdbRemote2(UnixRemote2):
         Prepare non direct transitions for each state for State Machine without proxy_pc state.
         :return: non direct transitions for each state without proxy_pc state.
         """
-        state_hops = {
-            NOT_CONNECTED: {
-                UNIX_LOCAL_ROOT: UNIX_LOCAL,
-                UNIX_REMOTE: UNIX_LOCAL,
-                UNIX_REMOTE_ROOT: UNIX_LOCAL,
-                ADB_SHELL: UNIX_LOCAL,
-                ADB_SHELL_ROOT: UNIX_LOCAL,
-            },
-            UNIX_LOCAL: {
-                UNIX_REMOTE_ROOT: UNIX_REMOTE,
-                ADB_SHELL: UNIX_REMOTE,
-                ADB_SHELL_ROOT: UNIX_REMOTE,
-            },
-            UNIX_LOCAL_ROOT: {
-                NOT_CONNECTED: UNIX_LOCAL,
-                UNIX_REMOTE: UNIX_LOCAL,
-                UNIX_REMOTE_ROOT: UNIX_LOCAL,
-                ADB_SHELL: UNIX_LOCAL,
-                ADB_SHELL_ROOT: UNIX_LOCAL,
-            },
-            UNIX_REMOTE: {
-                NOT_CONNECTED: UNIX_LOCAL,
-                UNIX_LOCAL_ROOT: UNIX_LOCAL,
-                ADB_SHELL_ROOT: ADB_SHELL,
-            },
-            UNIX_REMOTE_ROOT: {
-                NOT_CONNECTED: UNIX_REMOTE,
-                UNIX_LOCAL: UNIX_REMOTE,
-                UNIX_LOCAL_ROOT: UNIX_REMOTE,
-                ADB_SHELL: UNIX_REMOTE,
-                ADB_SHELL_ROOT: UNIX_REMOTE,
-            },
-            ADB_SHELL: {
-                NOT_CONNECTED: UNIX_REMOTE,
-                UNIX_LOCAL: UNIX_REMOTE,
-                UNIX_LOCAL_ROOT: UNIX_REMOTE,
-                UNIX_REMOTE_ROOT: UNIX_REMOTE,
-            },
-            ADB_SHELL_ROOT: {
-                NOT_CONNECTED: ADB_SHELL,
-                UNIX_LOCAL: ADB_SHELL,
-                UNIX_LOCAL_ROOT: ADB_SHELL,
-                UNIX_REMOTE: ADB_SHELL,
-                UNIX_REMOTE_ROOT: ADB_SHELL,
-            },
-        }
+        if self._use_local_unix_state:
+            state_hops = {
+                NOT_CONNECTED: {
+                    UNIX_LOCAL_ROOT: UNIX_LOCAL,
+                    UNIX_REMOTE: UNIX_LOCAL,
+                    UNIX_REMOTE_ROOT: UNIX_LOCAL,
+                    ADB_SHELL: UNIX_LOCAL,
+                    ADB_SHELL_ROOT: UNIX_LOCAL,
+                },
+                UNIX_LOCAL: {
+                    UNIX_REMOTE_ROOT: UNIX_REMOTE,
+                    ADB_SHELL: UNIX_REMOTE,
+                    ADB_SHELL_ROOT: UNIX_REMOTE,
+                },
+                UNIX_LOCAL_ROOT: {
+                    NOT_CONNECTED: UNIX_LOCAL,
+                    UNIX_REMOTE: UNIX_LOCAL,
+                    UNIX_REMOTE_ROOT: UNIX_LOCAL,
+                    ADB_SHELL: UNIX_LOCAL,
+                    ADB_SHELL_ROOT: UNIX_LOCAL,
+                },
+                UNIX_REMOTE: {
+                    NOT_CONNECTED: UNIX_LOCAL,
+                    UNIX_LOCAL_ROOT: UNIX_LOCAL,
+                    ADB_SHELL_ROOT: ADB_SHELL,
+                },
+                UNIX_REMOTE_ROOT: {
+                    NOT_CONNECTED: UNIX_REMOTE,
+                    UNIX_LOCAL: UNIX_REMOTE,
+                    UNIX_LOCAL_ROOT: UNIX_REMOTE,
+                    ADB_SHELL: UNIX_REMOTE,
+                    ADB_SHELL_ROOT: UNIX_REMOTE,
+                },
+                ADB_SHELL: {
+                    NOT_CONNECTED: UNIX_REMOTE,
+                    UNIX_LOCAL: UNIX_REMOTE,
+                    UNIX_LOCAL_ROOT: UNIX_REMOTE,
+                    UNIX_REMOTE_ROOT: UNIX_REMOTE,
+                },
+                ADB_SHELL_ROOT: {
+                    NOT_CONNECTED: ADB_SHELL,
+                    UNIX_LOCAL: ADB_SHELL,
+                    UNIX_LOCAL_ROOT: ADB_SHELL,
+                    UNIX_REMOTE: ADB_SHELL,
+                    UNIX_REMOTE_ROOT: ADB_SHELL,
+                },
+            }
+        else:
+            state_hops = {
+                NOT_CONNECTED: {
+                    UNIX_REMOTE_ROOT: UNIX_REMOTE,
+                    ADB_SHELL: UNIX_REMOTE,
+                    ADB_SHELL_ROOT: UNIX_REMOTE,
+                },
+                UNIX_REMOTE: {
+                    ADB_SHELL_ROOT: ADB_SHELL,
+                },
+                UNIX_REMOTE_ROOT: {
+                    NOT_CONNECTED: UNIX_REMOTE,
+                    ADB_SHELL: UNIX_REMOTE,
+                    ADB_SHELL_ROOT: UNIX_REMOTE,
+                },
+                ADB_SHELL: {
+                    NOT_CONNECTED: UNIX_REMOTE,
+                    UNIX_REMOTE_ROOT: UNIX_REMOTE,
+                },
+                ADB_SHELL_ROOT: {
+                    NOT_CONNECTED: ADB_SHELL,
+                    UNIX_REMOTE: ADB_SHELL,
+                    UNIX_REMOTE_ROOT: ADB_SHELL,
+                },
+            }
         return state_hops
 
     def _configure_state_machine(self, sm_params):
@@ -365,12 +341,6 @@ class AdbRemote2(UnixRemote2):
         super(AdbRemote2, self)._configure_state_machine(sm_params)
 
         hops_config = self._configurations[CONNECTION_HOPS]
-
-        # copy prompt for ADB_SHELL/exit from UNIX_LOCAL/ssh
-        # cfg_uxloc2ux = hops_config[UNIX_LOCAL][UNIX_REMOTE]
-        # cfg_adb2ux = hops_config[ADB_SHELL][UNIX_REMOTE]
-        # remote_ux_prompt = cfg_uxloc2ux["command_params"]["expected_prompt"]
-        # cfg_adb2ux["command_params"]["expected_prompt"] = remote_ux_prompt
 
         # copy prompt for ADB_SHELL_ROOT/exit from UNIX_REMOTE/adb shell
         cfg_ux2adb = hops_config[UNIX_REMOTE][ADB_SHELL]
