@@ -33,24 +33,17 @@ before_script:
 
 
 script:
-  - #python -m pycodestyle --statistics --count moler
-  - #if [[ $TRAVIS_PYTHON_VERSION == *"2.7"* ]]; then python -m pytest --random -s -vv test; fi
-  - #if [[ $TRAVIS_PYTHON_VERSION == *"3.6"* ]]; then python -m pytest -c py3pytest.ini --random --mccabe -s -vv; fi
-  - #if [[ $TRAVIS_PYTHON_VERSION == *"3.7"* ]]; then coverage run -m pytest -c py3pytest.ini --random --mccabe -s -vv; fi
-  - #if [[ $TRAVIS_PYTHON_VERSION == *"3.8"* ]]; then python -m pytest --mccabe -s -vv moler; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == *"3.6"* ]]; then python -m pytest -c py3pytest.ini -k adb_remote_with_sshshell_only -s -vv; fi
+  - python -m pycodestyle --statistics --count moler
+  - if [[ $TRAVIS_PYTHON_VERSION == *"2.7"* ]]; then python -m pytest --random -s -vv test; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == *"3.6"* ]]; then python -m pytest -c py3pytest.ini --random --mccabe -s -vv; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == *"3.7"* ]]; then coverage run -m pytest -c py3pytest.ini --random --mccabe -s -vv; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == *"3.8"* ]]; then python -m pytest --mccabe -s -vv moler; fi
 
 
 after_success:
   - if [[ $TRAVIS_PYTHON_VERSION == *"3.7"* ]]; then coveralls; fi
   - sudo userdel --remove --force molerssh
   - cat /etc/passwd | grep home
-  - echo "----------------------- LOGS -----------------------"
-  - whoami
-  - pwd
-  - ls -lah *.log
-  - export LINE='------------------------------------------------------------------------------------------------'
-  - for log in `ls -1 *.log`; do echo $LINE; echo ---; echo --- $log; echo ---; echo $LINE; cat $log; done
 
 after_failure:
   - echo "----------------------- LOGS -----------------------"
