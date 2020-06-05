@@ -45,6 +45,12 @@ after_success:
   - if [[ $TRAVIS_PYTHON_VERSION == *"3.7"* ]]; then coveralls; fi
   - sudo userdel --remove --force molerssh
   - cat /etc/passwd | grep home
+  - echo "----------------------- LOGS -----------------------"
+  - whoami
+  - pwd
+  - ls -lah *.log
+  - export LINE='------------------------------------------------------------------------------------------------'
+  - for log in `ls -1 *.log`; do echo $LINE; echo ---; echo --- $log; echo ---; echo $LINE; cat $log; done
 
 after_failure:
   - echo "----------------------- LOGS -----------------------"
