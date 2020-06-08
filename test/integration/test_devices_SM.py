@@ -52,7 +52,7 @@ def test_unix_remote_with_sshshell_via_proxy_pc(loaded_unix_remote_config, proxy
     dev = DeviceFactory.get_device(name="UX_REMOTE", initial_state="PROXY_PC",
                                    connection_desc={'io_type': 'sshshell',
                                                     'host': 'localhost',
-                                                    'username': 'sshproxy',
+                                                    'login': 'sshproxy',
                                                     'password': 'proxy_password'},
                                    connection_hops=proxypc2uxroot_connection_hops)
     assert dev._use_proxy_pc is True
@@ -114,7 +114,7 @@ def test_adb_remote_with_sshshell_via_proxy_pc(loaded_adb_device_config, proxypc
     dev = DeviceFactory.get_device(name="ADB_LHOST", initial_state="PROXY_PC",
                                    connection_desc={'io_type': 'sshshell',
                                                     'host': 'localhost',
-                                                    'username': 'sshproxy',
+                                                    'login': 'sshproxy',
                                                     'password': 'proxy_password'},
                                    connection_hops=proxypc2adbshell_connection_hops)
     assert dev._use_proxy_pc is True
@@ -224,7 +224,7 @@ def loaded_adb_device_config(empty_moler_config):
             CONNECTION_DESC:
                 io_type: sshshell
                 host: localhost
-                username: molerssh
+                login: molerssh
                 password: moler_password
             CONNECTION_HOPS:
                 UNIX_REMOTE:
@@ -255,8 +255,8 @@ def loaded_proxy_pc_config(empty_moler_config):
             CONNECTION_DESC:
                 io_type: sshshell
                 host: localhost
-                username: sshproxy         # change to login: to have ssh-cmd parity? username is paramiko naming
-                password: proxy_password   # openSSH (linux ssh cmd) uses -l login_name
+                login: sshproxy
+                password: proxy_password
             # no CONNECTION_HOPS since if using sshshell it jumps NOT_CONNECTED -> PROXY_PC
     """
     dev_config = yaml.load(config_yaml, Loader=yaml.FullLoader)
@@ -275,7 +275,7 @@ def loaded_unix_remote_config(empty_moler_config):
             CONNECTION_DESC:
                 io_type: sshshell
                 host: localhost
-                username: molerssh
+                login: molerssh
                 password: moler_password
             # using sshshell it jumps NOT_CONNECTED -> REMOTE_UNIX
             CONNECTION_HOPS:

@@ -59,7 +59,7 @@ class UnixRemote2(ProxyPc2):
        CONNECTION_DESC:
          io_type: sshshell
          host: host_ip
-         username: login
+         login: login
          password: password
        CONNECTION_HOPS:
          PROXY_PC:
@@ -90,7 +90,7 @@ class UnixRemote2(ProxyPc2):
        CONNECTION_DESC:
          io_type: sshshell
          host: host_ip
-         username: login
+         login: login
          password: password
        (no need for CONNECTION_HOPS since we jump directly from NOT_CONNECTED to UNIX_REMOTE using sshshell)
     """

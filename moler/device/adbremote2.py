@@ -67,7 +67,7 @@ class AdbRemote2(UnixRemote2):
        CONNECTION_DESC:
          io_type: sshshell
          host: host_ip
-         username: login
+         login: login
          password: password
        CONNECTION_HOPS:
          PROXY_PC:
@@ -108,7 +108,7 @@ class AdbRemote2(UnixRemote2):
        CONNECTION_DESC:
          io_type: sshshell
          host: host_ip
-         username: login
+         login: login
          password: password
        CONNECTION_HOPS:
          UNIX_REMOTE:
