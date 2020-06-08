@@ -28,6 +28,20 @@ def test_can_create_passive_sshshell_connection_using_same_api(passive_sshshell_
     assert connection._shell_channel is None
     assert hasattr(connection, "receive")
 
+    # API allows to use "login" as alias for "username" parameter (to keep parity with ssh command / OpenSSH)
+    connection1 = passive_sshshell_connection_class(host='localhost', port=22,
+                                                    login='molerssh', password='moler_password')
+    assert connection1._ssh_transport is None
+    assert connection1._shell_channel is None
+    assert hasattr(connection1, "receive")
+    assert connection1.username == 'molerssh'
+
+    # but you shouldn't use both names, we can't guess which one you wanted
+    with pytest.raises(KeyError) as err:
+        passive_sshshell_connection_class(host='localhost', port=22,
+                                          username='molerssh', login='molerssh', password='moler_password')
+    assert "Use either 'username' or 'login', not both" in str(err.value)
+
 
 def test_can_create_active_sshshell_connection_using_same_api(active_sshshell_connection_class):
     # we want to have all connections of class 'active sshshell' to share same API
@@ -43,6 +57,21 @@ def test_can_create_active_sshshell_connection_using_same_api(active_sshshell_co
     assert connection._ssh_transport is None
     assert connection._shell_channel is None
     assert hasattr(connection, "data_received")
+
+    # API allows to use "login" as alias for "username" parameter (to keep parity with ssh command / OpenSSH)
+    connection1 = active_sshshell_connection_class(moler_connection=moler_conn,
+                                                   host='localhost', port=22,
+                                                   login='molerssh', password='moler_password')
+    assert connection1._ssh_transport is None
+    assert connection1._shell_channel is None
+    assert hasattr(connection1, "data_received")
+    assert connection1.sshshell.username == 'molerssh'
+
+    # but you shouldn't use both names, we can't guess which one you wanted
+    with pytest.raises(KeyError) as err:
+        active_sshshell_connection_class(moler_connection=moler_conn, host='localhost', port=22,
+                                         username='molerssh', login='molerssh', password='moler_password')
+    assert "Use either 'username' or 'login', not both" in str(err.value)
 
 
 def test_can_open_and_close_connection(sshshell_connection):
@@ -734,6 +763,15 @@ def test_connection_factory_has_threaded_registered_as_default_variant_of_sshshe
 
     conn = get_connection(io_type='sshshell',
                           host='localhost', port=2222, username="moler", password="moler_passwd")
+    assert conn.__module__ == 'moler.io.raw.sshshell'
+    assert conn.__class__.__name__ == 'ThreadedSshShell'
+
+
+def test_connection_factory_can_use_alternate_login_param_of_sshshell():
+    from moler.connection_factory import get_connection
+
+    conn = get_connection(io_type='sshshell',
+                          host='localhost', port=2222, login="moler", password="moler_passwd")
     assert conn.__module__ == 'moler.io.raw.sshshell'
     assert conn.__class__.__name__ == 'ThreadedSshShell'
 

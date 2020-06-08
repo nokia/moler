@@ -24,7 +24,6 @@ import getpass
 import logging
 from moler.helpers import instance_id
 from moler.util.loghelper import log_into_logger
-from moler.config.loggers import TRACE
 
 from moler.io.io_exceptions import ConnectionTimeout
 from moler.io.io_exceptions import RemoteEndpointDisconnected
@@ -45,7 +44,7 @@ class SshShell(object):
     """
     _channels_of_transport = {}  # key is instance_id(transport), value is list of channel IDs
 
-    def __init__(self, host, port=22, username=None, password=None, receive_buffer_size=64 * 4096,
+    def __init__(self, host, port=22, username=None, login=None, password=None, receive_buffer_size=64 * 4096,
                  logger=None, existing_client=None):
         """
         Initialization of SshShell connection.
@@ -53,6 +52,7 @@ class SshShell(object):
         :param host: host of ssh server where we want to connect
         :param port: port of ssh server
         :param username: username for password based login
+        :param login: alternate naming for username param (as it is used by OpenSSH) for parity with Ssh command
         :param password: password for password based login
         :param receive_buffer_size:
         :param logger: logger to use (None means no logging)
@@ -61,6 +61,9 @@ class SshShell(object):
         super(SshShell, self).__init__()
         self.host = host
         self.port = port
+        if (username is not None) and (login is not None):
+            raise KeyError("Use either 'username' or 'login', not both")
+        username = login if username is None else username
         self.username = getpass.getuser() if username is None else username
         self.password = password
         self.receive_buffer_size = receive_buffer_size
@@ -318,7 +321,7 @@ class ThreadedSshShell(IOConnection):
     """
 
     def __init__(self, moler_connection,
-                 host, port=22, username=None, password=None,
+                 host, port=22, username=None, login=None, password=None,
                  receive_buffer_size=64 * 4096,
                  name=None,
                  logger_name="",
@@ -330,6 +333,7 @@ class ThreadedSshShell(IOConnection):
         :param host: host of ssh server where we want to connect
         :param port: port of ssh server
         :param username: username for password based login
+        :param login: alternate naming for username param (as it is used by OpenSSH) for parity with Ssh command
         :param password: password for password based login
         :param receive_buffer_size:
         :param name: name assigned to connection
@@ -344,7 +348,7 @@ class ThreadedSshShell(IOConnection):
             moler_connection.name = name
         super(ThreadedSshShell, self).__init__(moler_connection=moler_connection)
         self.logger = self._select_logger(logger_name, self.name, moler_connection)
-        self.sshshell = SshShell(host=host, port=port, username=username, password=password,
+        self.sshshell = SshShell(host=host, port=port, username=username, login=login, password=password,
                                  receive_buffer_size=receive_buffer_size,
                                  logger=self.logger, existing_client=existing_client)
         self.pulling_thread = None
