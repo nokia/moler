@@ -13,7 +13,6 @@ import abc
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.cmd.commandchangingprompt import CommandChangingPrompt
-from moler.exceptions import WrongUsage
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 from moler.helpers import copy_list
@@ -84,7 +83,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
                 failure_exceptions_indication)
         self.login = login
         if login and username:
-            raise WrongUsage("Please set login ('{}') or username ('{}') but not both.".format(login, username))
+            raise CommandFailure("Please set login ('{}') or username ('{}') but not both.".format(login, username))
         elif username:
             self.login = username
         if isinstance(password, six.string_types):

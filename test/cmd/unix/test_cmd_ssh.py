@@ -10,7 +10,6 @@ __email__ = 'marcin.usielski@nokia.com'
 from moler.cmd.unix.ssh import Ssh
 from moler.exceptions import CommandFailure
 from moler.exceptions import CommandTimeout
-from moler.exceptions import WrongUsage
 import pytest
 
 
@@ -48,7 +47,7 @@ def test_ssh_failed_host_key_verification(buffer_connection, command_output_fail
 
 
 def test_ssh_username_and_login(buffer_connection):
-    with pytest.raises(WrongUsage) as ex:
+    with pytest.raises(CommandFailure) as ex:
         Ssh(connection=buffer_connection.moler_connection, login="user", password="english", port=1500,
             host="host.domain.net", expected_prompt=r"host:.*#", prompt=r"user@client.*>",
             username="username")
