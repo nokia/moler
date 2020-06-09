@@ -13,7 +13,7 @@ import abc
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.cmd.commandchangingprompt import CommandChangingPrompt
-# from moler.cmd.unix.genericunix import GenericUnixCommand
+from moler.exceptions import WrongUsage
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 from moler.helpers import copy_list
@@ -43,7 +43,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
                  port=0, expected_prompt=r'^>\s*', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
                  term_mono="TERM=xterm-mono", encrypt_password=True, target_newline="\n",
                  allowed_newline_after_prompt=False, repeat_password=True, failure_exceptions_indication=None,
-                 prompt_after_login=None, send_enter_after_connection=True):
+                 prompt_after_login=None, send_enter_after_connection=True, username=None):
         """
         Base Moler class of Unix commands telnet and ssh.
 
@@ -83,6 +83,10 @@ class GenericTelnetSsh(CommandChangingPrompt):
             self._re_failure_exceptions_indication = CommandTextualGeneric._calculate_prompt(
                 failure_exceptions_indication)
         self.login = login
+        if login and username:
+            raise WrongUsage("Please set login ('{}') or username ('{}') but not both.".format(login, username))
+        elif username:
+            self.login = username
         if isinstance(password, six.string_types):
             self._passwords = [password]
         elif password is None:

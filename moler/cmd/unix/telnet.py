@@ -21,7 +21,7 @@ class Telnet(GenericTelnetSsh):
                  newline_chars=None, cmds_before_establish_connection=None, cmds_after_establish_connection=None,
                  telnet_prompt=r"^\s*telnet>\s*", encrypt_password=True, runner=None, target_newline="\n",
                  allowed_newline_after_prompt=False, repeat_password=True, failure_exceptions_indication=None,
-                 prompt_after_login=None, send_enter_after_connection=True):
+                 prompt_after_login=None, send_enter_after_connection=True, username=None):
         """
         Moler class of Unix command telnet.
 
@@ -51,6 +51,7 @@ class Telnet(GenericTelnetSsh):
          then leave it None.
         :param send_enter_after_connection: set True to send new line char(s) after connection is established, False
          otherwise.
+        :param username: login for ssh. Set this or login but not both.
         """
         super(Telnet, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner,
                                      port=port, host=host, login=login, password=password,
@@ -61,7 +62,8 @@ class Telnet(GenericTelnetSsh):
                                      repeat_password=repeat_password,
                                      failure_exceptions_indication=failure_exceptions_indication,
                                      prompt_after_login=prompt_after_login,
-                                     send_enter_after_connection=send_enter_after_connection
+                                     send_enter_after_connection=send_enter_after_connection,
+                                     username=username
                                      )
 
         self.prefix = prefix
