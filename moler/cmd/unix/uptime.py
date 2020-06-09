@@ -4,13 +4,14 @@ Uptime command module.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
+from moler.util.converterhelper import ConverterHelper
 
 
 class Uptime(GenericUnixCommand):
@@ -26,6 +27,8 @@ class Uptime(GenericUnixCommand):
         super(Uptime, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         # Parameters defined by calling the command
         self.options = options
+
+        self._converter_helper = ConverterHelper.get_converter_helper()
 
     def build_command_string(self):
         """
@@ -66,7 +69,7 @@ class Uptime(GenericUnixCommand):
         """
         if self._regex_helper.search_compiled(Uptime._re_uptime_line, line):
             val = self._regex_helper.group("UPTIME_VAL")
-            users = int(self._regex_helper.group("USERS"))
+            users = self._converter_helper.to_number(self._regex_helper.group("USERS"))
             uptime_seconds = self._calculate_seconds(val, line)
             self.current_ret["UPTIME"] = val
             self.current_ret["UPTIME_SECONDS"] = uptime_seconds
@@ -95,15 +98,15 @@ class Uptime(GenericUnixCommand):
         """
         seconds = 0
         if self._regex_helper.search_compiled(Uptime._re_days, val_str):
-            seconds = 24 * 3600 * int(self._regex_helper.group("DAYS")) + 3600 * int(
-                self._regex_helper.group("HRS")) + 60 * int(self._regex_helper.group("MINS"))
+            seconds = 24 * 3600 * self._converter_helper.to_number(self._regex_helper.group("DAYS")) + 3600 * self._converter_helper.to_number(
+                self._regex_helper.group("HRS")) + 60 * self._converter_helper.to_number(self._regex_helper.group("MINS"))
         elif self._regex_helper.search_compiled(Uptime._re_days_minutes, val_str):
-            seconds = 24 * 3600 * int(self._regex_helper.group("DAYS")) + 60 * int(
+            seconds = 24 * 3600 * self._converter_helper.to_number(self._regex_helper.group("DAYS")) + 60 * self._converter_helper.to_number(
                 self._regex_helper.group("MINS"))
         elif self._regex_helper.search_compiled(Uptime._re_hours_minutes, val_str):
-            seconds = 3600 * int(self._regex_helper.group("HRS")) + 60 * int(self._regex_helper.group("MINS"))
+            seconds = 3600 * self._converter_helper.to_number(self._regex_helper.group("HRS")) + 60 * self._converter_helper.to_number(self._regex_helper.group("MINS"))
         elif self._regex_helper.search_compiled(self._re_minutes, val_str):
-            seconds = 60 * int(self._regex_helper.group("MINS"))
+            seconds = 60 * self._converter_helper.to_number(self._regex_helper.group("MINS"))
         else:
             self.set_exception(CommandFailure(self, "Unsupported string format in line '{}'".format(line)))
         return seconds
