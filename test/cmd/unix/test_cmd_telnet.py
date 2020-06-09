@@ -11,6 +11,7 @@ import pytest
 import time
 from moler.cmd.unix.telnet import Telnet
 from moler.exceptions import CommandFailure
+from moler.exceptions import WrongUsage
 import datetime
 
 
@@ -37,6 +38,14 @@ def test_calling_telnet_raise_exception_command_failure(buffer_connection):
                         host="host.domain.net", expected_prompt=r"host:.*#", prompt=r"user@client.*>")
     with pytest.raises(CommandFailure):
         telnet_cmd()
+
+
+def test_telnet_username_and_login(buffer_connection):
+    with pytest.raises(WrongUsage) as ex:
+        Telnet(connection=buffer_connection.moler_connection, login="user", password="english", port=1500,
+               host="host.domain.net", expected_prompt=r"host:.*#", prompt=r"user@client.*>",
+               username="username")
+    assert "not both" in str(ex)
 
 
 def test_calling_telnet_raise_exception_no_more_passwords(buffer_connection):

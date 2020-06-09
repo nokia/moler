@@ -106,8 +106,7 @@ class Ssh(GenericTelnetSsh):
             cmd = "{} -l {}".format(cmd, self.login)
         if self.options:
             cmd = "{} {}".format(cmd, self.options)
-        if self.host:
-            cmd = "{} {}".format(cmd, self.host)
+        cmd = "{} {}".format(cmd, self.host)
         return cmd
 
     def on_new_line(self, line, is_full_line):
