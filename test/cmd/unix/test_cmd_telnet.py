@@ -45,6 +45,7 @@ def test_telnet_username_and_login(buffer_connection):
                host="host.domain.net", expected_prompt=r"host:.*#", prompt=r"user@client.*>",
                username="username")
     assert "not both" in str(ex)
+    assert "Telnet" in str(ex)
 
 
 def test_calling_telnet_raise_exception_no_more_passwords(buffer_connection):

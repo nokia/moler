@@ -52,6 +52,7 @@ def test_ssh_username_and_login(buffer_connection):
             host="host.domain.net", expected_prompt=r"host:.*#", prompt=r"user@client.*>",
             username="username")
     assert "not both" in str(ex)
+    assert "Ssh" in str(ex)
 
 
 def test_ssh_failed_permission_denied(buffer_connection, command_output_permission_denied):

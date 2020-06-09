@@ -82,10 +82,6 @@ class GenericTelnetSsh(CommandChangingPrompt):
             self._re_failure_exceptions_indication = CommandTextualGeneric._calculate_prompt(
                 failure_exceptions_indication)
         self.login = login
-        if login and username:
-            raise CommandFailure("Please set login ('{}') or username ('{}') but not both.".format(login, username))
-        elif username:
-            self.login = username
         if isinstance(password, six.string_types):
             self._passwords = [password]
         elif password is None:
@@ -102,6 +98,13 @@ class GenericTelnetSsh(CommandChangingPrompt):
         # Internal variables
         self._sent_login = False
         self._last_password = ""
+
+        if login and username:
+            self.command_string = self.__class__.__name__
+            raise CommandFailure(self, "Please set login ('{}') or username ('{}') but not both.".format(login,
+                                                                                                         username))
+        elif username:
+            self.login = username
 
     def on_new_line(self, line, is_full_line):
         """
