@@ -31,7 +31,7 @@ root@host#"""
 
 def test_sudo_with_wrong_command_parameters(buffer_connection):
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass",
-                    cmd_class_name="moler.cmd.unix.ssh.Ssh", cmd_params={"login": "login"})
+                    cmd_class_name="moler.cmd.unix.telnet.Telnet", cmd_params={"login": "login"})
     with pytest.raises(TypeError):
         cmd_sudo(timeout=0.1)
 

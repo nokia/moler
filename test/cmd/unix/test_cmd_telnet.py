@@ -39,6 +39,15 @@ def test_calling_telnet_raise_exception_command_failure(buffer_connection):
         telnet_cmd()
 
 
+def test_telnet_username_and_login(buffer_connection):
+    with pytest.raises(CommandFailure) as ex:
+        Telnet(connection=buffer_connection.moler_connection, login="user", password="english", port=1500,
+               host="host.domain.net", expected_prompt=r"host:.*#", prompt=r"user@client.*>",
+               username="username")
+    assert "not both" in str(ex)
+    assert "Telnet" in str(ex)
+
+
 def test_calling_telnet_raise_exception_no_more_passwords(buffer_connection):
     command_output ="""user@host01:~> TERM=xterm-mono telnet host.domain.net 1504
 Login:

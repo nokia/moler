@@ -32,12 +32,13 @@ class Ssh(GenericTelnetSsh):
     # 7[r[999;999H[6n
     _re_resize = re.compile(r"999H")
 
-    def __init__(self, connection, login, password, host, prompt=None, expected_prompt='>', port=0,
+    def __init__(self, connection, login=None, password=None, host="0", prompt=None, expected_prompt='>', port=0,
                  known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
                  term_mono="TERM=xterm-mono", newline_chars=None, encrypt_password=True, runner=None,
                  target_newline="\n", allowed_newline_after_prompt=False, repeat_password=True,
                  options='-o ServerAliveInterval=7 -o ServerAliveCountMax=2',
-                 failure_exceptions_indication=None, prompt_after_login=None, send_enter_after_connection=True):
+                 failure_exceptions_indication=None, prompt_after_login=None, send_enter_after_connection=True,
+                 username=None):
         """
         Moler class of Unix command ssh.
 
@@ -65,6 +66,7 @@ class Ssh(GenericTelnetSsh):
          then leave it None.
         :param send_enter_after_connection: set True to send new line char(s) after connection is established, False
          otherwise.
+        :param username: login for ssh. Set this or login but not both.
         """
         super(Ssh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner,
                                   port=port, host=host, login=login, password=password,
@@ -75,7 +77,8 @@ class Ssh(GenericTelnetSsh):
                                   repeat_password=repeat_password,
                                   failure_exceptions_indication=failure_exceptions_indication,
                                   prompt_after_login=prompt_after_login,
-                                  send_enter_after_connection=send_enter_after_connection
+                                  send_enter_after_connection=send_enter_after_connection,
+                                  username=username
                                   )
 
         # Parameters defined by calling the command
@@ -228,6 +231,23 @@ COMMAND_KWARGS = {
 }
 
 COMMAND_RESULT = {}
+
+COMMAND_OUTPUT_username = """TERM=xterm-mono ssh -l user host.domain.net
+To edit this message please edit /etc/ssh_banner
+You may put information to /etc/ssh_banner who is owner of this PC
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+host:~ #
+host:~ # export TMOUT="2678400"
+host:~ #"""
+
+COMMAND_KWARGS_username = {
+    "username": "user", "password": "english",
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
+}
+
+COMMAND_RESULT_username = {}
 
 COMMAND_OUTPUT_prompt = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
