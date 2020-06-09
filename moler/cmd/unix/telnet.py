@@ -216,6 +216,25 @@ COMMAND_KWARGS = {
 
 COMMAND_RESULT = {}
 
+COMMAND_OUTPUT_username = """TERM=xterm-mono telnet host.domain.net 1500
+Login:
+Login:user
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+CLIENT5 [] has just connected!
+host:~ #
+export TMOUT="2678400",
+host:~ #"""
+
+COMMAND_KWARGS_username = {
+    "username": "user", "password": "english", "port": "1500",
+    "host": "host.domain.net", "expected_prompt": "host:.*#"
+}
+
+COMMAND_RESULT_username = {}
+
+
 COMMAND_OUTPUT_prompt = """
 user@host01:~> TERM=xterm-mono telnet host.domain.net 1500
 CLIENT5 [] has just connected!
