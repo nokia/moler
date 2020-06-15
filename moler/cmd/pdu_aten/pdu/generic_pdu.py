@@ -13,7 +13,7 @@ __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
-cmd_failure_causes = ['not found',
+cmd_failure_causes = ['Not Support',
                       'Invalid command']
 
 r_cmd_failure_cause_alternatives = r'{}'.format("|".join(cmd_failure_causes))
@@ -32,7 +32,7 @@ class GenericPdu(GenericPduAten):
         """
         super(GenericPdu, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                          runner=runner)
-        self._re_fail = re.compile(r_cmd_failure_cause_alternatives)
+        self._re_fail = re.compile(r_cmd_failure_cause_alternatives, re.IGNORECASE)
 
     def on_new_line(self, line, is_full_line):
         """
