@@ -1,3 +1,10 @@
+## moler 1.16.0
+
+### Improved
+* Optional parameter username for telnet and ssh.
+* Cmds for pdu aten
+* Convert to number
+
 ## moler 1.15.0
 
 ### Improved
