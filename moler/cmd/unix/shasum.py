@@ -93,7 +93,7 @@ COMMAND_KWARGS_parms = {
     "path": "test.txt",
 }
 
-COMMAND_OUTPUT_many_files = """sha256sum *.py 
+COMMAND_OUTPUT_many_files = """sha256sum *.py
 30dadab8f7e0dfdd1e5f9a5e3c73fdb4d5ce958c71fff7b5fc782d18ed729f79  abstract_moler_connection.py
 9d47eaea79621966becfbaa8e97c3700ff498958d33447c37c05e22164d399b4  asyncio_runner.py
 aafaa899c8863770395b8feb3460b88c2b66ba77a0e6fd82e9ce18fc06c8c2c2  command.py
@@ -114,7 +114,7 @@ COMMAND_KWARGS_many_files = {
     'cmd_kind': 'sha256sum',
 }
 
-COMMAND_OUTPUT_many_files_224 = """shasum -a 224 *.py 
+COMMAND_OUTPUT_many_files_224 = """shasum -a 224 *.py
 6545a64ce6952ba6871bafb5f0591bdf012fee7c06c8b6f919e8df07  abstract_moler_connection.py
 8af16b9740b39ef77bdbbbfeafbbd790be1c72e553b1a21190d510f6  asyncio_runner.py
 de1291c73280e5f108d5c6c43c3ad7c7983344f2eca8add011f59ecd  command.py
