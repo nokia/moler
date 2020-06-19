@@ -214,80 +214,122 @@ class Ssh(GenericTelnetSsh):
             raise ParsingDone()
 
 
-COMMAND_OUTPUT = """
-client:~/>TERM=xterm-mono ssh -l user host.domain.net
-To edit this message please edit /etc/ssh_banner
-You may put information to /etc/ssh_banner who is owner of this PC
-Password:
-Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
-Have a lot of fun...
-host:~ #
-host:~ # export TMOUT="2678400"
-host:~ #"""
-
-COMMAND_KWARGS = {
-    "login": "user", "password": "english",
-    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
-}
-
-COMMAND_RESULT = {}
-
-COMMAND_OUTPUT_username = """TERM=xterm-mono ssh -l user host.domain.net
-To edit this message please edit /etc/ssh_banner
-You may put information to /etc/ssh_banner who is owner of this PC
-Password:
-Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
-Have a lot of fun...
-host:~ #
-host:~ # export TMOUT="2678400"
-host:~ #"""
-
-COMMAND_KWARGS_username = {
-    "username": "user", "password": "english",
-    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
-}
-
-COMMAND_RESULT_username = {}
-
-COMMAND_OUTPUT_prompt = """
-client:~/>TERM=xterm-mono ssh -l user host.domain.net
-Do you want to continue (yes/no)? yes
-To edit this message please edit /etc/ssh_banner
-You may put information to /etc/ssh_banner who is owner of this PC
-Password:
-Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
-Have a lot of fun...
-host:~ #
-host:~ # export PS1="\\u$"
-user$"""
-
-COMMAND_KWARGS_prompt = {
-    "login": "user", "password": "english", "set_prompt": r'export PS1="\\u$"',
-    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": r"host.*#|user\$",
-    "options": None,
-}
-
-COMMAND_RESULT_prompt = {}
-
-COMMAND_OUTPUT_2prompts = """
-client:~/>TERM=xterm-mono ssh -l user host.domain.net
-Do you want to continue (yes/no)? yes
-To edit this message please edit /etc/ssh_banner
-You may put information to /etc/ssh_banner who is owner of this PC
-Password:
-Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
-Have a lot of fun...
-host:~ #
-host:~ # export PS1="\\u$"
-user$"""
-
-COMMAND_KWARGS_2prompts = {
-    "login": "user", "password": "english", "set_prompt": r'export PS1="\\u$"',
-    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": r"user\$",
-    "prompt_after_login": r"host.*#", "options": None,
-}
-
-COMMAND_RESULT_2prompts = {}
+# COMMAND_OUTPUT = """
+# client:~/>TERM=xterm-mono ssh -l user host.domain.net
+# To edit this message please edit /etc/ssh_banner
+# You may put information to /etc/ssh_banner who is owner of this PC
+# Password:
+# Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+# Have a lot of fun...
+# host:~ #
+# host:~ # export TMOUT="2678400"
+# host:~ #"""
+#
+# COMMAND_KWARGS = {
+#     "login": "user", "password": "english",
+#     "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
+# }
+#
+# COMMAND_RESULT = {
+#     'LINES': [
+#         "To edit this message please edit /etc/ssh_banner",
+#         "You may put information to /etc/ssh_banner who is owner of this PC",
+#         "Password:",
+#         "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+#         "Have a lot of fun...",
+#         "host:~ #",
+#         "host:~ # export TMOUT=\"2678400\"",
+#     ]
+# }
+#
+# COMMAND_OUTPUT_username = """TERM=xterm-mono ssh -l user host.domain.net
+# To edit this message please edit /etc/ssh_banner
+# You may put information to /etc/ssh_banner who is owner of this PC
+# Password:
+# Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+# Have a lot of fun...
+# host:~ #
+# host:~ # export TMOUT="2678400"
+# host:~ #"""
+#
+# COMMAND_KWARGS_username = {
+#     "username": "user", "password": "english",
+#     "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
+# }
+#
+# COMMAND_RESULT_username = {
+#     'LINES': [
+#         "To edit this message please edit /etc/ssh_banner",
+#         "You may put information to /etc/ssh_banner who is owner of this PC",
+#         "Password:",
+#         "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+#         "Have a lot of fun...",
+#         "host:~ #",
+#         "host:~ # export TMOUT=\"2678400\"",
+#     ]
+# }
+#
+# COMMAND_OUTPUT_prompt = """
+# client:~/>TERM=xterm-mono ssh -l user host.domain.net
+# Do you want to continue (yes/no)? yes
+# To edit this message please edit /etc/ssh_banner
+# You may put information to /etc/ssh_banner who is owner of this PC
+# Password:
+# Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+# Have a lot of fun...
+# host:~ #
+# host:~ # export PS1="\\u$"
+# user$"""
+#
+# COMMAND_KWARGS_prompt = {
+#     "login": "user", "password": "english", "set_prompt": r'export PS1="\\u$"',
+#     "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": r"host.*#|user\$",
+#     "options": None,
+# }
+#
+# COMMAND_RESULT_prompt = {
+#     "LINES": [
+#         "Do you want to continue (yes/no)? yes",
+#         "To edit this message please edit /etc/ssh_banner",
+#         "You may put information to /etc/ssh_banner who is owner of this PC",
+#         "Password:",
+#         "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+#         "Have a lot of fun...",
+#         "host:~ #",
+#         "host:~ # export PS1=\"\\u$\"",
+#     ]
+# }
+#
+# COMMAND_OUTPUT_2prompts = """
+# client:~/>TERM=xterm-mono ssh -l user host.domain.net
+# Do you want to continue (yes/no)? yes
+# To edit this message please edit /etc/ssh_banner
+# You may put information to /etc/ssh_banner who is owner of this PC
+# Password:
+# Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+# Have a lot of fun...
+# host:~ #
+# host:~ # export PS1="\\u$"
+# user$"""
+#
+# COMMAND_KWARGS_2prompts = {
+#     "login": "user", "password": "english", "set_prompt": r'export PS1="\\u$"',
+#     "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": r"user\$",
+#     "prompt_after_login": r"host.*#", "options": None,
+# }
+#
+# COMMAND_RESULT_2prompts = {
+#     'LINES': [
+#         'Do you want to continue (yes/no)? yes',
+#         'To edit this message please edit /etc/ssh_banner',
+#         'You may put information to /etc/ssh_banner who is owner of '
+#         'this PC',
+#         'Password:',
+#         'Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1',
+#         'Have a lot of fun...',
+#         'host:~ #',
+#         'host:~ # export PS1="\\u$"']
+# }
 
 COMMAND_OUTPUT_rm = """
 client:~/>TERM=xterm-mono ssh -p 25 -l user host.domain.net
@@ -319,7 +361,31 @@ COMMAND_KWARGS_rm = {
     "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#", "set_timeout": None,
 }
 
-COMMAND_RESULT_rm = {}
+COMMAND_RESULT_rm = {
+    'LINES': [
+        "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+        "@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @",
+        "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+        "IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!",
+        "Someone could be eavesdropping on you right now (man-in-the-middle attack)!",
+        "It is also possible that a host key has just been changed.",
+        "The fingerprint for the RSA key sent by the remote host is",
+        "[...].",
+        "Please contact your system administrator.",
+        "Add correct host key in /home/you/.ssh/known_hosts to get rid of this message.",
+        "Offending RSA key in /home/you/.ssh/known_hosts:86",
+        "id_dsa:",
+        "RSA host key for host.domain.net has changed and you have requested strict checking.",
+        "Host key verification failed.",
+        # "client:~/>rm /home/you/.ssh/known_hosts",
+        # "client:~/>TERM=xterm-mono ssh -p 25 -l user host.domain.net",
+        "To edit this message please edit /etc/ssh_banner",
+        "You may put information to /etc/ssh_banner who is owner of this PC",
+        "Password:",
+        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Have a lot of fun...",
+    ]
+}
 
 COMMAND_OUTPUT_keygen = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
@@ -353,7 +419,32 @@ COMMAND_KWARGS_keygen = {
     "options": None,
 }
 
-COMMAND_RESULT_keygen = {}
+COMMAND_RESULT_keygen = {
+    "LINES": [
+        "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+        "@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @",
+        "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+        "IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!",
+        "Someone could be eavesdropping on you right now (man-in-the-middle attack)!",
+        "It is also possible that a host key has just been changed.",
+        "The fingerprint for the RSA key sent by the remote host is",
+        "[...].",
+        "Please contact your system administrator.",
+        "Add correct host key in /home/you/.ssh/known_hosts to get rid of this message.",
+        "Offending RSA key in /home/you/.ssh/known_hosts:86",
+        "RSA host key for host.domain.net has changed and you have requested strict checking.",
+        "Host key verification failed.",
+        # "client:~/>sh-keygen -R host.domain.net",
+        # "client:~/>TERM=xterm-mono ssh -l user host.domain.net",
+        "To edit this message please edit /etc/ssh_banner",
+        "You may put information to /etc/ssh_banner who is owner of this PC",
+        "Password:",
+        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Have a lot of fun...",
+        "host:~ #",
+        "host:~ # export TMOUT=\"2678400\"",
+    ]
+}
 
 COMMAND_OUTPUT_2_passwords = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
@@ -381,7 +472,26 @@ COMMAND_KWARGS_2_passwords = {
     "options": None,
 }
 
-COMMAND_RESULT_2_passwords = {}
+COMMAND_RESULT_2_passwords = {
+    'LINES': [
+        "You are about to access a private system. This system is for the use of",
+        "authorized users only. All connections are logged to the extent and by means",
+        "acceptable by the local legislation. Any unauthorized access or access attempts",
+        "may be punished to the fullest extent possible under the applicable local",
+        "legislation.",
+        "Password:",
+        "This account is used as a fallback account. The only thing it provides is",
+        "the ability to switch to the root account.",
+        "",
+        "Please enter the root password",
+        "Password:",
+        "",
+        "USAGE OF THE ROOT ACCOUNT AND THE FULL BASH IS RECOMMENDED ONLY FOR LIMITED USE. PLEASE USE A NON-ROOT ACCOUNT AND THE SCLI SHELL (fsclish) AND/OR LIMITED BASH SHELL.",
+        "",
+        "host:~ #",
+        "host:~ # export TMOUT=\"2678400\"",
+    ]
+}
 
 
 COMMAND_OUTPUT_2_passwords_repeat = """
@@ -410,7 +520,26 @@ COMMAND_KWARGS_2_passwords_repeat = {
     "options": None,
 }
 
-COMMAND_RESULT_2_passwords_repeat = {}
+COMMAND_RESULT_2_passwords_repeat = {
+    'LINES': [
+        "You are about to access a private system. This system is for the use of",
+        "authorized users only. All connections are logged to the extent and by means",
+        "acceptable by the local legislation. Any unauthorized access or access attempts",
+        "may be punished to the fullest extent possible under the applicable local",
+        "legislation.",
+        "Password:",
+        "This account is used as a fallback account. The only thing it provides is",
+        "the ability to switch to the root account.",
+        "",
+        "Please enter the root password",
+        "Password:",
+        "",
+        "USAGE OF THE ROOT ACCOUNT AND THE FULL BASH IS RECOMMENDED ONLY FOR LIMITED USE. PLEASE USE A NON-ROOT ACCOUNT AND THE SCLI SHELL (fsclish) AND/OR LIMITED BASH SHELL.",
+        "",
+        "host:~ #",
+        "host:~ # export TMOUT=\"2678400\"",
+    ]
+}
 
 COMMAND_OUTPUT_resize_window = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
@@ -446,7 +575,34 @@ COMMAND_KWARGS_resize_window = {
     "options": None,
 }
 
-COMMAND_RESULT_resize_window = {}
+COMMAND_RESULT_resize_window = {
+    'LINES': [
+        "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+        "@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @",
+        "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+        "IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!",
+        "Someone could be eavesdropping on you right now (man-in-the-middle attack)!",
+        "It is also possible that a host key has just been changed.",
+        "The fingerprint for the RSA key sent by the remote host is",
+        "[...].",
+        "Please contact your system administrator.",
+        "Add correct host key in /home/you/.ssh/known_hosts to get rid of this message.",
+        "Offending RSA key in /home/you/.ssh/known_hosts:86",
+        "RSA host key for host.domain.net has changed and you have requested strict checking.",
+        "Host key verification failed.",
+        # "client:~/>sh-keygen -R host.domain.net",
+        # "client:~/>TERM=xterm-mono ssh -l user host.domain.net",
+        "To edit this message please edit /etc/ssh_banner",
+        "You may put information to /etc/ssh_banner who is owner of this PC",
+        "Password:",
+        "Last login: Sun Jan  6 13:42:05 UTC+2 2019 on ttyAMA2",
+        "7[r[999;999H[6n",
+        "resize: unknown character, exiting.",
+        "Have a lot of fun...",
+        "host:~ #",
+        "host:~ # export TMOUT=\"2678400\""
+    ]
+}
 
 COMMAND_OUTPUT_options = """
 client:~/>TERM=xterm-mono ssh -l user -o Interval=100 host.domain.net
@@ -482,7 +638,34 @@ COMMAND_KWARGS_options = {
     "options": "-o Interval=100"
 }
 
-COMMAND_RESULT_options = {}
+COMMAND_RESULT_options = {
+    'LINES': [
+        "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+        "@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @",
+        "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+        "IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!",
+        "Someone could be eavesdropping on you right now (man-in-the-middle attack)!",
+        "It is also possible that a host key has just been changed.",
+        "The fingerprint for the RSA key sent by the remote host is",
+        "[...].",
+        "Please contact your system administrator.",
+        "Add correct host key in /home/you/.ssh/known_hosts to get rid of this message.",
+        "Offending RSA key in /home/you/.ssh/known_hosts:86",
+        "RSA host key for host.domain.net has changed and you have requested strict checking.",
+        "Host key verification failed.",
+        # "client:~/>sh-keygen -R host.domain.net",
+        # "client:~/>TERM=xterm-mono ssh -l user host.domain.net",
+        "To edit this message please edit /etc/ssh_banner",
+        "You may put information to /etc/ssh_banner who is owner of this PC",
+        "Password:",
+        "Last login: Sun Jan  6 13:42:05 UTC+2 2019 on ttyAMA2",
+        "7[r[999;999H[6n",
+        "resize: unknown character, exiting.",
+        "Have a lot of fun...",
+        "host:~ #",
+        "host:~ # export TMOUT=\"2678400\""
+    ]
+}
 
 COMMAND_OUTPUT_failure_exception = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
@@ -504,7 +687,19 @@ COMMAND_KWARGS_failure_exception = {
         r"/home/user/.bash_profile: Permission denied|Could not chdir to home directory /home/user: Permission denied",
 }
 
-COMMAND_RESULT_failure_exception = {}
+COMMAND_RESULT_failure_exception = {
+    'LINES': [
+        "Password:",
+        "Notice: The use of this system is restricted to users who have been granted access.",
+        "You have new mail.",
+        "Last login: Tue Jul 23 13:59:25 2029 from 127.0.0.2",
+        "Could not chdir to home directory /home/user: Permission denied",
+        "Can't open display",
+        "-bash: /home/user/.bash_profile: Permission denied",
+        "host:~ #",
+        "host:~ # export TMOUT=\"2678400\""
+    ]
+}
 
 COMMAND_OUTPUT_prompt_fingerprint = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
@@ -524,4 +719,15 @@ COMMAND_KWARGS_prompt_fingerprint = {
     "options": None,
 }
 
-COMMAND_RESULT_prompt_fingerprint = {}
+COMMAND_RESULT_prompt_fingerprint = {
+    'LINES': [
+        "Do you want to continue (yes/no/[fingerprint])? yes",
+        "To edit this message please edit /etc/ssh_banner",
+        "You may put information to /etc/ssh_banner who is owner of this PC",
+        "Password:",
+        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Have a lot of fun...",
+        "host:~ #",
+        "host:~ # export PS1=\"\\u$\"",
+    ]
+}

@@ -105,6 +105,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
                                                                                                          username))
         elif username:
             self.login = username
+        self.current_ret['LINES'] = list()
 
     def on_new_line(self, line, is_full_line):
         """
@@ -116,6 +117,8 @@ class GenericTelnetSsh(CommandChangingPrompt):
         :raises: ParsingDone if any line matched the regex.
         """
         try:
+            if is_full_line:
+                self._add_line_tot_ret(line)
             self._parse_failure_indication(line)
             self._send_login_if_requested(line)
             self._send_password_if_requested(line)
@@ -123,6 +126,15 @@ class GenericTelnetSsh(CommandChangingPrompt):
         except ParsingDone:
             pass
         super(GenericTelnetSsh, self).on_new_line(line=line, is_full_line=is_full_line)
+
+    def _add_line_tot_ret(self, line):
+        """
+        Adds lint to ret value of command.
+
+        :param line: line form connection.
+        :return: None
+        """
+        self.current_ret['LINES'].append(line)
 
     def _parse_failure_indication(self, line):
         """
