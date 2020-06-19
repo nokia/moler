@@ -118,7 +118,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
         """
         try:
             if is_full_line:
-                self._add_line_tot_ret(line)
+                self._add_line_to_ret(line)
             self._parse_failure_indication(line)
             self._send_login_if_requested(line)
             self._send_password_if_requested(line)
@@ -127,7 +127,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
             pass
         super(GenericTelnetSsh, self).on_new_line(line=line, is_full_line=is_full_line)
 
-    def _add_line_tot_ret(self, line):
+    def _add_line_to_ret(self, line):
         """
         Adds lint to ret value of command.
 
