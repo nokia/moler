@@ -214,122 +214,122 @@ class Ssh(GenericTelnetSsh):
             raise ParsingDone()
 
 
-# COMMAND_OUTPUT = """
-# client:~/>TERM=xterm-mono ssh -l user host.domain.net
-# To edit this message please edit /etc/ssh_banner
-# You may put information to /etc/ssh_banner who is owner of this PC
-# Password:
-# Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
-# Have a lot of fun...
-# host:~ #
-# host:~ # export TMOUT="2678400"
-# host:~ #"""
-#
-# COMMAND_KWARGS = {
-#     "login": "user", "password": "english",
-#     "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
-# }
-#
-# COMMAND_RESULT = {
-#     'LINES': [
-#         "To edit this message please edit /etc/ssh_banner",
-#         "You may put information to /etc/ssh_banner who is owner of this PC",
-#         "Password:",
-#         "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
-#         "Have a lot of fun...",
-#         "host:~ #",
-#         "host:~ # export TMOUT=\"2678400\"",
-#     ]
-# }
-#
-# COMMAND_OUTPUT_username = """TERM=xterm-mono ssh -l user host.domain.net
-# To edit this message please edit /etc/ssh_banner
-# You may put information to /etc/ssh_banner who is owner of this PC
-# Password:
-# Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
-# Have a lot of fun...
-# host:~ #
-# host:~ # export TMOUT="2678400"
-# host:~ #"""
-#
-# COMMAND_KWARGS_username = {
-#     "username": "user", "password": "english",
-#     "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
-# }
-#
-# COMMAND_RESULT_username = {
-#     'LINES': [
-#         "To edit this message please edit /etc/ssh_banner",
-#         "You may put information to /etc/ssh_banner who is owner of this PC",
-#         "Password:",
-#         "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
-#         "Have a lot of fun...",
-#         "host:~ #",
-#         "host:~ # export TMOUT=\"2678400\"",
-#     ]
-# }
-#
-# COMMAND_OUTPUT_prompt = """
-# client:~/>TERM=xterm-mono ssh -l user host.domain.net
-# Do you want to continue (yes/no)? yes
-# To edit this message please edit /etc/ssh_banner
-# You may put information to /etc/ssh_banner who is owner of this PC
-# Password:
-# Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
-# Have a lot of fun...
-# host:~ #
-# host:~ # export PS1="\\u$"
-# user$"""
-#
-# COMMAND_KWARGS_prompt = {
-#     "login": "user", "password": "english", "set_prompt": r'export PS1="\\u$"',
-#     "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": r"host.*#|user\$",
-#     "options": None,
-# }
-#
-# COMMAND_RESULT_prompt = {
-#     "LINES": [
-#         "Do you want to continue (yes/no)? yes",
-#         "To edit this message please edit /etc/ssh_banner",
-#         "You may put information to /etc/ssh_banner who is owner of this PC",
-#         "Password:",
-#         "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
-#         "Have a lot of fun...",
-#         "host:~ #",
-#         "host:~ # export PS1=\"\\u$\"",
-#     ]
-# }
-#
-# COMMAND_OUTPUT_2prompts = """
-# client:~/>TERM=xterm-mono ssh -l user host.domain.net
-# Do you want to continue (yes/no)? yes
-# To edit this message please edit /etc/ssh_banner
-# You may put information to /etc/ssh_banner who is owner of this PC
-# Password:
-# Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
-# Have a lot of fun...
-# host:~ #
-# host:~ # export PS1="\\u$"
-# user$"""
-#
-# COMMAND_KWARGS_2prompts = {
-#     "login": "user", "password": "english", "set_prompt": r'export PS1="\\u$"',
-#     "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": r"user\$",
-#     "prompt_after_login": r"host.*#", "options": None,
-# }
-#
-# COMMAND_RESULT_2prompts = {
-#     'LINES': [
-#         'Do you want to continue (yes/no)? yes',
-#         'To edit this message please edit /etc/ssh_banner',
-#         'You may put information to /etc/ssh_banner who is owner of '
-#         'this PC',
-#         'Password:',
-#         'Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1',
-#         'Have a lot of fun...',
-#         'host:~ #',
-#         'host:~ # export PS1="\\u$"']
-# }
+COMMAND_OUTPUT = """
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+To edit this message please edit /etc/ssh_banner
+You may put information to /etc/ssh_banner who is owner of this PC
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+host:~ #
+host:~ # export TMOUT="2678400"
+host:~ #"""
+
+COMMAND_KWARGS = {
+    "login": "user", "password": "english",
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
+}
+
+COMMAND_RESULT = {
+    'LINES': [
+        "To edit this message please edit /etc/ssh_banner",
+        "You may put information to /etc/ssh_banner who is owner of this PC",
+        "Password:",
+        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Have a lot of fun...",
+        "host:~ #",
+        "host:~ # export TMOUT=\"2678400\"",
+    ]
+}
+
+COMMAND_OUTPUT_username = """TERM=xterm-mono ssh -l user host.domain.net
+To edit this message please edit /etc/ssh_banner
+You may put information to /etc/ssh_banner who is owner of this PC
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+host:~ #
+host:~ # export TMOUT="2678400"
+host:~ #"""
+
+COMMAND_KWARGS_username = {
+    "username": "user", "password": "english",
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
+}
+
+COMMAND_RESULT_username = {
+    'LINES': [
+        "To edit this message please edit /etc/ssh_banner",
+        "You may put information to /etc/ssh_banner who is owner of this PC",
+        "Password:",
+        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Have a lot of fun...",
+        "host:~ #",
+        "host:~ # export TMOUT=\"2678400\"",
+    ]
+}
+
+COMMAND_OUTPUT_prompt = """
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+Do you want to continue (yes/no)? yes
+To edit this message please edit /etc/ssh_banner
+You may put information to /etc/ssh_banner who is owner of this PC
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+host:~ #
+host:~ # export PS1="\\u$"
+user$"""
+
+COMMAND_KWARGS_prompt = {
+    "login": "user", "password": "english", "set_prompt": r'export PS1="\\u$"',
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": r"host.*#|user\$",
+    "options": None,
+}
+
+COMMAND_RESULT_prompt = {
+    "LINES": [
+        "Do you want to continue (yes/no)? yes",
+        "To edit this message please edit /etc/ssh_banner",
+        "You may put information to /etc/ssh_banner who is owner of this PC",
+        "Password:",
+        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Have a lot of fun...",
+        "host:~ #",
+        "host:~ # export PS1=\"\\u$\"",
+    ]
+}
+
+COMMAND_OUTPUT_2prompts = """
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+Do you want to continue (yes/no)? yes
+To edit this message please edit /etc/ssh_banner
+You may put information to /etc/ssh_banner who is owner of this PC
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+host:~ #
+host:~ # export PS1="\\u$"
+user$"""
+
+COMMAND_KWARGS_2prompts = {
+    "login": "user", "password": "english", "set_prompt": r'export PS1="\\u$"',
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": r"user\$",
+    "prompt_after_login": r"host.*#", "options": None,
+}
+
+COMMAND_RESULT_2prompts = {
+    'LINES': [
+        'Do you want to continue (yes/no)? yes',
+        'To edit this message please edit /etc/ssh_banner',
+        'You may put information to /etc/ssh_banner who is owner of '
+        'this PC',
+        'Password:',
+        'Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1',
+        'Have a lot of fun...',
+        'host:~ #',
+        'host:~ # export PS1="\\u$"']
+}
 
 COMMAND_OUTPUT_rm = """
 client:~/>TERM=xterm-mono ssh -p 25 -l user host.domain.net
