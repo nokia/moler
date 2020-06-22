@@ -16,6 +16,7 @@ from moler.cmd.commandchangingprompt import CommandChangingPrompt
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 from moler.helpers import copy_list
+from dateutil import parser
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -106,6 +107,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
         elif username:
             self.login = username
         self.current_ret['LINES'] = list()
+        self.current_ret['LAST_LOGIN'] = dict()
 
     def on_new_line(self, line, is_full_line):
         """
@@ -127,6 +129,9 @@ class GenericTelnetSsh(CommandChangingPrompt):
             pass
         super(GenericTelnetSsh, self).on_new_line(line=line, is_full_line=is_full_line)
 
+    # Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+    _re_last_login = re.compile(r"Last login:\s+(?P<DATE>.*)\s+(?P<KIND>from|on)\s+(?P<WHERE>\S+)", re.IGNORECASE)
+
     def _add_line_to_ret(self, line):
         """
         Adds lint to ret value of command.
@@ -135,6 +140,17 @@ class GenericTelnetSsh(CommandChangingPrompt):
         :return: None
         """
         self.current_ret['LINES'].append(line)
+        if self._regex_helper.search_compiled(GenericTelnetSsh._re_last_login, line):
+            date_raw = self._regex_helper.group("DATE")
+            self.current_ret['LAST_LOGIN']['RAW_DATE'] = date_raw
+            self.current_ret['LAST_LOGIN']['KIND'] = self._regex_helper.group("KIND")
+            self.current_ret['LAST_LOGIN']['WHERE'] = self._regex_helper.group("WHERE")
+            try:
+                self.current_ret['LAST_LOGIN']['DATE'] = parser.parse(date_raw)
+            except ValueError:  # do not fail ssh or telnet if unknown date format.
+                pass
+            except OverflowError:
+                pass
 
     def _parse_failure_indication(self, line):
         """
