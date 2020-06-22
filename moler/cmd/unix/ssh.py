@@ -12,6 +12,7 @@ import re
 from moler.cmd.unix.generictelnetssh import GenericTelnetSsh
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
+from dateutil import parser
 
 
 class Ssh(GenericTelnetSsh):
@@ -239,7 +240,14 @@ COMMAND_RESULT = {
         "Have a lot of fun...",
         "host:~ #",
         "host:~ # export TMOUT=\"2678400\"",
-    ]
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+
+    },
 }
 
 COMMAND_OUTPUT_username = """TERM=xterm-mono ssh -l user host.domain.net
@@ -266,7 +274,14 @@ COMMAND_RESULT_username = {
         "Have a lot of fun...",
         "host:~ #",
         "host:~ # export TMOUT=\"2678400\"",
-    ]
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+
+    },
 }
 
 COMMAND_OUTPUT_prompt = """
@@ -297,7 +312,14 @@ COMMAND_RESULT_prompt = {
         "Have a lot of fun...",
         "host:~ #",
         "host:~ # export PS1=\"\\u$\"",
-    ]
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+
+    },
 }
 
 COMMAND_OUTPUT_2prompts = """
@@ -328,7 +350,15 @@ COMMAND_RESULT_2prompts = {
         'Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1',
         'Have a lot of fun...',
         'host:~ #',
-        'host:~ # export PS1="\\u$"']
+        'host:~ # export PS1="\\u$"'
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+
+    },
 }
 
 COMMAND_OUTPUT_rm = """
@@ -384,7 +414,13 @@ COMMAND_RESULT_rm = {
         "Password:",
         "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
         "Have a lot of fun...",
-    ]
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+    },
 }
 
 COMMAND_OUTPUT_keygen = """
@@ -443,7 +479,14 @@ COMMAND_RESULT_keygen = {
         "Have a lot of fun...",
         "host:~ #",
         "host:~ # export TMOUT=\"2678400\"",
-    ]
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+
+    },
 }
 
 COMMAND_OUTPUT_2_passwords = """
@@ -490,7 +533,9 @@ COMMAND_RESULT_2_passwords = {
         "",
         "host:~ #",
         "host:~ # export TMOUT=\"2678400\"",
-    ]
+    ],
+    'LAST_LOGIN': {
+    },
 }
 
 
@@ -538,7 +583,9 @@ COMMAND_RESULT_2_passwords_repeat = {
         "",
         "host:~ #",
         "host:~ # export TMOUT=\"2678400\"",
-    ]
+    ],
+    'LAST_LOGIN': {
+    },
 }
 
 COMMAND_OUTPUT_resize_window = """
@@ -601,7 +648,13 @@ COMMAND_RESULT_resize_window = {
         "Have a lot of fun...",
         "host:~ #",
         "host:~ # export TMOUT=\"2678400\""
-    ]
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'on',
+        'WHERE': 'ttyAMA2',
+        'RAW_DATE': 'Sun Jan  6 13:42:05 UTC+2 2019',
+        'DATE': parser.parse('Sun Jan  6 13:42:05 UTC+2 2019'),
+    },
 }
 
 COMMAND_OUTPUT_options = """
@@ -664,7 +717,13 @@ COMMAND_RESULT_options = {
         "Have a lot of fun...",
         "host:~ #",
         "host:~ # export TMOUT=\"2678400\""
-    ]
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'on',
+        'WHERE': 'ttyAMA2',
+        'RAW_DATE': 'Sun Jan  6 13:42:05 UTC+2 2019',
+        'DATE': parser.parse('Sun Jan  6 13:42:05 UTC+2 2019'),
+    },
 }
 
 COMMAND_OUTPUT_failure_exception = """
@@ -698,7 +757,13 @@ COMMAND_RESULT_failure_exception = {
         "-bash: /home/user/.bash_profile: Permission denied",
         "host:~ #",
         "host:~ # export TMOUT=\"2678400\""
-    ]
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.2',
+        'RAW_DATE': 'Tue Jul 23 13:59:25 2029',
+        'DATE': parser.parse('Tue Jul 23 13:59:25 2029'),
+    },
 }
 
 COMMAND_OUTPUT_prompt_fingerprint = """
@@ -729,5 +794,11 @@ COMMAND_RESULT_prompt_fingerprint = {
         "Have a lot of fun...",
         "host:~ #",
         "host:~ # export PS1=\"\\u$\"",
-    ]
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+    },
 }

@@ -12,6 +12,7 @@ import re
 from moler.cmd.unix.generictelnetssh import GenericTelnetSsh
 from moler.exceptions import ParsingDone
 from moler.helpers import copy_list
+from dateutil import parser
 
 
 class Telnet(GenericTelnetSsh):
@@ -224,7 +225,14 @@ COMMAND_RESULT = {
         "CLIENT5 [] has just connected!",
         "host:~ #",
         "export TMOUT=\"2678400\"",
-    ]
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+
+    },
 }
 
 COMMAND_OUTPUT_username = """TERM=xterm-mono telnet host.domain.net 1500
@@ -253,7 +261,14 @@ COMMAND_RESULT_username = {
         "CLIENT5 [] has just connected!",
         "host:~ #",
         "export TMOUT=\"2678400\"",
-    ]
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+
+    },
 }
 
 
@@ -290,7 +305,14 @@ COMMAND_RESULT_prompt = {
         "export TMOUT=\"2678400\"",
         "host:~ #",
         "export PS1=\"host_new#\""
-    ]
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+
+    },
 }
 
 COMMAND_OUTPUT_2prompts = """
@@ -326,7 +348,14 @@ COMMAND_RESULT_2prompts = {
         "export TMOUT=\"2678400\"",
         "host:~ #",
         "export PS1=\"host_new#\""
-    ]
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+
+    },
 }
 
 COMMAND_OUTPUT_many_passwords = """
@@ -354,7 +383,14 @@ COMMAND_RESULT_many_passwords = {
         "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
         "Have a lot of fun...",
         "CLIENT5 [] has just connected!",
-    ]
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+
+    },
 }
 
 COMMAND_OUTPUT_many_passwords_repeat = """
@@ -384,7 +420,14 @@ COMMAND_RESULT_many_passwords_repeat = {
         "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
         "Have a lot of fun...",
         "CLIENT5 [] has just connected!",
-    ]
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+
+    },
 }
 
 COMMAND_OUTPUT_no_settings = """
@@ -410,7 +453,14 @@ COMMAND_RESULT_no_settings = {
         "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
         "Have a lot of fun...",
         "CLIENT5 [] has just connected!"
-    ]
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+
+    },
 }
 
 COMMAND_OUTPUT_no_credentials = """
@@ -430,7 +480,14 @@ COMMAND_RESULT_no_credentials = {
         "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
         "Have a lot of fun...",
         "CLIENT5 [] has just connected!"
-    ]
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+
+    },
 }
 
 
@@ -457,7 +514,14 @@ COMMAND_RESULT_prefix = {
         "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
         "Have a lot of fun...",
         "CLIENT5 [] has just connected!"
-    ]
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+
+    },
 }
 
 
@@ -487,5 +551,12 @@ COMMAND_RESULT_newline_after_prompt = {
         "Have a lot of fun...",
         "CLIENT5 [] has just connected!",
         "host:~ #",
-    ]
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+
+    },
 }
