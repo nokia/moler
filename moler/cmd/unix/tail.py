@@ -52,10 +52,6 @@ class Tail(GenericUnixCommand):
         if is_full_line:
             self._line_nr += 1
             try:
-                if self._line_nr > 1:
-                    self._re_fail = None
-                else:
-                    self._parse_error(line)
                 self._parse_line(line)
             except ParsingDone:
                 pass
@@ -67,6 +63,20 @@ class Tail(GenericUnixCommand):
         if self._regex_helper.search_compiled(Tail._re_parse_error, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
             raise ParsingDone
+
+    def is_failure_indication(self, line):
+        """
+        Method to detect if passed line contains part indicating failure of command
+
+        :param line: Line from command output on device
+        :return: Match object if find regex in line, None otherwise.
+        """
+        if self._line_nr > 1:
+            if self._stored_exception:
+                self._stored_exception = None
+            return None
+        self._parse_error(line=line)
+        return super(Cat, self).is_failure_indication(line=line)
 
     def _parse_line(self, line):
         if not line == "":
