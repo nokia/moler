@@ -41,22 +41,6 @@ class Tail(GenericUnixCommand):
             cmd = "{} {}".format(cmd, self.path)
         return cmd
 
-    def on_new_line(self, line, is_full_line):
-        """
-        Parses the output of the command.
-
-        :param line: Line to process, can be only part of line. New line chars are removed from line.
-        :param is_full_line: True if line had new line chars, False otherwise
-        :return: None
-        """
-        if is_full_line:
-            self._line_nr += 1
-            try:
-                self._parse_line(line)
-            except ParsingDone:
-                pass
-        return super(Tail, self).on_new_line(line, is_full_line)
-
     _re_parse_error = re.compile(r'tail:\s(?P<PATH>.*):\s(?P<ERROR>.*)')
 
     def _parse_error(self, line):
@@ -76,12 +60,28 @@ class Tail(GenericUnixCommand):
                 self._stored_exception = None
             return None
         self._parse_error(line=line)
-        return super(Cat, self).is_failure_indication(line=line)
+        return super(Tail, self).is_failure_indication(line=line)
 
     def _parse_line(self, line):
         if not line == "":
             self.current_ret["LINES"].append(line)
         raise ParsingDone
+
+    def on_new_line(self, line, is_full_line):
+        """
+        Parses the output of the command.
+
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: None
+        """
+        if is_full_line:
+            self._line_nr += 1
+            try:
+                self._parse_line(line)
+            except ParsingDone:
+                pass
+        return super(Tail, self).on_new_line(line, is_full_line)
 
 
 COMMAND_OUTPUT = """
