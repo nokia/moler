@@ -279,10 +279,12 @@ class JuniperGeneric(ProxyPc):
                 JuniperGeneric.configure: JuniperGeneric.proxy_pc,
             },
             JuniperGeneric.unix_local_root: {
+                JuniperGeneric.not_connected: JuniperGeneric.unix_local,
                 JuniperGeneric.cli: JuniperGeneric.unix_local,
                 JuniperGeneric.configure: JuniperGeneric.unix_local,
             },
             JuniperGeneric.proxy_pc: {
+                JuniperGeneric.not_connected: JuniperGeneric.unix_local,
                 JuniperGeneric.configure: JuniperGeneric.cli,
             }
         }
