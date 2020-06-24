@@ -242,6 +242,7 @@ class PduAten(ProxyPc):
                 PduAten.pdu: PduAten.proxy_pc,
             },
             PduAten.unix_local_root: {
+                PduAten.not_connected: PduAten.unix_local,
                 PduAten.pdu: PduAten.unix_local,
             },
         }
@@ -262,6 +263,7 @@ class PduAten(ProxyPc):
                 PduAten.unix_local_root: PduAten.unix_local
             },
             PduAten.unix_local_root: {
+                PduAten.not_connected: PduAten.unix_local,
                 PduAten.pdu: PduAten.unix_local,
             },
         }
