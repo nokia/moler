@@ -238,6 +238,7 @@ class ProxyPc(UnixLocal):
             },
             UnixLocal.unix_local_root: {
                 ProxyPc.proxy_pc: ProxyPc.unix_local,
+                ProxyPc.not_connected: ProxyPc.unix_local,
             },
             ProxyPc.proxy_pc: {
                 ProxyPc.not_connected: ProxyPc.unix_local,

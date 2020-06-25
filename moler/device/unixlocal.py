@@ -176,6 +176,9 @@ class UnixLocal(TextualDevice):
             UnixLocal.not_connected: {
                 UnixLocal.unix_local_root: UnixLocal.unix_local,
             },
+            UnixLocal.unix_local_root: {
+                UnixLocal.not_connected: UnixLocal.unix_local,
+            }
         }
         return state_hops
 
