@@ -798,7 +798,7 @@ COMMAND_RESULT_prompt_fingerprint = {
         "You may put information to /etc/ssh_banner who is owner of this PC",
         "Password:",
         "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
-        'There was 1 failed login attempts since the last successful login.'
+        'There was 1 failed login attempts since the last successful login.',
         "Have a lot of fun...",
         "host:~ #",
         "host:~ # export PS1=\"\\u$\"",
