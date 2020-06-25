@@ -358,6 +358,7 @@ class UnixRemote(ProxyPc):
                 UnixRemote.unix_local_root: UnixRemote.proxy_pc
             },
             UnixRemote.unix_local_root: {
+                UnixRemote.not_connected: UnixRemote.unix_local,
                 UnixRemote.unix_remote: UnixRemote.unix_local,
                 UnixRemote.unix_remote_root: UnixRemote.unix_local
             },
@@ -395,6 +396,7 @@ class UnixRemote(ProxyPc):
                 UnixRemote.unix_remote_root: UnixRemote.unix_remote
             },
             UnixRemote.unix_local_root: {
+                UnixRemote.not_connected: UnixRemote.unix_local,
                 UnixRemote.unix_remote: UnixRemote.unix_local,
                 UnixRemote.unix_remote_root: UnixRemote.unix_local
             },

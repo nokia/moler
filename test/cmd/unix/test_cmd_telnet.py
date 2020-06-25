@@ -11,6 +11,7 @@ import pytest
 import time
 from moler.cmd.unix.telnet import Telnet
 from moler.exceptions import CommandFailure
+from dateutil import parser
 import datetime
 
 
@@ -178,6 +179,20 @@ def command_output_and_expected_result():
     for line in lines:
         data = data + line
     result = dict()
+    result['LINES'] = [
+        'Login:user',
+        'Password: ',
+        'Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1',
+        'Have a lot of fun...',
+        'host:~ # export TMOUT="2678400"'
+    ]
+    result['LAST_LOGIN'] = {
+        'KIND': 'from',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+        'WHERE': '127.0.0.1',
+    }
+    result['FAILED_LOGIN_ATTEMPTS'] = None
     return data, result
 
 

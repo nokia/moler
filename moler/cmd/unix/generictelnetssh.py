@@ -16,6 +16,8 @@ from moler.cmd.commandchangingprompt import CommandChangingPrompt
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 from moler.helpers import copy_list
+from dateutil import parser
+from moler.util.converterhelper import ConverterHelper
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -105,6 +107,10 @@ class GenericTelnetSsh(CommandChangingPrompt):
                                                                                                          username))
         elif username:
             self.login = username
+        self.current_ret['LINES'] = list()
+        self.current_ret['LAST_LOGIN'] = dict()
+        self.current_ret['FAILED_LOGIN_ATTEMPTS'] = None
+        self._converter_helper = ConverterHelper.get_converter_helper()
 
     def on_new_line(self, line, is_full_line):
         """
@@ -116,6 +122,8 @@ class GenericTelnetSsh(CommandChangingPrompt):
         :raises: ParsingDone if any line matched the regex.
         """
         try:
+            if is_full_line:
+                self._add_line_to_ret(line)
             self._parse_failure_indication(line)
             self._send_login_if_requested(line)
             self._send_password_if_requested(line)
@@ -123,6 +131,37 @@ class GenericTelnetSsh(CommandChangingPrompt):
         except ParsingDone:
             pass
         super(GenericTelnetSsh, self).on_new_line(line=line, is_full_line=is_full_line)
+
+    # Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+    _re_last_login = re.compile(r"Last login:\s+(?P<DATE>.*)\s+(?P<KIND>from|on)\s+(?P<WHERE>\S+)", re.IGNORECASE)
+
+    # There were 2 failed login attempts since the last successful login
+    _re_attempts = re.compile(
+        r'There (?:were|was|have been) (?P<ATTEMPTS_NR>\d+) (?:failed|unsuccessful) login attempts? '
+        r'since the last successful login', re.I)
+
+    def _add_line_to_ret(self, line):
+        """
+        Adds lint to ret value of command.
+
+        :param line: line form connection.
+        :return: None
+        """
+        self.current_ret['LINES'].append(line)
+        if self._regex_helper.search_compiled(GenericTelnetSsh._re_last_login, line):
+            date_raw = self._regex_helper.group("DATE")
+            self.current_ret['LAST_LOGIN']['RAW_DATE'] = date_raw
+            self.current_ret['LAST_LOGIN']['KIND'] = self._regex_helper.group("KIND")
+            self.current_ret['LAST_LOGIN']['WHERE'] = self._regex_helper.group("WHERE")
+            try:
+                self.current_ret['LAST_LOGIN']['DATE'] = parser.parse(date_raw)
+            except ValueError:  # do not fail ssh or telnet if unknown date format.
+                pass
+            except OverflowError:
+                pass
+        elif self._regex_helper.search_compiled(GenericTelnetSsh._re_attempts, line):
+            self.current_ret['FAILED_LOGIN_ATTEMPTS'] = self._converter_helper.to_number(
+                self._regex_helper.group("ATTEMPTS_NR"))
 
     def _parse_failure_indication(self, line):
         """
