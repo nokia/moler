@@ -192,6 +192,7 @@ def command_output_and_expected_result():
         'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
         'WHERE': '127.0.0.1',
     }
+    result['FAILED_LOGIN_ATTEMPTS'] = None
     return data, result
 
 

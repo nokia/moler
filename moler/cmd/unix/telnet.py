@@ -231,8 +231,8 @@ COMMAND_RESULT = {
         'WHERE': '127.0.0.1',
         'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
         'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
-
     },
+    'FAILED_LOGIN_ATTEMPTS': None,
 }
 
 COMMAND_OUTPUT_username = """TERM=xterm-mono telnet host.domain.net 1500
@@ -267,8 +267,8 @@ COMMAND_RESULT_username = {
         'WHERE': '127.0.0.1',
         'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
         'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
-
     },
+    'FAILED_LOGIN_ATTEMPTS': None,
 }
 
 
@@ -290,7 +290,6 @@ COMMAND_KWARGS_prompt = {
     "login": "user", "password": "english", "port": "1500",
     "host": "host.domain.net", "expected_prompt": "host.*#",
     "set_prompt": "export PS1=\"host_new#\""
-
 }
 
 COMMAND_RESULT_prompt = {
@@ -311,8 +310,8 @@ COMMAND_RESULT_prompt = {
         'WHERE': '127.0.0.1',
         'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
         'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
-
     },
+    'FAILED_LOGIN_ATTEMPTS': None,
 }
 
 COMMAND_OUTPUT_2prompts = """
@@ -333,7 +332,6 @@ COMMAND_KWARGS_2prompts = {
     "login": "user", "password": "english", "port": "1500",
     "host": "host.domain.net", "expected_prompt": r"host_new#",
     "set_prompt": "export PS1=\"host_new#\"", "prompt_after_login": r"host:.*#"
-
 }
 
 COMMAND_RESULT_2prompts = {
@@ -354,8 +352,8 @@ COMMAND_RESULT_2prompts = {
         'WHERE': '127.0.0.1',
         'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
         'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
-
     },
+    'FAILED_LOGIN_ATTEMPTS': None,
 }
 
 COMMAND_OUTPUT_many_passwords = """
@@ -389,8 +387,8 @@ COMMAND_RESULT_many_passwords = {
         'WHERE': '127.0.0.1',
         'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
         'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
-
     },
+    'FAILED_LOGIN_ATTEMPTS': None,
 }
 
 COMMAND_OUTPUT_many_passwords_repeat = """
@@ -426,8 +424,8 @@ COMMAND_RESULT_many_passwords_repeat = {
         'WHERE': '127.0.0.1',
         'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
         'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
-
     },
+    'FAILED_LOGIN_ATTEMPTS': None,
 }
 
 COMMAND_OUTPUT_no_settings = """
@@ -459,8 +457,8 @@ COMMAND_RESULT_no_settings = {
         'WHERE': '127.0.0.1',
         'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
         'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
-
     },
+    'FAILED_LOGIN_ATTEMPTS': None,
 }
 
 COMMAND_OUTPUT_no_credentials = """
@@ -486,8 +484,8 @@ COMMAND_RESULT_no_credentials = {
         'WHERE': '127.0.0.1',
         'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
         'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
-
     },
+    'FAILED_LOGIN_ATTEMPTS': None,
 }
 
 
@@ -520,8 +518,8 @@ COMMAND_RESULT_prefix = {
         'WHERE': '127.0.0.1',
         'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
         'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
-
     },
+    'FAILED_LOGIN_ATTEMPTS': None,
 }
 
 
@@ -557,6 +555,6 @@ COMMAND_RESULT_newline_after_prompt = {
         'WHERE': '127.0.0.1',
         'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
         'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
-
     },
+    'FAILED_LOGIN_ATTEMPTS': None,
 }
