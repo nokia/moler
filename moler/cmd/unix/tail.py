@@ -42,7 +42,8 @@ class Tail(GenericUnixCommand):
         return cmd
 
     # tail: cannot open 'moler.log' for reading: Permission denied
-    _re_parse_error = re.compile(r'^.*:.*:\s*(No such file or directory|command not found|Permission denied)$')
+    _re_parse_error = re.compile(r'^.*:.*:\s*(No such file or directory|command not found|Permission denied|'
+                                 r'Is a directory)$')
 
     def is_failure_indication(self, line):
         """
