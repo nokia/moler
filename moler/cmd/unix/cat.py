@@ -57,6 +57,8 @@ class Cat(GenericUnixCommand):
                 pass
         return super(Cat, self).on_new_line(line, is_full_line)
 
+    _re_parse_error = re.compile(r'^.*:.*:\s*(No such file or directory|command not found|Permission denied)$')
+
     def is_failure_indication(self, line):
         """
         Method to detect if passed line contains part indicating failure of command
@@ -68,15 +70,8 @@ class Cat(GenericUnixCommand):
             if self._stored_exception:
                 self._stored_exception = None
             return None
-        self._parse_error(line=line)
-        return super(Cat, self).is_failure_indication(line=line)
-
-    _re_parse_error = re.compile(r'cat:\s(?P<PATH>.*):\s(?P<ERROR>.*)')
-
-    def _parse_error(self, line):
         if self._regex_helper.search_compiled(Cat._re_parse_error, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
-            raise ParsingDone
+            self.set_exception(CommandFailure(self, "Error in line >>{}<<".format(line)))
 
     def _parse_line(self, line):
         if not line == "":
