@@ -2,7 +2,7 @@
 """
 Tail command module.
 """
-from moler.cmd.unix.genericunix import GenericUnixCommand
+from moler.cmd.unix.cat import Cat
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 import re
@@ -12,7 +12,7 @@ __copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'sylwester.golonka@nokia.com, marcin.usielski@nokia.com'
 
 
-class Tail(GenericUnixCommand):
+class Tail(Cat):
     def __init__(self, connection, path, options=None, prompt=None, newline_chars=None, runner=None):
         """
         :param connection: Moler connection to device, terminal when command is executed.
@@ -22,11 +22,8 @@ class Tail(GenericUnixCommand):
         :param newline_chars: Characters to split lines - list.
         :param runner: Runner to run command.
         """
-        super(Tail, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
-        self.path = path
-        self.options = options
-        self.current_ret["LINES"] = []
-        self._line_nr = 0
+        super(Tail, self).__init__(connection=connection, path=path, options=options, prompt=prompt,
+                                   newline_chars=newline_chars, runner=runner)
 
     def build_command_string(self):
         """
@@ -40,45 +37,6 @@ class Tail(GenericUnixCommand):
         else:
             cmd = "{} {}".format(cmd, self.path)
         return cmd
-
-    # tail: cannot open 'moler.log' for reading: Permission denied
-    _re_parse_error = re.compile(r'^.*:.*:\s*(No such file or directory|command not found|Permission denied|'
-                                 r'Is a directory)$')
-
-    def is_failure_indication(self, line):
-        """
-        Method to detect if passed line contains part indicating failure of command
-
-        :param line: Line from command output on device
-        :return: Match object if find regex in line, None otherwise.
-        """
-        if self._line_nr > 1:
-            if self._stored_exception:
-                self._stored_exception = None
-            return None
-        if self._regex_helper.search_compiled(Tail._re_parse_error, line):
-            self.set_exception(CommandFailure(self, "Error in line >>{}<<".format(line)))
-
-    def _parse_line(self, line):
-        if not line == "":
-            self.current_ret["LINES"].append(line)
-        raise ParsingDone
-
-    def on_new_line(self, line, is_full_line):
-        """
-        Parses the output of the command.
-
-        :param line: Line to process, can be only part of line. New line chars are removed from line.
-        :param is_full_line: True if line had new line chars, False otherwise
-        :return: None
-        """
-        if is_full_line:
-            self._line_nr += 1
-            try:
-                self._parse_line(line)
-            except ParsingDone:
-                pass
-        return super(Tail, self).on_new_line(line, is_full_line)
 
 
 COMMAND_OUTPUT = """
