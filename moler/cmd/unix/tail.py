@@ -41,12 +41,8 @@ class Tail(GenericUnixCommand):
             cmd = "{} {}".format(cmd, self.path)
         return cmd
 
-    _re_parse_error = re.compile(r'tail:\s(?P<PATH>.*):\s(?P<ERROR>.*)')
-
-    def _parse_error(self, line):
-        if self._regex_helper.search_compiled(Tail._re_parse_error, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
-            raise ParsingDone
+    # tail: cannot open 'moler.log' for reading: Permission denied
+    _re_parse_error = re.compile(r'^.*:.*:\s*(No such file or directory|command not found|Permission denied)$')
 
     def is_failure_indication(self, line):
         """
@@ -59,8 +55,8 @@ class Tail(GenericUnixCommand):
             if self._stored_exception:
                 self._stored_exception = None
             return None
-        self._parse_error(line=line)
-        return super(Tail, self).is_failure_indication(line=line)
+        if self._regex_helper.search_compiled(Tail._re_parse_error, line):
+            self.set_exception(CommandFailure(self, "Error in line >>{}<<".format(line)))
 
     def _parse_line(self, line):
         if not line == "":
