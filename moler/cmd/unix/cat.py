@@ -57,6 +57,7 @@ class Cat(GenericUnixCommand):
                 pass
         return super(Cat, self).on_new_line(line, is_full_line)
 
+    # cat: moler.log: Permission denied
     _re_parse_error = re.compile(r'^.*:.*:\s*(No such file or directory|command not found|Permission denied)$')
 
     def is_failure_indication(self, line):
