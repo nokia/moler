@@ -1,3 +1,12 @@
+## moler 1.17.0
+
+### Improved
+* Option clear devices history
+* Sm not connected
+* Tail and cat work with error in content of file
+* Collect output from telent and ssh
+* Sum cmds
+
 ## moler 1.16.0
 
 ### Improved
