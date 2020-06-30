@@ -3,9 +3,6 @@
 Tail command module.
 """
 from moler.cmd.unix.cat import Cat
-from moler.exceptions import CommandFailure
-from moler.exceptions import ParsingDone
-import re
 
 __author__ = 'Sylwester Golonka, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018-2020, Nokia'

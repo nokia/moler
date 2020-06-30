@@ -63,7 +63,7 @@ class Cat(GenericUnixCommand):
 
     def is_failure_indication(self, line):
         """
-        Method to detect if passed line contains part indicating failure of command
+        Method to detect if passed line contains part indicating failure of command.
 
         :param line: Line from command output on device
         :return: Match object if find regex in line, None otherwise.
