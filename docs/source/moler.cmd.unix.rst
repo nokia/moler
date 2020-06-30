@@ -572,6 +572,14 @@ moler.cmd.unix.sftp module
     :undoc-members:
     :show-inheritance:
 
+moler.cmd.unix.shasum module
+----------------------------
+
+.. automodule:: moler.cmd.unix.shasum
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.cmd.unix.socat module
 ---------------------------
 
