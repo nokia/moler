@@ -2,9 +2,9 @@
 """
 Testing of cat command.
 """
-__author__ = 'Sylwester Golonka'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'sylwester.golonka@nokia.com'
+__author__ = 'Sylwester Golonka, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__email__ = 'sylwester.golonka@nokia.com, marcin.usielski@nokia.com'
 
 from moler.cmd.unix.cat import Cat
 from moler.exceptions import CommandFailure
@@ -16,8 +16,14 @@ def test_cat_returns_proper_command_string(buffer_connection):
     assert "cat /home/ute/test" == cat_cmd.command_string
 
 
-def test_cat_raise_exception_wrong_path(buffer_connection, command_output_and_expected_result):
-    command_output, expected_result = command_output_and_expected_result
+def test_cat_raise_exception_wrong_path(buffer_connection, command_output):
+    buffer_connection.remote_inject_response([command_output])
+    cat_cmd = Cat(connection=buffer_connection.moler_connection, path="/home/test/test")
+    cat_cmd()
+
+
+def test_cat_raise_exception_wrong_path_exception(buffer_connection, command_output_exception):
+    command_output = command_output_exception
     buffer_connection.remote_inject_response([command_output])
     cat_cmd = Cat(connection=buffer_connection.moler_connection, path="/home/test/test")
     with pytest.raises(CommandFailure):
@@ -25,15 +31,19 @@ def test_cat_raise_exception_wrong_path(buffer_connection, command_output_and_ex
 
 
 @pytest.fixture
-def command_output_and_expected_result():
+def command_output():
     data = """
 ute@debdev:~$ cat /home/test/test
 cat: /home/ute/test: Is a directory
 f6 FCT-E019-0-SmaLite \ufffd\ufffd\x7f \ufffd\ufffd\ufffd}"\ufffd\x02\ufffd?\ufffd\ufffd\ufffd\x08\ufffd\x05o\x1c
-ute@debdev:~$
-    """
-    result = {
-        'LINES': []
-    }
+ute@debdev:~$"""
+    return data
 
-    return data, result
+
+@pytest.fixture
+def command_output_exception():
+    data = """
+ute@debdev:~$ cat /home/test/test
+cat: /home/ute/test: Is a directory
+ute@debdev:~$"""
+    return data

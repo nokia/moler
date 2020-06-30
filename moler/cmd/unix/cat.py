@@ -52,21 +52,28 @@ class Cat(GenericUnixCommand):
         if is_full_line:
             self._line_nr += 1
             try:
-                if self._line_nr > 1:
-                    self._re_fail = None
-                else:
-                    self._parse_error(line)
                 self._parse_line(line)
             except ParsingDone:
                 pass
         return super(Cat, self).on_new_line(line, is_full_line)
 
-    _re_parse_error = re.compile(r'cat:\s(?P<PATH>.*):\s(?P<ERROR>.*)')
+    # cat: moler.log: Permission denied
+    _re_parse_error = re.compile(r'^.*:.*:\s*(No such file or directory|command not found|Permission denied|'
+                                 r'Is a directory)$')
 
-    def _parse_error(self, line):
+    def is_failure_indication(self, line):
+        """
+        Method to detect if passed line contains part indicating failure of command.
+
+        :param line: Line from command output on device
+        :return: Match object if find regex in line, None otherwise.
+        """
+        if self._line_nr > 1:
+            if self._stored_exception:
+                self._stored_exception = None
+            return None
         if self._regex_helper.search_compiled(Cat._re_parse_error, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
-            raise ParsingDone
+            self.set_exception(CommandFailure(self, "Error in line >>{}<<".format(line)))
 
     def _parse_line(self, line):
         if not line == "":
@@ -116,6 +123,24 @@ COMMAND_RESULT_cannot_open = {
 COMMAND_KWARGS_cannot_open = {
     "path": "file.txt",
 }
+
+COMMAND_OUTPUT_no_such_file_or_directory = """cat file.txt
+2020-06-23T12:02:42.328562+02:00 info 5GBTS-143-OAM-000 ext-sshd[980136]: lastlog_openseek: Couldn't stat /var/log/lastlog: No such file or directory
+other lines
+user@host:~$"""
+
+COMMAND_RESULT_no_such_file_or_directory = {
+    'LINES':
+        [
+            r"2020-06-23T12:02:42.328562+02:00 info 5GBTS-143-OAM-000 ext-sshd[980136]: lastlog_openseek: Couldn't stat /var/log/lastlog: No such file or directory",
+            r"other lines"
+        ],
+}
+
+COMMAND_KWARGS_no_such_file_or_directory = {
+    "path": "file.txt",
+}
+
 
 COMMAND_OUTPUT_parms = """cat /etc/network/interfaces -b
      1	# This file describes the network interfaces available on your system
