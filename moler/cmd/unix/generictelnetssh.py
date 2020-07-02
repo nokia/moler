@@ -155,9 +155,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
             self.current_ret['LAST_LOGIN']['WHERE'] = self._regex_helper.group("WHERE")
             try:
                 self.current_ret['LAST_LOGIN']['DATE'] = parser.parse(date_raw)
-            except ValueError:  # do not fail ssh or telnet if unknown date format.
-                pass
-            except OverflowError:
+            except Exception:  # do not fail ssh or telnet if unknown date format.
                 pass
         elif self._regex_helper.search_compiled(GenericTelnetSsh._re_attempts, line):
             self.current_ret['FAILED_LOGIN_ATTEMPTS'] = self._converter_helper.to_number(
