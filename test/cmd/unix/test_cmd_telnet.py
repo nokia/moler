@@ -11,6 +11,7 @@ import pytest
 import time
 from moler.cmd.unix.telnet import Telnet
 from moler.exceptions import CommandFailure
+from dateutil import parser
 import datetime
 
 
@@ -37,6 +38,15 @@ def test_calling_telnet_raise_exception_command_failure(buffer_connection):
                         host="host.domain.net", expected_prompt=r"host:.*#", prompt=r"user@client.*>")
     with pytest.raises(CommandFailure):
         telnet_cmd()
+
+
+def test_telnet_username_and_login(buffer_connection):
+    with pytest.raises(CommandFailure) as ex:
+        Telnet(connection=buffer_connection.moler_connection, login="user", password="english", port=1500,
+               host="host.domain.net", expected_prompt=r"host:.*#", prompt=r"user@client.*>",
+               username="username")
+    assert "not both" in str(ex)
+    assert "Telnet" in str(ex)
 
 
 def test_calling_telnet_raise_exception_no_more_passwords(buffer_connection):
@@ -169,6 +179,20 @@ def command_output_and_expected_result():
     for line in lines:
         data = data + line
     result = dict()
+    result['LINES'] = [
+        'Login:user',
+        'Password: ',
+        'Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1',
+        'Have a lot of fun...',
+        'host:~ # export TMOUT="2678400"'
+    ]
+    result['LAST_LOGIN'] = {
+        'KIND': 'from',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+        'WHERE': '127.0.0.1',
+    }
+    result['FAILED_LOGIN_ATTEMPTS'] = None
     return data, result
 
 

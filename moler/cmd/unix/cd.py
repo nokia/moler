@@ -50,7 +50,7 @@ class Cd(GenericUnixCommand):
         Put your parsing code here.
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         if self._re_expected_prompt is not None:
             try:
@@ -64,7 +64,7 @@ class Cd(GenericUnixCommand):
         """
         Checks target prompt.
         :param line: Line to process
-        :return: Nothing
+        :return: None
         """
         if self._regex_helper.search_compiled(self._re_expected_prompt, line):
             if not self.done():

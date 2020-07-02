@@ -18,6 +18,7 @@ def test_calling_grep_returns_result_parsed_from_command_output_with_path_and_li
     command_output, expected_result = command_output_and_expected_result_with_path_and_lines_number_and_bytes
     buffer_connection.remote_inject_response([command_output])
     grep_cmd = Grep(connection=buffer_connection.moler_connection, options='-bnH PREROUTING /etc/iptables/rules.v4')
+    grep_cmd._re_fail = None
     result = grep_cmd()
     assert expected_result == result
 

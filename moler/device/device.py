@@ -14,6 +14,7 @@ from moler.helpers import copy_list
 from moler.exceptions import WrongUsage
 from moler.helpers import copy_dict
 from moler.helpers import compare_objects
+from moler.util.moler_test import MolerTest
 import six
 import functools
 import threading
@@ -51,16 +52,21 @@ class DeviceFactory(object):
             cls.get_device(name=device_name)
 
     @classmethod
-    def remove_all_devices(cls):
+    def remove_all_devices(cls, clear_device_history=False):
         """
         Remove all created devices.
 
+        :param clear_device_history: set True to clear the history of devices. Caution: you may overwrite your logs!
         :return: None
         """
         devices = copy_list(cls._devices.keys(), deep_copy=False)
         for device_name in devices:
             cls.remove_device(name=device_name)
         devices_config.clear()
+        if clear_device_history:
+            MolerTest.warning("All history of devices will be forgotten. The same names can be used again with"
+                              " different meaning!")
+            cls._clear()
 
     @classmethod
     def get_device(cls, name=None, device_class=None, connection_desc=None, connection_hops=None, initial_state=None,

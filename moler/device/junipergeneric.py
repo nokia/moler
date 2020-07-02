@@ -27,9 +27,12 @@ class JuniperGeneric(ProxyPc):
         """
         Create unix device communicating over io_connection.
 
+        :param sm_params: params with machine state description.
+        :param name: name of device.
         :param io_connection: External-IO connection having embedded moler-connection
         :param io_type: External-IO connection connection type
         :param variant: External-IO connection variant
+        :param io_constructor_kwargs: additional parameters for constructor of selected io_type
         :param initial_state: Initial state for device
         """
         sm_params = sm_params.copy()
@@ -280,10 +283,12 @@ class JuniperGeneric(ProxyPc):
                 JuniperGeneric.configure: JuniperGeneric.proxy_pc,
             },
             JuniperGeneric.unix_local_root: {
+                JuniperGeneric.not_connected: JuniperGeneric.unix_local,
                 JuniperGeneric.cli: JuniperGeneric.unix_local,
                 JuniperGeneric.configure: JuniperGeneric.unix_local,
             },
             JuniperGeneric.proxy_pc: {
+                JuniperGeneric.not_connected: JuniperGeneric.unix_local,
                 JuniperGeneric.configure: JuniperGeneric.cli,
             }
         }

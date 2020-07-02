@@ -60,7 +60,7 @@ class Unzip(GenericUnixCommand):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing.
+        :return: None.
         """
         try:
             self._asks_to_overwrite(line)
@@ -80,7 +80,7 @@ class Unzip(GenericUnixCommand):
         Parse file name in line abd append it to FILE_LIST list.
 
         :param line: Line to process.
-        :return: Nothing but raises ParsingDone if line has the information to handle by this method.
+        :return: None but raises ParsingDone if line has the information to handle by this method.
         """
         if self._regex_helper.search_compiled(Unzip._re_info_output, line):
             self.current_ret['FILE_LIST'].append(self._regex_helper.group("FILE_NAME"))
@@ -94,7 +94,7 @@ class Unzip(GenericUnixCommand):
         Parse errors in line and set exception in case of any errors were parsed.
 
         :param line: Line to process.
-        :return: Nothing but raises ParsingDone if line has the information to handle by this method.
+        :return: None but raises ParsingDone if line has the information to handle by this method.
         """
         if self._cmd_output_started and self._regex_helper.search_compiled(Unzip._re_no_file, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("error"))))
@@ -110,7 +110,7 @@ class Unzip(GenericUnixCommand):
         Parse line in order to find the overwrite query and send line in accordance to overwrite parameter.
 
         :param line: Line to process.
-        :return: Nothing but raises ParsingDone if line has the information to handle by this method.
+        :return: None but raises ParsingDone if line has the information to handle by this method.
         """
         if self._regex_helper.search_compiled(Unzip._re_overwrite, line) and not self._is_overwritten:
             self._is_overwritten = True
@@ -133,7 +133,7 @@ class Unzip(GenericUnixCommand):
         FILE_DICT with file details.
 
         :param line: Line to process.
-        :return: Nothing but raises ParsingDone if line has the information to handle by this method.
+        :return: None but raises ParsingDone if line has the information to handle by this method.
         """
         if 'v' in self.options and self._regex_helper.search_compiled(Unzip._re_assign_values, line):
             _date_time_str = self._regex_helper.group("DATE") + " " + self._regex_helper.group("TIME")
@@ -158,7 +158,7 @@ class Unzip(GenericUnixCommand):
         Parse errors in line and set exception in case of any errors were parsed.
 
         :param line: Line to process.
-        :return: Nothing but raises ParsingDone if line has the information to handle by this method.
+        :return: None but raises ParsingDone if line has the information to handle by this method.
         """
         if self._cmd_output_started and self._regex_helper.search_compiled(Unzip._re_filename_not_matched, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("caution"))))

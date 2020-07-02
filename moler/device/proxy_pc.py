@@ -99,7 +99,7 @@ class ProxyPc(UnixLocal):
     def _prepare_transitions(self):
         """
         Prepare transitions to change states.
-        :return: Nothing.
+        :return: None.
         """
         super(ProxyPc, self)._prepare_transitions()
         if self._use_proxy_pc:
@@ -142,7 +142,7 @@ class ProxyPc(UnixLocal):
     def _prepare_state_prompts(self):
         """
         Prepare textual prompt for each state.
-        :return: Nothing.
+        :return: None.
         """
         super(ProxyPc, self)._prepare_state_prompts()
 
@@ -179,7 +179,7 @@ class ProxyPc(UnixLocal):
     def _prepare_newline_chars(self):
         """
         Prepare newline char for each state.
-        :return: Nothing.
+        :return: None.
         """
         super(ProxyPc, self)._prepare_newline_chars()
 
@@ -216,7 +216,7 @@ class ProxyPc(UnixLocal):
     def _prepare_state_hops(self):
         """
         Prepare hops for non direct transitions between states.
-        :return: Nothing.
+        :return: None.
         """
         super(ProxyPc, self)._prepare_state_hops()
 
@@ -238,6 +238,7 @@ class ProxyPc(UnixLocal):
             },
             UnixLocal.unix_local_root: {
                 ProxyPc.proxy_pc: ProxyPc.unix_local,
+                ProxyPc.not_connected: ProxyPc.unix_local,
             },
             ProxyPc.proxy_pc: {
                 ProxyPc.not_connected: ProxyPc.unix_local,

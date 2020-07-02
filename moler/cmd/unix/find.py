@@ -52,7 +52,7 @@ class Find(GenericUnixCommand):
         Put your parsing code here.
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         if is_full_line:
             try:
@@ -69,7 +69,7 @@ class Find(GenericUnixCommand):
         """
         Checks if line contains information about permission denied
         :param line: Line from device
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         if self._regex_helper.search_compiled(Find._re_permission_denied, line):
             raise ParsingDone()
@@ -80,7 +80,7 @@ class Find(GenericUnixCommand):
         """
         Checks if line contains information about failure of command
         :param line: Line from device
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         if self._regex_helper.search_compiled(Find._re_error, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG_FIND"))))
@@ -90,7 +90,7 @@ class Find(GenericUnixCommand):
         """
         Add line to value returning by the command
         :param line: Line from device
-        :return: Nothing but raises ParsingDone
+        :return: None but raises ParsingDone
         """
         self.current_ret['RESULT'].append(line)
         raise ParsingDone()

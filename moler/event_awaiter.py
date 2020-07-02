@@ -76,7 +76,7 @@ class EventAwaiter(object):
     def cancel_all_events(events):
         """
         :param events: list of events to cancel
-        :return: nothing
+        :return: None
         """
         for event in events:
             event.cancel()

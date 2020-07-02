@@ -58,7 +58,7 @@ class CtrlC(GenericUnixCommand):
         Setter for command_string.
 
         :param command_string: Stting with command to set.
-        :return: Nothing
+        :return: None
         """
         self.__command_string = command_string
         self._cmd_escaped = re.compile(r"\^C", re.I)
@@ -69,7 +69,7 @@ class CtrlC(GenericUnixCommand):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         if self._regex_helper.search_compiled(self._re_expected_prompt, line):
             if not self.done():

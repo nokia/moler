@@ -51,7 +51,7 @@ class Lsof(GenericUnixCommand):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         if is_full_line:
             try:

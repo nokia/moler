@@ -46,6 +46,15 @@ def test_ssh_failed_host_key_verification(buffer_connection, command_output_fail
         ssh_cmd()
 
 
+def test_ssh_username_and_login(buffer_connection):
+    with pytest.raises(CommandFailure) as ex:
+        Ssh(connection=buffer_connection.moler_connection, login="user", password="english", port=1500,
+            host="host.domain.net", expected_prompt=r"host:.*#", prompt=r"user@client.*>",
+            username="username")
+    assert "not both" in str(ex)
+    assert "Ssh" in str(ex)
+
+
 def test_ssh_failed_permission_denied(buffer_connection, command_output_permission_denied):
     command_output = command_output_permission_denied
     buffer_connection.remote_inject_response([command_output])

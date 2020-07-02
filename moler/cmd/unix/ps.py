@@ -7,6 +7,7 @@ __email__ = 'dariusz.rosinski@nokia.com, marcin.usielski@nokia.com'
 import re
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
+from moler.util.converterhelper import ConverterHelper
 
 """
 ps command module.
@@ -39,6 +40,8 @@ class Ps(GenericUnixCommand):
         self.options = options
         self._headers = None
         self._header_pos = None
+        self.ret_required = False
+        self._converter_helper = ConverterHelper.get_converter_helper()
 
     def on_new_line(self, line, is_full_line):
         """
@@ -109,10 +112,10 @@ class Ps(GenericUnixCommand):
 
                 content = line[start_pos:end_pos]
                 content = content.strip()
-                if self._regex_helper.match_compiled(Ps._re_float, content):
-                    content = float(content)
-                elif self._regex_helper.match_compiled(Ps._re_integer, content):
-                    content = int(content)
+                try:
+                    content = self._converter_helper.to_number(value=content, raise_exception=True)
+                except ValueError:
+                    pass
                 item[self._headers[column_nr]] = content
                 previous_end_pos = end_pos
             self.current_ret.append(item)
@@ -274,3 +277,11 @@ COMMAND_RESULT_aux = [
     {'USER': 'root', 'PID': 1, '%CPU': float("0.0"), "%MEM": float("0.1"), 'VSZ': 139360, 'RSS': 7220, 'TTY': '?',
      'STAT': 'Ss', 'START': 'Mar01', 'TIME': '1:16', 'COMMAND': '/sbin/init'}
 ]
+
+COMMAND_OUTPUT_no_results = '''ps -fC some_process
+UID        PID  PPID  C STIME TTY          TIME CMD
+client@server>'''
+
+COMMAND_KWARGS_no_results = {"options": "-fC some_process"}
+
+COMMAND_RESULT_no_results = []

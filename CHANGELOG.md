@@ -1,3 +1,26 @@
+## moler 1.17.0
+
+### Improved
+* Option clear devices history
+* Sm not connected
+* Tail and cat work with error in content of file
+* Collect output from telent and ssh
+* Sum cmds
+
+## moler 1.16.0
+
+### Improved
+* Optional parameter username for telnet and ssh.
+* Cmds for pdu aten
+* Convert to number
+
+## moler 1.15.0
+
+### Improved
+* Documentation fix for return value
+* Add ret_required=False
+* Pdu Aten
+
 ## moler 1.14.0
 
 ### Improved

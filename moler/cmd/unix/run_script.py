@@ -43,7 +43,7 @@ class RunScript(GenericUnixCommand):
         Put your parsing code here.
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         if self.error_regex and self._regex_helper.search_compiled(self.error_regex, line):
             self.set_exception(CommandFailure(self, "Found error regex in line '{}'".format(line)))

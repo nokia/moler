@@ -4,7 +4,7 @@ Telnet command module.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
@@ -12,6 +12,7 @@ import re
 from moler.cmd.unix.generictelnetssh import GenericTelnetSsh
 from moler.exceptions import ParsingDone
 from moler.helpers import copy_list
+from dateutil import parser
 
 
 class Telnet(GenericTelnetSsh):
@@ -21,7 +22,7 @@ class Telnet(GenericTelnetSsh):
                  newline_chars=None, cmds_before_establish_connection=None, cmds_after_establish_connection=None,
                  telnet_prompt=r"^\s*telnet>\s*", encrypt_password=True, runner=None, target_newline="\n",
                  allowed_newline_after_prompt=False, repeat_password=True, failure_exceptions_indication=None,
-                 prompt_after_login=None):
+                 prompt_after_login=None, send_enter_after_connection=True, username=None):
         """
         Moler class of Unix command telnet.
 
@@ -49,6 +50,9 @@ class Telnet(GenericTelnetSsh):
          was found.
         :param prompt_after_login: prompt after login before send export PS1. If you do not change prompt exporting PS1
          then leave it None.
+        :param send_enter_after_connection: set True to send new line char(s) after connection is established, False
+         otherwise.
+        :param username: login for ssh. Set this or login but not both.
         """
         super(Telnet, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner,
                                      port=port, host=host, login=login, password=password,
@@ -58,7 +62,9 @@ class Telnet(GenericTelnetSsh):
                                      allowed_newline_after_prompt=allowed_newline_after_prompt,
                                      repeat_password=repeat_password,
                                      failure_exceptions_indication=failure_exceptions_indication,
-                                     prompt_after_login=prompt_after_login
+                                     prompt_after_login=prompt_after_login,
+                                     send_enter_after_connection=send_enter_after_connection,
+                                     username=username
                                      )
 
         self.prefix = prefix
@@ -130,7 +136,7 @@ class Telnet(GenericTelnetSsh):
 
         :param line: Line from device.
         :param is_full_line: True if line had new line chars, False otherwise.
-        :return: Nothing but raises ParsingDone if any command was sent by this method.
+        :return: None but raises ParsingDone if any command was sent by this method.
         """
         if self._send_telnet_commands(line, is_full_line, self.cmds_before_establish_connection):
             raise ParsingDone()
@@ -141,7 +147,7 @@ class Telnet(GenericTelnetSsh):
 
         :param line: Line from device.
         :param is_full_line: True if line had new line chars, False otherwise.
-        :return: Nothing but raises ParsingDone if any command was sent by this method.
+        :return: None but raises ParsingDone if any command was sent by this method.
         """
         if self._telnet_command_mode:
             if self._send_telnet_commands(line, is_full_line, self.cmds_after_establish_connection):
@@ -153,7 +159,7 @@ class Telnet(GenericTelnetSsh):
         """
         Changes telnet mode to enter telnet commands not information from server.
 
-        :return: Nothing
+        :return: None
         """
         if not self._telnet_command_mode:
             self.connection.send(chr(0x1D))  # ctrl + ]
@@ -201,7 +207,7 @@ Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
 Have a lot of fun...
 CLIENT5 [] has just connected!
 host:~ #
-export TMOUT="2678400",
+export TMOUT="2678400"
 host:~ #"""
 
 COMMAND_KWARGS = {
@@ -209,7 +215,62 @@ COMMAND_KWARGS = {
     "host": "host.domain.net", "expected_prompt": "host:.*#"
 }
 
-COMMAND_RESULT = {}
+COMMAND_RESULT = {
+    'LINES': [
+        "Login:",
+        "Login:user",
+        "Password:",
+        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Have a lot of fun...",
+        "CLIENT5 [] has just connected!",
+        "host:~ #",
+        "export TMOUT=\"2678400\"",
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+    },
+    'FAILED_LOGIN_ATTEMPTS': None,
+}
+
+COMMAND_OUTPUT_username = """TERM=xterm-mono telnet host.domain.net 1500
+Login:
+Login:user
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+CLIENT5 [] has just connected!
+host:~ #
+export TMOUT="2678400"
+host:~ #"""
+
+COMMAND_KWARGS_username = {
+    "username": "user", "password": "english", "port": "1500",
+    "host": "host.domain.net", "expected_prompt": "host:.*#"
+}
+
+COMMAND_RESULT_username = {
+    'LINES': [
+        "Login:",
+        "Login:user",
+        "Password:",
+        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Have a lot of fun...",
+        "CLIENT5 [] has just connected!",
+        "host:~ #",
+        "export TMOUT=\"2678400\"",
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+    },
+    'FAILED_LOGIN_ATTEMPTS': None,
+}
+
 
 COMMAND_OUTPUT_prompt = """
 user@host01:~> TERM=xterm-mono telnet host.domain.net 1500
@@ -220,19 +281,38 @@ Password:
 Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
 Have a lot of fun...
 host:~ #
-export TMOUT="2678400",
+export TMOUT="2678400"
 host:~ #
-export PS1="host_new#",
+export PS1="host_new#"
 host_new#"""
 
 COMMAND_KWARGS_prompt = {
     "login": "user", "password": "english", "port": "1500",
     "host": "host.domain.net", "expected_prompt": "host.*#",
     "set_prompt": "export PS1=\"host_new#\""
-
 }
 
-COMMAND_RESULT_prompt = {}
+COMMAND_RESULT_prompt = {
+    'LINES': [
+        "CLIENT5 [] has just connected!",
+        "Login:",
+        "Login:user",
+        "Password:",
+        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Have a lot of fun...",
+        "host:~ #",
+        "export TMOUT=\"2678400\"",
+        "host:~ #",
+        "export PS1=\"host_new#\""
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+    },
+    'FAILED_LOGIN_ATTEMPTS': None,
+}
 
 COMMAND_OUTPUT_2prompts = """
 user@host01:~> TERM=xterm-mono telnet host.domain.net 1500
@@ -243,19 +323,38 @@ Password:
 Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
 Have a lot of fun...
 host:~ #
-export TMOUT="2678400",
+export TMOUT="2678400"
 host:~ #
-export PS1="host_new#",
+export PS1="host_new#"
 host_new#"""
 
 COMMAND_KWARGS_2prompts = {
     "login": "user", "password": "english", "port": "1500",
     "host": "host.domain.net", "expected_prompt": r"host_new#",
     "set_prompt": "export PS1=\"host_new#\"", "prompt_after_login": r"host:.*#"
-
 }
 
-COMMAND_RESULT_2prompts = {}
+COMMAND_RESULT_2prompts = {
+    'LINES': [
+        "CLIENT5 [] has just connected!",
+        "Login:",
+        "Login:user",
+        "Password:",
+        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Have a lot of fun...",
+        "host:~ #",
+        "export TMOUT=\"2678400\"",
+        "host:~ #",
+        "export PS1=\"host_new#\""
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+    },
+    'FAILED_LOGIN_ATTEMPTS': None,
+}
 
 COMMAND_OUTPUT_many_passwords = """
 user@host01:~> TERM=xterm-mono telnet host.domain.net 1501
@@ -273,7 +372,24 @@ COMMAND_KWARGS_many_passwords = {
     "host": "host.domain.net", "expected_prompt": "host.*#", 'set_timeout': None,
 }
 
-COMMAND_RESULT_many_passwords = {}
+COMMAND_RESULT_many_passwords = {
+    'LINES': [
+        "Login:",
+        "Login:user",
+        "Password:",
+        "Second password:",
+        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Have a lot of fun...",
+        "CLIENT5 [] has just connected!",
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+    },
+    'FAILED_LOGIN_ATTEMPTS': None,
+}
 
 COMMAND_OUTPUT_many_passwords_repeat = """
 user@host01:~> TERM=xterm-mono telnet host.domain.net 1501
@@ -292,7 +408,25 @@ COMMAND_KWARGS_many_passwords_repeat = {
     "host": "host.domain.net", "expected_prompt": "host.*#", 'set_timeout': None,
 }
 
-COMMAND_RESULT_many_passwords_repeat = {}
+COMMAND_RESULT_many_passwords_repeat = {
+    'LINES': [
+        "Login:",
+        "Login:user",
+        "Password:",
+        "Second password:",
+        "Third password:",
+        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Have a lot of fun...",
+        "CLIENT5 [] has just connected!",
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+    },
+    'FAILED_LOGIN_ATTEMPTS': None,
+}
 
 COMMAND_OUTPUT_no_settings = """
 userl@host01:~> TERM=xterm-mono telnet host.domain.net 1500
@@ -309,7 +443,23 @@ COMMAND_KWARGS_no_settings = {
     "host": "host.domain.net", "expected_prompt": "host:.*#",
 }
 
-COMMAND_RESULT_no_settings = {}
+COMMAND_RESULT_no_settings = {
+    'LINES': [
+        "Login:",
+        "Login:user",
+        "Password:",
+        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Have a lot of fun...",
+        "CLIENT5 [] has just connected!"
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+    },
+    'FAILED_LOGIN_ATTEMPTS': None,
+}
 
 COMMAND_OUTPUT_no_credentials = """
 userl@host01:~> TERM=xterm-mono telnet host.domain.net 1425
@@ -323,7 +473,20 @@ COMMAND_KWARGS_no_credentials = {
     "host": "host.domain.net", "expected_prompt": "host:.*#",
 }
 
-COMMAND_RESULT_no_credentials = {}
+COMMAND_RESULT_no_credentials = {
+    'LINES': [
+        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Have a lot of fun...",
+        "CLIENT5 [] has just connected!"
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+    },
+    'FAILED_LOGIN_ATTEMPTS': None,
+}
 
 
 COMMAND_OUTPUT_prefix = """
@@ -341,7 +504,23 @@ COMMAND_KWARGS_prefix = {
     "host": "host.domain.net", "expected_prompt": "host:.*#", 'prefix': "-4",
 }
 
-COMMAND_RESULT_prefix = {}
+COMMAND_RESULT_prefix = {
+    "LINES": [
+        "Login:",
+        "Login:user",
+        "Password:",
+        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Have a lot of fun...",
+        "CLIENT5 [] has just connected!"
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+    },
+    'FAILED_LOGIN_ATTEMPTS': None,
+}
 
 
 COMMAND_OUTPUT_newline_after_prompt = """
@@ -361,4 +540,21 @@ COMMAND_KWARGS_newline_after_prompt = {
     "allowed_newline_after_prompt": True
 }
 
-COMMAND_RESULT_newline_after_prompt = {}
+COMMAND_RESULT_newline_after_prompt = {
+    'LINES': [
+        "Login:",
+        "Login:user",
+        "Password:",
+        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Have a lot of fun...",
+        "CLIENT5 [] has just connected!",
+        "host:~ #",
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+    },
+    'FAILED_LOGIN_ATTEMPTS': None,
+}

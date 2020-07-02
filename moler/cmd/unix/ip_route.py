@@ -62,7 +62,7 @@ class IpRoute(GenericUnixCommand):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise.
-        :return: Nothing.
+        :return: None.
         """
         if is_full_line:
             try:
@@ -105,7 +105,7 @@ class IpRoute(GenericUnixCommand):
 
         :param line: Line from device.
         :param regexp: Regexp to match.
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         if self._regex_helper.search_compiled(regexp, line):
             _ret = dict()
@@ -121,7 +121,7 @@ class IpRoute(GenericUnixCommand):
 
         :param line: Line from device.
         :param regexp: Regexp to match.
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         if self._regex_helper.search_compiled(regexp, line):
             _ret = dict()
@@ -142,7 +142,7 @@ class IpRoute(GenericUnixCommand):
         Method to process line.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         return self._process_line_via_all(line, IpRoute._re_via_dev_proto_expires_mtu_hoplimit)
 
@@ -155,7 +155,7 @@ class IpRoute(GenericUnixCommand):
         Method to process line.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         return self._process_line_via_all(line, IpRoute._re_via_dev_proto_metric)
 
@@ -168,7 +168,7 @@ class IpRoute(GenericUnixCommand):
         Method to process line.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         return self._process_line_via_all(line, IpRoute._re_via_dev_metric_mtu)
 
@@ -181,7 +181,7 @@ class IpRoute(GenericUnixCommand):
         Method to process line.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if regex matches
+        :return: None but raises ParsingDone if regex matches
         """
         return self._process_line_via_all(line, IpRoute._re_via_dev_metric)
 
@@ -193,7 +193,7 @@ class IpRoute(GenericUnixCommand):
         Method to process line.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         return self._process_line_via_all(line, IpRoute._re_via_dev)
 
@@ -206,7 +206,7 @@ class IpRoute(GenericUnixCommand):
         Method to process line.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         return self._process_line_address_all(line, IpRoute._re_dev_proto_scope_src)
 
@@ -219,7 +219,7 @@ class IpRoute(GenericUnixCommand):
         Method to process line.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         return self._process_line_address_all(line, IpRoute._re_dev_proto_metric_mtu)
 
@@ -232,7 +232,7 @@ class IpRoute(GenericUnixCommand):
         Method to process line.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         return self._process_line_address_all(line, IpRoute._re_dev_proto_metric)
 
@@ -245,7 +245,7 @@ class IpRoute(GenericUnixCommand):
         Method to process line.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         return self._process_line_address_all(line, IpRoute._re_from_src_metric)
 
@@ -258,7 +258,7 @@ class IpRoute(GenericUnixCommand):
         Method to process line.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         return self._process_line_address_all(line, IpRoute._re_from_via_dev)
 
@@ -270,7 +270,7 @@ class IpRoute(GenericUnixCommand):
         Method to process line.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         return self._process_line_address_all(line, IpRoute._re_dev_src)
 

@@ -59,7 +59,7 @@ class GenericUnixCommand(CommandTextualGeneric):
         """
         if self._re_fail:
             return self._regex_helper.search_compiled(GenericUnixCommand._re_fail, line)
-        return False
+        return None
 
     def _decode_line(self, line):
         """

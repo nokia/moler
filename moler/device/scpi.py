@@ -68,6 +68,7 @@ class Scpi(ProxyPc):
         :param io_connection: External-IO connection having embedded moler-connection.
         :param io_type: External-IO connection type
         :param variant: External-IO connection variant
+        :param io_constructor_kwargs: additional parameters for constructor of selected io_type
         :param initial_state: Initial state for device
         """
         sm_params = sm_params.copy()
@@ -230,6 +231,8 @@ class Scpi(ProxyPc):
         state_hops = {
             Scpi.not_connected: {
                 Scpi.scpi: Scpi.unix_local,
+                Scpi.proxy_pc: Scpi.unix_local,
+                Scpi.unix_local_root: Scpi.unix_local,
             },
             Scpi.scpi: {
                 Scpi.not_connected: Scpi.proxy_pc,
@@ -241,7 +244,11 @@ class Scpi(ProxyPc):
             },
             Scpi.unix_local_root: {
                 Scpi.scpi: Scpi.unix_local,
+                Scpi.not_connected: Scpi.unix_local,
             },
+            Scpi.proxy_pc: {
+                Scpi.not_connected: Scpi.unix_local,
+            }
         }
         return state_hops
 
@@ -261,6 +268,7 @@ class Scpi(ProxyPc):
             },
             Scpi.unix_local_root: {
                 Scpi.scpi: Scpi.unix_local,
+                Scpi.not_connected: Scpi.unix_local,
             },
         }
         return state_hops

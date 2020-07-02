@@ -4,13 +4,14 @@ Uptime command module.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
+from moler.util.converterhelper import ConverterHelper
 
 
 class Uptime(GenericUnixCommand):
@@ -27,6 +28,8 @@ class Uptime(GenericUnixCommand):
         # Parameters defined by calling the command
         self.options = options
 
+        self._converter_helper = ConverterHelper.get_converter_helper()
+
     def build_command_string(self):
         """
         Builds command string from parameters passed to object.
@@ -42,7 +45,7 @@ class Uptime(GenericUnixCommand):
         Put your parsing code here.
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         if is_full_line:
             try:
@@ -62,11 +65,11 @@ class Uptime(GenericUnixCommand):
         """
         Parses uptime from device.
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if line matches regex.
+        :return: None but raises ParsingDone if line matches regex.
         """
         if self._regex_helper.search_compiled(Uptime._re_uptime_line, line):
             val = self._regex_helper.group("UPTIME_VAL")
-            users = int(self._regex_helper.group("USERS"))
+            users = self._converter_helper.to_number(self._regex_helper.group("USERS"))
             uptime_seconds = self._calculate_seconds(val, line)
             self.current_ret["UPTIME"] = val
             self.current_ret["UPTIME_SECONDS"] = uptime_seconds
@@ -95,15 +98,15 @@ class Uptime(GenericUnixCommand):
         """
         seconds = 0
         if self._regex_helper.search_compiled(Uptime._re_days, val_str):
-            seconds = 24 * 3600 * int(self._regex_helper.group("DAYS")) + 3600 * int(
-                self._regex_helper.group("HRS")) + 60 * int(self._regex_helper.group("MINS"))
+            seconds = 24 * 3600 * self._converter_helper.to_number(self._regex_helper.group("DAYS")) + 3600 * self._converter_helper.to_number(
+                self._regex_helper.group("HRS")) + 60 * self._converter_helper.to_number(self._regex_helper.group("MINS"))
         elif self._regex_helper.search_compiled(Uptime._re_days_minutes, val_str):
-            seconds = 24 * 3600 * int(self._regex_helper.group("DAYS")) + 60 * int(
+            seconds = 24 * 3600 * self._converter_helper.to_number(self._regex_helper.group("DAYS")) + 60 * self._converter_helper.to_number(
                 self._regex_helper.group("MINS"))
         elif self._regex_helper.search_compiled(Uptime._re_hours_minutes, val_str):
-            seconds = 3600 * int(self._regex_helper.group("HRS")) + 60 * int(self._regex_helper.group("MINS"))
+            seconds = 3600 * self._converter_helper.to_number(self._regex_helper.group("HRS")) + 60 * self._converter_helper.to_number(self._regex_helper.group("MINS"))
         elif self._regex_helper.search_compiled(self._re_minutes, val_str):
-            seconds = 60 * int(self._regex_helper.group("MINS"))
+            seconds = 60 * self._converter_helper.to_number(self._regex_helper.group("MINS"))
         else:
             self.set_exception(CommandFailure(self, "Unsupported string format in line '{}'".format(line)))
         return seconds
@@ -115,7 +118,7 @@ class Uptime(GenericUnixCommand):
         """
         Parses date and time from line since when system has started.
         :param line: Line from device
-        :return: Nothing but raises ParsingDone if regex matches.
+        :return: None but raises ParsingDone if regex matches.
         """
         if self._regex_helper.search_compiled(Uptime._re_date_time, line):
             self.current_ret["date"] = self._regex_helper.group("DATE")

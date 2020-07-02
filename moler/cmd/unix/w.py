@@ -58,7 +58,7 @@ class W(GenericUnixCommand):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         try:
             if is_full_line:
@@ -78,7 +78,7 @@ class W(GenericUnixCommand):
         Parse general information in line and update it to GENERAL_INFO dictionary.
 
         :param line: Line to process.
-        :return: Nothing but raises ParsingDone if line has the information to handle by this method.
+        :return: None but raises ParsingDone if line has the information to handle by this method.
         """
         if self._regex_helper.search_compiled(W._re_general_info, line):
             self.current_ret['GENERAL_INFO'].update({
@@ -97,7 +97,7 @@ class W(GenericUnixCommand):
         Parse -V option output in line and append it to RESULT list.
 
         :param line: Line to process.
-        :return: Nothing but raises ParsingDone if line has the information to handle by this method.
+        :return: None but raises ParsingDone if line has the information to handle by this method.
         """
         if self._regex_helper.search_compiled(W._re_v_option, line):
             self.current_ret['RESULT'].append(self._regex_helper.group("V_OPTION"))
@@ -112,7 +112,7 @@ class W(GenericUnixCommand):
         Parse headers and entries in line, create dictionary and append it to RESULT list.
 
         :param line: Line to process.
-        :return: Nothing but raises ParsingDone if line has the information to handle by this method.
+        :return: None but raises ParsingDone if line has the information to handle by this method.
         """
         if self._regex_helper.search_compiled(W._re_header, line):
             if not self.headers:

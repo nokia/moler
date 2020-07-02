@@ -53,7 +53,7 @@ class Tee(GenericUnixCommand):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         self._send_content_first_line()
         if is_full_line:

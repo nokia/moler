@@ -62,7 +62,7 @@ class Passwd(GenericUnixCommand):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         try:
             if self._cancel_cmd:
@@ -88,7 +88,7 @@ class Passwd(GenericUnixCommand):
         Detect current password prompt.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if all required commands are sent.
+        :return: None but raises ParsingDone if all required commands are sent.
         """
         if self._regex_helper.search_compiled(Passwd._re_current_password, line) and not self._current_password_sent:
             self.connection.sendline(data=self.current_password, encrypt=self.encrypt_password)
@@ -103,7 +103,7 @@ class Passwd(GenericUnixCommand):
         Detect new password prompt.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if all required commands are sent.
+        :return: None but raises ParsingDone if all required commands are sent.
         """
         if self._regex_helper.search_compiled(Passwd._re_new_password, line) and not self._new_password_sent:
             self.connection.sendline(data=self.new_password, encrypt=self.encrypt_password)
@@ -118,7 +118,7 @@ class Passwd(GenericUnixCommand):
         Detect retype new password prompt.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if all required commands are sent.
+        :return: None but raises ParsingDone if all required commands are sent.
         """
         if self._regex_helper.search_compiled(Passwd._re_retype_new_password,
                                               line) and not self._retype_new_password_sent:
@@ -134,7 +134,7 @@ class Passwd(GenericUnixCommand):
         Parse too simple password error.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if all required commands are sent.
+        :return: None but raises ParsingDone if all required commands are sent.
         """
         if self._regex_helper.search_compiled(Passwd._re_too_simple_password, line):
             self.set_exception(CommandFailure(self, "New password is too simple."))
@@ -149,7 +149,7 @@ class Passwd(GenericUnixCommand):
         Parse too short password error.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if all required commands are sent.
+        :return: None but raises ParsingDone if all required commands are sent.
         """
         if self._regex_helper.search_compiled(Passwd._re_too_short_password, line):
             self.set_exception(CommandFailure(self, "New password is too short."))
@@ -165,7 +165,7 @@ class Passwd(GenericUnixCommand):
         Parse another error.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if all required commands are sent.
+        :return: None but raises ParsingDone if all required commands are sent.
         """
         if self._regex_helper.search_compiled(Passwd._re_passwd_error, line):
             self.set_exception(CommandFailure(self, "Unexpected error: '{}'".format(self._regex_helper.group('ERROR'))))
@@ -181,7 +181,7 @@ class Passwd(GenericUnixCommand):
         Parse password updated successfully.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if all required commands are sent.
+        :return: None but raises ParsingDone if all required commands are sent.
         """
         if self._regex_helper.search_compiled(Passwd._re_password_updated_successfully, line):
             self.current_ret["PASSWORD_CHANGED"] = True
@@ -193,7 +193,7 @@ class Passwd(GenericUnixCommand):
         Parse single full line and add it to result dict.
 
         :param line: Line from device.
-        :return: Nothing
+        :return: None
         """
         self.current_ret["LINES"].append(line)
 
@@ -201,7 +201,7 @@ class Passwd(GenericUnixCommand):
         """
         Send enter to cancel cmd.
 
-        :return: Nothing but raises ParsingDone if all required commands are sent.
+        :return: None but raises ParsingDone if all required commands are sent.
         """
         self.connection.sendline("")
         raise ParsingDone

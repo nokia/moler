@@ -4,7 +4,7 @@ Top command module.
 """
 
 __author__ = 'Adrianna Pienkowska, Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'adrianna.pienkowska@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import re
@@ -12,6 +12,7 @@ import re
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
+from moler.util.converterhelper import ConverterHelper
 
 
 class Top(GenericUnixCommand):
@@ -30,6 +31,7 @@ class Top(GenericUnixCommand):
         self._processes_list_headers = list()
         self.current_ret = dict()
         self.n = n
+        self._converter_helper = ConverterHelper.get_converter_helper()
 
     def build_command_string(self):
         """
@@ -48,7 +50,7 @@ class Top(GenericUnixCommand):
         Put your parsing code here.
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         if is_full_line:
             try:
@@ -69,7 +71,7 @@ class Top(GenericUnixCommand):
         """
         Parses errors from the line of command output
         :param line: Line of output of command.
-        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has information to handle by this method.
         """
         if self._regex_helper.search_compiled(Top._re_error, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG"))))
@@ -82,13 +84,13 @@ class Top(GenericUnixCommand):
         """
         Parses top row from the line of command output
         :param line: Line of output of command.
-        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has information to handle by this method.
         """
         if self._regex_helper.search_compiled(Top._re_top_row, line):
             command_name = self._regex_helper.group("TOP_ROW")
             current_time = self._regex_helper.group("TIME")
             up_time = self._regex_helper.group("UP_TIME").replace(", ", ",")
-            users = int(self._regex_helper.group("USERS"))
+            users = self._converter_helper.to_number(self._regex_helper.group("USERS"))
             load_ave = self._regex_helper.group("LOAD_AVE").split()
             load_ave = [float(ave.strip(',')) for ave in load_ave]
             top_row_dict = {'current time': current_time, 'up time': up_time, 'users': users, 'load average': load_ave}
@@ -102,14 +104,14 @@ class Top(GenericUnixCommand):
         """
         Parses task row from the line of command output
         :param line: Line of output of command.
-        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has information to handle by this method.
         """
         if self._regex_helper.search_compiled(Top._re_task_row, line):
-            total = int(self._regex_helper.group("TOTAL"))
-            running = int(self._regex_helper.group("RUN"))
-            sleeping = int(self._regex_helper.group("SLEEP"))
-            stopped = int(self._regex_helper.group("STOP"))
-            zombie = int(self._regex_helper.group("ZOMBIE"))
+            total = self._converter_helper.to_number(self._regex_helper.group("TOTAL"))
+            running = self._converter_helper.to_number(self._regex_helper.group("RUN"))
+            sleeping = self._converter_helper.to_number(self._regex_helper.group("SLEEP"))
+            stopped = self._converter_helper.to_number(self._regex_helper.group("STOP"))
+            zombie = self._converter_helper.to_number(self._regex_helper.group("ZOMBIE"))
             task_row_dict = {'total': total, 'running': running, 'sleeping': sleeping, 'stopped': stopped,
                              'zombie': zombie}
             self.current_ret.update({'tasks': task_row_dict})
@@ -123,7 +125,7 @@ class Top(GenericUnixCommand):
         """
         Parses cpu row from the line of command output
         :param line: Line of output of command.
-        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has information to handle by this method.
         """
         if self._regex_helper.search_compiled(Top._re_cpu_row, line):
             user_processed = float(self._regex_helper.group("US"))
@@ -148,7 +150,7 @@ class Top(GenericUnixCommand):
         """
         Parses memory rows from the line of command output
         :param line: Line of output of command.
-        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has information to handle by this method.
         """
         if self._regex_helper.search_compiled(Top._re_memory_rows, line):
             mem_type = self._regex_helper.group("MEM")
@@ -166,7 +168,7 @@ class Top(GenericUnixCommand):
         """
         Parses processes list headers from the line of command output
         :param line: Line of output of command.
-        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has information to handle by this method.
         """
         if self._regex_helper.search_compiled(Top._re_processes_header, line) and not self._processes_list_headers:
             self._processes_list_headers.extend(line.strip().split())
@@ -177,7 +179,7 @@ class Top(GenericUnixCommand):
         """
         Parses processes list from the line of command output
         :param line: Line of output of command.
-        :return: Nothing but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has information to handle by this method.
         """
         if self._processes_list_headers:
             processes_info = line.strip().split()
@@ -192,10 +194,7 @@ class Top(GenericUnixCommand):
         :return: Number or if number not in string return input string.
         """
         try:
-            if inscription.isdigit():
-                new_inscription = int(inscription)
-            else:
-                new_inscription = float(inscription)
+            new_inscription = self._converter_helper.to_number(inscription)
             return new_inscription
         except ValueError:
             return inscription

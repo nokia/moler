@@ -3,31 +3,51 @@
 id command module.
 """
 
-__author__ = 'Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'michal.ernst@nokia.com'
+__author__ = 'Michal Ernst, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
+from moler.util.converterhelper import ConverterHelper
 
 
 class Id(GenericUnixCommand):
 
     def __init__(self, connection, user=None, prompt=None, newline_chars=None, runner=None):
+        """
+        :param connection: Moler connection to device, terminal when command is executed.
+        :param user: user name in system.
+        :param prompt: prompt (on system where command runs).
+        :param newline_chars: Characters to split lines - list.
+        :param runner: Runner to run command.
+        """
         super(Id, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
 
         # Parameters defined by calling the command
         self.user = user
 
+        self._converter_helper = ConverterHelper.get_converter_helper()
+
     def build_command_string(self):
+        """
+        Builds command string from parameters passed to object.
+        :return: String representation of command to send over connection to device.
+        """
         cmd = "id"
         if self.user:
             cmd = "{} {}".format(cmd, self.user)
         return cmd
 
     def on_new_line(self, line, is_full_line):
+        """
+        Put your parsing code here.
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: None
+        """
         if is_full_line:
             try:
                 self._parse_uid_gid_groups(line)
@@ -64,7 +84,7 @@ class Id(GenericUnixCommand):
         for _id_name_entry in _id_name_list:
             self.current_ret[key].append(
                 {
-                    "ID": int(_id_name_entry[1]),
+                    "ID": self._converter_helper.to_number(_id_name_entry[1]),
                     "NAME": _id_name_entry[2]
                 }
             )

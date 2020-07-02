@@ -10,6 +10,7 @@ Subpackages
     moler.cmd.at
     moler.cmd.juniper
     moler.cmd.juniper_ex
+    moler.cmd.pdu_aten
     moler.cmd.scpi
     moler.cmd.unix
 

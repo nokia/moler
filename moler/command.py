@@ -65,6 +65,6 @@ class Command(ConnectionObserver):
         """
         Sends command string over connection.
 
-        :return: Nothing
+        :return: None
         """
         self.connection.sendline(self.command_string)

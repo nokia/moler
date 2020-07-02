@@ -85,7 +85,7 @@ class Ls(GenericUnixCommand):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: Nothing
+        :return: None
         """
         if is_full_line:
             try:
@@ -102,7 +102,7 @@ class Ls(GenericUnixCommand):
         Parses list of files.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if matches success.
+        :return: None but raises ParsingDone if matches success.
         """
         if self._regex_helper.search_compiled(Ls._re_files_list, line):
             files = line.split()
@@ -116,7 +116,7 @@ class Ls(GenericUnixCommand):
         Parses line with long information with file or directory.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if matches success.
+        :return: None but raises ParsingDone if matches success.
         """
         if self._regex_helper.search_compiled(Ls._re_long, line):
             self._add_new_file_long(False)
@@ -127,7 +127,7 @@ class Ls(GenericUnixCommand):
         Parses line with long information with link.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if matches success.
+        :return: None but raises ParsingDone if matches success.
         """
         if self._regex_helper.search_compiled(Ls._re_long_links, line):
             self._add_new_file_long(True)
@@ -138,7 +138,7 @@ class Ls(GenericUnixCommand):
         Parses information about total in ls output.
 
         :param line: Line from device.
-        :return: Nothing but raises ParsingDone if matches success.
+        :return: None but raises ParsingDone if matches success.
         """
         if self._regex_helper.search_compiled(Ls._re_total, line):
             if "total" not in self.current_ret:
@@ -152,7 +152,7 @@ class Ls(GenericUnixCommand):
         Adds parsed output to command ret.
 
         :param islink: True if parsed output is link or False otherwise.
-        :return: Nothing.
+        :return: None.
         """
         filename = self._regex_helper.group(7)
         self.current_ret["files"][filename] = dict()
