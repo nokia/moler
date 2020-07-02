@@ -58,7 +58,8 @@ class Scpi(ProxyPc):
 
     scpi = "SCPI"
 
-    def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, initial_state=None):
+    def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None,
+                 io_constructor_kwargs=None, initial_state=None):
         """
         Create SCPI device communicating over io_connection.
 
@@ -72,7 +73,8 @@ class Scpi(ProxyPc):
         sm_params = sm_params.copy()
         initial_state = initial_state if initial_state is not None else Scpi.scpi
         super(Scpi, self).__init__(sm_params=sm_params, name=name, io_connection=io_connection, io_type=io_type,
-                                   variant=variant, initial_state=initial_state)
+                                   variant=variant, io_constructor_kwargs=io_constructor_kwargs,
+                                   initial_state=initial_state)
         self.logger = logging.getLogger('moler.scpi')
 
     @mark_to_call_base_class_method_with_same_name

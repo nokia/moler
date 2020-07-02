@@ -18,6 +18,9 @@ from moler.util.moler_test import MolerTest
 import six
 import functools
 import threading
+import logging
+
+logger = logging.getLogger("moler")
 
 
 class DeviceFactory(object):
@@ -114,10 +117,13 @@ class DeviceFactory(object):
         :return: Device object.
         """
         with cls._lock_device:
+            logger.info('START creating device {} from {}'.format(new_name, source_device))
+            source_device_name = source_device
             if isinstance(source_device, six.string_types):
                 source_device = cls._get_device_without_lock(name=source_device, device_class=None,
                                                              connection_desc=None, connection_hops=None,
                                                              initial_state=None, establish_connection=True)
+                logger.info('STEP 1 - creating source device {}'.format(source_device_name))
             source_name = source_device.name  # name already translated to alias.
             if new_name in cls._devices.keys():
                 cached_cloned_from = cls._devices_params[new_name]['cloned_from']
@@ -135,11 +141,13 @@ class DeviceFactory(object):
             constructor_parameters["initial_state"] = initial_state
             if constructor_parameters["name"]:
                 constructor_parameters["name"] = new_name
+            logger.info('STEP 2 - creating cloned device {}'.format(new_name))
             dev = cls._create_instance_and_remember_it(
                 device_class=device_class, constructor_parameters=constructor_parameters,
                 establish_connection=establish_connection, name=new_name)
             new_name = dev.name
             cls._devices_params[new_name]['cloned_from'] = source_name
+            logger.info('DONE creating device {} from {}'.format(new_name, source_device_name))
         return dev
 
     @classmethod
@@ -224,10 +232,14 @@ class DeviceFactory(object):
         if device_class and (not connection_desc):
             connection_desc = cls._try_select_device_connection_desc(device_class, connection_desc)
 
+        conn_desc = dict(connection_desc)
+        io_type = conn_desc.pop("io_type")
+        variant = conn_desc.pop("variant", None)
         constructor_parameters = {
             "name": name,
-            "io_type": connection_desc["io_type"],
-            "variant": connection_desc["variant"],
+            "io_type": io_type,
+            "variant": variant,
+            "io_constructor_kwargs": conn_desc,
             "sm_params": connection_hops,
             "initial_state": initial_state
         }
