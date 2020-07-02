@@ -833,7 +833,7 @@ COMMAND_RESULT_wrong_date = {
         "To edit this message please edit /etc/ssh_banner",
         "You may put information to /etc/ssh_banner who is owner of this PC",
         "Password:",
-        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Last login: Thu Nov 23 10:78:16 2017 from 127.0.0.1",
         "Have a lot of fun...",
         "host:~ #",
         "host:~ # export TMOUT=\"2678400\"",
