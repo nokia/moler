@@ -54,7 +54,8 @@ class PduAten(ProxyPc):
 
     pdu = "PDU"
 
-    def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, initial_state=None):
+    def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, io_constructor_kwargs=None,
+                 initial_state=None):
         """
         Create PDU device communicating over io_connection.
 
@@ -63,12 +64,14 @@ class PduAten(ProxyPc):
         :param io_connection: External-IO connection having embedded moler-connection.
         :param io_type: External-IO connection type
         :param variant: External-IO connection variant
+        :param io_constructor_kwargs: additional parameters for constructor of selected io_type
         :param initial_state: Initial state for device
         """
         sm_params = sm_params.copy()
         initial_state = initial_state if initial_state is not None else PduAten.pdu
-        super(PduAten, self).__init__(sm_params=sm_params, name=name, io_connection=io_connection, io_type=io_type,
-                                      variant=variant, initial_state=initial_state)
+        super(PduAten, self).__init__(sm_params=sm_params, name=name, io_connection=io_connection,
+                                      io_type=io_type, variant=variant, io_constructor_kwargs=io_constructor_kwargs,
+                                      initial_state=initial_state)
         self.logger = logging.getLogger('moler.pdu')
 
     @mark_to_call_base_class_method_with_same_name

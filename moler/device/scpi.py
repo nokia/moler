@@ -68,6 +68,7 @@ class Scpi(ProxyPc):
         :param io_connection: External-IO connection having embedded moler-connection.
         :param io_type: External-IO connection type
         :param variant: External-IO connection variant
+        :param io_constructor_kwargs: additional parameters for constructor of selected io_type
         :param initial_state: Initial state for device
         """
         sm_params = sm_params.copy()
