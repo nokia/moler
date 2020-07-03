@@ -811,3 +811,37 @@ COMMAND_RESULT_prompt_fingerprint = {
     },
     'FAILED_LOGIN_ATTEMPTS': 1,
 }
+
+COMMAND_OUTPUT_wrong_date = """
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+To edit this message please edit /etc/ssh_banner
+You may put information to /etc/ssh_banner who is owner of this PC
+Password:
+Last login: Thu Nov 23 10:78:16 2017 from 127.0.0.1
+Have a lot of fun...
+host:~ #
+host:~ # export TMOUT="2678400"
+host:~ #"""
+
+COMMAND_KWARGS_wrong_date = {
+    "login": "user", "password": "english",
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
+}
+
+COMMAND_RESULT_wrong_date = {
+    'LINES': [
+        "To edit this message please edit /etc/ssh_banner",
+        "You may put information to /etc/ssh_banner who is owner of this PC",
+        "Password:",
+        "Last login: Thu Nov 23 10:78:16 2017 from 127.0.0.1",
+        "Have a lot of fun...",
+        "host:~ #",
+        "host:~ # export TMOUT=\"2678400\"",
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:78:16 2017',
+    },
+    'FAILED_LOGIN_ATTEMPTS': None,
+}
