@@ -22,20 +22,24 @@ class JuniperGeneric(ProxyPc):
     cli = "CLI"
     configure = "CONFIGURE"
 
-    def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, initial_state=None):
+    def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None,
+                 io_constructor_kwargs=None, initial_state=None):
         """
         Create unix device communicating over io_connection.
 
+        :param sm_params: params with machine state description.
+        :param name: name of device.
         :param io_connection: External-IO connection having embedded moler-connection
         :param io_type: External-IO connection connection type
         :param variant: External-IO connection variant
+        :param io_constructor_kwargs: additional parameters for constructor of selected io_type
         :param initial_state: Initial state for device
         """
         sm_params = sm_params.copy()
         initial_state = initial_state if initial_state is not None else JuniperGeneric.cli
         super(JuniperGeneric, self).__init__(sm_params=sm_params, name=name, io_connection=io_connection,
-                                             io_type=io_type,
-                                             variant=variant, initial_state=initial_state)
+                                             io_type=io_type, variant=variant, io_constructor_kwargs=io_constructor_kwargs,
+                                             initial_state=initial_state)
         self.logger = logging.getLogger('moler.juniper')
 
     @mark_to_call_base_class_method_with_same_name

@@ -102,9 +102,6 @@ class Tcp(object):
         """
         try:
             self.socket.send(data)
-            # TODO: rework logging to have LogRecord with extra=direction
-            # TODO: separate data sent/received from other log records ?
-            self._debug('> {}'.format(data))
         except socket.error as serr:
             if (serr.errno == 10054) or (serr.errno == 10053):
                 self._close_ignoring_exceptions()
@@ -126,9 +123,6 @@ class Tcp(object):
         if ready[0]:
             try:
                 data = self.socket.recv(self.receive_buffer_size)
-                # TODO: rework logging to have LogRecord with extra=direction
-                # TODO: separate data sent/received from other log records ?
-                self._debug('< {}'.format(data))
             except socket.error as serr:
                 if (serr.errno == 10054) or (serr.errno == 10053):
                     self._close_ignoring_exceptions()
