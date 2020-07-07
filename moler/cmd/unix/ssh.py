@@ -854,7 +854,7 @@ COMMAND_KWARGS_pts0 = {
 COMMAND_OUTPUT_pts0 = """TERM=xterm-mono ssh -l user -o ServerAliveInterval=7 -o ServerAliveCountMax=2 10.0.1.67
 Warning: Permanently added '10.0.1.67' (RSA) to the list of known hosts.
 "You are about to access a private system. This system is for the use of authorized users only. All connections are logged to the extent and by means acceptable by the local legislation. Any unauthorized access or access attempts may be punished to the fullest extent possible under the applicable local legislation."
-Password: 
+Password:
 ****
 
 Last login: Fri Jul  3 11:50:03 CEST 2020 from 192.168.255.126 on pts/0
@@ -864,7 +864,7 @@ COMMAND_RESULT_pts0 = {
     'LINES': [
         r"Warning: Permanently added '10.0.1.67' (RSA) to the list of known hosts.",
         r'"You are about to access a private system. This system is for the use of authorized users only. All connections are logged to the extent and by means acceptable by the local legislation. Any unauthorized access or access attempts may be punished to the fullest extent possible under the applicable local legislation."',
-        "Password: ",
+        "Password:",
         "****",
         "",
         "Last login: Fri Jul  3 11:50:03 CEST 2020 from 192.168.255.126 on pts/0",
