@@ -15,6 +15,7 @@ import threading
 
 import moler.config.loggers
 from moler.exceptions import MolerException
+import moler.connection_factory  # will load builtin connections and default variants
 
 
 current_process = psutil.Process()

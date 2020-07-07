@@ -80,6 +80,7 @@ class TextualDevice(AbstractDevice):
 
         self._state_hops = dict()
         self._state_prompts = dict()
+        self._state_prompts_lock = threading.Lock()
         self._reverse_state_prompts_dict = dict()
         self._prompts_event = None
         self._kept_state = None
@@ -136,7 +137,8 @@ class TextualDevice(AbstractDevice):
 
         self._collect_cmds_for_state_machine()
         self._collect_events_for_state_machine()
-        self._run_prompts_observers()
+        with self._state_prompts_lock:
+            self._run_prompts_observers()
 
         msg = "Established connection to device '{}' (as instance of class '{}.{}') with prompts: '{}'.".format(
             self.name,

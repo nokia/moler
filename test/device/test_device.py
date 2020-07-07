@@ -86,9 +86,13 @@ def test_device_unix_can_return_cd_command(configure_net_1_connection):
 
 @pytest.yield_fixture
 def configure_net_1_connection():
+    import mock
     from moler.config import connections as conn_cfg
 
-    conn_cfg.set_default_variant(io_type='memory', variant="threaded")
-    conn_cfg.define_connection(name='net_1', io_type='memory')
-    yield
-    conn_cfg.clear()
+    with mock.patch.object(conn_cfg, "default_variant", {}):
+        with mock.patch.object(conn_cfg, "named_connections", {}):
+
+            conn_cfg.set_default_variant(io_type='memory', variant="threaded")
+            conn_cfg.define_connection(name='net_1', io_type='memory')
+
+            yield
