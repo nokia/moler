@@ -133,7 +133,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
         super(GenericTelnetSsh, self).on_new_line(line=line, is_full_line=is_full_line)
 
     # Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
-    _re_last_login = re.compile(r"Last login:\s+(?P<DATE>.*)\s+(?P<KIND>from|on)\s+(?P<WHERE>\S+)", re.IGNORECASE)
+    _re_last_login = re.compile(r"Last login:\s+(?P<DATE>.*?)\s+(?P<KIND>from|on)\s+(?P<WHERE>\S+)", re.IGNORECASE)
 
     # There were 2 failed login attempts since the last successful login
     _re_attempts = re.compile(
