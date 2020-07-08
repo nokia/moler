@@ -1,3 +1,12 @@
+## moler 1.18.0
+
+### Improved
+* Ssh Telnet coverage
+
+### Fixed
+* DeviceFactory doesn't pass io constructor parameters towards created devices
+* Fix parsing date where exists from and on
+
 ## moler 1.17.0
 
 ### Improved
