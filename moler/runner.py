@@ -23,6 +23,7 @@ from six import add_metaclass
 from moler.exceptions import CommandTimeout
 from moler.exceptions import ConnectionObserverTimeout
 from moler.exceptions import MolerException
+from moler.exceptions import CommandFailure
 from moler.util.loghelper import log_into_logger
 
 
@@ -442,7 +443,13 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 # observers should not raise exceptions during data parsing
                 # but if they do so - we fix it
                 with observer_lock:
-                    connection_observer.set_exception(exc)
+                    ex_msg = "Unexpected exception from {} caught by runner when processing data >>{}<< at {}:" \
+                             " {} ".format(connection_observer, data, timestamp, exc)
+                    if connection_observer.is_command():
+                        ex = CommandFailure(command=connection_observer, message=ex_msg)
+                    else:
+                        ex = MolerException(ex_msg)
+                    connection_observer.set_exception(ex)
             finally:
                 if connection_observer.done() and not connection_observer.cancelled():
                     if connection_observer._exception:
