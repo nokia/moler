@@ -158,7 +158,7 @@ def test_event_unicode_error(buffer_connection):
     event.raise_unicode = False
     MolerTest.sleep(0.01)
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
-    with pytest.raises(UnicodeDecodeError):
+    with pytest.raises(MolerException):
         event.await_done()
 
     event = Wait4promptUnicodeError(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
