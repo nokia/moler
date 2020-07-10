@@ -71,6 +71,7 @@ class TextualDevice(AbstractDevice):
         self._name = name
         self.device_data_logger = None
         self.timeout_keep_state = 10  # Timeout for background goto state after unexpected state change.
+        self.lazy_cmds_events_init = False
 
         # Below line will modify self extending it with methods and attributes od StateMachine
         # For eg. it will add attribute self.state
@@ -253,19 +254,21 @@ class TextualDevice(AbstractDevice):
 
     def _collect_cmds_for_state_machine(self):
         for state in self._get_available_states():
-            self._cmdnames_available_in_state[state] = dict()
-
-            cmds = self._collect_cmds_for_state(state)
-
-            self._cmdnames_available_in_state[state].update(cmds)
+            if self.lazy_cmds_events_init:
+                self._cmdnames_available_in_state[state] = None
+            else:
+                self._cmdnames_available_in_state[state] = dict()
+                cmds = self._collect_cmds_for_state(state)
+                self._cmdnames_available_in_state[state].update(cmds)
 
     def _collect_events_for_state_machine(self):
         for state in self._get_available_states():
-            self._eventnames_available_in_state[state] = dict()
-
-            events = self._collect_events_for_state(state)
-
-            self._eventnames_available_in_state[state].update(events)
+            if self.lazy_cmds_events_init:
+                self._eventnames_available_in_state[state] = None
+            else:
+                self._eventnames_available_in_state[state] = dict()
+                events = self._collect_events_for_state(state)
+                self._eventnames_available_in_state[state].update(events)
 
     @property
     def current_state(self):
