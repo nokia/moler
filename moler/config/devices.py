@@ -16,7 +16,7 @@ def set_default_connection(io_type, variant):
     default_connection = {"io_type": io_type, "variant": variant}
 
 
-def define_device(name, device_class, connection_desc, connection_hops, initial_state=None):
+def define_device(name, device_class, connection_desc, connection_hops, initial_state=None, lazy_cmds_events=False):
     """Assign name to device specification."""
     if connection_hops:
         if "CONNECTION_HOPS" not in connection_hops.keys():
@@ -25,7 +25,7 @@ def define_device(name, device_class, connection_desc, connection_hops, initial_
 
             connection_hops = new_connection_hops
 
-    named_devices[name] = (device_class, connection_desc, connection_hops, initial_state)
+    named_devices[name] = (device_class, connection_desc, connection_hops, initial_state, lazy_cmds_events)
 
 
 def clear():

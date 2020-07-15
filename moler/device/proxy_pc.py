@@ -19,7 +19,7 @@ class ProxyPc(UnixLocal):
     proxy_pc = "PROXY_PC"
 
     def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, io_constructor_kwargs=None,
-                 initial_state=None):
+                 initial_state=None, lazy_cmds_events=False):
         """
         Create Unix device communicating over io_connection
         :param sm_params: dict with parameters of state machine for device
@@ -37,7 +37,8 @@ class ProxyPc(UnixLocal):
         super(ProxyPc, self).__init__(name=name, io_connection=io_connection,
                                       io_type=io_type, variant=variant,
                                       io_constructor_kwargs=io_constructor_kwargs,
-                                      sm_params=sm_params, initial_state=initial_state)
+                                      sm_params=sm_params, initial_state=initial_state,
+                                      lazy_cmds_events=lazy_cmds_events)
 
     def _get_default_sm_configuration(self):
         """

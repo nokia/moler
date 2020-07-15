@@ -44,7 +44,7 @@ class TextualDevice(AbstractDevice):
     connection_hops = "CONNECTION_HOPS"
 
     def __init__(self, sm_params=None, name=None, io_connection=None, io_type=None, variant=None,
-                 io_constructor_kwargs=None, initial_state=None):
+                 io_constructor_kwargs=None, initial_state=None, lazy_cmds_events=False):
         """
         Create Device communicating over io_connection
         CAUTION: Device owns (takes over ownership) of connection. It will be open when device "is born" and close when
@@ -59,6 +59,8 @@ class TextualDevice(AbstractDevice):
         :param io_constructor_kwargs: additional parameter into constructor of selected connection type
                         (if not given then default one is taken)
         :param initial_state: name of initial state. State machine tries to enter this state just after creation.
+        :param lazy_cmds_events: set False to load all commands and events when device is initialized, set True to load
+                        commands and events when the first time the are required.
         """
         super(TextualDevice, self).__init__()
         if io_constructor_kwargs is None:
@@ -71,7 +73,7 @@ class TextualDevice(AbstractDevice):
         self._name = name
         self.device_data_logger = None
         self.timeout_keep_state = 10  # Timeout for background goto state after unexpected state change.
-        self.lazy_cmds_events_init = False  # Set True to lazy load commands and events.
+        self.lazy_cmds_events = lazy_cmds_events  # Set True to lazy load commands and events.
 
         # Below line will modify self extending it with methods and attributes od StateMachine
         # For eg. it will add attribute self.state
@@ -264,14 +266,14 @@ class TextualDevice(AbstractDevice):
 
     def _collect_cmds_for_state_machine(self):
         for state in self._get_available_states():
-            if self.lazy_cmds_events_init:
+            if self.lazy_cmds_events:
                 self._cmdnames_available_in_state[state] = None
             else:
                 self._load_cmds_for_state(state=state)
 
     def _collect_events_for_state_machine(self):
         for state in self._get_available_states():
-            if self.lazy_cmds_events_init:
+            if self.lazy_cmds_events:
                 self._eventnames_available_in_state[state] = None
             else:
                 self._load_events_for_state(state=state)

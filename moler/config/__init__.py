@@ -173,6 +173,7 @@ def load_device_from_config(config, add_only=False):
                     connection_desc=device_def.get('CONNECTION_DESC', dev_cfg.default_connection),
                     connection_hops={'CONNECTION_HOPS': device_def.get('CONNECTION_HOPS', {})},
                     initial_state=device_def.get('INITIAL_STATE', None),
+                    lazy_cmds_events=device_def.get('LAZY_CMDS_EVENTS', False)
                 )
 
     for device_name, device_desc in cloned_devices.items():
