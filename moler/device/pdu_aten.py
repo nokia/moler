@@ -55,7 +55,7 @@ class PduAten(ProxyPc):
     pdu = "PDU"
 
     def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, io_constructor_kwargs=None,
-                 initial_state=None):
+                 initial_state=None, lazy_cmds_events=False):
         """
         Create PDU device communicating over io_connection.
 
@@ -71,7 +71,7 @@ class PduAten(ProxyPc):
         initial_state = initial_state if initial_state is not None else PduAten.pdu
         super(PduAten, self).__init__(sm_params=sm_params, name=name, io_connection=io_connection,
                                       io_type=io_type, variant=variant, io_constructor_kwargs=io_constructor_kwargs,
-                                      initial_state=initial_state)
+                                      initial_state=initial_state, lazy_cmds_events=lazy_cmds_events)
         self.logger = logging.getLogger('moler.pdu')
 
     @mark_to_call_base_class_method_with_same_name
