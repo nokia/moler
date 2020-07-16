@@ -70,7 +70,7 @@ class DeviceFactory(object):
 
     @classmethod
     def get_device(cls, name=None, device_class=None, connection_desc=None, connection_hops=None, initial_state=None,
-                   establish_connection=True, lazy_cmds_events=False):
+                   establish_connection=True, lazy_cmds_events=None):
         """
         Return connection instance of given io_type/variant.
 
@@ -107,7 +107,8 @@ class DeviceFactory(object):
         cls._was_any_device_deleted = True
 
     @classmethod
-    def get_cloned_device(cls, source_device, new_name, initial_state=None, establish_connection=True):
+    def get_cloned_device(cls, source_device, new_name, initial_state=None, establish_connection=True,
+                          lazy_cmds_events=False):
         """
         Creates (if necessary) and returns new device based on existed device.
 
@@ -124,7 +125,7 @@ class DeviceFactory(object):
                 source_device = cls._get_device_without_lock(name=source_device, device_class=None,
                                                              connection_desc=None, connection_hops=None,
                                                              initial_state=None, establish_connection=True,
-                                                             lazy_cmds_events=True)
+                                                             lazy_cmds_events=lazy_cmds_events)
                 logger.info('STEP 1 - creating source device {}'.format(source_device_name))
             source_name = source_device.name  # name already translated to alias.
             if new_name in cls._devices.keys():

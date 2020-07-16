@@ -1,6 +1,6 @@
-__author__ = 'Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
-__email__ = 'michal.ernst@nokia.com'
+__author__ = 'Michal Ernst, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
 
@@ -11,6 +11,7 @@ def test_unix_remote_device(device_connection, unix_remote_output):
     unix_remote = get_device(name="UNIX_REMOTE", connection=device_connection, device_output=unix_remote_output,
                              test_file_path=__file__)
 
+    assert None is not unix_remote._cmdnames_available_in_state['UNIX_LOCAL_ROOT']
     iterate_over_device_states(device=unix_remote)
 
 
@@ -18,7 +19,9 @@ def test_unix_remote_proxy_pc_device(device_connection, unix_remote_proxy_pc_out
     unix_remote_proxy_pc = get_device(name="UNIX_REMOTE_PROXY_PC", connection=device_connection,
                                       device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
 
+    assert None is unix_remote_proxy_pc._cmdnames_available_in_state['UNIX_LOCAL_ROOT']
     iterate_over_device_states(device=unix_remote_proxy_pc)
+    assert None is not unix_remote_proxy_pc._cmdnames_available_in_state['UNIX_LOCAL_ROOT']
 
 
 @pytest.fixture
