@@ -9,6 +9,7 @@ __email__ = 'michal.ernst@nokia.com'
 import pytest
 import datetime
 from moler.util.moler_test import MolerTest
+from moler.exceptions import CommandFailure
 
 
 def test_calling_cd_returns_result_parsed_from_command_output(buffer_connection, command_output_and_expected_result):
@@ -59,7 +60,7 @@ def test_command_unicode_error(buffer_connection, command_output_and_expected_re
     MolerTest.sleep(sleep_time)
     buffer_connection.moler_connection.data_received(command_output.encode("utf-8"), datetime.datetime.now())
     MolerTest.sleep(sleep_time)
-    with pytest.raises(UnicodeDecodeError):
+    with pytest.raises(CommandFailure):
         cmd.await_done()
 
     cmd = CdUnicodeError(connection=buffer_connection.moler_connection, path="/home/user/")
