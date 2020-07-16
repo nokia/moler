@@ -52,7 +52,7 @@ class AdbRemote(UnixRemote):
     adb_shell_root = "ADB_SHELL_ROOT"
 
     def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, io_constructor_kwargs=None,
-                 initial_state=None,  lazy_cmds_events=False):
+                 initial_state=None, lazy_cmds_events=False):
         """
         Create ADB device communicating over io_connection
         :param sm_params: dict with parameters of state machine for device
