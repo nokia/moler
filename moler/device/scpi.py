@@ -70,6 +70,8 @@ class Scpi(ProxyPc):
         :param variant: External-IO connection variant
         :param io_constructor_kwargs: additional parameters for constructor of selected io_type
         :param initial_state: Initial state for device
+        :param lazy_cmds_events: set False to load all commands and events when device is initialized, set True to load
+                        commands and events when the first time the are required.
         """
         sm_params = sm_params.copy()
         initial_state = initial_state if initial_state is not None else Scpi.scpi
