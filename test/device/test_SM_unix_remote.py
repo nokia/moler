@@ -13,6 +13,7 @@ def test_unix_remote_device(device_connection, unix_remote_output):
 
     assert None is not unix_remote._cmdnames_available_in_state['UNIX_LOCAL_ROOT']
     iterate_over_device_states(device=unix_remote)
+    assert None is not unix_remote._cmdnames_available_in_state['UNIX_LOCAL_ROOT']
 
 
 def test_unix_remote_proxy_pc_device(device_connection, unix_remote_proxy_pc_output):
