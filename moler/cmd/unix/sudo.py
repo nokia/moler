@@ -284,8 +284,6 @@ class Sudo(CommandChangingPrompt):
                 self,
                 "Not allowed to run again the embedded command (embedded command is done): {}.".format(
                     self.cmd_object))
-        # if not self.cmd_object:
-        #     self._finish_on_final_prompt = True
         self._validated_embedded_parameters = True
 
     def _build_command_object(self):
