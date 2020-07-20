@@ -255,11 +255,23 @@ class TextualDevice(AbstractDevice):
         self._stop_prompts_observers()
 
     def _load_cmdnames_for_state(self, state):
+        """
+        Load command names for state.
+
+        :param state: name of state of the device.
+        :return: None.
+        """
         self._cmdnames_available_in_state[state] = dict()
         cmds = self._collect_cmds_for_state(state)
         self._cmdnames_available_in_state[state].update(cmds)
 
     def _load_eventnames_for_state(self, state):
+        """
+        Load event names for state.
+
+        :param state: name of state of the device.
+        :return: None.
+        """
         self._eventnames_available_in_state[state] = dict()
         events = self._collect_events_for_state(state)
         self._eventnames_available_in_state[state].update(events)
