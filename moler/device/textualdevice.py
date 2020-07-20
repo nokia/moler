@@ -254,12 +254,12 @@ class TextualDevice(AbstractDevice):
     def __del__(self):
         self._stop_prompts_observers()
 
-    def _load_cmds_for_state(self, state):
+    def _load_cmdnames_for_state(self, state):
         self._cmdnames_available_in_state[state] = dict()
         cmds = self._collect_cmds_for_state(state)
         self._cmdnames_available_in_state[state].update(cmds)
 
-    def _load_events_for_state(self, state):
+    def _load_eventnames_for_state(self, state):
         self._eventnames_available_in_state[state] = dict()
         events = self._collect_events_for_state(state)
         self._eventnames_available_in_state[state].update(events)
@@ -269,14 +269,14 @@ class TextualDevice(AbstractDevice):
             if self.lazy_cmds_events:
                 self._cmdnames_available_in_state[state] = None
             else:
-                self._load_cmds_for_state(state=state)
+                self._load_cmdnames_for_state(state=state)
 
     def _collect_events_for_state_machine(self):
         for state in self._get_available_states():
             if self.lazy_cmds_events:
                 self._eventnames_available_in_state[state] = None
             else:
-                self._load_events_for_state(state=state)
+                self._load_eventnames_for_state(state=state)
 
     @property
     def current_state(self):
@@ -609,7 +609,7 @@ class TextualDevice(AbstractDevice):
         CAUTION: it checks if cmd may be created in current_state of device
         """
         if self._cmdnames_available_in_state[for_state] is None:
-            self._load_cmds_for_state(state=for_state)
+            self._load_cmdnames_for_state(state=for_state)
         return self._get_observer_in_state(observer_name=cmd_name, observer_type=TextualDevice.cmds,
                                            for_state=for_state, **kwargs)
 
@@ -617,7 +617,7 @@ class TextualDevice(AbstractDevice):
         """
         CAUTION: it checks if event may be created in current_state of device
         """
-        self._load_events_for_state(state=for_state)
+        self._load_eventnames_for_state(state=for_state)
         return self._get_observer_in_state(observer_name=event_name, observer_type=TextualDevice.events,
                                            for_state=for_state, **kwargs)
 
