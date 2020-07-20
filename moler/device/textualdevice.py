@@ -590,7 +590,7 @@ class TextualDevice(AbstractDevice):
         return available_cmds
 
     def _get_observer_in_state(self, observer_name, observer_type, for_state, **kwargs):
-        """Return Observable object assigned to obserber_name of given device"""
+        """Return Observable object assigned to observer_name of given device"""
         # TODO: return observer object wrapped in decorator mocking it's start()
         available_observer_names = []
         if not for_state:
