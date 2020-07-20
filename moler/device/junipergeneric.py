@@ -35,7 +35,7 @@ class JuniperGeneric(ProxyPc):
         :param io_constructor_kwargs: additional parameters for constructor of selected io_type
         :param initial_state: Initial state for device
         :param lazy_cmds_events: set False to load all commands and events when device is initialized, set True to load
-                        commands and events when the first time the are required.
+                        commands and events when they are required for the first time.
         """
         sm_params = sm_params.copy()
         initial_state = initial_state if initial_state is not None else JuniperGeneric.cli

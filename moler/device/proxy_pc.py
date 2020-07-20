@@ -32,7 +32,7 @@ class ProxyPc(UnixLocal):
                         (if not given then default one is taken)
         :param initial_state: name of initial state. State machine tries to enter this state just after creation.
         :param lazy_cmds_events: set False to load all commands and events when device is initialized, set True to load
-                        commands and events when the first time the are required.
+                        commands and events when they are required for the first time.
         """
         initial_state = initial_state if initial_state is not None else ProxyPc.unix_local
         self._use_proxy_pc = self._is_proxy_pc_in_sm_params(sm_params, ProxyPc.proxy_pc)

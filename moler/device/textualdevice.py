@@ -60,7 +60,7 @@ class TextualDevice(AbstractDevice):
                         (if not given then default one is taken)
         :param initial_state: name of initial state. State machine tries to enter this state just after creation.
         :param lazy_cmds_events: set False to load all commands and events when device is initialized, set True to load
-                        commands and events when the first time the are required.
+                        commands and events when they are required for the first time.
         """
         super(TextualDevice, self).__init__()
         if io_constructor_kwargs is None:

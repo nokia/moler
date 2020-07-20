@@ -61,7 +61,7 @@ class AtRemote(UnixRemote):
                         (if not given then default one is taken)
         :param initial_state: name of initial state. State machine tries to enter this state just after creation.
         :param lazy_cmds_events: set False to load all commands and events when device is initialized, set True to load
-                        commands and events when the first time the are required.
+                        commands and events when they are required for the first time.
         """
         initial_state = initial_state if initial_state is not None else AtRemote.at_remote
         super(AtRemote, self).__init__(name=name, io_connection=io_connection,
