@@ -23,7 +23,7 @@ class JuniperGeneric(ProxyPc):
     configure = "CONFIGURE"
 
     def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None,
-                 io_constructor_kwargs=None, initial_state=None):
+                 io_constructor_kwargs=None, initial_state=None, lazy_cmds_events=False):
         """
         Create unix device communicating over io_connection.
 
@@ -34,12 +34,15 @@ class JuniperGeneric(ProxyPc):
         :param variant: External-IO connection variant
         :param io_constructor_kwargs: additional parameters for constructor of selected io_type
         :param initial_state: Initial state for device
+        :param lazy_cmds_events: set False to load all commands and events when device is initialized, set True to load
+                        commands and events when they are required for the first time.
         """
         sm_params = sm_params.copy()
         initial_state = initial_state if initial_state is not None else JuniperGeneric.cli
         super(JuniperGeneric, self).__init__(sm_params=sm_params, name=name, io_connection=io_connection,
-                                             io_type=io_type, variant=variant, io_constructor_kwargs=io_constructor_kwargs,
-                                             initial_state=initial_state)
+                                             io_type=io_type, variant=variant,
+                                             io_constructor_kwargs=io_constructor_kwargs,
+                                             initial_state=initial_state, lazy_cmds_events=lazy_cmds_events)
         self.logger = logging.getLogger('moler.juniper')
 
     @mark_to_call_base_class_method_with_same_name

@@ -41,6 +41,7 @@ DEVICES:
   UNIX_REMOTE_PROXY_PC:
     DEVICE_CLASS: moler.device.unixremote.UnixRemote
     INITIAL_STATE: UNIX_LOCAL
+    LAZY_CMDS_EVENTS: True
     CONNECTION_HOPS:
       PROXY_PC:
         UNIX_REMOTE:

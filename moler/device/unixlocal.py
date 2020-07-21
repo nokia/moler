@@ -41,7 +41,7 @@ class UnixLocal(TextualDevice):
     unix_local_root = "UNIX_LOCAL_ROOT"
 
     def __init__(self, sm_params=None, name=None, io_connection=None, io_type=None, variant=None,
-                 io_constructor_kwargs=None, initial_state=None):
+                 io_constructor_kwargs=None, initial_state=None, lazy_cmds_events=False):
         """
         :param sm_params: dict with parameters of state machine for device
         :param name: name of device
@@ -52,12 +52,15 @@ class UnixLocal(TextualDevice):
         :param io_constructor_kwargs: additional parameter into constructor of selected connection type
                         (if not given then default one is taken)
         :param initial_state: name of initial state. State machine tries to enter this state just after creation.
+        :param lazy_cmds_events: set False to load all commands and events when device is initialized, set True to load
+                        commands and events when they are required for the first time.
         """
         initial_state = initial_state if initial_state is not None else UnixLocal.unix_local
         super(UnixLocal, self).__init__(sm_params=sm_params, name=name,
                                         io_connection=io_connection, io_type=io_type,
                                         io_constructor_kwargs=io_constructor_kwargs,
-                                        variant=variant, initial_state=initial_state)
+                                        variant=variant, initial_state=initial_state,
+                                        lazy_cmds_events=lazy_cmds_events)
 
     def _get_default_sm_configuration(self):
         """
