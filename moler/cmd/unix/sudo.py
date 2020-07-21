@@ -152,10 +152,12 @@ class Sudo(CommandChangingPrompt):
             self.current_ret = self.cmd_object.current_ret
             if self.cmd_object.done():
                 try:
-                    self.cmd_object.result()
+                    result = self.cmd_object.result()
+                    if self._finish_on_final_prompt is False and self.done() is False:
+                        self.set_result(result=result)
                 except Exception as ex:
                     self.set_exception(ex)
-                self._finish_on_final_prompt = True
+                    self._finish_on_final_prompt = True
 
     # sudo: pwd: command not found
     _re_sudo_command_not_found = re.compile(r"sudo:.*command not found", re.I)
@@ -282,8 +284,6 @@ class Sudo(CommandChangingPrompt):
                 self,
                 "Not allowed to run again the embedded command (embedded command is done): {}.".format(
                     self.cmd_object))
-        if not self.cmd_object:
-            self._finish_on_final_prompt = True
         self._validated_embedded_parameters = True
 
     def _build_command_object(self):
@@ -301,6 +301,8 @@ class Sudo(CommandChangingPrompt):
             params['prompt'] = self._re_prompt
             params["newline_chars"] = self._newline_chars
             self.cmd_object = create_object_from_name(self.cmd_class_name, params)
+        if self.cmd_object is None:
+            self._finish_on_final_prompt = True
 
 
 COMMAND_OUTPUT_whoami = """
@@ -474,3 +476,15 @@ COMMAND_KWARGS_sudo_su_pwd = {
 }
 
 COMMAND_RESULT_sudo_su_pwd = {'full_path': '/home/auto/inv', 'path_to_current': '/home/auto', 'current_path': 'inv'}
+
+COMMAND_OUTPUT_reboot = """sudo reboot
+Connection to 192.168.255.179 closed by remote host.
+"""
+
+COMMAND_KWARGS_reboot = {
+    'cmd_class_name': 'moler.cmd.unix.reboot.Reboot',  # reboot as parameter of sudo
+}
+
+COMMAND_RESULT_reboot = {
+    'RESULT': 'Connection to 192.168.255.179 closed by remote host.'
+}

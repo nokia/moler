@@ -2,9 +2,9 @@
 """
 Reboot command module.
 """
-__author__ = 'Agnieszka Bylica'
-__copyright__ = 'Copyright (C) 2019, Nokia'
-__email__ = 'agnieszka.bylica@nokia.com'
+__author__ = 'Agnieszka Bylica, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2019-2020, Nokia'
+__email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com'
 
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
@@ -42,7 +42,7 @@ class Reboot(GenericUnixCommand):
             self._catch_login_prompt(line)
 
     _re_connection_closed = re.compile(r"(?P<CLOSED>(Connection\s+to\s+\S+\s+closed.*)|"
-                                       r"(Connection closed by foreign host.*))", re.I)
+                                       r"(Connection closed by .* host.*))", re.I)
 
     def _catch_connection_closed(self, line):
         if self._regex_helper.search_compiled(Reboot._re_connection_closed, line):
@@ -60,7 +60,7 @@ toor4nsn@fzhub:~# reboot
 Connection to 192.168.255.129 closed by remote host.
 
 Connection to 192.168.255.129 closed.
-ute@SC5G-HUB-079"""
+"""
 
 COMMAND_KWARGS_SSH = {}
 
@@ -90,4 +90,14 @@ COMMAND_KWARGS_CONSOLE = {}
 
 COMMAND_RESULT_CONSOLE = {
     'RESULT': 'fzhub login: '
+}
+
+COMMAND_OUTPUT_reboot = """reboot
+Connection to 192.168.255.179 closed by remote host.
+"""
+
+COMMAND_KWARGS_reboot = {}
+
+COMMAND_RESULT_reboot = {
+    'RESULT': 'Connection to 192.168.255.179 closed by remote host.'
 }

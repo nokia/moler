@@ -166,6 +166,7 @@ def load_device_from_config(config, add_only=False):
                 cloned_devices[device_name] = dict()
                 cloned_devices[device_name]['source'] = device_def[cloned_id]
                 cloned_devices[device_name]['state'] = device_def.get('INITIAL_STATE', None)
+                cloned_devices[device_name]['lazy_cmds_events'] = device_def.get('LAZY_CMDS_EVENTS', False)
             else:  # create all devices defined directly
                 dev_cfg.define_device(
                     name=device_name,
@@ -173,13 +174,15 @@ def load_device_from_config(config, add_only=False):
                     connection_desc=device_def.get('CONNECTION_DESC', dev_cfg.default_connection),
                     connection_hops={'CONNECTION_HOPS': device_def.get('CONNECTION_HOPS', {})},
                     initial_state=device_def.get('INITIAL_STATE', None),
+                    lazy_cmds_events=device_def.get('LAZY_CMDS_EVENTS', False)
                 )
 
     for device_name, device_desc in cloned_devices.items():
         cloned_from = device_desc['source']
         initial_state = device_desc['state']
+        lazy_cmds_events = device_desc['lazy_cmds_events']
         DeviceFactory.get_cloned_device(source_device=cloned_from, new_name=device_name, initial_state=initial_state,
-                                        establish_connection=False)
+                                        establish_connection=False, lazy_cmds_events=lazy_cmds_events)
     if create_at_startup is True:
         DeviceFactory.create_all_devices()
     _load_topology(topology=topology)
