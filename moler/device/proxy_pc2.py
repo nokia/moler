@@ -42,7 +42,7 @@ def want_local_unix_state(io_type=None, io_connection=None):
 class ProxyPc2(UnixLocal):
 
     def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, io_constructor_kwargs=None,
-                 initial_state=None):
+                 initial_state=None, lazy_cmds_events=False):
         """
         Create Unix device communicating over io_connection
         :param sm_params: dict with parameters of state machine for device
@@ -54,6 +54,8 @@ class ProxyPc2(UnixLocal):
         :param io_constructor_kwargs: additional parameter into constructor of selected connection type
                         (if not given then default one is taken)
         :param initial_state: name of initial state. State machine tries to enter this state just after creation.
+        :param lazy_cmds_events: set False to load all commands and events when device is initialized, set True to load
+                        commands and events when they are required for the first time.
         """
         self._use_local_unix_state = want_local_unix_state(io_type, io_connection)
         base_state = UNIX_LOCAL if self._use_local_unix_state else NOT_CONNECTED
@@ -63,7 +65,8 @@ class ProxyPc2(UnixLocal):
         super(ProxyPc2, self).__init__(name=name, io_connection=io_connection,
                                        io_type=io_type, variant=variant,
                                        io_constructor_kwargs=io_constructor_kwargs,
-                                       sm_params=sm_params, initial_state=initial_state)
+                                       sm_params=sm_params, initial_state=initial_state,
+                                       lazy_cmds_events=lazy_cmds_events)
         self._prompt_detector_timeout = 0.5
         self._after_open_prompt_detector = None
 
