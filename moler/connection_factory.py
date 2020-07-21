@@ -17,6 +17,7 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 
 
 import logging
+import platform
 import moler.config.connections as connection_cfg
 from moler.threaded_moler_connection import ThreadedMolerConnection
 
@@ -150,6 +151,13 @@ def _try_take_named_connection_params(name, io_type, **constructor_kwargs):
 
 
 def _try_select_io_type_variant(io_type, variant):
+    if (io_type == 'terminal') and (platform.system() == 'Windows'):  # TODO: fix if we will have win implementation of terminal
+        whats_wrong = "No '{}' connection available on Windows".format(io_type)
+        fix = "try using 'sshshell' connection instead"
+        err_msg = "{} ({})".format(whats_wrong, fix)
+        _moler_logger_log(level=logging.DEBUG, msg=err_msg)
+        raise AttributeError(err_msg)
+
     if variant is None:
         if io_type in connection_cfg.default_variant:
             variant = connection_cfg.default_variant[io_type]
