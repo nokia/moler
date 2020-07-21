@@ -65,6 +65,7 @@ supported_systems = supported_unix_systems + supported_windows_systems
 def _running_on_supported_unix():
     return platform.system() in supported_unix_systems
 
+
 def _running_on_supported_windows():
     return platform.system() in supported_windows_systems
 
