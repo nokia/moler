@@ -57,28 +57,32 @@ def _running_python_3_5_or_above():
     return (sys.version_info[0] >= 3) and (sys.version_info[1] >= 5)
 
 
-supported_systems = ['Linux', "FreeBSD", "Darwin", "SunOS"]
+supported_unix_systems = ['Linux', "FreeBSD", "Darwin", "SunOS"]
+supported_windows_systems = ['Windows']
+supported_systems = supported_unix_systems + supported_windows_systems
 
 
 def _running_on_supported_unix():
-    return platform.system() in supported_systems
+    return platform.system() in supported_unix_systems
+
+def _running_on_supported_windows():
+    return platform.system() in supported_windows_systems
 
 
 def register_builtin_connections(connection_factory, moler_conn_class):
-    _register_builtin_connections(connection_factory, moler_conn_class)
+    _register_builtin_connections(connection_factory, moler_conn_class)  # unix & windows connections
     if _running_python_3_5_or_above():
         _register_python3_builtin_connections(connection_factory, moler_conn_class)
 
     if _running_on_supported_unix():
-        _register_builtin_unix_connections(connection_factory, moler_conn_class)
+        _register_builtin_unix_connections(connection_factory, moler_conn_class)  # unix-only connections
         if _running_python_3_5_or_above():
             _register_builtin_py3_unix_connections(connection_factory, moler_conn_class)
+    elif _running_on_supported_windows():
+        pass  # placeholder for windows-only connections
     else:
-        # who has added this? On Windows - just terminal connection is absent
-        #
-        # err_msg = "Unsupported system {} detected! Supported systems: {}".format(platform.system(), supported_systems)
-        # raise MolerException(err_msg)
-        pass
+        err_msg = "Unsupported system {} detected! Supported systems: {}".format(platform.system(), supported_systems)
+        raise MolerException(err_msg)
 
 
 def mlr_conn_no_encoding(moler_conn_class, name):

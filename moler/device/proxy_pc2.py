@@ -10,10 +10,14 @@ __copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'michal.ernst@nokia.com, grzegorz.latuszek@nokia.com'
 import six
 import abc
+import platform
 
 from moler.device.textualdevice import TextualDevice
 from moler.device.unixlocal import UnixLocal
-from moler.io.raw.terminal import ThreadedTerminal
+try:
+    from moler.io.raw.terminal import ThreadedTerminal
+except ImportError:  # ThreadedTerminal won't load on Windows
+    pass
 from moler.events.shared.wait4 import Wait4
 
 # helper variables to improve readability of state machines
@@ -32,7 +36,7 @@ def want_local_unix_state(io_type=None, io_connection=None):
     """
     if io_type == "terminal":
         return True
-    if isinstance(io_connection, ThreadedTerminal):
+    if (platform.system() != 'Windows') and isinstance(io_connection, ThreadedTerminal):
         return True
     else:  # all remote-access connections (tcp, udp, telnet, ssh); even connecting to localhost
         return False

@@ -1,5 +1,5 @@
 futures >= 3.0.0; python_version == "2.7"
-ptyprocess
+ptyprocess; platform_system != "Windows"
 pyyaml >= 5.1
 six
 transitions
