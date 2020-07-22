@@ -43,6 +43,22 @@ def test_factory_has_buildin_constructors_active_by_default():
     assert conn.__class__.__name__ == 'ThreadedSshShell'
 
 
+def test_correct_call_of_sshshell_construction_based_on_existing_sshshell_connection():
+    from moler.connection_factory import get_connection
+    from moler.exceptions import MolerException
+
+    existing_conn = get_connection(io_type='sshshell', variant='threaded',
+                          host='localhost', port=2345, login='vagrant', password='vagrant')
+    with pytest.raises(MolerException) as err:
+        get_connection(io_type='sshshell', variant='threaded',
+                       reuse_ssh_of_shell=existing_conn,
+                       port=2345, login='vagrant', password='vagrant')
+    assert "Don't use host/port/username/login/password when building sshshell reusing ssh of other sshshell" in str(err.value)
+    conn_reusing_ssh_transport = get_connection(io_type='sshshell', variant='threaded',
+                                                reuse_ssh_of_shell=existing_conn)
+    assert conn_reusing_ssh_transport.__class__.__name__ == 'ThreadedSshShell'
+
+
 def test_returned_connections_have_moler_integrated_connection(builtin_variant,
                                                                builtin_io_type_example):
     from moler.connection_factory import get_connection

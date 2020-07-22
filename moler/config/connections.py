@@ -149,7 +149,11 @@ def _register_builtin_connections(connection_factory, moler_conn_class):
                           reuse_ssh_of_shell=None, **kwargs):
         mlr_conn = mlr_conn_utf8_with_clean_vt100(moler_conn_class, name=name)
         if reuse_ssh_of_shell:
-            assert (host is None) and (port is None) and (username is None) and (login is None) and (password is None)
+            if not ((host is None) and (port is None) and (username is None) and (login is None) and (password is None)):
+                incorrect_params = "host/port/username/login/password"
+                when = "building sshshell reusing ssh of other sshshell"
+                err_msg = "Don't use {} when {}".format(incorrect_params, when)
+                raise MolerException(err_msg)
             io_conn = ThreadedSshShell.from_sshshell(moler_connection=mlr_conn,  # TODO: add name
                                                      sshshell=reuse_ssh_of_shell,
                                                      **kwargs)  # logger_name
