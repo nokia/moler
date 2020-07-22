@@ -37,6 +37,11 @@ def test_factory_has_buildin_constructors_active_by_default():
     assert conn.__module__ == 'moler.io.raw.tcp'
     assert conn.__class__.__name__ == 'ThreadedTcp'
 
+    conn = get_connection(io_type='sshshell', variant='threaded',
+                          host='localhost', port=2345, login='vagrant', password='vagrant')
+    assert conn.__module__ == 'moler.io.raw.sshshell'
+    assert conn.__class__.__name__ == 'ThreadedSshShell'
+
 
 def test_returned_connections_have_moler_integrated_connection(builtin_variant,
                                                                builtin_io_type_example):
