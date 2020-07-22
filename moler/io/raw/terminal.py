@@ -9,7 +9,7 @@ import select
 import datetime
 from threading import Event
 
-from ptyprocess import PtyProcessUnicode
+from ptyprocess import PtyProcessUnicode  # Unix-only
 
 from moler.io.io_connection import IOConnection
 from moler.io.raw import TillDoneThread

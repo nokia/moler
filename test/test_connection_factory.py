@@ -8,6 +8,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com'
 
 import pytest
+import mock
 
 
 def test_missing_constructor_raises_KeyError():
@@ -15,6 +16,14 @@ def test_missing_constructor_raises_KeyError():
     with pytest.raises(KeyError) as err:
         ConnectionFactory.get_connection(io_type='memory', variant='superquick')
     assert "No constructor registered for [('memory', 'superquick')] connection" in str(err.value)
+
+
+def test_user_is_informed_about_terminal_io_unavailable_on_windows():
+    from moler.connection_factory import get_connection
+    with mock.patch("moler.connection_factory.platform.system", return_value='Windows'):
+        with pytest.raises(AttributeError) as err:
+            get_connection(io_type='terminal', variant='threaded')
+    assert "No 'terminal' connection available on Windows (try using 'sshshell' connection instead)" in str(err.value)
 
 
 def test_factory_has_buildin_constructors_active_by_default():
@@ -27,6 +36,27 @@ def test_factory_has_buildin_constructors_active_by_default():
     conn = get_connection(io_type='tcp', variant='threaded', host='localhost', port=2345)
     assert conn.__module__ == 'moler.io.raw.tcp'
     assert conn.__class__.__name__ == 'ThreadedTcp'
+
+    conn = get_connection(io_type='sshshell', variant='threaded',
+                          host='localhost', port=2345, login='vagrant', password='vagrant')
+    assert conn.__module__ == 'moler.io.raw.sshshell'
+    assert conn.__class__.__name__ == 'ThreadedSshShell'
+
+
+def test_correct_call_of_sshshell_construction_based_on_existing_sshshell_connection():
+    from moler.connection_factory import get_connection
+    from moler.exceptions import MolerException
+
+    existing_conn = get_connection(io_type='sshshell', variant='threaded',
+                          host='localhost', port=2345, login='vagrant', password='vagrant')
+    with pytest.raises(MolerException) as err:
+        get_connection(io_type='sshshell', variant='threaded',
+                       reuse_ssh_of_shell=existing_conn,
+                       port=2345, login='vagrant', password='vagrant')
+    assert "Don't use host/port/username/login/password when building sshshell reusing ssh of other sshshell" in str(err.value)
+    conn_reusing_ssh_transport = get_connection(io_type='sshshell', variant='threaded',
+                                                reuse_ssh_of_shell=existing_conn)
+    assert conn_reusing_ssh_transport.__class__.__name__ == 'ThreadedSshShell'
 
 
 def test_returned_connections_have_moler_integrated_connection(builtin_variant,

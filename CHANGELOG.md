@@ -1,3 +1,8 @@
+## moler 1.19.0
+
+### Added
+* New type of io-connection: threaded sshshell based on Paramiko
+
 ## moler 1.18.0
 
 ### Improved

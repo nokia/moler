@@ -7,6 +7,9 @@ matrix:
     - python: 3.7.3
     - python: 3.8.1
 
+before_install:
+  - sudo apt-get -y install sshpass
+
 install:
   - pip install -U pip
   - pip install -U pycodestyle coveralls pytest pytest-mccabe pytest-random
@@ -15,6 +18,19 @@ install:
 
 before_script:
   - python -V
+  - cat /etc/passwd | grep home
+  - sudo useradd molerssh -c MolerSshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("moler_password", "mr"))'`
+  - sudo useradd sshproxy -c Proxy4SshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("proxy_password", "mr"))'`
+  - sudo useradd adbshell -c AdbShell4SshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("adb_password", "mr"))'`
+  - cat /etc/passwd | grep home
+  - which scp
+  - sshpass -p moler_password ssh -oStrictHostKeyChecking=no molerssh@localhost pwd
+  - sshpass -p proxy_password ssh -oStrictHostKeyChecking=no sshproxy@localhost pwd
+  - sshpass -p adb_password ssh -oStrictHostKeyChecking=no adbshell@localhost pwd
+  - sshpass -p moler_password scp adb_simulation.sh molerssh@localhost:/home/molerssh/adb_simulation.sh
+  - sshpass -p moler_password ssh molerssh@localhost 'chmod +x ~/adb_simulation.sh'
+  - sshpass -p moler_password ssh molerssh@localhost 'echo "alias adb=~/adb_simulation.sh" >> ~/.profile'
+
 
 script:
   - python -m pycodestyle --statistics --count moler
@@ -23,10 +39,16 @@ script:
   - if [[ $TRAVIS_PYTHON_VERSION == *"3.7"* ]]; then coverage run -m pytest -c py3pytest.ini --random --mccabe -s -vv; fi
   - if [[ $TRAVIS_PYTHON_VERSION == *"3.8"* ]]; then python -m pytest --mccabe -s -vv moler; fi
 
+
 after_success:
   - if [[ $TRAVIS_PYTHON_VERSION == *"3.7"* ]]; then coveralls; fi
+  - sudo userdel --remove --force molerssh
+  - cat /etc/passwd | grep home
 
 after_failure:
   - echo "----------------------- LOGS -----------------------"
+  - whoami
+  - pwd
   - ls -lah *.log
-  - cat *.log
+  - export LINE='------------------------------------------------------------------------------------------------'
+  - for log in `ls -1 *.log`; do echo $LINE; echo ---; echo --- $log; echo ---; echo $LINE; cat $log; done

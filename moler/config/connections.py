@@ -50,34 +50,40 @@ def clear():
 def set_defaults():
     """Set defaults for connections configuration"""
     set_default_variant(io_type="terminal", variant="threaded")
+    set_default_variant(io_type="sshshell", variant="threaded")
 
 
 def _running_python_3_5_or_above():
     return (sys.version_info[0] >= 3) and (sys.version_info[1] >= 5)
 
 
-supported_systems = ['Linux', "FreeBSD", "Darwin", "SunOS"]
+supported_unix_systems = ['Linux', "FreeBSD", "Darwin", "SunOS"]
+supported_windows_systems = ['Windows']
+supported_systems = supported_unix_systems + supported_windows_systems
 
 
 def _running_on_supported_unix():
-    return platform.system() in supported_systems
+    return platform.system() in supported_unix_systems
+
+
+def _running_on_supported_windows():
+    return platform.system() in supported_windows_systems
 
 
 def register_builtin_connections(connection_factory, moler_conn_class):
-    _register_builtin_connections(connection_factory, moler_conn_class)
+    _register_builtin_connections(connection_factory, moler_conn_class)  # unix & windows connections
     if _running_python_3_5_or_above():
         _register_python3_builtin_connections(connection_factory, moler_conn_class)
 
     if _running_on_supported_unix():
-        _register_builtin_unix_connections(connection_factory, moler_conn_class)
+        _register_builtin_unix_connections(connection_factory, moler_conn_class)  # unix-only connections
         if _running_python_3_5_or_above():
             _register_builtin_py3_unix_connections(connection_factory, moler_conn_class)
+    elif _running_on_supported_windows():
+        pass  # placeholder for windows-only connections
     else:
-        # who has added this? On Windows - just terminal connection is absent
-        #
-        # err_msg = "Unsupported system {} detected! Supported systems: {}".format(platform.system(), supported_systems)
-        # raise MolerException(err_msg)
-        pass
+        err_msg = "Unsupported system {} detected! Supported systems: {}".format(platform.system(), supported_systems)
+        raise MolerException(err_msg)
 
 
 def mlr_conn_no_encoding(moler_conn_class, name):
@@ -103,6 +109,19 @@ def mlr_conn_no_encoding_partial_clean_vt100(moler_conn_class, name):
     return moler_conn_class(name=name, decoder=vt100_cleaner)
 
 
+def mlr_conn_utf8_with_clean_vt100(moler_conn_class, name):
+    from moler.helpers import remove_all_known_special_chars
+
+    def utf8decoder_with_vt100_cleaner(data):
+        decoded = data.decode("utf-8")
+        decoded = remove_all_known_special_chars(decoded)
+        return decoded
+
+    return moler_conn_class(name=name,
+                            encoder=lambda data: data.encode("utf-8"),
+                            decoder=utf8decoder_with_vt100_cleaner)
+
+
 def mlr_conn_utf8(moler_conn_class, name):
     return moler_conn_class(encoder=lambda data: data.encode("utf-8"),
                             decoder=lambda data: data.decode("utf-8"),
@@ -112,6 +131,7 @@ def mlr_conn_utf8(moler_conn_class, name):
 def _register_builtin_connections(connection_factory, moler_conn_class):
     from moler.io.raw.memory import ThreadedFifoBuffer
     from moler.io.raw.tcp import ThreadedTcp
+    from moler.io.raw.sshshell import ThreadedSshShell
 
     def mem_thd_conn(name=None, echo=True, **kwargs):  # kwargs to pass  logger_name
         mlr_conn = mlr_conn_utf8(moler_conn_class, name=name)
@@ -125,6 +145,27 @@ def _register_builtin_connections(connection_factory, moler_conn_class):
                               port=port, host=host, **kwargs)  # TODO: add name
         return io_conn
 
+    def sshshell_thd_conn(host=None, port=None, username=None, login=None, password=None, name=None,
+                          reuse_ssh_of_shell=None, **kwargs):
+        mlr_conn = mlr_conn_utf8_with_clean_vt100(moler_conn_class, name=name)
+        if reuse_ssh_of_shell:
+            if not ((host is None) and (port is None) and (username is None) and (login is None) and (password is None)):
+                incorrect_params = "host/port/username/login/password"
+                when = "building sshshell reusing ssh of other sshshell"
+                err_msg = "Don't use {} when {}".format(incorrect_params, when)
+                raise MolerException(err_msg)
+            io_conn = ThreadedSshShell.from_sshshell(moler_connection=mlr_conn,  # TODO: add name
+                                                     sshshell=reuse_ssh_of_shell,
+                                                     **kwargs)  # logger_name
+        else:
+            if port is None:
+                port = 22
+            io_conn = ThreadedSshShell(moler_connection=mlr_conn,  # TODO: add name
+                                       host=host, port=port,
+                                       username=username, login=login, password=password,
+                                       **kwargs)  # receive_buffer_size, logger_name, other login credentials
+        return io_conn
+
     # TODO: unify passing logger to io_conn (logger/logger_name - see above comments)
     connection_factory.register_construction(io_type="memory",
                                              variant="threaded",
@@ -132,6 +173,9 @@ def _register_builtin_connections(connection_factory, moler_conn_class):
     connection_factory.register_construction(io_type="tcp",
                                              variant="threaded",
                                              constructor=tcp_thd_conn)
+    connection_factory.register_construction(io_type="sshshell",
+                                             variant="threaded",
+                                             constructor=sshshell_thd_conn)
 
 
 def _register_python3_builtin_connections(connection_factory, moler_conn_class):

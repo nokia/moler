@@ -19,6 +19,7 @@ import time
 import sys
 import psutil
 import functools
+import platform
 
 from moler.exceptions import MolerTimeout
 from moler.exceptions import MolerException
@@ -32,11 +33,20 @@ from moler.util.loghelper import debug_into_logger
 
 
 current_process = psutil.Process()
-(max_open_files_limit_soft, max_open_files_limit_hard) = current_process.rlimit(psutil.RLIMIT_NOFILE)
+if platform.system() == 'Linux':
+    (max_open_files_limit_soft, max_open_files_limit_hard) = current_process.rlimit(psutil.RLIMIT_NOFILE)
+else:
+    # https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/setmaxstdio?view=vs-2019
+    (max_open_files_limit_soft, max_open_files_limit_hard) = (510, 512)  # TODO: any way on Win?
 
 
 def system_resources_usage():
-    curr_fds_open = current_process.num_fds()
+    if platform.system() == 'Linux':
+        curr_fds_open = current_process.num_fds()
+    else:
+        ofiles = current_process.open_files()
+        osockets = current_process.connections(kind="all")
+        curr_fds_open = len(ofiles) + len(osockets)  # TODO: any better way on Win?
     curr_threads_nb = threading.active_count()
     return curr_fds_open, curr_threads_nb
 
@@ -78,7 +88,8 @@ def check_system_resources_limit(connection_observer, observer_lock, logger):
     return None
 
 
-class LoudEventLoop(asyncio.unix_events.SelectorEventLoop):
+# class LoudEventLoop(asyncio.unix_events.SelectorEventLoop):
+class LoudEventLoop(asyncio.SelectorEventLoop):
     def __init__(self, *args):
         super(LoudEventLoop, self).__init__(*args)
 
@@ -92,7 +103,8 @@ class LoudEventLoop(asyncio.unix_events.SelectorEventLoop):
         super(LoudEventLoop, self).stop()
 
 
-class LoudEventLoopPolicy(asyncio.unix_events.DefaultEventLoopPolicy):
+# class LoudEventLoopPolicy(asyncio.unix_events.DefaultEventLoopPolicy):
+class LoudEventLoopPolicy(asyncio.DefaultEventLoopPolicy):
     _loop_factory = LoudEventLoop
 
 

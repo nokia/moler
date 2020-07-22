@@ -721,6 +721,7 @@ def test_can_load_configuration_when_already_loaded_from_same_file(moler_config,
 
 # --------------------------- resources ---------------------------
 
+
 @pytest.yield_fixture
 def moler_config(clear_all_cfg):
     import moler.config as moler_cfg
