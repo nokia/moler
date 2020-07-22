@@ -20,6 +20,14 @@ moler.device.adbremote module
     :undoc-members:
     :show-inheritance:
 
+moler.device.adbremote2 module
+------------------------------
+
+.. automodule:: moler.device.adbremote2
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.device.atremote module
 ----------------------------
 
@@ -68,6 +76,14 @@ moler.device.proxy\_pc module
     :undoc-members:
     :show-inheritance:
 
+moler.device.proxy\_pc2 module
+------------------------------
+
+.. automodule:: moler.device.proxy_pc2
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.device.scpi module
 ------------------------
 
@@ -104,6 +120,14 @@ moler.device.unixremote module
 ------------------------------
 
 .. automodule:: moler.device.unixremote
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+moler.device.unixremote2 module
+-------------------------------
+
+.. automodule:: moler.device.unixremote2
     :members:
     :undoc-members:
     :show-inheritance:

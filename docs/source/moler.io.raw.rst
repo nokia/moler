@@ -12,6 +12,14 @@ moler.io.raw.memory module
     :undoc-members:
     :show-inheritance:
 
+moler.io.raw.sshshell module
+----------------------------
+
+.. automodule:: moler.io.raw.sshshell
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.io.raw.subprocess module
 ------------------------------
 
