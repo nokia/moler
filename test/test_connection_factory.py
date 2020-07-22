@@ -8,6 +8,7 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com'
 
 import pytest
+import mock
 
 
 def test_missing_constructor_raises_KeyError():
@@ -15,6 +16,14 @@ def test_missing_constructor_raises_KeyError():
     with pytest.raises(KeyError) as err:
         ConnectionFactory.get_connection(io_type='memory', variant='superquick')
     assert "No constructor registered for [('memory', 'superquick')] connection" in str(err.value)
+
+
+def test_user_is_informed_about_terminal_io_unavailable_on_windows():
+    from moler.connection_factory import get_connection
+    with mock.patch("moler.connection_factory.platform.system", return_value='Windows'):
+        with pytest.raises(AttributeError) as err:
+            get_connection(io_type='terminal', variant='threaded')
+    assert "No 'terminal' connection available on Windows (try using 'sshshell' connection instead)" in str(err.value)
 
 
 def test_factory_has_buildin_constructors_active_by_default():
