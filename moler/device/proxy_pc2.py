@@ -73,6 +73,18 @@ class ProxyPc2(UnixLocal):
                                        lazy_cmds_events=lazy_cmds_events)
         self._prompt_detector_timeout = 0.5
         self._after_open_prompt_detector = None
+        self._warn_about_temporary_life_of_class()
+
+    def _warn_about_temporary_life_of_class(self):
+        what = "experimental/temporary implementation of device utilizing sshshell connection"
+        temporary_classname = self.__class__.__name__
+        target_classname = temporary_classname[:-1]
+        merge_info = "It's functionality will be merged"
+        future_change = "{} into {} device in Moler 2.0.0 and {} will be removed".format(merge_info,
+                                                                                         target_classname,
+                                                                                         temporary_classname)
+        warn_msg = "Class {} is an {}. {}.".format(temporary_classname, what, future_change)
+        self.logger.warning(warn_msg)
 
     def _should_use_proxy_pc(self, sm_params, proxy):
         proxy_in_config = self._is_proxy_pc_in_sm_params(sm_params, proxy)
