@@ -629,7 +629,8 @@ class TextualDevice(AbstractDevice):
         """
         CAUTION: it checks if event may be created in current_state of device
         """
-        self._load_eventnames_for_state(state=for_state)
+        if self._eventnames_available_in_state[for_state] is None:
+            self._load_eventnames_for_state(state=for_state)
         return self._get_observer_in_state(observer_name=event_name, observer_type=TextualDevice.events,
                                            for_state=for_state, **kwargs)
 
