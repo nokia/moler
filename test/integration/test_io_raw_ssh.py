@@ -295,7 +295,7 @@ def test_opening_connection_created_from_existing_one_is_quicker(sshshell_connec
 
     avr_full_open_duration = sum(full_open_durations) / len(full_open_durations)
     avr_reused_conn_open_duration = sum(reused_conn_open_durations) / len(reused_conn_open_durations)
-    assert (avr_reused_conn_open_duration * 5 ) < avr_full_open_duration
+    assert (avr_reused_conn_open_duration * 3) < avr_full_open_duration
 
 
 def test_closing_connection_created_from_existing_one_is_not_closing_transport_till_last_channel(sshshell_connection):
