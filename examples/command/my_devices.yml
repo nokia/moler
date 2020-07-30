@@ -11,7 +11,7 @@ DEVICES:
       variant: threaded
 
   MyMachine:
-    DEVICE_CLASS: moler.device.unixremote.UnixLocal
+    DEVICE_CLASS: moler.device.unixlocal.UnixLocal
 
   RebexTestMachine:
     DEVICE_CLASS: moler.device.unixremote.UnixRemote
