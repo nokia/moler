@@ -43,3 +43,16 @@ class Unxz(GenericUnixCommand):
         return cmd
 
 
+
+COMMAND_OUTPUT = """
+host:~> unxz file.xz
+user@server:~>"""
+
+COMMAND_RESULT = {
+
+}
+
+COMMAND_KWARGS = {
+    "xz_file": "file.xz"
+}
+
