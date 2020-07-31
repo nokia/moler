@@ -3,7 +3,6 @@ __author__ = 'Aleksander Lagierski'
 __copyright__ = 'Copyright (C) 2020, Nokia'
 __email__ = 'aleksander.lagierski@nokia.com'
 
-
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure, ParsingDone
 
@@ -28,8 +27,6 @@ class Unxz(GenericUnixCommand):
         self.xz_file = xz_file
         self.ret_required = False
         self._is_overwritten = False
-        self.current_ret['FILE_LIST'] = list()
-        self.current_ret['FILE_DICT'] = dict()
 
     def build_command_string(self):
         """
@@ -37,11 +34,10 @@ class Unxz(GenericUnixCommand):
         :return: String representation of the command to send over a connection to the device.
         """
         if self.options:
-            cmd = "{} {} {}".format("unxz",self.options,self.xz_file)
+            cmd = "{} {} {}".format("unxz", self.options, self.xz_file)
         else:
             cmd = "{} {}".format("unxz", self.xz_file)
         return cmd
-
 
 
 COMMAND_OUTPUT = """
@@ -55,4 +51,3 @@ COMMAND_RESULT = {
 COMMAND_KWARGS = {
     "xz_file": "file.xz"
 }
-
