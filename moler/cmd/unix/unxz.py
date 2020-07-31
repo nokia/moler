@@ -3,8 +3,6 @@ __author__ = 'Aleksander Lagierski'
 __copyright__ = 'Copyright (C) 2020, Nokia'
 __email__ = 'aleksander.lagierski@nokia.com'
 
-import re
-import datetime
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure, ParsingDone
