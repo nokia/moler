@@ -26,7 +26,6 @@ class Unxz(GenericUnixCommand):
         self.options = options
         self.xz_file = xz_file
         self.ret_required = False
-        self._is_overwritten = False
 
     def build_command_string(self):
         """
@@ -42,7 +41,7 @@ class Unxz(GenericUnixCommand):
 
 COMMAND_OUTPUT = """
 host:~> unxz file.xz
-user@server:~>"""
+host:~>"""
 
 COMMAND_RESULT = {
 
