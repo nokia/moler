@@ -470,3 +470,6 @@ result = command.await_done(timeout)
 * it is "internal" to command "Hi command, that is what I want from you" (above APIs say "Hi you there, that is what I want you to do with command")
 * it directly (Zen of Python) shows what we are awaiting for
 * timeout is required parameter (not as in concurrent.futures) since we don't expect endless execution of command (user must know what is worst case timeout to await command completion)
+
+# Video introduction
+You can [watch videos how to use Moler on YouTube](https://www.youtube.com/channel/UCgToo2qq8kLMyEgzd4btM9g). 
