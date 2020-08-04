@@ -74,7 +74,7 @@ How does it know what `'MyMachine'` means? Code loads definition from `my_device
     DEVICES:
 
       MyMachine:
-        DEVICE_CLASS: moler.device.unixremote.UnixLocal
+        DEVICE_CLASS: moler.device.unixlocal.UnixLocal
 
       RebexTestMachine:
         DEVICE_CLASS: moler.device.unixremote.UnixRemote
@@ -325,7 +325,7 @@ Library gives you freedom which part you want to reuse. We are fan's of "take wh
 * You may use configuration files or configure things by Python calls.
 
    ```python
-   load_config(config={'DEVICES': {'MyMachine': {'DEVICE_CLASS': 'moler.device.unixremote.UnixLocal'}}})
+   load_config(config={'DEVICES': {'MyMachine': {'DEVICE_CLASS': 'moler.device.unixlocal.UnixLocal'}}})
    ```
 * You may use devices or create commands manually
 * You can take connection or build it yourself:
@@ -470,3 +470,6 @@ result = command.await_done(timeout)
 * it is "internal" to command "Hi command, that is what I want from you" (above APIs say "Hi you there, that is what I want you to do with command")
 * it directly (Zen of Python) shows what we are awaiting for
 * timeout is required parameter (not as in concurrent.futures) since we don't expect endless execution of command (user must know what is worst case timeout to await command completion)
+
+# Video introduction
+You can [watch videos how to use Moler on YouTube](https://www.youtube.com/channel/UCgToo2qq8kLMyEgzd4btM9g). 
