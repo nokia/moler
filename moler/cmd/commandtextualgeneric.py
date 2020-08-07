@@ -72,8 +72,8 @@ class CommandTextualGeneric(Command):
         self._remove_ctrlc_chars_for_prompt = True  # after sending Ctrl-C response might be concatenated ^Cprompt
         # This flag removes "^C" from prompt before processing prompt against self._re_prompt
         self._break_exec_regex = None  # Regex if not None then command will call break_cmd when this regex is caught
-        # in on_new_line.
-        self._break_exec_only_full_line = True  # Set True to consider only full lines to match _break_exec_regex or
+        # in on_new_line. Do not set directly, use setter break_exec_regex.
+        self.break_exec_only_full_line = True  # Set True to consider only full lines to match _break_exec_regex or
         # False to consider also chunks.
 
         if not self._newline_chars:
@@ -470,7 +470,7 @@ class CommandTextualGeneric(Command):
         :param is_full_line: True if new line character was removed from line, False otherwise
         :return: None
         """
-        if self._break_exec_only_full_line and not is_full_line:
+        if self.break_exec_only_full_line and not is_full_line:
             return
         if self.break_exec_regex is not None and self._regex_helper.search_compiled(self.break_exec_regex, line):
             self.break_cmd()
