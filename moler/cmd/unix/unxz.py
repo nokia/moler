@@ -50,7 +50,7 @@ COMMAND_KWARGS = {
     "xz_file": "file.xz"
 }
 
-COMMAND_OPTION_options = """unxz -c file.xz 
+COMMAND_OUTPUT_options = """unxz -c file.xz 
 Content of the xz file
 host:~> """
 
