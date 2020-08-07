@@ -39,8 +39,7 @@ class Unxz(GenericUnixCommand):
         return cmd
 
 
-COMMAND_OUTPUT = """
-host:~> unxz file.xz
+COMMAND_OUTPUT = """unxz file.xz
 host:~>"""
 
 COMMAND_RESULT = {
@@ -49,4 +48,17 @@ COMMAND_RESULT = {
 
 COMMAND_KWARGS = {
     "xz_file": "file.xz"
+}
+
+COMMAND_OPTION_options = """unxz -c file.xz 
+Content of the xz file
+host:~> """
+
+COMMAND_RESULT_options = {
+
+}
+
+COMMAND_KWARGS_options = {
+    "xz_file": "file.xz",
+    "options": "-c"
 }
