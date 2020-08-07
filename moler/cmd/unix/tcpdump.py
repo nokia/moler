@@ -15,7 +15,7 @@ from moler.exceptions import ParsingDone
 
 class Tcpdump(GenericUnixCommand):
 
-    def __init__(self, connection, options=None, prompt=None, newline_chars=None, runner=None, regex_to_break=None):
+    def __init__(self, connection, options=None, prompt=None, newline_chars=None, runner=None, break_exec_regex=None):
         """
         Tcpdump command.
 
@@ -24,15 +24,13 @@ class Tcpdump(GenericUnixCommand):
         :param prompt: expected prompt sending by device after command execution.
         :param newline_chars: Characters to split lines.
         :param runner: Runner to run command.
-        :param regex_to_break: if set then if occurs in on_new_line then break_cmd will be called.
+        :param break_exec_regex: if set then if occurs in on_new_line then break_cmd will be called.
         """
         super(Tcpdump, self).__init__(connection, prompt, newline_chars, runner)
         # Parameters defined by calling the command
         self.options = options
         self.packets_counter = 0
-        if isinstance(regex_to_break, six.string_types):
-            regex_to_break = re.compile(regex_to_break)
-        self.regex_to_break = regex_to_break  # None or regex
+        self.break_exec_regex = break_exec_regex
         self.ret_required = False
 
     def build_command_string(self):
@@ -65,13 +63,8 @@ class Tcpdump(GenericUnixCommand):
                 self._parse_packets(line)
             except ParsingDone:
                 pass
-            self._break_on_line(line=line)
 
         return super(Tcpdump, self).on_new_line(line, is_full_line)
-
-    def _break_on_line(self, line):
-        if self.regex_to_break is not None and self._regex_helper.search_compiled(self.regex_to_break, line):
-            self.break_cmd()
 
     # listening on eth0, link-type EN10MB (Ethernet), capture size 262144 bytes
     _re_port_linktype_capture_size = re.compile(
@@ -307,7 +300,7 @@ COMMAND_RESULT_vv = {
 }
 
 COMMAND_KWARGS_break = {
-    'regex_to_break': r'PTR homerouter\.cpe'
+    'break_exec_regex': r'PTR homerouter\.cpe'
 }
 
 COMMAND_OUTPUT_break = """tcpdump
