@@ -310,7 +310,7 @@ COMMAND_KWARGS_break = {
     'regex_to_break': r'PTR homerouter\.cpe'
 }
 
-COMMAND_OUTPUT_break = """tcpdump 
+COMMAND_OUTPUT_break = """tcpdump
 tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
 listening on enp0s3, link-type EN10MB (Ethernet), capture size 262144 bytes
 11:23:15.134680 IP debian > dns.google: ICMP echo request, id 24522, seq 7, length 64
