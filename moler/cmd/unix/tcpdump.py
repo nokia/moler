@@ -54,13 +54,21 @@ class Tcpdump(GenericUnixCommand):
         """
         if is_full_line:
             try:
+                print(1)
                 self._parse_port_linktype_capture_size(line)
+                print("1.1")
                 self._parse_timestamp_src_dst_details(line)
+                print("1.2")
                 self._parse_timestamp_tos_ttl_id_offset_flags_proto_length(line)
+                print("1.3")
                 self._parse_src_dst_details(line)
+                print("1.4")
                 self._parse_root_delay_root_dipersion_ref_id(line)
+                print("1.5")
                 self._parse_header_timestamp_details(line)
+                print("1.6")
                 self._parse_packets(line)
+                print("1.7")
             except ParsingDone:
                 pass
 
@@ -115,9 +123,12 @@ class Tcpdump(GenericUnixCommand):
 
     def _parse_src_dst_details(self, line):
         if self._regex_helper.search_compiled(Tcpdump._re_src_dst_details, line):
-            self.current_ret[str(self.packets_counter)]['source'] = self._regex_helper.group("SRC")
-            self.current_ret[str(self.packets_counter)]['destination'] = self._regex_helper.group("DST")
-            self.current_ret[str(self.packets_counter)]['details'] = self._regex_helper.group("DETAILS")
+            str_packets_counter = str(self.packets_counter)
+            if str_packets_counter not in self.current_ret:
+                self.current_ret[str_packets_counter] = dict()
+            self.current_ret[str_packets_counter]['source'] = self._regex_helper.group("SRC")
+            self.current_ret[str_packets_counter]['destination'] = self._regex_helper.group("DST")
+            self.current_ret[str_packets_counter]['details'] = self._regex_helper.group("DETAILS")
             raise ParsingDone
 
     # Root Delay: 0.000000, Root dispersion: 1.031906, Reference-ID: (unspec)
@@ -359,4 +370,43 @@ COMMAND_RESULT_break = {
     'packets captured': '8',
     'packets dropped by kernel': '0',
     'packets received by filter': '8'
+}
+
+COMMAND_KWARGS_ni = {
+    'options': '-ni enp0s3'
+}
+
+COMMAND_OUTPUT_ni = """tcpdump -ni enp0s3'
+
+dropped privs to tcpdump
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on enp0s3, link-type EN10MB (Ethernet), capture size 262144 bytes
+
+12:28:56.926353 IP6 :: > ff02::1:ff22:102: ICMP6, neighbor solicitation, who has 2a00:2222:2222:2222:2222:2222:2222:102, length 24
+12:28:56.926391 IP6 :: > ff02::1:ffa5:aa39: ICMP6, neighbor solicitation, who has fe80::f816:3eff:fea5:aa39, length 24
+
+12:29:14.431126 IP6 2a00:2222:2222:2222:2222:2222:2222:102.38472 > 2a00:2222:2222:2222:2222:2222:2222:63.38472: sctp (1) [HB REQ] 
+12:29:14.431656 IP6 2a00:2222:2222:2222:2222:2222:2222:63.38472 > 2a00:2222:2222:2222:2222:2222:2222:102.38472: sctp (1) [HB ACK] 
+
+12:29:14.582584 IP6 2a00:2222:2222:2222:2222:2222:2222:63.38472 > 2a00:2222:2222:2222:2222:2222:2222:102.38472: sctp (1) [HB REQ] 
+12:29:14.582642 IP6 2a00:2222:2222:2222:2222:2222:2222:102.38472 > 2a00:2222:2222:2222:2222:2222:2222:63.38472: sctp (1) [HB ACK] 
+
+                 |Session terminated, terminating shell...
+                 |6 packets captured
+                 |6 packets received by filter
+                 |0 packets dropped by kernel 
+moler_bash#"""
+
+COMMAND_RESULT_ni = {
+    '0': {
+        'destination': '2a00:2222:2222:2222:2222:2222:2222:63.38472',
+        'details': 'sctp (1) [HB ACK]',
+        'source': '2a00:2222:2222:2222:2222:2222:2222:102.38472'
+    },
+    'capture size': '262144 bytes',
+    'link-type': 'EN10MB (Ethernet)',
+    'listening': 'enp0s3',
+    'packets captured': '6',
+    'packets dropped by kernel': '0',
+    'packets received by filter': '6'
 }
