@@ -368,7 +368,7 @@ COMMAND_KWARGS_ni = {
     'options': '-ni enp0s3'
 }
 
-COMMAND_OUTPUT_ni = """tcpdump -ni enp0s3'
+COMMAND_OUTPUT_ni = """tcpdump -ni enp0s3
 
 dropped privs to tcpdump
 tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
@@ -377,16 +377,16 @@ listening on enp0s3, link-type EN10MB (Ethernet), capture size 262144 bytes
 12:28:56.926353 IP6 :: > ff02::1:ff22:102: ICMP6, neighbor solicitation, who has 2a00:2222:2222:2222:2222:2222:2222:102, length 24
 12:28:56.926391 IP6 :: > ff02::1:ffa5:aa39: ICMP6, neighbor solicitation, who has fe80::f816:3eff:fea5:aa39, length 24
 
-12:29:14.431126 IP6 2a00:2222:2222:2222:2222:2222:2222:102.38472 > 2a00:2222:2222:2222:2222:2222:2222:63.38472: sctp (1) [HB REQ] 
-12:29:14.431656 IP6 2a00:2222:2222:2222:2222:2222:2222:63.38472 > 2a00:2222:2222:2222:2222:2222:2222:102.38472: sctp (1) [HB ACK] 
+12:29:14.431126 IP6 2a00:2222:2222:2222:2222:2222:2222:102.38472 > 2a00:2222:2222:2222:2222:2222:2222:63.38472: sctp (1) [HB REQ]
+12:29:14.431656 IP6 2a00:2222:2222:2222:2222:2222:2222:63.38472 > 2a00:2222:2222:2222:2222:2222:2222:102.38472: sctp (1) [HB ACK]
 
-12:29:14.582584 IP6 2a00:2222:2222:2222:2222:2222:2222:63.38472 > 2a00:2222:2222:2222:2222:2222:2222:102.38472: sctp (1) [HB REQ] 
-12:29:14.582642 IP6 2a00:2222:2222:2222:2222:2222:2222:102.38472 > 2a00:2222:2222:2222:2222:2222:2222:63.38472: sctp (1) [HB ACK] 
+12:29:14.582584 IP6 2a00:2222:2222:2222:2222:2222:2222:63.38472 > 2a00:2222:2222:2222:2222:2222:2222:102.38472: sctp (1) [HB REQ]
+12:29:14.582642 IP6 2a00:2222:2222:2222:2222:2222:2222:102.38472 > 2a00:2222:2222:2222:2222:2222:2222:63.38472: sctp (1) [HB ACK]
 
                  |Session terminated, terminating shell...
                  |6 packets captured
                  |6 packets received by filter
-                 |0 packets dropped by kernel 
+                 |0 packets dropped by kernel
 moler_bash#"""
 
 COMMAND_RESULT_ni = {
