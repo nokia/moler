@@ -54,21 +54,13 @@ class Tcpdump(GenericUnixCommand):
         """
         if is_full_line:
             try:
-                print(1)
                 self._parse_port_linktype_capture_size(line)
-                print("1.1")
                 self._parse_timestamp_src_dst_details(line)
-                print("1.2")
                 self._parse_timestamp_tos_ttl_id_offset_flags_proto_length(line)
-                print("1.3")
                 self._parse_src_dst_details(line)
-                print("1.4")
                 self._parse_root_delay_root_dipersion_ref_id(line)
-                print("1.5")
                 self._parse_header_timestamp_details(line)
-                print("1.6")
                 self._parse_packets(line)
-                print("1.7")
             except ParsingDone:
                 pass
 
