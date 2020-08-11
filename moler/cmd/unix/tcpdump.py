@@ -3,33 +3,55 @@
 Tcpdump command module.
 """
 
-__author__ = 'Julia Patacz, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'julia.patacz@nokia.com, michal.ernst@nokia.com'
+__author__ = 'Julia Patacz, Michal Ernst, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__email__ = 'julia.patacz@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import re
-
+import six
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
 
 
 class Tcpdump(GenericUnixCommand):
 
-    def __init__(self, connection, options=None, prompt=None, newline_chars=None, runner=None):
+    def __init__(self, connection, options=None, prompt=None, newline_chars=None, runner=None, break_exec_regex=None):
+        """
+        Tcpdump command.
+
+        :param connection: moler connection to device, terminal when command is executed.
+        :param options: parameter with which the command will be executed.
+        :param prompt: expected prompt sending by device after command execution.
+        :param newline_chars: Characters to split lines.
+        :param runner: Runner to run command.
+        :param break_exec_regex: if set then if occurs in on_new_line then break_cmd will be called.
+        """
         super(Tcpdump, self).__init__(connection, prompt, newline_chars, runner)
         # Parameters defined by calling the command
         self.options = options
         self.packets_counter = 0
-
+        self.break_exec_regex = break_exec_regex
         self.ret_required = False
 
     def build_command_string(self):
+        """
+        Build command string from parameters passed to object.
+
+        :return: String representation of command to send over connection to device.
+        """
         cmd = "tcpdump"
         if self.options:
             cmd = "{} {}".format(cmd, self.options)
         return cmd
 
     def on_new_line(self, line, is_full_line):
+        """
+        Put your parsing code here.
+
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: None
+        """
         if is_full_line:
             try:
                 self._parse_port_linktype_capture_size(line)
@@ -41,6 +63,7 @@ class Tcpdump(GenericUnixCommand):
                 self._parse_packets(line)
             except ParsingDone:
                 pass
+
         return super(Tcpdump, self).on_new_line(line, is_full_line)
 
     # listening on eth0, link-type EN10MB (Ethernet), capture size 262144 bytes
@@ -92,9 +115,12 @@ class Tcpdump(GenericUnixCommand):
 
     def _parse_src_dst_details(self, line):
         if self._regex_helper.search_compiled(Tcpdump._re_src_dst_details, line):
-            self.current_ret[str(self.packets_counter)]['source'] = self._regex_helper.group("SRC")
-            self.current_ret[str(self.packets_counter)]['destination'] = self._regex_helper.group("DST")
-            self.current_ret[str(self.packets_counter)]['details'] = self._regex_helper.group("DETAILS")
+            str_packets_counter = str(self.packets_counter)
+            if str_packets_counter not in self.current_ret:
+                self.current_ret[str_packets_counter] = dict()
+            self.current_ret[str_packets_counter]['source'] = self._regex_helper.group("SRC")
+            self.current_ret[str_packets_counter]['destination'] = self._regex_helper.group("DST")
+            self.current_ret[str_packets_counter]['details'] = self._regex_helper.group("DETAILS")
             raise ParsingDone
 
     # Root Delay: 0.000000, Root dispersion: 1.031906, Reference-ID: (unspec)
@@ -107,7 +133,8 @@ class Tcpdump(GenericUnixCommand):
                 "DELAY")
             self.current_ret[str(self.packets_counter)][self._regex_helper.group("ROOT_2")] = self._regex_helper.group(
                 "DISPERSION")
-            self.current_ret[str(self.packets_counter)][self._regex_helper.group("REF")] = self._regex_helper.group("ID")
+            self.current_ret[str(self.packets_counter)][self._regex_helper.group("REF")] = self._regex_helper.group(
+                "ID")
             raise ParsingDone
 
     # Reference Timestamp:  0.000000000
@@ -273,4 +300,105 @@ COMMAND_RESULT_vv = {
           'timestamp': '13:31:36.178211',
           'tos': '0x0',
           'ttl': '64'}
+}
+
+COMMAND_KWARGS_break = {
+    'break_exec_regex': r'PTR homerouter\.cpe'
+}
+
+COMMAND_OUTPUT_break = """tcpdump
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on enp0s3, link-type EN10MB (Ethernet), capture size 262144 bytes
+11:23:15.134680 IP debian > dns.google: ICMP echo request, id 24522, seq 7, length 64
+11:23:15.135452 IP debian.38676 > homerouter.cpe.domain: 2034+ PTR? 8.8.8.8.in-addr.arpa. (38)
+11:23:15.162925 IP dns.google > debian: ICMP echo reply, id 24522, seq 7, length 64
+11:23:15.167852 IP homerouter.cpe.domain > debian.38676: 2034 1/0/0 PTR dns.google. (62)
+11:23:15.168109 IP debian.59644 > homerouter.cpe.domain: 59898+ PTR? 15.2.0.10.in-addr.arpa. (40)
+11:23:15.223710 IP homerouter.cpe.domain > debian.59644: 59898 NXDomain 0/0/0 (40)
+11:23:15.224726 IP debian.57873 > homerouter.cpe.domain: 43660+ PTR? 1.8.168.192.in-addr.arpa. (42)
+11:23:15.230351 IP homerouter.cpe.domain > debian.57873: 43660- 1/0/0 PTR homerouter.cpe. (70)
+^C
+8 packets captured
+8 packets received by filter
+0 packets dropped by kernel
+moler_bash#"""
+
+COMMAND_RESULT_break = {
+    '1': {'destination': 'dns.google',
+          'details': 'ICMP echo request, id 24522, seq 7, length 64',
+          'source': 'debian',
+          'timestamp': '11:23:15.134680'},
+    '2': {'destination': 'homerouter.cpe.domain',
+          'details': '2034+ PTR? 8.8.8.8.in-addr.arpa. (38)',
+          'source': 'debian.38676',
+          'timestamp': '11:23:15.135452'},
+    '3': {'destination': 'debian',
+          'details': 'ICMP echo reply, id 24522, seq 7, length 64',
+          'source': 'dns.google',
+          'timestamp': '11:23:15.162925'},
+    '4': {'destination': 'debian.38676',
+          'details': '2034 1/0/0 PTR dns.google. (62)',
+          'source': 'homerouter.cpe.domain',
+          'timestamp': '11:23:15.167852'},
+    '5': {'destination': 'homerouter.cpe.domain',
+          'details': '59898+ PTR? 15.2.0.10.in-addr.arpa. (40)',
+          'source': 'debian.59644',
+          'timestamp': '11:23:15.168109'},
+    '6': {'destination': 'debian.59644',
+          'details': '59898 NXDomain 0/0/0 (40)',
+          'source': 'homerouter.cpe.domain',
+          'timestamp': '11:23:15.223710'},
+    '7': {'destination': 'homerouter.cpe.domain',
+          'details': '43660+ PTR? 1.8.168.192.in-addr.arpa. (42)',
+          'source': 'debian.57873',
+          'timestamp': '11:23:15.224726'},
+    '8': {'destination': 'debian.57873',
+          'details': '43660- 1/0/0 PTR homerouter.cpe. (70)',
+          'source': 'homerouter.cpe.domain',
+          'timestamp': '11:23:15.230351'},
+    'capture size': '262144 bytes',
+    'link-type': 'EN10MB (Ethernet)',
+    'listening': 'enp0s3',
+    'packets captured': '8',
+    'packets dropped by kernel': '0',
+    'packets received by filter': '8'
+}
+
+COMMAND_KWARGS_ni = {
+    'options': '-ni enp0s3'
+}
+
+COMMAND_OUTPUT_ni = """tcpdump -ni enp0s3
+
+dropped privs to tcpdump
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on enp0s3, link-type EN10MB (Ethernet), capture size 262144 bytes
+
+12:28:56.926353 IP6 :: > ff02::1:ff22:102: ICMP6, neighbor solicitation, who has 2a00:2222:2222:2222:2222:2222:2222:102, length 24
+12:28:56.926391 IP6 :: > ff02::1:ffa5:aa39: ICMP6, neighbor solicitation, who has fe80::f816:3eff:fea5:aa39, length 24
+
+12:29:14.431126 IP6 2a00:2222:2222:2222:2222:2222:2222:102.38472 > 2a00:2222:2222:2222:2222:2222:2222:63.38472: sctp (1) [HB REQ]
+12:29:14.431656 IP6 2a00:2222:2222:2222:2222:2222:2222:63.38472 > 2a00:2222:2222:2222:2222:2222:2222:102.38472: sctp (1) [HB ACK]
+
+12:29:14.582584 IP6 2a00:2222:2222:2222:2222:2222:2222:63.38472 > 2a00:2222:2222:2222:2222:2222:2222:102.38472: sctp (1) [HB REQ]
+12:29:14.582642 IP6 2a00:2222:2222:2222:2222:2222:2222:102.38472 > 2a00:2222:2222:2222:2222:2222:2222:63.38472: sctp (1) [HB ACK]
+
+                 |Session terminated, terminating shell...
+                 |6 packets captured
+                 |6 packets received by filter
+                 |0 packets dropped by kernel
+moler_bash#"""
+
+COMMAND_RESULT_ni = {
+    '0': {
+        'destination': '2a00:2222:2222:2222:2222:2222:2222:63.38472',
+        'details': 'sctp (1) [HB ACK]',
+        'source': '2a00:2222:2222:2222:2222:2222:2222:102.38472'
+    },
+    'capture size': '262144 bytes',
+    'link-type': 'EN10MB (Ethernet)',
+    'listening': 'enp0s3',
+    'packets captured': '6',
+    'packets dropped by kernel': '0',
+    'packets received by filter': '6'
 }

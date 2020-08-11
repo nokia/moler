@@ -444,8 +444,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 # but if they do so - we fix it
                 with observer_lock:
                     self.logger.warning("Unhandled exception from '{} 'caught by runner.".format(connection_observer))
-                    ex_msg = "Unexpected exception from {} caught by runner when processing data >>{}<< at {}:" \
-                             " {} ".format(connection_observer, data, timestamp, exc)
+                    ex_msg = "Unexpected exception from {} caught by runner when processing data >>{}<< at '{}':" \
+                             " >>>{}<<< -> repr: >>>{}<<<".format(connection_observer, data, timestamp, exc, repr(exc))
                     if connection_observer.is_command():
                         ex = CommandFailure(command=connection_observer, message=ex_msg)
                     else:

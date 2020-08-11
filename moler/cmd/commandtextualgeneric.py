@@ -71,9 +71,33 @@ class CommandTextualGeneric(Command):
         # connection (not when was passed to command).  Time is given as datetime.datetime instance
         self._remove_ctrlc_chars_for_prompt = True  # after sending Ctrl-C response might be concatenated ^Cprompt
         # This flag removes "^C" from prompt before processing prompt against self._re_prompt
+        self._break_exec_regex = None  # Regex if not None then command will call break_cmd when this regex is caught
+        # in on_new_line. Do not set directly, use setter break_exec_regex.
+        self.break_exec_only_full_line = True  # Set True to consider only full lines to match _break_exec_regex or
+        # False to consider also chunks.
 
         if not self._newline_chars:
             self._newline_chars = CommandTextualGeneric._default_newline_chars
+
+    @property
+    def break_exec_regex(self):
+        """
+        Getter for break_exec_regex
+
+        :return: Regex object or None
+        """
+        return self._break_exec_regex
+
+    @break_exec_regex.setter
+    def break_exec_regex(self, break_exec_regex):
+        """
+        Setterfor break_exec_regex
+        :param break_exec_regex: String with regex, compiled regex object or None
+        :return: None
+        """
+        if isinstance(break_exec_regex, six.string_types):
+            break_exec_regex = re.compile(break_exec_regex)
+        self._break_exec_regex = break_exec_regex
 
     @property
     def command_string(self):
@@ -277,6 +301,8 @@ class CommandTextualGeneric(Command):
                 self._log(lvl=logging.DEBUG,
                           msg="Found candidate for final prompt but current ret is None or empty, required not None"
                               " nor empty.")
+        else:
+            self._break_exec_on_regex(line=line, is_full_line=is_full_line)
 
     def is_end_of_cmd_output(self, line):
         """
@@ -435,3 +461,16 @@ class CommandTextualGeneric(Command):
         :return: decoded line.
         """
         return line
+
+    def _break_exec_on_regex(self, line, is_full_line):
+        """
+        Breaks the execution of the command if self._break_exec_regex matches line.
+
+        :param line: line from connection.
+        :param is_full_line: True if new line character was removed from line, False otherwise
+        :return: None
+        """
+        if self.break_exec_only_full_line and not is_full_line:
+            return
+        if self.break_exec_regex is not None and self._regex_helper.search_compiled(self.break_exec_regex, line):
+            self.break_cmd()
