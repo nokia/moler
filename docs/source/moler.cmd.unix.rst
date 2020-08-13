@@ -708,6 +708,14 @@ moler.cmd.unix.uname module
     :undoc-members:
     :show-inheritance:
 
+moler.cmd.unix.unxz module
+--------------------------
+
+.. automodule:: moler.cmd.unix.unxz
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.cmd.unix.unzip module
 ---------------------------
 
