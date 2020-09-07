@@ -54,6 +54,7 @@ class Tcpdump(GenericUnixCommand):
         """
         if is_full_line:
             try:
+                self._parse_class_payload(line)
                 self._parse_port_linktype_capture_size(line)
                 self._parse_timestamp_src_dst_details(line)
                 self._parse_timestamp_tos_ttl_id_offset_flags_proto_length(line)
@@ -108,6 +109,28 @@ class Tcpdump(GenericUnixCommand):
             self.current_ret[str(self.packets_counter)]['flags'] = self._regex_helper.group("FLAGS")
             self.current_ret[str(self.packets_counter)]['proto'] = self._regex_helper.group("PROTO")
             self.current_ret[str(self.packets_counter)]['length'] = self._regex_helper.group("LENGTH")
+            raise ParsingDone
+
+    # 12:08:35.714577 IP6 (class 0xba, hlim 255, next-header SCTP (132) payload length: 64) 2a00:2222:2222:2222:2222:2222:2222:102.38472 > 2a00:2222:2222:2222:2222:2222:2222:63.38472: sctp (1) [HB REQ
+    _re_class_payload = re.compile(
+        r"(?P<TIMESTAMP>\d+:\d+:\d+.\d+)\s+(?P<IP>IP\S)\s+\(class\s+(?P<CLASS>\S+),\s+hlim\s+(?P<HLIM>\S+),\s+"
+        r"next-header\s+(?P<NEXT_HEADER>\S.*\S)\s+payload length:\s+(?P<PAYLOAD_LENGTH>\d+)\)\s+(?P<SRC>\S+)\s+>\s+"
+        r"(?P<DST>\S+):\s+(?P<DETAILS>.*)"
+    )
+
+    def _parse_class_payload(self, line):
+        if self._regex_helper.search_compiled(Tcpdump._re_class_payload, line):
+            self.packets_counter += 1
+            str_packets_counter = str(self.packets_counter)
+            self.current_ret[str_packets_counter] = dict()
+            self.current_ret[str_packets_counter]['timestamp'] = self._regex_helper.group("TIMESTAMP")
+            self.current_ret[str_packets_counter]['class'] = self._regex_helper.group("CLASS")
+            self.current_ret[str_packets_counter]['hlim'] = self._regex_helper.group("HLIM")
+            self.current_ret[str_packets_counter]['next-header'] = self._regex_helper.group("NEXT_HEADER")
+            self.current_ret[str_packets_counter]['payload-length'] = self._regex_helper.group("PAYLOAD_LENGTH")
+            self.current_ret[str_packets_counter]['source'] = self._regex_helper.group("SRC")
+            self.current_ret[str_packets_counter]['destination'] = self._regex_helper.group("DST")
+            self.current_ret[str_packets_counter]['details'] = self._regex_helper.group("DETAILS")
             raise ParsingDone
 
     # debdev.ntp > ntp.wdc1.us.leaseweb.net.ntp: [bad udp cksum 0x7aab -> 0x9cd3!] NTPv4, length 48
@@ -382,6 +405,7 @@ listening on enp0s3, link-type EN10MB (Ethernet), capture size 262144 bytes
 
 12:29:14.582584 IP6 2a00:2222:2222:2222:2222:2222:2222:63.38472 > 2a00:2222:2222:2222:2222:2222:2222:102.38472: sctp (1) [HB REQ]
 12:29:14.582642 IP6 2a00:2222:2222:2222:2222:2222:2222:102.38472 > 2a00:2222:2222:2222:2222:2222:2222:63.38472: sctp (1) [HB ACK]
+12:29:14.714577 IP6 (class 0xba, hlim 255, next-header SCTP (132) payload length: 64) 2a00:2222:2222:2222:2222:2222:2222:102.38472 > 2a00:2222:2222:2222:2222:2222:2222:63.38472: sctp (1) [HB REQ
 
                  |Session terminated, terminating shell...
                  |6 packets captured
@@ -394,6 +418,16 @@ COMMAND_RESULT_ni = {
         'destination': '2a00:2222:2222:2222:2222:2222:2222:63.38472',
         'details': 'sctp (1) [HB ACK]',
         'source': '2a00:2222:2222:2222:2222:2222:2222:102.38472'
+    },
+    '1': {
+        'class': '0xba',
+         'destination': '2a00:2222:2222:2222:2222:2222:2222:63.38472',
+         'details': 'sctp (1) [HB REQ',
+         'hlim': '255',
+         'next-header': 'SCTP (132)',
+         'payload-length': '64',
+         'source': '2a00:2222:2222:2222:2222:2222:2222:102.38472',
+         'timestamp': '12:29:14.714577'
     },
     'capture size': '262144 bytes',
     'link-type': 'EN10MB (Ethernet)',
