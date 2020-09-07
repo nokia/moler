@@ -421,13 +421,13 @@ COMMAND_RESULT_ni = {
     },
     '1': {
         'class': '0xba',
-         'destination': '2a00:2222:2222:2222:2222:2222:2222:63.38472',
-         'details': 'sctp (1) [HB REQ',
-         'hlim': '255',
-         'next-header': 'SCTP (132)',
-         'payload-length': '64',
-         'source': '2a00:2222:2222:2222:2222:2222:2222:102.38472',
-         'timestamp': '12:29:14.714577'
+        'destination': '2a00:2222:2222:2222:2222:2222:2222:63.38472',
+        'details': 'sctp (1) [HB REQ',
+        'hlim': '255',
+        'next-header': 'SCTP (132)',
+        'payload-length': '64',
+        'source': '2a00:2222:2222:2222:2222:2222:2222:102.38472',
+        'timestamp': '12:29:14.714577'
     },
     'capture size': '262144 bytes',
     'link-type': 'EN10MB (Ethernet)',
