@@ -54,6 +54,7 @@ class Tcpdump(GenericUnixCommand):
         """
         if is_full_line:
             try:
+                self._parse_class_payload_flowlabel(line)
                 self._parse_class_payload(line)
                 self._parse_port_linktype_capture_size(line)
                 self._parse_timestamp_src_dst_details(line)
@@ -69,7 +70,8 @@ class Tcpdump(GenericUnixCommand):
 
     # listening on eth0, link-type EN10MB (Ethernet), capture size 262144 bytes
     _re_port_linktype_capture_size = re.compile(
-        r"(?P<LISTENING>listening)\s+on\s+(?P<PORT>\S+),\s+(?P<LINK>link-type)\s+(?P<TYPE>.*),\s+(?P<CAPTURE>capture size)\s+(?P<SIZE>.*)")
+        r"(?P<LISTENING>listening)\s+on\s+(?P<PORT>\S+),\s+(?P<LINK>link-type)\s+(?P<TYPE>.*),\s+"
+        r"(?P<CAPTURE>capture size)\s+(?P<SIZE>.*)")
 
     def _parse_port_linktype_capture_size(self, line):
         if self._regex_helper.search_compiled(Tcpdump._re_port_linktype_capture_size, line):
@@ -95,7 +97,9 @@ class Tcpdump(GenericUnixCommand):
     # 13:31:33.176710 IP (tos 0xc0, ttl 64, id 4236, offset 0, flags [DF], proto UDP (17), length 76)
 
     _re_timestamp_tos_ttl_id_offset_flags_proto_length = re.compile(
-        r"(?P<TIMESTAMP>\d+:\d+:\d+.\d+)\s+IP\s+\(tos\s+(?P<TOS>\S+),\s+ttl\s+(?P<TTL>\S+),\s+id\s+(?P<ID>\S+),\s+offset\s+(?P<OFFSET>\S+),\s+flags\s+(?P<FLAGS>\S+),\s+proto\s+(?P<PROTO>\S+.*\S+),\s+length\s+(?P<LENGTH>\S+)\)")
+        r"(?P<TIMESTAMP>\d+:\d+:\d+.\d+)\s+IP\s+\(tos\s+(?P<TOS>\S+),\s+ttl\s+(?P<TTL>\S+),\s+id\s+(?P<ID>\S+),\s+"
+        r"offset\s+(?P<OFFSET>\S+),\s+flags\s+(?P<FLAGS>\S+),\s+proto\s+(?P<PROTO>\S+.*\S+),\s+"
+        r"length\s+(?P<LENGTH>\S+)\)")
 
     def _parse_timestamp_tos_ttl_id_offset_flags_proto_length(self, line):
         if self._regex_helper.search_compiled(Tcpdump._re_timestamp_tos_ttl_id_offset_flags_proto_length, line):
@@ -109,6 +113,30 @@ class Tcpdump(GenericUnixCommand):
             self.current_ret[str(self.packets_counter)]['flags'] = self._regex_helper.group("FLAGS")
             self.current_ret[str(self.packets_counter)]['proto'] = self._regex_helper.group("PROTO")
             self.current_ret[str(self.packets_counter)]['length'] = self._regex_helper.group("LENGTH")
+            raise ParsingDone
+
+    # 12:08:35.714577 IP6 (class 0xba, flowlabel 0x7cb99, hlim 255, next-header SCTP (132) payload length: 64) 2a00:2222:2222:2222:2222:2222:2222:102.38472 > 2a00:2222:2222:2222:2222:2222:2222:63.38472: sctp (1) [HB REQ]
+    _re_class_payload_flowlabel = re.compile(
+        r"(?P<TIMESTAMP>\d+:\d+:\d+.\d+)\s+(?P<IP>IP\S)\s+\(class\s+(?P<CLASS>\S+),\s+flowlabel\s+(?P<FLOWLABEL>\S+),"
+        r"\s+hlim\s+(?P<HLIM>\S+),\s+next-header\s+(?P<NEXT_HEADER>\S.*\S)\s+"
+        r"payload length:\s+(?P<PAYLOAD_LENGTH>\d+)\)\s+(?P<SRC>\S+)\s+>\s+"
+        r"(?P<DST>\S+):\s+(?P<DETAILS>.*)"
+    )
+
+    def _parse_class_payload_flowlabel(self, line):
+        if self._regex_helper.search_compiled(Tcpdump._re_class_payload_flowlabel, line):
+            self.packets_counter += 1
+            str_packets_counter = str(self.packets_counter)
+            self.current_ret[str_packets_counter] = dict()
+            self.current_ret[str_packets_counter]['timestamp'] = self._regex_helper.group("TIMESTAMP")
+            self.current_ret[str_packets_counter]['class'] = self._regex_helper.group("CLASS")
+            self.current_ret[str_packets_counter]['flowlabel'] = self._regex_helper.group("FLOWLABEL")
+            self.current_ret[str_packets_counter]['hlim'] = self._regex_helper.group("HLIM")
+            self.current_ret[str_packets_counter]['next-header'] = self._regex_helper.group("NEXT_HEADER")
+            self.current_ret[str_packets_counter]['payload-length'] = self._regex_helper.group("PAYLOAD_LENGTH")
+            self.current_ret[str_packets_counter]['source'] = self._regex_helper.group("SRC")
+            self.current_ret[str_packets_counter]['destination'] = self._regex_helper.group("DST")
+            self.current_ret[str_packets_counter]['details'] = self._regex_helper.group("DETAILS")
             raise ParsingDone
 
     # 12:08:35.714577 IP6 (class 0xba, hlim 255, next-header SCTP (132) payload length: 64) 2a00:2222:2222:2222:2222:2222:2222:102.38472 > 2a00:2222:2222:2222:2222:2222:2222:63.38472: sctp (1) [HB REQ
@@ -340,9 +368,10 @@ listening on enp0s3, link-type EN10MB (Ethernet), capture size 262144 bytes
 11:23:15.223710 IP homerouter.cpe.domain > debian.59644: 59898 NXDomain 0/0/0 (40)
 11:23:15.224726 IP debian.57873 > homerouter.cpe.domain: 43660+ PTR? 1.8.168.192.in-addr.arpa. (42)
 11:23:15.230351 IP homerouter.cpe.domain > debian.57873: 43660- 1/0/0 PTR homerouter.cpe. (70)
+11:21:24.724157 IP6 (class 0xba, flowlabel 0x7cb99, hlim 255, next-header SCTP (132) payload length: 64) 2a00:2222:2222:2222:2222:2222:2222:102.38472 > 2a00:2222:2222:2222:2222:2222:2222:63.38472: sctp (1) [HB REQ]
 ^C
-8 packets captured
-8 packets received by filter
+9 packets captured
+9 packets received by filter
 0 packets dropped by kernel
 moler_bash#"""
 
@@ -379,12 +408,21 @@ COMMAND_RESULT_break = {
           'details': '43660- 1/0/0 PTR homerouter.cpe. (70)',
           'source': 'homerouter.cpe.domain',
           'timestamp': '11:23:15.230351'},
+    '9': {'class': '0xba',
+          'destination': '2a00:2222:2222:2222:2222:2222:2222:63.38472',
+          'details': 'sctp (1) [HB REQ]',
+          'flowlabel': '0x7cb99',
+          'hlim': '255',
+          'next-header': 'SCTP (132)',
+          'payload-length': '64',
+          'source': '2a00:2222:2222:2222:2222:2222:2222:102.38472',
+          'timestamp': '11:21:24.724157'},
     'capture size': '262144 bytes',
     'link-type': 'EN10MB (Ethernet)',
     'listening': 'enp0s3',
-    'packets captured': '8',
+    'packets captured': '9',
     'packets dropped by kernel': '0',
-    'packets received by filter': '8'
+    'packets received by filter': '9'
 }
 
 COMMAND_KWARGS_ni = {
