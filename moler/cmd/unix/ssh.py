@@ -33,6 +33,9 @@ class Ssh(GenericTelnetSsh):
     # 7[r[999;999H[6n
     _re_resize = re.compile(r"999H")
 
+    # Password:
+    _re_password = re.compile(r"(password|Enter passphrase for key.*):", re.IGNORECASE)
+
     def __init__(self, connection, login=None, password=None, host="0", prompt=None, expected_prompt='>', port=0,
                  known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
                  term_mono="TERM=xterm-mono", newline_chars=None, encrypt_password=True, runner=None,
@@ -214,6 +217,14 @@ class Ssh(GenericTelnetSsh):
             self.connection.sendline("")
             raise ParsingDone()
 
+    def _is_password_requested(self, line):
+        """
+        Checks if line contains information that commands waits for password.
+
+        :param line: Line from device
+        :return: Match object or None
+        """
+        return self._regex_helper.search_compiled(Ssh._re_password, line)
 
 COMMAND_OUTPUT = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
