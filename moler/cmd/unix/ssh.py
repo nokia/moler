@@ -261,6 +261,41 @@ COMMAND_RESULT = {
     'FAILED_LOGIN_ATTEMPTS': None,
 }
 
+COMMAND_OUTPUT_passphrase = """
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+To edit this message please edit /etc/ssh_banner
+You may put information to /etc/ssh_banner who is owner of this PC
+Enter passphrase for key '/home/user/serviceuser_key_passphrase':
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+host:~ #
+host:~ # export TMOUT="2678400"
+host:~ #"""
+
+COMMAND_KWARGS_passphrase = {
+    "login": "user", "password": "english",
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
+}
+
+COMMAND_RESULT_passphrase = {
+    'LINES': [
+        "To edit this message please edit /etc/ssh_banner",
+        "You may put information to /etc/ssh_banner who is owner of this PC",
+        "Enter passphrase for key '/home/user/serviceuser_key_passphrase':",
+        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Have a lot of fun...",
+        "host:~ #",
+        "host:~ # export TMOUT=\"2678400\"",
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+    },
+    'FAILED_LOGIN_ATTEMPTS': None,
+}
+
 COMMAND_OUTPUT_username = """TERM=xterm-mono ssh -l user host.domain.net
 To edit this message please edit /etc/ssh_banner
 You may put information to /etc/ssh_banner who is owner of this PC
