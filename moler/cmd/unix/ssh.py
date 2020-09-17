@@ -226,6 +226,7 @@ class Ssh(GenericTelnetSsh):
         """
         return self._regex_helper.search_compiled(Ssh._re_password, line)
 
+
 COMMAND_OUTPUT = """
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
 To edit this message please edit /etc/ssh_banner
