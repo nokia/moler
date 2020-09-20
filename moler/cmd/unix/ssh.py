@@ -31,8 +31,8 @@ class Ssh(GenericTelnetSsh):
     _re_host_key_verification_failed = re.compile(r"Host key verification failed", re.IGNORECASE)
 
     # Permission denied (publickey,password,keyboard-interactive)
-    _re_permission_denied_key_pass_keyboard = re.compile(r"Permission denied (publickey,password,keyboard-interactive)",
-                                                         re.IGNORECASE)
+    _re_permission_denied_key_pass_keyboard = re.compile(r"Permission denied \(publickey,password,"
+                                                         r"keyboard-interactive\)", re.IGNORECASE)
 
     # 7[r[999;999H[6n
     _re_resize = re.compile(r"999H")
@@ -46,7 +46,7 @@ class Ssh(GenericTelnetSsh):
                  target_newline="\n", allowed_newline_after_prompt=False, repeat_password=True,
                  options='-o ServerAliveInterval=7 -o ServerAliveCountMax=2',
                  failure_exceptions_indication=None, prompt_after_login=None, send_enter_after_connection=True,
-                 username=None):
+                 username=None, permission_denied_key_pass_keyboard=r"ssh-keygen -f \"~/.ssh/known_hosts\" -R {host}"):
         """
         Moler class of Unix command ssh.
 
@@ -75,6 +75,8 @@ class Ssh(GenericTelnetSsh):
         :param send_enter_after_connection: set True to send new line char(s) after connection is established, False
          otherwise.
         :param username: login for ssh. Set this or login but not both.
+        :param permission_denied_key_pass_keyboard: Set to not None value to execute command after match line:
+         'Permission denied (publickey,password,keyboard-interactive)'.
         """
         super(Ssh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner,
                                   port=port, host=host, login=login, password=password,
@@ -97,6 +99,9 @@ class Ssh(GenericTelnetSsh):
         self._hosts_file = ""
         self._sent_continue_connecting = False
         self._resize_sent = False
+        self._permission_denied_key_pass_keyboard_cmd = None
+        if permission_denied_key_pass_keyboard is not None:
+            self._permission_denied_key_pass_keyboard_cmd = permission_denied_key_pass_keyboard.format(host=host)
 
     def build_command_string(self):
         """
@@ -131,9 +136,24 @@ class Ssh(GenericTelnetSsh):
             self._push_yes_if_needed(line)
             self._id_dsa(line)
             self._host_key_verification(line)
+            self._permission_denied_key_pass_keyboard(line)
         except ParsingDone:
             pass
         super(Ssh, self).on_new_line(line=line, is_full_line=is_full_line)
+
+    def _permission_denied_key_pass_keyboard(self, line):
+        """
+        Checks regex host key verification.
+
+        :param line: Line from device.
+        :return: None but raises ParsingDone if regex matches.
+        """
+        if self._regex_helper.search_compiled(Ssh._re_permission_denied_key_pass_keyboard, line):
+            if self._permission_denied_key_pass_keyboard_cmd:
+                self._handle_permission_denied_key_pass_keyboard()
+            else:
+                self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+            raise ParsingDone()
 
     def _host_key_verification(self, line):
         """
@@ -183,6 +203,23 @@ class Ssh(GenericTelnetSsh):
             self._sent_continue_connecting = True
             raise ParsingDone()
 
+    def _resend_command_string(self):
+        self._cmd_output_started = False
+        self._sent_continue_connecting = False
+        self._sent_prompt = False
+        self._sent_timeout = False
+        self._sent = False
+        self.connection.sendline(self.command_string)
+
+    def _handle_permission_denied_key_pass_keyboard(self):
+        """
+        Handles situation when permission denied.
+
+        :return: None
+        """
+        self.connection.sendline("\n{}".format(self._permission_denied_key_pass_keyboard_cmd))
+        self._resend_command_string()
+
     def _handle_failed_host_key_verification(self):
         """
         Handles situation when failed host key verification.
@@ -202,12 +239,7 @@ class Ssh(GenericTelnetSsh):
         if exception:
             self.set_exception(exception=exception)
         else:
-            self._cmd_output_started = False
-            self._sent_continue_connecting = False
-            self._sent_prompt = False
-            self._sent_timeout = False
-            self._sent = False
-            self.connection.sendline(self.command_string)
+            self._resend_command_string()
 
     def _check_if_resize(self, line):
         """
@@ -252,6 +284,48 @@ COMMAND_RESULT = {
         "To edit this message please edit /etc/ssh_banner",
         "You may put information to /etc/ssh_banner who is owner of this PC",
         "Password:",
+        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Have a lot of fun...",
+        "host:~ #",
+        "host:~ # export TMOUT=\"2678400\"",
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '127.0.0.1',
+        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+    },
+    'FAILED_LOGIN_ATTEMPTS': None,
+}
+
+
+COMMAND_OUTPUT_permission_denied = """
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+To edit this message please edit /etc/ssh_banner
+You may put information to /etc/ssh_banner who is owner of this PC
+Password:
+Permission denied (publickey,password,keyboard-interactive)
+client:~/>ssh-keygen -f "~/.ssh/known_hosts" -R host.domain.net
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+host:~ #
+host:~ # export TMOUT="2678400"
+host:~ #"""
+
+COMMAND_KWARGS_permission_denied = {
+    "login": "user", "password": "english",
+    "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": "host.*#"
+}
+
+COMMAND_RESULT_permission_denied = {
+    'LINES': [
+        "To edit this message please edit /etc/ssh_banner",
+        "You may put information to /etc/ssh_banner who is owner of this PC",
+        "Password:",
+        "Permission denied (publickey,password,keyboard-interactive)",
+        # "client:~/>ssh-keygen -f \"~/.ssh/known_hosts\" -R host.domain.net",
+        # "client:~/>TERM=xterm-mono ssh -l user host.domain.net",
         "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
         "Have a lot of fun...",
         "host:~ #",
