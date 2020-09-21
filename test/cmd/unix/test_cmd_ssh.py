@@ -69,6 +69,7 @@ def test_ssh_failed_permission_denied(buffer_connection, command_output_permissi
 def test_ssh_failed_permission_denied_key_pass_keyboard(buffer_connection, command_output_permission_denied_key):
     command_output = command_output_permission_denied_key
     buffer_connection.remote_inject_response([command_output])
+    
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
                   host="host.domain.net", expected_prompt="host:.*#", options=None,
                   permission_denied_key_pass_keyboard=None)
