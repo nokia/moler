@@ -35,11 +35,6 @@ class Exit(CommandChangingPrompt):
         cmd = "exit"
         return cmd
 
-    def on_new_line(self, line, is_full_line):
-        print("EXit with line='{}', is_full_line='{}', expected_prompt='{}'".format(line, is_full_line,
-                                                                                    self._re_expected_prompt))
-        return super(Exit, self).on_new_line(line=line, is_full_line=is_full_line)
-
 
 COMMAND_OUTPUT = """
 amu012@belvedere07:~$ exit
