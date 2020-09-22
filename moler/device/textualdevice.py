@@ -499,10 +499,10 @@ class TextualDevice(AbstractDevice):
         else:
             exc = DeviceFailure(
                 device=self.__class__.__name__,
-                message="{}. Failed to change state to '{}'. "
+                message="{}. Failed to change state from '{}' to '{}'. "
                         "Either target state does not exist in SM or there is no direct/indirect transition "
                         "towards target state. Try to change state machine definition. "
-                        "Available states: {}".format(self.name, next_state, self.states))
+                        "Available states: {}".format(self.name, self.state, next_state, self.states))
             if log_stacktrace_on_fail:
                 self._log(logging.ERROR, exc)
             raise exc
