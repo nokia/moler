@@ -47,7 +47,7 @@ class Ssh(GenericTelnetSsh):
                  target_newline="\n", allowed_newline_after_prompt=False, repeat_password=True,
                  options='-o ServerAliveInterval=7 -o ServerAliveCountMax=2',
                  failure_exceptions_indication=None, prompt_after_login=None, send_enter_after_connection=True,
-                 username=None, permission_denied_key_pass_keyboard=r"ssh-keygen -f \"~/.ssh/known_hosts\" -R {host}"):
+                 username=None, permission_denied_key_pass_keyboard=r'ssh-keygen -f "~/.ssh/known_hosts" -R "{host}"'):
         """
         Moler class of Unix command ssh.
 
