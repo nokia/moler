@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019, Nokia'
+__copyright__ = 'Copyright (C) 2019-2020, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 import datetime
 import re
 
 from moler.events.unix.genericunix_textualevent import GenericUnixTextualEvent
-from moler.exceptions import ParsingDone
+from moler.exceptions import ParsingDone, WrongUsage
 from operator import attrgetter
 
 
@@ -21,7 +21,11 @@ class Wait4prompts(GenericUnixTextualEvent):
         """
         super(Wait4prompts, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times)
         self.compiled_prompts_regex = self._compile_prompts_patterns(prompts)
+        self._sorted_prompts = sorted(self.compiled_prompts_regex.keys(), key=attrgetter('pattern'))
         self.process_full_lines_only = False
+        self.break_after_first_match = True  # When processing the line if the line is matched by prompt then do not
+        # check next prompts.
+        self._stored_prompts = list()
 
     def on_new_line(self, line, is_full_line):
         try:
@@ -30,7 +34,7 @@ class Wait4prompts(GenericUnixTextualEvent):
             pass
 
     def _parse_prompts(self, line):
-        for prompt_regex in sorted(self.compiled_prompts_regex.keys(), key=attrgetter('pattern')):
+        for prompt_regex in self._sorted_prompts:
             if self._regex_helper.search_compiled(prompt_regex, line):
                 current_ret = {
                     'line': line,
@@ -39,8 +43,18 @@ class Wait4prompts(GenericUnixTextualEvent):
                     'time': datetime.datetime.now()
                 }
                 self.event_occurred(event_data=current_ret)
-
-                raise ParsingDone()
+                if self.break_after_first_match is True:
+                    raise ParsingDone()
+                else:
+                    self._stored_prompts.append(prompt_regex)
+        if len(self._stored_prompts) == 1:
+            self._stored_prompts.clear()
+            raise ParsingDone()
+        elif len(self._stored_prompts) > 1:
+            exception = WrongUsage("One line '{}' can be matched by more than one regex: {}.".format(
+                line, self._stored_prompts))
+            self._stored_prompts = list()
+            raise exception
 
     def _compile_prompts_patterns(self, patterns):
         compiled_patterns = dict()
