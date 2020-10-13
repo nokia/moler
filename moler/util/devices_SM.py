@@ -3,9 +3,9 @@
 Perform devices SM autotest.
 """
 
-__author__ = 'Michal Ernst'
-__copyright__ = 'Copyright (C) 2019, Nokia'
-__email__ = 'michal.ernst@nokia.com'
+__author__ = 'Michal Ernst, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2019-2020, Nokia'
+__email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import os
 import random
@@ -28,7 +28,9 @@ def iterate_over_device_states(device):
         for target_state in target_states:
             try:
                 device.goto_state(source_state)
+                assert device.current_state == source_state
                 device.goto_state(target_state)
+                assert device.current_state == target_state
             except Exception as exc:
                 raise MolerException(
                     "Cannot trigger change state: '{}' -> '{}'\n{}".format(source_state, target_state, exc))
