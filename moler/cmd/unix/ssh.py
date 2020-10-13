@@ -21,8 +21,9 @@ class Ssh(GenericTelnetSsh):
     # Add correct host key in /home/you/.ssh/known_hosts to get rid of this message.
     _re_host_key = re.compile(r"Add correct host key in (?P<HOSTS_FILE>\S+) to get rid of this message", re.IGNORECASE)
 
+    # Do you want to continue connecting? (y/n)
     # Do you want to continue (yes/no)?
-    _re_yes_no = re.compile(r"\(yes/no.*\)\?|'yes' or 'no':", re.IGNORECASE)
+    _re_yes_no = re.compile(r"\(y/n\)|\(yes/no.*\)\?|'yes' or 'no':", re.IGNORECASE)
 
     # id_dsa:
     _re_id_dsa = re.compile(r"id_dsa:", re.IGNORECASE)
@@ -46,7 +47,7 @@ class Ssh(GenericTelnetSsh):
                  target_newline="\n", allowed_newline_after_prompt=False, repeat_password=True,
                  options='-o ServerAliveInterval=7 -o ServerAliveCountMax=2',
                  failure_exceptions_indication=None, prompt_after_login=None, send_enter_after_connection=True,
-                 username=None, permission_denied_key_pass_keyboard=r"ssh-keygen -f \"~/.ssh/known_hosts\" -R {host}"):
+                 username=None, permission_denied_key_pass_keyboard=r'ssh-keygen -f "~/.ssh/known_hosts" -R "{host}"'):
         """
         Moler class of Unix command ssh.
 
