@@ -1,3 +1,22 @@
+## moler 1.22.0
+
+### Added
+* New format of ssh question
+
+## moler 1.21.0
+
+### Added
+* New funcionality for ssh
+* Tcpdump new regex
+
+## moler 1.20.0
+
+### Improved 
+* Load events only if they are not loaded 
+* Unxz 
+* Fix packages for UnixLocal in examples
+* Commands may break on regex 
+
 ## moler 1.19.0
 
 ### Added
