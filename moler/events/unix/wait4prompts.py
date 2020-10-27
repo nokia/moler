@@ -23,9 +23,8 @@ class Wait4prompts(GenericUnixTextualEvent):
         self.compiled_prompts_regex = self._compile_prompts_patterns(prompts)
         self._sorted_prompts = sorted(self.compiled_prompts_regex.keys(), key=attrgetter('pattern'))
         self.process_full_lines_only = False
-        self.break_after_first_match = True  # When processing the line if the line is matched by prompt then do not
-        # check next prompts.
         self._stored_prompts = list()
+        self.callable_when_more_regexes_match_line = None
 
     def on_new_line(self, line, is_full_line):
         try:
@@ -43,18 +42,20 @@ class Wait4prompts(GenericUnixTextualEvent):
                     'time': datetime.datetime.now()
                 }
                 self.event_occurred(event_data=current_ret)
-                if self.break_after_first_match is True:
+                if self.callable_when_more_regexes_match_line is None:
                     raise ParsingDone()
                 else:
                     self._stored_prompts.append(prompt_regex)
         if len(self._stored_prompts) == 1:
+            print("line '{}' matched only by {}.".format(line, self._stored_prompts))
             self._stored_prompts.clear()
             raise ParsingDone()
         elif len(self._stored_prompts) > 1:
-            exception = WrongUsage("One line '{}' can be matched by more than one regex: {}.".format(
-                line, self._stored_prompts))
+            msg = "One line '{}' can be matched by more than one regex: {}.".format(
+                line, self._stored_prompts)
             self._stored_prompts = list()
-            raise exception
+            self.callable_when_more_regexes_match_line(msg=msg)
+
 
     def _compile_prompts_patterns(self, patterns):
         compiled_patterns = dict()

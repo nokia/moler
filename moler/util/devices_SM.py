@@ -24,6 +24,15 @@ def iterate_over_device_states(device):
     random.shuffle(source_states)
     random.shuffle(target_states)
 
+    wrong_regexes_candidates = list()
+
+    def callable_for_wait_4_prompts(msg):
+        wrong_regexes_candidates.append(msg)
+
+    #device._prompts_event.callable_when_more_regexes_match_line = callable_for_wait_4_prompts
+    #except:
+    #    pass  # to test devices without wait4promts
+
     for source_state in source_states:
         for target_state in target_states:
             try:
@@ -31,6 +40,11 @@ def iterate_over_device_states(device):
                 assert device.current_state == source_state
                 device.goto_state(target_state)
                 assert device.current_state == target_state
+                print
+                if len(wrong_regexes_candidates) > 0:
+                    me = MolerException("More than one state for one line: '{}'.".format(wrong_regexes_candidates))
+                    wrong_regexes_candidates.clear()
+                    raise me
             except Exception as exc:
                 raise MolerException(
                     "Cannot trigger change state: '{}' -> '{}'\n{}".format(source_state, target_state, exc))
