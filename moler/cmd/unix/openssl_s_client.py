@@ -19,7 +19,7 @@ __copyright__ = 'Copyright (C) 2020, Nokia'
 __email__ = 'marcin.szlapa@nokia.com'
 
 
-class Sclient(CommandTextualGeneric):
+class OpenSSLSClient(CommandTextualGeneric):
     """openssl command s_client"""
 
     def __init__(self, connection, options, prompt=None, newline_chars=None, runner=None):
@@ -32,7 +32,7 @@ class Sclient(CommandTextualGeneric):
         :param newline_chars: Characters to split lines
         :param runner: Runner to run command
         """
-        super(Sclient, self).__init__(connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+        super(OpenSSLSClient, self).__init__(connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.options = options
 
     def build_command_string(self):
@@ -41,7 +41,7 @@ class Sclient(CommandTextualGeneric):
 
         :return: String representation of command to send over connection to device.
         """
-        cmd = "s_client"
+        cmd = "openssl s_client"
         cmd = "{} {}".format(cmd, self.options)
         return cmd
 
@@ -58,7 +58,7 @@ class Sclient(CommandTextualGeneric):
                 self._parse_line(line)
             except ParsingDone:
                 pass
-        return super(Sclient, self).on_new_line(line, is_full_line)
+        return super(OpenSSLSClient, self).on_new_line(line, is_full_line)
 
     def _parse_line(self, line):
         if not line == "":
