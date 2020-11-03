@@ -5,7 +5,7 @@ openssl s_client command module.
 
 import re
 
-from moler.cmd.commandtextualgeneric import CommandTextualGeneric
+from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
 
 __author__ = 'Marcin Szlapa'
@@ -13,7 +13,7 @@ __copyright__ = 'Copyright (C) 2020, Nokia'
 __email__ = 'marcin.szlapa@nokia.com'
 
 
-class OpenSSLSClient(CommandTextualGeneric):
+class OpensslSClient(GenericUnixCommand):
     """openssl command s_client"""
 
     def __init__(self, connection, options, prompt=None, newline_chars=None, runner=None):
@@ -26,7 +26,7 @@ class OpenSSLSClient(CommandTextualGeneric):
         :param newline_chars: Characters to split lines
         :param runner: Runner to run command
         """
-        super(OpenSSLSClient, self).__init__(connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+        super(OpensslSClient, self).__init__(connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.options = options
         self.current_ret = dict()
 
@@ -50,17 +50,26 @@ class OpenSSLSClient(CommandTextualGeneric):
         """
         if is_full_line:
             try:
+                self._parse_issuer(line)
                 self._parse_properties(line)
             except ParsingDone:
                 pass
-        return super(OpenSSLSClient, self).on_new_line(line, is_full_line)
+        return super(OpensslSClient, self).on_new_line(line, is_full_line)
 
     #     Protocol  : TLSv1.1
     _re_properties = re.compile(r"^\s+(?P<KEY>.+)(?<!\s)\s*:\s*(?P<VALUE>.+)?(?<!\s)\s*$")
 
     def _parse_properties(self, line):
-        if self._regex_helper.search_compiled(OpenSSLSClient._re_properties, line):
+        if self._regex_helper.search_compiled(OpensslSClient._re_properties, line):
             self.current_ret[self._regex_helper.group('KEY')] = self._regex_helper.group('VALUE')
+            raise ParsingDone
+
+    # issuer=XX = abc, XX = net, XY = Root
+    _re_issuer = re.compile(r"^issuer=(?P<ISSUER>.*)")
+
+    def _parse_issuer(self, line):
+        if self._regex_helper.search_compiled(OpensslSClient._re_issuer, line):
+            self.current_ret["issuer"] = self._regex_helper.group('ISSUER')
             raise ParsingDone
 
 
@@ -74,6 +83,8 @@ No client certificate CA names sent
 ---
 SSL handshake has read 0 bytes and written 10 bytes
 Verification: OK
+---
+issuer=XX = abc, XX = net, XY = Root
 ---
 New, (NONE), Cipher is (NONE)
 Secure Renegotiation IS NOT supported
@@ -101,6 +112,7 @@ COMMAND_KWARGS = {
 }
 
 COMMAND_RESULT = {
+    "issuer": "XX = abc, XX = net, XY = Root",
     "Protocol": "TLSv1.1",
     "Cipher": "0000",
     "Session-ID": None,
