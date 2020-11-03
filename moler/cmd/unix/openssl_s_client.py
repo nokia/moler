@@ -50,6 +50,7 @@ class OpensslSClient(GenericUnixCommand):
         """
         if is_full_line:
             try:
+                self._parse_issuer(line)
                 self._parse_properties(line)
             except ParsingDone:
                 pass
@@ -63,6 +64,14 @@ class OpensslSClient(GenericUnixCommand):
             self.current_ret[self._regex_helper.group('KEY')] = self._regex_helper.group('VALUE')
             raise ParsingDone
 
+    # issuer=XX = abc, XX = net, XY = Root
+    _re_issuer = re.compile(r"^issuer=(?P<ISSUER>.*)")
+
+    def _parse_issuer(self, line):
+        if self._regex_helper.search_compiled(OpensslSClient._re_issuer, line):
+            self.current_ret["issuer"] = self._regex_helper.group('ISSUER')
+            raise ParsingDone
+
 
 COMMAND_OUTPUT = """openssl s_client -tls1_1 -connect 10.10.10.10:443
 CONNECTED(00000003)
@@ -74,6 +83,8 @@ No client certificate CA names sent
 ---
 SSL handshake has read 0 bytes and written 10 bytes
 Verification: OK
+---
+issuer=XX = abc, XX = net, XY = Root
 ---
 New, (NONE), Cipher is (NONE)
 Secure Renegotiation IS NOT supported
@@ -101,6 +112,7 @@ COMMAND_KWARGS = {
 }
 
 COMMAND_RESULT = {
+    "issuer": "XX = abc, XX = net, XY = Root",
     "Protocol": "TLSv1.1",
     "Cipher": "0000",
     "Session-ID": None,
