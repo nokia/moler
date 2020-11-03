@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-s_client.
-
-:copyright: Nokia Networks
-:author: I_MOLER_DEV
-:contact: I_MOLER_DEV@internal.nsn.com
-:maintainer: I_MOLER_DEV
-:contact: I_MOLER_DEV@internal.nsn.com
+openssl s_client command module.
 """
 
 import re
@@ -34,7 +28,7 @@ class OpenSSLSClient(CommandTextualGeneric):
         """
         super(OpenSSLSClient, self).__init__(connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.options = options
-        self.current_ret["LINES"] = []
+        self.current_ret = dict()
 
     def build_command_string(self):
         """
@@ -56,15 +50,18 @@ class OpenSSLSClient(CommandTextualGeneric):
         """
         if is_full_line:
             try:
-                self._parse_line(line)
+                self._parse_properties(line)
             except ParsingDone:
                 pass
         return super(OpenSSLSClient, self).on_new_line(line, is_full_line)
 
-    def _parse_line(self, line):
-        if not line == "":
-            self.current_ret["LINES"].append(line)
-        raise ParsingDone
+    #     Protocol  : TLSv1.1
+    _re_properties = re.compile(r"^\s+(?P<KEY>.+)(?<!\s)\s*:\s*(?P<VALUE>.+)?(?<!\s)\s*$")
+
+    def _parse_properties(self, line):
+        if self._regex_helper.search_compiled(OpenSSLSClient._re_properties, line):
+            self.current_ret[self._regex_helper.group('KEY')] = self._regex_helper.group('VALUE')
+            raise ParsingDone
 
 
 COMMAND_OUTPUT = """openssl s_client -tls1_1 -connect 10.10.10.10:443
@@ -104,36 +101,16 @@ COMMAND_KWARGS = {
 }
 
 COMMAND_RESULT = {
-    'LINES':
-        [
-            "CONNECTED(00000003)",
-            "write:errno=0",
-            "---",
-            "no peer certificate available",
-            "---",
-            "No client certificate CA names sent",
-            "---",
-            "SSL handshake has read 0 bytes and written 10 bytes",
-            "Verification: OK",
-            "---",
-            "New, (NONE), Cipher is (NONE)",
-            "Secure Renegotiation IS NOT supported",
-            "Compression: NONE",
-            "Expansion: NONE",
-            "No ALPN negotiated",
-            "SSL-Session:",
-            "    Protocol  : TLSv1.1",
-            "    Cipher    : 0000",
-            "    Session-ID:",
-            "    Session-ID-ctx:",
-            "    Master-Key:",
-            "    PSK identity: None",
-            "    PSK identity hint: None",
-            "    SRP username: None",
-            "    Start Time: 1623194332",
-            "    Timeout   : 7200 (sec)",
-            "    Verify return code: 0 (ok)",
-            "    Extended master secret: no",
-            "---",
-        ],
+    "Protocol": "TLSv1.1",
+    "Cipher": "0000",
+    "Session-ID": None,
+    "Session-ID-ctx": None,
+    "Master-Key": None,
+    "PSK identity": "None",
+    "PSK identity hint": "None",
+    "SRP username": "None",
+    "Start Time": "1623194332",
+    "Timeout": "7200 (sec)",
+    "Verify return code": "0 (ok)",
+    "Extended master secret": "no",
 }
