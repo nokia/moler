@@ -34,6 +34,7 @@ class OpenSSLSClient(CommandTextualGeneric):
         """
         super(OpenSSLSClient, self).__init__(connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.options = options
+        self.current_ret["LINES"] = []
 
     def build_command_string(self):
         """
@@ -66,13 +67,73 @@ class OpenSSLSClient(CommandTextualGeneric):
         raise ParsingDone
 
 
-COMMAND_OUTPUT = """
-"""
+COMMAND_OUTPUT = """openssl s_client -tls1_1 -connect 10.10.10.10:443
+CONNECTED(00000003)
+write:errno=0
+---
+no peer certificate available
+---
+No client certificate CA names sent
+---
+SSL handshake has read 0 bytes and written 10 bytes
+Verification: OK
+---
+New, (NONE), Cipher is (NONE)
+Secure Renegotiation IS NOT supported
+Compression: NONE
+Expansion: NONE
+No ALPN negotiated
+SSL-Session:
+    Protocol  : TLSv1.1
+    Cipher    : 0000
+    Session-ID:
+    Session-ID-ctx:
+    Master-Key:
+    PSK identity: None
+    PSK identity hint: None
+    SRP username: None
+    Start Time: 1623194332
+    Timeout   : 7200 (sec)
+    Verify return code: 0 (ok)
+    Extended master secret: no
+---
+user@host:~$"""
 
 COMMAND_KWARGS = {
-
+    "options": "s_client -tls1_1 -connect 10.10.10.10:443",
 }
 
 COMMAND_RESULT = {
-
+    'LINES':
+        [
+            "CONNECTED(00000003)",
+            "write:errno=0",
+            "---",
+            "no peer certificate available",
+            "---",
+            "No client certificate CA names sent",
+            "---",
+            "SSL handshake has read 0 bytes and written 10 bytes",
+            "Verification: OK",
+            "---",
+            "New, (NONE), Cipher is (NONE)",
+            "Secure Renegotiation IS NOT supported",
+            "Compression: NONE",
+            "Expansion: NONE",
+            "No ALPN negotiated",
+            "SSL-Session:",
+            "    Protocol  : TLSv1.1",
+            "    Cipher    : 0000",
+            "    Session-ID:",
+            "    Session-ID-ctx:",
+            "    Master-Key:",
+            "    PSK identity: None",
+            "    PSK identity hint: None",
+            "    SRP username: None",
+            "    Start Time: 1623194332",
+            "    Timeout   : 7200 (sec)",
+            "    Verify return code: 0 (ok)",
+            "    Extended master secret: no",
+            "---",
+        ],
 }
