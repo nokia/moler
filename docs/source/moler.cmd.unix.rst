@@ -388,6 +388,30 @@ moler.cmd.unix.lsof module
     :undoc-members:
     :show-inheritance:
 
+moler.cmd.unix.lxc\_attach module
+---------------------------------
+
+.. automodule:: moler.cmd.unix.lxc_attach
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+moler.cmd.unix.lxc\_info module
+-------------------------------
+
+.. automodule:: moler.cmd.unix.lxc_info
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+moler.cmd.unix.lxc\_ls module
+-----------------------------
+
+.. automodule:: moler.cmd.unix.lxc_ls
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.cmd.unix.md5sum module
 ----------------------------
 
@@ -448,6 +472,14 @@ moler.cmd.unix.ntpq module
 --------------------------
 
 .. automodule:: moler.cmd.unix.ntpq
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+moler.cmd.unix.openssl\_s\_client module
+----------------------------------------
+
+.. automodule:: moler.cmd.unix.openssl_s_client
     :members:
     :undoc-members:
     :show-inheritance:
