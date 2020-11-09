@@ -165,7 +165,7 @@ class Scp(GenericUnixCommand):
             self._sent_continue_connecting = True
             raise ParsingDone()
 
-    _re_continue_connecting = re.compile(r'\(yes/no\)|\'yes\'\sor\s\'no\'')
+    _re_continue_connecting = re.compile(r"\(y/n\)|\(yes/no.*\)\?|'yes' or 'no':", re.IGNORECASE)
 
     def _parse_continue_connecting(self, line):
         """
