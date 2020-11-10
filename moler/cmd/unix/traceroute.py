@@ -55,6 +55,7 @@ class Traceroute(GenericUnixCommand):
         if is_full_line:
             try:
                 self._parse_hop(line=line)
+                self._parse_hop_address(line=line)
             except ParsingDone:
                 pass  # line has been fully parsed by one of above parse-methods
         return super(Traceroute, self).on_new_line(line, is_full_line)
@@ -85,12 +86,38 @@ class Traceroute(GenericUnixCommand):
             self.current_ret['hops'].append(hop)
             raise ParsingDone()
 
+    #  1  10.0.2.2  0.222 ms  0.191 ms  0.176 ms
+    _re_hop_address = re.compile(r"(?P<HOP_NR>\d+)\s+(?P<ADDRESS>\S+)"
+                         r"\s+(?P<TTL1>\d+|\d+\.\d+)\s+(?P<TTL1_UNIT>\S+)"
+                         r"\s+(?P<TTL2>\d+|\d+\.\d+)\s+(?P<TTL2_UNIT>\S+)"
+                         r"\s+(?P<TTL3>\d+|\d+\.\d+)\s+(?P<TTL3_UNIT>\S+)")
+
+    def _parse_hop_address(self, line):
+        """
+        Parses packets from the line of command output
+        :param line: Line of output of command.
+        :return: None but raises ParsingDone if line has information to handle by this method.
+        """
+        if self._regex_helper.search_compiled(Traceroute._re_hop, line):
+            hop = dict()
+            hop['nr'] = self._converter_helper.to_number(self._regex_helper.group('HOP_NR'))
+            hop['name'] = ''
+            hop['address'] = self._regex_helper.group('ADDRESS')
+            hop['ttl1'] = self._converter_helper.to_number(self._regex_helper.group('TTL1'))
+            hop['ttl1_unit'] = self._regex_helper.group('TTL1_UNIT')
+            hop['ttl2'] = self._converter_helper.to_number(self._regex_helper.group('TTL2'))
+            hop['ttl2_unit'] = self._regex_helper.group('TTL2_UNIT')
+            hop['ttl3'] = self._converter_helper.to_number(self._regex_helper.group('TTL3'))
+            hop['ttl3_unit'] = self._regex_helper.group('TTL3_UNIT')
+            self.current_ret['hops'].append(hop)
+            raise ParsingDone()
 
 COMMAND_OUTPUT = """
 traceroute 192.168.8.1
 traceroute to 192.168.8.1 (192.168.8.1), 30 hops max, 60 byte packets
  1  gateway (10.0.2.2)  0.295 ms  0.311 ms  0.292 ms
  2  gateway (10.0.2.2)  2.761 ms  3.141 ms  3.189 ms
+ 3  10.3.3.3            0.295 ms  0.311 ms  0.292 ms
 moler_bash# """
 COMMAND_KWARGS = {'destination': '192.168.8.1'}
 
@@ -117,6 +144,17 @@ COMMAND_RESULT = {
             'ttl2_unit': 'ms',
             'ttl3': 3.189,
             'ttl3_unit': 'ms',
-        }
+        },
+        {
+            'nr': 2,
+            'name': '',
+            'address': '10.3.3.3',
+            'ttl1': 0.295,
+            'ttl1_unit': 'ms',
+            'ttl2': 0.311,
+            'ttl2_unit': 'ms',
+            'ttl3': 0.292,
+            'ttl3_unit': 'ms',
+        },
     ]
 }
