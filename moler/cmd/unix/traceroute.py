@@ -138,14 +138,14 @@ class Traceroute(GenericUnixCommand):
 
 
 COMMAND_OUTPUT = """
-traceroute 192.168.8.1
+traceroute -m 5 192.168.8.1
 traceroute to 192.168.8.1 (192.168.8.1), 30 hops max, 60 byte packets
  1  gateway (10.0.2.2)  0.295 ms  0.311 ms  0.292 ms
  2  gateway (10.0.2.2)  2.761 ms  3.141 ms  3.189 ms
  3  * * *
  4  10.3.3.3            0.295 ms  0.311 ms  0.292 ms
 moler_bash# """
-COMMAND_KWARGS = {'destination': '192.168.8.1'}
+COMMAND_KWARGS = {'destination': '192.168.8.1', 'options': '-m 5'}
 
 COMMAND_RESULT = {
     'hops': [
