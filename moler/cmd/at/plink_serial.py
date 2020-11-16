@@ -43,7 +43,7 @@ class PlinkSerial(CommandChangingPrompt):
         # 1) we want entry prompt like 'COM5> port READY' (plink -serial attaches AT console which is silent/no prompt)
         # 2) we want to remove all terminal ctrl codes (especially on cygwin + winpty environment)
         # 3) we need to simulate Ctrl-C output after plink completion to allow using ctrl_c unix command to stop plink
-        awk_cmd = 'awk \'BEGIN {print "COM5> port READY"} {print} END {print "^C"}\''
+        awk_cmd = 'awk \'BEGIN {{print "{}> port READY"}} {{print}} END {{print "^C"}}\''.format(self.serial_devname)
         proxy_command = "plink -serial {} |& {}".format(self.serial_devname, awk_cmd)
         return proxy_command
 
