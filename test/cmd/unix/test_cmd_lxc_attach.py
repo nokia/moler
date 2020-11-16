@@ -11,7 +11,7 @@ LxcAttach command test module.
 
 __author__ = 'Agnieszka Bylica, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2019-2020, Nokia'
-__email__ = 'agnieszka.bylica@nokia.com'
+__email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com'
 
 
 from moler.cmd.unix.lxc_attach import LxcAttach
