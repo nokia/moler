@@ -98,7 +98,7 @@ class Traceroute(GenericUnixCommand):
         :param line: Line of output of command.
         :return: None but raises ParsingDone if line has information to handle by this method.
         """
-        if self._regex_helper.search_compiled(Traceroute._re_hop, line):
+        if self._regex_helper.search_compiled(Traceroute._re_hop_address, line):
             hop = dict()
             hop['nr'] = self._converter_helper.to_number(self._regex_helper.group('HOP_NR'))
             hop['name'] = ''
@@ -112,12 +112,38 @@ class Traceroute(GenericUnixCommand):
             self.current_ret['hops'].append(hop)
             raise ParsingDone()
 
+    #  4  * * *
+    _re_asterisks = re.compile(r"(?P<HOP_NR>\d+)")
+
+    def _parse_asterisks(self, line):
+        """
+        Parses packets from the line of command output
+        :param line: Line of output of command.
+        :return: None but raises ParsingDone if line has information to handle by this method.
+        """
+        if self._regex_helper.search_compiled(Traceroute._re_asterisks, line):
+            hop = dict()
+            hop['nr'] = self._converter_helper.to_number(self._regex_helper.group('HOP_NR'))
+            hop['name'] = ''
+            hop['address'] = ''
+            hop['ttl1'] = '*'
+            hop['ttl1_unit'] = None
+            hop['ttl2'] = '*'
+            hop['ttl2_unit'] = None
+            hop['ttl3'] = '*'
+            hop['ttl3_unit'] = None
+            self.current_ret['hops'].append(hop)
+            raise ParsingDone()
+
+
 COMMAND_OUTPUT = """
 traceroute 192.168.8.1
 traceroute to 192.168.8.1 (192.168.8.1), 30 hops max, 60 byte packets
  1  gateway (10.0.2.2)  0.295 ms  0.311 ms  0.292 ms
  2  gateway (10.0.2.2)  2.761 ms  3.141 ms  3.189 ms
- 3  10.3.3.3            0.295 ms  0.311 ms  0.292 ms
+ 3  * * *
+ 4  10.3.3.3            0.295 ms  0.311 ms  0.292 ms
+ 
 moler_bash# """
 COMMAND_KWARGS = {'destination': '192.168.8.1'}
 
@@ -146,7 +172,18 @@ COMMAND_RESULT = {
             'ttl3_unit': 'ms',
         },
         {
-            'nr': 2,
+            'nr': 3,
+            'name': '',
+            'address': '',
+            'ttl1': '*',
+            'ttl1_unit': None,
+            'ttl2': '*',
+            'ttl2_unit': None,
+            'ttl3': '*',
+            'ttl3_unit': None,
+        },
+        {
+            'nr': 4,
             'name': '',
             'address': '10.3.3.3',
             'ttl1': 0.295,
