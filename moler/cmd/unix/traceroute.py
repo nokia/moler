@@ -88,9 +88,9 @@ class Traceroute(GenericUnixCommand):
 
     #  1  10.0.2.2  0.222 ms  0.191 ms  0.176 ms
     _re_hop_address = re.compile(r"(?P<HOP_NR>\d+)\s+(?P<ADDRESS>\S+)"
-                         r"\s+(?P<TTL1>\d+|\d+\.\d+)\s+(?P<TTL1_UNIT>\S+)"
-                         r"\s+(?P<TTL2>\d+|\d+\.\d+)\s+(?P<TTL2_UNIT>\S+)"
-                         r"\s+(?P<TTL3>\d+|\d+\.\d+)\s+(?P<TTL3_UNIT>\S+)")
+                                 r"\s+(?P<TTL1>\d+|\d+\.\d+)\s+(?P<TTL1_UNIT>\S+)"
+                                 r"\s+(?P<TTL2>\d+|\d+\.\d+)\s+(?P<TTL2_UNIT>\S+)"
+                                 r"\s+(?P<TTL3>\d+|\d+\.\d+)\s+(?P<TTL3_UNIT>\S+)")
 
     def _parse_hop_address(self, line):
         """
