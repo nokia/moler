@@ -56,6 +56,7 @@ class Traceroute(GenericUnixCommand):
             try:
                 self._parse_hop(line=line)
                 self._parse_hop_address(line=line)
+                self._parse_asterisks(line=line)
             except ParsingDone:
                 pass  # line has been fully parsed by one of above parse-methods
         return super(Traceroute, self).on_new_line(line, is_full_line)
@@ -113,7 +114,7 @@ class Traceroute(GenericUnixCommand):
             raise ParsingDone()
 
     #  4  * * *
-    _re_asterisks = re.compile(r"(?P<HOP_NR>\d+)")
+    _re_asterisks = re.compile(r"(?P<HOP_NR>\d+)\s+\*\s+\*\s+\*")
 
     def _parse_asterisks(self, line):
         """
