@@ -63,6 +63,7 @@ class Nmap(GenericUnixCommand):
                 self._parse_scan_reports(line)
                 self._parse_syn_stealth_scan(line)
                 self._parse_skipping_host(line)
+                self._parse_ciphers(line)
             except ParsingDone:
                 pass
         return super(Nmap, self).on_new_line(line, is_full_line)
@@ -161,6 +162,16 @@ class Nmap(GenericUnixCommand):
                 self._regex_helper.group("MINUTES")) * 60 + self._converter_helper.to_number(
                 self._regex_helper.group("SECONDS"))
             self.extend_timeout(timedelta=timedelta)
+
+    # |       TLS_ABC_RSA_WITH_AED_256_GCB_SHA123
+    _re_cipher = re.compile(r"\|\s*(?P<CIPHER>TLS_[^\s]+)")
+
+    def _parse_ciphers(self, line):
+        if self._regex_helper.search_compiled(Nmap._re_cipher, line):
+            if "CIPHERS" not in self.current_ret:
+                self.current_ret["CIPHERS"] = list()
+            self.current_ret["CIPHERS"].append(self._regex_helper.group("CIPHER"))
+            raise ParsingDone
 
 
 COMMAND_OUTPUT_host_up = """
@@ -626,3 +637,37 @@ COMMAND_RESULT = {
                       u'RECEIVED': None}],
 
 }
+
+COMMAND_OUTPUT_CIPHERS = """root@cp19-nj:# nmap --script ssl-enum-ciphers -p 443 10.83.180.140 -PN
+Starting Nmap 7.80 ( https://nmap.org ) at 2020-11-13 10:43 CET
+Nmap scan report for 10.83.182.143
+Host is up (0.000067s latency).
+
+PORT    STATE SERVICE
+443/tcp open  https
+| ssl-enum-ciphers: 
+|   TLSv1.2: 
+|     ciphers: 
+|       TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 (dh 4096) - A
+|     compressors: 
+|       NULL
+|     cipher preference: client
+|_  least strength: A
+
+Nmap done: 1 IP address (1 host up) scanned in 0.44 seconds
+root@cp19-nj:#"""
+
+COMMAND_KWARGS_CIPHERS = {'options': '--script ssl-enum-ciphers -p 443',
+                          'ip': '10.83.180.140'}
+
+COMMAND_RESULT_CIPHERS = {u'CIPHERS': [u'TLS_DHE_RSA_WITH_AES_128_GCM_SHA256'],
+                          u'PORTS': {u'443/tcp': {u'PORT': u'443',
+                                                  u'REASON': None,
+                                                  u'SERVICE': u'https',
+                                                  u'STATE': u'open',
+                                                  u'TYPE': u'tcp'},
+                                     u'LINES': [u'443/tcp open  https']},
+                          u'SCAN_REPORTS': [{u'ADDRESS': u'10.83.182.143',
+                                             u'HOST': None,
+                                             u'LINE': u'Nmap scan report for 10.83.182.143',
+                                             u'RECEIVED': None}]}
