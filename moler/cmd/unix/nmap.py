@@ -3,9 +3,10 @@
 Nmap command module.
 """
 
-__author__ = 'Yeshu Yang, Marcin Usielski, Bartosz Odziomek'
+__author__ = 'Yeshu Yang, Marcin Usielski, Bartosz Odziomek, Marcin Szlapa'
 __copyright__ = 'Copyright (C) 2018-2020, Nokia'
-__email__ = 'yeshu.yang@nokia-sbell.com, marcin.usielski@nokia.com, bartosz.odziomek@nokia.com'
+__email__ = 'yeshu.yang@nokia-sbell.com, marcin.usielski@nokia.com, bartosz.odziomek@nokia.com,' \
+            'marcin.szlapa@nokia.com'
 
 import re
 
