@@ -69,6 +69,7 @@ class LxcAttach(CommandChangingPrompt):
     def _command_error(self, line):
         if self._regex_helper.search_compiled(LxcAttach._re_command_error, line):
             self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
+            raise ParsingDone()
 
 
 COMMAND_OUTPUT = """root@server:~ >lxc-attach --name=0xe089
