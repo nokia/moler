@@ -18,11 +18,11 @@ class Traceroute(GenericUnixCommand):
 
     def __init__(self, connection, destination, options=None, prompt=None, newline_chars=None, runner=None):
         """
-        Ping command.
+        Traceroute command.
         :param connection: moler connection to device, terminal when command is executed.
         :param destination: address.
-        :param options: options of ping command for unix.
-        :param prompt: prompt on system where ping is executed.
+        :param options: options of traceroute command for unix.
+        :param prompt: prompt on system where traceroute is executed.
         :param newline_chars: characters to split lines.
         :param runner: Runner to run command
         """
