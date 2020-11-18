@@ -724,6 +724,14 @@ moler.cmd.unix.top module
     :undoc-members:
     :show-inheritance:
 
+moler.cmd.unix.traceroute module
+--------------------------------
+
+.. automodule:: moler.cmd.unix.traceroute
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.cmd.unix.tshark module
 ----------------------------
 

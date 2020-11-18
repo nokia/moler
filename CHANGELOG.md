@@ -1,3 +1,11 @@
+## moler 1.24.0
+
+### Improved 
+* nmap
+* Remove hardcore
+* Command traceroute
+* Scp - new format of question
+
 ## moler 1.23.0
 
 ### Improved 
