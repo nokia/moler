@@ -646,11 +646,11 @@ Host is up (0.000067s latency).
 
 PORT    STATE SERVICE
 443/tcp open  https
-| ssl-enum-ciphers: 
-|   TLSv1.2: 
-|     ciphers: 
+| ssl-enum-ciphers:
+|   TLSv1.2:
+|     ciphers:
 |       TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 (dh 4096) - A
-|     compressors: 
+|     compressors:
 |       NULL
 |     cipher preference: client
 |_  least strength: A
