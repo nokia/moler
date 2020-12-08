@@ -470,7 +470,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
         if connection_observer.is_command():
             connection_observer.send_command()
-        return secure_data_received  # to know what to uns  ubscribe
+        return secure_data_received  # to know what to unsubscribe
 
     def _stop_feeding(self, connection_observer, subscribed_data_receiver, feed_done, observer_lock):
         with observer_lock:
