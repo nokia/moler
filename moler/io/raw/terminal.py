@@ -26,8 +26,8 @@ class ThreadedTerminal(IOConnection):
     """
 
     def __init__(self, moler_connection, cmd="/bin/bash", select_timeout=0.002,
-                 read_buffer_size=25 * 4096, first_prompt=r'[%$#]+', target_prompt=r'moler_bash#',
-                 set_prompt_cmd='export PS1="moler_bash# "\n', dimensions=(3*100, 300)):
+                 read_buffer_size=25*4096+1, first_prompt=r'[%$#]+', target_prompt=r'moler_bash#',
+                 set_prompt_cmd='export PS1="moler_bash# "\n', dimensions=(3*100+1, 300)):
         """  # TODO: # 'export PS1="moler_bash\\$ "\n'  would give moler_bash# for root and moler_bash$ for user
         :param moler_connection: Moler's connection to join with
         :param cmd: command to run terminal
@@ -81,7 +81,8 @@ class ThreadedTerminal(IOConnection):
                             self.read_buffer.encode("UTF-8", "replace")))
                     self._terminal.write('\n')
                     retry += 1
-
+            self.logger.info("Created TreadedTerminal with buffer: '{}', dimeensions: '{}' ".format(
+                self._read_buffer_size, self.dimensions))
         return ret
 
     def close(self):
