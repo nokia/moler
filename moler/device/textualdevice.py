@@ -128,6 +128,9 @@ class TextualDevice(AbstractDevice):
         self.SM.state_change_log_callable = self._log
         self.SM.current_state_callable = self._get_current_state
 
+    def disable_lgoging(self):
+        self.io_connection.disable_logging()
+
     def establish_connection(self):
         """
         Establishes real connection to device. You have to call this method before device is full operable.
