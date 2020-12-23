@@ -41,6 +41,7 @@ class CommandTextualGeneric(Command):
         # as _cmd_escaped. Set 0 to disable functionality of substring.
         self._max_index_from_end = 20  # Left (from this to the end) index of substring of command_string passed
         # as _cmd_escaped. Set 0 to disable functionality of substring.
+        self._multiline_cmd = False
         self.__command_string = None  # String representing command on device
         self._cmd_escaped = None  # Escaped regular expression string with command
         super(CommandTextualGeneric, self).__init__(connection=connection, runner=runner)
@@ -140,6 +141,9 @@ class CommandTextualGeneric(Command):
         if self.__command_string is not None:
             if self._max_index_from_beginning != 0 or self._max_index_from_end != 0:
                 sub_command_string = self._build_command_string_slice()
+            elif self._multiline_cmd:
+                cmd_without_new_line = re.sub('\n', '', self.__command_string)
+                sub_command_string = re.escape(cmd_without_new_line)
             else:
                 sub_command_string = re.escape(self.__command_string)
             self._cmd_escaped = re.compile(sub_command_string)
