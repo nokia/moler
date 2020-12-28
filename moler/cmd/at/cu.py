@@ -82,7 +82,7 @@ class Cu(CommandChangingPrompt):
 
 
 COMMAND_OUTPUT = """
-cu -l /dev/ttyS{} -s 19200 -E '-'
+cu -l /dev/ttyS{} -s 19200 -E '-' -v entry_prompt="Conntected." -v ctrlc="^C" -v exit_prompt="${PS1@P}"
 Conntected."""
 
 COMMAND_KWARGS = {"serial_devname": "5"}
