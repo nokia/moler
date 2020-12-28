@@ -26,7 +26,7 @@ class Cu(CommandChangingPrompt):
     def __init__(self, connection, serial_devname, prompt=None, newline_chars=None, target_newline="\n", runner=None):
         """
         :param connection: Moler connection to device, terminal when command is executed.
-        :param serial_devname: name of serial device to be proxied (f.ex. COM5, ttyS4).
+        :param serial_devname: name of serial device to be proxied (f.ex. 5).
         :param prompt: prompt where we start from
         :param newline_chars: Characters to split local lines - list.
         :param target_newline: Character to split remote lines.
@@ -87,6 +87,6 @@ COMMAND_OUTPUT = """
 cu -l /dev/ttyS{} -s 19200 -E '-' -v entry_prompt="Conntected." -v exit_prompt="${PS1@P}
 Conntected."""
 
-COMMAND_KWARGS = {}
+COMMAND_KWARGS = {"serial_devname": "5"}
 
 COMMAND_RESULT = {}
