@@ -82,7 +82,9 @@ class Cu(CommandChangingPrompt):
 
 
 COMMAND_OUTPUT = """
-cu -l /dev/ttyS5 -s 19200 -E '-'"""
+cu -l /dev/ttyS5 -s 19200 -E '-'
+Connected.
+"""
 
 COMMAND_KWARGS = {"serial_devname": "5"}
 
