@@ -22,7 +22,6 @@ class Cu(CommandChangingPrompt):
     $ cu -l /dev/ttyS21 -s 19200 -E -
     Connected.
     """
-
     def __init__(self, connection, serial_devname, prompt=None, newline_chars=None, target_newline="\n", runner=None):
         """
         :param connection: Moler connection to device, terminal when command is executed.
