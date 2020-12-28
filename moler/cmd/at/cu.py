@@ -34,11 +34,11 @@ class Cu(CommandChangingPrompt):
         """
         self.serial_devname = serial_devname
         proxy_prompt = r"Connected."
-        super(Cu, self).__init__(connection=connection, 
-                                 prompt=prompt, 
+        super(Cu, self).__init__(connection=connection,
+                                 prompt=prompt,
                                  newline_chars=newline_chars,
-                                 expected_prompt=proxy_prompt, 
-                                 target_newline=target_newline, 
+                                 expected_prompt=proxy_prompt,
+                                 target_newline=target_newline,
                                  runner=runner)
         self.ret_required = False
         self._python_shell_exit_sent = False
