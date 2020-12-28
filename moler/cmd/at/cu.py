@@ -18,10 +18,11 @@ from moler.exceptions import CommandFailure
 class Cu(CommandChangingPrompt):
     """
     Command to connect COM port using cu. Example output:
-    
+
     $ cu -l /dev/ttyS21 -s 19200 -E -
     Connected.
     """
+
     def __init__(self, connection, serial_devname, prompt=None, newline_chars=None, target_newline="\n", runner=None):
         """
         :param connection: Moler connection to device, terminal when command is executed.
@@ -33,8 +34,12 @@ class Cu(CommandChangingPrompt):
         """
         self.serial_devname = serial_devname
         proxy_prompt = r"Connected."
-        super(Cu, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
-                                          expected_prompt=proxy_prompt, target_newline=target_newline, runner=runner)
+        super(Cu, self).__init__(connection=connection, 
+                                 prompt=prompt, 
+                                 newline_chars=newline_chars,
+                                 expected_prompt=proxy_prompt, 
+                                 target_newline=target_newline, 
+                                 runner=runner)
         self.ret_required = False
         self._python_shell_exit_sent = False
         self.allowed_newline_after_prompt = True
