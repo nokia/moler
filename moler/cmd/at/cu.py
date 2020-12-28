@@ -49,7 +49,6 @@ class Cu(CommandChangingPrompt):
 
         :return: String representation of command to send over connection to device.
         """
-        # proxy_command = "cu -l /dev/ttyS{} -s 19200 -E 'q'".format(self.serial_devname)
         proxy_command = "cu -l /dev/ttyS{} -s 19200 -E '-'".format(self.serial_devname)
         return proxy_command
 
