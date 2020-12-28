@@ -36,8 +36,6 @@ class TailLatestFile(GenericUnixCommand):
         self._first_line_time = None
         self._check_failure_indication = True
 
-        self._max_index_from_beginning = 0  # Right (from 0 to this) index of substring of command_string passed
-        self._max_index_from_end = 0  # Left (from this to the end) index of substring of command_string passed
         self._multiline_cmd = True
 
     def build_command_string(self):
@@ -61,7 +59,7 @@ class TailLatestFile(GenericUnixCommand):
                       'then\n' \
                       '[ -n "$tail_pid" ] && kill $tail_pid\n' \
                       'last_file=$current_last_file\n' \
-                      'tail -f $last_file &\n' \
+                      'tail -f -n +1 $last_file &\n' \
                       'tail_pid=$!\n' \
                       'fi\n' \
                       'sleep 0.5\n' \
@@ -112,7 +110,7 @@ if [ "$last_file" != "$current_last_file" ]
 then
 [ -n "$tail_pid" ] && kill $tail_pid
 last_file=$current_last_file
-tail -f $last_file &
+tail -f -n +1 $last_file &
 tail_pid=$!
 fi
 sleep 0.5
@@ -152,7 +150,7 @@ if [ "$last_file" != "$current_last_file" ]
 then
 [ -n "$tail_pid" ] && kill $tail_pid
 last_file=$current_last_file
-tail -f $last_file &
+tail -f -n +1 $last_file &
 tail_pid=$!
 fi
 sleep 0.5

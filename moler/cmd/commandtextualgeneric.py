@@ -125,7 +125,7 @@ class CommandTextualGeneric(Command):
         """
         Setter for command_string.
 
-        :param command_string: Stting with command to set.
+        :param command_string: String with command to set.
         :return: None.
         """
         self.__command_string = command_string
@@ -139,28 +139,30 @@ class CommandTextualGeneric(Command):
         """
         self._cmd_escaped = None
         if self.__command_string is not None:
+            command_string_copy = self.__command_string
+            if self._multiline_cmd:
+                command_string_copy = re.sub('\n', '', self.__command_string)
             if self._max_index_from_beginning != 0 or self._max_index_from_end != 0:
-                sub_command_string = self._build_command_string_slice()
-            elif self._multiline_cmd:
-                cmd_without_new_line = re.sub('\n', '', self.__command_string)
-                sub_command_string = re.escape(cmd_without_new_line)
+                sub_command_string = self._build_command_string_slice(command_string_copy)
             else:
-                sub_command_string = re.escape(self.__command_string)
+                sub_command_string = re.escape(command_string_copy)
+
             self._cmd_escaped = re.compile(sub_command_string)
 
-    def _build_command_string_slice(self):
+    def _build_command_string_slice(self, command_string):
         """
         Builds slice of command string.
 
+        :param command_string: command_string to slice.
         :return: String with regex with command slice.
         """
         sub_command_start_string = None
         sub_command_finish_string = None
         if self._max_index_from_beginning != 0:
-            sub_command_start_string = re.escape(self.__command_string[:self._max_index_from_beginning])
+            sub_command_start_string = re.escape(command_string[:self._max_index_from_beginning])
             re_sub_command_string = sub_command_start_string
         if self._max_index_from_end != 0:
-            sub_command_finish_string = re.escape(self.__command_string[-self._max_index_from_end:])
+            sub_command_finish_string = re.escape(command_string[-self._max_index_from_end:])
             re_sub_command_string = sub_command_finish_string
         if sub_command_finish_string and sub_command_start_string:
             re_sub_command_string = "{}|{}".format(sub_command_start_string, sub_command_finish_string)
