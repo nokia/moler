@@ -226,7 +226,7 @@ class AtRemote(UnixRemote):
                              TextualDevice.events: ['moler.events.shared']}
             if available:
                 return available[observer]
-        elif state == UnixRemote.unix_remote:  # this is unix extended with plink_serial command
+        elif state == UnixRemote.unix_remote or state == UnixRemote2.unix_remote:  # this is unix extended with plink_serial command
             if observer == TextualDevice.cmds:
                 available.append('moler.cmd.at.plink_serial')
                 available.append('moler.cmd.at.cu')
