@@ -40,7 +40,7 @@ class GetIp(GenericAtCommand):
         Method to parse command output. Will be called after line with command echo.
 
         +CGPADDR: 1,"40.1.1.105"
-        
+
         OK
 
         Write your own implementation but don't forget to call on_new_line from base class
