@@ -27,7 +27,7 @@ class GetIp(GenericAtCommand):
     """
     def __init__(self, context_identifier, connection=None, prompt=None, newline_chars=None, runner=None):
         """Create instance of GetIp class"""
-        super(GetIp, self).__init__(context_identifier, connection, operation='execute', prompt=prompt,
+        super(GetIp, self).__init__(connection, operation='execute', prompt=prompt,
                                     newline_chars=newline_chars, runner=runner)
         self.context_identifier = context_identifier
         self.current_ret = dict()
@@ -51,14 +51,14 @@ class GetIp(GenericAtCommand):
         """
         if is_full_line:
             try:
-                self._parse_apns(line)
+                self._parse_ip(line)
             except ParsingDone:
                 pass
-        return super(GetApns, self).on_new_line(line, is_full_line)
+        return super(GetIp, self).on_new_line(line, is_full_line)
 
-    _re_apn = re.compile(r'^\s*\+CGPADDR:\s[0-9]+,"?(?P<ip>(([0-9]{1,3}\.){3}[0-9]{1,3}))"?.*$')
+    _re_apn = re.compile(r'^\s*\+CGPADDR:\s[0-9]+,\"?(?P<ip>(([0-9]{1,3}\.){3}[0-9]{1,3}))\"?.*$')
 
-    def _parse_apns(self, line):
+    def _parse_ip(self, line):
         """
         Parse IP that should look like:
 
@@ -68,7 +68,7 @@ class GetIp(GenericAtCommand):
         """
         if self._regex_helper.match_compiled(self._re_apn, line):
             ip = self._regex_helper.group("ip")
-            self.current_ret.append = {"ip": ip} if ip != "0.0.0.0" else {}
+            self.current_ret = {"ip": ip} if ip != '0.0.0.0' else {}
             raise ParsingDone
 
 
