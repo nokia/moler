@@ -28,7 +28,7 @@ class GetIp(GenericAtCommand):
     def __init__(self, context_identifier, connection=None, prompt=None, newline_chars=None, runner=None):
         """Create instance of GetIp class"""
         super(GetIp, self).__init__(context_identifier, connection, operation='execute', prompt=prompt,
-                                      newline_chars=newline_chars, runner=runner)
+                                    newline_chars=newline_chars, runner=runner)
         self.context_identifier = context_identifier
         self.current_ret = dict()
 
