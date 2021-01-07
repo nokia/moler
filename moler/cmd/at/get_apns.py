@@ -64,7 +64,7 @@ class GetApns(GenericAtCommand):
         return super(GetApns, self).on_new_line(line, is_full_line)
 
     _re_apn = re.compile(r'^\s*\+CGDCONT\:\s(?P<apn_num>([0-9])),(?P<apn_ip_name>(\"[a-zA-Z46]{2,6}")),'
-            '(?P<apn_name>(\"[a-zA-Z0-9]*\")).*$')
+                         '(?P<apn_name>(\"[a-zA-Z0-9]*\")).*$')
 
     def _parse_apns(self, line):
         """
