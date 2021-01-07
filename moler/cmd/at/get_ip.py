@@ -19,7 +19,7 @@ from moler.exceptions import ParsingDone
 
 class GetIp(GenericAtCommand):
     """
-    Command to get APNs. Example output:
+    Command to get IP. Example output:
 
     +CGPADDR: 1,0.0.0.0,0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0
 
@@ -27,7 +27,7 @@ class GetIp(GenericAtCommand):
     """
     def __init__(self, context_identifier, connection=None, prompt=None, newline_chars=None, runner=None):
         """Create instance of GetIp class"""
-        super(GetApns, self).__init__(context_identifier, connection, operation='execute', prompt=prompt,
+        super(GetIp, self).__init__(context_identifier, connection, operation='execute', prompt=prompt,
                                       newline_chars=newline_chars, runner=runner)
         self.context_identifier = context_identifier
         self.current_ret = dict()
@@ -60,7 +60,7 @@ class GetIp(GenericAtCommand):
 
     def _parse_apns(self, line):
         """
-        Parse APN that should look like:
+        Parse IP that should look like:
 
         +CGPADDR: 1,"40.1.1.105"
         or
