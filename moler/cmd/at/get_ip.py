@@ -22,7 +22,7 @@ class GetIp(GenericAtCommand):
     Command to get APNs. Example output:
 
     +CGPADDR: 1,0.0.0.0,0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0
-    
+
     OK
     """
     def __init__(self, context_identifier, connection=None, prompt=None, newline_chars=None, runner=None):
