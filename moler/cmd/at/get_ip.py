@@ -68,7 +68,7 @@ class GetIp(GenericAtCommand):
         """
         if self._regex_helper.match_compiled(self._re_apn, line):
             ip = self._regex_helper.group("ip")
-            self.current_ret = {"ip": ip} if ip != '0.0.0.0' else {}
+            self.current_ret["ip"] = ip
             raise ParsingDone
 
 
@@ -94,7 +94,7 @@ OK
 
 COMMAND_KWARGS_no_ip = {"context_identifier": 1}
 
-COMMAND_RESULT_no_ip = {}
+COMMAND_RESULT_no_ip = {'ip': '0.0.0.0'}
 
 COMMAND_OUTPUT_ip = """
 AT+CGPADDR=1
