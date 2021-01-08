@@ -69,9 +69,11 @@ class Ati(GenericAtCommand):
                 pass
         return super(Ati, self).on_new_line(line, is_full_line)
 
-    _re_product_information = re.compile(r'^\s*(Model:\s(?P<model>(.*)))$|^\s*(Revision:\s(?P<revision>(.*)))$|'
-                                         '^\s*(SVN:\s(?P<svn>(.*)))$|^\s*(IMEI:\s(?P<imei>(.*)))$|'
-                                         '^\s*(\+GCAP:\s(?P<gcap>(.*)))$')
+    _re_product_information = re.compile(r'^\s*(Model:\s(?P<model>(.*)))$|'
+                                         r'^\s*(Revision:\s(?P<revision>(.*)))$|'
+                                         r'^\s*(SVN:\s(?P<svn>(.*)))$|'
+                                         r'^\s*(IMEI:\s(?P<imei>(.*)))$|'
+                                         r'^\s*(\+GCAP:\s(?P<gcap>(.*)))$')
 
     def _parse_product_information(self, line):
         """
