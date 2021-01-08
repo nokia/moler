@@ -129,7 +129,6 @@ COMMAND_KWARGS_askey = {}
 
 COMMAND_RESULT_askey = {
     'model': '334',
-    'revision': '',
     'imei': '352569090027192',
     'gcap': '+CGSM'
 }
