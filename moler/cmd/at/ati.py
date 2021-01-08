@@ -35,7 +35,7 @@ class Ati(GenericAtCommand):
     def __init__(self, connection=None, prompt=None, newline_chars=None, runner=None):
         """Create instance of Ati class"""
         super(Ati, self).__init__(connection, operation='execute', prompt=prompt,
-                                      newline_chars=newline_chars, runner=runner)
+                                  newline_chars=newline_chars, runner=runner)
         self.current_ret = dict()
 
     def build_command_string(self):
