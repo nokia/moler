@@ -69,11 +69,7 @@ class Ati(GenericAtCommand):
                 pass
         return super(Ati, self).on_new_line(line, is_full_line)
 
-    _re_product_information = re.compile(r'^\s*(Model:\s(?P<model>(.*)))$|'
-                                         r'^\s*(Revision:\s(?P<revision>(.*)))$|'
-                                         r'^\s*(SVN:\s(?P<svn>(.*)))$|'
-                                         r'^\s*(IMEI:\s(?P<imei>(.*)))$|'
-                                         r'^\s*(\+GCAP:\s(?P<gcap>(.*)))$')
+    _re_product_information = re.compile(r'^(?P<key>([^\:\n]+))\:( )*(?P<value>([^\n]+))$')
 
     def _parse_product_information(self, line):
         """
@@ -89,12 +85,10 @@ class Ati(GenericAtCommand):
         +GCAP: +CGSM
         """
         if self._regex_helper.match_compiled(self._re_product_information, line):
-            infos = ["model", "revision", "svn", "imei", "gcap"]
-
-            for info in infos:
-                if self._regex_helper.group(info):
-                    self.current_ret[info] = self._regex_helper.group(info)
-
+            key = self._regex_helper.group("key")
+            value = self._regex_helper.group("value")
+            if key and value:
+                self.current_ret[key] = self._regex_helper.group(value)
             raise ParsingDone
 
 
@@ -128,9 +122,13 @@ OK
 COMMAND_KWARGS_askey = {}
 
 COMMAND_RESULT_askey = {
-    'model': '334',
-    'imei': '352569090027192',
-    'gcap': '+CGSM'
+    'Manufacturer': 'QUALCOMM INCORPORATED',
+    'Model': '334',
+    'OEM_VER': 'RTL6300_NOKIA_V0.0.3_201116.1_m',
+    'OEM_BLD': 'master@dailybuild2, 11/16/2020 05:56:34',
+    'QC_VER': 'MPSS.HI.2.0.c3-00246-SDX55_CPEALL_PACK-1',
+    'IMEI': '352569090027192',
+    '+GCAP': '+CGSM'
 }
 
 COMMAND_OUTPUT_nokia = """
@@ -148,11 +146,12 @@ OK
 COMMAND_KWARGS_nokia = {}
 
 COMMAND_RESULT_nokia = {
-    'model': '334',
-    'revision': 'MPSS.HI.2.0.5-00162.3-SAIPAN_GEN_PACK-1  1  [May 15 2020 07:00:00]',
-    'svn': '01',
-    'imei': '353139110019915',
-    'gcap': '+CGSM,+DS,+ES'
+    'Manufacturer': 'QUALCOMM INCORPORATED',
+    'Model': '334',
+    'Revision': 'MPSS.HI.2.0.5-00162.3-SAIPAN_GEN_PACK-1  1  [May 15 2020 07:00:00]',
+    'SVN': '01',
+    'IMEI': '353139110019915',
+    '+GCAP': '+CGSM,+DS,+ES'
 }
 
 COMMAND_OUTPUT_inseego = """
@@ -170,9 +169,10 @@ OK
 COMMAND_KWARGS_inseego = {}
 
 COMMAND_RESULT_inseego = {
-    'model': 'M2000A',
-    'revision': '1.36  SVN 1 [2020-07-31 18:38:02] (Release Build - nvtl)',
-    'svn': '01',
-    'imei': '990016250011564',
-    'gcap': '+CLTE3, +MS, +ES, +DS'
+    'Manufacturer': 'Inseego Corp.',
+    'Model': 'M2000A',
+    'Revision': '1.36  SVN 1 [2020-07-31 18:38:02] (Release Build - nvtl)',
+    'SVN': '01',
+    'IMEI': '990016250011564',
+    '+GCAP': '+CLTE3, +MS, +ES, +DS'
 }
