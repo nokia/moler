@@ -88,7 +88,7 @@ class Ati(GenericAtCommand):
             key = self._regex_helper.group("key")
             value = self._regex_helper.group("value")
             if key and value:
-                self.current_ret[key] = self._regex_helper.group(value)
+                self.current_ret[key] = value
             raise ParsingDone
 
 
