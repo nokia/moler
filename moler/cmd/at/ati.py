@@ -69,6 +69,7 @@ class Ati(GenericAtCommand):
                 pass
         return super(Ati, self).on_new_line(line, is_full_line)
 
+    # Manufacturer: QUALCOMM INCORPORATED
     _re_product_information = re.compile(r'^(?P<key>([^\:\n]+))\:( )*(?P<value>([^\n]+))$')
 
     def _parse_product_information(self, line):
