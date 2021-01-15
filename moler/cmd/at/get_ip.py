@@ -56,6 +56,7 @@ class GetIp(GenericAtCommand):
                 pass
         return super(GetIp, self).on_new_line(line, is_full_line)
 
+    # +CGPADDR: 1,"40.1.1.105"
     _re_apn = re.compile(r'^\s*\+CGPADDR:\s[0-9]+,\"?(?P<ip>(([0-9]{1,3}\.){3}[0-9]{1,3}))\"?.*$')
 
     def _parse_ip(self, line):
