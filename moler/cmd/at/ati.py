@@ -85,10 +85,7 @@ class Ati(GenericAtCommand):
         +GCAP: +CGSM
         """
         if self._regex_helper.match_compiled(self._re_product_information, line):
-            key = self._regex_helper.group("key")
-            value = self._regex_helper.group("value")
-            if key and value:
-                self.current_ret[key] = value
+            self.current_ret[self._regex_helper.group("key")] = self._regex_helper.group("value")
             raise ParsingDone
 
 
