@@ -229,5 +229,6 @@ class AtRemote(UnixRemote):
         elif state == UnixRemote.unix_remote:  # this is unix extended with plink_serial command
             if observer == TextualDevice.cmds:
                 available.append('moler.cmd.at.plink_serial')
+                available.append('moler.cmd.at.cu')
 
         return available
