@@ -63,9 +63,8 @@ class GetApns(GenericAtCommand):
                 pass
         return super(GetApns, self).on_new_line(line, is_full_line)
 
-    # +CGDCONT: 1,"IPV4V6","apnscp1","0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0",0,0,0,0
-    _re_apn = re.compile(r'^\s*\+CGDCONT\:\s(?P<apn_num>([0-9])),(?P<apn_ip_name>(\"[a-zA-Z46]{2,6}")),'
-                         '(?P<apn_name>(\"[a-zA-Z0-9]*\")).*$')
+    _re_apn = re.compile(r'^\s*\+CGDCONT\:\s(?P<apn_num>([0-9]+)),\"(?P<apn_ip_name>(IPV4(V6)?))\",\"'
+                         '(?P<apn_name>([a-zA-Z0-9]*))\".*$')
 
     def _parse_apns(self, line):
         """
@@ -113,9 +112,9 @@ OK
 COMMAND_KWARGS_ver_execute = {}
 
 COMMAND_RESULT_ver_execute = [
-    {'apn_num': '1', 'apn_ip_name': '"IPV4V6"', 'apn_name': '"apnscp1"'},
-    {'apn_num': '2', 'apn_ip_name': '"IPV4V6"', 'apn_name': '""'},
-    {'apn_num': '3', 'apn_ip_name': '"IPV4V6"', 'apn_name': '"ims"'},
-    {'apn_num': '4', 'apn_ip_name': '"IPV4V6"', 'apn_name': '"sos"'},
-    {'apn_num': '5', 'apn_ip_name': '"IPV4V6"', 'apn_name': '"xcap"'}
+    {'apn_num': '1', 'apn_ip_name': 'IPV4V6', 'apn_name': 'apnscp1'},
+    {'apn_num': '2', 'apn_ip_name': 'IPV4V6', 'apn_name': ''},
+    {'apn_num': '3', 'apn_ip_name': 'IPV4V6', 'apn_name': 'ims'},
+    {'apn_num': '4', 'apn_ip_name': 'IPV4V6', 'apn_name': 'sos'},
+    {'apn_num': '5', 'apn_ip_name': 'IPV4V6', 'apn_name': 'xcap'}
 ]
