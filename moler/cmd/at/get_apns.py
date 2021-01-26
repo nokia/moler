@@ -120,7 +120,7 @@ COMMAND_RESULT_ipv4v6 = [
     {'apn_num': '5', 'apn_ip_name': 'IPV4V6', 'apn_name': 'xcap'}
 ]
 
-COMMAND_OUTPUT_ipv4 = """
+COMMAND_OUTPUT_ip = """
 AT+CGDCONT?
 +CGDCONT: 1,"IP","","0.0.0.0",0,0,0,0
 +CGDCONT: 2,"IPV4V6","","0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0",0,0,0,0
@@ -129,9 +129,9 @@ AT+CGDCONT?
 OK
 """
 
-COMMAND_KWARGS_ipv4 = {}
+COMMAND_KWARGS_ip = {}
 
-COMMAND_RESULT_ipv4 = [
+COMMAND_RESULT_ip = [
     {'apn_num': '1', 'apn_ip_name': 'IP', 'apn_name': ''},
     {'apn_num': '2', 'apn_ip_name': 'IPV4V6', 'apn_name': ''},
     {'apn_num': '3', 'apn_ip_name': 'IPV4V6', 'apn_name': ''}
