@@ -64,8 +64,8 @@ class GetApns(GenericAtCommand):
         return super(GetApns, self).on_new_line(line, is_full_line)
 
     # +CGDCONT: 1,"IPV4V6","apnscp1","0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0",0,0,0,0
-    _re_apn = re.compile(r'^\s*\+CGDCONT\:\s(?P<apn_num>([0-9])),(?P<apn_ip_name>(\"[a-zA-Z46]{2,6}")),'
-                         '(?P<apn_name>(\"[a-zA-Z0-9]*\")).*$')
+    _re_apn = re.compile(r'^\s*\+CGDCONT\:\s(?P<apn_num>([0-9]+)),\"(?P<apn_ip_name>(IP(V4V6)?))\",\"'
+                         '(?P<apn_name>([a-zA-Z0-9]*))\".*$')
 
     def _parse_apns(self, line):
         """
@@ -99,7 +99,7 @@ class GetApns(GenericAtCommand):
 # COMMAND_RESULT_suffix
 # -----------------------------------------------------------------------------
 
-COMMAND_OUTPUT_ver_execute = """
+COMMAND_OUTPUT_ipv4v6 = """
 AT+CGDCONT?
 +CGDCONT: 1,"IPV4V6","apnscp1","0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0",0,0,0,0
 +CGDCONT: 2,"IPV4V6","","0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0",0,0,0,0
@@ -110,12 +110,29 @@ AT+CGDCONT?
 OK
 """
 
-COMMAND_KWARGS_ver_execute = {}
+COMMAND_KWARGS_ipv4v6 = {}
 
-COMMAND_RESULT_ver_execute = [
-    {'apn_num': '1', 'apn_ip_name': '"IPV4V6"', 'apn_name': '"apnscp1"'},
-    {'apn_num': '2', 'apn_ip_name': '"IPV4V6"', 'apn_name': '""'},
-    {'apn_num': '3', 'apn_ip_name': '"IPV4V6"', 'apn_name': '"ims"'},
-    {'apn_num': '4', 'apn_ip_name': '"IPV4V6"', 'apn_name': '"sos"'},
-    {'apn_num': '5', 'apn_ip_name': '"IPV4V6"', 'apn_name': '"xcap"'}
+COMMAND_RESULT_ipv4v6 = [
+    {'apn_num': '1', 'apn_ip_name': 'IPV4V6', 'apn_name': 'apnscp1'},
+    {'apn_num': '2', 'apn_ip_name': 'IPV4V6', 'apn_name': ''},
+    {'apn_num': '3', 'apn_ip_name': 'IPV4V6', 'apn_name': 'ims'},
+    {'apn_num': '4', 'apn_ip_name': 'IPV4V6', 'apn_name': 'sos'},
+    {'apn_num': '5', 'apn_ip_name': 'IPV4V6', 'apn_name': 'xcap'}
+]
+
+COMMAND_OUTPUT_ip = """
+AT+CGDCONT?
++CGDCONT: 1,"IP","","0.0.0.0",0,0,0,0
++CGDCONT: 2,"IPV4V6","","0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0",0,0,0,0
++CGDCONT: 3,"IPV4V6","","0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0",0,0,0,0
+
+OK
+"""
+
+COMMAND_KWARGS_ip = {}
+
+COMMAND_RESULT_ip = [
+    {'apn_num': '1', 'apn_ip_name': 'IP', 'apn_name': ''},
+    {'apn_num': '2', 'apn_ip_name': 'IPV4V6', 'apn_name': ''},
+    {'apn_num': '3', 'apn_ip_name': 'IPV4V6', 'apn_name': ''}
 ]
