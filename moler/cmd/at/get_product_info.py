@@ -17,7 +17,7 @@ from moler.cmd.at.genericat import GenericAtCommand
 from moler.exceptions import ParsingDone
 
 
-class Ati(GenericAtCommand):
+class GetProductInfo(GenericAtCommand):
     """
     Command to get product information. Example output:
 
@@ -33,9 +33,9 @@ class Ati(GenericAtCommand):
     OK
     """
     def __init__(self, connection=None, prompt=None, newline_chars=None, runner=None):
-        """Create instance of Ati class"""
-        super(Ati, self).__init__(connection, operation='execute', prompt=prompt,
-                                  newline_chars=newline_chars, runner=runner)
+        """Create instance of GetProductInfo class"""
+        super(GetProductInfo, self).__init__(connection, operation='execute', prompt=prompt,
+                                             newline_chars=newline_chars, runner=runner)
         self.current_ret = dict()
 
     def build_command_string(self):
@@ -67,7 +67,7 @@ class Ati(GenericAtCommand):
                 self._parse_product_information(line)
             except ParsingDone:
                 pass
-        return super(Ati, self).on_new_line(line, is_full_line)
+        return super(GetProductInfo, self).on_new_line(line, is_full_line)
 
     # Manufacturer: QUALCOMM INCORPORATED
     _re_product_information = re.compile(r'^(?P<key>([^\:\n]+))\:( )*(?P<value>([^\n]+))$')
