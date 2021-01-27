@@ -684,6 +684,14 @@ moler.cmd.unix.tail module
     :undoc-members:
     :show-inheritance:
 
+moler.cmd.unix.tail\_latest\_file module
+----------------------------------------
+
+.. automodule:: moler.cmd.unix.tail_latest_file
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.cmd.unix.tar module
 -------------------------
 
