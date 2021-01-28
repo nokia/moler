@@ -52,6 +52,7 @@ class TailLatestFile(GenericUnixCommand):
                       '\n' \
                       'last_file=""\n' \
                       'tail_pid=""\n' \
+                      'file_index=0\n' \
                       'while :\n' \
                       'do\n' \
                       'current_last_file=`ls -t {} | head -1`\n' \
@@ -59,8 +60,14 @@ class TailLatestFile(GenericUnixCommand):
                       'then\n' \
                       '[ -n "$tail_pid" ] && kill $tail_pid\n' \
                       'last_file=$current_last_file\n' \
+                      'if [ "$file_index" -eq 0 ]\n' \
+                      'then\n' \
+                      'tail -f $last_file &\n' \
+                      'else\n' \
                       'tail -f -n +1 $last_file &\n' \
+                      'fi\n' \
                       'tail_pid=$!\n' \
+                      '((file_index=file_index+1))\n' \
                       'fi\n' \
                       'sleep 0.5\n' \
                       "done'"
@@ -103,6 +110,7 @@ echo "Press [CTRL+C] to stop.."
 trap "kill \$tail_pid; exit" INT
 last_file=""
 tail_pid=""
+file_index=0
 while :
 do
 current_last_file=`ls -t /tmp/sample_file* | head -1`
@@ -110,8 +118,14 @@ if [ "$last_file" != "$current_last_file" ]
 then
 [ -n "$tail_pid" ] && kill $tail_pid
 last_file=$current_last_file
+if [ "$file_index" -eq 0 ]
+then
+tail -f $last_file &
+else
 tail -f -n +1 $last_file &
+fi
 tail_pid=$!
+((file_index=file_index+1))
 fi
 sleep 0.5
 done'
@@ -143,6 +157,7 @@ echo "Press [CTRL+C] to stop.."
 trap "kill \$tail_pid; exit" INT
 last_file=""
 tail_pid=""
+file_index=0
 while :
 do
 current_last_file=`ls -t /tmp/* | head -1`
@@ -150,8 +165,14 @@ if [ "$last_file" != "$current_last_file" ]
 then
 [ -n "$tail_pid" ] && kill $tail_pid
 last_file=$current_last_file
+if [ "$file_index" -eq 0 ]
+then
+tail -f $last_file &
+else
 tail -f -n +1 $last_file &
+fi
 tail_pid=$!
+((file_index=file_index+1))
 fi
 sleep 0.5
 done'
