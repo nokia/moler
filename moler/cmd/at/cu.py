@@ -19,7 +19,7 @@ class Cu(CommandChangingPrompt):
     """
     Command to connect COM port using cu. Example output:
 
-    $ cu -l /dev/ttyS21 -s 19200 -E -
+    $ cu -l /dev/ttyS21 -s 19200 -E - --halfduplex
     Connected.
     """
     def __init__(self, connection, serial_devname, prompt=None, newline_chars=None, target_newline="\n", runner=None):
@@ -49,7 +49,7 @@ class Cu(CommandChangingPrompt):
 
         :return: String representation of command to send over connection to device.
         """
-        proxy_command = "cu -l /dev/ttyS{} -s 19200 -E '-'".format(self.serial_devname)
+        proxy_command = "cu -l /dev/ttyS{} -s 19200 -E '-' --halfduplex".format(self.serial_devname)
         return proxy_command
 
     def on_new_line(self, line, is_full_line):
