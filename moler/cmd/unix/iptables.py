@@ -99,9 +99,6 @@ class Iptables(GenericUnixCommand):
 
     #   0        0 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0            icmptype 8 limit: avg 25/sec burst 5
     _re_parse_details = re.compile(r"(?P<VALUE>\S+)")
-    _re_parse_rest = re.compile(r"(?P<DETAIL>\s+\S+){9}\s+(?P<REST>.*)")
-
-    # _key_details = ["PKTS", "BYTES", "TARGET", "PROT", "OPT", "IN", "OUT", "SOURCE", "DESTINATION"]
 
     def _parse_details(self, line):
         if not self.chain or not self._key_details:
@@ -114,11 +111,18 @@ class Iptables(GenericUnixCommand):
             for value, key in zip(values, self._key_details):
                 ret[key] = value
             self.current_ret[self.chain]["CHAIN"].append(ret)
-        if self._regex_helper.search_compiled(Iptables._re_parse_rest, line):
-            ret = dict()
-            ret["REST"] = self._regex_helper.group("REST")
-            self.current_ret[self.chain]["CHAIN"][-1]['REST'] = ret['REST']
-            self.current_ret[self.chain]["CHAIN"].append(ret)  # For backward compatibility
+            regex_for_rest = ""
+            i = 0
+            while i < len(self._key_details):
+                regex_for_rest = r"{}\S+\s+".format(regex_for_rest)
+                i += 1
+            regex_for_rest = r"{}(?P<REST>\S.*\S|\S+)".format(regex_for_rest)
+            re_for_rest = re.compile(regex_for_rest)
+            if self._regex_helper.search_compiled(re_for_rest, line):
+                ret = dict()
+                ret["REST"] = self._regex_helper.group("REST")
+                self.current_ret[self.chain]["CHAIN"][-1]['REST'] = ret['REST']
+                self.current_ret[self.chain]["CHAIN"].append(ret)  # For backward compatibility
             raise ParsingDone
 
 
@@ -1171,145 +1175,189 @@ COMMAND_RESULT_frm2 = {'INPUT': {'CHAIN': [{'DESTINATION': '0.0.0.0/0',
                                            {'DESTINATION': '10.83.182.143',
                                             'OPT': '--',
                                             'PROT': 'tcp',
-                                            'REST': 'up to 100/min burst 10',
+                                            'REST': 'tcp dpt:8080 state NEW limit: up to '
+                                                    '100/min burst 10',
                                             'SOURCE': '0.0.0.0/0',
                                             'TARGET': 'ACCEPT'},
-                                           {'REST': 'up to 100/min burst 10'},
+                                           {'REST': 'tcp dpt:8080 state NEW limit: up to '
+                                                    '100/min burst 10'},
                                            {'DESTINATION': '10.83.182.143',
                                             'OPT': '--',
                                             'PROT': 'tcp',
+                                            'REST': 'tcp dpt:8080 state NEW',
                                             'SOURCE': '0.0.0.0/0',
                                             'TARGET': 'DROP'},
+                                           {'REST': 'tcp dpt:8080 state NEW'},
                                            {'DESTINATION': '10.83.182.143',
                                             'OPT': '--',
                                             'PROT': 'tcp',
-                                            'REST': 'up to 100/min burst 10',
+                                            'REST': 'tcp dpt:8443 state NEW limit: up to '
+                                                    '100/min burst 10',
                                             'SOURCE': '0.0.0.0/0',
                                             'TARGET': 'ACCEPT'},
-                                           {'REST': 'up to 100/min burst 10'},
+                                           {'REST': 'tcp dpt:8443 state NEW limit: up to '
+                                                    '100/min burst 10'},
                                            {'DESTINATION': '10.83.182.143',
                                             'OPT': '--',
                                             'PROT': 'tcp',
+                                            'REST': 'tcp dpt:8443 state NEW',
                                             'SOURCE': '0.0.0.0/0',
                                             'TARGET': 'DROP'},
+                                           {'REST': 'tcp dpt:8443 state NEW'},
                                            {'DESTINATION': '10.83.182.143',
                                             'OPT': '--',
                                             'PROT': 'udp',
+                                            'REST': 'udp spt:53 state ESTABLISHED',
                                             'SOURCE': '10.56.126.31',
                                             'TARGET': 'ACCEPT'},
+                                           {'REST': 'udp spt:53 state ESTABLISHED'},
                                            {'DESTINATION': '10.83.182.143',
                                             'OPT': '--',
                                             'PROT': 'tcp',
+                                            'REST': 'tcp spt:53 state ESTABLISHED',
                                             'SOURCE': '10.56.126.31',
                                             'TARGET': 'ACCEPT'},
+                                           {'REST': 'tcp spt:53 state ESTABLISHED'},
                                            {'DESTINATION': '10.83.182.143',
                                             'OPT': '--',
                                             'PROT': 'udp',
+                                            'REST': 'udp spt:123 dpt:123',
                                             'SOURCE': '10.83.200.2',
                                             'TARGET': 'ACCEPT'},
+                                           {'REST': 'udp spt:123 dpt:123'},
                                            {'DESTINATION': '10.83.182.143',
                                             'OPT': '--',
                                             'PROT': 'udp',
+                                            'REST': 'udp spt:123 dpt:123',
                                             'SOURCE': '10.83.200.3',
                                             'TARGET': 'ACCEPT'},
+                                           {'REST': 'udp spt:123 dpt:123'},
                                            {'DESTINATION': '10.83.182.143',
                                             'OPT': '--',
                                             'PROT': 'udp',
+                                            'REST': 'udp spt:123 dpt:123',
                                             'SOURCE': '10.83.200.4',
                                             'TARGET': 'ACCEPT'},
+                                           {'REST': 'udp spt:123 dpt:123'},
                                            {'DESTINATION': '0.0.0.0/0',
                                             'OPT': '--',
                                             'PROT': 'udp',
-                                            'REST': 'burst 10',
+                                            'REST': 'udp dpts:33434:33933 limit: avg '
+                                                    '25/sec burst 10',
                                             'SOURCE': '0.0.0.0/0',
                                             'TARGET': 'ACCEPT'},
-                                           {'REST': 'burst 10'},
+                                           {'REST': 'udp dpts:33434:33933 limit: avg '
+                                                    '25/sec burst 10'},
                                            {'DESTINATION': '0.0.0.0/0',
                                             'OPT': '--',
                                             'PROT': 'udp',
+                                            'REST': 'udp dpts:33434:33933',
                                             'SOURCE': '0.0.0.0/0',
                                             'TARGET': 'DROP'},
+                                           {'REST': 'udp dpts:33434:33933'},
                                            {'DESTINATION': '0.0.0.0/0',
                                             'OPT': '--',
                                             'PROT': 'icmp',
-                                            'REST': 'burst 8',
+                                            'REST': 'icmptype 8 limit: avg 25/sec burst '
+                                                    '8',
                                             'SOURCE': '0.0.0.0/0',
                                             'TARGET': 'ACCEPT'},
-                                           {'REST': 'burst 8'},
+                                           {'REST': 'icmptype 8 limit: avg 25/sec burst 8'},
                                            {'DESTINATION': '0.0.0.0/0',
                                             'OPT': '--',
                                             'PROT': 'icmp',
+                                            'REST': 'icmptype 8',
                                             'SOURCE': '0.0.0.0/0',
                                             'TARGET': 'DROP'},
+                                           {'REST': 'icmptype 8'},
                                            {'DESTINATION': '0.0.0.0/0',
                                             'OPT': '--',
                                             'PROT': 'icmp',
-                                            'REST': 'burst 8',
+                                            'REST': 'icmptype 0 limit: avg 25/sec burst '
+                                                    '8',
                                             'SOURCE': '0.0.0.0/0',
                                             'TARGET': 'ACCEPT'},
-                                           {'REST': 'burst 8'},
+                                           {'REST': 'icmptype 0 limit: avg 25/sec burst 8'},
                                            {'DESTINATION': '0.0.0.0/0',
                                             'OPT': '--',
                                             'PROT': 'icmp',
+                                            'REST': 'icmptype 0',
                                             'SOURCE': '0.0.0.0/0',
                                             'TARGET': 'DROP'},
+                                           {'REST': 'icmptype 0'},
                                            {'DESTINATION': '0.0.0.0/0',
                                             'OPT': '--',
                                             'PROT': 'icmp',
-                                            'REST': 'burst 8',
+                                            'REST': 'icmptype 3 limit: avg 25/sec burst '
+                                                    '8',
                                             'SOURCE': '0.0.0.0/0',
                                             'TARGET': 'ACCEPT'},
-                                           {'REST': 'burst 8'},
+                                           {'REST': 'icmptype 3 limit: avg 25/sec burst 8'},
                                            {'DESTINATION': '0.0.0.0/0',
                                             'OPT': '--',
                                             'PROT': 'icmp',
+                                            'REST': 'icmptype 3',
                                             'SOURCE': '0.0.0.0/0',
                                             'TARGET': 'DROP'},
+                                           {'REST': 'icmptype 3'},
                                            {'DESTINATION': '0.0.0.0/0',
                                             'OPT': '--',
                                             'PROT': 'icmp',
-                                            'REST': 'burst 8',
+                                            'REST': 'icmptype 11 limit: avg 25/sec burst '
+                                                    '8',
                                             'SOURCE': '0.0.0.0/0',
                                             'TARGET': 'ACCEPT'},
-                                           {'REST': 'burst 8'},
+                                           {'REST': 'icmptype 11 limit: avg 25/sec burst 8'},
                                            {'DESTINATION': '0.0.0.0/0',
                                             'OPT': '--',
                                             'PROT': 'icmp',
+                                            'REST': 'icmptype 11',
                                             'SOURCE': '0.0.0.0/0',
                                             'TARGET': 'DROP'},
+                                           {'REST': 'icmptype 11'},
                                            {'DESTINATION': '10.83.182.143',
                                             'OPT': '--',
                                             'PROT': 'tcp',
-                                            'REST': 'up to 5/sec burst 10 mode srcip '
+                                            'REST': 'tcp dpt:22 state NEW limit: up to '
+                                                    '5/sec burst 10 mode srcip '
                                                     'htable-expire 60000',
                                             'SOURCE': '0.0.0.0/0',
                                             'TARGET': 'ACCEPT'},
-                                           {'REST': 'up to 5/sec burst 10 mode srcip '
+                                           {'REST': 'tcp dpt:22 state NEW limit: up to '
+                                                    '5/sec burst 10 mode srcip '
                                                     'htable-expire 60000'},
                                            {'DESTINATION': '10.83.182.143',
                                             'OPT': '--',
                                             'PROT': 'tcp',
+                                            'REST': 'tcp dpt:22 state NEW',
                                             'SOURCE': '0.0.0.0/0',
                                             'TARGET': 'DROP'},
+                                           {'REST': 'tcp dpt:22 state NEW'},
                                            {'DESTINATION': '10.83.182.143',
                                             'OPT': '--',
                                             'PROT': 'tcp',
-                                            'REST': 'up to 5/sec burst 10 mode srcip '
+                                            'REST': 'tcp dpt:443 state NEW limit: up to '
+                                                    '5/sec burst 10 mode srcip '
                                                     'htable-expire 60000',
                                             'SOURCE': '0.0.0.0/0',
                                             'TARGET': 'ACCEPT'},
-                                           {'REST': 'up to 5/sec burst 10 mode srcip '
+                                           {'REST': 'tcp dpt:443 state NEW limit: up to '
+                                                    '5/sec burst 10 mode srcip '
                                                     'htable-expire 60000'},
                                            {'DESTINATION': '10.83.182.143',
                                             'OPT': '--',
                                             'PROT': 'tcp',
+                                            'REST': 'tcp dpt:443 state NEW',
                                             'SOURCE': '0.0.0.0/0',
                                             'TARGET': 'DROP'},
+                                           {'REST': 'tcp dpt:443 state NEW'},
                                            {'DESTINATION': '0.0.0.0/0',
                                             'OPT': '--',
                                             'PROT': 'tcp',
+                                            'REST': 'state RELATED,ESTABLISHED',
                                             'SOURCE': '0.0.0.0/0',
                                             'TARGET': 'ACCEPT'},
+                                           {'REST': 'state RELATED,ESTABLISHED'},
                                            {'DESTINATION': '0.0.0.0/0',
                                             'OPT': '--',
                                             'PROT': 'all',
