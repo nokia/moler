@@ -101,29 +101,26 @@ class Iptables(GenericUnixCommand):
     _re_parse_details = re.compile(r"(?P<VALUE>\S+)")
 
     def _parse_details(self, line):
-        if not self.chain or not self._key_details:
-            return
-        if self._regex_helper.search_compiled(Iptables._re_parse_details, line):
+        if self.chain and self._key_details and self._regex_helper.search_compiled(Iptables._re_parse_details, line):
             values = re.findall(Iptables._re_parse_details, line)
             ret = dict()
-            if len(values) < len(self._key_details):
-                return
-            for value, key in zip(values, self._key_details):
-                ret[key] = value
-            self.current_ret[self.chain]["CHAIN"].append(ret)
-            regex_for_rest = ""
-            i = 0
-            while i < len(self._key_details):
-                regex_for_rest = r"{}\S+\s+".format(regex_for_rest)
-                i += 1
-            regex_for_rest = r"{}(?P<REST>\S.*\S|\S+)".format(regex_for_rest)
-            re_for_rest = re.compile(regex_for_rest)
-            if self._regex_helper.search_compiled(re_for_rest, line):
-                ret = dict()
-                ret["REST"] = self._regex_helper.group("REST")
-                self.current_ret[self.chain]["CHAIN"][-1]['REST'] = ret['REST']
-                self.current_ret[self.chain]["CHAIN"].append(ret)  # For backward compatibility
-            raise ParsingDone
+            if len(values) >= len(self._key_details):
+                for value, key in zip(values, self._key_details):
+                    ret[key] = value
+                self.current_ret[self.chain]["CHAIN"].append(ret)
+                regex_for_rest = ""
+                i = 0
+                while i < len(self._key_details):
+                    regex_for_rest = r"{}\S+\s+".format(regex_for_rest)
+                    i += 1
+                regex_for_rest = r"{}(?P<REST>\S.*\S|\S+)".format(regex_for_rest)
+                re_for_rest = re.compile(regex_for_rest)
+                if self._regex_helper.search_compiled(re_for_rest, line):
+                    ret = dict()
+                    ret["REST"] = self._regex_helper.group("REST")
+                    self.current_ret[self.chain]["CHAIN"][-1]['REST'] = ret['REST']
+                    self.current_ret[self.chain]["CHAIN"].append(ret)  # For backward compatibility
+                raise ParsingDone
 
 
 COMMAND_OUTPUT = """
