@@ -4,7 +4,7 @@ Run cu -l /dev/ttyS{} -s 19200 command.
 """
 
 __author__ = 'Adam Klekowski'
-__copyright__ = 'Copyright (C) 2020, Nokia'
+__copyright__ = 'Copyright (C) 2020-2021, Nokia'
 __email__ = 'adam.klekowski@nokia.com'
 
 import re
@@ -22,7 +22,7 @@ class Cu(CommandChangingPrompt):
     $ cu -l /dev/ttyS21 -s 19200 -E -
     Connected.
     """
-    def __init__(self, connection, serial_devname, options=None, prompt=None, newline_chars=None, target_newline="\n", runner=None):
+    def __init__(self, connection, serial_devname, prompt=None, newline_chars=None, target_newline="\n", runner=None, options=None):
         """
         :param connection: Moler connection to device, terminal when command is executed.
         :param serial_devname: name of serial device to be proxied (f.ex. 5).
