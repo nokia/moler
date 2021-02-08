@@ -94,8 +94,6 @@ class Iptables(GenericUnixCommand):
                 for header in matched:
                     self._key_details.append(header.upper())
             raise ParsingDone
-        # if self._regex_helper.search_compiled(Iptables._re_parse_headers, line):
-        #    raise ParsingDone
 
     #   0        0 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0            icmptype 8 limit: avg 25/sec burst 5
     _re_parse_details = re.compile(r"(?P<VALUE>\S+)")
@@ -108,19 +106,23 @@ class Iptables(GenericUnixCommand):
                 for value, key in zip(values, self._key_details):
                     ret[key] = value
                 self.current_ret[self.chain]["CHAIN"].append(ret)
-                regex_for_rest = ""
-                i = 0
-                while i < len(self._key_details):
-                    regex_for_rest = r"{}\S+\s+".format(regex_for_rest)
-                    i += 1
-                regex_for_rest = r"{}(?P<REST>\S.*\S|\S+)".format(regex_for_rest)
-                re_for_rest = re.compile(regex_for_rest)
+                re_for_rest = self._build_regex_for_rest()
                 if self._regex_helper.search_compiled(re_for_rest, line):
                     ret = dict()
                     ret["REST"] = self._regex_helper.group("REST")
                     self.current_ret[self.chain]["CHAIN"][-1]['REST'] = ret['REST']
                     self.current_ret[self.chain]["CHAIN"].append(ret)  # For backward compatibility
                 raise ParsingDone
+
+    def _build_regex_for_rest(self):
+        regex_for_rest = ""
+        i = 0
+        while i < len(self._key_details):
+            regex_for_rest = r"{}\S+\s+".format(regex_for_rest)
+            i += 1
+        regex_for_rest = r"{}(?P<REST>\S.*\S|\S+)".format(regex_for_rest)
+        re_for_rest = re.compile(regex_for_rest)
+        return re_for_rest
 
 
 COMMAND_OUTPUT = """
