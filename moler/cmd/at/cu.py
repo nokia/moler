@@ -4,7 +4,7 @@ Run cu -l /dev/ttyS{} -s 19200 command.
 """
 
 __author__ = 'Adam Klekowski'
-__copyright__ = 'Copyright (C) 2020, Nokia'
+__copyright__ = 'Copyright (C) 2020-2021, Nokia'
 __email__ = 'adam.klekowski@nokia.com'
 
 import re
@@ -22,7 +22,7 @@ class Cu(CommandChangingPrompt):
     $ cu -l /dev/ttyS21 -s 19200 -E -
     Connected.
     """
-    def __init__(self, connection, serial_devname, prompt=None, newline_chars=None, target_newline="\n", runner=None):
+    def __init__(self, connection, serial_devname, prompt=None, newline_chars=None, target_newline="\n", runner=None, options=None):
         """
         :param connection: Moler connection to device, terminal when command is executed.
         :param serial_devname: name of serial device to be proxied (f.ex. 5).
@@ -32,6 +32,7 @@ class Cu(CommandChangingPrompt):
         :param runner: Runner to run command.
         """
         self.serial_devname = serial_devname
+        self.options = options
         proxy_prompt = r"Connected."
         super(Cu, self).__init__(connection=connection,
                                  prompt=prompt,
@@ -49,7 +50,10 @@ class Cu(CommandChangingPrompt):
 
         :return: String representation of command to send over connection to device.
         """
-        proxy_command = "cu -l /dev/ttyS{} -s 19200 -E '-'".format(self.serial_devname)
+        if self.options:
+            proxy_command = "cu -l /dev/ttyS{} -s 19200 -E '-' {}".format(self.serial_devname, self.options)
+        else:
+            proxy_command = "cu -l /dev/ttyS{} -s 19200 -E '-'".format(self.serial_devname)
         return proxy_command
 
     def on_new_line(self, line, is_full_line):
@@ -81,11 +85,21 @@ class Cu(CommandChangingPrompt):
             raise ParsingDone
 
 
-COMMAND_OUTPUT = """
+COMMAND_OUTPUT_without_options = """
 cu -l /dev/ttyS5 -s 19200 -E '-'
 Connected.
 """
 
-COMMAND_KWARGS = {"serial_devname": "5"}
+COMMAND_KWARGS_without_options = {"serial_devname": "5"}
 
-COMMAND_RESULT = {}
+COMMAND_RESULT_without_options = {}
+
+COMMAND_OUTPUT_with_options = """
+cu -l /dev/ttyS5 -s 19200 -E '-' -h
+Connected.
+"""
+
+COMMAND_KWARGS_with_options = {"serial_devname": "5",
+                               "options": "-h"}
+
+COMMAND_RESULT_with_options = {}
