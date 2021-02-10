@@ -33,24 +33,25 @@ class Nft(GenericUnixCommand):
             try:
                 self._find_open_bracket(line=line)
                 self._find_close_bracket(line=line)
+                self._add_line(line=line)
             except ParsingDone:
                 pass
         return super(Nft, self).on_new_line(line, is_full_line)
 
     # table inet filter {
-    _re_table_filter = re.compile(r"(\w+)\s+(\w+)\s+(\w+)\s*{")
+    _begin_brakcet = re.compile(r"^\s*(?P<KEY>\S.*\S|\S+)\s*{")
 
     # set blackhole {
-    _re_set = re.compile(r"(\w+)\s+(\w+)\s*{")
+    #_re_set = re.compile(r"(\w+)\s+(\w+)\s*{")
 
     def _find_open_bracket(self, line):
-        if self._filters is None and self._regex_helper.search_compiled(Nft._re_table_filter, line):
-            self._filters = [self._regex_helper.group(1), self._regex_helper.group(2), self._regex_helper.group(3)]
-            raise ParsingDone()
-        elif self._filters is not None and self._set is None and self._regex_helper.search_compiled(
-                Nft._re_table_filter, line):
-            self._set = [self._regex_helper.group(1), self._regex_helper.group(2)]
-            raise ParsingDone()
+        if self._regex_helper.search_compiled(Nft._begin_brakcet, line):
+            if self._filters is None:
+                self._filters = self._regex_helper.group("KEY")
+                raise ParsingDone()
+            elif self._set is None:
+                self._set = self._regex_helper.group("KEY")
+                raise ParsingDone()
 
     # }
     _re_close_bracket = re.compile(r"^\s*}\s*$")
@@ -59,8 +60,36 @@ class Nft(GenericUnixCommand):
         if self._regex_helper.search_compiled(Nft._re_close_bracket, line):
             if self._set is not None:
                 self._set = None
-            elif self._re_table_filter is not None:
-                self._re_table_filter = None
+                raise ParsingDone()
+            elif self._filters is not None:
+                self._filters = None
+                raise ParsingDone()
+
+    _lines_key = 'LINES'
+
+    # type filter hook input priority 0; policy drop;
+    _re_line = re.compile(r"^\s*(?P<CONTENT>\S.*\S|\S+)\s*$")
+
+    def _add_line(self, line):
+        if self._set is not None and self._regex_helper.search_compiled(self._re_line, line):
+            if Nft._lines_key not in self.current_ret[self._filters][self._set]:
+                self.current_ret[self._filters][self._set][Nft._lines_key] = list()
+            self.current_ret[self._filters][self._set][Nft._lines_key].append(self._regex_helper.group("CONTENT"))
+            try:
+                self._find_one_value(line=line)
+            except ParsingDone:
+                pass
+            raise ParsingDone()
+
+    # type ipv4_addr
+    _re_one_value = re.compile(r"^\s*(?P<KEY>\S+)\s+(?P<VALUE>\S+)\s*$")
+
+    def _find_one_value(self, line):
+        if self._set is not None and self._regex_helper.search_compiled(self._re_one_value, line):
+            self.current_ret[self._filters][self._set][self._regex_helper.group("KEY")] = \
+                self._regex_helper.group("VALUE")
+            raise ParsingDone()
+
 
 
 COMMAND_OUTPUT = """nft list table inet filter
