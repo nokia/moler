@@ -1,3 +1,12 @@
+## moler 1.26.0
+
+### Added
+* New output for iptables and add rest in ret
+* nft command
+
+### Improved 
+* Modify cu command
+
 ## moler 1.25.1
 
 ### Improved 
