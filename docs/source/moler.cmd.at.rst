@@ -20,6 +20,14 @@ moler.cmd.at.attach module
     :undoc-members:
     :show-inheritance:
 
+moler.cmd.at.cu module
+----------------------
+
+.. automodule:: moler.cmd.at.cu
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.cmd.at.detach module
 --------------------------
 
@@ -40,6 +48,14 @@ moler.cmd.at.genericat module
 -----------------------------
 
 .. automodule:: moler.cmd.at.genericat
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+moler.cmd.at.get\_apns module
+-----------------------------
+
+.. automodule:: moler.cmd.at.get_apns
     :members:
     :undoc-members:
     :show-inheritance:
@@ -68,10 +84,26 @@ moler.cmd.at.get\_imsi module
     :undoc-members:
     :show-inheritance:
 
+moler.cmd.at.get\_ip module
+---------------------------
+
+.. automodule:: moler.cmd.at.get_ip
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.cmd.at.get\_manufacturer\_id module
 -----------------------------------------
 
 .. automodule:: moler.cmd.at.get_manufacturer_id
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+moler.cmd.at.get\_product\_info module
+--------------------------------------
+
+.. automodule:: moler.cmd.at.get_product_info
     :members:
     :undoc-members:
     :show-inheritance:

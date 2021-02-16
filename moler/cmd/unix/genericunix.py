@@ -18,7 +18,8 @@ from moler.helpers import remove_all_known_special_chars
 cmd_failure_causes = ['not found',
                       'No such file or directory',
                       'running it may require superuser privileges',
-                      'Cannot find device']
+                      'Cannot find device',
+                      'Input/output error']
 r_cmd_failure_cause_alternatives = r'{}'.format("|".join(cmd_failure_causes))
 
 

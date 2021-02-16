@@ -4,7 +4,7 @@ Utility/common code of library.
 """
 
 __author__ = 'Grzegorz Latuszek, Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import copy
@@ -250,7 +250,10 @@ def convert_to_number(value):
         try:
             value = int(value)
         except ValueError:
-            value = float(value)
+            try:
+                value = float(value)
+            except ValueError:
+                pass
     return value
 
 

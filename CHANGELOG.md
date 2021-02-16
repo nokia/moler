@@ -1,3 +1,29 @@
+## moler 1.26.0
+
+### Added
+* New output for iptables and add rest in ret
+* nft command
+
+### Improved 
+* Modify cu command
+
+## moler 1.25.1
+
+### Improved 
+* Don't tail full file for first file
+
+## moler 1.25.0
+
+### Added
+* At cmd
+* Create cu.py
+* tail_latest_file
+
+### Improved 
+* Change ATI cmd name to GetProductInfo
+* Log exception from runner
+* Modify regex in get_apns.py
+
 ## moler 1.24.0
 
 ### Improved 

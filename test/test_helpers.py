@@ -4,7 +4,7 @@ Tests for helpers functions/classes.
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import mock
@@ -267,3 +267,24 @@ def test_convert_to_int():
                                              'num': 4}}}]}
 
     assert not compare_objects(convert_to_int(sample_input), expected_output)
+
+
+def test_convert_to_number_int():
+    from moler.helpers import convert_to_number
+    expected = 4
+    result = convert_to_number("{}".format(expected))
+    assert expected == result
+
+
+def test_convert_to_number_float():
+    from moler.helpers import convert_to_number
+    expected = 3.2
+    result = convert_to_number("{}".format(expected))
+    assert expected == result
+
+
+def test_convert_to_number_str():
+    from moler.helpers import convert_to_number
+    expected = "not a number"
+    result = convert_to_number(expected)
+    assert expected == result
