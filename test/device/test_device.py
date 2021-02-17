@@ -81,6 +81,15 @@ def test_device_unix_can_return_cd_command(configure_net_1_connection):
     )
 
 
+def test_device_disable_and_enable_logging(buffer_connection):
+    from moler.device.unixlocal import UnixLocal
+    dev1 = UnixLocal(io_connection=buffer_connection)
+    dev1.disable_logging()
+    dev1.disable_logging()
+    dev1.enable_logging()
+    dev1.enable_logging()
+
+
 # --------------------------- resources ---------------------------
 
 

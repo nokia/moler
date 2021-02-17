@@ -29,7 +29,7 @@ rather it is generic template how to glue external-IO with Moler's connection.
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import logging
@@ -162,6 +162,21 @@ class IOConnection(object):
         """
         self._unsubscribe(self._disconnect_subscribers_lock, self._disconnect_subscribers, subscriber)
 
+    def disable_logging(self):
+        """
+        Disable logging incoming data.
+        :return: None
+        """
+        self.moler_connection.disable_logging()
+
+    def enable_logging(self):
+        """
+        Enable logging incoming data.
+        :return: None
+        """
+        self.moler_connection.enable_logging()
+
+
     def _notify(self, lock, subscribers):
         with lock:
             copied_subscribers = subscribers[:]
@@ -190,9 +205,3 @@ class IOConnection(object):
     def _unsubscribe(self, lock, subscribers, subscriber):
         with lock:
             subscribers.remove(subscriber)
-
-    def disable_logging(self):
-        self.moler_connection.disable_logging()
-
-    def enable_logging(self):
-        self.moler_connection.enable_logging()

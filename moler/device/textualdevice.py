@@ -129,9 +129,17 @@ class TextualDevice(AbstractDevice):
         self.SM.current_state_callable = self._get_current_state
 
     def disable_logging(self):
+        """
+        Disable logging incoming data.
+        :return: None
+        """
         self.io_connection.disable_logging()
 
     def enable_logging(self):
+        """
+        Enable logging incoming data.
+        :return: None
+        """
         self.io_connection.enable_logging()
 
     def establish_connection(self):
