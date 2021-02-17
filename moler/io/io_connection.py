@@ -190,3 +190,9 @@ class IOConnection(object):
     def _unsubscribe(self, lock, subscribers, subscriber):
         with lock:
             subscribers.remove(subscriber)
+
+    def disable_logging(self):
+        self.moler_connection.disable_logging()
+
+    def enable_logging(self):
+        self.moler_connection.enable_logging()

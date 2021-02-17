@@ -58,6 +58,7 @@ class AbstractMolerConnection(object):
         self.data_logger = logging.getLogger('moler.{}'.format(self.name))
         self.logger = AbstractMolerConnection._select_logger(logger_name, self._name)
         self._is_open = True
+        self._enabled_logging = True
 
     @property
     def name(self):
@@ -207,12 +208,16 @@ class AbstractMolerConnection(object):
         raise WrongUsage(err_msg)
 
     def _log_data(self, msg, level, extra=None):
+        if not self._enabled_logging:
+            return
         try:
             self.data_logger.log(level, msg, extra=extra)
         except Exception as err:
             print(err)  # logging errors should not propagate
 
     def _log(self, level, msg, extra=None, levels_to_go_up=1):
+        if not self._enabled_logging:
+            return
         if self.logger:
             extra_params = {
                 'log_name': self.name
@@ -226,3 +231,17 @@ class AbstractMolerConnection(object):
                                 levels_to_go_up=levels_to_go_up)
             except Exception as err:
                 print(err)  # logging errors should not propagate
+
+    def disable_logging(self):
+        if self._enabled_logging:
+            msg = "Logging disabled on user request"
+            self._log_data(level=logging.INFO, msg=msg)
+            self._log(level=logging.INFO, msg=msg)
+        self._enabled_logging = False
+
+    def enable_logging(self):
+        if not self._enabled_logging:
+            self._enabled_logging = True
+            msg = "Logging enabled on user request."
+            self._log_data(level=logging.INFO, msg=msg)
+            self._log(level=logging.INFO, msg=msg)

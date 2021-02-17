@@ -128,8 +128,11 @@ class TextualDevice(AbstractDevice):
         self.SM.state_change_log_callable = self._log
         self.SM.current_state_callable = self._get_current_state
 
-    def disable_lgoging(self):
+    def disable_logging(self):
         self.io_connection.disable_logging()
+
+    def enable_logging(self):
+        self.io_connection.enable_logging()
 
     def establish_connection(self):
         """
