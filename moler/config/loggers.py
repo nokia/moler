@@ -4,7 +4,7 @@ Configure logging for Moler's needs
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import codecs
@@ -17,6 +17,7 @@ import pkg_resources
 import platform
 
 _logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
+_logging_suffix = None  # Suffix for log files. None for nothing.
 active_loggers = set()  # Active loggers created by Moler
 date_format = "%d %H:%M:%S"
 
@@ -139,6 +140,56 @@ def want_debug_details():
 
 def want_raw_logs():
     return raw_logs_active
+
+
+def change_logging_suffix(suffix=None):
+    """
+    Change logging suffix.
+    :param suffix: new suffix for log files.
+    :return: None
+    """
+    global _logging_suffix
+    _reopen_all_logfiles_with_new_suffix(old_suffix=_logging_suffix, new_suffix=suffix)
+    _logging_suffix = suffix
+
+
+def _reopen_all_logfiles_with_new_suffix(old_suffix, new_suffix):
+    """
+    Reopen all log files with new suffix.
+    :param old_suffix: Old suffix
+    :param new_suffix: New suffix
+    :return: None
+    """
+    for logger_name in active_loggers:
+        logger = logging.getLogger(logger_name)
+        logger_handlers = copy.copy(logger.handlers)
+
+        for handler in logger_handlers:
+            if isinstance(handler, logging.FileHandler):
+                handler.close()
+                handler.baseFilename = _get_new_filepath(old_path=handler.baseFilename, old_suffix=old_suffix,
+                                                         new_suffix=new_suffix)
+                handler.stream = handler._open()
+
+
+def _get_new_filepath(old_path, old_suffix, new_suffix):
+    """
+    Get file path for new suffix.
+    :param old_path: Full path to file.
+    :param old_suffix: Old suffix.
+    :param new_suffix: New suffix.
+    :return: Path to file with new suffix.
+    """
+    path, extension = os.path.splitext(old_path)
+    if new_suffix is None:
+        new_suffix = ""
+    if old_suffix is None:
+        path = "{}{}".format(path, new_suffix)
+    else:
+        head, _, tail = path.rpartition(old_suffix)
+        path = "{}{}{}".format(head, new_suffix, tail)
+    new_path = "{}{}".format(path, extension)
+    return new_path
 
 
 def reconfigure_logging_path(log_path):
