@@ -85,9 +85,13 @@ def test_device_disable_and_enable_logging(buffer_connection):
     from moler.device.unixlocal import UnixLocal
     dev1 = UnixLocal(io_connection=buffer_connection)
     dev1.disable_logging()
+    assert False == dev1.io_connection.moler_connection._enabled_logging
     dev1.disable_logging()
+    assert False == dev1.io_connection.moler_connection._enabled_logging
     dev1.enable_logging()
+    assert True == dev1.io_connection.moler_connection._enabled_logging
     dev1.enable_logging()
+    assert True == dev1.io_connection.moler_connection._enabled_logging
 
 
 # --------------------------- resources ---------------------------
