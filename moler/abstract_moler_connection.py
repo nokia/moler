@@ -238,9 +238,9 @@ class AbstractMolerConnection(object):
         :return: None
         """
         if self._enabled_logging:
-            msg = "Logging disabled on user request"
-            self._log_data(level=logging.INFO, msg=msg)
-            self._log(level=logging.INFO, msg=msg)
+            msg = "Logging incoming data disabled at user request."
+            self._log_data(level=logging.WARN, msg=msg)
+            self._log(level=logging.WARN, msg=msg)
         self._enabled_logging = False
 
     def enable_logging(self):
@@ -250,6 +250,6 @@ class AbstractMolerConnection(object):
         """
         if not self._enabled_logging:
             self._enabled_logging = True
-            msg = "Logging enabled on user request."
+            msg = "Logging incoming data enabled at user request."
             self._log_data(level=logging.INFO, msg=msg)
             self._log(level=logging.INFO, msg=msg)

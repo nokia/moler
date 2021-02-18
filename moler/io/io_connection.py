@@ -176,7 +176,6 @@ class IOConnection(object):
         """
         self.moler_connection.enable_logging()
 
-
     def _notify(self, lock, subscribers):
         with lock:
             copied_subscribers = subscribers[:]
