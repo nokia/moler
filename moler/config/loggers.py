@@ -169,12 +169,12 @@ def _reopen_all_logfiles_with_new_suffix(old_suffix, new_suffix):
         for handler in logger_handlers:
             if isinstance(handler, logging.FileHandler):
                 handler.close()
-                handler.baseFilename = _get_new_filepath(old_path=handler.baseFilename, old_suffix=old_suffix,
-                                                         new_suffix=new_suffix)
+                handler.baseFilename = _get_new_filepath_with_suffix(old_path=handler.baseFilename,
+                                                                     old_suffix=old_suffix, new_suffix=new_suffix)
                 handler.stream = handler._open()
 
 
-def _get_new_filepath(old_path, old_suffix, new_suffix):
+def _get_new_filepath_with_suffix(old_path, old_suffix, new_suffix):
     """
     Get file path for new suffix.
     :param old_path: Full path to file.
