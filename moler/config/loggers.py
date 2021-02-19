@@ -168,6 +168,10 @@ def _reopen_all_logfiles_with_new_suffix(old_suffix, new_suffix):
 
         for handler in logger_handlers:
             if isinstance(handler, logging.FileHandler):
+                if 'b' in handler.mode:
+                    handler.mode = "ab"
+                else:
+                    handler.mode = 'a'
                 handler.close()
                 handler.baseFilename = _get_new_filepath_with_suffix(old_path=handler.baseFilename,
                                                                      old_suffix=old_suffix, new_suffix=new_suffix)
