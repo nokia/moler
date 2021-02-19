@@ -149,6 +149,8 @@ def change_logging_suffix(suffix=None):
     :return: None
     """
     global _logging_suffix
+    if (suffix is None and _logging_suffix is None) or (_logging_suffix == suffix):
+        return
     _reopen_all_logfiles_with_new_suffix(old_suffix=_logging_suffix, new_suffix=suffix)
     _logging_suffix = suffix
 
