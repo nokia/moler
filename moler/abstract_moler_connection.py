@@ -12,7 +12,7 @@ Connection responsibilities:
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
@@ -58,6 +58,7 @@ class AbstractMolerConnection(object):
         self.data_logger = logging.getLogger('moler.{}'.format(self.name))
         self.logger = AbstractMolerConnection._select_logger(logger_name, self._name)
         self._is_open = True
+        self._enabled_logging = True  # Set True to log incoming data. False to not log incoming data.
 
     @property
     def name(self):
@@ -207,12 +208,16 @@ class AbstractMolerConnection(object):
         raise WrongUsage(err_msg)
 
     def _log_data(self, msg, level, extra=None):
+        if not self._enabled_logging:
+            return
         try:
             self.data_logger.log(level, msg, extra=extra)
         except Exception as err:
             print(err)  # logging errors should not propagate
 
     def _log(self, level, msg, extra=None, levels_to_go_up=1):
+        if not self._enabled_logging:
+            return
         if self.logger:
             extra_params = {
                 'log_name': self.name
@@ -226,3 +231,25 @@ class AbstractMolerConnection(object):
                                 levels_to_go_up=levels_to_go_up)
             except Exception as err:
                 print(err)  # logging errors should not propagate
+
+    def disable_logging(self):
+        """
+        Disable logging incoming data.
+        :return: None
+        """
+        if self._enabled_logging:
+            msg = "Logging incoming data disabled at user request."
+            self._log_data(level=logging.WARN, msg=msg)
+            self._log(level=logging.WARN, msg=msg)
+        self._enabled_logging = False
+
+    def enable_logging(self):
+        """
+        Enable logging incoming data.
+        :return: None
+        """
+        if not self._enabled_logging:
+            self._enabled_logging = True
+            msg = "Logging incoming data enabled at user request."
+            self._log_data(level=logging.INFO, msg=msg)
+            self._log(level=logging.INFO, msg=msg)

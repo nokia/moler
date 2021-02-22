@@ -64,6 +64,7 @@ class ThreadedMolerConnection(AbstractMolerConnection):
         """
         if not self.is_open():
             return
+
         extra = {'transfer_direction': '<', 'encoder': lambda data: data.encode(encoding='utf-8', errors="replace")}
         self._log_data(msg=data, level=RAW_DATA,
                        extra=extra)
