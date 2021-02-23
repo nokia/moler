@@ -166,15 +166,20 @@ def _reopen_all_logfiles_with_new_suffix(old_suffix, new_suffix):
         logger = logging.getLogger(logger_name)
         logger_handlers = copy.copy(logger.handlers)
 
+        written_to_log = False
         for handler in logger_handlers:
             if isinstance(handler, logging.FileHandler):
+                new_log_full_path = _get_new_filepath_with_suffix(old_path=handler.baseFilename,
+                                                                  old_suffix=old_suffix, new_suffix=new_suffix)
+                if not written_to_log:
+                    written_to_log = True
+                    logger.info("Switch to new path: '{}'.".format(new_log_full_path))
                 if 'b' in handler.mode:
                     handler.mode = "ab"
                 else:
                     handler.mode = 'a'
                 handler.close()
-                handler.baseFilename = _get_new_filepath_with_suffix(old_path=handler.baseFilename,
-                                                                     old_suffix=old_suffix, new_suffix=new_suffix)
+                handler.baseFilename = new_log_full_path
                 handler.stream = handler._open()
 
 
