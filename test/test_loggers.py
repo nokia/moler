@@ -315,3 +315,18 @@ def test_reconfigure_moler_loggers():
         assert new_path in dummy_handler[0].baseFilename
 
     reconfigure_moler_loggers()
+
+
+def test_loggers_suffix():
+    from moler.config.loggers import change_logging_suffix
+    import moler
+    change_logging_suffix(None)
+    assert None is moler.config.loggers._logging_suffix
+    change_logging_suffix(".suffix1")
+    assert '.suffix1' == moler.config.loggers._logging_suffix
+    change_logging_suffix(".suffix1")
+    assert '.suffix1' == moler.config.loggers._logging_suffix
+    change_logging_suffix(None)
+    assert None is moler.config.loggers._logging_suffix
+    change_logging_suffix(None)
+    assert None is moler.config.loggers._logging_suffix
