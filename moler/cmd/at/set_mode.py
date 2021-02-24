@@ -41,6 +41,7 @@ class SetMode(GenericAtCommand):
     def build_command_string(self):
         return "AT+COPS={}".format(SetMode.mode2cops_value[self.selected_mode])
 
+
 # -----------------------------------------------------------------------------
 # Following documentation is required for library CI.
 # It is used to perform command self-test.
