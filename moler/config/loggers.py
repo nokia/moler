@@ -145,7 +145,8 @@ def want_raw_logs():
 def change_logging_suffix(suffix=None, logger_name=None):
     """
     Change logging suffix.
-    :param suffix: new suffix for log files.
+    :param suffix: new suffix for log files. None for no suffix.
+    :param logger_name: name of logger. None for all loggers.
     :return: None
     """
     global _logging_suffixes
@@ -157,7 +158,8 @@ def _reopen_all_logfiles_with_new_suffix(logger_suffixes, new_suffix, logger_nam
     """
     Reopen all log files with new suffix.
     :param logger_suffixes: Old suffixes. Key is logger name and value is suffix.
-    :param new_suffix: New suffix
+    :param new_suffix: New suffix.
+    :param logger_name: name of logger. None for all loggers.
     :return: None
     """
     for current_logger_name in active_loggers:

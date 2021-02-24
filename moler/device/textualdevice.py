@@ -5,7 +5,7 @@ Moler's device has 2 main responsibilities:
 - be the state machine that controls which commands may run in given state
 """
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
@@ -29,6 +29,7 @@ from moler.helpers import copy_dict, update_dict
 from moler.helpers import copy_list
 from moler.instance_loader import create_instance_from_class_fullname
 from moler.device.abstract_device import AbstractDevice
+from moler.config.loggers import change_logging_suffix
 try:
     import queue
 except ImportError:
@@ -141,6 +142,17 @@ class TextualDevice(AbstractDevice):
         :return: None
         """
         self.io_connection.enable_logging()
+
+    def set_logging_suffix(self, suffix):
+        """
+        Set logging suffix.
+        :param suffix: Suffix for device log. Use None for no suffix.
+        :return: None
+        """
+        for logger in [self.device_data_logger, self.logger]:
+            if logger is not None:
+                logger_name = logger.name
+                change_logging_suffix(suffix=suffix, logger_name=logger_name)
 
     def establish_connection(self):
         """

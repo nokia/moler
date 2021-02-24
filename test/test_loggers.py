@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Grzegorz Latuszek, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com'
+__author__ = 'Grzegorz Latuszek, Michal Ernst, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import logging
 import time
@@ -321,12 +321,12 @@ def test_loggers_suffix():
     from moler.config.loggers import change_logging_suffix
     import moler
     change_logging_suffix(None)
-    assert None is moler.config.loggers._logging_suffix
+    assert all(value is None for value in moler.config.loggers._logging_suffixes.values())
     change_logging_suffix(".suffix1")
-    assert '.suffix1' == moler.config.loggers._logging_suffix
+    assert all(value == ".suffix1" for value in moler.config.loggers._logging_suffixes.values())
     change_logging_suffix(".suffix1")
-    assert '.suffix1' == moler.config.loggers._logging_suffix
+    assert all(value == ".suffix1" for value in moler.config.loggers._logging_suffixes.values())
     change_logging_suffix(None)
-    assert None is moler.config.loggers._logging_suffix
+    assert all(value is None for value in moler.config.loggers._logging_suffixes.values())
     change_logging_suffix(None)
-    assert None is moler.config.loggers._logging_suffix
+    assert all(value is None for value in moler.config.loggers._logging_suffixes.values())
