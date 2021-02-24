@@ -19,11 +19,7 @@ from moler.exceptions import ParsingDone
 
 class SetMode(GenericAtCommand):
     """
-    Command to set mode (). Example output:
-
-    +CGPADDR: 1,0.0.0.0,0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0
-
-    OK
+    Command to set mode (automatic, lte, gsm, wcdma).
     """
     mode2cops_value = {"automatic": '0',
                        "lte": '0,0,0,7',
@@ -31,12 +27,12 @@ class SetMode(GenericAtCommand):
                        "wcdma": '0,0,0,6'}
 
     def __init__(self, selected_mode, connection=None, prompt=None, newline_chars=None, runner=None):
-        """Create instance of GetIp class"""
+        """Create instance of SetMode class"""
         super(SetMode, self).__init__(connection, operation='execute', prompt=prompt,
                                       newline_chars=newline_chars, runner=runner)
         self.selected_mode = selected_mode.lower()
 
-        if not SetMode.mode2cops_value.has_key(self.selected_mode):
+        if self.selected_mode not in SetMode.mode2cops_value:
             raise ValueError('\"{}\" is not correct mode. Available modes: {}.'.format(
                 self.selected_mode, list(SetMode.mode2cops_value.keys())))
 
