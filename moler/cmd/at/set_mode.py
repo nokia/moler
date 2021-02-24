@@ -61,7 +61,7 @@ AT+COPS=0
 OK
 """
 
-COMMAND_KWARGS_automatic_lower = {"mode": "automatic"}
+COMMAND_KWARGS_automatic_lower = {"selected_mode": "automatic"}
 
 COMMAND_RESULT_automatic_lower = {}
 
@@ -71,6 +71,6 @@ AT+COPS=0,0,0,7
 OK
 """
 
-COMMAND_KWARGS_lte_upper = {"mode": "LTE"}
+COMMAND_KWARGS_lte_upper = {"selected_mode": "LTE"}
 
 COMMAND_RESULT_lte_upper = {}
