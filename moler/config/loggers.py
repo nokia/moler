@@ -17,7 +17,7 @@ import pkg_resources
 import platform
 
 _logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
-_logging_suffix = None  # Suffix for log files. None for nothing.
+_logging_suffixes = dict()  # Suffix for log files. None for nothing.
 active_loggers = set()  # Active loggers created by Moler
 date_format = "%d %H:%M:%S"
 
@@ -142,29 +142,30 @@ def want_raw_logs():
     return raw_logs_active
 
 
-def change_logging_suffix(suffix=None):
+def change_logging_suffix(suffix=None, logger_name=None):
     """
     Change logging suffix.
     :param suffix: new suffix for log files.
     :return: None
     """
-    global _logging_suffix
-    if (suffix is None and _logging_suffix is None) or (_logging_suffix == suffix):
-        return
-    _reopen_all_logfiles_with_new_suffix(old_suffix=_logging_suffix, new_suffix=suffix)
-    _logging_suffix = suffix
+    global _logging_suffixes
+    _reopen_all_logfiles_with_new_suffix(logger_suffixes=_logging_suffixes, new_suffix=suffix,
+                                         logger_name=logger_name)
 
 
-def _reopen_all_logfiles_with_new_suffix(old_suffix, new_suffix):
+def _reopen_all_logfiles_with_new_suffix(logger_suffixes, new_suffix, logger_name):
     """
     Reopen all log files with new suffix.
-    :param old_suffix: Old suffix
+    :param logger_suffixes: Old suffixes. Key is logger name and value is suffix.
     :param new_suffix: New suffix
     :return: None
     """
-    for logger_name in active_loggers:
-        logger = logging.getLogger(logger_name)
+    for current_logger_name in active_loggers:
+        if logger_name is not None and logger_name != current_logger_name:
+            continue
+        logger = logging.getLogger(current_logger_name)
         logger_handlers = copy.copy(logger.handlers)
+        old_suffix = logger_suffixes.get(current_logger_name, None)
 
         written_to_log = False
         for handler in logger_handlers:
@@ -181,6 +182,7 @@ def _reopen_all_logfiles_with_new_suffix(old_suffix, new_suffix):
                 handler.close()
                 handler.baseFilename = new_log_full_path
                 handler.stream = handler._open()
+        logger_suffixes[current_logger_name] = new_suffix
 
 
 def _get_new_filepath_with_suffix(old_path, old_suffix, new_suffix):
