@@ -4,7 +4,7 @@ Configure logging for Moler's needs
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import codecs
@@ -17,6 +17,7 @@ import pkg_resources
 import platform
 
 _logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
+_logging_suffixes = dict()  # Suffix for log files. None for nothing.
 active_loggers = set()  # Active loggers created by Moler
 date_format = "%d %H:%M:%S"
 
@@ -139,6 +140,71 @@ def want_debug_details():
 
 def want_raw_logs():
     return raw_logs_active
+
+
+def change_logging_suffix(suffix=None, logger_name=None):
+    """
+    Change logging suffix.
+    :param suffix: new suffix for log files. None for no suffix.
+    :param logger_name: name of logger. None for all loggers.
+    :return: None
+    """
+    global _logging_suffixes
+    _reopen_all_logfiles_with_new_suffix(logger_suffixes=_logging_suffixes, new_suffix=suffix,
+                                         logger_name=logger_name)
+
+
+def _reopen_all_logfiles_with_new_suffix(logger_suffixes, new_suffix, logger_name):
+    """
+    Reopen all log files with new suffix.
+    :param logger_suffixes: Old suffixes. Key is logger name and value is suffix.
+    :param new_suffix: New suffix.
+    :param logger_name: name of logger. None for all loggers.
+    :return: None
+    """
+    for current_logger_name in active_loggers:
+        if logger_name is not None and logger_name != current_logger_name:
+            continue
+        logger = logging.getLogger(current_logger_name)
+        logger_handlers = copy.copy(logger.handlers)
+        old_suffix = logger_suffixes.get(current_logger_name, None)
+
+        written_to_log = False
+        for handler in logger_handlers:
+            if isinstance(handler, logging.FileHandler):
+                new_log_full_path = _get_new_filepath_with_suffix(old_path=handler.baseFilename,
+                                                                  old_suffix=old_suffix, new_suffix=new_suffix)
+                if not written_to_log:
+                    written_to_log = True
+                    logger.info("Switch to new path: '{}'.".format(new_log_full_path))
+                if 'b' in handler.mode:
+                    handler.mode = "ab"
+                else:
+                    handler.mode = 'a'
+                handler.close()
+                handler.baseFilename = new_log_full_path
+                handler.stream = handler._open()
+        logger_suffixes[current_logger_name] = new_suffix
+
+
+def _get_new_filepath_with_suffix(old_path, old_suffix, new_suffix):
+    """
+    Get file path for new suffix.
+    :param old_path: Full path to file.
+    :param old_suffix: Old suffix.
+    :param new_suffix: New suffix.
+    :return: Path to file with new suffix.
+    """
+    path, extension = os.path.splitext(old_path)
+    if new_suffix is None:
+        new_suffix = ""
+    if old_suffix is None:
+        path = "{}{}".format(path, new_suffix)
+    else:
+        head, _, tail = path.rpartition(old_suffix)
+        path = "{}{}{}".format(head, new_suffix, tail)
+    new_path = "{}{}".format(path, extension)
+    return new_path
 
 
 def reconfigure_logging_path(log_path):
