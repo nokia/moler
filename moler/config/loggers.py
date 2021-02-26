@@ -15,6 +15,7 @@ import copy
 import re
 import pkg_resources
 import platform
+from logging.handlers import TimedRotatingFileHandler, RotatingFileHandler
 
 _logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
 _logging_suffixes = dict()  # Suffix for log files. None for nothing.
@@ -243,7 +244,8 @@ def debug_level_or_info_level():
     return level
 
 
-def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filter=None):
+def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filter=None, kind=None, unit=None,
+                           interval=None, backupcount=999):
     """
     Sets up new file handler for given logger
     :param logger_name: name of logger to which filelogger is added
@@ -251,11 +253,20 @@ def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filt
     :param log_filename: path to log file
     :param formatter: formatter for file logger
     :param filter: filter for file logger
+    :param kind: None for plain text logger, 'time' to time rotating, 'size' for size rotating.
+    :param unit: unit for rotate logs.
+    :param interval: value for size or time to rotate logs.
+    :param backupcount: how many files to keep.
     :return:  logging.FileHandler object
     """
     global write_mode
     logger = logging.getLogger(logger_name)
-    cfh = logging.FileHandler(log_filename, write_mode)
+    if kind is None:
+        cfh = logging.FileHandler(log_filename, write_mode)
+    elif kind.lower() == 'time':
+        cfh = TimedRotatingFileHandler(filename=log_filename, when=unit, interval=interval, backupCount=backupcount)
+    else:
+        cfh = RotatingFileHandler(filename=log_filename, mode=write_mode, backupCount=backupcount, maxBytes=interval)
     cfh.setLevel(log_level)
     cfh.setFormatter(formatter)
     if filter:
@@ -265,7 +276,8 @@ def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filt
 
 
 def _add_new_file_handler(logger_name,
-                          log_file, formatter, log_level=TRACE, filter=None):
+                          log_file, formatter, log_level=TRACE, filter=None, kind=None, unit=None,
+                          interval=None, backupcount=999):
     """
     Add file writer into Logger
     :param logger_name: Logger name
@@ -273,6 +285,10 @@ def _add_new_file_handler(logger_name,
     :param log_level: only log records with equal and greater level will be accepted for storage in log
     :param formatter: formatter for file logger
     :param filter: filter for file logger
+    :param kind: None for plain text logger, 'time' to time rotating, 'size' for size rotating.
+    :param unit: unit for rotate logs.
+    :param interval: value for size or time to rotate logs.
+    :param backupcount: how many files to keep.
     :return: None
     """
 
@@ -283,7 +299,11 @@ def _add_new_file_handler(logger_name,
                            log_level=log_level,
                            log_filename=logfile_full_path,
                            formatter=formatter,
-                           filter=filter)
+                           filter=filter,
+                           kind=kind,
+                           unit=unit,
+                           interval=interval,
+                           backupcount=backupcount)
 
 
 def _add_raw_file_handler(logger_name, log_file):
@@ -330,6 +350,10 @@ def create_logger(name,
     :param log_level: only log records with equal and greater level will be accepted for storage in log
     :param log_format: layout of log file, default is "%(asctime)s %(levelname)-10s: |%(message)s"
     :param datefmt: format the creation time of the log record
+    :param kind: None for plain text logger, 'time' to time rotating, 'size' for size rotating.
+    :param unit: unit for rotate logs.
+    :param interval: value for size or time to rotate logs.
+    :param backupcount: how many files to keep.
     :return: None
     """
     logger = logging.getLogger(name)
