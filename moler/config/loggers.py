@@ -336,7 +336,7 @@ def _add_new_file_handler(logger_name,
                            log_filename=logfile_full_path,
                            formatter=formatter,
                            filter=filter,
-                          )
+                           )
 
 
 def _add_raw_file_handler(logger_name, log_file):
