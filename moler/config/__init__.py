@@ -209,6 +209,12 @@ def _is_device_creation_needed(name, requested_device_def):
 
 def load_logger_from_config(config):
     if 'LOGGER' in config:
+        if 'KIND' in config['LOGGER']:
+            log_cfg.set_kind(config['LOGGER']['KIND'])
+        if 'INTERVAL' in config['LOGGER']:
+            log_cfg.set_interval(config['LOGGER']['INTERVAL'])
+        if 'BACKUP_COUNT' in config['LOGGER']:
+            log_cfg.set_backup_count(config['LOGGER']['BACKUP_COUNT'])
         if 'MODE' in config['LOGGER']:
             log_cfg.set_write_mode(config['LOGGER']['MODE'])
         if 'PATH' in config['LOGGER']:

@@ -31,6 +31,9 @@ TEST_CASE = 45
 debug_level = None  # means: inactive
 raw_logs_active = False
 write_mode = "a"
+_kind = None  # None for plain logger, 'time' to time rotating, 'size' for size rotating.
+_backup_count = 999  # int number of how many files to keep to rotate logs.
+_interval = 100 * 1024  # int number in bytes or seconds when log rotates
 
 moler_logo = """
                         %%%%%%%%%%%%%%%%%%%%%
@@ -89,6 +92,46 @@ def _get_moler_version_cloned_from_git_repository(setup_py_path):
                     version = search_version.group("VERSION")
 
     return "{} cloned from git repository".format(version)
+
+
+def set_backup_count(backup_count):
+    """
+    Set interval for rotating logging. If parameter is not an int number then the function does not change any value.
+    :param backup_count: int number of how many files to keep to rotate logs.
+    :return: None
+    """
+    global _backup_count
+    try:
+        _backup_count = int(backup_count)
+    except ValueError:
+        pass
+
+
+def set_interval(interval):
+    """
+    Set interval for rotating logging. If parameter is not an int number then the function does not change any value.
+    :param interval: int number in bytes or seconds
+    :return: None
+    """
+    global _interval
+    try:
+        _interval = int(interval)
+    except ValueError:
+        pass
+
+
+def set_kind(kind):
+    """
+    Set kind of logging.
+    :param kind: None for plain logger, 'time' to time rotating, 'size' for size rotating.
+    :return: None
+    """
+    global _kind
+    if kind is None:
+        _kind = None
+    kind = kind.lower()
+    if kind in ['size', 'time']:
+        _kind = kind
 
 
 def set_write_mode(mode):
@@ -244,8 +287,7 @@ def debug_level_or_info_level():
     return level
 
 
-def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filter=None, kind=None, unit=None,
-                           interval=None, backupcount=999):
+def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filter=None):
     """
     Sets up new file handler for given logger
     :param logger_name: name of logger to which filelogger is added
@@ -253,20 +295,19 @@ def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filt
     :param log_filename: path to log file
     :param formatter: formatter for file logger
     :param filter: filter for file logger
-    :param kind: None for plain text logger, 'time' to time rotating, 'size' for size rotating.
-    :param unit: unit for rotate logs.
-    :param interval: value for size or time to rotate logs.
-    :param backupcount: how many files to keep.
     :return:  logging.FileHandler object
     """
     global write_mode
+    global _kind
+    global _interval
+    global _backup_count
     logger = logging.getLogger(logger_name)
-    if kind is None:
+    if _kind is None:
         cfh = logging.FileHandler(log_filename, write_mode)
-    elif kind.lower() == 'time':
-        cfh = TimedRotatingFileHandler(filename=log_filename, when=unit, interval=interval, backupCount=backupcount)
+    elif _kind == 'time':
+        cfh = TimedRotatingFileHandler(filename=log_filename, when='S', interval=_interval, backupCount=_backup_count)
     else:
-        cfh = RotatingFileHandler(filename=log_filename, mode=write_mode, backupCount=backupcount, maxBytes=interval)
+        cfh = RotatingFileHandler(filename=log_filename, mode=write_mode, backupCount=_backup_count, maxBytes=_interval)
     cfh.setLevel(log_level)
     cfh.setFormatter(formatter)
     if filter:
@@ -276,8 +317,7 @@ def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filt
 
 
 def _add_new_file_handler(logger_name,
-                          log_file, formatter, log_level=TRACE, filter=None, kind=None, unit=None,
-                          interval=None, backupcount=999):
+                          log_file, formatter, log_level=TRACE, filter=None):
     """
     Add file writer into Logger
     :param logger_name: Logger name
@@ -285,10 +325,6 @@ def _add_new_file_handler(logger_name,
     :param log_level: only log records with equal and greater level will be accepted for storage in log
     :param formatter: formatter for file logger
     :param filter: filter for file logger
-    :param kind: None for plain text logger, 'time' to time rotating, 'size' for size rotating.
-    :param unit: unit for rotate logs.
-    :param interval: value for size or time to rotate logs.
-    :param backupcount: how many files to keep.
     :return: None
     """
 
@@ -300,10 +336,7 @@ def _add_new_file_handler(logger_name,
                            log_filename=logfile_full_path,
                            formatter=formatter,
                            filter=filter,
-                           kind=kind,
-                           unit=unit,
-                           interval=interval,
-                           backupcount=backupcount)
+                          )
 
 
 def _add_raw_file_handler(logger_name, log_file):
@@ -350,10 +383,6 @@ def create_logger(name,
     :param log_level: only log records with equal and greater level will be accepted for storage in log
     :param log_format: layout of log file, default is "%(asctime)s %(levelname)-10s: |%(message)s"
     :param datefmt: format the creation time of the log record
-    :param kind: None for plain text logger, 'time' to time rotating, 'size' for size rotating.
-    :param unit: unit for rotate logs.
-    :param interval: value for size or time to rotate logs.
-    :param backupcount: how many files to keep.
     :return: None
     """
     logger = logging.getLogger(name)
@@ -364,7 +393,8 @@ def create_logger(name,
                                   log_file=log_file,
                                   log_level=log_level,
                                   formatter=logging.Formatter(fmt=log_format,
-                                                              datefmt=datefmt))
+                                                              datefmt=datefmt),
+                                  )
         active_loggers.add(name)
     return logger
 
