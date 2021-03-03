@@ -164,7 +164,6 @@ class Ssh(GenericTelnetSsh):
             self._was_overridden_key_pass_keyboard = True
             raise ParsingDone()
 
-
     def _permission_denied_key_pass_keyboard(self, line):
         """
         Checks regex host key verification.
