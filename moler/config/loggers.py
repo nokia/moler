@@ -34,6 +34,7 @@ write_mode = "a"
 _kind = None  # None for plain logger, 'time' to time rotating, 'size' for size rotating.
 _backup_count = 999  # int number of how many files to keep to rotate logs.
 _interval = 100 * 1024  # int number in bytes or seconds when log rotates
+_main_logger = None  # moler.log
 
 moler_logo = """
                         %%%%%%%%%%%%%%%%%%%%%
@@ -193,6 +194,13 @@ def change_logging_suffix(suffix=None, logger_name=None):
     :param logger_name: name of logger. None for all loggers.
     :return: None
     """
+    global _kind
+    if _kind is not None:
+        global _main_logger
+        if _main_logger is not None:
+            _main_logger.info("Logs are rotated automatically: '{}'. Changing log suffixes is not"
+                              " available now.".format(_kind))
+        return
     global _logging_suffixes
     _reopen_all_logfiles_with_new_suffix(logger_suffixes=_logging_suffixes, new_suffix=suffix,
                                          logger_name=logger_name)
@@ -429,6 +437,8 @@ def configure_moler_main_logger():
                                                                                _get_moler_version())
         logger.info(msg)
         logger.info("More logs in: {}".format(_logging_path))
+        global _main_logger
+        _main_logger = logger
 
 
 def configure_runner_logger(runner_name):
