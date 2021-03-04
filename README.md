@@ -283,9 +283,60 @@ and `moler.MyMachine.log`:
 22:30:27.032  |Event 'moler.events.unix.wait4prompt.Wait4prompt': '[re.compile('^moler_bash#')]' finished.
 ```
 
-Prevoius examples ask device to create command. We can also create command ourselves
-giving it connection to operate on:
+If the log files are too large you can split files.
 
+The log files can be split by size. For example let's assume we want split log files by 5 MB (5242880 bytes) and we want
+to keep maximum 999 files:
+```yaml
+    LOGGER:
+      PATH: ./logs
+      DATE_FORMAT: "%H:%M:%S"
+      KIND: size
+      INTERVAL: 5242880
+      BACKUP_COUNT: 999  # Default value
+      
+
+```
+
+The log files can be split by time. For example let's assume we want split log files every 30 minutes (1800 seconds)
+ and we want to keep maximum 999 files (default value):
+ 
+```yaml
+    LOGGER:
+      PATH: ./logs
+      DATE_FORMAT: "%H:%M:%S"
+      KIND: time
+      INTERVAL: 1800
+      BACKUP_COUNT: 999  # Default value
+```
+
+In a script we can also disable logging from device. Please use it very carefully. Investigation any issue may be
+ impossible if we don't have full logs.
+ 
+```python
+my_unix = DeviceFactory.get_device(name='MyMachine')
+
+my_unix.disbale_logging()  # to disable logging on device
+
+my_unix.enable_logging()  # to enable logging on device
+```
+
+In a script you can add suffix to all log files or only to files for specific devices. with disable logging from device. 
+ 
+```python
+from moler.config.loggers import change_logging_suffix
+change_logging_suffix(".suffix1")  # all log files with suffix
+change_logging_suffix(None)  # all log files without suffx
+
+my_unix = DeviceFactory.get_device(name='MyMachine')
+
+my_unix.set_logging_suffix("device_suffix")  # to add suffix to filename with logs
+
+my_unix.set_suffix(None)  # to remove suffix from filename with logs
+```
+
+Previous examples ask device to create command. We can also create command ourselves
+giving it connection to operate on:
 
 ```python
 
