@@ -97,7 +97,8 @@ def _get_moler_version_cloned_from_git_repository(setup_py_path):
 
 def set_backup_count(backup_count):
     """
-    Set interval for rotating logging. If parameter is not an int number then the function does not change any value.
+    Set maximum number of files of logs to rotate for rotating logging. If parameter is not an int number then the
+     function does not change any value.
     :param backup_count: int number of how many files to keep to rotate logs.
     :return: None
     """
