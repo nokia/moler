@@ -209,6 +209,7 @@ def _is_device_creation_needed(name, requested_device_def):
 
 def load_logger_from_config(config):
     if 'LOGGER' in config:
+        _config_rotating(config)
         if 'MODE' in config['LOGGER']:
             log_cfg.set_write_mode(config['LOGGER']['MODE'])
         if 'PATH' in config['LOGGER']:
@@ -222,6 +223,15 @@ def load_logger_from_config(config):
             log_cfg.set_date_format(config['LOGGER']['DATE_FORMAT'])
 
     log_cfg.configure_moler_main_logger()
+
+
+def _config_rotating(config):
+    if 'KIND' in config['LOGGER']:
+        log_cfg.set_kind(config['LOGGER']['KIND'])
+    if 'INTERVAL' in config['LOGGER']:
+        log_cfg.set_interval(config['LOGGER']['INTERVAL'])
+    if 'BACKUP_COUNT' in config['LOGGER']:
+        log_cfg.set_backup_count(config['LOGGER']['BACKUP_COUNT'])
 
 
 def reconfigure_logging_path(logging_path):
