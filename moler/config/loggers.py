@@ -15,6 +15,7 @@ import copy
 import re
 import pkg_resources
 import platform
+from logging.handlers import TimedRotatingFileHandler, RotatingFileHandler
 
 _logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
 _logging_suffixes = dict()  # Suffix for log files. None for nothing.
@@ -30,6 +31,10 @@ TEST_CASE = 45
 debug_level = None  # means: inactive
 raw_logs_active = False
 write_mode = "a"
+_kind = None  # None for plain logger, 'time' to time rotating, 'size' for size rotating.
+_backup_count = 999  # int number of how many files to keep to rotate logs.
+_interval = 100 * 1024  # int number in bytes or seconds when log rotates
+_main_logger = None  # moler.log
 
 moler_logo = """
                         %%%%%%%%%%%%%%%%%%%%%
@@ -88,6 +93,47 @@ def _get_moler_version_cloned_from_git_repository(setup_py_path):
                     version = search_version.group("VERSION")
 
     return "{} cloned from git repository".format(version)
+
+
+def set_backup_count(backup_count):
+    """
+    Set maximum number of files of logs to rotate for rotating logging. If parameter is not an int number then the
+     function does not change any value.
+    :param backup_count: int number of how many files to keep to rotate logs.
+    :return: None
+    """
+    global _backup_count
+    try:
+        _backup_count = int(backup_count)
+    except ValueError:
+        pass
+
+
+def set_interval(interval):
+    """
+    Set interval for rotating logging. If parameter is not an int number then the function does not change any value.
+    :param interval: int number in bytes or seconds
+    :return: None
+    """
+    global _interval
+    try:
+        _interval = int(interval)
+    except ValueError:
+        pass
+
+
+def set_kind(kind):
+    """
+    Set kind of logging.
+    :param kind: None for plain logger, 'time' to time rotating, 'size' for size rotating.
+    :return: None
+    """
+    global _kind
+    if kind is None:
+        _kind = None
+    kind = kind.lower()
+    if kind in ['size', 'time']:
+        _kind = kind
 
 
 def set_write_mode(mode):
@@ -149,6 +195,13 @@ def change_logging_suffix(suffix=None, logger_name=None):
     :param logger_name: name of logger. None for all loggers.
     :return: None
     """
+    global _kind
+    if _kind is not None:
+        global _main_logger
+        if _main_logger is not None:
+            _main_logger.info("Logs are rotated automatically: '{}'. Changing log suffixes is not"
+                              " available now.".format(_kind))
+        return
     global _logging_suffixes
     _reopen_all_logfiles_with_new_suffix(logger_suffixes=_logging_suffixes, new_suffix=suffix,
                                          logger_name=logger_name)
@@ -254,8 +307,16 @@ def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filt
     :return:  logging.FileHandler object
     """
     global write_mode
+    global _kind
+    global _interval
+    global _backup_count
     logger = logging.getLogger(logger_name)
-    cfh = logging.FileHandler(log_filename, write_mode)
+    if _kind is None:
+        cfh = logging.FileHandler(log_filename, write_mode)
+    elif _kind == 'time':
+        cfh = TimedRotatingFileHandler(filename=log_filename, when='S', interval=_interval, backupCount=_backup_count)
+    else:
+        cfh = RotatingFileHandler(filename=log_filename, mode=write_mode, backupCount=_backup_count, maxBytes=_interval)
     cfh.setLevel(log_level)
     cfh.setFormatter(formatter)
     if filter:
@@ -283,7 +344,8 @@ def _add_new_file_handler(logger_name,
                            log_level=log_level,
                            log_filename=logfile_full_path,
                            formatter=formatter,
-                           filter=filter)
+                           filter=filter,
+                           )
 
 
 def _add_raw_file_handler(logger_name, log_file):
@@ -340,7 +402,8 @@ def create_logger(name,
                                   log_file=log_file,
                                   log_level=log_level,
                                   formatter=logging.Formatter(fmt=log_format,
-                                                              datefmt=datefmt))
+                                                              datefmt=datefmt),
+                                  )
         active_loggers.add(name)
     return logger
 
@@ -375,6 +438,8 @@ def configure_moler_main_logger():
                                                                                _get_moler_version())
         logger.info(msg)
         logger.info("More logs in: {}".format(_logging_path))
+        global _main_logger
+        _main_logger = logger
 
 
 def configure_runner_logger(runner_name):
