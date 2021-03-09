@@ -4,7 +4,7 @@ Ssh command module.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
@@ -41,13 +41,17 @@ class Ssh(GenericTelnetSsh):
     # Password:
     _re_password = re.compile(r"(password|Enter passphrase for key.*):", re.IGNORECASE)
 
+    #  ssh-keygen -f "/home/user/.ssh/known_hosts" -R "2a00:8a02:60:1c::2:44"
+    _re_keygen_from_output = re.compile(r"(?P<COMMAND>ssh-keygen.*)")
+
     def __init__(self, connection, login=None, password=None, host="0", prompt=None, expected_prompt='>', port=0,
                  known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
                  term_mono="TERM=xterm-mono", newline_chars=None, encrypt_password=True, runner=None,
                  target_newline="\n", allowed_newline_after_prompt=False, repeat_password=True,
                  options='-o ServerAliveInterval=7 -o ServerAliveCountMax=2',
                  failure_exceptions_indication=None, prompt_after_login=None, send_enter_after_connection=True,
-                 username=None, permission_denied_key_pass_keyboard=r'ssh-keygen -f "~/.ssh/known_hosts" -R "{host}"'):
+                 username=None, permission_denied_key_pass_keyboard=r'ssh-keygen -f "~/.ssh/known_hosts" -R "{host}"',
+                 allow_override_denied_key_pass_keyboard=True):
         """
         Moler class of Unix command ssh.
 
@@ -78,6 +82,8 @@ class Ssh(GenericTelnetSsh):
         :param username: login for ssh. Set this or login but not both.
         :param permission_denied_key_pass_keyboard: Set to not None value to execute command after match line:
          'Permission denied (publickey,password,keyboard-interactive)'.
+        :param allow_override_denied_key_pass_keyboard: Set True to override the command ssh-keygen to command from ssh
+         output. False to ignore ssh output.
         """
         super(Ssh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner,
                                   port=port, host=host, login=login, password=password,
@@ -95,11 +101,13 @@ class Ssh(GenericTelnetSsh):
         # Parameters defined by calling the command
         self.known_hosts_on_failure = known_hosts_on_failure
         self.options = options
+        self.allow_override_denied_key_pass_keyboard = allow_override_denied_key_pass_keyboard
 
         # Internal variables
         self._hosts_file = ""
         self._sent_continue_connecting = False
         self._resize_sent = False
+        self._was_overridden_key_pass_keyboard = False
         self._permission_denied_key_pass_keyboard_cmd = None
         if permission_denied_key_pass_keyboard is not None:
             self._permission_denied_key_pass_keyboard_cmd = permission_denied_key_pass_keyboard.format(host=host)
@@ -132,6 +140,7 @@ class Ssh(GenericTelnetSsh):
         :return: None
         """
         try:
+            self._override_permission_denied_key_pass_keyboard(line)
             self._check_if_resize(line)
             self._get_hosts_file_if_displayed(line)
             self._push_yes_if_needed(line)
@@ -141,6 +150,19 @@ class Ssh(GenericTelnetSsh):
         except ParsingDone:
             pass
         super(Ssh, self).on_new_line(line=line, is_full_line=is_full_line)
+
+    def _override_permission_denied_key_pass_keyboard(self, line):
+        """
+        Checks if line contains new command.
+        :param line: Line from device
+        :return: None
+        :raise ParsingDone
+        """
+        if self.allow_override_denied_key_pass_keyboard and not self._was_overridden_key_pass_keyboard and \
+                self._regex_helper.search_compiled(Ssh._re_keygen_from_output, line):
+            self._permission_denied_key_pass_keyboard_cmd = self._regex_helper.group("COMMAND")
+            self._was_overridden_key_pass_keyboard = True
+            raise ParsingDone()
 
     def _permission_denied_key_pass_keyboard(self, line):
         """
@@ -994,6 +1016,61 @@ COMMAND_RESULT_pts0 = {
         "****",
         "",
         "Last login: Fri Jul  3 11:50:03 CEST 2020 from 192.168.255.126 on pts/0",
+    ],
+    'LAST_LOGIN': {
+        'KIND': 'from',
+        'WHERE': '192.168.255.126',
+        'RAW_DATE': 'Fri Jul  3 11:50:03 CEST 2020',
+        'DATE': parser.parse('Fri Jul  3 11:50:03 CEST 2020'),
+    },
+    'FAILED_LOGIN_ATTEMPTS': None,
+}
+
+COMMAND_KWARGS_override_keygen = {
+    "login": "user", "password": "pass", "set_timeout": None,
+    "host": "10.0.1.67", "prompt": "client.*>", "expected_prompt": "host.*#"
+}
+
+COMMAND_OUTPUT_override_keygen = """TERM=xterm-mono ssh -l user -o ServerAliveInterval=7 -o ServerAliveCountMax=2 10.0.1.67
+Offending ECDSA key in /home/ute/.ssh/known_hosts:17
+
+remove with:
+
+  ssh-keygen -f "/home/user/.ssh/known_hosts" -R "10.0.1.67"
+
+Password authentication is disabled to avoid man-in-the-middle attacks.
+
+Keyboard-interactive authentication is disabled to avoid man-in-the-middle attacks.
+
+user@client: Permission denied (publickey,password,keyboard-interactive).
+user@client: ssh-keygen -f "/home/user/.ssh/known_hosts" -R "10.0.1.67"
+user@client: TERM=xterm-mono ssh -l user -o ServerAliveInterval=7 -o ServerAliveCountMax=2 10.0.1.67
+Password:
+****
+
+Last login: Fri Jul  3 11:50:03 CEST 2020 from 192.168.255.126
+user@host:~ #"""
+
+COMMAND_RESULT_override_keygen = {
+    'LINES': [
+        r'Offending ECDSA key in /home/ute/.ssh/known_hosts:17',
+        r'',
+        r'remove with:',
+        r'',
+        r'  ssh-keygen -f "/home/user/.ssh/known_hosts" -R "10.0.1.67"',
+        r'',
+        r'Password authentication is disabled to avoid '
+        r'man-in-the-middle attacks.',
+        r'',
+        r'Keyboard-interactive authentication is disabled to avoid '
+        r'man-in-the-middle attacks.',
+        r'',
+        r'user@client: Permission denied '
+        r'(publickey,password,keyboard-interactive).',
+        r'Password:',
+        r'****',
+        r'',
+        r'Last login: Fri Jul  3 11:50:03 CEST 2020 from 192.168.255.126'
     ],
     'LAST_LOGIN': {
         'KIND': 'from',

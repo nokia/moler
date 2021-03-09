@@ -4,7 +4,7 @@ Testing of ssh command.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 from moler.cmd.unix.ssh import Ssh
@@ -127,10 +127,45 @@ def test_ssh_timeout_with_wrong_change_prompt_after_login(buffer_connection, com
         ssh_cmd(timeout=0.2)
 
 
+def test_ssh_change_rm_command(buffer_connection, command_output_keygen):
+    command_output = command_output_keygen
+    buffer_connection.remote_inject_response([command_output])
+
+    ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="pass",
+                  set_timeout=None, host="10.0.1.67", prompt="client.*>", expected_prompt= "host.*#")
+
+    assert ssh_cmd._permission_denied_key_pass_keyboard_cmd == 'ssh-keygen -f "~/.ssh/known_hosts" -R "10.0.1.67"'
+    ssh_cmd(timeout=1)
+    assert ssh_cmd._permission_denied_key_pass_keyboard_cmd == 'ssh-keygen -f "/home/user/.ssh/known_hosts" -R "10.0.1.67"'
+
+
 def test_ssh_returns_proper_command_string(buffer_connection):
     ssh_cmd = Ssh(buffer_connection, login="user", password="english",
                   host="host.domain.net", expected_prompt="host:.*#", options=None)
     assert "TERM=xterm-mono ssh -l user host.domain.net" == ssh_cmd.command_string
+
+@pytest.fixture
+def command_output_keygen():
+    data = """TERM=xterm-mono ssh -l user -o ServerAliveInterval=7 -o ServerAliveCountMax=2 10.0.1.67
+    Offending ECDSA key in /home/ute/.ssh/known_hosts:17
+
+    remove with:
+
+      ssh-keygen -f "/home/user/.ssh/known_hosts" -R "10.0.1.67"
+
+    Password authentication is disabled to avoid man-in-the-middle attacks.
+
+    Keyboard-interactive authentication is disabled to avoid man-in-the-middle attacks.
+
+    user@client: Permission denied (publickey,password,keyboard-interactive).
+    user@client: ssh-keygen -f "/home/user/.ssh/known_hosts" -R "10.0.1.67"
+    user@client: TERM=xterm-mono ssh -l user -o ServerAliveInterval=7 -o ServerAliveCountMax=2 10.0.1.67
+    Password:
+    ****
+
+    Last login: Fri Jul  3 11:50:03 CEST 2020 from 192.168.255.126
+    user@host:~ #"""
+    return data
 
 
 @pytest.fixture
