@@ -14,7 +14,7 @@ __email__ = 'adam.klekowski@nokia.com'
 import re
 
 from moler.cmd.at.genericat import GenericAtCommand
-from moler.exceptions import ParsingDone
+from moler.exceptions import ParsingDone, WrongUsage
 
 
 class SetMode(GenericAtCommand):
@@ -33,7 +33,7 @@ class SetMode(GenericAtCommand):
         self.selected_mode = selected_mode.lower()
 
         if self.selected_mode not in SetMode.mode2cops_value:
-            raise ValueError('\"{}\" is not correct mode. Available modes: {}.'.format(
+            raise WrongUsage('\"{}\" is not correct mode. Available modes: {}.'.format(
                 self.selected_mode, list(SetMode.mode2cops_value.keys())))
 
         self.ret_required = False
