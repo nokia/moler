@@ -22,7 +22,12 @@ class EnableEcho(GenericAtCommand):
     OK
     """
     def __init__(self, connection=None, prompt=None, newline_chars=None, runner=None):
-        """Create instance of EnableEcho class"""
+        """
+        :param connection: moler connection to device
+        :param prompt: start prompt (on system where command cd starts)
+        :param newline_chars: Characters to split lines
+        :param runner: Runner to run command
+        """
         super(EnableEcho, self).__init__(connection, operation="execute", prompt=prompt,
                                          newline_chars=newline_chars, runner=runner)
         self.ret_required = False
