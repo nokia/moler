@@ -36,6 +36,14 @@ moler.cmd.at.detach module
     :undoc-members:
     :show-inheritance:
 
+moler.cmd.at.enable\_echo module
+--------------------------------
+
+.. automodule:: moler.cmd.at.enable_echo
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.cmd.at.exit\_serial\_proxy module
 ---------------------------------------
 
@@ -120,6 +128,14 @@ moler.cmd.at.plink\_serial module
 ---------------------------------
 
 .. automodule:: moler.cmd.at.plink_serial
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+moler.cmd.at.set\_mode module
+-----------------------------
+
+.. automodule:: moler.cmd.at.set_mode
     :members:
     :undoc-members:
     :show-inheritance:

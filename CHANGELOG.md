@@ -1,3 +1,16 @@
+## moler 1.27.0
+
+### Added
+* Disable logging incoming data
+* Enable_echo AT cmd
+* Logs rotating
+* Set mode AT cmd
+* ssh keygen override
+
+### Improved
+* Logging suffix
+* Terminal investigation
+ 
 ## moler 1.26.0
 
 ### Added

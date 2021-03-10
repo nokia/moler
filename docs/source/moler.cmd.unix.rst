@@ -460,6 +460,14 @@ moler.cmd.unix.netstat module
     :undoc-members:
     :show-inheritance:
 
+moler.cmd.unix.nft module
+-------------------------
+
+.. automodule:: moler.cmd.unix.nft
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.cmd.unix.nmap module
 --------------------------
 
