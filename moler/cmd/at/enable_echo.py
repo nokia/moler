@@ -33,6 +33,10 @@ class EnableEcho(GenericAtCommand):
         self.ret_required = False
 
     def build_command_string(self):
+        """
+        Builds command string from parameters passed to object.
+        :return: String representation of command to send over connection to device.
+        """
         return "ATE1"
 
 
