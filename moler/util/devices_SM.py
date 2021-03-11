@@ -43,7 +43,6 @@ def iterate_over_device_states(device, max_time=None):
                     "Cannot trigger change state: '{}' -> '{}'\n{}".format(source_state, target_state, exc))
             if max_time is not None and time.time() - start_time > max_time:
                 return
-    print("tests took: {} seconds".format(time.time() - start_time))
 
 
 def get_device(name, connection, device_output, test_file_path):
