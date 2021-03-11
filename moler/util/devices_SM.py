@@ -19,6 +19,13 @@ from moler.helpers import copy_list
 
 
 def iterate_over_device_states(device, max_time=None):
+    """
+    Check all states in device under test.
+    :param device: device
+    :param max_time: maximum time of check. None for infinity. If execution time is greater then max_time then test is
+     interrupted.
+    :return: None
+    """
     source_states = _get_all_states_from_device(device=device)
     target_states = copy_list(source_states)
 
