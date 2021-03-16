@@ -271,7 +271,7 @@ class CommandTextualGeneric(Command):
         """
         line = current_chunk
         if self._last_not_full_line is not None:
-            line = "{}{}".format(self._last_not_full_line, line)
+            line = u"{}{}".format(self._last_not_full_line, line)
             self._last_not_full_line = None
         is_full_line = self.has_endline_char(line)
         if is_full_line:
