@@ -29,6 +29,9 @@ def iterate_over_device_states(device, max_time=None):
     source_states = _get_all_states_from_device(device=device)
     target_states = copy_list(source_states)
 
+    if len(source_states) > 5:
+        device._goto_state_in_production_mode = False
+
     random.shuffle(source_states)
     random.shuffle(target_states)
     tested = set()
@@ -41,10 +44,10 @@ def iterate_over_device_states(device, max_time=None):
                 continue
             try:
                 state_before_test = device.current_state
-                device.goto_state(source_state)
-                device.goto_state(target_state)
-                tested.add(current_test_str)
+                device.goto_state(source_state, keep_state=False)
                 tested.add("{}_{}".format(state_before_test, source_state))
+                device.goto_state(target_state, keep_state=False)
+                tested.add(current_test_str)
             except Exception as exc:
                 raise MolerException(
                     "Cannot trigger change state: '{}' -> '{}'\n{}".format(source_state, target_state, exc))
