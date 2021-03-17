@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
