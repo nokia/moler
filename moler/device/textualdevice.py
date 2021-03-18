@@ -30,6 +30,7 @@ from moler.helpers import copy_list
 from moler.instance_loader import create_instance_from_class_fullname
 from moler.device.abstract_device import AbstractDevice
 from moler.config.loggers import change_logging_suffix
+
 try:
     import queue
 except ImportError:
@@ -128,6 +129,7 @@ class TextualDevice(AbstractDevice):
         self._thread_for_goto_state = None
         self.SM.state_change_log_callable = self._log
         self.SM.current_state_callable = self._get_current_state
+        self._goto_state_in_production_mode = True  # Set False only for tests. May cause problems in production code.
 
     def disable_logging(self):
         """
@@ -421,6 +423,8 @@ class TextualDevice(AbstractDevice):
         )
 
     def _recover_state(self, state):
+        if self._goto_state_in_production_mode is False:
+            return
         with self._goto_state_thread_manipulation_lock:
             state_options = {
                 'dest_state': state, 'keep_state': True, 'timeout': self.timeout_keep_state,
@@ -450,7 +454,8 @@ class TextualDevice(AbstractDevice):
     def _goto_state_execute(self, dest_state, keep_state, timeout, rerun, send_enter_after_changed_state,
                             log_stacktrace_on_fail, queue_if_goto_state_in_another_thread,
                             ignore_exceptions=False):
-        if self._goto_state_lock.acquire(queue_if_goto_state_in_another_thread):
+        if (self._goto_state_in_production_mode and self._goto_state_lock.acquire(
+                queue_if_goto_state_in_another_thread)) or (self._goto_state_in_production_mode is False):
             try:
                 self._goto_state_to_run_in_try(dest_state=dest_state, keep_state=keep_state, timeout=timeout,
                                                rerun=rerun,
@@ -460,7 +465,8 @@ class TextualDevice(AbstractDevice):
                 if ignore_exceptions is False:
                     raise ex
             finally:
-                self._goto_state_lock.release()
+                if self._goto_state_in_production_mode:
+                    self._goto_state_lock.release()
         else:
             self._log(logging.WARNING, "{}: Another thread in goto_state. Didn't try to go to '{}'.".format(
                 self.name, dest_state))
