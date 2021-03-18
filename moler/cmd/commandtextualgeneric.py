@@ -315,7 +315,7 @@ class CommandTextualGeneric(Command):
         Checks if end of command is reached.
 
         :param line: Line from device.
-        :return:
+        :return: True if end of command is reached, False otherwise.
         """
         if self._regex_helper.search_compiled(self._re_prompt, line):
             return True
