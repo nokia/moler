@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
@@ -91,7 +91,7 @@ class TextualEvent(Event):
         """
         line = current_chunk
         if self._last_not_full_line is not None:
-            line = "{}{}".format(self._last_not_full_line, line)
+            line = u"{}{}".format(self._last_not_full_line, line)
             self._last_not_full_line = None
         is_full_line = self.is_new_line(line)
         if is_full_line:
