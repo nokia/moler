@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019, Nokia'
+__copyright__ = 'Copyright (C) 2019-2021, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
+
 import datetime
 import re
 
@@ -16,7 +17,7 @@ class Wait4prompts(GenericUnixTextualEvent):
         """
         Event for waiting for prompt
         :param connection: moler connection to device, terminal when command is executed
-        :param prompts: prompts->state regex dict
+        :param prompts: prompts->state regex dict. Key is regex, value is state.
         :param till_occurs_times: number of event occurrence
         :param runner: Runner to run event
         """
