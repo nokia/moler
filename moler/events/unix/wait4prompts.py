@@ -8,6 +8,7 @@ import re
 from moler.events.unix.genericunix_textualevent import GenericUnixTextualEvent
 from moler.exceptions import ParsingDone
 from operator import attrgetter
+from moler.helpers import copy_dict
 
 
 class Wait4prompts(GenericUnixTextualEvent):
@@ -22,6 +23,8 @@ class Wait4prompts(GenericUnixTextualEvent):
         super(Wait4prompts, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times)
         self.compiled_prompts_regex = self._compile_prompts_patterns(prompts)
         self.process_full_lines_only = False
+        self._debug_mode = False
+        self._ret_list_matched = list()
 
     def on_new_line(self, line, is_full_line):
         try:
@@ -30,6 +33,7 @@ class Wait4prompts(GenericUnixTextualEvent):
             pass
 
     def _parse_prompts(self, line):
+        current_ret = None
         for prompt_regex in sorted(self.compiled_prompts_regex.keys(), key=attrgetter('pattern')):
             if self._regex_helper.search_compiled(prompt_regex, line):
                 current_ret = {
@@ -38,9 +42,15 @@ class Wait4prompts(GenericUnixTextualEvent):
                     'state': self.compiled_prompts_regex[prompt_regex],
                     'time': datetime.datetime.now()
                 }
-                self.event_occurred(event_data=current_ret)
-
-                raise ParsingDone()
+                if self._debug_mode:
+                    self._ret_list_matched.append(copy_dict(current_ret))
+                else:
+                    break
+        if current_ret:
+            if self._debug_mode:
+                current_ret['list_matched'] = self._ret_list_matched
+            self.event_occurred(event_data=current_ret)
+            raise ParsingDone()
 
     def _compile_prompts_patterns(self, patterns):
         compiled_patterns = dict()
