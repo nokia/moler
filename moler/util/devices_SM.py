@@ -13,7 +13,7 @@ import time
 
 from moler.device import DeviceFactory
 from moler.device.textualdevice import TextualDevice
-from moler.exceptions import MolerException
+from moler.exceptions import MolerException, WrongUsage
 from moler.config import load_config
 from moler.helpers import copy_list
 
@@ -26,6 +26,8 @@ def iterate_over_device_states(device, max_time=None):
      interrupted.
     :return: None
     """
+    device.last_wrong_wait4_occurrence = None
+    device.set_all_prompts_on_line(True)
     source_states = _get_all_states_from_device(device=device)
     target_states = copy_list(source_states)
 
@@ -48,6 +50,9 @@ def iterate_over_device_states(device, max_time=None):
                 tested.add("{}_{}".format(state_before_test, source_state))
                 device.goto_state(target_state, keep_state=False)
                 tested.add(current_test_str)
+                if device.last_wrong_wait4_occurrence is not None:
+                    raise WrongUsage("More than 1 prompt match the same line!: '{}'".format(
+                        device.last_wrong_wait4_occurrence))
             except Exception as exc:
                 raise MolerException(
                     "Cannot trigger change state: '{}' -> '{}'\n{}".format(source_state, target_state, exc))

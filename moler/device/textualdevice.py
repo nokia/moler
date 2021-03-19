@@ -131,6 +131,8 @@ class TextualDevice(AbstractDevice):
         self.SM.current_state_callable = self._get_current_state
         self._goto_state_in_production_mode = True  # Set False only for tests. May cause problems in production code.
         self._check_all_prompts_on_line = False
+        self.last_wrong_wait4_occurrence = None  # Last occurrence from Wait4prompts if at least 2 prompts matched the
+        # same line.
 
     def set_all_prompts_on_line(self, value=True):
         """
@@ -820,7 +822,8 @@ class TextualDevice(AbstractDevice):
         self._set_state(state)
         if self._check_all_prompts_on_line:
             if len(occurrence['list_matched']) > 1:
-                self._log(level=logging.INFO, msg="More than 1 prompt matched the same line! '{}'.".format(occurrence))
+                self._log(level=logging.ERROR, msg="More than 1 prompt matched the same line! '{}'.".format(occurrence))
+                self.last_wrong_wait4_occurrence = occurrence
 
     def _run_prompts_observers(self):
         self._validate_prompts_uniqueness()
