@@ -24,7 +24,7 @@ class Wait4prompts(GenericUnixTextualEvent):
         super(Wait4prompts, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times)
         self.compiled_prompts_regex = self._compile_prompts_patterns(prompts)
         self.process_full_lines_only = False
-        self._debug_mode = False
+        self.check_against_all_prompts = False
         self._ret_list_matched = list()
 
     def on_new_line(self, line, is_full_line):
@@ -43,13 +43,14 @@ class Wait4prompts(GenericUnixTextualEvent):
                     'state': self.compiled_prompts_regex[prompt_regex],
                     'time': datetime.datetime.now()
                 }
-                if self._debug_mode:
+                if self.check_against_all_prompts:
                     self._ret_list_matched.append(copy_dict(current_ret))
                 else:
                     break
         if current_ret:
-            if self._debug_mode:
+            if self.check_against_all_prompts:
                 current_ret['list_matched'] = self._ret_list_matched
+                self._ret_list_matched = list()
             self.event_occurred(event_data=current_ret)
             raise ParsingDone()
 

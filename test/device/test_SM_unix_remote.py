@@ -1,10 +1,12 @@
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
 
 from moler.util.devices_SM import iterate_over_device_states, get_device
+from moler.exceptions import MolerException
+from moler.helpers import copy_dict
 
 
 def test_unix_remote_device(device_connection, unix_remote_output):
@@ -23,6 +25,24 @@ def test_unix_remote_proxy_pc_device(device_connection, unix_remote_proxy_pc_out
     assert None is unix_remote_proxy_pc._cmdnames_available_in_state['UNIX_LOCAL_ROOT']
     iterate_over_device_states(device=unix_remote_proxy_pc)
     assert None is not unix_remote_proxy_pc._cmdnames_available_in_state['UNIX_LOCAL_ROOT']
+
+
+def test_unix_remote_proxy_pc_device_multiple_prompts(device_connection, unix_remote_proxy_pc_output):
+    unix_remote_proxy_pc_changed_output = copy_dict(unix_remote_proxy_pc_output, deep_copy=True)
+    combined_line = "moler_bash#"
+    for src_state in unix_remote_proxy_pc_output.keys():
+        for cmd_string in unix_remote_proxy_pc_output[src_state].keys():
+            combined_line = "{} {}".format(combined_line, unix_remote_proxy_pc_output[src_state][cmd_string])
+    for src_state in unix_remote_proxy_pc_changed_output.keys():
+        for cmd_string in unix_remote_proxy_pc_changed_output[src_state].keys():
+            unix_remote_proxy_pc_changed_output[src_state][cmd_string] = combined_line
+
+    unix_remote_proxy_pc = get_device(name="UNIX_REMOTE_PROXY_PC", connection=device_connection,
+                                      device_output=unix_remote_proxy_pc_changed_output,
+                                      test_file_path=__file__)
+    with pytest.raises(MolerException) as exception:
+        iterate_over_device_states(device=unix_remote_proxy_pc)
+    assert "More than 1 prompt match the same line" in str(exception.value)
 
 
 @pytest.fixture

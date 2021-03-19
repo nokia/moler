@@ -14,7 +14,7 @@ def test_event_wait4prompts_good_2_prompts_from_1_line(buffer_connection):
     prompts = {re.compile(r'host:.*#'): "UNIX_LOCAL", re.compile(r'user@server.*#'): "USER"}
     output = "user@host:/home/#"
     event = Wait4prompts(connection=buffer_connection.moler_connection, till_occurs_times=1, prompts=prompts)
-    event._debug_mode = True
+    event.check_against_all_prompts = True
     event.start()
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     ret = event.await_done(timeout=0.5)[0]
@@ -27,7 +27,7 @@ def test_event_wait4prompts_wrong_2_prompts_from_1_line(buffer_connection):
     prompts = {re.compile(r'host:.*#'): "UNIX_LOCAL", re.compile(r'user@.*#'): "USER"}
     output = "user@host:/home/#"
     event = Wait4prompts(connection=buffer_connection.moler_connection, till_occurs_times=1, prompts=prompts)
-    event._debug_mode = True
+    event.check_against_all_prompts = True
     event.start()
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     ret = event.await_done(timeout=0.5)[0]
@@ -40,7 +40,7 @@ def test_event_wait4prompts_wrong_1_prompt_from_1_line(buffer_connection):
     prompts = {re.compile(r'host:.*#'): "UNIX_LOCAL", re.compile(r'user@.*#'): "USER"}
     output = "user@host:/home/#"
     event = Wait4prompts(connection=buffer_connection.moler_connection, till_occurs_times=1, prompts=prompts)
-    event._debug_mode = False
+    event.check_against_all_prompts = False
     event.start()
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     ret = event.await_done(timeout=0.5)[0]

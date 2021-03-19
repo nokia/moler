@@ -142,7 +142,7 @@ class TextualDevice(AbstractDevice):
         """
         self._check_all_prompts_on_line = value
         if self._prompts_event:
-            self._prompts_event._debug_mode = value
+            self._prompts_event.check_against_all_prompts = value
 
     def disable_logging(self):
         """
@@ -826,6 +826,8 @@ class TextualDevice(AbstractDevice):
                 self.last_wrong_wait4_occurrence = occurrence
 
     def _run_prompts_observers(self):
+        if self._prompts_event:
+            return
         self._validate_prompts_uniqueness()
         self._prepare_reverse_state_prompts_dict()
 

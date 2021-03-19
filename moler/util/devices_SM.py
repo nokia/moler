@@ -13,7 +13,7 @@ import time
 
 from moler.device import DeviceFactory
 from moler.device.textualdevice import TextualDevice
-from moler.exceptions import MolerException, WrongUsage
+from moler.exceptions import MolerException
 from moler.config import load_config
 from moler.helpers import copy_list
 
@@ -51,7 +51,7 @@ def iterate_over_device_states(device, max_time=None):
                 device.goto_state(target_state, keep_state=False)
                 tested.add(current_test_str)
                 if device.last_wrong_wait4_occurrence is not None:
-                    raise WrongUsage("More than 1 prompt match the same line!: '{}'".format(
+                    raise MolerException("More than 1 prompt match the same line!: '{}'".format(
                         device.last_wrong_wait4_occurrence))
             except Exception as exc:
                 raise MolerException(
@@ -66,8 +66,10 @@ def get_device(name, connection, device_output, test_file_path):
 
     device = DeviceFactory.get_device(name)
     device.io_connection = connection
+    device._prompts_event = None
     device.io_connection.name = device.name
     device.io_connection.moler_connection.name = device.name
+    device._run_prompts_observers()
 
     device.io_connection.remote_inject_response(device_output)
     device.io_connection.set_device(device)
