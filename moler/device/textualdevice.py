@@ -826,8 +826,6 @@ class TextualDevice(AbstractDevice):
                 self.last_wrong_wait4_occurrence = occurrence
 
     def _run_prompts_observers(self):
-        if self._prompts_event:
-            return
         self._validate_prompts_uniqueness()
         self._prepare_reverse_state_prompts_dict()
 
