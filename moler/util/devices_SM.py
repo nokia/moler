@@ -46,13 +46,13 @@ def iterate_over_device_states(device, max_time=None):
                 continue
             try:
                 state_before_test = device.current_state
-                device.goto_state(source_state, keep_state=False)
+                device.goto_state(source_state, keep_state=False, rerun=0)
                 tested.add("{}_{}".format(state_before_test, source_state))
-                device.goto_state(target_state, keep_state=False)
+                device.goto_state(target_state, keep_state=False, rerun=0)
                 tested.add(current_test_str)
                 if device.last_wrong_wait4_occurrence is not None:
-                    raise MolerException("More than 1 prompt match the same line!: '{}'".format(
-                        device.last_wrong_wait4_occurrence))
+                    msg = "More than 1 prompt match the same line!: '{}'".format(device.last_wrong_wait4_occurrence)
+                    raise MolerException(msg)
             except Exception as exc:
                 raise MolerException(
                     "Cannot trigger change state: '{}' -> '{}'\n{}".format(source_state, target_state, exc))
