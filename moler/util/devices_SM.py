@@ -26,6 +26,8 @@ def iterate_over_device_states(device, max_time=None):
      interrupted.
     :return: None
     """
+    device.last_wrong_wait4_occurrence = None
+    device.set_all_prompts_on_line(True)
     source_states = _get_all_states_from_device(device=device)
     target_states = copy_list(source_states)
 
@@ -44,10 +46,13 @@ def iterate_over_device_states(device, max_time=None):
                 continue
             try:
                 state_before_test = device.current_state
-                device.goto_state(source_state, keep_state=False)
+                device.goto_state(source_state, keep_state=False, rerun=0)
                 tested.add("{}_{}".format(state_before_test, source_state))
-                device.goto_state(target_state, keep_state=False)
+                device.goto_state(target_state, keep_state=False, rerun=0)
                 tested.add(current_test_str)
+                if device.last_wrong_wait4_occurrence is not None:
+                    msg = "More than 1 prompt match the same line!: '{}'".format(device.last_wrong_wait4_occurrence)
+                    raise MolerException(msg)
             except Exception as exc:
                 raise MolerException(
                     "Cannot trigger change state: '{}' -> '{}'\n{}".format(source_state, target_state, exc))
@@ -61,8 +66,10 @@ def get_device(name, connection, device_output, test_file_path):
 
     device = DeviceFactory.get_device(name)
     device.io_connection = connection
+    device._prompts_event = None
     device.io_connection.name = device.name
     device.io_connection.moler_connection.name = device.name
+    device._run_prompts_observers()
 
     device.io_connection.remote_inject_response(device_output)
     device.io_connection.set_device(device)

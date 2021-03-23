@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019, Nokia'
+__copyright__ = 'Copyright (C) 2019-2021, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
+
 import datetime
 import re
 
 from moler.events.unix.genericunix_textualevent import GenericUnixTextualEvent
 from moler.exceptions import ParsingDone
 from operator import attrgetter
+from moler.helpers import copy_dict
 
 
 class Wait4prompts(GenericUnixTextualEvent):
@@ -15,13 +17,15 @@ class Wait4prompts(GenericUnixTextualEvent):
         """
         Event for waiting for prompt
         :param connection: moler connection to device, terminal when command is executed
-        :param prompts: prompts->state regex dict
+        :param prompts: prompts->state regex dict. Key is regex, value is state.
         :param till_occurs_times: number of event occurrence
         :param runner: Runner to run event
         """
         super(Wait4prompts, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times)
         self.compiled_prompts_regex = self._compile_prompts_patterns(prompts)
         self.process_full_lines_only = False
+        self.check_against_all_prompts = False
+        self._ret_list_matched = list()
 
     def on_new_line(self, line, is_full_line):
         try:
@@ -30,6 +34,7 @@ class Wait4prompts(GenericUnixTextualEvent):
             pass
 
     def _parse_prompts(self, line):
+        current_ret = None
         for prompt_regex in sorted(self.compiled_prompts_regex.keys(), key=attrgetter('pattern')):
             if self._regex_helper.search_compiled(prompt_regex, line):
                 current_ret = {
@@ -38,9 +43,16 @@ class Wait4prompts(GenericUnixTextualEvent):
                     'state': self.compiled_prompts_regex[prompt_regex],
                     'time': datetime.datetime.now()
                 }
-                self.event_occurred(event_data=current_ret)
-
-                raise ParsingDone()
+                if self.check_against_all_prompts:
+                    self._ret_list_matched.append(copy_dict(current_ret))
+                else:
+                    break
+        if current_ret:
+            if self.check_against_all_prompts:
+                current_ret['list_matched'] = self._ret_list_matched
+                self._ret_list_matched = list()
+            self.event_occurred(event_data=current_ret)
+            raise ParsingDone()
 
     def _compile_prompts_patterns(self, patterns):
         compiled_patterns = dict()
