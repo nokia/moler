@@ -23,7 +23,15 @@ class SetApn(GenericAtCommand):
     """
     def __init__(self, apn_name, context_identifier='1', pdp_type='IPV4V6',
                  connection=None, prompt=None, newline_chars=None, runner=None):
-        """Create instance of SetApn class"""
+         """
+        :apn_name: APN name to set on UE
+        :context_identifier: context identifier of setting APN
+        :pdp_type: PDP type (usually IP or IPV4V6)
+        :param connection: moler connection to device
+        :param prompt: start prompt (on system where command cd starts)
+        :param newline_chars: Characters to split lines
+        :param runner: Runner to run command
+        """
         super(SetApn, self).__init__(connection, operation='execute', prompt=prompt,
                                      newline_chars=newline_chars, runner=runner)
         self.apn_name = apn_name.strip('\"')
@@ -32,6 +40,10 @@ class SetApn(GenericAtCommand):
         self.ret_required = False
 
     def build_command_string(self):
+        """
+        Builds command string from parameters passed to object.
+        :return: String representation of command to send over connection to device.
+        """
         return "AT+CGDCONT={},\"{}\",\"{}\"".format(self.context_identifier, self.pdp_type, self.apn_name)
 
 
