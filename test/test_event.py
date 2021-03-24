@@ -166,6 +166,7 @@ def test_event_unicode_error(buffer_connection):
     event.raise_unicode = True
     event.start(timeout=0.1)
     buffer_connection.moler_connection.data_received("abc".encode("utf-8"), datetime.datetime.now())
+    MolerTest.sleep(0.1)
     event.raise_unicode = False
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     event.await_done()
