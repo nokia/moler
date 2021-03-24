@@ -23,7 +23,7 @@ class SetApn(GenericAtCommand):
     """
     def __init__(self, apn_name, context_identifier='1', pdp_type='IPV4V6',
                  connection=None, prompt=None, newline_chars=None, runner=None):
-         """
+        """
         :apn_name: APN name to set on UE
         :context_identifier: context identifier of setting APN
         :pdp_type: PDP type (usually IP or IPV4V6)
