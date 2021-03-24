@@ -21,10 +21,11 @@ class SetApn(GenericAtCommand):
     """
     Command to set apn.
     """
-    def __init__(self, apn_name, context_identifier='1', pdp_type='IPV4V6', connection=None, prompt=None, newline_chars=None, runner=None):
+    def __init__(self, apn_name, context_identifier='1', pdp_type='IPV4V6',
+                 connection=None, prompt=None, newline_chars=None, runner=None):
         """Create instance of SetApn class"""
-        super(SetMode, self).__init__(connection, operation='execute', prompt=prompt,
-                                      newline_chars=newline_chars, runner=runner)
+        super(SetApn, self).__init__(connection, operation='execute', prompt=prompt,
+                                     newline_chars=newline_chars, runner=runner)
         self.apn_name = apn_name.strip('\"')
         self.context_identifier = context_identifier.strip('\"')
         self.pdp_type = pdp_type.strip('\"')
