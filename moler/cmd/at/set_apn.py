@@ -48,12 +48,25 @@ class SetApn(GenericAtCommand):
 # COMMAND_RESULT_suffix
 # -----------------------------------------------------------------------------
 
-COMMAND_OUTPUT_apn_and_default_parameter = """
+COMMAND_OUTPUT_default_parameter = """
 AT+CGDCONT=1,"IPV4V6","5gkrk"
 
 OK
 """
 
-COMMAND_KWARGS_apn_and_default_parameter = {"apn_name": "5gkrk"}
+COMMAND_KWARGS_default_parameter = {"apn_name": "5gkrk"}
 
-COMMAND_RESULT_apn_and_default_parameter = {}
+COMMAND_RESULT_default_parameter = {}
+
+
+COMMAND_OUTPUT_all_parameter = """
+AT+CGDCONT=4,"IP","5gkrk"
+
+OK
+"""
+
+COMMAND_KWARGS_all_parameter = {"apn_name": "5gkrk",
+                               "context_identifier: '4', 
+                               "pdp_type": 'IP'}
+
+COMMAND_RESULT_all_parameter = {}
