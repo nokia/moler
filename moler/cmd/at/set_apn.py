@@ -66,7 +66,7 @@ OK
 """
 
 COMMAND_KWARGS_all_parameter = {"apn_name": "5gkrk",
-                               "context_identifier: '4', 
-                               "pdp_type": 'IP'}
+                               "context_identifier": "4",
+                               "pdp_type": "IP"}
 
 COMMAND_RESULT_all_parameter = {}
