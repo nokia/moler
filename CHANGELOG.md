@@ -1,3 +1,14 @@
+## moler 1.28.0
+
+### Added
+* Add-set-apn-at-cmd
+
+### Improved
+* CMDs and events - empty string as unicode
+* Coverage events in test - 100%
+* Faster SM tests
+* State machine in device - check overlapping patterns for prompts.
+
 ## moler 1.27.0
 
 ### Added
