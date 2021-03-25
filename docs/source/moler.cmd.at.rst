@@ -132,6 +132,14 @@ moler.cmd.at.plink\_serial module
     :undoc-members:
     :show-inheritance:
 
+moler.cmd.at.set\_apn module
+----------------------------
+
+.. automodule:: moler.cmd.at.set_apn
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.cmd.at.set\_mode module
 -----------------------------
 
