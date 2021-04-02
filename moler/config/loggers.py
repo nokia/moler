@@ -458,7 +458,6 @@ def _list_libraries(logger):
             logger.debug(msg)
 
 
-
 def configure_runner_logger(runner_name):
     """Configure logger with file storing runner's log"""
     logger_name = 'moler.runner.{}'.format(runner_name)
