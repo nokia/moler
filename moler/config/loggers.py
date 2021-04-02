@@ -446,10 +446,12 @@ def configure_moler_main_logger():
 def _list_libraries(logger):
     installed_packages = pkg_resources.working_set
     packages = dict()
+    re_moler = re.compile("moler")
+    
     for dist in installed_packages:
         packages[dist.project_name] = dist.version
-    re_moler = re.compile("moler")
-    logger.debug("Installed packages:")
+    
+    logger.info("Installed packages:")
     for dist_name in sorted(packages.keys()):
         msg = "'{}':'{}'.".format(dist_name, packages[dist_name])
         if re.search(re_moler, dist_name):
