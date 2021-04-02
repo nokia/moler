@@ -438,8 +438,25 @@ def configure_moler_main_logger():
                                                                                _get_moler_version())
         logger.info(msg)
         logger.info("More logs in: {}".format(_logging_path))
+        _list_libraries(logger=logger)
         global _main_logger
         _main_logger = logger
+
+
+def _list_libraries(logger):
+    installed_packages = pkg_resources.working_set
+    packages = dict()
+    for dist in installed_packages:
+        packages[dist.project_name] = dist.version
+    re_moler = re.compile("moler")
+    logger.debug("Installed packages:")
+    for dist_name in sorted(packages.keys()):
+        msg = "'{}':'{}'.".format(dist_name, packages[dist_name])
+        if re.search(re_moler, dist_name):
+            logger.info(msg)
+        else:
+            logger.debug(msg)
+
 
 
 def configure_runner_logger(runner_name):
