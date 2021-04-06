@@ -444,6 +444,11 @@ def configure_moler_main_logger():
 
 
 def _list_libraries(logger):
+    """
+    List installed Python libraries to log file.
+    :param logger: logger to log.
+    :return: None
+    """
     installed_packages = pkg_resources.working_set
     packages = dict()
     re_moler = re.compile("moler")
