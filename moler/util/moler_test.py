@@ -4,13 +4,15 @@ Utility/common code of library.
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
 import time
 import gc
 import pprint
+import os
+import signal
 from functools import partial
 from functools import wraps
 from types import FunctionType, MethodType
@@ -64,6 +66,18 @@ class MolerTest(object):
         """
         msg = MolerTest._get_string_message(msg, dump)
         MolerTest._logger.warning(msg)
+
+    @staticmethod
+    def stop_python(force=False):
+        """
+        Stops current Python.
+        :return: None
+        """
+        MolerTest.info("Python will be closed by user request.")
+        pid = os.getpid()
+        if force:
+            os.kill(pid, signal.SIGKILL)
+        os.kill(pid, signal.SIGINT)
 
     @staticmethod
     def _dump(obj):
