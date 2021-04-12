@@ -46,7 +46,7 @@ class MolerTest(object):
         MolerTest._error(msg, raise_exception, dump)
 
     @classmethod
-    def info(msg, dump=None):
+    def info(cls, msg, dump=None):
         """
         Shows the message
         :param msg: Message to show.
