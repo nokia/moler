@@ -24,16 +24,16 @@ from moler.exceptions import ExecutionException
 
 class MolerTest(object):
 
-    @staticmethod
-    def steps_end():
+    @classmethod
+    def steps_end(cls):
         """
         You should call this function at the end of your test code with Moler.
         :return: None
         """
         MolerTest._was_steps_end = True
 
-    @staticmethod
-    def error(msg, raise_exception=False, dump=None):
+    @classmethod
+    def error(cls, msg, raise_exception=False, dump=None):
         """
         Makes an error (fail the test) and (optional) continue the test flow.
         :param msg: Message to show.
@@ -45,7 +45,7 @@ class MolerTest(object):
         MolerTest._list_of_errors.append(msg)
         MolerTest._error(msg, raise_exception, dump)
 
-    @staticmethod
+    @classmethod
     def info(msg, dump=None):
         """
         Shows the message
@@ -56,8 +56,8 @@ class MolerTest(object):
         msg = MolerTest._get_string_message(msg, dump)
         MolerTest._logger.info(msg)
 
-    @staticmethod
-    def warning(msg, dump=None):
+    @classmethod
+    def warning(cls, msg, dump=None):
         """
         Shows the message as warning.
         :param msg: Message to show.
@@ -67,8 +67,8 @@ class MolerTest(object):
         msg = MolerTest._get_string_message(msg, dump)
         MolerTest._logger.warning(msg)
 
-    @staticmethod
-    def stop_python(force=False):
+    @classmethod
+    def stop_python(cls, force=False):
         """
         Stops current Python.
         :return: None
@@ -79,8 +79,8 @@ class MolerTest(object):
             os.kill(pid, signal.SIGKILL)
         os.kill(pid, signal.SIGINT)
 
-    @staticmethod
-    def _dump(obj):
+    @classmethod
+    def _dump(cls, obj):
         """
         Dumping objet to moler log.
         :param obj: Object to dump.
@@ -89,16 +89,16 @@ class MolerTest(object):
         msg_str = pprint.pformat(obj, indent=1)
         return msg_str
 
-    @staticmethod
-    def _get_string_message(msg, dump):
+    @classmethod
+    def _get_string_message(cls, msg, dump):
         if dump is not None:
             dump_str = MolerTest._dump(dump)
             msg = "{}\n{}".format(msg, dump_str)
 
         return msg
 
-    @staticmethod
-    def sleep(seconds, quiet=False):
+    @classmethod
+    def sleep(cls, seconds, quiet=False):
         """
         Add sleep functionality
         TODO: add support to asyncio when runner ready
@@ -110,8 +110,8 @@ class MolerTest(object):
             MolerTest.info("Sleep for {:.2f} seconds.".format(seconds))
         time.sleep(seconds)
 
-    @staticmethod
-    def raise_background_exceptions(decorated="function", check_steps_end=False):
+    @classmethod
+    def raise_background_exceptions(cls, decorated="function", check_steps_end=False):
         """
         Decorates the function, method or class.
         :param decorated: Function, method or class to decorate.
@@ -132,8 +132,8 @@ class MolerTest(object):
     _logger = logging.getLogger("moler")
     _list_of_errors = list()
 
-    @staticmethod
-    def _error(msg, raise_exception=False, dump=None):
+    @classmethod
+    def _error(cls, msg, raise_exception=False, dump=None):
         MolerTest._was_error = True
         msg = MolerTest._get_string_message(msg, dump)
         MolerTest._logger.error(msg, extra={'moler_error': True})
@@ -141,8 +141,8 @@ class MolerTest(object):
         if raise_exception:
             raise MolerException(msg)
 
-    @staticmethod
-    def _steps_start():
+    @classmethod
+    def _steps_start(cls):
         err_msg = MolerTest._prepare_err_msg(None)
         MolerTest._list_of_errors = list()  # clean the list for new test
         MolerTest._was_error = False
@@ -153,8 +153,8 @@ class MolerTest(object):
             err_msg = "{} {}".format(prefix, err_msg)
             MolerTest._error(err_msg)
 
-    @staticmethod
-    def _prepare_err_msg(caught_exception):
+    @classmethod
+    def _prepare_err_msg(cls, caught_exception):
         was_error_in_last_execution = MolerTest._was_error
         err_msg = ""
 
@@ -185,8 +185,8 @@ class MolerTest(object):
 
         return err_msg
 
-    @staticmethod
-    def _check_exceptions_occured(caught_exception=None):
+    @classmethod
+    def _check_exceptions_occured(cls, caught_exception=None):
         err_msg = MolerTest._prepare_err_msg(caught_exception)
 
         if err_msg:
@@ -195,16 +195,16 @@ class MolerTest(object):
             MolerTest._list_of_errors = list()
             raise ExecutionException(err_msg)
 
-    @staticmethod
-    def _check_steps_end():
+    @classmethod
+    def _check_steps_end(cls):
         if not MolerTest._was_steps_end:
             err_msg = "Method 'steps_end()' was not called or parameter 'check_steps_end' was not set properly.\n."
             MolerTest._error(err_msg)
             MolerTest._was_error = False
             raise ExecutionException(err_msg)
 
-    @staticmethod
-    def _decorate(obj=None, check_steps_end=False):
+    @classmethod
+    def _decorate(cls, obj=None, check_steps_end=False):
         # check that decorated function is not statimethod or classmethod
         if not obj:
             raise ExecutionException("Decorator for 'staticmethod' or 'classmethod' not implemented yet.",
@@ -228,8 +228,8 @@ class MolerTest(object):
 
         return obj
 
-    @staticmethod
-    def _wrapper(method, check_steps_end):
+    @classmethod
+    def _wrapper(cls, method, check_steps_end):
         if hasattr(method, '_already_decorated') and method._already_decorated:
             return method
 
