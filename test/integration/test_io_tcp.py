@@ -17,6 +17,7 @@ import pytest
 import threading
 import sys
 
+
 python3_only = pytest.mark.skipif(sys.version_info < (3, 0),
                                   reason="Not stable under Python2 which is no more supported.")
 
