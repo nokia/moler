@@ -15,6 +15,10 @@ import time
 import importlib
 import pytest
 import threading
+import sys
+
+if sys.version_info < (3, 0):
+    pytest.skip()  # Not stable under Python2 which is no more supported.
 
 
 def test_can_open_and_close_connection(tcp_connection_class,
