@@ -30,7 +30,7 @@ class MolerTest(object):
         You should call this function at the end of your test code with Moler.
         :return: None
         """
-        MolerTest._was_steps_end = True
+        cls._was_steps_end = True
 
     @classmethod
     def error(cls, msg, raise_exception=False, dump=None):
@@ -42,8 +42,8 @@ class MolerTest(object):
         :param dump: If defined then dump object.
         :return: None.
         """
-        MolerTest._list_of_errors.append(msg)
-        MolerTest._error(msg, raise_exception, dump)
+        cls._list_of_errors.append(msg)
+        cls._error(msg, raise_exception, dump)
 
     @classmethod
     def info(cls, msg, dump=None):
@@ -53,8 +53,8 @@ class MolerTest(object):
         :param dump: If defined then dump object.
         :return: None.
         """
-        msg = MolerTest._get_string_message(msg, dump)
-        MolerTest._logger.info(msg)
+        msg = cls._get_string_message(msg, dump)
+        cls._logger.info(msg)
 
     @classmethod
     def warning(cls, msg, dump=None):
@@ -64,8 +64,8 @@ class MolerTest(object):
         :param dump: If defined then dump object.
         :return: None
         """
-        msg = MolerTest._get_string_message(msg, dump)
-        MolerTest._logger.warning(msg)
+        msg = cls._get_string_message(msg, dump)
+        cls._logger.warning(msg)
 
     @classmethod
     def stop_python(cls, force=False):
@@ -73,7 +73,7 @@ class MolerTest(object):
         Stops current Python.
         :return: None
         """
-        MolerTest.info("Python will be closed by user request.")
+        cls.info("Python will be closed by user request.")
         pid = os.getpid()
         if force:
             os.kill(pid, signal.SIGKILL)
@@ -92,7 +92,7 @@ class MolerTest(object):
     @classmethod
     def _get_string_message(cls, msg, dump):
         if dump is not None:
-            dump_str = MolerTest._dump(dump)
+            dump_str = cls._dump(dump)
             msg = "{}\n{}".format(msg, dump_str)
 
         return msg
@@ -107,7 +107,7 @@ class MolerTest(object):
         :return:
         """
         if not quiet:
-            MolerTest.info("Sleep for {:.2f} seconds.".format(seconds))
+            cls.info("Sleep for {:.2f} seconds.".format(seconds))
         time.sleep(seconds)
 
     @classmethod
@@ -121,9 +121,9 @@ class MolerTest(object):
         """
         if callable(decorated):
             # direct decoration
-            return MolerTest._decorate(decorated, check_steps_end=check_steps_end)
+            return cls._decorate(decorated, check_steps_end=check_steps_end)
         else:
-            return partial(MolerTest._decorate, check_steps_end=check_steps_end)
+            return partial(cls._decorate, check_steps_end=check_steps_end)
 
     # No public methods and fields below:
 
@@ -134,28 +134,28 @@ class MolerTest(object):
 
     @classmethod
     def _error(cls, msg, raise_exception=False, dump=None):
-        MolerTest._was_error = True
-        msg = MolerTest._get_string_message(msg, dump)
-        MolerTest._logger.error(msg, extra={'moler_error': True})
+        cls._was_error = True
+        msg = cls._get_string_message(msg, dump)
+        cls._logger.error(msg, extra={'moler_error': True})
 
         if raise_exception:
             raise MolerException(msg)
 
     @classmethod
     def _steps_start(cls):
-        err_msg = MolerTest._prepare_err_msg(None)
-        MolerTest._list_of_errors = list()  # clean the list for new test
-        MolerTest._was_error = False
-        MolerTest._was_steps_end = False
+        err_msg = cls._prepare_err_msg(None)
+        cls._list_of_errors = list()  # clean the list for new test
+        cls._was_error = False
+        cls._was_steps_end = False
         if err_msg:
             prefix = "Moler caught some error messages during execution. Please check Moler logs for details."\
                      " List of them:\n"
             err_msg = "{} {}".format(prefix, err_msg)
-            MolerTest._error(err_msg)
+            cls._error(err_msg)
 
     @classmethod
     def _prepare_err_msg(cls, caught_exception):
-        was_error_in_last_execution = MolerTest._was_error
+        was_error_in_last_execution = cls._was_error
         err_msg = ""
 
         unraised_exceptions = ConnectionObserver.get_unraised_exceptions(True)
@@ -177,30 +177,30 @@ class MolerTest(object):
                 except AttributeError:
                     err_msg += repr(exc)
 
-        if len(MolerTest._list_of_errors) > 0:
+        if len(cls._list_of_errors) > 0:
             err_msg += "Moler caught some error messages during execution:\n"
 
-            for i, msg in enumerate(MolerTest._list_of_errors, 1):
+            for i, msg in enumerate(cls._list_of_errors, 1):
                 err_msg += "  {}) >>{}<<\n".format(i, msg)
 
         return err_msg
 
     @classmethod
     def _check_exceptions_occured(cls, caught_exception=None):
-        err_msg = MolerTest._prepare_err_msg(caught_exception)
+        err_msg = cls._prepare_err_msg(caught_exception)
 
         if err_msg:
-            MolerTest._error(err_msg)
-            MolerTest._was_error = False
-            MolerTest._list_of_errors = list()
+            cls._error(err_msg)
+            cls._was_error = False
+            cls._list_of_errors = list()
             raise ExecutionException(err_msg)
 
     @classmethod
     def _check_steps_end(cls):
-        if not MolerTest._was_steps_end:
+        if not cls._was_steps_end:
             err_msg = "Method 'steps_end()' was not called or parameter 'check_steps_end' was not set properly.\n."
-            MolerTest._error(err_msg)
-            MolerTest._was_error = False
+            cls._error(err_msg)
+            cls._was_error = False
             raise ExecutionException(err_msg)
 
     @classmethod
@@ -220,9 +220,9 @@ class MolerTest(object):
 
                     if not attributeName.startswith("_"):
                         if isinstance(attribute, (FunctionType, MethodType)):
-                            setattr(obj, attributeName, MolerTest._wrapper(attribute, check_steps_end=check_steps_end))
+                            setattr(obj, attributeName, cls._wrapper(attribute, check_steps_end=check_steps_end))
             else:
-                obj = MolerTest._wrapper(obj, check_steps_end=check_steps_end)
+                obj = cls._wrapper(obj, check_steps_end=check_steps_end)
         else:
             raise ExecutionException("No '__dict__' in decorated object.")
 
@@ -235,16 +235,16 @@ class MolerTest(object):
 
         @wraps(method)
         def wrapped(*args, **kwargs):
-            MolerTest._steps_start()
+            cls._steps_start()
             caught_exception = None
             try:
                 result = method(*args, **kwargs)
             except Exception as exc:
                 caught_exception = exc
             finally:
-                MolerTest._check_exceptions_occured(caught_exception)
+                cls._check_exceptions_occured(caught_exception)
                 if check_steps_end:
-                    MolerTest._check_steps_end()
+                    cls._check_steps_end()
             gc.collect()
             return result
 
