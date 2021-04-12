@@ -1,3 +1,9 @@
+## moler 1.29.0
+
+### Improved
+* Close python
+* Packages list
+
 ## moler 1.28.0
 
 ### Added
