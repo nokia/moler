@@ -7,7 +7,7 @@ Testing external-IO TCP connection
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 
@@ -17,10 +17,11 @@ import pytest
 import threading
 import sys
 
-if sys.version_info < (3, 0):
-    pytest.skip()  # Not stable under Python2 which is no more supported.
+python3_only = pytest.mark.skipif(sys.version_info < (3, 0),
+                                  reason="Not stable under Python2 which is no more supported.")
 
 
+@python3_only()
 def test_can_open_and_close_connection(tcp_connection_class,
                                        integration_tcp_server_and_pipe):
     """
@@ -41,6 +42,7 @@ def test_can_open_and_close_connection(tcp_connection_class,
     assert 'Client disconnected' in dialog_with_server
 
 
+@python3_only()
 def test_can_open_and_close_connection_as_context_manager(tcp_connection_class,
                                                           integration_tcp_server_and_pipe):
     from moler.threaded_moler_connection import ThreadedMolerConnection
@@ -59,6 +61,7 @@ def test_can_open_and_close_connection_as_context_manager(tcp_connection_class,
 # Note: different external-IO connection may have different naming for their 'send' method
 # however, they are uniformed via glueing with moler_connection.send()
 # external-IO 'send' method works on bytes; moler_connection performs encoding
+@python3_only()
 def test_can_send_binary_data_over_connection(tcp_connection_class,
                                               integration_tcp_server_and_pipe):
     from moler.threaded_moler_connection import ThreadedMolerConnection
@@ -78,6 +81,7 @@ def test_can_send_binary_data_over_connection(tcp_connection_class,
 # however, they are uniformed via glueing with moler_connection.data_received()
 # so, external-IO forwards data to moler_connection.data_received()
 # and moler-connection forwards it to anyone subscribed
+@python3_only()
 def test_can_receive_binary_data_from_connection(tcp_connection_class,
                                                  integration_tcp_server_and_pipe):
     from moler.threaded_moler_connection import ThreadedMolerConnection
