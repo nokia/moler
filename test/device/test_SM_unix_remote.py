@@ -7,7 +7,6 @@ import pytest
 from moler.util.devices_SM import iterate_over_device_states, get_device
 from moler.exceptions import MolerException
 from moler.helpers import copy_dict
-from moler.device import DeviceFactory
 
 
 def test_unix_remote_device(device_connection, unix_remote_output):
