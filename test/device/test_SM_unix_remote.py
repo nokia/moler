@@ -68,6 +68,13 @@ def test_unix_remote_proxy_pc_device_goto_state_bg(device_connection, unix_remot
     time_diff = abs(execution_time_bg - execution_time_fg)
     assert time_diff < min(execution_time_fg, execution_time_bg) / 5
 
+    unix_remote_proxy_pc.goto_state(state=src_state)
+    assert unix_remote_proxy_pc.current_state == src_state
+    unix_remote_proxy_pc.goto_state_bg(state=dst_state)
+    assert unix_remote_proxy_pc.current_state != dst_state
+    unix_remote_proxy_pc.goto_state(state=dst_state)
+    assert unix_remote_proxy_pc.current_state == dst_state
+
 
 @pytest.fixture
 def unix_remote_output():
