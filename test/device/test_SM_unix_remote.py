@@ -54,10 +54,8 @@ def test_unix_remote_proxy_pc_device_goto_state_bg(device_connection, unix_remot
     unix_remote_proxy_pc.goto_state_bg(state=dst_state)
     assert unix_remote_proxy_pc.current_state != dst_state
     start_time = time.time()
-    while dst_state != unix_remote_proxy_pc.current_state:
+    while dst_state != unix_remote_proxy_pc.current_state and (time.time() - start_time) < 10:
         MolerTest.sleep(0.1)
-        if (time.time() - start_time) > 10:
-            break
     assert unix_remote_proxy_pc.current_state == dst_state
 
 
