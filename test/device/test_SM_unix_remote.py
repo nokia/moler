@@ -3,10 +3,11 @@ __copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
-
+import time
 from moler.util.devices_SM import iterate_over_device_states, get_device
 from moler.exceptions import MolerException
 from moler.helpers import copy_dict
+from moler.util.moler_test import MolerTest
 
 
 def test_unix_remote_device(device_connection, unix_remote_output):
@@ -40,6 +41,24 @@ def test_unix_remote_proxy_pc_device_multiple_prompts(device_connection, unix_re
     with pytest.raises(MolerException) as exception:
         iterate_over_device_states(device=unix_remote_proxy_pc)
     assert "More than 1 prompt match the same line" in str(exception.value)
+
+
+def test_unix_remote_proxy_pc_device_goto_state_bg(device_connection, unix_remote_proxy_pc_output):
+    unix_remote_proxy_pc = get_device(name="UNIX_REMOTE_PROXY_PC", connection=device_connection,
+                                      device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
+
+    dst_state = "UNIX_REMOTE_ROOT"
+    src_state = "UNIX_LOCAL"
+    unix_remote_proxy_pc.goto_state(state=src_state)
+    assert unix_remote_proxy_pc.current_state == src_state
+    unix_remote_proxy_pc.goto_state_bg(state=dst_state)
+    assert unix_remote_proxy_pc.current_state != dst_state
+    start_time = time.time()
+    while dst_state != unix_remote_proxy_pc.current_state:
+        MolerTest.sleep(0.1)
+        if (time.time() - start_time) > 10:
+            break
+    assert unix_remote_proxy_pc.current_state == dst_state
 
 
 @pytest.fixture
