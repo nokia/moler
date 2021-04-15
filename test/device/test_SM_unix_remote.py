@@ -66,7 +66,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg(device_connection, unix_remot
     execution_time_fg = time.time() - start_time
     assert unix_remote_proxy_pc.current_state == dst_state
     time_diff = abs(execution_time_bg - execution_time_fg)
-    assert time_diff < min(execution_time_fg, execution_time_bg) / 5
+    assert time_diff < min(execution_time_fg, execution_time_bg) / 2
 
     unix_remote_proxy_pc.goto_state(state=src_state)
     assert unix_remote_proxy_pc.current_state == src_state
