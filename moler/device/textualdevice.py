@@ -457,7 +457,7 @@ class TextualDevice(AbstractDevice):
             if len(self._queue_states) == 0 and self._thread_for_goto_state is None:
                 return
         raise DeviceChangeStateFailure("After {} seconds there are still states to go: '{}' and/or thread to change"
-                                       " state".format(time.time()-start_time, self._queue_states,
+                                       " state".format(time.time() - start_time, self._queue_states,
                                                        self._thread_for_goto_state))
 
     def _recover_state(self, state, keep_state=True):
