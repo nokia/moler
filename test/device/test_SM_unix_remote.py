@@ -5,7 +5,7 @@ __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 import pytest
 import time
 from moler.util.devices_SM import iterate_over_device_states, get_device
-from moler.exceptions import MolerException
+from moler.exceptions import MolerException, DeviceChangeStateFailure
 from moler.helpers import copy_dict
 from moler.util.moler_test import MolerTest
 
@@ -74,6 +74,35 @@ def test_unix_remote_proxy_pc_device_goto_state_bg(device_connection, unix_remot
     assert unix_remote_proxy_pc.current_state != dst_state
     unix_remote_proxy_pc.goto_state(state=dst_state)
     assert unix_remote_proxy_pc.current_state == dst_state
+
+
+def test_unix_remote_proxy_pc_device_goto_state_bg_await(device_connection, unix_remote_proxy_pc_output):
+    unix_remote_proxy_pc = get_device(name="UNIX_REMOTE_PROXY_PC", connection=device_connection,
+                                      device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
+
+    dst_state = "UNIX_REMOTE_ROOT"
+    src_state = "UNIX_LOCAL"
+    unix_remote_proxy_pc.goto_state(state=src_state)
+    assert unix_remote_proxy_pc.current_state == src_state
+    unix_remote_proxy_pc.goto_state_bg(state=dst_state)
+    assert unix_remote_proxy_pc.current_state != dst_state
+    unix_remote_proxy_pc.await_goto_state()
+    assert unix_remote_proxy_pc.current_state == dst_state
+
+
+def test_unix_remote_proxy_pc_device_goto_state_bg_await_excption(device_connection, unix_remote_proxy_pc_output):
+    unix_remote_proxy_pc = get_device(name="UNIX_REMOTE_PROXY_PC", connection=device_connection,
+                                      device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
+
+    dst_state = "UNIX_REMOTE_ROOT"
+    src_state = "UNIX_LOCAL"
+    unix_remote_proxy_pc.goto_state(state=src_state)
+    assert unix_remote_proxy_pc.current_state == src_state
+    unix_remote_proxy_pc.goto_state_bg(state=dst_state)
+    assert unix_remote_proxy_pc.current_state != dst_state
+    with pytest.raises(DeviceChangeStateFailure) as de:
+        unix_remote_proxy_pc.await_goto_state(timeout=0.001)
+    assert 'seconds there are still states to go' in str(de.value)
 
 
 @pytest.fixture

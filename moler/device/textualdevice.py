@@ -454,11 +454,12 @@ class TextualDevice(AbstractDevice):
         """
         start_time = time.time()
         while time.time() - start_time <= timeout:
-            if len(self._queue_states) == 0 and self._thread_for_goto_state is None:
+            if self._queue_states.empty() and self._thread_for_goto_state is None:
                 return
-        raise DeviceChangeStateFailure("After {} seconds there are still states to go: '{}' and/or thread to change"
-                                       " state".format(time.time() - start_time, self._queue_states,
-                                                       self._thread_for_goto_state))
+        raise DeviceChangeStateFailure(device=self.__class__.__name__,
+                                       exception="After {} seconds there are still states to go: '{}' and/or thread to"
+                                                 " change state".format(time.time() - start_time, self._queue_states,
+                                                                        self._thread_for_goto_state))
 
     def _recover_state(self, state, keep_state=True):
         if self._goto_state_in_production_mode is False:
