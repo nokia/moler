@@ -435,12 +435,38 @@ class TextualDevice(AbstractDevice):
             ignore_exceptions=False
         )
 
-    def _recover_state(self, state):
+    def goto_state_bg(self, state, keep_state=False):
+        """
+        Starts to go to state. Returns immediately.
+        :param state: name of state.
+        :param keep_state: if True and state is changed without goto_state then device tries to change state to state
+        defined by goto_state.
+        :return: None
+        """
+        self._recover_state(state=state, keep_state=keep_state)
+
+    def await_goto_state(self, timeout=10):
+        """
+        Waits till goto_state chain is empty.
+        :param timeout: timeout in seconds.
+        :return: None
+        :raise DeviceChangeStateFailure: if the goto_state chain is not empty and timeout occurs.
+        """
+        start_time = time.time()
+        while time.time() - start_time <= timeout:
+            if self._queue_states.empty() and self._thread_for_goto_state is None:
+                return
+        raise DeviceChangeStateFailure(device=self.__class__.__name__,
+                                       exception="After {} seconds there are still states to go: '{}' and/or thread to"
+                                                 " change state".format(time.time() - start_time, self._queue_states,
+                                                                        self._thread_for_goto_state))
+
+    def _recover_state(self, state, keep_state=True):
         if self._goto_state_in_production_mode is False:
             return
         with self._goto_state_thread_manipulation_lock:
             state_options = {
-                'dest_state': state, 'keep_state': True, 'timeout': self.timeout_keep_state,
+                'dest_state': state, 'keep_state': keep_state, 'timeout': self.timeout_keep_state,
                 'rerun': 0,
                 'send_enter_after_changed_state': False,
                 'log_stacktrace_on_fail': False,

@@ -3,10 +3,11 @@ __copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
-
+import time
 from moler.util.devices_SM import iterate_over_device_states, get_device
-from moler.exceptions import MolerException
+from moler.exceptions import MolerException, DeviceChangeStateFailure
 from moler.helpers import copy_dict
+from moler.util.moler_test import MolerTest
 
 
 def test_unix_remote_device(device_connection, unix_remote_output):
@@ -40,6 +41,77 @@ def test_unix_remote_proxy_pc_device_multiple_prompts(device_connection, unix_re
     with pytest.raises(MolerException) as exception:
         iterate_over_device_states(device=unix_remote_proxy_pc)
     assert "More than 1 prompt match the same line" in str(exception.value)
+
+
+def test_unix_remote_proxy_pc_device_goto_state_bg(device_connection, unix_remote_proxy_pc_output):
+    unix_remote_proxy_pc = get_device(name="UNIX_REMOTE_PROXY_PC", connection=device_connection,
+                                      device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
+
+    dst_state = "UNIX_REMOTE_ROOT"
+    src_state = "UNIX_LOCAL"
+    unix_remote_proxy_pc.goto_state(state=src_state)
+    assert unix_remote_proxy_pc.current_state == src_state
+    start_time = time.time()
+    unix_remote_proxy_pc.goto_state_bg(state=dst_state)
+    assert unix_remote_proxy_pc.current_state != dst_state
+    while dst_state != unix_remote_proxy_pc.current_state and (time.time() - start_time) < 10:
+        MolerTest.sleep(0.01)
+    execution_time_bg = time.time() - start_time
+    assert unix_remote_proxy_pc.current_state == dst_state
+
+    unix_remote_proxy_pc.goto_state(state=src_state)
+    assert unix_remote_proxy_pc.current_state == src_state
+    start_time = time.time()
+    unix_remote_proxy_pc.goto_state(state=dst_state)
+    execution_time_fg = time.time() - start_time
+    assert unix_remote_proxy_pc.current_state == dst_state
+    time_diff = abs(execution_time_bg - execution_time_fg)
+    assert time_diff < min(execution_time_fg, execution_time_bg) / 2
+
+
+def test_unix_remote_proxy_pc_device_goto_state_bg_and_goto(device_connection, unix_remote_proxy_pc_output):
+    unix_remote_proxy_pc = get_device(name="UNIX_REMOTE_PROXY_PC", connection=device_connection,
+                                      device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
+
+    dst_state = "UNIX_REMOTE_ROOT"
+    src_state = "UNIX_LOCAL"
+    unix_remote_proxy_pc.goto_state(state=src_state)
+    assert unix_remote_proxy_pc.current_state == src_state
+    unix_remote_proxy_pc.goto_state_bg(state=dst_state)
+    assert unix_remote_proxy_pc.current_state != dst_state
+    unix_remote_proxy_pc.goto_state(state=dst_state)
+    assert unix_remote_proxy_pc.current_state == dst_state
+
+
+def test_unix_remote_proxy_pc_device_goto_state_bg_await(device_connection, unix_remote_proxy_pc_output):
+    unix_remote_proxy_pc = get_device(name="UNIX_REMOTE_PROXY_PC", connection=device_connection,
+                                      device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
+
+    dst_state = "UNIX_REMOTE_ROOT"
+    src_state = "UNIX_LOCAL"
+    unix_remote_proxy_pc.goto_state(state=src_state)
+    assert unix_remote_proxy_pc.current_state == src_state
+    unix_remote_proxy_pc.goto_state_bg(state=dst_state)
+    assert unix_remote_proxy_pc.current_state != dst_state
+    unix_remote_proxy_pc.await_goto_state()
+    assert unix_remote_proxy_pc.current_state == dst_state
+
+
+def test_unix_remote_proxy_pc_device_goto_state_bg_await_excption(device_connection, unix_remote_proxy_pc_output):
+    unix_remote_proxy_pc = get_device(name="UNIX_REMOTE_PROXY_PC", connection=device_connection,
+                                      device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
+
+    dst_state = "UNIX_REMOTE_ROOT"
+    src_state = "UNIX_LOCAL"
+    unix_remote_proxy_pc.goto_state(state=src_state)
+    assert unix_remote_proxy_pc.current_state == src_state
+    unix_remote_proxy_pc.goto_state_bg(state=dst_state)
+    assert unix_remote_proxy_pc.current_state != dst_state
+    with pytest.raises(DeviceChangeStateFailure) as de:
+        unix_remote_proxy_pc.await_goto_state(timeout=0.001)
+    assert 'seconds there are still states to go' in str(de.value)
+    unix_remote_proxy_pc.await_goto_state()
+    assert unix_remote_proxy_pc.current_state == dst_state
 
 
 @pytest.fixture
