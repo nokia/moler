@@ -68,6 +68,13 @@ def test_unix_remote_proxy_pc_device_goto_state_bg(device_connection, unix_remot
     time_diff = abs(execution_time_bg - execution_time_fg)
     assert time_diff < min(execution_time_fg, execution_time_bg) / 2
 
+
+def test_unix_remote_proxy_pc_device_goto_state_bg_and_goto(device_connection, unix_remote_proxy_pc_output):
+    unix_remote_proxy_pc = get_device(name="UNIX_REMOTE_PROXY_PC", connection=device_connection,
+                                      device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
+
+    dst_state = "UNIX_REMOTE_ROOT"
+    src_state = "UNIX_LOCAL"
     unix_remote_proxy_pc.goto_state(state=src_state)
     assert unix_remote_proxy_pc.current_state == src_state
     unix_remote_proxy_pc.goto_state_bg(state=dst_state)
