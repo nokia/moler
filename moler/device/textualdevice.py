@@ -670,7 +670,6 @@ class TextualDevice(AbstractDevice):
             available_observer_names = self._cmdnames_available_in_state[for_state]
         elif observer_type == TextualDevice.events:
             available_observer_names = self._eventnames_available_in_state[for_state]
-
         if observer_name in available_observer_names:
             observer_params = dict(kwargs, connection=self.io_connection.moler_connection)
             observer = create_instance_from_class_fullname(
@@ -833,6 +832,14 @@ class TextualDevice(AbstractDevice):
         if state not in self.states:
             self.SM.add_state(state)
             self.states.append(state)
+
+    def exchange_io_connection(self, io_connection):
+        self._close_connection(None, None, None)
+        self.io_connection = io_connection
+        self.io_connection.set_device(self)
+        self.io_connection.open()
+        self._set_state("UNIX_LOCAL")
+        self._run_prompts_observers()
 
     def _open_connection(self, source_state, dest_state, timeout):
         self.io_connection.open()

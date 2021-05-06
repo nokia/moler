@@ -4,7 +4,7 @@ __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
 import time
-from moler.util.devices_SM import iterate_over_device_states, get_device
+from moler.util.devices_SM import iterate_over_device_states, get_device, get_cloned_device, get_memory_device_connection
 from moler.exceptions import MolerException, DeviceChangeStateFailure
 from moler.helpers import copy_dict
 from moler.util.moler_test import MolerTest
