@@ -399,7 +399,9 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         passed = time.time() - connection_observer.life_status.start_time
         future = connection_observer_future or connection_observer._future
         if future:
+            self.logger.debug(">>> Entering {}. conn-obs '{}' runner '{}' future '{}'".format(future.observer_lock, connection_observer, self, future))
             with future.observer_lock:
+                self.logger.debug(">>> Entered  {}. conn-obs '{}' runner '{}' future '{}'".format(future.observer_lock, connection_observer, self, future))
                 time_out_observer(connection_observer=connection_observer,
                                   timeout=timeout, passed_time=passed,
                                   runner_logger=self.logger, kind="await_done")
@@ -435,14 +437,18 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             try:
                 if connection_observer.done() or self._in_shutdown:
                     return  # even not unsubscribed secure_data_received() won't pass data to done observer
+                self.logger.debug(">>> Entering {}. conn-obs '{}' runner '{}' data '{}'".format(observer_lock, connection_observer, self, data))
                 with observer_lock:
+                    self.logger.debug(">>> Entered  {}. conn-obs '{}' runner '{}' data '{}'".format(observer_lock, connection_observer, self, data))
                     connection_observer.data_received(data, timestamp)
                     connection_observer.life_status.last_feed_time = time.time()
 
             except Exception as exc:  # TODO: handling stacktrace
                 # observers should not raise exceptions during data parsing
                 # but if they do so - we fix it
+                self.logger.debug(">>> Entering err {}. conn-obs '{}' runner. '{}'".format(observer_lock, connection_observer, self))
                 with observer_lock:
+                    self.logger.debug(">>> Entered  err {}. conn-obs '{}' runner. '{}'".format(observer_lock, connection_observer, self))
                     self.logger.warning("Unhandled exception from '{} 'caught by runner. '{}' : '{}'.".format(
                         connection_observer, exc, repr(exc)))
                     ex_msg = "Unexpected exception from {} caught by runner when processing data >>{}<< at '{}':" \
@@ -461,7 +467,9 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
         moler_conn = connection_observer.connection
         self.logger.debug("subscribing for data {}".format(connection_observer))
+        self.logger.debug(">>> Entering {}. conn-obs '{}' runner '{}' moler-conn '{}'".format(observer_lock, connection_observer, self, moler_conn))
         with observer_lock:
+            self.logger.debug(">>> Entered  {}. conn-obs '{}' runner '{}' moler-conn '{}'".format(observer_lock, connection_observer, self, moler_conn))
             moler_conn.subscribe(observer=secure_data_received,
                                  connection_closed_handler=connection_observer.connection_closed_handler)
             # after subscription we have data path so observer is started
@@ -473,7 +481,9 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         return secure_data_received  # to know what to unsubscribe
 
     def _stop_feeding(self, connection_observer, subscribed_data_receiver, feed_done, observer_lock):
+        self.logger.debug(">>> Entering {}. conn-obs '{}' runner '{}'".format(observer_lock, connection_observer, self))
         with observer_lock:
+            self.logger.debug(">>> Entered  {}. conn-obs '{}' runner '{}'".format(observer_lock, connection_observer, self))
             if not feed_done.is_set():
                 moler_conn = connection_observer.connection
                 self.logger.debug("unsubscribing {}".format(connection_observer))
@@ -537,7 +547,9 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                     self.logger.info(msg)
                     connection_observer.set_end_of_life()
                 else:
+                    self.logger.debug(">>> Entering {}. conn-obs '{}' runner '{}'".format(observer_lock, connection_observer, self))
                     with observer_lock:
+                        self.logger.debug(">>> Entered  {}. conn-obs '{}' runner '{}'".format(observer_lock, connection_observer, self))
                         time_out_observer(connection_observer,
                                           timeout=connection_observer.timeout,
                                           passed_time=run_duration,

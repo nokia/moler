@@ -82,7 +82,9 @@ class ThreadedMolerConnection(AbstractMolerConnection):
         :param observer: function to be called to notify when data received.
         :param connection_closed_handler: callable to be called when connection is closed.
         """
+        self.logger.debug(">>> Entering {}. conn-obs '{}' moler-conn '{}'".format(self._observers_lock, observer, self))
         with self._observers_lock:
+            self.logger.debug(">>> Entered  {}. conn-obs '{}' moler-conn '{}'".format(self._observers_lock, observer, self))
             self._log(level=TRACE, msg="subscribe({})".format(observer))
             observer_key, value = self._get_observer_key_value(observer)
 
@@ -98,7 +100,9 @@ class ThreadedMolerConnection(AbstractMolerConnection):
         :param observer: function that was previously subscribed
         :param connection_closed_handler: callable to be called when connection is closed.
         """
+        self.logger.debug(">>> Entering {}. conn-obs '{}' moler-conn '{}'".format(self._observers_lock, observer, self))
         with self._observers_lock:
+            self.logger.debug(">>> Entered  {}. conn-obs '{}' moler-conn '{}'".format(self._observers_lock, observer, self))
             self._log(level=TRACE, msg="unsubscribe({})".format(observer))
             observer_key, _ = self._get_observer_key_value(observer)
             if observer_key in self._observer_wrappers and observer_key in self._connection_closed_handlers:
@@ -129,6 +133,7 @@ class ThreadedMolerConnection(AbstractMolerConnection):
         """
         subscribers_wrappers = list(self._observer_wrappers.values())
         for wrapper in subscribers_wrappers:
+            self.logger.debug(">>> Queue for notifying. conn-obs '{}' moler-conn '{}' data {}".format(wrapper._observer, self, repr(data)))
             wrapper.feed(data=data, recv_time=recv_time)
 
     @staticmethod
