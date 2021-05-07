@@ -68,7 +68,6 @@ def iterate_over_device_states(device, max_time=None, tests_per_device=200):
                                                 max_time=max_time, new_device_name=new_device_name,
                                                 connection=new_connection, exceptions=exceptions)
         test_threads.append((th, new_connection))
-    MolerTest.sleep(10)
     _perform_device_tests(device=device, tested=tested, states_to_test=states_to_test, max_time=max_time)
     for th, dev_connection in test_threads:
         th.join()
@@ -102,6 +101,7 @@ def _start_device_tests(source_device, tested, states_to_test, max_time, new_dev
 
 
 def _perform_device_tests(device, tested, states_to_test, max_time):
+    device.set_all_prompts_on_line(True)
     start_time = time.time()
     while 0 < states_to_test.qsize():
         source_state, target_state = states_to_test.get(0)
@@ -126,23 +126,26 @@ def _perform_device_tests(device, tested, states_to_test, max_time):
 def get_device(name, connection, device_output, test_file_path):
     dir_path = os.path.dirname(os.path.realpath(test_file_path))
     load_config(os.path.join(dir_path, os.pardir, os.pardir, 'test', 'resources', 'device_config.yml'))
-    connection.remote_inject_response(device_output)
     device = DeviceFactory.get_device(name, io_connection=connection)
     if "RemoteConnection" not in device.io_connection.__class__.__name__:
         device.exchange_io_connection(io_connection=connection)
     assert "RemoteConnection" in device.io_connection.__class__.__name__
+    device.io_connection.remote_inject_response(device_output)
+    connection.set_device(device=device)
+    device.set_all_prompts_on_line(True)
     return device
 
 
 def get_cloned_device(src_device, new_name, new_connection):
     device_output = src_device.io_connection.data
-    new_connection.remote_inject_response(device_output)
-    device = DeviceFactory.get_cloned_device(source_device=src_device, new_name=new_name, establish_connection=True,
+    device = DeviceFactory.get_cloned_device(source_device=src_device, new_name=new_name, establish_connection=False,
                                              lazy_cmds_events=True, io_connection=new_connection)
-    new_connection.set_device(device)
     if "RemoteConnection" not in device.io_connection.__class__.__name__:
         device.exchange_io_connection(io_connection=new_connection)
     assert "RemoteConnection" in device.io_connection.__class__.__name__
+    device.io_connection.remote_inject_response(device_output)
+    new_connection.set_device(device)
+    device.set_all_prompts_on_line(True)
     return device
 
 
@@ -152,6 +155,16 @@ def get_memory_device_connection():
     from moler.config.loggers import configure_device_logger
 
     class RemoteConnection(ThreadedFifoBuffer):
+
+        def __init__(self, moler_connection, echo=True, name=None, logger_name=""):
+            self.device = None
+            self.data = None
+            self.input_bytes = None
+            super(RemoteConnection, self).__init__(moler_connection=moler_connection,
+                                                   echo=echo,
+                                                   name=name,
+                                                   logger_name=logger_name)
+
         def remote_inject_response(self, input_strings):
             """
             Simulate remote endpoint that sends response.

@@ -13,6 +13,7 @@ import functools
 import importlib
 import inspect
 import logging
+import logging
 import pkgutil
 import re
 import time
@@ -690,6 +691,8 @@ class TextualDevice(AbstractDevice):
         """
         CAUTION: it checks if cmd may be created in current_state of device
         """
+        if for_state not in self._cmdnames_available_in_state:
+            self._cmdnames_available_in_state[for_state] = None
         if self._cmdnames_available_in_state[for_state] is None:
             self._load_cmdnames_for_state(state=for_state)
         return self._get_observer_in_state(observer_name=cmd_name, observer_type=TextualDevice.cmds,
@@ -699,6 +702,8 @@ class TextualDevice(AbstractDevice):
         """
         CAUTION: it checks if event may be created in current_state of device
         """
+        if for_state not in self._eventnames_available_in_state:
+            self._eventnames_available_in_state[for_state] = None
         if self._eventnames_available_in_state[for_state] is None:
             self._load_eventnames_for_state(state=for_state)
         return self._get_observer_in_state(observer_name=event_name, observer_type=TextualDevice.events,
@@ -851,7 +856,6 @@ class TextualDevice(AbstractDevice):
     def _prompts_observer_callback(self, event):
         occurrence = event.get_last_occurrence()
         state = occurrence["state"]
-
         self._set_state(state)
         if self._check_all_prompts_on_line:
             if len(occurrence['list_matched']) > 1:
@@ -875,6 +879,7 @@ class TextualDevice(AbstractDevice):
             callback_params={
                 "event": self._prompts_event,
             })
+        self._prompts_event.check_against_all_prompts = self._check_all_prompts_on_line
         self._prompts_event.disable_log_occurrence()
         self._prompts_event.start()
 
