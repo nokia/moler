@@ -13,6 +13,7 @@ import time
 import math
 import threading
 
+from moler.io.raw.memory import ThreadedFifoBuffer
 from moler.device import DeviceFactory
 from moler.device.textualdevice import TextualDevice
 from moler.exceptions import MolerException
@@ -149,69 +150,69 @@ def get_cloned_device(src_device, new_name, new_connection):
     return device
 
 
+class RemoteConnection(ThreadedFifoBuffer):
+
+    def __init__(self, moler_connection, echo=True, name=None, logger_name=""):
+        self.device = None
+        self.data = None
+        self.input_bytes = None
+        super(RemoteConnection, self).__init__(moler_connection=moler_connection,
+                                               echo=echo,
+                                               name=name,
+                                               logger_name=logger_name)
+
+    def remote_inject_response(self, input_strings):
+        """
+        Simulate remote endpoint that sends response.
+        Response is given as strings.
+        """
+        self.data = input_strings
+
+    def _inject_deferred(self):
+        """
+        Inject response on connection.
+        """
+        cmd_data_string = self.input_bytes.decode("utf-8")
+        if cmd_data_string:
+            if '\n' in cmd_data_string:
+                cmd_data_string = cmd_data_string[:-1]  # remove \n from command_string on connection
+        else:
+            cmd_data_string = self.input_bytes
+
+        try:
+            binary_cmd_ret = self.data[self.device.state][cmd_data_string].encode('utf-8')
+
+            self.inject([self.input_bytes + binary_cmd_ret])
+        except KeyError as exc:
+            raise MolerException(
+                "No output for cmd: '{}' in state '{}'!\n"
+                "Please update your device_output dict!\n"
+                "{}".format(cmd_data_string, self.device.state, exc)
+            )
+
+    def write(self, input_bytes):
+        """
+        What is written to connection comes back on read()
+        only if we simulate echo service of remote end.
+        """
+        if self.echo:
+            self.inject([input_bytes])
+
+        self.input_bytes = input_bytes
+        self._inject_deferred()
+
+    def set_device(self, device):
+        """
+        Need to get actual state of device when sending cmds response.
+        """
+        self.device = device
+
+    send = write  # just alias to make base class happy :-)
+
+
 def get_memory_device_connection():
-    from moler.io.raw.memory import ThreadedFifoBuffer
     from moler.threaded_moler_connection import ThreadedMolerConnection
     from moler.config.loggers import configure_device_logger
-
-    class RemoteConnection(ThreadedFifoBuffer):
-
-        def __init__(self, moler_connection, echo=True, name=None, logger_name=""):
-            self.device = None
-            self.data = None
-            self.input_bytes = None
-            super(RemoteConnection, self).__init__(moler_connection=moler_connection,
-                                                   echo=echo,
-                                                   name=name,
-                                                   logger_name=logger_name)
-
-        def remote_inject_response(self, input_strings):
-            """
-            Simulate remote endpoint that sends response.
-            Response is given as strings.
-            """
-            self.data = input_strings
-
-        def _inject_deferred(self):
-            """
-            Inject response on connection.
-            """
-            cmd_data_string = self.input_bytes.decode("utf-8")
-            if cmd_data_string:
-                if '\n' in cmd_data_string:
-                    cmd_data_string = cmd_data_string[:-1]  # remove \n from command_string on connection
-            else:
-                cmd_data_string = self.input_bytes
-
-            try:
-                binary_cmd_ret = self.data[self.device.state][cmd_data_string].encode('utf-8')
-
-                self.inject([self.input_bytes + binary_cmd_ret])
-            except KeyError as exc:
-                raise MolerException(
-                    "No output for cmd: '{}' in state '{}'!\n"
-                    "Please update your device_output dict!\n"
-                    "{}".format(cmd_data_string, self.device.state, exc)
-                )
-
-        def write(self, input_bytes):
-            """
-            What is written to connection comes back on read()
-            only if we simulate echo service of remote end.
-            """
-            if self.echo:
-                self.inject([input_bytes])
-
-            self.input_bytes = input_bytes
-            self._inject_deferred()
-
-        def set_device(self, device):
-            """
-            Need to get actual state of device when sending cmds response.
-            """
-            self.device = device
-
-        send = write  # just alias to make base class happy :-)
 
     moler_conn = ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
                                          decoder=lambda data: data.decode("utf-8"),
