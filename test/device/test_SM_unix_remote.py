@@ -46,7 +46,7 @@ def test_unix_remote_proxy_pc_device_multiple_prompts(device_connection, unix_re
 def test_unix_remote_proxy_pc_device_goto_state_bg(device_connection, unix_remote_proxy_pc_output):
     unix_remote_proxy_pc = get_device(name="UNIX_REMOTE_PROXY_PC", connection=device_connection,
                                       device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
-
+    unix_remote_proxy_pc._goto_state_in_production_mode = True
     dst_state = "UNIX_REMOTE_ROOT"
     src_state = "UNIX_LOCAL"
     unix_remote_proxy_pc.goto_state(state=src_state)
@@ -72,6 +72,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg(device_connection, unix_remot
 def test_unix_remote_proxy_pc_device_goto_state_bg_and_goto(device_connection, unix_remote_proxy_pc_output):
     unix_remote_proxy_pc = get_device(name="UNIX_REMOTE_PROXY_PC", connection=device_connection,
                                       device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
+    unix_remote_proxy_pc._goto_state_in_production_mode = True
 
     dst_state = "UNIX_REMOTE_ROOT"
     src_state = "UNIX_LOCAL"
@@ -86,7 +87,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg_and_goto(device_connection, u
 def test_unix_remote_proxy_pc_device_goto_state_bg_await(device_connection, unix_remote_proxy_pc_output):
     unix_remote_proxy_pc = get_device(name="UNIX_REMOTE_PROXY_PC", connection=device_connection,
                                       device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
-
+    unix_remote_proxy_pc._goto_state_in_production_mode = True
     dst_state = "UNIX_REMOTE_ROOT"
     src_state = "UNIX_LOCAL"
     unix_remote_proxy_pc.goto_state(state=src_state)
@@ -100,7 +101,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg_await(device_connection, unix
 def test_unix_remote_proxy_pc_device_goto_state_bg_await_excption(device_connection, unix_remote_proxy_pc_output):
     unix_remote_proxy_pc = get_device(name="UNIX_REMOTE_PROXY_PC", connection=device_connection,
                                       device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
-
+    unix_remote_proxy_pc._goto_state_in_production_mode = True
     dst_state = "UNIX_REMOTE_ROOT"
     src_state = "UNIX_LOCAL"
     unix_remote_proxy_pc.goto_state(state=src_state)
