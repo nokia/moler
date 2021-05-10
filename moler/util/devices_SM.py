@@ -27,13 +27,14 @@ except ImportError:
     import Queue as queue  # Python 2 and 3.
 
 
-def iterate_over_device_states(device, max_time=None, tests_per_device=200):
+def iterate_over_device_states(device, max_time=None, tests_per_device=1000, max_no_of_threads=10):
     """
     Check all states in device under test.
     :param device: device
     :param max_time: maximum time of check. None for infinity. If execution time is greater then max_time then test is
      interrupted.
     :param tests_per_device: how many tests should be performed in one thread.
+    :param max_no_of_threads: maximum number of threads that can be started.
     :return: None
     """
     source_states = _get_all_states_from_device(device=device)
@@ -43,8 +44,7 @@ def iterate_over_device_states(device, max_time=None, tests_per_device=200):
     device.last_wrong_wait4_occurrence = None
     device.set_all_prompts_on_line(True)
 
-    if len(source_states) > 5:
-        device._goto_state_in_production_mode = False
+    device._goto_state_in_production_mode = False
 
     random.shuffle(source_states)
     random.shuffle(target_states)
@@ -56,24 +56,27 @@ def iterate_over_device_states(device, max_time=None, tests_per_device=200):
             states_to_test.put([source, target])
     assert states_to_test.qsize() == nr_of_tests
 
-    nr_of_devices = math.ceil(nr_of_tests / float(tests_per_device))
-    device_nr = 1
+    nr_of_threads = math.ceil(nr_of_tests / float(tests_per_device))
+    if nr_of_threads > max_no_of_threads:
+        nr_of_threads = max_no_of_threads
+    thread_nr = 1
     test_threads = list()
     exceptions = list()
-    while device_nr < nr_of_devices:
-        device_nr += 1
+    while thread_nr < nr_of_threads:
         new_connection = get_memory_device_connection()
         new_connection.open()
-        new_device_name = "{}_C{}".format(device.name, device_nr)
+        new_device_name = "{}_C{}".format(device.name, thread_nr)
         th = _perform_device_tests_start_thread(source_device=device, tested=tested, states_to_test=states_to_test,
                                                 max_time=max_time, new_device_name=new_device_name,
                                                 connection=new_connection, exceptions=exceptions)
         test_threads.append((th, new_connection))
+        thread_nr += 1
     _perform_device_tests(device=device, tested=tested, states_to_test=states_to_test, max_time=max_time)
     for th, dev_connection in test_threads:
         th.join()
         dev_connection.close()
-    assert 0 == states_to_test.qsize()
+    if max_time is None:
+        assert 0 == states_to_test.qsize()
     for ex in exceptions:
         print("ex: '{}' -> '{}'.".format(ex, repr(ex)))
     assert 0 == len(exceptions)
