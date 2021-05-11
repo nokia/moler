@@ -38,8 +38,11 @@ def test_unix_remote_proxy_pc_device_multiple_prompts(device_connection, unix_re
     unix_remote_proxy_pc = get_device(name="UNIX_REMOTE_PROXY_PC", connection=device_connection,
                                       device_output=unix_remote_proxy_pc_changed_output,
                                       test_file_path=__file__)
+    assert unix_remote_proxy_pc._check_all_prompts_on_line is True
+    assert unix_remote_proxy_pc._prompts_event.check_against_all_prompts is True
+
     with pytest.raises(MolerException) as exception:
-        iterate_over_device_states(device=unix_remote_proxy_pc)
+        iterate_over_device_states(device=unix_remote_proxy_pc, max_no_of_threads=0)
     assert "More than 1 prompt match the same line" in str(exception.value)
 
 
