@@ -27,7 +27,7 @@ except ImportError:
     import Queue as queue  # Python 2 and 3.
 
 
-def iterate_over_device_states(device, max_time=None, tests_per_device=1000, max_no_of_threads=11):
+def iterate_over_device_states(device, max_time=None, tests_per_device=300, max_no_of_threads=11):
     """
     Check all states in device under test.
     :param device: device
