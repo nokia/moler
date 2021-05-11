@@ -871,7 +871,8 @@ class TextualDevice(AbstractDevice):
             event_params={
                 "prompts": self._reverse_state_prompts_dict,
                 "till_occurs_times": -1
-            }
+            },
+            for_state="UNIX_LOCAL",
         )
 
         self._prompts_event.add_event_occurred_callback(
