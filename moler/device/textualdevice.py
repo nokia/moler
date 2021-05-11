@@ -862,10 +862,7 @@ class TextualDevice(AbstractDevice):
                 self._log(level=logging.ERROR, msg="More than 1 prompt matched the same line! '{}'.".format(occurrence))
                 self.last_wrong_wait4_occurrence = occurrence
 
-    def _run_prompts_observers(self):
-        self._validate_prompts_uniqueness()
-        self._prepare_reverse_state_prompts_dict()
-
+    def _get_for_state_to_run_prompts_observers(self):
         for_state = None
         if self.current_state == "NOT_CONNECTED":
             for state in self._state_hops:
@@ -874,12 +871,20 @@ class TextualDevice(AbstractDevice):
                     break
             if for_state is None:
                 for_state = self._state_hops.keys()[0]
+        return for_state
+
+    def _run_prompts_observers(self):
+        self._validate_prompts_uniqueness()
+        self._prepare_reverse_state_prompts_dict()
+
+        for_state = self._get_for_state_to_run_prompts_observers()
         self._prompts_event = self.get_event(
             event_name="wait4prompts",
             event_params={
                 "prompts": self._reverse_state_prompts_dict,
                 "till_occurs_times": -1
             },
+            check_state=False,
             for_state=for_state,
         )
 
