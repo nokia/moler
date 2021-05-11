@@ -128,32 +128,40 @@ def _perform_device_tests(device, tested, states_to_test, max_time):
 
 
 def get_device(name, connection, device_output, test_file_path):
+    MolerTest.info("\n\ndevices_SM::get_device: {}".format(name))
     dir_path = os.path.dirname(os.path.realpath(test_file_path))
     load_config(os.path.join(dir_path, os.pardir, os.pardir, 'test', 'resources', 'device_config.yml'))
     device = DeviceFactory.get_device(name, io_connection=connection)
+    _prepare_device(device=device, connection=connection, device_output=device_output)
+    return device
+
+
+def _prepare_device(device, connection, device_output):
     if "RemoteConnection" not in device.io_connection.__class__.__name__:
         device.exchange_io_connection(io_connection=connection)
     assert "RemoteConnection" in device.io_connection.__class__.__name__
     connection.set_device(device=device)
     device.set_all_prompts_on_line(True)
     device.io_connection.remote_inject_response(device_output)
+    assert device.io_connection.data == device_output
     if device._prompts_event is None:
         device._run_prompts_observers()
     assert device._check_all_prompts_on_line is True
     assert device._prompts_event.check_against_all_prompts is True
-    return device
+    connection.open()
+    if device.current_state is "NOT_CONNECTED":
+        if device._established is True:
+            device._established = False
+        device.establish_connection()
+
+    assert device.current_state is not "NOT_CONNECTED"
 
 
 def get_cloned_device(src_device, new_name, new_connection):
     device_output = src_device.io_connection.data
     device = DeviceFactory.get_cloned_device(source_device=src_device, new_name=new_name, establish_connection=False,
                                              lazy_cmds_events=True, io_connection=new_connection)
-    if "RemoteConnection" not in device.io_connection.__class__.__name__:
-        device.exchange_io_connection(io_connection=new_connection)
-    assert "RemoteConnection" in device.io_connection.__class__.__name__
-    device.io_connection.remote_inject_response(device_output)
-    new_connection.set_device(device)
-    device.set_all_prompts_on_line(True)
+    _prepare_device(device=device, connection=new_connection, device_output=device_output)
     return device
 
 
@@ -234,14 +242,16 @@ def get_memory_device_connection():
 def _get_all_states_from_device(device):
     states = copy_list(device.states)
     states.remove("NOT_CONNECTED")
+    assert "NOT_CONNECTED" not in states
+    states_to_skip = ('NOT_CONNECTED')
 
     for attr_name in dir(device):
         attr = getattr(device, attr_name)
         if type(attr) is str and not attr_name.startswith('_') and attr_name not in dir(TextualDevice):
-            if attr not in states:
+            if attr not in states and attr not in states_to_skip:
                 states.append(attr)
 
     if "PROXY_PC" in states and hasattr(device, "_use_proxy_pc") and not getattr(device, "_use_proxy_pc"):
         states.remove("PROXY_PC")
-
+    assert "NOT_CONNECTED" not in states
     return states
