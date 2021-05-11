@@ -866,13 +866,21 @@ class TextualDevice(AbstractDevice):
         self._validate_prompts_uniqueness()
         self._prepare_reverse_state_prompts_dict()
 
+        for_state = None
+        if self.current_state == "NOT_CONNECTED":
+            for state in self._state_hops:
+                if state.find("UNIX") != -1 or state.find("LINUX") != -1:
+                    for_state = state
+                    break
+            if for_state is None:
+                for_state = self._state_hops.keys()[0]
         self._prompts_event = self.get_event(
             event_name="wait4prompts",
             event_params={
                 "prompts": self._reverse_state_prompts_dict,
                 "till_occurs_times": -1
             },
-            for_state="UNIX_LOCAL",
+            for_state=for_state,
         )
 
         self._prompts_event.add_event_occurred_callback(
