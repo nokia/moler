@@ -134,9 +134,13 @@ def get_device(name, connection, device_output, test_file_path):
     if "RemoteConnection" not in device.io_connection.__class__.__name__:
         device.exchange_io_connection(io_connection=connection)
     assert "RemoteConnection" in device.io_connection.__class__.__name__
+    connection.set_device(device=device)
     device.set_all_prompts_on_line(True)
     device.io_connection.remote_inject_response(device_output)
-    connection.set_device(device=device)
+    if device._prompts_event is None:
+        device._run_prompts_observers()
+    assert device._check_all_prompts_on_line is True
+    assert device._prompts_event.check_against_all_prompts is True
     return device
 
 
