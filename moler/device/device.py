@@ -77,7 +77,7 @@ class DeviceFactory(object):
         :param name: name of device defined in configuration.
         :param device_class: 'moler.device.unixlocal.UnixLocal', 'moler.device.unixremote.UnixRemote', ...
         :param connection_desc: 'io_type' and 'variant' of device connection. Ignored if device already created or
-                        argument connection is passed.
+                        argument io_connection is passed.
         :param connection_hops: connection hops to create device SM.
         :param initial_state: initial state for device e.g. UNIX_REMOTE.
         :param establish_connection: True to open connection, False if it does not matter.
