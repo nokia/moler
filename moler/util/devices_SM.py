@@ -128,7 +128,6 @@ def _perform_device_tests(device, tested, states_to_test, max_time):
 
 
 def get_device(name, connection, device_output, test_file_path):
-    MolerTest.info("\n\ndevices_SM::get_device: {}".format(name))
     dir_path = os.path.dirname(os.path.realpath(test_file_path))
     load_config(os.path.join(dir_path, os.pardir, os.pardir, 'test', 'resources', 'device_config.yml'))
     device = DeviceFactory.get_device(name, io_connection=connection)
