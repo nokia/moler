@@ -13,6 +13,7 @@ import functools
 import importlib
 import inspect
 import logging
+import logging
 import pkgutil
 import re
 import time
@@ -670,7 +671,6 @@ class TextualDevice(AbstractDevice):
             available_observer_names = self._cmdnames_available_in_state[for_state]
         elif observer_type == TextualDevice.events:
             available_observer_names = self._eventnames_available_in_state[for_state]
-
         if observer_name in available_observer_names:
             observer_params = dict(kwargs, connection=self.io_connection.moler_connection)
             observer = create_instance_from_class_fullname(
@@ -691,6 +691,8 @@ class TextualDevice(AbstractDevice):
         """
         CAUTION: it checks if cmd may be created in current_state of device
         """
+        if for_state not in self._cmdnames_available_in_state:
+            self._cmdnames_available_in_state[for_state] = None
         if self._cmdnames_available_in_state[for_state] is None:
             self._load_cmdnames_for_state(state=for_state)
         return self._get_observer_in_state(observer_name=cmd_name, observer_type=TextualDevice.cmds,
@@ -700,6 +702,8 @@ class TextualDevice(AbstractDevice):
         """
         CAUTION: it checks if event may be created in current_state of device
         """
+        if for_state not in self._eventnames_available_in_state:
+            self._eventnames_available_in_state[for_state] = None
         if self._eventnames_available_in_state[for_state] is None:
             self._load_eventnames_for_state(state=for_state)
         return self._get_observer_in_state(observer_name=event_name, observer_type=TextualDevice.events,
@@ -834,6 +838,14 @@ class TextualDevice(AbstractDevice):
             self.SM.add_state(state)
             self.states.append(state)
 
+    def exchange_io_connection(self, io_connection):
+        self._close_connection(None, None, None)
+        self.io_connection = io_connection
+        self.io_connection.set_device(self)
+        self.io_connection.open()
+        self._set_state("UNIX_LOCAL")
+        self._run_prompts_observers()
+
     def _open_connection(self, source_state, dest_state, timeout):
         self.io_connection.open()
 
@@ -844,23 +856,36 @@ class TextualDevice(AbstractDevice):
     def _prompts_observer_callback(self, event):
         occurrence = event.get_last_occurrence()
         state = occurrence["state"]
-
         self._set_state(state)
         if self._check_all_prompts_on_line:
             if len(occurrence['list_matched']) > 1:
                 self._log(level=logging.ERROR, msg="More than 1 prompt matched the same line! '{}'.".format(occurrence))
                 self.last_wrong_wait4_occurrence = occurrence
 
+    def _get_for_state_to_run_prompts_observers(self):
+        for_state = None
+        if self.current_state == "NOT_CONNECTED":
+            for state in self._state_hops:
+                if state.find("UNIX") != -1 or state.find("LINUX") != -1:
+                    for_state = state
+                    break
+            if for_state is None:
+                for_state = self._state_hops.keys()[0]
+        return for_state
+
     def _run_prompts_observers(self):
         self._validate_prompts_uniqueness()
         self._prepare_reverse_state_prompts_dict()
 
+        for_state = self._get_for_state_to_run_prompts_observers()
         self._prompts_event = self.get_event(
             event_name="wait4prompts",
             event_params={
                 "prompts": self._reverse_state_prompts_dict,
                 "till_occurs_times": -1
-            }
+            },
+            check_state=False,
+            for_state=for_state,
         )
 
         self._prompts_event.add_event_occurred_callback(
@@ -868,6 +893,7 @@ class TextualDevice(AbstractDevice):
             callback_params={
                 "event": self._prompts_event,
             })
+        self._prompts_event.check_against_all_prompts = self._check_all_prompts_on_line
         self._prompts_event.disable_log_occurrence()
         self._prompts_event.start()
 
