@@ -1,3 +1,9 @@
+## moler 1.30.0
+
+### Improved
+* goto_state_bg
+* Parallel tests for device SM
+
 ## moler 1.29.0
 
 ### Improved
