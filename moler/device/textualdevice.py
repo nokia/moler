@@ -101,7 +101,8 @@ class TextualDevice(AbstractDevice):
         self.io_connection.moler_connection.name = self.name
         self.logger = logging.getLogger('moler.connection.{}'.format(self.name))
         self.configure_logger(name=self.name, propagate=False)
-
+        print("io_connection='{}', moler_connection='{}'.".format(self.io_connection.__class__.__name__,
+                                                                  self.io_connection.moler_connection.__class__.__name__))
         self._prepare_transitions()
         self._prepare_state_hops()
         self._configure_state_machine(sm_params)

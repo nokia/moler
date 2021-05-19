@@ -218,6 +218,7 @@ class ConnectionObserver(object):
         :param timeout:
         :return: observer result
         """
+        print("future: {} -> {}".format(self, self._future))
         if self.done():
             return self.result()
         with exception_stored_if_not_main_thread(self):
