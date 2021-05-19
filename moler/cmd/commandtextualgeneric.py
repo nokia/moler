@@ -158,6 +158,7 @@ class CommandTextualGeneric(Command):
         """
         sub_command_start_string = None
         sub_command_finish_string = None
+        re_sub_command_string = None
         if self._max_index_from_beginning != 0:
             sub_command_start_string = re.escape(command_string[:self._max_index_from_beginning])
             re_sub_command_string = sub_command_start_string
@@ -234,7 +235,8 @@ class CommandTextualGeneric(Command):
                     break
         except UnicodeDecodeError as ex:
             if self._ignore_unicode_errors:
-                self._log(lvl=logging.WARNING, msg="Processing data from '{}' with unicode problem: '{}'.".format(self, ex))
+                self._log(lvl=logging.WARNING,
+                          msg="Processing data from '{}' with unicode problem: '{}'.".format(self, ex))
             else:
                 raise ex
 
@@ -356,13 +358,17 @@ class CommandTextualGeneric(Command):
             if self._regex_helper.search_compiled(self._cmd_escaped, line):
                 self._cmd_output_started = True
 
-    def break_cmd(self):
+    def break_cmd(self, silent=False):
         """
         Send ctrl+c to device to break command execution.
 
         :return: None
         """
-        self.connection.send("\x03")  # ctrl+c
+        if self.running():
+            self.connection.send("\x03")  # ctrl+c
+        else:
+            if silent is False:
+                self._log(lvl=logging.WARNING, msg="Tried to break not running command '{}'. Ignored".format(self))
 
     def cancel(self):
         """
@@ -370,7 +376,7 @@ class CommandTextualGeneric(Command):
 
         :return: False if already cancelled or already done, True otherwise.
         """
-        self.break_cmd()
+        self.break_cmd(silent=True)
         return super(CommandTextualGeneric, self).cancel()
 
     def set_exception(self, exception):
