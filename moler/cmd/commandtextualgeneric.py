@@ -362,7 +362,8 @@ class CommandTextualGeneric(Command):
 
         :return: None
         """
-        self.connection.send("\x03")  # ctrl+c
+        if self.running():
+            self.connection.send("\x03")  # ctrl+c
 
     def cancel(self):
         """
