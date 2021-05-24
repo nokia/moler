@@ -10,6 +10,7 @@ __email__ = 'marcin.usielski@nokia.com'
 import weakref
 import logging
 import six
+import time
 from threading import Lock
 from moler.abstract_moler_connection import AbstractMolerConnection
 from moler.abstract_moler_connection import identity_transformation
@@ -39,6 +40,8 @@ class ThreadedMolerConnectionWithRunner(ThreadedMolerConnection, ThreadPoolExecu
         self._connection_closed_handlers = dict()
         self._observer_wrappers = dict()
         self._observers_lock = Lock()
+        self._observers_runner = list()
+        self._to_remove_connection_observers = list()
 
     def data_received(self, data, recv_time):
         """
@@ -57,6 +60,7 @@ class ThreadedMolerConnectionWithRunner(ThreadedMolerConnection, ThreadPoolExecu
                        extra=extra)
 
         self.notify_observers(decoded_data, recv_time)
+        #self._check_observers_loop()
 
     def subscribe(self, observer, connection_closed_handler):
         """
@@ -113,3 +117,70 @@ class ThreadedMolerConnectionWithRunner(ThreadedMolerConnection, ThreadPoolExecu
         subscribers_wrappers = list(self._observer_wrappers.values())
         for wrapper in subscribers_wrappers:
             wrapper.feed(data=data, recv_time=recv_time)
+
+    def _check_observers_loop(self):
+        for connection_observer in self._observers_runner:
+            self._feed_loop(connection_observer=connection_observer, stop_feeding=None, observer_lock=None)
+            if connection_observer.done():
+                self._to_remove_connection_observers.append(connection_observer)
+        if self._to_remove_connection_observers:
+            for connection_observer in self._to_remove_connection_observers:
+                self._observers_runner.remove(connection_observer)
+            self._to_remove_connection_observers.clear()
+
+    def _feed_loop(self, connection_observer, stop_feeding, observer_lock):
+        start_time = connection_observer.life_status.start_time
+        while True:
+            if stop_feeding.is_set():
+                # TODO: should it be renamed to 'cancelled' to be in sync with initial action?
+                self.logger.debug("stopped {}".format(connection_observer))
+                break
+            if connection_observer.done():
+                self.logger.debug("done {}".format(connection_observer))
+                break
+            current_time = time.time()
+            run_duration = current_time - start_time
+            # we need to check connection_observer.timeout at each round since timeout may change
+            # during lifetime of connection_observer
+            timeout = connection_observer.timeout
+            if connection_observer.life_status.in_terminating:
+                timeout = connection_observer.life_status.terminating_timeout
+            if (timeout is not None) and (run_duration >= timeout):
+                if connection_observer.life_status.in_terminating:
+                    msg = "{} underlying real command failed to finish during {} seconds. It will be forcefully" \
+                          " terminated".format(connection_observer, timeout)
+                    self.logger.info(msg)
+                    connection_observer.set_end_of_life()
+                else:
+                    with observer_lock:
+                        time_out_observer(connection_observer,
+                                          timeout=connection_observer.timeout,
+                                          passed_time=run_duration,
+                                          runner_logger=self.logger)
+                        if connection_observer.life_status.terminating_timeout >= 0.0:
+                            start_time = time.time()
+                            connection_observer.life_status.in_terminating = True
+                        else:
+                            break
+            else:
+                self._call_on_inactivity(connection_observer=connection_observer, current_time=current_time)
+
+            if self._in_shutdown:
+                self.logger.debug("shutdown so cancelling {}".format(connection_observer))
+                connection_observer.cancel()
+            time.sleep(self._tick)  # give moler_conn a chance to feed observer
+
+    def _call_on_inactivity(self, connection_observer, current_time):
+        """
+        Call on_inactivity on connection_observer if needed.
+
+        :param connection_observer: ConnectionObserver object.
+        :param current_time: current time in seconds.
+        :return: None
+        """
+        life_status = connection_observer.life_status
+        if (life_status.inactivity_timeout > 0.0) and (life_status.last_feed_time is not None):
+            expected_feed_timeout = life_status.last_feed_time + life_status.inactivity_timeout
+            if current_time > expected_feed_timeout:
+                connection_observer.on_inactivity()
+                connection_observer.life_status.last_feed_time = current_time

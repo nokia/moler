@@ -12,14 +12,14 @@ Connection responsibilities:
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 
 import logging
 import platform
 import moler.config.connections as connection_cfg
-# from moler.threaded_moler_connection import ThreadedMolerConnection
+from moler.threaded_moler_connection import ThreadedMolerConnection
 from moler.threaded_moler_connection_with_runner import ThreadedMolerConnectionWithRunner
 
 
@@ -194,6 +194,6 @@ def _try_get_connection_with_name(io_type, variant, **constructor_kwargs):
 
 
 # actions during import
-#connection_cfg.register_builtin_connections(ConnectionFactory, ThreadedMolerConnection)
-connection_cfg.register_builtin_connections(ConnectionFactory, ThreadedMolerConnectionWithRunner)
+connection_cfg.register_builtin_connections(ConnectionFactory, ThreadedMolerConnection)
+#connection_cfg.register_builtin_connections(ConnectionFactory, ThreadedMolerConnectionWithRunner)
 connection_cfg.set_defaults()
