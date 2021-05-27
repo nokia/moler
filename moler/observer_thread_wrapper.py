@@ -99,17 +99,43 @@ class ObserverThreadWrapper(object):
         while True:
             if not self._connections_obsevers:
                 time.sleep(self._tick_for_runner)
-
+            self._feed_connection_observers()
+            self._check_last_feed_connection_observers()
+            self._check_timeout_connection_observers()
             for connection_observer in self._connections_obsevers:
                 try:
-                    current_time = time.time()
+                    pass
                 except Exception as ex:
                     self.logger.exception(msg=r'Exception from "{}" when running checking: "{}" "{!r}".'.format(
                         connection_observer, ex, repr(ex)
                     ))
-            self._remove_unecessary_connection_observers()
+            self._remove_unnecessary_connection_observers()
 
-    def _remove_unecessary_connection_observers(self):
+    def _check_last_feed_connection_observers(self):
+        """
+        Call on_inactivity on connection_observer if needed.
+
+        :return: None
+        """
+        current_time = time.time()
+        for connection_observer in self._connections_obsevers:
+            life_status = connection_observer.life_status
+            if (life_status.inactivity_timeout > 0.0) and (life_status.last_feed_time is not None):
+                expected_feed_timeout = life_status.last_feed_time + life_status.inactivity_timeout
+                if current_time > expected_feed_timeout:
+                    try:
+                        connection_observer.on_inactivity()
+                    except Exception as ex:
+                        self.logger.exception(msg=r'Exception "{}" ("{}") inside: {} when on_inactivity.'.format(
+                            ex, repr(ex), connection_observer))
+                        connection_observer.set_exception(exception=ex)
+                    finally:
+                        connection_observer.life_status.last_feed_time = current_time
+
+    def _check_timeout_connection_observers(self):
+
+
+    def _remove_unnecessary_connection_observers(self):
         for connection_observer in self._connections_obsevers:
             if connection_observer.done():
                 self._to_remove_connection_observers.append(connection_observer)
@@ -118,31 +144,28 @@ class ObserverThreadWrapper(object):
                 self._connections_obsevers.remove(connection_observer)
             self._to_remove_connection_observers.clear()
 
-    def _feed_connection_observer(self):
+    def _feed_connection_observers(self):
         try:
             data, timestamp = self._queue_for_connection_observers.get(True, self._tick_for_runner)
-            try:
-                self.logger.log(level=TRACE, msg=r'notifying {}({!r})'.format(self._observer, repr(data)))
-            except ReferenceError:
-                self._request_end = True  # self._observer is no more valid.
-            try:
-                    self._observer(self._observer_self, data, timestamp)
-                else:
-                    self._observer(data, timestamp)
-            except ReferenceError:
-                self._request_end = True  # self._observer is no more valid.
-            except Exception:
-                self.logger.exception(msg=r'Exception inside: {}({!r})'.format(self._observer, repr(data)))
+            feed_time = time.time()
+            for connection_observer in self._connections_obsevers:
+                try:
+                    self.logger.log(level=TRACE, msg=r'notifying {}({!r})'.format(connection_observer, repr(data)))
+                    connection_observer.data_received(data=data, recv_time=timestamp)
+                except Exception as ex:
+                    self.logger.exception(msg=r'Exception "{}" ("{}") inside: {} when processing ({!r})'.format(
+                        ex, repr(ex), connection_observer, repr(data)))
+                    connection_observer.set_exception(exception=ex)
+                finally:
+                    connection_observer.life_status.last_feed_time = feed_time
         except queue.Empty:
             pass  # No incoming data within self._tick_for_runner
 
     def submit(self, connection_observer):
         """
         Submit connection observer to background execution.
-        Returns Future that could be used to await for connection_observer done.
         """
         assert connection_observer.life_status.start_time > 0.0  # connection-observer lifetime should already been
-        #self.logger.debug("go background: {!r} - {}".format(connection_observer, msg))
         self._connections_obsevers.append(connection_observer)
         self._start_command(connection_observer=connection_observer)
 
