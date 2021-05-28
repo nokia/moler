@@ -33,6 +33,7 @@ class ObserverThreadWrapper(object):
         self._request_end = False
         self._timeout_for_get_from_queue = 1
 
+        self._enable_loop_run_runner = True
         self._tick_for_runner = 0.01
         self.logger = logger
         self._connections_obsevers = list()
@@ -96,7 +97,7 @@ class ObserverThreadWrapper(object):
         self._observer_self = None
 
     def _loop_for_runner(self):
-        while True:
+        while self._enable_loop_run_runner:
             if not self._connections_obsevers:
                 time.sleep(self._tick_for_runner)
             self._feed_connection_observers()
