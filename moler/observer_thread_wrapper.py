@@ -6,7 +6,10 @@ __email__ = 'marcin.usielski@nokia.com'
 
 from threading import Thread
 from moler.config.loggers import TRACE
+from moler.exceptions import CommandTimeout, ConnectionObserverTimeout
+from moler.util.loghelper import log_into_logger
 import time
+import logging
 
 try:
     import queue
@@ -134,7 +137,53 @@ class ObserverThreadWrapper(object):
                         connection_observer.life_status.last_feed_time = current_time
 
     def _check_timeout_connection_observers(self):
+        for connection_observer in self._connections_obsevers:
+            start_time = connection_observer.life_status.start_time
+            current_time = time.time()
+            run_duration = current_time - start_time
+            timeout = connection_observer.timeout
+            if connection_observer.life_status.in_terminating:
+                timeout = connection_observer.life_status.terminating_timeout
+            if (timeout is not None) and (run_duration >= timeout):
+                if connection_observer.life_status.in_terminating:
+                    msg = "{} underlying real command failed to finish during {} seconds. It will be forcefully" \
+                          " terminated".format(connection_observer, timeout)
+                    self.logger.info(msg)
+                    connection_observer.set_end_of_life()
+                else:
+                    self._time_out_observer(connection_observer=connection_observer,
+                                            timeout=connection_observer.timeout, passed_time=run_duration,
+                                            runner_logger=self.logger)
+                    if connection_observer.life_status.terminating_timeout >= 0.0:
+                        connection_observer.life_status.start_time = time.time()
+                        connection_observer.life_status.in_terminating = True
 
+    def _timeout_observer(self, connection_observer, timeout, passed_time, runner_logger, kind="background_run"):
+        """Set connection_observer status to timed-out"""
+        if not connection_observer.life_status.was_on_timeout_called:
+            connection_observer.life_status.was_on_timeout_called = True
+            if not connection_observer.done():
+                if connection_observer.is_command():
+                    exception = CommandTimeout(connection_observer=connection_observer,
+                                               timeout=timeout, kind=kind, passed_time=passed_time)
+                else:
+                    exception = ConnectionObserverTimeout(connection_observer=connection_observer,
+                                                          timeout=timeout, kind=kind, passed_time=passed_time)
+                # TODO: secure_data_received() may change status of connection_observer
+                # TODO: and if secure_data_received() runs inside threaded connection - we have race
+                connection_observer.set_exception(exception)
+
+                connection_observer.on_timeout()
+
+                observer_info = "{}.{}".format(connection_observer.__class__.__module__, connection_observer)
+                timeout_msg = "has timed out after {:.2f} seconds.".format(passed_time)
+                msg = "{} {}".format(observer_info, timeout_msg)
+
+                # levels_to_go_up: extract caller info to log where .time_out_observer has been called from
+                connection_observer._log(logging.INFO, msg, levels_to_go_up=2)
+                log_into_logger(runner_logger, level=logging.DEBUG,
+                                msg="{} {}".format(connection_observer, timeout_msg),
+                                levels_to_go_up=1)
 
     def _remove_unnecessary_connection_observers(self):
         for connection_observer in self._connections_obsevers:
