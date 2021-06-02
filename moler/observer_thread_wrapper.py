@@ -51,10 +51,6 @@ class ObserverThreadWrapper(object):
         t.setDaemon(True)
         t.start()
 
-    def add_connection_observer(self, connection_observer):
-        if connection_observer not in self._connections_obsevers:
-            self._connections_obsevers.append(connection_observer)
-
     def feed(self, data, recv_time):
         """
         Put data here.

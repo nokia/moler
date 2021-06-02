@@ -17,9 +17,10 @@ from moler.abstract_moler_connection import identity_transformation
 from moler.config.loggers import RAW_DATA, TRACE
 from moler.helpers import instance_id
 from moler.observer_thread_wrapper import ObserverThreadWrapper
+from moler.runner import ConnectionObserverRunner
 
 
-class ThreadedMolerConnectionWithRunner(ThreadedMolerConnection, ThreadPoolExecutorRunner):
+class ThreadedMolerConnectionWithRunner(ThreadedMolerConnection):
     def __init__(self, how2send=None, encoder=identity_transformation, decoder=identity_transformation,
                  name=None, newline='\n', logger_name=""):
         """
@@ -120,7 +121,7 @@ class ThreadedMolerConnectionWithRunner(ThreadedMolerConnection, ThreadPoolExecu
 
     def _check_observers_loop(self):
         for connection_observer in self._observers_runner:
-            self._feed_loop(connection_observer=connection_observer, stop_feeding=None, observer_lock=None)
+            self._feed_connection_observer(connection_observer=connection_observer, stop_feeding=None, observer_lock=None)
             if connection_observer.done():
                 self._to_remove_connection_observers.append(connection_observer)
         if self._to_remove_connection_observers:
@@ -128,7 +129,7 @@ class ThreadedMolerConnectionWithRunner(ThreadedMolerConnection, ThreadPoolExecu
                 self._observers_runner.remove(connection_observer)
             self._to_remove_connection_observers.clear()
 
-    def _feed_loop(self, connection_observer, stop_feeding, observer_lock):
+    def _feed_connection_observer(self, connection_observer, stop_feeding, observer_lock):
         start_time = connection_observer.life_status.start_time
         while True:
             if stop_feeding.is_set():
@@ -184,3 +185,181 @@ class ThreadedMolerConnectionWithRunner(ThreadedMolerConnection, ThreadPoolExecu
             if current_time > expected_feed_timeout:
                 connection_observer.on_inactivity()
                 connection_observer.life_status.last_feed_time = current_time
+
+
+class RunnerForThreadedMolerConnection(ConnectionObserverRunner):
+
+    def __init__(self):
+        self._connections_obsevers = list()
+
+    def shutdown(self):
+        """Cleanup used resources."""
+
+    def submit(self, connection_observer):
+        """
+        Submit connection observer to background execution.
+        Returns Future that could be used to await for connection_observer done.
+        """
+        assert connection_observer.life_status.start_time > 0.0  # connection-observer lifetime should already been
+        self.add_connection_observer(connection_observer=connection_observer)
+
+    @abstractmethod
+    def wait_for(self, connection_observer, connection_observer_future, timeout=10.0):
+        """
+        Await for connection_observer running in background or timeout.
+
+        :param connection_observer: The one we are awaiting for.
+        :param connection_observer_future: Future of connection-observer returned from submit().
+        :param timeout: Max time (in float seconds) you want to await before you give up.
+        :return:
+        """
+
+    @abstractmethod
+    def wait_for_iterator(self, connection_observer, connection_observer_future):
+        """
+        Version of wait_for() intended to be used by Python3 to implement iterable/awaitable object.
+
+        Note: we don't have timeout parameter here. If you want to await with timeout please do use timeout machinery
+        of selected parallelism.
+
+        :param connection_observer: The one we are awaiting for.
+        :param connection_observer_future: Future of connection-observer returned from submit().
+        :return: iterator
+        """
+
+    @abstractmethod
+    def feed(self, connection_observer):
+        """
+        Feeds connection_observer with data to let it become done.
+        This is a place where runner is a glue between words of connection and connection-observer.
+        Should be called from background-processing of connection observer.
+        """
+
+    @abstractmethod
+    def timeout_change(self, timedelta):
+        """
+        Call this method to notify runner that timeout has been changed in observer
+        :param timedelta: delta timeout in float seconds
+        :return: None
+        """
+
+    def add_connection_observer(self, connection_observer):
+        if connection_observer not in self._connections_obsevers:
+            self._connections_obsevers.append(connection_observer)
+            self._start_command(connection_observer=connection_observer)
+
+    def _loop_for_runner(self):
+        while self._enable_loop_run_runner:
+            if not self._connections_obsevers:
+                time.sleep(self._tick_for_runner)
+            self._feed_connection_observers()
+            self._check_last_feed_connection_observers()
+            self._check_timeout_connection_observers()
+            for connection_observer in self._connections_obsevers:
+                try:
+                    pass
+                except Exception as ex:
+                    self.logger.exception(msg=r'Exception from "{}" when running checking: "{}" "{!r}".'.format(
+                        connection_observer, ex, repr(ex)
+                    ))
+            self._remove_unnecessary_connection_observers()
+
+    def _check_last_feed_connection_observers(self):
+        """
+        Call on_inactivity on connection_observer if needed.
+
+        :return: None
+        """
+        current_time = time.time()
+        for connection_observer in self._connections_obsevers:
+            life_status = connection_observer.life_status
+            if (life_status.inactivity_timeout > 0.0) and (life_status.last_feed_time is not None):
+                expected_feed_timeout = life_status.last_feed_time + life_status.inactivity_timeout
+                if current_time > expected_feed_timeout:
+                    try:
+                        connection_observer.on_inactivity()
+                    except Exception as ex:
+                        self.logger.exception(msg=r'Exception "{}" ("{}") inside: {} when on_inactivity.'.format(
+                            ex, repr(ex), connection_observer))
+                        connection_observer.set_exception(exception=ex)
+                    finally:
+                        connection_observer.life_status.last_feed_time = current_time
+
+    def _check_timeout_connection_observers(self):
+        for connection_observer in self._connections_obsevers:
+            start_time = connection_observer.life_status.start_time
+            current_time = time.time()
+            run_duration = current_time - start_time
+            timeout = connection_observer.timeout
+            if connection_observer.life_status.in_terminating:
+                timeout = connection_observer.life_status.terminating_timeout
+            if (timeout is not None) and (run_duration >= timeout):
+                if connection_observer.life_status.in_terminating:
+                    msg = "{} underlying real command failed to finish during {} seconds. It will be forcefully" \
+                          " terminated".format(connection_observer, timeout)
+                    self.logger.info(msg)
+                    connection_observer.set_end_of_life()
+                else:
+                    self._time_out_observer(connection_observer=connection_observer,
+                                            timeout=connection_observer.timeout, passed_time=run_duration,
+                                            runner_logger=self.logger)
+                    if connection_observer.life_status.terminating_timeout >= 0.0:
+                        connection_observer.life_status.start_time = time.time()
+                        connection_observer.life_status.in_terminating = True
+
+    def _timeout_observer(self, connection_observer, timeout, passed_time, runner_logger, kind="background_run"):
+        """Set connection_observer status to timed-out"""
+        if not connection_observer.life_status.was_on_timeout_called:
+            connection_observer.life_status.was_on_timeout_called = True
+            if not connection_observer.done():
+                if connection_observer.is_command():
+                    exception = CommandTimeout(connection_observer=connection_observer,
+                                               timeout=timeout, kind=kind, passed_time=passed_time)
+                else:
+                    exception = ConnectionObserverTimeout(connection_observer=connection_observer,
+                                                          timeout=timeout, kind=kind, passed_time=passed_time)
+                # TODO: secure_data_received() may change status of connection_observer
+                # TODO: and if secure_data_received() runs inside threaded connection - we have race
+                connection_observer.set_exception(exception)
+
+                connection_observer.on_timeout()
+
+                observer_info = "{}.{}".format(connection_observer.__class__.__module__, connection_observer)
+                timeout_msg = "has timed out after {:.2f} seconds.".format(passed_time)
+                msg = "{} {}".format(observer_info, timeout_msg)
+
+                # levels_to_go_up: extract caller info to log where .time_out_observer has been called from
+                connection_observer._log(logging.INFO, msg, levels_to_go_up=2)
+                log_into_logger(runner_logger, level=logging.DEBUG,
+                                msg="{} {}".format(connection_observer, timeout_msg),
+                                levels_to_go_up=1)
+
+    def _remove_unnecessary_connection_observers(self):
+        for connection_observer in self._connections_obsevers:
+            if connection_observer.done():
+                self._to_remove_connection_observers.append(connection_observer)
+        if self._to_remove_connection_observers:
+            for connection_observer in self._to_remove_connection_observers:
+                self._connections_obsevers.remove(connection_observer)
+            self._to_remove_connection_observers.clear()
+
+    def _feed_connection_observers(self):
+        try:
+            data, timestamp = self._queue_for_connection_observers.get(True, self._tick_for_runner)
+            feed_time = time.time()
+            for connection_observer in self._connections_obsevers:
+                try:
+                    self.logger.log(level=TRACE, msg=r'notifying {}({!r})'.format(connection_observer, repr(data)))
+                    connection_observer.data_received(data=data, recv_time=timestamp)
+                except Exception as ex:
+                    self.logger.exception(msg=r'Exception "{}" ("{}") inside: {} when processing ({!r})'.format(
+                        ex, repr(ex), connection_observer, repr(data)))
+                    connection_observer.set_exception(exception=ex)
+                finally:
+                    connection_observer.life_status.last_feed_time = feed_time
+        except queue.Empty:
+            pass  # No incoming data within self._tick_for_runner
+
+    def _start_command(self, connection_observer):
+        if connection_observer.is_command():
+            connection_observer.send_command()
