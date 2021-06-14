@@ -18,6 +18,13 @@ from moler.config.loggers import RAW_DATA, TRACE
 from moler.helpers import instance_id
 from moler.observer_thread_wrapper import ObserverThreadWrapper
 from moler.runner import ConnectionObserverRunner
+from moler.exceptions import CommandTimeout
+from moler.exceptions import ConnectionObserverTimeout
+
+try:
+    import queue
+except ImportError:
+    import Queue as queue  # For python 2
 
 
 class ThreadedMolerConnectionWithRunner(ThreadedMolerConnection):
@@ -191,9 +198,19 @@ class RunnerForThreadedMolerConnection(ConnectionObserverRunner):
 
     def __init__(self):
         self._connections_obsevers = list()
+        self._enable_loop_run_runner = True  # Set False to break loop.
+        self._tick = 0.001
 
     def shutdown(self):
-        """Cleanup used resources."""
+        """
+        Cleanup used resources.
+        :return: None
+        """
+        observers = self._connections_obsevers
+        self._connections_obsevers = list()
+        self._enable_loop_run_runner = False
+        for connection_observer in observers:
+            connection_observer.cancel()
 
     def submit(self, connection_observer):
         """
@@ -203,18 +220,90 @@ class RunnerForThreadedMolerConnection(ConnectionObserverRunner):
         assert connection_observer.life_status.start_time > 0.0  # connection-observer lifetime should already been
         self.add_connection_observer(connection_observer=connection_observer)
 
-    @abstractmethod
     def wait_for(self, connection_observer, connection_observer_future, timeout=10.0):
         """
         Await for connection_observer running in background or timeout.
 
         :param connection_observer: The one we are awaiting for.
-        :param connection_observer_future: Future of connection-observer returned from submit().
+        :param connection_observer_future: Future of connection-observer returned from submit(). Not used in this
+        implementation.
         :param timeout: Max time (in float seconds) you want to await before you give up.
         :return:
         """
+        if connection_observer.done():
+            self.logger.debug("go foreground: {} is already done".format(connection_observer))
+        else:
+            max_timeout = timeout
+            observer_timeout = connection_observer.timeout
+            # we count timeout from now if timeout is given; else we use .life.status.start_time and .timeout of
+            # observer
+            start_time = time.time() if max_timeout else connection_observer.life_status.start_time
+            await_timeout = max_timeout if max_timeout else observer_timeout
+            if max_timeout:
+                remain_time, msg = his_remaining_time("await max.", timeout=max_timeout, from_start_time=start_time)
+            else:
+                remain_time, msg = his_remaining_time("remaining", timeout=observer_timeout, from_start_time=start_time)
+            self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
 
-    @abstractmethod
+            # if connection_observer_future is None:
+            #     end_of_life, remain_time = await_future_or_eol(connection_observer, remain_time, start_time, await_timeout,
+            #                                                    self.logger)
+            #     if end_of_life:
+            #         return None
+            if not self._execute_till_eol(connection_observer=connection_observer,
+                                          #connection_observer_future=connection_observer_future,
+                                          max_timeout=max_timeout,
+                                          await_timeout=await_timeout,
+                                          remain_time=remain_time):
+                # code below is to close ConnectionObserver and future objects
+                self._end_of_life_of_future_and_connection_observer(connection_observer=connection_observer)
+        return None
+
+    def _execute_till_eol(self, connection_observer, max_timeout, await_timeout, remain_time):
+        eol_remain_time = remain_time
+        # either we wait forced-max-timeout or we check done-status each 0.1sec tick
+        if eol_remain_time > 0.0:
+            # future = connection_observer_future or connection_observer._future
+            # assert future is not None
+            if max_timeout:
+                if connection_observer.done():
+                    return True
+                # done, not_done = wait([future], timeout=remain_time)
+                # if (future in done) or connection_observer.done():
+                #     self._cancel_submitted_future(connection_observer, future)
+                #     return True
+                self._wait_for_time_out(connection_observer, timeout=await_timeout)
+                if connection_observer.life_status.terminating_timeout > 0.0:
+                    connection_observer.life_status.in_terminating = True
+                    #done, not_done = wait([future], timeout=connection_observer.life_status.terminating_timeout)
+                    #if (future in done) or connection_observer.done():
+                    #    self._cancel_submitted_future(connection_observer, future)
+                    return True
+            else:
+                while eol_remain_time > 0.0:
+                    if connection_observer.done():
+                        return True
+                    already_passed = time.time() - connection_observer.life_status.start_time
+                    eol_timeout = connection_observer.timeout + connection_observer.life_status.terminating_timeout
+                    eol_remain_time = eol_timeout - already_passed
+                    timeout = connection_observer.timeout
+                    remain_time = timeout - already_passed
+                    if remain_time <= 0.0:
+                        self._wait_for_time_out(connection_observer=connection_observer, timeout=await_timeout)
+                        if not connection_observer.life_status.in_terminating:
+                            connection_observer.life_status.in_terminating = True
+        else:
+            self._wait_for_not_started_connection_observer_is_done(connection_observer=connection_observer)
+        return False
+
+    def _wait_for_not_started_connection_observer_is_done(self, connection_observer):
+        # Have to wait till connection_observer is done with terminaing timeout.
+        eol_remain_time = connection_observer.life_status.terminating_timeout
+        start_time = time.time()
+        while not connection_observer.done() and eol_remain_time > 0.0:
+            time.sleep(self._tick)
+            eol_remain_time = start_time + connection_observer.life_status.terminating_timeout - time.time()
+
     def wait_for_iterator(self, connection_observer, connection_observer_future):
         """
         Version of wait_for() intended to be used by Python3 to implement iterable/awaitable object.
@@ -226,22 +315,23 @@ class RunnerForThreadedMolerConnection(ConnectionObserverRunner):
         :param connection_observer_future: Future of connection-observer returned from submit().
         :return: iterator
         """
+        return None
 
-    @abstractmethod
     def feed(self, connection_observer):
         """
         Feeds connection_observer with data to let it become done.
         This is a place where runner is a glue between words of connection and connection-observer.
         Should be called from background-processing of connection observer.
         """
+        pass  # For backward compatibility only
 
-    @abstractmethod
     def timeout_change(self, timedelta):
         """
         Call this method to notify runner that timeout has been changed in observer
         :param timedelta: delta timeout in float seconds
         :return: None
         """
+        pass  # For backward compatibility only.
 
     def add_connection_observer(self, connection_observer):
         if connection_observer not in self._connections_obsevers:
@@ -307,6 +397,12 @@ class RunnerForThreadedMolerConnection(ConnectionObserverRunner):
                         connection_observer.life_status.start_time = time.time()
                         connection_observer.life_status.in_terminating = True
 
+    def _wait_for_time_out(self, connection_observer, timeout):
+        passed = time.time() - connection_observer.life_status.start_time
+        self.time_out_observer(connection_observer=connection_observer,
+                               timeout=timeout, passed_time=passed,
+                               runner_logger=self.logger, kind="await_done")
+
     def _timeout_observer(self, connection_observer, timeout, passed_time, runner_logger, kind="background_run"):
         """Set connection_observer status to timed-out"""
         if not connection_observer.life_status.was_on_timeout_called:
@@ -363,3 +459,21 @@ class RunnerForThreadedMolerConnection(ConnectionObserverRunner):
     def _start_command(self, connection_observer):
         if connection_observer.is_command():
             connection_observer.send_command()
+
+
+def his_remaining_time(prefix, timeout, from_start_time):
+    """
+    Calculate remaining time of "he" object assuming that "he" has .life_status.start_time attribute
+
+    :param prefix: string to be used inside 'remaining time description'
+    :param he: object to calculate remaining time for
+    :param timeout: max lifetime of object
+    :param from_start_time: start of lifetime for the object
+    :return: remaining time as float and related description message
+    """
+    already_passed = time.time() - from_start_time
+    remain_time = timeout - already_passed
+    if remain_time < 0.0:
+        remain_time = 0.0
+    msg = "{} {:.3f} [sec], already passed {:.3f} [sec]".format(prefix, remain_time, already_passed)
+    return remain_time, msg
