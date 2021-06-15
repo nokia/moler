@@ -140,14 +140,14 @@ class Nping(GenericUnixCommand):
 COMMAND_OUTPUT_options = """nping -c 1 --tcp -p 80,433 scanme.nmap.org nokia.com
 
 Starting Nping 0.7.40 ( https://nmap.org/nping ) at 2021-06-14 10:50 CEST
-SENT (0.0809s) TCP 10.0.2.15:49537 > 45.33.32.156:80 S ttl=64 id=14176 iplen=40  seq=4066470806 win=1480 
+SENT (0.0809s) TCP 10.0.2.15:49537 > 45.33.32.156:80 S ttl=64 id=14176 iplen=40  seq=4066470806 win=1480
 RCVD (0.4684s) TCP 45.33.32.156:80 > 10.0.2.15:49537 SA ttl=64 id=22 iplen=44  seq=1856001 win=65535 <mss 1460>
-SENT (1.0812s) TCP 10.0.2.15:49537 > 162.13.40.196:80 S ttl=64 id=14176 iplen=40  seq=4066470806 win=1480 
+SENT (1.0812s) TCP 10.0.2.15:49537 > 162.13.40.196:80 S ttl=64 id=14176 iplen=40  seq=4066470806 win=1480
 RCVD (1.2853s) TCP 162.13.40.196:80 > 10.0.2.15:49537 SA ttl=64 id=23 iplen=44  seq=1984001 win=65535 <mss 1460>
-SENT (2.0836s) TCP 10.0.2.15:49537 > 45.33.32.156:433 S ttl=64 id=14176 iplen=40  seq=4066470806 win=1480 
-SENT (3.0850s) TCP 10.0.2.15:49537 > 162.13.40.196:433 S ttl=64 id=14176 iplen=40  seq=4066470806 win=1480 
-RCVD (3.7339s) TCP 45.33.32.156:433 > 10.0.2.15:49537 RA ttl=255 id=24 iplen=40  seq=0 win=0 
- 
+SENT (2.0836s) TCP 10.0.2.15:49537 > 45.33.32.156:433 S ttl=64 id=14176 iplen=40  seq=4066470806 win=1480
+SENT (3.0850s) TCP 10.0.2.15:49537 > 162.13.40.196:433 S ttl=64 id=14176 iplen=40  seq=4066470806 win=1480
+RCVD (3.7339s) TCP 45.33.32.156:433 > 10.0.2.15:49537 RA ttl=255 id=24 iplen=40  seq=0 win=0
+
 Statistics for host scanme.nmap.org (45.33.32.156):
  |  Probes Sent: 2 | Rcvd: 2 | Lost: 0  (0.00%)
  |_ Max rtt: 1650.226ms | Min rtt: 387.435ms | Avg rtt: 1018.830ms
