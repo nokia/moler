@@ -68,8 +68,8 @@ class Nping(GenericUnixCommand):
 
     def _parse_packets_summary(self, line):
         if self._regex_helper.search_compiled(Nping._re_packets_sent, line):
-            if 'STATISTICS' not in self.current_ret:
-                self.current_ret['STATISTICS'] = dict()
+            self.current_ret['STATISTICS'] = dict() if 'STATISTICS' not in self.current_ret else \
+                self.current_ret['STATISTICS']
             self.current_ret['STATISTICS']['PKT_SENT'] = self._converter_helper.to_number(
                 self._regex_helper.group("PKT_SENT"), raise_exception=False)
             self.current_ret['STATISTICS']['PKT_SENT_SIZE'] = self._converter_helper.to_number(
