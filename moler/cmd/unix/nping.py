@@ -18,7 +18,7 @@ class Nping(GenericUnixCommand):
 
     def __init__(self, connection, destination, options=None, prompt=None, newline_chars=None, runner=None):
         """
-        Ping command.
+        Nping command.
         :param connection: moler connection to device, terminal when command is executed.
         :param destination: address (IP v4 or v6) of unit to ping.
         :param options: options of ping command for unix.
