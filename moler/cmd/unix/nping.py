@@ -30,7 +30,7 @@ class Nping(GenericUnixCommand):
         # Parameters defined by calling the command
         self.options = options
         self.destination = destination
-        #self._converter_helper = ConverterHelper.get_converter_helper()
+        self._converter_helper = ConverterHelper.get_converter_helper()
         self._current_statistics = None
 
     def build_command_string(self):
@@ -53,11 +53,38 @@ class Nping(GenericUnixCommand):
         """
         if is_full_line:
             try:
+                self._parse_packets_summary(line=line)
+                self._parse_addresses(line=line)
                 self._parse_statistics_header(line=line)
                 self._parse_statistics(line=line)
             except ParsingDone:
                 pass  # line has been fully parsed by one of above parse-methods
         return super(Nping, self).on_new_line(line, is_full_line)
+
+    # Raw packets sent: 4 (160B) | Rcvd: 3 (128B) | Lost: 1 (25.00%)
+    _re_packets_sent = re.compile(r"Raw packets sent:\s+(?P<PKT_SENT>\d+)\s+\((?P<SENT_SIZE>\d+)(?P<SENT_UNIT>\w)\)\s+"
+                                  r"\|\s+Rcvd:\s+(?P<PKT_RCVD>\d+)\s+\((?P<RCVD_SIZE>\d+)(?P<RCVD_UNIT>\w)\)\s+\|"
+                                  r"\s+Lost:\s+(?P<LOST_PKT>\d+)\s+\((?P<LOST_PERCENTAGE>\d+\.\d+)%\)")
+
+    def _parse_packets_summary(self, line):
+        if self._regex_helper.search_compiled(Nping._re_packets_sent, line):
+            if 'STATISTICS' not in self.current_ret:
+                self.current_ret['STATISTICS'] = dict()
+            self.current_ret['STATISTICS']['PKT_SENT'] = self._converter_helper.to_number(
+                self._regex_helper.group("PKT_SENT"), raise_exception=False)
+            self.current_ret['STATISTICS']['PKT_SENT_SIZE'] = self._converter_helper.to_number(
+                self._regex_helper.group("SENT_SIZE"), raise_exception=False)
+            self.current_ret['STATISTICS']['PKT_SENT_UNIT'] = self._regex_helper.group("SENT_UNIT")
+            self.current_ret['STATISTICS']['PKT_RCVD'] = self._converter_helper.to_number(
+                self._regex_helper.group("PKT_RCVD"), raise_exception=False)
+            self.current_ret['STATISTICS']['PKT_RCVD_SIZE'] = self._converter_helper.to_number(
+                self._regex_helper.group("RCVD_SIZE"), raise_exception=False)
+            self.current_ret['STATISTICS']['PKT_RCVD_UNIT'] = self._regex_helper.group("RCVD_UNIT")
+            self.current_ret['STATISTICS']['LOST_PKT'] = self._converter_helper.to_number(
+                self._regex_helper.group("LOST_PKT"), raise_exception=False)
+            self.current_ret['STATISTICS']['LOST_PERCENTAGE'] = self._converter_helper.to_number(
+                self._regex_helper.group("LOST_PERCENTAGE"), raise_exception=False)
+            raise ParsingDone()
 
     # Statistics for host nokia.com (162.13.40.196):
     _re_statistics_header = re.compile(
@@ -76,10 +103,10 @@ class Nping(GenericUnixCommand):
             raise ParsingDone()
 
     # Probes Sent: 2 | Rcvd: 2 | Lost: 0  (0.00%)
-    _re_statistics = re.compile(r"\S+:\s+\S+\s+\|\s+\S+:\s+\S+")
+    _re_statistics = re.compile(r"(\w.*\w|\S+):\s+\S+\s+\|\s+(\w.*\w|\S+):\s+\S+")
 
     # Lost: 0  (0.00%)
-    _re_statistics_part = re.compile(r'(?P<KEY>\w.*\w|\S+)\s*:\s*(?P<VALUE>\S.*\S|\S+)')
+    _re_statistics_part = re.compile(r'(?!_)(?P<KEY>\w.*\w|\S+)\s*:\s*(?P<VALUE>\S.*\S|\S+)')
 
     def _parse_statistics(self, line):
         if self._regex_helper.search_compiled(Nping._re_statistics, line):
@@ -92,7 +119,21 @@ class Nping(GenericUnixCommand):
                     else:
                         if 'STATISTICS' not in self.current_ret:
                             self.current_ret['STATISTICS'] = dict()
+                        if 'HOST' not in self.current_ret['STATISTICS']:
+                            self.current_ret['STATISTICS']['HOST'] = dict()
                         self.current_ret['STATISTICS']['HOST'][key] = value
+            raise ParsingDone()
+
+    # Nping done: 2 IP addresses pinged in 3.77 seconds
+    _re_addresses = re.compile(r"(?P<ADDRESSES>\d+) IP address(e?s?) pinged in\s+(?P<TIME>\d+\.\d+)\s+(?P<UNIT>\w+)")
+
+    def _parse_addresses(self, line):
+        if self._regex_helper.search_compiled(Nping._re_addresses, line):
+            self.current_ret['STATISTICS']['NO_OF_ADDRESSES'] = self._converter_helper.to_number(
+                self._regex_helper.group("ADDRESSES"), raise_exception=False)
+            self.current_ret['STATISTICS']['PING_TIME'] = self._converter_helper.to_number(
+                self._regex_helper.group("TIME"), raise_exception=False)
+            self.current_ret['STATISTICS']['PING_TIME_UNIT'] = self._regex_helper.group("UNIT")
             raise ParsingDone()
 
 
@@ -126,41 +167,76 @@ COMMAND_RESULT_options = {
                 'Lost': '1  (50.00%)',
                 'Probes Sent': '2',
                 'Rcvd': '1',
+                'Avg rtt': '203.962ms',
+                'Max rtt': '203.962ms',
+                'Min rtt': '203.962ms',
                 'address': '162.13.40.196'
             },
             'scanme.nmap.org': {
                 'Lost': '0  (0.00%)',
                 'Probes Sent': '2',
                 'Rcvd': '2',
+                'Avg rtt': '1018.830ms',
+                'Max rtt': '1650.226ms',
+                'Min rtt': '387.435ms',
                 'address': '45.33.32.156'
             }
-        }
+        },
+        'LOST_PERCENTAGE': 25.0,
+        'LOST_PKT': 1,
+        'PKT_RCVD': 3,
+        'PKT_RCVD_SIZE': 128,
+        'PKT_RCVD_UNIT': 'B',
+        'PKT_SENT': 4,
+        'PKT_SENT_SIZE': 160,
+        'PKT_SENT_UNIT': 'B',
+        'NO_OF_ADDRESSES': 2,
+        'PING_TIME': 3.77,
+        'PING_TIME_UNIT': 'seconds',
+
     }
 }
 
-# COMMAND_OUTPUT_no_options = """nping nokia.com
-#
-# Starting Nping 0.7.40 ( https://nmap.org/nping ) at 2021-06-14 13:57 CEST
-# SENT (0.0337s) ICMP [10.0.2.15 > 162.13.40.196 Echo request (type=8/code=0) id=21967 seq=1] IP [ttl=64 id=45170 iplen=28 ]
-# RCVD (0.2219s) ICMP [162.13.40.196 > 10.0.2.15 Echo reply (type=0/code=0) id=21967 seq=1] IP [ttl=45 id=195 iplen=28 ]
-# SENT (1.0352s) ICMP [10.0.2.15 > 162.13.40.196 Echo request (type=8/code=0) id=21967 seq=2] IP [ttl=64 id=45170 iplen=28 ]
-# RCVD (1.2407s) ICMP [162.13.40.196 > 10.0.2.15 Echo reply (type=0/code=0) id=21967 seq=2] IP [ttl=45 id=196 iplen=28 ]
-# SENT (2.0368s) ICMP [10.0.2.15 > 162.13.40.196 Echo request (type=8/code=0) id=21967 seq=3] IP [ttl=64 id=45170 iplen=28 ]
-# RCVD (2.2604s) ICMP [162.13.40.196 > 10.0.2.15 Echo reply (type=0/code=0) id=21967 seq=3] IP [ttl=45 id=197 iplen=28 ]
-# SENT (3.0396s) ICMP [10.0.2.15 > 162.13.40.196 Echo request (type=8/code=0) id=21967 seq=4] IP [ttl=64 id=45170 iplen=28 ]
-# RCVD (3.2800s) ICMP [162.13.40.196 > 10.0.2.15 Echo reply (type=0/code=0) id=21967 seq=4] IP [ttl=45 id=198 iplen=28 ]
-# SENT (4.0409s) ICMP [10.0.2.15 > 162.13.40.196 Echo request (type=8/code=0) id=21967 seq=5] IP [ttl=64 id=45170 iplen=28 ]
-# RCVD (4.3039s) ICMP [162.13.40.196 > 10.0.2.15 Echo reply (type=0/code=0) id=21967 seq=5] IP [ttl=45 id=199 iplen=28 ]
-#
-# Max rtt: 262.930ms | Min rtt: 188.069ms | Avg rtt: 224.007ms
-# Raw packets sent: 5 (140B) | Rcvd: 5 (140B) | Lost: 0 (0.00%)
-# Nping done: 1 IP address pinged in 4.34 seconds
-# moler_bash#"""
-#
-# COMMAND_KWARGS_no_options = {
-#     'destination': 'nokia.com',
-# }
-#
-# COMMAND_RESULT_no_options = {
-#
-# }
+COMMAND_OUTPUT_no_options = """nping nokia.com
+
+Starting Nping 0.7.40 ( https://nmap.org/nping ) at 2021-06-14 13:57 CEST
+SENT (0.0337s) ICMP [10.0.2.15 > 162.13.40.196 Echo request (type=8/code=0) id=21967 seq=1] IP [ttl=64 id=45170 iplen=28 ]
+RCVD (0.2219s) ICMP [162.13.40.196 > 10.0.2.15 Echo reply (type=0/code=0) id=21967 seq=1] IP [ttl=45 id=195 iplen=28 ]
+SENT (1.0352s) ICMP [10.0.2.15 > 162.13.40.196 Echo request (type=8/code=0) id=21967 seq=2] IP [ttl=64 id=45170 iplen=28 ]
+RCVD (1.2407s) ICMP [162.13.40.196 > 10.0.2.15 Echo reply (type=0/code=0) id=21967 seq=2] IP [ttl=45 id=196 iplen=28 ]
+SENT (2.0368s) ICMP [10.0.2.15 > 162.13.40.196 Echo request (type=8/code=0) id=21967 seq=3] IP [ttl=64 id=45170 iplen=28 ]
+RCVD (2.2604s) ICMP [162.13.40.196 > 10.0.2.15 Echo reply (type=0/code=0) id=21967 seq=3] IP [ttl=45 id=197 iplen=28 ]
+SENT (3.0396s) ICMP [10.0.2.15 > 162.13.40.196 Echo request (type=8/code=0) id=21967 seq=4] IP [ttl=64 id=45170 iplen=28 ]
+RCVD (3.2800s) ICMP [162.13.40.196 > 10.0.2.15 Echo reply (type=0/code=0) id=21967 seq=4] IP [ttl=45 id=198 iplen=28 ]
+SENT (4.0409s) ICMP [10.0.2.15 > 162.13.40.196 Echo request (type=8/code=0) id=21967 seq=5] IP [ttl=64 id=45170 iplen=28 ]
+RCVD (4.3039s) ICMP [162.13.40.196 > 10.0.2.15 Echo reply (type=0/code=0) id=21967 seq=5] IP [ttl=45 id=199 iplen=28 ]
+
+Max rtt: 262.930ms | Min rtt: 188.069ms | Avg rtt: 224.007ms
+Raw packets sent: 5 (140B) | Rcvd: 5 (140B) | Lost: 0 (0.00%)
+Nping done: 1 IP address pinged in 4.34 seconds
+moler_bash#"""
+
+COMMAND_KWARGS_no_options = {
+    'destination': 'nokia.com',
+}
+
+COMMAND_RESULT_no_options = {
+    'STATISTICS': {
+        'HOST': {
+            'Avg rtt': '224.007ms',
+            'Max rtt': '262.930ms',
+            'Min rtt': '188.069ms'
+        },
+        'LOST_PERCENTAGE': 0.0,
+        'LOST_PKT': 0,
+        'NO_OF_ADDRESSES': 1,
+        'PING_TIME': 4.34,
+        'PING_TIME_UNIT': 'seconds',
+        'PKT_RCVD': 5,
+        'PKT_RCVD_SIZE': 140,
+        'PKT_RCVD_UNIT': 'B',
+        'PKT_SENT': 5,
+        'PKT_SENT_SIZE': 140,
+        'PKT_SENT_UNIT': 'B'
+    }
+}
