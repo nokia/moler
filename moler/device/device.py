@@ -4,7 +4,7 @@ Package Open Source functionality of Moler.
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst, Tomasz Krol'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com, tomasz.krol@nokia.com'
 
 
@@ -70,16 +70,20 @@ class DeviceFactory(object):
 
     @classmethod
     def get_device(cls, name=None, device_class=None, connection_desc=None, connection_hops=None, initial_state=None,
-                   establish_connection=True, lazy_cmds_events=None):
+                   establish_connection=True, lazy_cmds_events=False, io_connection=None):
         """
         Return connection instance of given io_type/variant.
 
         :param name: name of device defined in configuration.
         :param device_class: 'moler.device.unixlocal.UnixLocal', 'moler.device.unixremote.UnixRemote', ...
-        :param connection_desc: 'io_type' and 'variant' of device connection.
+        :param connection_desc: 'io_type' and 'variant' of device connection. Ignored if device already created or
+                        argument io_connection is passed.
         :param connection_hops: connection hops to create device SM.
         :param initial_state: initial state for device e.g. UNIX_REMOTE.
         :param establish_connection: True to open connection, False if it does not matter.
+        :param lazy_cmds_events: set False to load all commands and events when device is initialized, set True to load
+                        commands and events when they are required for the first time.
+        :param io_connection: connection for device. Ignored if device is already created.
         :return: requested device.
         """
         if (not name) and (not device_class):
@@ -90,7 +94,7 @@ class DeviceFactory(object):
             dev = cls._get_device_without_lock(name=name, device_class=device_class, connection_desc=connection_desc,
                                                connection_hops=connection_hops, initial_state=initial_state,
                                                establish_connection=establish_connection,
-                                               lazy_cmds_events=lazy_cmds_events)
+                                               lazy_cmds_events=lazy_cmds_events, io_connection=io_connection)
 
         return dev
 
@@ -108,7 +112,7 @@ class DeviceFactory(object):
 
     @classmethod
     def get_cloned_device(cls, source_device, new_name, initial_state=None, establish_connection=True,
-                          lazy_cmds_events=False):
+                          lazy_cmds_events=False, io_connection=None):
         """
         Creates (if necessary) and returns new device based on existed device.
 
@@ -116,6 +120,9 @@ class DeviceFactory(object):
         :param new_name: Name of new device.
         :param initial_state: Initial state of created device. If None then state of source device will be used.
         :param establish_connection: True to open connection, False if it does not matter.
+        :param lazy_cmds_events: set False to load all commands and events when device is initialized, set True to load
+                        commands and events when they are required for the first time.
+        :param io_connection: connection for device. Ignored if device is already created.
         :return: Device object.
         """
         with cls._lock_device:
@@ -125,7 +132,8 @@ class DeviceFactory(object):
                 source_device = cls._get_device_without_lock(name=source_device, device_class=None,
                                                              connection_desc=None, connection_hops=None,
                                                              initial_state=None, establish_connection=True,
-                                                             lazy_cmds_events=lazy_cmds_events)
+                                                             lazy_cmds_events=lazy_cmds_events,
+                                                             io_connection=None)
                 logger.info('STEP 1 - creating source device {}'.format(source_device_name))
             source_name = source_device.name  # name already translated to alias.
             if new_name in cls._devices.keys():
@@ -141,6 +149,7 @@ class DeviceFactory(object):
 
             device_class = cls._devices_params[source_name]['class_fullname']
             constructor_parameters = cls._devices_params[source_name]['constructor_parameters']
+            constructor_parameters["io_connection"] = io_connection
             constructor_parameters["initial_state"] = initial_state
             if constructor_parameters["name"]:
                 constructor_parameters["name"] = new_name
@@ -212,16 +221,17 @@ class DeviceFactory(object):
 
     @classmethod
     def _create_device(cls, name, device_class, connection_desc, connection_hops, initial_state, establish_connection,
-                       lazy_cmds_events):
+                       lazy_cmds_events, io_connection):
         """
         Creates and returns connection instance of given io_type/variant.
 
         :param name: name of device defined in configuration.
         :param device_class: 'moler.device.unixlocal', 'moler.device.unixremote', ...
-        :param connection_desc: 'io_type' and 'variant' of device connection.
+        :param connection_desc: 'io_type' and 'variant' of device connection. Ignored if connection is provided.
         :param connection_hops: connection hops to create device SM.
         :param initial_state: initial state for device e.g. UNIX_REMOTE.
         :param establish_connection: True to open connection, False if it does not matter.
+        :param io_connection: connection for device.
         :return: requested device.
         """
         if connection_hops is not None:
@@ -248,7 +258,8 @@ class DeviceFactory(object):
             "io_constructor_kwargs": conn_desc,
             "sm_params": connection_hops,
             "initial_state": initial_state,
-            "lazy_cmds_events": lazy_cmds_events
+            "lazy_cmds_events": lazy_cmds_events,
+            "io_connection": io_connection,
         }
         dev = cls._create_instance_and_remember_it(
             device_class=device_class, constructor_parameters=constructor_parameters,
@@ -336,7 +347,7 @@ class DeviceFactory(object):
 
     @classmethod
     def _get_device_without_lock(cls, name, device_class, connection_desc, connection_hops, initial_state,
-                                 establish_connection, lazy_cmds_events):
+                                 establish_connection, lazy_cmds_events, io_connection):
         new_name = cls._get_unique_name(name)
         if new_name in cls._devices.keys():
             dev = cls._devices[new_name]
@@ -348,7 +359,8 @@ class DeviceFactory(object):
         else:
             dev = cls._create_device(name=name, device_class=device_class, connection_desc=connection_desc,
                                      connection_hops=connection_hops, initial_state=initial_state,
-                                     establish_connection=establish_connection, lazy_cmds_events=lazy_cmds_events)
+                                     establish_connection=establish_connection, lazy_cmds_events=lazy_cmds_events,
+                                     io_connection=io_connection)
         return dev
 
     @classmethod

@@ -4,7 +4,7 @@ __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
 import time
-from moler.util.devices_SM import iterate_over_device_states, get_device
+from moler.util.devices_SM import iterate_over_device_states, get_device, get_cloned_device, get_memory_device_connection
 from moler.exceptions import MolerException, DeviceChangeStateFailure
 from moler.helpers import copy_dict
 from moler.util.moler_test import MolerTest
@@ -38,15 +38,18 @@ def test_unix_remote_proxy_pc_device_multiple_prompts(device_connection, unix_re
     unix_remote_proxy_pc = get_device(name="UNIX_REMOTE_PROXY_PC", connection=device_connection,
                                       device_output=unix_remote_proxy_pc_changed_output,
                                       test_file_path=__file__)
+    assert unix_remote_proxy_pc._check_all_prompts_on_line is True
+    assert unix_remote_proxy_pc._prompts_event.check_against_all_prompts is True
+
     with pytest.raises(MolerException) as exception:
-        iterate_over_device_states(device=unix_remote_proxy_pc)
+        iterate_over_device_states(device=unix_remote_proxy_pc, max_no_of_threads=0)
     assert "More than 1 prompt match the same line" in str(exception.value)
 
 
 def test_unix_remote_proxy_pc_device_goto_state_bg(device_connection, unix_remote_proxy_pc_output):
     unix_remote_proxy_pc = get_device(name="UNIX_REMOTE_PROXY_PC", connection=device_connection,
                                       device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
-
+    unix_remote_proxy_pc._goto_state_in_production_mode = True
     dst_state = "UNIX_REMOTE_ROOT"
     src_state = "UNIX_LOCAL"
     unix_remote_proxy_pc.goto_state(state=src_state)
@@ -72,6 +75,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg(device_connection, unix_remot
 def test_unix_remote_proxy_pc_device_goto_state_bg_and_goto(device_connection, unix_remote_proxy_pc_output):
     unix_remote_proxy_pc = get_device(name="UNIX_REMOTE_PROXY_PC", connection=device_connection,
                                       device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
+    unix_remote_proxy_pc._goto_state_in_production_mode = True
 
     dst_state = "UNIX_REMOTE_ROOT"
     src_state = "UNIX_LOCAL"
@@ -86,7 +90,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg_and_goto(device_connection, u
 def test_unix_remote_proxy_pc_device_goto_state_bg_await(device_connection, unix_remote_proxy_pc_output):
     unix_remote_proxy_pc = get_device(name="UNIX_REMOTE_PROXY_PC", connection=device_connection,
                                       device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
-
+    unix_remote_proxy_pc._goto_state_in_production_mode = True
     dst_state = "UNIX_REMOTE_ROOT"
     src_state = "UNIX_LOCAL"
     unix_remote_proxy_pc.goto_state(state=src_state)
@@ -100,7 +104,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg_await(device_connection, unix
 def test_unix_remote_proxy_pc_device_goto_state_bg_await_excption(device_connection, unix_remote_proxy_pc_output):
     unix_remote_proxy_pc = get_device(name="UNIX_REMOTE_PROXY_PC", connection=device_connection,
                                       device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
-
+    unix_remote_proxy_pc._goto_state_in_production_mode = True
     dst_state = "UNIX_REMOTE_ROOT"
     src_state = "UNIX_LOCAL"
     unix_remote_proxy_pc.goto_state(state=src_state)
