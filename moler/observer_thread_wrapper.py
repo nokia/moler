@@ -60,10 +60,10 @@ class ObserverThreadWrapper(object):
         Loop to pass data (put by method feed) to observer.
         :return: None
         """
-        logging.getLogger("moler_threads").debug("ENTER")
+        logging.getLogger("moler_threads").debug("ENTER {}".format(self._observer))
         heartbeat = tracked_thread.report_alive()
         while self._request_end is False:
-            next(heartbeat)
+            if next(heartbeat): logging.getLogger("moler_threads").debug("ALIVE")
             try:
                 data, timestamp = self._queue.get(True, self._timeout_for_get_from_queue)
                 try:
@@ -83,4 +83,4 @@ class ObserverThreadWrapper(object):
                 pass  # No incoming data within self._timeout_for_get_from_queue
         self._observer = None
         self._observer_self = None
-        logging.getLogger("moler_threads").debug("EXIT ")
+        logging.getLogger("moler_threads").debug("EXIT")

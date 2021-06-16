@@ -508,7 +508,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Feeds connection_observer by transferring data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
-        logging.getLogger("moler_threads").debug("ENTER")
+        logging.getLogger("moler_threads").debug("ENTER {}".format(connection_observer))
 
         remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                               from_start_time=connection_observer.life_status.start_time)
@@ -525,14 +525,14 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                                               from_start_time=connection_observer.life_status.start_time)
         self.logger.debug("thread finished for {}, {}".format(connection_observer, msg))
         self._stop_feeding(connection_observer, subscribed_data_receiver, feed_done, observer_lock)
-        logging.getLogger("moler_threads").debug("EXIT ")
+        logging.getLogger("moler_threads").debug("EXIT  {}".format(connection_observer))
         return None
 
     def _feed_loop(self, connection_observer, stop_feeding, observer_lock):
         start_time = connection_observer.life_status.start_time
         heartbeat = tracked_thread.report_alive()
         while True:
-            next(heartbeat)
+            if next(heartbeat): logging.getLogger("moler_threads").debug("ALIVE {}".format(connection_observer))
             if stop_feeding.is_set():
                 # TODO: should it be renamed to 'cancelled' to be in sync with initial action?
                 self.logger.debug("stopped {}".format(connection_observer))

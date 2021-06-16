@@ -252,17 +252,17 @@ class ThreadedFifoBuffer(FifoBuffer):
     @tracked_thread.log_exit_exception
     def pull_data(self, pulling_done):
         """Pull data from FIFO buffer."""
-        logging.getLogger("moler_threads").debug("ENTER")
+        logging.getLogger("moler_threads").debug("ENTER {}".format(self))
         heartbeat = tracked_thread.report_alive()
         while not pulling_done.is_set():
+            if next(heartbeat): logging.getLogger("moler_threads").debug("ALIVE {}".format(self))
             self.read()  # internally forwards to embedded Moler connection
             try:
                 data, delay = self.injections.get_nowait()
                 if delay:
                     time.sleep(delay)
-                next(heartbeat)
                 self._inject(data)
                 self.injections.task_done()
             except Empty:
                 time.sleep(0.01)  # give FIFO chance to get data
-        logging.getLogger("moler_threads").debug("EXIT ")
+        logging.getLogger("moler_threads").debug("EXIT  {}".format(self))

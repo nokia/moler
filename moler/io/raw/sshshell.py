@@ -24,6 +24,7 @@ import getpass
 import logging
 from moler.helpers import instance_id
 from moler.util.loghelper import log_into_logger
+from moler.util import tracked_thread
 
 from moler.io.io_exceptions import ConnectionTimeout
 from moler.io.io_exceptions import RemoteEndpointDisconnected
@@ -496,10 +497,14 @@ class ThreadedSshShell(IOConnection):
         data = self.sshshell._recv()
         return data
 
+    @tracked_thread.log_exit_exception
     def _pull_data(self, pulling_done):
         """Pull data from SshShell connection."""
+        logging.getLogger("moler_threads").debug("ENTER {}".format(self))
+        heartbeat = tracked_thread.report_alive()
         already_notified = False
         while not pulling_done.is_set():
+            if next(heartbeat): logging.getLogger("moler_threads").debug("ALIVE {}".format(self))
             try:
                 data = self.receive()
                 if data:
@@ -524,3 +529,4 @@ class ThreadedSshShell(IOConnection):
         is_closed = self._shell_channel is None
         if was_open and is_closed and (not already_notified):
             self._notify_on_disconnect()
+        logging.getLogger("moler_threads").debug("EXIT  {}".format(self))

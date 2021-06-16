@@ -32,13 +32,22 @@ def log_exit_exception(fun):
 
 
 def report_alive(report_tick=1.0):
-    logger = logging.getLogger("moler_threads")
-    logger.debug("I'm alive")
+    # logger = logging.getLogger("moler_threads")
+    # logger.debug("I'm alive")
     last_report_time = time.time()
+    # cnt = 2
+    do_report = True
     while True:
-        yield
+        yield do_report  # TODO log long loop tick, allowed_loop_tick as param
         now = time.time()
         delay = now - last_report_time
         if delay >= report_tick:
-            logger.debug("I'm alive")
+            # logger.debug("I'm alive")
             last_report_time = now
+            do_report = True
+        else:
+            do_report = False
+        # cnt -= 1
+        # a = 3 / cnt  # for testing exception inside thread causing thread to exit
+
+# TODO: thread dumping all active threads at tick
