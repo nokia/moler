@@ -15,6 +15,7 @@ __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
+import logging
 import select
 import socket
 import sys
@@ -26,6 +27,7 @@ from moler.io.io_exceptions import RemoteEndpointDisconnected
 from moler.io.io_exceptions import RemoteEndpointNotConnected
 from moler.io.raw import TillDoneThread
 import datetime
+from moler.util import tracked_thread
 
 
 # TODO: logging - want to know what happens on GIVEN connection
@@ -194,9 +196,13 @@ class ThreadedTcp(Tcp):
             self.pulling_thread = None
         super(ThreadedTcp, self).close()
 
+    @tracked_thread.log_exit_exception
     def pull_data(self, pulling_done):
         """Pull data from TCP connection."""
+        logging.getLogger("moler_threads").debug("ENTER {}".format(self))
+        heartbeat = tracked_thread.report_alive()
         while not pulling_done.is_set():
+            if next(heartbeat): logging.getLogger("moler_threads").debug("ALIVE {}".format(self))
             try:
                 data = self.receive(timeout=0.1)
                 if data:
@@ -210,3 +216,4 @@ class ThreadedTcp(Tcp):
                 break
         if self.socket is not None:
             self._close_ignoring_exceptions()
+        logging.getLogger("moler_threads").debug("EXIT  {}".format(self))
