@@ -11,13 +11,12 @@ import time
 _exc_info = sys.exc_info
 
 
-def track_target(fun):
+def log_exit_exception(fun):
     @functools.wraps(fun)
-    def wrapped(*args, **kwargs):
+    def thread_exceptions_catcher(*args, **kwargs):
         logger = logging.getLogger("moler_threads")
         thread_name = threading.current_thread().name
         try:
-            logger.debug("Entering thread {}".format(thread_name))
             result = fun(*args, **kwargs)
             return result
         except SystemExit:
@@ -26,13 +25,10 @@ def track_target(fun):
             th_exc_info = _exc_info()
             try:
                 logger.error("Exception in thread {}".format(thread_name), exc_info=th_exc_info)
-
             finally:
                 del th_exc_info
-        finally:
-            logger.debug("Exited   thread {}".format(thread_name))
 
-    return wrapped
+    return thread_exceptions_catcher
 
 
 def report_alive(report_tick=1.0):

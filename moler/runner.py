@@ -501,14 +501,14 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         """Callback attached to concurrent.futures.Future of submitted feed()"""
         self._stop_feeding(connection_observer, subscribed_data_receiver, feed_done, observer_lock)
 
-    @tracked_thread.track_target
+    @tracked_thread.log_exit_exception
     def feed(self, connection_observer, subscribed_data_receiver, stop_feeding, feed_done,
              observer_lock):
         """
         Feeds connection_observer by transferring data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
-        logging.getLogger("moler_threads").debug("Entered  thread")
+        logging.getLogger("moler_threads").debug("ENTER")
 
         remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                               from_start_time=connection_observer.life_status.start_time)
@@ -525,7 +525,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                                               from_start_time=connection_observer.life_status.start_time)
         self.logger.debug("thread finished for {}, {}".format(connection_observer, msg))
         self._stop_feeding(connection_observer, subscribed_data_receiver, feed_done, observer_lock)
-        logging.getLogger("moler_threads").debug("Exiting  thread")
+        logging.getLogger("moler_threads").debug("EXIT ")
         return None
 
     def _feed_loop(self, connection_observer, stop_feeding, observer_lock):
