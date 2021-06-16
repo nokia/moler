@@ -27,6 +27,7 @@ from six.moves.queue import Queue, Empty
 from moler.io.io_connection import IOConnection
 from moler.io.raw import TillDoneThread
 from moler.config.loggers import TRACE
+from moler.util import tracked_thread
 
 
 class FifoBuffer(IOConnection):
@@ -248,15 +249,20 @@ class ThreadedFifoBuffer(FifoBuffer):
             self.deferred_injections = []
             time.sleep(0.05)  # give subsequent read() a chance to get data
 
+    @tracked_thread.track_target
     def pull_data(self, pulling_done):
         """Pull data from FIFO buffer."""
+        logging.getLogger("moler_threads").debug("Entered  thread")
+        heartbeat = tracked_thread.report_alive()
         while not pulling_done.is_set():
             self.read()  # internally forwards to embedded Moler connection
             try:
                 data, delay = self.injections.get_nowait()
                 if delay:
                     time.sleep(delay)
+                next(heartbeat)
                 self._inject(data)
                 self.injections.task_done()
             except Empty:
                 time.sleep(0.01)  # give FIFO chance to get data
+        logging.getLogger("moler_threads").debug("Exiting  thread")

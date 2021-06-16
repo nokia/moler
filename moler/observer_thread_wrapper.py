@@ -6,6 +6,8 @@ __email__ = 'marcin.usielski@nokia.com'
 
 from threading import Thread
 from moler.config.loggers import TRACE
+import logging
+from moler.util import tracked_thread
 
 try:
     import queue
@@ -52,12 +54,16 @@ class ObserverThreadWrapper(object):
         """
         self._request_end = True
 
+    @tracked_thread.track_target
     def _loop_for_observer(self):
         """
         Loop to pass data (put by method feed) to observer.
         :return: None
         """
+        logging.getLogger("moler_threads").debug("Entered  thread")
+        heartbeat = tracked_thread.report_alive()
         while self._request_end is False:
+            next(heartbeat)
             try:
                 data, timestamp = self._queue.get(True, self._timeout_for_get_from_queue)
                 try:
@@ -77,3 +83,4 @@ class ObserverThreadWrapper(object):
                 pass  # No incoming data within self._timeout_for_get_from_queue
         self._observer = None
         self._observer_self = None
+        logging.getLogger("moler_threads").debug("Exiting  thread")

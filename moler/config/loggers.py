@@ -437,10 +437,26 @@ def configure_moler_main_logger():
         msg = "Using specific packages version:\nPython: {}\nmoler: {}".format(platform.python_version(),
                                                                                _get_moler_version())
         logger.info(msg)
+        configure_moler_threads_logger()
         logger.info("More logs in: {}".format(_logging_path))
         _list_libraries(logger=logger)
         global _main_logger
         _main_logger = logger
+
+
+def configure_moler_threads_logger():
+    """Configure threads logger of Moler"""
+    # warning or above go to logfile
+    if 'moler_threads' not in active_loggers:
+        th_log_fmt = "%(asctime)s.%(msecs)03d %(levelname)-12s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() |%(message)s"
+        logger = create_logger(name='moler_threads',
+                               log_level=TRACE,
+                               log_file='moler.threads.log',
+                               log_format=th_log_fmt,
+                               datefmt=date_format)
+        logger.propagate = False
+        msg = "-------------------started threads logger ---------------------"
+        logger.info(msg)
 
 
 def _list_libraries(logger):

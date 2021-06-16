@@ -25,6 +25,7 @@ from moler.exceptions import ConnectionObserverTimeout
 from moler.exceptions import MolerException
 from moler.exceptions import CommandFailure
 from moler.util.loghelper import log_into_logger
+from moler.util import tracked_thread
 
 
 @add_metaclass(ABCMeta)
@@ -500,12 +501,15 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         """Callback attached to concurrent.futures.Future of submitted feed()"""
         self._stop_feeding(connection_observer, subscribed_data_receiver, feed_done, observer_lock)
 
+    @tracked_thread.track_target
     def feed(self, connection_observer, subscribed_data_receiver, stop_feeding, feed_done,
              observer_lock):
         """
         Feeds connection_observer by transferring data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
+        logging.getLogger("moler_threads").debug("Entered  thread")
+
         remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                               from_start_time=connection_observer.life_status.start_time)
         self.logger.debug("thread started  for {}, {}".format(connection_observer, msg))
@@ -521,11 +525,14 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                                               from_start_time=connection_observer.life_status.start_time)
         self.logger.debug("thread finished for {}, {}".format(connection_observer, msg))
         self._stop_feeding(connection_observer, subscribed_data_receiver, feed_done, observer_lock)
+        logging.getLogger("moler_threads").debug("Exiting  thread")
         return None
 
     def _feed_loop(self, connection_observer, stop_feeding, observer_lock):
         start_time = connection_observer.life_status.start_time
+        heartbeat = tracked_thread.report_alive()
         while True:
+            next(heartbeat)
             if stop_feeding.is_set():
                 # TODO: should it be renamed to 'cancelled' to be in sync with initial action?
                 self.logger.debug("stopped {}".format(connection_observer))
