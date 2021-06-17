@@ -16,6 +16,8 @@ import re
 import pkg_resources
 import platform
 from logging.handlers import TimedRotatingFileHandler, RotatingFileHandler
+from moler.util import tracked_thread
+
 
 _logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
 _logging_suffixes = dict()  # Suffix for log files. None for nothing.
@@ -457,6 +459,7 @@ def configure_moler_threads_logger():
         logger.propagate = False
         msg = "-------------------started threads logger ---------------------"
         logger.info(msg)
+        tracked_thread.start_threads_dumper()
 
 
 def _list_libraries(logger):

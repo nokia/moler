@@ -31,7 +31,7 @@ def log_exit_exception(fun):
     return thread_exceptions_catcher
 
 
-def report_alive(report_tick=1.0):
+def report_alive(report_tick=1.0):  # TODO: 10sec for production
     # logger = logging.getLogger("moler_threads")
     # logger.debug("I'm alive")
     last_report_time = time.time()
@@ -50,4 +50,15 @@ def report_alive(report_tick=1.0):
         # cnt -= 1
         # a = 3 / cnt  # for testing exception inside thread causing thread to exit
 
-# TODO: thread dumping all active threads at tick
+
+def threads_dumper(report_tick=1.0):  # TODO: 10sec for production
+    logger = logging.getLogger("moler_threads")
+    while True:
+        time.sleep(report_tick)
+        logger.info("ACTIVE: {}".format(threading.enumerate()))
+
+
+def start_threads_dumper():
+    dumper = threading.Thread(target=threads_dumper)
+    dumper.daemon = True
+    dumper.start()
