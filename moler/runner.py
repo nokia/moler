@@ -215,7 +215,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             self.logger.debug("reusing provided executor {!r}".format(self.executor))
 
     def shutdown(self):
-        self.logger.debug("shutting down")
+        self.logger.debug("shutting down runner {}".format(self))
         self._in_shutdown = True  # will exit from feed() without stopping executor (since others may still use that executor)
         if self._i_own_executor:
             self.executor.shutdown()  # also stop executor since only I use it
