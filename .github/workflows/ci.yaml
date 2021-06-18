@@ -36,10 +36,14 @@ jobs:
           sshpass -p moler_password scp adb_simulation.sh molerssh@localhost:/home/molerssh/adb_simulation.sh
           sshpass -p moler_password ssh molerssh@localhost 'chmod +x ~/adb_simulation.sh'
           sshpass -p moler_password ssh molerssh@localhost 'echo "alias adb=~/adb_simulation.sh" >> ~/.profile'
+          sshpass -p moler_password ssh molerssh@localhost 'echo "alias adb=~/adb_simulation.sh" >> ~/.bash_profile'
           sshpass -p moler_password ssh molerssh@localhost 'pwd'
           sshpass -p moler_password ssh molerssh@localhost 'ls -la'
+          sshpass -p moler_password ssh molerssh@localhost 'echo ------------- show .profile'
           sshpass -p moler_password ssh molerssh@localhost 'cat ~/.profile'
+          sshpass -p moler_password ssh molerssh@localhost 'echo ------------- show .bash_profile'
           sshpass -p moler_password ssh molerssh@localhost 'cat ~/.bash_profile'
+          sshpass -p moler_password ssh molerssh@localhost 'echo ------------- check if adb works'
           sshpass -p moler_password ssh molerssh@localhost 'adb devices'
       - name: Test with pytest
         run: |
