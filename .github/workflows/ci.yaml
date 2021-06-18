@@ -27,6 +27,8 @@ jobs:
       - name:  Script before test
         run: |
           python -V
+          echo $PATH
+          echo "${{ env.PATH }}
           cat /etc/passwd | grep home
           sudo useradd molerssh -c MolerSshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("moler_password", "mr"))'`
           sudo useradd sshproxy -c Proxy4SshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("proxy_password", "mr"))'`
