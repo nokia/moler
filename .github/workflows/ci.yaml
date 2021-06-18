@@ -60,14 +60,26 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install lxml pytest-cov coveralls pytest-mccabe pytest-random pylint codacy-coverage mypy
-          pip install -Ur requirements.txt
-      - name: Check mypy
-        run: |
-          mypy --ignore-missing-imports --html-report mypyhtml dcspy
-      - name: Test with pytest
+          run: |
+            sudo apt-get -y install sshpass
+            python -m pip install --upgrade pip setuptools wheel
+            pip install -U pycodestyle coveralls pytest pytest-mccabe pytest-random mock
+            pip install -Ur requirements.txt
+      - name:  Script before test
+          run: |
+            python -V
+            cat /etc/passwd | grep home
+            sudo useradd molerssh -c MolerSshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("moler_password", "mr"))'`
+            sudo useradd sshproxy -c Proxy4SshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("proxy_password", "mr"))'`
+            sudo useradd adbshell -c AdbShell4SshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("adb_password", "mr"))'`
+            cat /etc/passwd | grep home
+            which scp
+            sshpass -p moler_password ssh -oStrictHostKeyChecking=no molerssh@localhost pwd
+            sshpass -p proxy_password ssh -oStrictHostKeyChecking=no sshproxy@localhost pwd
+            sshpass -p adb_password ssh -oStrictHostKeyChecking=no adbshell@localhost pwd
+            sshpass -p moler_password scp adb_simulation.sh molerssh@localhost:/home/molerssh/adb_simulation.sh
+            sshpass -p moler_password ssh molerssh@localhost 'chmod +x ~/adb_simulation.sh'
+            sshpass -p moler_password ssh molerssh@localhost 'echo "alias adb=~/adb_simulation.sh" >> ~/.profile'
         run: |
           python -m pytest -v --random --cov=dcspy --cov-report=xml --cov-report=html --cov-report=term --mccabe
       - name: Upload pytest test results
@@ -81,17 +93,6 @@ jobs:
             coverage.xml
             dcspy.log
           retention-days: 4
-      - name: Run codacy-coverage
-        env:
-          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
-        run: |
-          python-codacy-coverage -r coverage.xml
-      - name: Test Coveralls
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERALLS_SERVICE_NAME: github
-        run: |
-          coveralls
   style:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -121,4 +122,4 @@ jobs:
       - name: Check flake8
         run: |
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 . --count --exit-zero --max-complexity=6 --max-line-length=160 --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=160 --statistics
