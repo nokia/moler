@@ -19,7 +19,7 @@ jobs:
         run: |
           sudo apt-get -y install sshpass
           python -m pip install --upgrade pip setuptools wheel
-          pip install -U pycodestyle coveralls pytest pytest-mccabe pytest-random mock
+          pip install -U pycodestyle coveralls pytest pytest-mccabe pytest-random mock pytest-asyncio
           pip install -Ur requirements.txt
       - name:  Script before test
         run: |
@@ -63,7 +63,7 @@ jobs:
         run: |
             sudo apt-get -y install sshpass
             python -m pip install --upgrade pip setuptools wheel
-            pip install -U pycodestyle coveralls pytest pytest-mccabe pytest-random mock
+            pip install -U pycodestyle coveralls pytest pytest-mccabe pytest-random mock pytest-asyncio
             pip install -Ur requirements.txt
       - name:  Script before test
         run: |
