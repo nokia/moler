@@ -45,7 +45,7 @@ jobs:
         with:
           name: pytest-${{ matrix.os }}-${{ matrix.python-version }}
           path: |
-            dcspy.log
+            moler.log
           retention-days: 5
   coverage:
     runs-on: ${{ matrix.os }}
@@ -82,7 +82,7 @@ jobs:
             sshpass -p moler_password ssh molerssh@localhost 'echo "alias adb=~/adb_simulation.sh" >> ~/.profile'
       - name: Coverage
         run: |
-          python -m pytest -v --random --cov=dcspy --cov-report=xml --cov-report=html --cov-report=term --mccabe
+          python -m pytest -v --random --cov=moler --cov-report=xml --cov-report=html --cov-report=term --mccabe
       - name: Upload pytest test results
         uses: actions/upload-artifact@v2
         if: always()
@@ -92,7 +92,7 @@ jobs:
             htmlcov/*
             mypyhtml/*
             coverage.xml
-            dcspy.log
+            moler.log
           retention-days: 4
   style:
     runs-on: ${{ matrix.os }}
@@ -113,13 +113,13 @@ jobs:
           pip install -Ur requirements.txt
       - name: Check PyCodeStyle
         run: |
-          pycodestyle --statistics --count dcspy
+          pycodestyle --statistics --count moler
       - name: Check PyDocStyle
         run: |
-          pydocstyle --count dcspy
+          pydocstyle --count moler
       - name: Check PyLint
         run: |
-          pylint dcspy || echo $(($? % 4))
+          pylint moler || echo $(($? % 4))
       - name: Check flake8
         run: |
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
