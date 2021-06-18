@@ -29,6 +29,7 @@ jobs:
           sudo useradd sshproxy -c Proxy4SshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("proxy_password", "mr"))'`
           sudo useradd adbshell -c AdbShell4SshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("adb_password", "mr"))'`
           cat /etc/passwd | grep home
+          echo "/home/molerssh" >> $GITHUB_PATH
           which scp
           sshpass -p moler_password ssh -oStrictHostKeyChecking=no molerssh@localhost pwd
           sshpass -p proxy_password ssh -oStrictHostKeyChecking=no sshproxy@localhost pwd
