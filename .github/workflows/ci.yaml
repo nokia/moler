@@ -1,0 +1,108 @@
+name: Python CI
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [2.7 3.6, 3.7, 3.8]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.os }} ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install pycodestyle pydocstyle pytest-mccabe pytest-random
+          pip install -Ur requirements.txt
+      - name: Test with pytest
+        run: |
+          python -m pytest -v --random --mccabe
+      - name: Upload pytest test results
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: pytest-${{ matrix.os }}-${{ matrix.python-version }}
+          path: |
+            dcspy.log
+          retention-days: 5
+  coverage:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.7]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.os }} ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install lxml pytest-cov coveralls pytest-mccabe pytest-random pylint codacy-coverage mypy
+          pip install -Ur requirements.txt
+      - name: Check mypy
+        run: |
+          mypy --ignore-missing-imports --html-report mypyhtml dcspy
+      - name: Test with pytest
+        run: |
+          python -m pytest -v --random --cov=dcspy --cov-report=xml --cov-report=html --cov-report=term --mccabe
+      - name: Upload pytest test results
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: pytest-${{ matrix.os }}-${{ matrix.python-version }}
+          path: |
+            htmlcov/*
+            mypyhtml/*
+            coverage.xml
+            dcspy.log
+          retention-days: 4
+      - name: Run codacy-coverage
+        env:
+          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        run: |
+          python-codacy-coverage -r coverage.xml
+      - name: Test Coveralls
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_SERVICE_NAME: github
+        run: |
+          coveralls
+  style:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.9]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.os }} ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install flake8 pycodestyle pydocstyle pylint
+          pip install -Ur requirements.txt
+      - name: Check PyCodeStyle
+        run: |
+          pycodestyle --statistics --count dcspy
+      - name: Check PyDocStyle
+        run: |
+          pydocstyle --count dcspy
+      - name: Check PyLint
+        run: |
+          pylint dcspy || echo $(($? % 4))
+      - name: Check flake8
+        run: |
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=6 --max-line-length=160 --statistics
