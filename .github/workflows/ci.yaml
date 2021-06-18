@@ -24,6 +24,9 @@ jobs:
       - name:  extend path with /home/molerssh
         run: |
           echo "/home/molerssh" >> $GITHUB_PATH
+      - name:  show env
+        run: |
+          env
       - name:  Script before test
         run: |
           python -V
