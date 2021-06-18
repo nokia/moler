@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.6, 3.7, 3.8]
+        python-version: [3.6]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.os }} ${{ matrix.python-version }}
@@ -17,6 +17,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
+          sudo apt-get -y install sshpass
           python -m pip install --upgrade pip setuptools wheel
           pip install -U pycodestyle coveralls pytest pytest-mccabe pytest-random mock
           pip install -Ur requirements.txt
