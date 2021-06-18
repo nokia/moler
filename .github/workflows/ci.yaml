@@ -60,13 +60,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-          run: |
+        run: |
             sudo apt-get -y install sshpass
             python -m pip install --upgrade pip setuptools wheel
             pip install -U pycodestyle coveralls pytest pytest-mccabe pytest-random mock
             pip install -Ur requirements.txt
       - name:  Script before test
-          run: |
+        run: |
             python -V
             cat /etc/passwd | grep home
             sudo useradd molerssh -c MolerSshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("moler_password", "mr"))'`
@@ -80,6 +80,7 @@ jobs:
             sshpass -p moler_password scp adb_simulation.sh molerssh@localhost:/home/molerssh/adb_simulation.sh
             sshpass -p moler_password ssh molerssh@localhost 'chmod +x ~/adb_simulation.sh'
             sshpass -p moler_password ssh molerssh@localhost 'echo "alias adb=~/adb_simulation.sh" >> ~/.profile'
+      - name: Coverage
         run: |
           python -m pytest -v --random --cov=dcspy --cov-report=xml --cov-report=html --cov-report=term --mccabe
       - name: Upload pytest test results
