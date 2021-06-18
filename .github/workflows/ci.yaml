@@ -35,8 +35,11 @@ jobs:
           sshpass -p adb_password ssh -oStrictHostKeyChecking=no adbshell@localhost pwd
           sshpass -p moler_password scp adb_simulation.sh molerssh@localhost:/home/molerssh/adb_simulation.sh
           sshpass -p moler_password ssh molerssh@localhost 'chmod +x ~/adb_simulation.sh'
+          sshpass -p moler_password ssh molerssh@localhost 'echo "echo ---------InProfile----------" >> ~/.profile'
           sshpass -p moler_password ssh molerssh@localhost 'echo "alias adb=~/adb_simulation.sh" >> ~/.profile'
+          sshpass -p moler_password ssh molerssh@localhost 'echo "echo ---------InBashProfile----------" >> ~/.bash_profile'
           sshpass -p moler_password ssh molerssh@localhost 'echo "alias adb=~/adb_simulation.sh" >> ~/.bash_profile'
+          sshpass -p moler_password ssh molerssh@localhost 'echo "echo ---------InBashRc----------" >> ~/.bashrc'
           sshpass -p moler_password ssh molerssh@localhost 'pwd'
           sshpass -p moler_password ssh molerssh@localhost 'ls -la'
           sshpass -p moler_password ssh molerssh@localhost 'echo ------------- show .profile'
