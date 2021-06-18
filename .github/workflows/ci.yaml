@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip setuptools wheel
-          pip install -U pycodestyle coveralls pytest pytest-mccabe pytest-random
+          pip install -U pycodestyle coveralls pytest pytest-mccabe pytest-random mock
           pip install -Ur requirements.txt
       - name: Test with pytest
         run: |
