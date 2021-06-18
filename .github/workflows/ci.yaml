@@ -43,6 +43,8 @@ jobs:
           sshpass -p moler_password ssh molerssh@localhost 'cat ~/.profile'
           sshpass -p moler_password ssh molerssh@localhost 'echo ------------- show .bash_profile'
           sshpass -p moler_password ssh molerssh@localhost 'cat ~/.bash_profile'
+          sshpass -p moler_password ssh molerssh@localhost 'echo ------------- show PATH'
+          sshpass -p moler_password ssh molerssh@localhost 'echo $PATH'
           sshpass -p moler_password ssh molerssh@localhost 'echo ------------- check if adb works'
           sshpass -p moler_password ssh molerssh@localhost 'adb devices'
       - name: Test with pytest
