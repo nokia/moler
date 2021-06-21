@@ -44,12 +44,12 @@ jobs:
         if: ${{ matrix.python-version != '3.9' }}
         timeout-minutes: 10
         run: |
-          python -m pytest -vvvsss --random --mccabe
+          python -m pytest -vvvsss test/
       - name: Test with pytest and coverage
         if: ${{ matrix.python-version == '3.9' }}
         timeout-minutes: 10
         run: |
-          coverage run -m pytest -vvvsss
+          coverage run -m pytest -vvvsss test/
       - name: Validate coverage for moler commands
         if: ${{ matrix.python-version == '3.9' }}
         run: |
