@@ -133,8 +133,12 @@ class ThreadedMolerConnection(AbstractMolerConnection):
         """
         subscribers_wrappers = list(self._observer_wrappers.values())
         for wrapper in subscribers_wrappers:
-            self.logger.debug(">>> Queue for notifying. conn-obs '{}' moler-conn '{}' data {}".format(wrapper._observer, self, repr(data)))
-            wrapper.feed(data=data, recv_time=recv_time)
+            try:
+                self.logger.debug(">>> Queue for notifying. conn-obs '{}' moler-conn '{}' data {}".format(wrapper._observer, self, repr(data)))
+            except ReferenceError:
+                pass  # wrapper._observer is no more valid
+            else:
+                wrapper.feed(data=data, recv_time=recv_time)
 
     @staticmethod
     def _get_observer_key_value(observer):
