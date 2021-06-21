@@ -42,10 +42,12 @@ jobs:
           adb devices
       - name: Test with pytest
         if: ${{ matrix.python-version != '3.9' }}
+        timeout-minutes: 10
         run: |
           python -m pytest -vvvsss --random --mccabe
       - name: Test with pytest and coverage
         if: ${{ matrix.python-version == '3.9' }}
+        timeout-minutes: 10
         run: |
           coverage run -m pytest -vvvsss
       - name: Validate coverage for moler commands
