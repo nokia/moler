@@ -419,16 +419,18 @@ def test_passive_connection_receive_detects_remote_end_close(passive_sshshell_co
     with connection.open():
         time.sleep(0.1)
         if connection._shell_channel.recv_ready():  # some banner just after open ssh
-            connection.receive()
+            print(connection.receive())
         request = "exit\n"
         bytes2send = request.encode("utf-8")
         connection.send(bytes2send)
         time.sleep(0.1)
         echo_bytes = connection.receive(timeout=0.5)
         echo = echo_bytes.decode("utf-8")
+        print("echo = {}".format(echo))
         assert "exit" in echo
         with pytest.raises(RemoteEndpointDisconnected):
-            connection.receive(timeout=0.5)
+            resp = connection.receive(timeout=0.5)
+            print("resp = {}".format(resp))
         assert connection._shell_channel is None
         assert connection._ssh_transport is None
 
