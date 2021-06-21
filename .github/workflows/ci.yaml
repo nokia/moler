@@ -32,47 +32,14 @@ jobs:
           sshpass -p moler_password ssh -oStrictHostKeyChecking=no molerssh@localhost pwd
           sshpass -p proxy_password ssh -oStrictHostKeyChecking=no sshproxy@localhost pwd
           sshpass -p adb_password ssh -oStrictHostKeyChecking=no adbshell@localhost pwd
-      - name:  show /usr/bin
-        run: |
-          ls -ld /usr/bin
-          ls -la /usr/bin
       - name:  Upload adb simulator
         run: |
           sudo cp adb_simulation.sh /usr/bin/adb
           sudo chmod +x /usr/bin/adb
           sudo ls -l /usr/bin/adb
           which adb
-      - name:  extend path with /home/molerssh
-        run: |
-          echo "/home/molerssh" >> $GITHUB_PATH
-      - name:  show env
-        run: |
-          env
-      - name:  Script before test
-        run: |
-          python -V
-          echo $PATH
-          echo "${{ env.PATH }}"
-          which scp
-          sshpass -p moler_password scp adb_simulation.sh molerssh@localhost:/home/molerssh/adb_simulation.sh
-          sshpass -p moler_password ssh molerssh@localhost 'chmod +x ~/adb_simulation.sh'
-          sshpass -p moler_password ssh molerssh@localhost 'echo "echo ---------InProfile----------" >> ~/.profile'
-          sshpass -p moler_password ssh molerssh@localhost 'echo "alias adb=~/adb_simulation.sh" >> ~/.profile'
-          sshpass -p moler_password ssh molerssh@localhost 'echo "echo ---------InBashProfile----------" >> ~/.bash_profile'
-          sshpass -p moler_password ssh molerssh@localhost 'echo "alias adb=~/adb_simulation.sh" >> ~/.bash_profile'
-          sshpass -p moler_password ssh molerssh@localhost 'echo "echo ---------InBashRc----------" >> ~/.bashrc'
-          sshpass -p moler_password ssh molerssh@localhost 'pwd'
-          sshpass -p moler_password ssh molerssh@localhost 'ls -la'
-          sshpass -p moler_password ssh molerssh@localhost 'echo ------------- show .profile'
-          sshpass -p moler_password ssh molerssh@localhost 'cat ~/.profile'
-          sshpass -p moler_password ssh molerssh@localhost 'echo ------------- show .bash_profile'
-          sshpass -p moler_password ssh molerssh@localhost 'cat ~/.bash_profile'
-          sshpass -p moler_password ssh molerssh@localhost 'echo ------------- show PATH'
-          sshpass -p moler_password ssh molerssh@localhost 'echo $PATH'
-          sshpass -p moler_password ssh molerssh@localhost 'echo ------------- show env'
-          sshpass -p moler_password ssh molerssh@localhost 'env'
-          sshpass -p moler_password ssh molerssh@localhost 'echo ------------- check if adb works'
-          sshpass -p moler_password ssh molerssh@localhost 'adb devices'
+          echo ----------- test adb simulator
+          adb devices
       - name: Test with pytest
         run: |
           python -m pytest -vvvsss --random --mccabe
