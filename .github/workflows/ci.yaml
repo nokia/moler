@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.6]
+        python-version: [3.6, 3.9]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.os }} ${{ matrix.python-version }}
@@ -41,67 +41,35 @@ jobs:
           echo ----------- test adb simulator
           adb devices
       - name: Test with pytest
+        if: ${{ matrix.python-version != '3.9' }}
         run: |
           python -m pytest -vvvsss --random --mccabe
+      - name: Test with pytest and coverage
+        if: ${{ matrix.python-version == '3.9' }}
+        run: |
+          coverage run -m pytest -vvvsss
+      - name: Validate coverage for moler commands
+        if: ${{ matrix.python-version == '3.9' }}
+        run: |
+          coverage report -m --fail-under=68 --include="moler?cmd*"
+      - name: Validate coverage for moler events
+        if: ${{ matrix.python-version == '3.9' }}
+        run: |
+          coverage report -m --fail-under=68 --include="moler?events*"
+      - name: Validate moler overall coverage
+        if: ${{ matrix.python-version == '3.9' }}
+        run: |
+          coverage report -m --fail-under=50
       - name: Upload pytest test results
         uses: actions/upload-artifact@v2
         if: failure()
         with:
           name: pytest-${{ matrix.os }}-${{ matrix.python-version }}
           path: |
-            moler.log
+            moler*.log
+            .coverage
           retention-days: 5
-  coverage:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: [3.7]
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.os }} ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-            sudo apt-get -y install sshpass
-            python -m pip install --upgrade pip setuptools wheel
-            pip install -U pycodestyle coveralls pytest pytest-cov pytest-mccabe pytest-random mock pytest-asyncio
-            pip install -Ur requirements.txt
-      - name:  Create local users required by integration tests
-        run: |
-          cat /etc/passwd | grep home
-          sudo useradd molerssh -c MolerSshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("moler_password", "mr"))'`
-          sudo useradd sshproxy -c Proxy4SshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("proxy_password", "mr"))'`
-          sudo useradd adbshell -c AdbShell4SshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("adb_password", "mr"))'`
-          cat /etc/passwd | grep home
-          echo ---- try logging as integration tests users via ssh
-          sshpass -p moler_password ssh -oStrictHostKeyChecking=no molerssh@localhost pwd
-          sshpass -p proxy_password ssh -oStrictHostKeyChecking=no sshproxy@localhost pwd
-          sshpass -p adb_password ssh -oStrictHostKeyChecking=no adbshell@localhost pwd
-      - name:  Upload adb simulator
-        run: |
-          sudo cp adb_simulation.sh /usr/bin/adb
-          sudo chmod +x /usr/bin/adb
-          sudo ls -l /usr/bin/adb
-          which adb
-          echo ----------- test adb simulator
-          adb devices
-      - name: Coverage
-        run: |
-          python -m pytest -v --random --cov=moler --cov-report=xml --cov-report=html --cov-report=term --mccabe
-      - name: Upload pytest test results
-        uses: actions/upload-artifact@v2
-        if: always()
-        with:
-          name: pytest-${{ matrix.os }}-${{ matrix.python-version }}
-          path: |
-            htmlcov/*
-            mypyhtml/*
-            coverage.xml
-            moler.log
-          retention-days: 4
+
   style:
     runs-on: ${{ matrix.os }}
     strategy:
