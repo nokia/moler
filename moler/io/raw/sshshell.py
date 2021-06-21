@@ -504,7 +504,8 @@ class ThreadedSshShell(IOConnection):
         heartbeat = tracked_thread.report_alive()
         already_notified = False
         while not pulling_done.is_set():
-            if next(heartbeat): logging.getLogger("moler_threads").debug("ALIVE {}".format(self))  # noqa
+            if next(heartbeat):
+                logging.getLogger("moler_threads").debug("ALIVE {}".format(self))
             try:
                 data = self.receive()
                 if data:
