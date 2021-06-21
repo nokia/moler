@@ -532,7 +532,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         start_time = connection_observer.life_status.start_time
         heartbeat = tracked_thread.report_alive()
         while True:
-            if next(heartbeat): logging.getLogger("moler_threads").debug("ALIVE {}".format(connection_observer))
+            if next(heartbeat): logging.getLogger("moler_threads").debug("ALIVE {}".format(connection_observer))  # noqa
             if stop_feeding.is_set():
                 # TODO: should it be renamed to 'cancelled' to be in sync with initial action?
                 self.logger.debug("stopped {}".format(connection_observer))

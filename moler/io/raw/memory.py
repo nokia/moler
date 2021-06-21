@@ -255,7 +255,7 @@ class ThreadedFifoBuffer(FifoBuffer):
         logging.getLogger("moler_threads").debug("ENTER {}".format(self))
         heartbeat = tracked_thread.report_alive()
         while not pulling_done.is_set():
-            if next(heartbeat): logging.getLogger("moler_threads").debug("ALIVE {}".format(self))
+            if next(heartbeat): logging.getLogger("moler_threads").debug("ALIVE {}".format(self))  # noqa
             self.read()  # internally forwards to embedded Moler connection
             try:
                 data, delay = self.injections.get_nowait()

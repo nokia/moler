@@ -112,7 +112,7 @@ class ThreadedTerminal(IOConnection):
         reads = []
 
         while not pulling_done.is_set():
-            if next(heartbeat): logging.getLogger("moler_threads").debug("ALIVE {}".format(self))
+            if next(heartbeat): logging.getLogger("moler_threads").debug("ALIVE {}".format(self))  # noqa
             try:
                 reads, _, _ = select.select([self._terminal.fd], [], [], self._select_timeout)
             except ValueError as exc:

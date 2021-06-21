@@ -63,7 +63,7 @@ class ObserverThreadWrapper(object):
         logging.getLogger("moler_threads").debug("ENTER {}".format(self._observer))
         heartbeat = tracked_thread.report_alive()
         while self._request_end is False:
-            if next(heartbeat): logging.getLogger("moler_threads").debug("ALIVE")
+            if next(heartbeat): logging.getLogger("moler_threads").debug("ALIVE")  # noqa
             try:
                 data, timestamp = self._queue.get(True, self._timeout_for_get_from_queue)
                 try:

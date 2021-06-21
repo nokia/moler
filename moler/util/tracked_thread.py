@@ -21,7 +21,7 @@ def log_exit_exception(fun):
             return result
         except SystemExit:
             pass
-        except:
+        except:  # noqa
             th_exc_info = _exc_info()
             try:
                 logger.error("Exception in thread {}".format(thread_name), exc_info=th_exc_info)
