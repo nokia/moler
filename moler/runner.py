@@ -200,6 +200,9 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         self.logger = logging.getLogger('moler.runner.thread-pool')
         self.logger.debug("created")
         atexit.register(self.shutdown)
+        # TODO: atexit is called after python stops all non-daemon threads
+        #       but here we use it to stop threads - won't work,
+        #       find better moment to call shutdown()
         if executor is None:
             max_workers = 1000  # max 1000 threads in pool
             try:  # concurrent.futures  v.3.2.0 introduced prefix we like :-)
