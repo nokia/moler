@@ -12,6 +12,7 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 import atexit
 import concurrent.futures
 import logging
+import sys
 import threading
 import time
 from abc import abstractmethod, ABCMeta
@@ -199,10 +200,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         self.executor = executor
         self.logger = logging.getLogger('moler.runner.thread-pool')
         self.logger.debug("created")
-        atexit.register(self.shutdown)
-        # TODO: atexit is called after python stops all non-daemon threads
-        #       but here we use it to stop threads - won't work,
-        #       find better moment to call shutdown()
+        self._register_autoshutdown()
         if executor is None:
             max_workers = 1000  # max 1000 threads in pool
             try:  # concurrent.futures  v.3.2.0 introduced prefix we like :-)
@@ -216,6 +214,23 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             self._i_own_executor = True
         else:
             self.logger.debug("reusing provided executor {!r}".format(self.executor))
+
+    def _register_autoshutdown(self):
+        if sys.version_info < (3, 9):
+            atexit.register(self.shutdown)
+            # atexit registered callback is called after python stops all non-daemon threads
+
+            # Python 2.7, 3.6, 3.7, 3.8 - ThreadPoolExecutor creates daemon threads
+            # so, we can reach atexit callback
+        else:
+            # Python 3.9 - ThreadPoolExecutor creates non-daemon threads
+            # we use same "private" machinery of threading as concurrent.futures of Python 3.9
+
+            # Register for `_python_exit()` to be called just before joining all
+            # non-daemon threads. This is used instead of `atexit.register()` for
+            # compatibility with subinterpreters, which no longer support daemon threads.
+            # See bpo-39812 for context.
+            threading._register_atexit(self.shutdown)
 
     def shutdown(self):
         self.logger.debug("shutting down runner {}".format(self))
