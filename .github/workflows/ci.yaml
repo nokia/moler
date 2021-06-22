@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.6, 3.7]  # [3.6, 3.7, 3.8, 3.9]
+        python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.os }} ${{ matrix.python-version }}
@@ -65,7 +65,7 @@ jobs:
           coverage report -m --fail-under=50
       - name: Upload pytest test results
         uses: actions/upload-artifact@v2
-        #if: failure()
+        if: failure()
         with:
           name: pytest-${{ matrix.os }}-${{ matrix.python-version }}
           path: |
