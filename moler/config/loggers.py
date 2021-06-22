@@ -449,17 +449,20 @@ def configure_moler_main_logger():
 def configure_moler_threads_logger():
     """Configure threads logger of Moler"""
     # warning or above go to logfile
-    if 'moler_threads' not in active_loggers:
-        th_log_fmt = "%(asctime)s.%(msecs)03d %(levelname)-12s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() |%(message)s"
-        logger = create_logger(name='moler_threads',
-                               log_level=TRACE,
-                               log_file='moler.threads.log',
-                               log_format=th_log_fmt,
-                               datefmt=date_format)
-        logger.propagate = False
-        msg = "-------------------started threads logger ---------------------"
-        logger.info(msg)
-        tracked_thread.start_threads_dumper()
+    if tracked_thread.do_threads_debug:
+        if 'moler_threads' not in active_loggers:
+            th_log_fmt = "%(asctime)s.%(msecs)03d %(levelname)-12s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() |%(message)s"
+            logger = create_logger(name='moler_threads',
+                                   log_level=TRACE,
+                                   log_file='moler.threads.log',
+                                   log_format=th_log_fmt,
+                                   datefmt=date_format)
+            logger.propagate = False
+            msg = "-------------------started threads logger ---------------------"
+            logger.info(msg)
+            tracked_thread.start_threads_dumper()
+    else:
+        logging.getLogger("moler_threads").propagate = False
 
 
 def _list_libraries(logger):

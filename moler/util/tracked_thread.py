@@ -1,5 +1,6 @@
 import logging
 import functools
+import os
 import sys
 import threading
 import time
@@ -9,6 +10,7 @@ import time
 # shutdown and thus raises an exception about trying to perform some
 # operation on/with a NoneType
 _exc_info = sys.exc_info
+do_threads_debug = os.getenv('MOLER_DEBUG_THREADS', 'False').lower() in ('true', 't', 'yes', 'y', '1')
 
 
 def log_exit_exception(fun):
@@ -44,7 +46,7 @@ def report_alive(report_tick=1.0):  # TODO: 10sec for production
         if delay >= report_tick:
             # logger.debug("I'm alive")
             last_report_time = now
-            do_report = True
+            do_report = do_threads_debug
         else:
             do_report = False
         # cnt -= 1
@@ -59,6 +61,7 @@ def threads_dumper(report_tick=1.0):  # TODO: 10sec for production
 
 
 def start_threads_dumper():
-    dumper = threading.Thread(target=threads_dumper)
-    dumper.daemon = True
-    dumper.start()
+    if do_threads_debug:
+        dumper = threading.Thread(target=threads_dumper)
+        dumper.daemon = True
+        dumper.start()
