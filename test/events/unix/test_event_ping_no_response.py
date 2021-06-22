@@ -66,9 +66,13 @@ def test_erase_not_full_line_on_pause(buffer_connection):
     stopped = threading.Event()
 
     def feed_in_separate_thread():
+        cnt = 1
         while not stopped.isSet():
-            buffer_connection.moler_connection.data_received("abcde\nfghi\njkl".encode("utf-8"), datetime.datetime.now())
+            data = "[{}] abcde\nfghi\njkl".format(cnt)
+            buffer_connection.moler_connection.data_received(data.encode("utf-8"), datetime.datetime.now())
             MolerTest.sleep(sleep_time/10)
+            cnt += 1
+        MolerTest.info("feed_in_separate_thread() exited after producing {} records".format(cnt))
 
     tf = threading.Thread(target=feed_in_separate_thread)
     tf.start()
@@ -79,9 +83,12 @@ def test_erase_not_full_line_on_pause(buffer_connection):
         MolerTest.sleep(sleep_time)
         event.resume()
         MolerTest.sleep(sleep_time)
-    event.resume()
+    event.pause()  # force textual event to drop data from ObserverThreadWrapper queue being flushed
     stopped.set()
     tf.join()
+    MolerTest.sleep(1)  # allow ObserverThreadWrapper to flush all data from queue
+    MolerTest.info("Reactivating PingNoResponseDelay event")
+    event.resume()
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     event.await_done(timeout=1)
