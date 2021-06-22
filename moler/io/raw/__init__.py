@@ -23,6 +23,7 @@ class TillDoneThread(threading.Thread):
         super(TillDoneThread, self).__init__(target=target, name=name,
                                              kwargs=kwargs)
         self.done_event = done_event
+        self.daemon = True
 
     def join(self, timeout=None):
         """
