@@ -414,7 +414,6 @@ def test_receive_on_passive_connection_is_timeout_protected(passive_sshshell_con
 
 
 def test_passive_connection_receive_detects_remote_end_close(passive_sshshell_connection_class):
-    import re
     from moler.io.io_exceptions import RemoteEndpointDisconnected
     connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
     with connection.open():
@@ -434,8 +433,9 @@ def test_passive_connection_receive_detects_remote_end_close(passive_sshshell_co
             chunks_nb += 1
             resp += resp_bytes.decode("utf-8")
             print("resp = {}".format(resp))
-            if 'logout' in resp:
+            if ('logout' in resp) and resp.endswith("\n"):
                 break
+        time.sleep(0.1)  # let it drop connection
 
         with pytest.raises(RemoteEndpointDisconnected):
             resp = connection.receive(timeout=0.5)
@@ -507,7 +507,6 @@ def test_send_can_push_remaining_data_within_timeout(sshshell_connection):
 
 
 def test_passive_connection_send_detects_remote_end_closed(passive_sshshell_connection_class):
-    import re
     from moler.io.io_exceptions import RemoteEndpointDisconnected
     connection = passive_sshshell_connection_class(host='localhost', port=22, username='molerssh', password='moler_password')
     with connection.open():
@@ -528,8 +527,9 @@ def test_passive_connection_send_detects_remote_end_closed(passive_sshshell_conn
             chunks_nb += 1
             resp += resp_bytes.decode("utf-8")
             print("resp = {}".format(resp))
-            if 'logout' in resp:
+            if ('logout' in resp) and resp.endswith("\n"):
                 break
+        time.sleep(0.1)  # let it drop connection
 
         with pytest.raises(RemoteEndpointDisconnected):
             connection.send(bytes2send)
