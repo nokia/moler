@@ -429,7 +429,7 @@ def test_passive_connection_receive_detects_remote_end_close(passive_sshshell_co
         echo_bytes = connection.receive(timeout=0.5)
         echo = echo_bytes.decode("utf-8")
         print("echo = {}".format(echo))
-        if b'molerssh@' not in echo:  # first we need prompt
+        if 'molerssh@' not in echo:  # first we need prompt
             echo_bytes = connection.receive(timeout=0.5)  # but bytes happen to come in separate tcp chunks
             echo = echo_bytes.decode("utf-8")
             print("echo = {}".format(echo))
@@ -524,7 +524,7 @@ def test_passive_connection_send_detects_remote_end_closed(passive_sshshell_conn
         echo_bytes = connection.receive(timeout=0.5)  # ignore echo (tested elsewhere)
         echo = echo_bytes.decode("utf-8")
         print("echo = {}".format(echo))
-        if b'molerssh@' not in echo:  # first we need prompt
+        if 'molerssh@' not in echo:  # first we need prompt
             echo_bytes = connection.receive(timeout=0.5)  # but bytes happen to come in separate tcp chunks
             echo = echo_bytes.decode("utf-8")
             print("echo = {}".format(echo))
