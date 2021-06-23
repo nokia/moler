@@ -47,16 +47,21 @@ jobs:
           which adb
           echo ----------- test adb simulator
           adb devices
-      - name: Test with pytest
-        if: ${{ matrix.python-version != '3.9' }}
+      - name: Test with pytest Python 2.7
+        if: ${{ matrix.python-version == '2.7' }}
         timeout-minutes: 9
         run: |
           python -m pytest -vvvsss test/
+      - name: Test with pytest
+        if: ${{ (matrix.python-version != '3.9') && (matrix.python-version != '2.7') }}
+        timeout-minutes: 9
+        run: |
+          python -m pytest -c py3pytest.ini -vvvsss test/
       - name: Test with pytest and coverage
         if: ${{ matrix.python-version == '3.9' }}
         timeout-minutes: 9
         run: |
-          coverage run -m pytest -vvvsss test/
+          coverage run -m pytest -c py3pytest.ini -vvvsss test/
       - name: Validate coverage for moler commands
         if: ${{ matrix.python-version == '3.9' }}
         run: |
