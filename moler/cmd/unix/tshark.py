@@ -82,7 +82,7 @@ class Tshark(GenericUnixCommand):
             raise ParsingDone
 
 
-COMMAND_OUTPUT = """
+COMMAND_OUTPUT = u"""
 ute@debdev:~/moler_int$ tshark -a duration:5 -i lo
 Capturing on 'Loopback'
     1 0.000000000    127.0.0.1 → 127.0.0.1    ICMP 98 Echo (ping) request  id=0x693b, seq=48/12288, ttl=64
