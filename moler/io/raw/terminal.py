@@ -7,6 +7,7 @@ import codecs
 import re
 import select
 import datetime
+import logging
 from threading import Event
 
 from ptyprocess import PtyProcessUnicode  # Unix-only
@@ -16,6 +17,7 @@ from moler.io.raw import TillDoneThread
 from moler.helpers import remove_all_known_special_chars
 from moler.helpers import all_chars_to_hex
 from moler.helpers import non_printable_chars_to_hex
+from moler.util import tracked_thread
 
 
 class ThreadedTerminal(IOConnection):
@@ -102,11 +104,16 @@ class ThreadedTerminal(IOConnection):
         if self._terminal:
             self._terminal.write(data)
 
+    @tracked_thread.log_exit_exception
     def pull_data(self, pulling_done):
         """Pull data from ThreadedTerminal connection."""
+        logging.getLogger("moler_threads").debug("ENTER {}".format(self))
+        heartbeat = tracked_thread.report_alive()
         reads = []
 
         while not pulling_done.is_set():
+            if next(heartbeat):
+                logging.getLogger("moler_threads").debug("ALIVE {}".format(self))
             try:
                 reads, _, _ = select.select([self._terminal.fd], [], [], self._select_timeout)
             except ValueError as exc:
@@ -129,6 +136,7 @@ class ThreadedTerminal(IOConnection):
                 except EOFError:
                     self._notify_on_disconnect()
                     pulling_done.set()
+        logging.getLogger("moler_threads").debug("EXIT  {}".format(self))
 
     def _verify_shell_is_operable(self, data):
         self.read_buffer = self.read_buffer + data
