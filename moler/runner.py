@@ -12,6 +12,7 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 import atexit
 import concurrent.futures
 import logging
+import sys
 import threading
 import time
 from abc import abstractmethod, ABCMeta
@@ -25,6 +26,7 @@ from moler.exceptions import ConnectionObserverTimeout
 from moler.exceptions import MolerException
 from moler.exceptions import CommandFailure
 from moler.util.loghelper import log_into_logger
+from moler.util import tracked_thread
 
 
 @add_metaclass(ABCMeta)
@@ -198,7 +200,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         self.executor = executor
         self.logger = logging.getLogger('moler.runner.thread-pool')
         self.logger.debug("created")
-        atexit.register(self.shutdown)
+        self._register_autoshutdown()
         if executor is None:
             max_workers = 1000  # max 1000 threads in pool
             try:  # concurrent.futures  v.3.2.0 introduced prefix we like :-)
@@ -213,8 +215,25 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         else:
             self.logger.debug("reusing provided executor {!r}".format(self.executor))
 
+    def _register_autoshutdown(self):
+        if sys.version_info < (3, 9):
+            atexit.register(self.shutdown)
+            # atexit registered callback is called after python stops all non-daemon threads
+
+            # Python 2.7, 3.6, 3.7, 3.8 - ThreadPoolExecutor creates daemon threads
+            # so, we can reach atexit callback
+        else:
+            # Python 3.9 - ThreadPoolExecutor creates non-daemon threads
+            # we use same "private" machinery of threading as concurrent.futures of Python 3.9
+
+            # Register for `_python_exit()` to be called just before joining all
+            # non-daemon threads. This is used instead of `atexit.register()` for
+            # compatibility with subinterpreters, which no longer support daemon threads.
+            # See bpo-39812 for context.
+            threading._register_atexit(self.shutdown)
+
     def shutdown(self):
-        self.logger.debug("shutting down")
+        self.logger.debug("shutting down runner {}".format(self))
         self._in_shutdown = True  # will exit from feed() without stopping executor (since others may still use that executor)
         if self._i_own_executor:
             self.executor.shutdown()  # also stop executor since only I use it
@@ -399,7 +418,9 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         passed = time.time() - connection_observer.life_status.start_time
         future = connection_observer_future or connection_observer._future
         if future:
+            self.logger.debug(">>> Entering {}. conn-obs '{}' runner '{}' future '{}'".format(future.observer_lock, connection_observer, self, future))
             with future.observer_lock:
+                self.logger.debug(">>> Entered  {}. conn-obs '{}' runner '{}' future '{}'".format(future.observer_lock, connection_observer, self, future))
                 time_out_observer(connection_observer=connection_observer,
                                   timeout=timeout, passed_time=passed,
                                   runner_logger=self.logger, kind="await_done")
@@ -435,14 +456,18 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             try:
                 if connection_observer.done() or self._in_shutdown:
                     return  # even not unsubscribed secure_data_received() won't pass data to done observer
+                self.logger.debug(u">>> Entering {}. conn-obs '{}' runner '{}' data '{}'".format(observer_lock, connection_observer, self, data))
                 with observer_lock:
+                    self.logger.debug(u">>> Entered  {}. conn-obs '{}' runner '{}' data '{}'".format(observer_lock, connection_observer, self, data))
                     connection_observer.data_received(data, timestamp)
                     connection_observer.life_status.last_feed_time = time.time()
 
             except Exception as exc:  # TODO: handling stacktrace
                 # observers should not raise exceptions during data parsing
                 # but if they do so - we fix it
+                self.logger.debug(">>> Entering err {}. conn-obs '{}' runner. '{}'".format(observer_lock, connection_observer, self))
                 with observer_lock:
+                    self.logger.debug(">>> Entered  err {}. conn-obs '{}' runner. '{}'".format(observer_lock, connection_observer, self))
                     self.logger.warning("Unhandled exception from '{} 'caught by runner. '{}' : '{}'.".format(
                         connection_observer, exc, repr(exc)))
                     ex_msg = "Unexpected exception from {} caught by runner when processing data >>{}<< at '{}':" \
@@ -461,7 +486,9 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
         moler_conn = connection_observer.connection
         self.logger.debug("subscribing for data {}".format(connection_observer))
+        self.logger.debug(">>> Entering {}. conn-obs '{}' runner '{}' moler-conn '{}'".format(observer_lock, connection_observer, self, moler_conn))
         with observer_lock:
+            self.logger.debug(">>> Entered  {}. conn-obs '{}' runner '{}' moler-conn '{}'".format(observer_lock, connection_observer, self, moler_conn))
             moler_conn.subscribe(observer=secure_data_received,
                                  connection_closed_handler=connection_observer.connection_closed_handler)
             # after subscription we have data path so observer is started
@@ -473,7 +500,9 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         return secure_data_received  # to know what to unsubscribe
 
     def _stop_feeding(self, connection_observer, subscribed_data_receiver, feed_done, observer_lock):
+        self.logger.debug(">>> Entering {}. conn-obs '{}' runner '{}'".format(observer_lock, connection_observer, self))
         with observer_lock:
+            self.logger.debug(">>> Entered  {}. conn-obs '{}' runner '{}'".format(observer_lock, connection_observer, self))
             if not feed_done.is_set():
                 moler_conn = connection_observer.connection
                 self.logger.debug("unsubscribing {}".format(connection_observer))
@@ -490,12 +519,15 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         """Callback attached to concurrent.futures.Future of submitted feed()"""
         self._stop_feeding(connection_observer, subscribed_data_receiver, feed_done, observer_lock)
 
+    @tracked_thread.log_exit_exception
     def feed(self, connection_observer, subscribed_data_receiver, stop_feeding, feed_done,
              observer_lock):
         """
         Feeds connection_observer by transferring data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
+        logging.getLogger("moler_threads").debug("ENTER {}".format(connection_observer))
+
         remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                               from_start_time=connection_observer.life_status.start_time)
         self.logger.debug("thread started  for {}, {}".format(connection_observer, msg))
@@ -511,11 +543,15 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                                               from_start_time=connection_observer.life_status.start_time)
         self.logger.debug("thread finished for {}, {}".format(connection_observer, msg))
         self._stop_feeding(connection_observer, subscribed_data_receiver, feed_done, observer_lock)
+        logging.getLogger("moler_threads").debug("EXIT  {}".format(connection_observer))
         return None
 
     def _feed_loop(self, connection_observer, stop_feeding, observer_lock):
         start_time = connection_observer.life_status.start_time
+        heartbeat = tracked_thread.report_alive()
         while True:
+            if next(heartbeat):
+                logging.getLogger("moler_threads").debug("ALIVE {}".format(connection_observer))
             if stop_feeding.is_set():
                 # TODO: should it be renamed to 'cancelled' to be in sync with initial action?
                 self.logger.debug("stopped {}".format(connection_observer))
@@ -537,7 +573,9 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                     self.logger.info(msg)
                     connection_observer.set_end_of_life()
                 else:
+                    self.logger.debug(">>> Entering {}. conn-obs '{}' runner '{}'".format(observer_lock, connection_observer, self))
                     with observer_lock:
+                        self.logger.debug(">>> Entered  {}. conn-obs '{}' runner '{}'".format(observer_lock, connection_observer, self))
                         time_out_observer(connection_observer,
                                           timeout=connection_observer.timeout,
                                           passed_time=run_duration,

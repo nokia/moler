@@ -84,8 +84,7 @@ class Service(GenericUnixCommand):
             raise ParsingDone
 
 
-COMMAND_OUTPUT_status_all = """
-ute@debdev:~$ service --status-all
+COMMAND_OUTPUT_status_all = u"""service --status-all
  [ + ]  acpid
  [ - ]  alsa-utils
  [ - ]  anacron
@@ -157,7 +156,8 @@ ute@debdev:~$ service --status-all
  [ + ]  urandom
  [ + ]  winbind
  [ - ]  x11-common
-ute@debdev:~$ """
+moler_bash#"""
+
 COMMAND_KWARGS_status_all = {
     'options': '--status-all'
 }
@@ -235,8 +235,7 @@ COMMAND_RESULT_status_all = {
     'x11-common': '[ - ]'
 }
 
-COMMAND_OUTPUT_status = """
-root@debdev:/home/ute# service ssh status
+COMMAND_OUTPUT_status = u"""service ssh status
 ● ssh.service - OpenBSD Secure Shell server
    Loaded: loaded (/lib/systemd/system/ssh.service; enabled)
    Active: active (running) since Thu 2018-07-19 15:15:42 CEST; 32s ago
@@ -250,7 +249,8 @@ root@debdev:/home/ute# service ssh status
 Jul 19 15:15:42 debdev systemd[1]: Started OpenBSD Secure Shell server.
 Jul 19 15:15:42 debdev sshd[2544]: Server listening on 0.0.0.0 port 22.
 Jul 19 15:15:43 debdev sshd[2544]: Server listening on :: port 22.
-root@debdev:/home/ute# """
+moler_bash#"""
+
 COMMAND_KWARGS_status = {
     'options': 'ssh status',
 }
@@ -270,9 +270,9 @@ COMMAND_RESULT_status = {
             'Jul 19 15:15:43 debdev sshd[2544]: Server listening on :: port 22.'],
 }
 
-COMMAND_OUTPUT = """
-root@debdev:/home/ute# service ssh start
-root@debdev:/home/ute# """
+COMMAND_OUTPUT = """service ssh start
+moler_bash#"""
+
 COMMAND_KWARGS = {
     'options': 'ssh start',
 }
