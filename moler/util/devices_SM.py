@@ -148,12 +148,12 @@ def _prepare_device(device, connection, device_output):
     assert device._check_all_prompts_on_line is True
     assert device._prompts_event.check_against_all_prompts is True
     connection.open()
-    if device.current_state is "NOT_CONNECTED":
+    if device.current_state == "NOT_CONNECTED":
         if device._established is True:
             device._established = False
         device.establish_connection()
 
-    assert device.current_state is not "NOT_CONNECTED"
+    assert device.current_state != "NOT_CONNECTED"
 
 
 def get_cloned_device(src_device, new_name, new_connection):
