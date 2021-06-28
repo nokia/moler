@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Ping command module.
+Sysctl command module.
 """
 
 __author__ = 'Marcin Usielski'
@@ -19,7 +19,7 @@ class Sysctl(GenericUnixCommand):
     def __init__(self, connection, options=None, parameter=None, value=None, prompt=None,
                  newline_chars=None, runner=None):
         """
-        Ping command.
+        Sysctl command.
         :param connection: moler connection to device, terminal when command is executed.
         :param options: options of ping command for unix.
         :param parameter: name of parameter to set.
@@ -43,7 +43,7 @@ class Sysctl(GenericUnixCommand):
         cmd = "sysctl"
         if self.options:
             cmd = "{} {}".format(cmd, self.options)
-        if self.parameter and self.options:
+        if self.parameter and self.value:
             cmd = "{} {{{}={}}}".format(cmd, self.parameter, self.value)
         return cmd
 
