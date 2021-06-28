@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+"""Scheduler for commands and events."""
+
 __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
@@ -17,9 +19,9 @@ class CommandScheduler(object):
     @staticmethod
     def enqueue_starting_on_connection(connection_observer):
         """
-        Wait for free slot and runs command when no other command is in run mode. If connection_observer is not
-         a command then runs immediately.
+        Wait for free slot and runs command when no other command is in run mode.
 
+        If connection_observer is not a command then runs immediately.
         :param connection_observer: Object of ConnectionObserver to run. Maybe a command or an observer.
         :return: None
         """
