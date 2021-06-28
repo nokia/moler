@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 One of Moler's goals is to be IO-agnostic.
+
 So it can be used under twisted, asyncio, curio any any other IO system.
 
 Moler's connection is very thin layer binding Moler's ConnectionObserver with external IO system.
@@ -20,15 +21,21 @@ import logging
 
 
 def identity_transformation(data):
-    """Default coder is no encoding/decoding"""
+    """Use default coder is no encoding/decoding."""
     logging.log(logging.WARNING, "identity_transformation from connection.py is deprecated now. Please use"
                                  " abstract_moler_connection.py.")
     return data
 
 
 class Connection(AbstractMolerConnection):
-    """Connection API required by ConnectionObservers."""
+    """Require. Connection API required by ConnectionObservers."""
 
     def __init__(self, *args, **kwargs):
+        """
+        Init he connection.
+
+        :param args: parameters for base class.
+        :param kwargs: parameters for base class.
+        """
         super(Connection, self).__init__(*args, **kwargs)
         self._log(logging.WARNING, "Class Connection is deprecated now. Please use AbstractMolerConnection.")
