@@ -70,7 +70,6 @@ class CommandScheduler(object):
 
     def __init__(self):
         """Create Scheduler object."""
-
         with CommandScheduler._conn_lock:
             if CommandScheduler._scheduler is None:
                 self._locks = dict()
@@ -79,7 +78,6 @@ class CommandScheduler(object):
     @staticmethod
     def _get_scheduler():
         """Return instance of the scheduler."""
-
         if CommandScheduler._scheduler is None:
             CommandScheduler()
         return CommandScheduler._scheduler
@@ -161,8 +159,9 @@ class CommandScheduler(object):
 
     def _remove_command(self, cmd):
         """
-        Remove command object from queue and/or current executed. It is safe to call this method many times for the
-         same command object.
+        Remove command object from queue and/or current executed.
+
+        It is safe to call this method many times for the same command object.
         :param cmd: Command object
         :return: None.
         """
