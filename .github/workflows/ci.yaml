@@ -106,9 +106,9 @@ jobs:
       - name: Check PyCodeStyle
         run: |
           pycodestyle --statistics --count moler
-#      - name: Check PyDocStyle
-#        run: |
-#          pydocstyle --count moler
+      - name: Check PyDocStyle
+        run: |
+          pydocstyle --count moler
       - name: Check PyLint
         run: |
           pylint moler || echo $(($? % 4))
