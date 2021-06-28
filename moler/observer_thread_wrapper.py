@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+"""Wrapper for observer registered in ThreadedMolerConnection (old name: ObservableConnection)."""
+
 __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2020, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
@@ -16,9 +18,7 @@ except ImportError:
 
 
 class ObserverThreadWrapper(object):
-    """
-    Wrapper for observer registered in ThreadedMolerConnection (old name: ObservableConnection).
-    """
+    """Wrapper for observer registered in ThreadedMolerConnection (old name: ObservableConnection)."""
 
     def __init__(self, observer, observer_self, logger):
         """
@@ -50,6 +50,7 @@ class ObserverThreadWrapper(object):
     def request_stop(self):
         """
         Call if you want to stop feed observer.
+
         :return: None
         """
         self._request_end = True
@@ -58,6 +59,7 @@ class ObserverThreadWrapper(object):
     def _loop_for_observer(self):
         """
         Loop to pass data (put by method feed) to observer.
+
         :return: None
         """
         logging.getLogger("moler_threads").debug("ENTER {}".format(self._observer))
