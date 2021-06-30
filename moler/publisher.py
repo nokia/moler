@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Moler implementation of Publisher-Subscriber Design Pattern
+Moler implementation of Publisher-Subscriber Design Pattern.
 
 Main characteristic:
 - allow Subscribers to be garbage collected while still subscribed inside Publisher
@@ -23,6 +23,7 @@ from moler.helpers import instance_id
 class Publisher(object):
     """
     Allows objects to subscribe for notification about data.
+
     Subscription is made by registering function to be called with this data (may be object's method).
     Function should have signature like:
 
@@ -31,16 +32,16 @@ class Publisher(object):
     """
 
     def __init__(self):
-        """Create Publisher instance"""
+        """Create Publisher instance."""
         super(Publisher, self).__init__()
         self._subscribers = dict()
         self._subscribers_lock = Lock()
 
     def subscribe(self, subscriber):
         """
-        Subscribe for 'data notification'
+        Subscribe for 'data notification'.
 
-        :param observer: function to be called to notify about data.
+        :param subscriber: function to be called to notify about data.
         """
         with self._subscribers_lock:
             subscription_key, subscription_value = self._get_subscriber_key_and_value(subscriber)
@@ -50,7 +51,7 @@ class Publisher(object):
 
     def unsubscribe(self, subscriber):
         """
-        Unsubscribe from 'data notification'
+        Unsubscribe from 'data notification'.
 
         :param subscriber: function that was previously subscribed
         """
@@ -60,7 +61,7 @@ class Publisher(object):
                 del self._subscribers[subscription_key]
 
     def notify_subscribers(self, *args, **kwargs):
-        """Notify all subscribers passing them notification parameters"""
+        """Notify all subscribers passing them notification parameters."""
         # need copy since calling subscribers may change self._subscribers
         current_subscribers = list(self._subscribers.values())
         for self_or_none, subscriber_function in current_subscribers:
@@ -77,7 +78,7 @@ class Publisher(object):
 
     def handle_subscriber_exception(self, subscriber_owner, subscriber_function, raised_exception):
         """
-        Handle exception raised by subscriber during publishing
+        Handle exception raised by subscriber during publishing.
 
         :param subscriber_owner: instance of class whose method was subscribed (or None)
         :param subscriber_function: subscribed class method or raw function
@@ -89,7 +90,7 @@ class Publisher(object):
     @staticmethod
     def _get_subscriber_key_and_value(subscriber):
         """
-        Allow Subscribers to be garbage collected while still subscribed inside Publisher
+        Allow Subscribers to be garbage collected while still subscribed inside Publisher.
 
         Subscribing methods of objects is tricky::
 
