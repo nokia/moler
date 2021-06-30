@@ -67,7 +67,7 @@ jobs:
       - name: Validate coverage for moler commands
         if: ${{ matrix.python-version == '3.9' }}
         run: |
-          coverage report -m --fail-under=68 --include="moler?cmd*"
+          coverage report -m --fail-under=100 --include="moler?cmd*"
       - name: Validate coverage for moler events
         if: ${{ matrix.python-version == '3.9' }}
         run: |
