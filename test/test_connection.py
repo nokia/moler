@@ -370,6 +370,7 @@ def test_repeated_unsubscription_does_nothing_but_logs_warning(buffer_transport_
     we don't want to raise exception when there is already
     "no such subscription" - just put warning to logs
     """
+    import time
     from moler.threaded_moler_connection import ThreadedMolerConnection
 
     moler_conn = ThreadedMolerConnection()
@@ -380,10 +381,13 @@ def test_repeated_unsubscription_does_nothing_but_logs_warning(buffer_transport_
         moler_conn.unsubscribe(observer=one_time_observer, connection_closed_handler=do_nothing_func)
 
     moler_conn.subscribe(observer=one_time_observer, connection_closed_handler=do_nothing_func)
+    # subscribe fires new thread via ObserverThreadWrapper
+    # that thread pushes data: moler-connection.notify_observers() --> queue --> one_time_observer()
 
     used_io = buffer_transport_class(moler_connection=moler_conn)  # external-IO internally sets .how2send
     used_io.write(input_bytes=b"data 1")  # inject to buffer for next line read
     used_io.read()
+    time.sleep(0.2)  # allow threads switch to let ObserverThreadWrapper push data into one_time_observer()
     moler_conn.unsubscribe(observer=one_time_observer, connection_closed_handler=do_nothing_func)  # TODO: check
     # warning in logs (when we set logging system)
     used_io.write(input_bytes=b"data 2")  # inject to buffer for next line read

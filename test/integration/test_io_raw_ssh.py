@@ -353,7 +353,7 @@ def test_can_send_and_receive_binary_data_over_passive_connection(passive_sshshe
         time.sleep(0.1)
         resp_bytes = connection.receive()
         response = resp_bytes.decode("utf-8")
-        assert '/home/' in response
+        assert ('/home/' in response) or ('pwd' in response)  # pwd output or just first chunk with pwd echo
 
 
 # Note1 different active external-IO connections may have different naming for their 'send' method
@@ -419,16 +419,27 @@ def test_passive_connection_receive_detects_remote_end_close(passive_sshshell_co
     with connection.open():
         time.sleep(0.1)
         if connection._shell_channel.recv_ready():  # some banner just after open ssh
-            connection.receive()
+            print(connection.receive())
         request = "exit\n"
         bytes2send = request.encode("utf-8")
         connection.send(bytes2send)
         time.sleep(0.1)
-        echo_bytes = connection.receive(timeout=0.5)
-        echo = echo_bytes.decode("utf-8")
-        assert "exit" in echo
+
+        # response bytes happen to come in multiple tcp chunks
+        chunks_nb = 0
+        resp = ''
+        while chunks_nb < 100:  # should be just few chunks but let's secure against infinite loop
+            resp_bytes = connection.receive(timeout=0.5)
+            chunks_nb += 1
+            resp += resp_bytes.decode("utf-8")
+            print("resp = {}".format(resp))
+            if ('logout' in resp) and resp.endswith("\n"):
+                break
+        time.sleep(0.1)  # let it drop connection
+
         with pytest.raises(RemoteEndpointDisconnected):
-            connection.receive(timeout=0.5)
+            resp = connection.receive(timeout=0.5)
+            print("resp = {}".format(resp))
         assert connection._shell_channel is None
         assert connection._ssh_transport is None
 
@@ -501,12 +512,24 @@ def test_passive_connection_send_detects_remote_end_closed(passive_sshshell_conn
     with connection.open():
         time.sleep(0.1)
         if connection._shell_channel.recv_ready():  # some banner just after open ssh
-            connection.receive()
+            banner = connection.receive()
+            print(banner)
         request = "exit\n"
         bytes2send = request.encode("utf-8")
         connection.send(bytes2send)
         time.sleep(0.1)
-        connection.receive(timeout=0.5)  # ignore echo (tested elsewhere)
+
+        # response bytes happen to come in multiple tcp chunks
+        chunks_nb = 0
+        resp = ''
+        while chunks_nb < 100:  # should be just few chunks but let's secure against infinite loop
+            resp_bytes = connection.receive(timeout=0.5)
+            chunks_nb += 1
+            resp += resp_bytes.decode("utf-8")
+            print("resp = {}".format(resp))
+            if ('logout' in resp) and resp.endswith("\n"):
+                break
+        time.sleep(0.1)  # let it drop connection
 
         with pytest.raises(RemoteEndpointDisconnected):
             connection.send(bytes2send)

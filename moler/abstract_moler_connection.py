@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 One of Moler's goals is to be IO-agnostic.
+
 So it can be used under twisted, asyncio, curio any any other IO system.
 
 Moler's connection is very thin layer binding Moler's ConnectionObserver with external IO system.
@@ -25,7 +26,7 @@ from moler.util.loghelper import log_into_logger
 
 
 def identity_transformation(data):
-    """Default coder is no encoding/decoding"""
+    """Code. Default coder is no encoding/decoding."""
     return data
 
 
@@ -35,20 +36,18 @@ class AbstractMolerConnection(object):
     def __init__(self, how2send=None, encoder=identity_transformation, decoder=identity_transformation,
                  name=None, newline='\n', logger_name=""):
         """
-        Create Connection via registering external-IO
+        Create Connection via registering external-IO.
 
+        Logger is retrieved by logging.getLogger(logger_name)
+        If logger_name == "" - take logger "moler.connection.<name>".
+        If logger_name is None - don't use logging.
         :param how2send: any callable performing outgoing IO
         :param encoder: callable converting data to bytes
         :param decoder: callable restoring data from bytes
         :param name: name assigned to connection
         :param logger_name: take that logger from logging
         :param newline: new line character
-
-        Logger is retrieved by logging.getLogger(logger_name)
-        If logger_name == "" - take logger "moler.connection.<name>"
-        If logger_name is None - don't use logging
         """
-
         super(AbstractMolerConnection, self).__init__()
         self.how2send = how2send or self._unknown_send
         self._encoder = encoder
@@ -62,13 +61,13 @@ class AbstractMolerConnection(object):
 
     @property
     def name(self):
-        """Get name of connection"""
+        """Get name of connection."""
         return self._name
 
     @name.setter
     def name(self, value):
         """
-        Set name of connection
+        Set name of connection.
 
         If connection is using default logger ("moler.connection.<name>")
         then modify logger after connection name change.
@@ -81,12 +80,28 @@ class AbstractMolerConnection(object):
         self._name = value
 
     def set_data_logger(self, logger):
+        """
+        Set logger for data.
+
+        :param logger: logger
+        :return: None
+        """
         self.data_logger = logger
 
     def __str__(self):
+        """
+        Return string representation of the object.
+
+        :return String with representation of the object.
+        """
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
 
     def __repr__(self):
+        """
+        Return string representation (repr) of the object.
+
+        :return String with representation of the object.
+        """
         cmd_str = self.__str__()
         # sender_str = "<Don't know>"
         sender_str = "?"
@@ -150,12 +165,13 @@ class AbstractMolerConnection(object):
         self.how2send(encoded_data)
 
     def change_newline_seq(self, newline_seq="\n"):
-        """
-        Method to change newline char(s). Useful when connect from one point to another if newline chars change (i.e. "\n", "\n")
+        r"""
+        Change newline char(s).
+
+        Useful when connect from one point to another if newline chars change (i.e. "\n", "\n").
         :param newline_seq: Sequence of chars to send as new line char(s)
         :return: None
         """
-
         if self.newline != newline_seq:
             characters = [ord(char) for char in self.newline]
             newline_old = "0x" + ''.join("'{:02X}'".format(a) for a in characters)
@@ -171,22 +187,23 @@ class AbstractMolerConnection(object):
         self.send(data=line, timeout=timeout, encrypt=encrypt, levels_to_go_up=3)
 
     def data_received(self, data, recv_time):
-        """Incoming-IO API: external-IO should call this method when data is received"""
+        """Incoming-IO API: external-IO should call this method when data is received."""
         pass
 
     def encode(self, data):
-        """Prepare data for Outgoing-IO"""
+        """Prepare data for Outgoing-IO."""
         encoded_data = self._encoder(data)
         return encoded_data
 
     def decode(self, data):
-        """Process data from Incoming-IO"""
+        """Process data from Incoming-IO."""
         decoded_data = self._decoder(data)
         return decoded_data
 
     def shutdown(self):
         """
-        Closes connection with notifying all observers about closing.
+        Close connection with notifying all observers about closing.
+
         :return: None
         """
         self._is_open = False
@@ -194,6 +211,7 @@ class AbstractMolerConnection(object):
     def is_open(self):
         """
         Call to check if connection is open.
+
         :return: True if connection is open, False otherwise.
         """
         return self._is_open
@@ -235,6 +253,7 @@ class AbstractMolerConnection(object):
     def disable_logging(self):
         """
         Disable logging incoming data.
+
         :return: None
         """
         if self._enabled_logging:
@@ -246,6 +265,7 @@ class AbstractMolerConnection(object):
     def enable_logging(self):
         """
         Enable logging incoming data.
+
         :return: None
         """
         if not self._enabled_logging:

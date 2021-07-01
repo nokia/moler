@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+"""Wrapper for observer registered in ThreadedMolerConnection (old name: ObservableConnection)."""
+
 __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2020-2021, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
@@ -10,6 +12,7 @@ from moler.exceptions import CommandTimeout, ConnectionObserverTimeout
 from moler.util.loghelper import log_into_logger
 import time
 import logging
+from moler.util import tracked_thread
 
 try:
     import queue
@@ -18,9 +21,7 @@ except ImportError:
 
 
 class ObserverThreadWrapper(object):
-    """
-    Wrapper for observer registered in ThreadedMolerConnection (old name: ObservableConnection).
-    """
+    """Wrapper for observer registered in ThreadedMolerConnection (old name: ObservableConnection)."""
 
     def __init__(self, observer, observer_self, logger):
         """
@@ -65,16 +66,23 @@ class ObserverThreadWrapper(object):
     def request_stop(self):
         """
         Call if you want to stop feed observer.
+
         :return: None
         """
         self._request_end = True
 
+    @tracked_thread.log_exit_exception
     def _loop_for_observer(self):
         """
         Loop to pass data (put by method feed) to observer.
+
         :return: None
         """
+        logging.getLogger("moler_threads").debug("ENTER {}".format(self._observer))
+        heartbeat = tracked_thread.report_alive()
         while self._request_end is False:
+            if next(heartbeat):
+                logging.getLogger("moler_threads").debug("ALIVE")
             try:
                 data, timestamp = self._queue.get(True, self._timeout_for_get_from_queue)
                 try:

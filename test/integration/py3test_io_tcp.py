@@ -16,6 +16,7 @@ import asyncio
 import pytest
 
 
+@pytest.mark.xfail
 @pytest.mark.asyncio
 async def test_can_open_and_close_connection(tcp_connection_class,
                                              integration_tcp_server_and_pipe):
@@ -38,6 +39,7 @@ async def test_can_open_and_close_connection(tcp_connection_class,
     assert 'Client disconnected' in dialog_with_server
 
 
+@pytest.mark.xfail
 @pytest.mark.asyncio
 async def test_closing_closed_connection_does_nothing(tcp_connection_class,
                                                       integration_tcp_server_and_pipe):
@@ -57,6 +59,7 @@ async def test_closing_closed_connection_does_nothing(tcp_connection_class,
     assert  dialog_with_server[-2] != 'Client disconnected'  # not closed twice
 
 
+@pytest.mark.xfail
 @pytest.mark.asyncio
 async def test_can_open_and_close_connection_as_context_manager(tcp_connection_class,
                                                                 integration_tcp_server_and_pipe):
@@ -77,6 +80,7 @@ async def test_can_open_and_close_connection_as_context_manager(tcp_connection_c
 # Note: different external-IO connection may have different naming for their 'send' method
 # however, they are uniformed via glueing with moler_connection.send()
 # external-IO 'send' method works on bytes; moler_connection performs encoding
+@pytest.mark.xfail
 @pytest.mark.asyncio
 async def test_can_send_binary_data_over_connection(tcp_connection_class,
                                                     integration_tcp_server_and_pipe):
@@ -100,6 +104,7 @@ async def test_can_send_binary_data_over_connection(tcp_connection_class,
 # however, they are uniformed via glueing with moler_connection.data_received()
 # so, external-IO forwards data to moler_connection.data_received()
 # and moler-connection forwards it to anyone subscribed
+@pytest.mark.xfail
 @pytest.mark.asyncio
 async def test_can_receive_binary_data_from_connection(tcp_connection_class,
                                                        integration_tcp_server_and_pipe):

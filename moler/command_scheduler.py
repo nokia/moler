@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+"""Scheduler for commands and events."""
+
 __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
@@ -12,12 +14,14 @@ from threading import Thread
 
 
 class CommandScheduler(object):
+    """Scheduler for commands and events."""
 
     @staticmethod
     def enqueue_starting_on_connection(connection_observer):
         """
-        Waits for free slot and runs command when no other command is in run mode. If connection_observer is not
-         a command then runs immediately.
+        Wait for free slot and runs command when no other command is in run mode.
+
+        If connection_observer is not a command then runs immediately.
         :param connection_observer: Object of ConnectionObserver to run. Maybe a command or an observer.
         :return: None
         """
@@ -36,7 +40,8 @@ class CommandScheduler(object):
     @staticmethod
     def dequeue_running_on_connection(connection_observer):
         """
-        Removes command from queue and/or current executed on connection.
+        Remove command from queue and/or current executed on connection.
+
         :param connection_observer: Command object to remove from connection
         :return: None
         """
@@ -48,7 +53,7 @@ class CommandScheduler(object):
     @staticmethod
     def is_waiting_for_execution(connection_observer):
         """
-        Checks if connection_observer waits in queue before passed to runner.
+        Check if connection_observer waits in queue before passed to runner.
 
         :param connection_observer: ConnectionObserver object.
         :return: True if connection_observer waits in queue and False if it does not wait.
@@ -64,6 +69,7 @@ class CommandScheduler(object):
     _scheduler = None
 
     def __init__(self):
+        """Create Scheduler object."""
         with CommandScheduler._conn_lock:
             if CommandScheduler._scheduler is None:
                 self._locks = dict()
@@ -71,13 +77,15 @@ class CommandScheduler(object):
 
     @staticmethod
     def _get_scheduler():
+        """Return instance of the scheduler."""
         if CommandScheduler._scheduler is None:
             CommandScheduler()
         return CommandScheduler._scheduler
 
     def _add_command_to_connection(self, cmd, wait_for_slot=True):
         """
-        Adds command to execute on connection.
+        Add command to execute on connection.
+
         :param cmd: Command object to add to connection
         :param wait_for_slot: If True then waits till command timeout or there is free slot to execute command. If False
         then returns immediately regardless there is free slot or not.
@@ -104,7 +112,8 @@ class CommandScheduler(object):
 
     def _lock_for_connection(self, connection):
         """
-        Returns a lock object for the connection.
+        Return a lock object for the connection.
+
         :param connection: connection to look for a lock object.
         :return: Lock object.
         """
@@ -115,7 +124,8 @@ class CommandScheduler(object):
 
     def _create_empty_connection_dict(self):
         """
-        Creates the dict with initial values for fields for connection.
+        Create the dict with initial values for fields for connection.
+
         :return: Initial dict for connection
         """
         ret = dict()
@@ -126,7 +136,8 @@ class CommandScheduler(object):
 
     def _wait_for_slot_for_command(self, cmd):
         """
-        Waits for free slot for the command.
+        Wait for free slot for the command.
+
         :param cmd: Command object.
         :return: True if command was marked as ready to execute, False if timeout.
         """
@@ -148,8 +159,9 @@ class CommandScheduler(object):
 
     def _remove_command(self, cmd):
         """
-        Removes command object from queue and/or current executed. It is safe to call this method many times for the
-         same command object.
+        Remove command object from queue and/or current executed.
+
+        It is safe to call this method many times for the same command object.
         :param cmd: Command object
         :return: None.
         """
@@ -168,7 +180,8 @@ class CommandScheduler(object):
 
     def _add_command_to_execute(self, cmd):
         """
-        Tries to mark command object as current in run mode .
+        Try to mark command object as current in run mode.
+
         :param cmd: Command object.
         :return: True if command object was marked as current run, False otherwise.
         """
@@ -183,7 +196,8 @@ class CommandScheduler(object):
 
     def _add_command_to_queue(self, cmd):
         """
-        Adds command object to queue fot connection of command.
+        Add command object to queue fot connection of command.
+
         :param cmd: Command object.
         :return: None.
         """
@@ -194,6 +208,12 @@ class CommandScheduler(object):
             conn_atr['queue'].append(cmd)
 
     def _does_it_wait_in_queue(self, cmd):
+        """
+        Check if cmd is waiting in the queue.
+
+        :param cmd: command to check.
+        :return: True is command is waiting in the queue, False otherwise.
+        """
         connection = cmd.connection
         lock = self._lock_for_connection(connection)
         conn_atr = self._locks[connection]
@@ -204,7 +224,8 @@ class CommandScheduler(object):
 
     def _submit(self, connection_observer):
         """
-        Submits a connection_observer object (command or observer) in the runner.
+        Submit a connection_observer object (command or observer) in the runner.
+
         :param connection_observer: Connection observer (command or observer) object to submit
         :return: None
         """

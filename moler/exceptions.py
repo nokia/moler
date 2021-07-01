@@ -129,10 +129,10 @@ class CommandWrongState(MolerException):
 
 
 class EventWrongState(MolerException):
-    def __init__(self, command, expected_state, current_state):
-        err_msg = "Event '{}' tried to run in state '{}' but created in '{}'.".format(command.command_string,
+    def __init__(self, event, expected_state, current_state):
+        err_msg = "Event '{}' tried to run in state '{}' but created in '{}'.".format(event.event_name,
                                                                                       current_state, expected_state)
-        self.command = command
+        self.event = event
         super(EventWrongState, self).__init__(err_msg)
 
 

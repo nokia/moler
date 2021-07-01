@@ -49,6 +49,7 @@ def test_event_ping_no_response(buffer_connection):
 
 
 def test_erase_not_full_line_on_pause(buffer_connection):
+    import threading
     output = "From 192.168.255.126 icmp_seq=1 Destination Host Unreachable"
     sleep_time = 0.0005
     processed = {'process': 0}
@@ -62,26 +63,32 @@ def test_erase_not_full_line_on_pause(buffer_connection):
 
     event = PingNoResponseDelay(connection=buffer_connection.moler_connection, till_occurs_times=2)
     event.start()
-    run = True
+    stopped = threading.Event()
 
     def feed_in_separate_thread():
-        while run:
-            buffer_connection.moler_connection.data_received("abcde\nfghi\njkl".encode("utf-8"), datetime.datetime.now())
+        cnt = 1
+        while not stopped.isSet():
+            data = "[{}] abcde\nfghi\njkl".format(cnt)
+            buffer_connection.moler_connection.data_received(data.encode("utf-8"), datetime.datetime.now())
             MolerTest.sleep(sleep_time/10)
-    from threading import Thread
-    tf = Thread(target=feed_in_separate_thread)
-    tf.setDaemon(True)
+            cnt += 1
+        MolerTest.info("feed_in_separate_thread() exited after producing {} records".format(cnt))
+
+    tf = threading.Thread(target=feed_in_separate_thread)
     tf.start()
     start_time = time.time()
 
-    while time.time() - start_time < 4 or processed['process'] < 300:
+    while (time.time() - start_time < 4) or (processed['process'] < 300):
         event.pause()
         MolerTest.sleep(sleep_time)
         event.resume()
         MolerTest.sleep(sleep_time)
+    event.pause()  # force textual event to drop data from ObserverThreadWrapper queue being flushed
+    stopped.set()
+    tf.join()
+    MolerTest.sleep(1)  # allow ObserverThreadWrapper to flush all data from queue
+    MolerTest.info("Reactivating PingNoResponseDelay event")
     event.resume()
-    run = False
-    MolerTest.sleep(0.2)
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     event.await_done(timeout=1)

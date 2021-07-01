@@ -1,0 +1,118 @@
+name: Python CI
+
+on: [push]
+
+jobs:
+  test:
+    timeout-minutes: 10
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [2.7, 3.6, 3.7, 3.8, 3.9]
+    env:
+      MOLER_DEBUG_THREADS: True
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.os }} ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          sudo apt-get -y install sshpass
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -U pycodestyle coveralls pytest pytest-mccabe pytest-random mock
+          pip install -Ur requirements.txt
+      - name: Install Python 3 dependencies
+        if: ${{ matrix.python-version != '2.7' }}
+        run: |
+          pip install -U pytest-asyncio
+      - name:  Create local users required by integration tests
+        run: |
+          cat /etc/passwd | grep home
+          sudo useradd molerssh -c MolerSshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("moler_password", "mr"))'`
+          sudo useradd sshproxy -c Proxy4SshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("proxy_password", "mr"))'`
+          sudo useradd adbshell -c AdbShell4SshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("adb_password", "mr"))'`
+          cat /etc/passwd | grep home
+          echo ---- try logging as integration tests users via ssh
+          sshpass -p moler_password ssh -oStrictHostKeyChecking=no molerssh@localhost pwd
+          sshpass -p proxy_password ssh -oStrictHostKeyChecking=no sshproxy@localhost pwd
+          sshpass -p adb_password ssh -oStrictHostKeyChecking=no adbshell@localhost pwd
+      - name:  Upload adb simulator
+        run: |
+          sudo cp adb_simulation.sh /usr/bin/adb
+          sudo chmod +x /usr/bin/adb
+          sudo ls -l /usr/bin/adb
+          which adb
+          echo ----------- test adb simulator
+          adb devices
+      - name: Test with pytest Python 2.7
+        if: ${{ matrix.python-version == '2.7' }}
+        timeout-minutes: 9
+        run: |
+          python -m pytest -vvvsss test/
+      - name: Test with pytest
+        if: ${{ (matrix.python-version != '3.9') && (matrix.python-version != '2.7') }}
+        timeout-minutes: 9
+        run: |
+          python -m pytest -vvvsss test/
+          # python -m pytest -c py3pytest.ini -vvvsss test/
+      - name: Test with pytest and coverage
+        if: ${{ matrix.python-version == '3.9' }}
+        timeout-minutes: 9
+        run: |
+          coverage run -m pytest -vvvsss test/
+          # coverage run -m pytest -c py3pytest.ini -vvvsss test/
+      - name: Validate coverage for moler commands
+        if: ${{ matrix.python-version == '3.9' }}
+        run: |
+          coverage report -m --fail-under=100 --include="moler?cmd*"
+      - name: Validate coverage for moler events
+        if: ${{ matrix.python-version == '3.9' }}
+        run: |
+          coverage report -m --fail-under=100 --include="moler?events*"
+      - name: Validate moler overall coverage
+        if: ${{ matrix.python-version == '3.9' }}
+        run: |
+          coverage report -m --fail-under=91
+      - name: Upload pytest test results
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: pytest-${{ matrix.os }}-${{ matrix.python-version }}
+          path: |
+            moler*.log
+            .coverage
+          retention-days: 5
+
+  style:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.9]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.os }} ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install flake8 pycodestyle pydocstyle pylint
+          pip install -Ur requirements.txt
+      - name: Check PyCodeStyle
+        run: |
+          pycodestyle --statistics --count moler
+#      - name: Check PyDocStyle
+#        run: |
+#          pydocstyle --count moler
+      - name: Check PyLint
+        run: |
+          pylint moler || echo $(($? % 4))
+      - name: Check flake8
+        run: |
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=160 --statistics
