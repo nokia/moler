@@ -86,7 +86,8 @@ class RunnerWithThreadedMolerConnection(ThreadedMolerConnection):
 
     def unsubscribe(self, observer, connection_closed_handler):
         """
-        Unsubscribe from 'data-received notification'
+        Unsubscribe from 'data-received notification'.
+
         :param observer: function that was previously subscribed
         :param connection_closed_handler: callable to be called when connection is closed.
         """
