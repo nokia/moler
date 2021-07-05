@@ -52,10 +52,29 @@ class RunnerWithThreadedMolerConnection(ThreadedMolerConnection):
     def subscribe_connection_observer(self, connection_observer):
         if connection_observer not in self._connection_observers:
             self._connection_observers.append(connection_observer)
+            self.subscribe(
+                observer=connection_observer.data_received,
+                connection_closed_handler=connection_observer.connection_closed_handler
+            )
 
     def unsubscribe_connection_observer(self, connection_observer):
         if connection_observer in self._connection_observers:
             self._connection_observers.remove(connection_observer)
+            self.unsubscribe(
+                observer=connection_observer.data_received,
+                connection_closed_handler=connection_observer.connection_closed_handler
+            )
+
+    def notify_observers(self, data, recv_time):
+        """
+        Notify all subscribed observers about data received on connection.
+        :param data: data to send to all registered subscribers.
+        :param recv_time: time of data really read form connection.
+        :return None
+        """
+        super(RunnerWithThreadedMolerConnection, self).notify_observers(data=data, recv_time=recv_time)
+        for connection_observer in self._connection_observers:
+            connection_observer.life_status.last_feed_time = recv_time
 
 
 class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
