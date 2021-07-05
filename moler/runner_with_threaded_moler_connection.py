@@ -41,173 +41,22 @@ class RunnerWithThreadedMolerConnection(ThreadedMolerConnection):
         If logger_name == "" - take logger "moler.connection.<name>"
         If logger_name is None - don't use logging
         """
-        super(ThreadedMolerConnection, self).__init__(how2send, encoder, decoder, name=name, newline=newline,
-                                                      logger_name=logger_name)
-        self._connection_closed_handlers = dict()
-        self._observer_wrappers = dict()
-        self._observers_lock = Lock()
-        self._observers_runner = list()
-        self._to_remove_connection_observers = list()
+        super(RunnerWithThreadedMolerConnection, self).__init__(how2send, encoder, decoder, name=name, newline=newline,
+                                                                logger_name=logger_name)
+        self._runner = RunnerForRunnerWithThreadedMolerConnection(connection=self)
 
-    def data_received(self, data, recv_time):
-        """
-        Incoming-IO API:
-        external-IO should call this method when data is received
-        """
-        if not self.is_open():
-            return
-
-        extra = {'transfer_direction': '<', 'encoder': lambda data: data.encode(encoding='utf-8', errors="replace")}
-        self._log_data(msg=data, level=RAW_DATA,
-                       extra=extra)
-
-        decoded_data = self.decode(data)
-        self._log_data(msg=decoded_data, level=logging.INFO,
-                       extra=extra)
-
-        self.notify_observers(decoded_data, recv_time)
-        #self._check_observers_loop()
-
-    def subscribe(self, observer, connection_closed_handler):
-        """
-        Subscribe for 'data-received notification'
-        :param observer: function to be called to notify when data received.
-        :param connection_closed_handler: callable to be called when connection is closed.
-        """
-        with self._observers_lock:
-            self._log(level=TRACE, msg="subscribe({})".format(observer))
-            observer_key, value = self._get_observer_key_value(observer)
-
-            if observer_key not in self._observer_wrappers:
-                self_for_observer, observer_reference = value
-                self._observer_wrappers[observer_key] = ObserverThreadWrapper(
-                    observer=observer_reference, observer_self=self_for_observer, logger=self.logger)
-                self._connection_closed_handlers[observer_key] = connection_closed_handler
-
-    def unsubscribe(self, observer, connection_closed_handler):
-        """
-        Unsubscribe from 'data-received notification'.
-
-        :param observer: function that was previously subscribed
-        :param connection_closed_handler: callable to be called when connection is closed.
-        """
-        with self._observers_lock:
-            self._log(level=TRACE, msg="unsubscribe({})".format(observer))
-            observer_key, _ = self._get_observer_key_value(observer)
-            if observer_key in self._observer_wrappers and observer_key in self._connection_closed_handlers:
-                self._observer_wrappers[observer_key].request_stop()
-                del self._connection_closed_handlers[observer_key]
-                del self._observer_wrappers[observer_key]
-            else:
-                self._log(level=logging.WARNING,
-                          msg="{} and {} were not both subscribed.".format(observer, connection_closed_handler),
-                          levels_to_go_up=2)
-
-    def shutdown(self):
-        """
-        Closes connection with notifying all observers about closing.
-        :return: None
-        """
-
-        for handler in list(self._connection_closed_handlers.values()):
-            handler()
-        super(ThreadedMolerConnection, self).shutdown()
-
-    def notify_observers(self, data, recv_time):
-        """
-        Notify all subscribed observers about data received on connection.
-        :param data: data to send to all registered subscribers.
-        :param recv_time: time of data really read form connection.
-        :return None
-        """
-        subscribers_wrappers = list(self._observer_wrappers.values())
-        for wrapper in subscribers_wrappers:
-            wrapper.feed(data=data, recv_time=recv_time)
-
-    def _check_observers_loop(self):
-        for connection_observer in self._observers_runner:
-            self._feed_connection_observer(connection_observer=connection_observer, stop_feeding=None, observer_lock=None)
-            if connection_observer.done():
-                self._to_remove_connection_observers.append(connection_observer)
-        if self._to_remove_connection_observers:
-            for connection_observer in self._to_remove_connection_observers:
-                self._observers_runner.remove(connection_observer)
-            self._to_remove_connection_observers.clear()
-
-    def _feed_connection_observer(self, connection_observer, stop_feeding, observer_lock):
-        start_time = connection_observer.life_status.start_time
-        while True:
-            if stop_feeding.is_set():
-                # TODO: should it be renamed to 'cancelled' to be in sync with initial action?
-                self.logger.debug("stopped {}".format(connection_observer))
-                break
-            if connection_observer.done():
-                self.logger.debug("done {}".format(connection_observer))
-                break
-            current_time = time.time()
-            run_duration = current_time - start_time
-            # we need to check connection_observer.timeout at each round since timeout may change
-            # during lifetime of connection_observer
-            timeout = connection_observer.timeout
-            if connection_observer.life_status.in_terminating:
-                timeout = connection_observer.life_status.terminating_timeout
-            if (timeout is not None) and (run_duration >= timeout):
-                if connection_observer.life_status.in_terminating:
-                    msg = "{} underlying real command failed to finish during {} seconds. It will be forcefully" \
-                          " terminated".format(connection_observer, timeout)
-                    self.logger.info(msg)
-                    connection_observer.set_end_of_life()
-                else:
-                    with observer_lock:
-                        time_out_observer(connection_observer,
-                                          timeout=connection_observer.timeout,
-                                          passed_time=run_duration,
-                                          runner_logger=self.logger)
-                        if connection_observer.life_status.terminating_timeout >= 0.0:
-                            start_time = time.time()
-                            connection_observer.life_status.in_terminating = True
-                        else:
-                            break
-            else:
-                self._call_on_inactivity(connection_observer=connection_observer, current_time=current_time)
-
-            if self._in_shutdown:
-                self.logger.debug("shutdown so cancelling {}".format(connection_observer))
-                connection_observer.cancel()
-            time.sleep(self._tick)  # give moler_conn a chance to feed observer
-
-    def _call_on_inactivity(self, connection_observer, current_time):
-        """
-        Call on_inactivity on connection_observer if needed.
-        :param connection_observer: ConnectionObserver object.
-        :param current_time: current time in seconds.
-        :return: None
-        """
-        life_status = connection_observer.life_status
-        if (life_status.inactivity_timeout > 0.0) and (life_status.last_feed_time is not None):
-            expected_feed_timeout = life_status.last_feed_time + life_status.inactivity_timeout
-            if current_time > expected_feed_timeout:
-                connection_observer.on_inactivity()
-                connection_observer.life_status.last_feed_time = current_time
+    def get_runner(self):
+        return self._runner
 
 
-class RunnerForThreadedMolerConnection(ConnectionObserverRunner):
+class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
 
-    def __init__(self):
+    def __init__(self, connection):
+        super(RunnerForRunnerWithThreadedMolerConnection, self).__init__()
         self._connections_obsevers = list()
         self._enable_loop_run_runner = True  # Set False to break loop.
         self._tick = 0.001
-
-    def shutdown(self):
-        """
-        Cleanup used resources.
-        :return: None
-        """
-        observers = self._connections_obsevers
-        self._connections_obsevers = list()
-        self._enable_loop_run_runner = False
-        for connection_observer in observers:
-            connection_observer.cancel()
+        self._connection = connection
 
     def submit(self, connection_observer):
         """
@@ -217,14 +66,23 @@ class RunnerForThreadedMolerConnection(ConnectionObserverRunner):
         assert connection_observer.life_status.start_time > 0.0  # connection-observer lifetime should already been
         self.add_connection_observer(connection_observer=connection_observer)
 
+    def add_connection_observer(self, connection_observer):
+        if connection_observer not in self._connections_obsevers:
+            self._connection.subscribe(
+                observer=connection_observer.data_received,
+                connection_closed_handler=connection_observer.connection_closed_handler
+            )
+            self._connections_obsevers.append(connection_observer)
+            self._start_command(connection_observer=connection_observer)
+
     def wait_for(self, connection_observer, connection_observer_future, timeout=10.0):
         """
         Await for connection_observer running in background or timeout.
         :param connection_observer: The one we are awaiting for.
         :param connection_observer_future: Future of connection-observer returned from submit(). Not used in this
-        implementation.
+        implementation!
         :param timeout: Max time (in float seconds) you want to await before you give up.
-        :return:
+        :return: None
         """
         if connection_observer.done():
             self.logger.debug("go foreground: {} is already done".format(connection_observer))
@@ -241,11 +99,6 @@ class RunnerForThreadedMolerConnection(ConnectionObserverRunner):
                 remain_time, msg = his_remaining_time("remaining", timeout=observer_timeout, from_start_time=start_time)
             self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
 
-            # if connection_observer_future is None:
-            #     end_of_life, remain_time = await_future_or_eol(connection_observer, remain_time, start_time, await_timeout,
-            #                                                    self.logger)
-            #     if end_of_life:
-            #         return None
             if not self._execute_till_eol(connection_observer=connection_observer,
                                           #connection_observer_future=connection_observer_future,
                                           max_timeout=max_timeout,
@@ -254,6 +107,52 @@ class RunnerForThreadedMolerConnection(ConnectionObserverRunner):
                 # code below is to close ConnectionObserver and future objects
                 self._end_of_life_of_future_and_connection_observer(connection_observer=connection_observer)
         return None
+
+    def wait_for_iterator(self, connection_observer, connection_observer_future):
+        """
+        Version of wait_for() intended to be used by Python3 to implement iterable/awaitable object.
+        Note: we don't have timeout parameter here. If you want to await with timeout please do use timeout machinery
+        of selected parallelism.
+        :param connection_observer: The one we are awaiting for.
+        :param connection_observer_future: Future of connection-observer returned from submit().
+        :return: iterator
+        """
+        return None
+
+    def feed(self, connection_observer):
+        """
+        Feeds connection_observer with data to let it become done.
+        This is a place where runner is a glue between words of connection and connection-observer.
+        Should be called from background-processing of connection observer. Left only for backward compatibility.
+        """
+        pass  # For backward compatibility only
+
+    def timeout_change(self, timedelta):
+        """
+        Call this method to notify runner that timeout has been changed in observer
+        :param timedelta: delta timeout in float seconds
+        :return: None
+        """
+        pass  # For backward compatibility only.
+
+    def shutdown(self):
+        """
+        Cleanup used resources.
+        :return: None
+        """
+        observers = self._connections_obsevers
+        self._connections_obsevers = list()
+        self._enable_loop_run_runner = False
+        for connection_observer in observers:
+            connection_observer.cancel()
+            self._connection.unsubscribe()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.shutdown()
+        return False  # exceptions (if any) should be reraised
 
     def _execute_till_eol(self, connection_observer, max_timeout, await_timeout, remain_time):
         eol_remain_time = remain_time
@@ -300,37 +199,9 @@ class RunnerForThreadedMolerConnection(ConnectionObserverRunner):
             time.sleep(self._tick)
             eol_remain_time = start_time + connection_observer.life_status.terminating_timeout - time.time()
 
-    def wait_for_iterator(self, connection_observer, connection_observer_future):
-        """
-        Version of wait_for() intended to be used by Python3 to implement iterable/awaitable object.
-        Note: we don't have timeout parameter here. If you want to await with timeout please do use timeout machinery
-        of selected parallelism.
-        :param connection_observer: The one we are awaiting for.
-        :param connection_observer_future: Future of connection-observer returned from submit().
-        :return: iterator
-        """
-        return None
 
-    def feed(self, connection_observer):
-        """
-        Feeds connection_observer with data to let it become done.
-        This is a place where runner is a glue between words of connection and connection-observer.
-        Should be called from background-processing of connection observer.
-        """
-        pass  # For backward compatibility only
 
-    def timeout_change(self, timedelta):
-        """
-        Call this method to notify runner that timeout has been changed in observer
-        :param timedelta: delta timeout in float seconds
-        :return: None
-        """
-        pass  # For backward compatibility only.
 
-    def add_connection_observer(self, connection_observer):
-        if connection_observer not in self._connections_obsevers:
-            self._connections_obsevers.append(connection_observer)
-            self._start_command(connection_observer=connection_observer)
 
     def _loop_for_runner(self):
         while self._enable_loop_run_runner:
