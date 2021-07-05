@@ -44,9 +44,18 @@ class RunnerWithThreadedMolerConnection(ThreadedMolerConnection):
         super(RunnerWithThreadedMolerConnection, self).__init__(how2send, encoder, decoder, name=name, newline=newline,
                                                                 logger_name=logger_name)
         self._runner = RunnerForRunnerWithThreadedMolerConnection(connection=self)
+        self._connection_observers = list()
 
     def get_runner(self):
         return self._runner
+
+    def subscribe_connection_observer(self, connection_observer):
+        if connection_observer not in self._connection_observers:
+            self._connection_observers.append(connection_observer)
+
+    def unsubscribe_connection_observer(self, connection_observer):
+        if connection_observer in self._connection_observers:
+            self._connection_observers.remove(connection_observer)
 
 
 class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
@@ -199,15 +208,11 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
             time.sleep(self._tick)
             eol_remain_time = start_time + connection_observer.life_status.terminating_timeout - time.time()
 
-
-
-
-
     def _loop_for_runner(self):
         while self._enable_loop_run_runner:
             if not self._connections_obsevers:
                 time.sleep(self._tick_for_runner)
-            self._feed_connection_observers()
+            #self._feed_connection_observers()
             self._check_last_feed_connection_observers()
             self._check_timeout_connection_observers()
             for connection_observer in self._connections_obsevers:
@@ -301,24 +306,28 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
         if self._to_remove_connection_observers:
             for connection_observer in self._to_remove_connection_observers:
                 self._connections_obsevers.remove(connection_observer)
+                self._connection.unsubscribe(
+                    observer=connection_observer.data_received,
+                    connection_closed_handler=connection_observer.connection_closed_handler
+                )
             self._to_remove_connection_observers.clear()
 
-    def _feed_connection_observers(self):
-        try:
-            data, timestamp = self._queue_for_connection_observers.get(True, self._tick_for_runner)
-            feed_time = time.time()
-            for connection_observer in self._connections_obsevers:
-                try:
-                    self.logger.log(level=TRACE, msg=r'notifying {}({!r})'.format(connection_observer, repr(data)))
-                    connection_observer.data_received(data=data, recv_time=timestamp)
-                except Exception as ex:
-                    self.logger.exception(msg=r'Exception "{}" ("{}") inside: {} when processing ({!r})'.format(
-                        ex, repr(ex), connection_observer, repr(data)))
-                    connection_observer.set_exception(exception=ex)
-                finally:
-                    connection_observer.life_status.last_feed_time = feed_time
-        except queue.Empty:
-            pass  # No incoming data within self._tick_for_runner
+    # def _feed_connection_observers(self):
+    #     try:
+    #         data, timestamp = self._queue_for_connection_observers.get(True, self._tick_for_runner)
+    #         feed_time = time.time()
+    #         for connection_observer in self._connections_obsevers:
+    #             try:
+    #                 self.logger.log(level=TRACE, msg=r'notifying {}({!r})'.format(connection_observer, repr(data)))
+    #                 connection_observer.data_received(data=data, recv_time=timestamp)
+    #             except Exception as ex:
+    #                 self.logger.exception(msg=r'Exception "{}" ("{}") inside: {} when processing ({!r})'.format(
+    #                     ex, repr(ex), connection_observer, repr(data)))
+    #                 connection_observer.set_exception(exception=ex)
+    #             finally:
+    #                 connection_observer.life_status.last_feed_time = feed_time
+    #     except queue.Empty:
+    #         pass  # No incoming data within self._tick_for_runner
 
     def _start_command(self, connection_observer):
         if connection_observer.is_command():
