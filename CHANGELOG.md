@@ -1,3 +1,19 @@
+## moler 1.31.0
+
+### Added
+* Unix command nping
+* Unix command sysctl
+
+### Improved
+* Check cmd status before break
+* Commands and events - 100% coverage in tests
+* Run tests with flake8
+
+
+### Fixed
+* CI on GitHub Actions and resolved issues with new Python
+* Fix the possibility to break command if the command is not running
+
 ## moler 1.30.0
 
 ### Improved
