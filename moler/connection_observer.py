@@ -42,14 +42,27 @@ class ConnectionObserver(object):
         super(ConnectionObserver, self).__init__()
         self.life_status = ConnectionObserverLifeStatus()
         self.connection = connection
-
+        self.runner = self._get_runner(runner=runner)
         self._result = None
         self._exception = None
-        self.runner = runner if runner else get_runner()
+
         self._future = None
 
         self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
         self.logger = logging.getLogger('moler.connection.{}'.format(self.get_logger_name()))
+
+    def _get_runner(self, runner):
+        """
+
+        :param runner: Runner
+        :return: Runner instance
+        """
+        return_runner = runner
+        if self.return_runner is None:
+            return_runner = self.connection.get_runner()
+            if return_runner is None:
+                return_runner = get_runner()
+        return return_runner
 
     def __str__(self):
         return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
