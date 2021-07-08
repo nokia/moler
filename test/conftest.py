@@ -117,9 +117,13 @@ def buffer_connection():
             line_as_bytes = line.encode("utf-8")
             self.inject([line_as_bytes], delay)
 
+        def get_runner(self):
+            """Get default runner for this connection."""
+            return None
+
     moler_conn = ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
-                                      decoder=lambda data: data.decode("utf-8"),
-                                      name="buffer")
+                                         decoder=lambda data: data.decode("utf-8"),
+                                         name="buffer")
     ext_io_in_memory = RemoteConnection(moler_connection=moler_conn,
                                         echo=False)  # we don't want echo on connection
     configure_device_logger(moler_conn.name)
