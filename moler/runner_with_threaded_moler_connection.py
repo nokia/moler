@@ -20,6 +20,7 @@ from moler.observer_thread_wrapper import ObserverThreadWrapper
 from moler.runner import ConnectionObserverRunner
 from moler.exceptions import CommandTimeout
 from moler.exceptions import ConnectionObserverTimeout
+from moler.util.loghelper import log_into_logger
 import threading
 
 try:
