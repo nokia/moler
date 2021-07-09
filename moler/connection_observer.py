@@ -58,10 +58,10 @@ class ConnectionObserver(object):
         :return: Runner instance
         """
         return_runner = runner
-        if return_runner is None:
+        if return_runner is None and self.connection is not None:
             return_runner = self.connection.get_runner()
-            if return_runner is None:
-                return_runner = get_runner()
+        if return_runner is None:
+            return_runner = get_runner()
         return return_runner
 
     def __str__(self):

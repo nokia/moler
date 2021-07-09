@@ -88,10 +88,18 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
         self._stop_loop_runner = threading.Event()
         self._stop_loop_runner.clear()
         self._tick = 0.001
+        self._in_shutdown = False
         self._connection = connection
         self._loop_thread = threading.Thread(target=self._stop_loop_runner)
         self._loop_thread.setDaemon(True)
         self._loop_thread.start()
+
+    def is_in_shutdown(self):
+        """
+        Call this method to check if runner is in shutdown mode.
+        :return: Is in shutdown
+        """
+        return self._in_shutdown
 
     def submit(self, connection_observer):
         """
@@ -175,6 +183,7 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
         Cleanup used resources.
         :return: None
         """
+        self._in_shutdown = True
         observers = self._connections_observers
         self._connections_observers = list()
         self._stop_loop_runner.set()

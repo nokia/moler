@@ -17,6 +17,7 @@ import platform
 import moler.config.loggers
 from moler.util.devices_SM import get_memory_device_connection
 import moler.connection_factory  # will load builtin connections and default variants
+from moler.runner_with_threaded_moler_connection import RunnerWithThreadedMolerConnection
 
 
 current_process = psutil.Process()
@@ -121,9 +122,12 @@ def buffer_connection():
             """Get default runner for this connection."""
             return None
 
-    moler_conn = ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
-                                         decoder=lambda data: data.decode("utf-8"),
-                                         name="buffer")
+    # moler_conn = ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
+    #                                      decoder=lambda data: data.decode("utf-8"),
+    #                                      name="buffer")
+    moler_conn = RunnerWithThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
+                                                   decoder=lambda data: data.decode("utf-8"),
+                                                   name="buffer")
     ext_io_in_memory = RemoteConnection(moler_connection=moler_conn,
                                         echo=False)  # we don't want echo on connection
     configure_device_logger(moler_conn.name)

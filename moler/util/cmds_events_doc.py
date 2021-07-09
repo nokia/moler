@@ -19,7 +19,7 @@ from pprint import pformat
 from moler.command import Command
 from moler.event import Event
 from moler.helpers import compare_objects
-
+from moler.runner_with_threaded_moler_connection import RunnerWithThreadedMolerConnection
 
 def _buffer_connection():
     """External-io based on memory FIFO-buffer"""
@@ -49,8 +49,10 @@ def _buffer_connection():
                 in_bytes = [data.decode("utf-8").encode("utf-8") for data in input_strings]
             self.inject(in_bytes, delay)
 
-    moler_conn = ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
-                                         decoder=lambda data: data.decode("utf-8"))
+    # moler_conn = ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
+    #                                      decoder=lambda data: data.decode("utf-8"))
+    moler_conn = RunnerWithThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
+                                                   decoder=lambda data: data.decode("utf-8"))
     ext_io_in_memory = RemoteConnection(moler_connection=moler_conn,
                                         echo=False)  # we don't want echo on it
     return ext_io_in_memory

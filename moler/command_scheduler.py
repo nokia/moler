@@ -230,5 +230,5 @@ class CommandScheduler(object):
         :return: None
         """
         runner = connection_observer.runner
-        if not connection_observer._is_done and not runner._in_shutdown:
+        if not connection_observer._is_done and not runner.is_in_shutdown():
             connection_observer._future = runner.submit(connection_observer)

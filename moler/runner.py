@@ -82,6 +82,13 @@ class ConnectionObserverRunner(object):
         :return: None
         """
 
+    @abstractmethod
+    def is_in_shutdown(self):
+        """
+        Call this method to check if runner is in shutdown mode.
+        :return: Is in shutdown
+        """
+
     def __enter__(self):
         return self
 
@@ -231,6 +238,13 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             # compatibility with subinterpreters, which no longer support daemon threads.
             # See bpo-39812 for context.
             threading._register_atexit(self.shutdown)
+
+    def is_in_shutdown(self):
+        """
+        Call this method to check if runner is in shutdown mode.
+        :return: Is in shutdown
+        """
+        return self._in_shutdown
 
     def shutdown(self):
         self.logger.debug("shutting down runner {}".format(self))
