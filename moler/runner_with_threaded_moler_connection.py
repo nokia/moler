@@ -84,7 +84,7 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
     def __init__(self, connection):
         super(RunnerForRunnerWithThreadedMolerConnection, self).__init__()
         self._connections_observers = list()
-        #self._enable_loop_run_runner = True  # Set False to break loop.
+        # self._enable_loop_run_runner = True  # Set False to break loop.
         self._stop_loop_runner = threading.Event()
         self._stop_loop_runner.clear()
         self._tick = 0.001
@@ -143,7 +143,7 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
             self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
 
             if not self._execute_till_eol(connection_observer=connection_observer,
-                                          #connection_observer_future=connection_observer_future,
+                                          # connection_observer_future=connection_observer_future,
                                           max_timeout=max_timeout,
                                           await_timeout=await_timeout,
                                           remain_time=remain_time):
@@ -215,8 +215,8 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
                 self._wait_for_time_out(connection_observer, timeout=await_timeout)
                 if connection_observer.life_status.terminating_timeout > 0.0:
                     connection_observer.life_status.in_terminating = True
-                    #done, not_done = wait([future], timeout=connection_observer.life_status.terminating_timeout)
-                    #if (future in done) or connection_observer.done():
+                    # done, not_done = wait([future], timeout=connection_observer.life_status.terminating_timeout)
+                    # if (future in done) or connection_observer.done():
                     #    self._cancel_submitted_future(connection_observer, future)
                     return True
             else:
@@ -248,7 +248,7 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
         while not self._stop_loop_runner.is_set():
             if not self._connections_observers:
                 time.sleep(self._tick_for_runner)
-            #self._feed_connection_observers()
+            # self._feed_connection_observers()
             self._check_last_feed_connection_observers()
             self._check_timeout_connection_observers()
             for connection_observer in self._connections_observers:

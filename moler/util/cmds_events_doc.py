@@ -21,6 +21,7 @@ from moler.event import Event
 from moler.helpers import compare_objects
 from moler.runner_with_threaded_moler_connection import RunnerWithThreadedMolerConnection
 
+
 def _buffer_connection():
     """External-io based on memory FIFO-buffer"""
     from moler.io.raw.memory import ThreadedFifoBuffer
