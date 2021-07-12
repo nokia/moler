@@ -204,40 +204,42 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
         return False  # exceptions (if any) should be reraised
 
     def _execute_till_eol(self, connection_observer, max_timeout, await_timeout, remain_time):
+        print("_execute_till_eol max_timeout={}, await_timeout={}, remian_tine={}".format(max_timeout, await_timeout, remain_time))
         eol_remain_time = remain_time
         # either we wait forced-max-timeout or we check done-status each 0.1sec tick
         if eol_remain_time > 0.0:
             # future = connection_observer_future or connection_observer._future
             # assert future is not None
             if max_timeout:
-                if connection_observer.done():
-                    return True
-                # done, not_done = wait([future], timeout=remain_time)
-                # if (future in done) or connection_observer.done():
-                #     self._cancel_submitted_future(connection_observer, future)
-                #     return True
-                self._wait_for_time_out(connection_observer, timeout=await_timeout)
-                if connection_observer.life_status.terminating_timeout > 0.0:
-                    connection_observer.life_status.in_terminating = True
-                    # done, not_done = wait([future], timeout=connection_observer.life_status.terminating_timeout)
-                    # if (future in done) or connection_observer.done():
-                    #    self._cancel_submitted_future(connection_observer, future)
-                    return True
+                connection_observer_timeout = max_timeout
+                check_timeout = False
             else:
-                while eol_remain_time > 0.0:
-                    if connection_observer.done():
-                        return True
-                    already_passed = time.time() - connection_observer.life_status.start_time
-                    eol_timeout = connection_observer.timeout + connection_observer.life_status.terminating_timeout
-                    eol_remain_time = eol_timeout - already_passed
-                    timeout = connection_observer.timeout
-                    remain_time = timeout - already_passed
-                    if remain_time <= 0.0:
-                        self._wait_for_time_out(connection_observer=connection_observer, timeout=await_timeout)
-                        if not connection_observer.life_status.in_terminating:
-                            connection_observer.life_status.in_terminating = True
-        else:
+                connection_observer_timeout = await_timeout
+                check_timeout = True
+            if connection_observer.done():
+                return True
+            was_done_properly = self._wait_till_done_or_timeout(connection_observer=connection_observer,
+                                                                timeout=connection_observer_timeout,
+                                                                check_timeout=check_timeout)
+            if was_done_properly:
+                return True
+            self._prepare_for_time_out(connection_observer, timeout=await_timeout)
+            if connection_observer.life_status.terminating_timeout > 0.0:
+                connection_observer.life_status.in_terminating = True
+                return True
             self._wait_for_not_started_connection_observer_is_done(connection_observer=connection_observer)
+        return False
+
+    def _wait_till_done_or_timeout(self, connection_observer, timeout, check_timeout):
+        remain_time = timeout - (time.time() - connection_observer.life_status.start_time)
+        while remain_time > 0:
+            if connection_observer.done():
+                return True
+            time.sleep(self._tick)
+            if check_timeout:
+                remain_time = connection_observer.timeout - (time.time() - connection_observer.life_status.start_time)
+            else:
+                remain_time = timeout - (time.time() - connection_observer.life_status.start_time)
         return False
 
     def _wait_for_not_started_connection_observer_is_done(self, connection_observer):
@@ -297,14 +299,14 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
                     self.logger.info(msg)
                     connection_observer.set_end_of_life()
                 else:
-                    self._time_out_observer(connection_observer=connection_observer,
+                    self._timeout_observer(connection_observer=connection_observer,
                                             timeout=connection_observer.timeout, passed_time=run_duration,
                                             runner_logger=self.logger)
                     if connection_observer.life_status.terminating_timeout >= 0.0:
                         connection_observer.life_status.start_time = time.time()
                         connection_observer.life_status.in_terminating = True
 
-    def _wait_for_time_out(self, connection_observer, timeout):
+    def _prepare_for_time_out(self, connection_observer, timeout):
         passed = time.time() - connection_observer.life_status.start_time
         self._timeout_observer(connection_observer=connection_observer,
                                timeout=timeout, passed_time=passed,
@@ -324,6 +326,8 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
                                                           timeout=timeout, kind=kind, passed_time=passed_time)
                 # TODO: secure_data_received() may change status of connection_observer
                 # TODO: and if secure_data_received() runs inside threaded connection - we have race
+                print("Timeout exception: '{}'.".format(exception))
+                print("Reprt timeout exception: '{}'.".format(repr(exception)))
                 connection_observer.set_exception(exception)
 
                 connection_observer.on_timeout()
