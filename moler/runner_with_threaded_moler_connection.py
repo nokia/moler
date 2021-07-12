@@ -128,9 +128,11 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
         :param timeout: Max time (in float seconds) you want to await before you give up.
         :return: None
         """
+        print("runner::wait_for")
         if connection_observer.done():
             self.logger.debug("go foreground: {} is already done".format(connection_observer))
         else:
+            print("Wait...")
             max_timeout = timeout
             observer_timeout = connection_observer.timeout
             # we count timeout from now if timeout is given; else we use .life.status.start_time and .timeout of
@@ -354,23 +356,6 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
                     connection_closed_handler=connection_observer.connection_closed_handler
                 )
             self._to_remove_connection_observers.clear()
-
-    # def _feed_connection_observers(self):
-    #     try:
-    #         data, timestamp = self._queue_for_connection_observers.get(True, self._tick_for_runner)
-    #         feed_time = time.time()
-    #         for connection_observer in self._connections_obsevers:
-    #             try:
-    #                 self.logger.log(level=TRACE, msg=r'notifying {}({!r})'.format(connection_observer, repr(data)))
-    #                 connection_observer.data_received(data=data, recv_time=timestamp)
-    #             except Exception as ex:
-    #                 self.logger.exception(msg=r'Exception "{}" ("{}") inside: {} when processing ({!r})'.format(
-    #                     ex, repr(ex), connection_observer, repr(data)))
-    #                 connection_observer.set_exception(exception=ex)
-    #             finally:
-    #                 connection_observer.life_status.last_feed_time = feed_time
-    #     except queue.Empty:
-    #         pass  # No incoming data within self._tick_for_runner
 
     def _start_command(self, connection_observer):
         if connection_observer.is_command():

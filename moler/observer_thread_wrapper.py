@@ -80,7 +80,8 @@ class ObserverThreadWrapper(object):
                         self._observer(data, timestamp)
                 except ReferenceError:
                     self._request_end = True  # self._observer is no more valid.
-                except Exception:
+                except Exception as ex:
+                    print("ex {} -> {}".format(ex, repr(ex)))
                     self.logger.exception(msg=r'Exception inside: {}({!r})'.format(self._observer, repr(data)))
             except queue.Empty:
                 pass  # No incoming data within self._timeout_for_get_from_queue
