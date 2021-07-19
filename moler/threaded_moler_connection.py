@@ -96,7 +96,7 @@ class ThreadedMolerConnection(AbstractMolerConnection):
 
     def _create_observer_wrapper(self, observer_reference, self_for_observer):
         otw = ObserverThreadWrapper(
-            observer=observer_reference, observer_self=self_for_observer)
+            observer=observer_reference, observer_self=self_for_observer, logger=self.logger)
         return otw
 
     def unsubscribe(self, observer, connection_closed_handler):

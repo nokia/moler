@@ -80,12 +80,12 @@ class RunnerWithThreadedMolerConnection(ThreadedMolerConnection):
             connection_observer.life_status.last_feed_time = recv_time
 
     def _create_observer_wrapper(self, observer_reference, self_for_observer):
-        if observer_reference is None or not type(self_for_observer, ConnectionObserver):
+        if observer_reference is None or not isinstance(self_for_observer, ConnectionObserver):
             otw = ObserverThreadWrapper(
-                observer=observer_reference, observer_self=self_for_observer)
+                observer=observer_reference, observer_self=self_for_observer, logger=self.logger)
         else:
             otw = ObserverThreadWrapperForConnectionObserver(
-                observer=observer_reference, observer_self=self_for_observer)
+                observer=observer_reference, observer_self=self_for_observer, logger=self.logger)
         return otw
 
 

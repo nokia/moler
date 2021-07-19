@@ -8,6 +8,7 @@ __email__ = 'marcin.usielski@nokia.com'
 
 from threading import Thread
 from moler.config.loggers import TRACE
+from moler.exceptions import CommandFailure, MolerException
 import logging
 from moler.util import tracked_thread
 
@@ -82,20 +83,26 @@ class ObserverThreadWrapper(object):
                 except ReferenceError:
                     self._request_end = True  # self._observer is no more valid.
                 except Exception as ex:
-                    self._handle_unexpected_error_from_observer(exception=ex, data=data)
+                    self._handle_unexpected_error_from_observer(exception=ex, data=data, timestamp=timestamp)
             except queue.Empty:
                 pass  # No incoming data within self._timeout_for_get_from_queue
         self._observer = None
         self._observer_self = None
         logging.getLogger("moler_threads").debug("EXIT")
 
-    def _handle_unexpected_error_from_observer(self, exception, data):
-        self.logger.exception(msg=r'Exception inside: {}({!r})'.format(self._observer, repr(data)))
+    def _handle_unexpected_error_from_observer(self, exception, data, timestamp):
+        self.logger.exception(msg=r'Exception inside: {}({!r}) at {}'.format(self._observer, repr(data), timestamp))
 
 
 class ObserverThreadWrapperForConnectionObserver(ObserverThreadWrapper):
 
-    def _handle_unexpected_error_from_observer(self, exception, data):
-        self.logger.exception(msg=r"Unexpected exception {} ('{}') when object '{}' processes data: '{!r}'".format(
-            exception, repr(exception), self._observer, repr(data)))
-        self._observer_self.set_exception(exception=exception)
+    def _handle_unexpected_error_from_observer(self, exception, data, timestamp):
+        self.logger.warning("Unhandled exception from '{} 'caught by ObserverThreadWrapper (Runner normally)."
+                            " '{}' : '{}'.".format(self._observer_self, exception, repr(exception)))
+        ex_msg = "Unexpected exception from {} caught by runner when processing data >>{}<< at '{}':" \
+                 " >>>{}<<< -> repr: >>>{}<<<".format(self._observer_self, data, timestamp, exception, repr(exception))
+        if self._observer_self.is_command():
+            ex = CommandFailure(command=self._observer_self, message=ex_msg)
+        else:
+            ex = MolerException(ex_msg)
+        self._observer_self.set_exception(exception=ex)
