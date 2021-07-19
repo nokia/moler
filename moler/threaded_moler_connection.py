@@ -90,9 +90,14 @@ class ThreadedMolerConnection(AbstractMolerConnection):
 
             if observer_key not in self._observer_wrappers:
                 self_for_observer, observer_reference = value
-                self._observer_wrappers[observer_key] = ObserverThreadWrapper(
-                    observer=observer_reference, observer_self=self_for_observer, logger=self.logger)
+                self._observer_wrappers[observer_key] = self._create_observer_wrapper(
+                    observer_reference=observer_reference, self_for_observer=self_for_observer)
                 self._connection_closed_handlers[observer_key] = connection_closed_handler
+
+    def _create_observer_wrapper(self, observer_reference, self_for_observer):
+        otw = ObserverThreadWrapper(
+            observer=observer_reference, observer_self=self_for_observer)
+        return otw
 
     def unsubscribe(self, observer, connection_closed_handler):
         """

@@ -3,7 +3,7 @@
 """Wrapper for observer registered in ThreadedMolerConnection (old name: ObservableConnection)."""
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2020, Nokia'
+__copyright__ = 'Copyright (C) 2020-2021, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 from threading import Thread
@@ -43,6 +43,7 @@ class ObserverThreadWrapper(object):
         Put data here.
 
         :param data: data to put.
+        :param recv_time: time when data is received/read from connection.
         :return: None
         """
         self._queue.put((data, recv_time))
@@ -81,10 +82,20 @@ class ObserverThreadWrapper(object):
                 except ReferenceError:
                     self._request_end = True  # self._observer is no more valid.
                 except Exception as ex:
-                    print("ex {} -> {}".format(ex, repr(ex)))
-                    self.logger.exception(msg=r'Exception inside: {}({!r})'.format(self._observer, repr(data)))
+                    self._handle_unexpected_error_from_observer(exception=ex, data=data)
             except queue.Empty:
                 pass  # No incoming data within self._timeout_for_get_from_queue
         self._observer = None
         self._observer_self = None
         logging.getLogger("moler_threads").debug("EXIT")
+
+    def _handle_unexpected_error_from_observer(self, exception, data):
+        self.logger.exception(msg=r'Exception inside: {}({!r})'.format(self._observer, repr(data)))
+
+
+class ObserverThreadWrapperForConnectionObserver(ObserverThreadWrapper):
+
+    def _handle_unexpected_error_from_observer(self, exception, data):
+        self.logger.exception(msg=r"Unexpected exception {} ('{}') when object '{}' processes data: '{!r}'".format(
+            exception, repr(exception), self._observer, repr(data)))
+        self._observer_self.set_exception(exception=exception)

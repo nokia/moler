@@ -16,11 +16,12 @@ from moler.abstract_moler_connection import AbstractMolerConnection
 from moler.abstract_moler_connection import identity_transformation
 from moler.config.loggers import RAW_DATA, TRACE
 from moler.helpers import instance_id
-from moler.observer_thread_wrapper import ObserverThreadWrapper
+from moler.observer_thread_wrapper import ObserverThreadWrapper, ObserverThreadWrapperForConnectionObserver
 from moler.runner import ConnectionObserverRunner
 from moler.exceptions import CommandTimeout
 from moler.exceptions import ConnectionObserverTimeout
 from moler.util.loghelper import log_into_logger
+from moler.connection_observer import ConnectionObserver
 import threading
 
 try:
@@ -77,6 +78,15 @@ class RunnerWithThreadedMolerConnection(ThreadedMolerConnection):
         super(RunnerWithThreadedMolerConnection, self).notify_observers(data=data, recv_time=recv_time)
         for connection_observer in self._connection_observers:
             connection_observer.life_status.last_feed_time = recv_time
+
+    def _create_observer_wrapper(self, observer_reference, self_for_observer):
+        if observer_reference is None or not type(self_for_observer, ConnectionObserver):
+            otw = ObserverThreadWrapper(
+                observer=observer_reference, observer_self=self_for_observer)
+        else:
+            otw = ObserverThreadWrapperForConnectionObserver(
+                observer=observer_reference, observer_self=self_for_observer)
+        return otw
 
 
 class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
