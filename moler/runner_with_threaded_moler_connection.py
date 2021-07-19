@@ -312,8 +312,8 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
                     connection_observer.set_end_of_life()
                 else:
                     self._timeout_observer(connection_observer=connection_observer,
-                                            timeout=connection_observer.timeout, passed_time=run_duration,
-                                            runner_logger=self.logger)
+                                           timeout=connection_observer.timeout, passed_time=run_duration,
+                                           runner_logger=self.logger)
                     if connection_observer.life_status.terminating_timeout >= 0.0:
                         connection_observer.life_status.start_time = time.time()
                         connection_observer.life_status.in_terminating = True
