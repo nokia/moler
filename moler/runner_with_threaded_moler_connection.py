@@ -128,6 +128,7 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
             )
             self._connections_observers.append(connection_observer)
             self._start_command(connection_observer=connection_observer)
+            connection_observer.life_status.last_feed_time = time.time()
 
     def wait_for(self, connection_observer, connection_observer_future, timeout=10.0):
         """
@@ -138,11 +139,9 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
         :param timeout: Max time (in float seconds) you want to await before you give up.
         :return: None
         """
-        print("runner::wait_for")
         if connection_observer.done():
             self.logger.debug("go foreground: {} is already done".format(connection_observer))
         else:
-            print("Wait...")
             max_timeout = timeout
             observer_timeout = connection_observer.timeout
             # we count timeout from now if timeout is given; else we use .life.status.start_time and .timeout of
@@ -216,7 +215,6 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
         return False  # exceptions (if any) should be reraised
 
     def _execute_till_eol(self, connection_observer, max_timeout, await_timeout, remain_time):
-        print("_execute_till_eol max_timeout={}, await_timeout={}, remian_tine={}".format(max_timeout, await_timeout, remain_time))
         eol_remain_time = remain_time
         # either we wait forced-max-timeout or we check done-status each 0.1sec tick
         if eol_remain_time > 0.0:
@@ -301,22 +299,15 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
             if connection_observer.life_status.in_terminating:
                 timeout = connection_observer.life_status.terminating_timeout
             if (timeout is not None) and (run_duration >= timeout):
-                print("_check_timeout_connection_observers. timeout: {}, run_duration: {}".format(timeout, run_duration))
-                print(
-                    "_check_timeout_connection_observers. start_time: {}".format(connection_observer.life_status.start_time))
                 if connection_observer.life_status.in_terminating:
-                    print("  in_terminating")
                     msg = "{} underlying real command failed to finish during {} seconds. It will be forcefully" \
                           " terminated".format(connection_observer, timeout)
                     self.logger.info(msg)
                     connection_observer.set_end_of_life()
                 else:
-                    print("  NOT in_terminating")
-                    print(" *** _timeout_observer")
                     self._timeout_observer(connection_observer=connection_observer,
                                            timeout=connection_observer.timeout, passed_time=run_duration,
                                            runner_logger=self.logger)
-                    print("   terminating_timeout: {}".format(connection_observer.life_status.terminating_timeout))
                     if connection_observer.life_status.terminating_timeout >= 0.0:
                         connection_observer.life_status.start_time = time.time()
                         connection_observer.life_status.in_terminating = True
@@ -325,19 +316,15 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
 
     def _prepare_for_time_out(self, connection_observer, timeout):
         passed = time.time() - connection_observer.life_status.start_time
-        print("prepare for time out")
         self._timeout_observer(connection_observer=connection_observer,
                                timeout=timeout, passed_time=passed,
                                runner_logger=self.logger, kind="await_done")
 
     def _timeout_observer(self, connection_observer, timeout, passed_time, runner_logger, kind="background_run"):
         """Set connection_observer status to timed-out"""
-        print("_timeout_observer: timeout:{} > passed_time{}".format(timeout, passed_time))
         if not connection_observer.life_status.was_on_timeout_called:
-            print("_timeout_observer: was_on_timeout_called: NOT")
             connection_observer.life_status.was_on_timeout_called = True
             if not connection_observer.done():
-                print("_timeout_observer: DONE: NOT")
                 if connection_observer.is_command():
                     exception = CommandTimeout(connection_observer=connection_observer,
                                                timeout=timeout, kind=kind, passed_time=passed_time)
@@ -346,8 +333,6 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
                                                           timeout=timeout, kind=kind, passed_time=passed_time)
                 # TODO: secure_data_received() may change status of connection_observer
                 # TODO: and if secure_data_received() runs inside threaded connection - we have race
-                print("Timeout exception: '{}'.".format(exception))
-                print("Reprt timeout exception: '{}'.".format(repr(exception)))
                 connection_observer.set_exception(exception)
 
                 connection_observer.on_timeout()
@@ -361,8 +346,6 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
                 log_into_logger(runner_logger, level=logging.DEBUG,
                                 msg="{} {}".format(connection_observer, timeout_msg),
                                 levels_to_go_up=1)
-        else:
-            print("_timeout_observer: was_on_timeout_called: YES")
 
     def _remove_unnecessary_connection_observers(self):
         for connection_observer in self._connections_observers:

@@ -145,6 +145,7 @@ def test_telnet_with_on_inactivity(buffer_connection):
                              host="host.domain.net", expected_prompt="host:.*#",
                              cmds_before_establish_connection=['set binary'],
                              cmds_after_establish_connection=['mode character'])
+    telnet_cmd.on_inactivity_was_called = False
     assert "TERM=xterm-mono telnet" == telnet_cmd.command_string
     telnet_cmd.life_status.inactivity_timeout = 1
     telnet_cmd.start()
