@@ -68,6 +68,8 @@ def test_passwd_raise_exception_password_too_simple_and_cancel_cmd(buffer_connec
         passwd_cmd.await_done(0.1)
         assert passwd_cmd.done() is True
 
+    assert passwd_cmd.done() is True
+
     assert "New password is too simple" in str(exc.value)
 
 
