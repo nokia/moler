@@ -88,6 +88,7 @@ class ObserverThreadWrapper(object):
                 pass  # No incoming data within self._timeout_for_get_from_queue
         self._observer = None
         self._observer_self = None
+        print("ObserverThreadWrapper left thread")
         logging.getLogger("moler_threads").debug("EXIT")
 
     def _handle_unexpected_error_from_observer(self, exception, data, timestamp):
@@ -97,8 +98,8 @@ class ObserverThreadWrapper(object):
 class ObserverThreadWrapperForConnectionObserver(ObserverThreadWrapper):
 
     def _handle_unexpected_error_from_observer(self, exception, data, timestamp):
-        self.logger.warning("Unhandled exception from '{} 'caught by ObserverThreadWrapper (Runner normally)."
-                            " '{}' : '{}'.".format(self._observer_self, exception, repr(exception)))
+        self.logger.warning("Unhandled exception from '{} 'caught by ObserverThreadWrapperForConnectionObserver"
+                            " (Runner normally). '{}' : '{}'.".format(self._observer_self, exception, repr(exception)))
         ex_msg = "Unexpected exception from {} caught by runner when processing data >>{}<< at '{}':" \
                  " >>>{}<<< -> repr: >>>{}<<<".format(self._observer_self, data, timestamp, exception, repr(exception))
         if self._observer_self.is_command():

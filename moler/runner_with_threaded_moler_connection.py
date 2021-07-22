@@ -1,11 +1,9 @@
 from moler.threaded_moler_connection import ThreadedMolerConnection
 from moler.runner import ThreadPoolExecutorRunner
 
-
 __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2021, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
-
 
 import weakref
 import logging
@@ -155,15 +153,15 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
             else:
                 remain_time, msg = his_remaining_time("remaining", timeout=observer_timeout, from_start_time=start_time)
             self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
-            print("wait_for max_timeout={}, await_timeout={}, remain_time={}".format(max_timeout, await_timeout, remain_time))
+            print("wait_for max_timeout={}, await_timeout={}, remain_time={}".format(max_timeout, await_timeout,
+                                                                                     remain_time))
             connection_observer.life_status.start_time = start_time
             connection_observer.timeout = await_timeout
             self._execute_till_eol(connection_observer=connection_observer,
                                    max_timeout=max_timeout,
                                    await_timeout=await_timeout,
                                    remain_time=remain_time)
-                # code below is to close ConnectionObserver and future objects
-                # self._end_of_life_of_future_and_connection_observer(connection_observer=connection_observer)
+            connection_observer.set_end_of_life()
         return None
 
     def _end_of_life_of_future_and_connection_observer(self, connection_observer):
@@ -219,7 +217,9 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
         return False  # exceptions (if any) should be reraised
 
     def _execute_till_eol(self, connection_observer, max_timeout, await_timeout, remain_time):
-        print("_execute_till_eol, max_timeout={}, await_timeout={}, remain_timeout={}".format(max_timeout, await_timeout, remain_time))
+        print(
+            "_execute_till_eol, max_timeout={}, await_timeout={}, remain_timeout={}".format(max_timeout, await_timeout,
+                                                                                            remain_time))
         eol_remain_time = remain_time
         # either we wait forced-max-timeout or we check done-status each 0.1sec tick
         if eol_remain_time > 0.0:
@@ -233,20 +233,29 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
                 check_timeout = True
             if connection_observer.done():
                 return True
-            was_done_properly = self._wait_till_done(connection_observer=connection_observer,
-                                                     timeout=connection_observer_timeout,
-                                                     check_timeout=check_timeout)
-            if was_done_properly:
+            was_done = self._wait_till_done(connection_observer=connection_observer,
+                                            timeout=connection_observer_timeout,
+                                            check_timeout=check_timeout)
+            if was_done:
                 return True
             self._prepare_for_time_out(connection_observer, timeout=await_timeout)
-            # if connection_observer.life_status.terminating_timeout > 0.0:
-            #     connection_observer.life_status.in_terminating = True
-            #     return True
-            # self._wait_for_not_started_connection_observer_is_done(connection_observer=connection_observer)
+            if connection_observer.life_status.terminating_timeout > 0.0:
+                connection_observer.life_status.in_terminating = True
+                was_done = self._wait_till_done(connection_observer=connection_observer,
+                                                timeout=connection_observer.life_status.terminating_timeout,
+                                                check_timeout=check_timeout)
+                if was_done:
+                    return True
+
+            self._wait_for_not_started_connection_observer_is_done(connection_observer=connection_observer)
         return False
 
     def _wait_till_done(self, connection_observer, timeout, check_timeout):
-        remain_time = timeout - (time.time() - connection_observer.life_status.start_time) + 10 * self._tick
+        timeout_add = 10
+        term_timeout = 0 if connection_observer.life_status.terminating_timeout is None else \
+            connection_observer.life_status.terminating_timeout
+        remain_time = timeout - (
+                time.time() - connection_observer.life_status.start_time) + term_timeout + timeout_add
         print("_wait_till_done. reamin_time: {}".format(remain_time))
 
         while remain_time >= 0:
@@ -255,7 +264,10 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
             time.sleep(self._tick)
             if check_timeout:
                 timeout = connection_observer.timeout
-            remain_time = timeout - (time.time() - connection_observer.life_status.start_time) + 10 * self._tick
+            term_timeout = 0 if connection_observer.life_status.terminating_timeout is None else \
+                connection_observer.life_status.terminating_timeout
+            remain_time = timeout - (
+                        time.time() - connection_observer.life_status.start_time) + term_timeout + timeout_add
         return False
 
     def _wait_for_not_started_connection_observer_is_done(self, connection_observer):
@@ -268,15 +280,9 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
 
     def _loop_for_runner(self):
         while not self._stop_loop_runner.is_set():
+            # ConnectionObserver is feed by registering data_received in moler connection
             self._check_last_feed_connection_observers()
             self._check_timeout_connection_observers()
-            for connection_observer in self._connections_observers:
-                try:
-                    pass
-                except Exception as ex:
-                    self.logger.exception(msg=r'Exception from "{}" when running checking: "{}" "{!r}".'.format(
-                        connection_observer, ex, repr(ex)
-                    ))
             self._remove_unnecessary_connection_observers()
             time.sleep(self._tick)
 
@@ -313,12 +319,15 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
                     msg = "{} underlying real command failed to finish during {} seconds. It will be forcefully" \
                           " terminated".format(connection_observer, timeout)
                     self.logger.info(msg)
+                    print(msg)
                     connection_observer.set_end_of_life()
                 else:
+                    print(" * timeout for {}".format(connection_observer))
                     self._timeout_observer(connection_observer=connection_observer,
                                            timeout=connection_observer.timeout, passed_time=run_duration,
                                            runner_logger=self.logger)
-                    if connection_observer.life_status.terminating_timeout >= 0.0:
+                    if connection_observer.life_status.terminating_timeout > 0.0:
+                        print(" * switch to terminating timeout.")
                         connection_observer.life_status.start_time = time.time()
                         connection_observer.life_status.in_terminating = True
                     else:
@@ -341,10 +350,7 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
                 else:
                     exception = ConnectionObserverTimeout(connection_observer=connection_observer,
                                                           timeout=timeout, kind=kind, passed_time=passed_time)
-                # TODO: secure_data_received() may change status of connection_observer
-                # TODO: and if secure_data_received() runs inside threaded connection - we have race
                 connection_observer.set_exception(exception)
-
                 connection_observer.on_timeout()
 
                 observer_info = "{}.{}".format(connection_observer.__class__.__module__, connection_observer)
