@@ -62,8 +62,6 @@ class ObserverThreadWrapper(object):
         """
         self._request_end = True
         if self._t:
-            self._t.join()
-            print("{} joined".format(self._t.name))
             self._t = None
 
     @tracked_thread.log_exit_exception
