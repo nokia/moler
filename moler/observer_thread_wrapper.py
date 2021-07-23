@@ -11,11 +11,14 @@ from moler.config.loggers import TRACE
 from moler.exceptions import CommandFailure, MolerException
 import logging
 from moler.util import tracked_thread
+import threading
 
 try:
     import queue
 except ImportError:
     import Queue as queue  # For python 2
+
+nr = 1
 
 
 class ObserverThreadWrapper(object):
@@ -35,9 +38,11 @@ class ObserverThreadWrapper(object):
         self._request_end = False
         self._timeout_for_get_from_queue = 1
         self.logger = logger
-        t = Thread(target=self._loop_for_observer)
-        t.setDaemon(True)
-        t.start()
+        global nr
+        self._t = Thread(target=self._loop_for_observer, name="ObserverThreadWrapper-{}".format(nr))
+        nr += 1
+        self._t.setDaemon(True)
+        self._t.start()
 
     def feed(self, data, recv_time):
         """
@@ -56,6 +61,10 @@ class ObserverThreadWrapper(object):
         :return: None
         """
         self._request_end = True
+        if self._t:
+            self._t.join()
+            print("{} joined".format(self._t.name))
+            self._t = None
 
     @tracked_thread.log_exit_exception
     def _loop_for_observer(self):
@@ -90,6 +99,8 @@ class ObserverThreadWrapper(object):
         self._observer_self = None
         print("ObserverThreadWrapper left thread")
         logging.getLogger("moler_threads").debug("EXIT")
+        # if threading.current_thread() is not threading.main_thread():
+
 
     def _handle_unexpected_error_from_observer(self, exception, data, timestamp):
         self.logger.exception(msg=r'Exception inside: {}({!r}) at {}'.format(self._observer, repr(data), timestamp))

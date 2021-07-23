@@ -227,7 +227,9 @@ class ThreadedFifoBuffer(FifoBuffer):
             self.pulling_thread = None
         super(ThreadedFifoBuffer, self).close()
         self._log(msg="closed {}".format(self), level=logging.INFO)
+        print("ThreadedFifoBuffer::close")
         self._notify_on_disconnect()
+        self.moler_connection.shutdown()
 
     def inject(self, input_bytes, delay=0.0):
         """

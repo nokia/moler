@@ -47,6 +47,10 @@ class RunnerWithThreadedMolerConnection(ThreadedMolerConnection):
         self._runner = RunnerForRunnerWithThreadedMolerConnection(connection=self)
         self._connection_observers = list()
 
+    def shutdown(self):
+        self._runner.shutdown()
+        super(ThreadedMolerConnection, self).shutdown()
+
     def get_runner(self):
         return self._runner
 
@@ -75,7 +79,7 @@ class RunnerWithThreadedMolerConnection(ThreadedMolerConnection):
         """
         super(RunnerWithThreadedMolerConnection, self).notify_observers(data=data, recv_time=recv_time)
         for connection_observer in self._connection_observers:
-            connection_observer.life_status.last_feed_time = recv_time
+            connection_observer.life_status.last_feed_time = time.time()
 
     def _create_observer_wrapper(self, observer_reference, self_for_observer):
         if observer_reference is None or not isinstance(self_for_observer, ConnectionObserver):
@@ -99,7 +103,8 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
         self._tick = 0.001
         self._in_shutdown = False
         self._connection = connection
-        self._loop_thread = threading.Thread(target=self._loop_for_runner)
+        self._loop_thread = threading.Thread(target=self._loop_for_runner, name="ThreadRunnerForConnection-{}".format(
+            connection.name))
         self._loop_thread.setDaemon(True)
         self._loop_thread.start()
 
@@ -120,10 +125,11 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
 
     def add_connection_observer(self, connection_observer):
         if connection_observer not in self._connections_observers:
-            self._connection.subscribe(
-                observer=connection_observer.data_received,
-                connection_closed_handler=connection_observer.connection_closed_handler
-            )
+            self._connection.subscribe_connection_observer(connection_observer=connection_observer)
+            # self._connection.subscribe(
+            #     observer=connection_observer.data_received,
+            #     connection_closed_handler=connection_observer.connection_closed_handler
+            # )
             self._connections_observers.append(connection_observer)
             self._start_command(connection_observer=connection_observer)
             connection_observer.life_status.last_feed_time = time.time()
@@ -206,8 +212,7 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
         self._stop_loop_runner.set()
         for connection_observer in observers:
             connection_observer.cancel()
-            self._connection.unsubscribe()
-        self._loop_thread.join(timeout=60)
+            self._connection.unsubscribe_connection_observer(connection_observer=connection_observer)
 
     def __enter__(self):
         return self
@@ -370,10 +375,11 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
         if self._to_remove_connection_observers:
             for connection_observer in self._to_remove_connection_observers:
                 self._connections_observers.remove(connection_observer)
-                self._connection.unsubscribe(
-                    observer=connection_observer.data_received,
-                    connection_closed_handler=connection_observer.connection_closed_handler
-                )
+                self._connection.unsubscribe_connection_observer(connection_observer=connection_observer)
+                # self._connection.unsubscribe(
+                #     observer=connection_observer.data_received,
+                #     connection_closed_handler=connection_observer.connection_closed_handler
+                # )
             self._to_remove_connection_observers.clear()
 
     def _start_command(self, connection_observer):

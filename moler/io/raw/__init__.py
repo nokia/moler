@@ -17,6 +17,8 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 
 import threading
 
+tdh_nr = 1
+
 
 class TillDoneThread(threading.Thread):
     def __init__(self, done_event, target=None, name=None, kwargs=None):

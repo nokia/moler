@@ -33,7 +33,8 @@ class CommandScheduler(object):
             #  We have a free slot available
             return
         # We have to wait to finish other command(s) so let's do it in another thread.
-        t1 = Thread(target=scheduler._add_command_to_connection, args=(connection_observer, True))
+        t1 = Thread(target=scheduler._add_command_to_connection, args=(connection_observer, True),
+                    name="CommandScheduler")
         t1.setDaemon(True)
         t1.start()
 
