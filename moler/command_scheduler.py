@@ -3,7 +3,7 @@
 """Scheduler for commands and events."""
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019, Nokia'
+__copyright__ = 'Copyright (C) 2019-2021, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import threading
