@@ -97,8 +97,6 @@ class ObserverThreadWrapper(object):
         self._observer_self = None
         print("ObserverThreadWrapper left thread")
         logging.getLogger("moler_threads").debug("EXIT")
-        # if threading.current_thread() is not threading.main_thread():
-
 
     def _handle_unexpected_error_from_observer(self, exception, data, timestamp):
         self.logger.exception(msg=r'Exception inside: {}({!r}) at {}'.format(self._observer, repr(data), timestamp))
