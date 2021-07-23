@@ -4,7 +4,7 @@ Sudo command module.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
@@ -140,6 +140,7 @@ class Sudo(CommandChangingPrompt):
         if self.cmd_object:
             if not self._sent_command_string:
                 self._sent_command_string = True
+                self.cmd_object.life_status._is_running = True
                 cs = "{}{}".format(self.cmd_object.command_string, self.newline_seq)
                 self.cmd_object.data_received(cs, self._last_recv_time_data_read_from_connection)
 
