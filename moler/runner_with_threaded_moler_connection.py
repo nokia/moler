@@ -268,8 +268,8 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
                 timeout = connection_observer.timeout
             term_timeout = 0 if connection_observer.life_status.terminating_timeout is None else \
                 connection_observer.life_status.terminating_timeout
-            remain_time = timeout - (
-                        time.time() - connection_observer.life_status.start_time) + term_timeout + timeout_add
+            remain_time = timeout - (time.time() - connection_observer.life_status.start_time) + term_timeout + \
+                timeout_add
         return False
 
     def _wait_for_not_started_connection_observer_is_done(self, connection_observer):
