@@ -182,7 +182,6 @@ def device_connection():
     ext_io_in_memory = get_memory_device_connection()
     # all tests assume working with already open connection
     with ext_io_in_memory:  # open it (autoclose by context-mngr)
-        print("yield {} - {}".format(ext_io_in_memory, id(ext_io_in_memory)))
         yield ext_io_in_memory
 
 
