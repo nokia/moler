@@ -28,7 +28,7 @@ except ImportError:
     import Queue as queue  # For python 2
 
 
-class RunnerWithThreadedMolerConnection(ThreadedMolerConnection):
+class MolerConnectionForSingleThreadRunner(ThreadedMolerConnection):
     def __init__(self, how2send=None, encoder=identity_transformation, decoder=identity_transformation,
                  name=None, newline='\n', logger_name=""):
         """
@@ -42,14 +42,24 @@ class RunnerWithThreadedMolerConnection(ThreadedMolerConnection):
         If logger_name == "" - take logger "moler.connection.<name>"
         If logger_name is None - don't use logging
         """
-        super(RunnerWithThreadedMolerConnection, self).__init__(how2send, encoder, decoder, name=name, newline=newline,
-                                                                logger_name=logger_name)
-        self._runner = RunnerForRunnerWithThreadedMolerConnection(connection=self)
+        super(MolerConnectionForSingleThreadRunner, self).__init__(how2send, encoder, decoder, name=name,
+                                                                   newline=newline,
+                                                                   logger_name=logger_name)
+        self._runner = None
         self._connection_observers = list()
+        self.open()
 
     def shutdown(self):
-        self._runner.shutdown()
-        super(ThreadedMolerConnection, self).shutdown()
+        if self._runner:
+            self._runner.shutdown()
+        self._runner = None
+        super(MolerConnectionForSingleThreadRunner, self).shutdown()
+
+    def open(self):
+        if self._runner:  # Already open
+            return
+        self._runner = RunnerForSingleThread(connection=self)
+        super(MolerConnectionForSingleThreadRunner, self).open()
 
     def get_runner(self):
         return self._runner
@@ -77,7 +87,7 @@ class RunnerWithThreadedMolerConnection(ThreadedMolerConnection):
         :param recv_time: time of data really read form connection.
         :return None
         """
-        super(RunnerWithThreadedMolerConnection, self).notify_observers(data=data, recv_time=recv_time)
+        super(MolerConnectionForSingleThreadRunner, self).notify_observers(data=data, recv_time=recv_time)
         for connection_observer in self._connection_observers:
             connection_observer.life_status.last_feed_time = time.time()
 
@@ -91,10 +101,13 @@ class RunnerWithThreadedMolerConnection(ThreadedMolerConnection):
         return otw
 
 
-class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
+runner_nr = 1
+
+
+class RunnerForSingleThread(ConnectionObserverRunner):
 
     def __init__(self, connection):
-        super(RunnerForRunnerWithThreadedMolerConnection, self).__init__()
+        super(RunnerForSingleThread, self).__init__()
         self.logger = logging.getLogger('moler.runner.connection-runner')
         self._connections_observers = list()
         self._to_remove_connection_observers = list()
@@ -103,8 +116,10 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
         self._tick = 0.001
         self._in_shutdown = False
         self._connection = connection
-        self._loop_thread = threading.Thread(target=self._loop_for_runner, name="ThreadRunnerForConnection-{}".format(
-            connection.name))
+        global runner_nr
+        runner_nr += 1
+        self._loop_thread = threading.Thread(target=self._loop_for_runner,
+                                             name="RunnerForSingleConnection-{}-{}".format(connection.name, runner_nr))
         self._loop_thread.setDaemon(True)
         self._loop_thread.start()
 
@@ -126,10 +141,6 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
     def add_connection_observer(self, connection_observer):
         if connection_observer not in self._connections_observers:
             self._connection.subscribe_connection_observer(connection_observer=connection_observer)
-            # self._connection.subscribe(
-            #     observer=connection_observer.data_received,
-            #     connection_closed_handler=connection_observer.connection_closed_handler
-            # )
             self._connections_observers.append(connection_observer)
             self._start_command(connection_observer=connection_observer)
             connection_observer.life_status.last_feed_time = time.time()
@@ -143,7 +154,6 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
         :param timeout: Max time (in float seconds) you want to await before you give up.
         :return: None
         """
-        print("wait_for timeout={}".format(timeout))
         if connection_observer.done():
             self.logger.debug("go foreground: {} is already done".format(connection_observer))
         else:
@@ -159,8 +169,6 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
             else:
                 remain_time, msg = his_remaining_time("remaining", timeout=observer_timeout, from_start_time=start_time)
             self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
-            print("wait_for max_timeout={}, await_timeout={}, remain_time={}".format(max_timeout, await_timeout,
-                                                                                     remain_time))
             connection_observer.life_status.start_time = start_time
             connection_observer.timeout = await_timeout
             self._execute_till_eol(connection_observer=connection_observer,
@@ -171,7 +179,6 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
         return None
 
     def _end_of_life_of_future_and_connection_observer(self, connection_observer):
-        print("Runner::_end_of_life_of_future_and_connection_observer: {}".format(connection_observer))
         connection_observer.set_end_of_life()
 
     def wait_for_iterator(self, connection_observer, connection_observer_future):
@@ -222,9 +229,6 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
         return False  # exceptions (if any) should be reraised
 
     def _execute_till_eol(self, connection_observer, max_timeout, await_timeout, remain_time):
-        print(
-            "_execute_till_eol, max_timeout={}, await_timeout={}, remain_timeout={}".format(max_timeout, await_timeout,
-                                                                                            remain_time))
         eol_remain_time = remain_time
         # either we wait forced-max-timeout or we check done-status each 0.1sec tick
         if eol_remain_time > 0.0:
@@ -321,15 +325,12 @@ class RunnerForRunnerWithThreadedMolerConnection(ConnectionObserverRunner):
                     msg = "{} underlying real command failed to finish during {} seconds. It will be forcefully" \
                           " terminated".format(connection_observer, timeout)
                     self.logger.info(msg)
-                    print(msg)
                     connection_observer.set_end_of_life()
                 else:
-                    print(" * timeout for {}".format(connection_observer))
                     self._timeout_observer(connection_observer=connection_observer,
                                            timeout=connection_observer.timeout, passed_time=run_duration,
                                            runner_logger=self.logger)
                     if connection_observer.life_status.terminating_timeout > 0.0:
-                        print(" * switch to terminating timeout.")
                         connection_observer.life_status.start_time = time.time()
                         connection_observer.life_status.in_terminating = True
                     else:

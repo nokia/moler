@@ -17,7 +17,7 @@ import platform
 import moler.config.loggers
 from moler.util.devices_SM import get_memory_device_connection
 import moler.connection_factory  # will load builtin connections and default variants
-from moler.runner_with_threaded_moler_connection import RunnerWithThreadedMolerConnection
+from moler.runner_with_threaded_moler_connection import MolerConnectionForSingleThreadRunner
 
 
 current_process = psutil.Process()
@@ -125,9 +125,9 @@ def buffer_connection():
     # moler_conn = ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
     #                                      decoder=lambda data: data.decode("utf-8"),
     #                                      name="buffer")
-    moler_conn = RunnerWithThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
-                                                   decoder=lambda data: data.decode("utf-8"),
-                                                   name="buffer")
+    moler_conn = MolerConnectionForSingleThreadRunner(encoder=lambda data: data.encode("utf-8"),
+                                                      decoder=lambda data: data.decode("utf-8"),
+                                                      name="buffer")
     ext_io_in_memory = RemoteConnection(moler_connection=moler_conn,
                                         echo=False)  # we don't want echo on connection
     configure_device_logger(moler_conn.name)
@@ -178,9 +178,11 @@ def nice_cmd():
 # --------------------------- test/device/test_SM_DEVICE_NAME.py resources ---------------------------
 @yield_fixture
 def device_connection():
+    print("device_connection()")
     ext_io_in_memory = get_memory_device_connection()
     # all tests assume working with already open connection
     with ext_io_in_memory:  # open it (autoclose by context-mngr)
+        print("yield {} - {}".format(ext_io_in_memory, id(ext_io_in_memory)))
         yield ext_io_in_memory
 
 

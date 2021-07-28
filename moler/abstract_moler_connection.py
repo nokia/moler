@@ -208,6 +208,14 @@ class AbstractMolerConnection(object):
         """
         self._is_open = False
 
+    def open(self):
+        """
+        Open connection. If implementation of MolerConnection does not do anything on open then does nothing.
+
+        :return: None
+        """
+        pass
+
     def is_open(self):
         """
         Call to check if connection is open.

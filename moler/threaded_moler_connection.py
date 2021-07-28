@@ -93,11 +93,6 @@ class ThreadedMolerConnection(AbstractMolerConnection):
                 self._observer_wrappers[observer_key] = self._create_observer_wrapper(
                     observer_reference=observer_reference, self_for_observer=self_for_observer)
                 self._connection_closed_handlers[observer_key] = connection_closed_handler
-        import threading
-        print("ThreadedMolerConnection::subscribe: got {} subscribers and {} threads".format(
-            len(self._observer_wrappers), threading.active_count()))
-        for thread in threading.enumerate():
-            print("    {}".format(thread.name))
 
     def _create_observer_wrapper(self, observer_reference, self_for_observer):
         otw = ObserverThreadWrapper(
@@ -123,14 +118,12 @@ class ThreadedMolerConnection(AbstractMolerConnection):
                 self._log(level=logging.WARNING,
                           msg="{} and {} were not both subscribed.".format(observer, connection_closed_handler),
                           levels_to_go_up=2)
-        print("ThreadedMolerConnection::unsubscribe: got {} subscribers".format(len(self._observer_wrappers)))
 
     def shutdown(self):
         """
         Closes connection with notifying all observers about closing.
         :return: None
         """
-        print("ThreadedMolerConnection::shutdown")
         for handler in list(self._connection_closed_handlers.values()):
             handler()
         super(ThreadedMolerConnection, self).shutdown()

@@ -18,11 +18,11 @@ try:
 except ImportError:
     import Queue as queue  # For python 2
 
-nr = 1
-
 
 class ObserverThreadWrapper(object):
     """Wrapper for observer registered in ThreadedMolerConnection (old name: ObservableConnection)."""
+
+    _th_nr = 1
 
     def __init__(self, observer, observer_self, logger):
         """
@@ -35,12 +35,12 @@ class ObserverThreadWrapper(object):
         self._observer = observer
         self._observer_self = observer_self
         self._queue = queue.Queue()
-        self._request_end = False
+        self._request_end = threading.Event()
         self._timeout_for_get_from_queue = 1
         self.logger = logger
-        global nr
-        self._t = Thread(target=self._loop_for_observer, name="ObserverThreadWrapper-{}".format(nr))
-        nr += 1
+        self._t = Thread(target=self._loop_for_observer, name="ObserverThreadWrapper-{}-{}".format(
+            ObserverThreadWrapper._th_nr, observer_self))
+        ObserverThreadWrapper._th_nr += 1
         self._t.setDaemon(True)
         self._t.start()
 
@@ -60,7 +60,8 @@ class ObserverThreadWrapper(object):
 
         :return: None
         """
-        self._request_end = True
+        self._request_end.set()
+        # self._t.join()  # only for debugging to have less active threads.
         if self._t:
             self._t = None
 
@@ -73,7 +74,7 @@ class ObserverThreadWrapper(object):
         """
         logging.getLogger("moler_threads").debug("ENTER {}".format(self._observer))
         heartbeat = tracked_thread.report_alive()
-        while self._request_end is False:
+        while not self._request_end.is_set():
             if next(heartbeat):
                 logging.getLogger("moler_threads").debug("ALIVE")
             try:
@@ -81,21 +82,20 @@ class ObserverThreadWrapper(object):
                 try:
                     self.logger.log(level=TRACE, msg=r'notifying {}({!r})'.format(self._observer, repr(data)))
                 except ReferenceError:
-                    self._request_end = True  # self._observer is no more valid.
+                    self._request_end.set()  # self._observer is no more valid.
                 try:
                     if self._observer_self:
                         self._observer(self._observer_self, data, timestamp)
                     else:
                         self._observer(data, timestamp)
                 except ReferenceError:
-                    self._request_end = True  # self._observer is no more valid.
+                    self._request_end.set()  # self._observer is no more valid.
                 except Exception as ex:
                     self._handle_unexpected_error_from_observer(exception=ex, data=data, timestamp=timestamp)
             except queue.Empty:
                 pass  # No incoming data within self._timeout_for_get_from_queue
         self._observer = None
         self._observer_self = None
-        print("ObserverThreadWrapper left thread")
         logging.getLogger("moler_threads").debug("EXIT")
 
     def _handle_unexpected_error_from_observer(self, exception, data, timestamp):

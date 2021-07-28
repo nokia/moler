@@ -136,7 +136,7 @@ def get_device(name, connection, device_output, test_file_path):
 
 
 def _prepare_device(device, connection, device_output):
-    if "RemoteConnection" not in device.io_connection.__class__.__name__:
+    if connection != device.io_connection:
         device.exchange_io_connection(io_connection=connection)
     assert "RemoteConnection" in device.io_connection.__class__.__name__
     connection.set_device(device=device)
@@ -226,15 +226,15 @@ class RemoteConnection(ThreadedFifoBuffer):
 
 def get_memory_device_connection():
     from moler.threaded_moler_connection import ThreadedMolerConnection
-    from moler.runner_with_threaded_moler_connection import RunnerWithThreadedMolerConnection
+    from moler.runner_with_threaded_moler_connection import MolerConnectionForSingleThreadRunner
     from moler.config.loggers import configure_device_logger
 
     # moler_conn = ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
     #                                      decoder=lambda data: data.decode("utf-8"),
     #                                      name="buffer")
-    moler_conn = RunnerWithThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
-                                                   decoder=lambda data: data.decode("utf-8"),
-                                                   name="buffer")
+    moler_conn = MolerConnectionForSingleThreadRunner(encoder=lambda data: data.encode("utf-8"),
+                                                      decoder=lambda data: data.decode("utf-8"),
+                                                      name="buffer")
     ext_io_in_memory = RemoteConnection(moler_connection=moler_conn,
                                         echo=False)  # we don't want echo on connection
     configure_device_logger(moler_conn.name)
