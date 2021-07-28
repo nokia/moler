@@ -1,3 +1,8 @@
+## moler 1.31.1
+
+### Improved
+* Set flag to run in embeded command
+
 ## moler 1.31.0
 
 ### Added
