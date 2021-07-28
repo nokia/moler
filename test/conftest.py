@@ -178,7 +178,6 @@ def nice_cmd():
 # --------------------------- test/device/test_SM_DEVICE_NAME.py resources ---------------------------
 @yield_fixture
 def device_connection():
-    print("device_connection()")
     ext_io_in_memory = get_memory_device_connection()
     # all tests assume working with already open connection
     with ext_io_in_memory:  # open it (autoclose by context-mngr)
