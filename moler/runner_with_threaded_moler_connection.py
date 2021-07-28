@@ -101,10 +101,9 @@ class MolerConnectionForSingleThreadRunner(ThreadedMolerConnection):
         return otw
 
 
-runner_nr = 1
-
-
 class RunnerForSingleThread(ConnectionObserverRunner):
+
+    _th_nr = 1
 
     def __init__(self, connection):
         super(RunnerForSingleThread, self).__init__()
@@ -116,10 +115,11 @@ class RunnerForSingleThread(ConnectionObserverRunner):
         self._tick = 0.001
         self._in_shutdown = False
         self._connection = connection
-        global runner_nr
-        runner_nr += 1
         self._loop_thread = threading.Thread(target=self._loop_for_runner,
-                                             name="RunnerForSingleConnection-{}-{}".format(connection.name, runner_nr))
+                                             name="RunnerForSingleConnection-{}-{}".format(connection.name,
+                                                                                           RunnerForSingleThread._th_nr)
+                                             )
+        RunnerForSingleThread._th_nr += 1
         self._loop_thread.setDaemon(True)
         self._loop_thread.start()
 
