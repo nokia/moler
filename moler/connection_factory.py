@@ -20,6 +20,7 @@ import logging
 import platform
 import moler.config.connections as connection_cfg
 from moler.threaded_moler_connection import ThreadedMolerConnection
+from moler.runner_with_threaded_moler_connection import MolerConnectionForSingleThreadRunner
 
 
 def get_connection(name=None, io_type=None, variant=None, **constructor_kwargs):
@@ -194,4 +195,5 @@ def _try_get_connection_with_name(io_type, variant, **constructor_kwargs):
 
 # actions during import
 connection_cfg.register_builtin_connections(ConnectionFactory, ThreadedMolerConnection)
+# connection_cfg.register_builtin_connections(ConnectionFactory, MolerConnectionForSingleThreadRunner)
 connection_cfg.set_defaults()
