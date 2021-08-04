@@ -225,7 +225,7 @@ class CommandTextualGeneric(Command):
         try:
             lines = data.splitlines(True)
             for current_chunk in lines:
-                if self.__class__.__name__ == 'CmConnect':
+                if self.__class__.__name__ == 'CmConnect':  # pragma: no cover
                     self.logger.debug("{} current_chunk = '{}'".format(self, current_chunk))
                 line, is_full_line = self._update_from_cached_incomplete_line(current_chunk=current_chunk)
                 if self._cmd_output_started:
@@ -234,7 +234,7 @@ class CommandTextualGeneric(Command):
                     self._detect_start_of_cmd_output(self._decode_line(line=line), is_full_line)
                     self._cache_line_before_command_start(line=line, is_full_line=is_full_line)
                 if self.done() and self.do_not_process_after_done:
-                    if self.__class__.__name__ == 'CmConnect':
+                    if self.__class__.__name__ == 'CmConnect':  # pragma: no cover
                         self.logger.debug("{} is done".format(self))
                     break
         except UnicodeDecodeError as ex:
@@ -246,12 +246,12 @@ class CommandTextualGeneric(Command):
                 self._log(lvl=logging.WARNING,
                           msg="Processing data from '{}' raised: '{}'.".format(self, ex))
                 raise ex
-        except Exception as ex:  # log it just to catch that rare hanging thread issue
+        except Exception as ex:  # pragma: no cover # log it just to catch that rare hanging thread issue
             self._log(lvl=logging.WARNING,
                       msg="Processing data from '{}' raised: '{}'.".format(self, ex))
             raise ex
         finally:
-            if self.__class__.__name__ == 'CmConnect':
+            if self.__class__.__name__ == 'CmConnect':  # pragma: no cover
                 self.logger.debug("{} exiting data processing of '{}'".format(self, data))
 
     def _process_line_from_command(self, current_chunk, line, is_full_line):
@@ -264,7 +264,7 @@ class CommandTextualGeneric(Command):
         :return: None.
         """
         decoded_line = self._decode_line(line=line)
-        if self.__class__.__name__ == 'CmConnect':
+        if self.__class__.__name__ == 'CmConnect':  # pragma: no cover
             self.logger.debug("{} line = '{}', decoded_line = '{}', is_full_line={}".format(self, line, decoded_line, is_full_line))
         self.on_new_line(line=decoded_line, is_full_line=is_full_line)
 
@@ -373,7 +373,7 @@ class CommandTextualGeneric(Command):
         if (is_full_line and self.newline_after_command_string) or not self.newline_after_command_string:
             if self._regex_helper.search_compiled(self._cmd_escaped, line):
                 self._cmd_output_started = True
-        if self.__class__.__name__ == 'CmConnect':
+        if self.__class__.__name__ == 'CmConnect':  # pragma: no cover
             self.logger.debug("{} line = '{}', is_full_line={}, _cmd_output_started={}".format(self, line, is_full_line, self._cmd_output_started))
 
     def break_cmd(self, silent=False):
