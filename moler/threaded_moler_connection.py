@@ -93,6 +93,7 @@ class ThreadedMolerConnection(AbstractMolerConnection):
                 self._observer_wrappers[observer_key] = ObserverThreadWrapper(
                     observer=observer_reference, observer_self=self_for_observer, logger=self.logger)
                 self._connection_closed_handlers[observer_key] = connection_closed_handler
+        self.logger.debug(">>> Exited   {}. conn-obs '{}' moler-conn '{}'".format(self._observers_lock, observer, self))
 
     def unsubscribe(self, observer, connection_closed_handler):
         """
@@ -113,6 +114,7 @@ class ThreadedMolerConnection(AbstractMolerConnection):
                 self._log(level=logging.WARNING,
                           msg="{} and {} were not both subscribed.".format(observer, connection_closed_handler),
                           levels_to_go_up=2)
+        self.logger.debug(">>> Exited   {}. conn-obs '{}' moler-conn '{}'".format(self._observers_lock, observer, self))
 
     def shutdown(self):
         """

@@ -10,7 +10,8 @@ import time
 # shutdown and thus raises an exception about trying to perform some
 # operation on/with a NoneType
 _exc_info = sys.exc_info
-do_threads_debug = os.getenv('MOLER_DEBUG_THREADS', 'False').lower() in ('true', 't', 'yes', 'y', '1')
+# do_threads_debug = os.getenv('MOLER_DEBUG_THREADS', 'False').lower() in ('true', 't', 'yes', 'y', '1')
+do_threads_debug = os.getenv('MOLER_DEBUG_THREADS', 'True').lower() in ('true', 't', 'yes', 'y', '1')  # just to catch that rare hanging thread issue
 
 
 def log_exit_exception(fun):
@@ -33,31 +34,24 @@ def log_exit_exception(fun):
     return thread_exceptions_catcher
 
 
-def report_alive(report_tick=1.0):  # TODO: 10sec for production
-    # logger = logging.getLogger("moler_threads")
-    # logger.debug("I'm alive")
+def report_alive(report_tick=5.0):
     last_report_time = time.time()
-    # cnt = 2
     do_report = True
     while True:
         yield do_report  # TODO log long loop tick, allowed_loop_tick as param
         now = time.time()
         delay = now - last_report_time
         if delay >= report_tick:
-            # logger.debug("I'm alive")
             last_report_time = now
             do_report = do_threads_debug
         else:
             do_report = False
-        # cnt -= 1
-        # a = 3 / cnt  # for testing exception inside thread causing thread to exit
 
 
-def threads_dumper(report_tick=1.0):  # TODO: 10sec for production
-    logger = logging.getLogger("moler_threads")
+def threads_dumper(report_tick=10.0):
     while True:
         time.sleep(report_tick)
-        logger.info("ACTIVE: {}".format(threading.enumerate()))
+        logging.getLogger("moler_threads").info("ACTIVE: {}".format(threading.enumerate()))
 
 
 def start_threads_dumper():
