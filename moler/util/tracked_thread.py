@@ -49,10 +49,9 @@ def report_alive(report_tick=5.0):
 
 
 def threads_dumper(report_tick=10.0):
-    logger = logging.getLogger("moler_threads")
     while True:
         time.sleep(report_tick)
-        logger.info("ACTIVE: {}".format(threading.enumerate()))
+        logging.getLogger("moler_threads").info("ACTIVE: {}".format(threading.enumerate()))
 
 
 def start_threads_dumper():
