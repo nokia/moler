@@ -1,3 +1,8 @@
+## moler 1.31.2
+
+### Improved
+* Add logs for troubleshoot threads
+
 ## moler 1.31.1
 
 ### Improved
