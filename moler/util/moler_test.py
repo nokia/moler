@@ -188,17 +188,14 @@ class MolerTest(object):
 
     @staticmethod
     def _get_traceback():
-        exc_info = sys.exc_info()
-        stack = traceback.extract_stack()
-        tb = traceback.extract_tb(exc_info[2])
-        full_tb = stack[:-1] + tb
-        return traceback.format_exc(full_tb)
+        return traceback.format_exc()
 
     @classmethod
     def _check_exceptions_occured(cls, caught_exception=None):
         err_msg = cls._prepare_err_msg(caught_exception)
 
         if err_msg:
+            cls._error(err_msg)
             cls._was_error = False
             cls._list_of_errors = list()
             raise ExecutionException(err_msg)
@@ -207,6 +204,7 @@ class MolerTest(object):
     def _check_steps_end(cls):
         if not cls._was_steps_end:
             err_msg = "Method 'steps_end()' was not called or parameter 'check_steps_end' was not set properly.\n."
+            cls._error(err_msg)
             cls._was_error = False
             raise ExecutionException(err_msg)
 
