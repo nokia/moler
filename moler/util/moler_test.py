@@ -13,6 +13,8 @@ import gc
 import pprint
 import os
 import signal
+import sys
+import traceback
 from functools import partial
 from functools import wraps
 from types import FunctionType, MethodType
@@ -170,12 +172,11 @@ class MolerTest(object):
         if len(occured_exceptions) > 0:
             err_msg += "There were unhandled exceptions from test caught by Moler.\n"
             for i, exc in enumerate(occured_exceptions, 1):
-                try:
-                    import traceback
+                if hasattr(exc, '__traceback__'):
                     exc_traceback = ' '.join(traceback.format_tb(exc.__traceback__))
-                    err_msg += "  {}) {}{}\n".format(i, exc_traceback, repr(exc))
-                except AttributeError:
-                    err_msg += repr(exc)
+                    err_msg += "  ({}) {}{}\n".format(i, exc_traceback, repr(exc))
+                else:
+                    err_msg += "  {}\n".format(cls._get_traceback())
 
         if len(cls._list_of_errors) > 0:
             err_msg += "Moler caught some error messages during execution:\n"
@@ -185,12 +186,19 @@ class MolerTest(object):
 
         return err_msg
 
+    @staticmethod
+    def _get_traceback():
+        exc_info = sys.exc_info()
+        stack = traceback.extract_stack()
+        tb = traceback.extract_tb(exc_info[2])
+        full_tb = stack[:-1] + tb
+        return traceback.format_exc(full_tb)
+
     @classmethod
     def _check_exceptions_occured(cls, caught_exception=None):
         err_msg = cls._prepare_err_msg(caught_exception)
 
         if err_msg:
-            cls._error(err_msg)
             cls._was_error = False
             cls._list_of_errors = list()
             raise ExecutionException(err_msg)
@@ -199,7 +207,6 @@ class MolerTest(object):
     def _check_steps_end(cls):
         if not cls._was_steps_end:
             err_msg = "Method 'steps_end()' was not called or parameter 'check_steps_end' was not set properly.\n."
-            cls._error(err_msg)
             cls._was_error = False
             raise ExecutionException(err_msg)
 
