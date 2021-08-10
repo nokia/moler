@@ -13,7 +13,6 @@ import gc
 import pprint
 import os
 import signal
-import sys
 import traceback
 from functools import partial
 from functools import wraps
