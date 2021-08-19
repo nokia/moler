@@ -1086,7 +1086,6 @@ COMMAND_RESULT_override_keygen = {
     'FAILED_LOGIN_ATTEMPTS': None,
 }
 
-
 COMMAND_KWARGS_tunnel = {
     "set_timeout": None, "host": None, "prompt": "moler_bash#", "expected_prompt": "moler_bash#",
     "password": 'pass',
