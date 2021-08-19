@@ -1,25 +1,26 @@
-from moler.threaded_moler_connection import ThreadedMolerConnection
-from moler.runner import ThreadPoolExecutorRunner
+# -*- coding: utf-8 -*-
+
+"""
+Moler implementation of Runner with single thread.
+"""
+
 
 __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2021, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
-import weakref
 import logging
-import six
 import time
 from threading import Lock
-from moler.abstract_moler_connection import AbstractMolerConnection
 from moler.abstract_moler_connection import identity_transformation
-from moler.config.loggers import RAW_DATA, TRACE
-from moler.helpers import instance_id
 from moler.observer_thread_wrapper import ObserverThreadWrapper, ObserverThreadWrapperForConnectionObserver
 from moler.runner import ConnectionObserverRunner
 from moler.exceptions import CommandTimeout
 from moler.exceptions import ConnectionObserverTimeout
 from moler.util.loghelper import log_into_logger
 from moler.connection_observer import ConnectionObserver
+from moler.helpers import copy_list
+from moler.threaded_moler_connection import ThreadedMolerConnection
 import threading
 
 try:
@@ -109,6 +110,7 @@ class RunnerForSingleThread(ConnectionObserverRunner):
         super(RunnerForSingleThread, self).__init__()
         self.logger = logging.getLogger('moler.runner.connection-runner')
         self._connections_observers = list()
+        self._copy_of_connections_observers = list()
         self._to_remove_connection_observers = list()
         self._stop_loop_runner = threading.Event()
         self._stop_loop_runner.clear()
@@ -120,6 +122,7 @@ class RunnerForSingleThread(ConnectionObserverRunner):
                                                                                            RunnerForSingleThread._th_nr)
                                              )
         RunnerForSingleThread._th_nr += 1
+        self._connection_observer_lock = Lock()
         self._loop_thread.setDaemon(True)
         self._loop_thread.start()
 
@@ -139,11 +142,17 @@ class RunnerForSingleThread(ConnectionObserverRunner):
         self.add_connection_observer(connection_observer=connection_observer)
 
     def add_connection_observer(self, connection_observer):
-        if connection_observer not in self._connections_observers:
-            self._connection.subscribe_connection_observer(connection_observer=connection_observer)
-            self._connections_observers.append(connection_observer)
-            self._start_command(connection_observer=connection_observer)
-            connection_observer.life_status.last_feed_time = time.time()
+        """
+        Add connection observer to the runner.
+        :param connection_observer: the one to add.
+        :return: None
+        """
+        with self._connection_observer_lock:
+            if connection_observer not in self._connections_observers:
+                self._connection.subscribe_connection_observer(connection_observer=connection_observer)
+                self._connections_observers.append(connection_observer)
+                self._start_command(connection_observer=connection_observer)
+                connection_observer.life_status.last_feed_time = time.time()
 
     def wait_for(self, connection_observer, connection_observer_future, timeout=10.0):
         """
@@ -286,6 +295,9 @@ class RunnerForSingleThread(ConnectionObserverRunner):
 
     def _loop_for_runner(self):
         while not self._stop_loop_runner.is_set():
+            with self._connection_observer_lock:
+                if self._copy_of_connections_observers != self._connections_observers:
+                    self._copy_of_connections_observers = copy_list(self._connections_observers, deep_copy=False)
             # ConnectionObserver is feed by registering data_received in moler connection
             self._check_last_feed_connection_observers()
             self._check_timeout_connection_observers()
@@ -298,7 +310,7 @@ class RunnerForSingleThread(ConnectionObserverRunner):
         :return: None
         """
         current_time = time.time()
-        for connection_observer in self._connections_observers:
+        for connection_observer in self._copy_of_connections_observers:
             life_status = connection_observer.life_status
             if (life_status.inactivity_timeout > 0.0) and (life_status.last_feed_time is not None):
                 expected_feed_timeout = life_status.last_feed_time + life_status.inactivity_timeout
@@ -313,7 +325,7 @@ class RunnerForSingleThread(ConnectionObserverRunner):
                         connection_observer.life_status.last_feed_time = current_time
 
     def _check_timeout_connection_observers(self):
-        for connection_observer in self._connections_observers:
+        for connection_observer in self._copy_of_connections_observers:
             start_time = connection_observer.life_status.start_time
             current_time = time.time()
             run_duration = current_time - start_time
@@ -367,13 +379,17 @@ class RunnerForSingleThread(ConnectionObserverRunner):
                                 levels_to_go_up=1)
 
     def _remove_unnecessary_connection_observers(self):
-        for connection_observer in self._connections_observers:
+        for connection_observer in self._copy_of_connections_observers:
             if connection_observer.done():
                 self._to_remove_connection_observers.append(connection_observer)
         if self._to_remove_connection_observers:
-            for connection_observer in self._to_remove_connection_observers:
-                self._connections_observers.remove(connection_observer)
-                self._connection.unsubscribe_connection_observer(connection_observer=connection_observer)
+            with self._connection_observer_lock:
+                for connection_observer in self._to_remove_connection_observers:
+                    try:
+                        self._connections_observers.remove(connection_observer)
+                    except ValueError:
+                        pass
+                    self._connection.unsubscribe_connection_observer(connection_observer=connection_observer)
             self._to_remove_connection_observers = list()  # clear() is not available under old Pythons.
 
     def _start_command(self, connection_observer):
