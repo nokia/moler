@@ -7,11 +7,12 @@ __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
-import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure, ParsingDone
 from moler.helpers import copy_list
+import six
+import re
 
 
 class RunScript(GenericUnixCommand):
@@ -30,8 +31,8 @@ class RunScript(GenericUnixCommand):
         super(RunScript, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                         runner=runner)
         self.script_command = script_command
-        self.success_regex = self._copy_list(success_regex)
-        self.error_regex = self._copy_list(error_regex)
+        self.success_regexes = self._copy_list(success_regex)
+        self.error_regexes = self._copy_list(error_regex)
         self.ret_required = False
 
     def build_command_string(self):
@@ -56,24 +57,32 @@ class RunScript(GenericUnixCommand):
         return super(RunScript, self).on_new_line(line, is_full_line)
 
     def _find_success(self, line):
-        for success_regex in self.success_regex:
+        for success_regex in self.success_regexes:
             if self._regex_helper.search_compiled(success_regex, line):
-                self.success_regex.remove(success_regex)
+                self.success_regexes.remove(success_regex)
                 raise ParsingDone()
 
     def _find_error(self, line):
-        for error_regex in self.error_regex:
+        for error_regex in self.error_regexes:
             if self._regex_helper.search_compiled(error_regex, line):
                 self.set_exception(CommandFailure(self, "Found error regex '{}' in line '{}'".format(
                     error_regex, line)))
                 raise ParsingDone()
 
     def _copy_list(self, src):
+        ret = list()
         if src is None:
-            return list()
-        if isinstance(src, list) or isinstance(src, tuple):
-            return copy_list(src, deep_copy=False)
-        self.success_regex = list(src)
+            ret = list()
+        elif isinstance(src, six.string_types):
+            ret = [src]
+        elif isinstance(src, list) or isinstance(src, tuple):
+            ret = copy_list(src, deep_copy=False)
+        ret_val = list()
+        for val in ret:
+            if isinstance(val, six.string_types):
+                val = re.compile(val)
+            ret_val.append(val)
+        return ret_val
 
     @property
     def _is_done(self):
@@ -81,16 +90,37 @@ class RunScript(GenericUnixCommand):
 
     @_is_done.setter
     def _is_done(self, value):
-        if value is True and len(self.success_regex) > 0:
-            self.set_exception(CommandFailure(self, "Not found all regex for success. Left: '{}'.".format(
-                self.success_regex)))
+        if value is True and len(self.success_regexes) > 0:
+            self._set_exception_without_done(CommandFailure(self, "Not found all regex for success. Left: '{}'.".format(
+                self.success_regexes)))
+        super(RunScript, self.__class__)._is_done.fset(self, value)
 
 
 COMMAND_OUTPUT = """
-ute@debdev:~$ ./myscript.sh
+./myscript.sh
 Output from script
-ute@debdev:~$"""
+moler_bash#"""
 
 COMMAND_KWARGS = {"script_command": "./myscript.sh"}
 
 COMMAND_RESULT = {}
+
+COMMAND_OUTPUT_success = """
+./myscript.sh
+Output from script
+Line 2
+moler_bash#"""
+
+COMMAND_KWARGS_success = {"script_command": "./myscript.sh", "success_regex": r"Line 2"}
+
+COMMAND_RESULT_success = {}
+
+COMMAND_OUTPUT_success_list = """
+./myscript.sh
+Output from script
+Line 2
+moler_bash#"""
+
+COMMAND_KWARGS_success_list = {"script_command": "./myscript.sh", "success_regex": ("Output", "Line 2")}
+
+COMMAND_RESULT_success_list = {}
