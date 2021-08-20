@@ -226,7 +226,7 @@ class RemoteConnection(ThreadedFifoBuffer):
 
 def get_memory_device_connection():
     from moler.threaded_moler_connection import ThreadedMolerConnection
-    from moler.runner_with_threaded_moler_connection import MolerConnectionForSingleThreadRunner
+    from moler.moler_connection_for_single_thread_runner import MolerConnectionForSingleThreadRunner
     from moler.config.loggers import configure_device_logger
 
     # moler_conn = ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),

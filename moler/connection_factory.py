@@ -20,7 +20,7 @@ import logging
 import platform
 import moler.config.connections as connection_cfg
 from moler.threaded_moler_connection import ThreadedMolerConnection
-from moler.runner_with_threaded_moler_connection import MolerConnectionForSingleThreadRunner
+from moler.moler_connection_for_single_thread_runner import MolerConnectionForSingleThreadRunner
 
 
 def get_connection(name=None, io_type=None, variant=None, **constructor_kwargs):

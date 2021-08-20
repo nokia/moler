@@ -17,7 +17,7 @@ import platform
 import moler.config.loggers
 from moler.util.devices_SM import get_memory_device_connection
 import moler.connection_factory  # will load builtin connections and default variants
-from moler.runner_with_threaded_moler_connection import MolerConnectionForSingleThreadRunner
+from moler.moler_connection_for_single_thread_runner import MolerConnectionForSingleThreadRunner
 
 
 current_process = psutil.Process()

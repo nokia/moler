@@ -20,7 +20,7 @@ from pprint import pformat
 from moler.command import Command
 from moler.event import Event
 from moler.helpers import compare_objects
-from moler.runner_with_threaded_moler_connection import MolerConnectionForSingleThreadRunner
+from moler.moler_connection_for_single_thread_runner import MolerConnectionForSingleThreadRunner
 
 
 def _buffer_connection():
