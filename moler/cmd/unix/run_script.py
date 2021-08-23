@@ -78,11 +78,8 @@ class RunScript(GenericUnixCommand):
             ret = copy_list(src, deep_copy=False)
         else:
             ret = [src]
-        ret_val = list()
-        for val in ret:
-            if isinstance(val, six.string_types):
-                val = re.compile(val)
-            ret_val.append(val)
+
+        ret_val = [re.compile(val) if isinstance(val, six.string_types) else val for val in ret]
         return ret_val
 
     @property
@@ -122,6 +119,6 @@ Output from script
 Line 2
 moler_bash#"""
 
-COMMAND_KWARGS_success_list = {"script_command": "./myscript.sh", "success_regex": ("Output", "Line 2")}
+COMMAND_KWARGS_success_list = {"script_command": "./myscript.sh", "success_regex": ("Output", re.compile("Line 2"))}
 
 COMMAND_RESULT_success_list = {}
