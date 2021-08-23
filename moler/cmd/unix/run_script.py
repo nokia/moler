@@ -70,13 +70,14 @@ class RunScript(GenericUnixCommand):
                 raise ParsingDone()
 
     def _copy_list(self, src):
-        ret = list()
         if src is None:
             ret = list()
         elif isinstance(src, six.string_types):
             ret = [src]
         elif isinstance(src, list) or isinstance(src, tuple):
             ret = copy_list(src, deep_copy=False)
+        else:
+            ret = [src]
         ret_val = list()
         for val in ret:
             if isinstance(val, six.string_types):
