@@ -51,7 +51,7 @@ class Ssh(GenericTelnetSsh):
                  options='-o ServerAliveInterval=7 -o ServerAliveCountMax=2',
                  failure_exceptions_indication=None, prompt_after_login=None, send_enter_after_connection=True,
                  username=None, permission_denied_key_pass_keyboard=r'ssh-keygen -f "~/.ssh/known_hosts" -R "{host}"',
-                 allow_override_denied_key_pass_keyboard=True):
+                 allow_override_denied_key_pass_keyboard=True, suffix=None):
         """
         Moler class of Unix command ssh.
 
@@ -84,6 +84,7 @@ class Ssh(GenericTelnetSsh):
          'Permission denied (publickey,password,keyboard-interactive)'.
         :param allow_override_denied_key_pass_keyboard: Set True to override the command ssh-keygen to command from ssh
          output. False to ignore ssh output.
+        :param suffix: String to append after command ssh.
         """
         super(Ssh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner,
                                   port=port, host=host, login=login, password=password,
@@ -102,6 +103,7 @@ class Ssh(GenericTelnetSsh):
         self.known_hosts_on_failure = known_hosts_on_failure
         self.options = options
         self.allow_override_denied_key_pass_keyboard = allow_override_denied_key_pass_keyboard
+        self.suffix = suffix
 
         # Internal variables
         self._hosts_file = ""
@@ -128,7 +130,10 @@ class Ssh(GenericTelnetSsh):
             cmd = "{} -l {}".format(cmd, self.login)
         if self.options:
             cmd = "{} {}".format(cmd, self.options)
-        cmd = "{} {}".format(cmd, self.host)
+        if self.host:
+            cmd = "{} {}".format(cmd, self.host)
+        if self.suffix:
+            cmd = "{} {}".format(cmd, self.suffix)
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -1077,6 +1082,25 @@ COMMAND_RESULT_override_keygen = {
         'WHERE': '192.168.255.126',
         'RAW_DATE': 'Fri Jul  3 11:50:03 CEST 2020',
         'DATE': parser.parse('Fri Jul  3 11:50:03 CEST 2020'),
+    },
+    'FAILED_LOGIN_ATTEMPTS': None,
+}
+
+COMMAND_KWARGS_tunnel = {
+    "set_timeout": None, "host": None, "prompt": "moler_bash#", "expected_prompt": "moler_bash#",
+    "password": 'pass',
+    "suffix": r"-f -N -L 22:target.machine:22 user@proxy.machine $ scp target-user@local.machine:/remote/file -P 22 ."
+}
+
+COMMAND_OUTPUT_tunnel = """TERM=xterm-mono ssh -f -N -L 22:target.machine:22 user@proxy.machine $ scp target-user@local.machine:/remote/file -P 22 .
+Password:
+moler_bash#"""
+
+COMMAND_RESULT_tunnel = {
+    'LINES': [
+        r'Password:',
+    ],
+    'LAST_LOGIN': {
     },
     'FAILED_LOGIN_ATTEMPTS': None,
 }
