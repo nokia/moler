@@ -3,9 +3,9 @@
 Utility/common code of library.
 """
 
-__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst, Tomasz Krol'
 __copyright__ = 'Copyright (C) 2018-2021, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com, tomasz.krol@nokia.com'
 
 import logging
 import time
@@ -158,6 +158,7 @@ class MolerTest(object):
     def _prepare_err_msg(cls, caught_exception):
         was_error_in_last_execution = cls._was_error
         err_msg = ""
+        get_traceback = False
 
         unraised_exceptions = ConnectionObserver.get_unraised_exceptions(True)
         occured_exceptions = list()
@@ -175,7 +176,9 @@ class MolerTest(object):
                     exc_traceback = ' '.join(traceback.format_tb(exc.__traceback__))
                     err_msg += "  ({}) {}{}\n".format(i, exc_traceback, repr(exc))
                 else:
-                    err_msg += "  {}\n".format(cls._get_traceback())
+                    get_traceback = True
+            if get_traceback:
+                err_msg += "  {}\n".format(cls._get_tracebacks())
 
         if len(cls._list_of_errors) > 0:
             err_msg += "Moler caught some error messages during execution:\n"
@@ -185,8 +188,8 @@ class MolerTest(object):
 
         return err_msg
 
-    @staticmethod
-    def _get_traceback():
+    @classmethod
+    def _get_tracebacks(cls):
         return traceback.format_exc()
 
     @classmethod
