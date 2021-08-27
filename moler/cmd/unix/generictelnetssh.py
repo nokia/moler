@@ -3,9 +3,9 @@
 Base class for telnet and ssh commands.
 """
 
-__author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2020, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__author__ = 'Marcin Usielski, Tomasz Krol'
+__copyright__ = 'Copyright (C) 2019-2021, Nokia'
+__email__ = 'marcin.usielski@nokia.com, tomasz.krol@nokia.com'
 
 import re
 import six
@@ -32,8 +32,8 @@ class GenericTelnetSsh(CommandChangingPrompt):
 
     # Permission denied.
     _re_failed_strings = re.compile(
-        r"Permission denied(?!\s+\(publickey,password,keyboard-interactive\))|closed by foreign host|"
-        r"telnet:.*Name or service not known|No route to host|ssh: Could not|"
+        r"Permission denied(?!\s+\(publickey,password,keyboard-interactive\)|(, please try again.))|"
+        r"closed by foreign host|telnet:.*Name or service not known|No route to host|ssh: Could not|"
         r"is not a typo you can use command-not-found to lookup the package|command not found|"
         r"Too many authentication failures|Received disconnect from|Authentication failed",
         re.IGNORECASE)
