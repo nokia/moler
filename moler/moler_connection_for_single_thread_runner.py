@@ -48,7 +48,7 @@ class MolerConnectionForSingleThreadRunner(ThreadedMolerConnection):
     def open(self):
         if self._runner:  # Already open
             return
-        self._runner = RunnerForSingleThread(connection=self)
+        self._runner = RunnerForSingleThread()
         super(MolerConnectionForSingleThreadRunner, self).open()
 
     def get_runner(self):

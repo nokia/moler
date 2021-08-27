@@ -29,7 +29,7 @@ class RunnerForSingleThread(ConnectionObserverRunner):
 
     _th_nr = 1
 
-    def __init__(self, connection):
+    def __init__(self):
         super(RunnerForSingleThread, self).__init__()
         self.logger = logging.getLogger('moler.runner.connection-runner')
         self._connections_observers = list()
@@ -39,10 +39,8 @@ class RunnerForSingleThread(ConnectionObserverRunner):
         self._stop_loop_runner.clear()
         self._tick = 0.001
         self._in_shutdown = False
-        self._connection = connection
-        self._loop_thread = threading.Thread(target=self._loop_for_runner,
-                                             name="RunnerForSingleConnection-{}-{}".format(connection.name,
-                                                                                           RunnerForSingleThread._th_nr)
+        self._loop_thread = threading.Thread(target=self._runner_loop,
+                                             name="RunnerSingle-{}".format(RunnerForSingleThread._th_nr)
                                              )
         RunnerForSingleThread._th_nr += 1
         self._connection_observer_lock = Lock()
@@ -62,9 +60,9 @@ class RunnerForSingleThread(ConnectionObserverRunner):
         Returns Future that could be used to await for connection_observer done.
         """
         assert connection_observer.life_status.start_time > 0.0  # connection-observer lifetime should already been
-        self.add_connection_observer(connection_observer=connection_observer)
+        self._add_connection_observer(connection_observer=connection_observer)
 
-    def add_connection_observer(self, connection_observer):
+    def _add_connection_observer(self, connection_observer):
         """
         Add connection observer to the runner.
         :param connection_observer: the one to add.
@@ -72,7 +70,8 @@ class RunnerForSingleThread(ConnectionObserverRunner):
         """
         with self._connection_observer_lock:
             if connection_observer not in self._connections_observers:
-                self._connection.subscribe_connection_observer(connection_observer=connection_observer)
+                moler_connection = connection_observer.connection
+                moler_connection.subscribe_connection_observer(connection_observer=connection_observer)
                 self._connections_observers.append(connection_observer)
                 self._start_command(connection_observer=connection_observer)
                 connection_observer.life_status.last_feed_time = time.time()
@@ -122,7 +121,7 @@ class RunnerForSingleThread(ConnectionObserverRunner):
         :param connection_observer_future: Future of connection-observer returned from submit().
         :return: iterator
         """
-        return None
+        raise NotImplementedError()
 
     def feed(self, connection_observer):
         """
@@ -130,7 +129,8 @@ class RunnerForSingleThread(ConnectionObserverRunner):
         This is a place where runner is a glue between words of connection and connection-observer.
         Should be called from background-processing of connection observer. Left only for backward compatibility.
         """
-        pass  # For backward compatibility only
+        pass  # pylint: disable=unnecessary-pass
+        # For backward compatibility only
 
     def timeout_change(self, timedelta):
         """
@@ -138,7 +138,8 @@ class RunnerForSingleThread(ConnectionObserverRunner):
         :param timedelta: delta timeout in float seconds
         :return: None
         """
-        pass  # For backward compatibility only.
+        pass  # pylint: disable=unnecessary-pass
+        # For backward compatibility only.
 
     def shutdown(self):
         """
@@ -151,7 +152,8 @@ class RunnerForSingleThread(ConnectionObserverRunner):
         self._stop_loop_runner.set()
         for connection_observer in observers:
             connection_observer.cancel()
-            self._connection.unsubscribe_connection_observer(connection_observer=connection_observer)
+            moler_connection = connection_observer.connection
+            moler_connection.unsubscribe_connection_observer(connection_observer=connection_observer)
 
     def __enter__(self):
         return self
@@ -216,7 +218,7 @@ class RunnerForSingleThread(ConnectionObserverRunner):
             time.sleep(self._tick)
             eol_remain_time = start_time + connection_observer.life_status.terminating_timeout - time.time()
 
-    def _loop_for_runner(self):
+    def _runner_loop(self):
         while not self._stop_loop_runner.is_set():
             with self._connection_observer_lock:
                 if self._copy_of_connections_observers != self._connections_observers:
@@ -312,7 +314,8 @@ class RunnerForSingleThread(ConnectionObserverRunner):
                         self._connections_observers.remove(connection_observer)
                     except ValueError:
                         pass
-                    self._connection.unsubscribe_connection_observer(connection_observer=connection_observer)
+                    moler_connection = connection_observer.connection
+                    moler_connection.unsubscribe_connection_observer(connection_observer=connection_observer)
             self._to_remove_connection_observers = list()  # clear() is not available under old Pythons.
 
     def _start_command(self, connection_observer):
