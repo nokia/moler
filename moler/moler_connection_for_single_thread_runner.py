@@ -16,9 +16,14 @@ from moler.connection_observer import ConnectionObserver
 from moler.threaded_moler_connection import ThreadedMolerConnection
 from moler.runner_with_threaded_moler_connection import RunnerForSingleThread
 import time
+import threading
 
 
 class MolerConnectionForSingleThreadRunner(ThreadedMolerConnection):
+
+    _runner = None
+    _runner_lock = threading.Lock()
+
     def __init__(self, how2send=None, encoder=identity_transformation, decoder=identity_transformation,
                  name=None, newline='\n', logger_name=""):
         """
@@ -35,24 +40,27 @@ class MolerConnectionForSingleThreadRunner(ThreadedMolerConnection):
         super(MolerConnectionForSingleThreadRunner, self).__init__(how2send, encoder, decoder, name=name,
                                                                    newline=newline,
                                                                    logger_name=logger_name)
-        self._runner = None
         self._connection_observers = list()
         self.open()
 
     def shutdown(self):
-        if self._runner:
-            self._runner.shutdown()
-        self._runner = None
+        # if self._runner:
+        #     self._runner.shutdown()
+        # self._runner = None
         super(MolerConnectionForSingleThreadRunner, self).shutdown()
 
     def open(self):
-        if self._runner:  # Already open
-            return
-        self._runner = RunnerForSingleThread()
+        self.get_runner()
+        # if self._runner:  # Already open
+        #     return
+        # self._runner = RunnerForSingleThread()
         super(MolerConnectionForSingleThreadRunner, self).open()
 
     def get_runner(self):
-        return self._runner
+        with MolerConnectionForSingleThreadRunner._runner_lock:
+            if MolerConnectionForSingleThreadRunner._runner is None:
+                MolerConnectionForSingleThreadRunner._runner = RunnerForSingleThread()
+        return MolerConnectionForSingleThreadRunner._runner
 
     def subscribe_connection_observer(self, connection_observer):
         if connection_observer not in self._connection_observers:
