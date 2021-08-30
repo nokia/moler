@@ -27,6 +27,10 @@ except ImportError:
 
 class RunnerForSingleThread(ConnectionObserverRunner):
 
+    """
+    Moler implementation of Runner with single thread for MolerConnection: MolerConnectionForSingleThreadRunner.
+    """
+
     _th_nr = 1
 
     def __init__(self):
@@ -62,20 +66,6 @@ class RunnerForSingleThread(ConnectionObserverRunner):
         assert connection_observer.life_status.start_time > 0.0  # connection-observer lifetime should already been
         self._add_connection_observer(connection_observer=connection_observer)
 
-    def _add_connection_observer(self, connection_observer):
-        """
-        Add connection observer to the runner.
-        :param connection_observer: the one to add.
-        :return: None
-        """
-        with self._connection_observer_lock:
-            if connection_observer not in self._connections_observers:
-                moler_connection = connection_observer.connection
-                moler_connection.subscribe_connection_observer(connection_observer=connection_observer)
-                self._connections_observers.append(connection_observer)
-                self._start_command(connection_observer=connection_observer)
-                connection_observer.life_status.last_feed_time = time.time()
-
     def wait_for(self, connection_observer, connection_observer_future, timeout=10.0):
         """
         Await for connection_observer running in background or timeout.
@@ -109,9 +99,6 @@ class RunnerForSingleThread(ConnectionObserverRunner):
             connection_observer.set_end_of_life()
         return None
 
-    def _end_of_life_of_future_and_connection_observer(self, connection_observer):
-        connection_observer.set_end_of_life()
-
     def wait_for_iterator(self, connection_observer, connection_observer_future):
         """
         Version of wait_for() intended to be used by Python3 to implement iterable/awaitable object.
@@ -121,7 +108,7 @@ class RunnerForSingleThread(ConnectionObserverRunner):
         :param connection_observer_future: Future of connection-observer returned from submit().
         :return: iterator
         """
-        raise NotImplementedError()
+        raise NotImplementedError()  # Planned for AsyncIO
 
     def feed(self, connection_observer):
         """
@@ -162,7 +149,29 @@ class RunnerForSingleThread(ConnectionObserverRunner):
         self.shutdown()
         return False  # exceptions (if any) should be reraised
 
+    def _add_connection_observer(self, connection_observer):
+        """
+        Add connection observer to the runner.
+        :param connection_observer: the one to add.
+        :return: None
+        """
+        with self._connection_observer_lock:
+            if connection_observer not in self._connections_observers:
+                moler_connection = connection_observer.connection
+                moler_connection.subscribe_connection_observer(connection_observer=connection_observer)
+                self._connections_observers.append(connection_observer)
+                self._start_command(connection_observer=connection_observer)
+                connection_observer.life_status.last_feed_time = time.time()
+
     def _execute_till_eol(self, connection_observer, max_timeout, await_timeout, remain_time):
+        """
+        Execute till end of life of connection_observer (done or timeout).
+        :param connection_observer: Instance of ConnectionObserver (command or timeout).
+        :param max_timeout: max timeout
+        :param await_timeout: await timeout
+        :param remain_time: remain time
+        :return: True if done normally, False if timeout.
+        """
         eol_remain_time = remain_time
         # either we wait forced-max-timeout or we check done-status each 0.1sec tick
         if eol_remain_time > 0.0:
@@ -194,6 +203,13 @@ class RunnerForSingleThread(ConnectionObserverRunner):
         return False
 
     def _wait_till_done(self, connection_observer, timeout, check_timeout):
+        """
+        Wait till connection_obsertver is done.
+        :param connection_observer: ConnectionObserver (command or event)
+        :param timeout: timeout
+        :param check_timeout: True to check timeout from connection_observer
+        :return: True if done normally, False if timeout.
+        """
         timeout_add = 10
         term_timeout = 0 if connection_observer.life_status.terminating_timeout is None else \
             connection_observer.life_status.terminating_timeout
@@ -211,6 +227,11 @@ class RunnerForSingleThread(ConnectionObserverRunner):
         return False
 
     def _wait_for_not_started_connection_observer_is_done(self, connection_observer):
+        """
+        Wait for not started connection observer (command or event) is done.
+        :param connection_observer: ConnectionObserver (command or event)
+        :return: None
+        """
         # Have to wait till connection_observer is done with terminaing timeout.
         eol_remain_time = connection_observer.life_status.terminating_timeout
         start_time = time.time()
@@ -219,6 +240,10 @@ class RunnerForSingleThread(ConnectionObserverRunner):
             eol_remain_time = start_time + connection_observer.life_status.terminating_timeout - time.time()
 
     def _runner_loop(self):
+        """
+        Loop to check list of ConnectionObservers if anything to remove.
+        :return:
+        """
         while not self._stop_loop_runner.is_set():
             with self._connection_observer_lock:
                 if self._copy_of_connections_observers != self._connections_observers:
@@ -250,6 +275,10 @@ class RunnerForSingleThread(ConnectionObserverRunner):
                         connection_observer.life_status.last_feed_time = current_time
 
     def _check_timeout_connection_observers(self):
+        """
+        Check list of ConnectionObservers if any timeout.
+        :return: None
+        """
         for connection_observer in self._copy_of_connections_observers:
             start_time = connection_observer.life_status.start_time
             current_time = time.time()
@@ -274,13 +303,27 @@ class RunnerForSingleThread(ConnectionObserverRunner):
                         connection_observer.set_end_of_life()
 
     def _prepare_for_time_out(self, connection_observer, timeout):
+        """
+        Prepare ConnectionObserver (command or event) for timeout.
+        :param connection_observer: ConnectionObserver.
+        :param timeout: timeout in seconds.
+        :return: None
+        """
         passed = time.time() - connection_observer.life_status.start_time
         self._timeout_observer(connection_observer=connection_observer,
                                timeout=timeout, passed_time=passed,
                                runner_logger=self.logger, kind="await_done")
 
     def _timeout_observer(self, connection_observer, timeout, passed_time, runner_logger, kind="background_run"):
-        """Set connection_observer status to timed-out"""
+        """
+        Set connection_observer status to timed-out
+        :param connection_observer: ConnectionObserver instance (command or event)
+        :param timeout: timeout
+        :param passed_time: passed time
+        :param runner_logger: runner logger
+        :param kind: Kind of running
+        :return: None
+        """
         if not connection_observer.life_status.was_on_timeout_called:
             connection_observer.life_status.was_on_timeout_called = True
             if not connection_observer.done():
@@ -304,6 +347,11 @@ class RunnerForSingleThread(ConnectionObserverRunner):
                                 levels_to_go_up=1)
 
     def _remove_unnecessary_connection_observers(self):
+        """
+        Remove unnecessary ConnectionObservers from list to proceed.
+
+        :return: None
+        """
         for connection_observer in self._copy_of_connections_observers:
             if connection_observer.done():
                 self._to_remove_connection_observers.append(connection_observer)
@@ -319,6 +367,11 @@ class RunnerForSingleThread(ConnectionObserverRunner):
             self._to_remove_connection_observers = list()  # clear() is not available under old Pythons.
 
     def _start_command(self, connection_observer):
+        """
+        Srart command if connection_observer is an instance of a command. If an instance of event then do nothing.
+        :param connection_observer: ConnectionObserver
+        :return: None
+        """
         if connection_observer.is_command():
             connection_observer.send_command()
 
