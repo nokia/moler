@@ -14,7 +14,7 @@ from moler.abstract_moler_connection import identity_transformation
 from moler.observer_thread_wrapper import ObserverThreadWrapper, ObserverThreadWrapperForConnectionObserver
 from moler.connection_observer import ConnectionObserver
 from moler.threaded_moler_connection import ThreadedMolerConnection
-from moler.runner_with_threaded_moler_connection import RunnerForSingleThread
+from moler.runner_single_thread import RunnerSingleThread
 import time
 import threading
 
@@ -65,11 +65,11 @@ class MolerConnectionForSingleThreadRunner(ThreadedMolerConnection):
     def get_runner(self):
         """
         Get runner to run command and events (instances od ConnectionObsrver).
-        :return: Instance of RunnerForSingleThread
+        :return: Instance of RunnerSingleThread
         """
         with MolerConnectionForSingleThreadRunner._runner_lock:
             if MolerConnectionForSingleThreadRunner._runner is None:
-                MolerConnectionForSingleThreadRunner._runner = RunnerForSingleThread()
+                MolerConnectionForSingleThreadRunner._runner = RunnerSingleThread()
         return MolerConnectionForSingleThreadRunner._runner
 
     def subscribe_connection_observer(self, connection_observer):

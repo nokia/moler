@@ -25,7 +25,7 @@ except ImportError:
     import Queue as queue  # For python 2
 
 
-class RunnerForSingleThread(ConnectionObserverRunner):
+class RunnerSingleThread(ConnectionObserverRunner):
 
     """
     Moler implementation of Runner with single thread for MolerConnection: MolerConnectionForSingleThreadRunner.
@@ -34,7 +34,7 @@ class RunnerForSingleThread(ConnectionObserverRunner):
     _th_nr = 1
 
     def __init__(self):
-        super(RunnerForSingleThread, self).__init__()
+        super(RunnerSingleThread, self).__init__()
         self.logger = logging.getLogger('moler.runner.connection-runner')
         self._connections_observers = list()
         self._copy_of_connections_observers = list()
@@ -44,9 +44,9 @@ class RunnerForSingleThread(ConnectionObserverRunner):
         self._tick = 0.001
         self._in_shutdown = False
         self._loop_thread = threading.Thread(target=self._runner_loop,
-                                             name="RunnerSingle-{}".format(RunnerForSingleThread._th_nr)
+                                             name="RunnerSingle-{}".format(RunnerSingleThread._th_nr)
                                              )
-        RunnerForSingleThread._th_nr += 1
+        RunnerSingleThread._th_nr += 1
         self._connection_observer_lock = Lock()
         self._loop_thread.setDaemon(True)
         self._loop_thread.start()
