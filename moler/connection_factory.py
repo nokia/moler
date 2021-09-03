@@ -12,15 +12,15 @@ Connection responsibilities:
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 
 import logging
 import platform
 import moler.config.connections as connection_cfg
-from moler.threaded_moler_connection import ThreadedMolerConnection
-from moler.moler_connection_for_single_thread_runner import MolerConnectionForSingleThreadRunner
+from moler.threaded_moler_connection import ThreadedMolerConnection  # For Moler 1.x.y
+from moler.moler_connection_for_single_thread_runner import MolerConnectionForSingleThreadRunner  # Since Moler 2.0.0
 
 
 def get_connection(name=None, io_type=None, variant=None, **constructor_kwargs):
@@ -194,6 +194,7 @@ def _try_get_connection_with_name(io_type, variant, **constructor_kwargs):
 
 
 # actions during import
-connection_cfg.register_builtin_connections(ConnectionFactory, ThreadedMolerConnection)
-# connection_cfg.register_builtin_connections(ConnectionFactory, MolerConnectionForSingleThreadRunner)
+connection_cfg.register_builtin_connections(ConnectionFactory, ThreadedMolerConnection)  # Default in Moler 1.x.y
+# connection_cfg.register_builtin_connections(ConnectionFactory, MolerConnectionForSingleThreadRunner)  # will be
+# default since Moler 2.0.0
 connection_cfg.set_defaults()
