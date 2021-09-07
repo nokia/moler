@@ -438,6 +438,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 time_out_observer(connection_observer=connection_observer,
                                   timeout=timeout, passed_time=passed,
                                   runner_logger=self.logger, kind="await_done")
+            self.logger.debug(">>> Exited   {}. conn-obs '{}' runner '{}' future '{}'".format(future.observer_lock, connection_observer, self, future))
         else:
             # sorry, we don't have lock yet (it is created by runner.submit()
             time_out_observer(connection_observer=connection_observer,
@@ -475,6 +476,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                     self.logger.debug(u">>> Entered  {}. conn-obs '{}' runner '{}' data '{}'".format(observer_lock, connection_observer, self, data))
                     connection_observer.data_received(data, timestamp)
                     connection_observer.life_status.last_feed_time = time.time()
+                self.logger.debug(u">>> Exited   {}. conn-obs '{}' runner '{}' data '{}'".format(observer_lock, connection_observer, self, data))
 
             except Exception as exc:  # TODO: handling stacktrace
                 # observers should not raise exceptions during data parsing
@@ -491,6 +493,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                     else:
                         ex = MolerException(ex_msg)
                     connection_observer.set_exception(ex)
+                self.logger.debug(">>> Exited   err {}. conn-obs '{}' runner. '{}'".format(observer_lock, connection_observer, self))
             finally:
                 if connection_observer.done() and not connection_observer.cancelled():
                     if connection_observer._exception:
@@ -509,6 +512,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                                   from_start_time=connection_observer.life_status.start_time)
             connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
+        self.logger.debug(">>> Exited   {}. conn-obs '{}' runner '{}' moler-conn '{}'".format(observer_lock, connection_observer, self, moler_conn))
         if connection_observer.is_command():
             connection_observer.send_command()
         return secure_data_received  # to know what to unsubscribe
@@ -528,6 +532,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 connection_observer._log(logging.INFO,
                                          "{} finished, {}".format(connection_observer.get_short_desc(), msg))
                 feed_done.set()
+        self.logger.debug(">>> Exited   {}. conn-obs '{}' runner '{}'".format(observer_lock, connection_observer, self))
 
     def _feed_finish_callback(self, future, connection_observer, subscribed_data_receiver, feed_done, observer_lock):
         """Callback attached to concurrent.futures.Future of submitted feed()"""
@@ -599,6 +604,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                             connection_observer.life_status.in_terminating = True
                         else:
                             break
+                    self.logger.debug(">>> Exited   {}. conn-obs '{}' runner '{}'".format(observer_lock, connection_observer, self))
             else:
                 self._call_on_inactivity(connection_observer=connection_observer, current_time=current_time)
 
