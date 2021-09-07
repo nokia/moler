@@ -14,9 +14,9 @@ Logging inside ext-IO is mainly focused on connection establishment/close/drop.
 Data transfer aspects of connection are logged by embedded Moler's connection.
 """
 
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import threading
 import time
@@ -218,6 +218,7 @@ class ThreadedFifoBuffer(FifoBuffer):
         self.pulling_thread.start()
         self._log(msg="open {}".format(self), level=logging.INFO)
         self._notify_on_connect()
+        self.moler_connection.open()
         return ret
 
     def close(self):
@@ -228,6 +229,7 @@ class ThreadedFifoBuffer(FifoBuffer):
         super(ThreadedFifoBuffer, self).close()
         self._log(msg="closed {}".format(self), level=logging.INFO)
         self._notify_on_disconnect()
+        self.moler_connection.shutdown()
 
     def inject(self, input_bytes, delay=0.0):
         """

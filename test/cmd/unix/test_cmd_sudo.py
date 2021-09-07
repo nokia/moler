@@ -26,7 +26,7 @@ root@host#"""
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass",
                     sudo_params='-i', prompt="moler_bash#", expected_prompt="root@host.*#")
     assert "sudo -i" == cmd_sudo.command_string
-    cmd_sudo(timeout=0.1)
+    cmd_sudo()
 
 
 def test_sudo_with_wrong_command_parameters(buffer_connection):

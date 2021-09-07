@@ -694,7 +694,10 @@ class MultilineWithDirectionFormatter(logging.Formatter):
         return output
 
     def _calculate_empty_prefix(self, message_first_line, output_first_line):
-        prefix_len = output_first_line.rindex(u"|{}".format(message_first_line))
+        try:
+            prefix_len = output_first_line.rindex(u"|{}".format(message_first_line))
+        except ValueError:
+            prefix_len = 1
         empty_prefix = " " * prefix_len
         return empty_prefix
 

@@ -6,7 +6,7 @@ to make it exchangeable (threads, asyncio, twisted, curio)
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import atexit
@@ -80,6 +80,13 @@ class ConnectionObserverRunner(object):
         Call this method to notify runner that timeout has been changed in observer
         :param timedelta: delta timeout in float seconds
         :return: None
+        """
+
+    @abstractmethod
+    def is_in_shutdown(self):
+        """
+        Call this method to check if runner is in shutdown mode.
+        :return: Is in shutdown
         """
 
     def __enter__(self):
@@ -231,6 +238,13 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             # compatibility with subinterpreters, which no longer support daemon threads.
             # See bpo-39812 for context.
             threading._register_atexit(self.shutdown)
+
+    def is_in_shutdown(self):
+        """
+        Call this method to check if runner is in shutdown mode.
+        :return: Is in shutdown
+        """
+        return self._in_shutdown
 
     def shutdown(self):
         self.logger.debug("shutting down runner {}".format(self))

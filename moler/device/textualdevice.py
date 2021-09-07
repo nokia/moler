@@ -476,7 +476,7 @@ class TextualDevice(AbstractDevice):
             }
             self._queue_states.put(state_options)
             if self._thread_for_goto_state is None:
-                thread = threading.Thread(target=self._goto_state_thread)
+                thread = threading.Thread(target=self._goto_state_thread, name="GotoStateThread-{}".format(self.name))
                 thread.setDaemon(True)
                 thread.start()
                 self._thread_for_goto_state = thread

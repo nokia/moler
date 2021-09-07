@@ -259,6 +259,10 @@ def connection_to_remote():
             """Simulate remote endpoint that gets data"""
             return self.buffer
 
+        def get_runner(self):
+            """Get default runner for this connection."""
+            return None
+
     ext_io = RemoteConnection(moler_connection=ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
                                                                        decoder=lambda data: data.decode("utf-8")))
     return ext_io

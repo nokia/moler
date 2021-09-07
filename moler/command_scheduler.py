@@ -3,7 +3,7 @@
 """Scheduler for commands and events."""
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019, Nokia'
+__copyright__ = 'Copyright (C) 2019-2021, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import threading
@@ -33,7 +33,8 @@ class CommandScheduler(object):
             #  We have a free slot available
             return
         # We have to wait to finish other command(s) so let's do it in another thread.
-        t1 = Thread(target=scheduler._add_command_to_connection, args=(connection_observer, True))
+        t1 = Thread(target=scheduler._add_command_to_connection, args=(connection_observer, True),
+                    name="CommandScheduler")
         t1.setDaemon(True)
         t1.start()
 
@@ -230,5 +231,5 @@ class CommandScheduler(object):
         :return: None
         """
         runner = connection_observer.runner
-        if not connection_observer._is_done and not runner._in_shutdown:
+        if not connection_observer._is_done and not runner.is_in_shutdown():
             connection_observer._future = runner.submit(connection_observer)

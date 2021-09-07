@@ -3,9 +3,10 @@
 Perform command autotest for selected command(s).
 """
 
-__author__ = 'Grzegorz Latuszek', 'Michal Ernst', 'Michal Plichta'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com', 'michal.ernst@nokia.com', 'michal.plichta@nokia.com'
+__author__ = 'Grzegorz Latuszek', 'Michal Ernst', 'Michal Plichta, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com', 'michal.ernst@nokia.com', 'michal.plichta@nokia.com,' \
+                                                                     ' marcin.usielski@nokia.com'
 
 import collections
 import sys
@@ -19,6 +20,7 @@ from pprint import pformat
 from moler.command import Command
 from moler.event import Event
 from moler.helpers import compare_objects
+from moler.moler_connection_for_single_thread_runner import MolerConnectionForSingleThreadRunner
 
 
 def _buffer_connection():
@@ -49,8 +51,10 @@ def _buffer_connection():
                 in_bytes = [data.decode("utf-8").encode("utf-8") for data in input_strings]
             self.inject(in_bytes, delay)
 
-    moler_conn = ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
-                                         decoder=lambda data: data.decode("utf-8"))
+    # moler_conn = ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
+    #                                      decoder=lambda data: data.decode("utf-8"))
+    moler_conn = MolerConnectionForSingleThreadRunner(encoder=lambda data: data.encode("utf-8"),
+                                                      decoder=lambda data: data.decode("utf-8"))
     ext_io_in_memory = RemoteConnection(moler_connection=moler_conn,
                                         echo=False)  # we don't want echo on it
     return ext_io_in_memory

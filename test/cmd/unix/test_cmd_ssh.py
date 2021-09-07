@@ -112,7 +112,7 @@ def test_ssh_timeout_with_wrong_change_prompt(buffer_connection, command_output_
                   expected_prompt=r"wrong_user\$", prompt_after_login=r"host.*#", options=None)
 
     with pytest.raises(CommandTimeout):
-        ssh_cmd(timeout=0.2)
+        ssh_cmd(timeout=5)
 
 
 def test_ssh_timeout_with_wrong_change_prompt_after_login(buffer_connection, command_output_change_prompt):

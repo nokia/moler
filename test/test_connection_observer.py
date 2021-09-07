@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import importlib
@@ -80,6 +80,9 @@ def test_repr_conversion_of_connection_observer_object():
         def __repr__(self):
             return "<SshConnection({})>".format(self.target_host)
 
+        def get_runner(self):
+            return None
+
     class TransferCounter(ConnectionObserver):
         def __init__(self, connection=None):
             super(TransferCounter, self).__init__(connection=connection)
@@ -112,6 +115,9 @@ def test_connection_observer_can_be_given_connection_it_is_operating_on(
 
     class Connection(object):
         pass
+
+        def get_runner(self):
+            return None
 
     conn = Connection()
 
@@ -536,6 +542,10 @@ def connection_to_remote():
         def remote_endpoint(self):
             """Simulate remote endpoint that gets data"""
             return self.buffer
+
+        def get_runner(self):
+            """Get default runner for this connection."""
+            return None
 
     ext_io = RemoteConnection(moler_connection=ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
                                                                        decoder=lambda data: data.decode("utf-8")))

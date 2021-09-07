@@ -208,6 +208,14 @@ class AbstractMolerConnection(object):
         """
         self._is_open = False
 
+    def open(self):
+        """
+        Open connection. If implementation of MolerConnection does not do anything on open then does nothing.
+
+        :return: None
+        """
+        pass
+
     def is_open(self):
         """
         Call to check if connection is open.
@@ -273,3 +281,11 @@ class AbstractMolerConnection(object):
             msg = "Logging incoming data enabled at user request."
             self._log_data(level=logging.INFO, msg=msg)
             self._log(level=logging.INFO, msg=msg)
+
+    def get_runner(self):
+        """
+        Get runner instance for the connection.
+
+        :return: Runner instance or None if runner is not provided by connection.
+        """
+        return None

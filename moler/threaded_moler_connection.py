@@ -12,7 +12,7 @@ Connection responsibilities:
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import weakref
@@ -90,10 +90,15 @@ class ThreadedMolerConnection(AbstractMolerConnection):
 
             if observer_key not in self._observer_wrappers:
                 self_for_observer, observer_reference = value
-                self._observer_wrappers[observer_key] = ObserverThreadWrapper(
-                    observer=observer_reference, observer_self=self_for_observer, logger=self.logger)
+                self._observer_wrappers[observer_key] = self._create_observer_wrapper(
+                    observer_reference=observer_reference, self_for_observer=self_for_observer)
                 self._connection_closed_handlers[observer_key] = connection_closed_handler
         self.logger.debug(">>> Exited   {}. conn-obs '{}' moler-conn '{}'".format(self._observers_lock, observer, self))
+
+    def _create_observer_wrapper(self, observer_reference, self_for_observer):
+        otw = ObserverThreadWrapper(
+            observer=observer_reference, observer_self=self_for_observer, logger=self.logger)
+        return otw
 
     def unsubscribe(self, observer, connection_closed_handler):
         """
@@ -121,7 +126,6 @@ class ThreadedMolerConnection(AbstractMolerConnection):
         Closes connection with notifying all observers about closing.
         :return: None
         """
-
         for handler in list(self._connection_closed_handlers.values()):
             handler()
         super(ThreadedMolerConnection, self).shutdown()
