@@ -3,7 +3,7 @@
 Moler related configuration
 """
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst, Tomasz Krol'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com, tomasz.krol@nokia.com'
 import os
 import six
@@ -167,6 +167,7 @@ def load_device_from_config(config, add_only=False):
                 cloned_devices[device_name]['source'] = device_def[cloned_id]
                 cloned_devices[device_name]['state'] = device_def.get('INITIAL_STATE', None)
                 cloned_devices[device_name]['lazy_cmds_events'] = device_def.get('LAZY_CMDS_EVENTS', False)
+                cloned_devices[device_name]['extra_params'] = device_def.get('EXTRA_PARAMS', None)
             else:  # create all devices defined directly
                 dev_cfg.define_device(
                     name=device_name,
@@ -174,15 +175,18 @@ def load_device_from_config(config, add_only=False):
                     connection_desc=device_def.get('CONNECTION_DESC', dev_cfg.default_connection),
                     connection_hops={'CONNECTION_HOPS': device_def.get('CONNECTION_HOPS', {})},
                     initial_state=device_def.get('INITIAL_STATE', None),
-                    lazy_cmds_events=device_def.get('LAZY_CMDS_EVENTS', False)
+                    lazy_cmds_events=device_def.get('LAZY_CMDS_EVENTS', False),
+                    extra_params=device_def.get('EXTRA_PARAMS', None)
                 )
 
     for device_name, device_desc in cloned_devices.items():
         cloned_from = device_desc['source']
         initial_state = device_desc['state']
         lazy_cmds_events = device_desc['lazy_cmds_events']
+        extra_params = device_desc['extra_params']
         DeviceFactory.get_cloned_device(source_device=cloned_from, new_name=device_name, initial_state=initial_state,
-                                        establish_connection=False, lazy_cmds_events=lazy_cmds_events)
+                                        establish_connection=False, lazy_cmds_events=lazy_cmds_events,
+                                        extra_params=extra_params)
     if create_at_startup is True:
         DeviceFactory.create_all_devices()
     _load_topology(topology=topology)
