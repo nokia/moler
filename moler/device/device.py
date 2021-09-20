@@ -261,8 +261,6 @@ class DeviceFactory(object):
         conn_desc = dict(connection_desc)
         io_type = conn_desc.pop("io_type")
         variant = conn_desc.pop("variant", None)
-        if extra_params is None:
-            extra_params = dict()
         constructor_parameters = {
             "name": name,
             "io_type": io_type,
@@ -272,8 +270,9 @@ class DeviceFactory(object):
             "initial_state": initial_state,
             "lazy_cmds_events": lazy_cmds_events,
             "io_connection": io_connection,
-            **extra_params
         }
+        if extra_params is not None:
+            constructor_parameters.update(extra_params)
         dev = cls._create_instance_and_remember_it(
             device_class=device_class, constructor_parameters=constructor_parameters,
             establish_connection=establish_connection, name=name)
