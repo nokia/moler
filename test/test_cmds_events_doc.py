@@ -148,7 +148,7 @@ def test_walk_moler_nonabstract_commands_raise_exception_when_called(fake_cmd):
 def test_retrieve_command_documentation_as_dict():
     from moler.util.cmds_events_doc import _retrieve_command_documentation
 
-    fake_cmd_from_conftest = _retrieve_command_documentation(import_module('conftest'), "COMMAND")
+    fake_cmd_from_conftest = _retrieve_command_documentation(import_module('test.conftest'), "COMMAND")
     assert isinstance(fake_cmd_from_conftest, dict)
     assert isinstance(fake_cmd_from_conftest['_ver_nice'], dict)
     assert isinstance(fake_cmd_from_conftest['_ver_nice']['COMMAND_OUTPUT'], str)
@@ -158,20 +158,20 @@ def test_retrieve_command_documentation_as_dict():
 
 def test_validate_documentation_existence():
     from moler.util.cmds_events_doc import _validate_documentation_existence
-    fake_cmd = import_module('conftest')
+    fake_cmd = import_module('test.conftest')
 
     test_data = {'_ver_execute': {'COMMAND_OUTPUT': '', 'COMMAND_KWARGS': {}, 'COMMAND_RESULT': {}},
                  '_ver_test': {'COMMAND_OUTPUT': '', 'COMMAND_KWARGS': {}, 'COMMAND_RESULT': {}}}
     assert _validate_documentation_existence(fake_cmd, test_data, "COMMAND") == ''
 
     missing = _validate_documentation_existence(fake_cmd, {}, "COMMAND")
-    assert 'conftest' in missing
+    assert 'test.conftest' in missing
     assert 'is missing documentation: COMMAND_OUTPUT/COMMAND_KWARGS/COMMAND_RESULT' in missing
 
 
 def test_validate_documentation_consistency():
     from moler.util.cmds_events_doc import _validate_documentation_consistency
-    fake_cmd = import_module('conftest')
+    fake_cmd = import_module('test.conftest')
 
     test_data = {'_ver_test1': {'COMMAND_KWARGS': {}, 'COMMAND_RESULT': {}},
                  '_ver_test2': {'COMMAND_OUTPUT': '', 'COMMAND_RESULT': {}},
@@ -183,9 +183,9 @@ def test_validate_documentation_consistency():
     assert isinstance(result1, list)
     assert isinstance(result2, list)
     assert isinstance(result3, list)
-    assert "<module 'conftest'" in result1[0] and "<module 'conftest'" in result1[0]
-    assert "<module 'conftest'" in result2[0] and "<module 'conftest'" in result2[0]
-    assert "<module 'conftest'" in result3[0] and "<module 'conftest'" in result3[0]
+    assert "<module 'test.conftest'" in result1[0] and "<module 'test.conftest'" in result1[0]
+    assert "<module 'test.conftest'" in result2[0] and "<module 'test.conftest'" in result2[0]
+    assert "<module 'test.conftest'" in result3[0] and "<module 'test.conftest'" in result3[0]
     assert '> has COMMAND_KWARGS_ver_test1 but no COMMAND_OUTPUT_ver_test1' in result1[0]
     assert '> has COMMAND_RESULT_ver_test1 but no COMMAND_OUTPUT_ver_test1' in result1[1]
     assert '> has COMMAND_OUTPUT_ver_test2 but no COMMAND_KWARGS_ver_test2' in result2[0]
