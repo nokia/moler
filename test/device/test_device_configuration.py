@@ -667,13 +667,15 @@ def test_cannot_load_configuration_with_the_same_named_device_loaded_from_anothe
 
 class UnixLocalWithExtraParam(UnixLocal):
     def __init__(self, sm_params=None, name=None, io_connection=None, io_type=None, variant=None,
-                 io_constructor_kwargs=None, initial_state=None, lazy_cmds_events=False, extra_param_name=None):
+                 io_constructor_kwargs=None, initial_state=None, lazy_cmds_events=False, extra_param_name=None,
+                 extra_param2=None):
         super(UnixLocalWithExtraParam, self).__init__(sm_params=sm_params, name=name, io_connection=io_connection,
                                                       io_type=io_type, variant=variant,
                                                       io_constructor_kwargs=io_constructor_kwargs,
                                                       initial_state=initial_state,
                                                       lazy_cmds_events=lazy_cmds_events)
         self.extra_value = extra_param_name
+        self.extra_value2 = extra_param2
 
 
 def test_load_device_from_config_extra_param(moler_config, device_factory):
@@ -688,7 +690,10 @@ def test_load_device_from_config_extra_param(moler_config, device_factory):
             'UNIX_LOCAL': {
                 'DEVICE_CLASS': 'test.device.test_device_configuration.UnixLocalWithExtraParam',
                 'INITIAL_STATE': 'UNIX_LOCAL',
-                'EXTRA_PARAMS': {'extra_param_name': r"value for extra param"},
+                'ADDITIONAL_PARAMS': {
+                    'extra_param_name': r"value for extra param",
+                    'extra_param2': r'great value'
+                },
             }
         }
     }
@@ -696,6 +701,7 @@ def test_load_device_from_config_extra_param(moler_config, device_factory):
     moler_config.load_config(config1, None, 'dict')
     dev1 = device_factory.get_device("UNIX_LOCAL")
     assert dev1.extra_value == r"value for extra param"
+    assert dev1.extra_value2 == r'great value'
 
 
 def test_load_device_from_config(moler_config, device_factory):

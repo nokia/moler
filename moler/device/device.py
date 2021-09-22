@@ -70,7 +70,7 @@ class DeviceFactory(object):
 
     @classmethod
     def get_device(cls, name=None, device_class=None, connection_desc=None, connection_hops=None, initial_state=None,
-                   establish_connection=True, lazy_cmds_events=False, io_connection=None, extra_params=None):
+                   establish_connection=True, lazy_cmds_events=False, io_connection=None, additional_params=None):
         """
         Return connection instance of given io_type/variant.
 
@@ -84,7 +84,7 @@ class DeviceFactory(object):
         :param lazy_cmds_events: set False to load all commands and events when device is initialized, set True to load
                         commands and events when they are required for the first time.
         :param io_connection: connection for device. Ignored if device is already created.
-        :param extra_params: dict with parameter(s) specific for the device. Will be passed to the constructor. If no
+        :param additional_params: dict with parameter(s) specific for the device. Will be passed to the constructor. If no
                          specific parameter then set to None.
         :return: requested device.
         """
@@ -97,7 +97,7 @@ class DeviceFactory(object):
                                                connection_hops=connection_hops, initial_state=initial_state,
                                                establish_connection=establish_connection,
                                                lazy_cmds_events=lazy_cmds_events, io_connection=io_connection,
-                                               extra_params=extra_params)
+                                               additional_params=additional_params)
 
         return dev
 
@@ -115,7 +115,7 @@ class DeviceFactory(object):
 
     @classmethod
     def get_cloned_device(cls, source_device, new_name, initial_state=None, establish_connection=True,
-                          lazy_cmds_events=False, io_connection=None, extra_params=None):
+                          lazy_cmds_events=False, io_connection=None, additional_params=None):
         """
         Creates (if necessary) and returns new device based on existed device.
 
@@ -126,7 +126,7 @@ class DeviceFactory(object):
         :param lazy_cmds_events: set False to load all commands and events when device is initialized, set True to load
                         commands and events when they are required for the first time.
         :param io_connection: connection for device. Ignored if device is already created.
-        :param extra_params: dict with parameter(s) specific for the device. Will be passed to the constructor. If no
+        :param additional_params: dict with parameter(s) specific for the device. Will be passed to the constructor. If no
                          specific parameter then set to None.
         :return: Device object.
         """
@@ -139,7 +139,7 @@ class DeviceFactory(object):
                                                              initial_state=None, establish_connection=True,
                                                              lazy_cmds_events=lazy_cmds_events,
                                                              io_connection=None,
-                                                             extra_params=extra_params)
+                                                             additional_params=additional_params)
                 logger.info('STEP 1 - creating source device {}'.format(source_device_name))
             source_name = source_device.name  # name already translated to alias.
             if new_name in cls._devices.keys():
@@ -200,21 +200,21 @@ class DeviceFactory(object):
 
     @classmethod
     def _try_take_named_device_params(cls, name, device_class, connection_desc, connection_hops, initial_state,
-                                      lazy_cmds_events, extra_params):
+                                      lazy_cmds_events, additional_params):
         if name:
             if name not in devices_config.named_devices:
                 whats_wrong = "was not defined inside configuration"
                 raise KeyError("Device named '{}' {}".format(name, whats_wrong))
             cfg_device_class, cfg_connection_desc, cfg_connection_hops, cfg_initial_state, cfg_lazy_cmds_events,\
-                cfg_extra_params = devices_config.named_devices[name]
+                cfg_additional_params = devices_config.named_devices[name]
             device_class = cfg_device_class if device_class is None else device_class
             connection_desc = cfg_connection_desc if connection_desc is None else connection_desc
             connection_hops = cfg_connection_hops if connection_hops is None else connection_hops
             initial_state = cfg_initial_state if initial_state is None else initial_state
             lazy_cmds_events = cfg_lazy_cmds_events if lazy_cmds_events is None else lazy_cmds_events
-            extra_params = cfg_extra_params if extra_params is None else extra_params
+            additional_params = cfg_additional_params if additional_params is None else additional_params
 
-        return device_class, connection_desc, connection_hops, initial_state, lazy_cmds_events, extra_params
+        return device_class, connection_desc, connection_hops, initial_state, lazy_cmds_events, additional_params
 
     @classmethod
     def _clear(cls):
@@ -228,7 +228,7 @@ class DeviceFactory(object):
 
     @classmethod
     def _create_device(cls, name, device_class, connection_desc, connection_hops, initial_state, establish_connection,
-                       lazy_cmds_events, io_connection, extra_params):
+                       lazy_cmds_events, io_connection, additional_params):
         """
         Creates and returns connection instance of given io_type/variant.
 
@@ -239,7 +239,7 @@ class DeviceFactory(object):
         :param initial_state: initial state for device e.g. UNIX_REMOTE.
         :param establish_connection: True to open connection, False if it does not matter.
         :param io_connection: connection for device.
-        :param extra_params: dict with parameter(s) specific for the device. Will be passed to the constructor. If no
+        :param additional_params: dict with parameter(s) specific for the device. Will be passed to the constructor. If no
                          specific parameter then set to None.
         :return: requested device.
         """
@@ -252,9 +252,9 @@ class DeviceFactory(object):
 
         if not establish_connection:
             initial_state = None
-        device_class, connection_desc, connection_hops, initial_state, lazy_cmds_events, extra_params = \
+        device_class, connection_desc, connection_hops, initial_state, lazy_cmds_events, additional_params = \
             cls._try_take_named_device_params(name, device_class, connection_desc, connection_hops, initial_state,
-                                              lazy_cmds_events, extra_params)
+                                              lazy_cmds_events, additional_params)
         if device_class and (not connection_desc):
             connection_desc = cls._try_select_device_connection_desc(device_class, connection_desc)
 
@@ -271,8 +271,8 @@ class DeviceFactory(object):
             "lazy_cmds_events": lazy_cmds_events,
             "io_connection": io_connection,
         }
-        if extra_params is not None:
-            constructor_parameters.update(extra_params)
+        if additional_params is not None:
+            constructor_parameters.update(additional_params)
         dev = cls._create_instance_and_remember_it(
             device_class=device_class, constructor_parameters=constructor_parameters,
             establish_connection=establish_connection, name=name)
@@ -359,7 +359,7 @@ class DeviceFactory(object):
 
     @classmethod
     def _get_device_without_lock(cls, name, device_class, connection_desc, connection_hops, initial_state,
-                                 establish_connection, lazy_cmds_events, io_connection, extra_params):
+                                 establish_connection, lazy_cmds_events, io_connection, additional_params):
         new_name = cls._get_unique_name(name)
         if new_name in cls._devices.keys():
             dev = cls._devices[new_name]
@@ -372,7 +372,7 @@ class DeviceFactory(object):
             dev = cls._create_device(name=name, device_class=device_class, connection_desc=connection_desc,
                                      connection_hops=connection_hops, initial_state=initial_state,
                                      establish_connection=establish_connection, lazy_cmds_events=lazy_cmds_events,
-                                     io_connection=io_connection, extra_params=extra_params)
+                                     io_connection=io_connection, additional_params=additional_params)
         return dev
 
     @classmethod
