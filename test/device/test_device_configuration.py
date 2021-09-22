@@ -3,7 +3,7 @@
 Testing possibilities to configure devices
 """
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import os
@@ -14,6 +14,7 @@ from moler.util.moler_test import MolerTest
 from moler.connection_observer import ConnectionObserver
 from moler.device import DeviceFactory
 from moler.exceptions import WrongUsage
+from moler.device.unixlocal import UnixLocal
 
 
 def test_get_device_may_not_use_both__name_and_device_class(device_factory):
@@ -662,6 +663,45 @@ def test_cannot_load_configuration_with_the_same_named_device_loaded_from_anothe
     with pytest.raises(WrongUsage) as err:
         moler_config.load_config(config=new_conn_config, config_type='dict')
     assert "but now requested with SM params" in str(err.value)
+
+
+class UnixLocalWithExtraParam(UnixLocal):
+    def __init__(self, sm_params=None, name=None, io_connection=None, io_type=None, variant=None,
+                 io_constructor_kwargs=None, initial_state=None, lazy_cmds_events=False, extra_param_name=None,
+                 extra_param2=None):
+        super(UnixLocalWithExtraParam, self).__init__(sm_params=sm_params, name=name, io_connection=io_connection,
+                                                      io_type=io_type, variant=variant,
+                                                      io_constructor_kwargs=io_constructor_kwargs,
+                                                      initial_state=initial_state,
+                                                      lazy_cmds_events=lazy_cmds_events)
+        self.extra_value = extra_param_name
+        self.extra_value2 = extra_param2
+
+
+def test_load_device_from_config_extra_param(moler_config, device_factory):
+
+    config1 = {
+        'LOGGER': {
+            'PATH': '/tmp/',
+            'RAW_LOG': True,
+            'DATE_FORMAT': '%d %H:%M:%S'
+        },
+        'DEVICES': {
+            'UNIX_LOCAL': {
+                'DEVICE_CLASS': 'test.device.test_device_configuration.UnixLocalWithExtraParam',
+                'INITIAL_STATE': 'UNIX_LOCAL',
+                'ADDITIONAL_PARAMS': {
+                    'extra_param_name': r"value for extra param",
+                    'extra_param2': r'great value'
+                },
+            }
+        }
+    }
+
+    moler_config.load_config(config1, None, 'dict')
+    dev1 = device_factory.get_device("UNIX_LOCAL")
+    assert dev1.extra_value == r"value for extra param"
+    assert dev1.extra_value2 == r'great value'
 
 
 def test_load_device_from_config(moler_config, device_factory):
