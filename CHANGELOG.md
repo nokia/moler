@@ -1,3 +1,13 @@
+## moler 1.32.0
+
+### Added
+* add `ADDITIONAL_PARAMS` in device configuration
+
+### Improved
+* Add more readable traceback
+* Parsing fail and success for RunScript command
+* Add new regex for retry password(ssh/telnet commands)
+
 ## moler 1.31.2
 
 ### Improved
