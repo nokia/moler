@@ -13,9 +13,9 @@ from contextlib import contextmanager
 from moler.helpers import compare_objects
 from moler.exceptions import MolerException
 from moler.exceptions import WrongUsage
-from . import connections as conn_cfg
-from . import devices as dev_cfg
-from . import loggers as log_cfg
+from moler.config import connections as conn_cfg
+from moler.config import devices as dev_cfg
+from moler.config import loggers as log_cfg
 
 loaded_config = ["NOT_LOADED_YET"]
 

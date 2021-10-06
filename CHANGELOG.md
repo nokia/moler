@@ -1,7 +1,13 @@
+## moler 1.32.1
+
+### Improved
+* Check if passed object is ConnectionObserver instance in MolerConnectionForSingleThreadRunner
+
 ## moler 1.32.0
 
 ### Added
 * add `ADDITIONAL_PARAMS` in device configuration
+* add possibility use `single-threaded` runner for all ConnectionObservers
 
 ### Improved
 * Add more readable traceback
