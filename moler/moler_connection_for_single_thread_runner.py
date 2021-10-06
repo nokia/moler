@@ -10,9 +10,9 @@ __copyright__ = 'Copyright (C) 2021, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 
+import moler.connection_observer
 from moler.abstract_moler_connection import identity_transformation
 from moler.observer_thread_wrapper import ObserverThreadWrapper, ObserverThreadWrapperForConnectionObserver
-from moler.connection_observer import ConnectionObserver
 from moler.threaded_moler_connection import ThreadedMolerConnection
 from moler.runner_single_thread import RunnerSingleThread
 import time
@@ -119,10 +119,22 @@ class MolerConnectionForSingleThreadRunner(ThreadedMolerConnection):
          to a function.
         :return: Instance of wrapper.
         """
-        if observer_reference is None or not isinstance(self_for_observer, ConnectionObserver):
-            otw = ObserverThreadWrapper(
-                observer=observer_reference, observer_self=self_for_observer, logger=self.logger)
-        else:
+        if self._is_observer_reference_a_connection_observer_instance(observer_reference):
             otw = ObserverThreadWrapperForConnectionObserver(
                 observer=observer_reference, observer_self=self_for_observer, logger=self.logger)
+        else:
+            otw = ObserverThreadWrapper(
+                observer=observer_reference, observer_self=self_for_observer, logger=self.logger)
         return otw
+
+    def _is_observer_reference_a_connection_observer_instance(self, observer_reference):
+        """
+        Check if argument is an instance of subclass of ConnectionObserver.
+        :param observer_reference: object to check.
+        :return: True if observer_reference is a subclass of ConnectionObserver, False otherwise.
+        """
+        if observer_reference is None:
+            return False
+        if isinstance(observer_reference, moler.connection_observer.ConnectionObserver):
+            return True
+        return False
