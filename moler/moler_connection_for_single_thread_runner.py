@@ -119,7 +119,7 @@ class MolerConnectionForSingleThreadRunner(ThreadedMolerConnection):
          to a function.
         :return: Instance of wrapper.
         """
-        if self._is_observer_reference_a_connection_observer_instance(observer_reference):
+        if self._is_connection_observer_instance(self_for_observer) is True:
             otw = ObserverThreadWrapperForConnectionObserver(
                 observer=observer_reference, observer_self=self_for_observer, logger=self.logger)
         else:
@@ -127,14 +127,14 @@ class MolerConnectionForSingleThreadRunner(ThreadedMolerConnection):
                 observer=observer_reference, observer_self=self_for_observer, logger=self.logger)
         return otw
 
-    def _is_observer_reference_a_connection_observer_instance(self, observer_reference):
+    def _is_connection_observer_instance(self, self_for_observer):
         """
         Check if argument is an instance of subclass of ConnectionObserver.
-        :param observer_reference: object to check.
+        :param self_for_observer: object to check.
         :return: True if observer_reference is a subclass of ConnectionObserver, False otherwise.
         """
-        if observer_reference is None:
+        if self_for_observer is None:
             return False
-        if isinstance(observer_reference, moler.connection_observer.ConnectionObserver):
+        if isinstance(self_for_observer, moler.connection_observer.ConnectionObserver):
             return True
         return False
