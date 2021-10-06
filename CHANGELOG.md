@@ -1,3 +1,8 @@
+## moler 1.32.1
+
+### Improved
+* Check if passed object is ConnectionObserver instance in MolerConnectionForSingleThreadRunner
+
 ## moler 1.32.0
 
 ### Added

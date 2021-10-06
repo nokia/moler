@@ -16,6 +16,10 @@ import importlib
 import pytest
 import mock
 import threading
+import sys
+
+
+pytestmark = pytest.mark.skipif(sys.version_info < (3, 4), reason="requires python3.4 or higher")
 
 
 def test_can_create_passive_sshshell_connection_using_same_api(passive_sshshell_connection_class):
