@@ -1,3 +1,8 @@
+## moler 1.32.2
+
+### Improved
+* Proper handled timeout in wait_for of RunnerSingleThread 
+
 ## moler 1.32.1
 
 ### Improved
