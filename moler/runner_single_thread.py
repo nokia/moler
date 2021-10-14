@@ -91,7 +91,6 @@ class RunnerSingleThread(ConnectionObserverRunner):
                 remain_time, msg = his_remaining_time("remaining", timeout=observer_timeout, from_start_time=start_time)
             self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
             connection_observer.life_status.start_time = start_time
-            connection_observer.timeout = await_timeout
             self._execute_till_eol(connection_observer=connection_observer,
                                    max_timeout=max_timeout,
                                    await_timeout=await_timeout,
@@ -210,7 +209,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
         :param check_timeout: True to check timeout from connection_observer
         :return: True if done normally, False if timeout.
         """
-        timeout_add = 10
+        timeout_add = 0.1
         term_timeout = 0 if connection_observer.life_status.terminating_timeout is None else \
             connection_observer.life_status.terminating_timeout
         remain_time = timeout - (time.time() - connection_observer.life_status.start_time) + term_timeout + timeout_add
