@@ -84,14 +84,13 @@ class RunnerSingleThread(ConnectionObserverRunner):
             # observer
             current_time = time.time()
             start_time = current_time if max_timeout else connection_observer.life_status.start_time
-            await_timeout = max_timeout if max_timeout and max_timeout > observer_timeout else observer_timeout
+            await_timeout = max_timeout if max_timeout else observer_timeout
             if max_timeout:
                 remain_time, msg = his_remaining_time("await max.", timeout=max_timeout, from_start_time=start_time)
             else:
                 remain_time, msg = his_remaining_time("remaining", timeout=observer_timeout, from_start_time=start_time)
             self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
             connection_observer.life_status.start_time = start_time
-            connection_observer.timeout = await_timeout
             self._execute_till_eol(connection_observer=connection_observer,
                                    max_timeout=max_timeout,
                                    await_timeout=await_timeout,
