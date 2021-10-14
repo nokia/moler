@@ -209,7 +209,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
         :param check_timeout: True to check timeout from connection_observer
         :return: True if done normally, False if timeout.
         """
-        timeout_add = 10
+        timeout_add = 1
         term_timeout = 0 if connection_observer.life_status.terminating_timeout is None else \
             connection_observer.life_status.terminating_timeout
         remain_time = timeout - (time.time() - connection_observer.life_status.start_time) + term_timeout + timeout_add
