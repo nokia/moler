@@ -320,6 +320,7 @@ def check_if_documentation_exists(path2cmds):
                 errors_found.append(error_msg)
         print(" - {:.3f} s.".format(time.time() - start_time))
 
+    print("")
     if errors_found:
         print("\n".join(errors_found))
         msg = "Following {} have incorrect documentation:".format(observer_type.lower())
