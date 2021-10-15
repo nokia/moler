@@ -42,14 +42,23 @@ class DeviceFactory(object):
         return cls._was_any_device_deleted
 
     @classmethod
-    def create_all_devices(cls):
+    def create_all_devices(cls, ignore_exception=False):
         """
         Creates all devices from config.
 
+        :param ignore_exception: Set False to raise an exception when cannot create device. True to ignore and create
+         other devices.
         :return: None
         """
         for device_name in devices_config.named_devices:
-            cls.get_device(name=device_name)
+            try:
+                cls.get_device(name=device_name)
+            except Exception as ex:
+                if ignore_exception:
+                    logger.warning("Cannot create device '{}' because of exception: >>{}<< : >>{}<<".format(
+                        device_name, ex, repr(ex)))
+                else:
+                    raise ex
 
     @classmethod
     def remove_all_devices(cls, clear_device_history=False):

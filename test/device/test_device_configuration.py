@@ -416,6 +416,33 @@ def test_log_error_when_not_abs_path_for_configuation_path_was_used(moler_config
     assert "Loading configuration requires absolute path and not '../resources/device_config.yml'" in str(err.value)
 
 
+def test_create_all_devices_not_existed_device(moler_config, device_factory):
+    from moler.exceptions import MolerException
+
+    conn_config = {
+        'LOGGER': {
+            'PATH': '/tmp/',
+            'RAW_LOG': True,
+            'DATE_FORMAT': '%d %H:%M:%S'
+        },
+        'DEVICES': {
+            'UNIX_LOCAL': {
+                'DEVICE_CLASS': 'moler.device.unixlocal.UnixLocal',
+                'INITIAL_STATE': 'UNIX_LOCAL',
+            },
+            'UNIX_LOCAL_NOT_EXISTED': {
+                'DEVICE_CLASS': 'moler.device.notExistedClass',
+                'INITIAL_STATE': 'UNIX_LOCAL',
+            }
+        }
+    }
+    moler_config.load_config(config=conn_config, config_type='dict')
+    with pytest.raises(AttributeError) as err:
+        device_factory.create_all_devices()
+    device_factory.create_all_devices(ignore_exception=True)
+    assert "has no attribute 'notExistedClass'" in str(err.value)
+
+
 def test_log_error_when_the_same_prompts_in_more_then_one_state(moler_config, device_factory):
     from moler.exceptions import MolerException
 
