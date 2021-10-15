@@ -3,6 +3,8 @@
 Perform command autotest for selected command(s).
 """
 
+from __future__ import print_function
+
 __author__ = 'Grzegorz Latuszek', 'Michal Ernst', 'Michal Plichta, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018-2021, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com', 'michal.ernst@nokia.com', 'michal.plichta@nokia.com,' \
@@ -16,6 +18,7 @@ from importlib import import_module
 from os import walk, sep
 from os.path import abspath, join, relpath, exists, split, dirname
 from pprint import pformat
+import time
 
 from moler.command import Command
 from moler.event import Event
@@ -276,7 +279,8 @@ def check_if_documentation_exists(path2cmds):
     number_of_command_found = 0
     for moler_module, moler_class in _walk_moler_nonabstract_commands(path=path2cmds, base_class=base_class):
         number_of_command_found += 1
-        print("processing: {}".format(moler_class))
+        start_time = time.time()
+        print("processing: '{}'...".format(moler_class), end="")
 
         test_data = _retrieve_command_documentation(moler_module, observer_type)
 
@@ -314,7 +318,9 @@ def check_if_documentation_exists(path2cmds):
             if error_msg:
                 wrong_commands[moler_class.__name__] = 1
                 errors_found.append(error_msg)
+        print(" - {:.3f} s.".format(time.time() - start_time))
 
+    print("")
     if errors_found:
         print("\n".join(errors_found))
         msg = "Following {} have incorrect documentation:".format(observer_type.lower())
