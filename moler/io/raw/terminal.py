@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-__author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
-__email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
+__author__ = 'Michal Ernst, Marcin Usielski, Tomasz Krol'
+__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com, tomasz.krol@nokia.com'
 
 import codecs
 import re
@@ -29,7 +29,7 @@ class ThreadedTerminal(IOConnection):
 
     def __init__(self, moler_connection, cmd="/bin/bash", select_timeout=0.002,
                  read_buffer_size=4096, first_prompt=r'[%$#]+', target_prompt=r'moler_bash#',
-                 set_prompt_cmd='export PS1="moler_bash# "\n', dimensions=(100, 300)):
+                 set_prompt_cmd='export PS1="moler_bash# "\n', dimensions=(100, 300), terminal_delayafterclose=0.2):
         """  # TODO: # 'export PS1="moler_bash\\$ "\n'  would give moler_bash# for root and moler_bash$ for user
         :param moler_connection: Moler's connection to join with
         :param cmd: command to run terminal
@@ -39,6 +39,7 @@ class ThreadedTerminal(IOConnection):
         :param target_prompt: new prompt which will be set on terminal
         :param set_prompt_cmd: command to change prompt with new line char on the end of string
         :param dimensions: dimensions of the psuedoterminal
+        :param terminal_delayafterclose: delay for checking if terminal was properly closed
         """
         super(ThreadedTerminal, self).__init__(moler_connection=moler_connection)
         self.debug_hex_on_non_printable_chars = False  # Set True to log incoming non printable chars as hex.
@@ -57,6 +58,7 @@ class ThreadedTerminal(IOConnection):
         self._cmd = [cmd]
         self.set_prompt_cmd = set_prompt_cmd
         self._re_set_prompt_cmd = re.sub("['\"].*['\"]", "", self.set_prompt_cmd.strip())
+        self._terminal_delayafterclose = terminal_delayafterclose
 
     def open(self):
         """Open ThreadedTerminal connection & start thread pulling data from it."""
@@ -64,6 +66,7 @@ class ThreadedTerminal(IOConnection):
 
         if not self._terminal:
             self._terminal = PtyProcessUnicode.spawn(self._cmd, dimensions=self.dimensions)
+            self._terminal.delayafterclose = self._terminal_delayafterclose
             # need to not replace not unicode data instead of raise exception
             self._terminal.decoder = codecs.getincrementaldecoder('utf-8')(errors='replace')
 
