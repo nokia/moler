@@ -1,3 +1,11 @@
+## moler 1.33.0
+
+### Improved
+
+* Change dealyafterclose value in Terminal
+* Optional ignore exception when try to create all devices
+* Print time of processing every command and event while the documentation is being checked
+
 ## moler 1.32.2
 
 ### Improved
