@@ -417,7 +417,6 @@ def test_log_error_when_not_abs_path_for_configuation_path_was_used(moler_config
 
 
 def test_create_all_devices_not_existed_device(moler_config, device_factory):
-    from moler.exceptions import MolerException
 
     conn_config = {
         'LOGGER': {
@@ -645,6 +644,31 @@ def test_cannot_load_configuration_with_the_same_named_device_loaded_from_anothe
     moler_config.load_config(config=conn_config, config_type='dict')
     with pytest.raises(WrongUsage) as err:
         moler_config.load_config(config=new_conn_config, config_type='dict')
+    assert "and now requested as instance of class" in str(err.value)
+
+
+def test_cannot_load_device_from_updated_dict_different_class(moler_config):
+
+    conn_config = {
+        'LOGGER': {
+            'PATH': '/tmp/',
+            'RAW_LOG': True,
+            'DATE_FORMAT': '%d %H:%M:%S'
+        },
+        'DEVICES': {
+            'UNIX_LOCAL': {
+                'DEVICE_CLASS': 'moler.device.unixlocal.UnixLocal',
+                'INITIAL_STATE': 'UNIX_LOCAL'
+            }
+        }
+    }
+
+    moler_config.load_config(config=conn_config, config_type='dict')
+
+    conn_config['DEVICES']['UNIX_LOCAL']['DEVICE_CLASS'] = "moler.device.unixlocal.NiotExitedDevice"
+
+    with pytest.raises(WrongUsage) as err:
+        moler_config.load_config(config=conn_config, config_type='dict')
     assert "and now requested as instance of class" in str(err.value)
 
 
