@@ -10,7 +10,7 @@ import six
 import yaml
 from contextlib import contextmanager
 
-from moler.helpers import compare_objects
+from moler.helpers import compare_objects, copy_dict
 from moler.exceptions import MolerException
 from moler.exceptions import WrongUsage
 from moler.config import connections as conn_cfg
@@ -77,6 +77,9 @@ def load_config(config=None, from_env_var=None, *args, **kwargs):
     global loaded_config
     add_devices_only = False
     from moler.device import DeviceFactory
+
+    if config is not None and isinstance(config, dict):
+        config = copy_dict(config, deep_copy=True)
 
     if "NOT_LOADED_YET" in loaded_config:
         loaded_config = [config]
