@@ -194,7 +194,7 @@ def _try_get_connection_with_name(io_type, variant, **constructor_kwargs):
 
 
 # actions during import
-connection_cfg.register_builtin_connections(ConnectionFactory, ThreadedMolerConnection)  # Default in Moler 1.x.y
-# connection_cfg.register_builtin_connections(ConnectionFactory, MolerConnectionForSingleThreadRunner)  # will be
-# default since Moler 2.0.0
+# connection_cfg.register_builtin_connections(ConnectionFactory, ThreadedMolerConnection)  # Default in Moler 1.x.y
+connection_cfg.register_builtin_connections(ConnectionFactory, MolerConnectionForSingleThreadRunner)  # default since
+# Moler 2.0.0
 connection_cfg.set_defaults()
