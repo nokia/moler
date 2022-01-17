@@ -86,7 +86,7 @@ def camel_case_to_lower_case_underscore(string):
 
 
 _re_escape_codes = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")  # Regex to remove color codes from command output
-_re_escape_codes_cursor = re.compile(r"\x1B([\dA-F]+)|(\[\d+;\d+r)|(J)")
+_re_escape_codes_cursor = re.compile(r"\x1B(([\dA-F]+)|(\[\d+;\d+r)|(J))")
 
 
 def remove_escape_codes(line):
