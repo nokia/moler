@@ -295,5 +295,4 @@ def test_escape_cursors():
     raw_line = "\x1B7\x1B[0;100r\x1B8\x1B[1A\x1B[Jmoler_bash#"
     expected_line = "moler_bash#"
     line = remove_escape_codes(raw_line)
-    print("raw_line='{}', line='{}', expected_line='{}'.".format(raw_line, line, expected_line))
     assert expected_line == line
