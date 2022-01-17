@@ -4,7 +4,7 @@ Utility/common code of library.
 """
 
 __author__ = 'Grzegorz Latuszek, Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2022, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import copy
@@ -86,6 +86,7 @@ def camel_case_to_lower_case_underscore(string):
 
 
 _re_escape_codes = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")  # Regex to remove color codes from command output
+_re_escape_codes_cursor = re.compile(r"\x1B([\dA-F]+)|(\[\d+;\d+r)|(J)")
 
 
 def remove_escape_codes(line):
@@ -94,6 +95,7 @@ def remove_escape_codes(line):
     :return: line without terminal escape codes
     """
     line = re.sub(_re_escape_codes, "", line)
+    line = re.sub(_re_escape_codes_cursor, "", line)
     return line
 
 

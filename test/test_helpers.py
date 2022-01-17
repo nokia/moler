@@ -4,7 +4,7 @@ Tests for helpers functions/classes.
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2022, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import mock
@@ -288,3 +288,12 @@ def test_convert_to_number_str():
     expected = "not a number"
     result = convert_to_number(expected)
     assert expected == result
+
+
+def test_escape_cursors():
+    from moler.helpers import remove_escape_codes
+    raw_line = "\x1B7\x1B[0;100r\x1B8\x1B[1A\x1B[Jmoler_bash#"
+    expected_line = "moler_bash#"
+    line = remove_escape_codes(raw_line)
+    print("raw_line='{}', line='{}', expected_line='{}'.".format(raw_line, line, expected_line))
+    assert expected_line == line
