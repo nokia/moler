@@ -186,16 +186,15 @@ class TextualDevice(AbstractDevice):
             self._run_prompts_observers()
 
         msg = "Established connection to device '{}' (as instance of class '{}.{}', io_connection: '{}.{}', " \
-              "moler_connection: '{}.{}') with prompts: '{}'.".format(
-                    self.name,
-                    self.__class__.__module__,
-                    self.__class__.__name__,
-                    self.io_connection.__class__.__module__,
-                    self.io_connection.__class__.__name__,
-                    self.io_connection.moler_connection.__class__.__module__,
-                    self.io_connection.moler_connection.__class__.__name__,
-                    self._state_prompts
-               )
+              "moler_connection: '{}.{}') with prompts: '{}'.".format(self.name,
+                                                                      self.__class__.__module__,
+                                                                      self.__class__.__name__,
+                                                                      self.io_connection.__class__.__module__,
+                                                                      self.io_connection.__class__.__name__,
+                                                                      self.io_connection.moler_connection.__class__.__module__,
+                                                                      self.io_connection.moler_connection.__class__.__name__,
+                                                                      self._state_prompts
+                                                                      )
         self._established = True
         self._log(level=logging.INFO, msg=msg)
 
