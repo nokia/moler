@@ -5,7 +5,7 @@ Moler's device has 2 main responsibilities:
 - be the state machine that controls which commands may run in given state
 """
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2022, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
@@ -185,12 +185,17 @@ class TextualDevice(AbstractDevice):
         with self._state_prompts_lock:
             self._run_prompts_observers()
 
-        msg = "Established connection to device '{}' (as instance of class '{}.{}') with prompts: '{}'.".format(
-            self.name,
-            self.__class__.__module__,
-            self.__class__.__name__,
-            self._state_prompts
-        )
+        msg = "Established connection to device '{}' (as instance of class '{}.{}', io_connection: '{}.{}', " \
+              "moler_connection: '{}.{}') with prompts: '{}'.".format(
+                    self.name,
+                    self.__class__.__module__,
+                    self.__class__.__name__,
+                    self.io_connection.__class__.__module__,
+                    self.io_connection.__class__.__name__,
+                    self.io_connection.moler_connection.__class__.__module__,
+                    self.io_connection.moler_connection.__class__.__name__,
+                    self._state_prompts
+               )
         self._established = True
         self._log(level=logging.INFO, msg=msg)
 
