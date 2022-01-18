@@ -20,11 +20,11 @@ sys.path.insert(0, os.path.abspath('../..'))
 # -- Project information -----------------------------------------------------
 
 project = 'Moler'
-copyright = '2019, Nokia'
+copyright = '2019-2022, Nokia'
 author = 'Nokia'
 
 # The short X.Y version
-version = '1.33.0'
+version = '2.0.0'
 # The full version, including alpha/beta/rc tags
 release = 'stable'
 
