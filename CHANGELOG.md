@@ -1,3 +1,10 @@
+## moler 2.0.0
+
+### Improved
+
+* Change default runner and connection type (less threads).
+* Improve removing escape character from unix output 
+
 ## moler 1.33.0
 
 ### Improved
