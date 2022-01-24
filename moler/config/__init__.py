@@ -217,6 +217,8 @@ def _is_device_creation_needed(name, requested_device_def):
 def load_logger_from_config(config):
     if 'LOGGER' in config:
         _config_rotating(config)
+        if 'ERROR_LOG_STACK' in config['LOGGER']:
+            log_cfg.set_error_log_stack(config['LOGGER']['ERROR_LOG_STACK'])
         if 'MODE' in config['LOGGER']:
             log_cfg.set_write_mode(config['LOGGER']['MODE'])
         if 'PATH' in config['LOGGER']:

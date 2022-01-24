@@ -22,6 +22,7 @@ from types import FunctionType, MethodType
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import MolerException
 from moler.exceptions import ExecutionException
+from moler.config.loggers import get_error_log_stack
 
 
 class MolerTest(object):
@@ -149,6 +150,7 @@ class MolerTest(object):
     @classmethod
     def _caller_info(cls):
         msg = ""
+        full_stack = get_error_log_stack
         for fi in inspect.stack():
             filename = fi[1]
             if filename == __file__:
@@ -157,7 +159,10 @@ class MolerTest(object):
             line_no = fi[2]
             file_abs_path = os.path.abspath(filename)
             msg = "  from {} at {}:{}".format(function_name, file_abs_path, line_no)
-            break
+            if full_stack:
+                msg += "\n"
+            else:
+                break
         return msg
 
     @classmethod

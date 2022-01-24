@@ -4,7 +4,7 @@ Configure logging for Moler's needs
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2022, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import codecs
@@ -36,6 +36,7 @@ write_mode = "a"
 _kind = None  # None for plain logger, 'time' to time rotating, 'size' for size rotating.
 _backup_count = 999  # int number of how many files to keep to rotate logs.
 _interval = 100 * 1024  # int number in bytes or seconds when log rotates
+_error_log_stack = False  # Set True to get all function stack when log error. False to get only last function.
 _main_logger = None  # moler.log
 
 moler_logo = """
@@ -179,6 +180,25 @@ def configure_debug_level(level=None):
         debug_level = allowed[level_name]
     else:
         debug_level = logging.INFO
+
+
+def set_error_log_stack(error_log_stack=False):
+    """
+    Set how many functions stack you want to log when error is logged.
+    :param error_log_stack: True to get all functions, False to get the last one.
+    :return: None
+    """
+    global _error_log_stack
+    _error_log_stack = error_log_stack
+
+
+def get_error_log_stack():
+    """
+    Get how many functions stack you want to log when error is logged.
+    :return: True to get log of all
+    """
+    global _error_log_stack
+    return _error_log_stack
 
 
 def want_debug_details():
