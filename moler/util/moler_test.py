@@ -149,18 +149,19 @@ class MolerTest(object):
 
     @classmethod
     def _caller_info(cls):
+        full_stack = get_error_log_stack()
+        stack = inspect.stack()
         msg = ""
-        full_stack = get_error_log_stack
-        for fi in inspect.stack():
+        for fi in stack:
             filename = fi[1]
             if filename == __file__:
                 continue
             function_name = fi[3]
             line_no = fi[2]
             file_abs_path = os.path.abspath(filename)
-            msg = "  from {} at {}:{}".format(function_name, file_abs_path, line_no)
+            msg = "{}    from {} at {}:{}".format(msg, function_name, file_abs_path, line_no)
             if full_stack:
-                msg += "\n"
+                msg = "{}\n".format(msg)
             else:
                 break
         return msg
