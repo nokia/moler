@@ -3,6 +3,7 @@ LOGGER:
   RAW_LOG: True
   DATE_FORMAT: '%d %H:%M:%S'
   MODE: write
+  ERROR_LOG_STACK: False
 
 DEVICES:
   CREATE_AT_STARTUP: False

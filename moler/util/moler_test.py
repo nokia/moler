@@ -4,9 +4,10 @@ Utility/common code of library.
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst, Tomasz Krol'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2022, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com, tomasz.krol@nokia.com'
 
+import inspect
 import logging
 import time
 import gc
@@ -21,6 +22,7 @@ from types import FunctionType, MethodType
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import MolerException
 from moler.exceptions import ExecutionException
+from moler.config.loggers import get_error_log_stack
 
 
 class MolerTest(object):
@@ -54,7 +56,7 @@ class MolerTest(object):
         :param dump: If defined then dump object.
         :return: None.
         """
-        msg = cls._get_string_message(msg, dump)
+        msg = cls._get_string_message(msg, dump, None)
         cls._logger.info(msg)
 
     @classmethod
@@ -65,7 +67,7 @@ class MolerTest(object):
         :param dump: If defined then dump object.
         :return: None
         """
-        msg = cls._get_string_message(msg, dump)
+        msg = cls._get_string_message(msg, dump, None)
         cls._logger.warning(msg)
 
     @classmethod
@@ -91,10 +93,12 @@ class MolerTest(object):
         return msg_str
 
     @classmethod
-    def _get_string_message(cls, msg, dump):
+    def _get_string_message(cls, msg, dump, caller_msg):
         if dump is not None:
             dump_str = cls._dump(dump)
             msg = "{}\n{}".format(msg, dump_str)
+        if caller_msg:
+            msg = "{}\n{}".format(msg, caller_msg)
 
         return msg
 
@@ -135,12 +139,32 @@ class MolerTest(object):
 
     @classmethod
     def _error(cls, msg, raise_exception=False, dump=None):
+        caller_msg = cls._caller_info()
         cls._was_error = True
-        msg = cls._get_string_message(msg, dump)
+        msg = cls._get_string_message(msg, dump, caller_msg)
         cls._logger.error(msg, extra={'moler_error': True})
 
         if raise_exception:
             raise MolerException(msg)
+
+    @classmethod
+    def _caller_info(cls):
+        full_stack = get_error_log_stack()
+        stack = inspect.stack()
+        msg = ""
+        for fi in stack:
+            filename = fi[1]
+            if filename == __file__:
+                continue
+            function_name = fi[3]
+            line_no = fi[2]
+            file_abs_path = os.path.abspath(filename)
+            msg = "{}    from {} at {}:{}".format(msg, function_name, file_abs_path, line_no)
+            if full_stack:
+                msg = "{}\n".format(msg)
+            else:
+                break
+        return msg
 
     @classmethod
     def _steps_start(cls):

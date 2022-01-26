@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2022, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
@@ -383,7 +383,7 @@ def test_dump():
 def test_get_string_message():
     test_dict = {'key': 'value'}
     test_string = "This is sample message"
-    msg = MolerTest._get_string_message(test_string, test_dict)
+    msg = MolerTest._get_string_message(test_string, test_dict, None)
     assert msg == "This is sample message\n{'key': 'value'}"
 
 # --------------------------- resources ---------------------------
