@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2021 Nokia'
+__copyright__ = 'Copyright (C) 2018-2022 Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
 import threading
 import time
+import inspect
+import os
 from abc import abstractmethod, ABCMeta
 
 from six import add_metaclass
@@ -45,6 +47,7 @@ class ConnectionObserver(object):
         self.runner = self._get_runner(runner=runner)
         self._result = None
         self._exception = None
+        self._exception_stack_msg = None
 
         self._future = None
 
@@ -321,15 +324,29 @@ class ConnectionObserver(object):
         :param exception: exception to set
         :return: None
         """
+        stack = inspect.stack()
+        stack_msg = ""
+        for fi in stack:
+            filename = fi[1]
+            if filename == __file__:
+                continue
+            function_name = fi[3]
+            line_no = fi[2]
+            file_abs_path = os.path.abspath(filename)
+            stack_msg = "{}    from {} at {}:{}\n".format(stack_msg, function_name, file_abs_path, line_no)
+
         if self._is_done:
             self._log(logging.WARNING,
                       "Attempt to set exception {!r} on already done {}".format(exception, self),
                       levels_to_go_up=2)
+            self._log(logging.WARNING, "Stack for unsuccessful set exception: {}".format(stack_msg))
+
             return
-        ConnectionObserver._change_unraised_exception(new_exception=exception, observer=self)
+        ConnectionObserver._change_unraised_exception(new_exception=exception, observer=self, stack_msg=stack_msg)
         self._log(logging.INFO,
                   "{}.{} has set exception {!r}".format(self.__class__.__module__, self, exception),
                   levels_to_go_up=2)
+        self._log(logging.WARNING, "Stack for successful set exception: {}".format(stack_msg))
 
     def result(self):
         """Retrieve final result of connection-observer"""
@@ -339,6 +356,7 @@ class ConnectionObserver(object):
                 exception = self._exception
                 if exception in ConnectionObserver._not_raised_exceptions:
                     ConnectionObserver._not_raised_exceptions.remove(exception)
+                self._log(logging.INFO, "Stack stored with the exception: {}".format(self._exception_stack_msg))
                 raise exception
         if self.cancelled():
             raise NoResultSinceCancelCalled(self)
@@ -388,7 +406,7 @@ class ConnectionObserver(object):
                 return list_of_exceptions
 
     @staticmethod
-    def _change_unraised_exception(new_exception, observer):
+    def _change_unraised_exception(new_exception, observer, stack_msg):
         with ConnectionObserver._exceptions_lock:
             old_exception = observer._exception
             ConnectionObserver._log_unraised_exceptions(observer)
@@ -411,11 +429,13 @@ class ConnectionObserver(object):
 
             ConnectionObserver._not_raised_exceptions.append(new_exception)
             observer._exception = new_exception
+            observer._exception_stack_msg = stack_msg
 
     @staticmethod
     def _log_unraised_exceptions(observer):
         for i, item in enumerate(ConnectionObserver._not_raised_exceptions):
             observer._log(logging.DEBUG, "{:4d} NOT RAISED: {!r}".format(i + 1, item), levels_to_go_up=2)
+            observer._log(logging.DEBUG, observer._exception_stack_msg)
 
     def get_long_desc(self):
         return "Observer '{}.{}'".format(self.__class__.__module__, self)
