@@ -360,7 +360,7 @@ def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filt
     elif _kind == 'time':
         if _compress_after_rotation:
             cfh = CompressedTimedRotatingFileHandler(compress_command=_compress_command,
-                                                     compress_suffix = _compress_suffix, filename=log_filename,
+                                                     compress_suffix=_compress_suffix, filename=log_filename,
                                                      when='S', interval=_interval, backupCount=_backup_count)
         else:
             cfh = TimedRotatingFileHandler(filename=log_filename, when='S', interval=_interval,
