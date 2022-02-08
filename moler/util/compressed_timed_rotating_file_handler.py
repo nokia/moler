@@ -1,5 +1,14 @@
+# -*- coding: utf-8 -*-
+"""
+Compress logs after time rotation.
+"""
+
+__author__ = 'Marcin Usielski'
+__copyright__ = 'Copyright (C) 2022, Nokia'
+__email__ = 'marcin.usielski@nokia.com'
+
 import subprocess
-from logging.handlers import TimedRotatingFileHandler, RotatingFileHandler
+from logging.handlers import TimedRotatingFileHandler
 
 
 class CompressedTimedRotatingFileHandler(TimedRotatingFileHandler):
