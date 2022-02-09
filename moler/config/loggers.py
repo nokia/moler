@@ -17,6 +17,7 @@ import pkg_resources
 import platform
 from logging.handlers import TimedRotatingFileHandler, RotatingFileHandler
 from moler.util.compressed_timed_rotating_file_handler import CompressedTimedRotatingFileHandler
+from moler.util.compressed_rotating_file_handler import CompressedRotatingFileHandler
 from moler.util import tracked_thread
 
 
@@ -355,6 +356,7 @@ def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filt
     global _compress_command
     global _compress_suffix
     logger = logging.getLogger(logger_name)
+    print("_compress_after_rotation={}, _kind={}".format(_compress_after_rotation, _kind))
     if _kind is None:
         cfh = logging.FileHandler(log_filename, write_mode)
     elif _kind == 'time':
@@ -366,7 +368,14 @@ def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filt
             cfh = TimedRotatingFileHandler(filename=log_filename, when='S', interval=_interval,
                                            backupCount=_backup_count)
     else:
-        cfh = RotatingFileHandler(filename=log_filename, mode=write_mode, backupCount=_backup_count, maxBytes=_interval)
+        if _compress_after_rotation:
+            cfh = CompressedRotatingFileHandler(compress_command=_compress_command,
+                                                compress_suffix=_compress_suffix, filename=log_filename,
+                                                mode=write_mode, backupCount=_backup_count,
+                                                maxBytes=_interval)
+        else:
+            cfh = RotatingFileHandler(filename=log_filename, mode=write_mode, backupCount=_backup_count,
+                                      maxBytes=_interval)
     cfh.setLevel(log_level)
     cfh.setFormatter(formatter)
     if filter:
