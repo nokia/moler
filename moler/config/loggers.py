@@ -356,7 +356,6 @@ def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filt
     global _compress_command
     global _compress_suffix
     logger = logging.getLogger(logger_name)
-    print("_compress_after_rotation={}, _kind={}".format(_compress_after_rotation, _kind))
     if _kind is None:
         cfh = logging.FileHandler(log_filename, write_mode)
     elif _kind == 'time':

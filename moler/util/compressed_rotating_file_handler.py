@@ -20,8 +20,16 @@ class CompressedRotatingFileHandler(RotatingFileHandler):
 
     def rotate(self, source, dest):
         super(CompressedRotatingFileHandler, self).rotate(source, dest)
-        full_pack_command = self.compress_command.format(packed=dest + self.compress_suffix, log_input=dest)
-        subprocess.Popen(full_pack_command.split())
+        self._compress_file(filename=dest)
+
+    def close(self):
+        super(CompressedRotatingFileHandler, self).close()
+        self._compress_file(filename=self.baseFilename)
+
+    def _compress_file(self, filename):
+        if os.path.exists(filename):
+            full_pack_command = self.compress_command.format(packed=filename + self.compress_suffix, log_input=filename)
+            subprocess.Popen(full_pack_command.split())
 
     def doRollover(self):
         """
@@ -40,8 +48,9 @@ class CompressedRotatingFileHandler(RotatingFileHandler):
                         os.remove(dfn)
                     os.rename(sfn, dfn)
             dfn = self.rotation_filename(self.baseFilename + ".1")
-            if os.path.exists(dfn):
-                os.remove(dfn)
+            compressed_dfn = dfn + self.compress_suffix
+            if os.path.exists(compressed_dfn):
+                os.remove(compressed_dfn)
             self.rotate(self.baseFilename, dfn)
         if not self.delay:
             self.stream = self._open()
