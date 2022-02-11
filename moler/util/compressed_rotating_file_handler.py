@@ -13,7 +13,7 @@ from logging.handlers import RotatingFileHandler
 
 
 class CompressedRotatingFileHandler(RotatingFileHandler):
-    def __init__(self, compress_command='zip -9mq {packed} {log_input}', compress_suffix='.zip', *args, **kwargs):
+    def __init__(self, compress_command='zip -9mq {compressed} {log_input}', compress_suffix='.zip', *args, **kwargs):
         self.compress_command = compress_command
         self.compress_suffix = compress_suffix
         super(CompressedRotatingFileHandler, self).__init__(*args, **kwargs)
@@ -28,7 +28,8 @@ class CompressedRotatingFileHandler(RotatingFileHandler):
 
     def _compress_file(self, filename):
         if os.path.exists(filename):
-            full_pack_command = self.compress_command.format(packed=filename + self.compress_suffix, log_input=filename)
+            full_pack_command = self.compress_command.format(compressed=filename + self.compress_suffix,
+                                                             log_input=filename)
             subprocess.Popen(full_pack_command.split())  # Potential issue if pack command takes more time than next
             #                                              log rotation.
 

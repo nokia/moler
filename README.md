@@ -321,7 +321,7 @@ to show how to compress logs:
       INTERVAL: 5242880
       BACKUP_COUNT: 999  # Default value
       COMPRESS_AFTER_ROTATION: True  # Default is False
-      COMPRESS_COMMAND: "zip -9mq {packed} {log_input}"  # Default value
+      COMPRESS_COMMAND: "zip -9mq {compressed} {log_input}"  # Default value
       COMPRESS_SUFFIX: ".zip"  # Default value
       
 
@@ -334,7 +334,7 @@ to show how to compress logs:
       KIND: time
       INTERVAL: 1800
       BACKUP_COUNT: 999  # Default value
-      COMPRESS_COMMAND: "zip -9mq {packed} {log_input}"  # Default value
+      COMPRESS_COMMAND: "zip -9mq {compressed} {log_input}"  # Default value
       COMPRESS_SUFFIX: ".zip"  # Default value
 ```
 
