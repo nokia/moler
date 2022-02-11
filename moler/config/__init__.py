@@ -236,18 +236,29 @@ def load_logger_from_config(config):
 
 def _config_rotating(config):
     if 'KIND' in config['LOGGER']:
+        print("Warning! Please update LOGGER to new style")  # Logger is not available here.
         log_cfg.set_kind(config['LOGGER']['KIND'])
     if 'INTERVAL' in config['LOGGER']:
+        print("Warning! Please update LOGGER to new style")  # Logger is not available here.
         log_cfg.set_interval(config['LOGGER']['INTERVAL'])
     if 'BACKUP_COUNT' in config['LOGGER']:
+        print("Warning! Please update LOGGER to new style")  # Logger is not available here.
         log_cfg.set_backup_count(config['LOGGER']['BACKUP_COUNT'])
-    if 'COMPRESS_AFTER_ROTATION' in config['LOGGER']:
-        if config['LOGGER']['COMPRESS_AFTER_ROTATION'] is True:
-            log_cfg.set_compress_after_rotation(True)
-    if 'COMPRESS_COMMAND' in config['LOGGER']:
-        log_cfg.set_compress_command(config['LOGGER']['COMPRESS_COMMAND'])
-    if 'COMPRESS_SUFFIX' in config['LOGGER']:
-        log_cfg.set_compress_suffix(config['LOGGER']['COMPRESS_SUFFIX'])
+    if 'LOG_ROTATION' in config['LOGGER']:
+        log_rotation = config['LOGGER']['LOG_ROTATION']
+        if 'KIND' in log_rotation:
+            log_cfg.set_kind(log_rotation['KIND'])
+        if 'INTERVAL' in log_rotation:
+            log_cfg.set_interval(log_rotation['INTERVAL'])
+        if 'BACKUP_COUNT' in log_rotation:
+            log_cfg.set_backup_count(log_rotation['BACKUP_COUNT'])
+        if 'COMPRESS_AFTER_ROTATION' in log_rotation:
+            if log_rotation['COMPRESS_AFTER_ROTATION'] is True:
+                log_cfg.set_compress_after_rotation(True)
+        if 'COMPRESS_COMMAND' in log_rotation:
+            log_cfg.set_compress_command(log_rotation['COMPRESS_COMMAND'])
+        if 'COMPRESSED_FILE_EXTENSION' in log_rotation:
+            log_cfg.set_compressed_file_extension(log_rotation['COMPRESSED_FILE_EXTENSION'])
 
 
 def reconfigure_logging_path(logging_path):

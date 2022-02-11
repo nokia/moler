@@ -38,7 +38,7 @@ write_mode = "a"
 _kind = None  # None for plain logger, 'time' to time rotating, 'size' for size rotating.
 _compress_after_rotation = False  # Set True to compress logs after rotation
 _compress_command = "zip -9mq {packed} {log_input}"  # Execute command to compress the log file
-_compress_suffix = ".zip"  # Suffix for compressed file
+_compressed_file_extension = ".zip"  # Suffix for compressed file
 _backup_count = 999  # int number of how many files to keep to rotate logs.
 _interval = 100 * 1024  # int number in bytes or seconds when log rotates
 _error_log_stack = False  # Set True to get all function stack when log error. False to get only last function.
@@ -145,6 +145,11 @@ def set_kind(kind):
 
 
 def set_compress_after_rotation(compress_after_rotation):
+    """
+    Set True to compress file after log rotation.
+    :param compress_after_rotation: True to compress, False otherwsie
+    :return: None
+    """
     global _compress_after_rotation
     _compress_after_rotation = compress_after_rotation
 
@@ -154,9 +159,9 @@ def set_compress_command(compress_command):
     _compress_command = compress_command
 
 
-def set_compress_suffix(compress_suffix):
-    global _compress_suffix
-    _compress_suffix = compress_suffix
+def set_compressed_file_extension(compressed_file_extension):
+    global _compressed_file_extension
+    _compressed_file_extension = compressed_file_extension
 
 
 def set_write_mode(mode):
@@ -354,14 +359,14 @@ def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filt
     global _backup_count
     global _compress_after_rotation
     global _compress_command
-    global _compress_suffix
+    global _compressed_file_extension
     logger = logging.getLogger(logger_name)
     if _kind is None:
         cfh = logging.FileHandler(log_filename, write_mode)
     elif _kind == 'time':
         if _compress_after_rotation:
             cfh = CompressedTimedRotatingFileHandler(compress_command=_compress_command,
-                                                     compress_suffix=_compress_suffix, filename=log_filename,
+                                                     compressed_file_extension=_compressed_file_extension, filename=log_filename,
                                                      when='S', interval=_interval, backupCount=_backup_count)
         else:
             cfh = TimedRotatingFileHandler(filename=log_filename, when='S', interval=_interval,
@@ -369,7 +374,7 @@ def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filt
     else:
         if _compress_after_rotation:
             cfh = CompressedRotatingFileHandler(compress_command=_compress_command,
-                                                compress_suffix=_compress_suffix, filename=log_filename,
+                                                compressed_file_extension=_compressed_file_extension, filename=log_filename,
                                                 mode=write_mode, backupCount=_backup_count,
                                                 maxBytes=_interval)
         else:
