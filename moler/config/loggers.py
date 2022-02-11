@@ -37,7 +37,7 @@ raw_logs_active = False
 write_mode = "a"
 _kind = None  # None for plain logger, 'time' to time rotating, 'size' for size rotating.
 _compress_after_rotation = False  # Set True to compress logs after rotation
-_compress_command = "zip -9mq {packed} {log_input}"  # Execute command to compress the log file
+_compress_command = "zip -9mq {compressed} {log_input}"  # Execute command to compress the log file
 _compressed_file_extension = ".zip"  # Suffix for compressed file
 _backup_count = 999  # int number of how many files to keep to rotate logs.
 _interval = 100 * 1024  # int number in bytes or seconds when log rotates
@@ -155,11 +155,21 @@ def set_compress_after_rotation(compress_after_rotation):
 
 
 def set_compress_command(compress_command):
+    """
+    Set compress command.
+    :param compress_command: String with compress command with two fields {compressed} and {log_input}
+    :return: None
+    """
     global _compress_command
     _compress_command = compress_command
 
 
 def set_compressed_file_extension(compressed_file_extension):
+    """
+    Set compressed file extension.
+    :param compressed_file_extension: String with file extension, for example ".zip"
+    :return: None
+    """
     global _compressed_file_extension
     _compressed_file_extension = compressed_file_extension
 
