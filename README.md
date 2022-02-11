@@ -310,6 +310,34 @@ The log files can be split by time. For example let's assume we want split log f
       BACKUP_COUNT: 999  # Default value
 ```
 
+For space saving Moler can compress the logs after rotation. The external tool is used. Let's use the above examples
+to show how to compress logs:
+
+```yaml
+    LOGGER:
+      PATH: ./logs
+      DATE_FORMAT: "%H:%M:%S"
+      KIND: size
+      INTERVAL: 5242880
+      BACKUP_COUNT: 999  # Default value
+      COMPRESS_AFTER_ROTATION: True  # Default is False
+      COMPRESS_COMMAND: "zip -9mq {packed} {log_input}"  # Default value
+      COMPRESS_SUFFIX: ".zip"  # Default value
+      
+
+```
+
+```yaml
+    LOGGER:
+      PATH: ./logs
+      DATE_FORMAT: "%H:%M:%S"
+      KIND: time
+      INTERVAL: 1800
+      BACKUP_COUNT: 999  # Default value
+      COMPRESS_COMMAND: "zip -9mq {packed} {log_input}"  # Default value
+      COMPRESS_SUFFIX: ".zip"  # Default value
+```
+
 In a script we can also disable logging from device. Please use it very carefully. Investigation any issue may be
  impossible if we don't have full logs.
  

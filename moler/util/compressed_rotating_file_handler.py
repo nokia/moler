@@ -29,7 +29,8 @@ class CompressedRotatingFileHandler(RotatingFileHandler):
     def _compress_file(self, filename):
         if os.path.exists(filename):
             full_pack_command = self.compress_command.format(packed=filename + self.compress_suffix, log_input=filename)
-            subprocess.Popen(full_pack_command.split())
+            subprocess.Popen(full_pack_command.split())  # Potential issue if pack command takes more time than next
+            #                                              log rotation.
 
     def doRollover(self):
         """

@@ -226,13 +226,6 @@ def load_logger_from_config(config):
         if 'RAW_LOG' in config['LOGGER']:
             if config['LOGGER']['RAW_LOG'] is True:
                 log_cfg.raw_logs_active = True
-        if 'COMPRESS_AFTER_ROTATION' in config['LOGGER']:
-            if config['LOGGER']['COMPRESS_AFTER_ROTATION'] is True:
-                log_cfg.set_compress_after_rotation(True)
-        if 'COMPRESS_COMMAND' in config['LOGGER']:
-            log_cfg.set_compress_command(config['LOGGER']['COMPRESS_COMMAND'])
-        if 'COMPRESS_SUFFIX' in config['LOGGER']:
-            log_cfg.set_compress_suffix(config['LOGGER']['COMPRESS_SUFFIX'])
         if 'DEBUG_LEVEL' in config['LOGGER']:
             log_cfg.configure_debug_level(level=config['LOGGER']['DEBUG_LEVEL'])
         if 'DATE_FORMAT' in config['LOGGER']:
@@ -248,6 +241,13 @@ def _config_rotating(config):
         log_cfg.set_interval(config['LOGGER']['INTERVAL'])
     if 'BACKUP_COUNT' in config['LOGGER']:
         log_cfg.set_backup_count(config['LOGGER']['BACKUP_COUNT'])
+    if 'COMPRESS_AFTER_ROTATION' in config['LOGGER']:
+        if config['LOGGER']['COMPRESS_AFTER_ROTATION'] is True:
+            log_cfg.set_compress_after_rotation(True)
+    if 'COMPRESS_COMMAND' in config['LOGGER']:
+        log_cfg.set_compress_command(config['LOGGER']['COMPRESS_COMMAND'])
+    if 'COMPRESS_SUFFIX' in config['LOGGER']:
+        log_cfg.set_compress_suffix(config['LOGGER']['COMPRESS_SUFFIX'])
 
 
 def reconfigure_logging_path(logging_path):
