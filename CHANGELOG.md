@@ -1,3 +1,11 @@
+## moler 2.1.0
+
+### Improved
+
+* Optional compress logs after rotation.
+* Log stack for set_exception in ConnectionObserver.
+* Caller stack info for MolerTest.error. 
+
 ## moler 2.0.0
 
 ### Improved
