@@ -3,7 +3,8 @@ ptyprocess; platform_system != "Windows"
 pyyaml >= 5.1
 six
 transitions
-apscheduler
+apscheduler == 3.8.1; python_version < '3'
+apscheduler; python_version > '3'
 trollius; python_version < '3'
 deepdiff == 3.3.0; python_version < '3'
 deepdiff; python_version > '3'
