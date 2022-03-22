@@ -389,3 +389,14 @@ def all_chars_to_hex(source):
     for char in source:
         output += "\\x{:02x}".format(ord(char))
     return output
+
+
+def regexp_without_anchors(regexp):
+    regexp_str = regexp.pattern.strip()
+    if '^' == regexp_str[0]:
+        regexp_str = regexp_str[1:]
+    if '$' == regexp_str[-1]:
+        regexp_str = regexp_str[:-1]
+    if regexp_str == regexp.pattern.strip():
+        return regexp
+    return re.compile(regexp_str)

@@ -9,6 +9,7 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import mock
 import pytest
+import re
 from moler.exceptions import WrongUsage
 
 
@@ -296,3 +297,30 @@ def test_escape_cursors():
     expected_line = "moler_bash#"
     line = remove_escape_codes(raw_line)
     assert expected_line == line
+
+
+def test_regexp_without_anchors():
+    from moler.helpers import regexp_without_anchors
+    expected = "abc"
+    assert expected == regexp_without_anchors(re.compile(expected)).pattern
+
+
+def test_regexp_with_both_anchors():
+    from moler.helpers import regexp_without_anchors
+    expected = "abc"
+    regex = re.compile(r"^abc$")
+    assert expected == regexp_without_anchors(regex).pattern
+
+
+def test_regexp_with_left_anchor():
+    from moler.helpers import regexp_without_anchors
+    expected = "abc"
+    regex = re.compile(r"^abc")
+    assert expected == regexp_without_anchors(regex).pattern
+
+
+def test_regexp_with_right_anchor():
+    from moler.helpers import regexp_without_anchors
+    expected = "abc"
+    regex = re.compile(r"abc$")
+    assert expected == regexp_without_anchors(regex).pattern

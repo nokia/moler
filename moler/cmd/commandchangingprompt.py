@@ -4,7 +4,7 @@ Generic command class for commands change prompt
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2020, Nokia'
+__copyright__ = 'Copyright (C) 2019-2022, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import abc
@@ -12,6 +12,7 @@ import six
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.exceptions import ParsingDone
+from moler.helpers import regexp_without_anchors
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -56,6 +57,9 @@ class CommandChangingPrompt(CommandTextualGeneric):
         self._sent = False
         self._finish_on_final_prompt = True  # Set True to finish Moler command by this generic after prompt after
         # command output. False if you want to finish command in your class.
+
+        self._re_expected_prompt_without_anchors = regexp_without_anchors(self._re_expected_prompt)
+        self._re_prompt_after_login_without_anchors = regexp_without_anchors(self._re_prompt_after_login)
 
     def __str__(self):
         base_str = super(CommandChangingPrompt, self).__str__()
