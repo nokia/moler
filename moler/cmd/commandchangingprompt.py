@@ -49,6 +49,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
         self.set_prompt = set_prompt
         self.target_newline = target_newline
         self.allowed_newline_after_prompt = allowed_newline_after_prompt
+        self.enter_on_prompt_without_anchors = True  # Set True to try to match prompt in line without ^ and $.
 
         # Internal variables
         self._re_failure_exceptions_indication = None
@@ -187,6 +188,10 @@ class CommandChangingPrompt(CommandTextualGeneric):
         :return: Match object or None
         """
         found = self._regex_helper.search_compiled(self._re_expected_prompt, line)
+        if not found and self.enter_on_prompt_without_anchors is True:
+            if self._regex_helper.search_compiled(self._re_expected_prompt_without_anchors, line):
+                self.send_enter()
+                self.enter_on_prompt_without_anchors = False
         return found
 
     def _is_prompt_after_login(self, line):
@@ -197,6 +202,10 @@ class CommandChangingPrompt(CommandTextualGeneric):
         :return: Match object or None
         """
         found = self._regex_helper.search_compiled(self._re_prompt_after_login, line)
+        if not found and self.enter_on_prompt_without_anchors is True:
+            if self._regex_helper.search_compiled(self._re_prompt_after_login_without_anchors, line):
+                self.send_enter()
+                self.enter_on_prompt_without_anchors = False
         return found
 
     def _all_after_login_settings_sent(self):

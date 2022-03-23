@@ -4,7 +4,7 @@ Generic class for all command with textual output.
 """
 
 __author__ = 'Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2022, Nokia'
 __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
@@ -15,7 +15,9 @@ import six
 
 from moler.cmd import RegexHelper
 from moler.command import Command
+from moler.helpers import regexp_without_anchors
 from threading import Lock
+
 
 r_default_prompt = r'^[^<]*[$%#>~]\s*$'  # When user provides no prompt
 
@@ -76,9 +78,12 @@ class CommandTextualGeneric(Command):
         # in on_new_line. Do not set directly, use setter break_exec_regex.
         self.break_exec_only_full_line = True  # Set True to consider only full lines to match _break_exec_regex or
         # False to consider also chunks.
+        self.enter_on_prompt_without_anchors = False  # Set True to try to match prompt in line without ^ and $.
 
         if not self._newline_chars:
             self._newline_chars = CommandTextualGeneric._default_newline_chars
+
+        self._re_prompt_without_anchors = regexp_without_anchors(self._re_prompt)
 
     @property
     def break_exec_regex(self):
@@ -343,6 +348,10 @@ class CommandTextualGeneric(Command):
             non_ctrl_c_started_line = line[2:]
             if self._regex_helper.search_compiled(self._re_prompt, non_ctrl_c_started_line):
                 return True
+        if self.enter_on_prompt_without_anchors is True and self._regex_helper.search_compiled(
+                self._re_prompt_after_login_without_anchors, line):
+            self.send_enter()
+            self.enter_on_prompt_without_anchors = False
         return False
 
     def _strip_new_lines_chars(self, line):
@@ -482,6 +491,13 @@ class CommandTextualGeneric(Command):
             self.connection.sendline(self.command_string)
         else:
             self.connection.send(self.command_string)
+
+    def send_enter(self):
+        """
+        Sends enter over connection.
+        :return: None
+        """
+        self.connection.send("\n")
 
     def _decode_line(self, line):
         """

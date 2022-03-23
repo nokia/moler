@@ -393,10 +393,11 @@ def all_chars_to_hex(source):
 
 def regexp_without_anchors(regexp):
     regexp_str = regexp.pattern.strip()
+    org_regexp_str = regexp_str
     if '^' == regexp_str[0]:
         regexp_str = regexp_str[1:]
-    if '$' == regexp_str[-1]:
+    if '$' == regexp_str[-1] and '\\' != regexp_str[-2]:
         regexp_str = regexp_str[:-1]
-    if regexp_str == regexp.pattern.strip():
+    if regexp_str == org_regexp_str:
         return regexp
     return re.compile(regexp_str)
