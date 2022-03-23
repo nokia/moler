@@ -30,20 +30,38 @@ def test_cat_raise_exception_wrong_path_exception(buffer_connection, command_out
         cat_cmd()
 
 
+def test_cat_prompt_in_the_same_line(buffer_connection, command_output_prompt_in_the_same_line):
+    buffer_connection.remote_inject_response([command_output_prompt_in_the_same_line])
+    cat_cmd = Cat(connection=buffer_connection.moler_connection, path="/home/test/test", prompt=r"^moler_bash#$")
+    cat_cmd.enter_on_prompt_without_anchors = True
+    cat_cmd()
+    assert cat_cmd.enter_on_prompt_without_anchors is False
+
+
 @pytest.fixture
 def command_output():
     data = """
-ute@debdev:~$ cat /home/test/test
+cat /home/test/test
 cat: /home/ute/test: Is a directory
 f6 FCT-E019-0-SmaLite \ufffd\ufffd\x7f \ufffd\ufffd\ufffd}"\ufffd\x02\ufffd?\ufffd\ufffd\ufffd\x08\ufffd\x05o\x1c
-ute@debdev:~$"""
+moler_bash#"""
     return data
 
 
 @pytest.fixture
 def command_output_exception():
     data = """
-ute@debdev:~$ cat /home/test/test
+cat /home/test/test
 cat: /home/ute/test: Is a directory
-ute@debdev:~$"""
+moler_bash#"""
+    return data
+
+
+@pytest.fixture
+def command_output_prompt_in_the_same_line():
+    data = """
+cat /home/test/test
+Line 1
+blamoler_bash#
+moler_bash#"""
     return data

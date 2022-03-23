@@ -348,10 +348,10 @@ class CommandTextualGeneric(Command):
             non_ctrl_c_started_line = line[2:]
             if self._regex_helper.search_compiled(self._re_prompt, non_ctrl_c_started_line):
                 return True
-        if self.enter_on_prompt_without_anchors is True and self._regex_helper.search_compiled(
-                self._re_prompt_after_login_without_anchors, line):
-            self.send_enter()
-            self.enter_on_prompt_without_anchors = False
+        if self.enter_on_prompt_without_anchors is True:
+            if self._regex_helper.search_compiled(self._re_prompt_without_anchors, line):
+                self.send_enter()
+                self.enter_on_prompt_without_anchors = False
         return False
 
     def _strip_new_lines_chars(self, line):
