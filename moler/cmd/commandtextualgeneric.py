@@ -350,6 +350,7 @@ class CommandTextualGeneric(Command):
                 return True
         if self.enter_on_prompt_without_anchors is True:
             if self._regex_helper.search_compiled(self._re_prompt_without_anchors, line):
+                self.logger.info("Candidate for prompt '{}' in line '{}'.".format(self._re_prompt.pattern, line))
                 self.send_enter()
                 self.enter_on_prompt_without_anchors = False
         return False

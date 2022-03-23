@@ -190,6 +190,10 @@ class CommandChangingPrompt(CommandTextualGeneric):
         found = self._regex_helper.search_compiled(self._re_expected_prompt, line)
         if not found and self.enter_on_prompt_without_anchors is True:
             if self._regex_helper.search_compiled(self._re_expected_prompt_without_anchors, line):
+                self.logger.info("Candidate for expected prompt '{}' in line '{}'.".format(
+                    self._re_expected_prompt.pattern,
+                    line)
+                )
                 self.send_enter()
                 self.enter_on_prompt_without_anchors = False
         return found
@@ -204,6 +208,10 @@ class CommandChangingPrompt(CommandTextualGeneric):
         found = self._regex_helper.search_compiled(self._re_prompt_after_login, line)
         if not found and self.enter_on_prompt_without_anchors is True:
             if self._regex_helper.search_compiled(self._re_prompt_after_login_without_anchors, line):
+                self.logger.info("Candidate for prompt after login '{}' in line '{}'.".format(
+                    self._re_prompt_after_login.pattern,
+                    line)
+                )
                 self.send_enter()
                 self.enter_on_prompt_without_anchors = False
         return found
