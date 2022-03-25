@@ -592,7 +592,12 @@ class TextualDevice(AbstractDevice):
                 change_state_method(self.current_state, next_state, timeout=timeout)
                 entered_state = True
             except Exception as ex:
-                if retrying == rerun:
+                if self.current_state == next_state:
+                    ex_traceback = traceback.format_exc()
+                    msg = "Method to change state failed but device '{}' is in proper state {}'. Exception: {}".format(
+                        self.name, self.current_state, ex_traceback)
+                    self._log(logging.WARNING, msg=msg)
+                elif retrying == rerun:
                     ex_traceback = traceback.format_exc()
                     exc = DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback)
                     if log_stacktrace_on_fail:
