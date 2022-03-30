@@ -4,7 +4,7 @@ Testing of ssh command.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2022, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 from moler.cmd.unix.ssh import Ssh
@@ -145,6 +145,31 @@ def test_ssh_returns_proper_command_string(buffer_connection):
     ssh_cmd = Ssh(buffer_connection, login="user", password="english",
                   host="host.domain.net", expected_prompt="host:.*#", options=None)
     assert "TERM=xterm-mono ssh -l user host.domain.net" == ssh_cmd.command_string
+
+
+def test_ssh_prompt_in_the_same_line(buffer_connection, command_output_prompt_in_the_same_line):
+    command_output = command_output_prompt_in_the_same_line
+    buffer_connection.remote_inject_response([command_output])
+
+    ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="pass",
+                  set_timeout=None, set_prompt=None, host="host.domain.net", prompt="client.*>",
+                  expected_prompt="^host.*#$")
+    assert ssh_cmd.enter_on_prompt_without_anchors is True
+    ssh_cmd(timeout=1)
+    assert ssh_cmd.enter_on_prompt_without_anchors is False
+
+
+def test_ssh_change_prompt_in_the_same_line(buffer_connection, command_output_change_prompt_in_the_same_line):
+    command_output = command_output_change_prompt_in_the_same_line
+    buffer_connection.remote_inject_response([command_output])
+
+    ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="pass",
+                  set_timeout=None, set_prompt='export PS1="\\u$"', host="host.domain.net", prompt="client.*>",
+                  prompt_after_login='host:~ #', expected_prompt=r"^user\$$")
+    assert ssh_cmd.enter_on_prompt_without_anchors is True
+    ssh_cmd(timeout=1)
+    assert ssh_cmd.enter_on_prompt_without_anchors is False
+
 
 @pytest.fixture
 def command_output_keygen():
@@ -295,4 +320,34 @@ host:~ #
 host:~ # export PS1="\\u$"
 user$
 """
+    return lines
+
+
+@pytest.fixture
+def command_output_prompt_in_the_same_line():
+    lines = """
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+Do you want to continue (yes/no)? yes
+To edit this message please edit /etc/ssh_banner
+You may put information to /etc/ssh_banner who is owner of this PC
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...host:~ #
+host:~ #"""
+    return lines
+
+
+@pytest.fixture
+def command_output_change_prompt_in_the_same_line():
+    lines = """
+client:~/>TERM=xterm-mono ssh -l user host.domain.net
+Do you want to continue (yes/no)? yes
+To edit this message please edit /etc/ssh_banner
+You may put information to /etc/ssh_banner who is owner of this PC
+Password:
+Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Have a lot of fun...
+host:~ #
+host:~ # export PS1="\\u$"user$
+user$"""
     return lines

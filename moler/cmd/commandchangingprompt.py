@@ -4,7 +4,7 @@ Generic command class for commands change prompt
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2020, Nokia'
+__copyright__ = 'Copyright (C) 2019-2022, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import abc
@@ -12,6 +12,7 @@ import six
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.exceptions import ParsingDone
+from moler.helpers import regexp_without_anchors
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -48,6 +49,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
         self.set_prompt = set_prompt
         self.target_newline = target_newline
         self.allowed_newline_after_prompt = allowed_newline_after_prompt
+        self.enter_on_prompt_without_anchors = True  # Set True to try to match prompt in line without ^ and $.
 
         # Internal variables
         self._re_failure_exceptions_indication = None
@@ -56,6 +58,9 @@ class CommandChangingPrompt(CommandTextualGeneric):
         self._sent = False
         self._finish_on_final_prompt = True  # Set True to finish Moler command by this generic after prompt after
         # command output. False if you want to finish command in your class.
+
+        self._re_expected_prompt_without_anchors = regexp_without_anchors(self._re_expected_prompt)
+        self._re_prompt_after_login_without_anchors = regexp_without_anchors(self._re_prompt_after_login)
 
     def __str__(self):
         base_str = super(CommandChangingPrompt, self).__str__()
@@ -183,6 +188,14 @@ class CommandChangingPrompt(CommandTextualGeneric):
         :return: Match object or None
         """
         found = self._regex_helper.search_compiled(self._re_expected_prompt, line)
+        if not found and self.enter_on_prompt_without_anchors is True:
+            if self._regex_helper.search_compiled(self._re_expected_prompt_without_anchors, line):
+                self.logger.info("Candidate for expected prompt '{}' in line '{}'.".format(
+                    self._re_expected_prompt.pattern,
+                    line)
+                )
+                self.send_enter()
+                self.enter_on_prompt_without_anchors = False
         return found
 
     def _is_prompt_after_login(self, line):
@@ -193,6 +206,14 @@ class CommandChangingPrompt(CommandTextualGeneric):
         :return: Match object or None
         """
         found = self._regex_helper.search_compiled(self._re_prompt_after_login, line)
+        if not found and self.enter_on_prompt_without_anchors is True:
+            if self._regex_helper.search_compiled(self._re_prompt_after_login_without_anchors, line):
+                self.logger.info("Candidate for prompt after login '{}' in line '{}'.".format(
+                    self._re_prompt_after_login.pattern,
+                    line)
+                )
+                self.send_enter()
+                self.enter_on_prompt_without_anchors = False
         return found
 
     def _all_after_login_settings_sent(self):

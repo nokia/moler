@@ -4,7 +4,7 @@ Perform devices SM autotest.
 """
 
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2021, Nokia'
+__copyright__ = 'Copyright (C) 2019-2022, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import os
@@ -198,11 +198,12 @@ class RemoteConnection(ThreadedFifoBuffer):
 
             self.inject([self.input_bytes + binary_cmd_ret])
         except KeyError as exc:
-            raise MolerException(
-                "No output for cmd: '{}' in state '{}'!\n"
-                "Please update your device_output dict!\n"
-                "{}".format(cmd_data_string, self.device.state, exc)
-            )
+            if cmd_data_string != '':
+                raise MolerException(
+                    "No output for cmd: '{}' in state '{}'!\n"
+                    "Please update your device_output dict!\n"
+                    "{}".format(cmd_data_string, self.device.state, exc)
+                )
 
     def write(self, input_bytes):
         """
