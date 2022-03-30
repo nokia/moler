@@ -134,7 +134,6 @@ class TextualDevice(AbstractDevice):
         self._check_all_prompts_on_line = False
         self.last_wrong_wait4_occurrence = None  # Last occurrence from Wait4prompts if at least 2 prompts matched the
         # same line.
-        self._log(logging.INFO, "*** Candidate for pr 435 - v3. ***")
 
     def set_all_prompts_on_line(self, value=True):
         """
