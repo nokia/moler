@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Michal Ernst, Marcin Usielski, Tomasz Krol'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2022, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com, tomasz.krol@nokia.com'
 
 import codecs
@@ -65,6 +65,7 @@ class ThreadedTerminal(IOConnection):
         ret = super(ThreadedTerminal, self).open()
 
         if not self._terminal:
+            self.moler_connection.open()
             self._terminal = PtyProcessUnicode.spawn(self._cmd, dimensions=self.dimensions)
             self._terminal.delayafterclose = self._terminal_delayafterclose
             # need to not replace not unicode data instead of raise exception
@@ -93,14 +94,17 @@ class ThreadedTerminal(IOConnection):
         """Close ThreadedTerminal connection & stop pulling thread."""
         if self.pulling_thread:
             self.pulling_thread.join()
-            self.pulling_thread = None
         self.moler_connection.shutdown()
         super(ThreadedTerminal, self).close()
 
         if self._terminal and self._terminal.isalive():
             self._terminal.close(force=True)
-            self._terminal = None
             self._notify_on_disconnect()
+        self._terminal = None
+        self._shell_operable.clear()
+        self._export_sent = False
+        self.pulling_thread = None
+        self.read_buffer = ""
 
     def send(self, data):
         """Write data into ThreadedTerminal connection."""
@@ -127,6 +131,7 @@ class ThreadedTerminal(IOConnection):
             if self._terminal.fd in reads:
                 try:
                     data = self._terminal.read(self._read_buffer_size)
+                    if data:
                     if self.debug_hex_on_all_chars:
                         self.logger.debug("incoming data: '{}'.".format(all_chars_to_hex(data)))
                     if self.debug_hex_on_non_printable_chars:

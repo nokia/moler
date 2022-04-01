@@ -29,7 +29,7 @@ rather it is generic template how to glue external-IO with Moler's connection.
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2022, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import logging
@@ -74,6 +74,7 @@ class IOConnection(object):
 
         Return context manager to allow for:  with connection.open() as conn:
         """
+        self.moler_connection.open()
         return contextlib.closing(self)
 
     def close(self):

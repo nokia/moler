@@ -179,6 +179,7 @@ class TextualDevice(AbstractDevice):
         if self._established:
             return
         self.io_connection.open()
+        self.io_connection.moler_connection.open()
 
         self._collect_cmds_for_state_machine()
         self._collect_events_for_state_machine()
@@ -856,11 +857,13 @@ class TextualDevice(AbstractDevice):
         self._run_prompts_observers()
 
     def _open_connection(self, source_state, dest_state, timeout):
-        self.io_connection.open()
+        #self.io_connection.open()
+        self.establish_connection()
 
     def _close_connection(self, source_state, dest_state, timeout):
         self._stop_prompts_observers()
         self.io_connection.close()
+        self._established = False
 
     def _prompts_observer_callback(self, event):
         occurrence = event.get_last_occurrence()
