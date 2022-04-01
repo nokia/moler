@@ -39,6 +39,20 @@ DEVICES:
             password: login
             set_timeout: null
 
+  UNIX_REMOTE_REAL_IO:
+    DEVICE_CLASS: moler.device.unixremote.UnixRemote
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        UNIX_REMOTE:
+          execute_command: ssh # default value
+          command_params:
+            expected_prompt: 'remote#'
+            host: remote_host
+            login: remote_login
+            password: login
+            set_timeout: null
+
   UNIX_REMOTE_PROXY_PC:
     DEVICE_CLASS: moler.device.unixremote.UnixRemote
     INITIAL_STATE: UNIX_LOCAL
