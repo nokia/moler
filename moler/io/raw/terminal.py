@@ -131,7 +131,6 @@ class ThreadedTerminal(IOConnection):
             if self._terminal.fd in reads:
                 try:
                     data = self._terminal.read(self._read_buffer_size)
-                    if data:
                     if self.debug_hex_on_all_chars:
                         self.logger.debug("incoming data: '{}'.".format(all_chars_to_hex(data)))
                     if self.debug_hex_on_non_printable_chars:
