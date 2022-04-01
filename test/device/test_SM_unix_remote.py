@@ -136,7 +136,11 @@ def test_unix_remote_device_not_connected():
             cmd_whoami = unix_remote.get_cmd(cmd_name="whoami")
             cmd_whoami()
         assert "cmd is unknown for state 'NOT_CONNECTED'" in str(ex)
+        assert unix_remote.io_connection._terminal is None
+        assert unix_remote.io_connection.moler_connection.is_open() is False
         unix_remote.goto_state("UNIX_LOCAL")
+        assert unix_remote.io_connection._terminal is not None
+        assert unix_remote.io_connection.moler_connection.is_open() is True
         cmd_whoami = unix_remote.get_cmd(cmd_name="whoami")
         ret2 = cmd_whoami()
         assert ret1 == ret2
