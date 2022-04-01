@@ -857,7 +857,6 @@ class TextualDevice(AbstractDevice):
         self._run_prompts_observers()
 
     def _open_connection(self, source_state, dest_state, timeout):
-        #self.io_connection.open()
         self.establish_connection()
 
     def _close_connection(self, source_state, dest_state, timeout):
