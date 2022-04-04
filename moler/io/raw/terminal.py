@@ -98,8 +98,11 @@ class ThreadedTerminal(IOConnection):
         super(ThreadedTerminal, self).close()
 
         if self._terminal and self._terminal.isalive():
-            self._terminal.close(force=True)
             self._notify_on_disconnect()
+            try:
+                self._terminal.close(force=True)
+            except Exception as ex:
+                self.logger.warning("Exception while closing terminal: {}".format(ex))
         self._terminal = None
         self._shell_operable.clear()
         self._export_sent = False
