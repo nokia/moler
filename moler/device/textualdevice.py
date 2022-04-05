@@ -205,14 +205,10 @@ class TextualDevice(AbstractDevice):
 
         :return: None
         """
-        if not self.has_established_connection():
-            super(TextualDevice, self).remove()
-            return
-        self.goto_state(TextualDevice.not_connected)
-        if self.has_established_connection():
-            self._established = False
-            # self.io_connection.moler_connection.shutdown()
-            self.io_connection.close()
+        try:
+            self.goto_state(TextualDevice.not_connected, rerun=5)
+        except:
+            self._close_connection(None, None, None)
         super(TextualDevice, self).remove()
         msg = "Device '{}' is closed.".format(self.name)
         self._log(level=logging.INFO, msg=msg)
