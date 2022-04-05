@@ -207,7 +207,7 @@ class TextualDevice(AbstractDevice):
         """
         try:
             self.goto_state(TextualDevice.not_connected, rerun=5)
-        except:
+        except DeviceChangeStateFailure:
             self._close_connection(None, None, None)
         super(TextualDevice, self).remove()
         msg = "Device '{}' is closed.".format(self.name)
