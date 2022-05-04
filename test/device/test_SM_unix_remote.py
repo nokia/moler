@@ -1,13 +1,17 @@
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2022, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
 import time
+import os
 from moler.util.devices_SM import iterate_over_device_states, get_device, get_cloned_device, get_memory_device_connection
 from moler.exceptions import MolerException, DeviceChangeStateFailure
 from moler.helpers import copy_dict
 from moler.util.moler_test import MolerTest
+from moler.device import DeviceFactory
+from moler.config import load_config
+from moler.exceptions import DeviceFailure
 
 
 def test_unix_remote_device(device_connection, unix_remote_output):
@@ -116,6 +120,31 @@ def test_unix_remote_proxy_pc_device_goto_state_bg_await_excption(device_connect
     assert 'seconds there are still states to go' in str(de.value)
     unix_remote_proxy_pc.await_goto_state()
     assert unix_remote_proxy_pc.current_state == dst_state
+
+
+def test_unix_remote_device_not_connected():
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    load_config(os.path.join(dir_path, os.pardir, os.pardir, 'test', 'resources', 'device_config.yml'))
+    unix_remote = DeviceFactory.get_device(name="UNIX_REMOTE_REAL_IO", initial_state="UNIX_LOCAL")
+    unix_remote.goto_state("UNIX_LOCAL")
+    cmd_whoami = unix_remote.get_cmd(cmd_name="whoami")
+    ret1 = cmd_whoami()
+    execution = 0
+    while execution < 5:
+        unix_remote.goto_state("NOT_CONNECTED")
+        with pytest.raises(DeviceFailure) as ex:
+            cmd_whoami = unix_remote.get_cmd(cmd_name="whoami")
+            cmd_whoami()
+        assert "cmd is unknown for state 'NOT_CONNECTED'" in str(ex)
+        assert unix_remote.io_connection._terminal is None
+        assert unix_remote.io_connection.moler_connection.is_open() is False
+        unix_remote.goto_state("UNIX_LOCAL")
+        assert unix_remote.io_connection._terminal is not None
+        assert unix_remote.io_connection.moler_connection.is_open() is True
+        cmd_whoami = unix_remote.get_cmd(cmd_name="whoami")
+        ret2 = cmd_whoami()
+        assert ret1 == ret2
+        execution += 1
 
 
 @pytest.fixture

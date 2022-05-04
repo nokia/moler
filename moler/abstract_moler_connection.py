@@ -13,7 +13,7 @@ Connection responsibilities:
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2022, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
@@ -214,7 +214,7 @@ class AbstractMolerConnection(object):
 
         :return: None
         """
-        pass
+        self._is_open = True
 
     def is_open(self):
         """

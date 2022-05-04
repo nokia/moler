@@ -179,6 +179,7 @@ class TextualDevice(AbstractDevice):
         if self._established:
             return
         self.io_connection.open()
+        self.io_connection.moler_connection.open()
 
         self._collect_cmds_for_state_machine()
         self._collect_events_for_state_machine()
@@ -204,14 +205,10 @@ class TextualDevice(AbstractDevice):
 
         :return: None
         """
-        if not self.has_established_connection():
-            super(TextualDevice, self).remove()
-            return
-        self.goto_state(TextualDevice.not_connected)
-        if self.has_established_connection():
-            self._established = False
-            # self.io_connection.moler_connection.shutdown()
-            self.io_connection.close()
+        try:
+            self.goto_state(TextualDevice.not_connected, rerun=5)
+        except DeviceChangeStateFailure:
+            self._close_connection(None, None, None)
         super(TextualDevice, self).remove()
         msg = "Device '{}' is closed.".format(self.name)
         self._log(level=logging.INFO, msg=msg)
@@ -856,11 +853,12 @@ class TextualDevice(AbstractDevice):
         self._run_prompts_observers()
 
     def _open_connection(self, source_state, dest_state, timeout):
-        self.io_connection.open()
+        self.establish_connection()
 
     def _close_connection(self, source_state, dest_state, timeout):
         self._stop_prompts_observers()
         self.io_connection.close()
+        self._established = False
 
     def _prompts_observer_callback(self, event):
         occurrence = event.get_last_occurrence()
