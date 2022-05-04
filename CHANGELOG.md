@@ -2,7 +2,8 @@
 
 ### Improved
 
-* Improvement state NOT_CONNECTED in device SM. 
+* Improvement state NOT_CONNECTED in device SM.
+* SM can enter state if prompt regex matches a line without anchors.  
 
 ## moler 2.1.0
 
