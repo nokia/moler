@@ -1,3 +1,9 @@
+## moler 2.2.0
+
+### Improved
+
+* Improvement state NOT_CONNECTED in device SM. 
+
 ## moler 2.1.0
 
 ### Improved
