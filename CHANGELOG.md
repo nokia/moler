@@ -3,6 +3,7 @@
 ### Improved
 
 * Change deepdiff constraint: `deepdiff == 5.7.0; python_version > '3'`
+* Add Python: 3.3, 3.4, 3.5, 3.10 to CI
 
 ## moler 2.2.0
 
