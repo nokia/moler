@@ -1,3 +1,9 @@
+## moler 2.2.1
+
+### Improved
+
+* Change deepdiff constraint: `deepdiff == 5.7.0; python_version > '3'`
+
 ## moler 2.2.0
 
 ### Improved
