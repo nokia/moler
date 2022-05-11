@@ -6,8 +6,9 @@ transitions
 apscheduler == 3.8.1; python_version < '3'
 apscheduler; python_version > '3'
 trollius; python_version < '3'
-deepdiff == 3.3.0; python_version < '3'
-deepdiff == 5.7.0; python_version > '3' and python_version < '3.7'
+deepdiff == 3.3.0; python_version < '3.5'
+deepdiff == 5.0.2; python_version >= '3.5' and python_version < '3.6'
+deepdiff == 5.7.0; python_version >= '3.6' and python_version < '3.7'
 deepdiff; python_version >= '3.7'
 psutil
 python-dateutil
