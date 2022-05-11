@@ -166,6 +166,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_fu
         function_using_observer()
     ConnectionObserver.get_unraised_exceptions()
 
+
 def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_decorator_on_function(
         do_nothing_connection_observer,
         ObserverExceptionClass):
@@ -217,6 +218,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_d
     ConnectionObserver.get_unraised_exceptions()
 
 
+# don't test not supported behaviour. Will be repaired in a separate branch.
 # def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_classmethod(
 #         do_nothing_connection_observer,
 #         ObserverExceptionClass):
@@ -236,6 +238,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_d
 #     ConnectionObserver.get_unraised_exceptions()
 
 
+# don't test not supported behaviour. Will be repaired in a separate branch.
 # def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_decorator_on_classmethod(
 #         do_nothing_connection_observer,
 #         ObserverExceptionClass):
@@ -255,6 +258,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_d
 #     ConnectionObserver.get_unraised_exceptions()
 
 
+# don't test not supported behaviour. Will be repaired in a separate branch.
 # def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_staticmethod(
 #         do_nothing_connection_observer,
 #         ObserverExceptionClass):
@@ -274,6 +278,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_d
 #     ConnectionObserver.get_unraised_exceptions()
 
 
+# don't test not supported behaviour. Will be repaired in a separate branch.
 # def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_decorator_on_staticmethod(
 #         do_nothing_connection_observer,
 #         ObserverExceptionClass):
