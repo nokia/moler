@@ -236,10 +236,17 @@ class MolerTest(object):
 
     @classmethod
     def _decorate(cls, obj=None, check_steps_end=False):
-        # check that decorated function is not statimethod or classmethod
+
+        # check that decorated function is not staticmethod or classmethod
         if not obj:
             raise ExecutionException("Decorator for 'staticmethod' or 'classmethod' not implemented yet.",
                                      )
+        desc = next((desc for desc in (staticmethod, classmethod) if isinstance(obj, desc)), None)
+        if desc:
+            desc_str = str(desc)
+            if "classmethod" in desc_str or 'staticmethod' in desc_str:
+                raise ExecutionException("Decorator for 'staticmethod' or 'classmethod' not implemented yet.",
+                                         )
 
         if hasattr(obj, "__dict__"):
             if obj.__dict__.items():
