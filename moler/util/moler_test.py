@@ -243,10 +243,7 @@ class MolerTest(object):
                                      )
         desc = next((desc for desc in (staticmethod, classmethod) if isinstance(obj, desc)), None)
         if desc:
-            desc_str = str(desc)
-            if "classmethod" in desc_str or 'staticmethod' in desc_str:
-                raise ExecutionException("Decorator for 'staticmethod' or 'classmethod' not implemented yet.",
-                                         )
+            raise ExecutionException("Decorator for 'staticmethod' or 'classmethod' not implemented yet.")
 
         if hasattr(obj, "__dict__"):
             if obj.__dict__.items():
