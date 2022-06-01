@@ -218,84 +218,83 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_d
     ConnectionObserver.get_unraised_exceptions()
 
 
-# don't test not supported behaviour. Will be repaired in a separate branch.
-# def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_classmethod(
-#         do_nothing_connection_observer,
-#         ObserverExceptionClass):
-#     from moler.util.moler_test import MolerTest
-#     exc = ObserverExceptionClass("some error inside observer")
-#
-#     with pytest.raises(ExecutionException) as err:
-#         class MyTest(object):
-#             # TODO: Add later
-#             @MolerTest.raise_background_exceptions()
-#             @classmethod
-#             def method_using_observer(cls):
-#                 observer = do_nothing_connection_observer
-#                 observer.set_exception(exc)
-#
-#         MyTest.method_using_observer()
-#     ConnectionObserver.get_unraised_exceptions()
+def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_classmethod(
+        do_nothing_connection_observer,
+        ObserverExceptionClass):
+    from moler.util.moler_test import MolerTest
+    exc = ObserverExceptionClass("some error inside observer")
+
+    with pytest.raises(ExecutionException) as err:
+        class MyTest(object):
+            # TODO: Add later
+            @MolerTest.raise_background_exceptions()
+            @classmethod
+            def method_using_observer(cls):
+                observer = do_nothing_connection_observer
+                observer.set_exception(exc)
+
+        MyTest.method_using_observer()
+    assert "not implemented" in str(err)
+    ConnectionObserver.get_unraised_exceptions()
 
 
-# don't test not supported behaviour. Will be repaired in a separate branch.
-# def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_decorator_on_classmethod(
-#         do_nothing_connection_observer,
-#         ObserverExceptionClass):
-#     from moler.util.moler_test import MolerTest
-#     exc = ObserverExceptionClass("some error inside observer")
-#
-#     with pytest.raises(ExecutionException) as err:
-#         class MyTest(object):
-#             # TODO: Add later support for decorating classmethod and staticmethod
-#             @MolerTest.raise_background_exceptions
-#             @classmethod
-#             def method_using_observer(cls):
-#                 observer = do_nothing_connection_observer
-#                 observer.set_exception(exc)
-#
-#         MyTest.method_using_observer()
-#     ConnectionObserver.get_unraised_exceptions()
+def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_decorator_on_classmethod(
+        do_nothing_connection_observer,
+        ObserverExceptionClass):
+    from moler.util.moler_test import MolerTest
+    exc = ObserverExceptionClass("some error inside observer")
+
+    with pytest.raises(ExecutionException) as err:
+        class MyTest(object):
+            # TODO: Add later support for decorating classmethod and staticmethod
+            @MolerTest.raise_background_exceptions
+            @classmethod
+            def method_using_observer(cls):
+                observer = do_nothing_connection_observer
+                observer.set_exception(exc)
+
+        MyTest.method_using_observer()
+    assert "not implemented" in str(err)
+    ConnectionObserver.get_unraised_exceptions()
 
 
-# don't test not supported behaviour. Will be repaired in a separate branch.
-# def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_staticmethod(
-#         do_nothing_connection_observer,
-#         ObserverExceptionClass):
-#     from moler.util.moler_test import MolerTest
-#     exc = ObserverExceptionClass("some error inside observer")
-#
-#     with pytest.raises(ExecutionException) as err:
-#         class MyTest(object):
-#             # TODO: Add later support for decorating classmethod and staticmethod
-#             @MolerTest.raise_background_exceptions()
-#             @staticmethod
-#             def method_using_observer():
-#                 observer = do_nothing_connection_observer
-#                 observer.set_exception(exc)
-#
-#         MyTest.method_using_observer()
-#     ConnectionObserver.get_unraised_exceptions()
+def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_staticmethod(
+        do_nothing_connection_observer,
+        ObserverExceptionClass):
+    from moler.util.moler_test import MolerTest
+    exc = ObserverExceptionClass("some error inside observer")
+
+    with pytest.raises(ExecutionException) as err:
+        class MyTest(object):
+            # TODO: Add later support for decorating classmethod and staticmethod
+            @MolerTest.raise_background_exceptions()
+            @staticmethod
+            def method_using_observer():
+                observer = do_nothing_connection_observer
+                observer.set_exception(exc)
+
+        MyTest.method_using_observer()
+    assert "not implemented" in str(err)
+    ConnectionObserver.get_unraised_exceptions()
 
 
-# don't test not supported behaviour. Will be repaired in a separate branch.
-# def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_decorator_on_staticmethod(
-#         do_nothing_connection_observer,
-#         ObserverExceptionClass):
-#     from moler.util.moler_test import MolerTest
-#     exc = ObserverExceptionClass("some error inside observer")
-#
-#     with pytest.raises(ExecutionException) as err:
-#         class MyTest(object):
-#             # TODO: Add later
-#             @MolerTest.raise_background_exceptions
-#             @staticmethod
-#             def method_using_observer():
-#                 observer = do_nothing_connection_observer
-#                 observer.set_exception(exc)
-#
-#         MyTest.method_using_observer()
-#     ConnectionObserver.get_unraised_exceptions()
+def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_decorator_on_staticmethod(
+        do_nothing_connection_observer,
+        ObserverExceptionClass):
+    from moler.util.moler_test import MolerTest
+    exc = ObserverExceptionClass("some error inside observer")
+
+    with pytest.raises(ExecutionException) as err:
+        class MyTest(object):
+            # TODO: Add later
+            @MolerTest.raise_background_exceptions
+            @staticmethod
+            def method_using_observer():
+                observer = do_nothing_connection_observer
+                observer.set_exception(exc)
+
+        MyTest.method_using_observer()
+    ConnectionObserver.get_unraised_exceptions()
 
 
 def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_class(do_nothing_connection_observer,

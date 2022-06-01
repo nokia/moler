@@ -1,3 +1,9 @@
+## moler 2.3.0
+
+### Improved
+
+* MolerTest.raise_background_exceptions - Python 3.10 
+
 ## moler 2.2.1
 
 ### Improved
