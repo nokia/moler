@@ -226,15 +226,14 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_cl
 
     with pytest.raises(ExecutionException) as err:
         class MyTest(object):
-            # TODO: Add later
-            @MolerTest.raise_background_exceptions()
             @classmethod
+            @MolerTest.raise_background_exceptions()
             def method_using_observer(cls):
                 observer = do_nothing_connection_observer
                 observer.set_exception(exc)
 
         MyTest.method_using_observer()
-    assert "not implemented" in str(err)
+    assert "some error inside observer" in str(err)
     ConnectionObserver.get_unraised_exceptions()
 
 
@@ -247,14 +246,14 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_d
     with pytest.raises(ExecutionException) as err:
         class MyTest(object):
             # TODO: Add later support for decorating classmethod and staticmethod
-            @MolerTest.raise_background_exceptions
             @classmethod
+            @MolerTest.raise_background_exceptions
             def method_using_observer(cls):
                 observer = do_nothing_connection_observer
                 observer.set_exception(exc)
 
         MyTest.method_using_observer()
-    assert "not implemented" in str(err)
+    assert "some error inside observer" in str(err)
     ConnectionObserver.get_unraised_exceptions()
 
 
@@ -266,15 +265,14 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_st
 
     with pytest.raises(ExecutionException) as err:
         class MyTest(object):
-            # TODO: Add later support for decorating classmethod and staticmethod
-            @MolerTest.raise_background_exceptions()
             @staticmethod
+            @MolerTest.raise_background_exceptions()
             def method_using_observer():
                 observer = do_nothing_connection_observer
                 observer.set_exception(exc)
 
         MyTest.method_using_observer()
-    assert "not implemented" in str(err)
+    assert "some error inside observer" in str(err)
     ConnectionObserver.get_unraised_exceptions()
 
 
@@ -286,14 +284,14 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_d
 
     with pytest.raises(ExecutionException) as err:
         class MyTest(object):
-            # TODO: Add later
-            @MolerTest.raise_background_exceptions
             @staticmethod
+            @MolerTest.raise_background_exceptions
             def method_using_observer():
                 observer = do_nothing_connection_observer
                 observer.set_exception(exc)
 
         MyTest.method_using_observer()
+    assert "some error inside observer" in str(err)
     ConnectionObserver.get_unraised_exceptions()
 
 
@@ -465,3 +463,4 @@ def ObserverExceptionClass():
         pass
 
     return ObserverException
+
