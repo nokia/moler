@@ -4,6 +4,7 @@ __author__ = 'Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018-2022, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
+import sys
 import pytest
 
 from moler.connection_observer import ConnectionObserver
@@ -223,7 +224,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_cl
         ObserverExceptionClass):
     from moler.util.moler_test import MolerTest
     exc = ObserverExceptionClass("some error inside observer")
-
+    ConnectionObserver.get_unraised_exceptions()
     with pytest.raises(ExecutionException) as err:
         class MyTest(object):
             @classmethod
@@ -233,8 +234,12 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_cl
                 observer.set_exception(exc)
 
         MyTest.method_using_observer()
-    assert "some error inside observer" in str(err)
-    ConnectionObserver.get_unraised_exceptions()
+    if sys.version_info >= (3, 0):
+        assert "some error inside observer" in str(err)
+    else:
+        assert "There were unhandled exceptions from test caught by Moler" in str(err)
+    exceptions = ConnectionObserver.get_unraised_exceptions()
+    assert 0 == len(exceptions)
 
 
 def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_decorator_on_classmethod(
@@ -242,7 +247,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_d
         ObserverExceptionClass):
     from moler.util.moler_test import MolerTest
     exc = ObserverExceptionClass("some error inside observer")
-
+    ConnectionObserver.get_unraised_exceptions()
     with pytest.raises(ExecutionException) as err:
         class MyTest(object):
             # TODO: Add later support for decorating classmethod and staticmethod
@@ -253,8 +258,12 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_d
                 observer.set_exception(exc)
 
         MyTest.method_using_observer()
-    assert "some error inside observer" in str(err)
-    ConnectionObserver.get_unraised_exceptions()
+    if sys.version_info >= (3, 0):
+        assert "some error inside observer" in str(err)
+    else:
+        assert "There were unhandled exceptions from test caught by Moler" in str(err)
+    exceptions = ConnectionObserver.get_unraised_exceptions()
+    assert 0 == len(exceptions)
 
 
 def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_staticmethod(
@@ -262,7 +271,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_st
         ObserverExceptionClass):
     from moler.util.moler_test import MolerTest
     exc = ObserverExceptionClass("some error inside observer")
-
+    ConnectionObserver.get_unraised_exceptions()
     with pytest.raises(ExecutionException) as err:
         class MyTest(object):
             @staticmethod
@@ -272,8 +281,12 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_st
                 observer.set_exception(exc)
 
         MyTest.method_using_observer()
-    assert "some error inside observer" in str(err)
-    ConnectionObserver.get_unraised_exceptions()
+    if sys.version_info >= (3, 0):
+        assert "some error inside observer" in str(err)
+    else:
+        assert "There were unhandled exceptions from test caught by Moler" in str(err)
+    exceptions = ConnectionObserver.get_unraised_exceptions()
+    assert 0 == len(exceptions)
 
 
 def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_decorator_on_staticmethod(
@@ -281,7 +294,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_d
         ObserverExceptionClass):
     from moler.util.moler_test import MolerTest
     exc = ObserverExceptionClass("some error inside observer")
-
+    ConnectionObserver.get_unraised_exceptions()
     with pytest.raises(ExecutionException) as err:
         class MyTest(object):
             @staticmethod
@@ -291,8 +304,12 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_d
                 observer.set_exception(exc)
 
         MyTest.method_using_observer()
-    assert "some error inside observer" in str(err)
-    ConnectionObserver.get_unraised_exceptions()
+    if sys.version_info >= (3, 0):
+        assert "some error inside observer" in str(err)
+    else:
+        assert "There were unhandled exceptions from test caught by Moler" in str(err)
+    exceptions = ConnectionObserver.get_unraised_exceptions()
+    assert 0 == len(exceptions)
 
 
 def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_class(do_nothing_connection_observer,
