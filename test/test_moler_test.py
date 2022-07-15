@@ -12,6 +12,12 @@ from moler.exceptions import ExecutionException
 from moler.util.moler_test import MolerTest
 
 
+def __check_connection_observer_execption(err):
+    if sys.version_info >= (3, 0):
+        assert "some error inside observer" in str(err)
+    else:
+        assert "There were unhandled exceptions from test caught by Moler" in str(err)
+
 def test_moler_test_warn():
     ConnectionObserver.get_unraised_exceptions()
     MolerTest.warning("Warning test")
@@ -166,10 +172,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_fu
 
     with pytest.raises(ExecutionException) as err:
         function_using_observer()
-    if sys.version_info >= (3, 0):
-        assert "some error inside observer" in str(err)
-    else:
-        assert "There were unhandled exceptions from test caught by Moler" in str(err)
+    __check_connection_observer_execption(err)
     exceptions = ConnectionObserver.get_unraised_exceptions()
     assert 0 == len(exceptions)
 
@@ -203,10 +206,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_me
 
     with pytest.raises(ExecutionException) as err:
         MyTest().method_using_observer()
-    if sys.version_info >= (3, 0):
-        assert "some error inside observer" in str(err)
-    else:
-        assert "There were unhandled exceptions from test caught by Moler" in str(err)
+    __check_connection_observer_execption(err)
     exceptions = ConnectionObserver.get_unraised_exceptions()
     assert 0 == len(exceptions)
 
@@ -243,10 +243,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_cl
                 observer.set_exception(exc)
 
         MyTest.method_using_observer()
-    if sys.version_info >= (3, 0):
-        assert "some error inside observer" in str(err)
-    else:
-        assert "There were unhandled exceptions from test caught by Moler" in str(err)
+    __check_connection_observer_execption(err)
     exceptions = ConnectionObserver.get_unraised_exceptions()
     assert 0 == len(exceptions)
 
@@ -266,10 +263,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_d
                 observer.set_exception(exc)
 
         MyTest.method_using_observer()
-    if sys.version_info >= (3, 0):
-        assert "some error inside observer" in str(err)
-    else:
-        assert "There were unhandled exceptions from test caught by Moler" in str(err)
+    __check_connection_observer_execption(err)
     exceptions = ConnectionObserver.get_unraised_exceptions()
     assert 0 == len(exceptions)
 
@@ -289,10 +283,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_st
                 observer.set_exception(exc)
 
         MyTest.method_using_observer()
-    if sys.version_info >= (3, 0):
-        assert "some error inside observer" in str(err)
-    else:
-        assert "There were unhandled exceptions from test caught by Moler" in str(err)
+    __check_connection_observer_execption(err)
     exceptions = ConnectionObserver.get_unraised_exceptions()
     assert 0 == len(exceptions)
 
@@ -312,10 +303,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_parameterless_d
                 observer.set_exception(exc)
 
         MyTest.method_using_observer()
-    if sys.version_info >= (3, 0):
-        assert "some error inside observer" in str(err)
-    else:
-        assert "There were unhandled exceptions from test caught by Moler" in str(err)
+    __check_connection_observer_execption(err)
     exceptions = ConnectionObserver.get_unraised_exceptions()
     assert 0 == len(exceptions)
 
@@ -333,10 +321,7 @@ def test_exception_in_observer_is_raised_if_no_result_called_but_decorator_on_cl
 
     with pytest.raises(ExecutionException) as err:
         MyTest().method_using_observer()
-    if sys.version_info >= (3, 0):
-        assert "some error inside observer" in str(err)
-    else:
-        assert "There were unhandled exceptions from test caught by Moler" in str(err)
+    __check_connection_observer_execption(err)
     exceptions = ConnectionObserver.get_unraised_exceptions()
     assert 0 == len(exceptions)
 
