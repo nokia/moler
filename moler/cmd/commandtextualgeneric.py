@@ -521,3 +521,9 @@ class CommandTextualGeneric(Command):
             return
         if self.break_exec_regex is not None and self._regex_helper.search_compiled(self.break_exec_regex, line):
             self.break_cmd()
+
+    def __str__(self):
+        base_str = super(CommandTextualGeneric, self).__str__()
+        expected_prompt = self._re_prompt.pattern
+        # having expected prompt visible simplifies troubleshooting
+        return "{}, prompt_regex:r'{}')".format(base_str[:-1], expected_prompt)

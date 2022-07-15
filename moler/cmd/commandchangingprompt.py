@@ -190,8 +190,8 @@ class CommandChangingPrompt(CommandTextualGeneric):
         found = self._regex_helper.search_compiled(self._re_expected_prompt, line)
         if not found and self.enter_on_prompt_without_anchors is True:
             if self._regex_helper.search_compiled(self._re_expected_prompt_without_anchors, line):
-                self.logger.info("Candidate for expected prompt '{}' in line '{}'.".format(
-                    self._re_expected_prompt.pattern,
+                self.logger.info("Candidate for expected prompt '{}' (used without anchors:'{}') in line '{}'.".format(
+                    self._re_expected_prompt.pattern, self._re_expected_prompt_without_anchors.pattern,
                     line)
                 )
                 self.send_enter()
