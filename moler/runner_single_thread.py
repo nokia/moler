@@ -5,7 +5,7 @@ Moler implementation of Runner with single thread for MolerConnection: MolerConn
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2021, Nokia'
+__copyright__ = 'Copyright (C) 2021-2022, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 
@@ -86,9 +86,11 @@ class RunnerSingleThread(ConnectionObserverRunner):
             start_time = current_time if max_timeout else connection_observer.life_status.start_time
             await_timeout = max_timeout if max_timeout else observer_timeout
             if max_timeout:
-                remain_time, msg = his_remaining_time("await max.", timeout=max_timeout, from_start_time=start_time)
+                remain_time, msg = RunnerSingleThread._its_remaining_time("await max.", timeout=max_timeout,
+                                                                          from_start_time=start_time)
             else:
-                remain_time, msg = his_remaining_time("remaining", timeout=observer_timeout, from_start_time=start_time)
+                remain_time, msg = RunnerSingleThread._its_remaining_time("remaining", timeout=observer_timeout,
+                                                                          from_start_time=start_time)
             self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
             connection_observer.life_status.start_time = start_time
             self._execute_till_eol(connection_observer=connection_observer,
@@ -159,8 +161,32 @@ class RunnerSingleThread(ConnectionObserverRunner):
                 moler_connection = connection_observer.connection
                 moler_connection.subscribe_connection_observer(connection_observer=connection_observer)
                 self._connections_observers.append(connection_observer)
+                _, msg = RunnerSingleThread._its_remaining_time(
+                    prefix="remaining", timeout=connection_observer.timeout,
+                    from_start_time=connection_observer.life_status.start_time
+                )
+                connection_observer._log(logging.INFO,
+                                         "{} started, {}".format(connection_observer.get_long_desc(), msg))
                 self._start_command(connection_observer=connection_observer)
                 connection_observer.life_status.last_feed_time = time.time()
+
+    @classmethod
+    def _its_remaining_time(cls, prefix, timeout, from_start_time):
+        """
+        Calculate remaining time of "the" object assuming that it has .life_status.start_time attribute
+
+        :param prefix: string to be used inside 'remaining time description'
+        :param he: object to calculate remaining time for
+        :param timeout: max lifetime of object
+        :param from_start_time: start of lifetime for the object
+        :return: remaining time as float and related description message
+        """
+        already_passed = time.time() - from_start_time
+        remain_time = timeout - already_passed
+        if remain_time < 0.0:
+            remain_time = 0.0
+        msg = "{} {:.3f} [sec], already passed {:.3f} [sec]".format(prefix, remain_time, already_passed)
+        return remain_time, msg
 
     def _execute_till_eol(self, connection_observer, max_timeout, await_timeout, remain_time):
         """
@@ -354,6 +380,12 @@ class RunnerSingleThread(ConnectionObserverRunner):
         for connection_observer in self._copy_of_connections_observers:
             if connection_observer.done():
                 self._to_remove_connection_observers.append(connection_observer)
+                _, msg = RunnerSingleThread._its_remaining_time(
+                    "remaining", timeout=connection_observer.timeout,
+                    from_start_time=connection_observer.life_status.start_time
+                )
+                connection_observer._log(logging.INFO,
+                                         "{} finished, {}".format(connection_observer.get_short_desc(), msg))
         if self._to_remove_connection_observers:
             with self._connection_observer_lock:
                 for connection_observer in self._to_remove_connection_observers:
@@ -373,20 +405,3 @@ class RunnerSingleThread(ConnectionObserverRunner):
         """
         if connection_observer.is_command():
             connection_observer.send_command()
-
-
-def his_remaining_time(prefix, timeout, from_start_time):
-    """
-    Calculate remaining time of "he" object assuming that "he" has .life_status.start_time attribute
-    :param prefix: string to be used inside 'remaining time description'
-    :param he: object to calculate remaining time for
-    :param timeout: max lifetime of object
-    :param from_start_time: start of lifetime for the object
-    :return: remaining time as float and related description message
-    """
-    already_passed = time.time() - from_start_time
-    remain_time = timeout - already_passed
-    if remain_time < 0.0:
-        remain_time = 0.0
-    msg = "{} {:.3f} [sec], already passed {:.3f} [sec]".format(prefix, remain_time, already_passed)
-    return remain_time, msg
