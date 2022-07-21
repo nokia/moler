@@ -64,12 +64,13 @@ class Iperf2(GenericUnixCommand, Publisher):
       ("192.168.0.10", "5016@192.168.0.12"): {'report': {<report dict here>}}
 
     """
-    def __init__(self, connection, options, prompt=None, newline_chars=None, runner=None):
+    def __init__(self, connection, options, path='', prompt=None, newline_chars=None, runner=None):
         """
         Create iperf2 command
 
         :param connection: moler connection used by iperf command
         :param options: iperf options (as in iperf documentation)
+        :param path: source path of iperf application
         :param prompt: prompt (regexp) where iperf starts from, if None - default prompt regexp used
         :param newline_chars: expected newline characters of iperf output
         :param runner: runner used for command
@@ -86,6 +87,7 @@ class Iperf2(GenericUnixCommand, Publisher):
         self._got_server_report_hdr = False
         self._got_server_report = False
         self._stopping_server = False
+        self._iperf_path = path
 
     def __str__(self):
         str_base_value = super(Iperf2, self).__str__()
@@ -104,7 +106,7 @@ class Iperf2(GenericUnixCommand, Publisher):
         return port, options
 
     def build_command_string(self):
-        cmd = 'iperf ' + str(self.options)
+        cmd = self._iperf_path + 'iperf ' + str(self.options)
         return cmd
 
     @property
