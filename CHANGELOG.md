@@ -2,7 +2,8 @@
 
 ### Improved
 
-* MolerTest.raise_background_exceptions - Python 3.10 
+* Mark ConnectionObserver objects start and end in logs
+* MolerTest.raise_background_exceptions - Python 3.10
 
 ## moler 2.2.1
 
