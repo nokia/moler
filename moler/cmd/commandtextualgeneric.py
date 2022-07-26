@@ -524,6 +524,8 @@ class CommandTextualGeneric(Command):
 
     def __str__(self):
         base_str = super(CommandTextualGeneric, self).__str__()
-        expected_prompt = self._re_prompt.pattern
+        expected_prompt = "[NOT_SET]"
+        if self._re_prompt:
+            expected_prompt = self._re_prompt.pattern
         # having expected prompt visible simplifies troubleshooting
         return "{}, prompt_regex:r'{}')".format(base_str[:-1], expected_prompt)

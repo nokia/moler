@@ -1,3 +1,9 @@
+## moler 2.3.1
+
+### Improved
+
+* Add support for commands when prompt is not set
+
 ## moler 2.3.0
 
 ### Improved
