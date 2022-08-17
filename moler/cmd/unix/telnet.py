@@ -77,6 +77,15 @@ class Telnet(GenericTelnetSsh):
         # Internal variables
         self._telnet_command_mode = False
 
+    def data_received(self, data, recv_time):
+        msg = "\n0x"
+        for ch in data:
+            msg += " {:02X}".format(ord(ch))
+        msg += "\n"
+        self.logger.info(msg)
+
+        return super(Telnet, self).data_received(data=data, recv_time=recv_time)
+
     def build_command_string(self):
         """
         Builds command string from parameters passed to object.
