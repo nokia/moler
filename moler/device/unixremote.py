@@ -446,7 +446,7 @@ class UnixRemote(ProxyPc):
 
         if not available:
             if state == UnixRemote.unix_remote or state == UnixRemote.unix_remote_root:
-                available = {UnixRemote.cmds: ['moler.cmd.unix'],
+                available = {UnixRemote.cmds: ['moler.cmd.unix, moler.cmd.adb'],
                              UnixRemote.events: ['moler.events.shared', 'moler.events.unix']}
             if available:
                 return available[observer]
