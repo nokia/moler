@@ -201,8 +201,9 @@ class RemoteConnection(ThreadedFifoBuffer):
             if cmd_data_string != '':
                 raise MolerException(
                     "No output for cmd: '{}' in state '{}'!\n"
+                    "Available outputs for state: {}\n"
                     "Please update your device_output dict!\n"
-                    "{}".format(cmd_data_string, self.device.state, exc)
+                    "{}".format(cmd_data_string, self.device.state, self.data[self.device.state].keys(), exc)
                 )
 
     def write(self, input_bytes):
