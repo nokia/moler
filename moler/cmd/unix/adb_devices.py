@@ -9,11 +9,11 @@ __email__ = 'marcin.usielski@nokia.com'
 
 import re
 
-from moler.cmd.adb.generic_adb_command import GenericAdbCommand
+from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
 
 
-class AdbDevices(GenericAdbCommand):
+class AdbDevices(GenericUnixCommand):
 
     def __init__(self, connection=None, prompt=None, newline_chars=None, runner=None, options=None):
         """

@@ -6,10 +6,10 @@ __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2022, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
-from moler.cmd.adb.generic_adb_command import GenericAdbCommand
+from moler.cmd.unix.genericunix import GenericUnixCommand
 
 
-class AdbForward(GenericAdbCommand):
+class AdbForward(GenericUnixCommand):
 
     def __init__(self, options, connection=None, prompt=None, newline_chars=None, runner=None):
         """
