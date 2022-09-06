@@ -200,7 +200,7 @@ class RemoteConnection(ThreadedFifoBuffer):
         except KeyError as exc:
             if cmd_data_string != '':
                 raise MolerException(
-                    "No output for cmd: '{}' in state '{}'!\n"                    
+                    "No output for cmd: '{}' in state '{}'!\n"
                     "Please update your device_output dict!\n"
                     "{}".format(cmd_data_string, self.device.state, exc)
                 )
