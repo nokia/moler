@@ -200,7 +200,6 @@ class RemoteConnection(ThreadedFifoBuffer):
 
             self.inject([self.input_bytes + binary_cmd_ret])
         except KeyError as exc:
-            #if self.device.state != 'NOT_CONNECTED':
             raise MolerException(
                 "No output for cmd: '{}' in state '{}'!\n"
                 "Available outputs for the state: {}\n"
