@@ -186,6 +186,8 @@ class RemoteConnection(ThreadedFifoBuffer):
         """
         Inject response on connection.
         """
+        if self.device.state == 'NOT_CONNECTED':
+            raise MolerException("Device '{}' in unsupported state '{}'.".format(self.device.name, self.device.state))
         cmd_data_string = self.input_bytes.decode("utf-8")
         if cmd_data_string:
             if '\n' in cmd_data_string:
@@ -198,13 +200,13 @@ class RemoteConnection(ThreadedFifoBuffer):
 
             self.inject([self.input_bytes + binary_cmd_ret])
         except KeyError as exc:
-            if cmd_data_string != '':
-                raise MolerException(
-                    "No output for cmd: '{}' in state '{}'!\n"
-                    "Available outputs for the state: {}\n"
-                    "Please update your device_output dict!\n"
-                    "{}".format(cmd_data_string, self.device.state, self.data[self.device.state].keys(), exc)
-                )
+            #if self.device.state != 'NOT_CONNECTED':
+            raise MolerException(
+                "No output for cmd: '{}' in state '{}'!\n"
+                "Available outputs for the state: {}\n"
+                "Please update your device_output dict!\n"
+                "{}".format(cmd_data_string, self.device.state, self.data[self.device.state].keys(), exc)
+            )
 
     def write(self, input_bytes):
         """
