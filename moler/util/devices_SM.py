@@ -107,6 +107,7 @@ def _start_device_tests(source_device, tested, states_to_test, max_time, new_dev
 def _perform_device_tests(device, tested, states_to_test, max_time):
     device.set_all_prompts_on_line(True)
     start_time = time.time()
+    test_nr = 0
     while 0 < states_to_test.qsize():
         source_state, target_state = states_to_test.get(0)
         if (source_state, target_state) in tested:
@@ -122,7 +123,9 @@ def _perform_device_tests(device, tested, states_to_test, max_time):
                 raise MolerException(msg)
         except Exception as exc:
             raise MolerException(
-                "Cannot trigger change state: '{}' -> '{}'\n{}".format(source_state, target_state, exc))
+                "Cannot trigger change state: '{}' -> '{}'. Successful tests: {}\n{}".format(
+                    source_state, target_state, test_nr, exc))
+        test_nr += 1
         if max_time is not None and time.time() - start_time > max_time:
             return
 
