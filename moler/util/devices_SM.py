@@ -203,11 +203,15 @@ class RemoteConnection(ThreadedFifoBuffer):
 
             self.inject([self.input_bytes + binary_cmd_ret])
         except KeyError as exc:
+            try:
+                available_outputs = self.data[self.device.state].keys()
+            except (KeyError, AttributeError):
+                available_outputs = "No output for state '{}'. Data: '{}'.".format(self.device.stata, self.data)
             raise MolerException(
                 "No output for cmd: '{}' in state '{}'!\n"
-                "Available outputs for the state: {}\n"
+                "Available outputs for the state: '{}'.\n"
                 "Please update your device_output dict!\n"
-                "{}".format(cmd_data_string, self.device.state, self.data[self.device.state].keys(), exc)
+                "{}".format(cmd_data_string, self.device.state, available_outputs, exc)
             )
 
     def write(self, input_bytes):
