@@ -81,12 +81,13 @@ class AdbDevices(GenericUnixCommand):
             kind = self._regex_helper.group("TYPE")
             raw = self._regex_helper.group('RAW')
             self.current_ret['DEVICES'][name] = dict()
+            self.current_ret['DEVICES'][name]['DETAILS'] = dict()
             self.current_ret['DEVICES'][name]['NAME'] = name
             self.current_ret['DEVICES'][name]['TYPE'] = kind
-            self.current_ret['DEVICES'][name]['raw'] = raw
+            self.current_ret['DEVICES'][name]['DETAILS']['raw'] = raw
             for subelement in raw.split():
                 token_name, token_value = subelement.split(":")
-                self.current_ret['DEVICES'][name][token_name] = token_value
+                self.current_ret['DEVICES'][name]['DETAILS'][token_name] = token_value
             raise ParsingDone()
 
 
@@ -117,10 +118,12 @@ COMMAND_RESULT_more = {
         'emulator-4356': {
             'NAME': 'emulator-4356',
             'TYPE': 'device',
-            'raw': 'product:sdk_google_phone_x86_64 model:Android_SDK_built_for_x86_64 device:generic_x86_64',
-            'product': 'sdk_google_phone_x86_64',
-            'model': 'Android_SDK_built_for_x86_64',
-            'device': 'generic_x86_64'
+            'DETAILS': {
+                'raw': 'product:sdk_google_phone_x86_64 model:Android_SDK_built_for_x86_64 device:generic_x86_64',
+                'product': 'sdk_google_phone_x86_64',
+                'model': 'Android_SDK_built_for_x86_64',
+                'device': 'generic_x86_64',
+            }
         }
     },
 }
