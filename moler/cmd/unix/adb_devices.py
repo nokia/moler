@@ -73,18 +73,18 @@ class AdbDevices(GenericUnixCommand):
             raise ParsingDone()
 
     # emulator-5556 device product:sdk_google_phone_x86_64 model:Android_SDK_built_for_x86_64 device:generic_x86_64
-    _re_more_elements = re.compile(r"(?P<NAME>\S+)\s+(?P<TYPE>\S+)\s+(?P<REST>\S.*\S)")
+    _re_more_elements = re.compile(r"(?P<NAME>\S+)\s+(?P<TYPE>\S+)\s+(?P<RAW>\S.*\S)")
 
     def _device_more_elements(self, line):
         if self._regex_helper.search_compiled(AdbDevices._re_more_elements, line):
             name = self._regex_helper.group("NAME")
             kind = self._regex_helper.group("TYPE")
-            rest = self._regex_helper.group('REST')
+            raw = self._regex_helper.group('RAW')
             self.current_ret['DEVICES'][name] = dict()
             self.current_ret['DEVICES'][name]['NAME'] = name
             self.current_ret['DEVICES'][name]['TYPE'] = kind
-            self.current_ret['DEVICES'][name]['REST'] = rest
-            for subelement in rest.split():
+            self.current_ret['DEVICES'][name]['raw'] = raw
+            for subelement in raw.split():
                 token_name, token_value = subelement.split(":")
                 self.current_ret['DEVICES'][name][token_name] = token_value
             raise ParsingDone()
@@ -117,7 +117,7 @@ COMMAND_RESULT_more = {
         'emulator-4356': {
             'NAME': 'emulator-4356',
             'TYPE': 'device',
-            'REST': 'product:sdk_google_phone_x86_64 model:Android_SDK_built_for_x86_64 device:generic_x86_64',
+            'raw': 'product:sdk_google_phone_x86_64 model:Android_SDK_built_for_x86_64 device:generic_x86_64',
             'product': 'sdk_google_phone_x86_64',
             'model': 'Android_SDK_built_for_x86_64',
             'device': 'generic_x86_64'
