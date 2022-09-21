@@ -107,6 +107,7 @@ def _start_device_tests(source_device, tested, states_to_test, max_time, new_dev
 def _perform_device_tests(device, tested, states_to_test, max_time):
     device.set_all_prompts_on_line(True)
     start_time = time.time()
+    test_nr = 0
     while 0 < states_to_test.qsize():
         source_state, target_state = states_to_test.get(0)
         if (source_state, target_state) in tested:
@@ -118,11 +119,14 @@ def _perform_device_tests(device, tested, states_to_test, max_time):
             device.goto_state(target_state, keep_state=False, rerun=0)
             tested.add((source_state, target_state))
             if device.last_wrong_wait4_occurrence is not None:
-                msg = "More than 1 prompt match the same line!: '{}'".format(device.last_wrong_wait4_occurrence)
+                msg = "More than 1 prompt match the same line!: '{}' in change state {} -> {} -> {}".format(
+                    device.last_wrong_wait4_occurrence, state_before_test, state_before_test, source_state)
                 raise MolerException(msg)
         except Exception as exc:
             raise MolerException(
-                "Cannot trigger change state: '{}' -> '{}'\n{}".format(source_state, target_state, exc))
+                "Cannot trigger change state: '{}' -> '{}'. Successful tests: {}\n{}\nAlready tested '{}'.".format(
+                    source_state, target_state, test_nr, exc, tested))
+        test_nr += 1
         if max_time is not None and time.time() - start_time > max_time:
             return
 
@@ -186,6 +190,8 @@ class RemoteConnection(ThreadedFifoBuffer):
         """
         Inject response on connection.
         """
+        if self.device.state == 'NOT_CONNECTED':
+            raise MolerException("Device '{}' in unsupported state '{}'.".format(self.device.name, self.device.state))
         cmd_data_string = self.input_bytes.decode("utf-8")
         if cmd_data_string:
             if '\n' in cmd_data_string:
@@ -198,12 +204,16 @@ class RemoteConnection(ThreadedFifoBuffer):
 
             self.inject([self.input_bytes + binary_cmd_ret])
         except KeyError as exc:
-            if cmd_data_string != '':
-                raise MolerException(
-                    "No output for cmd: '{}' in state '{}'!\n"
-                    "Please update your device_output dict!\n"
-                    "{}".format(cmd_data_string, self.device.state, exc)
-                )
+            try:
+                available_outputs = self.data[self.device.state].keys()
+            except (KeyError, AttributeError):
+                available_outputs = "No output for state '{}'. Data: '{}'.".format(self.device.stata, self.data)
+            raise MolerException(
+                "No output for cmd: '{}' in state '{}'!\n"
+                "Available outputs for the state: '{}'.\n"
+                "Please update your device_output dict!\n"
+                "{}".format(cmd_data_string, self.device.state, available_outputs, exc)
+            )
 
     def write(self, input_bytes):
         """
