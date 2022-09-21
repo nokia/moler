@@ -119,12 +119,13 @@ def _perform_device_tests(device, tested, states_to_test, max_time):
             device.goto_state(target_state, keep_state=False, rerun=0)
             tested.add((source_state, target_state))
             if device.last_wrong_wait4_occurrence is not None:
-                msg = "More than 1 prompt match the same line!: '{}'".format(device.last_wrong_wait4_occurrence)
+                msg = "More than 1 prompt match the same line!: '{}' in change state {} -> {} -> {}".format(
+                    device.last_wrong_wait4_occurrence, state_before_test, state_before_test, source_state)
                 raise MolerException(msg)
         except Exception as exc:
             raise MolerException(
-                "Cannot trigger change state: '{}' -> '{}'. Successful tests: {}\n{}".format(
-                    source_state, target_state, test_nr, exc))
+                "Cannot trigger change state: '{}' -> '{}'. Successful tests: {}\n{}\nAlready tested '{}'.".format(
+                    source_state, target_state, test_nr, exc, tested))
         test_nr += 1
         if max_time is not None and time.time() - start_time > max_time:
             return
