@@ -1,3 +1,10 @@
+## moler 2.4.0
+
+### Improved
+
+* New adb commands for Unix
+* Improved tests of state machines
+
 ## moler 2.3.1
 
 ### Improved
