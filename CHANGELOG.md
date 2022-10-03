@@ -1,3 +1,9 @@
+## moler 2.5.0
+
+### Improved
+
+* Improved tests of state machines - continued 
+
 ## moler 2.4.0
 
 ### Improved
