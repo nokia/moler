@@ -27,7 +27,7 @@ except ImportError:
     import Queue as queue  # Python 2 and 3.
 
 
-def iterate_over_device_states(device, max_time=None, tests_per_device=300, max_no_of_threads=11):
+def iterate_over_device_states(device, max_time=None, tests_per_device=300, max_no_of_threads=11, rerun=0):
     """
     Check all states in device under test.
     :param device: device
@@ -35,6 +35,7 @@ def iterate_over_device_states(device, max_time=None, tests_per_device=300, max_
      interrupted.
     :param tests_per_device: how many tests should be performed in one thread.
     :param max_no_of_threads: maximum number of threads that can be started.
+    :param rerun: rerun for goto_state
     :return: None
     """
     source_states = _get_all_states_from_device(device=device)
@@ -45,6 +46,7 @@ def iterate_over_device_states(device, max_time=None, tests_per_device=300, max_
     device.set_all_prompts_on_line(True)
 
     device._goto_state_in_production_mode = False
+    device.goto_state(state=source_states[0], rerun=rerun)
 
     random.shuffle(source_states)
     random.shuffle(target_states)
@@ -68,10 +70,10 @@ def iterate_over_device_states(device, max_time=None, tests_per_device=300, max_
         new_device_name = "{}_C{}".format(device.name, thread_nr)
         th = _perform_device_tests_start_thread(source_device=device, tested=tested, states_to_test=states_to_test,
                                                 max_time=max_time, new_device_name=new_device_name,
-                                                connection=new_connection, exceptions=exceptions)
+                                                connection=new_connection, exceptions=exceptions, rerun=rerun)
         test_threads.append((th, new_connection))
         thread_nr += 1
-    _perform_device_tests(device=device, tested=tested, states_to_test=states_to_test, max_time=max_time)
+    _perform_device_tests(device=device, tested=tested, states_to_test=states_to_test, max_time=max_time, rerun=rerun)
     for th, dev_connection in test_threads:
         th.join()
         dev_connection.close()
@@ -83,10 +85,10 @@ def iterate_over_device_states(device, max_time=None, tests_per_device=300, max_
 
 
 def _perform_device_tests_start_thread(source_device, tested, states_to_test, max_time, new_device_name, connection,
-                                       exceptions):
+                                       exceptions, rerun):
     try:
         th = threading.Thread(target=_start_device_tests, args=(source_device, tested, states_to_test, max_time,
-                                                                new_device_name, connection, exceptions))
+                                                                new_device_name, connection, exceptions, rerun))
         th.setDaemon(True)
         th.start()
         return th
@@ -95,16 +97,19 @@ def _perform_device_tests_start_thread(source_device, tested, states_to_test, ma
         MolerTest.info("exception: '{}' -> '{}'".format(ex, repr(ex)))
 
 
-def _start_device_tests(source_device, tested, states_to_test, max_time, new_device_name, connection, exceptions):
+def _start_device_tests(source_device, tested, states_to_test, max_time, new_device_name, connection, exceptions,
+                        rerun):
     try:
         device = get_cloned_device(src_device=source_device, new_name=new_device_name, new_connection=connection)
-        _perform_device_tests(device=device, tested=tested, states_to_test=states_to_test, max_time=max_time)
+        device.goto_state(state=states_to_test.queue[0][0], rerun=rerun)
+        _perform_device_tests(device=device, tested=tested, states_to_test=states_to_test, max_time=max_time,
+                              rerun=rerun)
     except Exception as ex:
         exceptions.append(ex)
         MolerTest.info("exception: '{}' -> '{}'".format(ex, repr(ex)))
 
 
-def _perform_device_tests(device, tested, states_to_test, max_time):
+def _perform_device_tests(device, tested, states_to_test, max_time, rerun):
     device.set_all_prompts_on_line(True)
     start_time = time.time()
     test_nr = 0
@@ -114,9 +119,9 @@ def _perform_device_tests(device, tested, states_to_test, max_time):
             continue
         try:
             state_before_test = device.current_state
-            device.goto_state(source_state, keep_state=False, rerun=0)
+            device.goto_state(source_state, keep_state=False, rerun=rerun)
             tested.add((state_before_test, source_state))
-            device.goto_state(target_state, keep_state=False, rerun=0)
+            device.goto_state(target_state, keep_state=False, rerun=rerun)
             tested.add((source_state, target_state))
             if device.last_wrong_wait4_occurrence is not None:
                 msg = "More than 1 prompt match the same line!: '{}' in change state {} -> {} -> {}".format(
