@@ -102,3 +102,12 @@ OK
 COMMAND_KWARGS = {"script_command": r'AT+CGDATA="M-RNDIS",0,0'}
 
 COMMAND_RESULT = {}
+
+COMMAND_OUTPUT_success = """
+AT+CGDATA="M-RNDIS",0,0
+OK
+"""
+
+COMMAND_KWARGS_success = {"script_command": r'AT+CGDATA="M-RNDIS",0,0', "success_regex": re.compile("ok", re.I)}
+
+COMMAND_RESULT_success = {}
