@@ -112,6 +112,15 @@ COMMAND_KWARGS_success = {"script_command": r'AT+CGDATA="M-RNDIS",0,0', "success
 
 COMMAND_RESULT_success = {}
 
+COMMAND_OUTPUT_success_str = """
+AT+CGDATA="M-RNDIS",0,0
+OK
+"""
+
+COMMAND_KWARGS_success_str = {"script_command": r'AT+CGDATA="M-RNDIS",0,0', "success_regex": "OK"}
+
+COMMAND_RESULT_success_str = {}
+
 COMMAND_OUTPUT_list = """
 AT+CGDATA="M-RNDIS",0,0
 OK
