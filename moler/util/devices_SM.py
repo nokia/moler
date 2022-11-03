@@ -148,6 +148,7 @@ def _prepare_device(device, connection, device_output):
     if connection != device.io_connection:
         device.exchange_io_connection(io_connection=connection)
     assert "RemoteConnection" in device.io_connection.__class__.__name__
+    connection.send_last_prompt_on_error = True
     connection.set_device(device=device)
     device.set_all_prompts_on_line(True)
     device.io_connection.remote_inject_response(device_output)
@@ -179,6 +180,8 @@ class RemoteConnection(ThreadedFifoBuffer):
         self.device = None
         self.data = None
         self.input_bytes = None
+        self.send_last_prompt_on_error = False
+        self._last_prompt = "".encode('utf-8')
         super(RemoteConnection, self).__init__(moler_connection=moler_connection,
                                                echo=echo,
                                                name=name,
@@ -206,9 +209,12 @@ class RemoteConnection(ThreadedFifoBuffer):
 
         try:
             binary_cmd_ret = self.data[self.device.state][cmd_data_string].encode('utf-8')
-
+            self._last_prompt = binary_cmd_ret
             self.inject([self.input_bytes + binary_cmd_ret])
         except KeyError as exc:
+            if self.send_last_prompt_on_error and (cmd_data_string == "\x03"):  # ctrl+c
+                self.inject([self.input_bytes + self._last_prompt])
+                return
             try:
                 available_outputs = self.data[self.device.state].keys()
             except (KeyError, AttributeError):
