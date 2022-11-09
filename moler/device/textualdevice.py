@@ -461,7 +461,8 @@ class TextualDevice(AbstractDevice):
         raise DeviceChangeStateFailure(device=self.__class__.__name__,
                                        exception="After {} seconds there are still states to go: '{}' and/or thread to"
                                                  " change state".format(time.time() - start_time, self._queue_states,
-                                                                        self._thread_for_goto_state))
+                                                                        self._thread_for_goto_state),
+                                       device_name=self.name)
 
     def _recover_state(self, state, keep_state=True):
         if self._goto_state_in_production_mode is False:
@@ -596,7 +597,8 @@ class TextualDevice(AbstractDevice):
                     self._log(logging.WARNING, msg=msg)
                 elif retrying == rerun:
                     ex_traceback = traceback.format_exc()
-                    exc = DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback)
+                    exc = DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback,
+                                                   device_name=self.name)
                     if log_stacktrace_on_fail:
                         self._log(logging.ERROR, exc)
                     raise exc
