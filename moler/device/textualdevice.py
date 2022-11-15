@@ -406,7 +406,7 @@ class TextualDevice(AbstractDevice):
             self._recover_state(state=state)
 
     def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False,
-                   log_stacktrace_on_fail=True, keep_state=False):
+                   log_stacktrace_on_fail=True, keep_state=False, timeout_multiply=1.0):
         """
         Goes to specific state.
 
@@ -417,6 +417,7 @@ class TextualDevice(AbstractDevice):
         :param log_stacktrace_on_fail: Set True to have stacktrace in logs when failed, otherwise False.
         :param keep_state: if True and state is changed without goto_state then device tries to change state to state
         defined by goto_state.
+        :param timeout_multiply: how many times multiply passed timeout to get final timeout.
         :return: None
         :raise: DeviceChangeStateFailure if cannot change the state of device.
         """
@@ -434,7 +435,7 @@ class TextualDevice(AbstractDevice):
             send_enter_after_changed_state=send_enter_after_changed_state,
             log_stacktrace_on_fail=log_stacktrace_on_fail,
             queue_if_goto_state_in_another_thread=True,
-            ignore_exceptions=False
+            ignore_exceptions=False, timeout_multiply=timeout_multiply
         )
 
     def goto_state_bg(self, state, keep_state=False):
@@ -461,7 +462,8 @@ class TextualDevice(AbstractDevice):
         raise DeviceChangeStateFailure(device=self.__class__.__name__,
                                        exception="After {} seconds there are still states to go: '{}' and/or thread to"
                                                  " change state".format(time.time() - start_time, self._queue_states,
-                                                                        self._thread_for_goto_state))
+                                                                        self._thread_for_goto_state),
+                                       device_name=self.name)
 
     def _recover_state(self, state, keep_state=True):
         if self._goto_state_in_production_mode is False:
@@ -494,14 +496,15 @@ class TextualDevice(AbstractDevice):
 
     def _goto_state_execute(self, dest_state, keep_state, timeout, rerun, send_enter_after_changed_state,
                             log_stacktrace_on_fail, queue_if_goto_state_in_another_thread,
-                            ignore_exceptions=False):
+                            ignore_exceptions=False, timeout_multiply=1.0):
         if (self._goto_state_in_production_mode and self._goto_state_lock.acquire(
                 queue_if_goto_state_in_another_thread)) or (self._goto_state_in_production_mode is False):
             try:
                 self._goto_state_to_run_in_try(dest_state=dest_state, keep_state=keep_state, timeout=timeout,
                                                rerun=rerun,
                                                send_enter_after_changed_state=send_enter_after_changed_state,
-                                               log_stacktrace_on_fail=log_stacktrace_on_fail)
+                                               log_stacktrace_on_fail=log_stacktrace_on_fail,
+                                               timeout_multiply=timeout_multiply)
             except Exception as ex:
                 if ignore_exceptions is False:
                     raise ex
@@ -513,7 +516,7 @@ class TextualDevice(AbstractDevice):
                 self.name, dest_state))
 
     def _goto_state_to_run_in_try(self, dest_state, keep_state, timeout, rerun, send_enter_after_changed_state,
-                                  log_stacktrace_on_fail):
+                                  log_stacktrace_on_fail, timeout_multiply):
         if self.current_state == dest_state:
             if keep_state:
                 self._kept_state = dest_state
@@ -523,7 +526,8 @@ class TextualDevice(AbstractDevice):
         is_dest_state = False
         is_timeout = False
         start_time = time.time()
-        next_stage_timeout = timeout
+        final_timeout = timeout_multiply * timeout
+        next_stage_timeout = final_timeout
 
         while (not is_dest_state) and (not is_timeout):
             next_state = self._get_next_state(dest_state)
@@ -536,7 +540,7 @@ class TextualDevice(AbstractDevice):
                 is_dest_state = True
 
             if timeout > 0:
-                next_stage_timeout = timeout - (time.time() - start_time)
+                next_stage_timeout = final_timeout - (time.time() - start_time)
                 if next_stage_timeout <= 0:
                     is_timeout = True
         if keep_state:
@@ -596,7 +600,8 @@ class TextualDevice(AbstractDevice):
                     self._log(logging.WARNING, msg=msg)
                 elif retrying == rerun:
                     ex_traceback = traceback.format_exc()
-                    exc = DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback)
+                    exc = DeviceChangeStateFailure(device=self.__class__.__name__, exception=ex_traceback,
+                                                   device_name=self.name)
                     if log_stacktrace_on_fail:
                         self._log(logging.ERROR, exc)
                     raise exc
