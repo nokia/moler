@@ -1,3 +1,10 @@
+## moler 2.6.0
+
+### Improved
+
+* Command run_script for AT
+* Improved tests for state machines - continued  
+
 ## moler 2.5.0
 
 ### Improved
