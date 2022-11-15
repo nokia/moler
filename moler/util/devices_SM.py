@@ -114,7 +114,7 @@ def _start_device_tests(source_device, tested, states_to_test, max_time, new_dev
         MolerTest.info("exception: '{}' -> '{}'".format(ex, repr(ex)))
 
 
-def _perform_device_tests(device, tested, states_to_test, max_time, rerun, timeout_multiply=1.0):
+def _perform_device_tests(device, tested, states_to_test, max_time, rerun, timeout_multiply):
     device.set_all_prompts_on_line(True)
     start_time = time.time()
     test_nr = 0
