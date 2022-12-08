@@ -674,15 +674,24 @@ COMMAND_KWARGS_CIPHERS = {'options': '--script ssl-enum-ciphers -p 443',
                           'ip': '10.83.180.140'}
 
 COMMAND_RESULT_CIPHERS = {
-                          u'CRYPTO_PROTOCOLS': [u'TLSv1.2'],
-                          u'CIPHERS': [u'TLS_DHE_RSA_WITH_AES_128_GCM_SHA256'],
-                          u'PORTS': {u'443/tcp': {u'PORT': u'443',
-                                                  u'REASON': None,
-                                                  u'SERVICE': u'https',
-                                                  u'STATE': u'open',
-                                                  u'TYPE': u'tcp'},
-                                     u'LINES': [u'443/tcp open  https']},
-                          u'SCAN_REPORTS': [{u'ADDRESS': u'10.83.182.143',
-                                             u'HOST': None,
-                                             u'LINE': u'Nmap scan report for 10.83.182.143',
-                                             u'RECEIVED': None}]}
+    u'CRYPTO_PROTOCOLS': [u'TLSv1.2'],
+    u'CIPHERS': [u'TLS_DHE_RSA_WITH_AES_128_GCM_SHA256'],
+    u'PORTS': {
+        u'443/tcp': {
+            u'PORT': u'443',
+            u'REASON': None,
+            u'SERVICE': u'https',
+            u'STATE': u'open',
+            u'TYPE': u'tcp'
+        },
+        u'LINES': [u'443/tcp open  https']
+    },
+    u'SCAN_REPORTS': [
+        {
+            u'ADDRESS': u'10.83.182.143',
+            u'HOST': None,
+            u'LINE': u'Nmap scan report for 10.83.182.143',
+            u'RECEIVED': None
+        }
+    ]
+}
