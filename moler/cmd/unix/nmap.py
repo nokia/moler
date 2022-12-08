@@ -4,7 +4,7 @@ Nmap command module.
 """
 
 __author__ = 'Yeshu Yang, Marcin Usielski, Bartosz Odziomek, Marcin Szlapa'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2022, Nokia'
 __email__ = 'yeshu.yang@nokia-sbell.com, marcin.usielski@nokia.com, bartosz.odziomek@nokia.com,' \
             'marcin.szlapa@nokia.com'
 
@@ -65,9 +65,21 @@ class Nmap(GenericUnixCommand):
                 self._parse_syn_stealth_scan(line)
                 self._parse_skipping_host(line)
                 self._parse_ciphers(line)
+                self._parse_ssl_types(line)
             except ParsingDone:
                 pass
         return super(Nmap, self).on_new_line(line, is_full_line)
+
+    # TLSv1.2:
+    _re_ssl_type = re.compile(r"(?P<PROTO>(TLS|SSL)\S+):")
+
+    def _parse_ssl_types(self, line):
+        if self._regex_helper.search_compiled(Nmap._re_ssl_type, line):
+            key = 'CRYPTO_PROTOCOLS'
+            if key not in self.current_ret:
+                self.current_ret[key] = list()
+            self.current_ret[key].append(self._regex_helper.group('PROTO'))
+            raise ParsingDone()
 
     _re_ports_line = re.compile(r"^(?P<LINES>(?P<PORTS>(?P<PORT>\d+)\/(?P<TYPE>\w+))\s+"
                                 r"(?P<STATE>\S+)\s+(?P<SERVICE>\S+)\s*(?P<REASON>\S+)?\s*)$")
@@ -661,7 +673,9 @@ root@cp19-nj:#"""
 COMMAND_KWARGS_CIPHERS = {'options': '--script ssl-enum-ciphers -p 443',
                           'ip': '10.83.180.140'}
 
-COMMAND_RESULT_CIPHERS = {u'CIPHERS': [u'TLS_DHE_RSA_WITH_AES_128_GCM_SHA256'],
+COMMAND_RESULT_CIPHERS = {
+                          u'CRYPTO_PROTOCOLS': [u'TLSv1.2'],
+                          u'CIPHERS': [u'TLS_DHE_RSA_WITH_AES_128_GCM_SHA256'],
                           u'PORTS': {u'443/tcp': {u'PORT': u'443',
                                                   u'REASON': None,
                                                   u'SERVICE': u'https',
