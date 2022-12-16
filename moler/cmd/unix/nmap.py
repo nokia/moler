@@ -911,8 +911,8 @@ PORT      STATE SERVICE
 80/tcp    open  http
 111/tcp   open  rpcbind
 443/tcp   open  https
-| ssl-enum-ciphers: 
-|   TLSv1.1: 
+| ssl-enum-ciphers:
+|   TLSv1.1:
 |     ciphers:
 |       TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA (ecdh_x25519) - A
 |       TLS_DHE_RSA_WITH_AES_256_CBC_SHA (dh 2048) - A
@@ -922,8 +922,8 @@ PORT      STATE SERVICE
 |     compressors:
 |       NULL
 |     cipher preference: server
-|   TLSv1.2: 
-|     ciphers: 
+|   TLSv1.2:
+|     ciphers:
 |       TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 (ecdh_x25519) - A
 |       TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 (dh 2048) - A
 |       TLS_DHE_RSA_WITH_AES_256_CBC_SHA256 (dh 2048) - A
@@ -938,7 +938,7 @@ PORT      STATE SERVICE
 |       TLS_RSA_WITH_AES_128_GCM_SHA256 (rsa 2048) - A
 |       TLS_RSA_WITH_AES_128_CBC_SHA256 (rsa 2048) - A
 |       TLS_RSA_WITH_AES_128_CBC_SHA (rsa 2048) - A
-|     compressors: 
+|     compressors:
 |       NULL
 |     cipher preference: server
 |_  least strength: A
