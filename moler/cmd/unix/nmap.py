@@ -99,10 +99,11 @@ class Nmap(GenericUnixCommand):
         if self._current_crypto_proto and self._regex_helper.search_compiled(Nmap._re_cipher_preference, line):
             self.current_ret['CRYPTO'][self._current_crypto_proto]['cipher preference'] = [
                 self._regex_helper.group("CP")]
+            self._current_crypto_proto_type = 'cipher preference'
             raise ParsingDone()
 
     # |       NULL
-    _re_indent = re.compile(r"^\s*\|(?P<INDENT>\s+)(?P<VALUE>\S.*\S|\S+)")
+    _re_indent = re.compile(r"^\s*\|(?P<INDENT>\s*)(?P<VALUE>\S.*\S|\S+)")
 
     def _parse_compressors(self, line):
         if self._current_crypto_proto and 'compressors' == self._current_crypto_proto_type and self._indent > 0 \
@@ -919,9 +920,9 @@ PORT      STATE SERVICE
 |       TLS_RSA_WITH_AES_256_CBC_SHA (rsa 2048) - A
 |       TLS_DHE_RSA_WITH_AES_128_CBC_SHA (dh 2048) - A
 |       TLS_RSA_WITH_AES_128_CBC_SHA (rsa 2048) - A
+|     cipher preference: server
 |     compressors:
 |       NULL
-|     cipher preference: server
 |   TLSv1.2:
 |     ciphers:
 |       TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 (ecdh_x25519) - A
@@ -938,9 +939,9 @@ PORT      STATE SERVICE
 |       TLS_RSA_WITH_AES_128_GCM_SHA256 (rsa 2048) - A
 |       TLS_RSA_WITH_AES_128_CBC_SHA256 (rsa 2048) - A
 |       TLS_RSA_WITH_AES_128_CBC_SHA (rsa 2048) - A
+|     cipher preference: server
 |     compressors:
 |       NULL
-|     cipher preference: server
 |_  least strength: A
 2049/tcp  open  nfs
 8080/tcp  open  http-proxy
