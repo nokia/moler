@@ -78,7 +78,7 @@ OK
 
 COMMAND_KWARGS_default_parameters = {"fun_level": "1"}
 
-COMMAND_RESULT_automatic_lower = {}
+COMMAND_RESULT_default_parameters = {}
 
 COMMAND_OUTPUT_all_parameters = """
 AT+CFUN=1,1
