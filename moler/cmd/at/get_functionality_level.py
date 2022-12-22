@@ -8,7 +8,7 @@ google for: 3gpp specification 27.007
 """
 
 __author__ = 'Kamil Pielka'
-__copyright__ = 'Copyright (C) 2020, Nokia'
+__copyright__ = 'Copyright (C) 2022, Nokia'
 __email__ = 'kamik.pielka@nokia.com'
 
 import re

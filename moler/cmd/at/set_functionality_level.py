@@ -8,7 +8,7 @@ google for: 3gpp specification 27.007
 """
 
 __author__ = 'Kamil Pielka'
-__copyright__ = 'Copyright (C) 2021, Nokia'
+__copyright__ = 'Copyright (C) 2022, Nokia'
 __email__ = 'kamil.pielka@nokia.com'
 
 from moler.cmd.at.genericat import GenericAtCommand
