@@ -27,7 +27,7 @@ class GetFunctionalityLevel(GenericAtCommand):
     """
     def __init__(self, connection=None, prompt=None, newline_chars=None, runner=None):
         """Create instance of GetFunctionalityLevel class"""
-        super(GetFunctionalityLevel, self).__init__(connection, operation='execute', prompt=prompt,
+        super(GetFunctionalityLevel, self).__init__(connection=connection, operation='execute', prompt=prompt,
                                                     newline_chars=newline_chars, runner=runner)
 
     def build_command_string(self):

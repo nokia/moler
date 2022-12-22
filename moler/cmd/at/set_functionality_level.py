@@ -41,7 +41,7 @@ class SetFunctionalityLevel(GenericAtCommand):
         :param newline_chars: Characters to split lines
         :param runner: Runner to run command
         """
-        super(SetFunctionalityLevel, self).__init__(connection, operation='execute', prompt=prompt,
+        super(SetFunctionalityLevel, self).__init__(connection=connection, operation='execute', prompt=prompt,
                                                     newline_chars=newline_chars, runner=runner)
         self.fun_level = fun_level
         self.rst = rst
