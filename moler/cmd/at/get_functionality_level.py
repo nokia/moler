@@ -54,6 +54,7 @@ class GetFunctionalityLevel(GenericAtCommand):
                 pass
         return super(GetFunctionalityLevel, self).on_new_line(line, is_full_line)
 
+    # +CFUN: 0
     _re_fun_level = re.compile(r'^\s*\+CFUN:\s*(?P<fun_level>[\d+]{1,3})\s*$')
 
     def _parse_fun_level(self, line):
