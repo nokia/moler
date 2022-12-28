@@ -1,3 +1,10 @@
+## moler 2.7.0
+
+### Improved
+
+* Set level of functionality - AT cmd
+* Get level of functionality - AT cmd
+
 ## moler 2.6.0
 
 ### Improved
