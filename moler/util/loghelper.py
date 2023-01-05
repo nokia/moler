@@ -39,7 +39,7 @@ def find_caller(levels_to_go_up=0):
         if sys.version >= "3.11":
             _level_to_go_up_extra = 1  # For backward compatibility
 
-    #if 0 == levels_to_go_up:
+    # if 0 == levels_to_go_up:
     #    levels_to_go_up += _level_to_go_up_extra
     f = logging.currentframe()
     # On some versions of IronPython, currentframe() returns None if
