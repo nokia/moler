@@ -4,13 +4,14 @@
 Utilities related to logging
 """
 
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2019, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2019-2022, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import os
 import logging
 import contextlib
+import sys
 
 
 def __dummy():
@@ -18,6 +19,7 @@ def __dummy():
 
 
 _srcfile = os.path.normcase(__dummy.__code__.co_filename)
+_level_to_go_up_extra = None
 
 
 def find_caller(levels_to_go_up=0):
@@ -31,6 +33,14 @@ def find_caller(levels_to_go_up=0):
     :param levels_to_go_up: 0 - info about 'calling location' of caller of findCaller(); 1 - 'calling -1 location'
     :return:
     """
+    global _level_to_go_up_extra
+    if _level_to_go_up_extra is None:
+        _level_to_go_up_extra = 0
+        if sys.version >= "3.11":
+            _level_to_go_up_extra = 1  # For backward compatibility
+
+    #if 0 == levels_to_go_up:
+    #    levels_to_go_up += _level_to_go_up_extra
     f = logging.currentframe()
     # On some versions of IronPython, currentframe() returns None if
     # IronPython isn't run with -X:Frames.
