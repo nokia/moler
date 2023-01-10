@@ -3,9 +3,9 @@
 Ethtool command module.
 """
 
-__author__ = 'Julia Patacz'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'julia.patacz@nokia.com'
+__author__ = 'Julia Patacz, Tomasz Krol'
+__copyright__ = 'Copyright (C) 2018-2022, Nokia'
+__email__ = 'julia.patacz@nokia.com, tomasz.krol@nokia.com'
 
 import re
 
@@ -65,8 +65,9 @@ class Ethtool(GenericUnixCommand):
     def _parse_key(self, line):
         if self._regex_helper.search_compiled(Ethtool._re_key, line):
             self.key = self._regex_helper.group('KEY')
-            if self.key not in self.current_ret[self.int].keys():
-                self.current_ret[self.int][self.key] = {}
+            current_ret_pointer = self.current_ret[self.int] if self.int else self.current_ret
+            if self.key not in current_ret_pointer.keys():
+                current_ret_pointer[self.key] = {}
             raise ParsingDone
 
     # Supported link modes:   10baseT/Half 10baseT/Full
@@ -92,10 +93,13 @@ class Ethtool(GenericUnixCommand):
     _re_key_value = re.compile(r"(?P<KEY>\S.*\S|\S)\s*:\s*(?P<VALUE>\S.*\S|\S)\s*$")
 
     def _parse_key_value(self, line):
-        if self.int and self._regex_helper.search_compiled(Ethtool._re_key_value, line):
+        if self._regex_helper.search_compiled(Ethtool._re_key_value, line):
             if self._regex_helper.group('KEY') == 'Current message level':
                 self._curr_msg_lvl = self._regex_helper.group('KEY')
-            self.current_ret[self.int][self._regex_helper.group('KEY')] = self._regex_helper.group('VALUE')
+            if self.key == 'NIC statistics':
+                self.current_ret[self.key][self._regex_helper.group('KEY')] = int(self._regex_helper.group('VALUE'))
+            else:
+                self.current_ret[self.int][self._regex_helper.group('KEY')] = self._regex_helper.group('VALUE')
             self._arr_name = None
             raise ParsingDone
 
@@ -108,7 +112,7 @@ class Ethtool(GenericUnixCommand):
             raise ParsingDone
 
     # drv probe link timer ifdown ifup rx_err tx_err tx_queued intr tx_done rx_status pktdata hw wol
-    _re_curr_msg_lvl = re.compile(r"^\s+[\w+\s+]+$")
+    _re_curr_msg_lvl = re.compile(r"^\s+[\w\s]+$")
 
     def _parse_curr_msg_lvl(self, line):
         if self._curr_msg_lvl and self._regex_helper.search_compiled(Ethtool._re_curr_msg_lvl, line):
@@ -158,7 +162,8 @@ COMMAND_RESULT = {
                                   '1000baseT/Full'],
         'Advertised pause frame use': 'No',
         'Auto-negotiation': 'on',
-        'Current message level': '0x00007fff (32767) drv probe link timer ifdown ifup rx_err tx_err tx_queued intr tx_done rx_status pktdata hw wol',
+        'Current message level': '0x00007fff (32767) drv probe link timer ifdown ifup rx_err tx_err tx_queued'
+                                 ' intr tx_done rx_status pktdata hw wol',
         'Duplex': 'Full',
         'Link detected': 'yes',
         'Link partner advertised auto-negotiation': 'Yes',
@@ -223,4 +228,46 @@ COMMAND_RESULT_with_options = {
             'ptpv2-event': '(HWTSTAMP_FILTER_PTP_V2_EVENT)',
         },
     },
+}
+
+COMMAND_OUTPUT_with_options_v2 = """toor4nsn@fzm-lsp-k2:~# ethtool -S ecpri0
+NIC statistics:
+     rwc_p0_pkt_count: 34339109
+     rwc_p1_pkt_count: 0
+     rwc_p2_pkt_count: 4122409886
+     rwc_p0_drop_pkt: 0
+     rwc_p1_drop_pkt: 0
+     rwc_p2_drop_pkt: 0
+     rrc_p0_pkt_count: 33747880
+     rrc_p1_pkt_count: 0
+     rrc_p2_pkt_count: 4122409886
+     rrc_p0_drop_pkt: 591229
+     rrc_p1_drop_pkt: 0
+     rrc_p2_drop_pkt: 0
+     twc_p0_pkt_count: 577099984
+     twc_p1_pkt_count: 0
+     twc_p2_pkt_count: 0
+toor4nsn@fzm-lsp-k2:~# """
+COMMAND_KWARGS_with_options_v2 = {
+    'interface': 'ecpri0',
+    'options': '-S'
+}
+COMMAND_RESULT_with_options_v2 = {
+    'NIC statistics': {
+        'rwc_p0_pkt_count': 34339109,
+        'rwc_p1_pkt_count': 0,
+        'rwc_p2_pkt_count': 4122409886,
+        'rwc_p0_drop_pkt': 0,
+        'rwc_p1_drop_pkt': 0,
+        'rwc_p2_drop_pkt': 0,
+        'rrc_p0_pkt_count': 33747880,
+        'rrc_p1_pkt_count': 0,
+        'rrc_p2_pkt_count': 4122409886,
+        'rrc_p0_drop_pkt': 591229,
+        'rrc_p1_drop_pkt': 0,
+        'rrc_p2_drop_pkt': 0,
+        'twc_p0_pkt_count': 577099984,
+        'twc_p1_pkt_count': 0,
+        'twc_p2_pkt_count': 0,
+    }
 }
