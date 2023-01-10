@@ -4,7 +4,7 @@ Nmap command module.
 """
 
 __author__ = 'Yeshu Yang, Marcin Usielski, Bartosz Odziomek, Marcin Szlapa'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2022, Nokia'
 __email__ = 'yeshu.yang@nokia-sbell.com, marcin.usielski@nokia.com, bartosz.odziomek@nokia.com,' \
             'marcin.szlapa@nokia.com'
 
@@ -34,6 +34,9 @@ class Nmap(GenericUnixCommand):
         self.is_ping = is_ping
         self.timeout = 120  # Time in seconds
         self._converter_helper = ConverterHelper.get_converter_helper()
+        self._current_crypto_proto = None
+        self._current_crypto_proto_type = None
+        self._indent = 0
 
     def build_command_string(self):
         """
@@ -65,9 +68,66 @@ class Nmap(GenericUnixCommand):
                 self._parse_syn_stealth_scan(line)
                 self._parse_skipping_host(line)
                 self._parse_ciphers(line)
+                self._parse_ssl_types(line)
+                self._parse_cipher_preference(line)
+                self._parse_compressors(line)
+                self._parse_compressors_header(line)
             except ParsingDone:
                 pass
         return super(Nmap, self).on_new_line(line, is_full_line)
+
+    # TLSv1.2:
+    _re_ssl_type = re.compile(r"(?P<PROTO>(TLS|SSL)\S+):")
+
+    def _parse_ssl_types(self, line):
+        if self._regex_helper.search_compiled(Nmap._re_ssl_type, line):
+            key = 'CRYPTO_PROTOCOLS'
+            if key not in self.current_ret:
+                self.current_ret[key] = list()
+            self._current_crypto_proto = self._regex_helper.group('PROTO')
+            self.current_ret[key].append(self._current_crypto_proto)
+            if 'CRYPTO' not in self.current_ret:
+                self.current_ret['CRYPTO'] = dict()
+            self.current_ret['CRYPTO'][self._current_crypto_proto] = dict()
+            self._current_crypto_proto_type = None
+            raise ParsingDone()
+
+    # cipher preference: server
+    _re_cipher_preference = re.compile(r"cipher preference:\s+(?P<CP>\S.*\S)\s*$")
+
+    def _parse_cipher_preference(self, line):
+        if self._current_crypto_proto and self._regex_helper.search_compiled(Nmap._re_cipher_preference, line):
+            self.current_ret['CRYPTO'][self._current_crypto_proto]['cipher preference'] = [
+                self._regex_helper.group("CP")]
+            self._current_crypto_proto_type = 'cipher preference'
+            raise ParsingDone()
+
+    # |       NULL
+    _re_indent = re.compile(r"^\s*\|(?P<INDENT>\s*)(?P<VALUE>\S.*\S|\S+)")
+
+    def _parse_compressors(self, line):
+        if self._current_crypto_proto and 'compressors' == self._current_crypto_proto_type and self._indent > 0 \
+                and self._regex_helper.search_compiled(Nmap._re_indent, line):
+            current_indent = len(self._regex_helper.group("INDENT"))
+            if current_indent < self._indent:
+                self._indent = 0
+                self._current_crypto_proto_type = None
+            else:
+                if 'compressors' not in self.current_ret['CRYPTO'][self._current_crypto_proto]:
+                    self.current_ret['CRYPTO'][self._current_crypto_proto]['compressors'] = list()
+                self.current_ret['CRYPTO'][self._current_crypto_proto]['compressors'].append(
+                    self._regex_helper.group("VALUE").strip())
+            raise ParsingDone()
+
+    _re_compressors_preference = re.compile(r"^\s*\|(?P<INDENT>\s+)(?P<TYPE>compressors):\s*$")
+
+    def _parse_compressors_header(self, line):
+        if self._current_crypto_proto and self._regex_helper.search_compiled(Nmap._re_compressors_preference, line):
+            self._current_crypto_proto_type = self._regex_helper.group("TYPE")
+            self._indent = len(self._regex_helper.group("INDENT"))
+            raise ParsingDone()
+
+    # def _parse_compressors_preference_data(self, line):
 
     _re_ports_line = re.compile(r"^(?P<LINES>(?P<PORTS>(?P<PORT>\d+)\/(?P<TYPE>\w+))\s+"
                                 r"(?P<STATE>\S+)\s+(?P<SERVICE>\S+)\s*(?P<REASON>\S+)?\s*)$")
@@ -169,9 +229,15 @@ class Nmap(GenericUnixCommand):
 
     def _parse_ciphers(self, line):
         if self._regex_helper.search_compiled(Nmap._re_cipher, line):
+            cipher = self._regex_helper.group("CIPHER")
             if "CIPHERS" not in self.current_ret:
                 self.current_ret["CIPHERS"] = list()
-            self.current_ret["CIPHERS"].append(self._regex_helper.group("CIPHER"))
+            self.current_ret["CIPHERS"].append(cipher)
+            if self._current_crypto_proto:
+                if 'ciphers' not in self.current_ret['CRYPTO'][self._current_crypto_proto]:
+                    self.current_ret['CRYPTO'][self._current_crypto_proto]['ciphers'] = list()
+                self.current_ret['CRYPTO'][self._current_crypto_proto]['ciphers'].append(cipher)
+                self._current_crypto_proto_type = 'ciphers'
             raise ParsingDone
 
 
@@ -661,14 +727,226 @@ root@cp19-nj:#"""
 COMMAND_KWARGS_CIPHERS = {'options': '--script ssl-enum-ciphers -p 443',
                           'ip': '10.83.180.140'}
 
-COMMAND_RESULT_CIPHERS = {u'CIPHERS': [u'TLS_DHE_RSA_WITH_AES_128_GCM_SHA256'],
-                          u'PORTS': {u'443/tcp': {u'PORT': u'443',
-                                                  u'REASON': None,
-                                                  u'SERVICE': u'https',
-                                                  u'STATE': u'open',
-                                                  u'TYPE': u'tcp'},
-                                     u'LINES': [u'443/tcp open  https']},
-                          u'SCAN_REPORTS': [{u'ADDRESS': u'10.83.182.143',
-                                             u'HOST': None,
-                                             u'LINE': u'Nmap scan report for 10.83.182.143',
-                                             u'RECEIVED': None}]}
+COMMAND_RESULT_CIPHERS = {
+    u'CRYPTO_PROTOCOLS': [u'TLSv1.2'],
+    u'CRYPTO': {
+        'TLSv1.2': {
+            'cipher preference': ['client'],
+            'ciphers': ['TLS_DHE_RSA_WITH_AES_128_GCM_SHA256'],
+            'compressors': ['NULL'],
+        }
+    },
+    u'CIPHERS': [u'TLS_DHE_RSA_WITH_AES_128_GCM_SHA256'],
+    u'PORTS': {
+        u'443/tcp': {
+            u'PORT': u'443',
+            u'REASON': None,
+            u'SERVICE': u'https',
+            u'STATE': u'open',
+            u'TYPE': u'tcp'
+        },
+        u'LINES': [u'443/tcp open  https']
+    },
+    u'SCAN_REPORTS': [
+        {
+            u'ADDRESS': u'10.83.182.143',
+            u'HOST': None,
+            u'LINE': u'Nmap scan report for 10.83.182.143',
+            u'RECEIVED': None
+        }
+    ]
+}
+
+COMMAND_KWARGS_two_cryptoprotocols = {
+    'options': '--script ssl-enum-ciphers',
+    'ip': '10.83.182.238'
+}
+
+COMMAND_RESULT_two_cryptoprotocols = {
+    'CIPHERS': ['TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA',
+                'TLS_DHE_RSA_WITH_AES_256_CBC_SHA',
+                'TLS_RSA_WITH_AES_256_CBC_SHA',
+                'TLS_DHE_RSA_WITH_AES_128_CBC_SHA',
+                'TLS_RSA_WITH_AES_128_CBC_SHA',
+                'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384',
+                'TLS_DHE_RSA_WITH_AES_256_GCM_SHA384',
+                'TLS_DHE_RSA_WITH_AES_256_CBC_SHA256',
+                'TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA',
+                'TLS_DHE_RSA_WITH_AES_256_CBC_SHA',
+                'TLS_RSA_WITH_AES_256_GCM_SHA384',
+                'TLS_RSA_WITH_AES_256_CBC_SHA256',
+                'TLS_RSA_WITH_AES_256_CBC_SHA',
+                'TLS_DHE_RSA_WITH_AES_128_GCM_SHA256',
+                'TLS_DHE_RSA_WITH_AES_128_CBC_SHA256',
+                'TLS_DHE_RSA_WITH_AES_128_CBC_SHA',
+                'TLS_RSA_WITH_AES_128_GCM_SHA256',
+                'TLS_RSA_WITH_AES_128_CBC_SHA256',
+                'TLS_RSA_WITH_AES_128_CBC_SHA'],
+    'CRYPTO_PROTOCOLS': ['TLSv1.1', 'TLSv1.2'],
+    'CRYPTO': {
+        'TLSv1.1': {
+            'ciphers': [
+                "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+                "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+                "TLS_RSA_WITH_AES_256_CBC_SHA",
+                "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+                "TLS_RSA_WITH_AES_128_CBC_SHA",
+            ],
+            'compressors': [
+                'NULL',
+            ],
+            'cipher preference': [
+                'server'
+            ],
+        },
+        'TLSv1.2': {
+            'ciphers': [
+                "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+                "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
+                "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256",
+                "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+                "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+                "TLS_RSA_WITH_AES_256_GCM_SHA384",
+                "TLS_RSA_WITH_AES_256_CBC_SHA256",
+                "TLS_RSA_WITH_AES_256_CBC_SHA",
+                "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
+                "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256",
+                "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+                "TLS_RSA_WITH_AES_128_GCM_SHA256",
+                "TLS_RSA_WITH_AES_128_CBC_SHA256",
+                "TLS_RSA_WITH_AES_128_CBC_SHA",
+            ],
+            'compressors': [
+                'NULL',
+            ],
+            'cipher preference': [
+                'server'
+            ],
+        },
+    },
+    'PORTS': {'111/tcp': {'PORT': '111',
+                          'REASON': None,
+                          'SERVICE': 'rpcbind',
+                          'STATE': 'open',
+                          'TYPE': 'tcp'},
+              '15002/tcp': {'PORT': '15002',
+                            'REASON': None,
+                            'SERVICE': 'onep-tls',
+                            'STATE': 'open',
+                            'TYPE': 'tcp'},
+              '15003/tcp': {'PORT': '15003',
+                            'REASON': None,
+                            'SERVICE': 'unknown',
+                            'STATE': 'open',
+                            'TYPE': 'tcp'},
+              '15004/tcp': {'PORT': '15004',
+                            'REASON': None,
+                            'SERVICE': 'unknown',
+                            'STATE': 'open',
+                            'TYPE': 'tcp'},
+              '2049/tcp': {'PORT': '2049',
+                           'REASON': None,
+                           'SERVICE': 'nfs',
+                           'STATE': 'open',
+                           'TYPE': 'tcp'},
+              '21/tcp': {'PORT': '21',
+                         'REASON': None,
+                         'SERVICE': 'ftp',
+                         'STATE': 'open',
+                         'TYPE': 'tcp'},
+              '22/tcp': {'PORT': '22',
+                         'REASON': None,
+                         'SERVICE': 'ssh',
+                         'STATE': 'open',
+                         'TYPE': 'tcp'},
+              '443/tcp': {'PORT': '443',
+                          'REASON': None,
+                          'SERVICE': 'https',
+                          'STATE': 'open',
+                          'TYPE': 'tcp'},
+              '80/tcp': {'PORT': '80',
+                         'REASON': None,
+                         'SERVICE': 'http',
+                         'STATE': 'open',
+                         'TYPE': 'tcp'},
+              '8080/tcp': {'PORT': '8080',
+                           'REASON': None,
+                           'SERVICE': 'http-proxy',
+                           'STATE': 'open',
+                           'TYPE': 'tcp'},
+              '8443/tcp': {'PORT': '8443',
+                           'REASON': None,
+                           'SERVICE': 'https-alt',
+                           'STATE': 'open',
+                           'TYPE': 'tcp'},
+              'LINES': ['21/tcp    open  ftp',
+                        '22/tcp    open  ssh',
+                        '80/tcp    open  http',
+                        '111/tcp   open  rpcbind',
+                        '443/tcp   open  https',
+                        '2049/tcp  open  nfs',
+                        '8080/tcp  open  http-proxy',
+                        '8443/tcp  open  https-alt',
+                        '15002/tcp open  onep-tls',
+                        '15003/tcp open  unknown',
+                        '15004/tcp open  unknown']},
+    'SCAN_REPORTS': [
+        {
+            'ADDRESS': '10.83.182.238',
+            'HOST': None,
+            'LINE': 'Nmap scan report for 10.83.182.238',
+            'RECEIVED': None
+        }
+    ]
+}
+
+COMMAND_OUTPUT_two_cryptoprotocols = """nmap --script ssl-enum-ciphers 10.83.182.238 -PN
+nmap --script ssl-enum-ciphers 10.83.182.238 -PN
+Starting Nmap 7.70 ( https://nmap.org ) at 2020-12-08 12:41 CET
+Nmap scan report for 10.83.182.238
+Host is up (0.00046s latency).
+Not shown: 989 closed ports
+PORT      STATE SERVICE
+21/tcp    open  ftp
+22/tcp    open  ssh
+80/tcp    open  http
+111/tcp   open  rpcbind
+443/tcp   open  https
+| ssl-enum-ciphers:
+|   TLSv1.1:
+|     ciphers:
+|       TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA (ecdh_x25519) - A
+|       TLS_DHE_RSA_WITH_AES_256_CBC_SHA (dh 2048) - A
+|       TLS_RSA_WITH_AES_256_CBC_SHA (rsa 2048) - A
+|       TLS_DHE_RSA_WITH_AES_128_CBC_SHA (dh 2048) - A
+|       TLS_RSA_WITH_AES_128_CBC_SHA (rsa 2048) - A
+|     cipher preference: server
+|     compressors:
+|       NULL
+|   TLSv1.2:
+|     ciphers:
+|       TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 (ecdh_x25519) - A
+|       TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 (dh 2048) - A
+|       TLS_DHE_RSA_WITH_AES_256_CBC_SHA256 (dh 2048) - A
+|       TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA (ecdh_x25519) - A
+|       TLS_DHE_RSA_WITH_AES_256_CBC_SHA (dh 2048) - A
+|       TLS_RSA_WITH_AES_256_GCM_SHA384 (rsa 2048) - A
+|       TLS_RSA_WITH_AES_256_CBC_SHA256 (rsa 2048) - A
+|       TLS_RSA_WITH_AES_256_CBC_SHA (rsa 2048) - A
+|       TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 (dh 2048) - A
+|       TLS_DHE_RSA_WITH_AES_128_CBC_SHA256 (dh 2048) - A
+|       TLS_DHE_RSA_WITH_AES_128_CBC_SHA (dh 2048) - A
+|       TLS_RSA_WITH_AES_128_GCM_SHA256 (rsa 2048) - A
+|       TLS_RSA_WITH_AES_128_CBC_SHA256 (rsa 2048) - A
+|       TLS_RSA_WITH_AES_128_CBC_SHA (rsa 2048) - A
+|     cipher preference: server
+|     compressors:
+|       NULL
+|_  least strength: A
+2049/tcp  open  nfs
+8080/tcp  open  http-proxy
+8443/tcp  open  https-alt
+15002/tcp open  onep-tls
+15003/tcp open  unknown
+15004/tcp open  unknown
+user@host$ """
