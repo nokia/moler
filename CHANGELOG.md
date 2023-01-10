@@ -2,6 +2,8 @@
 
 ### Improved
 
+* Command ethtool - add support for -S option
+* Command nmap - add support for many crypto protocols
 * Set level of functionality - AT cmd
 * Get level of functionality - AT cmd
 
