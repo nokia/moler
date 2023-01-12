@@ -33,18 +33,23 @@ class RegexHelper(object):
         self._match = search(pattern, string, flags)
         return self._match
 
-    def search_compiled(self, compiled, string):
+    def search_compiled(self, compiled, string, raise_if_compiled_is_none=False):
         """
         Searches for passed pattern in passed string.
 
         :param compiled: Compiled regular expression pattern to find.
         :param string: String to scan through to find the pattern.
+        :param raise_if_compiled_is_none: set True to raise a WrongUsage if compiled is None. If False then return None.
         :return: Match object.
         """
         if compiled is None:
-            exp = WrongUsage("{} parameter compiled passed to search_compiled is None. Expected not None."
-                             " String is '{}'.".format(self, string))
-            raise exp
+            if raise_if_compiled_is_none:
+                exp = WrongUsage("{} parameter compiled passed to search_compiled is None. Expected not None."
+                                 " String is '{}'.".format(self, string))
+                raise exp
+            else:
+                return None
+
         self._match = compiled.search(string)
         return self._match
 
@@ -60,18 +65,22 @@ class RegexHelper(object):
         self._match = match(pattern, string, flags)
         return self._match
 
-    def match_compiled(self, compiled, string):
+    def match_compiled(self, compiled, string, raise_if_compiled_is_none=False):
         """
         Matches for passed pattern in passed string.
 
         :param compiled: Compiled regular expression pattern to find.
         :param string: String to scan through to find the pattern.
+        :param raise_if_compiled_is_none: set True to raise a WrongUsage if compiled is None. If False then return None.
         :return: Match object.
         """
         if compiled is None:
-            exp = WrongUsage("{} parameter compiled passed to match_compiled is None. Expected not None."
-                             " String is '{}.".format(self, string))
-            raise exp
+            if raise_if_compiled_is_none:
+                exp = WrongUsage("{} parameter compiled passed to match_compiled is None. Expected not None."
+                                 " String is '{}.".format(self, string))
+                raise exp
+            else:
+                return None
         self._match = compiled.match(string)
         return self._match
 
