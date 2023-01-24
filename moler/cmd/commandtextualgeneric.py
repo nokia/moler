@@ -465,8 +465,8 @@ class CommandTextualGeneric(Command):
         if last_chunk:
             try:
                 last_chunk = u"{}".format(last_chunk)
-            except Exception as ex:
-                last_chunk = "{}/{}".format(ex, repr(ex))
+            except Exception as ex:  # pragma: no cover
+                last_chunk = "{}/{}".format(ex, repr(ex))  # pragma: no cover
         msg = ("Timeout when command_string='{}', _cmd_escaped='{}', _cmd_output_started='{}', ret_required='{}', "
                "break_on_timeout='{}', _last_not_full_line='{}', _re_prompt='{}', do_not_process_after_done='{}', "
                "newline_after_command_string='{}', wait_for_prompt_on_exception='{}', _stored_exception='{}', "
