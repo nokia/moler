@@ -462,9 +462,9 @@ class CommandTextualGeneric(Command):
         if self.break_on_timeout:
             self.break_cmd()
         last_chunk = self._last_chunk
-        if last_chunk:
+        if last_chunk is not None:
             try:
-                last_chunk = u"" + last_chunk
+                last_chunk = u"" + self._last_chunk
             except Exception as ex:  # pragma: no cover
                 last_chunk = "{}/{}".format(ex, repr(ex))  # pragma: no cover
         msg = ("Timeout when command_string='{}', _cmd_escaped='{}', _cmd_output_started='{}', ret_required='{}', "
