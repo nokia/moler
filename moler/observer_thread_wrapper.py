@@ -3,15 +3,17 @@
 """Wrapper for observer registered in ThreadedMolerConnection (old name: ObservableConnection)."""
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2020-2021, Nokia'
+__copyright__ = 'Copyright (C) 2020-2023, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
+import logging
+import traceback
+import threading
 from threading import Thread
+
+from moler.util import tracked_thread
 from moler.config.loggers import TRACE
 from moler.exceptions import CommandFailure, MolerException
-import logging
-from moler.util import tracked_thread
-import threading
 
 try:
     import queue
@@ -99,16 +101,20 @@ class ObserverThreadWrapper(object):
         logging.getLogger("moler_threads").debug("EXIT")
 
     def _handle_unexpected_error_from_observer(self, exception, data, timestamp):
-        self.logger.exception(msg=r'Exception inside: {}({!r}) at {}'.format(self._observer, repr(data), timestamp))
+        self.logger.exception(msg=r'Exception inside: {}({!r}) at {} 1'.format(self._observer, repr(data), timestamp))
 
 
 class ObserverThreadWrapperForConnectionObserver(ObserverThreadWrapper):
 
     def _handle_unexpected_error_from_observer(self, exception, data, timestamp):
+
+        stack_msg = traceback.format_exc()
         self.logger.warning("Unhandled exception from '{} 'caught by ObserverThreadWrapperForConnectionObserver"
-                            " (Runner normally). '{}' : '{}'.".format(self._observer_self, exception, repr(exception)))
+                            " (Runner normally). '{}' : '{}' \nStack:\n{}.".format(self._observer_self, exception,
+                                                                                   repr(exception), stack_msg))
         ex_msg = "Unexpected exception from {} caught by runner when processing data >>{}<< at '{}':" \
-                 " >>>{}<<< -> repr: >>>{}<<<".format(self._observer_self, data, timestamp, exception, repr(exception))
+                 " >>>{}<<< -> repr: >>>{}<<<\n{}".format(self._observer_self, data, timestamp, exception,
+                                                          repr(exception), stack_msg)
         if self._observer_self.is_command():
             ex = CommandFailure(command=self._observer_self, message=ex_msg)
         else:
