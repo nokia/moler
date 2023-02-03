@@ -101,7 +101,7 @@ class ObserverThreadWrapper(object):
         logging.getLogger("moler_threads").debug("EXIT")
 
     def _handle_unexpected_error_from_observer(self, exception, data, timestamp):
-        self.logger.exception(msg=r'Exception inside: {}({!r}) at {} 1'.format(self._observer, repr(data), timestamp))
+        self.logger.exception(msg=r'Exception inside: {}({!r}) at {}'.format(self._observer, repr(data), timestamp))
 
 
 class ObserverThreadWrapperForConnectionObserver(ObserverThreadWrapper):
