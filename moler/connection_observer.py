@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2022 Nokia'
+__copyright__ = 'Copyright (C) 2018-2023 Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
 import threading
 import time
-import inspect
-import os
+import traceback
 from abc import abstractmethod, ABCMeta
 
 from six import add_metaclass
@@ -324,16 +323,7 @@ class ConnectionObserver(object):
         :param exception: exception to set
         :return: None
         """
-        stack = inspect.stack()
-        stack_msg = ""
-        for fi in stack:
-            filename = fi[1]
-            if filename == __file__:
-                continue
-            function_name = fi[3]
-            line_no = fi[2]
-            file_abs_path = os.path.abspath(filename)
-            stack_msg = "{}    from {} at {}:{}\n".format(stack_msg, function_name, file_abs_path, line_no)
+        stack_msg = traceback.format_exc()
 
         if self._is_done:
             self._log(logging.WARNING,
