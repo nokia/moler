@@ -79,7 +79,7 @@ class ProxyPc2(UnixLocal):
         what = "experimental/temporary implementation of device utilizing sshshell connection"
         temporary_classname = self.__class__.__name__
         target_classname = temporary_classname[:-1]
-        merge_info = "It's functionality will be merged"
+        merge_info = "Its functionality will be merged"
         future_change = "{} into {} device in Moler 2.0.0 and {} will be removed".format(merge_info,
                                                                                          target_classname,
                                                                                          temporary_classname)
@@ -239,7 +239,7 @@ class ProxyPc2(UnixLocal):
             super(ProxyPc2, self).on_connection_made(connection)
         else:
             self._set_state(PROXY_PC)
-            self._detect_after_open_prompt(self._set_after_open_prompt)
+            self._detect_after_open_prompt(self._set_after_open_prompt)  #  Run and wait to finish after connection is open and before wait4prompts starts.
 
     def on_connection_lost(self, connection):
         """
