@@ -1,3 +1,10 @@
+## moler 2.8.0
+
+### Improved
+
+* Deeper stack logging
+* Methods search_compiled and match_compiled can support None as compiled regex
+
 ## moler 2.7.0
 
 ### Improved
