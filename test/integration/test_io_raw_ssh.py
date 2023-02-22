@@ -482,7 +482,7 @@ def test_send_can_timeout(sshshell_connection):
     connection = sshshell_connection
     with connection.open():
         with pytest.raises(ConnectionTimeout) as exc:
-            big_data = "123456789 " * 10000
+            big_data = "123456789 " * 100000
             request = "echo {}\n".format(big_data)
             bytes2send = request.encode("utf-8")
             connection.send(bytes2send, timeout=0.001)
