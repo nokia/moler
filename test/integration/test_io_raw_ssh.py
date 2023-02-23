@@ -487,7 +487,7 @@ def test_send_can_timeout(sshshell_connection):
             bytes2send = request.encode("utf-8")
             for x in range(10):
                 connection.send(bytes2send, timeout=0.0005)
-        assert "Timeout (> 0.001 sec) on ssh://molerssh@localhost:22" in str(exc.value)
+        assert "Timeout (> 0.0005 sec) on ssh://molerssh@localhost:22" in str(exc.value)
 
 
 def test_send_can_push_remaining_data_within_timeout(sshshell_connection):
