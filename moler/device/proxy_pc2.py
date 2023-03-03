@@ -6,7 +6,7 @@ Moler's device has 2 main responsibilities:
 """
 
 __author__ = 'Michal Ernst, Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'michal.ernst@nokia.com, grzegorz.latuszek@nokia.com'
 import six
 import abc
@@ -260,13 +260,16 @@ class ProxyPc2(UnixLocal):
         detector.start(timeout=self._prompt_detector_timeout)
         # detector.await_done(timeout=self._prompt_detector_timeout)
 
-
     def _set_after_open_prompt(self, event):
         occurrence = event.get_last_occurrence()
-        prompt = occurrence['groups'][0]
+        prompt = occurrence['groups'][0].rstrip()
         state = self._get_current_state()
         with self._state_prompts_lock:
-            self._state_prompts[state] = prompt.rstrip()
+            self._state_prompts[state] = prompt
+            self._prepare_reverse_state_prompts_dict()
+            # self._reverse_state_prompts_dict[prompt] = state
+            if self._prompts_event is not None:
+                self._prompts_event.prompts = self._reverse_state_prompts_dict
 
     def _prepare_state_prompts(self):
         """

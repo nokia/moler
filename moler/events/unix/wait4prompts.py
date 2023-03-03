@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2021, Nokia'
+__copyright__ = 'Copyright (C) 2019-2023, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import datetime
@@ -22,7 +22,12 @@ class Wait4prompts(GenericUnixTextualEvent):
         :param runner: Runner to run event
         """
         super(Wait4prompts, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times)
-        self.compiled_prompts_regex = self._compile_prompts_patterns(prompts)
+        self.compiled_prompts_regex = None
+        self._sorted_list = None
+        self._prompts = None
+        self._patterns = None
+        self.prompts = prompts
+        # self.compiled_prompts_regex = self._compile_prompts_patterns(prompts)
         self.process_full_lines_only = False
         self.check_against_all_prompts = False
         self._ret_list_matched = list()
@@ -33,9 +38,19 @@ class Wait4prompts(GenericUnixTextualEvent):
         except ParsingDone:
             pass
 
+    @property
+    def prompts(self):
+        return None
+
+    @prompts.setter
+    def prompts(self, value):
+        self._prompts = value
+        self.compiled_prompts_regex = self._compile_prompts_patterns()
+        self._sorted_list = sorted(self.compiled_prompts_regex.keys(), key=attrgetter('pattern'))
+
     def _parse_prompts(self, line):
         current_ret = None
-        for prompt_regex in sorted(self.compiled_prompts_regex.keys(), key=attrgetter('pattern')):
+        for prompt_regex in self._sorted_list:
             if self._regex_helper.search_compiled(prompt_regex, line):
                 current_ret = {
                     'line': line,
@@ -54,14 +69,14 @@ class Wait4prompts(GenericUnixTextualEvent):
             self.event_occurred(event_data=current_ret)
             raise ParsingDone()
 
-    def _compile_prompts_patterns(self, patterns):
+    def _compile_prompts_patterns(self):
         compiled_patterns = dict()
-        for pattern in patterns.keys():
+        for pattern in self._prompts.keys():
             if not hasattr(pattern, "match"):  # Not compiled regexp
                 compiled_pattern = re.compile(pattern)
             else:
                 compiled_pattern = pattern
-            compiled_patterns[compiled_pattern] = patterns[pattern]
+            compiled_patterns[compiled_pattern] = self._prompts[pattern]
         return compiled_patterns
 
 
