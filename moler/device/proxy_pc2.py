@@ -257,7 +257,9 @@ class ProxyPc2(UnixLocal):
         detector.add_event_occurred_callback(callback=set_callback,
                                              callback_params={"event": detector})
         self.io_connection.moler_connection.sendline("echo DETECTING PROMPT")
-        self._after_open_prompt_detector.start(timeout=self._prompt_detector_timeout)
+        detector.start(timeout=self._prompt_detector_timeout)
+        # detector.await_done(timeout=self._prompt_detector_timeout)
+
 
     def _set_after_open_prompt(self, event):
         occurrence = event.get_last_occurrence()
