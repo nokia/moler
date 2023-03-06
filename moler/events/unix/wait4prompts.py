@@ -40,7 +40,7 @@ class Wait4prompts(GenericUnixTextualEvent):
         self.pause()
         self._set_prompts(prompts=prompts)
         self.resume()
-        self.logger.info("Changed prompts into '{}'".format(prompts))
+        self.logger.info("Changed prompts into '{}'.".format(prompts))
 
     def _set_prompts(self, prompts):
         self.compiled_prompts_regex = self._compile_prompts_patterns(prompts=prompts)
