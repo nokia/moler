@@ -269,7 +269,7 @@ class ProxyPc2(UnixLocal):
             self._prepare_reverse_state_prompts_dict()
             # self._reverse_state_prompts_dict[prompt] = state
             if self._prompts_event is not None:
-                self._prompts_event.prompts = self._reverse_state_prompts_dict
+                self._prompts_event.change_promopts(prompts=self._reverse_state_prompts_dict)
 
     def _prepare_state_prompts(self):
         """

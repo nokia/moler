@@ -22,12 +22,10 @@ class Wait4prompts(GenericUnixTextualEvent):
         :param runner: Runner to run event
         """
         super(Wait4prompts, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times)
-        self.compiled_prompts_regex = None
-        self._sorted_list = None
-        self._prompts = None
-        self._patterns = None
-        self.prompts = prompts
-        # self.compiled_prompts_regex = self._compile_prompts_patterns(prompts)
+        self.compiled_prompts_regex = None  # Dict, key is a compiled regex, value is state name
+        self._prompts_list = None  # List of compiled regexps
+        self._set_prompts(prompts=prompts)
+
         self.process_full_lines_only = False
         self.check_against_all_prompts = False
         self._ret_list_matched = list()
@@ -38,19 +36,19 @@ class Wait4prompts(GenericUnixTextualEvent):
         except ParsingDone:
             pass
 
-    @property
-    def prompts(self):
-        return None
+    def change_prompts(self, prompts):
+        self.pause()
+        self._set_prompts(prompts=prompts)
+        self.resume()
+        self.logger.info("Changed prompts into '{}'".format(prompts))
 
-    @prompts.setter
-    def prompts(self, value):
-        self._prompts = value
-        self.compiled_prompts_regex = self._compile_prompts_patterns()
-        self._sorted_list = sorted(self.compiled_prompts_regex.keys(), key=attrgetter('pattern'))
+    def _set_prompts(self, prompts):
+        self.compiled_prompts_regex = self._compile_prompts_patterns(prompts=prompts)
+        self._prompts_list = sorted(self.compiled_prompts_regex.keys(), key=attrgetter('pattern'))
 
     def _parse_prompts(self, line):
         current_ret = None
-        for prompt_regex in self._sorted_list:
+        for prompt_regex in self._prompts_list:
             if self._regex_helper.search_compiled(prompt_regex, line):
                 current_ret = {
                     'line': line,
@@ -69,14 +67,14 @@ class Wait4prompts(GenericUnixTextualEvent):
             self.event_occurred(event_data=current_ret)
             raise ParsingDone()
 
-    def _compile_prompts_patterns(self):
+    def _compile_prompts_patterns(self, prompts):
         compiled_patterns = dict()
-        for pattern in self._prompts.keys():
+        for pattern in prompts.keys():
             if not hasattr(pattern, "match"):  # Not compiled regexp
                 compiled_pattern = re.compile(pattern)
             else:
                 compiled_pattern = pattern
-            compiled_patterns[compiled_pattern] = self._prompts[pattern]
+            compiled_patterns[compiled_pattern] = prompts[pattern]
         return compiled_patterns
 
 
