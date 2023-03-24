@@ -79,7 +79,7 @@ class ProxyPc2(UnixLocal):
         what = "experimental/temporary implementation of device utilizing sshshell connection"
         temporary_classname = self.__class__.__name__
         target_classname = temporary_classname[:-1]
-        merge_info = "It's functionality will be merged"
+        merge_info = "Its functionality will be merged"
         future_change = "{} into {} device in Moler 2.0.0 and {} will be removed".format(merge_info,
                                                                                          target_classname,
                                                                                          temporary_classname)
