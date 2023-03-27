@@ -6,7 +6,7 @@ to make it exchangeable (threads, asyncio, twisted, curio)
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import atexit
@@ -15,6 +15,8 @@ import logging
 import sys
 import threading
 import time
+import traceback
+import os
 from abc import abstractmethod, ABCMeta
 from concurrent.futures import ThreadPoolExecutor, wait
 from functools import partial
@@ -481,13 +483,15 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             except Exception as exc:  # TODO: handling stacktrace
                 # observers should not raise exceptions during data parsing
                 # but if they do so - we fix it
+                stack_msg = traceback.format_exc()
                 self.logger.debug(">>> Entering err {}. conn-obs '{}' runner. '{}'".format(observer_lock, connection_observer, self))
                 with observer_lock:
                     self.logger.debug(">>> Entered  err {}. conn-obs '{}' runner. '{}'".format(observer_lock, connection_observer, self))
-                    self.logger.warning("Unhandled exception from '{} 'caught by runner. '{}' : '{}'.".format(
-                        connection_observer, exc, repr(exc)))
+                    self.logger.warning("Unhandled exception from '{} 'caught by runner. '{}' : '{}'.\n{}".format(
+                        connection_observer, exc, repr(exc), stack_msg))
                     ex_msg = "Unexpected exception from {} caught by runner when processing data >>{}<< at '{}':" \
-                             " >>>{}<<< -> repr: >>>{}<<<".format(connection_observer, data, timestamp, exc, repr(exc))
+                             " >>>{}<<< -> repr: >>>{}<<<\nStack: {}".format(connection_observer, data, timestamp, exc,
+                                                                             repr(exc), stack_msg)
                     if connection_observer.is_command():
                         ex = CommandFailure(command=connection_observer, message=ex_msg)
                     else:

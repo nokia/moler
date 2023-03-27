@@ -1,7 +1,16 @@
+## moler 2.8.0
+
+### Improved
+
+* Deeper stack logging
+* Methods search_compiled and match_compiled can support None as compiled regex
+
 ## moler 2.7.0
 
 ### Improved
 
+* Command ethtool - add support for -S option
+* Command nmap - add support for many crypto protocols
 * Set level of functionality - AT cmd
 * Get level of functionality - AT cmd
 
