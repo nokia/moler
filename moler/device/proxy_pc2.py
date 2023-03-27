@@ -6,7 +6,7 @@ Moler's device has 2 main responsibilities:
 """
 
 __author__ = 'Michal Ernst, Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'michal.ernst@nokia.com, grzegorz.latuszek@nokia.com'
 import six
 import abc
@@ -79,7 +79,7 @@ class ProxyPc2(UnixLocal):
         what = "experimental/temporary implementation of device utilizing sshshell connection"
         temporary_classname = self.__class__.__name__
         target_classname = temporary_classname[:-1]
-        merge_info = "It's functionality will be merged"
+        merge_info = "Its functionality will be merged"
         future_change = "{} into {} device in Moler 2.0.0 and {} will be removed".format(merge_info,
                                                                                          target_classname,
                                                                                          temporary_classname)
@@ -257,14 +257,18 @@ class ProxyPc2(UnixLocal):
         detector.add_event_occurred_callback(callback=set_callback,
                                              callback_params={"event": detector})
         self.io_connection.moler_connection.sendline("echo DETECTING PROMPT")
-        self._after_open_prompt_detector.start(timeout=self._prompt_detector_timeout)
+        detector.start(timeout=self._prompt_detector_timeout)
+        # detector.await_done(timeout=self._prompt_detector_timeout)
 
     def _set_after_open_prompt(self, event):
         occurrence = event.get_last_occurrence()
-        prompt = occurrence['groups'][0]
+        prompt = occurrence['groups'][0].rstrip()
         state = self._get_current_state()
         with self._state_prompts_lock:
-            self._state_prompts[state] = prompt.rstrip()
+            self._state_prompts[state] = prompt
+            self._prepare_reverse_state_prompts_dict()
+            if self._prompts_event is not None:
+                self._prompts_event.change_prompts(prompts=self._reverse_state_prompts_dict)
 
     def _prepare_state_prompts(self):
         """
