@@ -65,8 +65,10 @@ class CommandChangingPrompt(CommandTextualGeneric):
     def __str__(self):
         base_str = super(CommandChangingPrompt, self).__str__()
         expected_prompt = self._re_expected_prompt.pattern
+        prompt_after_login = self._re_prompt_after_login.pattern
         # having expected prompt visible simplifies troubleshooting
-        return "{}, expected_prompt_regex:r'{}')".format(base_str[:-1], expected_prompt)
+        return "{}, expected_prompt_regex:r'{}', prompt_after_login:r'{}')".format(base_str[:-1], expected_prompt,
+                                                                                   prompt_after_login)
 
     def on_new_line(self, line, is_full_line):
         """

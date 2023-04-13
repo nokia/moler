@@ -223,7 +223,7 @@ class RemoteConnection(ThreadedFifoBuffer):
             try:
                 available_outputs = self.data[self.device.state].keys()
             except (KeyError, AttributeError):
-                available_outputs = "No output for state '{}'. Data: '{}'.".format(self.device.stata, self.data)
+                available_outputs = "No output for state '{}'. Data: '{}'.".format(self.device.state, self.data)
             raise MolerException(
                 "No output for cmd: '{}' in state '{}'!\n"
                 "Available outputs for the state: '{}'.\n"
