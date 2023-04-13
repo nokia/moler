@@ -4,7 +4,7 @@ Generic command class for commands change prompt
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2022, Nokia'
+__copyright__ = 'Copyright (C) 2019-2023, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import abc

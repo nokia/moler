@@ -4,7 +4,7 @@ Perform devices SM autotest.
 """
 
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2022, Nokia'
+__copyright__ = 'Copyright (C) 2019-2023, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import os

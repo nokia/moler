@@ -461,19 +461,7 @@ class CommandTextualGeneric(Command):
         """
         if self.break_on_timeout:
             self.break_cmd()
-        last_chunk = self._last_chunk
-        if last_chunk is not None:
-            try:
-                last_chunk = u"" + self._last_chunk
-            except Exception as ex:  # pragma: no cover
-                last_chunk = "{}/{}".format(ex, repr(ex))  # pragma: no cover
-        msg = ""
-        for attribute_name in sorted(self.__dict__.keys()):
-            if msg:
-                msg = "{}, '{}':'{}'".format(msg, attribute_name, self.__dict__[attribute_name])
-            else:
-                msg = "Timeout when '{}':'{}'".format(attribute_name, self.__dict__[attribute_name])
-        self._log(lvl=logging.INFO, msg=msg, levels_to_go_up=2)
+        return super(CommandTextualGeneric, self).on_timeout()
 
     def has_any_result(self):
         """
