@@ -468,7 +468,7 @@ class CommandTextualGeneric(Command):
             except Exception as ex:  # pragma: no cover
                 last_chunk = "{}/{}".format(ex, repr(ex))  # pragma: no cover
         msg = ""
-        for attribute_name in self.__dict__.keys():
+        for attribute_name in sorted(self.__dict__.keys()):
             if msg:
                 msg = "{}, '{}':'{}'".format(msg, attribute_name, self.__dict__[attribute_name])
             else:
