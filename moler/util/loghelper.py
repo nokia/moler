@@ -45,7 +45,7 @@ def find_caller(levels_to_go_up=0):
 
     #if 0 == levels_to_go_up:
     levels_to_go_up += _level_to_go_up_extra
-    print("levels_to_go_up={}", levels_to_go_up)
+    print("levels_to_go_up={}".format(levels_to_go_up))
     f = logging.currentframe()
     print("src: {}".format(_srcfile))
     print("f={}".format(f.f_code))

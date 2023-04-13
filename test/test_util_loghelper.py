@@ -53,8 +53,7 @@ def test_logging_caller_code_location():
         warn_about_calling("you should not call deprecated functions")
 
     def warn_about_calling(msg):
-        warning_into_logger(logger, msg, levels_to_go_up=1)
-
+        warning_into_logger(logger, msg, levels_to_go_up=2)
     logged_record = [None]
 
     def log_record_receiver(logger, log_record):
@@ -69,7 +68,7 @@ def test_logging_caller_code_location():
     assert log_record.msg == "you should not call deprecated functions"
     assert log_record.funcName == "test_logging_caller_code_location"
     assert log_record.filename.endswith("test_util_loghelper.py")
-    assert log_record.lineno == 64
+    assert log_record.lineno == 63
 
 
 def test_correct_loglevel_of_helper_logging_functions():
