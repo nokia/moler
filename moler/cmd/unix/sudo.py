@@ -458,7 +458,7 @@ COMMAND_RESULT_ifconfigdown = {}
 
 COMMAND_KWARGS_ifconfigdown = {
     "cmd_class_name": "moler.cmd.unix.ifconfig.Ifconfig",
-    "password": "pass",
+    "password": ["pass"],
     "cmd_params": {"options": "lo down"},
 }
 

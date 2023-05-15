@@ -17,6 +17,7 @@ from moler.exceptions import CommandFailure
 import pytest
 import mock
 import time
+import datetime
 
 
 def test_sudo_with_parameter_i(buffer_connection):
@@ -232,6 +233,26 @@ def test_sudo_forwards_nonsudo_specific_connection_data_into_embedded_command(bu
     assert on_new_line_params == [("/home/user/moler", False),
                                   ("/home/user/moler", True),
                                   ("ute@debdev:~/moler$", False)]
+
+
+def test_wrong_password_repeat_password(buffer_connection):
+    output1 = "sudo pwd\n"
+    output2 = "[sudo] password for ute: "
+    output3 = "*****\n"
+    output4 = "Sorry, try again.\n"
+    output5 = output2
+    cmd_pwd = Pwd(connection=buffer_connection.moler_connection)
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass", cmd_object=cmd_pwd,
+                    repeat_password=False)
+    cmd_sudo.start(timeout=4)
+    time.sleep(0.1)
+    buffer_connection.moler_connection.data_received(output1.encode("utf-8"), datetime.datetime.now())
+    outputs = [output2, output3, output4, output5]
+    with pytest.raises(CommandFailure):
+        for output in outputs:
+            buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
+            time.sleep(0.1)
+        cmd_sudo.await_done()
 
 
 @pytest.fixture()
