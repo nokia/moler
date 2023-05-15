@@ -4,7 +4,7 @@ Testing of sudo command.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 from moler.cmd.unix.sudo import Sudo
@@ -167,7 +167,7 @@ def test_failing_with_embedded_command_fails(buffer_connection, command_output_c
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass", cmd_object=cmd_cp)
     with pytest.raises(CommandFailure):
         abc = cmd_sudo()
-        print("abc '{}'".format(abc))
+        # `print`("abc '{}'".format(abc))
 
 
 def test_failing_with_bit_fails(buffer_connection, command_output_cp_bit_fails):
@@ -202,7 +202,8 @@ def test_failing_with_wrong_password(buffer_connection, command_output_password_
     command_output = command_output_password_fails
     buffer_connection.remote_inject_response([command_output])
     cmd = Whoami(connection=buffer_connection.moler_connection)
-    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, cmd_object=cmd, password="pass")
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, cmd_object=cmd, password="pass",
+                    repeat_password=False)
     with pytest.raises(CommandFailure):
         cmd_sudo(timeout=0.2)
     assert cmd_sudo._command_output_started is False

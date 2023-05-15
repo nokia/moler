@@ -4,15 +4,16 @@ Sudo command module.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
+import six
 
 from moler.cmd.commandchangingprompt import CommandChangingPrompt
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
-from moler.helpers import copy_dict
+from moler.helpers import copy_dict, copy_list
 from moler.helpers import create_object_from_name
 
 
@@ -22,12 +23,12 @@ class Sudo(CommandChangingPrompt):
     def __init__(self, connection, password=None, sudo_params=None, cmd_object=None, cmd_class_name=None,
                  cmd_params=None, prompt=None, newline_chars=None, runner=None, encrypt_password=True,
                  expected_prompt=None, set_timeout=None, set_prompt=None, target_newline="\n",
-                 allowed_newline_after_prompt=False, prompt_after_login=None):
+                 allowed_newline_after_prompt=False, prompt_after_login=None, repeat_password=True):
         """
         Constructs object for Unix command sudo.
 
         :param connection: Moler connection to device, terminal when command is executed.
-        :param password: password for sudo.
+        :param password: password for sudo or list of passwords.
         :param sudo_params: params for sudo (not for command for sudo)
         :param cmd_object: object of command. Pass this object or cmd_class_name.
         :param cmd_class_name: full (with package) class name. Pass this name or cmd_object.
@@ -42,6 +43,7 @@ class Sudo(CommandChangingPrompt):
         :param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt.
         :param prompt_after_login: prompt after login before send export PS1. If you do not change prompt exporting PS1
          then leave it None.
+        :param repeat_password: If True then repeat last password if no more provided. If False then exception is set.
 
         """
         if expected_prompt is None or expected_prompt == '':
@@ -52,9 +54,13 @@ class Sudo(CommandChangingPrompt):
                                    allowed_newline_after_prompt=allowed_newline_after_prompt,
                                    prompt_after_login=prompt_after_login)
 
-        if password is None:
-            password = ""
-        self.password = password
+        if isinstance(password, six.string_types):
+            self.password = [password]
+        elif password is None:
+            self.password = []
+        else:
+            self.password = copy_list(password, deep_copy=False)  # copy of list of passwords to modify
+        self._last_password = ""
         self.cmd_object = cmd_object
         self.cmd_params = cmd_params
         self.cmd_class_name = cmd_class_name
@@ -62,6 +68,7 @@ class Sudo(CommandChangingPrompt):
         self.sudo_params = sudo_params
         self.timeout_from_embedded_command = True  # Set True to set timeout from command or False to use timeout set in
         #  sudo command.
+        self.repeat_password = repeat_password
         self._sent_password = False
         self._sent_command_string = False
         self.newline_seq = "\n"
@@ -100,6 +107,8 @@ class Sudo(CommandChangingPrompt):
             self._parse_error(line)
         except ParsingDone:
             self._line_for_sudo = True
+        if is_full_line:
+            self._sent_password = False
         super(Sudo, self).on_new_line(line, is_full_line)
 
     def start(self, timeout=None, *args, **kwargs):
@@ -191,10 +200,11 @@ class Sudo(CommandChangingPrompt):
         :raises: ParsingDone if regex matches the line.
         """
         if re.search(self._get_wrong_password_regex(), line):
-            if self._sent_password and not self._command_output_started:
-                self.set_exception(CommandFailure(self, "Command error password found in line '{}'.".format(line)))
-                self._finish_on_final_prompt = True
-                self._sent_password = False
+            if not self._command_output_started:
+                if (len(self.password) <= 0) and (self.repeat_password is False):
+                    self.set_exception(CommandFailure(self, "Command error password found in line '{}'.".format(line)))
+                    self._finish_on_final_prompt = True
+                    self._sent_password = False
                 raise ParsingDone()
 
     # sudo: /usr/bin/sudo must be owned by uid 0 and have the setuid bit set
@@ -233,7 +243,19 @@ class Sudo(CommandChangingPrompt):
         """
         if re.search(self._get_password_regex(), line):
             if not self._sent_password:
-                self.connection.sendline(self.password, encrypt=self.encrypt_password)
+                try:
+                    pwd = self.password.pop(0)
+                    self._last_password = pwd
+                    self.connection.sendline(pwd, encrypt=self.encrypt_password)
+                except IndexError:
+                    if self.repeat_password:
+                        self.connection.sendline("{}".format(self._last_password), encrypt=self.encrypt_password)
+                    else:
+                        self.set_exception(
+                            CommandFailure(self, "Password was requested but no more passwords provided."))
+                        self.break_cmd()
+                        raise ParsingDone()
+
                 self._sent_password = True
             raise ParsingDone()
 
