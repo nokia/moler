@@ -4,7 +4,7 @@ Su command module.
 """
 
 __author__ = 'Agnieszka Bylica, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
@@ -27,7 +27,8 @@ def test_su_catches_authentication_failure(buffer_connection, command_output_and
     from moler.exceptions import CommandFailure
     command_output, expected_result = command_output_and_expected_result_auth
     buffer_connection.remote_inject_response([command_output])
-    su_cmd = Su(connection=buffer_connection.moler_connection, prompt=r"xyz@debian:", expected_prompt=r"root@debian")
+    su_cmd = Su(connection=buffer_connection.moler_connection, prompt=r"xyz@debian:", expected_prompt=r"root@debian",
+                repeat_password=False)
     with pytest.raises(CommandFailure):
         su_cmd()
 
