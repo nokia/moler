@@ -201,7 +201,7 @@ class Sudo(CommandChangingPrompt):
         """
         if re.search(self._get_wrong_password_regex(), line):
             if not self._command_output_started:
-                if (len(self.password) <= 0) and (self.repeat_password is False):
+                if (len(self.password) == 0) and (self.repeat_password is False):
                     self.set_exception(CommandFailure(self, "Command error password found in line '{}'.".format(line)))
                     self._finish_on_final_prompt = True
                     self._sent_password = False
@@ -244,9 +244,9 @@ class Sudo(CommandChangingPrompt):
         if re.search(self._get_password_regex(), line):
             if not self._sent_password:
                 try:
-                    pwd = self.password.pop(0)
-                    self._last_password = pwd
-                    self.connection.sendline(pwd, encrypt=self.encrypt_password)
+                    current_password = self.password.pop(0)
+                    self._last_password = current_password
+                    self.connection.sendline(current_password, encrypt=self.encrypt_password)
                 except IndexError:
                     if self.repeat_password:
                         self.connection.sendline("{}".format(self._last_password), encrypt=self.encrypt_password)
