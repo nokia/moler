@@ -1,3 +1,9 @@
+## moler 2.9.0
+
+### Improved
+* Log all command attributes when timeout
+* Detect prompt for devices with paramiko connection
+
 ## moler 2.8.0
 
 ### Improved

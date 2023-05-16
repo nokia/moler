@@ -356,7 +356,13 @@ class ConnectionObserver(object):
 
     def on_timeout(self):
         """Callback called when observer times out"""
-        pass
+        msg = ""
+        for attribute_name in sorted(self.__dict__.keys()):
+            if msg:
+                msg = "{}, '{}':'{}'".format(msg, attribute_name, self.__dict__[attribute_name])
+            else:
+                msg = "Timeout when '{}':'{}'".format(attribute_name, self.__dict__[attribute_name])
+        self._log(lvl=logging.INFO, msg=msg, levels_to_go_up=2)
 
     def is_command(self):
         """

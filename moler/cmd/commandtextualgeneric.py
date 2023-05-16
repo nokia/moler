@@ -461,23 +461,7 @@ class CommandTextualGeneric(Command):
         """
         if self.break_on_timeout:
             self.break_cmd()
-        last_chunk = self._last_chunk
-        if last_chunk is not None:
-            try:
-                last_chunk = u"" + self._last_chunk
-            except Exception as ex:  # pragma: no cover
-                last_chunk = "{}/{}".format(ex, repr(ex))  # pragma: no cover
-        msg = ("Timeout when command_string='{}', _cmd_escaped='{}', _cmd_output_started='{}', ret_required='{}', "
-               "break_on_timeout='{}', _last_not_full_line='{}', _re_prompt='{}', do_not_process_after_done='{}', "
-               "newline_after_command_string='{}', wait_for_prompt_on_exception='{}', _stored_exception='{}', "
-               "current_ret='{}', _newline_chars='{}', _concatenate_before_command_starts='{}', "
-               "_command_string_right_index='{}', _command_string_left_index='{}', _last_chunk='{}'.").format(
-            self.__command_string, self._cmd_escaped.pattern, self._cmd_output_started, self.ret_required,
-            self.break_on_timeout, self._last_not_full_line, self._re_prompt.pattern, self.do_not_process_after_done,
-            self.newline_after_command_string, self.wait_for_prompt_on_exception, self._stored_exception,
-            self.current_ret, self._newline_chars, self._concatenate_before_command_starts,
-            self._max_index_from_beginning, self._max_index_from_end, last_chunk)
-        self._log(lvl=logging.INFO, msg=msg, levels_to_go_up=2)
+        return super(CommandTextualGeneric, self).on_timeout()
 
     def has_any_result(self):
         """
