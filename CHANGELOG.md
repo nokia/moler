@@ -1,3 +1,9 @@
+## moler 2.10.0
+
+### Improved
+* Commands `su` and `sudo` support many passwords
+* Command exit doesn't wait for echo (optional)
+
 ## moler 2.9.0
 
 ### Improved
