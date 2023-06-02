@@ -14,11 +14,9 @@ import sys
 def test_extracting_caller_code_location():
     from moler.util.loghelper import find_caller
     if sys.version_info[0] >= 3 and sys.version_info[1] >= 11:
-        print(">=3.11")
         _level_to_go_up_extra = 1  # For backward compatibility
     else:
         _level_to_go_up_extra = 0
-        print("<3.11")
     frames_info = []
 
     def my_outer_fun():
@@ -40,15 +38,15 @@ def test_extracting_caller_code_location():
 
     (_, called_from_lineno, called_from_fun_name) = frames_info[0]
     assert called_from_fun_name == "test_extracting_caller_code_location"
-    assert called_from_lineno == 32
+    assert called_from_lineno == 30
 
     (_, called_from_lineno, called_from_fun_name) = frames_info[1]
     assert called_from_fun_name == "my_outer_fun"
-    assert called_from_lineno == 26
+    assert called_from_lineno == 24
 
     (_, called_from_lineno, called_from_fun_name) = frames_info[2]
     assert called_from_fun_name == "test_extracting_caller_code_location"
-    assert called_from_lineno == 32
+    assert called_from_lineno == 30
 
 
 def test_logging_caller_code_location():
@@ -76,7 +74,7 @@ def test_logging_caller_code_location():
     assert log_record.msg == "you should not call deprecated functions"
     assert log_record.funcName == "test_logging_caller_code_location"
     assert log_record.filename.endswith("test_util_loghelper.py")
-    assert log_record.lineno == 71
+    assert log_record.lineno == 69
 
 
 def test_correct_loglevel_of_helper_logging_functions():
