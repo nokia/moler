@@ -32,7 +32,6 @@ def find_caller(levels_to_go_up=0):
     :param levels_to_go_up: 0 - info about 'calling location' of caller of findCaller(); 1 - 'calling -1 location'
     :return:
     """
-
     f = logging.currentframe()
     # On some versions of IronPython, currentframe() returns None if
     # IronPython isn't run with -X:Frames.
