@@ -4,9 +4,9 @@
 Utilities related to logging
 """
 
-__author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2022, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
+__author__ = 'Grzegorz Latuszek'
+__copyright__ = 'Copyright (C) 2019, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com'
 
 import os
 import logging
@@ -19,7 +19,6 @@ def __dummy():
 
 
 _srcfile = os.path.normcase(__dummy.__code__.co_filename)
-_level_to_go_up_extra = None
 
 
 def find_caller(levels_to_go_up=0):
@@ -33,38 +32,20 @@ def find_caller(levels_to_go_up=0):
     :param levels_to_go_up: 0 - info about 'calling location' of caller of findCaller(); 1 - 'calling -1 location'
     :return:
     """
-    global _level_to_go_up_extra
-    if _level_to_go_up_extra is None:
-        _level_to_go_up_extra = 0
-        print("\n\n\n\n*****************************\n\n\n")
-        if sys.version_info[0] >= 3 and sys.version_info[1] >= 11:
-            print(">=3.11")
-            _level_to_go_up_extra = 1  # For backward compatibility
-        else:
-            print("<3.11")
 
-    #if 0 == levels_to_go_up:
-    levels_to_go_up += _level_to_go_up_extra
-    print("levels_to_go_up={}".format(levels_to_go_up))
     f = logging.currentframe()
-    print("src: {}".format(_srcfile))
-    print("f={}".format(f.f_code))
     # On some versions of IronPython, currentframe() returns None if
     # IronPython isn't run with -X:Frames.
     rv = "(unknown file)", 0, "(unknown function)", None
     while hasattr(f, "f_code"):
-        print("    f={}".format(f.f_code))
         co = f.f_code
         filename = os.path.normcase(co.co_filename)
-        print("    filename={}".format(filename))
         if filename == _srcfile:
-            print("       back")
             f = f.f_back
             continue
         for lv in range(levels_to_go_up):
             f = f.f_back
             if hasattr(f, "f_code"):
-                print("        f={}".format(f.f_code))
                 co = f.f_code
             else:
                 break
