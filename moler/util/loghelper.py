@@ -11,7 +11,6 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 import os
 import logging
 import contextlib
-import sys
 
 
 def __dummy():
