@@ -3,9 +3,9 @@
 Tests for utilities related to logging.
 """
 
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2019, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2019-2023, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import mock
 import sys
@@ -28,9 +28,6 @@ def test_extracting_caller_code_location():
         frames_info.append(find_caller(levels_to_go_up=1 + _level_to_go_up_extra))  # who called him and from which line
 
     my_outer_fun()
-    print("frames info:")
-    from pprint import pprint
-    pprint(frames_info)
     called_from_filename = frames_info[0][0]
     assert called_from_filename.endswith("test_util_loghelper.py")
     assert called_from_filename == frames_info[1][0]
@@ -74,7 +71,7 @@ def test_logging_caller_code_location():
     assert log_record.msg == "you should not call deprecated functions"
     assert log_record.funcName == "test_logging_caller_code_location"
     assert log_record.filename.endswith("test_util_loghelper.py")
-    assert log_record.lineno == 69
+    assert log_record.lineno == 66
 
 
 def test_correct_loglevel_of_helper_logging_functions():
