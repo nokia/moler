@@ -14,7 +14,6 @@ __email__ = 'adam.klekowski@nokia.com'
 import re
 
 from moler.cmd.at.genericat import GenericAtCommand
-from moler.exceptions import ParsingDone, CommandFailure
 
 
 class CreatePduSession(GenericAtCommand):
@@ -28,6 +27,7 @@ class CreatePduSession(GenericAtCommand):
         """Create instance of CreatePduSession class"""
         super(CreatePduSession, self).__init__(connection, operation='execute', prompt=prompt,
                                                newline_chars=newline_chars, runner=runner)
+        self.ret_required = False
 
     def build_command_string(self):
         return "AT$QCRMCALL=1,1"
