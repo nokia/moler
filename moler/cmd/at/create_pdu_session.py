@@ -32,34 +32,6 @@ class CreatePduSession(GenericAtCommand):
     def build_command_string(self):
         return "AT$QCRMCALL=1,1"
 
-    def on_new_line(self, line, is_full_line):
-        """
-        Parses the output of the command.
-
-        :param line: Line to process, can be only part of line. New line chars are removed from line.
-        :param is_full_line: True if line had new line chars, False otherwise.
-        :return: None.
-        """
-        try:
-            self._check_command_failure(line)
-        except ParsingDone:
-            pass
-        super(CreatePduSession, self).on_new_line(line=line, is_full_line=is_full_line)
-
-    _re_command_fail = re.compile("^NO CARRIER$", re.IGNORECASE)
-
-    def _check_command_failure(self, line):
-        """
-        Checks if line has info about command failure.
-
-        :param line: Line from device.
-        :return: None
-        :raise ParsingDone: if regex matches.
-        """
-        if self._regex_helper.search_compiled(self._re_command_fail, line):
-            self.set_exception(CommandFailure(self, "Found error regex in line '{}'".format(line)))
-            raise ParsingDone
-
 
 # -----------------------------------------------------------------------------
 # Following documentation is required for library CI.
