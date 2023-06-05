@@ -11,8 +11,6 @@ __author__ = 'Adam Klekowski'
 __copyright__ = 'Copyright (C) 2023, Nokia'
 __email__ = 'adam.klekowski@nokia.com'
 
-import re
-
 from moler.cmd.at.genericat import GenericAtCommand
 
 
