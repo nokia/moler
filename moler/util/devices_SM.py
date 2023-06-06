@@ -94,7 +94,7 @@ def _perform_device_tests_start_thread(source_device, tested, states_to_test, ma
         th = threading.Thread(target=_start_device_tests, args=(source_device, tested, states_to_test, max_time,
                                                                 new_device_name, connection, exceptions, rerun,
                                                                 timeout_multiply))
-        th.setDaemon(True)
+        th.daemon = True
         th.start()
         return th
     except Exception as ex:

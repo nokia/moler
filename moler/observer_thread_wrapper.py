@@ -43,7 +43,7 @@ class ObserverThreadWrapper(object):
         self._t = Thread(target=self._loop_for_observer, name="ObserverThreadWrapper-{}-{}".format(
             ObserverThreadWrapper._th_nr, observer_self))
         ObserverThreadWrapper._th_nr += 1
-        self._t.setDaemon(True)
+        self._t.daemon = True
         self._t.start()
 
     def feed(self, data, recv_time):

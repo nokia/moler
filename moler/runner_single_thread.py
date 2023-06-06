@@ -5,7 +5,7 @@ Moler implementation of Runner with single thread for MolerConnection: MolerConn
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2021-2022, Nokia'
+__copyright__ = 'Copyright (C) 2021-2023, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 
@@ -48,7 +48,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
                                              )
         RunnerSingleThread._th_nr += 1
         self._connection_observer_lock = Lock()
-        self._loop_thread.setDaemon(True)
+        self._loop_thread.daemon = True
         self._loop_thread.start()
 
     def is_in_shutdown(self):
@@ -176,7 +176,6 @@ class RunnerSingleThread(ConnectionObserverRunner):
         Calculate remaining time of "the" object assuming that it has .life_status.start_time attribute
 
         :param prefix: string to be used inside 'remaining time description'
-        :param he: object to calculate remaining time for
         :param timeout: max lifetime of object
         :param from_start_time: start of lifetime for the object
         :return: remaining time as float and related description message

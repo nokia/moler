@@ -5,7 +5,7 @@ Moler's device has 2 main responsibilities:
 - be the state machine that controls which commands may run in given state
 """
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2022, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
@@ -480,7 +480,7 @@ class TextualDevice(AbstractDevice):
             self._queue_states.put(state_options)
             if self._thread_for_goto_state is None:
                 thread = threading.Thread(target=self._goto_state_thread, name="GotoStateThread-{}".format(self.name))
-                thread.setDaemon(True)
+                thread.daemon = True
                 thread.start()
                 self._thread_for_goto_state = thread
 
