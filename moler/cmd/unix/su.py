@@ -4,7 +4,7 @@ Su command module.
 """
 
 __author__ = 'Agnieszka Bylica, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import re
@@ -18,7 +18,7 @@ class Su(Sudo):
     def __init__(self, connection, login=None, options=None, password=None, prompt=None, expected_prompt=None,
                  newline_chars=None, encrypt_password=True, target_newline="\n", runner=None, set_timeout=None,
                  allowed_newline_after_prompt=False, set_prompt=None, prompt_after_login=None, cmd_object=None,
-                 cmd_class_name=None, cmd_params=None):
+                 cmd_class_name=None, cmd_params=None, repeat_password=None):
         """
         Moler class of Unix command su.
 
@@ -48,7 +48,8 @@ class Su(Sudo):
                                  expected_prompt=expected_prompt, set_timeout=set_timeout, set_prompt=set_prompt,
                                  target_newline=target_newline,
                                  allowed_newline_after_prompt=allowed_newline_after_prompt,
-                                 prompt_after_login=prompt_after_login)
+                                 prompt_after_login=prompt_after_login,
+                                 repeat_password=repeat_password)
 
         # Parameters defined by calling the command
         self.options = options

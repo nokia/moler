@@ -4,7 +4,7 @@ Tests for helpers functions/classes.
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2022, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import mock
@@ -133,7 +133,7 @@ def test_search_compiled_none():
     from moler.cmd import RegexHelper
     regex_helper = RegexHelper()
     with pytest.raises(WrongUsage) as exc:
-        regex_helper.search_compiled(None, '123')
+        regex_helper.search_compiled(None, '123', True)
     assert "search_compiled is None" in str(exc)
 
 
@@ -141,8 +141,20 @@ def test_match_compiled_none():
     from moler.cmd import RegexHelper
     regex_helper = RegexHelper()
     with pytest.raises(WrongUsage) as exc:
-        regex_helper.match_compiled(None, '123')
+        regex_helper.match_compiled(None, '123', True)
     assert "match_compiled is None" in str(exc)
+
+
+def test_search_compiled_none_passed_compiled_none():
+    from moler.cmd import RegexHelper
+    regex_helper = RegexHelper()
+    assert None is regex_helper.search_compiled(None, '123')
+
+
+def test_match_compiled_none_passed_compiled_none():
+    from moler.cmd import RegexHelper
+    regex_helper = RegexHelper()
+    assert None is regex_helper.match_compiled(None, '123')
 
 
 def test_group_without_match_object():

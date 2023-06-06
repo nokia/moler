@@ -1,3 +1,51 @@
+## moler 2.10.0
+
+### Improved
+* Commands `su` and `sudo` support many passwords
+* Command exit doesn't wait for echo (optional)
+
+## moler 2.9.0
+
+### Improved
+* Log all command attributes when timeout
+* Detect prompt for devices with paramiko connection
+
+## moler 2.8.0
+
+### Improved
+
+* Deeper stack logging
+* Methods search_compiled and match_compiled can support None as compiled regex
+
+## moler 2.7.0
+
+### Improved
+
+* Command ethtool - add support for -S option
+* Command nmap - add support for many crypto protocols
+* Set level of functionality - AT cmd
+* Get level of functionality - AT cmd
+
+## moler 2.6.0
+
+### Improved
+
+* Command run_script for AT
+* Improved tests for state machines - continued  
+
+## moler 2.5.0
+
+### Improved
+
+* Improved tests of state machines - continued 
+
+## moler 2.4.0
+
+### Improved
+
+* New adb commands for Unix
+* Improved tests of state machines
+
 ## moler 2.3.1
 
 ### Improved

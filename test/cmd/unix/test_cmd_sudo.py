@@ -4,7 +4,7 @@ Testing of sudo command.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 from moler.cmd.unix.sudo import Sudo
@@ -17,6 +17,7 @@ from moler.exceptions import CommandFailure
 import pytest
 import mock
 import time
+import datetime
 
 
 def test_sudo_with_parameter_i(buffer_connection):
@@ -163,11 +164,11 @@ def test_no_parameters_command_string(buffer_connection):
 def test_failing_with_embedded_command_fails(buffer_connection, command_output_cp_fails):
     command_output = command_output_cp_fails
     buffer_connection.remote_inject_response([command_output])
-    cmd_cp = Cp(connection=buffer_connection.moler_connection, src="src.txt", dst="dst.txt", prompt="ute@debdev:")
+    cmd_cp = Cp(connection=buffer_connection.moler_connection, src="src.txt", dst="dst.txt", prompt="user@host:")
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass", cmd_object=cmd_cp)
     with pytest.raises(CommandFailure):
         abc = cmd_sudo()
-        print("abc '{}'".format(abc))
+        # `print`("abc '{}'".format(abc))
 
 
 def test_failing_with_bit_fails(buffer_connection, command_output_cp_bit_fails):
@@ -202,7 +203,8 @@ def test_failing_with_wrong_password(buffer_connection, command_output_password_
     command_output = command_output_password_fails
     buffer_connection.remote_inject_response([command_output])
     cmd = Whoami(connection=buffer_connection.moler_connection)
-    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, cmd_object=cmd, password="pass")
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, cmd_object=cmd, password="pass",
+                    repeat_password=False)
     with pytest.raises(CommandFailure):
         cmd_sudo(timeout=0.2)
     assert cmd_sudo._command_output_started is False
@@ -215,7 +217,7 @@ def test_sudo_forwards_nonsudo_specific_connection_data_into_embedded_command(bu
                              "\r\n",
                              "/home/user/moler",  # pwd first chunk
                              "\r\n",
-                             "ute@debdev:~/moler$"]
+                             "user@host:~/moler$"]
     buffer_connection.remote_inject_response(command_output_chunks)
     on_new_line_params = []
     original_on_new_line = Pwd.on_new_line
@@ -230,7 +232,30 @@ def test_sudo_forwards_nonsudo_specific_connection_data_into_embedded_command(bu
         cmd_sudo()
     assert on_new_line_params == [("/home/user/moler", False),
                                   ("/home/user/moler", True),
-                                  ("ute@debdev:~/moler$", False)]
+                                  ("user@host:~/moler$", False)]
+
+
+def test_wrong_password_repeat_password(buffer_connection):
+    output1 = "sudo pwd\n"
+    output2 = "[sudo] password for ute: "
+    output3 = "*****\n"
+    output4 = "Sorry, try again.\n"
+    output5 = "[sudo] password for ute: "
+    output6 = "*****\n"
+    output7 = "/home/moler\n"
+    output8 = "user@host:~/moler$"
+
+    cmd_pwd = Pwd(connection=buffer_connection.moler_connection)
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass", cmd_object=cmd_pwd,
+                    repeat_password=True)
+    cmd_sudo.start(timeout=4)
+    time.sleep(0.1)
+    buffer_connection.moler_connection.data_received(output1.encode("utf-8"), datetime.datetime.now())
+    outputs = [output2, output3, output4, output5, output6, output7, output8]
+    for output in outputs:
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
+        time.sleep(0.1)
+    cmd_sudo.await_done()
 
 
 @pytest.fixture()
@@ -238,7 +263,7 @@ def command_output_and_expected_result():
     output = """user@client:~/moler$ sudo pwd
 [sudo] password for user: 
 /home/user/moler
-ute@debdev:~/moler$ """
+user@host:~/moler$ """
     result = {
         'current_path': 'moler',
         'full_path': '/home/user/moler',
@@ -261,7 +286,7 @@ def command_output_cp_fails():
     output = """sudo cp src.txt dst.txt
 [sudo] password for user: 
 cp: cannot access
-ute@debdev:~/moler$ """
+user@host:~/moler$ """
     return output
 
 
@@ -269,7 +294,7 @@ ute@debdev:~/moler$ """
 def command_output_cp_bit_fails():
     output = """sudo cp src.txt dst.txt 
 sudo: /usr/bin/sudo must be owned by uid 0 and have the setuid bit set
-ute@debdev:~/moler$ """
+user@host:~/moler$ """
     return output
 
 
@@ -293,5 +318,5 @@ def command_output_command_not_found():
     output = """sudo pwd
 [sudo] password for ute: 
 sudo: pwd: command not found
-ute@debdev:~/moler$ """
+user@host:~/moler$ """
     return output

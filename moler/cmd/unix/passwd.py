@@ -9,13 +9,13 @@ from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 
 __author__ = 'Michal Ernst'
-__copyright__ = 'Copyright (C) 2019, Nokia'
-__email__ = 'michal.ernst@nokia.com'
+__copyright__ = 'Copyright (C) 2019-2022, Nokia'
+__email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 
 class Passwd(GenericUnixCommand):
     def __init__(self, connection, current_password=None, new_password=None, user=None, options=None,
-                 encrypt_password=True, newline_chars=None, runner=None):
+                 encrypt_password=True, newline_chars=None, runner=None, prompt=None):
         """
         Moler class of Unix command passwd.
 
@@ -26,9 +26,10 @@ class Passwd(GenericUnixCommand):
         :param options: additional command parameters
         :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text
         :param newline_chars: Characters to split lines
+        :param prompt: prompt on system where passwd is executed
         :param runner: Runner to run command
         """
-        super(Passwd, self).__init__(connection=connection, newline_chars=newline_chars, runner=runner)
+        super(Passwd, self).__init__(connection=connection, newline_chars=newline_chars, runner=runner, prompt=prompt)
         self.user = user
         self.current_password = current_password
         self.new_password = new_password

@@ -1,6 +1,6 @@
 __author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2020, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__copyright__ = 'Copyright (C) 2020-2022, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
 
@@ -32,6 +32,7 @@ def adb_remote_output():
             'export PS1="adb_shell@f57e6b77 \\$ "': 'adb_shell@f57e6b77 $'   # to allow for self.connection.sendline(self.set_prompt) in _send_prompt_set()
         },
         "ADB_SHELL": {
+            '': 'adb_shell@f57e6b77 $',
             'exit': 'remote#',
             'su': 'adb_shell@f57e6b77 #',
         },

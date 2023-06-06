@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2022, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 
@@ -149,7 +149,11 @@ class DeviceFailure(MolerException):
 
 
 class DeviceChangeStateFailure(DeviceFailure):
-    def __init__(self, device, exception):
+    def __init__(self, device, exception, device_name=None):
+        if device_name is None:
+            device_name = 'unknown name'
         self.device = device
-        err_msg = "Exception raised by device '{}' SM when try to changing state: '{}'.".format(device, exception)
+        err_msg = "Exception raised by device '{}' ({}) SM when try to changing state: '{}'.".format(device,
+                                                                                                     device_name,
+                                                                                                     exception)
         super(DeviceChangeStateFailure, self).__init__(device, err_msg)

@@ -4,7 +4,7 @@ Perform devices SM autotest.
 """
 
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2022, Nokia'
+__copyright__ = 'Copyright (C) 2019-2023, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import os
@@ -27,7 +27,8 @@ except ImportError:
     import Queue as queue  # Python 2 and 3.
 
 
-def iterate_over_device_states(device, max_time=None, tests_per_device=300, max_no_of_threads=11):
+def iterate_over_device_states(device, max_time=None, tests_per_device=300, max_no_of_threads=11, rerun=0,
+                               timeout_multiply=3.0):
     """
     Check all states in device under test.
     :param device: device
@@ -35,6 +36,8 @@ def iterate_over_device_states(device, max_time=None, tests_per_device=300, max_
      interrupted.
     :param tests_per_device: how many tests should be performed in one thread.
     :param max_no_of_threads: maximum number of threads that can be started.
+    :param rerun: rerun for goto_state
+    :param timeout_multiply: timeout_multiply for goto_state
     :return: None
     """
     source_states = _get_all_states_from_device(device=device)
@@ -45,6 +48,7 @@ def iterate_over_device_states(device, max_time=None, tests_per_device=300, max_
     device.set_all_prompts_on_line(True)
 
     device._goto_state_in_production_mode = False
+    device.goto_state(state=source_states[0], rerun=rerun)
 
     random.shuffle(source_states)
     random.shuffle(target_states)
@@ -68,10 +72,12 @@ def iterate_over_device_states(device, max_time=None, tests_per_device=300, max_
         new_device_name = "{}_C{}".format(device.name, thread_nr)
         th = _perform_device_tests_start_thread(source_device=device, tested=tested, states_to_test=states_to_test,
                                                 max_time=max_time, new_device_name=new_device_name,
-                                                connection=new_connection, exceptions=exceptions)
+                                                connection=new_connection, exceptions=exceptions, rerun=rerun,
+                                                timeout_multiply=timeout_multiply)
         test_threads.append((th, new_connection))
         thread_nr += 1
-    _perform_device_tests(device=device, tested=tested, states_to_test=states_to_test, max_time=max_time)
+    _perform_device_tests(device=device, tested=tested, states_to_test=states_to_test, max_time=max_time, rerun=rerun,
+                          timeout_multiply=timeout_multiply)
     for th, dev_connection in test_threads:
         th.join()
         dev_connection.close()
@@ -83,10 +89,11 @@ def iterate_over_device_states(device, max_time=None, tests_per_device=300, max_
 
 
 def _perform_device_tests_start_thread(source_device, tested, states_to_test, max_time, new_device_name, connection,
-                                       exceptions):
+                                       exceptions, rerun, timeout_multiply):
     try:
         th = threading.Thread(target=_start_device_tests, args=(source_device, tested, states_to_test, max_time,
-                                                                new_device_name, connection, exceptions))
+                                                                new_device_name, connection, exceptions, rerun,
+                                                                timeout_multiply))
         th.setDaemon(True)
         th.start()
         return th
@@ -95,34 +102,41 @@ def _perform_device_tests_start_thread(source_device, tested, states_to_test, ma
         MolerTest.info("exception: '{}' -> '{}'".format(ex, repr(ex)))
 
 
-def _start_device_tests(source_device, tested, states_to_test, max_time, new_device_name, connection, exceptions):
+def _start_device_tests(source_device, tested, states_to_test, max_time, new_device_name, connection, exceptions,
+                        rerun, timeout_multiply):
     try:
         device = get_cloned_device(src_device=source_device, new_name=new_device_name, new_connection=connection)
-        _perform_device_tests(device=device, tested=tested, states_to_test=states_to_test, max_time=max_time)
+        device.goto_state(state=states_to_test.queue[0][0], rerun=rerun)
+        _perform_device_tests(device=device, tested=tested, states_to_test=states_to_test, max_time=max_time,
+                              rerun=rerun, timeout_multiply=timeout_multiply)
     except Exception as ex:
         exceptions.append(ex)
         MolerTest.info("exception: '{}' -> '{}'".format(ex, repr(ex)))
 
 
-def _perform_device_tests(device, tested, states_to_test, max_time):
+def _perform_device_tests(device, tested, states_to_test, max_time, rerun, timeout_multiply):
     device.set_all_prompts_on_line(True)
     start_time = time.time()
+    test_nr = 0
     while 0 < states_to_test.qsize():
         source_state, target_state = states_to_test.get(0)
         if (source_state, target_state) in tested:
             continue
         try:
             state_before_test = device.current_state
-            device.goto_state(source_state, keep_state=False, rerun=0)
+            device.goto_state(source_state, keep_state=False, rerun=rerun, timeout_multiply=timeout_multiply)
             tested.add((state_before_test, source_state))
-            device.goto_state(target_state, keep_state=False, rerun=0)
+            device.goto_state(target_state, keep_state=False, rerun=rerun, timeout_multiply=timeout_multiply)
             tested.add((source_state, target_state))
             if device.last_wrong_wait4_occurrence is not None:
-                msg = "More than 1 prompt match the same line!: '{}'".format(device.last_wrong_wait4_occurrence)
+                msg = "More than 1 prompt match the same line!: '{}' in change state {} -> {} -> {}".format(
+                    device.last_wrong_wait4_occurrence, state_before_test, state_before_test, source_state)
                 raise MolerException(msg)
         except Exception as exc:
             raise MolerException(
-                "Cannot trigger change state: '{}' -> '{}'\n{}".format(source_state, target_state, exc))
+                "Cannot trigger change state: '{}' -> '{}'. Successful tests: {}\n{}\nAlready tested '{}'.".format(
+                    source_state, target_state, test_nr, exc, tested))
+        test_nr += 1
         if max_time is not None and time.time() - start_time > max_time:
             return
 
@@ -139,6 +153,7 @@ def _prepare_device(device, connection, device_output):
     if connection != device.io_connection:
         device.exchange_io_connection(io_connection=connection)
     assert "RemoteConnection" in device.io_connection.__class__.__name__
+    connection.send_last_prompt_on_error = True
     connection.set_device(device=device)
     device.set_all_prompts_on_line(True)
     device.io_connection.remote_inject_response(device_output)
@@ -170,6 +185,8 @@ class RemoteConnection(ThreadedFifoBuffer):
         self.device = None
         self.data = None
         self.input_bytes = None
+        self.send_last_prompt_on_error = False
+        self._last_prompt = "".encode('utf-8')
         super(RemoteConnection, self).__init__(moler_connection=moler_connection,
                                                echo=echo,
                                                name=name,
@@ -186,6 +203,8 @@ class RemoteConnection(ThreadedFifoBuffer):
         """
         Inject response on connection.
         """
+        if self.device.state == 'NOT_CONNECTED':
+            raise MolerException("Device '{}' in unsupported state '{}'.".format(self.device.name, self.device.state))
         cmd_data_string = self.input_bytes.decode("utf-8")
         if cmd_data_string:
             if '\n' in cmd_data_string:
@@ -195,15 +214,22 @@ class RemoteConnection(ThreadedFifoBuffer):
 
         try:
             binary_cmd_ret = self.data[self.device.state][cmd_data_string].encode('utf-8')
-
+            self._last_prompt = binary_cmd_ret
             self.inject([self.input_bytes + binary_cmd_ret])
         except KeyError as exc:
-            if cmd_data_string != '':
-                raise MolerException(
-                    "No output for cmd: '{}' in state '{}'!\n"
-                    "Please update your device_output dict!\n"
-                    "{}".format(cmd_data_string, self.device.state, exc)
-                )
+            if self.send_last_prompt_on_error and (cmd_data_string == "\x03"):  # ctrl+c
+                self.inject([self.input_bytes + self._last_prompt])
+                return
+            try:
+                available_outputs = self.data[self.device.state].keys()
+            except (KeyError, AttributeError):
+                available_outputs = "No output for state '{}'. Data: '{}'.".format(self.device.state, self.data)
+            raise MolerException(
+                "No output for cmd: '{}' in state '{}'!\n"
+                "Available outputs for the state: '{}'.\n"
+                "Please update your device_output dict!\n"
+                "{}".format(cmd_data_string, self.device.state, available_outputs, exc)
+            )
 
     def write(self, input_bytes):
         """
