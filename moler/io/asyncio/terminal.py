@@ -201,6 +201,7 @@ class AsyncioInThreadTerminal(IOConnection):
 
 class PtySubprocessProtocol(asyncio.SubprocessProtocol):
     def __init__(self, pty_fd=None):
+        self.transport = None
         self.pty_fd = pty_fd
         self.complete = asyncio.Future()
         super(PtySubprocessProtocol, self).__init__()
