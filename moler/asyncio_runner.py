@@ -703,6 +703,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
         async def start_feeder():
             feed_started = asyncio.Event()
             self.logger.debug("scheduling feed({})".format(connection_observer))
+            # noinspection PyArgumentList
             conn_observer_future = asyncio.ensure_future(self.feed(connection_observer,
                                                                    feed_started,
                                                                    subscribed_data_receiver=None))
