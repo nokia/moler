@@ -6,7 +6,7 @@ Perform command autotest for selected command(s).
 from __future__ import print_function
 
 __author__ = 'Grzegorz Latuszek', 'Michal Ernst', 'Michal Plichta, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com', 'michal.ernst@nokia.com', 'michal.plichta@nokia.com,' \
                                                                      ' marcin.usielski@nokia.com'
 
@@ -205,12 +205,12 @@ def _reformat_str_to_unicode(cmd_result):
 
 def _convert_str_to_unicode(input):
     if isinstance(input, dict):
-        return {_convert_str_to_unicode(key): _convert_str_to_unicode(value) for key, value in input.iteritems()}
+        return {_convert_str_to_unicode(key): _convert_str_to_unicode(value) for key, value in input.items()}
     elif isinstance(input, list):
         return [_convert_str_to_unicode(element) for element in input]
     elif isinstance(input, str):
-        #return input.decode('utf-8')
-        return input
+        # noinspection PyUnresolvedReferences
+        return input.decode('utf-8')  # Python 2.7
     else:
         return input
 
