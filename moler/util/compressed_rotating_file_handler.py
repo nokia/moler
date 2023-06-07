@@ -39,6 +39,7 @@ class CompressedRotatingFileHandler(RotatingFileHandler):
         Do a rollover, as described in __init__().
         """
         if self.stream:
+            # noinspection PyUnresolvedReferences
             self.stream.close()
             self.stream = None
         if int(self.backupCount) > 0:

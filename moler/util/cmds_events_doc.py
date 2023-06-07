@@ -16,7 +16,7 @@ from argparse import ArgumentParser
 from datetime import datetime
 from importlib import import_module
 from os import walk, sep
-from os.path import abspath, join, relpath, exists, split, dirname
+from os.path import abspath, join, relpath, exists, split
 from pprint import pformat
 import time
 
@@ -29,7 +29,6 @@ from moler.moler_connection_for_single_thread_runner import MolerConnectionForSi
 def _buffer_connection():
     """External-io based on memory FIFO-buffer"""
     from moler.io.raw.memory import ThreadedFifoBuffer
-    from moler.threaded_moler_connection import ThreadedMolerConnection
 
     class RemoteConnection(ThreadedFifoBuffer):
         def remote_inject_response(self, input_strings, delay=0.0):
@@ -54,8 +53,6 @@ def _buffer_connection():
                 in_bytes = [data.decode("utf-8").encode("utf-8") for data in input_strings]
             self.inject(in_bytes, delay)
 
-    # moler_conn = ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
-    #                                      decoder=lambda data: data.decode("utf-8"))
     moler_conn = MolerConnectionForSingleThreadRunner(encoder=lambda data: data.encode("utf-8"),
                                                       decoder=lambda data: data.decode("utf-8"))
     ext_io_in_memory = RemoteConnection(moler_connection=moler_conn,
