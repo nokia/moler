@@ -209,7 +209,8 @@ def _convert_str_to_unicode(input):
     elif isinstance(input, list):
         return [_convert_str_to_unicode(element) for element in input]
     elif isinstance(input, str):
-        return input.decode('utf-8')
+        #return input.decode('utf-8')
+        return input
     else:
         return input
 
