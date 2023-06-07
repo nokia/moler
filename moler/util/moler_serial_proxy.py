@@ -258,6 +258,7 @@ if __name__ == '__main__':
 
     with AtConsoleProxy(port=options.serial_devname, verbose=options.verbose, at_echo=options.at_echo) as proxy:
         while True:
+            # noinspection PyUnboundLocalVariable
             cmd = input()
             if "exit_serial_proxy" in cmd:
                 break

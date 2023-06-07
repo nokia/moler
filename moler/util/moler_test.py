@@ -272,6 +272,7 @@ class MolerTest(object):
         def wrapped(*args, **kwargs):
             cls._steps_start()
             caught_exception = None
+            result = None
             try:
                 result = method(*args, **kwargs)
             except Exception as exc:

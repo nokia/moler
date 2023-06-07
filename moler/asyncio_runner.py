@@ -435,7 +435,7 @@ class AsyncioRunner(ConnectionObserverRunner):
                                                                                                       exc,
                                                                                                       fut_id, fut)
             sys.stderr.write(err_msg + "\n")
-            logging.getLogger("moler").debug(msg)
+            logging.getLogger("moler").debug(err_msg)
             raise
 
     @staticmethod

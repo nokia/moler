@@ -366,7 +366,7 @@ class ThreadedSshShell(IOConnection):
 
         :param moler_connection: moler-connection may not be reused; we need fresh one
         :param sshshell: existing connection to reuse it's ssh transport
-        :param logger: new logger for new connection
+        :param logger_name: new logger for new connection
         :return: instance of new sshshell connection with reused ssh transport
         """
         if isinstance(sshshell, ThreadedSshShell):
