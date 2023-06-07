@@ -122,7 +122,7 @@ class AsyncioTerminal(IOConnection):
             else:
                 return
         self.logger.debug("<|{}".format(data))
-        super(AsyncioTerminal, self).data_received(data)
+        super(AsyncioTerminal, self).data_received(data, recv_time)
 
     @property
     def name(self):
@@ -383,7 +383,7 @@ async def terminal_io_test():
             moler_conn.send(data=cmd2send + '\n')
             cmd_idx[0] += 1
 
-    moler_conn.subscribe(data_observer)
+    moler_conn.subscribe(data_observer, None)
 
     await terminal.open()
     await asyncio.sleep(10)

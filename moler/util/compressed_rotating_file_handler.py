@@ -41,8 +41,8 @@ class CompressedRotatingFileHandler(RotatingFileHandler):
         if self.stream:
             self.stream.close()
             self.stream = None
-        if self.backupCount > 0:
-            for i in range(self.backupCount - 1, 0, -1):
+        if int(self.backupCount) > 0:
+            for i in range(int(self.backupCount) - 1, 0, -1):
                 sfn = self.rotation_filename("%s.%d%s" % (self.baseFilename, i, self.compressed_file_extension))
                 dfn = self.rotation_filename("%s.%d%s" % (self.baseFilename,
                                                           i + 1, self.compressed_file_extension))
