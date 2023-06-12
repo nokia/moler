@@ -11,7 +11,6 @@ import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
-from moler.util.converterhelper import ConverterHelper
 
 
 class Sysctl(GenericUnixCommand):

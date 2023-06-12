@@ -22,6 +22,7 @@ import time
 try:
     import queue
 except ImportError:
+    # noinspection PyUnresolvedReferences
     import Queue as queue  # For python 2
 
 

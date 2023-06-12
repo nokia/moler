@@ -18,6 +18,7 @@ from moler.exceptions import CommandFailure, MolerException
 try:
     import queue
 except ImportError:
+    # noinspection PyUnresolvedReferences
     import Queue as queue  # For python 2
 
 

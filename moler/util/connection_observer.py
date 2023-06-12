@@ -15,7 +15,8 @@ try:
     threading.main_thread()  # Python 3.4+
 except AttributeError:
     def inside_main_thread():
-        in_main_thread = isinstance(threading.current_thread(), threading._MainThread)
+        # noinspection PyUnresolvedReferences
+        in_main_thread = isinstance(threading.current_thread(), threading._MainThread)  # Python <3/4
         return in_main_thread
 else:
     def inside_main_thread():

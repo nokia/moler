@@ -13,7 +13,6 @@ import functools
 import importlib
 import inspect
 import logging
-import logging
 import pkgutil
 import re
 import time
@@ -35,6 +34,7 @@ from moler.config.loggers import change_logging_suffix
 try:
     import queue
 except ImportError:
+    # noinspection PyUnresolvedReferences
     import Queue as queue  # For python 2
 
 

@@ -16,7 +16,6 @@ import sys
 import threading
 import time
 import traceback
-import os
 from abc import abstractmethod, ABCMeta
 from concurrent.futures import ThreadPoolExecutor, wait
 from functools import partial

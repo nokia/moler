@@ -24,6 +24,7 @@ from moler.util.moler_test import MolerTest
 try:
     import queue
 except ImportError:
+    # noinspection PyUnresolvedReferences
     import Queue as queue  # Python 2 and 3.
 
 
@@ -252,13 +253,9 @@ class RemoteConnection(ThreadedFifoBuffer):
 
 
 def get_memory_device_connection():
-    from moler.threaded_moler_connection import ThreadedMolerConnection
     from moler.moler_connection_for_single_thread_runner import MolerConnectionForSingleThreadRunner
     from moler.config.loggers import configure_device_logger
 
-    # moler_conn = ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
-    #                                      decoder=lambda data: data.decode("utf-8"),
-    #                                      name="buffer")
     moler_conn = MolerConnectionForSingleThreadRunner(encoder=lambda data: data.encode("utf-8"),
                                                       decoder=lambda data: data.decode("utf-8"),
                                                       name="buffer")
