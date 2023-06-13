@@ -12,14 +12,13 @@ Connection responsibilities:
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 
 import logging
 import platform
 import moler.config.connections as connection_cfg
-from moler.threaded_moler_connection import ThreadedMolerConnection  # For Moler 1.x.y
 from moler.moler_connection_for_single_thread_runner import MolerConnectionForSingleThreadRunner  # Since Moler 2.0.0
 
 

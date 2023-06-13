@@ -4,11 +4,10 @@ Rm command module.
 """
 
 __author__ = 'Bartosz Odziomek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'bartosz.odziomek@nokia.com, marcin.usielski@nokia.com'
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
-from moler.exceptions import ParsingDone
 
 
 class Rm(GenericUnixCommand):

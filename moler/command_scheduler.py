@@ -3,7 +3,7 @@
 """Scheduler for commands and events."""
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2021, Nokia'
+__copyright__ = 'Copyright (C) 2019-2023, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import threading
@@ -35,7 +35,7 @@ class CommandScheduler(object):
         # We have to wait to finish other command(s) so let's do it in another thread.
         t1 = Thread(target=scheduler._add_command_to_connection, args=(connection_observer, True),
                     name="CommandScheduler")
-        t1.setDaemon(True)
+        t1.daemon = True
         t1.start()
 
     @staticmethod

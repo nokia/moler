@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2022, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 
@@ -64,9 +64,9 @@ class ResultAlreadySet(InvalidStateError):
 
 
 class MolerTimeout(MolerException):
-    def __init__(self, timeout, kind='run', passed_time=''):
+    def __init__(self, timeout, kind='run', passed_time=0):
         """Create instance of MolerTimeout exception"""
-        if passed_time:
+        if passed_time and isinstance(passed_time, (int, float)):
             passed_time = '{:.2f} '.format(passed_time)
         err_msg = '{} time {}>= {:.2f} sec'.format(kind, passed_time, timeout)
         super(MolerTimeout, self).__init__(err_msg + ' timeout')

@@ -13,7 +13,7 @@ import logging
 
 from moler.device.textualdevice import TextualDevice
 from moler.device.unixlocal import UnixLocal
-from moler.device.proxy_pc2 import ProxyPc2, PROXY_PC
+from moler.device.proxy_pc2 import PROXY_PC
 from moler.device.unixremote2 import UnixRemote2, UNIX_REMOTE, UNIX_REMOTE_ROOT
 from moler.cmd.adb.adb_shell import AdbShell
 from moler.helpers import call_base_class_method_with_same_name, mark_to_call_base_class_method_with_same_name

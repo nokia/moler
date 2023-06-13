@@ -17,7 +17,7 @@ Important changes:
 """
 
 __author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2019, Nokia'
+__copyright__ = 'Copyright (C) 2019-2023, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
 
@@ -434,7 +434,9 @@ class Iperf2(GenericUnixCommand, Publisher):
             'Bandwidth Raw': '{} {}'.format(sum(raw_bandwidth_values), raw_bandwidth_unit),
         }
         if self.protocol == 'udp':
+            # noinspection PyUnboundLocalVariable
             sum_record['Jitter'] = '{} {}'.format(max(jitter_values), jitter_unit)
+            # noinspection PyUnboundLocalVariable
             sum_record['Lost_vs_Total_Datagrams'] = (lost_datagrams, total_datagrams)
             sum_record['Lost_Datagrams_ratio'] = '{:.2f}%'.format(lost_datagrams * 100 / total_datagrams)
 

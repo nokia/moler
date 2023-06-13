@@ -16,7 +16,6 @@ import sys
 import threading
 import time
 import traceback
-import os
 from abc import abstractmethod, ABCMeta
 from concurrent.futures import ThreadPoolExecutor, wait
 from functools import partial
@@ -239,6 +238,8 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             # non-daemon threads. This is used instead of `atexit.register()` for
             # compatibility with subinterpreters, which no longer support daemon threads.
             # See bpo-39812 for context.
+
+            # noinspection PyUnresolvedReferences
             threading._register_atexit(self.shutdown)
 
     def is_in_shutdown(self):
@@ -644,7 +645,6 @@ def his_remaining_time(prefix, timeout, from_start_time):
     Calculate remaining time of "he" object assuming that "he" has .life_status.start_time attribute
 
     :param prefix: string to be used inside 'remaining time description'
-    :param he: object to calculate remaining time for
     :param timeout: max lifetime of object
     :param from_start_time: start of lifetime for the object
     :return: remaining time as float and related description message

@@ -7,7 +7,6 @@ __author__ = 'Yeshu Yang'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'yeshu.yang@nokia-sbell.com'
 
-import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure

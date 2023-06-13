@@ -8,13 +8,10 @@ google for: 3gpp specification 27.007
 """
 
 __author__ = 'Adam Klekowski'
-__copyright__ = 'Copyright (C) 2021, Nokia'
+__copyright__ = 'Copyright (C) 2021-2023, Nokia'
 __email__ = 'adam.klekowski@nokia.com'
 
-import re
-
 from moler.cmd.at.genericat import GenericAtCommand
-from moler.exceptions import ParsingDone
 
 
 class SetApn(GenericAtCommand):

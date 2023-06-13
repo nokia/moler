@@ -78,7 +78,7 @@ class TcpServerPiped(Process):
         self.server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         svr_addr = (self.host, self.port)
         self.server_sock.bind(svr_addr)
-        self.server_sock.setblocking(1)
+        self.server_sock.setblocking(True)
         self.server_sock.listen(1)
         self.logger.debug("listening on %s:%s" % svr_addr)
 

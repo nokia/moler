@@ -64,9 +64,9 @@ class Tcp(object):
         Should allow for using as context manager: with connection.open():
         """
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        blocking = 1
+        blocking = True
         if sys.platform.startswith('java'):  # Program runs under Jython
-            blocking = 0  # Jython  limitation
+            blocking = False  # Jython  limitation
         self.socket.setblocking(blocking)
         self._debug('connecting to {}'.format(self))
         self.socket.connect((self.host, self.port))
