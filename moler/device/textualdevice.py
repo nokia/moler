@@ -882,6 +882,7 @@ class TextualDevice(AbstractDevice):
                     for_state = state
                     break
             if for_state is None:
+                # noinspection PyUnresolvedReferences
                 for_state = self._state_hops.keys()[0]
         return for_state
 
