@@ -69,7 +69,6 @@ class ThreadedMolerConnection(AbstractMolerConnection):
         self._log_data(msg=data, level=RAW_DATA,
                        extra=extra)
 
-
         decoded_data = self.decode(data)
         self._log_data(msg=decoded_data, level=logging.INFO,
                        extra=extra)
