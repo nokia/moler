@@ -3,7 +3,7 @@
 Testing of ls command.
 """
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import pytest
@@ -13,6 +13,15 @@ def test_calling_ls_returns_result_parsed_from_command_output(buffer_connection,
     command_output, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response([command_output])
     ls_cmd = Ls(connection=buffer_connection.moler_connection)
+    result = ls_cmd()
+    assert result == expected_result
+
+
+def test_calling_ls_returns_result_parsed_from_command_output_deb_data_recv(buffer_connection, command_output_and_expected_result):
+    command_output, expected_result = command_output_and_expected_result
+    buffer_connection.remote_inject_response([command_output])
+    ls_cmd = Ls(connection=buffer_connection.moler_connection)
+    ls_cmd.debug_data_received = True
     result = ls_cmd()
     assert result == expected_result
 
