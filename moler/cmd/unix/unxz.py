@@ -4,7 +4,6 @@ __copyright__ = 'Copyright (C) 2020, Nokia'
 __email__ = 'aleksander.lagierski@nokia.com'
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
-from moler.exceptions import CommandFailure, ParsingDone
 
 
 class Unxz(GenericUnixCommand):

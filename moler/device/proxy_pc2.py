@@ -5,9 +5,9 @@ Moler's device has 2 main responsibilities:
 - be the state machine that controls which commands may run in given state
 """
 
-__author__ = 'Michal Ernst, Grzegorz Latuszek'
+__author__ = 'Michal Ernst, Grzegorz Latuszek, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018-2023, Nokia'
-__email__ = 'michal.ernst@nokia.com, grzegorz.latuszek@nokia.com'
+__email__ = 'michal.ernst@nokia.com, grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 import six
 import abc
 import platform
@@ -17,7 +17,8 @@ from moler.device.unixlocal import UnixLocal
 try:
     from moler.io.raw.terminal import ThreadedTerminal
 except ImportError:  # ThreadedTerminal won't load on Windows
-    pass
+    ThreadedTerminal = None
+
 from moler.events.shared.wait4 import Wait4
 
 # helper variables to improve readability of state machines

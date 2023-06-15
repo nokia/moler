@@ -34,6 +34,9 @@ from moler.util.loghelper import debug_into_logger
 
 current_process = psutil.Process()
 if platform.system() == 'Linux':
+
+    # Check if RLIMIT_NOFILE is available in your psutil
+    # noinspection PyUnresolvedReferences
     (max_open_files_limit_soft, max_open_files_limit_hard) = current_process.rlimit(psutil.RLIMIT_NOFILE)
 else:
     # https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/setmaxstdio?view=vs-2019
@@ -435,7 +438,7 @@ class AsyncioRunner(ConnectionObserverRunner):
                                                                                                       exc,
                                                                                                       fut_id, fut)
             sys.stderr.write(err_msg + "\n")
-            logging.getLogger("moler").debug(msg)
+            logging.getLogger("moler").debug(err_msg)
             raise
 
     @staticmethod
@@ -703,6 +706,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
         async def start_feeder():
             feed_started = asyncio.Event()
             self.logger.debug("scheduling feed({})".format(connection_observer))
+            # noinspection PyArgumentList
             conn_observer_future = asyncio.ensure_future(self.feed(connection_observer,
                                                                    feed_started,
                                                                    subscribed_data_receiver=None))

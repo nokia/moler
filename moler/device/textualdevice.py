@@ -5,14 +5,13 @@ Moler's device has 2 main responsibilities:
 - be the state machine that controls which commands may run in given state
 """
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2022, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
 import functools
 import importlib
 import inspect
-import logging
 import logging
 import pkgutil
 import re
@@ -35,6 +34,7 @@ from moler.config.loggers import change_logging_suffix
 try:
     import queue
 except ImportError:
+    # noinspection PyUnresolvedReferences
     import Queue as queue  # For python 2
 
 
@@ -480,7 +480,7 @@ class TextualDevice(AbstractDevice):
             self._queue_states.put(state_options)
             if self._thread_for_goto_state is None:
                 thread = threading.Thread(target=self._goto_state_thread, name="GotoStateThread-{}".format(self.name))
-                thread.setDaemon(True)
+                thread.daemon = True
                 thread.start()
                 self._thread_for_goto_state = thread
 
@@ -882,6 +882,7 @@ class TextualDevice(AbstractDevice):
                     for_state = state
                     break
             if for_state is None:
+                # noinspection PyUnresolvedReferences
                 for_state = self._state_hops.keys()[0]
         return for_state
 

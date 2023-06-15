@@ -256,6 +256,7 @@ def change_logging_suffix(suffix=None, logger_name=None):
     if _kind is not None:
         global _main_logger
         if _main_logger is not None:
+            # noinspection PyUnresolvedReferences
             _main_logger.info("Logs are rotated automatically: '{}'. Changing log suffixes is not"
                               " available now.".format(_kind))
         return

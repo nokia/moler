@@ -1,3 +1,8 @@
+## moler 2.11.0
+* Implementation of PDU sessions AT commands
+* Refactoring - get rid of warnings for newer Pythons
+* Tests work on Python 3.11
+
 ## moler 2.10.0
 
 ### Improved

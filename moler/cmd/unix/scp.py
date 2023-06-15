@@ -10,7 +10,7 @@ import re
 import six
 
 __author__ = 'Sylwester Golonka, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'sylwester.golonka@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 
@@ -250,13 +250,6 @@ COMMAND_RESULT_succsess = {
     'FILE_NAMES': [
         u'test.txt'
     ]
-}
-
-COMMAND_KWARGS_rm = {
-    "source": "test.txt",
-    "dest": "ute@localhost:/home/ute",
-    "password": "pass",
-    "known_hosts_on_failure": "rm"
 }
 
 COMMAND_OUTPUT_recursively_succsess = """

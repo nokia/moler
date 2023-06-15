@@ -224,7 +224,7 @@ class CommandTextualGeneric(Command):
 
         :param data: List of strings sent by device.
         :param recv_time: time stamp with the moment when the data was read from connection.  Time is given as
-         datatime.datetime instance.
+         datetime.datetime instance.
         :return: None.
         """
         self._last_recv_time_data_read_from_connection = recv_time

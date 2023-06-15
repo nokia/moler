@@ -39,7 +39,7 @@ def create_class_instance(class_object, constructor_params):
     Factory method that creates class instance object according to its definition given in parameters.
 
     :param class_object: class object to be instantiated
-    :param constructor_parameters: to be passed into instance constructor
+    :param constructor_params: to be passed into instance constructor
     :return: instance of requested class
     """
     try:

@@ -8,7 +8,6 @@ __copyright__ = 'Copyright (C) 2018-2020, Nokia'
 __email__ = 'julia.patacz@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import re
-import six
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
 

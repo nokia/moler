@@ -162,6 +162,7 @@ class AbstractMolerConnection(object):
                        extra={'transfer_direction': '>', 'encoder': lambda data: data.encode('utf-8')})
 
         encoded_data = self.encode(data)
+        # noinspection PyArgumentList
         self.how2send(encoded_data)
 
     def change_newline_seq(self, newline_seq="\n"):

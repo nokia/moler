@@ -6,7 +6,7 @@ Perform command autotest for selected command(s).
 from __future__ import print_function
 
 __author__ = 'Grzegorz Latuszek', 'Michal Ernst', 'Michal Plichta, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com', 'michal.ernst@nokia.com', 'michal.plichta@nokia.com,' \
                                                                      ' marcin.usielski@nokia.com'
 
@@ -16,7 +16,7 @@ from argparse import ArgumentParser
 from datetime import datetime
 from importlib import import_module
 from os import walk, sep
-from os.path import abspath, join, relpath, exists, split, dirname
+from os.path import abspath, join, relpath, exists, split
 from pprint import pformat
 import time
 
@@ -29,7 +29,6 @@ from moler.moler_connection_for_single_thread_runner import MolerConnectionForSi
 def _buffer_connection():
     """External-io based on memory FIFO-buffer"""
     from moler.io.raw.memory import ThreadedFifoBuffer
-    from moler.threaded_moler_connection import ThreadedMolerConnection
 
     class RemoteConnection(ThreadedFifoBuffer):
         def remote_inject_response(self, input_strings, delay=0.0):
@@ -54,8 +53,6 @@ def _buffer_connection():
                 in_bytes = [data.decode("utf-8").encode("utf-8") for data in input_strings]
             self.inject(in_bytes, delay)
 
-    # moler_conn = ThreadedMolerConnection(encoder=lambda data: data.encode("utf-8"),
-    #                                      decoder=lambda data: data.decode("utf-8"))
     moler_conn = MolerConnectionForSingleThreadRunner(encoder=lambda data: data.encode("utf-8"),
                                                       decoder=lambda data: data.decode("utf-8"))
     ext_io_in_memory = RemoteConnection(moler_connection=moler_conn,
@@ -205,11 +202,12 @@ def _reformat_str_to_unicode(cmd_result):
 
 def _convert_str_to_unicode(input):
     if isinstance(input, dict):
-        return {_convert_str_to_unicode(key): _convert_str_to_unicode(value) for key, value in input.iteritems()}
+        return {_convert_str_to_unicode(key): _convert_str_to_unicode(value) for key, value in input.items()}
     elif isinstance(input, list):
         return [_convert_str_to_unicode(element) for element in input]
     elif isinstance(input, str):
-        return input.decode('utf-8')
+        # noinspection PyUnresolvedReferences
+        return input.decode('utf-8')  # Python 2.7
     else:
         return input
 

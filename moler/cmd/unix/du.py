@@ -4,12 +4,11 @@ du command module.
 """
 
 __author__ = 'Marcin Szlapa'
-__copyright__ = 'Copyright (C) 2019, Nokia'
+__copyright__ = 'Copyright (C) 2019-2023, Nokia'
 __email__ = 'marcin.szlapa@nokia.com'
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
-from moler.helpers import convert_to_number
 from moler.util.converterhelper import ConverterHelper
 import re
 
