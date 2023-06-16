@@ -229,7 +229,7 @@ class CommandTextualGeneric(Command):
         :return: None.
         """
         if self.debug_data_received:
-            msg = "\n0X{}\n".format("".join([" {:02X}".format(ord(ch)) for ch in data]))
+            msg = "\nIncoming data: 0X{}\n".format("".join([" {:02X}".format(ord(ch)) for ch in data]))
             self.logger.info(msg)
         self._last_recv_time_data_read_from_connection = recv_time
         self._last_chunk = data
