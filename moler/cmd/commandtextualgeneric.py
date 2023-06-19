@@ -80,6 +80,7 @@ class CommandTextualGeneric(Command):
         self.break_exec_only_full_line = True  # Set True to consider only full lines to match _break_exec_regex or
         # False to consider also chunks.
         self.enter_on_prompt_without_anchors = False  # Set True to try to match prompt in line without ^ and $.
+        self.debug_data_received = False  # Set True to log as hex all data received by command in data_received
 
         if not self._newline_chars:
             self._newline_chars = CommandTextualGeneric._default_newline_chars
@@ -227,6 +228,9 @@ class CommandTextualGeneric(Command):
          datetime.datetime instance.
         :return: None.
         """
+        if self.debug_data_received:
+            msg = "\nIncoming data: 0X{}\n".format("".join([" {:02X}".format(ord(ch)) for ch in data]))
+            self.logger.info(msg)
         self._last_recv_time_data_read_from_connection = recv_time
         self._last_chunk = data
         try:
