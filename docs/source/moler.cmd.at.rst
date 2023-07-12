@@ -76,6 +76,38 @@ moler.cmd.at.get\_attach\_state module
     :undoc-members:
     :show-inheritance:
 
+moler.cmd.at.get\_cell\_id module
+--------------------------------------
+
+.. automodule:: moler.cmd.at.get_cell_id
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+moler.cmd.at.get\_cell\_id\_gprs module
+--------------------------------------
+
+.. automodule:: moler.cmd.at.get_cell_id_gprs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+moler.cmd.at.get\_cell\_id\_lte module
+--------------------------------------
+
+.. automodule:: moler.cmd.at.get_cell_id_lte
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+moler.cmd.at.get\_cell\_id\_nr module
+--------------------------------------
+
+.. automodule:: moler.cmd.at.get_cell_id_nr
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 moler.cmd.at.get\_imei module
 -----------------------------
 

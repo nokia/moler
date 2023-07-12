@@ -19,22 +19,18 @@ from moler.exceptions import ParsingDone
 
 class GetCellIdGprs(GenericAtCommand):
     """
-    Command to get cell registration status. Example output:
+    Command to get gprs cell registration status. Example output:
 
-    +CGREG: <n>,<stat>[,[<lac>],[<ci>],[<AcT>],[<rac>][,<cause_type>,<reject_cause>]]
-
-    OK
-    or
     +CGREG: <n>,<stat>[,[<lac>],[<ci>],[<AcT>],[<rac>][,[<cause_type>],[<reject_cause>]...
     ...[,[<Active-Time>],[<Periodic-RAU>],[<GPRS-READY-timer>]]]]
 
     OK
     """
     def __init__(self, connection=None, prompt=None, newline_chars=None, runner=None):
-        """Create instance of GetCellIdGsm class"""
+        """Create instance of GetCellIdGprs class"""
         super(GetCellIdGprs, self).__init__(connection, operation='execute', prompt=prompt,
                                             newline_chars=newline_chars, runner=runner)
-        self.current_ret = {}
+        self.current_ret = dict()
 
     def build_command_string(self):
         return "AT+CGREG?"
@@ -60,7 +56,7 @@ class GetCellIdGprs(GenericAtCommand):
         """
         if is_full_line:
             try:
-                self._parse_ip(line)
+                self._parse_cell_data_gprs(line)
             except ParsingDone:
                 pass
         return super(GetCellIdGprs, self).on_new_line(line, is_full_line)
@@ -105,10 +101,12 @@ class GetCellIdGprs(GenericAtCommand):
 
     # <n>=0,1, where +CGREG: <n>,<stat>
     # +CGREG: 1,11
-    _re_cell_id_mode_0_1 = \
-        re.compile(r'^\s*\+CGREG:\s(?P<n>([0-9]+)),(?P<stat>([0-9]{1,2})).*$')
+    _re_cell_id_mode_0_1 = re.compile(r'^\s*\+C(G)?REG:\s(?P<n>([0-9]+)),(?P<stat>([0-9]{1,2})).*$')
 
-    def _parse_ip(self, line):
+    # +CGREG: <output_data>
+    _re_cell_id_data = re.compile(r'^\s*\+C(G)?REG:\s(?P<output_data>\w+\S+).*$')
+
+    def _parse_cell_data_gprs(self, line):
         """
         Parse network registration status and location information:
 
@@ -128,14 +126,17 @@ class GetCellIdGprs(GenericAtCommand):
 
         if self._regex_helper.match_compiled(self._re_cell_id_mode_0_1, line):
             _get_values()
-            if self.current_ret['n'] in (6, 7) and self._regex_helper.match_compiled(self._re_cell_id_mode_6_7, line):
+            _variant = int(self.current_ret['n'])
+            if _variant in (6, 7) and self._regex_helper.match_compiled(self._re_cell_id_mode_6_7, line):
                 _get_values()
-            elif self.current_ret['n'] in (4, 5) and self._regex_helper.match_compiled(self._re_cell_id_mode_4_5, line):
+            elif _variant in (4, 5) and self._regex_helper.match_compiled(self._re_cell_id_mode_4_5, line):
                 _get_values()
-            elif self.current_ret['n'] == 3 and self._regex_helper.match_compiled(self._re_cell_id_mode_3, line):
+            elif _variant == 3 and self._regex_helper.match_compiled(self._re_cell_id_mode_3, line):
                 _get_values()
-            elif self.current_ret['n'] == 2 and self._regex_helper.match_compiled(self._re_cell_id_mode_2, line):
+            elif _variant == 2 and self._regex_helper.match_compiled(self._re_cell_id_mode_2, line):
                 _get_values()
+        if self._regex_helper.match_compiled(self._re_cell_id_data, line):
+            self.current_ret['output_data'] = self._regex_helper.groupdict().get('output_data')
         raise ParsingDone
 
 
@@ -152,81 +153,91 @@ class GetCellIdGprs(GenericAtCommand):
 # COMMAND_RESULT_suffix
 # -----------------------------------------------------------------------------
 
-COMMAND_OUTPUT_cell_id_mode_1_execute = """
+COMMAND_OUTPUT_cell_id_gprs_v1 = """
 AT+CGREG?
 +CGREG: 1,11
+
 OK
 """
 
-COMMAND_KWARGS_cell_id_mode_1_execute = {}
+COMMAND_KWARGS_cell_id_gprs_v1 = {}
 
-COMMAND_RESULT_cell_id_mode_1_execute = {
+COMMAND_RESULT_cell_id_gprs_v1 = {
     'n': '1',
-    'stat': '11'
+    'stat': '11',
+    'output_data': '1,11'
 }
 
-COMMAND_OUTPUT_cell_id_mode_2_max_execute = """
+
+COMMAND_OUTPUT_cell_id_gprs_v2_1 = """
 AT+CGREG?
 +CGREG: 2,5,"54DB","0F6B0578",7,"f0"
+
 OK
 """
 
-COMMAND_KWARGS_cell_id_mode_2_max_execute = {}
+COMMAND_KWARGS_cell_id_gprs_v2_1 = {}
 
-COMMAND_RESULT_cell_id_mode_2_max_execute = {
+COMMAND_RESULT_cell_id_gprs_v2_1 = {
     'n': '2',
     'stat': '5',
-    'lac': '54CC',
-    'ci': '0F6B9578',
+    'lac': '54DB',
+    'ci': '0F6B0578',
     'AcT': '7',
-    'rac': 'f0'
+    'rac': 'f0',
+    'output_data': '2,5,"54DB","0F6B0578",7,"f0"'
 }
 
-COMMAND_OUTPUT_cell_id_mode_2_min_execute = """
+COMMAND_OUTPUT_cell_id_gprs_v2_2 = """
 AT+CGREG?
 +CGREG: 2,5,,,,
+
 OK
 """
 
-COMMAND_KWARGS_cell_id_mode_2_min_execute = {}
+COMMAND_KWARGS_cell_id_gprs_v2_2 = {}
 
-COMMAND_RESULT_cell_id_mode_2_min_execute = {
+COMMAND_RESULT_cell_id_gprs_v2_2 = {
     'n': '2',
     'stat': '5',
     'lac': '',
     'ci': '',
     'AcT': None,
-    'rac': ''
+    'rac': '',
+    'output_data': '2,5,,,,'
 }
 
-COMMAND_OUTPUT_cell_id_mode_3_max_execute = """
+COMMAND_OUTPUT_cell_id_gprs_v3_1 = """
 AT+CGREG?
 +CGREG: 3,5,"54DB","0F6B0578",15,"f0",1,2
+
 OK
 """
 
-COMMAND_KWARGS_cell_id_mode_3_max_execute = {}
+COMMAND_KWARGS_cell_id_gprs_v3_1 = {}
 
-COMMAND_RESULT_cell_id_mode_3_max_execute = {
+COMMAND_RESULT_cell_id_gprs_v3_1 = {
     'n': '3',
     'stat': '5',
-    'lac': '54CC',
-    'ci': '0F6B9578',
+    'lac': '54DB',
+    'ci': '0F6B0578',
     'AcT': '15',
     'rac': 'f0',
     'cause_type': '1',
-    'reject_cause': '2'
+    'reject_cause': '2',
+    'output_data': '3,5,"54DB","0F6B0578",15,"f0",1,2'
 }
 
-COMMAND_OUTPUT_cell_id_mode_3_min_execute = """
+COMMAND_OUTPUT_cell_id_gprs_v3_2 = """
 AT+CGREG?
 +CGREG: 3,5,,,,,1,2
+
 OK
 """
 
-COMMAND_KWARGS_cell_id_mode_3_min_execute = {}
+COMMAND_KWARGS_cell_id_gprs_v3_2 = {}
 
-COMMAND_RESULT_cell_id_mode_3_min_execute = {
+COMMAND_RESULT_cell_id_gprs_v3_2 = {
     'n': '3',
     'stat': '5',
     'lac': '',
@@ -234,18 +245,20 @@ COMMAND_RESULT_cell_id_mode_3_min_execute = {
     'AcT': None,
     'rac': '',
     'cause_type': '1',
-    'reject_cause': '2'
+    'reject_cause': '2',
+    'output_data': '3,5,,,,,1,2'
 }
 
-COMMAND_OUTPUT_cell_id_mode_4_5_v1_execute = """
+COMMAND_OUTPUT_cell_id_gprs_v45_1 = """
 AT+CGREG?
 +CGREG: 4,5,,,,,,,,,
+
 OK
 """
 
-COMMAND_KWARGS_cell_id_mode_4_5_v1_execute = {}
+COMMAND_KWARGS_cell_id_gprs_v45_1 = {}
 
-COMMAND_RESULT_cell_id_mode_4_5_v1_execute = {
+COMMAND_RESULT_cell_id_gprs_v45_1 = {
     'n': '4',
     'stat': '5',
     'lac': '',
@@ -256,18 +269,20 @@ COMMAND_RESULT_cell_id_mode_4_5_v1_execute = {
     'reject_cause': '',
     'Active_Time': '',
     'Periodic_RAU': '',
-    'GPRS_READY_timer': ''
+    'GPRS_READY_timer': '',
+    'output_data': '4,5,,,,,,,,,'
 }
 
-COMMAND_OUTPUT_cell_id_mode_4_5_v2_execute = """
+COMMAND_OUTPUT_cell_id_gprs_v45_2 = """
 AT+CGREG?
 +CGREG: 4,5,"54DB","0F6B0578",7,"f0",,,"00100100","01000111","01000011"
+
 OK
 """
 
-COMMAND_KWARGS_cell_id_mode_4_5_v2_execute = {}
+COMMAND_KWARGS_cell_id_gprs_v45_2 = {}
 
-COMMAND_RESULT_cell_id_mode_4_5_v2_execute = {
+COMMAND_RESULT_cell_id_gprs_v45_2 = {
     'n': '4',
     'stat': '5',
     'lac': '54DB',
@@ -278,18 +293,20 @@ COMMAND_RESULT_cell_id_mode_4_5_v2_execute = {
     'reject_cause': '',
     'Active_Time': '00100100',
     'Periodic_RAU': '01000111',
-    'GPRS_READY_timer': '01000011'
+    'GPRS_READY_timer': '01000011',
+    'output_data': '4,5,"54DB","0F6B0578",7,"f0",,,"00100100","01000111","01000011"'
 }
 
-COMMAND_OUTPUT_cell_id_mode_4_5_v3_execute = """
+COMMAND_OUTPUT_cell_id_gprs_v45_3 = """
 AT+CGREG?
 +CGREG: 5,10,"54DB","0F6B0578",7,"f0",1,3,"00100100","01000111","01000011"
+
 OK
 """
 
-COMMAND_KWARGS_cell_id_mode_4_5_v3_execute = {}
+COMMAND_KWARGS_cell_id_gprs_v45_3 = {}
 
-COMMAND_RESULT_cell_id_mode_4_5_v3_execute = {
+COMMAND_RESULT_cell_id_gprs_v45_3 = {
     'n': '5',
     'stat': '10',
     'lac': '54DB',
@@ -300,18 +317,20 @@ COMMAND_RESULT_cell_id_mode_4_5_v3_execute = {
     'reject_cause': '3',
     'Active_Time': '00100100',
     'Periodic_RAU': '01000111',
-    'GPRS_READY_timer': '01000011'
+    'GPRS_READY_timer': '01000011',
+    'output_data': '5,10,"54DB","0F6B0578",7,"f0",1,3,"00100100","01000111","01000011"'
 }
 
-COMMAND_OUTPUT_cell_id_mode_4_5_v4_execute = """
+COMMAND_OUTPUT_cell_id_gprs_v45_4 = """
 AT+CGREG?
 +CGREG: 5,10,"54DB","0F6B0578",7,"f0",1,3
+
 OK
 """
 
-COMMAND_KWARGS_cell_id_mode_4_5_v4_execute = {}
+COMMAND_KWARGS_cell_id_gprs_v45_4 = {}
 
-COMMAND_RESULT_cell_id_mode_4_5_v4_execute = {
+COMMAND_RESULT_cell_id_gprs_v45_4 = {
     'n': '5',
     'stat': '10',
     'lac': '54DB',
@@ -322,18 +341,20 @@ COMMAND_RESULT_cell_id_mode_4_5_v4_execute = {
     'reject_cause': '3',
     'Active_Time': '',
     'Periodic_RAU': '',
-    'GPRS_READY_timer': ''
+    'GPRS_READY_timer': '',
+    'output_data': '5,10,"54DB","0F6B0578",7,"f0",1,3'
 }
 
-COMMAND_OUTPUT_cell_id_mode_6_7_v1_execute = """
+COMMAND_OUTPUT_cell_id_gprs_v67_1 = """
 AT+CGREG?
 +CREG: 6,5,,,,1,2,0
+
 OK
 """
 
-COMMAND_KWARGS_cell_id_mode_6_7_v1_execute = {}
+COMMAND_KWARGS_cell_id_gprs_v67_1 = {}
 
-COMMAND_RESULT_cell_id_mode_6_7_v1_execute = {
+COMMAND_RESULT_cell_id_gprs_v67_1 = {
     'n': '6',
     'stat': '5',
     'lac': '',
@@ -342,18 +363,20 @@ COMMAND_RESULT_cell_id_mode_6_7_v1_execute = {
     'cause_type': '1',
     'reject_cause': '2',
     'csg_stat': '0',
-    'csginfo': ''
+    'csginfo': '',
+    'output_data': '6,5,,,,1,2,0'
 }
 
-COMMAND_OUTPUT_cell_id_mode_6_7_v2_execute = """
+COMMAND_OUTPUT_cell_id_gprs_v67_2 = """
 AT+CGREG?
 +CREG: 7,10,"54DB","0F6B0578",7
+
 OK
 """
 
-COMMAND_KWARGS_cell_id_mode_6_7_v2_execute = {}
+COMMAND_KWARGS_cell_id_gprs_v67_2 = {}
 
-COMMAND_RESULT_cell_id_mode_6_7_v2_execute = {
+COMMAND_RESULT_cell_id_gprs_v67_2 = {
     'n': '7',
     'stat': '10',
     'lac': '54DB',
@@ -362,18 +385,20 @@ COMMAND_RESULT_cell_id_mode_6_7_v2_execute = {
     'cause_type': '',
     'reject_cause': '',
     'csg_stat': '',
-    'csginfo': ''
+    'csginfo': '',
+    'output_data': '7,10,"54DB","0F6B0578",7'
 }
 
-COMMAND_OUTPUT_cell_id_mode_6_7_v3_execute = """
+COMMAND_OUTPUT_cell_id_gprs_v67_3 = """
 AT+CGREG?
 +CREG: 7,10,"54DB","0F6B0578",7,1,3,0,"abc"
+
 OK
 """
 
-COMMAND_KWARGS_cell_id_mode_6_7_v3_execute = {}
+COMMAND_KWARGS_cell_id_gprs_v67_3 = {}
 
-COMMAND_RESULT_cell_id_mode_6_7_v3_execute = {
+COMMAND_RESULT_cell_id_gprs_v67_3 = {
     'n': '7',
     'stat': '10',
     'lac': '54DB',
@@ -382,5 +407,6 @@ COMMAND_RESULT_cell_id_mode_6_7_v3_execute = {
     'cause_type': '1',
     'reject_cause': '3',
     'csg_stat': '0',
-    'csginfo': 'abc'
+    'csginfo': 'abc',
+    'output_data': '7,10,"54DB","0F6B0578",7,1,3,0,"abc"'
 }

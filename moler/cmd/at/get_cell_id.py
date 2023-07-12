@@ -29,7 +29,7 @@ class GetCellId(GenericAtCommand):
         """Create instance of GetCellIdGsm class"""
         super(GetCellId, self).__init__(connection, operation='execute', prompt=prompt,
                                         newline_chars=newline_chars, runner=runner)
-        self.current_ret = {}
+        self.current_ret = dict()
 
     def build_command_string(self):
         return "AT+CREG?"
@@ -50,7 +50,7 @@ class GetCellId(GenericAtCommand):
         """
         if is_full_line:
             try:
-                self._parse_ip(line)
+                self._parse_cell_data(line)
             except ParsingDone:
                 pass
         return super(GetCellId, self).on_new_line(line, is_full_line)
@@ -72,10 +72,12 @@ class GetCellId(GenericAtCommand):
 
     # <n>=0,1, where +CREG: <n>,<stat>
     # +CREG: 1,1
-    _re_network_reg_mode_0_1 = \
-        re.compile(r'^\s*\+CREG:\s(?P<n>([0-9]+)),(?P<stat>([0-9]{1,2})).*$')
+    _re_network_reg_mode_0_1 = re.compile(r'^\s*\+CREG:\s(?P<n>([0-9]+)),(?P<stat>([0-9]{1,2})).*$')
 
-    def _parse_ip(self, line):
+    # +CREG: <output_data>
+    _re_cell_id_data = re.compile(r'^\s*\+CREG:\s(?P<output_data>\w+\S+).*$')
+
+    def _parse_cell_data(self, line):
         """
         Parse network registration status and location information:
 
@@ -98,6 +100,8 @@ class GetCellId(GenericAtCommand):
         elif self._regex_helper.match_compiled(self._re_network_reg_mode_0_1, line):
             for key, value in self._regex_helper.groupdict().items():
                 self.current_ret[key] = value
+        if self._regex_helper.match_compiled(self._re_cell_id_data, line):
+            self.current_ret['output_data'] = self._regex_helper.groupdict().get('output_data')
         raise ParsingDone
 
 
@@ -114,83 +118,93 @@ class GetCellId(GenericAtCommand):
 # COMMAND_RESULT_suffix
 # -----------------------------------------------------------------------------
 
-COMMAND_OUTPUT_cell_id_mode_1_execute = """
+COMMAND_OUTPUT_cell_id_v1 = """
 AT+CREG?
 +CREG: 1,1
+
 OK
 """
 
-COMMAND_KWARGS_cell_id_mode_1_execute = {}
+COMMAND_KWARGS_cell_id_v1 = {}
 
-COMMAND_RESULT_cell_id_mode_1_execute = {
+COMMAND_RESULT_cell_id_v1 = {
     'n': '1',
-    'stat': '1'
+    'stat': '1',
+    'output_data': '1,1'
 }
 
-COMMAND_OUTPUT_cell_id_mode_2_max_execute = """
+COMMAND_OUTPUT_cell_id_v2_1 = """
 AT+CREG?
 +CREG: 2,5,"54DB","0F6B0578",7
+
 OK
 """
 
-COMMAND_KWARGS_cell_id_mode_2_max_execute = {}
+COMMAND_KWARGS_cell_id_v2_1 = {}
 
-COMMAND_RESULT_cell_id_mode_2_max_execute = {
+COMMAND_RESULT_cell_id_v2_1 = {
     'n': '2',
     'stat': '5',
-    'lac': '54CC',
-    'ci': '0F6B9578',
-    'AcT': '7'
+    'lac': '54DB',
+    'ci': '0F6B0578',
+    'AcT': '7',
+    'output_data': '2,5,"54DB","0F6B0578",7'
 }
 
-COMMAND_OUTPUT_cell_id_mode_2_min_execute = """
+COMMAND_OUTPUT_cell_id_v2_2 = """
 AT+CREG?
 +CREG: 2,5,,,
+
 OK
 """
 
-COMMAND_KWARGS_cell_id_mode_2_min_execute = {}
+COMMAND_KWARGS_cell_id_v2_2 = {}
 
-COMMAND_RESULT_cell_id_mode_2_min_execute = {
+COMMAND_RESULT_cell_id_v2_2 = {
     'n': '2',
-    'stat': '5',
-    'lac': '',
-    'ci': '',
-    'AcT': None
-}
-
-COMMAND_OUTPUT_cell_id_mode_3_max_execute = """
-AT+CREG?
-+CREG: 3,5,"54DB","0F6B0578",15,1,2
-OK
-"""
-
-COMMAND_KWARGS_cell_id_mode_3_max_execute = {}
-
-COMMAND_RESULT_cell_id_mode_3_max_execute = {
-    'n': '3',
-    'stat': '5',
-    'lac': '54CC',
-    'ci': '0F6B9578',
-    'AcT': '15',
-    'cause_type': '1',
-    'reject_cause': '2'
-}
-
-COMMAND_OUTPUT_cell_id_mode_3_min_execute = """
-AT+CREG?
-+CREG: 3,5,,,15,1,2
-OK
-"""
-
-COMMAND_KWARGS_cell_id_mode_3_min_execute = {}
-
-COMMAND_RESULT_cell_id_mode_3_min_execute = {
-    'n': '3',
     'stat': '5',
     'lac': '',
     'ci': '',
     'AcT': None,
+    'output_data': '2,5,,,'
+}
+
+COMMAND_OUTPUT_cell_id_v3_1 = """
+AT+CREG?
++CREG: 3,5,"54DB","0F6B0578",15,1,2
+
+OK
+"""
+
+COMMAND_KWARGS_cell_id_v3_1 = {}
+
+COMMAND_RESULT_cell_id_v3_1 = {
+    'n': '3',
+    'stat': '5',
+    'lac': '54DB',
+    'ci': '0F6B0578',
+    'AcT': '15',
     'cause_type': '1',
-    'reject_cause': '2'
+    'reject_cause': '2',
+    'output_data': '3,5,"54DB","0F6B0578",15,1,2'
+}
+
+COMMAND_OUTPUT_cell_id_v3_2 = """
+AT+CREG?
++CREG: 3,5,,,15,1,2
+
+OK
+"""
+
+COMMAND_KWARGS_cell_id_v3_2 = {}
+
+COMMAND_RESULT_cell_id_v3_2 = {
+    'n': '3',
+    'stat': '5',
+    'lac': '',
+    'ci': '',
+    'AcT': '15',
+    'cause_type': '1',
+    'reject_cause': '2',
+    'output_data': '3,5,,,15,1,2'
 }
