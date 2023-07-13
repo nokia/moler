@@ -10,6 +10,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: [3.7, 3.8, 3.9, "3.10", 3.11]
+#        python-version: [2.7, 3.7, 3.8, 3.9, "3.10", 3.11]
     env:
       MOLER_DEBUG_THREADS: True
     steps:
@@ -47,11 +48,11 @@ jobs:
           which adb
           echo ----------- test adb simulator
           adb devices
-#      - name: Test with pytest Python 2.7
-#        if: ${{ matrix.python-version == '2.7' }}
-#        timeout-minutes: 9
-#        run: |
-#          python -m pytest -vvvsss test/
+      - name: Test with pytest Python 2.7
+        if: ${{ matrix.python-version == '2.7' }}
+        timeout-minutes: 9
+        run: |
+          python -m pytest -vvvsss test/
       - name: Test with pytest
         if: ${{ (matrix.python-version != '3.9') && (matrix.python-version != '2.7') }}
         timeout-minutes: 9
