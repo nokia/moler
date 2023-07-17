@@ -98,9 +98,9 @@ class GetCellIdNr(GenericAtCommand):
             2: ['n', 'stat', 'tac', 'ci', 'AcT', 'Allowed_NSSAI_length', 'Allowed_NSSAI'],
             3: ['n', 'stat', 'tac', 'ci', 'AcT', 'Allowed_NSSAI_length', 'Allowed_NSSAI', 'cause_type', 'reject_cause'],
             4: ['n', 'stat', 'tac', 'ci', 'AcT', 'Allowed_NSSAI_length', 'Allowed_NSSAI', 'cause_type', 'reject_cause',
-                'Active_Time', 'Periodic_RAU'],
+                'Periodic_RAU'],
             5: ['n', 'stat', 'tac', 'ci', 'AcT', 'Allowed_NSSAI_length', 'Allowed_NSSAI', 'cause_type', 'reject_cause',
-                'Active_Time', 'Periodic_RAU', 'cag_stat', 'caginfo'],
+                'Periodic_RAU', 'cag_stat', 'caginfo'],
         }
         if self._regex_helper.match_compiled(self._re_cell_id_mode, line):
             _variant = int(self._regex_helper.groupdict().get('n'))

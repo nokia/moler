@@ -225,7 +225,7 @@ COMMAND_RESULT_cell_id_lte_v45_1 = {
 
 COMMAND_OUTPUT_cell_id_lte_v45_2 = """
 AT+CEREG?
-+CEREG: 4,5,"54DB","0F6B0578",7,,"00100100","01000111"
++CEREG: 4,5,"54DB","0F6B0578",7,,,"00100100","01000111"
 
 OK
 """
@@ -238,11 +238,9 @@ COMMAND_RESULT_cell_id_lte_v45_2 = {
     'tac': '54DB',
     'ci': '0F6B0578',
     'AcT': '7',
-    'cause_type': '',
-    'reject_cause': '',
     'Active_Time': '00100100',
     'Periodic_RAU': '01000111',
-    'raw_output': '4,5,"54DB","0F6B0578",7,,"00100100","01000111"'
+    'raw_output': '4,5,"54DB","0F6B0578",7,,,"00100100","01000111"'
 }
 
 COMMAND_OUTPUT_cell_id_lte_v45_3 = """
