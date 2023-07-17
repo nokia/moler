@@ -99,7 +99,7 @@ class GetCellIdGprs(GenericAtCommand):
             5: ['n', 'stat', 'lac', 'ci', 'AcT', 'rac', 'cause_type', 'reject_cause', 'Active_Time', 'Periodic_RAU',
                 'GPRS-READY-timer'],
             6: ['n', 'stat', 'lac', 'ci', 'AcT', 'cause_type', 'reject_cause', 'csg_stat'],
-            7: ['n', 'stat', 'lac', 'ci', 'AcT', 'cause_type', 'reject_cause', 'csg_stat'],
+            7: ['n', 'stat', 'lac', 'ci', 'AcT', 'cause_type', 'reject_cause', 'csg_stat', '<csginfo'],
         }
 
         if self._regex_helper.match_compiled(self._re_cell_id_mode, line):
