@@ -112,9 +112,9 @@ class GetCellIdNr(GenericAtCommand):
                         self.current_ret[key] = value
                     raise ParsingDone
                 list_output = string_raw_output.split(',')
-                for index, item in enumerate(list_output[_variant], 0):
+                for index, item in enumerate(list_output, 0):
                     if item:
-                        self.current_ret[results_keys[index]] = item.strip('"')
+                        self.current_ret[results_keys[_variant][index]] = item.strip('"')
         raise ParsingDone
 
 

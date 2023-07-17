@@ -105,9 +105,9 @@ class GetCellIdLte(GenericAtCommand):
                 string_raw_output = self._regex_helper.groupdict().get('raw_output')
                 self.current_ret['raw_output'] = string_raw_output
                 list_output = string_raw_output.split(',')
-                for index, item in enumerate(list_output[_variant], 0):
+                for index, item in enumerate(list_output, 0):
                     if item:
-                        self.current_ret[results_keys[index]] = item.strip('"')
+                        self.current_ret[results_keys[_variant][index]] = item.strip('"')
         raise ParsingDone
 
 
