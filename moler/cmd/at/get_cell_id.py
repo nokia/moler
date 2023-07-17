@@ -18,18 +18,23 @@ from moler.exceptions import ParsingDone
 
 
 class GetCellId(GenericAtCommand):
-    """
-    Command to get cell registration status. Example output:
 
-    +CREG: <n>,<stat>[,[<lac>],[<ci>],[<AcT>][,<cause_type>,<reject_cause>]]
-
-    OK
-    """
     def __init__(self, connection=None, prompt=None, newline_chars=None, runner=None):
-        """Create instance of GetCellIdGsm class"""
+        """
+        Create instance of GetCellIdGsm class and command to get cell registration status.
+        Example output:
+
+        +CREG: <n>,<stat>[,[<lac>],[<ci>],[<AcT>][,<cause_type>,<reject_cause>]]
+
+        OK
+
+        :param connection: Moler connection to device, terminal when command is executed.
+        :param prompt: prompt where we start from.
+        :param newline_chars: Characters to split local lines - list.
+        :param runner: Runner to run command.
+        """
         super(GetCellId, self).__init__(connection, operation='execute', prompt=prompt,
                                         newline_chars=newline_chars, runner=runner)
-        self.current_ret = dict()
 
     def build_command_string(self):
         return "AT+CREG?"
@@ -55,53 +60,26 @@ class GetCellId(GenericAtCommand):
                 pass
         return super(GetCellId, self).on_new_line(line, is_full_line)
 
-    # <n>=3, where +CREG: <n>,<stat>,[<lac>],[<ci>],[<AcT>],<cause_type>,<reject_cause>
-    # +CREG: 3,5,,,,1,2
-    # +CREG: 3,5,"54DB","0F6B0578",15,1,2
-    _re_network_reg_mode_3 = \
-        re.compile(r'^\s*\+CREG:\s(?P<n>([0-9]+)),(?P<stat>([0-9]{1,2})),(\")?(?P<lac>([0-9A-Fa-f]*))?(\")?,'
-                   r'(\")?(?P<ci>([0-9A-Fa-f]*))?(\")?,(?P<AcT>([0-9]{1,2}))?,(?P<cause_type>([0-9]+)),'
-                   r'(?P<reject_cause>([0-9]+)).*$')
-
-    # <n>=2, where +CREG: <n>,<stat>,[<lac>],[<ci>],[<AcT>]
-    # +CREG: 2,5,,,
-    # +CREG: 2,5,"54DB","0F6B0578",7
-    _re_network_reg_mode_2 = \
-        re.compile(r'^\s*\+CREG:\s(?P<n>([0-9]+)),(?P<stat>([0-9]{1,2})),(\")?(?P<lac>([0-9A-Fa-f]*))?(\")?,'
-                   r'(\")?(?P<ci>([0-9A-Fa-f]*))?(\")?,(?P<AcT>([0-9]{1,2}))?.*$')
-
-    # <n>=0,1, where +CREG: <n>,<stat>
-    # +CREG: 1,1
-    _re_network_reg_mode_0_1 = re.compile(r'^\s*\+CREG:\s(?P<n>([0-9]+)),(?P<stat>([0-9]{1,2})).*$')
-
-    # +CREG: <output_data>
-    _re_cell_id_data = re.compile(r'^\s*\+CREG:\s(?P<output_data>\w+\S+).*$')
+    # +CREG: <raw_output>
+    _re_raw_data = re.compile(r'^\s*\+CREG:\s(?P<raw_output>.*)')
 
     def _parse_cell_data(self, line):
         """
         Parse network registration status and location information:
-
         +CREG: 1,1
-        or
         +CREG: 2,5,,,
-        or
         +CREG: 2,5,"54DB","0F6B0578",7
-        or
         +CREG: 3,5,,,,1,2
-        or
-        +CREG: 2,5,"54DB","0F6B0578",15,1,2
+        +CREG: 3,5,"54DB","0F6B0578",15,1,2
         """
-        if self._regex_helper.match_compiled(self._re_network_reg_mode_3, line):
-            for key, value in self._regex_helper.groupdict().items():
-                self.current_ret[key] = value
-        elif self._regex_helper.match_compiled(self._re_network_reg_mode_2, line):
-            for key, value in self._regex_helper.groupdict().items():
-                self.current_ret[key] = value
-        elif self._regex_helper.match_compiled(self._re_network_reg_mode_0_1, line):
-            for key, value in self._regex_helper.groupdict().items():
-                self.current_ret[key] = value
-        if self._regex_helper.match_compiled(self._re_cell_id_data, line):
-            self.current_ret['output_data'] = self._regex_helper.groupdict().get('output_data')
+        results_keys = ['n', 'stat', 'lac', 'ci', 'AcT', 'cause_type', 'reject_cause']
+        if self._regex_helper.match_compiled(self._re_raw_data, line):
+            string_raw_output = self._regex_helper.groupdict().get('raw_output')
+            self.current_ret['raw_output'] = string_raw_output
+            list_output = string_raw_output.split(',')
+            for index, item in enumerate(list_output, 0):
+                if item:
+                    self.current_ret[results_keys[index]] = item.strip('"')
         raise ParsingDone
 
 
@@ -130,7 +108,7 @@ COMMAND_KWARGS_cell_id_v1 = {}
 COMMAND_RESULT_cell_id_v1 = {
     'n': '1',
     'stat': '1',
-    'output_data': '1,1'
+    'raw_output': '1,1'
 }
 
 COMMAND_OUTPUT_cell_id_v2_1 = """
@@ -148,7 +126,7 @@ COMMAND_RESULT_cell_id_v2_1 = {
     'lac': '54DB',
     'ci': '0F6B0578',
     'AcT': '7',
-    'output_data': '2,5,"54DB","0F6B0578",7'
+    'raw_output': '2,5,"54DB","0F6B0578",7'
 }
 
 COMMAND_OUTPUT_cell_id_v2_2 = """
@@ -166,7 +144,7 @@ COMMAND_RESULT_cell_id_v2_2 = {
     'lac': '',
     'ci': '',
     'AcT': None,
-    'output_data': '2,5,,,'
+    'raw_output': '2,5,,,'
 }
 
 COMMAND_OUTPUT_cell_id_v3_1 = """
@@ -186,7 +164,7 @@ COMMAND_RESULT_cell_id_v3_1 = {
     'AcT': '15',
     'cause_type': '1',
     'reject_cause': '2',
-    'output_data': '3,5,"54DB","0F6B0578",15,1,2'
+    'raw_output': '3,5,"54DB","0F6B0578",15,1,2'
 }
 
 COMMAND_OUTPUT_cell_id_v3_2 = """
@@ -206,5 +184,5 @@ COMMAND_RESULT_cell_id_v3_2 = {
     'AcT': '15',
     'cause_type': '1',
     'reject_cause': '2',
-    'output_data': '3,5,,,15,1,2'
+    'raw_output': '3,5,,,15,1,2'
 }

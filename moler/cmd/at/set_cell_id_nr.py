@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-AT+C5GREG
+AT+C5GREG={}
 
 AT commands specification:
 google for: 3gpp specification 27.007
@@ -16,21 +16,24 @@ from moler.exceptions import WrongUsage
 
 
 class SetCellIdNr(GenericAtCommand):
-    """
-    Command to set NR cell registration.
-
-    Possible options for selected_mode, but verify with latest 3gpp specification 27.007:
-    0: 'disable network',
-    1: 'enable network',
-    2: 'enable network, location information unsolicited result code',
-    3: 'enable network, location information and 5GMM cause value information unsolicited result code',
-    4: 'enable network, location information, cause value information, CAG status unsolicited result code',
-    5: 'enable network, location information, cause value information, CAG status and CAG cell status '
-       'unsolicited result code'
-    """
 
     def __init__(self, selected_mode, connection=None, prompt=None, newline_chars=None, runner=None):
-        """Create instance of SetCellIdNr class"""
+        """
+        Create instance of SetCellIdNr class and command to set NR cell registration status.
+        verify with latest 3gpp specification 27.007.
+
+        :param selected_mode: Set 5G registration mode for AT command: AT+C5GREG="selected_mode", but verify with
+                              latest 3gpp specification 27.007: 0-'disable network', 1-'enable network',
+                              2-'enable network, location information unsolicited result code',
+                              3-'enable network, location and 5GMM cause value information unsolicited result code',
+                              4-'enable network, location, cause value, CAG status unsolicited result code',
+                              5-'enable network, location, cause value, CAG status and CAG cell status unsolicited '
+                              'result code'
+        :param connection: Moler connection to device, terminal when command is executed.
+        :param prompt: prompt where we start from.
+        :param newline_chars: Characters to split local lines - list.
+        :param runner: Runner to run command.
+        """
         super(SetCellIdNr, self).__init__(connection, operation='execute', prompt=prompt,
                                           newline_chars=newline_chars, runner=runner)
         self.selected_mode = int(selected_mode)
