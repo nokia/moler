@@ -24,8 +24,8 @@ class GetCellIdNr(GenericAtCommand):
         Create instance of GetCellIdNr class and command to get NR cell registration status.
         Example output:
 
-        +C5GREG: <n>,<stat>[,[<lac>],[<ci>],[<AcT>],[<rac>][,[<cause_type>],[<reject_cause>]
-        [,[<Active-Time>],[<Periodic-RAU>],[<GPRS-READY-timer>]]]]
+        +C5GREG: <n>,<stat>[,[<lac>],[<ci>],[<AcT>],[<Allowed_NSSAI_length>], [<Allowed_NSSAI>][,[<cause_type>],
+        [<reject_cause>]][,[<cag_stat>][,<caginfo>]
 
         OK
 
@@ -46,12 +46,8 @@ class GetCellIdNr(GenericAtCommand):
         """
         Method to parse command output. Will be called after line with command echo.
 
-        +C5GREG: <n>,<stat>[,[<lac>],[<ci>],[<AcT>],[<rac>][,<cause_type>,<reject_cause>]]
-
-        OK
-        or
-        +C5GREG: <n>,<stat>[,[<lac>],[<ci>],[<AcT>],[<rac>][,[<cause_type>],[<reject_cause>]...
-        ...[,[<Active-Time>],[<Periodic-RAU>],[<GPRS-READY-timer>]]]]
+        +C5GREG: <n>,<stat>[,[<tac>],[<ci>],[<AcT>],[<Allowed_NSSAI_length>],[<Allowed_NSSAI>]...
+                 ...[,<cause_type>,<reject_cause>]][,<cag_stat>][,<caginfo>]
 
         OK
 
@@ -98,9 +94,9 @@ class GetCellIdNr(GenericAtCommand):
             2: ['n', 'stat', 'tac', 'ci', 'AcT', 'Allowed_NSSAI_length', 'Allowed_NSSAI'],
             3: ['n', 'stat', 'tac', 'ci', 'AcT', 'Allowed_NSSAI_length', 'Allowed_NSSAI', 'cause_type', 'reject_cause'],
             4: ['n', 'stat', 'tac', 'ci', 'AcT', 'Allowed_NSSAI_length', 'Allowed_NSSAI', 'cause_type', 'reject_cause',
-                'Periodic_RAU'],
+                'cag_stat'],
             5: ['n', 'stat', 'tac', 'ci', 'AcT', 'Allowed_NSSAI_length', 'Allowed_NSSAI', 'cause_type', 'reject_cause',
-                'Periodic_RAU', 'cag_stat', 'caginfo'],
+                'cag_stat', 'caginfo'],
         }
         if self._regex_helper.match_compiled(self._re_cell_id_mode, line):
             _variant = int(self._regex_helper.groupdict().get('n'))
