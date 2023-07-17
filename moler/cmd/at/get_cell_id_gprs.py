@@ -174,10 +174,6 @@ COMMAND_KWARGS_cell_id_gprs_v2_2 = {}
 COMMAND_RESULT_cell_id_gprs_v2_2 = {
     'n': '2',
     'stat': '5',
-    'lac': '',
-    'ci': '',
-    'AcT': None,
-    'rac': '',
     'raw_output': '2,5,,,,'
 }
 
@@ -214,10 +210,6 @@ COMMAND_KWARGS_cell_id_gprs_v3_2 = {}
 COMMAND_RESULT_cell_id_gprs_v3_2 = {
     'n': '3',
     'stat': '5',
-    'lac': '',
-    'ci': '',
-    'AcT': None,
-    'rac': '',
     'cause_type': '1',
     'reject_cause': '2',
     'raw_output': '3,5,,,,,1,2'
@@ -235,15 +227,6 @@ COMMAND_KWARGS_cell_id_gprs_v45_1 = {}
 COMMAND_RESULT_cell_id_gprs_v45_1 = {
     'n': '4',
     'stat': '5',
-    'lac': '',
-    'ci': '',
-    'AcT': None,
-    'rac': '',
-    'cause_type': '',
-    'reject_cause': '',
-    'Active_Time': '',
-    'Periodic_RAU': '',
-    'GPRS_READY_timer': '',
     'raw_output': '4,5,,,,,,,,,'
 }
 
@@ -263,8 +246,6 @@ COMMAND_RESULT_cell_id_gprs_v45_2 = {
     'ci': '0F6B0578',
     'AcT': '7',
     'rac': 'f0',
-    'cause_type': '',
-    'reject_cause': '',
     'Active_Time': '00100100',
     'Periodic_RAU': '01000111',
     'GPRS_READY_timer': '01000011',
@@ -313,9 +294,6 @@ COMMAND_RESULT_cell_id_gprs_v45_4 = {
     'rac': 'f0',
     'cause_type': '1',
     'reject_cause': '3',
-    'Active_Time': '',
-    'Periodic_RAU': '',
-    'GPRS_READY_timer': '',
     'raw_output': '5,10,"54DB","0F6B0578",7,"f0",1,3'
 }
 
@@ -331,13 +309,9 @@ COMMAND_KWARGS_cell_id_gprs_v67_1 = {}
 COMMAND_RESULT_cell_id_gprs_v67_1 = {
     'n': '6',
     'stat': '5',
-    'lac': '',
-    'ci': '',
-    'AcT': None,
     'cause_type': '1',
     'reject_cause': '2',
     'csg_stat': '0',
-    'csginfo': '',
     'raw_output': '6,5,,,,1,2,0'
 }
 
@@ -356,10 +330,6 @@ COMMAND_RESULT_cell_id_gprs_v67_2 = {
     'lac': '54DB',
     'ci': '0F6B0578',
     'AcT': '7',
-    'cause_type': '',
-    'reject_cause': '',
-    'csg_stat': '',
-    'csginfo': '',
     'raw_output': '7,10,"54DB","0F6B0578",7'
 }
 

@@ -197,11 +197,6 @@ COMMAND_KWARGS_cell_id_nr_v2_2 = {}
 COMMAND_RESULT_cell_id_nr_v2_2 = {
     'n': '2',
     'stat': '5',
-    'tac': '',
-    'ci': '',
-    'AcT': None,
-    'Allowed_NSSAI_length': None,
-    'Allowed_NSSAI': '',
     'raw_output': '2,5,,,,,'
 }
 
@@ -239,11 +234,6 @@ COMMAND_KWARGS_cell_id_nr_v3_2 = {}
 COMMAND_RESULT_cell_id_nr_v3_2 = {
     'n': '3',
     'stat': '5',
-    'tac': '',
-    'ci': '',
-    'AcT': None,
-    'Allowed_NSSAI_length': None,
-    'Allowed_NSSAI': '',
     'cause_type': '1',
     'reject_cause': '2',
     'raw_output': '3,5,,,,,,1,2'
@@ -261,15 +251,8 @@ COMMAND_KWARGS_cell_id_nr_v45_1 = {}
 COMMAND_RESULT_cell_id_nr_v45_1 = {
     'n': '4',
     'stat': '5',
-    'tac': '',
-    'ci': '',
-    'AcT': None,
-    'Allowed_NSSAI_length': None,
-    'Allowed_NSSAI': '',
     'cause_type': '1',
     'reject_cause': '2',
-    'cag_stat': '',
-    'caginfo': '',
     'raw_output': '4,5,,,,,,1,2'
 }
 

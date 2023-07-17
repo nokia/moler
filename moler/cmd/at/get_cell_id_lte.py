@@ -97,7 +97,7 @@ class GetCellIdLte(GenericAtCommand):
             4: ['n', 'stat', 'tac', 'ci', 'AcT', 'cause_type', 'reject_cause', 'Active_Time', 'Periodic_RAU'],
             5: ['n', 'stat', 'tac', 'ci', 'AcT', 'cause_type', 'reject_cause', 'Active_Time', 'Periodic_RAU'],
             6: ['n', 'stat', 'lac', 'ci', 'AcT', 'cause_type', 'reject_cause', 'csg_stat'],
-            7: ['n', 'stat', 'lac', 'ci', 'AcT', 'cause_type', 'reject_cause', 'csg_stat'],
+            7: ['n', 'stat', 'lac', 'ci', 'AcT', 'cause_type', 'reject_cause', 'csg_stat', 'csginfo'],
         }
         if self._regex_helper.match_compiled(self._re_cell_id_mode, line):
             _variant = int(self._regex_helper.groupdict().get('n'))
@@ -168,9 +168,6 @@ COMMAND_KWARGS_cell_id_lte_v2_2 = {}
 COMMAND_RESULT_cell_id_lte_v2_2 = {
     'n': '2',
     'stat': '5',
-    'tac': '',
-    'ci': '',
-    'AcT': None,
     'raw_output': '2,5,,,'
 }
 
@@ -206,9 +203,6 @@ COMMAND_KWARGS_cell_id_lte_v3_2 = {}
 COMMAND_RESULT_cell_id_lte_v3_2 = {
     'n': '3',
     'stat': '5',
-    'tac': '',
-    'ci': '',
-    'AcT': None,
     'cause_type': '1',
     'reject_cause': '2',
     'raw_output': '3,5,,,,1,2'
@@ -226,13 +220,6 @@ COMMAND_KWARGS_cell_id_lte_v45_1 = {}
 COMMAND_RESULT_cell_id_lte_v45_1 = {
     'n': '4',
     'stat': '5',
-    'tac': '',
-    'ci': '',
-    'AcT': None,
-    'cause_type': '',
-    'reject_cause': '',
-    'Active_Time': '',
-    'Periodic_RAU': '',
     'raw_output': '4,5,,,,,,,'
 }
 
@@ -297,65 +284,55 @@ COMMAND_RESULT_cell_id_lte_v45_4 = {
     'AcT': '7',
     'cause_type': '1',
     'reject_cause': '3',
-    'Active_Time': '',
-    'Periodic_RAU': '',
     'raw_output': '5,10,"54DB","0F6B0578",7,1,3'
 }
 
-COMMAND_OUTPUT_cell_id_lte_v67_1 = """
+COMMAND_OUTPUT_cell_id_lte_v6_1 = """
 AT+CEREG?
 +CREG: 6,5,,,,1,2,0
 
 OK
 """
 
-COMMAND_KWARGS_cell_id_lte_v67_1 = {}
+COMMAND_KWARGS_cell_id_lte_v6_1 = {}
 
-COMMAND_RESULT_cell_id_lte_v67_1 = {
+COMMAND_RESULT_cell_id_lte_v6_1 = {
     'n': '6',
     'stat': '5',
-    'lac': '',
-    'ci': '',
-    'AcT': None,
     'cause_type': '1',
     'reject_cause': '2',
     'csg_stat': '0',
-    'csginfo': '',
     'raw_output': '6,5,,,,1,2,0'
 }
 
-COMMAND_OUTPUT_cell_id_lte_v67_2 = """
+COMMAND_OUTPUT_cell_id_lte_v7_1 = """
 AT+CEREG?
 +CREG: 7,10,"54DB","0F6B0578",7
 
 OK
 """
 
-COMMAND_KWARGS_cell_id_lte_v67_2 = {}
+COMMAND_KWARGS_cell_id_lte_v7_1 = {}
 
-COMMAND_RESULT_cell_id_lte_v67_2 = {
+COMMAND_RESULT_cell_id_lte_v7_1 = {
     'n': '7',
     'stat': '10',
     'lac': '54DB',
     'ci': '0F6B0578',
     'AcT': '7',
-    'cause_type': '',
-    'reject_cause': '',
-    'csg_stat': '',
-    'csginfo': '',
     'raw_output': '7,10,"54DB","0F6B0578",7'
 }
 
-COMMAND_OUTPUT_cell_id_lte_v67_3 = """
+COMMAND_OUTPUT_cell_id_lte_v7_2 = """
 AT+CEREG?
 +CREG: 7,10,"54DB","0F6B0578",7,1,3,0,"abc"
 
 OK
 """
 
-COMMAND_KWARGS_cell_id_lte_v67_3 = {}
+COMMAND_KWARGS_cell_id_lte_v7_2 = {}
 
-COMMAND_RESULT_cell_id_lte_v67_3 = {
+COMMAND_RESULT_cell_id_lte_v7_2 = {
     'n': '7',
     'stat': '10',
     'lac': '54DB',

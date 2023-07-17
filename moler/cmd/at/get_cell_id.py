@@ -141,9 +141,6 @@ COMMAND_KWARGS_cell_id_v2_2 = {}
 COMMAND_RESULT_cell_id_v2_2 = {
     'n': '2',
     'stat': '5',
-    'lac': '',
-    'ci': '',
-    'AcT': None,
     'raw_output': '2,5,,,'
 }
 
@@ -179,8 +176,6 @@ COMMAND_KWARGS_cell_id_v3_2 = {}
 COMMAND_RESULT_cell_id_v3_2 = {
     'n': '3',
     'stat': '5',
-    'lac': '',
-    'ci': '',
     'AcT': '15',
     'cause_type': '1',
     'reject_cause': '2',
