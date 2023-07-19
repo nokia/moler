@@ -22,7 +22,7 @@ class GetCellIdNr(GenericAtCommand):
     def __init__(self, connection=None, prompt=None, newline_chars=None, runner=None):
         """
         Create instance of GetCellIdNr class and command to get NR cell registration status.
-        Example output:
+        Verify with latest 3gpp specification 27.007. Example output:
 
         +C5GREG: <n>,<stat>[,[<lac>],[<ci>],[<AcT>],[<Allowed_NSSAI_length>], [<Allowed_NSSAI>][,[<cause_type>],
         [<reject_cause>]][,[<cag_stat>][,<caginfo>]

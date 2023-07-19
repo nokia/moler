@@ -22,7 +22,7 @@ class GetCellIdLte(GenericAtCommand):
     def __init__(self, connection=None, prompt=None, newline_chars=None, runner=None):
         """
         Create instance of GetCellIdLte class and command to get LTE cell registration status.
-        Example output:
+        Verify with latest 3gpp specification 27.007. Example output:
 
         +CEREG: <n>,<stat>[,[<lac>],[<ci>],[<AcT>][,[<cause_type>],[<reject_cause>]
         [,[<Active-Time>],[<Periodic-RAU>],[<GPRS-READY-timer>]]]]

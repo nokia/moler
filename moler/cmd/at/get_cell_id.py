@@ -22,7 +22,7 @@ class GetCellId(GenericAtCommand):
     def __init__(self, connection=None, prompt=None, newline_chars=None, runner=None):
         """
         Create instance of GetCellIdGsm class and command to get cell registration status.
-        Example output:
+        Verify with latest 3gpp specification 27.007. Example output:
 
         +CREG: <n>,<stat>[,[<lac>],[<ci>],[<AcT>][,<cause_type>,<reject_cause>]]
 

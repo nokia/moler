@@ -22,7 +22,7 @@ class GetCellIdGprs(GenericAtCommand):
     def __init__(self, connection=None, prompt=None, newline_chars=None, runner=None):
         """
         Create instance of GetCellIdGprs class and command to get gprs cell registration status.
-        Example output:
+        Verify with latest 3gpp specification 27.007. Example output:
 
         +CGREG: <n>,<stat>[,[<lac>],[<ci>],[<AcT>],[<rac>][,[<cause_type>],[<reject_cause>]...
         ...[,[<Active-Time>],[<Periodic-RAU>],[<GPRS-READY-timer>]]]]
