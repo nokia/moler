@@ -88,7 +88,6 @@ class GetCellIdNr(GenericAtCommand):
             # Case without <stat> in output pop this value from result keys:
             if "\"" in list_output[1]:
                 del (results_keys[1])
-            list_output = string_raw_output.split(',')
             for index, item in enumerate(list_output, 0):
                 if item:
                     self.current_ret[results_keys[index]] = item.strip('"')
