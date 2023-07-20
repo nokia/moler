@@ -66,11 +66,8 @@ class GetCellIdLte(GenericAtCommand):
                 pass
         return super(GetCellIdLte, self).on_new_line(line, is_full_line)
 
-    # +C(E)REG: <n>
-    _re_cell_id_mode = re.compile(r'^\s*\+C(E)?REG:\s(?P<n>([0-9]+)).*$')
-
-    # +C(E)REG: <raw_output>
-    _re_raw_data = re.compile(r'^\s*\++C(E)?REG:\s(?P<raw_output>.*)')
+    # +C(E)REG: <raw_output> / <n>
+    _re_raw_data = re.compile(r'^\s*\+C(E)?REG:\s(?P<raw_output>(?P<n>\d+).*)')
 
     def _parse_cell_data_lte(self, line):
         """
@@ -99,15 +96,14 @@ class GetCellIdLte(GenericAtCommand):
             6: ['n', 'stat', 'lac', 'ci', 'AcT', 'cause_type', 'reject_cause', 'csg_stat'],
             7: ['n', 'stat', 'lac', 'ci', 'AcT', 'cause_type', 'reject_cause', 'csg_stat', 'csginfo'],
         }
-        if self._regex_helper.match_compiled(self._re_cell_id_mode, line):
+        if self._regex_helper.match_compiled(self._re_raw_data, line):
             _variant = int(self._regex_helper.groupdict().get('n'))
-            if self._regex_helper.match_compiled(self._re_raw_data, line):
-                string_raw_output = self._regex_helper.groupdict().get('raw_output')
-                self.current_ret['raw_output'] = string_raw_output
-                list_output = string_raw_output.split(',')
-                for index, item in enumerate(list_output, 0):
-                    if item:
-                        self.current_ret[results_keys[_variant][index]] = item.strip('"')
+            string_raw_output = self._regex_helper.groupdict().get('raw_output')
+            self.current_ret['raw_output'] = string_raw_output
+            list_output = string_raw_output.split(',')
+            for index, item in enumerate(list_output, 0):
+                if item:
+                    self.current_ret[results_keys[_variant][index]] = item.strip('"')
         raise ParsingDone
 
 

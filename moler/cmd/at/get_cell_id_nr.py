@@ -67,15 +67,12 @@ class GetCellIdNr(GenericAtCommand):
     # <n>=1, where +C5GREG: <n>[,[<tac>],[<ci>],[<AcT>],[<Allowed_NSSAI_length>],[<Allowed_NSSAI>]]
     # +C5GREG: 1,"0F6B0578",7,2,"aB" - option regarding to manual tests (different than 3gpp)
     _re_cell_id_mode_1 = \
-        re.compile(r'^\s*\+C5GREG:\s(?P<n>([0-9]+)),\"(?P<tac>([0-9A-Fa-f]*))\"(,)?(\")?(?P<ci>([0-9A-Fa-f]*))?(\")?'
-                   r'(,)?(?P<AcT>([0-9]{1,2}))?(,)?(?P<Allowed_NSSAI_length>([0-9]+))?(,)?'
+        re.compile(r'^\s*\+C5GREG:\s(?P<n>(\d+)),\"(?P<tac>([0-9A-Fa-f]*))\"(,)?(\")?(?P<ci>([0-9A-Fa-f]*))?(\")?'
+                   r'(,)?(?P<AcT>([0-9]{1,2}))?(,)?(?P<Allowed_NSSAI_length>(\d+))?(,)?'
                    r'(\")?(?P<Allowed_NSSAI>([0-9A-Za-z.]*))?(\")?.*$')
 
-    # +C5GREG: <n>
-    _re_cell_id_mode = re.compile(r'^\s*\+C5GREG:\s(?P<n>([0-9]+)).*$')
-
     # +C5GREG: <raw_output>
-    _re_raw_data = re.compile(r'^\s*\++C5GREG:\s(?P<raw_output>.*)')
+    _re_raw_data = re.compile(r'^\s*\+C5GREG:\s(?P<raw_output>.*)')
 
     def _parse_cell_data_nr(self, line):
         """
@@ -88,29 +85,20 @@ class GetCellIdNr(GenericAtCommand):
         +C5GREG: 4,5,,,,,,1,2
         +C5GREG: 5,5,"54DB","0F6B0578",7,2,"aB",1,2,123,"info"
         """
-        results_keys = {
-            0: ['n', 'stat'],
-            1: ['n', 'stat', 'tac', 'ci', 'AcT', 'Allowed_NSSAI_length', 'Allowed_NSSAI'],
-            2: ['n', 'stat', 'tac', 'ci', 'AcT', 'Allowed_NSSAI_length', 'Allowed_NSSAI'],
-            3: ['n', 'stat', 'tac', 'ci', 'AcT', 'Allowed_NSSAI_length', 'Allowed_NSSAI', 'cause_type', 'reject_cause'],
-            4: ['n', 'stat', 'tac', 'ci', 'AcT', 'Allowed_NSSAI_length', 'Allowed_NSSAI', 'cause_type', 'reject_cause',
-                'cag_stat'],
-            5: ['n', 'stat', 'tac', 'ci', 'AcT', 'Allowed_NSSAI_length', 'Allowed_NSSAI', 'cause_type', 'reject_cause',
-                'cag_stat', 'caginfo'],
-        }
-        if self._regex_helper.match_compiled(self._re_cell_id_mode, line):
-            _variant = int(self._regex_helper.groupdict().get('n'))
-            if self._regex_helper.match_compiled(self._re_raw_data, line):
-                string_raw_output = self._regex_helper.groupdict().get('raw_output')
-                self.current_ret['raw_output'] = string_raw_output
-                if self._regex_helper.match_compiled(self._re_cell_id_mode_1, line):
-                    for key, value in self._regex_helper.groupdict().items():
-                        self.current_ret[key] = value
-                    raise ParsingDone
-                list_output = string_raw_output.split(',')
-                for index, item in enumerate(list_output, 0):
-                    if item:
-                        self.current_ret[results_keys[_variant][index]] = item.strip('"')
+        results_keys = \
+            ['n', 'stat', 'tac', 'ci', 'AcT', 'Allowed_NSSAI_length', 'Allowed_NSSAI', 'cause_type', 'reject_cause',
+             'cag_stat', 'caginfo'],
+        if self._regex_helper.match_compiled(self._re_raw_data, line):
+            string_raw_output = self._regex_helper.groupdict().get('raw_output')
+            self.current_ret['raw_output'] = string_raw_output
+            if self._regex_helper.match_compiled(self._re_cell_id_mode_1, line):
+                for key, value in self._regex_helper.groupdict().items():
+                    self.current_ret[key] = value
+                raise ParsingDone
+            list_output = string_raw_output.split(',')
+            for index, item in enumerate(list_output, 0):
+                if item:
+                    self.current_ret[results_keys[index]] = item.strip('"')
         raise ParsingDone
 
 
