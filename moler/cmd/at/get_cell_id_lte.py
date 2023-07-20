@@ -67,7 +67,7 @@ class GetCellIdLte(GenericAtCommand):
         return super(GetCellIdLte, self).on_new_line(line, is_full_line)
 
     # +C(E)REG: <raw_output> / <n>
-    _re_raw_data = re.compile(r'^\s*\+C(E)?REG:\s(?P<raw_output>(?P<n>\d+).*)')
+    _re_raw_data = re.compile(r'^\s*\+C(E)?REG:\s(?P<raw_output>(?P<n>\d+).*).*$')
 
     def _parse_cell_data_lte(self, line):
         """

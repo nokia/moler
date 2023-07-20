@@ -72,7 +72,7 @@ class GetCellIdNr(GenericAtCommand):
                    r'(\")?(?P<Allowed_NSSAI>([0-9A-Za-z.]*))?(\")?.*$')
 
     # +C5GREG: <raw_output>
-    _re_raw_data = re.compile(r'^\s*\+C5GREG:\s(?P<raw_output>.*)')
+    _re_raw_data = re.compile(r'^\s*\+C5GREG:\s(?P<raw_output>.*).*$')
 
     def _parse_cell_data_nr(self, line):
         """

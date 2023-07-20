@@ -67,7 +67,7 @@ class GetCellIdGprs(GenericAtCommand):
         return super(GetCellIdGprs, self).on_new_line(line, is_full_line)
 
     # +C(G)REG: <raw_output> / <n>
-    _re_raw_data = re.compile(r'^\s*\+C(G)?REG:\s(?P<raw_output>(?P<n>\d+).*)')
+    _re_raw_data = re.compile(r'^\s*\+C(G)?REG:\s(?P<raw_output>(?P<n>\d+).*).*$')
 
     def _parse_cell_data_gprs(self, line):
         """

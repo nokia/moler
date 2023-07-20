@@ -61,7 +61,7 @@ class GetCellId(GenericAtCommand):
         return super(GetCellId, self).on_new_line(line, is_full_line)
 
     # +CREG: <raw_output>
-    _re_raw_data = re.compile(r'^\s*\+CREG:\s(?P<raw_output>.*)')
+    _re_raw_data = re.compile(r'^\s*\+CREG:\s(?P<raw_output>.*).*$')
 
     def _parse_cell_data(self, line):
         """
