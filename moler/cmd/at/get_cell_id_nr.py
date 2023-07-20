@@ -87,7 +87,7 @@ class GetCellIdNr(GenericAtCommand):
         """
         results_keys = \
             ['n', 'stat', 'tac', 'ci', 'AcT', 'Allowed_NSSAI_length', 'Allowed_NSSAI', 'cause_type', 'reject_cause',
-             'cag_stat', 'caginfo'],
+             'cag_stat', 'caginfo']
         if self._regex_helper.match_compiled(self._re_raw_data, line):
             string_raw_output = self._regex_helper.groupdict().get('raw_output')
             self.current_ret['raw_output'] = string_raw_output
