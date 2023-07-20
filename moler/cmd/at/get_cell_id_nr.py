@@ -64,13 +64,6 @@ class GetCellIdNr(GenericAtCommand):
                 pass
         return super(GetCellIdNr, self).on_new_line(line, is_full_line)
 
-    # <n>=1, where +C5GREG: <n>[,[<tac>],[<ci>],[<AcT>],[<Allowed_NSSAI_length>],[<Allowed_NSSAI>]]
-    # +C5GREG: 1,"0F6B0578",7,2,"aB" - option regarding to manual tests (different than 3gpp)
-    _re_cell_id_mode_1 = \
-        re.compile(r'^\s*\+C5GREG:\s(?P<n>(\d+)),\"(?P<tac>([0-9A-Fa-f]*))\"(,)?(\")?(?P<ci>([0-9A-Fa-f]*))?(\")?'
-                   r'(,)?(?P<AcT>([0-9]{1,2}))?(,)?(?P<Allowed_NSSAI_length>(\d+))?(,)?'
-                   r'(\")?(?P<Allowed_NSSAI>([0-9A-Za-z.]*))?(\")?.*$')
-
     # +C5GREG: <raw_output>
     _re_raw_data = re.compile(r'^\s*\+C5GREG:\s(?P<raw_output>.*).*$')
 
@@ -78,7 +71,7 @@ class GetCellIdNr(GenericAtCommand):
         """
         Parse network registration status and location information:
         +C5GREG: 1,11
-        +C5GREG: 1,"54DB","0F6B0578",7,2,"aB" - extra
+        +C5GREG: 1,"54DB","0F6B0578",7,2,"aB"
         +C5GREG: 2,5,"54DB","0F6B0578",7,2,"aB"
         +C5GREG: 3,5,,,,,,1,2
         +C5GREG: 3,5,"54DB","0F6B0578",7,2,"aB",1,2
@@ -91,10 +84,10 @@ class GetCellIdNr(GenericAtCommand):
         if self._regex_helper.match_compiled(self._re_raw_data, line):
             string_raw_output = self._regex_helper.groupdict().get('raw_output')
             self.current_ret['raw_output'] = string_raw_output
-            if self._regex_helper.match_compiled(self._re_cell_id_mode_1, line):
-                for key, value in self._regex_helper.groupdict().items():
-                    self.current_ret[key] = value
-                raise ParsingDone
+            list_output = string_raw_output.split(',')
+            # Case without <stat> in output pop this value:
+            if "\"" in list_output[1]:
+                del (list_output[1])
             list_output = string_raw_output.split(',')
             for index, item in enumerate(list_output, 0):
                 if item:
