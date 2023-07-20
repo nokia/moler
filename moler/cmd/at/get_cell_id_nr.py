@@ -85,9 +85,9 @@ class GetCellIdNr(GenericAtCommand):
             string_raw_output = self._regex_helper.groupdict().get('raw_output')
             self.current_ret['raw_output'] = string_raw_output
             list_output = string_raw_output.split(',')
-            # Case without <stat> in output pop this value:
+            # Case without <stat> in output pop this value from result keys:
             if "\"" in list_output[1]:
-                del (list_output[1])
+                del (results_keys[1])
             list_output = string_raw_output.split(',')
             for index, item in enumerate(list_output, 0):
                 if item:
