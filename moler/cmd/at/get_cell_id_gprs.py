@@ -42,7 +42,7 @@ class GetCellIdGprs(GenericAtCommand):
 
     def on_new_line(self, line, is_full_line):
         """
-        Method to parse command output. Will be called after line with command echo.
+        Method to parse command output. Will be called after line with command echo. Example outputs:
 
         +CGREG: <n>,<stat>[,[<lac>],[<ci>],[<AcT>],[<rac>][,<cause_type>,<reject_cause>]]
 

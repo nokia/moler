@@ -41,7 +41,7 @@ class GetCellId(GenericAtCommand):
 
     def on_new_line(self, line, is_full_line):
         """
-        Method to parse command output. Will be called after line with command echo.
+        Method to parse command output. Will be called after line with command echo. Example output:
 
         +CREG: <n>,<stat>[,[<lac>],[<ci>],[<AcT>][,<cause_type>,<reject_cause>]]
 
