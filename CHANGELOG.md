@@ -1,3 +1,6 @@
+## moler 2.12.0
+* Implementation of AT commands with Get and Set for Cell Id (general, GPRS, LTE, NR)
+
 ## moler 2.11.0
 * Implementation of PDU sessions AT commands
 * Refactoring - get rid of warnings for newer Pythons
