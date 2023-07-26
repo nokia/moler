@@ -633,7 +633,7 @@ class Iperf3(GenericUnixCommand, Publisher):
         if self.parallel_client and ("multiport" not in connection_name[0]):
             return  # for parallel we take report / publish stats only from summary records
         last_record = self.current_ret["CONNECTIONS"][connection_name][-1]
-        print(self.server, self.client)
+        # print(self.server, self.client)
 
         if self._is_final_record(last_record, line):
             (
@@ -646,18 +646,18 @@ class Iperf3(GenericUnixCommand, Publisher):
                 server_port, server_host
             )
             result_connection = (from_client, to_server)
-            print("?" * 50)
-            print(last_record)
-            print("?" * 50)
+            # print("?" * 50)
+            # print(last_record)
+            # print("?" * 50)
             self.current_ret["CONNECTIONS"][result_connection] = {
                 "report": last_record}
             self.notify_subscribers(
                 from_client=from_client, to_server=to_server, report=last_record
             )
         else:
-            print("!" * 50)
-            print(last_record)
-            print("!" * 50)
+            # print("!" * 50)
+            # print(last_record)
+            # print("!" * 50)
             from_client, to_server = connection_name
             self.notify_subscribers(
                 from_client=from_client, to_server=to_server, data_record=last_record
