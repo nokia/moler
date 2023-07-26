@@ -576,7 +576,7 @@ class Iperf3(GenericUnixCommand, Publisher):
     
 
     def _is_final_record(self, last_record, line):
-        start, end = last_record['Interval']
+        # start, end = last_record['Interval']
         regex_found = self._regex_helper.search_compiled
 
         if regex_found(Iperf3._re_iperf_record_udp_svr_report, line) or \
