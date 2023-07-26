@@ -5,6 +5,7 @@ Cat command module.
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
+from moler.exceptions import CommandTimeout
 import re
 
 __author__ = 'Sylwester Golonka, Marcin Usielski'
@@ -69,7 +70,7 @@ class Cat(GenericUnixCommand):
         :return: Match object if find regex in line, None otherwise.
         """
         if self._line_nr > 1:
-            if self._stored_exception:
+            if self._stored_exception and not isinstance(self._stored_exception, CommandTimeout):
                 self._stored_exception = None
             return None
         if self._regex_helper.search_compiled(Cat._re_parse_error, line):
