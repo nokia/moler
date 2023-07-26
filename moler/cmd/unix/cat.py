@@ -9,12 +9,13 @@ from moler.exceptions import CommandTimeout
 import re
 
 __author__ = 'Sylwester Golonka, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'sylwester.golonka@nokia.com, marcin.usielski@nokia.com'
 
 
 class Cat(GenericUnixCommand):
-    def __init__(self, connection, path, options=None, prompt=None, newline_chars=None, runner=None):
+    def __init__(self, connection, path, options=None, prompt=None, newline_chars=None, runner=None,
+                 failure_only_in_first_line=True):
         """
         :param connection: Moler connection to device, terminal when command is executed.
         :param path: path to file to cat.
@@ -22,10 +23,12 @@ class Cat(GenericUnixCommand):
         :param prompt: prompt (on system where command runs).
         :param newline_chars: Characters to split lines - list.
         :param runner: Runner to run command.
+        :param failure_only_in_first_line: Set False to find errors in all lines, True otherwise.
         """
         super(Cat, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.path = path
         self.options = options
+        self.failure_only_in_first_line = failure_only_in_first_line
         self.current_ret["LINES"] = []
         self._line_nr = 0
 
@@ -69,10 +72,11 @@ class Cat(GenericUnixCommand):
         :param line: Line from command output on device
         :return: Match object if find regex in line, None otherwise.
         """
-        if self._line_nr > 1:
-            if self._stored_exception and not isinstance(self._stored_exception, CommandTimeout):
-                self._stored_exception = None
-            return None
+        if self.failure_only_in_first_line:
+            if self._line_nr > 1:
+                if self._stored_exception and not isinstance(self._stored_exception, CommandTimeout):
+                    self._stored_exception = None
+                return None
         if self._regex_helper.search_compiled(Cat._re_parse_error, line):
             self.set_exception(CommandFailure(self, "Error in line >>{}<<".format(line)))
 
