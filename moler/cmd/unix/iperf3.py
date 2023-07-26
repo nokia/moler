@@ -952,7 +952,6 @@ COMMAND_RESULT_basic_client = {
                                                   'GBytes'}]},
     'INFO': ['Connecting to host 127.0.0.1, port 5201',
              '- - - - - - - - - - - - - - - - - - - - - - - - -',
-             '',
              'iperf Done.']}
 
 
