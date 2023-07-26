@@ -3,7 +3,6 @@
 Cat command module.
 """
 from moler.cmd.unix.genericunix import GenericUnixCommand
-from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 from moler.exceptions import CommandTimeout
 import re
