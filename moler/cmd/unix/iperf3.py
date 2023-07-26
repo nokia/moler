@@ -684,15 +684,21 @@ class Iperf3(GenericUnixCommand, Publisher):
         # start, end = last_record['Interval']
         regex_found = self._regex_helper.search_compiled
 
-        if any([regex_found(Iperf3._re_iperf_record_udp_svr_report, line),
-                self.protocol == "udp" and regex_found(
-                Iperf3._re_iperf_record_udp_cli_report, line),
-                self.protocol == "tcp" and regex_found(
-                Iperf3._re_iperf_record_tcp_cli_report, line),
-                self.protocol == "tcp" and self.client and regex_found(
-                    Iperf3._re_iperf_record_tcp_cli_summary_report, line),
-                regex_found(Iperf3._re_iperf_record_tcp_svr_report, line)
-                ]):
+        # temp = [regex_found(Iperf3._re_iperf_record_udp_svr_report, line),
+        #         self.protocol == "udp" and regex_found(
+        #         Iperf3._re_iperf_record_udp_cli_report, line),
+        #         self.protocol == "tcp" and regex_found(
+        #         Iperf3._re_iperf_record_tcp_cli_report, line),
+        #         self.protocol == "tcp" and self.client and regex_found(
+        #             Iperf3._re_iperf_record_tcp_cli_summary_report, line),
+        #         regex_found(Iperf3._re_iperf_record_tcp_svr_report, line)
+        # ]
+
+        if regex_found(Iperf3._re_iperf_record_udp_svr_report, line) or \
+                self.protocol == "udp" and regex_found(Iperf3._re_iperf_record_udp_cli_report, line) or \
+                self.protocol == "tcp" and regex_found(Iperf3._re_iperf_record_tcp_cli_report, line) or \
+                self.protocol == "tcp" and self.client and regex_found(Iperf3._re_iperf_record_tcp_cli_summary_report, line) or \
+                regex_found(Iperf3._re_iperf_record_tcp_svr_report, line):
 
             result_option = self._regex_helper.groupdict().pop("Option")
 
