@@ -174,11 +174,9 @@ class Iperf3(GenericUnixCommand, Publisher):
 
     @property
     def server(self):
-        return (
-            self.options.startswith("-s") or
-            (" -s" in self.options) or
-            ("--server" in self.options)
-        )
+        return any([self.options.startswith("-s"),
+                    " -s" in self.options,
+                    "--server" in self.options])
 
     @property
     def parallel_client(self):
@@ -423,13 +421,16 @@ class Iperf3(GenericUnixCommand, Publisher):
         regex_found = self._regex_helper.search_compiled
         # print("!"*50)
 
-        if (
-            regex_found(Iperf3._re_iperf_record_udp_svr, line) or
-            self.protocol == "udp" and regex_found(Iperf3._re_iperf_record_udp_cli, line) or
-            self.protocol == "tcp" and regex_found(Iperf3._re_iperf_record_tcp_cli, line) or
-            self.protocol == "tcp" and self.client and regex_found(Iperf3._re_iperf_record_tcp_cli_summary, line) or
-            regex_found(Iperf3._re_iperf_record_tcp_svr, line)
-        ):
+        if any([regex_found(Iperf3._re_iperf_record_udp_svr, line),
+               self.protocol == "udp" and regex_found(
+                Iperf3._re_iperf_record_udp_cli, line),
+               self.protocol == "tcp" and regex_found(
+                Iperf3._re_iperf_record_tcp_cli, line),
+               self.protocol == "tcp" and self.client and regex_found(
+                Iperf3._re_iperf_record_tcp_cli_summary, line),
+               regex_found(Iperf3._re_iperf_record_tcp_svr, line)
+                ]):
+
             iperf_record = self._regex_helper.groupdict()
             # import logging
             # logging.warning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
@@ -683,16 +684,16 @@ class Iperf3(GenericUnixCommand, Publisher):
         # start, end = last_record['Interval']
         regex_found = self._regex_helper.search_compiled
 
-        if (
-            regex_found(Iperf3._re_iperf_record_udp_svr_report, line) or
-            self.protocol == "udp" and regex_found(
-                Iperf3._re_iperf_record_udp_cli_report, line) or
-            self.protocol == "tcp" and regex_found(
-                Iperf3._re_iperf_record_tcp_cli_report, line) or
-            self.protocol == "tcp" and self.client and regex_found(
-                Iperf3._re_iperf_record_tcp_cli_summary_report, line) or
-            regex_found(Iperf3._re_iperf_record_tcp_svr_report, line)
-        ):
+        if any([regex_found(Iperf3._re_iperf_record_udp_svr_report, line),
+                self.protocol == "udp" and regex_found(
+                Iperf3._re_iperf_record_udp_cli_report, line),
+                self.protocol == "tcp" and regex_found(
+                Iperf3._re_iperf_record_tcp_cli_report, line),
+                self.protocol == "tcp" and self.client and regex_found(
+                    Iperf3._re_iperf_record_tcp_cli_summary_report, line),
+                regex_found(Iperf3._re_iperf_record_tcp_svr_report, line)
+                ]):
+
             result_option = self._regex_helper.groupdict().pop("Option")
 
             if self.server and result_option == "receiver":
