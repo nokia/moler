@@ -958,163 +958,184 @@ COMMAND_RESULT_basic_client = {
              'iperf Done.']}
 
 
-# COMMAND_OUTPUT_basic_server = """
-# xyz@debian:~$ iperf -s -u -i 1
-# ------------------------------------------------------------
-# Server listening on UDP port 5001
-# Receiving 1470 byte datagrams
-# UDP buffer size: 8.00 KByte (default)
-# ------------------------------------------------------------
-# [904] local 10.1.1.1 port 5001 connected with 10.6.2.5 port 32781
-# [ ID]   Interval         Transfer        Bandwidth         Jitter        Lost/Total Datagrams
-# [904]   0.0- 1.0 sec   1.17 MBytes   9.84 Mbits/sec   1.830 ms   0/ 837   (0%)
-# [904]   1.0- 2.0 sec   1.18 MBytes   9.94 Mbits/sec   1.846 ms   5/ 850   (0.59%)
-# [904]   2.0- 3.0 sec   1.19 MBytes   9.98 Mbits/sec   1.802 ms   2/ 851   (0.24%)
-# [904]   3.0- 4.0 sec   1.19 MBytes   10.0 Mbits/sec   1.830 ms   0/ 850   (0%)
-# [904]   4.0- 5.0 sec   1.19 MBytes   9.98 Mbits/sec   1.846 ms   1/ 850   (0.12%)
-# [904]   5.0- 6.0 sec   1.19 MBytes   10.0 Mbits/sec   1.806 ms   0/ 851   (0%)
-# [904]   6.0- 7.0 sec   1.06 MBytes   8.87 Mbits/sec   1.803 ms   1/ 755   (0.13%)
-# [904]   7.0- 8.0 sec   1.19 MBytes   10.0 Mbits/sec   1.831 ms   0/ 850   (0%)
-# [904]   8.0- 9.0 sec   1.19 MBytes   10.0 Mbits/sec   1.841 ms   0/ 850   (0%)
-# [904]   9.0-10.0 sec   1.19 MBytes   10.0 Mbits/sec   1.801 ms   0/ 851   (0%)
-# [904]   0.0-10.0 sec   11.8 MBytes   9.86 Mbits/sec   2.618 ms   9/ 8409  (0.11%)
-# xyz@debian:~$"""
+COMMAND_OUTPUT_basic_server = """
+xyz@debian:~$ iperf3 -s -i 1
+-----------------------------------------------------------
+Server listening on 5201
+-----------------------------------------------------------
+Accepted connection from 127.0.0.1, port 40530
+[  5] local 127.0.0.1 port 5201 connected to 127.0.0.1 port 34761
+[ ID] Interval           Transfer     Bitrate         Jitter    Lost/Total Datagrams
+[  5]   0.00-1.00   sec   129 KBytes  1.06 Mbits/sec  0.015 ms  0/6 (0%)
+[  5]   1.00-2.00   sec   129 KBytes  1.06 Mbits/sec  0.016 ms  0/6 (0%)
+[  5]   2.00-3.00   sec   129 KBytes  1.06 Mbits/sec  0.019 ms  0/6 (0%)
+[  5]   3.00-4.00   sec   129 KBytes  1.06 Mbits/sec  0.028 ms  0/6 (0%)
+[  5]   4.00-5.00   sec   129 KBytes  1.06 Mbits/sec  0.024 ms  0/6 (0%)
+[  5]   5.00-6.00   sec   129 KBytes  1.06 Mbits/sec  0.032 ms  0/6 (0%)
+[  5]   6.00-7.00   sec   129 KBytes  1.06 Mbits/sec  0.027 ms  0/6 (0%)
+[  5]   7.00-8.00   sec   129 KBytes  1.06 Mbits/sec  0.022 ms  0/6 (0%)
+[  5]   8.00-9.00   sec   129 KBytes  1.06 Mbits/sec  0.022 ms  0/6 (0%)
+[  5]   9.00-10.00  sec   129 KBytes  1.06 Mbits/sec  0.022 ms  0/6 (0%)
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Jitter    Lost/Total Datagrams
+[  5]   0.00-10.04  sec  1.26 MBytes  1.05 Mbits/sec  0.022 ms  0/60 (0%)  receiver
+-----------------------------------------------------------
+Server listening on 5201
+-----------------------------------------------------------
+xyz@debian:~$"""
 
-# COMMAND_KWARGS_basic_server = {"options": "-s -u -i 1"}
+COMMAND_KWARGS_basic_server = {"options": "-s -i 1"}
 
-# COMMAND_RESULT_basic_server = {
-#     "CONNECTIONS": {
-#         ("32781@10.6.2.5", "5001@10.1.1.1"): [
-#             {
-#                 "Bandwidth Raw": "9.84 Mbits/sec",
-#                 "Bandwidth": 1230000,
-#                 "Interval": (0.0, 1.0),
-#                 "Jitter": "1.830 ms",
-#                 "Lost_vs_Total_Datagrams": (0, 837),
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Transfer Raw": "1.17 MBytes",
-#                 "Transfer": 1226833,
-#             },
-#             {
-#                 "Bandwidth Raw": "9.94 Mbits/sec",
-#                 "Bandwidth": 1242500,
-#                 "Interval": (1.0, 2.0),
-#                 "Jitter": "1.846 ms",
-#                 "Lost_vs_Total_Datagrams": (5, 850),
-#                 "Lost_Datagrams_ratio": "0.59%",
-#                 "Transfer Raw": "1.18 MBytes",
-#                 "Transfer": 1237319,
-#             },
-#             {
-#                 "Bandwidth Raw": "9.98 Mbits/sec",
-#                 "Bandwidth": 1247500,
-#                 "Interval": (2.0, 3.0),
-#                 "Jitter": "1.802 ms",
-#                 "Lost_vs_Total_Datagrams": (2, 851),
-#                 "Lost_Datagrams_ratio": "0.24%",
-#                 "Transfer Raw": "1.19 MBytes",
-#                 "Transfer": 1247805,
-#             },
-#             {
-#                 "Bandwidth Raw": "10.0 Mbits/sec",
-#                 "Bandwidth": 1250000,
-#                 "Interval": (3.0, 4.0),
-#                 "Jitter": "1.830 ms",
-#                 "Lost_vs_Total_Datagrams": (0, 850),
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Transfer Raw": "1.19 MBytes",
-#                 "Transfer": 1247805,
-#             },
-#             {
-#                 "Bandwidth Raw": "9.98 Mbits/sec",
-#                 "Bandwidth": 1247500,
-#                 "Interval": (4.0, 5.0),
-#                 "Jitter": "1.846 ms",
-#                 "Lost_vs_Total_Datagrams": (1, 850),
-#                 "Lost_Datagrams_ratio": "0.12%",
-#                 "Transfer Raw": "1.19 MBytes",
-#                 "Transfer": 1247805,
-#             },
-#             {
-#                 "Bandwidth Raw": "10.0 Mbits/sec",
-#                 "Bandwidth": 1250000,
-#                 "Interval": (5.0, 6.0),
-#                 "Jitter": "1.806 ms",
-#                 "Lost_vs_Total_Datagrams": (0, 851),
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Transfer Raw": "1.19 MBytes",
-#                 "Transfer": 1247805,
-#             },
-#             {
-#                 "Bandwidth Raw": "8.87 Mbits/sec",
-#                 "Bandwidth": 1108750,
-#                 "Interval": (6.0, 7.0),
-#                 "Jitter": "1.803 ms",
-#                 "Lost_vs_Total_Datagrams": (1, 755),
-#                 "Lost_Datagrams_ratio": "0.13%",
-#                 "Transfer Raw": "1.06 MBytes",
-#                 "Transfer": 1111490,
-#             },
-#             {
-#                 "Bandwidth Raw": "10.0 Mbits/sec",
-#                 "Bandwidth": 1250000,
-#                 "Interval": (7.0, 8.0),
-#                 "Jitter": "1.831 ms",
-#                 "Lost_vs_Total_Datagrams": (0, 850),
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Transfer Raw": "1.19 MBytes",
-#                 "Transfer": 1247805,
-#             },
-#             {
-#                 "Bandwidth Raw": "10.0 Mbits/sec",
-#                 "Bandwidth": 1250000,
-#                 "Interval": (8.0, 9.0),
-#                 "Jitter": "1.841 ms",
-#                 "Lost_vs_Total_Datagrams": (0, 850),
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Transfer Raw": "1.19 MBytes",
-#                 "Transfer": 1247805,
-#             },
-#             {
-#                 "Bandwidth Raw": "10.0 Mbits/sec",
-#                 "Bandwidth": 1250000,
-#                 "Interval": (9.0, 10.0),
-#                 "Jitter": "1.801 ms",
-#                 "Lost_vs_Total_Datagrams": (0, 851),
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Transfer Raw": "1.19 MBytes",
-#                 "Transfer": 1247805,
-#             },
-#             {
-#                 "Bandwidth Raw": "9.86 Mbits/sec",
-#                 "Bandwidth": 1232500,
-#                 "Interval": (0.0, 10.0),
-#                 "Jitter": "2.618 ms",
-#                 "Lost_vs_Total_Datagrams": (9, 8409),
-#                 "Lost_Datagrams_ratio": "0.11%",
-#                 "Transfer Raw": "11.8 MBytes",
-#                 "Transfer": 12373196,
-#             },
-#         ],
-#         ("10.6.2.5", "5001@10.1.1.1"): {
-#             "report": {
-#                 "Lost_Datagrams_ratio": "0.11%",
-#                 "Jitter": "2.618 ms",
-#                 "Transfer": 12373196,
-#                 "Interval": (0.0, 10.0),
-#                 "Transfer Raw": "11.8 MBytes",
-#                 "Bandwidth": 1232500,
-#                 "Lost_vs_Total_Datagrams": (9, 8409),
-#                 "Bandwidth Raw": "9.86 Mbits/sec",
-#             }
-#         },
-#     },
-#     "INFO": [
-#         "Server listening on UDP port 5001",
-#         "Receiving 1470 byte datagrams",
-#         "UDP buffer size: 8.00 KByte (default)",
-#     ],
-# }
+COMMAND_RESULT_basic_server = {
+    'CONNECTIONS': {
+        ('127.0.0.1', '5201@127.0.0.1'): {'report': {'Bitrate': 131250,
+                                                     'Bitrate Raw': '1.05 '
+                                                     'Mbits/sec',
+                                                     'Interval': (0.0,
+                                                                  10.04),
+                                                     'Jitter': '0.022 '
+                                                     'ms',
+                                                     'Lost_Datagrams_ratio': '0%',
+                                                     'Lost_vs_Total_Datagrams': (0,
+                                                                                 60),
+                                                     'Transfer': 1321205,
+                                                     'Transfer Raw': '1.26 '
+                                                     'MBytes'}},
+        ('34761@127.0.0.1', '5201@127.0.0.1'): [{'Bitrate': 132500,
+                                                 'Bitrate Raw': '1.06 '
+                                                 'Mbits/sec',
+                                                 'Interval': (0.0,
+                                                              1.0),
+                                                 'Jitter': '0.015 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132500,
+                                                 'Bitrate Raw': '1.06 '
+                                                 'Mbits/sec',
+                                                 'Interval': (1.0,
+                                                              2.0),
+                                                 'Jitter': '0.016 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132500,
+                                                 'Bitrate Raw': '1.06 '
+                                                 'Mbits/sec',
+                                                 'Interval': (2.0,
+                                                              3.0),
+                                                 'Jitter': '0.019 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132500,
+                                                 'Bitrate Raw': '1.06 '
+                                                 'Mbits/sec',
+                                                 'Interval': (3.0,
+                                                              4.0),
+                                                 'Jitter': '0.028 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132500,
+                                                 'Bitrate Raw': '1.06 '
+                                                 'Mbits/sec',
+                                                 'Interval': (4.0,
+                                                              5.0),
+                                                 'Jitter': '0.024 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132500,
+                                                 'Bitrate Raw': '1.06 '
+                                                 'Mbits/sec',
+                                                 'Interval': (5.0,
+                                                              6.0),
+                                                 'Jitter': '0.032 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132500,
+                                                 'Bitrate Raw': '1.06 '
+                                                 'Mbits/sec',
+                                                 'Interval': (6.0,
+                                                              7.0),
+                                                 'Jitter': '0.027 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132500,
+                                                 'Bitrate Raw': '1.06 '
+                                                 'Mbits/sec',
+                                                 'Interval': (7.0,
+                                                              8.0),
+                                                 'Jitter': '0.022 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132500,
+                                                 'Bitrate Raw': '1.06 '
+                                                 'Mbits/sec',
+                                                 'Interval': (8.0,
+                                                              9.0),
+                                                 'Jitter': '0.022 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132500,
+                                                 'Bitrate Raw': '1.06 '
+                                                 'Mbits/sec',
+                                                 'Interval': (9.0,
+                                                              10.0),
+                                                 'Jitter': '0.022 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 131250,
+                                                 'Bitrate Raw': '1.05 '
+                                                 'Mbits/sec',
+                                                 'Interval': (0.0,
+                                                              10.04),
+                                                 'Jitter': '0.022 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             60),
+                                                 'Transfer': 1321205,
+                                                 'Transfer Raw': '1.26 '
+                                                 'MBytes'}]},
+    'INFO': ['Server listening on 5201',
+             'Accepted connection from 127.0.0.1, port 40530',
+             'Server listening on 5201']}
 
 
 # COMMAND_OUTPUT_tcp_ipv6_server = """
