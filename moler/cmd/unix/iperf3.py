@@ -792,7 +792,7 @@ Connecting to host 127.0.0.1, port 5201
 [  5]   6.00-7.00   sec  2.41 GBytes  20.7 Gbits/sec    0   3.18 MBytes
 [  5]   7.00-8.00   sec  2.37 GBytes  20.4 Gbits/sec    0   4.81 MBytes
 [  5]   8.00-9.00   sec  3.89 GBytes  33.4 Gbits/sec    0   4.81 MBytes
-[  5]   9.00-10.00  sec  3.56 GBytes  30.6 Gbits/sec    0   4.80 MBytes
+[  5]   9.00-10.00  sec  3.56 GBytes  30.6 Gbits/sec    0   4.81 MBytes
 - - - - - - - - - - - - - - - - - - - - - - - - -
 [ ID] Interval           Transfer     Bitrate         Retr
 [  5]   0.00-10.00  sec  29.1 GBytes  25.0 Gbits/sec    0             sender
