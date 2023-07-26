@@ -421,15 +421,14 @@ class Iperf3(GenericUnixCommand, Publisher):
         regex_found = self._regex_helper.search_compiled
         # print("!"*50)
 
-        if any([regex_found(Iperf3._re_iperf_record_udp_svr, line),
-               self.protocol == "udp" and regex_found(
-                Iperf3._re_iperf_record_udp_cli, line),
-               self.protocol == "tcp" and regex_found(
-                Iperf3._re_iperf_record_tcp_cli, line),
-               self.protocol == "tcp" and self.client and regex_found(
-                Iperf3._re_iperf_record_tcp_cli_summary, line),
-               regex_found(Iperf3._re_iperf_record_tcp_svr, line)
-                ]):
+        if regex_found(Iperf3._re_iperf_record_udp_svr, line) or \
+                self.protocol == "udp" and regex_found(
+                    Iperf3._re_iperf_record_udp_cli, line) or \
+                self.protocol == "tcp" and regex_found(
+                    Iperf3._re_iperf_record_tcp_cli, line) or \
+                self.protocol == "tcp" and self.client and regex_found(
+                    Iperf3._re_iperf_record_tcp_cli_summary, line) or \
+                regex_found(Iperf3._re_iperf_record_tcp_svr, line):
 
             iperf_record = self._regex_helper.groupdict()
             # import logging
@@ -684,20 +683,13 @@ class Iperf3(GenericUnixCommand, Publisher):
         # start, end = last_record['Interval']
         regex_found = self._regex_helper.search_compiled
 
-        # temp = [regex_found(Iperf3._re_iperf_record_udp_svr_report, line),
-        #         self.protocol == "udp" and regex_found(
-        #         Iperf3._re_iperf_record_udp_cli_report, line),
-        #         self.protocol == "tcp" and regex_found(
-        #         Iperf3._re_iperf_record_tcp_cli_report, line),
-        #         self.protocol == "tcp" and self.client and regex_found(
-        #             Iperf3._re_iperf_record_tcp_cli_summary_report, line),
-        #         regex_found(Iperf3._re_iperf_record_tcp_svr_report, line)
-        # ]
-
         if regex_found(Iperf3._re_iperf_record_udp_svr_report, line) or \
-                self.protocol == "udp" and regex_found(Iperf3._re_iperf_record_udp_cli_report, line) or \
-                self.protocol == "tcp" and regex_found(Iperf3._re_iperf_record_tcp_cli_report, line) or \
-                self.protocol == "tcp" and self.client and regex_found(Iperf3._re_iperf_record_tcp_cli_summary_report, line) or \
+                self.protocol == "udp" and regex_found(
+                    Iperf3._re_iperf_record_udp_cli_report, line) or \
+                self.protocol == "tcp" and regex_found(
+                    Iperf3._re_iperf_record_tcp_cli_report, line) or \
+                self.protocol == "tcp" and self.client and regex_found(
+                    Iperf3._re_iperf_record_tcp_cli_summary_report, line) or \
                 regex_found(Iperf3._re_iperf_record_tcp_svr_report, line):
 
             result_option = self._regex_helper.groupdict().pop("Option")
@@ -741,9 +733,13 @@ class Iperf3(GenericUnixCommand, Publisher):
     # ------------------------------------------------------------
     _re_ornaments = re.compile(
         r"(?P<ORNAMENTS>----*|\[\s*ID\].*)", re.IGNORECASE)
+    _re_summary_ornament = re.compile(r"(?P<SUM_ORNAMENT>(-\s)+)")
+    _re_blank_line = re.compile(r"(?P<BLANK>^\s*$)")
 
     def _parse_connection_headers(self, line):
-        if not self._regex_helper.search_compiled(Iperf3._re_ornaments, line):
+        if not self._regex_helper.search_compiled(Iperf3._re_ornaments, line) and \
+           not self._regex_helper.search_compiled(Iperf3._re_summary_ornament, line) and \
+           not self._regex_helper.search_compiled(Iperf3._re_blank_line, line):
             self.current_ret["INFO"].append(line.strip())
             raise ParsingDone
 
@@ -804,6 +800,7 @@ Connecting to host 127.0.0.1, port 5201
 [ ID] Interval           Transfer     Bitrate         Retr
 [  5]   0.00-10.00  sec  29.1 GBytes  25.0 Gbits/sec    0             sender
 [  5]   0.00-10.05  sec  29.1 GBytes  24.9 Gbits/sec                  receiver
+
 iperf Done.
 xyz@debian:~$"""
 
@@ -958,7 +955,6 @@ COMMAND_RESULT_basic_client = {
                                                   'Transfer Raw': '29.1 '
                                                   'GBytes'}]},
     'INFO': ['Connecting to host 127.0.0.1, port 5201',
-             '- - - - - - - - - - - - - - - - - - - - - - - - -',
              'iperf Done.']}
 
 
