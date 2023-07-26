@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Iperf2 command module.
+Iperf3 command module.
 
 It is refactored Iperf module changing data format returned.
 New format doesn't require additional post processing of values inside returned dict
@@ -16,9 +16,9 @@ Important changes:
 - as a consequence -b doesn't force -u
 """
 
-__author__ = "Grzegorz Latuszek"
-__copyright__ = "Copyright (C) 2019-2023, Nokia"
-__email__ = "grzegorz.latuszek@nokia.com"
+__author__ = "Kacper Kozik"
+__copyright__ = "Copyright (C) 2023, Nokia"
+__email__ = "kacper.kozik@nokia.com"
 
 
 import re
@@ -792,7 +792,7 @@ Connecting to host 127.0.0.1, port 5201
 [  5]   6.00-7.00   sec  2.41 GBytes  20.7 Gbits/sec    0   3.18 MBytes
 [  5]   7.00-8.00   sec  2.37 GBytes  20.4 Gbits/sec    0   4.81 MBytes
 [  5]   8.00-9.00   sec  3.89 GBytes  33.4 Gbits/sec    0   4.81 MBytes
-[  5]   9.00-10.00  sec  3.56 GBytes  30.6 Gbits/sec    0   4.81 MBytes
+[  5]   9.00-10.00  sec  3.56 GBytes  30.6 Gbits/sec    0   4.80 MBytes
 - - - - - - - - - - - - - - - - - - - - - - - - -
 [ ID] Interval           Transfer     Bitrate         Retr
 [  5]   0.00-10.00  sec  29.1 GBytes  25.0 Gbits/sec    0             sender
