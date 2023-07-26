@@ -114,11 +114,13 @@ class Iperf3(GenericUnixCommand, Publisher):
         if (("-u" in options) or ("--udp" in options)) and (
             ("-s" in options) or ("--server" in options)
         ):
-            raise AttributeError("Option (--udp) you are trying to set is client only")
+            raise AttributeError(
+                "Option (--udp) you are trying to set is client only")
         if (("-t" in options) or ("--time" in options)) and (
             ("-s" in options) or ("--server" in options)
         ):
-            raise AttributeError("Option (--time) you are trying to set is client only")
+            raise AttributeError(
+                "Option (--time) you are trying to set is client only")
         if self._regex_helper.search_compiled(Iperf3._re_port, options):
             port = int(self._regex_helper.group("PORT"))
         else:
@@ -132,9 +134,9 @@ class Iperf3(GenericUnixCommand, Publisher):
     @property
     def protocol(self):
         if (
-            self.options.startswith("-u")
-            or (" -u" in self.options)
-            or ("--udp" in self.options)
+            self.options.startswith("-u") or
+            (" -u" in self.options) or
+            ("--udp" in self.options)
         ):
             return "udp"
         return "tcp"
@@ -177,9 +179,9 @@ class Iperf3(GenericUnixCommand, Publisher):
     @property
     def server(self):
         return (
-            self.options.startswith("-s")
-            or (" -s" in self.options)
-            or ("--server" in self.options)
+            self.options.startswith("-s") or
+            (" -s" in self.options) or
+            ("--server" in self.options)
         )
 
     @property
@@ -296,7 +298,8 @@ class Iperf3(GenericUnixCommand, Publisher):
         if self._regex_helper.search_compiled(Iperf3._re_command_failure, line):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR: {}".format(self._regex_helper.group("FAILURE_MSG"))
+                    self, "ERROR: {}".format(
+                        self._regex_helper.group("FAILURE_MSG"))
                 )
             )
             raise ParsingDone
@@ -409,7 +412,8 @@ class Iperf3(GenericUnixCommand, Publisher):
         _r_id, _r_interval, _r_transfer, _r_bitrate
     )
     _r_rec_tcp_cli = r"{}\s+{}\s+{}".format(_r_rec_tcp_svr, _r_retr, _r_cwnd)
-    _r_rec_udp_svr = r"{}\s+{}\s+{}".format(_r_rec_tcp_svr, _r_jitter, _r_datagrams)
+    _r_rec_udp_svr = r"{}\s+{}\s+{}".format(
+        _r_rec_tcp_svr, _r_jitter, _r_datagrams)
     _r_rec_udp_cli = r"{}\s+{}".format(_r_rec_tcp_svr, _r_total_datagrams)
     _r_rec_tcp_cli_summary = r"{}\s+{}".format(_r_rec_tcp_svr, _r_retr)
 
@@ -424,15 +428,11 @@ class Iperf3(GenericUnixCommand, Publisher):
         # print("!"*50)
 
         if (
-            regex_found(Iperf3._re_iperf_record_udp_svr, line)
-            or self.protocol == "udp"
-            and regex_found(Iperf3._re_iperf_record_udp_cli, line)
-            or self.protocol == "tcp"
-            and regex_found(Iperf3._re_iperf_record_tcp_cli, line)
-            or self.protocol == "tcp"
-            and self.client
-            and regex_found(Iperf3._re_iperf_record_tcp_cli_summary, line)
-            or regex_found(Iperf3._re_iperf_record_tcp_svr, line)
+            regex_found(Iperf3._re_iperf_record_udp_svr, line) or
+            self.protocol == "udp" and regex_found(Iperf3._re_iperf_record_udp_cli, line) or
+            self.protocol == "tcp" and regex_found(Iperf3._re_iperf_record_tcp_cli, line) or
+            self.protocol == "tcp" and self.client and regex_found(Iperf3._re_iperf_record_tcp_cli_summary, line) or
+            regex_found(Iperf3._re_iperf_record_tcp_svr, line)
         ):
             iperf_record = self._regex_helper.groupdict()
             # import logging
@@ -457,7 +457,8 @@ class Iperf3(GenericUnixCommand, Publisher):
             if self._need_add_multiport_summary_record_of_interval(
                 connection_name, normalized_iperf_record, line
             ):
-                self._calculate_multiport_summary_record_of_interval(connection_name)
+                self._calculate_multiport_summary_record_of_interval(
+                    connection_name)
 
             self._parse_final_record(connection_name, line)
 
@@ -589,11 +590,15 @@ class Iperf3(GenericUnixCommand, Publisher):
         elif self.protocol == "udp" and self.client:
             pass
 
-        raw_transfer_unit = raw_transfers[0].split()[1]  # 'Transfer Raw': '122 KBytes',
-        raw_transfer_values = [float(raw_trf.split()[0]) for raw_trf in raw_transfers]
+        # 'Transfer Raw': '122 KBytes',
+        raw_transfer_unit = raw_transfers[0].split()[1]
+        raw_transfer_values = [float(raw_trf.split()[0])
+                               for raw_trf in raw_transfers]
 
-        raw_bitrate_unit = raw_bitrates[0].split()[1]  # 'Bitrate Raw': '1000 Kbits/sec'
-        raw_bitrate_values = [float(raw_bw.split()[0]) for raw_bw in raw_bitrates]
+        # 'Bitrate Raw': '1000 Kbits/sec'
+        raw_bitrate_unit = raw_bitrates[0].split()[1]
+        raw_bitrate_values = [float(raw_bw.split()[0])
+                              for raw_bw in raw_bitrates]
 
         sum_record = {
             "Interval": interval,
@@ -608,9 +613,11 @@ class Iperf3(GenericUnixCommand, Publisher):
 
         if self.protocol == "udp":
             # noinspection PyUnboundLocalVariable
-            sum_record["Jitter"] = "{} {}".format(max(jitter_values), jitter_unit)
+            sum_record["Jitter"] = "{} {}".format(
+                max(jitter_values), jitter_unit)
             # noinspection PyUnboundLocalVariable
-            sum_record["Lost_vs_Total_Datagrams"] = (lost_datagrams, total_datagrams)
+            sum_record["Lost_vs_Total_Datagrams"] = (
+                lost_datagrams, total_datagrams)
             sum_record["Lost_Datagrams_ratio"] = "{:.2f}%".format(
                 lost_datagrams * 100 / total_datagrams
             )
@@ -646,7 +653,8 @@ class Iperf3(GenericUnixCommand, Publisher):
             print("?" * 50)
             print(last_record)
             print("?" * 50)
-            self.current_ret["CONNECTIONS"][result_connection] = {"report": last_record}
+            self.current_ret["CONNECTIONS"][result_connection] = {
+                "report": last_record}
             self.notify_subscribers(
                 from_client=from_client, to_server=to_server, report=last_record
             )
@@ -672,22 +680,22 @@ class Iperf3(GenericUnixCommand, Publisher):
     _re_iperf_record_tcp_cli_report = re.compile(_r_rec_tcp_cli_report)
     _re_iperf_record_udp_svr_report = re.compile(_r_rec_udp_svr_report)
     _re_iperf_record_udp_cli_report = re.compile(_r_rec_udp_cli_report)
-    _re_iperf_record_tcp_cli_summary_report = re.compile(_r_rec_tcp_cli_summary_report)
+    _re_iperf_record_tcp_cli_summary_report = re.compile(
+        _r_rec_tcp_cli_summary_report)
 
     def _is_final_record(self, last_record, line):
         # start, end = last_record['Interval']
         regex_found = self._regex_helper.search_compiled
 
         if (
-            regex_found(Iperf3._re_iperf_record_udp_svr_report, line)
-            or self.protocol == "udp"
-            and regex_found(Iperf3._re_iperf_record_udp_cli_report, line)
-            or self.protocol == "tcp"
-            and regex_found(Iperf3._re_iperf_record_tcp_cli_report, line)
-            or self.protocol == "tcp"
-            and self.client
-            and regex_found(Iperf3._re_iperf_record_tcp_cli_summary_report, line)
-            or regex_found(Iperf3._re_iperf_record_tcp_svr_report, line)
+            regex_found(Iperf3._re_iperf_record_udp_svr_report, line) or
+            self.protocol == "udp" and regex_found(
+                Iperf3._re_iperf_record_udp_cli_report, line) or
+            self.protocol == "tcp" and regex_found(
+                Iperf3._re_iperf_record_tcp_cli_report, line) or
+            self.protocol == "tcp" and self.client and regex_found(
+                Iperf3._re_iperf_record_tcp_cli_summary_report, line) or
+            regex_found(Iperf3._re_iperf_record_tcp_svr_report, line)
         ):
             result_option = self._regex_helper.groupdict().pop("Option")
 
@@ -709,10 +717,12 @@ class Iperf3(GenericUnixCommand, Publisher):
             server_host,
             server_port,
         ) = self._split_connection_name(connections[0])
-        from_client, to_server = client_host, "{}@{}".format(self.port, server_host)
+        from_client, to_server = client_host, "{}@{}".format(
+            self.port, server_host)
         has_client_report = (from_client, to_server) in result
         if self.works_in_dualtest:  # need two reports
-            from_server, to_client = server_host, "{}@{}".format(self.port, client_host)
+            from_server, to_client = server_host, "{}@{}".format(
+                self.port, client_host)
             has_server_report = (from_server, to_client) in result
             all_reports = has_client_report and has_server_report
             works_as_client = True  # in dualtest both server and client work as client
@@ -726,7 +736,8 @@ class Iperf3(GenericUnixCommand, Publisher):
 
     # [  5] Sent 2552 datagrams
     # ------------------------------------------------------------
-    _re_ornaments = re.compile(r"(?P<ORNAMENTS>----*|\[\s*ID\].*)", re.IGNORECASE)
+    _re_ornaments = re.compile(
+        r"(?P<ORNAMENTS>----*|\[\s*ID\].*)", re.IGNORECASE)
 
     def _parse_connection_headers(self, line):
         if not self._regex_helper.search_compiled(Iperf3._re_ornaments, line):
@@ -745,7 +756,8 @@ class Iperf3(GenericUnixCommand, Publisher):
                 "Bytes" in raw_value
             ):  # iperf MBytes means 1024 * 1024 Bytes - see iperf.fr/iperf-doc.php
                 new_dict[key + " Raw"] = raw_value
-                value_in_bytes, _, _ = self._converter_helper.to_bytes(raw_value)
+                value_in_bytes, _, _ = self._converter_helper.to_bytes(
+                    raw_value)
                 new_dict[key] = value_in_bytes
             elif (
                 "bits" in raw_value
@@ -1493,7 +1505,8 @@ UDP buffer size: 1024 KByte (default)
 xyz@debian:~$"""
 
 
-COMMAND_KWARGS_bidirectional_udp_server = {"options": "-s -u -p 5016 -f k -i 1.0"}
+COMMAND_KWARGS_bidirectional_udp_server = {
+    "options": "-s -u -p 5016 -f k -i 1.0"}
 
 
 COMMAND_RESULT_bidirectional_udp_server = {
@@ -2542,7 +2555,8 @@ UDP buffer size:  208 KByte (default)
 [SUM]  0.0- 4.0 sec   642 KBytes  1313 Kbits/sec   0.033 ms    0/  447 (0%)
 xyz@debian:~$"""
 
-COMMAND_KWARGS_singlerun_udp_server = {"options": "-s -u -p 5001 -f k -i 1.0 -P 1"}
+COMMAND_KWARGS_singlerun_udp_server = {
+    "options": "-s -u -p 5001 -f k -i 1.0 -P 1"}
 
 COMMAND_RESULT_singlerun_udp_server = {
     "CONNECTIONS": {
