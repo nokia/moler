@@ -77,8 +77,7 @@ class Cat(GenericUnixCommand):
                 if self._stored_exception and not isinstance(self._stored_exception, CommandTimeout):
                     self._stored_exception = None
                 return None
-        if self._regex_helper.search_compiled(Cat._re_parse_error, line):
-            self.set_exception(CommandFailure(self, "Error in line >>{}<<".format(line)))
+        return self._regex_helper.search_compiled(Cat._re_parse_error, line)
 
     def _parse_line(self, line):
         if not line == "":
