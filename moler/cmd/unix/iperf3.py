@@ -1653,7 +1653,7 @@ Server listening on 5016
 xyz@debian:~$"""
 
 
-COMMAND_KWARGS__udp_server_params = {"options": "-s -p 5016 -f k -i 1.0"}
+COMMAND_KWARGS_udp_server_params = {"options": "-s -p 5016 -f k -i 1.0"}
 
 
 COMMAND_RESULT_udp_server_params = {
