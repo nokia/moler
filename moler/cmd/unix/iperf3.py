@@ -1498,7 +1498,8 @@ COMMAND_RESULT_tcp_ipv6_client = {
              'TCP MSS: 22016 (default)',
              'Starting Test: protocol: TCP, 1 streams, 131072 byte blocks, omitting 0 seconds, 10 second test, tos 0',
              'Test Complete. Summary Results:',
-             'CPU Utilization: local/sender 97.2% (1.9%u/95.3%s), remote/receiver 64.2% (3.4%u/60.8%s)snd_tcp_congestion cubic'
+             'CPU Utilization: local/sender 97.2% (1.9%u/95.3%s), remote/receiver 64.2% (3.4%u/60.8%s)',
+             'snd_tcp_congestion cubic',
              'rcv_tcp_congestion cubic',
              'iperf Done.']}
 
