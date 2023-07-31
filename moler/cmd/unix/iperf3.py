@@ -2910,8 +2910,8 @@ COMMAND_RESULT_multiple_connections_udp_server = {
 COMMAND_OUTPUT_multiple_connections_udp_client = """
 vagrant@app-svr:~$ iperf3 -c 127.0.0.1 -u -p 5016 -f k -P 2 -i 1 -t 3.0 -b 1000.0k
 Connecting to host 127.0.0.1, port 5016
-[  5] local 127.0.0.1 port 42931 connected to 127.0.0.1 port 5016
-[  7] local 127.0.0.1 port 35747 connected to 127.0.0.1 port 5016
+[  5] local 127.0.0.1 port 35428 connected to 127.0.0.1 port 5016
+[  7] local 127.0.0.1 port 50221 connected to 127.0.0.1 port 5016
 [ ID] Interval           Transfer     Bitrate         Total Datagrams
 [  5]   0.00-1.00   sec   129 KBytes  1057 Kbits/sec  6
 [  7]   0.00-1.00   sec   129 KBytes  1057 Kbits/sec  6
@@ -3113,79 +3113,144 @@ COMMAND_RESULT_multiple_connections_udp_client = {
     'INFO': ['Connecting to host 127.0.0.1, port 5016', 'iperf Done.']}
 
 
-# COMMAND_OUTPUT_singlerun_server = """
-# xyz@debian:~$ iperf -s -p 5001 -f k -i 1.0 -P 1
-# ------------------------------------------------------------
-# Server listening on TCP port 5001
-# TCP window size: 85.3 KByte (default)
-# ------------------------------------------------------------
-# [  4] local 192.168.44.50 port 5001 connected with 192.168.44.100 port 57272
-# [ ID] Interval       Transfer     Bandwidth
-# [  4]  0.0- 1.0 sec  232124 KBytes  1901558 Kbits/sec
-# [  4]  1.0- 2.0 sec  158626 KBytes  1299464 Kbits/sec
-# [  4]  2.0- 3.0 sec  191597 KBytes  1569562 Kbits/sec
-# [  4]  3.0- 4.0 sec  243509 KBytes  1994828 Kbits/sec
-# [  4]  0.0- 4.0 sec  825856 KBytes  1690728 Kbits/sec
-# [SUM]  0.0- 4.0 sec  1057980 KBytes  2165942 Kbits/sec
-# xyz@debian:~$"""
+COMMAND_OUTPUT_singlerun_server = """
+xyz@debian:~$ iperf3 -s -p 5001 -f k -i 1.0
+-----------------------------------------------------------
+Server listening on 5001
+-----------------------------------------------------------
+Accepted connection from 127.0.0.1, port 38056
+[  5] local 127.0.0.1 port 5001 connected to 127.0.0.1 port 38068
+[ ID] Interval           Transfer     Bitrate
+[  5]   0.00-1.00   sec  2.85 GBytes  24466678 Kbits/sec
+[  5]   1.00-2.00   sec  2.49 GBytes  21378343 Kbits/sec
+[  5]   2.00-3.00   sec  3.04 GBytes  26132144 Kbits/sec
+[  5]   3.00-4.00   sec  4.30 GBytes  36917136 Kbits/sec
+[  5]   4.00-5.00   sec  3.31 GBytes  28437781 Kbits/sec
+[  5]   5.00-6.00   sec  2.60 GBytes  22305911 Kbits/sec
+[  5]   6.00-7.00   sec  3.14 GBytes  26933156 Kbits/sec
+[  5]   7.00-8.00   sec  2.34 GBytes  20110361 Kbits/sec
+[  5]   8.00-9.00   sec  2.48 GBytes  21298523 Kbits/sec
+[  5]   9.00-10.00  sec  2.52 GBytes  21628470 Kbits/sec
+[  5]  10.00-10.04  sec   108 MBytes  21534518 Kbits/sec
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate
+[  5]   0.00-10.04  sec  29.2 GBytes  24946492 Kbits/sec                  receiver
+-----------------------------------------------------------
+Server listening on 5001
+-----------------------------------------------------------
+xyz@debian:~$"""
 
-# COMMAND_KWARGS_singlerun_server = {"options": "-s -p 5001 -f k -i 1.0 -P 1"}
+COMMAND_KWARGS_singlerun_server = {"options": "-s -p 5001 -f k -i 1.0"}
 
-# COMMAND_RESULT_singlerun_server = {
-#     "CONNECTIONS": {
-#         ("57272@192.168.44.100", "5001@192.168.44.50"): [
-#             {
-#                 "Transfer": 237694976,
-#                 "Bandwidth": 237694750,
-#                 "Transfer Raw": "232124 KBytes",
-#                 "Bandwidth Raw": "1901558 Kbits/sec",
-#                 "Interval": (0.0, 1.0),
-#             },
-#             {
-#                 "Transfer": 162433024,
-#                 "Bandwidth": 162433000,
-#                 "Transfer Raw": "158626 KBytes",
-#                 "Bandwidth Raw": "1299464 Kbits/sec",
-#                 "Interval": (1.0, 2.0),
-#             },
-#             {
-#                 "Transfer": 196195328,
-#                 "Bandwidth": 196195250,
-#                 "Transfer Raw": "191597 KBytes",
-#                 "Bandwidth Raw": "1569562 Kbits/sec",
-#                 "Interval": (2.0, 3.0),
-#             },
-#             {
-#                 "Transfer": 249353216,
-#                 "Bandwidth": 249353500,
-#                 "Transfer Raw": "243509 KBytes",
-#                 "Bandwidth Raw": "1994828 Kbits/sec",
-#                 "Interval": (3.0, 4.0),
-#             },
-#             {
-#                 "Transfer": 845676544,
-#                 "Bandwidth": 211341000,
-#                 "Transfer Raw": "825856 KBytes",
-#                 "Bandwidth Raw": "1690728 Kbits/sec",
-#                 "Interval": (0.0, 4.0),
-#             },
-#         ],
-#         ("192.168.44.100", "5001@192.168.44.50"): {
-#             "report": {
-#                 "Transfer": 845676544,
-#                 "Bandwidth": 211341000,
-#                 "Transfer Raw": "825856 KBytes",
-#                 "Bandwidth Raw": "1690728 Kbits/sec",
-#                 "Interval": (0.0, 4.0),
-#             }
-#         },
-#     },
-#     "INFO": [
-#         "Server listening on TCP port 5001",
-#         "TCP window size: 85.3 KByte (default)",
-#     ],
-# }
-
+COMMAND_RESULT_singlerun_server = {
+    'CONNECTIONS': {
+        ('127.0.0.1', '5001@127.0.0.1'): {'report': {'Bitrate': 3118311500,
+                                                     'Bitrate Raw': '24946492 '
+                                                     'Kbits/sec',
+                                                     'Interval': (0.0,
+                                                                  10.04),
+                                                     'Transfer': 31353261260,
+                                                     'Transfer Raw': '29.2 '
+                                                     'GBytes'}},
+        ('38068@127.0.0.1', '5001@127.0.0.1'): [{'Bitrate': 3058334750,
+                                                'Bitrate Raw': '24466678 '
+                                                 'Kbits/sec',
+                                                 'Interval': (0.0,
+                                                              1.0),
+                                                 'Transfer': 3060164198,
+                                                 'Transfer Raw': '2.85 '
+                                                 'GBytes'},
+                                                {'Bitrate': 2672292875,
+                                                'Bitrate Raw': '21378343 '
+                                                 'Kbits/sec',
+                                                 'Interval': (1.0,
+                                                              2.0),
+                                                 'Transfer': 2673617141,
+                                                 'Transfer Raw': '2.49 '
+                                                 'GBytes'},
+                                                {'Bitrate': 3266518000,
+                                                'Bitrate Raw': '26132144 '
+                                                 'Kbits/sec',
+                                                 'Interval': (2.0,
+                                                              3.0),
+                                                 'Transfer': 3264175144,
+                                                 'Transfer Raw': '3.04 '
+                                                 'GBytes'},
+                                                {'Bitrate': 4614642000,
+                                                'Bitrate Raw': '36917136 '
+                                                 'Kbits/sec',
+                                                 'Interval': (3.0,
+                                                              4.0),
+                                                 'Transfer': 4617089843,
+                                                 'Transfer Raw': '4.30 '
+                                                 'GBytes'},
+                                                {'Bitrate': 3554722625,
+                                                'Bitrate Raw': '28437781 '
+                                                 'Kbits/sec',
+                                                 'Interval': (4.0,
+                                                              5.0),
+                                                 'Transfer': 3554085437,
+                                                 'Transfer Raw': '3.31 '
+                                                 'GBytes'},
+                                                {'Bitrate': 2788238875,
+                                                'Bitrate Raw': '22305911 '
+                                                 'Kbits/sec',
+                                                 'Interval': (5.0,
+                                                              6.0),
+                                                 'Transfer': 2791728742,
+                                                 'Transfer Raw': '2.60 '
+                                                 'GBytes'},
+                                                {'Bitrate': 3366644500,
+                                                'Bitrate Raw': '26933156 '
+                                                 'Kbits/sec',
+                                                 'Interval': (6.0,
+                                                              7.0),
+                                                 'Transfer': 3371549327,
+                                                 'Transfer Raw': '3.14 '
+                                                 'GBytes'},
+                                                {'Bitrate': 2513795125,
+                                                'Bitrate Raw': '20110361 '
+                                                 'Kbits/sec',
+                                                 'Interval': (7.0,
+                                                              8.0),
+                                                 'Transfer': 2512555868,
+                                                 'Transfer Raw': '2.34 '
+                                                 'GBytes'},
+                                                {'Bitrate': 2662315375,
+                                                'Bitrate Raw': '21298523 '
+                                                 'Kbits/sec',
+                                                 'Interval': (8.0,
+                                                              9.0),
+                                                 'Transfer': 2662879723,
+                                                 'Transfer Raw': '2.48 '
+                                                 'GBytes'},
+                                                {'Bitrate': 2703558750,
+                                                'Bitrate Raw': '21628470 '
+                                                 'Kbits/sec',
+                                                 'Interval': (9.0,
+                                                              10.0),
+                                                 'Transfer': 2705829396,
+                                                 'Transfer Raw': '2.52 '
+                                                 'GBytes'},
+                                                {'Bitrate': 2691814750,
+                                                'Bitrate Raw': '21534518 '
+                                                 'Kbits/sec',
+                                                 'Interval': (10.0,
+                                                              10.04),
+                                                 'Transfer': 113246208,
+                                                 'Transfer Raw': '108 '
+                                                 'MBytes'},
+                                                {'Bitrate': 3118311500,
+                                                'Bitrate Raw': '24946492 '
+                                                 'Kbits/sec',
+                                                 'Interval': (0.0,
+                                                              10.04),
+                                                 'Transfer': 31353261260,
+                                                 'Transfer Raw': '29.2 '
+                                                 'GBytes'}]},
+    'INFO': ['Server listening on 5001',
+             'Accepted connection from 127.0.0.1, port 38056',
+             'Server listening on 5001']}
 
 # COMMAND_OUTPUT_singlerun_udp_server = """
 # xyz@debian:~$ iperf -s -u -p 5001 -f k -i 1.0 -P 1
