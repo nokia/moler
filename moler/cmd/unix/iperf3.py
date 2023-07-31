@@ -2544,456 +2544,574 @@ COMMAND_RESULT_multiple_connections_server = {
              'Server listening on 5016']}
 
 
-# COMMAND_OUTPUT_multiple_connections_udp_server = """
-# vagrant@app-svr:~$ iperf -s -u -p 5016 -f k -i 1 -P 3
-# ------------------------------------------------------------
-# Server listening on UDP port 5016
-# Receiving 1470 byte datagrams
-# UDP buffer size:  208 KByte (default)
-# ------------------------------------------------------------
-# [  3] local 192.168.44.130 port 5016 connected with 192.168.44.1 port 51914
-# [  6] local 192.168.44.130 port 5016 connected with 192.168.44.1 port 51916
-# [  4] local 192.168.44.130 port 5016 connected with 192.168.44.1 port 51915
-# [ ID] Interval       Transfer     Bandwidth        Jitter   Lost/Total Datagrams
-# [  3]  0.0- 1.0 sec   122 KBytes  1000 Kbits/sec   1.556 ms    0/   85 (0%)
-# [  6]  0.0- 1.0 sec   122 KBytes  1000 Kbits/sec   1.541 ms    0/   85 (0%)
-# [  4]  0.0- 1.0 sec   121 KBytes   988 Kbits/sec   1.464 ms    0/   84 (0%)
-# [  3]  1.0- 2.0 sec   123 KBytes  1011 Kbits/sec   0.654 ms    0/   86 (0%)
-# [  6]  1.0- 2.0 sec   123 KBytes  1011 Kbits/sec   0.719 ms    0/   86 (0%)
-# [  4]  1.0- 2.0 sec   125 KBytes  1023 Kbits/sec   0.565 ms    0/   87 (0%)
-# [  3]  2.0- 3.0 sec   121 KBytes   988 Kbits/sec   0.463 ms    0/   84 (0%)
-# [  6]  2.0- 3.0 sec   121 KBytes   988 Kbits/sec   0.376 ms    0/   84 (0%)
-# [  4]  2.0- 3.0 sec   121 KBytes   988 Kbits/sec   1.191 ms    0/   84 (0%)
-# [  3]  3.0- 4.0 sec   123 KBytes  1011 Kbits/sec   0.951 ms    0/   86 (0%)
-# [  6]  3.0- 4.0 sec   123 KBytes  1011 Kbits/sec   1.470 ms    0/   86 (0%)
-# [  4]  3.0- 4.0 sec   123 KBytes  1011 Kbits/sec   1.225 ms    0/   86 (0%)
-# [  6]  4.0- 5.0 sec   122 KBytes  1000 Kbits/sec   1.332 ms    0/   85 (0%)
-# [  6]  0.0- 5.0 sec   612 KBytes  1000 Kbits/sec   1.332 ms    0/  426 (0%)
-# [  3]  4.0- 5.0 sec   122 KBytes  1000 Kbits/sec   0.821 ms    0/   85 (0%)
-# [  3]  0.0- 5.0 sec   612 KBytes  1000 Kbits/sec   0.821 ms    0/  426 (0%)
-# [  4]  4.0- 5.0 sec   122 KBytes  1000 Kbits/sec   1.273 ms    0/   85 (0%)
-# [  4]  0.0- 5.0 sec   612 KBytes  1000 Kbits/sec   1.273 ms    0/  426 (0%)
-# [SUM]  0.0- 5.0 sec  2199 KBytes  3596 Kbits/sec   1.556 ms    0/ 1532 (0%)
-# vagrant@app-svr:~$"""
+COMMAND_OUTPUT_multiple_connections_udp_server = """
+vagrant@app-svr:~$ iperf3 -s -p 5016 -f k -i 1
+-----------------------------------------------------------
+Server listening on 5016
+-----------------------------------------------------------
+Accepted connection from 127.0.0.1, port 57560
+[  5] local 127.0.0.1 port 5016 connected to 127.0.0.1 port 33549
+[  6] local 127.0.0.1 port 5016 connected to 127.0.0.1 port 36062
+[  9] local 127.0.0.1 port 5016 connected to 127.0.0.1 port 52695
+[ ID] Interval           Transfer     Bitrate         Jitter    Lost/Total Datagrams
+[  5]   0.00-1.00   sec   129 KBytes  1057 Kbits/sec  0.007 ms  0/6 (0%)
+[  6]   0.00-1.00   sec   129 KBytes  1057 Kbits/sec  0.009 ms  0/6 (0%)
+[  9]   0.00-1.00   sec   129 KBytes  1057 Kbits/sec  0.007 ms  0/6 (0%)
+[SUM]   0.00-1.00   sec   387 KBytes  3170 Kbits/sec  0.007 ms  0/18 (0%)
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[  5]   1.00-2.00   sec   129 KBytes  1057 Kbits/sec  0.008 ms  0/6 (0%)
+[  6]   1.00-2.00   sec   129 KBytes  1057 Kbits/sec  0.010 ms  0/6 (0%)
+[  9]   1.00-2.00   sec   129 KBytes  1057 Kbits/sec  0.008 ms  0/6 (0%)
+[SUM]   1.00-2.00   sec   387 KBytes  3170 Kbits/sec  0.009 ms  0/18 (0%)
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[  5]   2.00-3.00   sec   129 KBytes  1057 Kbits/sec  0.007 ms  0/6 (0%)
+[  6]   2.00-3.00   sec   129 KBytes  1057 Kbits/sec  0.009 ms  0/6 (0%)
+[  9]   2.00-3.00   sec   129 KBytes  1057 Kbits/sec  0.007 ms  0/6 (0%)
+[SUM]   2.00-3.00   sec   387 KBytes  3170 Kbits/sec  0.008 ms  0/18 (0%)
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[  5]   3.00-4.00   sec   129 KBytes  1057 Kbits/sec  0.008 ms  0/6 (0%)
+[  6]   3.00-4.00   sec   129 KBytes  1057 Kbits/sec  0.009 ms  0/6 (0%)
+[  9]   3.00-4.00   sec   129 KBytes  1057 Kbits/sec  0.008 ms  0/6 (0%)
+[SUM]   3.00-4.00   sec   387 KBytes  3170 Kbits/sec  0.008 ms  0/18 (0%)
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[  5]   4.00-5.00   sec   129 KBytes  1057 Kbits/sec  0.009 ms  0/6 (0%)
+[  6]   4.00-5.00   sec   129 KBytes  1057 Kbits/sec  0.014 ms  0/6 (0%)
+[  9]   4.00-5.00   sec   129 KBytes  1057 Kbits/sec  0.010 ms  0/6 (0%)
+[SUM]   4.00-5.00   sec   387 KBytes  3170 Kbits/sec  0.011 ms  0/18 (0%)
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Jitter    Lost/Total Datagrams
+[  5]   0.00-5.04   sec   645 KBytes  1048 Kbits/sec  0.009 ms  0/30 (0%)  receiver
+[  6]   0.00-5.04   sec   645 KBytes  1048 Kbits/sec  0.014 ms  0/30 (0%)  receiver
+[  9]   0.00-5.04   sec   645 KBytes  1048 Kbits/sec  0.010 ms  0/30 (0%)  receiver
+[SUM]   0.00-5.04   sec  1.89 MBytes  3145 Kbits/sec  0.011 ms  0/90 (0%)  receiver
+-----------------------------------------------------------
+Server listening on 5016
+-----------------------------------------------------------
+vagrant@app-svr:~$"""
 
-# COMMAND_KWARGS_multiple_connections_udp_server = {
-#     "options": "-s -u -p 5016 -f k -i 1 -P 3"
-# }
+COMMAND_KWARGS_multiple_connections_udp_server = {
+    "options": "-s -p 5016 -f k -i 1"
+}
 
-# COMMAND_RESULT_multiple_connections_udp_server = {
-#     "CONNECTIONS": {
-#         ("51915@192.168.44.1", "5016@192.168.44.130"): [
-#             {
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Jitter": "1.464 ms",
-#                 "Transfer": 123904,
-#                 "Interval": (0.0, 1.0),
-#                 "Transfer Raw": "121 KBytes",
-#                 "Bandwidth": 123500,
-#                 "Lost_vs_Total_Datagrams": (0, 84),
-#                 "Bandwidth Raw": "988 Kbits/sec",
-#             },
-#             {
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Jitter": "0.565 ms",
-#                 "Transfer": 128000,
-#                 "Interval": (1.0, 2.0),
-#                 "Transfer Raw": "125 KBytes",
-#                 "Bandwidth": 127875,
-#                 "Lost_vs_Total_Datagrams": (0, 87),
-#                 "Bandwidth Raw": "1023 Kbits/sec",
-#             },
-#             {
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Jitter": "1.191 ms",
-#                 "Transfer": 123904,
-#                 "Interval": (2.0, 3.0),
-#                 "Transfer Raw": "121 KBytes",
-#                 "Bandwidth": 123500,
-#                 "Lost_vs_Total_Datagrams": (0, 84),
-#                 "Bandwidth Raw": "988 Kbits/sec",
-#             },
-#             {
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Jitter": "1.225 ms",
-#                 "Transfer": 125952,
-#                 "Interval": (3.0, 4.0),
-#                 "Transfer Raw": "123 KBytes",
-#                 "Bandwidth": 126375,
-#                 "Lost_vs_Total_Datagrams": (0, 86),
-#                 "Bandwidth Raw": "1011 Kbits/sec",
-#             },
-#             {
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Jitter": "1.273 ms",
-#                 "Transfer": 124928,
-#                 "Interval": (4.0, 5.0),
-#                 "Transfer Raw": "122 KBytes",
-#                 "Bandwidth": 125000,
-#                 "Lost_vs_Total_Datagrams": (0, 85),
-#                 "Bandwidth Raw": "1000 Kbits/sec",
-#             },
-#             {
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Jitter": "1.273 ms",
-#                 "Transfer": 626688,
-#                 "Interval": (0.0, 5.0),
-#                 "Transfer Raw": "612 KBytes",
-#                 "Bandwidth": 125000,
-#                 "Lost_vs_Total_Datagrams": (0, 426),
-#                 "Bandwidth Raw": "1000 Kbits/sec",
-#             },
-#         ],
-#         ("51916@192.168.44.1", "5016@192.168.44.130"): [
-#             {
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Jitter": "1.541 ms",
-#                 "Transfer": 124928,
-#                 "Interval": (0.0, 1.0),
-#                 "Transfer Raw": "122 KBytes",
-#                 "Bandwidth": 125000,
-#                 "Lost_vs_Total_Datagrams": (0, 85),
-#                 "Bandwidth Raw": "1000 Kbits/sec",
-#             },
-#             {
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Jitter": "0.719 ms",
-#                 "Transfer": 125952,
-#                 "Interval": (1.0, 2.0),
-#                 "Transfer Raw": "123 KBytes",
-#                 "Bandwidth": 126375,
-#                 "Lost_vs_Total_Datagrams": (0, 86),
-#                 "Bandwidth Raw": "1011 Kbits/sec",
-#             },
-#             {
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Jitter": "0.376 ms",
-#                 "Transfer": 123904,
-#                 "Interval": (2.0, 3.0),
-#                 "Transfer Raw": "121 KBytes",
-#                 "Bandwidth": 123500,
-#                 "Lost_vs_Total_Datagrams": (0, 84),
-#                 "Bandwidth Raw": "988 Kbits/sec",
-#             },
-#             {
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Jitter": "1.470 ms",
-#                 "Transfer": 125952,
-#                 "Interval": (3.0, 4.0),
-#                 "Transfer Raw": "123 KBytes",
-#                 "Bandwidth": 126375,
-#                 "Lost_vs_Total_Datagrams": (0, 86),
-#                 "Bandwidth Raw": "1011 Kbits/sec",
-#             },
-#             {
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Jitter": "1.332 ms",
-#                 "Transfer": 124928,
-#                 "Interval": (4.0, 5.0),
-#                 "Transfer Raw": "122 KBytes",
-#                 "Bandwidth": 125000,
-#                 "Lost_vs_Total_Datagrams": (0, 85),
-#                 "Bandwidth Raw": "1000 Kbits/sec",
-#             },
-#             {
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Jitter": "1.332 ms",
-#                 "Transfer": 626688,
-#                 "Interval": (0.0, 5.0),
-#                 "Transfer Raw": "612 KBytes",
-#                 "Bandwidth": 125000,
-#                 "Lost_vs_Total_Datagrams": (0, 426),
-#                 "Bandwidth Raw": "1000 Kbits/sec",
-#             },
-#         ],
-#         ("51914@192.168.44.1", "5016@192.168.44.130"): [
-#             {
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Jitter": "1.556 ms",
-#                 "Transfer": 124928,
-#                 "Interval": (0.0, 1.0),
-#                 "Transfer Raw": "122 KBytes",
-#                 "Bandwidth": 125000,
-#                 "Lost_vs_Total_Datagrams": (0, 85),
-#                 "Bandwidth Raw": "1000 Kbits/sec",
-#             },
-#             {
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Jitter": "0.654 ms",
-#                 "Transfer": 125952,
-#                 "Interval": (1.0, 2.0),
-#                 "Transfer Raw": "123 KBytes",
-#                 "Bandwidth": 126375,
-#                 "Lost_vs_Total_Datagrams": (0, 86),
-#                 "Bandwidth Raw": "1011 Kbits/sec",
-#             },
-#             {
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Jitter": "0.463 ms",
-#                 "Transfer": 123904,
-#                 "Interval": (2.0, 3.0),
-#                 "Transfer Raw": "121 KBytes",
-#                 "Bandwidth": 123500,
-#                 "Lost_vs_Total_Datagrams": (0, 84),
-#                 "Bandwidth Raw": "988 Kbits/sec",
-#             },
-#             {
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Jitter": "0.951 ms",
-#                 "Transfer": 125952,
-#                 "Interval": (3.0, 4.0),
-#                 "Transfer Raw": "123 KBytes",
-#                 "Bandwidth": 126375,
-#                 "Lost_vs_Total_Datagrams": (0, 86),
-#                 "Bandwidth Raw": "1011 Kbits/sec",
-#             },
-#             {
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Jitter": "0.821 ms",
-#                 "Transfer": 124928,
-#                 "Interval": (4.0, 5.0),
-#                 "Transfer Raw": "122 KBytes",
-#                 "Bandwidth": 125000,
-#                 "Lost_vs_Total_Datagrams": (0, 85),
-#                 "Bandwidth Raw": "1000 Kbits/sec",
-#             },
-#             {
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Jitter": "0.821 ms",
-#                 "Transfer": 626688,
-#                 "Interval": (0.0, 5.0),
-#                 "Transfer Raw": "612 KBytes",
-#                 "Bandwidth": 125000,
-#                 "Lost_vs_Total_Datagrams": (0, 426),
-#                 "Bandwidth Raw": "1000 Kbits/sec",
-#             },
-#         ],
-#         ("multiport@192.168.44.1", "5016@192.168.44.130"): [
-#             {
-#                 "Lost_Datagrams_ratio": "0.00%",
-#                 "Jitter": "{} ms".format(max(1.464, 1.541, 1.556)),
-#                 "Transfer": 123904 + 124928 + 124928,
-#                 "Interval": (0.0, 1.0),
-#                 "Transfer Raw": "365.0 KBytes",
-#                 "Bandwidth": 123500 + 125000 + 125000,
-#                 "Lost_vs_Total_Datagrams": (0 + 0 + 0, 84 + 85 + 85),
-#                 "Bandwidth Raw": "2988.0 Kbits/sec",
-#             },
-#             {
-#                 "Lost_Datagrams_ratio": "0.00%",
-#                 "Jitter": "{} ms".format(max(0.565, 0.719, 0.654)),
-#                 "Transfer": 128000 + 125952 + 125952,
-#                 "Interval": (1.0, 2.0),
-#                 "Transfer Raw": "371.0 KBytes",
-#                 "Bandwidth": 127875 + 126375 + 126375,
-#                 "Lost_vs_Total_Datagrams": (0 + 0 + 0, 87 + 86 + 86),
-#                 "Bandwidth Raw": "3045.0 Kbits/sec",
-#             },
-#             {
-#                 "Lost_Datagrams_ratio": "0.00%",
-#                 "Jitter": "{} ms".format(max(1.191, 0.376, 0.463)),
-#                 "Transfer": 123904 + 123904 + 123904,
-#                 "Interval": (2.0, 3.0),
-#                 "Transfer Raw": "363.0 KBytes",
-#                 "Bandwidth": 123500 + 123500 + 123500,
-#                 "Lost_vs_Total_Datagrams": (0 + 0 + 0, 84 + 84 + 84),
-#                 "Bandwidth Raw": "2964.0 Kbits/sec",
-#             },
-#             {
-#                 "Lost_Datagrams_ratio": "0.00%",
-#                 "Jitter": "{} ms".format(max(1.225, 1.470, 0.951)),
-#                 "Transfer": 125952 + 125952 + 125952,
-#                 "Interval": (3.0, 4.0),
-#                 "Transfer Raw": "369.0 KBytes",
-#                 "Bandwidth": 126375 + 126375 + 126375,
-#                 "Lost_vs_Total_Datagrams": (0 + 0 + 0, 86 + 86 + 86),
-#                 "Bandwidth Raw": "3033.0 Kbits/sec",
-#             },
-#             {
-#                 "Lost_Datagrams_ratio": "0.00%",
-#                 "Jitter": "{} ms".format(max(1.273, 1.332, 0.821)),
-#                 "Transfer": 124928 + 124928 + 124928,
-#                 "Interval": (4.0, 5.0),
-#                 "Transfer Raw": "366.0 KBytes",
-#                 "Bandwidth": 125000 + 125000 + 125000,
-#                 "Lost_vs_Total_Datagrams": (0 + 0 + 0, 85 + 85 + 85),
-#                 "Bandwidth Raw": "3000.0 Kbits/sec",
-#             },
-#             {
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Jitter": "1.556 ms",
-#                 "Transfer": 2251776,
-#                 "Interval": (0.0, 5.0),
-#                 "Transfer Raw": "2199 KBytes",
-#                 "Bandwidth": 449500,
-#                 "Lost_vs_Total_Datagrams": (0, 1532),
-#                 "Bandwidth Raw": "3596 Kbits/sec",
-#             },
-#         ],
-#         ("192.168.44.1", "5016@192.168.44.130"): {
-#             "report": {
-#                 "Lost_Datagrams_ratio": "0%",
-#                 "Jitter": "1.556 ms",
-#                 "Transfer": 2251776,
-#                 "Interval": (0.0, 5.0),
-#                 "Transfer Raw": "2199 KBytes",
-#                 "Bandwidth": 449500,
-#                 "Lost_vs_Total_Datagrams": (0, 1532),
-#                 "Bandwidth Raw": "3596 Kbits/sec",
-#             }
-#         },
-#     },
-#     "INFO": [
-#         "Server listening on UDP port 5016",
-#         "Receiving 1470 byte datagrams",
-#         "UDP buffer size:  208 KByte (default)",
-#     ],
-# }
+COMMAND_RESULT_multiple_connections_udp_server = {
+    'CONNECTIONS': {
+        ('127.0.0.1', '5016@127.0.0.1'): {'report': {'Bitrate': 393125,
+                                                     'Bitrate Raw': '3145 '
+                                                     'Kbits/sec',
+                                                     'Interval': (0.0,
+                                                                  5.04),
+                                                     'Jitter': '0.011 '
+                                                     'ms',
+                                                     'Lost_Datagrams_ratio': '0%',
+                                                     'Lost_vs_Total_Datagrams': (0,
+                                                                                 90),
+                                                     'Transfer': 1981808,
+                                                     'Transfer Raw': '1.89 '
+                                                     'MBytes'}},
+        ('33549@127.0.0.1', '5016@127.0.0.1'): [{'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (0.0,
+                                                              1.0),
+                                                 'Jitter': '0.007 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (1.0,
+                                                              2.0),
+                                                 'Jitter': '0.008 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (2.0,
+                                                              3.0),
+                                                 'Jitter': '0.007 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (3.0,
+                                                              4.0),
+                                                 'Jitter': '0.008 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (4.0,
+                                                              5.0),
+                                                 'Jitter': '0.009 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 131000,
+                                                'Bitrate Raw': '1048 '
+                                                 'Kbits/sec',
+                                                 'Interval': (0.0,
+                                                              5.04),
+                                                 'Jitter': '0.009 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             30),
+                                                 'Transfer': 660480,
+                                                 'Transfer Raw': '645 '
+                                                 'KBytes'}],
+        ('36062@127.0.0.1', '5016@127.0.0.1'): [{'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (0.0,
+                                                              1.0),
+                                                 'Jitter': '0.009 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (1.0,
+                                                              2.0),
+                                                 'Jitter': '0.010 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (2.0,
+                                                              3.0),
+                                                 'Jitter': '0.009 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (3.0,
+                                                              4.0),
+                                                 'Jitter': '0.009 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (4.0,
+                                                              5.0),
+                                                 'Jitter': '0.014 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 131000,
+                                                'Bitrate Raw': '1048 '
+                                                 'Kbits/sec',
+                                                 'Interval': (0.0,
+                                                              5.04),
+                                                 'Jitter': '0.014 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             30),
+                                                 'Transfer': 660480,
+                                                 'Transfer Raw': '645 '
+                                                 'KBytes'}],
+        ('52695@127.0.0.1', '5016@127.0.0.1'): [{'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (0.0,
+                                                              1.0),
+                                                 'Jitter': '0.007 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (1.0,
+                                                              2.0),
+                                                 'Jitter': '0.008 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (2.0,
+                                                              3.0),
+                                                 'Jitter': '0.007 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (3.0,
+                                                              4.0),
+                                                 'Jitter': '0.008 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (4.0,
+                                                              5.0),
+                                                 'Jitter': '0.010 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             6),
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 131000,
+                                                'Bitrate Raw': '1048 '
+                                                 'Kbits/sec',
+                                                 'Interval': (0.0,
+                                                              5.04),
+                                                 'Jitter': '0.010 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             30),
+                                                 'Transfer': 660480,
+                                                 'Transfer Raw': '645 '
+                                                 'KBytes'}],
+        ('multiport@127.0.0.1', '5016@127.0.0.1'): [{'Bitrate': 396250,
+                                                    'Bitrate Raw': '3170 '
+                                                     'Kbits/sec',
+                                                     'Interval': (0.0,
+                                                                  1.0),
+                                                     'Jitter': '0.007 '
+                                                     'ms',
+                                                     'Lost_Datagrams_ratio': '0%',
+                                                     'Lost_vs_Total_Datagrams': (0,
+                                                                                 18),
+                                                     'Transfer': 396288,
+                                                     'Transfer Raw': '387 '
+                                                     'KBytes'},
+                                                    {'Bitrate': 396250,
+                                                    'Bitrate Raw': '3170 '
+                                                     'Kbits/sec',
+                                                     'Interval': (1.0,
+                                                                  2.0),
+                                                     'Jitter': '0.009 '
+                                                     'ms',
+                                                     'Lost_Datagrams_ratio': '0%',
+                                                     'Lost_vs_Total_Datagrams': (0,
+                                                                                 18),
+                                                     'Transfer': 396288,
+                                                     'Transfer Raw': '387 '
+                                                     'KBytes'},
+                                                    {'Bitrate': 396250,
+                                                    'Bitrate Raw': '3170 '
+                                                     'Kbits/sec',
+                                                     'Interval': (2.0,
+                                                                  3.0),
+                                                     'Jitter': '0.008 '
+                                                     'ms',
+                                                     'Lost_Datagrams_ratio': '0%',
+                                                     'Lost_vs_Total_Datagrams': (0,
+                                                                                 18),
+                                                     'Transfer': 396288,
+                                                     'Transfer Raw': '387 '
+                                                     'KBytes'},
+                                                    {'Bitrate': 396250,
+                                                    'Bitrate Raw': '3170 '
+                                                     'Kbits/sec',
+                                                     'Interval': (3.0,
+                                                                  4.0),
+                                                     'Jitter': '0.008 '
+                                                     'ms',
+                                                     'Lost_Datagrams_ratio': '0%',
+                                                     'Lost_vs_Total_Datagrams': (0,
+                                                                                 18),
+                                                     'Transfer': 396288,
+                                                     'Transfer Raw': '387 '
+                                                     'KBytes'},
+                                                    {'Bitrate': 396250,
+                                                    'Bitrate Raw': '3170 '
+                                                     'Kbits/sec',
+                                                     'Interval': (4.0,
+                                                                  5.0),
+                                                     'Jitter': '0.011 '
+                                                     'ms',
+                                                     'Lost_Datagrams_ratio': '0%',
+                                                     'Lost_vs_Total_Datagrams': (0,
+                                                                                 18),
+                                                     'Transfer': 396288,
+                                                     'Transfer Raw': '387 '
+                                                     'KBytes'},
+                                                    {'Bitrate': 393125,
+                                                    'Bitrate Raw': '3145 '
+                                                     'Kbits/sec',
+                                                     'Interval': (0.0,
+                                                                  5.04),
+                                                     'Jitter': '0.011 '
+                                                     'ms',
+                                                     'Lost_Datagrams_ratio': '0%',
+                                                     'Lost_vs_Total_Datagrams': (0,
+                                                                                 90),
+                                                     'Transfer': 1981808,
+                                                     'Transfer Raw': '1.89 '
+                                                     'MBytes'}]},
+    'INFO': ['Server listening on 5016',
+             'Accepted connection from 127.0.0.1, port 57560',
+             'Server listening on 5016']}
 
-# COMMAND_OUTPUT_multiple_connections_udp_client = """
-# vagrant@app-svr:~$ iperf -c 192.168.44.130 -u -p 5016 -f k -P 2 -i 1 -t 3.0 -b 1000.0k
-# ------------------------------------------------------------
-# Client connecting to 192.168.44.130, UDP port 5016
-# Sending 1470 byte datagrams, IPG target: 11760.00 us (kalman adjust)
-# UDP buffer size: 1024 KByte (default)
-# ------------------------------------------------------------
-# [  3] local 192.168.33.5 port 39154 connected with 192.168.44.130 port 5016
-# [  4] local 192.168.33.5 port 55482 connected with 192.168.44.130 port 5016
-# [ ID] Interval       Transfer     Bandwidth
-# [  3]  0.0- 1.0 sec   123 KBytes  1011 Kbits/sec
-# [  4]  0.0- 1.0 sec   123 KBytes  1011 Kbits/sec
-# [SUM]  0.0- 1.0 sec   247 KBytes  2023 Kbits/sec
-# [  3]  1.0- 2.0 sec   123 KBytes  1011 Kbits/sec
-# [  4]  1.0- 2.0 sec   123 KBytes  1011 Kbits/sec
-# [SUM]  1.0- 2.0 sec   247 KBytes  2023 Kbits/sec
-# [  3]  0.0- 3.0 sec   368 KBytes   999 Kbits/sec
-# [  3] Sent 256 datagrams
-# [  3] Server Report:
-# [  3]  0.0- 3.0 sec   369 KBytes  1003 Kbits/sec   0.188 ms    0/  256 (0%)
-# [  3] 0.00-3.01 sec  1 datagrams received out-of-order
-# [  4]  0.0- 3.0 sec   368 KBytes   999 Kbits/sec
-# [  4] Sent 256 datagrams
-# [SUM]  0.0- 3.0 sec   735 KBytes  1999 Kbits/sec
-# [SUM] Sent 512 datagrams
-# [  4] Server Report:
-# [  4]  0.0- 3.0 sec   366 KBytes   995 Kbits/sec   0.097 ms    1/  256 (0.39%)
-# vagrant@app-svr:~$"""
 
-# COMMAND_KWARGS_multiple_connections_udp_client = {
-#     "options": "-c 192.168.44.130 -u -p 5016 -f k -P 2 -i 1 -t 3.0 -b 1000.0k"
-# }
+COMMAND_OUTPUT_multiple_connections_udp_client = """
+vagrant@app-svr:~$ iperf3 -c 127.0.0.1 -u -p 5016 -f k -P 2 -i 1 -t 3.0 -b 1000.0k
+Connecting to host 127.0.0.1, port 5016
+[  5] local 127.0.0.1 port 42931 connected to 127.0.0.1 port 5016
+[  7] local 127.0.0.1 port 35747 connected to 127.0.0.1 port 5016
+[ ID] Interval           Transfer     Bitrate         Total Datagrams
+[  5]   0.00-1.00   sec   129 KBytes  1057 Kbits/sec  6
+[  7]   0.00-1.00   sec   129 KBytes  1057 Kbits/sec  6
+[SUM]   0.00-1.00   sec   258 KBytes  2113 Kbits/sec  12
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[  5]   1.00-2.00   sec   129 KBytes  1057 Kbits/sec  6
+[  7]   1.00-2.00   sec   129 KBytes  1057 Kbits/sec  6
+[SUM]   1.00-2.00   sec   258 KBytes  2114 Kbits/sec  12
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[  5]   2.00-3.00   sec   129 KBytes  1057 Kbits/sec  6
+[  7]   2.00-3.00   sec   129 KBytes  1057 Kbits/sec  6
+[SUM]   2.00-3.00   sec   258 KBytes  2113 Kbits/sec  12
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Jitter    Lost/Total Datagrams
+[  5]   0.00-3.00   sec   387 KBytes  1057 Kbits/sec  0.000 ms  0/18 (0%)  sender
+[  5]   0.00-3.04   sec   387 KBytes  1042 Kbits/sec  0.021 ms  0/18 (0%)  receiver
+[  7]   0.00-3.00   sec   387 KBytes  1057 Kbits/sec  0.000 ms  0/18 (0%)  sender
+[  7]   0.00-3.04   sec   387 KBytes  1042 Kbits/sec  0.016 ms  0/18 (0%)  receiver
+[SUM]   0.00-3.00   sec   774 KBytes  2113 Kbits/sec  0.000 ms  0/36 (0%)  sender
+[SUM]   0.00-3.04   sec   774 KBytes  2084 Kbits/sec  0.018 ms  0/36 (0%)  receiver
 
-# COMMAND_RESULT_multiple_connections_udp_client = {
-#     "CONNECTIONS": {
-#         ("55482@192.168.33.5", "5016@192.168.44.130"): [
-#             {
-#                 "Transfer": 125952,
-#                 "Bandwidth": 126375,
-#                 "Transfer Raw": "123 KBytes",
-#                 "Bandwidth Raw": "1011 Kbits/sec",
-#                 "Interval": (0.0, 1.0),
-#             },
-#             {
-#                 "Transfer": 125952,
-#                 "Bandwidth": 126375,
-#                 "Transfer Raw": "123 KBytes",
-#                 "Bandwidth Raw": "1011 Kbits/sec",
-#                 "Interval": (1.0, 2.0),
-#             },
-#             {
-#                 "Transfer": 376832,
-#                 "Bandwidth": 124875,
-#                 "Transfer Raw": "368 KBytes",
-#                 "Bandwidth Raw": "999 Kbits/sec",
-#                 "Interval": (0.0, 3.0),
-#             },
-#             {
-#                 "Transfer": 374784,
-#                 "Bandwidth": 124375,
-#                 "Transfer Raw": "366 KBytes",
-#                 "Bandwidth Raw": "995 Kbits/sec",
-#                 "Interval": (0.0, 3.0),
-#                 "Jitter": "0.097 ms",
-#                 "Lost_vs_Total_Datagrams": (1, 256),
-#                 "Lost_Datagrams_ratio": "0.39%",
-#             },
-#         ],
-#         ("39154@192.168.33.5", "5016@192.168.44.130"): [
-#             {
-#                 "Transfer": 125952,
-#                 "Bandwidth": 126375,
-#                 "Transfer Raw": "123 KBytes",
-#                 "Bandwidth Raw": "1011 Kbits/sec",
-#                 "Interval": (0.0, 1.0),
-#             },
-#             {
-#                 "Transfer": 125952,
-#                 "Bandwidth": 126375,
-#                 "Transfer Raw": "123 KBytes",
-#                 "Bandwidth Raw": "1011 Kbits/sec",
-#                 "Interval": (1.0, 2.0),
-#             },
-#             {
-#                 "Transfer": 376832,
-#                 "Bandwidth": 124875,
-#                 "Transfer Raw": "368 KBytes",
-#                 "Bandwidth Raw": "999 Kbits/sec",
-#                 "Interval": (0.0, 3.0),
-#             },
-#             {
-#                 "Transfer": 377856,
-#                 "Bandwidth": 125375,
-#                 "Transfer Raw": "369 KBytes",
-#                 "Bandwidth Raw": "1003 Kbits/sec",
-#                 "Interval": (0.0, 3.0),
-#                 "Jitter": "0.188 ms",
-#                 "Lost_vs_Total_Datagrams": (0, 256),
-#                 "Lost_Datagrams_ratio": "0%",
-#             },
-#         ],
-#         ("multiport@192.168.33.5", "5016@192.168.44.130"): [
-#             {
-#                 "Transfer": 252928,
-#                 "Bandwidth": 252875,
-#                 "Transfer Raw": "247 KBytes",
-#                 "Bandwidth Raw": "2023 Kbits/sec",
-#                 "Interval": (0.0, 1.0),
-#             },
-#             {
-#                 "Transfer": 252928,
-#                 "Bandwidth": 252875,
-#                 "Transfer Raw": "247 KBytes",
-#                 "Bandwidth Raw": "2023 Kbits/sec",
-#                 "Interval": (1.0, 2.0),
-#             },
-#             {
-#                 "Transfer": 752640,
-#                 "Bandwidth": 249875,
-#                 "Transfer Raw": "735 KBytes",
-#                 "Bandwidth Raw": "1999 Kbits/sec",
-#                 "Interval": (0.0, 3.0),
-#             },
-#         ],
-#         ("192.168.33.5", "5016@192.168.44.130"): {
-#             "report": {
-#                 "Transfer": 752640,
-#                 "Bandwidth": 249875,
-#                 "Transfer Raw": "735 KBytes",
-#                 "Bandwidth Raw": "1999 Kbits/sec",
-#                 "Interval": (0.0, 3.0),
-#             }
-#         },
-#     },
-#     "INFO": [
-#         "Client connecting to 192.168.44.130, UDP port 5016",
-#         "Sending 1470 byte datagrams, IPG target: 11760.00 us (kalman adjust)",
-#         "UDP buffer size: 1024 KByte (default)",
-#         "[  3] Sent 256 datagrams",
-#         "[  3] 0.00-3.01 sec  1 datagrams received out-of-order",
-#         "[  4] Sent 256 datagrams",
-#         "[SUM] Sent 512 datagrams",
-#     ],
-# }
+iperf Done.
+vagrant@app-svr:~$"""
+
+COMMAND_KWARGS_multiple_connections_udp_client = {
+    "options": "-c 127.0.0.1 -u -p 5016 -f k -P 2 -i 1 -t 3.0 -b 1000.0k"
+}
+
+COMMAND_RESULT_multiple_connections_udp_client = {
+    'CONNECTIONS': {
+        ('127.0.0.1', '5016@127.0.0.1'): {'report': {'Bitrate': 264125,
+                                                     'Bitrate Raw': '2113 '
+                                                     'Kbits/sec',
+                                                     'Interval': (0.0,
+                                                                  3.0),
+                                                     'Jitter': '0.000 '
+                                                     'ms',
+                                                     'Lost_Datagrams_ratio': '0%',
+                                                     'Lost_vs_Total_Datagrams': (0,
+                                                                                 36),
+                                                     'Transfer': 792576,
+                                                     'Transfer Raw': '774 '
+                                                     'KBytes'}},
+        ('35428@127.0.0.1', '5016@127.0.0.1'): [{'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (0.0,
+                                                              1.0),
+                                                 'Total_Datagrams': '6',
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (1.0,
+                                                              2.0),
+                                                 'Total_Datagrams': '6',
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (2.0,
+                                                              3.0),
+                                                 'Total_Datagrams': '6',
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (0.0,
+                                                              3.0),
+                                                 'Jitter': '0.000 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             18),
+                                                 'Transfer': 396288,
+                                                 'Transfer Raw': '387 '
+                                                 'KBytes'},
+                                                {'Bitrate': 130250,
+                                                'Bitrate Raw': '1042 '
+                                                 'Kbits/sec',
+                                                 'Interval': (0.0,
+                                                              3.04),
+                                                 'Jitter': '0.021 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             18),
+                                                 'Transfer': 396288,
+                                                 'Transfer Raw': '387 '
+                                                 'KBytes'}],
+        ('50221@127.0.0.1', '5016@127.0.0.1'): [{'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (0.0,
+                                                              1.0),
+                                                 'Total_Datagrams': '6',
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (1.0,
+                                                              2.0),
+                                                 'Total_Datagrams': '6',
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (2.0,
+                                                              3.0),
+                                                 'Total_Datagrams': '6',
+                                                 'Transfer': 132096,
+                                                 'Transfer Raw': '129 '
+                                                 'KBytes'},
+                                                {'Bitrate': 132125,
+                                                'Bitrate Raw': '1057 '
+                                                 'Kbits/sec',
+                                                 'Interval': (0.0,
+                                                              3.0),
+                                                 'Jitter': '0.000 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             18),
+                                                 'Transfer': 396288,
+                                                 'Transfer Raw': '387 '
+                                                 'KBytes'},
+                                                {'Bitrate': 130250,
+                                                'Bitrate Raw': '1042 '
+                                                 'Kbits/sec',
+                                                 'Interval': (0.0,
+                                                              3.04),
+                                                 'Jitter': '0.016 ms',
+                                                 'Lost_Datagrams_ratio': '0%',
+                                                 'Lost_vs_Total_Datagrams': (0,
+                                                                             18),
+                                                 'Transfer': 396288,
+                                                 'Transfer Raw': '387 '
+                                                 'KBytes'}],
+        ('multiport@127.0.0.1', '5016@127.0.0.1'): [{'Bitrate': 264125,
+                                                    'Bitrate Raw': '2113 '
+                                                     'Kbits/sec',
+                                                     'Interval': (0.0,
+                                                                  1.0),
+                                                     'Total_Datagrams': '12',
+                                                     'Transfer': 264192,
+                                                     'Transfer Raw': '258 '
+                                                     'KBytes'},
+                                                    {'Bitrate': 264250,
+                                                    'Bitrate Raw': '2114 '
+                                                     'Kbits/sec',
+                                                     'Interval': (1.0,
+                                                                  2.0),
+                                                     'Total_Datagrams': '12',
+                                                     'Transfer': 264192,
+                                                     'Transfer Raw': '258 '
+                                                     'KBytes'},
+                                                    {'Bitrate': 264125,
+                                                    'Bitrate Raw': '2113 '
+                                                     'Kbits/sec',
+                                                     'Interval': (2.0,
+                                                                  3.0),
+                                                     'Total_Datagrams': '12',
+                                                     'Transfer': 264192,
+                                                     'Transfer Raw': '258 '
+                                                     'KBytes'},
+                                                    {'Bitrate': 264125,
+                                                    'Bitrate Raw': '2113 '
+                                                     'Kbits/sec',
+                                                     'Interval': (0.0,
+                                                                  3.0),
+                                                     'Jitter': '0.000 '
+                                                     'ms',
+                                                     'Lost_Datagrams_ratio': '0%',
+                                                     'Lost_vs_Total_Datagrams': (0,
+                                                                                 36),
+                                                     'Transfer': 792576,
+                                                     'Transfer Raw': '774 '
+                                                     'KBytes'},
+                                                    {'Bitrate': 260500,
+                                                    'Bitrate Raw': '2084 '
+                                                     'Kbits/sec',
+                                                     'Interval': (0.0,
+                                                                  3.04),
+                                                     'Jitter': '0.018 '
+                                                     'ms',
+                                                     'Lost_Datagrams_ratio': '0%',
+                                                     'Lost_vs_Total_Datagrams': (0,
+                                                                                 36),
+                                                     'Transfer': 792576,
+                                                     'Transfer Raw': '774 '
+                                                     'KBytes'}]},
+    'INFO': ['Connecting to host 127.0.0.1, port 5016', 'iperf Done.']}
+
 
 # COMMAND_OUTPUT_singlerun_server = """
 # xyz@debian:~$ iperf -s -p 5001 -f k -i 1.0 -P 1
