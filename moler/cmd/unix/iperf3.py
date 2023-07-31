@@ -1828,7 +1828,7 @@ Connecting to host 127.0.0.1, port 5201
 [  5]   8.00-9.00   sec   829 MBytes  6.94 Gbits/sec    0    959 KBytes
 [  7]   8.00-9.00   sec   829 MBytes  6.94 Gbits/sec    0    959 KBytes
 [  9]   8.00-9.00   sec   829 MBytes  6.94 Gbits/sec    0    959 KBytes
-[SUM]   8.00-9.00   sec  2.43 GBytes  21.5 Gbits/sec    0
+[SUM]   8.00-9.00   sec  2.43 GBytes  20.8 Gbits/sec    0
 - - - - - - - - - - - - - - - - - - - - - - - - -
 [  5]   9.00-10.00  sec   852 MBytes  7.16 Gbits/sec    0    959 KBytes
 [  7]   9.00-10.00  sec   852 MBytes  7.16 Gbits/sec    0    959 KBytes
