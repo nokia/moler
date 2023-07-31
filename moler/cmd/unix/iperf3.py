@@ -94,6 +94,8 @@ class Iperf3(GenericUnixCommand, Publisher):
         self._got_server_report_hdr = False
         self._got_server_report = False
         self._stopping_server = False
+        self.cli_cnt = 0
+        self.ser_cnt = 0
 
     def __str__(self):
         str_base_value = super(Iperf3, self).__str__()
@@ -450,11 +452,19 @@ class Iperf3(GenericUnixCommand, Publisher):
 
             normalized_iperf_record = self._normalize_to_bytes(iperf_record)
             self._update_current_ret(connection_name, normalized_iperf_record)
-            if self._need_add_multiport_summary_record_of_interval(
-                connection_name, normalized_iperf_record, line
-            ):
-                self._calculate_multiport_summary_record_of_interval(
-                    connection_name)
+
+            # if self._need_add_multiport_summary_record_of_interval(
+            #     connection_name, normalized_iperf_record, line
+            # ):
+            #     if self.client:
+            #         self.cli_cnt += 1
+            #     if self.server:
+            #         self.ser_cnt += 1
+            #     print((self.ser_cnt, self.cli_cnt),
+            #           (self.server, self.client))
+
+            #     self._calculate_multiport_summary_record_of_interval(
+            #         connection_name)
 
             self._parse_final_record(connection_name, line)
 
@@ -513,121 +523,121 @@ class Iperf3(GenericUnixCommand, Publisher):
                 return pre_last_rec
         return None
 
-    def _need_add_multiport_summary_record_of_interval(
-        self, connection_name, last_iperf_record, line
-    ):
-        # print("!"*50)
-        # print(last_iperf_record)
-        # print("!"*50)
-        if not self.server:
-            return False
-        if not self.parallel_client:
-            return False
-        if self._is_final_record(last_iperf_record, line):
-            return False
-        if not self._all_multiport_records_of_interval(connection_name):
-            return False
-        return True
+    # def _need_add_multiport_summary_record_of_interval(
+    #     self, connection_name, last_iperf_record, line
+    # ):
+    #     # print("!"*50)
+    #     # print(last_iperf_record)
+    #     # print("!"*50)
+    #     if not self.server:
+    #         return False
+    #     if not self.parallel_client:
+    #         return False
+    #     if self._is_final_record(last_iperf_record, line):
+    #         return False
+    #     if not self._all_multiport_records_of_interval(connection_name):
+    #         return False
+    #     return True
 
-    def _calculate_multiport_summary_record_of_interval(self, connection_name):
-        client, server = connection_name
-        client_port, client_host = client.split("@")
-        connections = self._same_host_connections[client_host]
+    # def _calculate_multiport_summary_record_of_interval(self, connection_name):
+    #     client, server = connection_name
+    #     client_port, client_host = client.split("@")
+    #     connections = self._same_host_connections[client_host]
 
-        interval = self.current_ret["CONNECTIONS"][connection_name][-1]["Interval"]
-        if interval == (4.0, 5.0):
-            pass
-        transfers = [
-            self._get_last_record_of_interval(conn, interval)["Transfer"]
-            for conn in connections
-        ]
-        raw_transfers = [
-            self._get_last_record_of_interval(conn, interval)["Transfer Raw"]
-            for conn in connections
-        ]
-        bitrates = [
-            self._get_last_record_of_interval(conn, interval)["Bitrate"]
-            for conn in connections
-        ]
-        raw_bitrates = [
-            self._get_last_record_of_interval(conn, interval)["Bitrate Raw"]
-            for conn in connections
-        ]
+    #     interval = self.current_ret["CONNECTIONS"][connection_name][-1]["Interval"]
+    #     if interval == (4.0, 5.0):
+    #         pass
+    #     transfers = [
+    #         self._get_last_record_of_interval(conn, interval)["Transfer"]
+    #         for conn in connections
+    #     ]
+    #     raw_transfers = [
+    #         self._get_last_record_of_interval(conn, interval)["Transfer Raw"]
+    #         for conn in connections
+    #     ]
+    #     bitrates = [
+    #         self._get_last_record_of_interval(conn, interval)["Bitrate"]
+    #         for conn in connections
+    #     ]
+    #     raw_bitrates = [
+    #         self._get_last_record_of_interval(conn, interval)["Bitrate Raw"]
+    #         for conn in connections
+    #     ]
 
-        if self.protocol == "tcp" and self.client:
-            retrs = [
-                self._get_last_record_of_interval(conn, interval)["Retr"]
-                for conn in connections
-            ]
-            retrs_values = [int(ret) for ret in retrs]
-            total_retrs = sum(retrs_values)
-            # cwnds = [self._get_last_record_of_interval(conn, interval)['Cwnd'] for conn in connections]
-            # raw_cwnds = [self._get_last_record_of_interval(conn, interval)['Cwnd Raw'] for conn in connections]
-            # cwnd_unit = cwnds[0].split()[1]  # 'Cwnd': '1.37 MBytes'
+    #     if self.protocol == "tcp" and self.client:
+    #         retrs = [
+    #             self._get_last_record_of_interval(conn, interval)["Retr"]
+    #             for conn in connections
+    #         ]
+    #         retrs_values = [int(ret) for ret in retrs]
+    #         total_retrs = sum(retrs_values)
+    #         # cwnds = [self._get_last_record_of_interval(conn, interval)['Cwnd'] for conn in connections]
+    #         # raw_cwnds = [self._get_last_record_of_interval(conn, interval)['Cwnd Raw'] for conn in connections]
+    #         # cwnd_unit = cwnds[0].split()[1]  # 'Cwnd': '1.37 MBytes'
 
-        elif self.protocol == "udp" and self.server:
-            jitters = [
-                self._get_last_record_of_interval(conn, interval)["Jitter"]
-                for conn in connections
-            ]
-            ltds = [
-                self._get_last_record_of_interval(conn, interval)[
-                    "Lost_vs_Total_Datagrams"
-                ]
-                for conn in connections
-            ]
+    #     elif self.protocol == "udp" and self.server:
+    #         jitters = [
+    #             self._get_last_record_of_interval(conn, interval)["Jitter"]
+    #             for conn in connections
+    #         ]
+    #         ltds = [
+    #             self._get_last_record_of_interval(conn, interval)[
+    #                 "Lost_vs_Total_Datagrams"
+    #             ]
+    #             for conn in connections
+    #         ]
 
-            jitter_unit = jitters[0].split()[1]  # 'Jitter': '0.821 ms'
-            jitter_values = [float(jit.split()[0]) for jit in jitters]
+    #         jitter_unit = jitters[0].split()[1]  # 'Jitter': '0.821 ms'
+    #         jitter_values = [float(jit.split()[0]) for jit in jitters]
 
-            lost_datagrams = sum([lost for lost, _ in ltds])
-            total_datagrams = sum([total for _, total in ltds])
+    #         lost_datagrams = sum([lost for lost, _ in ltds])
+    #         total_datagrams = sum([total for _, total in ltds])
 
-        elif self.protocol == "udp" and self.client:
-            pass
+    #     elif self.protocol == "udp" and self.client:
+    #         pass
 
-        # 'Transfer Raw': '122 KBytes',
-        raw_transfer_unit = raw_transfers[0].split()[1]
-        raw_transfer_values = [float(raw_trf.split()[0])
-                               for raw_trf in raw_transfers]
+    #     # 'Transfer Raw': '122 KBytes',
+    #     raw_transfer_unit = raw_transfers[0].split()[1]
+    #     raw_transfer_values = [float(raw_trf.split()[0])
+    #                            for raw_trf in raw_transfers]
 
-        # 'Bitrate Raw': '1000 Kbits/sec'
-        raw_bitrate_unit = raw_bitrates[0].split()[1]
-        raw_bitrate_values = [float(raw_bw.split()[0])
-                              for raw_bw in raw_bitrates]
+    #     # 'Bitrate Raw': '1000 Kbits/sec'
+    #     raw_bitrate_unit = raw_bitrates[0].split()[1]
+    #     raw_bitrate_values = [float(raw_bw.split()[0])
+    #                           for raw_bw in raw_bitrates]
 
-        sum_record = {
-            "Interval": interval,
-            "Transfer": sum(transfers),
-            "Transfer Raw": "{} {}".format(sum(raw_transfer_values), raw_transfer_unit),
-            "Bitrate": sum(bitrates),
-            "Bitrate Raw": "{} {}".format(sum(raw_bitrate_values), raw_bitrate_unit),
-        }
+    #     sum_record = {
+    #         "Interval": interval,
+    #         "Transfer": sum(transfers),
+    #         "Transfer Raw": "{} {}".format(sum(raw_transfer_values), raw_transfer_unit),
+    #         "Bitrate": sum(bitrates),
+    #         "Bitrate Raw": "{} {}".format(sum(raw_bitrate_values), raw_bitrate_unit),
+    #     }
 
-        # if self.protocol == 'tcp' and self.client:
-        #     sum_record['Retr'] = "1000000000000"
+    #     # if self.protocol == 'tcp' and self.client:
+    #     #     sum_record['Retr'] = "1000000000000"
 
-        if self.protocol == "udp":
-            # noinspection PyUnboundLocalVariable
-            sum_record["Jitter"] = "{} {}".format(
-                max(jitter_values), jitter_unit)
-            # noinspection PyUnboundLocalVariable
-            sum_record["Lost_vs_Total_Datagrams"] = (
-                lost_datagrams, total_datagrams)
-            sum_record["Lost_Datagrams_ratio"] = "{:.2f}%".format(
-                lost_datagrams * 100 / total_datagrams
-            )
+    #     if self.protocol == "udp":
+    #         # noinspection PyUnboundLocalVariable
+    #         sum_record["Jitter"] = "{} {}".format(
+    #             max(jitter_values), jitter_unit)
+    #         # noinspection PyUnboundLocalVariable
+    #         sum_record["Lost_vs_Total_Datagrams"] = (
+    #             lost_datagrams, total_datagrams)
+    #         sum_record["Lost_Datagrams_ratio"] = "{:.2f}%".format(
+    #             lost_datagrams * 100 / total_datagrams
+    #         )
 
-        # print("!"*60)
-        # print(sum_record)
-        # print("!"*60)
+    #     # print("!"*60)
+    #     # print(sum_record)
+    #     # print("!"*60)
 
-        from_client = "multiport@{}".format(client_host)
-        sum_connection_name = (from_client, server)
-        self._update_current_ret(sum_connection_name, sum_record)
-        self.notify_subscribers(
-            from_client=from_client, to_server=server, data_record=sum_record
-        )
+    #     from_client = "multiport@{}".format(client_host)
+    #     sum_connection_name = (from_client, server)
+    #     self._update_current_ret(sum_connection_name, sum_record)
+    #     self.notify_subscribers(
+    #         from_client=from_client, to_server=server, data_record=sum_record
+    #     )
 
     def _parse_final_record(self, connection_name, line):
         if self.parallel_client and ("multiport" not in connection_name[0]):
@@ -731,6 +741,7 @@ class Iperf3(GenericUnixCommand, Publisher):
 
     # [  5] Sent 2552 datagrams
     # ------------------------------------------------------------
+    # - - - - - - - - - - - - - - - - - - - - - - - - -
     _re_ornaments = re.compile(
         r"(?P<ORNAMENTS>----*|\[\s*ID\].*)", re.IGNORECASE)
     _re_summary_ornament = re.compile(r"(?P<SUM_ORNAMENT>(-\s)+)")
@@ -1767,264 +1778,608 @@ COMMAND_RESULT_udp_server_params = {
              'Server listening on 5016']}
 
 
-# COMMAND_OUTPUT_multiple_connections = """
-# xyz@debian:~$ iperf -c 192.168.0.100 -P 20
-# ------------------------------------------------------------
-# Client connecting to 192.168.0.100, TCP port 5001
-# TCP window size: 16.0 KByte (default)
-# ------------------------------------------------------------
-# [ 15] local 192.168.0.102 port 57258 connected with 192.168.0.100 port 5001
-# [  3] local 192.168.0.102 port 57246 connected with 192.168.0.100 port 5001
-# [  4] local 192.168.0.102 port 57247 connected with 192.168.0.100 port 5001
-# [  5] local 192.168.0.102 port 57248 connected with 192.168.0.100 port 5001
-# [  7] local 192.168.0.102 port 57250 connected with 192.168.0.100 port 5001
-# [  6] local 192.168.0.102 port 57249 connected with 192.168.0.100 port 5001
-# [ 10] local 192.168.0.102 port 57253 connected with 192.168.0.100 port 5001
-# [  8] local 192.168.0.102 port 57251 connected with 192.168.0.100 port 5001
-# [  9] local 192.168.0.102 port 57252 connected with 192.168.0.100 port 5001
-# [ 16] local 192.168.0.102 port 57259 connected with 192.168.0.100 port 5001
-# [ 19] local 192.168.0.102 port 57261 connected with 192.168.0.100 port 5001
-# [ 18] local 192.168.0.102 port 57260 connected with 192.168.0.100 port 5001
-# [ 20] local 192.168.0.102 port 57262 connected with 192.168.0.100 port 5001
-# [ 17] local 192.168.0.102 port 57263 connected with 192.168.0.100 port 5001
-# [ 21] local 192.168.0.102 port 57264 connected with 192.168.0.100 port 5001
-# [ 11] local 192.168.0.102 port 57254 connected with 192.168.0.100 port 5001
-# [ 12] local 192.168.0.102 port 57255 connected with 192.168.0.100 port 5001
-# [ 13] local 192.168.0.102 port 57256 connected with 192.168.0.100 port 5001
-# [ 14] local 192.168.0.102 port 57257 connected with 192.168.0.100 port 5001
-# [ 22] local 192.168.0.102 port 57265 connected with 192.168.0.100 port 5001
-# [ ID] Interval       Transfer     Bandwidth
-# [  8]  0.0-10.6 sec  16.6 MBytes  13.1 Mbits/sec
-# [ 16]  0.0-10.6 sec  16.6 MBytes  13.1 Mbits/sec
-# [ 18]  0.0-10.6 sec  16.5 MBytes  13.1 Mbits/sec
-# [ 17]  0.0-10.7 sec  16.6 MBytes  13.0 Mbits/sec
-# [ 21]  0.0-10.7 sec  15.6 MBytes  12.3 Mbits/sec
-# [ 12]  0.0-10.7 sec  17.5 MBytes  13.7 Mbits/sec
-# [ 22]  0.0-10.7 sec  16.6 MBytes  13.0 Mbits/sec
-# [ 15]  0.0-10.8 sec  17.8 MBytes  13.8 Mbits/sec
-# [  3]  0.0-10.7 sec  18.5 MBytes  14.5 Mbits/sec
-# [  4]  0.0-10.8 sec  18.1 MBytes  14.1 Mbits/sec
-# [  5]  0.0-10.7 sec  17.6 MBytes  13.9 Mbits/sec
-# [  7]  0.0-10.8 sec  18.4 MBytes  14.3 Mbits/sec
-# [  6]  0.0-10.8 sec  17.0 MBytes  13.2 Mbits/sec
-# [ 10]  0.0-10.8 sec  16.8 MBytes  13.1 Mbits/sec
-# [  9]  0.0-10.8 sec  16.8 MBytes  13.0 Mbits/sec
-# [ 19]  0.0-10.6 sec  16.5 MBytes  13.0 Mbits/sec
-# [ 20]  0.0-10.7 sec  16.5 MBytes  12.9 Mbits/sec
-# [ 11]  0.0-10.7 sec  18.0 MBytes  14.0 Mbits/sec
-# [ 13]  0.0-10.7 sec  17.8 MBytes  13.9 Mbits/sec
-# [ 14]  0.0-10.8 sec  18.2 MBytes  14.1 Mbits/sec
-# [SUM]  0.0-10.8 sec   344 MBytes   266 Mbits/sec
-# xyz@debian:~$"""
+COMMAND_OUTPUT_multiple_connections = """
+xyz@debian:~$ iperf3 -c 127.0.0.1 -P 3
+Connecting to host 127.0.0.1, port 5201
+[  5] local 127.0.0.1 port 46026 connected to 127.0.0.1 port 5201
+[  7] local 127.0.0.1 port 46036 connected to 127.0.0.1 port 5201
+[  9] local 127.0.0.1 port 46052 connected to 127.0.0.1 port 5201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1000 MBytes  8.39 Gbits/sec    0    959 KBytes
+[  7]   0.00-1.00   sec  1000 MBytes  8.39 Gbits/sec    0    959 KBytes
+[  9]   0.00-1.00   sec  1000 MBytes  8.39 Gbits/sec    0    959 KBytes
+[SUM]   0.00-1.00   sec  2.93 GBytes  25.2 Gbits/sec    0
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[  5]   1.00-2.00   sec   889 MBytes  7.45 Gbits/sec    0    959 KBytes
+[  7]   1.00-2.00   sec   889 MBytes  7.45 Gbits/sec    0    959 KBytes
+[  9]   1.00-2.00   sec   889 MBytes  7.45 Gbits/sec    0    959 KBytes
+[SUM]   1.00-2.00   sec  2.60 GBytes  22.3 Gbits/sec    0
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[  5]   2.00-3.00   sec   862 MBytes  7.24 Gbits/sec    0    959 KBytes
+[  7]   2.00-3.00   sec   862 MBytes  7.24 Gbits/sec    0    959 KBytes
+[  9]   2.00-3.00   sec   862 MBytes  7.24 Gbits/sec    0    959 KBytes
+[SUM]   2.00-3.00   sec  2.53 GBytes  21.7 Gbits/sec    0
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[  5]   3.00-4.00   sec   860 MBytes  7.21 Gbits/sec    0    959 KBytes
+[  7]   3.00-4.00   sec   860 MBytes  7.21 Gbits/sec    0    959 KBytes
+[  9]   3.00-4.00   sec   860 MBytes  7.21 Gbits/sec    0    959 KBytes
+[SUM]   3.00-4.00   sec  2.52 GBytes  21.6 Gbits/sec    0
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[  5]   4.00-5.00   sec   859 MBytes  7.20 Gbits/sec    0    959 KBytes
+[  7]   4.00-5.00   sec   859 MBytes  7.20 Gbits/sec    0    959 KBytes
+[  9]   4.00-5.00   sec   859 MBytes  7.20 Gbits/sec    0    959 KBytes
+[SUM]   4.00-5.00   sec  2.52 GBytes  21.6 Gbits/sec    0
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[  5]   5.00-6.00   sec   858 MBytes  7.20 Gbits/sec    0    959 KBytes
+[  7]   5.00-6.00   sec   858 MBytes  7.20 Gbits/sec    0    959 KBytes
+[  9]   5.00-6.00   sec   858 MBytes  7.20 Gbits/sec    0    959 KBytes
+[SUM]   5.00-6.00   sec  2.51 GBytes  21.6 Gbits/sec    0
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[  5]   6.00-7.00   sec   992 MBytes  8.33 Gbits/sec    0    959 KBytes
+[  7]   6.00-7.00   sec   992 MBytes  8.33 Gbits/sec    0    959 KBytes
+[  9]   6.00-7.00   sec   992 MBytes  8.33 Gbits/sec    0    959 KBytes
+[SUM]   6.00-7.00   sec  2.91 GBytes  25.0 Gbits/sec    0
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[  5]   7.00-8.00   sec   861 MBytes  7.22 Gbits/sec    0    959 KBytes
+[  7]   7.00-8.00   sec   861 MBytes  7.22 Gbits/sec    0    959 KBytes
+[  9]   7.00-8.00   sec   861 MBytes  7.22 Gbits/sec    0    959 KBytes
+[SUM]   7.00-8.00   sec  2.52 GBytes  21.7 Gbits/sec    0
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[  5]   8.00-9.00   sec   829 MBytes  6.94 Gbits/sec    0    959 KBytes
+[  7]   8.00-9.00   sec   829 MBytes  6.94 Gbits/sec    0    959 KBytes
+[  9]   8.00-9.00   sec   829 MBytes  6.94 Gbits/sec    0    959 KBytes
+[SUM]   8.00-9.00   sec  2.43 GBytes  21.5 Gbits/sec    0
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[  5]   9.00-10.00  sec   852 MBytes  7.16 Gbits/sec    0    959 KBytes
+[  7]   9.00-10.00  sec   852 MBytes  7.16 Gbits/sec    0    959 KBytes
+[  9]   9.00-10.00  sec   852 MBytes  7.16 Gbits/sec    0    959 KBytes
+[SUM]   9.00-10.00  sec  2.50 GBytes  21.5 Gbits/sec    0
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.00  sec  8.65 GBytes  7.43 Gbits/sec    0             sender
+[  5]   0.00-10.04  sec  8.65 GBytes  7.41 Gbits/sec                  receiver
+[  7]   0.00-10.00  sec  8.65 GBytes  7.43 Gbits/sec    0             sender
+[  7]   0.00-10.04  sec  8.65 GBytes  7.41 Gbits/sec                  receiver
+[  9]   0.00-10.00  sec  8.65 GBytes  7.43 Gbits/sec    0             sender
+[  9]   0.00-10.04  sec  8.65 GBytes  7.41 Gbits/sec                  receiver
+[SUM]   0.00-10.00  sec  26.0 GBytes  22.3 Gbits/sec    0             sender
+[SUM]   0.00-10.04  sec  26.0 GBytes  22.2 Gbits/sec                  receiver
 
-# COMMAND_KWARGS_multiple_connections = {"options": "-c 192.168.0.100 -P 20"}
+iperf Done.
+xyz@debian:~$"""
 
-# COMMAND_RESULT_multiple_connections = {
-#     "CONNECTIONS": {
-#         ("57246@192.168.0.102", "5001@192.168.0.100"): [
-#             {
-#                 "Bandwidth Raw": "14.5 Mbits/sec",
-#                 "Bandwidth": 1812500,
-#                 "Interval": (0.0, 10.7),
-#                 "Transfer Raw": "18.5 MBytes",
-#                 "Transfer": 19398656,
-#             }
-#         ],
-#         ("57247@192.168.0.102", "5001@192.168.0.100"): [
-#             {
-#                 "Bandwidth Raw": "14.1 Mbits/sec",
-#                 "Bandwidth": 1762500,
-#                 "Interval": (0.0, 10.8),
-#                 "Transfer Raw": "18.1 MBytes",
-#                 "Transfer": 18979225,
-#             }
-#         ],
-#         ("57248@192.168.0.102", "5001@192.168.0.100"): [
-#             {
-#                 "Bandwidth Raw": "13.9 Mbits/sec",
-#                 "Bandwidth": 1737500,
-#                 "Interval": (0.0, 10.7),
-#                 "Transfer Raw": "17.6 MBytes",
-#                 "Transfer": 18454937,
-#             }
-#         ],
-#         ("57249@192.168.0.102", "5001@192.168.0.100"): [
-#             {
-#                 "Bandwidth Raw": "13.2 Mbits/sec",
-#                 "Bandwidth": 1650000,
-#                 "Interval": (0.0, 10.8),
-#                 "Transfer Raw": "17.0 MBytes",
-#                 "Transfer": 17825792,
-#             }
-#         ],
-#         ("57250@192.168.0.102", "5001@192.168.0.100"): [
-#             {
-#                 "Bandwidth Raw": "14.3 Mbits/sec",
-#                 "Bandwidth": 1787500,
-#                 "Interval": (0.0, 10.8),
-#                 "Transfer Raw": "18.4 MBytes",
-#                 "Transfer": 19293798,
-#             }
-#         ],
-#         ("57251@192.168.0.102", "5001@192.168.0.100"): [
-#             {
-#                 "Bandwidth Raw": "13.1 Mbits/sec",
-#                 "Bandwidth": 1637500,
-#                 "Interval": (0.0, 10.6),
-#                 "Transfer Raw": "16.6 MBytes",
-#                 "Transfer": 17406361,
-#             }
-#         ],
-#         ("57252@192.168.0.102", "5001@192.168.0.100"): [
-#             {
-#                 "Bandwidth Raw": "13.0 Mbits/sec",
-#                 "Bandwidth": 1625000,
-#                 "Interval": (0.0, 10.8),
-#                 "Transfer Raw": "16.8 MBytes",
-#                 "Transfer": 17616076,
-#             }
-#         ],
-#         ("57253@192.168.0.102", "5001@192.168.0.100"): [
-#             {
-#                 "Bandwidth Raw": "13.1 Mbits/sec",
-#                 "Bandwidth": 1637500,
-#                 "Interval": (0.0, 10.8),
-#                 "Transfer Raw": "16.8 MBytes",
-#                 "Transfer": 17616076,
-#             }
-#         ],
-#         ("57254@192.168.0.102", "5001@192.168.0.100"): [
-#             {
-#                 "Bandwidth Raw": "14.0 Mbits/sec",
-#                 "Bandwidth": 1750000,
-#                 "Interval": (0.0, 10.7),
-#                 "Transfer Raw": "18.0 MBytes",
-#                 "Transfer": 18874368,
-#             }
-#         ],
-#         ("57255@192.168.0.102", "5001@192.168.0.100"): [
-#             {
-#                 "Bandwidth Raw": "13.7 Mbits/sec",
-#                 "Bandwidth": 1712500,
-#                 "Interval": (0.0, 10.7),
-#                 "Transfer Raw": "17.5 MBytes",
-#                 "Transfer": 18350080,
-#             }
-#         ],
-#         ("57256@192.168.0.102", "5001@192.168.0.100"): [
-#             {
-#                 "Bandwidth Raw": "13.9 Mbits/sec",
-#                 "Bandwidth": 1737500,
-#                 "Interval": (0.0, 10.7),
-#                 "Transfer Raw": "17.8 MBytes",
-#                 "Transfer": 18664652,
-#             }
-#         ],
-#         ("57257@192.168.0.102", "5001@192.168.0.100"): [
-#             {
-#                 "Bandwidth Raw": "14.1 Mbits/sec",
-#                 "Bandwidth": 1762500,
-#                 "Interval": (0.0, 10.8),
-#                 "Transfer Raw": "18.2 MBytes",
-#                 "Transfer": 19084083,
-#             }
-#         ],
-#         ("57258@192.168.0.102", "5001@192.168.0.100"): [
-#             {
-#                 "Bandwidth Raw": "13.8 Mbits/sec",
-#                 "Bandwidth": 1725000,
-#                 "Interval": (0.0, 10.8),
-#                 "Transfer Raw": "17.8 MBytes",
-#                 "Transfer": 18664652,
-#             }
-#         ],
-#         ("57259@192.168.0.102", "5001@192.168.0.100"): [
-#             {
-#                 "Bandwidth Raw": "13.1 Mbits/sec",
-#                 "Bandwidth": 1637500,
-#                 "Interval": (0.0, 10.6),
-#                 "Transfer Raw": "16.6 MBytes",
-#                 "Transfer": 17406361,
-#             }
-#         ],
-#         ("57260@192.168.0.102", "5001@192.168.0.100"): [
-#             {
-#                 "Bandwidth Raw": "13.1 Mbits/sec",
-#                 "Bandwidth": 1637500,
-#                 "Interval": (0.0, 10.6),
-#                 "Transfer Raw": "16.5 MBytes",
-#                 "Transfer": 17301504,
-#             }
-#         ],
-#         ("57261@192.168.0.102", "5001@192.168.0.100"): [
-#             {
-#                 "Bandwidth Raw": "13.0 Mbits/sec",
-#                 "Bandwidth": 1625000,
-#                 "Interval": (0.0, 10.6),
-#                 "Transfer Raw": "16.5 MBytes",
-#                 "Transfer": 17301504,
-#             }
-#         ],
-#         ("57262@192.168.0.102", "5001@192.168.0.100"): [
-#             {
-#                 "Bandwidth Raw": "12.9 Mbits/sec",
-#                 "Bandwidth": 1612500,
-#                 "Interval": (0.0, 10.7),
-#                 "Transfer Raw": "16.5 MBytes",
-#                 "Transfer": 17301504,
-#             }
-#         ],
-#         ("57263@192.168.0.102", "5001@192.168.0.100"): [
-#             {
-#                 "Bandwidth Raw": "13.0 Mbits/sec",
-#                 "Bandwidth": 1625000,
-#                 "Interval": (0.0, 10.7),
-#                 "Transfer Raw": "16.6 MBytes",
-#                 "Transfer": 17406361,
-#             }
-#         ],
-#         ("57264@192.168.0.102", "5001@192.168.0.100"): [
-#             {
-#                 "Bandwidth Raw": "12.3 Mbits/sec",
-#                 "Bandwidth": 1537500,
-#                 "Interval": (0.0, 10.7),
-#                 "Transfer Raw": "15.6 MBytes",
-#                 "Transfer": 16357785,
-#             }
-#         ],
-#         ("57265@192.168.0.102", "5001@192.168.0.100"): [
-#             {
-#                 "Bandwidth Raw": "13.0 Mbits/sec",
-#                 "Bandwidth": 1625000,
-#                 "Interval": (0.0, 10.7),
-#                 "Transfer Raw": "16.6 MBytes",
-#                 "Transfer": 17406361,
-#             }
-#         ],
-#         ("multiport@192.168.0.102", "5001@192.168.0.100"): [
-#             {
-#                 "Transfer": 360710144,
-#                 "Bandwidth": 33250000,
-#                 "Transfer Raw": "344 MBytes",
-#                 "Bandwidth Raw": "266 Mbits/sec",
-#                 "Interval": (0.0, 10.8),
-#             }
-#         ],
-#         ("192.168.0.102", "5001@192.168.0.100"): {
-#             "report": {
-#                 "Transfer": 360710144,
-#                 "Bandwidth": 33250000,
-#                 "Transfer Raw": "344 MBytes",
-#                 "Bandwidth Raw": "266 Mbits/sec",
-#                 "Interval": (0.0, 10.8),
-#             }
-#         },
-#     },
-#     "INFO": [
-#         "Client connecting to 192.168.0.100, TCP port 5001",
-#         "TCP window size: 16.0 KByte (default)",
-#     ],
-# }
+COMMAND_KWARGS_multiple_connections = {"options": "-c 127.0.0.1 -P 3"}
+
+COMMAND_RESULT_multiple_connections = {
+    'CONNECTIONS': {
+        ('127.0.0.1', '5201@127.0.0.1'): {'report': {'Bitrate': 2787500000,
+                                                     'Bitrate Raw': '22.3 '
+                                                     'Gbits/sec',
+                                                     'Interval': (0.0,
+                                                                  10.0),
+                                                     'Retr': '0',
+                                                     'Transfer': 27917287424,
+                                                     'Transfer Raw': '26.0 '
+                                                     'GBytes'}},
+        ('46026@127.0.0.1', '5201@127.0.0.1'): [{'Bitrate': 1048750000,
+                                                'Bitrate Raw': '8.39 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (0.0,
+                                                              1.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 1048576000,
+                                                 'Transfer Raw': '1000 '
+                                                 'MBytes'},
+                                                {'Bitrate': 931250000,
+                                                'Bitrate Raw': '7.45 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (1.0,
+                                                              2.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 932184064,
+                                                 'Transfer Raw': '889 '
+                                                 'MBytes'},
+                                                {'Bitrate': 905000000,
+                                                'Bitrate Raw': '7.24 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (2.0,
+                                                              3.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 903872512,
+                                                 'Transfer Raw': '862 '
+                                                 'MBytes'},
+                                                {'Bitrate': 901250000,
+                                                'Bitrate Raw': '7.21 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (3.0,
+                                                              4.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 901775360,
+                                                 'Transfer Raw': '860 '
+                                                 'MBytes'},
+                                                {'Bitrate': 900000000,
+                                                'Bitrate Raw': '7.20 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (4.0,
+                                                              5.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 900726784,
+                                                 'Transfer Raw': '859 '
+                                                 'MBytes'},
+                                                {'Bitrate': 900000000,
+                                                'Bitrate Raw': '7.20 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (5.0,
+                                                              6.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 899678208,
+                                                 'Transfer Raw': '858 '
+                                                 'MBytes'},
+                                                {'Bitrate': 1041250000,
+                                                'Bitrate Raw': '8.33 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (6.0,
+                                                              7.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 1040187392,
+                                                 'Transfer Raw': '992 '
+                                                 'MBytes'},
+                                                {'Bitrate': 902500000,
+                                                'Bitrate Raw': '7.22 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (7.0,
+                                                              8.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 902823936,
+                                                 'Transfer Raw': '861 '
+                                                 'MBytes'},
+                                                {'Bitrate': 867500000,
+                                                'Bitrate Raw': '6.94 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (8.0,
+                                                              9.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 869269504,
+                                                 'Transfer Raw': '829 '
+                                                 'MBytes'},
+                                                {'Bitrate': 895000000,
+                                                'Bitrate Raw': '7.16 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (9.0,
+                                                              10.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 893386752,
+                                                 'Transfer Raw': '852 '
+                                                 'MBytes'},
+                                                {'Bitrate': 928750000,
+                                                'Bitrate Raw': '7.43 '
+                                                 'Gbits/sec',
+                                                 'Interval': (0.0,
+                                                              10.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 9287866777,
+                                                 'Transfer Raw': '8.65 '
+                                                 'GBytes'},
+                                                {'Bitrate': 926250000,
+                                                'Bitrate Raw': '7.41 '
+                                                 'Gbits/sec',
+                                                 'Interval': (0.0,
+                                                              10.04),
+                                                 'Transfer': 9287866777,
+                                                 'Transfer Raw': '8.65 '
+                                                 'GBytes'}],
+        ('46036@127.0.0.1', '5201@127.0.0.1'): [{'Bitrate': 1048750000,
+                                                'Bitrate Raw': '8.39 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (0.0,
+                                                              1.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 1048576000,
+                                                 'Transfer Raw': '1000 '
+                                                 'MBytes'},
+                                                {'Bitrate': 931250000,
+                                                'Bitrate Raw': '7.45 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (1.0,
+                                                              2.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 932184064,
+                                                 'Transfer Raw': '889 '
+                                                 'MBytes'},
+                                                {'Bitrate': 905000000,
+                                                'Bitrate Raw': '7.24 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (2.0,
+                                                              3.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 903872512,
+                                                 'Transfer Raw': '862 '
+                                                 'MBytes'},
+                                                {'Bitrate': 901250000,
+                                                'Bitrate Raw': '7.21 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (3.0,
+                                                              4.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 901775360,
+                                                 'Transfer Raw': '860 '
+                                                 'MBytes'},
+                                                {'Bitrate': 900000000,
+                                                'Bitrate Raw': '7.20 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (4.0,
+                                                              5.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 900726784,
+                                                 'Transfer Raw': '859 '
+                                                 'MBytes'},
+                                                {'Bitrate': 900000000,
+                                                'Bitrate Raw': '7.20 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (5.0,
+                                                              6.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 899678208,
+                                                 'Transfer Raw': '858 '
+                                                 'MBytes'},
+                                                {'Bitrate': 1041250000,
+                                                'Bitrate Raw': '8.33 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (6.0,
+                                                              7.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 1040187392,
+                                                 'Transfer Raw': '992 '
+                                                 'MBytes'},
+                                                {'Bitrate': 902500000,
+                                                'Bitrate Raw': '7.22 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (7.0,
+                                                              8.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 902823936,
+                                                 'Transfer Raw': '861 '
+                                                 'MBytes'},
+                                                {'Bitrate': 867500000,
+                                                'Bitrate Raw': '6.94 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (8.0,
+                                                              9.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 869269504,
+                                                 'Transfer Raw': '829 '
+                                                 'MBytes'},
+                                                {'Bitrate': 895000000,
+                                                'Bitrate Raw': '7.16 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (9.0,
+                                                              10.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 893386752,
+                                                 'Transfer Raw': '852 '
+                                                 'MBytes'},
+                                                {'Bitrate': 928750000,
+                                                'Bitrate Raw': '7.43 '
+                                                 'Gbits/sec',
+                                                 'Interval': (0.0,
+                                                              10.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 9287866777,
+                                                 'Transfer Raw': '8.65 '
+                                                 'GBytes'},
+                                                {'Bitrate': 926250000,
+                                                'Bitrate Raw': '7.41 '
+                                                 'Gbits/sec',
+                                                 'Interval': (0.0,
+                                                              10.04),
+                                                 'Transfer': 9287866777,
+                                                 'Transfer Raw': '8.65 '
+                                                 'GBytes'}],
+        ('46052@127.0.0.1', '5201@127.0.0.1'): [{'Bitrate': 1048750000,
+                                                'Bitrate Raw': '8.39 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (0.0,
+                                                              1.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 1048576000,
+                                                 'Transfer Raw': '1000 '
+                                                 'MBytes'},
+                                                {'Bitrate': 931250000,
+                                                'Bitrate Raw': '7.45 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (1.0,
+                                                              2.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 932184064,
+                                                 'Transfer Raw': '889 '
+                                                 'MBytes'},
+                                                {'Bitrate': 905000000,
+                                                'Bitrate Raw': '7.24 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (2.0,
+                                                              3.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 903872512,
+                                                 'Transfer Raw': '862 '
+                                                 'MBytes'},
+                                                {'Bitrate': 901250000,
+                                                'Bitrate Raw': '7.21 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (3.0,
+                                                              4.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 901775360,
+                                                 'Transfer Raw': '860 '
+                                                 'MBytes'},
+                                                {'Bitrate': 900000000,
+                                                'Bitrate Raw': '7.20 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (4.0,
+                                                              5.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 900726784,
+                                                 'Transfer Raw': '859 '
+                                                 'MBytes'},
+                                                {'Bitrate': 900000000,
+                                                'Bitrate Raw': '7.20 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (5.0,
+                                                              6.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 899678208,
+                                                 'Transfer Raw': '858 '
+                                                 'MBytes'},
+                                                {'Bitrate': 1041250000,
+                                                'Bitrate Raw': '8.33 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (6.0,
+                                                              7.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 1040187392,
+                                                 'Transfer Raw': '992 '
+                                                 'MBytes'},
+                                                {'Bitrate': 902500000,
+                                                'Bitrate Raw': '7.22 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (7.0,
+                                                              8.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 902823936,
+                                                 'Transfer Raw': '861 '
+                                                 'MBytes'},
+                                                {'Bitrate': 867500000,
+                                                'Bitrate Raw': '6.94 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (8.0,
+                                                              9.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 869269504,
+                                                 'Transfer Raw': '829 '
+                                                 'MBytes'},
+                                                {'Bitrate': 895000000,
+                                                'Bitrate Raw': '7.16 '
+                                                 'Gbits/sec',
+                                                 'Cwnd': 982016,
+                                                 'Cwnd Raw': '959 '
+                                                 'KBytes',
+                                                 'Interval': (9.0,
+                                                              10.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 893386752,
+                                                 'Transfer Raw': '852 '
+                                                 'MBytes'},
+                                                {'Bitrate': 928750000,
+                                                'Bitrate Raw': '7.43 '
+                                                 'Gbits/sec',
+                                                 'Interval': (0.0,
+                                                              10.0),
+                                                 'Retr': '0',
+                                                 'Transfer': 9287866777,
+                                                 'Transfer Raw': '8.65 '
+                                                 'GBytes'},
+                                                {'Bitrate': 926250000,
+                                                'Bitrate Raw': '7.41 '
+                                                 'Gbits/sec',
+                                                 'Interval': (0.0,
+                                                              10.04),
+                                                 'Transfer': 9287866777,
+                                                 'Transfer Raw': '8.65 '
+                                                 'GBytes'}],
+        ('multiport@127.0.0.1', '5201@127.0.0.1'): [{'Bitrate': 3150000000,
+                                                    'Bitrate Raw': '25.2 '
+                                                     'Gbits/sec',
+                                                     'Interval': (0.0,
+                                                                  1.0),
+                                                     'Retr': '0',
+                                                     'Transfer': 3146063544,
+                                                     'Transfer Raw': '2.93 '
+                                                     'GBytes'},
+                                                    {'Bitrate': 2787500000,
+                                                    'Bitrate Raw': '22.3 '
+                                                     'Gbits/sec',
+                                                     'Interval': (1.0,
+                                                                  2.0),
+                                                     'Retr': '0',
+                                                     'Transfer': 2791728742,
+                                                     'Transfer Raw': '2.60 '
+                                                     'GBytes'},
+                                                    {'Bitrate': 2712500000,
+                                                    'Bitrate Raw': '21.7 '
+                                                     'Gbits/sec',
+                                                     'Interval': (2.0,
+                                                                  3.0),
+                                                     'Retr': '0',
+                                                     'Transfer': 2716566814,
+                                                     'Transfer Raw': '2.53 '
+                                                     'GBytes'},
+                                                    {'Bitrate': 2700000000,
+                                                    'Bitrate Raw': '21.6 '
+                                                     'Gbits/sec',
+                                                     'Interval': (3.0,
+                                                                  4.0),
+                                                     'Retr': '0',
+                                                     'Transfer': 2705829396,
+                                                     'Transfer Raw': '2.52 '
+                                                     'GBytes'},
+                                                    {'Bitrate': 2700000000,
+                                                    'Bitrate Raw': '21.6 '
+                                                     'Gbits/sec',
+                                                     'Interval': (4.0,
+                                                                  5.0),
+                                                     'Retr': '0',
+                                                     'Transfer': 2705829396,
+                                                     'Transfer Raw': '2.52 '
+                                                     'GBytes'},
+                                                    {'Bitrate': 2700000000,
+                                                    'Bitrate Raw': '21.6 '
+                                                     'Gbits/sec',
+                                                     'Interval': (5.0,
+                                                                  6.0),
+                                                     'Retr': '0',
+                                                     'Transfer': 2695091978,
+                                                     'Transfer Raw': '2.51 '
+                                                     'GBytes'},
+                                                    {'Bitrate': 3125000000,
+                                                    'Bitrate Raw': '25.0 '
+                                                     'Gbits/sec',
+                                                     'Interval': (6.0,
+                                                                  7.0),
+                                                     'Retr': '0',
+                                                     'Transfer': 3124588707,
+                                                     'Transfer Raw': '2.91 '
+                                                     'GBytes'},
+                                                    {'Bitrate': 2712500000,
+                                                    'Bitrate Raw': '21.7 '
+                                                     'Gbits/sec',
+                                                     'Interval': (7.0,
+                                                                  8.0),
+                                                     'Retr': '0',
+                                                     'Transfer': 2705829396,
+                                                     'Transfer Raw': '2.52 '
+                                                     'GBytes'},
+                                                    {'Bitrate': 2600000000,
+                                                    'Bitrate Raw': '20.8 '
+                                                     'Gbits/sec',
+                                                     'Interval': (8.0,
+                                                                  9.0),
+                                                     'Retr': '0',
+                                                     'Transfer': 2609192632,
+                                                     'Transfer Raw': '2.43 '
+                                                     'GBytes'},
+                                                    {'Bitrate': 2687500000,
+                                                    'Bitrate Raw': '21.5 '
+                                                     'Gbits/sec',
+                                                     'Interval': (9.0,
+                                                                  10.0),
+                                                     'Retr': '0',
+                                                     'Transfer': 2684354560,
+                                                     'Transfer Raw': '2.50 '
+                                                     'GBytes'},
+                                                    {'Bitrate': 2787500000,
+                                                    'Bitrate Raw': '22.3 '
+                                                     'Gbits/sec',
+                                                     'Interval': (0.0,
+                                                                  10.0),
+                                                     'Retr': '0',
+                                                     'Transfer': 27917287424,
+                                                     'Transfer Raw': '26.0 '
+                                                     'GBytes'},
+                                                    {'Bitrate': 2775000000,
+                                                    'Bitrate Raw': '22.2 '
+                                                     'Gbits/sec',
+                                                     'Interval': (0.0,
+                                                                  10.04),
+                                                     'Transfer': 27917287424,
+                                                     'Transfer Raw': '26.0 '
+                                                     'GBytes'}]},
+    'INFO': ['Connecting to host 127.0.0.1, port 5201', 'iperf Done.']}
 
 
 # COMMAND_OUTPUT_multiple_connections_server = """
