@@ -32,6 +32,7 @@ class Cat(GenericUnixCommand):
         self.failure_only_in_first_line = failure_only_in_first_line
         self.current_ret["LINES"] = []
         self._line_nr = 0
+        self._exception_warn = False
 
     def build_command_string(self):
         """
@@ -74,7 +75,9 @@ class Cat(GenericUnixCommand):
         :return: None.
         """
         if self.failure_only_in_first_line and self._line_nr > 1 and not isinstance(exception, CommandTimeout):
-            self._log(logging.WARNING, "The exception ({}) is tried to be set but was ignored (requested).".format(exception))
+            if self._exception_warn is False:
+                self._log(logging.WARNING, "The exception ({}) is tried to be set but was ignored (requested).".format(exception))
+            self._exception_warn = True
             return
         return super(Cat, self).set_exception(exception)
 
