@@ -30,8 +30,9 @@ def test_iperf_raise_error_on_bind_failed(buffer_connection, command_output_and_
     command_output, expected_result = command_output_and_expected_result_on_bind_failed
     buffer_connection.remote_inject_response([command_output])
     assert 'iperf -s' == iperf_cmd.command_string
+    iperf_cmd.terminating_timeout = 0
     with pytest.raises(CommandFailure):
-        iperf_cmd()
+        iperf_cmd(timeout=0.2)
 
 
 def test_iperf_raise_error_on_no_such_file(buffer_connection, command_output_and_expected_result_on_connect_failed):

@@ -47,7 +47,7 @@ def test_calling_uptime_timeout_with_long_timeout(buffer_connection):
 
 def test_calling_uptime_timeout_with_short_timeout(buffer_connection):
     uptime_cmd = Uptime(connection=buffer_connection.moler_connection)
-    short_timeout = 7
+    short_timeout = 1
     uptime_cmd.terminating_timeout = 0.2
     uptime_cmd.start(timeout=short_timeout)
     start_time = time.time()

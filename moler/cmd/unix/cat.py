@@ -2,6 +2,8 @@
 """
 Cat command module.
 """
+import logging
+
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
 from moler.exceptions import CommandTimeout
@@ -64,6 +66,18 @@ class Cat(GenericUnixCommand):
     _re_parse_error = re.compile(r'^.*:.*:\s*(No such file or directory|command not found|Permission denied|'
                                  r'Is a directory)$')
 
+    def set_exception(self, exception):
+        """
+        Set exception object as failure for command object.
+
+        :param exception: An exception object to set.
+        :return: None.
+        """
+        if self.failure_only_in_first_line and self._line_nr > 1 and not isinstance(exception, CommandTimeout):
+            self._log(logging.WARNING, "The exception ({}) is tried to be set but was ignored (requested).".format(exception))
+            return
+        return super(Cat, self).set_exception(exception)
+
     def is_failure_indication(self, line):
         """
         Method to detect if passed line contains part indicating failure of command.
@@ -71,11 +85,6 @@ class Cat(GenericUnixCommand):
         :param line: Line from command output on device
         :return: Match object if find regex in line, None otherwise.
         """
-        if self.failure_only_in_first_line:
-            if self._line_nr > 1:
-                if self._stored_exception and not isinstance(self._stored_exception, CommandTimeout):
-                    self._stored_exception = None
-                return None
         return self._regex_helper.search_compiled(Cat._re_parse_error, line)
 
     def _parse_line(self, line):
@@ -128,6 +137,7 @@ COMMAND_KWARGS_cannot_open = {
 }
 
 COMMAND_OUTPUT_no_such_file_or_directory = """cat file.txt
+
 2020-06-23T12:02:42.328562+02:00 info 5GBTS-143-OAM-000 ext-sshd[980136]: lastlog_openseek: Couldn't stat /var/log/lastlog: No such file or directory
 other lines
 user@host:~$"""

@@ -53,6 +53,8 @@ class LxcInfo(GenericUnixCommand):
         :param is_full_line: True if line had new line chars, False otherwise
         :return: None
         """
+        from time import time
+        #print("lxc_info.on_new_line {} '{}'".format(time(), line))
         if is_full_line:
             try:
                 self._command_error(line)

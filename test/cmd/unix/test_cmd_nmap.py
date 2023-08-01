@@ -21,9 +21,10 @@ def test_calling_nmap_timeout(buffer_connection, command_output_and_expected_res
     command_output, expected_result = command_output_and_expected_result_timeout
     buffer_connection.remote_inject_response([command_output])
     nmap_cmd = Nmap(connection=buffer_connection.moler_connection, ip="192.168.255.3")
+    nmap_cmd.terminating_timeout = 0
     from moler.exceptions import CommandTimeout
     with raises(CommandTimeout) as exception:
-        nmap_cmd(timeout=0.5)
+        nmap_cmd(timeout=0.1)
     assert exception is not None
 
 
@@ -42,7 +43,7 @@ def test_calling_nmap_cannot_write(buffer_connection):
     assert cmd_s == nmap_cmd.command_string
     from moler.exceptions import CommandFailure
     with raises(CommandFailure) as exception:
-        nmap_cmd(timeout=0.5)
+        nmap_cmd(timeout=0.1)
     assert exception is not None
 
 # --------------------------- resources
