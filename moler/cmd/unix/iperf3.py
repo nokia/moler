@@ -277,16 +277,16 @@ class Iperf3(GenericUnixCommand, Publisher):
                 self._same_host_connections[client_host].append(connection)
             raise ParsingDone
 
-    # iperf output for: tcp server
+    # iperf3 output for: tcp server
     # [ ID] Interval      Transfer      Bitrate
 
-    # iperf output for: tcp client
+    # iperf3 output for: tcp client
     # [ ID] Interval      Transfer      Bitrate      Retr        Cwnd
 
-    # iperf output for: udp server
+    # iperf3 output for: udp server
     # [ ID] Interval      Transfer      Bitrate      Jitter      Lost/Total Datagrams
 
-    # iperf output for: udp client
+    # iperf3 output for: udp client
     # [ ID] Interval      Transfer      Bitrate      Total Datagrams
 
     _re_headers = re.compile(r"\[\s+ID\]\s+Interval\s+Transfer\s+Bitrate")
