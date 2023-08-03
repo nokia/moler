@@ -184,9 +184,9 @@ class Iperf3(GenericUnixCommand, Publisher):
 
     def subscribe(self, subscriber):
         """
-        Subscribe for notifications about iperf statistic as it comes.
+        Subscribe for notifications about iperf3 statistic as it comes.
 
-        Anytime we find iperf statistics line like:
+        Anytime we find iperf3 statistics line like:
         [  3]  2.0- 3.0 sec   612 KBytes  5010 Kbits/sec   0.022 ms    0/  426 (0%)
         such line is parsed and published to subscriber
 
@@ -196,7 +196,7 @@ class Iperf3(GenericUnixCommand, Publisher):
                 ...
 
         Either data_record is published or report.
-        Report is published on last line of iperf statistics summarizing stats for whole period:
+        Report is published on last line of iperf3 statistics summarizing stats for whole period:
         [904]   0.0-10.0 sec   11.8 MBytes   9.86 Mbits/sec   2.618 ms   9/ 8409  (0.11%)   sender
 
         :param subscriber: function to be called to notify about data.
@@ -207,7 +207,7 @@ class Iperf3(GenericUnixCommand, Publisher):
         """
         Checks if end of command is reached.
 
-        For iperf server we can't await prompt since at server it is not displayed
+        For iperf3 server we can't await prompt since at server it is not displayed
 
         :param line: Line from device.
         :return:
@@ -294,8 +294,6 @@ class Iperf3(GenericUnixCommand, Publisher):
     def _parse_headers(self, line):
         if self._regex_helper.search_compiled(Iperf3._re_headers, line):
             if self.parallel_client:
-                # header line is after connections
-                # so, we can create virtual Summary connection
                 client, server = list(self._connection_dict.values())[0]
                 (
                     client_host,
@@ -306,8 +304,7 @@ class Iperf3(GenericUnixCommand, Publisher):
                 connection_id = "[SUM]"
                 self._connection_dict[connection_id] = (
                     "{}@{}".format("multiport", client_host),
-                    server,
-                )
+                    server,)
             raise ParsingDone
 
     def _split_connection_name(self, connection_name):
@@ -437,7 +434,7 @@ class Iperf3(GenericUnixCommand, Publisher):
             return  # for parallel we take report / publish stats only from summary records
         last_record = self.current_ret["CONNECTIONS"][connection_name][-1]
 
-        if self._is_final_record(last_record, line):
+        if self._is_final_record(line):
             (
                 client_host,
                 client_port,
@@ -472,7 +469,7 @@ class Iperf3(GenericUnixCommand, Publisher):
     _re_iperf_record_tcp_cli_summary_report = re.compile(
         _r_rec_tcp_cli_summary_report)
 
-    def _is_final_record(self, last_record, line):
+    def _is_final_record(self, line):
         regex_found = self._regex_helper.search_compiled
 
         if regex_found(Iperf3._re_iperf_record_udp_svr_report, line) or \
