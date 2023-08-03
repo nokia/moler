@@ -94,33 +94,22 @@ class Iperf3(GenericUnixCommand, Publisher):
         self._got_server_report_hdr = False
         self._got_server_report = False
         self._stopping_server = False
-        self.cli_cnt = 0
-        self.ser_cnt = 0
 
     def __str__(self):
         str_base_value = super(Iperf3, self).__str__()
         str_value = "{}, awaited_prompt='{}')".format(
-            str_base_value[:-1], self._re_prompt.pattern
-        )
+            str_base_value[:-1], self._re_prompt.pattern)
         return str_value
 
     _re_port = re.compile(r"(?P<PORT_OPTION>\-\-port|\-p)\s+(?P<PORT>\d+)")
 
     def _validate_options(self, options):
-        if (("-d" in options) or ("--dualtest" in options)) and (
-            ("-P" in options) or ("--parallel" in options)
-        ):
-            raise AttributeError(
-                "Unsupported options combination (--dualtest & --parallel)"
-            )
         if (("-u" in options) or ("--udp" in options)) and (
-            ("-s" in options) or ("--server" in options)
-        ):
+                ("-s" in options) or ("--server" in options)):
             raise AttributeError(
                 "Option (--udp) you are trying to set is client only")
         if (("-t" in options) or ("--time" in options)) and (
-            ("-s" in options) or ("--server" in options)
-        ):
+                ("-s" in options) or ("--server" in options)):
             raise AttributeError(
                 "Option (--time) you are trying to set is client only")
         if self._regex_helper.search_compiled(Iperf3._re_port, options):
@@ -158,19 +147,6 @@ class Iperf3(GenericUnixCommand, Publisher):
         return 10.0
 
     @property
-    def dualtest(self):
-        return ("--dualtest" in self.options) or ("-d" in self.options)
-
-    @property
-    def works_in_dualtest(self):
-        if self.client:
-            return self.dualtest
-        if self.parallel_client:
-            return False
-        connections = self._connection_dict.values()
-        return len(connections) > 1
-
-    @property
     def client(self):
         return ("-c " in self.options) or ("--client " in self.options)
 
@@ -185,11 +161,6 @@ class Iperf3(GenericUnixCommand, Publisher):
         if self.client:
             return ("-P " in self.options) or ("--parallel " in self.options)
         if len(self._connection_dict.keys()) > 1:
-            # all remote connections must be same otherwise it is --dualtest requested from server
-            _, first_remote = list(self._connection_dict.values())[0]
-            for _, remote in self._connection_dict.values():
-                if remote != first_remote:
-                    return False
             return True
         return False
 
@@ -595,15 +566,9 @@ class Iperf3(GenericUnixCommand, Publisher):
         from_client, to_server = client_host, "{}@{}".format(
             self.port, server_host)
         has_client_report = (from_client, to_server) in result
-        if self.works_in_dualtest:  # need two reports
-            from_server, to_client = server_host, "{}@{}".format(
-                self.port, client_host)
-            has_server_report = (from_server, to_client) in result
-            all_reports = has_client_report and has_server_report
-            works_as_client = True  # in dualtest both server and client work as client
-        else:
-            all_reports = has_client_report
-            works_as_client = self.client
+
+        all_reports = has_client_report
+        works_as_client = self.client
         # udp client additionally awaits server report
         if self.protocol == "udp" and works_as_client:
             all_reports = all_reports and self._got_server_report
