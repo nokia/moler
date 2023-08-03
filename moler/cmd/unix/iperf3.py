@@ -2,18 +2,7 @@
 """
 Iperf3 command module.
 
-It is refactored Iperf module changing data format returned.
-New format doesn't require additional post processing of values inside returned dict
-(it was the case with old one)
-
-Moreover, new format provides final report - see bellow.
-
-iperf2 was orphaned in the late 2000s at version 2.0.5
-Then in 2014, Bob (Robert) McMahon from Broadcom restarted development of iperf2
-Official iperf2 releases after 2.0.5: https://sourceforge.net/projects/iperf2/files/
-Important changes:
-- starting from 2.0.8 -b may be used to limit bandwidth at TCP
-- as a consequence -b doesn't force -u
+It is refactored Iperf2 module changing data format returned.
 """
 
 __author__ = "Kacper Kozik"
@@ -31,16 +20,16 @@ from moler.publisher import Publisher
 
 class Iperf3(GenericUnixCommand, Publisher):
     """
-    Run iperf command, return its statistics and report.
+    Run iperf3 command, return its statistics and report.
 
-    Single line of iperf output may look like::
+    Single line of iperf3 output may look like::
 
       [ ID]   Interval       Transfer      Bitrate        Jitter   Lost/Total Datagrams
       [904]   0.0- 1.0 sec   1.17 MBytes   9.84 Mbits/sec   1.830 ms    0/ 837   (0%)
 
     It represents data transfer statistics reported per given interval.
     This line is parsed out and produces statistics record as python dict.
-    (examples can be found at bottom of iperf2.py source code)
+    (examples can be found at bottom of iperf3.py source code)
     Some keys inside dict are normalized to Bytes.
     In such case you will see both: raw and normalized values::
 
@@ -51,9 +40,9 @@ class Iperf3(GenericUnixCommand, Publisher):
 
     Iperf statistics are stored under connection name with format
     (client_port@client_IP, server_port@server_IP)
-    It represents iperf output line (iperf server example below) like::
+    It represents iperf3 output line (iperf3 server example below) like::
 
-      [  3] local 192.168.0.12 port 5016 connected with 192.168.0.10 port 56262
+      [  5] local 192.168.0.12 port 5016 connected to 192.168.0.10 port 56262
       ("56262@192.168.0.10", "5016@192.168.0.12"): [<statistics dicts here>]
 
     Iperf returned value has also additional connection named "report connection".
@@ -69,10 +58,10 @@ class Iperf3(GenericUnixCommand, Publisher):
         """
         Create iperf3 command
 
-        :param connection: moler connection used by iperf command
-        :param options: iperf options (as in iperf documentation)
-        :param prompt: prompt (regexp) where iperf starts from, if None - default prompt regexp used
-        :param newline_chars: expected newline characters of iperf output
+        :param connection: moler connection used by iperf3 command
+        :param options: iperf3 options (as in iperf3 documentation)
+        :param prompt: prompt (regexp) where iperf3 starts from, if None - default prompt regexp used
+        :param newline_chars: expected newline characters of iperf3 output
         :param runner: runner used for command
         """
         super(Iperf3, self).__init__(connection=connection,
@@ -189,8 +178,7 @@ class Iperf3(GenericUnixCommand, Publisher):
 
     def _is_replicated_cmd_echo(self, line):
         prompt_and_command = r"{}\s*{}".format(
-            self._re_prompt.pattern, self.command_string
-        )
+            self._re_prompt.pattern, self.command_string)
         found_echo = self._regex_helper.search(prompt_and_command, line)
         return found_echo is not None
 
@@ -209,7 +197,7 @@ class Iperf3(GenericUnixCommand, Publisher):
 
         Either data_record is published or report.
         Report is published on last line of iperf statistics summarizing stats for whole period:
-        [904]   0.0-10.0 sec   11.8 MBytes   9.86 Mbits/sec   2.618 ms   9/ 8409  (0.11%)
+        [904]   0.0-10.0 sec   11.8 MBytes   9.86 Mbits/sec   2.618 ms   9/ 8409  (0.11%)   sender
 
         :param subscriber: function to be called to notify about data.
         """
