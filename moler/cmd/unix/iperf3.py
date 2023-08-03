@@ -65,9 +65,7 @@ class Iperf3(GenericUnixCommand, Publisher):
 
     """
 
-    def __init__(
-        self, connection, options, prompt=None, newline_chars=None, runner=None
-    ):
+    def __init__(self, connection, options, prompt=None, newline_chars=None, runner=None):
         """
         Create iperf3 command
 
@@ -77,12 +75,10 @@ class Iperf3(GenericUnixCommand, Publisher):
         :param newline_chars: expected newline characters of iperf output
         :param runner: runner used for command
         """
-        super(Iperf3, self).__init__(
-            connection=connection,
-            prompt=prompt,
-            newline_chars=newline_chars,
-            runner=runner,
-        )
+        super(Iperf3, self).__init__(connection=connection,
+                                     prompt=prompt,
+                                     newline_chars=newline_chars,
+                                     runner=runner,)
         self.port, self.options = self._validate_options(options)
         self.current_ret["CONNECTIONS"] = dict()
         self.current_ret["INFO"] = list()
@@ -129,8 +125,7 @@ class Iperf3(GenericUnixCommand, Publisher):
         return "tcp"
 
     _re_interval = re.compile(
-        r"(?P<INTERVAL_OPTION>\-\-interval|\-i)\s+(?P<INTERVAL>[\d\.]+)"
-    )
+        r"(?P<INTERVAL_OPTION>\-\-interval|\-i)\s+(?P<INTERVAL>[\d\.]+)")
 
     @property
     def interval(self):
@@ -167,11 +162,9 @@ class Iperf3(GenericUnixCommand, Publisher):
     @property
     def singlerun_server(self):
         singlerun_param_nonlast = ("-P 1 " in self.options) or (
-            "--parallel 1 " in self.options
-        )
+            "--parallel 1 " in self.options)
         singlerun_param_as_last = self.options.endswith(
-            "-P 1"
-        ) or self.options.endswith("--parallel 1")
+            "-P 1") or self.options.endswith("--parallel 1")
         return singlerun_param_nonlast or singlerun_param_as_last
 
     def on_new_line(self, line, is_full_line):
@@ -258,17 +251,12 @@ class Iperf3(GenericUnixCommand, Publisher):
             self._stopping_server = True
 
     _re_command_failure = re.compile(
-        r"(?P<FAILURE_MSG>.*failed.*|.*error.*|.*command not found.*|.*iperf:.*)"
-    )
+        r"(?P<FAILURE_MSG>.*failed.*|.*error.*|.*command not found.*|.*iperf:.*)")
 
     def _command_failure(self, line):
         if self._regex_helper.search_compiled(Iperf3._re_command_failure, line):
             self.set_exception(
-                CommandFailure(
-                    self, "ERROR: {}".format(
-                        self._regex_helper.group("FAILURE_MSG"))
-                )
-            )
+                CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("FAILURE_MSG"))))
             raise ParsingDone
 
     # [  5] local 127.0.0.1 port 35108 connected to 127.0.0.1 port 5201
@@ -312,8 +300,6 @@ class Iperf3(GenericUnixCommand, Publisher):
 
     # iperf output for: udp client
     # [ ID] Interval      Transfer      Bitrate      Total Datagrams
-
-    # _re_headers = re.compile(r"\[\s+ID\]\s+Interval\s+Transfer\s+Bitrate\s+Retr\s+Cwnd")
 
     _re_headers = re.compile(r"\[\s+ID\]\s+Interval\s+Transfer\s+Bitrate")
 
@@ -376,8 +362,7 @@ class Iperf3(GenericUnixCommand, Publisher):
     _r_total_datagrams = r"(?P<Total_Datagrams>\d+)"
 
     _r_rec_tcp_svr = r"{}\s+{}\s+{}\s+{}".format(
-        _r_id, _r_interval, _r_transfer, _r_bitrate
-    )
+        _r_id, _r_interval, _r_transfer, _r_bitrate)
     _r_rec_tcp_cli = r"{}\s+{}\s+{}".format(_r_rec_tcp_svr, _r_retr, _r_cwnd)
     _r_rec_udp_svr = r"{}\s+{}\s+{}".format(
         _r_rec_tcp_svr, _r_jitter, _r_datagrams)
@@ -392,8 +377,6 @@ class Iperf3(GenericUnixCommand, Publisher):
 
     def _parse_connection_info(self, line):
         regex_found = self._regex_helper.search_compiled
-        # print("!"*50)
-
         if regex_found(Iperf3._re_iperf_record_udp_svr, line) or \
                 self.protocol == "udp" and regex_found(
                     Iperf3._re_iperf_record_udp_cli, line) or \
@@ -404,10 +387,6 @@ class Iperf3(GenericUnixCommand, Publisher):
                 regex_found(Iperf3._re_iperf_record_tcp_svr, line):
 
             iperf_record = self._regex_helper.groupdict()
-            # import logging
-            # logging.warning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            # logging.warning(iperf_record)
-            # logging.warning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             connection_id = iperf_record.pop("ID")
             iperf_record = self._detailed_parse_interval(iperf_record)
             iperf_record = self._detailed_parse_datagrams(iperf_record)
@@ -415,12 +394,7 @@ class Iperf3(GenericUnixCommand, Publisher):
             if (not self.parallel_client) and (connection_id == "[SUM]"):
                 raise ParsingDone  # skip it
 
-            # import logging
-            # logging.warning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            # logging.warning(iperf_record)
-            # logging.warning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             connection_name = self._connection_dict[connection_id]
-
             normalized_iperf_record = self._normalize_to_bytes(iperf_record)
             self._update_current_ret(connection_name, normalized_iperf_record)
             self._parse_final_record(connection_name, line)
@@ -443,21 +417,11 @@ class Iperf3(GenericUnixCommand, Publisher):
         return iperf_record
 
     def _update_current_ret(self, connection_name, info_dict):
-        # import logging
-        # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        # print(info_dict)
-        # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-
         if connection_name in self.current_ret["CONNECTIONS"]:
             self.current_ret["CONNECTIONS"][connection_name].append(info_dict)
         else:
             connection_dict = {connection_name: [info_dict]}
             self.current_ret["CONNECTIONS"].update(connection_dict)
-
-        # import logging
-        # logging.warning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        # logging.warning(info_dict)
-        # logging.warning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
     def _all_multiport_records_of_interval(self, connection_name):
         client, server = connection_name
@@ -484,7 +448,6 @@ class Iperf3(GenericUnixCommand, Publisher):
         if self.parallel_client and ("multiport" not in connection_name[0]):
             return  # for parallel we take report / publish stats only from summary records
         last_record = self.current_ret["CONNECTIONS"][connection_name][-1]
-        # print(self.server, self.client)
 
         if self._is_final_record(last_record, line):
             (
@@ -497,22 +460,14 @@ class Iperf3(GenericUnixCommand, Publisher):
                 server_port, server_host
             )
             result_connection = (from_client, to_server)
-            # print("?" * 50)
-            # print(last_record)
-            # print("?" * 50)
             self.current_ret["CONNECTIONS"][result_connection] = {
                 "report": last_record}
             self.notify_subscribers(
-                from_client=from_client, to_server=to_server, report=last_record
-            )
+                from_client=from_client, to_server=to_server, report=last_record)
         else:
-            # print("!" * 50)
-            # print(last_record)
-            # print("!" * 50)
             from_client, to_server = connection_name
             self.notify_subscribers(
-                from_client=from_client, to_server=to_server, data_record=last_record
-            )
+                from_client=from_client, to_server=to_server, data_record=last_record)
 
     _r_option_report = r"(?P<Option>receiver|sender)"
     _r_rec_tcp_svr_report = r"{}\s+{}".format(_r_rec_tcp_svr, _r_option_report)
@@ -520,8 +475,7 @@ class Iperf3(GenericUnixCommand, Publisher):
     _r_rec_udp_svr_report = r"{}\s+{}".format(_r_rec_udp_svr, _r_option_report)
     _r_rec_udp_cli_report = r"{}\s+{}".format(_r_rec_udp_cli, _r_option_report)
     _r_rec_tcp_cli_summary_report = r"{}\s+{}".format(
-        _r_rec_tcp_cli_summary, _r_option_report
-    )
+        _r_rec_tcp_cli_summary, _r_option_report)
 
     _re_iperf_record_tcp_svr_report = re.compile(_r_rec_tcp_svr_report)
     _re_iperf_record_tcp_cli_report = re.compile(_r_rec_tcp_cli_report)
@@ -531,7 +485,6 @@ class Iperf3(GenericUnixCommand, Publisher):
         _r_rec_tcp_cli_summary_report)
 
     def _is_final_record(self, last_record, line):
-        # start, end = last_record['Interval']
         regex_found = self._regex_helper.search_compiled
 
         if regex_found(Iperf3._re_iperf_record_udp_svr_report, line) or \
@@ -597,20 +550,17 @@ class Iperf3(GenericUnixCommand, Publisher):
     def _normalize_to_bytes(self, input_dict):
         new_dict = {}
         for key, raw_value in input_dict.items():
-            if (
-                "Bytes" in raw_value
-            ):  # iperf MBytes means 1024 * 1024 Bytes - see iperf.fr/iperf-doc.php
+            # iperf MBytes means 1024 * 1024 Bytes - see iperf.fr/iperf-doc.php
+            if ("Bytes" in raw_value):
                 new_dict[key + " Raw"] = raw_value
                 value_in_bytes, _, _ = self._converter_helper.to_bytes(
                     raw_value)
                 new_dict[key] = value_in_bytes
-            elif (
-                "bits" in raw_value
-            ):  # iperf Mbits means 1000 * 1000 bits - see iperf.fr/iperf-doc.php
+            # iperf Mbits means 1000 * 1000 bits - see iperf.fr/iperf-doc.php
+            elif ("bits" in raw_value):
                 new_dict[key + " Raw"] = raw_value
                 value_in_bits, _, _ = self._converter_helper.to_bytes(
-                    raw_value, binary_multipliers=False
-                )
+                    raw_value, binary_multipliers=False)
                 value_in_bytes = value_in_bits // 8
                 new_dict[key] = value_in_bytes
             else:
