@@ -110,9 +110,9 @@ def test_ssh_timeout_with_wrong_change_prompt(buffer_connection, command_output_
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
                   set_prompt=r'export PS1="\\u$"', host="host.domain.net", prompt="client.*>",
                   expected_prompt=r"wrong_user\$", prompt_after_login=r"host.*#", options=None)
-
+    ssh_cmd.terminating_timeout = 0
     with pytest.raises(CommandTimeout):
-        ssh_cmd(timeout=5)
+        ssh_cmd(timeout=1)
 
 
 def test_ssh_timeout_with_wrong_change_prompt_after_login(buffer_connection, command_output_change_prompt):
@@ -122,7 +122,7 @@ def test_ssh_timeout_with_wrong_change_prompt_after_login(buffer_connection, com
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
                   set_prompt=r'export PS1="\\u$"', host="host.domain.net", prompt="client.*>",
                   expected_prompt=r"user\$", prompt_after_login=r"wronghost.*#", options=None)
-
+    ssh_cmd.terminating_timeout = 0
     with pytest.raises(CommandTimeout):
         ssh_cmd(timeout=0.2)
 
