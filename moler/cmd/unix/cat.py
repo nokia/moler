@@ -2,18 +2,21 @@
 """
 Cat command module.
 """
+import logging
+
 from moler.cmd.unix.genericunix import GenericUnixCommand
-from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
+from moler.exceptions import CommandTimeout
 import re
 
 __author__ = 'Sylwester Golonka, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'sylwester.golonka@nokia.com, marcin.usielski@nokia.com'
 
 
 class Cat(GenericUnixCommand):
-    def __init__(self, connection, path, options=None, prompt=None, newline_chars=None, runner=None):
+    def __init__(self, connection, path, options=None, prompt=None, newline_chars=None, runner=None,
+                 failure_only_in_first_line=True):
         """
         :param connection: Moler connection to device, terminal when command is executed.
         :param path: path to file to cat.
@@ -21,12 +24,15 @@ class Cat(GenericUnixCommand):
         :param prompt: prompt (on system where command runs).
         :param newline_chars: Characters to split lines - list.
         :param runner: Runner to run command.
+        :param failure_only_in_first_line: Set False to find errors in all lines, True otherwise.
         """
         super(Cat, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.path = path
         self.options = options
+        self.failure_only_in_first_line = failure_only_in_first_line
         self.current_ret["LINES"] = []
         self._line_nr = 0
+        self._exception_warn = False
 
     def build_command_string(self):
         """
@@ -61,6 +67,20 @@ class Cat(GenericUnixCommand):
     _re_parse_error = re.compile(r'^.*:.*:\s*(No such file or directory|command not found|Permission denied|'
                                  r'Is a directory)$')
 
+    def set_exception(self, exception):
+        """
+        Set exception object as failure for command object.
+
+        :param exception: An exception object to set.
+        :return: None.
+        """
+        if self.failure_only_in_first_line and self._line_nr > 1 and not isinstance(exception, CommandTimeout):
+            if self._exception_warn is False:
+                self._log(logging.WARNING, "The exception ({}) is tried to be set but was ignored (requested).".format(exception))
+            self._exception_warn = True
+            return
+        return super(Cat, self).set_exception(exception)
+
     def is_failure_indication(self, line):
         """
         Method to detect if passed line contains part indicating failure of command.
@@ -68,12 +88,7 @@ class Cat(GenericUnixCommand):
         :param line: Line from command output on device
         :return: Match object if find regex in line, None otherwise.
         """
-        if self._line_nr > 1:
-            if self._stored_exception:
-                self._stored_exception = None
-            return None
-        if self._regex_helper.search_compiled(Cat._re_parse_error, line):
-            self.set_exception(CommandFailure(self, "Error in line >>{}<<".format(line)))
+        return self._regex_helper.search_compiled(Cat._re_parse_error, line)
 
     def _parse_line(self, line):
         if not line == "":
@@ -125,6 +140,7 @@ COMMAND_KWARGS_cannot_open = {
 }
 
 COMMAND_OUTPUT_no_such_file_or_directory = """cat file.txt
+
 2020-06-23T12:02:42.328562+02:00 info 5GBTS-143-OAM-000 ext-sshd[980136]: lastlog_openseek: Couldn't stat /var/log/lastlog: No such file or directory
 other lines
 user@host:~$"""

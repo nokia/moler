@@ -23,16 +23,23 @@ def test_lxc_info_raise_command_error(buffer_connection, command_output_and_expe
     data, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response(data)
     cmd = LxcInfo(name="0xe049", connection=buffer_connection.moler_connection, options="-z")
+    from time import time
+    print("test_lxc_info_raise_command_error S {}".format(time()))
     with pytest.raises(CommandFailure):
         cmd()
+    print("test_lxc_info_raise_command_error E {}".format(time()))
 
 
 def test_lxc_info_raise_container_name_error(buffer_connection, container_name_error_and_expected_result):
     data, expected_result = container_name_error_and_expected_result
     buffer_connection.remote_inject_response(data)
     cmd = LxcInfo(name="0xe0499", connection=buffer_connection.moler_connection)
+    cmd.terminating_timeout = 0
+    from time import time
+    print("test_lxc_info_raise_container_name_error S {}".format(time()))
     with pytest.raises(CommandFailure):
         cmd()
+    print("test_lxc_info_raise_container_name_error E {}".format(time()))
 
 
 @pytest.fixture()
@@ -68,7 +75,7 @@ for any corresponding short options.
 
 See the lxc-info man page for further information.
 
-root@fct-0a:~ >"""
+root@server:~ >"""
 
     result = {}
 

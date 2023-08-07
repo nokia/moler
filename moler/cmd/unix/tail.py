@@ -5,12 +5,13 @@ Tail command module.
 from moler.cmd.unix.cat import Cat
 
 __author__ = 'Sylwester Golonka, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'sylwester.golonka@nokia.com, marcin.usielski@nokia.com'
 
 
 class Tail(Cat):
-    def __init__(self, connection, path, options=None, prompt=None, newline_chars=None, runner=None):
+    def __init__(self, connection, path, options=None, prompt=None, newline_chars=None, runner=None,
+                 failure_only_in_first_line=True):
         """
         :param connection: Moler connection to device, terminal when command is executed.
         :param path: path to file to tail.
@@ -18,9 +19,11 @@ class Tail(Cat):
         :param prompt: prompt (on system where command runs).
         :param newline_chars: Characters to split lines - list.
         :param runner: Runner to run command.
+        :param failure_only_in_first_line: Set False to find errors in all lines, True otherwise.
         """
         super(Tail, self).__init__(connection=connection, path=path, options=options, prompt=prompt,
-                                   newline_chars=newline_chars, runner=runner)
+                                   newline_chars=newline_chars, runner=runner,
+                                   failure_only_in_first_line=failure_only_in_first_line)
 
     def build_command_string(self):
         """
