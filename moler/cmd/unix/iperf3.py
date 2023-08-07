@@ -1085,15 +1085,15 @@ COMMAND_RESULT_tcp_ipv6_server = {
 
 
 COMMAND_OUTPUT_tcp_ipv6_client = """
-xyz@debian:~$ iperf3 -c ::ffff:127.0.0.1 -V -p 5019 -i 1
+xyz@debian:~$ iperf3 -c fd00::1:0 -V -p 5901 -i 1
 iperf 3.6
 Linux debian
 Control connection MSS 22016
 Time: Thu, 27 Jul 2023 07:33:51 GMT
-Connecting to host ::ffff:127.0.0.1, port 5019
+Connecting to host fd00::1:0, port 5901
       Cookie: abcd
       TCP MSS: 22016 (default)
-[  5] local 127.0.0.1 port 45616 connected to 127.0.0.1 port 5019
+[  5] local fd00::2:0 port 49597 connected to fd00::1:0 port 5901
 Starting Test: protocol: TCP, 1 streams, 131072 byte blocks, omitting 0 seconds, 10 second test, tos 0
 [ ID] Interval           Transfer     Bitrate         Retr  Cwnd
 [  5]   0.00-1.00   sec  3.75 GBytes  32.2 Gbits/sec    0   1.19 MBytes
@@ -1120,11 +1120,11 @@ xyz@debian:~$"""
 
 
 COMMAND_KWARGS_tcp_ipv6_client = {
-    "options": "-c ::ffff:127.0.0.1 -V -p 5019 -i 1"}
+    "options": "-c fd00::1:0 -V -p 5901 -i 1"}
 
 COMMAND_RESULT_tcp_ipv6_client = {
     'CONNECTIONS': {
-        ('127.0.0.1', '5019@127.0.0.1'): {'report': {'Bitrate': 3225000000,
+        ('fd00::2:0', '5901@fd00::1:0'): {'report': {'Bitrate': 3225000000,
                                                      'Bitrate Raw': '25.8 '
                                                      'Gbits/sec',
                                                      'Interval': (0.0,
@@ -1133,7 +1133,7 @@ COMMAND_RESULT_tcp_ipv6_client = {
                                                      'Transfer': 32319628902,
                                                      'Transfer Raw': '30.1 '
                                                      'GBytes'}},
-        ('45616@127.0.0.1', '5019@127.0.0.1'): [{'Bitrate': 4025000000,
+        ('49597@fd00::2:0', '5901@fd00::1:0'): [{'Bitrate': 4025000000,
                                                 'Bitrate Raw': '32.2 '
                                                  'Gbits/sec',
                                                  'Cwnd': 1247805,
@@ -1274,7 +1274,7 @@ COMMAND_RESULT_tcp_ipv6_client = {
              'Linux debian',
              'Control connection MSS 22016',
              'Time: Thu, 27 Jul 2023 07:33:51 GMT',
-             'Connecting to host ::ffff:127.0.0.1, port 5019',
+             'Connecting to host fd00::1:0, port 5901',
              'Cookie: abcd',
              'TCP MSS: 22016 (default)',
              'Starting Test: protocol: TCP, 1 streams, 131072 byte blocks, omitting 0 seconds, 10 second test, tos 0',
