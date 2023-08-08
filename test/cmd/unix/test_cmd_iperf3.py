@@ -123,10 +123,467 @@ def test_iperf_creates_summary_connection_for_parallel_testing(buffer_connection
     assert ('127.0.0.1', '5201@127.0.0.1') in stored_connections  # result
 
 
+# def test_iperf_ignores_multiple_echo_of_command(buffer_connection):
+#     # running on cygwin may cause getting multiple echo even mixed with prompt
+#     from moler.cmd.unix import iperf2
+
+#     collected_lines = []
+#     output_with_multiple_echo = "andromeda:/ # /bin/iperf -c 1.2.3.4 -p 5001 -f k -i 1.0 -t 6.0 --dualtest\n" + \
+#                                 "/bin/iperf -c 1.2.3.4 -p 5001 -f k -i 1.0 -t 6.0 -\n" + \
+#                                 "andromeda:/ # /bin/iperf -c 1.2.3.4 -p 5001 -f k -i 1.0 -t 6.0 --dualtest\n" + \
+#                                 "------------------------------------------------------------\n" + \
+#                                 "[  3] local 192.168.0.1 port 49597 connected with 1.2.3.4 port 5001\n" + \
+#                                 "[ ID] Interval       Transfer     Bandwidth\n" + \
+#                                 "[  3]  0.0- 1.0 sec  28.6 MBytes   240 Mbits/sec\n" + \
+#                                 "[  3]  0.0-10.0 sec   265 MBytes   222 Mbits/sec\n" + \
+#                                 "andromeda:/ # "
+
+#     buffer_connection.remote_inject_response([output_with_multiple_echo])
+#     iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
+#                               prompt='andromeda:/ # ',
+#                               options='-c 1.2.3.4 -p 5001 -f k -i 1.0 -t 6.0 --dualtest')
+#     iperf_cmd.command_path = '/bin/'
+#     oryg_on_new_line = iperf_cmd.__class__.on_new_line
+
+#     def on_new_line(self, line, is_full_line):
+#         collected_lines.append(line)
+#         oryg_on_new_line(self, line, is_full_line)
+
+#     with mock.patch.object(iperf_cmd.__class__, "on_new_line", on_new_line):
+#         iperf_cmd()
+#     assert "andromeda:/ # /bin/iperf -c 1.2.3.4 -p 5001 -f k -i 1.0 -t 6.0 --dualtest" not in collected_lines
+
+
+# def test_iperf_correctly_parses_bidirectional_udp_client_output(buffer_connection):
+#     from moler.cmd.unix import iperf2
+#     buffer_connection.remote_inject_response(
+#         [iperf2.COMMAND_OUTPUT_bidirectional_udp_client])
+#     iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
+#                               **iperf2.COMMAND_KWARGS_bidirectional_udp_client)
+#     res = iperf_cmd()
+#     assert res == iperf2.COMMAND_RESULT_bidirectional_udp_client
+
+
+# def test_iperf_correctly_parses_bidirectional_udp_server_output(buffer_connection):
+#     from moler.cmd.unix import iperf2
+#     buffer_connection.remote_inject_response(
+#         [iperf2.COMMAND_OUTPUT_bidirectional_udp_server])
+#     iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
+#                               **iperf2.COMMAND_KWARGS_bidirectional_udp_server)
+#     res = iperf_cmd()
+#     assert res == iperf2.COMMAND_RESULT_bidirectional_udp_server
+
+
+def test_iperf_correctly_parses_basic_udp_server_output(buffer_connection):
+    from moler.cmd.unix import iperf3
+    buffer_connection.remote_inject_response(
+        [iperf3.COMMAND_OUTPUT_basic_server])
+    iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+                              **iperf3.COMMAND_KWARGS_basic_server)
+    ret = iperf_cmd()
+    assert ret == iperf3.COMMAND_RESULT_basic_server
+
+
+def test_iperf_correctly_parses_basic_tcp_client_output(buffer_connection):
+    from moler.cmd.unix import iperf3
+    buffer_connection.remote_inject_response(
+        [iperf3.COMMAND_OUTPUT_basic_client])
+    iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+                              **iperf3.COMMAND_KWARGS_basic_client)
+    res = iperf_cmd()
+    assert res == iperf3.COMMAND_RESULT_basic_client
+
+
+def test_iperf_correctly_parses_tcp_ipv6_client_output(buffer_connection):
+    from moler.cmd.unix import iperf3
+    buffer_connection.remote_inject_response(
+        [iperf3.COMMAND_OUTPUT_tcp_ipv6_client])
+    iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+                              **iperf3.COMMAND_KWARGS_tcp_ipv6_client)
+    res = iperf_cmd()
+    assert res == iperf3.COMMAND_RESULT_tcp_ipv6_client
+
+
+def test_iperf_correctly_parses_tcp_ipv6_server_output(buffer_connection):
+    from moler.cmd.unix import iperf3
+    buffer_connection.remote_inject_response(
+        [iperf3.COMMAND_OUTPUT_tcp_ipv6_server])
+    iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+                              **iperf3.COMMAND_KWARGS_tcp_ipv6_server)
+    res = iperf_cmd()
+    assert res == iperf3.COMMAND_RESULT_tcp_ipv6_server
+
+
+def test_iperf_correctly_parses_multiconnection_tcp_client_output(buffer_connection):
+    from moler.cmd.unix import iperf3
+    buffer_connection.remote_inject_response(
+        [iperf3.COMMAND_OUTPUT_multiple_connections])
+    iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+                              **iperf3.COMMAND_KWARGS_multiple_connections)
+    ret = iperf_cmd()
+    assert ret == iperf3.COMMAND_RESULT_multiple_connections
+
+
+def test_iperf_correctly_parses_multiconnection_tcp_server_output(buffer_connection):
+    from moler.cmd.unix import iperf3
+    buffer_connection.remote_inject_response(
+        [iperf3.COMMAND_OUTPUT_multiple_connections_server])
+    iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+                              **iperf3.COMMAND_KWARGS_multiple_connections_server)
+    ret = iperf_cmd()
+    assert ret == iperf3.COMMAND_RESULT_multiple_connections_server
+
+
+def test_iperf_server_detects_all_multiport_records_of_interval(buffer_connection):
+    from moler.cmd.unix import iperf3
+    from moler.exceptions import ParsingDone
+    iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+                              **iperf3.COMMAND_KWARGS_multiple_connections_udp_server)
+    client_connection_lines = [
+        "[  5] local 127.0.0.1 port 5016 connected to 127.0.0.1 port 33549",
+        "[  6] local 127.0.0.1 port 5016 connected to 127.0.0.1 port 36062",
+        "[  9] local 127.0.0.1 port 5016 connected to 127.0.0.1 port 52695"
+    ]
+    for line in client_connection_lines:
+        try:
+            iperf_cmd._parse_connection_name_and_id(line)
+        except ParsingDone:
+            pass
+    parallel_client_1 = ('33549@127.0.0.1', '5016@127.0.0.1')
+    parallel_client_2 = ('36062@127.0.0.1', '5016@127.0.0.1')
+    parallel_client_3 = ('52695@127.0.0.1', '5016@127.0.0.1')
+
+    single_record = {'Bitrate': 132125,
+                     'Bitrate Raw': '1057 Kbits/sec',
+                     'Interval': (0.0, 1.0),
+                     'Jitter': '0.007 ms',
+                     'Lost_Datagrams_ratio': '0%',
+                     'Lost_vs_Total_Datagrams': (0, 6),
+                     'Transfer': 132096,
+                     'Transfer Raw': '129 KBytes'}
+
+    iperf_cmd.current_ret['CONNECTIONS'][parallel_client_1] = [single_record]
+    iperf_cmd.current_ret['CONNECTIONS'][parallel_client_2] = [single_record]
+    assert iperf_cmd._all_multiport_records_of_interval(
+        connection_name=parallel_client_2) is False
+    iperf_cmd.current_ret['CONNECTIONS'][parallel_client_3] = [single_record]
+    assert iperf_cmd._all_multiport_records_of_interval(
+        connection_name=parallel_client_3) is True
+    second_record = dict(single_record)
+    second_record['Interval'] = (1.0, 2.0)
+    iperf_cmd.current_ret['CONNECTIONS'][parallel_client_1] = [second_record]
+    assert iperf_cmd._all_multiport_records_of_interval(
+        connection_name=parallel_client_1) is False
+    iperf_cmd.current_ret['CONNECTIONS'][parallel_client_2] = [second_record]
+    assert iperf_cmd._all_multiport_records_of_interval(
+        connection_name=parallel_client_2) is False
+    iperf_cmd.current_ret['CONNECTIONS'][parallel_client_3] = [second_record]
+    assert iperf_cmd._all_multiport_records_of_interval(
+        connection_name=parallel_client_3) is True
+
+
+# def test_iperf_server_can_calculate_multiport_summary_record_of_interval(buffer_connection):
+#     from moler.cmd.unix import iperf3
+#     from moler.exceptions import ParsingDone
+#     iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+#                               **iperf3.COMMAND_KWARGS_multiple_connections_udp_server)
+#     client_connection_lines = [
+#         "[  1] local 192.168.44.130 port 5016 connected with 192.168.44.1 port 51914",
+#         "[  2] local 192.168.44.130 port 5016 connected with 192.168.44.1 port 51915",
+#         "[  3] local 192.168.44.130 port 5016 connected with 192.168.44.1 port 51916",
+#     ]
+#     for line in client_connection_lines:
+#         try:
+#             iperf_cmd._parse_connection_name_and_id(line)
+#         except ParsingDone:
+#             pass
+#     parallel_client_1 = ('51914@192.168.44.1', '5016@192.168.44.130')
+#     parallel_client_2 = ('51915@192.168.44.1', '5016@192.168.44.130')
+#     parallel_client_3 = ('51916@192.168.44.1', '5016@192.168.44.130')
+
+#     first_record = {'Lost_Datagrams_ratio': '0%',
+#                     'Jitter': '1.2 ms',
+#                     'Transfer': 123904,
+#                     'Interval': (0.0, 1.0),
+#                     'Transfer Raw': '121 KBytes',
+#                     'Bandwidth': 123500,
+#                     'Lost_vs_Total_Datagrams': (0, 84),
+#                     'Bandwidth Raw': '988 Kbits/sec'}
+#     second_record = dict(first_record)
+#     second_record['Jitter'] = '0.98 ms'
+#     third_record = dict(first_record)
+#     third_record['Jitter'] = '1.48 ms'
+#     iperf_cmd.current_ret['CONNECTIONS'][parallel_client_1] = [first_record]
+#     iperf_cmd.current_ret['CONNECTIONS'][parallel_client_2] = [second_record]
+#     iperf_cmd.current_ret['CONNECTIONS'][parallel_client_3] = [third_record]
+#     iperf_cmd._calculate_multiport_summary_record_of_interval(
+#         parallel_client_3)
+#     summary_connection = ('multiport@192.168.44.1', '5016@192.168.44.130')
+#     assert summary_connection in iperf_cmd.current_ret['CONNECTIONS']
+#     assert iperf_cmd.current_ret['CONNECTIONS'][summary_connection] == [{
+#         'Interval': (0.0, 1.0),
+#         'Transfer': 371712,
+#         'Transfer Raw': '363.0 KBytes',
+#         'Bandwidth': 370500,
+#         'Bandwidth Raw': '2964.0 Kbits/sec',
+#         'Jitter': '1.48 ms',
+#         'Lost_vs_Total_Datagrams': (0, 252),
+#         'Lost_Datagrams_ratio': '0.00%',
+#     }]
+
+
+def test_iperf_correctly_parses_multiconnection_udp_server_output(buffer_connection):
+    from moler.cmd.unix import iperf3
+    buffer_connection.remote_inject_response(
+        [iperf3.COMMAND_OUTPUT_multiple_connections_udp_server])
+    iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+                              **iperf3.COMMAND_KWARGS_multiple_connections_udp_server)
+    ret = iperf_cmd()
+    assert ret == iperf3.COMMAND_RESULT_multiple_connections_udp_server
+
+
+def test_iperf_correctly_parses_multiconnection_udp_client_output(buffer_connection):
+    from moler.cmd.unix import iperf3
+    buffer_connection.remote_inject_response(
+        [iperf3.COMMAND_OUTPUT_multiple_connections_udp_client])
+    iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+                              **iperf3.COMMAND_KWARGS_multiple_connections_udp_client)
+    ret = iperf_cmd()
+    assert ret == iperf3.COMMAND_RESULT_multiple_connections_udp_client
+
+
+def test_iperf_correctly_breaks_server_on_final_inactivity(buffer_connection):
+    from moler.cmd.unix import iperf3
+    cmd_output = iperf3.COMMAND_OUTPUT_multiple_connections_udp_server.split(
+        "\n")
+    prompt = cmd_output.pop()
+    cmd_output_without_prompt = "\n".join(cmd_output) + "\n"
+    buffer_connection.remote_inject_response([cmd_output_without_prompt])
+    iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+                              **iperf3.COMMAND_KWARGS_multiple_connections_udp_server)
+
+    def injecting_break_cmd(self):
+        self.connection.send("\x03")  # ctrl+c
+        buffer_connection.remote_inject_line(line="^C", add_newline=False)
+        buffer_connection.remote_inject_line(line=prompt, add_newline=False)
+
+    # ensuring that break_cmd() is not called via on_timeout()
+    iperf_cmd.break_on_timeout = False
+    with mock.patch.object(iperf_cmd.__class__, "break_cmd", injecting_break_cmd):
+        ret = iperf_cmd()
+        assert ret == iperf3.COMMAND_RESULT_multiple_connections_udp_server
+
+
+def test_iperf_correctly_parses_singlerun_tcp_server_output(buffer_connection):
+    from moler.cmd.unix import iperf3
+    buffer_connection.remote_inject_response(
+        [iperf3.COMMAND_OUTPUT_singlerun_server])
+    iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+                              **iperf3.COMMAND_KWARGS_singlerun_server)
+    ret = iperf_cmd()
+    assert ret == iperf3.COMMAND_RESULT_singlerun_server
+
+
+def test_iperf_correctly_parses_singlerun_udp_server_output(buffer_connection):
+    from moler.cmd.unix import iperf3
+    buffer_connection.remote_inject_response(
+        [iperf3.COMMAND_OUTPUT_singlerun_udp_server])
+    iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+                              **iperf3.COMMAND_KWARGS_singlerun_udp_server)
+    ret = iperf_cmd()
+    assert ret == iperf3.COMMAND_RESULT_singlerun_udp_server
+
+
+def test_iperf_singlerun_server_doesnt_use_ctrlc_to_stop_server(buffer_connection):
+    from moler.cmd.unix import iperf3
+    buffer_connection.remote_inject_response(
+        [iperf3.COMMAND_OUTPUT_singlerun_server])
+    iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+                              **iperf3.COMMAND_KWARGS_singlerun_server)
+    with mock.patch.object(iperf_cmd, "break_cmd") as send_ctrlc:
+        iperf_cmd()
+    send_ctrlc.assert_not_called()
+
+
+# def test_iperf_detecting_dualtest_at_client(buffer_connection):
+#     from moler.cmd.unix import iperf3
+#     iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+#                               **iperf3.COMMAND_KWARGS_bidirectional_udp_client)
+#     assert iperf_cmd.works_in_dualtest is True
+#     iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+#                               **iperf3.COMMAND_KWARGS_basic_client)
+#     assert iperf_cmd.works_in_dualtest is False
+
+
+# def test_iperf_detecting_dualtest_at_server(buffer_connection):
+#     from moler.cmd.unix import iperf3
+
+#     buffer_connection.remote_inject_response(
+#         [iperf3.COMMAND_OUTPUT_bidirectional_udp_server])
+#     iperf_cmd = iperf3.Iperf2(connection=buffer_connection.moler_connection,
+#                               **iperf3.COMMAND_KWARGS_bidirectional_udp_server)
+#     iperf_cmd()
+#     assert iperf_cmd.works_in_dualtest is True
+
+#     buffer_connection.remote_inject_response(
+#         [iperf3.COMMAND_OUTPUT_multiple_connections_server])
+#     iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+#                               **iperf3.COMMAND_KWARGS_multiple_connections_server)
+#     iperf_cmd()
+#     assert iperf_cmd.works_in_dualtest is False
+
+
+def test_iperf_sends_additional_ctrl_c_after_detecting_to_early_ctrl_c(buffer_connection):
+    from moler.cmd.unix import iperf3
+
+    normal_iperf_output = iperf3.COMMAND_OUTPUT_multiple_connections_server.splitlines(
+        True)
+    last_line_with_prompt = normal_iperf_output[-1]
+    normal_iperf_output[-1] = "^CWaiting for server threads to complete. Interrupt again to force quit\n"
+    normal_iperf_output.append(last_line_with_prompt)
+    output_with_too_early_ctrl_c = "".join(normal_iperf_output)
+
+    buffer_connection.remote_inject_response([output_with_too_early_ctrl_c])
+    iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+                              **iperf3.COMMAND_KWARGS_multiple_connections_server)
+    with mock.patch.object(iperf_cmd, "_stop_server"):
+        with mock.patch.object(iperf_cmd, "break_cmd") as break_cmd_method:
+            iperf_cmd()
+    break_cmd_method.assert_called_once_with()
+
+
+iperf_server_output_start = """
+xyz@debian:~$ iperf3 -s -i 1
+-----------------------------------------------------------
+Server listening on 5201
+-----------------------------------------------------------
+Accepted connection from 127.0.0.1, port 40530
+[  5] local 127.0.0.1 port 5201 connected to 127.0.0.1 port 34761
+"""
+
+
+def test_iperf_publishes_records_to_subscribed_observers(buffer_connection):
+    from moler.cmd.unix import iperf3
+    conn = buffer_connection
+    conn.remote_inject_response([iperf_server_output_start])
+    iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+                              options='-s -i 1')
+    iperf_stats = []
+
+    def iperf_observer(from_client, to_server, data_record=None, report=None):
+        iperf_record = {}
+        iperf_record['from_client'] = from_client
+        iperf_record['to_server'] = to_server
+        if data_record:
+            iperf_record['data_record'] = data_record
+        if report:
+            iperf_record['report'] = report
+        iperf_stats.append(iperf_record)
+
+    iperf_cmd.subscribe(subscriber=iperf_observer)
+    iperf_cmd.start()
+
+    assert len(iperf_stats) == 0
+    conn.remote_inject_line(
+        "[ ID] Interval           Transfer     Bitrate         Jitter    Lost/Total Datagrams")
+    assert len(iperf_stats) == 0
+    conn.remote_inject_line(
+        "[  5]   0.00-1.00   sec   129 KBytes  1.06 Mbits/sec  0.015 ms  0/6 (0%)")
+    assert len(iperf_stats) == 1
+    assert iperf_stats[0]['from_client'] == '34761@127.0.0.1'
+    assert iperf_stats[0]['to_server'] == '5201@127.0.0.1'
+    # iperf progress lines produce data_records
+    assert iperf_stats[0]['data_record'] == {'Bitrate': 132500,
+                                             'Bitrate Raw': '1.06 Mbits/sec',
+                                             'Interval': (0.0, 1.0),
+                                             'Jitter': '0.015 ms',
+                                             'Lost_Datagrams_ratio': '0%',
+                                             'Lost_vs_Total_Datagrams': (0, 6),
+                                             'Transfer': 132096,
+                                             'Transfer Raw': '129 KBytes'}
+    conn.remote_inject_line(
+        "[  5]   1.00-2.00   sec   129 KBytes  1.06 Mbits/sec  0.016 ms  0/6 (0%)")
+    assert len(iperf_stats) == 2
+    assert ('data_record' in iperf_stats[-1]
+            ) and ('report' not in iperf_stats[-1])
+    conn.remote_inject_line(
+        "[  5]   9.00-10.00  sec   129 KBytes  1.06 Mbits/sec  0.022 ms  0/6 (0%)")
+    assert len(iperf_stats) == 3
+    assert ('data_record' in iperf_stats[-1]
+            ) and ('report' not in iperf_stats[-1])
+    # last line of iperf progress produces report
+    conn.remote_inject_line(
+        "[  5]   0.00-10.04  sec  1.26 MBytes  1.05 Mbits/sec  0.022 ms  0/60 (0%)  receiver")
+    assert len(iperf_stats) == 4
+    assert 'data_record' not in iperf_stats[-1]
+    assert iperf_stats[-1]['from_client'] == '127.0.0.1'
+    assert iperf_stats[-1]['to_server'] == '5201@127.0.0.1'
+    assert iperf_stats[-1]['report'] == {'Bitrate': 131250,
+                                         'Bitrate Raw': '1.05 Mbits/sec',
+                                         'Interval': (0.0, 10.04),
+                                         'Jitter': '0.022 ms',
+                                         'Lost_Datagrams_ratio': '0%',
+                                         'Lost_vs_Total_Datagrams': (0, 60),
+                                         'Transfer': 1321205,
+                                         'Transfer Raw': '1.26 MBytes'}
+    iperf_cmd.cancel()
+
+
+def test_iperf_publishes_only_summary_records_when_handling_parallel_clients(buffer_connection):
+    from moler.cmd.unix import iperf3
+    buffer_connection.remote_inject_response(
+        [iperf3.COMMAND_OUTPUT_multiple_connections_udp_server])
+    iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+                              **iperf3.COMMAND_KWARGS_multiple_connections_udp_server)
+    expected_result = iperf3.COMMAND_RESULT_multiple_connections_udp_server
+    iperf_stats = {}
+    iperf_report = {}
+
+    def iperf_observer(from_client, to_server, data_record=None, report=None):
+        conn_name = (from_client, to_server)
+        if data_record:
+            if conn_name not in iperf_stats:
+                iperf_stats[conn_name] = []
+            iperf_stats[conn_name].append(data_record)
+        if report:
+            iperf_report[conn_name] = report
+
+    iperf_cmd.subscribe(subscriber=iperf_observer)
+    iperf_cmd()
+    # published stats should be as
+    summary_conn_name = ('multiport@127.0.0.1', '5016@127.0.0.1')
+    client_conn_name = ('127.0.0.1', '5016@127.0.0.1')
+    assert client_conn_name in iperf_report
+    assert summary_conn_name in iperf_stats
+    assert len(iperf_stats.keys()) == 1
+    assert iperf_stats[summary_conn_name] == expected_result['CONNECTIONS'][summary_conn_name][:-1]
+
+    buffer_connection.remote_inject_response(
+        [iperf3.COMMAND_OUTPUT_multiple_connections_udp_client])
+    iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+                              **iperf3.COMMAND_KWARGS_multiple_connections_udp_client)
+    expected_result = iperf3.COMMAND_RESULT_multiple_connections_udp_client
+    iperf_stats = {}
+    iperf_report = {}
+    iperf_cmd.subscribe(subscriber=iperf_observer)
+    iperf_cmd()
+    # published stats should be as
+    summary_conn_name = ('multiport@127.0.0.1', '5016@127.0.0.1')
+    client_conn_name = ('127.0.0.1', '5016@127.0.0.1')
+    expected_client_result = expected_result['CONNECTIONS'][summary_conn_name][:-2]
+    expected_client_result.append(
+        expected_result['CONNECTIONS'][summary_conn_name][-1])
+    assert client_conn_name in iperf_report
+    assert summary_conn_name in iperf_stats
+    assert len(iperf_stats.keys()) == 1
+    assert iperf_stats[summary_conn_name] == expected_client_result
+
+
 @pytest.fixture
 def command_output_and_expected_result_on_bind_failed():
     output = """xyz@debian>iperf3 -s
-bind failed: Address already in use
+iperf3: error - unable to start listener for connections: Address already in use
+iperf3: exiting
 xyz@debian>"""
     result = dict()
     return output, result
@@ -135,7 +592,7 @@ xyz@debian>"""
 @pytest.fixture
 def command_output_and_expected_result_on_connect_failed():
     output = """xyz@debian>iperf3 -c 10.156.236.132
-connect failed: Connection refused
+iperf3: error - unable to connect to server: Connection refused
 xyz@debian>"""
     result = dict()
     return output, result
