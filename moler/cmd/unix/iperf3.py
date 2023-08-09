@@ -113,23 +113,6 @@ class Iperf3(GenericUnixCommand, Publisher):
             return "udp"
         return "tcp"
 
-    _re_interval = re.compile(
-        r"(?P<INTERVAL_OPTION>\-\-interval|\-i)\s+(?P<INTERVAL>[\d\.]+)")
-
-    @property
-    def interval(self):
-        if self._regex_helper.search_compiled(Iperf3._re_interval, self.options):
-            return float(self._regex_helper.group("INTERVAL"))
-        return 0.0
-
-    _re_time = re.compile(r"(?P<TIME_OPTION>\-\-time|\-t)\s+(?P<TIME>[\d\.]+)")
-
-    @property
-    def time(self):
-        if self._regex_helper.search_compiled(Iperf3._re_time, self.options):
-            return float(self._regex_helper.group("TIME"))
-        return 10.0
-
     @property
     def client(self):
         return ("-c " in self.options) or ("--client " in self.options)
