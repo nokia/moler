@@ -355,6 +355,8 @@ class Iperf3(GenericUnixCommand, Publisher):
             connection_id = iperf_record.pop("ID")
             iperf_record = self._detailed_parse_interval(iperf_record)
             iperf_record = self._detailed_parse_datagrams(iperf_record)
+            iperf_record = self._convert_retr_parameter(iperf_record)
+            iperf_record = self._convert_datagrams_parameter(iperf_record)
 
             connection_name = self._connection_dict[connection_id]
             normalized_iperf_record = self._normalize_to_bytes(iperf_record)
@@ -374,6 +376,19 @@ class Iperf3(GenericUnixCommand, Publisher):
         if "Lost_vs_Total_Datagrams" in iperf_record:
             lost, total = iperf_record["Lost_vs_Total_Datagrams"].split("/")
             iperf_record["Lost_vs_Total_Datagrams"] = (int(lost), int(total))
+        return iperf_record
+
+    @staticmethod
+    def _convert_datagrams_parameter(iperf_record):
+        if "Total_Datagrams" in iperf_record:
+            iperf_record["Total_Datagrams"] = int(
+                iperf_record["Total_Datagrams"])
+        return iperf_record
+
+    @staticmethod
+    def _convert_retr_parameter(iperf_record):
+        if "Retr" in iperf_record:
+            iperf_record["Retr"] = int(iperf_record["Retr"])
         return iperf_record
 
     def _update_current_ret(self, connection_name, info_dict):
@@ -498,13 +513,13 @@ class Iperf3(GenericUnixCommand, Publisher):
         new_dict = {}
         for key, raw_value in input_dict.items():
             # iperf MBytes means 1024 * 1024 Bytes - see iperf.fr/iperf-doc.php
-            if ("Bytes" in raw_value):
+            if not isinstance(raw_value, int) and ("Bytes" in raw_value):
                 new_dict[key + " Raw"] = raw_value
                 value_in_bytes, _, _ = self._converter_helper.to_bytes(
                     raw_value)
                 new_dict[key] = value_in_bytes
             # iperf Mbits means 1000 * 1000 bits - see iperf.fr/iperf-doc.php
-            elif ("bits" in raw_value):
+            elif not isinstance(raw_value, int) and ("bits" in raw_value):
                 new_dict[key + " Raw"] = raw_value
                 value_in_bits, _, _ = self._converter_helper.to_bytes(
                     raw_value, binary_multipliers=False)
@@ -556,7 +571,7 @@ COMMAND_RESULT_basic_client = {
                                                       'Gbits/sec',
                                                       'Interval': (0.0,
                                                                      10.0),
-                                                      'Retr': '0',
+                                                      'Retr': 0,
                                                       'Transfer': 31245887078,
                                                       'Transfer Raw': '29.1 '
                                                       'GBytes'}},
@@ -568,7 +583,7 @@ COMMAND_RESULT_basic_client = {
                                                   'MBytes',
                                                   'Interval': (0.0,
                                                                1.0),
-                                                  'Retr': '0',
+                                                  'Retr': 0,
                                                   'Transfer': 3393024163,
                                                   'Transfer Raw': '3.16 '
                                                   'GBytes'},
@@ -580,7 +595,7 @@ COMMAND_RESULT_basic_client = {
                                                   'MBytes',
                                                   'Interval': (1.0,
                                                                2.0),
-                                                  'Retr': '0',
+                                                  'Retr': 0,
                                                   'Transfer': 4477503406,
                                                   'Transfer Raw': '4.17 '
                                                   'GBytes'},
@@ -592,7 +607,7 @@ COMMAND_RESULT_basic_client = {
                                                   'MBytes',
                                                   'Interval': (2.0,
                                                                3.0),
-                                                  'Retr': '0',
+                                                  'Retr': 0,
                                                   'Transfer': 2576980377,
                                                   'Transfer Raw': '2.40 '
                                                   'GBytes'},
@@ -604,7 +619,7 @@ COMMAND_RESULT_basic_client = {
                                                   'MBytes',
                                                   'Interval': (3.0,
                                                                4.0),
-                                                  'Retr': '0',
+                                                  'Retr': 0,
                                                   'Transfer': 2576980377,
                                                   'Transfer Raw': '2.40 '
                                                   'GBytes'},
@@ -616,7 +631,7 @@ COMMAND_RESULT_basic_client = {
                                                   'MBytes',
                                                   'Interval': (4.0,
                                                                5.0),
-                                                  'Retr': '0',
+                                                  'Retr': 0,
                                                   'Transfer': 2534030704,
                                                   'Transfer Raw': '2.36 '
                                                   'GBytes'},
@@ -628,7 +643,7 @@ COMMAND_RESULT_basic_client = {
                                                   'MBytes',
                                                   'Interval': (5.0,
                                                                6.0),
-                                                  'Retr': '0',
+                                                  'Retr': 0,
                                                   'Transfer': 2576980377,
                                                   'Transfer Raw': '2.40 '
                                                   'GBytes'},
@@ -640,7 +655,7 @@ COMMAND_RESULT_basic_client = {
                                                   'MBytes',
                                                   'Interval': (6.0,
                                                                7.0),
-                                                  'Retr': '0',
+                                                  'Retr': 0,
                                                   'Transfer': 2587717795,
                                                   'Transfer Raw': '2.41 '
                                                   'GBytes'},
@@ -652,7 +667,7 @@ COMMAND_RESULT_basic_client = {
                                                   'MBytes',
                                                   'Interval': (7.0,
                                                                8.0),
-                                                  'Retr': '0',
+                                                  'Retr': 0,
                                                   'Transfer': 2544768122,
                                                   'Transfer Raw': '2.37 '
                                                   'GBytes'},
@@ -664,7 +679,7 @@ COMMAND_RESULT_basic_client = {
                                                   'MBytes',
                                                   'Interval': (8.0,
                                                                9.0),
-                                                  'Retr': '0',
+                                                  'Retr': 0,
                                                   'Transfer': 4176855695,
                                                   'Transfer Raw': '3.89 '
                                                   'GBytes'},
@@ -676,7 +691,7 @@ COMMAND_RESULT_basic_client = {
                                                   'MBytes',
                                                   'Interval': (9.0,
                                                                10.0),
-                                                  'Retr': '0',
+                                                  'Retr': 0,
                                                   'Transfer': 3822520893,
                                                   'Transfer Raw': '3.56 '
                                                   'GBytes'},
@@ -685,7 +700,7 @@ COMMAND_RESULT_basic_client = {
                                                   'Gbits/sec',
                                                   'Interval': (0.0,
                                                                10.0),
-                                                  'Retr': '0',
+                                                  'Retr': 0,
                                                   'Transfer': 31245887078,
                                                   'Transfer Raw': '29.1 '
                                                   'GBytes'},
@@ -1091,7 +1106,7 @@ COMMAND_RESULT_tcp_ipv6_client = {
                                                      'Gbits/sec',
                                                      'Interval': (0.0,
                                                                   10.0),
-                                                     'Retr': '0',
+                                                     'Retr': 0,
                                                      'Transfer': 32319628902,
                                                      'Transfer Raw': '30.1 '
                                                      'GBytes'}},
@@ -1103,7 +1118,7 @@ COMMAND_RESULT_tcp_ipv6_client = {
                                                  'MBytes',
                                                  'Interval': (0.0,
                                                               1.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 4026531840,
                                                  'Transfer Raw': '3.75 '
                                                  'GBytes'},
@@ -1115,7 +1130,7 @@ COMMAND_RESULT_tcp_ipv6_client = {
                                                  'MBytes',
                                                  'Interval': (1.0,
                                                               2.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 2823940997,
                                                  'Transfer Raw': '2.63 '
                                                  'GBytes'},
@@ -1127,7 +1142,7 @@ COMMAND_RESULT_tcp_ipv6_client = {
                                                  'MBytes',
                                                  'Interval': (2.0,
                                                               3.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 2963527434,
                                                  'Transfer Raw': '2.76 '
                                                  'GBytes'},
@@ -1139,7 +1154,7 @@ COMMAND_RESULT_tcp_ipv6_client = {
                                                  'MBytes',
                                                  'Interval': (3.0,
                                                               4.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 2695091978,
                                                  'Transfer Raw': '2.51 '
                                                  'GBytes'},
@@ -1151,7 +1166,7 @@ COMMAND_RESULT_tcp_ipv6_client = {
                                                  'MBytes',
                                                  'Interval': (4.0,
                                                               5.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 2716566814,
                                                  'Transfer Raw': '2.53 '
                                                  'GBytes'},
@@ -1163,7 +1178,7 @@ COMMAND_RESULT_tcp_ipv6_client = {
                                                  'MBytes',
                                                  'Interval': (5.0,
                                                               6.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 2641404887,
                                                  'Transfer Raw': '2.46 '
                                                  'GBytes'},
@@ -1175,7 +1190,7 @@ COMMAND_RESULT_tcp_ipv6_client = {
                                                  'MBytes',
                                                  'Interval': (6.0,
                                                               7.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 2662879723,
                                                  'Transfer Raw': '2.48 '
                                                  'GBytes'},
@@ -1187,7 +1202,7 @@ COMMAND_RESULT_tcp_ipv6_client = {
                                                  'MBytes',
                                                  'Interval': (7.0,
                                                               8.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 3736621547,
                                                  'Transfer Raw': '3.48 '
                                                  'GBytes'},
@@ -1199,7 +1214,7 @@ COMMAND_RESULT_tcp_ipv6_client = {
                                                  'MBytes',
                                                  'Interval': (8.0,
                                                               9.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 2963527434,
                                                  'Transfer Raw': '2.76 '
                                                  'GBytes'},
@@ -1211,7 +1226,7 @@ COMMAND_RESULT_tcp_ipv6_client = {
                                                  'MBytes',
                                                  'Interval': (9.0,
                                                               10.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 5057323991,
                                                  'Transfer Raw': '4.71 '
                                                  'GBytes'},
@@ -1220,7 +1235,7 @@ COMMAND_RESULT_tcp_ipv6_client = {
                                                  'Gbits/sec',
                                                  'Interval': (0.0,
                                                               10.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 32319628902,
                                                  'Transfer Raw': '30.1 '
                                                  'GBytes'},
@@ -1292,7 +1307,7 @@ COMMAND_RESULT_udp_client_params = {
                                                  'Kbits/sec',
                                                  'Interval': (0.0,
                                                               1.0),
-                                                 'Total_Datagrams': '29',
+                                                 'Total_Datagrams': 29,
                                                  'Transfer': 638976,
                                                  'Transfer Raw': '624 '
                                                  'KBytes'},
@@ -1301,7 +1316,7 @@ COMMAND_RESULT_udp_client_params = {
                                                  'Kbits/sec',
                                                  'Interval': (1.0,
                                                               2.0),
-                                                 'Total_Datagrams': '28',
+                                                 'Total_Datagrams': 28,
                                                  'Transfer': 616448,
                                                  'Transfer Raw': '602 '
                                                  'KBytes'},
@@ -1310,7 +1325,7 @@ COMMAND_RESULT_udp_client_params = {
                                                  'Kbits/sec',
                                                  'Interval': (2.0,
                                                               3.0),
-                                                 'Total_Datagrams': '29',
+                                                 'Total_Datagrams': 29,
                                                  'Transfer': 638976,
                                                  'Transfer Raw': '624 '
                                                  'KBytes'},
@@ -1319,7 +1334,7 @@ COMMAND_RESULT_udp_client_params = {
                                                  'Kbits/sec',
                                                  'Interval': (3.0,
                                                               4.0),
-                                                 'Total_Datagrams': '28',
+                                                 'Total_Datagrams': 28,
                                                  'Transfer': 616448,
                                                  'Transfer Raw': '602 '
                                                  'KBytes'},
@@ -1328,7 +1343,7 @@ COMMAND_RESULT_udp_client_params = {
                                                  'Kbits/sec',
                                                  'Interval': (4.0,
                                                               5.0),
-                                                 'Total_Datagrams': '28',
+                                                 'Total_Datagrams': 28,
                                                  'Transfer': 616448,
                                                  'Transfer Raw': '602 '
                                                  'KBytes'},
@@ -1337,7 +1352,7 @@ COMMAND_RESULT_udp_client_params = {
                                                  'Kbits/sec',
                                                  'Interval': (5.0,
                                                               6.0),
-                                                 'Total_Datagrams': '29',
+                                                 'Total_Datagrams': 29,
                                                  'Transfer': 638976,
                                                  'Transfer Raw': '624 '
                                                  'KBytes'},
@@ -1589,7 +1604,7 @@ COMMAND_RESULT_multiple_connections = {
                                                      'Gbits/sec',
                                                      'Interval': (0.0,
                                                                   10.0),
-                                                     'Retr': '0',
+                                                     'Retr': 0,
                                                      'Transfer': 27917287424,
                                                      'Transfer Raw': '26.0 '
                                                      'GBytes'}},
@@ -1601,7 +1616,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (0.0,
                                                               1.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 1048576000,
                                                  'Transfer Raw': '1000 '
                                                  'MBytes'},
@@ -1613,7 +1628,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (1.0,
                                                               2.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 932184064,
                                                  'Transfer Raw': '889 '
                                                  'MBytes'},
@@ -1625,7 +1640,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (2.0,
                                                               3.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 903872512,
                                                  'Transfer Raw': '862 '
                                                  'MBytes'},
@@ -1637,7 +1652,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (3.0,
                                                               4.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 901775360,
                                                  'Transfer Raw': '860 '
                                                  'MBytes'},
@@ -1649,7 +1664,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (4.0,
                                                               5.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 900726784,
                                                  'Transfer Raw': '859 '
                                                  'MBytes'},
@@ -1661,7 +1676,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (5.0,
                                                               6.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 899678208,
                                                  'Transfer Raw': '858 '
                                                  'MBytes'},
@@ -1673,7 +1688,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (6.0,
                                                               7.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 1040187392,
                                                  'Transfer Raw': '992 '
                                                  'MBytes'},
@@ -1685,7 +1700,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (7.0,
                                                               8.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 902823936,
                                                  'Transfer Raw': '861 '
                                                  'MBytes'},
@@ -1697,7 +1712,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (8.0,
                                                               9.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 869269504,
                                                  'Transfer Raw': '829 '
                                                  'MBytes'},
@@ -1709,7 +1724,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (9.0,
                                                               10.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 893386752,
                                                  'Transfer Raw': '852 '
                                                  'MBytes'},
@@ -1718,7 +1733,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'Gbits/sec',
                                                  'Interval': (0.0,
                                                               10.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 9287866777,
                                                  'Transfer Raw': '8.65 '
                                                  'GBytes'},
@@ -1738,7 +1753,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (0.0,
                                                               1.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 1048576000,
                                                  'Transfer Raw': '1000 '
                                                  'MBytes'},
@@ -1750,7 +1765,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (1.0,
                                                               2.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 932184064,
                                                  'Transfer Raw': '889 '
                                                  'MBytes'},
@@ -1762,7 +1777,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (2.0,
                                                               3.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 903872512,
                                                  'Transfer Raw': '862 '
                                                  'MBytes'},
@@ -1774,7 +1789,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (3.0,
                                                               4.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 901775360,
                                                  'Transfer Raw': '860 '
                                                  'MBytes'},
@@ -1786,7 +1801,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (4.0,
                                                               5.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 900726784,
                                                  'Transfer Raw': '859 '
                                                  'MBytes'},
@@ -1798,7 +1813,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (5.0,
                                                               6.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 899678208,
                                                  'Transfer Raw': '858 '
                                                  'MBytes'},
@@ -1810,7 +1825,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (6.0,
                                                               7.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 1040187392,
                                                  'Transfer Raw': '992 '
                                                  'MBytes'},
@@ -1822,7 +1837,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (7.0,
                                                               8.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 902823936,
                                                  'Transfer Raw': '861 '
                                                  'MBytes'},
@@ -1834,7 +1849,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (8.0,
                                                               9.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 869269504,
                                                  'Transfer Raw': '829 '
                                                  'MBytes'},
@@ -1846,7 +1861,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (9.0,
                                                               10.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 893386752,
                                                  'Transfer Raw': '852 '
                                                  'MBytes'},
@@ -1855,7 +1870,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'Gbits/sec',
                                                  'Interval': (0.0,
                                                               10.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 9287866777,
                                                  'Transfer Raw': '8.65 '
                                                  'GBytes'},
@@ -1875,7 +1890,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (0.0,
                                                               1.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 1048576000,
                                                  'Transfer Raw': '1000 '
                                                  'MBytes'},
@@ -1887,7 +1902,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (1.0,
                                                               2.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 932184064,
                                                  'Transfer Raw': '889 '
                                                  'MBytes'},
@@ -1899,7 +1914,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (2.0,
                                                               3.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 903872512,
                                                  'Transfer Raw': '862 '
                                                  'MBytes'},
@@ -1911,7 +1926,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (3.0,
                                                               4.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 901775360,
                                                  'Transfer Raw': '860 '
                                                  'MBytes'},
@@ -1923,7 +1938,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (4.0,
                                                               5.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 900726784,
                                                  'Transfer Raw': '859 '
                                                  'MBytes'},
@@ -1935,7 +1950,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (5.0,
                                                               6.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 899678208,
                                                  'Transfer Raw': '858 '
                                                  'MBytes'},
@@ -1947,7 +1962,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (6.0,
                                                               7.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 1040187392,
                                                  'Transfer Raw': '992 '
                                                  'MBytes'},
@@ -1959,7 +1974,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (7.0,
                                                               8.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 902823936,
                                                  'Transfer Raw': '861 '
                                                  'MBytes'},
@@ -1971,7 +1986,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (8.0,
                                                               9.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 869269504,
                                                  'Transfer Raw': '829 '
                                                  'MBytes'},
@@ -1983,7 +1998,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'KBytes',
                                                  'Interval': (9.0,
                                                               10.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 893386752,
                                                  'Transfer Raw': '852 '
                                                  'MBytes'},
@@ -1992,7 +2007,7 @@ COMMAND_RESULT_multiple_connections = {
                                                  'Gbits/sec',
                                                  'Interval': (0.0,
                                                               10.0),
-                                                 'Retr': '0',
+                                                 'Retr': 0,
                                                  'Transfer': 9287866777,
                                                  'Transfer Raw': '8.65 '
                                                  'GBytes'},
@@ -2009,7 +2024,7 @@ COMMAND_RESULT_multiple_connections = {
                                                      'Gbits/sec',
                                                      'Interval': (0.0,
                                                                   1.0),
-                                                     'Retr': '0',
+                                                     'Retr': 0,
                                                      'Transfer': 3146063544,
                                                      'Transfer Raw': '2.93 '
                                                      'GBytes'},
@@ -2018,7 +2033,7 @@ COMMAND_RESULT_multiple_connections = {
                                                      'Gbits/sec',
                                                      'Interval': (1.0,
                                                                   2.0),
-                                                     'Retr': '0',
+                                                     'Retr': 0,
                                                      'Transfer': 2791728742,
                                                      'Transfer Raw': '2.60 '
                                                      'GBytes'},
@@ -2027,7 +2042,7 @@ COMMAND_RESULT_multiple_connections = {
                                                      'Gbits/sec',
                                                      'Interval': (2.0,
                                                                   3.0),
-                                                     'Retr': '0',
+                                                     'Retr': 0,
                                                      'Transfer': 2716566814,
                                                      'Transfer Raw': '2.53 '
                                                      'GBytes'},
@@ -2036,7 +2051,7 @@ COMMAND_RESULT_multiple_connections = {
                                                      'Gbits/sec',
                                                      'Interval': (3.0,
                                                                   4.0),
-                                                     'Retr': '0',
+                                                     'Retr': 0,
                                                      'Transfer': 2705829396,
                                                      'Transfer Raw': '2.52 '
                                                      'GBytes'},
@@ -2045,7 +2060,7 @@ COMMAND_RESULT_multiple_connections = {
                                                      'Gbits/sec',
                                                      'Interval': (4.0,
                                                                   5.0),
-                                                     'Retr': '0',
+                                                     'Retr': 0,
                                                      'Transfer': 2705829396,
                                                      'Transfer Raw': '2.52 '
                                                      'GBytes'},
@@ -2054,7 +2069,7 @@ COMMAND_RESULT_multiple_connections = {
                                                      'Gbits/sec',
                                                      'Interval': (5.0,
                                                                   6.0),
-                                                     'Retr': '0',
+                                                     'Retr': 0,
                                                      'Transfer': 2695091978,
                                                      'Transfer Raw': '2.51 '
                                                      'GBytes'},
@@ -2063,7 +2078,7 @@ COMMAND_RESULT_multiple_connections = {
                                                      'Gbits/sec',
                                                      'Interval': (6.0,
                                                                   7.0),
-                                                     'Retr': '0',
+                                                     'Retr': 0,
                                                      'Transfer': 3124588707,
                                                      'Transfer Raw': '2.91 '
                                                      'GBytes'},
@@ -2072,7 +2087,7 @@ COMMAND_RESULT_multiple_connections = {
                                                      'Gbits/sec',
                                                      'Interval': (7.0,
                                                                   8.0),
-                                                     'Retr': '0',
+                                                     'Retr': 0,
                                                      'Transfer': 2705829396,
                                                      'Transfer Raw': '2.52 '
                                                      'GBytes'},
@@ -2081,7 +2096,7 @@ COMMAND_RESULT_multiple_connections = {
                                                      'Gbits/sec',
                                                      'Interval': (8.0,
                                                                   9.0),
-                                                     'Retr': '0',
+                                                     'Retr': 0,
                                                      'Transfer': 2609192632,
                                                      'Transfer Raw': '2.43 '
                                                      'GBytes'},
@@ -2090,7 +2105,7 @@ COMMAND_RESULT_multiple_connections = {
                                                      'Gbits/sec',
                                                      'Interval': (9.0,
                                                                   10.0),
-                                                     'Retr': '0',
+                                                     'Retr': 0,
                                                      'Transfer': 2684354560,
                                                      'Transfer Raw': '2.50 '
                                                      'GBytes'},
@@ -2099,7 +2114,7 @@ COMMAND_RESULT_multiple_connections = {
                                                      'Gbits/sec',
                                                      'Interval': (0.0,
                                                                   10.0),
-                                                     'Retr': '0',
+                                                     'Retr': 0,
                                                      'Transfer': 27917287424,
                                                      'Transfer Raw': '26.0 '
                                                      'GBytes'},
@@ -2822,7 +2837,7 @@ COMMAND_RESULT_multiple_connections_udp_client = {
                                                  'Kbits/sec',
                                                  'Interval': (0.0,
                                                               1.0),
-                                                 'Total_Datagrams': '6',
+                                                 'Total_Datagrams': 6,
                                                  'Transfer': 132096,
                                                  'Transfer Raw': '129 '
                                                  'KBytes'},
@@ -2831,7 +2846,7 @@ COMMAND_RESULT_multiple_connections_udp_client = {
                                                  'Kbits/sec',
                                                  'Interval': (1.0,
                                                               2.0),
-                                                 'Total_Datagrams': '6',
+                                                 'Total_Datagrams': 6,
                                                  'Transfer': 132096,
                                                  'Transfer Raw': '129 '
                                                  'KBytes'},
@@ -2840,7 +2855,7 @@ COMMAND_RESULT_multiple_connections_udp_client = {
                                                  'Kbits/sec',
                                                  'Interval': (2.0,
                                                               3.0),
-                                                 'Total_Datagrams': '6',
+                                                 'Total_Datagrams': 6,
                                                  'Transfer': 132096,
                                                  'Transfer Raw': '129 '
                                                  'KBytes'},
@@ -2873,7 +2888,7 @@ COMMAND_RESULT_multiple_connections_udp_client = {
                                                  'Kbits/sec',
                                                  'Interval': (0.0,
                                                               1.0),
-                                                 'Total_Datagrams': '6',
+                                                 'Total_Datagrams': 6,
                                                  'Transfer': 132096,
                                                  'Transfer Raw': '129 '
                                                  'KBytes'},
@@ -2882,7 +2897,7 @@ COMMAND_RESULT_multiple_connections_udp_client = {
                                                  'Kbits/sec',
                                                  'Interval': (1.0,
                                                               2.0),
-                                                 'Total_Datagrams': '6',
+                                                 'Total_Datagrams': 6,
                                                  'Transfer': 132096,
                                                  'Transfer Raw': '129 '
                                                  'KBytes'},
@@ -2891,7 +2906,7 @@ COMMAND_RESULT_multiple_connections_udp_client = {
                                                  'Kbits/sec',
                                                  'Interval': (2.0,
                                                               3.0),
-                                                 'Total_Datagrams': '6',
+                                                 'Total_Datagrams': 6,
                                                  'Transfer': 132096,
                                                  'Transfer Raw': '129 '
                                                  'KBytes'},
@@ -2924,7 +2939,7 @@ COMMAND_RESULT_multiple_connections_udp_client = {
                                                      'Kbits/sec',
                                                      'Interval': (0.0,
                                                                   1.0),
-                                                     'Total_Datagrams': '12',
+                                                     'Total_Datagrams': 12,
                                                      'Transfer': 264192,
                                                      'Transfer Raw': '258 '
                                                      'KBytes'},
@@ -2933,7 +2948,7 @@ COMMAND_RESULT_multiple_connections_udp_client = {
                                                      'Kbits/sec',
                                                      'Interval': (1.0,
                                                                   2.0),
-                                                     'Total_Datagrams': '12',
+                                                     'Total_Datagrams': 12,
                                                      'Transfer': 264192,
                                                      'Transfer Raw': '258 '
                                                      'KBytes'},
@@ -2942,7 +2957,7 @@ COMMAND_RESULT_multiple_connections_udp_client = {
                                                      'Kbits/sec',
                                                      'Interval': (2.0,
                                                                   3.0),
-                                                     'Total_Datagrams': '12',
+                                                     'Total_Datagrams': 12,
                                                      'Transfer': 264192,
                                                      'Transfer Raw': '258 '
                                                      'KBytes'},
