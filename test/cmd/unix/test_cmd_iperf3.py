@@ -18,11 +18,11 @@ def test_iperf_returns_proper_command_string(buffer_connection):
     assert "iperf3 -c 10.1.1.1 -M 1300 -m" == iperf_cmd.command_string
 
 
-# def test_iperf_can_set_direct_path_to_command_executable(buffer_connection):
-#     iperf_cmd = Iperf3(buffer_connection, options='-c 10.1.1.1 -M 1300 -m')
-#     assert "iperf3 -c 10.1.1.1 -M 1300 -m" == iperf_cmd.command_string
-#     iperf_cmd.command_path = 'adb shell /data/data/com.magicandroidapps.iperf/bin/'
-#     assert "adb shell /data/data/com.magicandroidapps.iperf/bin/iperf -c 10.1.1.1 -M 1300 -m" == iperf_cmd.command_string
+def test_iperf_can_set_direct_path_to_command_executable(buffer_connection):
+    iperf_cmd = Iperf3(buffer_connection, options='-c 10.1.1.1 -M 1300 -m')
+    assert "iperf3 -c 10.1.1.1 -M 1300 -m" == iperf_cmd.command_string
+    iperf_cmd.command_path = 'adb shell /data/data/com.magicandroidapps.iperf/bin/'
+    assert "adb shell /data/data/com.magicandroidapps.iperf/bin/iperf3 -c 10.1.1.1 -M 1300 -m" == iperf_cmd.command_string
 
 
 def test_iperf_raise_error_on_bind_failed(buffer_connection, command_output_and_expected_result_on_bind_failed):
@@ -237,56 +237,6 @@ def test_iperf_server_detects_all_multiport_records_of_interval(buffer_connectio
         connection_name=parallel_client_3) is True
 
 
-# def test_iperf_server_can_calculate_multiport_summary_record_of_interval(buffer_connection):
-#     from moler.cmd.unix import iperf3
-#     from moler.exceptions import ParsingDone
-#     iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
-#                               **iperf3.COMMAND_KWARGS_multiple_connections_udp_server)
-#     client_connection_lines = [
-#         "[  1] local 192.168.44.130 port 5016 connected with 192.168.44.1 port 51914",
-#         "[  2] local 192.168.44.130 port 5016 connected with 192.168.44.1 port 51915",
-#         "[  3] local 192.168.44.130 port 5016 connected with 192.168.44.1 port 51916",
-#     ]
-#     for line in client_connection_lines:
-#         try:
-#             iperf_cmd._parse_connection_name_and_id(line)
-#         except ParsingDone:
-#             pass
-#     parallel_client_1 = ('51914@192.168.44.1', '5016@192.168.44.130')
-#     parallel_client_2 = ('51915@192.168.44.1', '5016@192.168.44.130')
-#     parallel_client_3 = ('51916@192.168.44.1', '5016@192.168.44.130')
-
-#     first_record = {'Lost_Datagrams_ratio': '0%',
-#                     'Jitter': '1.2 ms',
-#                     'Transfer': 123904,
-#                     'Interval': (0.0, 1.0),
-#                     'Transfer Raw': '121 KBytes',
-#                     'Bandwidth': 123500,
-#                     'Lost_vs_Total_Datagrams': (0, 84),
-#                     'Bandwidth Raw': '988 Kbits/sec'}
-#     second_record = dict(first_record)
-#     second_record['Jitter'] = '0.98 ms'
-#     third_record = dict(first_record)
-#     third_record['Jitter'] = '1.48 ms'
-#     iperf_cmd.current_ret['CONNECTIONS'][parallel_client_1] = [first_record]
-#     iperf_cmd.current_ret['CONNECTIONS'][parallel_client_2] = [second_record]
-#     iperf_cmd.current_ret['CONNECTIONS'][parallel_client_3] = [third_record]
-#     iperf_cmd._calculate_multiport_summary_record_of_interval(
-#         parallel_client_3)
-#     summary_connection = ('multiport@192.168.44.1', '5016@192.168.44.130')
-#     assert summary_connection in iperf_cmd.current_ret['CONNECTIONS']
-#     assert iperf_cmd.current_ret['CONNECTIONS'][summary_connection] == [{
-#         'Interval': (0.0, 1.0),
-#         'Transfer': 371712,
-#         'Transfer Raw': '363.0 KBytes',
-#         'Bandwidth': 370500,
-#         'Bandwidth Raw': '2964.0 Kbits/sec',
-#         'Jitter': '1.48 ms',
-#         'Lost_vs_Total_Datagrams': (0, 252),
-#         'Lost_Datagrams_ratio': '0.00%',
-#     }]
-
-
 def test_iperf_correctly_parses_multiconnection_udp_server_output(buffer_connection):
     from moler.cmd.unix import iperf3
     buffer_connection.remote_inject_response(
@@ -358,34 +308,6 @@ def test_iperf_singlerun_server_doesnt_use_ctrlc_to_stop_server(buffer_connectio
     with mock.patch.object(iperf_cmd, "break_cmd") as send_ctrlc:
         iperf_cmd()
     send_ctrlc.assert_not_called()
-
-
-# def test_iperf_detecting_dualtest_at_client(buffer_connection):
-#     from moler.cmd.unix import iperf3
-#     iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
-#                               **iperf3.COMMAND_KWARGS_bidirectional_udp_client)
-#     assert iperf_cmd.works_in_dualtest is True
-#     iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
-#                               **iperf3.COMMAND_KWARGS_basic_client)
-#     assert iperf_cmd.works_in_dualtest is False
-
-
-# def test_iperf_detecting_dualtest_at_server(buffer_connection):
-#     from moler.cmd.unix import iperf3
-
-#     buffer_connection.remote_inject_response(
-#         [iperf3.COMMAND_OUTPUT_bidirectional_udp_server])
-#     iperf_cmd = iperf3.Iperf2(connection=buffer_connection.moler_connection,
-#                               **iperf3.COMMAND_KWARGS_bidirectional_udp_server)
-#     iperf_cmd()
-#     assert iperf_cmd.works_in_dualtest is True
-
-#     buffer_connection.remote_inject_response(
-#         [iperf3.COMMAND_OUTPUT_multiple_connections_server])
-#     iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
-#                               **iperf3.COMMAND_KWARGS_multiple_connections_server)
-#     iperf_cmd()
-#     assert iperf_cmd.works_in_dualtest is False
 
 
 def test_iperf_sends_additional_ctrl_c_after_detecting_to_early_ctrl_c(buffer_connection):

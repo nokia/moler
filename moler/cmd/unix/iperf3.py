@@ -76,8 +76,6 @@ class Iperf3(GenericUnixCommand, Publisher):
         self._connection_dict = dict()
         self._same_host_connections = dict()
         self._converter_helper = ConverterHelper()
-        self._got_server_report_hdr = False
-        self._got_server_report = False
         self._stopping_server = False
 
     def __str__(self):
@@ -479,7 +477,6 @@ class Iperf3(GenericUnixCommand, Publisher):
         has_client_report = (from_client, to_server) in result
 
         all_reports = has_client_report
-        works_as_client = self.client
         return all_reports
 
     # [  5] Sent 2552 datagrams
