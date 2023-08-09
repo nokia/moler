@@ -401,10 +401,6 @@ class Iperf3(GenericUnixCommand, Publisher):
         last_rec = self.current_ret["CONNECTIONS"][connection_name][-1]
         if last_rec["Interval"] == interval:
             return last_rec
-        if len(self.current_ret["CONNECTIONS"][connection_name]) > 1:
-            pre_last_rec = self.current_ret["CONNECTIONS"][connection_name][-2]
-            if pre_last_rec["Interval"] == interval:
-                return pre_last_rec
         return None
 
     def _parse_final_record(self, connection_name, line):
