@@ -567,151 +567,114 @@ COMMAND_KWARGS_basic_client = {"options": "-c 127.0.0.1 -i 1"}
 COMMAND_RESULT_basic_client = {
     'CONNECTIONS':
         {('127.0.0.1', '5201@127.0.0.1'): {'report': {'Bitrate': 3125000000,
-                                                      'Bitrate Raw': '25.0 '
-                                                      'Gbits/sec',
+                                                      'Bitrate Raw': '25.0 Gbits/sec',
                                                       'Interval': (0.0,
                                                                      10.0),
                                                       'Retr': 0,
                                                       'Transfer': 31245887078,
-                                                      'Transfer Raw': '29.1 '
-                                                      'GBytes'}},
+                                                      'Transfer Raw': '29.1 GBytes'}},
          ('48058@127.0.0.1', '5201@127.0.0.1'): [{'Bitrate': 3400000000,
-                                                  'Bitrate Raw': '27.2 '
-                                                 'Gbits/sec',
-                                                  'Cwnd': 1310720,
-                                                  'Cwnd Raw': '1.25 '
-                                                  'MBytes',
+                                                  'Bitrate Raw': '27.2 Gbits/sec',                                                  'Cwnd': 1310720,
+                                                  'Cwnd Raw': '1.25 MBytes',
                                                   'Interval': (0.0,
                                                                1.0),
                                                   'Retr': 0,
                                                   'Transfer': 3393024163,
-                                                  'Transfer Raw': '3.16 '
-                                                  'GBytes'},
+                                                  'Transfer Raw': '3.16 GBytes'},
                                                  {'Bitrate': 4475000000,
-                                                 'Bitrate Raw': '35.8 '
-                                                  'Gbits/sec',
+                                                  'Bitrate Raw': '35.8 Gbits/sec',
                                                   'Cwnd': 1310720,
-                                                  'Cwnd Raw': '1.25 '
-                                                  'MBytes',
+                                                  'Cwnd Raw': '1.25 MBytes',
                                                   'Interval': (1.0,
                                                                2.0),
                                                   'Retr': 0,
                                                   'Transfer': 4477503406,
-                                                  'Transfer Raw': '4.17 '
-                                                  'GBytes'},
+                                                  'Transfer Raw': '4.17 GBytes'},
                                                  {'Bitrate': 2575000000,
-                                                 'Bitrate Raw': '20.6 '
-                                                  'Gbits/sec',
+                                                  'Bitrate Raw': '20.6 Gbits/sec',
                                                   'Cwnd': 1310720,
-                                                  'Cwnd Raw': '1.25 '
-                                                  'MBytes',
+                                                  'Cwnd Raw': '1.25 MBytes',
                                                   'Interval': (2.0,
                                                                3.0),
                                                   'Retr': 0,
                                                   'Transfer': 2576980377,
-                                                  'Transfer Raw': '2.40 '
-                                                  'GBytes'},
+                                                  'Transfer Raw': '2.40 GBytes'},
                                                  {'Bitrate': 2575000000,
-                                                 'Bitrate Raw': '20.6 '
-                                                  'Gbits/sec',
+                                                  'Bitrate Raw': '20.6 Gbits/sec',
                                                   'Cwnd': 3334471,
-                                                  'Cwnd Raw': '3.18 '
-                                                  'MBytes',
+                                                  'Cwnd Raw': '3.18 MBytes',
                                                   'Interval': (3.0,
                                                                4.0),
                                                   'Retr': 0,
                                                   'Transfer': 2576980377,
-                                                  'Transfer Raw': '2.40 '
-                                                  'GBytes'},
+                                                  'Transfer Raw': '2.40 GBytes'},
                                                  {'Bitrate': 2525000000,
-                                                 'Bitrate Raw': '20.2 '
-                                                  'Gbits/sec',
+                                                  'Bitrate Raw': '20.2 Gbits/sec',
                                                   'Cwnd': 3334471,
-                                                  'Cwnd Raw': '3.18 '
-                                                  'MBytes',
+                                                  'Cwnd Raw': '3.18 MBytes',
                                                   'Interval': (4.0,
                                                                5.0),
                                                   'Retr': 0,
                                                   'Transfer': 2534030704,
-                                                  'Transfer Raw': '2.36 '
-                                                  'GBytes'},
+                                                  'Transfer Raw': '2.36 GBytes'},
                                                  {'Bitrate': 2575000000,
-                                                 'Bitrate Raw': '20.6 '
-                                                  'Gbits/sec',
+                                                  'Bitrate Raw': '20.6 Gbits/sec',
                                                   'Cwnd': 3334471,
-                                                  'Cwnd Raw': '3.18 '
-                                                  'MBytes',
+                                                  'Cwnd Raw': '3.18 MBytes',
                                                   'Interval': (5.0,
                                                                6.0),
                                                   'Retr': 0,
                                                   'Transfer': 2576980377,
-                                                  'Transfer Raw': '2.40 '
-                                                  'GBytes'},
+                                                  'Transfer Raw': '2.40 GBytes'},
                                                  {'Bitrate': 2587500000,
-                                                 'Bitrate Raw': '20.7 '
-                                                  'Gbits/sec',
+                                                  'Bitrate Raw': '20.7 Gbits/sec',
                                                   'Cwnd': 3334471,
-                                                  'Cwnd Raw': '3.18 '
-                                                  'MBytes',
+                                                  'Cwnd Raw': '3.18 MBytes',
                                                   'Interval': (6.0,
                                                                7.0),
                                                   'Retr': 0,
                                                   'Transfer': 2587717795,
-                                                  'Transfer Raw': '2.41 '
-                                                  'GBytes'},
+                                                  'Transfer Raw': '2.41 GBytes'},
                                                  {'Bitrate': 2550000000,
-                                                 'Bitrate Raw': '20.4 '
-                                                  'Gbits/sec',
+                                                  'Bitrate Raw': '20.4 Gbits/sec',
                                                   'Cwnd': 5043650,
-                                                  'Cwnd Raw': '4.81 '
-                                                  'MBytes',
+                                                  'Cwnd Raw': '4.81 MBytes',
                                                   'Interval': (7.0,
                                                                8.0),
                                                   'Retr': 0,
                                                   'Transfer': 2544768122,
-                                                  'Transfer Raw': '2.37 '
-                                                  'GBytes'},
+                                                  'Transfer Raw': '2.37 GBytes'},
                                                  {'Bitrate': 4175000000,
-                                                 'Bitrate Raw': '33.4 '
-                                                  'Gbits/sec',
+                                                  'Bitrate Raw': '33.4 Gbits/sec',
                                                   'Cwnd': 5043650,
-                                                  'Cwnd Raw': '4.81 '
-                                                  'MBytes',
+                                                  'Cwnd Raw': '4.81 MBytes',
                                                   'Interval': (8.0,
                                                                9.0),
                                                   'Retr': 0,
                                                   'Transfer': 4176855695,
-                                                  'Transfer Raw': '3.89 '
-                                                  'GBytes'},
+                                                  'Transfer Raw': '3.89 GBytes'},
                                                  {'Bitrate': 3825000000,
-                                                 'Bitrate Raw': '30.6 '
-                                                  'Gbits/sec',
+                                                  'Bitrate Raw': '30.6 Gbits/sec',
                                                   'Cwnd': 5043650,
-                                                  'Cwnd Raw': '4.81 '
-                                                  'MBytes',
+                                                  'Cwnd Raw': '4.81 MBytes',
                                                   'Interval': (9.0,
                                                                10.0),
                                                   'Retr': 0,
                                                   'Transfer': 3822520893,
-                                                  'Transfer Raw': '3.56 '
-                                                  'GBytes'},
+                                                  'Transfer Raw': '3.56 GBytes'},
                                                  {'Bitrate': 3125000000,
-                                                 'Bitrate Raw': '25.0 '
-                                                  'Gbits/sec',
+                                                  'Bitrate Raw': '25.0 Gbits/sec',
                                                   'Interval': (0.0,
                                                                10.0),
                                                   'Retr': 0,
                                                   'Transfer': 31245887078,
-                                                  'Transfer Raw': '29.1 '
-                                                  'GBytes'},
+                                                  'Transfer Raw': '29.1 GBytes'},
                                                  {'Bitrate': 3112500000,
-                                                 'Bitrate Raw': '24.9 '
-                                                  'Gbits/sec',
+                                                  'Bitrate Raw': '24.9 Gbits/sec',
                                                   'Interval': (0.0,
                                                                10.05),
                                                   'Transfer': 31245887078,
-                                                  'Transfer Raw': '29.1 '
-                                                  'GBytes'}]},
+                                                  'Transfer Raw': '29.1 GBytes'}]},
     'INFO': ['Connecting to host 127.0.0.1, port 5201',
              'iperf Done.']}
 
