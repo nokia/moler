@@ -69,38 +69,6 @@ def test_iperf_raise_error_on_time_server_option(buffer_connection):
         err.value)
 
 
-# def test_iperf_stores_connections_as_host_port_tuple_for_local_and_remote(buffer_connection):
-#     from moler.cmd.unix import iperf3
-#     buffer_connection.remote_inject_response(
-#         [iperf3.COMMAND_OUTPUT_bidirectional_udp_server])
-#     iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
-#                               **iperf3.COMMAND_KWARGS_bidirectional_udp_server)
-#     iperf_cmd()
-#     stored_connections = iperf_cmd.result()['CONNECTIONS'].keys()
-#     #      local port@host      remote port@host
-#     assert len(stored_connections) == 4
-#     assert ('56262@192.168.0.10', '5016@192.168.0.12') in stored_connections
-#     assert ('47384@192.168.0.12', '5016@192.168.0.10') in stored_connections
-#     assert ('192.168.0.10', '5016@192.168.0.12') in stored_connections
-#     assert ('192.168.0.12', '5016@192.168.0.10') in stored_connections
-
-
-# def test_iperf_stores_connections_as_port_at_host_tuple_for_local_and_remote(buffer_connection):
-#     from moler.cmd.unix import iperf2
-#     buffer_connection.remote_inject_response(
-#         [iperf2.COMMAND_OUTPUT_bidirectional_udp_server])
-#     iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
-#                               **iperf2.COMMAND_KWARGS_bidirectional_udp_server)
-#     iperf_cmd()
-#     stored_connections = iperf_cmd.result()['CONNECTIONS'].keys()
-#     #        local host:port      remote host:port
-#     assert len(stored_connections) == 4
-#     assert ('56262@192.168.0.10', '5016@192.168.0.12') in stored_connections
-#     assert ('47384@192.168.0.12', '5016@192.168.0.10') in stored_connections
-#     assert ('192.168.0.10', '5016@192.168.0.12') in stored_connections
-#     assert ('192.168.0.12', '5016@192.168.0.10') in stored_connections
-
-
 def test_iperf_stores_ipv6_connections_as_port_at_host_tuple_for_local_and_remote(buffer_connection):
     from moler.cmd.unix import iperf3
     buffer_connection.remote_inject_response(
@@ -130,55 +98,35 @@ def test_iperf_creates_summary_connection_for_parallel_testing(buffer_connection
     assert ('127.0.0.1', '5201@127.0.0.1') in stored_connections  # result
 
 
-# def test_iperf_ignores_multiple_echo_of_command(buffer_connection):
-#     # running on cygwin may cause getting multiple echo even mixed with prompt
-#     from moler.cmd.unix import iperf2
+def test_iperf_ignores_multiple_echo_of_command(buffer_connection):
+    # running on cygwin may cause getting multiple echo even mixed with prompt
+    from moler.cmd.unix import iperf3
 
-#     collected_lines = []
-#     output_with_multiple_echo = "andromeda:/ # /bin/iperf -c 1.2.3.4 -p 5001 -f k -i 1.0 -t 6.0 --dualtest\n" + \
-#                                 "/bin/iperf -c 1.2.3.4 -p 5001 -f k -i 1.0 -t 6.0 -\n" + \
-#                                 "andromeda:/ # /bin/iperf -c 1.2.3.4 -p 5001 -f k -i 1.0 -t 6.0 --dualtest\n" + \
-#                                 "------------------------------------------------------------\n" + \
-#                                 "[  3] local 192.168.0.1 port 49597 connected with 1.2.3.4 port 5001\n" + \
-#                                 "[ ID] Interval       Transfer     Bandwidth\n" + \
-#                                 "[  3]  0.0- 1.0 sec  28.6 MBytes   240 Mbits/sec\n" + \
-#                                 "[  3]  0.0-10.0 sec   265 MBytes   222 Mbits/sec\n" + \
-#                                 "andromeda:/ # "
+    collected_lines = []
+    output_with_multiple_echo = "andromeda:/ # /bin/iperf3 -c 1.2.3.4 -p 5001 -f k -i 1.0 -t 6.0\n" + \
+                                "/bin/iperf3 -c 1.2.3.4 -p 5001 -f k -i 1.0 -t 6.0 -\n" + \
+                                "andromeda:/ # /bin/iperf3 -c 1.2.3.4 -p 5001 -f k -i 1.0 -t 6.0\n" + \
+                                "------------------------------------------------------------\n" + \
+                                "[  3] local 192.168.0.1 port 49597 connected to 1.2.3.4 port 5001\n" + \
+                                "[ ID] Interval       Transfer     Bitrate\n" + \
+                                "[  3]  0.0- 1.0 sec  28.6 MBytes   240 Mbits/sec\n" + \
+                                "[  3]  0.0-10.0 sec   265 MBytes   222 Mbits/sec\n" + \
+                                "andromeda:/ # "
 
-#     buffer_connection.remote_inject_response([output_with_multiple_echo])
-#     iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
-#                               prompt='andromeda:/ # ',
-#                               options='-c 1.2.3.4 -p 5001 -f k -i 1.0 -t 6.0 --dualtest')
-#     iperf_cmd.command_path = '/bin/'
-#     oryg_on_new_line = iperf_cmd.__class__.on_new_line
+    buffer_connection.remote_inject_response([output_with_multiple_echo])
+    iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+                              prompt='andromeda:/ # ',
+                              options='-c 1.2.3.4 -p 5001 -f k -i 1.0 -t 6.0')
+    iperf_cmd.command_path = '/bin/'
+    oryg_on_new_line = iperf_cmd.__class__.on_new_line
 
-#     def on_new_line(self, line, is_full_line):
-#         collected_lines.append(line)
-#         oryg_on_new_line(self, line, is_full_line)
+    def on_new_line(self, line, is_full_line):
+        collected_lines.append(line)
+        oryg_on_new_line(self, line, is_full_line)
 
-#     with mock.patch.object(iperf_cmd.__class__, "on_new_line", on_new_line):
-#         iperf_cmd()
-#     assert "andromeda:/ # /bin/iperf -c 1.2.3.4 -p 5001 -f k -i 1.0 -t 6.0 --dualtest" not in collected_lines
-
-
-# def test_iperf_correctly_parses_bidirectional_udp_client_output(buffer_connection):
-#     from moler.cmd.unix import iperf2
-#     buffer_connection.remote_inject_response(
-#         [iperf2.COMMAND_OUTPUT_bidirectional_udp_client])
-#     iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
-#                               **iperf2.COMMAND_KWARGS_bidirectional_udp_client)
-#     res = iperf_cmd()
-#     assert res == iperf2.COMMAND_RESULT_bidirectional_udp_client
-
-
-# def test_iperf_correctly_parses_bidirectional_udp_server_output(buffer_connection):
-#     from moler.cmd.unix import iperf2
-#     buffer_connection.remote_inject_response(
-#         [iperf2.COMMAND_OUTPUT_bidirectional_udp_server])
-#     iperf_cmd = iperf2.Iperf2(connection=buffer_connection.moler_connection,
-#                               **iperf2.COMMAND_KWARGS_bidirectional_udp_server)
-#     res = iperf_cmd()
-#     assert res == iperf2.COMMAND_RESULT_bidirectional_udp_server
+    with mock.patch.object(iperf_cmd.__class__, "on_new_line", on_new_line):
+        iperf_cmd()
+    assert "andromeda:/ # /bin/iperf3 -c 1.2.3.4 -p 5001 -f k -i 1.0 -t 6.0" not in collected_lines
 
 
 def test_iperf_correctly_parses_basic_udp_server_output(buffer_connection):
