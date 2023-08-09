@@ -358,17 +358,12 @@ class Iperf3(GenericUnixCommand, Publisher):
             connection_id = iperf_record.pop("ID")
             iperf_record = self._detailed_parse_interval(iperf_record)
             iperf_record = self._detailed_parse_datagrams(iperf_record)
-            # [SUM]  0.0- 4.0 sec  1057980 KBytes  2165942 Kbits/sec   last line when server used with -P
-            if (not self.parallel_client) and (connection_id == "[SUM]"):
-                raise ParsingDone  # skip it
 
             connection_name = self._connection_dict[connection_id]
             normalized_iperf_record = self._normalize_to_bytes(iperf_record)
             self._update_current_ret(connection_name, normalized_iperf_record)
             self._parse_final_record(connection_name, line)
 
-            if self.protocol == "udp" and self._got_server_report_hdr:
-                self._got_server_report = True
             raise ParsingDone
 
     @staticmethod
