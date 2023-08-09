@@ -1167,75 +1167,59 @@ COMMAND_KWARGS_udp_client_params = {
 COMMAND_RESULT_udp_client_params = {
     'CONNECTIONS': {
         ('127.0.0.1', '5017@127.0.0.1'): {'report': {'Bitrate': 627500,
-                                                     'Bitrate Raw': '5020 '
-                                                     'Kbits/sec',
+                                                     'Bitrate Raw': '5020 Kbits/sec',
                                                      'Interval': (0.0,
                                                                   6.0),
-                                                     'Jitter': '0.000 '
-                                                     'ms',
+                                                     'Jitter': '0.000 ms',
                                                      'Lost_Datagrams_ratio': '0%',
                                                      'Lost_vs_Total_Datagrams': (0,
                                                                                  171),
                                                      'Transfer': 3764387,
-                                                     'Transfer Raw': '3.59 '
-                                                     'MBytes'}},
+                                                     'Transfer Raw': '3.59 MBytes'}},
         ('55371@127.0.0.1', '5017@127.0.0.1'): [{'Bitrate': 638375,
-                                                'Bitrate Raw': '5107 '
-                                                 'Kbits/sec',
+                                                 'Bitrate Raw': '5107 Kbits/sec',
                                                  'Interval': (0.0,
                                                               1.0),
                                                  'Total_Datagrams': 29,
                                                  'Transfer': 638976,
-                                                 'Transfer Raw': '624 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '624 KBytes'},
                                                 {'Bitrate': 616500,
-                                                'Bitrate Raw': '4932 '
-                                                 'Kbits/sec',
+                                                 'Bitrate Raw': '4932 Kbits/sec',
                                                  'Interval': (1.0,
                                                               2.0),
                                                  'Total_Datagrams': 28,
                                                  'Transfer': 616448,
-                                                 'Transfer Raw': '602 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '602 KBytes'},
                                                 {'Bitrate': 638500,
-                                                'Bitrate Raw': '5108 '
-                                                 'Kbits/sec',
+                                                 'Bitrate Raw': '5108 Kbits/sec',
                                                  'Interval': (2.0,
                                                               3.0),
                                                  'Total_Datagrams': 29,
                                                  'Transfer': 638976,
-                                                 'Transfer Raw': '624 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '624 KBytes'},
                                                 {'Bitrate': 616500,
-                                                'Bitrate Raw': '4932 '
-                                                 'Kbits/sec',
+                                                 'Bitrate Raw': '4932 Kbits/sec',
                                                  'Interval': (3.0,
                                                               4.0),
                                                  'Total_Datagrams': 28,
                                                  'Transfer': 616448,
-                                                 'Transfer Raw': '602 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '602 KBytes'},
                                                 {'Bitrate': 616500,
-                                                'Bitrate Raw': '4932 '
-                                                 'Kbits/sec',
+                                                 'Bitrate Raw': '4932 Kbits/sec',
                                                  'Interval': (4.0,
                                                               5.0),
                                                  'Total_Datagrams': 28,
                                                  'Transfer': 616448,
-                                                 'Transfer Raw': '602 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '602 KBytes'},
                                                 {'Bitrate': 638500,
-                                                'Bitrate Raw': '5108 '
-                                                 'Kbits/sec',
+                                                 'Bitrate Raw': '5108 Kbits/sec',
                                                  'Interval': (5.0,
                                                               6.0),
                                                  'Total_Datagrams': 29,
                                                  'Transfer': 638976,
-                                                 'Transfer Raw': '624 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '624 KBytes'},
                                                 {'Bitrate': 627500,
-                                                'Bitrate Raw': '5020 '
-                                                 'Kbits/sec',
+                                                 'Bitrate Raw': '5020 Kbits/sec',
                                                  'Interval': (0.0,
                                                               6.0),
                                                  'Jitter': '0.000 ms',
@@ -1243,11 +1227,9 @@ COMMAND_RESULT_udp_client_params = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              171),
                                                  'Transfer': 3764387,
-                                                 'Transfer Raw': '3.59 '
-                                                 'MBytes'},
+                                                 'Transfer Raw': '3.59 MBytes'},
                                                 {'Bitrate': 623000,
-                                                'Bitrate Raw': '4984 '
-                                                 'Kbits/sec',
+                                                 'Bitrate Raw': '4984 Kbits/sec',
                                                  'Interval': (0.0,
                                                               6.04),
                                                  'Jitter': '0.046 ms',
@@ -1255,8 +1237,7 @@ COMMAND_RESULT_udp_client_params = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              171),
                                                  'Transfer': 3764387,
-                                                 'Transfer Raw': '3.59 '
-                                                 'MBytes'}]},
+                                                 'Transfer Raw': '3.59 MBytes'}]},
     'INFO': ['Connecting to host 127.0.0.1, port 5017', 'iperf Done.']}
 
 
