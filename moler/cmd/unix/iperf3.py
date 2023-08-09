@@ -481,9 +481,6 @@ class Iperf3(GenericUnixCommand, Publisher):
 
         all_reports = has_client_report
         works_as_client = self.client
-        # udp client additionally awaits server report
-        if self.protocol == "udp" and works_as_client:
-            all_reports = all_reports and self._got_server_report
         return all_reports
 
     # [  5] Sent 2552 datagrams
