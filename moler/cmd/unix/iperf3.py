@@ -2689,21 +2689,17 @@ COMMAND_KWARGS_singlerun_udp_server = {
 COMMAND_RESULT_singlerun_udp_server = {
     'CONNECTIONS': {
         ('127.0.0.1', '5001@127.0.0.1'): {'report': {'Bitrate': 131500,
-                                                     'Bitrate Raw': '1052 '
-                                                     'Kbits/sec',
+                                                     'Bitrate Raw': '1052 Kbits/sec',
                                                      'Interval': (0.0,
                                                                   10.04),
-                                                     'Jitter': '0.023 '
-                                                     'ms',
+                                                     'Jitter': '0.023 ms',
                                                      'Lost_Datagrams_ratio': '0%',
                                                      'Lost_vs_Total_Datagrams': (0,
                                                                                  60),
                                                      'Transfer': 1321205,
-                                                     'Transfer Raw': '1.26 '
-                                                     'MBytes'}},
+                                                     'Transfer Raw': '1.26 MBytes'}},
         ('44895@127.0.0.1', '5001@127.0.0.1'): [{'Bitrate': 132125,
-                                                'Bitrate Raw': '1057 '
-                                                 'Kbits/sec',
+                                                 'Bitrate Raw': '1057 Kbits/sec',
                                                  'Interval': (0.0,
                                                               1.0),
                                                  'Jitter': '0.007 ms',
@@ -2711,11 +2707,9 @@ COMMAND_RESULT_singlerun_udp_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              6),
                                                  'Transfer': 132096,
-                                                 'Transfer Raw': '129 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '129 KBytes'},
                                                 {'Bitrate': 132125,
-                                                'Bitrate Raw': '1057 '
-                                                 'Kbits/sec',
+                                                 'Bitrate Raw': '1057 Kbits/sec',
                                                  'Interval': (1.0,
                                                               2.0),
                                                  'Jitter': '0.008 ms',
@@ -2723,11 +2717,9 @@ COMMAND_RESULT_singlerun_udp_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              6),
                                                  'Transfer': 132096,
-                                                 'Transfer Raw': '129 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '129 KBytes'},
                                                 {'Bitrate': 132125,
-                                                'Bitrate Raw': '1057 '
-                                                 'Kbits/sec',
+                                                 'Bitrate Raw': '1057 Kbits/sec',
                                                  'Interval': (2.0,
                                                               3.0),
                                                  'Jitter': '0.007 ms',
@@ -2735,11 +2727,9 @@ COMMAND_RESULT_singlerun_udp_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              6),
                                                  'Transfer': 132096,
-                                                 'Transfer Raw': '129 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '129 KBytes'},
                                                 {'Bitrate': 132125,
-                                                'Bitrate Raw': '1057 '
-                                                 'Kbits/sec',
+                                                 'Bitrate Raw': '1057 Kbits/sec',
                                                  'Interval': (3.0,
                                                               4.0),
                                                  'Jitter': '0.008 ms',
@@ -2747,11 +2737,9 @@ COMMAND_RESULT_singlerun_udp_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              6),
                                                  'Transfer': 132096,
-                                                 'Transfer Raw': '129 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '129 KBytes'},
                                                 {'Bitrate': 132125,
-                                                'Bitrate Raw': '1057 '
-                                                 'Kbits/sec',
+                                                 'Bitrate Raw': '1057 Kbits/sec',
                                                  'Interval': (4.0,
                                                               5.0),
                                                  'Jitter': '0.006 ms',
@@ -2759,11 +2747,9 @@ COMMAND_RESULT_singlerun_udp_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              6),
                                                  'Transfer': 132096,
-                                                 'Transfer Raw': '129 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '129 KBytes'},
                                                 {'Bitrate': 132125,
-                                                'Bitrate Raw': '1057 '
-                                                 'Kbits/sec',
+                                                 'Bitrate Raw': '1057 Kbits/sec',
                                                  'Interval': (5.0,
                                                               6.0),
                                                  'Jitter': '0.005 ms',
@@ -2771,11 +2757,9 @@ COMMAND_RESULT_singlerun_udp_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              6),
                                                  'Transfer': 132096,
-                                                 'Transfer Raw': '129 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '129 KBytes'},
                                                 {'Bitrate': 132125,
-                                                'Bitrate Raw': '1057 '
-                                                 'Kbits/sec',
+                                                 'Bitrate Raw': '1057 Kbits/sec',
                                                  'Interval': (6.0,
                                                               7.0),
                                                  'Jitter': '0.010 ms',
@@ -2783,11 +2767,9 @@ COMMAND_RESULT_singlerun_udp_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              6),
                                                  'Transfer': 132096,
-                                                 'Transfer Raw': '129 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '129 KBytes'},
                                                 {'Bitrate': 132125,
-                                                'Bitrate Raw': '1057 '
-                                                 'Kbits/sec',
+                                                 'Bitrate Raw': '1057 Kbits/sec',
                                                  'Interval': (7.0,
                                                               8.0),
                                                  'Jitter': '0.017 ms',
@@ -2795,11 +2777,9 @@ COMMAND_RESULT_singlerun_udp_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              6),
                                                  'Transfer': 132096,
-                                                 'Transfer Raw': '129 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '129 KBytes'},
                                                 {'Bitrate': 132125,
-                                                'Bitrate Raw': '1057 '
-                                                 'Kbits/sec',
+                                                 'Bitrate Raw': '1057 Kbits/sec',
                                                  'Interval': (8.0,
                                                               9.0),
                                                  'Jitter': '0.017 ms',
@@ -2807,11 +2787,9 @@ COMMAND_RESULT_singlerun_udp_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              6),
                                                  'Transfer': 132096,
-                                                 'Transfer Raw': '129 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '129 KBytes'},
                                                 {'Bitrate': 132125,
-                                                'Bitrate Raw': '1057 '
-                                                 'Kbits/sec',
+                                                 'Bitrate Raw': '1057 Kbits/sec',
                                                  'Interval': (9.0,
                                                               10.0),
                                                  'Jitter': '0.023 ms',
@@ -2819,11 +2797,9 @@ COMMAND_RESULT_singlerun_udp_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              6),
                                                  'Transfer': 132096,
-                                                 'Transfer Raw': '129 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '129 KBytes'},
                                                 {'Bitrate': 131500,
-                                                'Bitrate Raw': '1052 '
-                                                 'Kbits/sec',
+                                                 'Bitrate Raw': '1052 Kbits/sec',
                                                  'Interval': (0.0,
                                                               10.04),
                                                  'Jitter': '0.023 ms',
@@ -2831,8 +2807,7 @@ COMMAND_RESULT_singlerun_udp_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              60),
                                                  'Transfer': 1321205,
-                                                 'Transfer Raw': '1.26 '
-                                                 'MBytes'}]},
+                                                 'Transfer Raw': '1.26 MBytes'}]},
     'INFO': ['Server listening on 5001',
              'Accepted connection from 127.0.0.1, port 39914',
              'Server listening on 5001']}
