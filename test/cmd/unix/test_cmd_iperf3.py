@@ -55,11 +55,18 @@ def test_iperf_raise_error_on_iperf_problem(buffer_connection, command_output_an
         iperf_cmd()
 
 
-# def test_iperf_raise_error_on_iperf_problem(buffer_connection):
-#     with pytest.raises(AttributeError) as err:
-#         Iperf2(connection=buffer_connection.moler_connection, options='-d -P 10')
-#     assert "Unsupported options combination (--dualtest & --parallel)" in str(
-#         err.value)
+def test_iperf_raise_error_on_udp_server_option(buffer_connection):
+    with pytest.raises(AttributeError) as err:
+        Iperf3(connection=buffer_connection.moler_connection, options='-s -u')
+    assert "Option (--udp) you are trying to set is client only" in str(
+        err.value)
+
+
+def test_iperf_raise_error_on_time_server_option(buffer_connection):
+    with pytest.raises(AttributeError) as err:
+        Iperf3(connection=buffer_connection.moler_connection, options='-s -t 5')
+    assert "Option (--time) you are trying to set is client only" in str(
+        err.value)
 
 
 # def test_iperf_stores_connections_as_host_port_tuple_for_local_and_remote(buffer_connection):
