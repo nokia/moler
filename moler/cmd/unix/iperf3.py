@@ -574,7 +574,8 @@ COMMAND_RESULT_basic_client = {
                                                       'Transfer': 31245887078,
                                                       'Transfer Raw': '29.1 GBytes'}},
          ('48058@127.0.0.1', '5201@127.0.0.1'): [{'Bitrate': 3400000000,
-                                                  'Bitrate Raw': '27.2 Gbits/sec',                                                  'Cwnd': 1310720,
+                                                  'Bitrate Raw': '27.2 Gbits/sec',
+                                                  'Cwnd': 1310720,
                                                   'Cwnd Raw': '1.25 MBytes',
                                                   'Interval': (0.0,
                                                                1.0),
@@ -710,21 +711,17 @@ COMMAND_KWARGS_basic_server = {"options": "-s -i 1"}
 COMMAND_RESULT_basic_server = {
     'CONNECTIONS': {
         ('127.0.0.1', '5201@127.0.0.1'): {'report': {'Bitrate': 131250,
-                                                     'Bitrate Raw': '1.05 '
-                                                     'Mbits/sec',
+                                                     'Bitrate Raw': '1.05 Mbits/sec',
                                                      'Interval': (0.0,
                                                                   10.04),
-                                                     'Jitter': '0.022 '
-                                                     'ms',
+                                                     'Jitter': '0.022 ms',
                                                      'Lost_Datagrams_ratio': '0%',
                                                      'Lost_vs_Total_Datagrams': (0,
                                                                                  60),
                                                      'Transfer': 1321205,
-                                                     'Transfer Raw': '1.26 '
-                                                     'MBytes'}},
+                                                     'Transfer Raw': '1.26 MBytes'}},
         ('34761@127.0.0.1', '5201@127.0.0.1'): [{'Bitrate': 132500,
-                                                 'Bitrate Raw': '1.06 '
-                                                 'Mbits/sec',
+                                                 'Bitrate Raw': '1.06 Mbits/sec',
                                                  'Interval': (0.0,
                                                               1.0),
                                                  'Jitter': '0.015 ms',
@@ -732,11 +729,9 @@ COMMAND_RESULT_basic_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              6),
                                                  'Transfer': 132096,
-                                                 'Transfer Raw': '129 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '129 KBytes'},
                                                 {'Bitrate': 132500,
-                                                 'Bitrate Raw': '1.06 '
-                                                 'Mbits/sec',
+                                                 'Bitrate Raw': '1.06 Mbits/sec',
                                                  'Interval': (1.0,
                                                               2.0),
                                                  'Jitter': '0.016 ms',
@@ -744,11 +739,9 @@ COMMAND_RESULT_basic_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              6),
                                                  'Transfer': 132096,
-                                                 'Transfer Raw': '129 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '129 KBytes'},
                                                 {'Bitrate': 132500,
-                                                 'Bitrate Raw': '1.06 '
-                                                 'Mbits/sec',
+                                                 'Bitrate Raw': '1.06 Mbits/sec',
                                                  'Interval': (2.0,
                                                               3.0),
                                                  'Jitter': '0.019 ms',
@@ -756,11 +749,9 @@ COMMAND_RESULT_basic_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              6),
                                                  'Transfer': 132096,
-                                                 'Transfer Raw': '129 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '129 KBytes'},
                                                 {'Bitrate': 132500,
-                                                 'Bitrate Raw': '1.06 '
-                                                 'Mbits/sec',
+                                                 'Bitrate Raw': '1.06 Mbits/sec',
                                                  'Interval': (3.0,
                                                               4.0),
                                                  'Jitter': '0.028 ms',
@@ -768,11 +759,9 @@ COMMAND_RESULT_basic_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              6),
                                                  'Transfer': 132096,
-                                                 'Transfer Raw': '129 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '129 KBytes'},
                                                 {'Bitrate': 132500,
-                                                 'Bitrate Raw': '1.06 '
-                                                 'Mbits/sec',
+                                                 'Bitrate Raw': '1.06 Mbits/sec',
                                                  'Interval': (4.0,
                                                               5.0),
                                                  'Jitter': '0.024 ms',
@@ -780,11 +769,9 @@ COMMAND_RESULT_basic_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              6),
                                                  'Transfer': 132096,
-                                                 'Transfer Raw': '129 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '129 KBytes'},
                                                 {'Bitrate': 132500,
-                                                 'Bitrate Raw': '1.06 '
-                                                 'Mbits/sec',
+                                                 'Bitrate Raw': '1.06 Mbits/sec',
                                                  'Interval': (5.0,
                                                               6.0),
                                                  'Jitter': '0.032 ms',
@@ -792,11 +779,9 @@ COMMAND_RESULT_basic_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              6),
                                                  'Transfer': 132096,
-                                                 'Transfer Raw': '129 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '129 KBytes'},
                                                 {'Bitrate': 132500,
-                                                 'Bitrate Raw': '1.06 '
-                                                 'Mbits/sec',
+                                                 'Bitrate Raw': '1.06 Mbits/sec',
                                                  'Interval': (6.0,
                                                               7.0),
                                                  'Jitter': '0.027 ms',
@@ -804,11 +789,9 @@ COMMAND_RESULT_basic_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              6),
                                                  'Transfer': 132096,
-                                                 'Transfer Raw': '129 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '129 KBytes'},
                                                 {'Bitrate': 132500,
-                                                 'Bitrate Raw': '1.06 '
-                                                 'Mbits/sec',
+                                                 'Bitrate Raw': '1.06 Mbits/sec',
                                                  'Interval': (7.0,
                                                               8.0),
                                                  'Jitter': '0.022 ms',
@@ -816,11 +799,9 @@ COMMAND_RESULT_basic_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              6),
                                                  'Transfer': 132096,
-                                                 'Transfer Raw': '129 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '129 KBytes'},
                                                 {'Bitrate': 132500,
-                                                 'Bitrate Raw': '1.06 '
-                                                 'Mbits/sec',
+                                                 'Bitrate Raw': '1.06 Mbits/sec',
                                                  'Interval': (8.0,
                                                               9.0),
                                                  'Jitter': '0.022 ms',
@@ -828,11 +809,9 @@ COMMAND_RESULT_basic_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              6),
                                                  'Transfer': 132096,
-                                                 'Transfer Raw': '129 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '129 KBytes'},
                                                 {'Bitrate': 132500,
-                                                 'Bitrate Raw': '1.06 '
-                                                 'Mbits/sec',
+                                                 'Bitrate Raw': '1.06 Mbits/sec',
                                                  'Interval': (9.0,
                                                               10.0),
                                                  'Jitter': '0.022 ms',
@@ -840,11 +819,9 @@ COMMAND_RESULT_basic_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              6),
                                                  'Transfer': 132096,
-                                                 'Transfer Raw': '129 '
-                                                 'KBytes'},
+                                                 'Transfer Raw': '129 KBytes'},
                                                 {'Bitrate': 131250,
-                                                 'Bitrate Raw': '1.05 '
-                                                 'Mbits/sec',
+                                                 'Bitrate Raw': '1.05 Mbits/sec',
                                                  'Interval': (0.0,
                                                               10.04),
                                                  'Jitter': '0.022 ms',
@@ -852,8 +829,7 @@ COMMAND_RESULT_basic_server = {
                                                  'Lost_vs_Total_Datagrams': (0,
                                                                              60),
                                                  'Transfer': 1321205,
-                                                 'Transfer Raw': '1.26 '
-                                                 'MBytes'}]},
+                                                 'Transfer Raw': '1.26 MBytes'}]},
     'INFO': ['Server listening on 5201',
              'Accepted connection from 127.0.0.1, port 40530',
              'Server listening on 5201']}
