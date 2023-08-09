@@ -147,7 +147,6 @@ class Iperf3(GenericUnixCommand, Publisher):
                 self._parse_headers(line)
                 self._parse_connection_info(line)
                 self._parse_too_early_ctrl_c(line)
-                self._parse_svr_report_header(line)
                 self._parse_connection_headers(line)
             except ParsingDone:
                 pass
@@ -496,11 +495,6 @@ class Iperf3(GenericUnixCommand, Publisher):
            not self._regex_helper.search_compiled(Iperf3._re_summary_ornament, line) and \
            not self._regex_helper.search_compiled(Iperf3._re_blank_line, line):
             self.current_ret["INFO"].append(line.strip())
-            raise ParsingDone
-
-    def _parse_svr_report_header(self, line):
-        if "Server Report:" in line:
-            self._got_server_report_hdr = True
             raise ParsingDone
 
     def _normalize_to_bytes(self, input_dict):
