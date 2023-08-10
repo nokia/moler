@@ -3,6 +3,20 @@
 Iperf3 command module.
 
 It is refactored Iperf2 module changing data format returned.
+Based on 3.6 iperf version and iperf doc: https://iperf.fr/iperf-doc.php
+
+Important notes: 
+- iperf3 options such as -u, -t, -P are
+  no longer available on the server side. Some unit tests
+  does not include this options (server side), however
+  they are included on the client side.
+- dualtests are no longer available in Iperf3
+
+Iperf3 returns some new parameters in relation to Iperf2 version:
+- tcp client: Retr and Cwnd,
+- udp client: Total Datagrams.
+
+
 """
 
 __author__ = "Kacper Kozik"
@@ -87,19 +101,25 @@ class Iperf3(GenericUnixCommand, Publisher):
     _re_port = re.compile(r"(?P<PORT_OPTION>\-\-port|\-p)\s+(?P<PORT>\d+)")
 
     def _validate_options(self, options):
-        if (("-u" in options) or ("--udp" in options)) and (
-                ("-s" in options) or ("--server" in options)):
-            raise AttributeError(
-                "Option (--udp) you are trying to set is client only")
-        if (("-t" in options) or ("--time" in options)) and (
-                ("-s" in options) or ("--server" in options)):
-            raise AttributeError(
-                "Option (--time) you are trying to set is client only")
+        client_only_options = [
+            ("-u", "--udp"),
+            ("-t", "--time"),
+            ("-P", "--parallel")]
+
+        for short_option, long_option in client_only_options:
+            self._raise_option_error(short_option, long_option, options)
+
         if self._regex_helper.search_compiled(Iperf3._re_port, options):
             port = int(self._regex_helper.group("PORT"))
         else:
             port = 5201
         return port, options
+
+    def _raise_option_error(self, short_option, long_option, options):
+        if ((short_option in options) or (long_option in options)) and (
+                ("-s" in options) or ("--server" in options)):
+            raise AttributeError(
+                "Option ({}) you are trying to set is client only".format(long_option))
 
     def build_command_string(self):
         cmd = "iperf3 " + str(self.options)
