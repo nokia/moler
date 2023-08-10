@@ -2,21 +2,17 @@
 """
 Iperf3 command module.
 
-It is refactored Iperf2 module changing data format returned.
-Based on 3.6 iperf version and iperf doc: https://iperf.fr/iperf-doc.php
+It is refactored Iperf2 module changing data format returned. 
+The changes align with the iperf3 documentation available at https://iperf.fr/iperf-doc.php.
 
-Important notes: 
-- iperf3 options such as -u, -t, -P are
-  no longer available on the server side. Some unit tests
-  does not include this options (server side), however
-  they are included on the client side.
-- dualtests are no longer available in Iperf3
-
-Iperf3 returns some new parameters in relation to Iperf2 version:
-- tcp client: Retr and Cwnd,
-- udp client: Total Datagrams.
-
-
+Here are some important points to note: 
+- Certain iperf3 options such as -u, -t, and -P are no longer applicable 
+  on the server side. Although these options are included on the client side, 
+  they are excluded from server-side usage. 
+- Dual tests, which were present in iperf2, have been removed in iperf3.
+- Iperf3 introduces several new parameters in comparison to iperf2: 
+    - for TCP client, Retr and Cwnd parameters are now available, 
+    - for UDP client, Total Datagrams parameter is now available.
 """
 
 __author__ = "Kacper Kozik"
