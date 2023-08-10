@@ -69,6 +69,13 @@ def test_iperf_raise_error_on_time_server_option(buffer_connection):
         err.value)
 
 
+def test_iperf_raise_error_on_parallel_connection_server_option(buffer_connection):
+    with pytest.raises(AttributeError) as err:
+        Iperf3(connection=buffer_connection.moler_connection, options='-s -P 3')
+    assert "Option (--parallel) you are trying to set is client only" in str(
+        err.value)
+
+
 def test_iperf_stores_ipv6_connections_as_port_at_host_tuple_for_local_and_remote(buffer_connection):
     from moler.cmd.unix import iperf3
     buffer_connection.remote_inject_response(
