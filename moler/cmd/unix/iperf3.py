@@ -333,11 +333,7 @@ class Iperf3(Iperf2):
         return (client_host, "{}@{}".format(
             self.port, server_host)) in result
 
-    # [  5] Sent 2552 datagrams
-    # ------------------------------------------------------------
     # - - - - - - - - - - - - - - - - - - - - - - - - -
-    _re_ornaments = re.compile(
-        r"(?P<ORNAMENTS>----*|\[\s*ID\].*)", re.IGNORECASE)
     _re_summary_ornament = re.compile(r"(?P<SUM_ORNAMENT>(-\s)+)")
     _re_blank_line = re.compile(r"(?P<BLANK>^\s*$)")
 
@@ -378,15 +374,6 @@ class Iperf3(Iperf2):
                 value_in_ms = float(value_in_ms)
                 input_dict[key] = value_in_ms
         return input_dict
-
-    # ^CWaiting for server threads to complete. Interrupt again to force quit
-    _re_interrupt_again = re.compile(r"Interrupt again to force quit")
-
-    def _parse_too_early_ctrl_c(self, line):
-        # Happens at script execution. Scripts are quicker then humans.
-        if self._regex_helper.search_compiled(Iperf3._re_interrupt_again, line):
-            self.break_cmd()  # send Ctrl-C once more
-            raise ParsingDone
 
 
 COMMAND_OUTPUT_basic_client = """
