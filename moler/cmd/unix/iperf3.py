@@ -110,53 +110,6 @@ class Iperf3(Iperf2):
         # In iperf3 svr report header does not exists
         pass
 
-    def subscribe(self, subscriber):
-        """
-        Subscribe for notifications about iperf3 statistic as it comes.
-
-        Anytime we find iperf3 statistics line like:
-        [  3]  2.0- 3.0 sec   612 KBytes  5010 Kbits/sec   0.022 ms    0/  426 (0%)
-        such line is parsed and published to subscriber
-
-        Subscriber must be function or method with following signature (name doesn't matter):
-
-            def iperf_observer(from_client, to_server, data_record=None, report=None):
-                ...
-
-        Either data_record is published or report.
-        Report is published on last line of iperf3 statistics summarizing stats for whole period:
-        [904]   0.0-10.0 sec   11.8 MBytes   9.86 Mbits/sec   2.618 ms   9/ 8409  (0.11%)   sender
-
-        :param subscriber: function to be called to notify about data.
-        """
-        super(Iperf3, self).subscribe(subscriber)
-
-    def is_end_of_cmd_output(self, line):
-        """
-        Checks if end of command is reached.
-
-        For iperf3 server we can't await prompt since at server it is not displayed
-
-        :param line: Line from device.
-        :return:
-        """
-        if self.server:
-            if self._has_all_reports():
-                self._stop_server()
-                return super(Iperf3, self).is_end_of_cmd_output(line)
-            return False
-        else:
-            return super(Iperf3, self).is_end_of_cmd_output(line)
-
-    _re_command_failure = re.compile(
-        r"(?P<FAILURE_MSG>.*failed.*|.*error.*|.*command not found.*|.*iperf:.*)")
-
-    def _command_failure(self, line):
-        if self._regex_helper.search_compiled(Iperf3._re_command_failure, line):
-            self.set_exception(
-                CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("FAILURE_MSG"))))
-            raise ParsingDone
-
     # [  5] local 127.0.0.1 port 35108 connected to 127.0.0.1 port 5201
     _r_conn_info = r"(\[\s*\d*\])\s+local\s+(\S+)\s+port\s+(\d+)\s+connected to\s+(\S+)\s+port\s+(\d+)"
     _re_connection_info = re.compile(_r_conn_info)
