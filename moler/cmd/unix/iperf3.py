@@ -138,9 +138,7 @@ class Iperf3(GenericUnixCommand, Publisher):
     def parallel_client(self):
         if self.client:
             return ("-P " in self.options) or ("--parallel " in self.options)
-        if len(self._connection_dict.keys()) > 1:
-            return True
-        return False
+        return len(self._connection_dict.keys()) > 1
 
     @property
     def singlerun_server(self):
@@ -496,18 +494,9 @@ class Iperf3(GenericUnixCommand, Publisher):
             return False
         result = self.current_ret["CONNECTIONS"]
         connections = list(self._connection_dict.values())
-        (
-            client_host,
-            client_port,
-            server_host,
-            server_port,
-        ) = self._split_connection_name(connections[0])
-        from_client, to_server = client_host, "{}@{}".format(
-            self.port, server_host)
-        has_client_report = (from_client, to_server) in result
-
-        all_reports = has_client_report
-        return all_reports
+        client_host, _, server_host, _ = self._split_connection_name(connections[0])
+        return (client_host, "{}@{}".format(
+            self.port, server_host)) in result
 
     # [  5] Sent 2552 datagrams
     # ------------------------------------------------------------
