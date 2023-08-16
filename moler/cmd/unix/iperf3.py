@@ -142,7 +142,7 @@ class Iperf3(Iperf2):
     def _parse_svr_report_header(self, line):
         # if "Server Report:" in line:
         #     self._got_server_report_hdr = True
-        raise ParsingDone
+        pass
 
     def subscribe(self, subscriber):
         """
