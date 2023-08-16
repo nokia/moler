@@ -26,7 +26,7 @@ from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 
 
-class Iperf3(Iperf2, GenericUnixCommand, Publisher):
+class Iperf3(Iperf2):
     """
     Run iperf3 command, return its statistics and report.
 
@@ -75,7 +75,8 @@ class Iperf3(Iperf2, GenericUnixCommand, Publisher):
         super(Iperf3, self).__init__(connection=connection,
                                      prompt=prompt,
                                      newline_chars=newline_chars,
-                                     runner=runner,)
+                                     runner=runner,
+                                     options=options)
         self.port, self.options = self._validate_options(options)
         self.current_ret["CONNECTIONS"] = dict()
         self.current_ret["INFO"] = list()
