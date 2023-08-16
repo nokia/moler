@@ -126,18 +126,23 @@ class Iperf3(Iperf2):
             return ("-P " in self.options) or ("--parallel " in self.options)
         return len(self._connection_dict.keys()) > 1
 
-    def on_new_line(self, line, is_full_line):
-        if is_full_line:
-            try:
-                self._command_failure(line)
-                self._parse_connection_name_and_id(line)
-                self._parse_headers(line)
-                self._parse_connection_info(line)
-                self._parse_too_early_ctrl_c(line)
-                self._parse_connection_headers(line)
-            except ParsingDone:
-                pass
-        return super(Iperf3, self).on_new_line(line, is_full_line)
+    # def on_new_line(self, line, is_full_line):
+    #     if is_full_line:
+    #         try:
+    #             self._command_failure(line)
+    #             self._parse_connection_name_and_id(line)
+    #             self._parse_headers(line)
+    #             self._parse_connection_info(line)
+    #             self._parse_too_early_ctrl_c(line)
+    #             self._parse_connection_headers(line)
+    #         except ParsingDone:
+    #             pass
+    #     return super(Iperf3, self).on_new_line(line, is_full_line)
+
+    def _parse_svr_report_header(self, line):
+        # if "Server Report:" in line:
+        #     self._got_server_report_hdr = True
+        raise ParsingDone
 
     def subscribe(self, subscriber):
         """
