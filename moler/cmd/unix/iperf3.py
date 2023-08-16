@@ -18,14 +18,13 @@ __email__ = "kacper.kozik@nokia.com"
 
 
 import re
-from moler.cmd.unix.genericunix import GenericUnixCommand
+from moler.cmd.unix.iperf2 import Iperf2
 from moler.util.converterhelper import ConverterHelper
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
-from moler.publisher import Publisher
 
 
-class Iperf3(GenericUnixCommand, Publisher):
+class Iperf3(Iperf2):
     """
     Run iperf3 command, return its statistics and report.
 
@@ -119,34 +118,10 @@ class Iperf3(GenericUnixCommand, Publisher):
         return cmd
 
     @property
-    def protocol(self):
-        if any([self.options.startswith("-u"), " -u" in self.options, "--udp" in self.options]):
-            return "udp"
-        return "tcp"
-
-    @property
-    def client(self):
-        return ("-c " in self.options) or ("--client " in self.options)
-
-    @property
-    def server(self):
-        return any([self.options.startswith("-s"),
-                    " -s" in self.options,
-                    "--server" in self.options])
-
-    @property
     def parallel_client(self):
         if self.client:
             return ("-P " in self.options) or ("--parallel " in self.options)
         return len(self._connection_dict.keys()) > 1
-
-    @property
-    def singlerun_server(self):
-        singlerun_param_nonlast = ("-P 1 " in self.options) or (
-            "--parallel 1 " in self.options)
-        singlerun_param_as_last = self.options.endswith(
-            "-P 1") or self.options.endswith("--parallel 1")
-        return singlerun_param_nonlast or singlerun_param_as_last
 
     def on_new_line(self, line, is_full_line):
         if is_full_line:
@@ -160,18 +135,6 @@ class Iperf3(GenericUnixCommand, Publisher):
             except ParsingDone:
                 pass
         return super(Iperf3, self).on_new_line(line, is_full_line)
-
-    def _process_line_from_command(self, current_chunk, line, is_full_line):
-        decoded_line = self._decode_line(line=line)
-        if self._is_replicated_cmd_echo(line):
-            return
-        self.on_new_line(line=decoded_line, is_full_line=is_full_line)
-
-    def _is_replicated_cmd_echo(self, line):
-        prompt_and_command = r"{}\s*{}".format(
-            self._re_prompt.pattern, self.command_string)
-        found_echo = self._regex_helper.search(prompt_and_command, line)
-        return found_echo is not None
 
     def subscribe(self, subscriber):
         """
@@ -210,24 +173,6 @@ class Iperf3(GenericUnixCommand, Publisher):
             return False
         else:
             return super(Iperf3, self).is_end_of_cmd_output(line)
-
-    def on_inactivity(self):
-        """
-        Call when no data is received on connection within self.life_status.inactivity_timeout seconds.
-
-        :return: None
-        """
-        if self._stopping_server and (not self.done()):
-            self.break_cmd()
-
-    def _schedule_delayed_break(self, delay):
-        self.life_status.inactivity_timeout = 1.0  # will activate on_inactivity()
-
-    def _stop_server(self):
-        if not self._stopping_server:
-            if not self.singlerun_server:
-                self._schedule_delayed_break(delay=1.0)
-            self._stopping_server = True
 
     _re_command_failure = re.compile(
         r"(?P<FAILURE_MSG>.*failed.*|.*error.*|.*command not found.*|.*iperf:.*)")
@@ -297,12 +242,6 @@ class Iperf3(GenericUnixCommand, Publisher):
                     "{}@{}".format("multiport", client_host),
                     server,)
             raise ParsingDone
-
-    def _split_connection_name(self, connection_name):
-        client, server = connection_name
-        client_port, client_host = client.split("@")
-        server_port, server_host = server.split("@")
-        return client_host, client_port, server_host, server_port
 
     # tcp server:
     # [ ID] Interval       Transfer     Bitrate
@@ -379,19 +318,6 @@ class Iperf3(GenericUnixCommand, Publisher):
             raise ParsingDone
 
     @staticmethod
-    def _detailed_parse_interval(iperf_record):
-        start, end = iperf_record["Interval"].split("-")
-        iperf_record["Interval"] = (float(start), float(end))
-        return iperf_record
-
-    @staticmethod
-    def _detailed_parse_datagrams(iperf_record):
-        if "Lost_vs_Total_Datagrams" in iperf_record:
-            lost, total = iperf_record["Lost_vs_Total_Datagrams"].split("/")
-            iperf_record["Lost_vs_Total_Datagrams"] = (int(lost), int(total))
-        return iperf_record
-
-    @staticmethod
     def _convert_datagrams_parameter(iperf_record):
         if "Total_Datagrams" in iperf_record:
             iperf_record["Total_Datagrams"] = int(
@@ -403,24 +329,6 @@ class Iperf3(GenericUnixCommand, Publisher):
         if "Retr" in iperf_record:
             iperf_record["Retr"] = int(iperf_record["Retr"])
         return iperf_record
-
-    def _update_current_ret(self, connection_name, info_dict):
-        if connection_name in self.current_ret["CONNECTIONS"]:
-            self.current_ret["CONNECTIONS"][connection_name].append(info_dict)
-        else:
-            connection_dict = {connection_name: [info_dict]}
-            self.current_ret["CONNECTIONS"].update(connection_dict)
-
-    def _all_multiport_records_of_interval(self, connection_name):
-        client, server = connection_name
-        client_port, client_host = client.split("@")
-        last_interval = self.current_ret["CONNECTIONS"][connection_name][-1]["Interval"]
-        for conn_name in self._same_host_connections[client_host]:
-            if conn_name not in self.current_ret["CONNECTIONS"]:
-                return False
-            if not self._get_last_record_of_interval(conn_name, last_interval):
-                return False
-        return True
 
     def _get_last_record_of_interval(self, connection_name, interval):
         last_rec = self.current_ret["CONNECTIONS"][connection_name][-1]
