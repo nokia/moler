@@ -18,8 +18,6 @@ __email__ = "kacper.kozik@nokia.com"
 
 
 import re
-from moler.cmd.unix.genericunix import GenericUnixCommand
-from moler.publisher import Publisher
 from moler.cmd.unix.iperf2 import Iperf2
 from moler.util.converterhelper import ConverterHelper
 from moler.exceptions import CommandFailure
@@ -77,15 +75,6 @@ class Iperf3(Iperf2):
                                      newline_chars=newline_chars,
                                      runner=runner,
                                      options=options)
-        self.port, self.options = self._validate_options(options)
-        self.current_ret["CONNECTIONS"] = dict()
-        self.current_ret["INFO"] = list()
-
-        # private values
-        self._connection_dict = dict()
-        self._same_host_connections = dict()
-        self._converter_helper = ConverterHelper()
-        self._stopping_server = False
 
     def __str__(self):
         str_base_value = super(Iperf3, self).__str__()
@@ -126,22 +115,8 @@ class Iperf3(Iperf2):
             return ("-P " in self.options) or ("--parallel " in self.options)
         return len(self._connection_dict.keys()) > 1
 
-    # def on_new_line(self, line, is_full_line):
-    #     if is_full_line:
-    #         try:
-    #             self._command_failure(line)
-    #             self._parse_connection_name_and_id(line)
-    #             self._parse_headers(line)
-    #             self._parse_connection_info(line)
-    #             self._parse_too_early_ctrl_c(line)
-    #             self._parse_connection_headers(line)
-    #         except ParsingDone:
-    #             pass
-    #     return super(Iperf3, self).on_new_line(line, is_full_line)
-
     def _parse_svr_report_header(self, line):
-        # if "Server Report:" in line:
-        #     self._got_server_report_hdr = True
+        # In iperf3 svr report header does not exists
         pass
 
     def subscribe(self, subscriber):
