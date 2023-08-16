@@ -19,7 +19,6 @@ __email__ = "kacper.kozik@nokia.com"
 
 import re
 from moler.cmd.unix.iperf2 import Iperf2
-from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 
 
