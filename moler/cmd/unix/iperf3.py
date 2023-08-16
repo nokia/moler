@@ -6,7 +6,7 @@ It is refactored Iperf2 module adapted to iperf ver. 3.9.
 The changes align with the iperf3 documentation available at https://iperf.fr/iperf-doc.php.
 
 Important changes (in comparison to Iperf2) to note:
-- Certain options such as -u, -t, and -P are no longer applicable on the server side. 
+- Certain options such as -u, -t, and -P are no longer applicable on the server side.
   Although these options are included on the client side,
 - Removed dual tests,
 - Added several new stats: Retr and Cwnd for TCP; Total Datagrams for UDP.
