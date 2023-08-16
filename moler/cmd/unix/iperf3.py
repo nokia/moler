@@ -18,13 +18,15 @@ __email__ = "kacper.kozik@nokia.com"
 
 
 import re
+from moler.cmd.unix.genericunix import GenericUnixCommand
+from moler.publisher import Publisher
 from moler.cmd.unix.iperf2 import Iperf2
 from moler.util.converterhelper import ConverterHelper
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 
 
-class Iperf3(Iperf2):
+class Iperf3(Iperf2, GenericUnixCommand, Publisher):
     """
     Run iperf3 command, return its statistics and report.
 
