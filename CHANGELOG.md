@@ -1,3 +1,7 @@
+## moler 2.13.0
+* Iperf3 implementation
+* Parameter force for method break_cmd
+
 ## moler 2.12.0
 * Implementation of AT commands with Get and Set for Cell Id (general, GPRS, LTE, NR)
 
