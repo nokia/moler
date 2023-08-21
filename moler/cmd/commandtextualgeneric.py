@@ -392,13 +392,15 @@ class CommandTextualGeneric(Command):
         if self.__class__.__name__ == 'CmConnect':  # pragma: no cover
             self.logger.debug("{} line = '{}', is_full_line={}, _cmd_output_started={}".format(self, line, is_full_line, self._cmd_output_started))
 
-    def break_cmd(self, silent=False):
+    def break_cmd(self, silent=False, force=False):
         """
         Send ctrl+c to device to break command execution.
 
+        :param silent: set False to log info the break is not sent
+        :param force: set True to break cmd even if the command does not run
         :return: None
         """
-        if self.running():
+        if self.running() or force is True:
             self.connection.send("\x03")  # ctrl+c
         else:
             if silent is False:

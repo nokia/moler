@@ -4,7 +4,7 @@ Testing of ssh command.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2022, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 from moler.cmd.unix.ssh import Ssh
@@ -139,6 +139,7 @@ def test_ssh_change_rm_command(buffer_connection, command_output_keygen):
     ssh_cmd.break_cmd(silent=True)
     ssh_cmd.break_cmd(silent=False)
     assert ssh_cmd._permission_denied_key_pass_keyboard_cmd == 'ssh-keygen -f "/home/user/.ssh/known_hosts" -R "10.0.1.67"'
+    ssh_cmd.break_cmd(silent=True, force=True)
 
 
 def test_ssh_returns_proper_command_string(buffer_connection):
