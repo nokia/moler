@@ -21,7 +21,7 @@ setup(
     author='Nokia',  # Optional
     license='BSD 3-Clause',
     classifiers=[  # Optional
-        'Development Status :: 5 - Production/Stable'
+        'Development Status :: 5 - Production/Stable',
 
         'Environment :: Console',
 
