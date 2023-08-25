@@ -47,7 +47,7 @@ class SetQuectelLockNrEarfcn(GenericAtCommand):
             else '"nr5g_earfcn_lock",0'
         return command_prefix + command_values
 
-    _re_status = re.compile(r'^\s*(?P<STATUS>OK|ERROR|NO CARRIER)\s*$')
+    _re_status = re.compile(r'^\s*(?P<STATUS>OK|ERROR)\s*$')
 
     def on_new_line(self, line, is_full_line):
         """
@@ -75,8 +75,7 @@ class SetQuectelLockNrEarfcn(GenericAtCommand):
         ERROR
         """
         if self._regex_helper.match_compiled(self._re_status, line):
-            ip = self._regex_helper.group("STATUS")
-            self.current_ret["status"] = ip
+            self.current_ret["status"] = self._regex_helper.group("STATUS")
             raise ParsingDone
 
 
