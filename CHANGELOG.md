@@ -1,3 +1,6 @@
+## moler 2.14.0
+* Implementation of internal Quectel command for set NR earfcn lock
+
 ## moler 2.13.0
 * Iperf3 implementation
 * Parameter force for method break_cmd
