@@ -40,10 +40,10 @@ class Nft(GenericUnixCommand):
         return super(Nft, self).on_new_line(line, is_full_line)
 
     # table inet filter {
-    _begin_brakcet = re.compile(r"^\s*(?P<KEY>\S.*\S|\S+)\s*{\s*$")
+    _begin_bracket = re.compile(r"^\s*(?P<KEY>\S.*\S|\S+)\s*{\s*$")
 
     def _parse_open_bracket(self, line):
-        if self._regex_helper.search_compiled(Nft._begin_brakcet, line):
+        if self._regex_helper.search_compiled(Nft._begin_bracket, line):
             if self._outer is None:
                 self._outer = self._regex_helper.group("KEY")
                 self.current_ret[self._outer] = dict()
