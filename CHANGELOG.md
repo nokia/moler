@@ -1,5 +1,6 @@
 ## moler 2.14.0
 * Implementation of internal Quectel command for set NR earfcn lock
+* Fix typo in `nft` command
 
 ## moler 2.13.0
 * Iperf3 implementation
