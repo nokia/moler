@@ -12,13 +12,10 @@ __author__ = 'Jakub Kochaniak'
 __copyright__ = 'Copyright (C) 2023, Nokia'
 __email__ = 'jakub.kochaniak@nokia.com'
 
-import re
-
 from moler.cmd.at.genericat import GenericAtCommand
-from moler.exceptions import ParsingDone
 
 
-class SetQuectelLockNrEarfcn(GenericAtCommand):
+class QuectelLockNrEarfcn(GenericAtCommand):
     """
     Command to lock NR EARFCN. Example output:
 
@@ -36,8 +33,9 @@ class SetQuectelLockNrEarfcn(GenericAtCommand):
         :param newline_chars: Characters to split local lines - list.
         :param runner: Runner to run command.
         """
-        super(SetQuectelLockNrEarfcn, self).__init__(connection, operation="execute", prompt=prompt,
-                                                     newline_chars=newline_chars, runner=runner)
+        super(QuectelLockNrEarfcn, self).__init__(connection, operation="execute", prompt=prompt,
+                                                  newline_chars=newline_chars, runner=runner)
+        self.ret_required = False
         self.earfcn = int(earfcn)
         self.scs = int(scs)
 
@@ -46,37 +44,6 @@ class SetQuectelLockNrEarfcn(GenericAtCommand):
         command_values = '"nr5g_earfcn_lock",1,{}:{}'.format(self.earfcn, self.scs) if self.earfcn > 0 \
             else '"nr5g_earfcn_lock",0'
         return command_prefix + command_values
-
-    _re_status = re.compile(r'^\s*(?P<STATUS>OK|ERROR)\s*$')
-
-    def on_new_line(self, line, is_full_line):
-        """
-        Method to parse command output. Will be called after line with command echo.
-
-        OK
-
-        :param line: Line to parse, new lines are trimmed
-        :param is_full_line:  False for chunk of line; True on full line (NOTE: new line character removed)
-        :return: None
-        """
-        if is_full_line:
-            try:
-                self._parse_status(line)
-            except ParsingDone:
-                pass
-        return super(SetQuectelLockNrEarfcn, self).on_new_line(line, is_full_line)
-
-    def _parse_status(self, line):
-        """
-        Parse At command status:
-
-        OK
-        or
-        ERROR
-        """
-        if self._regex_helper.match_compiled(self._re_status, line):
-            self.current_ret["status"] = self._regex_helper.group("STATUS")
-            raise ParsingDone
 
 
 # -----------------------------------------------------------------------------
