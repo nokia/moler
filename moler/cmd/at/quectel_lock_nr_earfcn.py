@@ -66,4 +66,4 @@ OK
 
 COMMAND_KWARGS_ver_execute = {'earfcn': 433970, 'scs': 15}
 
-COMMAND_RESULT_ver_execute = {'status': 'OK'}
+COMMAND_RESULT_ver_execute = {}
