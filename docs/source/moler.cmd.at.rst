@@ -180,6 +180,14 @@ moler.cmd.at.set\_mode module
     :undoc-members:
     :show-inheritance:
 
+moler.cmd.at.quectel\_lock\_nr\earfcn module
+--------------------------------------
+
+.. automodule:: moler.cmd.at.quectel_lock_nr_earfcn
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------
