@@ -4,7 +4,7 @@ Generic Unix/Linux module
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
@@ -47,7 +47,10 @@ class GenericUnixCommand(CommandTextualGeneric):
         :param is_full_line:  False for chunk of line; True on full line (NOTE: new line character removed)
         :return: None
         """
-        if is_full_line and self.is_failure_indication(line):
+        print("genericUnix::on_new_line {} {}".format(is_full_line, line))
+        print("")
+        if is_full_line and self.is_failure_indication(line) is not None:
+            print(">>>>>>>>>>>> SET EXCE{TION   MMMMMMMMMMMMMMMMM")
             self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
         return super(GenericUnixCommand, self).on_new_line(line, is_full_line)
 
@@ -59,7 +62,8 @@ class GenericUnixCommand(CommandTextualGeneric):
         :return: Match object if find regex in line, None otherwise.
         """
         if self._re_fail:
-            return self._regex_helper.search_compiled(GenericUnixCommand._re_fail, line)
+            return self._regex_helper.search_compiled(compiled=self._re_fail,
+                                                      string=line)
         return None
 
     def _decode_line(self, line):
