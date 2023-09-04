@@ -47,10 +47,7 @@ class GenericUnixCommand(CommandTextualGeneric):
         :param is_full_line:  False for chunk of line; True on full line (NOTE: new line character removed)
         :return: None
         """
-        print("genericUnix::on_new_line {} {}".format(is_full_line, line))
-        print("")
         if is_full_line and self.is_failure_indication(line) is not None:
-            print(">>>>>>>>>>>> SET EXCE{TION   MMMMMMMMMMMMMMMMM")
             self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
         return super(GenericUnixCommand, self).on_new_line(line, is_full_line)
 
