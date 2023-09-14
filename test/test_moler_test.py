@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2022, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import sys
@@ -51,7 +51,7 @@ def test_moler_test_exception_no_exception():
     ConnectionObserver.get_unraised_exceptions()
     from moler.cmd.unix.ls import Ls
     cmd = Ls(connection=None)
-    cmd.set_exception("wrong exception")
+    cmd.set_exception(Exception("wrong exception"))
     cmd._is_done = True
     with pytest.raises(ExecutionException):
         moler_test_not_raise_exception_when_no_steps_end_for_global_method()
@@ -479,4 +479,3 @@ def ObserverExceptionClass():
         pass
 
     return ObserverException
-
