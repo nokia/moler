@@ -8,6 +8,7 @@ import logging
 import threading
 import time
 import traceback
+import sys
 from abc import abstractmethod, ABCMeta
 
 from six import add_metaclass
@@ -323,7 +324,11 @@ class ConnectionObserver(object):
         :param exception: exception to set
         :return: None
         """
-        stack_msg = traceback.format_exc()
+        if sys.version_info >= (3, 6):
+            mg = traceback.format_list(traceback.extract_stack()[:-3] + traceback.extract_tb(exception.__traceback__))
+            stack_msg = ''.join(mg) + '\n  {} {}'.format(exception.__class__, exception)
+        else:
+            stack_msg = traceback.format_exc()
 
         if self._is_done:
             self._log(logging.WARNING,
