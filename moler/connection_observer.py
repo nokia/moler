@@ -324,7 +324,7 @@ class ConnectionObserver(object):
         :param exception: exception to set
         :return: None
         """
-        if sys.version_info >= (3, 5):
+        if sys.version_info >= (3, 6):
             mg = traceback.format_list(traceback.extract_stack()[:-3] + traceback.extract_tb(exception.__traceback__))
             stack_msg = ''.join(mg) + '\n  {} {}'.format(exception.__class__, exception)
         else:
