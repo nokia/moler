@@ -656,11 +656,11 @@ COMMAND_RESULT_basic_client_bytes_bits_convert = {
                                                   'Retr': 0,
                                                   'Transfer': 31245887078,
                                                   'Transfer Raw': '29.1 GBytes'},
-                                                 {'Bitrate': 0,
+                                                 {'Bitrate': 0.0,
                                                   'Bitrate Raw': '0.00 bits/sec',
                                                   'Interval': (0.0,
                                                                10.05),
-                                                  'Transfer': 0,
+                                                  'Transfer': 0.0,
                                                   'Transfer Raw': '0.00 Bytes'}]},
     'INFO': ['Connecting to host 127.0.0.1, port 5201',
              'iperf Done.']}
