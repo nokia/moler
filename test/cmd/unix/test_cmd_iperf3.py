@@ -156,6 +156,16 @@ def test_iperf_correctly_parses_basic_tcp_client_output(buffer_connection):
     assert res == iperf3.COMMAND_RESULT_basic_client
 
 
+def test_iperf_correctly_parses_basic_tcp_client_bytes_bits_convert_output(buffer_connection):
+    from moler.cmd.unix import iperf3
+    buffer_connection.remote_inject_response(
+        [iperf3.COMMAND_OUTPUT_basic_client_bytes_bits_convert])
+    iperf_cmd = iperf3.Iperf3(connection=buffer_connection.moler_connection,
+                              **iperf3.COMMAND_KWARGS_basic_client_bytes_bits_convert)
+    res = iperf_cmd()
+    assert res == iperf3.COMMAND_RESULT_basic_client_bytes_bits_convert
+
+
 def test_iperf_correctly_parses_tcp_ipv6_client_output(buffer_connection):
     from moler.cmd.unix import iperf3
     buffer_connection.remote_inject_response(
