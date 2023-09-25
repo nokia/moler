@@ -349,14 +349,23 @@ class Iperf3(Iperf2):
             # iperf MBytes means 1024 * 1024 Bytes - see iperf.fr/iperf-doc.php
             if not isinstance(raw_value, int) and ("Bytes" in raw_value):
                 new_dict[key + " Raw"] = raw_value
-                value_in_bytes, _, _ = self._converter_helper.to_bytes(
-                    raw_value)
+                value, unit = raw_value.split(" ")
+                if unit == "Bytes":
+                    value_in_bytes = float(value)
+                else:
+                    value_in_bytes, _, _ = self._converter_helper.to_bytes(
+                        raw_value)
                 new_dict[key] = value_in_bytes
             # iperf Mbits means 1000 * 1000 bits - see iperf.fr/iperf-doc.php
             elif not isinstance(raw_value, int) and ("bits" in raw_value):
                 new_dict[key + " Raw"] = raw_value
-                value_in_bits, _, _ = self._converter_helper.to_bytes(
-                    raw_value, binary_multipliers=False)
+                value, unit = raw_value.split(" ")
+                unit_bits = unit.split("/")
+                if unit_bits == "bits":
+                    value_in_bits = float(value)
+                else:
+                    value_in_bits, _, _ = self._converter_helper.to_bytes(
+                        raw_value, binary_multipliers=False)
                 value_in_bytes = value_in_bits // 8
                 new_dict[key] = value_in_bytes
             else:
