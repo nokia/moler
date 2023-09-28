@@ -13,8 +13,10 @@ import re
 class ConverterHelper(object):
     _instance = None
     # examples of matched strings: 1K 1 .5M  3.2G
-    _re_to_bytes = re.compile(r"(?P<VALUE>\d+\.?\d*|\.\d+)\s*(?P<UNIT>\w?)")
+    _re_to_bytes = re.compile(
+        r"(?P<VALUE>\d+\.?\d*|\.\d+)\s*(?P<FULL_UNIT>(?P<UNIT>\w?)\w*)")
     _binary_multipliers = {
+        "b": 1,
         "k": 1024,
         "m": 1024 * 1024,
         "g": 1024 * 1024 * 1024,
@@ -25,6 +27,7 @@ class ConverterHelper(object):
         "j": 1024 * 1024 * 1024 * 1024 * 1024 * 1024 * 1024 * 1024,
     }
     _dec_multipliers = {
+        "b": 1,
         "k": 1000,
         "m": 1000 * 1000,
         "g": 1000 * 1000 * 1000,
@@ -64,7 +67,8 @@ class ConverterHelper(object):
             if value_unit in multipliers:
                 value_in_bytes = int(multipliers[value_unit] * value_in_units)
             else:
-                raise ValueError("Unsupported unit '{}' in passed value: '{}'".format(value_unit, str_bytes))
+                raise ValueError(
+                    "Unsupported unit '{}' in passed value: '{}'".format(value_unit, str_bytes))
         return value_in_bytes, value_in_units, value_unit
 
     def to_seconds_str(self, str_time):
@@ -90,7 +94,8 @@ class ConverterHelper(object):
         :return: number of seconds
         """
         if unit not in ConverterHelper._seconds_multipliers:
-            raise ValueError("Unsupported unit '{}' for passed value: '{}'".format(unit, value))
+            raise ValueError(
+                "Unsupported unit '{}' for passed value: '{}'".format(unit, value))
         return ConverterHelper._seconds_multipliers[unit] * value
 
     def to_number(self, value, raise_exception=True):
