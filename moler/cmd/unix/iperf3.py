@@ -328,7 +328,8 @@ class Iperf3(Iperf2):
             return False
         result = self.current_ret["CONNECTIONS"]
         connections = list(self._connection_dict.values())
-        client_host, _, server_host, _ = self._split_connection_name(connections[0])
+        client_host, _, server_host, _ = self._split_connection_name(
+            connections[0])
         return (client_host, "{}@{}".format(
             self.port, server_host)) in result
 
@@ -539,7 +540,8 @@ Connecting to host 127.0.0.1, port 5201
 iperf Done.
 xyz@debian:~$"""
 
-COMMAND_KWARGS_basic_client_bytes_bits_convert = {"options": "-c 127.0.0.1 -i 1"}
+COMMAND_KWARGS_basic_client_bytes_bits_convert = {
+    "options": "-c 127.0.0.1 -i 1"}
 
 COMMAND_RESULT_basic_client_bytes_bits_convert = {
     'CONNECTIONS':
@@ -647,11 +649,11 @@ COMMAND_RESULT_basic_client_bytes_bits_convert = {
                                                   'Retr': 0,
                                                   'Transfer': 31245887078,
                                                   'Transfer Raw': '29.1 GBytes'},
-                                                 {'Bitrate': 0.0,
+                                                 {'Bitrate': 0,
                                                   'Bitrate Raw': '0.00 bits/sec',
                                                   'Interval': (0.0,
                                                                10.05),
-                                                  'Transfer': 0.0,
+                                                  'Transfer': 0,
                                                   'Transfer Raw': '0.00 Bytes'}]},
     'INFO': ['Connecting to host 127.0.0.1, port 5201',
              'iperf Done.']}
