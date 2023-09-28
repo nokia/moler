@@ -89,6 +89,15 @@ def test_converterhelper_seconds_wrong_unit():
         converter.to_seconds_str("3UU")
 
 
+def test_converterhelper_bytes():
+    from moler.util.converterhelper import ConverterHelper
+    converter = ConverterHelper.get_converter_helper()
+    bytes_value, value_in_units, unit = converter.to_bytes("0.00 Bytes")
+    assert 0.0 == bytes_value
+    assert 0.0 == value_in_units
+    assert 'b' == unit
+
+
 def test_copy_list():
     from moler.helpers import copy_list
     src = [1]
