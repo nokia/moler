@@ -13,8 +13,9 @@ import re
 class ConverterHelper(object):
     _instance = None
     # examples of matched strings: 1K 1 .5M  3.2G
-    _re_to_bytes = re.compile(
-        r"(?P<VALUE>\d+\.?\d*|\.\d+)\s*(?P<FULL_UNIT>(?P<UNIT>\w?)\w*)")
+    _re_to_bytes = re.compile(r"(?P<VALUE>\d+\.?\d*|\.\d+)\s*(?P<UNIT>\w?)")
+
+    # 'b' stands for no decimal and binary prefix
     _binary_multipliers = {
         "b": 1,
         "k": 1024,
