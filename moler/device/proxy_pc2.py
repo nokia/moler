@@ -251,24 +251,30 @@ class ProxyPc2(UnixLocal):
         self._set_state(NOT_CONNECTED)
 
     def _detect_after_open_prompt(self, set_callback):
+        self.logger.info("_detect_after_open_prompt !")
         self._after_open_prompt_detector = Wait4(detect_patterns=[r'^(.+)echo DETECTING PROMPT'],
                                                  connection=self.io_connection.moler_connection,
                                                  till_occurs_times=1)
         detector = self._after_open_prompt_detector
         detector.add_event_occurred_callback(callback=set_callback,
                                              callback_params={"event": detector})
-        self.io_connection.moler_connection.sendline("echo DETECTING PROMPT")
         detector.start(timeout=self._prompt_detector_timeout)
+        self.io_connection.moler_connection.sendline("echo DETECTING PROMPT")
+
         # detector.await_done(timeout=self._prompt_detector_timeout)
 
     def _set_after_open_prompt(self, event):
         occurrence = event.get_last_occurrence()
         prompt = occurrence['groups'][0].rstrip()
         state = self._get_current_state()
+        self.logger.info("Found prompt '{}' for '{}'.".format(prompt, state))
         with self._state_prompts_lock:
             self._state_prompts[state] = prompt
+            self.logger.info("New prompts: {}".format(self._state_prompts))
             self._prepare_reverse_state_prompts_dict()
+            self.logger.info("After prepare_reverse_state_prompts_dict")
             if self._prompts_event is not None:
+                self.logger.info("prompts event is not none")
                 self._prompts_event.change_prompts(prompts=self._reverse_state_prompts_dict)
 
     def _prepare_state_prompts(self):
