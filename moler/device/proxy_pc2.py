@@ -8,6 +8,10 @@ Moler's device has 2 main responsibilities:
 __author__ = 'Michal Ernst, Grzegorz Latuszek, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'michal.ernst@nokia.com, grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
+
+import re
+import time
+
 import six
 import abc
 import platform
@@ -62,6 +66,7 @@ class ProxyPc2(UnixLocal):
         :param lazy_cmds_events: set False to load all commands and events when device is initialized, set True to load
                         commands and events when they are required for the first time.
         """
+        self._prompt_was_changed = False
         self._use_local_unix_state = want_local_unix_state(io_type, io_connection)
         base_state = UNIX_LOCAL if self._use_local_unix_state else NOT_CONNECTED
         self._use_proxy_pc = self._should_use_proxy_pc(sm_params, PROXY_PC)
@@ -264,18 +269,21 @@ class ProxyPc2(UnixLocal):
         # detector.await_done(timeout=self._prompt_detector_timeout)
 
     def _set_after_open_prompt(self, event):
+        self.logger.info("Old reverse_state_prompts_dict: {}".format(
+            self._reverse_state_prompts_dict))
         occurrence = event.get_last_occurrence()
-        prompt = occurrence['groups'][0].rstrip()
+        prompt = re.escape(occurrence['groups'][0].rstrip())
         state = self._get_current_state()
         self.logger.info("Found prompt '{}' for '{}'.".format(prompt, state))
         with self._state_prompts_lock:
             self._state_prompts[state] = prompt
             self.logger.info("New prompts: {}".format(self._state_prompts))
             self._prepare_reverse_state_prompts_dict()
-            self.logger.info("After prepare_reverse_state_prompts_dict")
+            self.logger.info("After prepare_reverse_state_prompts_dict: {}".format(self._reverse_state_prompts_dict))
             if self._prompts_event is not None:
                 self.logger.info("prompts event is not none")
                 self._prompts_event.change_prompts(prompts=self._reverse_state_prompts_dict)
+                self._prompt_was_changed = True
 
     def _prepare_state_prompts(self):
         """
@@ -417,3 +425,29 @@ class ProxyPc2(UnixLocal):
                 return available[observer]
 
         return available
+
+    def get_cmd(self, cmd_name, cmd_params=None, check_state=True, for_state=None):
+        """
+        Returns instance of command connected with the device.
+        :param cmd_name: name of commands, name of class (without package), for example "cd".
+        :param cmd_params: dict with command parameters.
+        :param check_state: if True then before execute of command the state of device will be check if the same
+         as when command was created. If False the device state is not checked.
+        :param for_state: if None then command object for current state is returned, otherwise object for for_state is
+         returned.
+        :return: Instance of command
+        """
+        if self._prompt_was_changed is False:
+            self.logger.info("get_cmd was called but prompt has not been changed yet.")
+            if self._after_open_prompt_detector is not None:
+                self.logger.info(
+                    "get_cmd waiting for prompt detector.")
+                self._after_open_prompt_detector.await_done(timeout=self._prompt_detector_timeout)
+            else:
+                self.logger.info(
+                    "get_cmd prompt detector did not start.")
+                time.sleep(self._prompt_detector_timeout)
+            self._prompt_was_changed = True
+        return super(ProxyPc2, self).get_cmd(cmd_name=cmd_name, cmd_params=cmd_params,
+                                             check_state=check_state,
+                                             for_state=for_state)
