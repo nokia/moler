@@ -11,13 +11,13 @@ __email__ = 'michal.ernst@nokia.com, grzegorz.latuszek@nokia.com, marcin.usielsk
 
 import re
 import time
-
 import six
 import abc
 import platform
 
 from moler.device.textualdevice import TextualDevice
 from moler.device.unixlocal import UnixLocal
+from moler.exceptions import MolerException
 try:
     from moler.io.raw.terminal import ThreadedTerminal
 except ImportError:  # ThreadedTerminal won't load on Windows
@@ -66,7 +66,7 @@ class ProxyPc2(UnixLocal):
         :param lazy_cmds_events: set False to load all commands and events when device is initialized, set True to load
                         commands and events when they are required for the first time.
         """
-        self._prompt_was_changed = False
+        self._prompt_detected = False
         self._use_local_unix_state = want_local_unix_state(io_type, io_connection)
         base_state = UNIX_LOCAL if self._use_local_unix_state else NOT_CONNECTED
         self._use_proxy_pc = self._should_use_proxy_pc(sm_params, PROXY_PC)
@@ -243,7 +243,9 @@ class ProxyPc2(UnixLocal):
         """
         if self._use_local_unix_state:
             super(ProxyPc2, self).on_connection_made(connection)
+            self._prompt_detected = True  # prompt defined in SM
         else:
+            self._prompt_detected = False  # prompt not defined in SM
             self._set_state(PROXY_PC)
             self._detect_after_open_prompt(self._set_after_open_prompt)
 
@@ -283,7 +285,7 @@ class ProxyPc2(UnixLocal):
             if self._prompts_event is not None:
                 self.logger.info("prompts event is not none")
                 self._prompts_event.change_prompts(prompts=self._reverse_state_prompts_dict)
-                self._prompt_was_changed = True
+                self._prompt_detected = True
 
     def _prepare_state_prompts(self):
         """
@@ -437,17 +439,28 @@ class ProxyPc2(UnixLocal):
          returned.
         :return: Instance of command
         """
-        if self._prompt_was_changed is False:
-            self.logger.info("get_cmd was called but prompt has not been changed yet.")
-            if self._after_open_prompt_detector is not None:
-                self.logger.info(
-                    "get_cmd waiting for prompt detector.")
-                self._after_open_prompt_detector.await_done(timeout=self._prompt_detector_timeout)
-            else:
-                self.logger.info(
-                    "get_cmd prompt detector did not start.")
-                time.sleep(self._prompt_detector_timeout)
-            self._prompt_was_changed = True
+        if self._prompt_detected is False and self.current_state == PROXY_PC:
+            self._detect_prompt_get_cmd()
         return super(ProxyPc2, self).get_cmd(cmd_name=cmd_name, cmd_params=cmd_params,
                                              check_state=check_state,
                                              for_state=for_state)
+
+    def _detect_prompt_get_cmd(self):
+        self.logger.info("get_cmd was called but prompt has not been detected yet.")
+        for try_nr in range(1, 11, 1):
+            if self._after_open_prompt_detector is None or self._after_open_prompt_detector.running() is False:
+                self._detect_after_open_prompt(self._set_after_open_prompt)
+            time.sleep(0.1)
+            self.logger.info("get_cmd waiting for prompt detector.")
+            try:
+                self._after_open_prompt_detector.await_done(timeout=self._prompt_detector_timeout)
+            except MolerException:
+                pass
+            finally:
+                if self._prompt_detected is True:
+                    break
+
+        self._after_open_prompt_detector.cancel()
+        self._after_open_prompt_detector = None
+        if self._prompt_detected is False:
+            raise MolerException("Device {} cannot detect prompt!".format(self.public_name))
