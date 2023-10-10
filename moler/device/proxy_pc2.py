@@ -440,7 +440,8 @@ class ProxyPc2(UnixLocal):
          returned.
         :return: Instance of command
         """
-        if self._prompt_detected is False and self.current_state == PROXY_PC:
+        self.logger.info("ProxyPc2.get_cmd")
+        if self._prompt_detected is False:
             self._detect_prompt_get_cmd()
         return super(ProxyPc2, self).get_cmd(cmd_name=cmd_name, cmd_params=cmd_params,
                                              check_state=check_state,

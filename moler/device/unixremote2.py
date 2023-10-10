@@ -381,6 +381,8 @@ class UnixRemote2(ProxyPc2):
             self._detect_after_open_prompt(self._set_after_open_prompt)
 
     def _set_after_open_prompt(self, event):
+        self.logger.info("UnixRemote2 reverse_state_prompts_dict: {}".format(
+            self._reverse_state_prompts_dict))
         occurrence = event.get_last_occurrence()
         prompt = occurrence['groups'][0]
         state = self._get_current_state()
@@ -390,6 +392,7 @@ class UnixRemote2(ProxyPc2):
                 self._update_depending_on_ux_prompt()
             elif state == PROXY_PC:
                 self._update_depending_on_proxy_prompt()
+            self._prompt_detected = True
 
     @mark_to_call_base_class_method_with_same_name
     def _prepare_state_prompts_with_proxy_pc(self):
