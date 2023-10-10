@@ -286,7 +286,7 @@ class ProxyPc2(UnixLocal):
             if self._prompts_event is not None:
                 self.logger.info("prompts event is not none")
                 self._prompts_event.change_prompts(prompts=self._reverse_state_prompts_dict)
-                self._prompt_detected = True
+            self._prompt_detected = True
 
     def _prepare_state_prompts(self):
         """
