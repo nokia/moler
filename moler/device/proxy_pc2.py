@@ -66,6 +66,7 @@ class ProxyPc2(UnixLocal):
         :param lazy_cmds_events: set False to load all commands and events when device is initialized, set True to load
                         commands and events when they are required for the first time.
         """
+        self._detecting_prompt_cmd = "echo DETECTING PROMPT"
         self._prompt_detected = False
         self._use_local_unix_state = want_local_unix_state(io_type, io_connection)
         base_state = UNIX_LOCAL if self._use_local_unix_state else NOT_CONNECTED
@@ -77,7 +78,7 @@ class ProxyPc2(UnixLocal):
                                        io_constructor_kwargs=io_constructor_kwargs,
                                        sm_params=sm_params, initial_state=initial_state,
                                        lazy_cmds_events=lazy_cmds_events)
-        self._prompt_detector_timeout = 0.5
+        self._prompt_detector_timeout = 1.9
         self._after_open_prompt_detector = None
         self._warn_about_temporary_life_of_class()
 
@@ -259,14 +260,14 @@ class ProxyPc2(UnixLocal):
 
     def _detect_after_open_prompt(self, set_callback):
         self.logger.info("_detect_after_open_prompt !")
-        self._after_open_prompt_detector = Wait4(detect_patterns=[r'^(.+)echo DETECTING PROMPT'],
+        self._after_open_prompt_detector = Wait4(detect_patterns=[r'^(.+){}'.format(self._detecting_prompt_cmd)],
                                                  connection=self.io_connection.moler_connection,
                                                  till_occurs_times=1)
         detector = self._after_open_prompt_detector
         detector.add_event_occurred_callback(callback=set_callback,
                                              callback_params={"event": detector})
         detector.start(timeout=self._prompt_detector_timeout)
-        self.io_connection.moler_connection.sendline("echo DETECTING PROMPT")
+        self.io_connection.moler_connection.sendline(self._detecting_prompt_cmd)
 
         # detector.await_done(timeout=self._prompt_detector_timeout)
 
@@ -447,18 +448,18 @@ class ProxyPc2(UnixLocal):
 
     def _detect_prompt_get_cmd(self):
         self.logger.info("get_cmd was called but prompt has not been detected yet.")
-        for try_nr in range(1, 11, 1):
+        for try_nr in range(1, 10, 1):
             if self._after_open_prompt_detector is None or self._after_open_prompt_detector.running() is False:
                 self._detect_after_open_prompt(self._set_after_open_prompt)
-            time.sleep(0.1)
-            self.logger.info("get_cmd waiting for prompt detector.")
-            try:
-                self._after_open_prompt_detector.await_done(timeout=self._prompt_detector_timeout)
-            except MolerException:
-                pass
-            finally:
+            while time.time() - self._after_open_prompt_detector.life_status.start_time < self._prompt_detector_timeout:
+                time.sleep(0.1)
                 if self._prompt_detected is True:
                     break
+                self.io_connection.moler_connection.sendline(self._detecting_prompt_cmd)
+            self.logger.info("get_cmd is canceling prompt detector.")
+            self._after_open_prompt_detector.cancel()
+            if self._prompt_detected is True:
+                break
 
         self._after_open_prompt_detector.cancel()
         self._after_open_prompt_detector = None
