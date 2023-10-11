@@ -1,3 +1,9 @@
+## moler 2.15.0
+* ConnectionObserver objects store full exception stack for Python3.5+
+* Support for failure regex for commands for devices based on Unix
+* Support values without prefix in byte converter
+* Improvement prompt detection for devices using Paramiko for the first ssh
+
 ## moler 2.14.0
 * Implementation of internal Quectel command for set NR earfcn lock
 * Fix typo in `nft` command
