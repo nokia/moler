@@ -259,7 +259,6 @@ class ProxyPc2(UnixLocal):
         self._set_state(NOT_CONNECTED)
 
     def _detect_after_open_prompt(self, set_callback):
-        self.logger.info("_detect_after_open_prompt !")
         self._after_open_prompt_detector = Wait4(detect_patterns=[r'^(.+){}'.format(self._detecting_prompt_cmd)],
                                                  connection=self.io_connection.moler_connection,
                                                  till_occurs_times=1)
@@ -272,19 +271,19 @@ class ProxyPc2(UnixLocal):
         # detector.await_done(timeout=self._prompt_detector_timeout)
 
     def _set_after_open_prompt(self, event):
-        self.logger.info("Old reverse_state_prompts_dict: {}".format(
+        self.logger.debug("Old reverse_state_prompts_dict: {}".format(
             self._reverse_state_prompts_dict))
         occurrence = event.get_last_occurrence()
         prompt = re.escape(occurrence['groups'][0].rstrip())
         state = self._get_current_state()
-        self.logger.info("Found prompt '{}' for '{}'.".format(prompt, state))
+        self.logger.debug("Found prompt '{}' for '{}'.".format(prompt, state))
         with self._state_prompts_lock:
             self._state_prompts[state] = prompt
-            self.logger.info("New prompts: {}".format(self._state_prompts))
+            self.logger.debug("New prompts: {}".format(self._state_prompts))
             self._prepare_reverse_state_prompts_dict()
-            self.logger.info("After prepare_reverse_state_prompts_dict: {}".format(self._reverse_state_prompts_dict))
+            self.logger.debug("After prepare_reverse_state_prompts_dict: {}".format(self._reverse_state_prompts_dict))
             if self._prompts_event is not None:
-                self.logger.info("prompts event is not none")
+                self.logger.debug("prompts event is not none")
                 self._prompts_event.change_prompts(prompts=self._reverse_state_prompts_dict)
             self._prompt_detected = True
 
@@ -447,7 +446,7 @@ class ProxyPc2(UnixLocal):
                                              for_state=for_state)
 
     def _detect_prompt_get_cmd(self):
-        self.logger.info("get_cmd was called but prompt has not been detected yet.")
+        self.logger.debug("get_cmd was called but prompt has not been detected yet.")
         for try_nr in range(1, 10, 1):
             if self._after_open_prompt_detector is None or self._after_open_prompt_detector.running() is False:
                 self._detect_after_open_prompt(self._set_after_open_prompt)
@@ -456,7 +455,7 @@ class ProxyPc2(UnixLocal):
                 if self._prompt_detected is True:
                     break
                 self.io_connection.moler_connection.sendline(self._detecting_prompt_cmd)
-            self.logger.info("get_cmd is canceling prompt detector.")
+            self.logger.debug("get_cmd is canceling prompt detector.")
             self._after_open_prompt_detector.cancel()
             if self._prompt_detected is True:
                 break
