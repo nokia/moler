@@ -64,6 +64,7 @@ def test_unix_remote_with_sshshell_via_proxy_pc(loaded_unix_remote_config, proxy
                                                     'login': 'sshproxy',
                                                     'password': 'proxy_password'},
                                    connection_hops=proxypc2uxroot_connection_hops)
+    dev._prompt_detected = True
     assert dev._use_proxy_pc is True
     assert dev.current_state == "PROXY_PC"
     dev.goto_state("UNIX_REMOTE")
@@ -130,6 +131,7 @@ def test_adb_remote_with_sshshell_via_proxy_pc(loaded_adb_device_config, proxypc
                                                     'login': 'sshproxy',
                                                     'password': 'proxy_password'},
                                    connection_hops=proxypc2adbshell_connection_hops)
+    dev._prompt_detected = True
     assert dev._use_proxy_pc is True
     assert dev.current_state == "PROXY_PC"
     dev.goto_state("UNIX_REMOTE")
