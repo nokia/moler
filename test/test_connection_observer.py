@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import importlib
@@ -379,6 +379,8 @@ def test_connection_observer_has_data_received_api(connection_observer_major_bas
     with pytest.raises(TypeError) as error:
         hasattr(connection_observer_class(), "data_received")
     assert "Can't instantiate abstract class {} with abstract method".format(
+        connection_observer_class.__name__) in str(error.value) or\
+           "Can't instantiate abstract class {} without an implementation for abstract method".format(
         connection_observer_class.__name__) in str(error.value)
     assert "data_received" in str(error.value)
 
