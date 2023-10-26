@@ -47,13 +47,8 @@ jobs:
           which adb
           echo ----------- test adb simulator
           adb devices
-      - name: Test with pytest Python 2.7
-        if: ${{ matrix.python-version == '2.7' }}
-        timeout-minutes: 9
-        run: |
-          python -m pytest -vvvsss test/
       - name: Test with pytest
-        if: ${{ (matrix.python-version != '3.9') && (matrix.python-version != '2.7') }}
+        if: ${{ matrix.python-version != '3.9' }}
         timeout-minutes: 9
         run: |
           python -m pytest -vvvsss test/
