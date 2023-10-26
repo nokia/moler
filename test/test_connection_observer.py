@@ -378,10 +378,10 @@ def test_connection_observer_has_data_received_api(connection_observer_major_bas
     # only derived ones can have logic "what to do with incoming data"
     with pytest.raises(TypeError) as error:
         hasattr(connection_observer_class(), "data_received")
-    assert "Can't instantiate abstract class {} with abstract method".format(
+    assert "Can't instantiate abstract class {} with abstract method".format(  # <3.12
         connection_observer_class.__name__) in str(error.value) or\
            "Can't instantiate abstract class {} without an implementation for abstract method".format(
-        connection_observer_class.__name__) in str(error.value)
+        connection_observer_class.__name__) in str(error.value)  # 3.12
     assert "data_received" in str(error.value)
 
     # example of derived connection_observer implementing it's "data consumption logic"
