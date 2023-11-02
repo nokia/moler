@@ -22,7 +22,8 @@ class SetMode(GenericAtCommand):
     mode2cops_value = {"automatic": '0',
                        "lte": '0,0,0,7',
                        "gsm": '0,0,0,3',
-                       "wcdma": '0,0,0,6'}
+                       "wcdma": '0,0,0,6',
+                       "5g": '0,0,0,12'}
 
     def __init__(self, selected_mode, connection=None, prompt=None, newline_chars=None, runner=None):
         """Create instance of SetMode class"""
