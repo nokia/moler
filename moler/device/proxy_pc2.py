@@ -268,9 +268,10 @@ class ProxyPc2(UnixLocal):
         detector.add_event_occurred_callback(callback=set_callback,
                                              callback_params={"event": detector})
         detector.start(timeout=self._prompt_detector_timeout)
-        self.io_connection.moler_connection.sendline(
-            "\n\n{}\n\n{}\n".format(self._detecting_prompt_cmd,
-                                    self._detecting_prompt_cmd))
+        self.io_connection.moler_connection.sendline("")
+        self.io_connection.moler_connection.sendline(self._detecting_prompt_cmd)
+        self.io_connection.moler_connection.sendline("")
+        self.io_connection.moler_connection.sendline(self._detecting_prompt_cmd)
 
         # detector.await_done(timeout=self._prompt_detector_timeout)
 
