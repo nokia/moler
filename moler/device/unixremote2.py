@@ -387,7 +387,11 @@ class UnixRemote2(ProxyPc2):
         prompt = occurrence['groups'][0].rstrip()
         state = self._get_current_state()
         with self._state_prompts_lock:
+            old_prompt = self._state_prompts.get(state, None)
             self._state_prompts[state] = re.escape(prompt)
+            if old_prompt is not None and prompt != old_prompt.pattern:
+                self.logger.warning("Different prompt candidates: '{}' -> '{}'.".format(
+                    old_prompt.prompt, prompt))
             self.logger.debug("Found prompt '{}' for '{}'.".format(prompt, state))
             if state == UNIX_REMOTE:
                 self._update_depending_on_ux_prompt()
