@@ -4,7 +4,7 @@ Configure logging for Moler's needs
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2022, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import codecs
@@ -514,6 +514,11 @@ def configure_moler_main_logger():
         configure_moler_threads_logger()
         logger.info("More logs in: {}".format(_logging_path))
         _list_libraries(logger=logger)
+        if sys.version_info < (3, 7):
+            logger.warning("****************************************************")
+            logger.warning("*  Support for Python < 3.7 will be removed soon.  *")
+            logger.warning("*    Please update your Python to 3.7 at least.    *")
+            logger.warning("****************************************************")
         global _main_logger
         _main_logger = logger
 
