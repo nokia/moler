@@ -515,10 +515,10 @@ def configure_moler_main_logger():
         logger.info("More logs in: {}".format(_logging_path))
         _list_libraries(logger=logger)
         if sys.version_info < (3, 7):
-            logger.warning("****************************************************")
-            logger.warning("*  Support for Python < 3.7 will be removed soon.  *")
-            logger.warning("*    Please update your Python to 3.7 at least.    *")
-            logger.warning("****************************************************")
+            logger.warning("****************************************************\n"
+                           "*  Support for Python < 3.7 will be removed soon.  *\n"
+                           "*    Please update your Python to 3.7 at least.    *\n"
+                           "****************************************************")
         global _main_logger
         _main_logger = logger
 
