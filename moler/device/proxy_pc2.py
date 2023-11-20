@@ -284,11 +284,11 @@ class ProxyPc2(UnixLocal):
         self.logger.debug("Found prompt '{}' for '{}'.".format(prompt, state))
         with self._state_prompts_lock:
             old_prompt = self._state_prompts.get(state, None)
-            self._state_prompts[state] = re.escape(prompt)
-            if old_prompt is not None and prompt != old_prompt.pattern:
-                self.logger.warning("Different prompt candidates: '{}' -> '{}'.".format(
-                    old_prompt.prompt, prompt))
-            self.logger.debug("Found prompt '{}' for '{}'.".format(prompt, state))
+            prompt = re.escape(prompt)
+            self._state_prompts[state] = prompt
+            if old_prompt is not None and prompt != old_prompt:
+                self.logger.info("Different prompt candidates: '{}' -> '{}' for"
+                                 " state {}.".format(old_prompt, prompt, state))
             self.logger.debug("New prompts: {}".format(self._state_prompts))
             self._prepare_reverse_state_prompts_dict()
             self.logger.debug("After prepare_reverse_state_prompts_dict: {}".format(self._reverse_state_prompts_dict))

@@ -388,11 +388,11 @@ class UnixRemote2(ProxyPc2):
         state = self._get_current_state()
         with self._state_prompts_lock:
             old_prompt = self._state_prompts.get(state, None)
-            self._state_prompts[state] = re.escape(prompt)
-            if old_prompt is not None and prompt != old_prompt.pattern:
-                self.logger.warning("Different prompt candidates: '{}' -> '{}'.".format(
-                    old_prompt.prompt, prompt))
-            self.logger.debug("Found prompt '{}' for '{}'.".format(prompt, state))
+            prompt = re.escape(prompt)
+            self._state_prompts[state] = prompt
+            if old_prompt is not None and prompt != old_prompt:
+                self.logger.info("Different prompt candidates: '{}' -> '{}' for"
+                                 " state {}.".format(old_prompt, prompt, state))
             if state == UNIX_REMOTE:
                 self._update_depending_on_ux_prompt()
             elif state == PROXY_PC:
@@ -402,6 +402,9 @@ class UnixRemote2(ProxyPc2):
             if self._prompts_event is not None:
                 self.logger.debug("prompts event is not none")
                 self._prompts_event.change_prompts(prompts=self._reverse_state_prompts_dict)
+            self.logger.debug("New prompts: {}".format(self._state_prompts))
+            self.logger.debug("After prepare_reverse_state_prompts_dict: {}".format(
+                self._reverse_state_prompts_dict))
             self._prompt_detected = True
 
     @mark_to_call_base_class_method_with_same_name
