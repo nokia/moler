@@ -381,15 +381,19 @@ class UnixRemote2(ProxyPc2):
             self._detect_after_open_prompt(self._set_after_open_prompt)
 
     def _set_after_open_prompt(self, event):
-        self.logger.debug("UnixRemote2 reverse_state_prompts_dict: {}".format(
-            self._reverse_state_prompts_dict))
         occurrence = event.get_last_occurrence()
         prompt = occurrence['groups'][0].rstrip()
         state = self._get_current_state()
+        self.logger.debug("UnixRemote2 for state '{}' new prompt '{}' reverse_state"
+                          "_prompts_dict: '{}'.".format(state,
+                                                        prompt,
+                                                        self._reverse_state_prompts_dict))
         with self._state_prompts_lock:
             old_prompt = self._state_prompts.get(state, None)
             prompt = re.escape(prompt)
             self._state_prompts[state] = prompt
+            self.logger.debug("state_prompts after change: {}".format(
+                self._state_prompts))
             if old_prompt is not None and prompt != old_prompt:
                 self.logger.info("Different prompt candidates: '{}' -> '{}' for"
                                  " state {}.".format(old_prompt, prompt, state))

@@ -276,12 +276,13 @@ class ProxyPc2(UnixLocal):
         # detector.await_done(timeout=self._prompt_detector_timeout)
 
     def _set_after_open_prompt(self, event):
-        self.logger.debug("Old reverse_state_prompts_dict: {}".format(
-            self._reverse_state_prompts_dict))
         occurrence = event.get_last_occurrence()
         prompt = re.escape(occurrence['groups'][0].rstrip())
         state = self._get_current_state()
-        self.logger.debug("Found prompt '{}' for '{}'.".format(prompt, state))
+        self.logger.debug("ProxyPc2 for state '{}' new prompt '{}' reverse_state"
+                          "_prompts_dict: '{}'.".format(state,
+                                                        prompt,
+                                                        self._reverse_state_prompts_dict))
         with self._state_prompts_lock:
             old_prompt = self._state_prompts.get(state, None)
             prompt = re.escape(prompt)
