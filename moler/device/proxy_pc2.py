@@ -259,26 +259,37 @@ class ProxyPc2(UnixLocal):
         self._set_state(NOT_CONNECTED)
 
     def _detect_after_open_prompt(self, set_callback):
-        self._after_open_prompt_detector = Wait4(detect_patterns=[r'^(.+){}'.format(self._detecting_prompt_cmd)],
-                                                 connection=self.io_connection.moler_connection,
-                                                 till_occurs_times=1)
+        self._after_open_prompt_detector = Wait4(
+            detect_patterns=[r'^(.+){}'.format(self._detecting_prompt_cmd)],
+            connection=self.io_connection.moler_connection,
+            till_occurs_times=2
+        )
         detector = self._after_open_prompt_detector
         detector.add_event_occurred_callback(callback=set_callback,
                                              callback_params={"event": detector})
         detector.start(timeout=self._prompt_detector_timeout)
+        self.io_connection.moler_connection.sendline("")
+        self.io_connection.moler_connection.sendline(self._detecting_prompt_cmd)
+        self.io_connection.moler_connection.sendline("")
         self.io_connection.moler_connection.sendline(self._detecting_prompt_cmd)
 
         # detector.await_done(timeout=self._prompt_detector_timeout)
 
     def _set_after_open_prompt(self, event):
-        self.logger.debug("Old reverse_state_prompts_dict: {}".format(
-            self._reverse_state_prompts_dict))
         occurrence = event.get_last_occurrence()
         prompt = re.escape(occurrence['groups'][0].rstrip())
         state = self._get_current_state()
-        self.logger.debug("Found prompt '{}' for '{}'.".format(prompt, state))
+        self.logger.debug("ProxyPc2 for state '{}' new prompt '{}' reverse_state"
+                          "_prompts_dict: '{}'.".format(state,
+                                                        prompt,
+                                                        self._reverse_state_prompts_dict))
         with self._state_prompts_lock:
+            old_prompt = self._state_prompts.get(state, None)
+            prompt = re.escape(prompt)
             self._state_prompts[state] = prompt
+            if old_prompt is not None and prompt != old_prompt:
+                self.logger.info("Different prompt candidates: '{}' -> '{}' for"
+                                 " state {}.".format(old_prompt, prompt, state))
             self.logger.debug("New prompts: {}".format(self._state_prompts))
             self._prepare_reverse_state_prompts_dict()
             self.logger.debug("After prepare_reverse_state_prompts_dict: {}".format(self._reverse_state_prompts_dict))

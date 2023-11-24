@@ -6,7 +6,7 @@ Moler's device has 2 main responsibilities:
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import re
@@ -381,23 +381,36 @@ class UnixRemote2(ProxyPc2):
             self._detect_after_open_prompt(self._set_after_open_prompt)
 
     def _set_after_open_prompt(self, event):
-        self.logger.debug("UnixRemote2 reverse_state_prompts_dict: {}".format(
-            self._reverse_state_prompts_dict))
         occurrence = event.get_last_occurrence()
         prompt = occurrence['groups'][0].rstrip()
         state = self._get_current_state()
+        self.logger.debug("UnixRemote2 for state '{}' new prompt '{}' reverse_state"
+                          "_prompts_dict: '{}'.".format(state,
+                                                        prompt,
+                                                        self._reverse_state_prompts_dict))
         with self._state_prompts_lock:
-            self._state_prompts[state] = re.escape(prompt)
-            self.logger.debug("Found prompt '{}' for '{}'.".format(prompt, state))
+            old_prompt = self._state_prompts.get(state, None)
+            prompt = re.escape(prompt)
+            self._state_prompts[state] = prompt
+            self.logger.debug("state_prompts after change: {}".format(
+                self._state_prompts))
+            self._prepare_reverse_state_prompts_dict()
+            if old_prompt is not None and prompt != old_prompt:
+                self.logger.info("Different prompt candidates: '{}' -> '{}' for"
+                                 " state {}.".format(old_prompt, prompt, state))
             if state == UNIX_REMOTE:
                 self._update_depending_on_ux_prompt()
             elif state == PROXY_PC:
                 self._update_depending_on_proxy_prompt()
-            self.logger.debug("UnixRemote2. updated _reverse_state_prompts_dict: {}".format(
-                self._reverse_state_prompts_dict))
+            self.logger.debug("UnixRemote2. updated _reverse_state_prompts_dict:"
+                              " {}".format(self._reverse_state_prompts_dict))
             if self._prompts_event is not None:
                 self.logger.debug("prompts event is not none")
-                self._prompts_event.change_prompts(prompts=self._reverse_state_prompts_dict)
+                self._prompts_event.change_prompts(
+                    prompts=self._reverse_state_prompts_dict)
+            self.logger.debug("New prompts: {}".format(self._state_prompts))
+            self.logger.debug("After prepare_reverse_state_prompts_dict: {}".format(
+                self._reverse_state_prompts_dict))
             self._prompt_detected = True
 
     @mark_to_call_base_class_method_with_same_name
