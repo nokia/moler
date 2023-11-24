@@ -1,3 +1,8 @@
+## moler 2.16.0
+* Tests on Python 3.12
+* Warning for Pythons 2.7 -3.6 (support will be removed soon)
+* Prompt detection for overloaded systems 
+
 ## moler 2.15.0
 * ConnectionObserver objects store full exception stack for Python3.5+
 * Support for failure regex for commands for devices based on Unix
