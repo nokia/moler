@@ -4,7 +4,7 @@ Utility/common code of library.
 """
 
 __author__ = 'Grzegorz Latuszek, Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2022, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import copy
