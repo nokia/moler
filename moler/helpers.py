@@ -8,7 +8,6 @@ __copyright__ = 'Copyright (C) 2018-2022, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import copy
-import datetime
 import importlib
 import logging
 import re
@@ -16,11 +15,6 @@ from functools import wraps
 from types import FunctionType, MethodType
 from six import string_types
 from math import isclose
-
-# import deepdiff
-
-# if datetime.time not in deepdiff.diff.numbers:
-#     deepdiff.diff.numbers = deepdiff.diff.numbers + (datetime.time,)
 
 try:
     import collections.abc as collections
@@ -239,6 +233,16 @@ def compare_objects(first_object, second_object, significant_digits=None,
 
 def diff_data(first_object, second_object, significant_digits=None,
               exclude_types=None, msg=None):
+    """
+    Diff data.
+
+    :param first_object: object a to compare
+    :param second_object: object to compare
+    :param significant_digits: use to properly compare numbers(float arithmetic error)
+    :param exclude_types: set with types to exclude from comparison
+    :param msg: string with prefix
+    :return: String wit difference. Empty string if values are the same.
+    """
     if msg is None:
         msg = 'root'
     type_first = type(first_object)
@@ -278,6 +282,16 @@ def diff_data(first_object, second_object, significant_digits=None,
 
 def _compare_dicts(first_object, second_object, msg, significant_digits=None,
                    exclude_types=None):
+    """
+    Compare dicts by values.
+
+    :param first_object: object a to compare
+    :param second_object: object to compare
+    :param msg: string with prefix
+    :param significant_digits: use to properly compare numbers(float arithmetic error)
+    :param exclude_types: set with types to exclude from comparison
+    :return: String wit difference. Empty string if values are the same.
+    """
     keys_first = set(first_object.keys())
     keys_second = set(second_object.keys())
     diff = keys_first ^ keys_second
@@ -303,6 +317,15 @@ def _compare_dicts(first_object, second_object, msg, significant_digits=None,
 
 
 def _compare_sets(first_object, second_object, msg):
+    """
+    Compare sets.
+
+    :param first_object: object a to compare
+    :param second_object: object to compare
+    :param msg: string with prefix
+
+    :return: String wit difference. Empty string if values are the same.
+    """
     diff = first_object.symmetric_difference(second_object)
     if diff:
         for item in first_object:
@@ -318,6 +341,16 @@ def _compare_sets(first_object, second_object, msg):
 
 def _compare_lists(first_object, second_object, msg, significant_digits=None,
                    exclude_types=None):
+    """
+    Compare lists by values.
+
+    :param first_object: object a to compare
+    :param second_object: object to compare
+    :param msg: string with prefix
+    :param significant_digits: use to properly compare numbers(float arithmetic error)
+    :param exclude_types: set with types to exclude from comparison
+    :return: String wit difference. Empty string if values are the same.
+    """
     len_first = len(first_object)
     len_second = len(second_object)
     if len_first != len_second:
