@@ -15,6 +15,7 @@ import re
 from functools import wraps
 from types import FunctionType, MethodType
 from six import string_types
+from math import isclose
 
 import deepdiff
 
@@ -240,6 +241,118 @@ def compare_objects(first_object, second_object, ignore_order=False, report_repe
                              report_repetition=report_repetition, significant_digits=significant_digits,
                              exclude_paths=exclude_paths, exclude_types=exclude_types, verbose_level=verbose_level)
     return diff
+
+
+def diff_data(first_object, second_object, ignore_order=False,
+              report_repetition=False, significant_digits=None,
+              exclude_types=None, msg=None):
+    if msg is None:
+        msg = 'root'
+    type_first = type(first_object)
+    type_second = type(second_object)
+    if type_first != type_second:
+        return "{} {} is type of {} but {} is type of {}".format(msg, first_object,
+                                                                 type_first,
+                                                                 second_object,
+                                                                 type_second)
+    elif isinstance(first_object, list) or isinstance(first_object, tuple):
+        return _compare_lists(first_object=first_object, second_object=second_object,
+                              ignore_order=ignore_order,
+                              report_repetition=report_repetition,
+                              significant_digits=significant_digits,
+                              exclude_types=exclude_types, msg=msg)
+    elif isinstance(first_object, dict):
+        return _compare_dicts(first_object=first_object, second_object=second_object,
+                              ignore_order=ignore_order,
+                              report_repetition=report_repetition,
+                              significant_digits=significant_digits,
+                              exclude_types=exclude_types, msg=msg)
+    elif isinstance(first_object, set):
+        return _compare_sets(first_object=first_object, second_object=second_object,
+                             ignore_order=ignore_order,
+                             report_repetition=report_repetition,
+                             significant_digits=significant_digits,
+                             exclude_types=exclude_types, msg=msg)
+    elif isinstance(first_object, float):
+        abs_tol = 0.0001
+        if significant_digits:
+            abs_tol = 1.0/10**significant_digits
+        if not isclose(first_object, second_object, abs_tol=abs_tol):
+            return "{} the first value {} is different from the second value" \
+                   " {}.".format(msg, first_object, second_object)
+    else:
+        if first_object != second_object:
+            return "{} First value {} is different from the second {}.".format(
+                msg, first_object, second_object)
+
+    return ""
+
+
+def _compare_dicts(first_object, second_object, msg, ignore_order=False,
+                   report_repetition=False, significant_digits=None,
+                   exclude_types=None):
+    keys_first = set(first_object.keys())
+    keys_second = set(second_object.keys())
+    diff = keys_first ^ keys_second
+    if diff:
+        for key in keys_first:
+            if key not in keys_second:
+                return "{} key {} is in the first {} but not in the second dict {}.".format(
+                    msg, key, first_object, second_object)
+        for key in keys_second:
+            if key not in keys_first:
+                return "{} key {} is in the second {} but not in the first dict {}.".format(
+                    msg, key, first_object, second_object)
+    else:
+        for key in keys_first:
+            res = diff_data(first_object=first_object[key],
+                            second_object=second_object[key],
+                            ignore_order=ignore_order,
+                            report_repetition=report_repetition,
+                            significant_digits=significant_digits,
+                            exclude_types=exclude_types,
+                            msg="{} -> [{}]".format(msg, key))
+            if res:
+                return res
+    return ""
+
+
+def _compare_sets(first_object, second_object, msg, ignore_order=False,
+                   report_repetition=False, significant_digits=None,
+                   exclude_types=None):
+    diff = first_object.symmetric_difference(second_object)
+    if diff:
+        for item in first_object:
+            if item not in second_object:
+                return "{} item {} is in the first set {} but not in the second set {}.".format(
+                    msg, item, first_object, second_object)
+        for item in second_object:
+            if item not in first_object:
+                return "{} item {} is in the second set {} but not in the first set {}.".format(
+                    msg, item, first_object, second_object)
+    return ""
+
+
+def _compare_lists(first_object, second_object, msg, ignore_order=False,
+                   report_repetition=False, significant_digits=None,
+                   exclude_types=None):
+    len_first = len(first_object)
+    len_second = len(second_object)
+    if len_first != len_second:
+        return "{} List {} has {} item(s) but {} has {} item(s)".format(
+            msg, first_object, len_first, second_object, len_second)
+    max_element = len(first_object)
+    for i in range(0, max_element):
+        res = diff_data(first_object=first_object[i], second_object=second_object[i],
+                        msg="{} -> [{}]".format(msg, i),
+                        ignore_order=ignore_order,
+                        report_repetition=report_repetition,
+                        significant_digits=significant_digits,
+                        exclude_types=exclude_types,
+                        )
+        if res:
+            return res
+    return ""
 
 
 def convert_to_number(value):
