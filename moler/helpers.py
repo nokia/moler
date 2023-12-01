@@ -264,7 +264,7 @@ def diff_data(first_object, second_object, significant_digits=None,
     elif isinstance(first_object, float):
         abs_tol = 0.0001
         if significant_digits:
-            abs_tol = 1.0/10**significant_digits
+            abs_tol = 1.0 / 10 ** significant_digits
         if not isclose(first_object, second_object, abs_tol=abs_tol):
             return "{} the first value {} is different from the second value" \
                    " {}.".format(msg, first_object, second_object)
