@@ -17,10 +17,10 @@ from types import FunctionType, MethodType
 from six import string_types
 from math import isclose
 
-import deepdiff
+# import deepdiff
 
-if datetime.time not in deepdiff.diff.numbers:
-    deepdiff.diff.numbers = deepdiff.diff.numbers + (datetime.time,)
+# if datetime.time not in deepdiff.diff.numbers:
+#     deepdiff.diff.numbers = deepdiff.diff.numbers + (datetime.time,)
 
 try:
     import collections.abc as collections
@@ -218,33 +218,26 @@ def update_dict(target_dict, expand_dict):
             target_dict[key] = expand_dict[key]
 
 
-def compare_objects(first_object, second_object, ignore_order=False, report_repetition=False, significant_digits=None,
-                    exclude_paths=None, exclude_types=None, verbose_level=2):
+def compare_objects(first_object, second_object, significant_digits=None,
+                    exclude_types=None):
     """
     Return difference between two objects.
     :param first_object: first object to compare
     :param second_object: second object to compare
-    :param ignore_order: ignore difference in order
-    :param report_repetition: report when is repetition
     :param significant_digits: use to properly compare numbers(float arithmetic error)
-    :param exclude_paths: path which be excluded from comparison
     :param exclude_types: types which be excluded from comparison
-    :param verbose_level: higher verbose level shows you more details - default 0.
     :return: difference between two objects
     """
-    if exclude_paths is None:
-        exclude_paths = set()
     if exclude_types is None:
         exclude_types = set()
 
-    diff = deepdiff.DeepDiff(first_object, second_object, ignore_order=ignore_order,
-                             report_repetition=report_repetition, significant_digits=significant_digits,
-                             exclude_paths=exclude_paths, exclude_types=exclude_types, verbose_level=verbose_level)
+    diff = diff_data(first_object=first_object, second_object=second_object,
+                     significant_digits=significant_digits, exclude_types=exclude_types)
+
     return diff
 
 
-def diff_data(first_object, second_object, ignore_order=False,
-              report_repetition=False, significant_digits=None,
+def diff_data(first_object, second_object, significant_digits=None,
               exclude_types=None, msg=None):
     if msg is None:
         msg = 'root'
@@ -255,24 +248,19 @@ def diff_data(first_object, second_object, ignore_order=False,
                                                                  type_first,
                                                                  second_object,
                                                                  type_second)
+    elif exclude_types is not None and type_first in exclude_types:
+        return ""
     elif isinstance(first_object, list) or isinstance(first_object, tuple):
         return _compare_lists(first_object=first_object, second_object=second_object,
-                              ignore_order=ignore_order,
-                              report_repetition=report_repetition,
                               significant_digits=significant_digits,
                               exclude_types=exclude_types, msg=msg)
     elif isinstance(first_object, dict):
         return _compare_dicts(first_object=first_object, second_object=second_object,
-                              ignore_order=ignore_order,
-                              report_repetition=report_repetition,
                               significant_digits=significant_digits,
                               exclude_types=exclude_types, msg=msg)
     elif isinstance(first_object, set):
         return _compare_sets(first_object=first_object, second_object=second_object,
-                             ignore_order=ignore_order,
-                             report_repetition=report_repetition,
-                             significant_digits=significant_digits,
-                             exclude_types=exclude_types, msg=msg)
+                             msg=msg)
     elif isinstance(first_object, float):
         abs_tol = 0.0001
         if significant_digits:
@@ -288,8 +276,7 @@ def diff_data(first_object, second_object, ignore_order=False,
     return ""
 
 
-def _compare_dicts(first_object, second_object, msg, ignore_order=False,
-                   report_repetition=False, significant_digits=None,
+def _compare_dicts(first_object, second_object, msg, significant_digits=None,
                    exclude_types=None):
     keys_first = set(first_object.keys())
     keys_second = set(second_object.keys())
@@ -307,8 +294,6 @@ def _compare_dicts(first_object, second_object, msg, ignore_order=False,
         for key in keys_first:
             res = diff_data(first_object=first_object[key],
                             second_object=second_object[key],
-                            ignore_order=ignore_order,
-                            report_repetition=report_repetition,
                             significant_digits=significant_digits,
                             exclude_types=exclude_types,
                             msg="{} -> [{}]".format(msg, key))
@@ -317,9 +302,7 @@ def _compare_dicts(first_object, second_object, msg, ignore_order=False,
     return ""
 
 
-def _compare_sets(first_object, second_object, msg, ignore_order=False,
-                   report_repetition=False, significant_digits=None,
-                   exclude_types=None):
+def _compare_sets(first_object, second_object, msg):
     diff = first_object.symmetric_difference(second_object)
     if diff:
         for item in first_object:
@@ -333,8 +316,7 @@ def _compare_sets(first_object, second_object, msg, ignore_order=False,
     return ""
 
 
-def _compare_lists(first_object, second_object, msg, ignore_order=False,
-                   report_repetition=False, significant_digits=None,
+def _compare_lists(first_object, second_object, msg, significant_digits=None,
                    exclude_types=None):
     len_first = len(first_object)
     len_second = len(second_object)
@@ -345,8 +327,6 @@ def _compare_lists(first_object, second_object, msg, ignore_order=False,
     for i in range(0, max_element):
         res = diff_data(first_object=first_object[i], second_object=second_object[i],
                         msg="{} -> [{}]".format(msg, i),
-                        ignore_order=ignore_order,
-                        report_repetition=report_repetition,
                         significant_digits=significant_digits,
                         exclude_types=exclude_types,
                         )
