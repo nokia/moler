@@ -234,14 +234,18 @@ def compare_objects(first_object, second_object, significant_digits=None,
 def diff_data(first_object, second_object, significant_digits=None,
               exclude_types=None, msg=None):
     """
-    Diff data.
+    Compare two objects recursively and return a message indicating any differences.
 
-    :param first_object: object a to compare
-    :param second_object: object to compare
-    :param significant_digits: use to properly compare numbers(float arithmetic error)
-    :param exclude_types: set with types to exclude from comparison
-    :param msg: string with prefix
-    :return: String wit difference. Empty string if values are the same.
+    :param first_object: The first object for comparison.
+    :param second_object: The second object for comparison.
+    :param significant_digits: The number of significant digits to consider for float
+                               comparison.
+    :param exclude_types: A list of types to exclude from comparison.
+    :param msg: A message to prepend to any difference messages.
+                Defaults to 'root' if not provided.
+
+    :return: A message indicating the differences, or an empty string if objects are
+             equal.
     """
     if msg is None:
         msg = 'root'
@@ -254,7 +258,7 @@ def diff_data(first_object, second_object, significant_digits=None,
                                                                  type_second)
     elif exclude_types is not None and type_first in exclude_types:
         return ""
-    elif isinstance(first_object, list) or isinstance(first_object, tuple):
+    elif isinstance(first_object, (list, tuple)):
         return _compare_lists(first_object=first_object, second_object=second_object,
                               significant_digits=significant_digits,
                               exclude_types=exclude_types, msg=msg)
@@ -283,14 +287,18 @@ def diff_data(first_object, second_object, significant_digits=None,
 def _compare_dicts(first_object, second_object, msg, significant_digits=None,
                    exclude_types=None):
     """
-    Compare dicts by values.
+    Compare two dictionaries recursively and return a message indicating any
+     differences.
 
-    :param first_object: object a to compare
-    :param second_object: object to compare
-    :param msg: string with prefix
-    :param significant_digits: use to properly compare numbers(float arithmetic error)
-    :param exclude_types: set with types to exclude from comparison
-    :return: String wit difference. Empty string if values are the same.
+    :param first_object: The first dictionary for comparison.
+    :param second_object: The second dictionary for comparison.
+    :param significant_digits: The number of significant digits to consider for float
+                               comparison.
+    :param exclude_types: A list of types to exclude from comparison.
+    :param msg: A message to prepend to any difference messages.
+
+    :return: A message indicating the differences, or an empty string if objects are
+             equal.
     """
     keys_first = set(first_object.keys())
     keys_second = set(second_object.keys())
@@ -318,13 +326,14 @@ def _compare_dicts(first_object, second_object, msg, significant_digits=None,
 
 def _compare_sets(first_object, second_object, msg):
     """
-    Compare sets.
 
-    :param first_object: object a to compare
-    :param second_object: object to compare
-    :param msg: string with prefix
+    Compare two sets.
 
-    :return: String wit difference. Empty string if values are the same.
+    :param first_object: The first object for comparison.
+    :param second_object: The second object for comparison.
+    :param msg: A message to prepend to any difference messages.
+    :return: A message indicating the differences, or an empty string if objects are
+     equal.
     """
     diff = first_object.symmetric_difference(second_object)
     if diff:
@@ -342,14 +351,18 @@ def _compare_sets(first_object, second_object, msg):
 def _compare_lists(first_object, second_object, msg, significant_digits=None,
                    exclude_types=None):
     """
-    Compare lists by values.
+    Compare two lists or tuples recursively and return a message indicating any
+     differences.
 
-    :param first_object: object a to compare
-    :param second_object: object to compare
-    :param msg: string with prefix
-    :param significant_digits: use to properly compare numbers(float arithmetic error)
-    :param exclude_types: set with types to exclude from comparison
-    :return: String wit difference. Empty string if values are the same.
+    :param first_object: The first list or tuple for comparison.
+    :param second_object: The second list or tuple for comparison.
+    :param significant_digits: The number of significant digits to consider for float
+                               comparison.
+    :param exclude_types: A list of types to exclude from comparison.
+    :param msg: A message to prepend to any difference messages.
+
+    :return: A message indicating the differences, or an empty string if objects are
+             equal.
     """
     len_first = len(first_object)
     len_second = len(second_object)
