@@ -4,22 +4,17 @@ Utility/common code of library.
 """
 
 __author__ = 'Grzegorz Latuszek, Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2022, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import copy
-import datetime
 import importlib
 import logging
 import re
 from functools import wraps
 from types import FunctionType, MethodType
 from six import string_types
-
-import deepdiff
-
-if datetime.time not in deepdiff.diff.numbers:
-    deepdiff.diff.numbers = deepdiff.diff.numbers + (datetime.time,)
+from math import isclose
 
 try:
     import collections.abc as collections
@@ -217,29 +212,173 @@ def update_dict(target_dict, expand_dict):
             target_dict[key] = expand_dict[key]
 
 
-def compare_objects(first_object, second_object, ignore_order=False, report_repetition=False, significant_digits=None,
-                    exclude_paths=None, exclude_types=None, verbose_level=2):
+def compare_objects(first_object, second_object, significant_digits=None,
+                    exclude_types=None):
     """
     Return difference between two objects.
     :param first_object: first object to compare
     :param second_object: second object to compare
-    :param ignore_order: ignore difference in order
-    :param report_repetition: report when is repetition
     :param significant_digits: use to properly compare numbers(float arithmetic error)
-    :param exclude_paths: path which be excluded from comparison
     :param exclude_types: types which be excluded from comparison
-    :param verbose_level: higher verbose level shows you more details - default 0.
     :return: difference between two objects
     """
-    if exclude_paths is None:
-        exclude_paths = set()
     if exclude_types is None:
         exclude_types = set()
 
-    diff = deepdiff.DeepDiff(first_object, second_object, ignore_order=ignore_order,
-                             report_repetition=report_repetition, significant_digits=significant_digits,
-                             exclude_paths=exclude_paths, exclude_types=exclude_types, verbose_level=verbose_level)
+    diff = diff_data(first_object=first_object, second_object=second_object,
+                     significant_digits=significant_digits, exclude_types=exclude_types)
+
     return diff
+
+
+def diff_data(first_object, second_object, significant_digits=None,
+              exclude_types=None, msg=None):
+    """
+    Compare two objects recursively and return a message indicating any differences.
+
+    :param first_object: The first object for comparison.
+    :param second_object: The second object for comparison.
+    :param significant_digits: The number of significant digits to consider for float
+                               comparison.
+    :param exclude_types: A list of types to exclude from comparison.
+    :param msg: A message to prepend to any difference messages.
+                Defaults to 'root' if not provided.
+
+    :return: A message indicating the differences, or an empty string if objects are
+             equal.
+    """
+    if msg is None:
+        msg = 'root'
+    type_first = type(first_object)
+    type_second = type(second_object)
+    if type_first != type_second:
+        return "{} {} is type of {} but {} is type of {}".format(msg, first_object,
+                                                                 type_first,
+                                                                 second_object,
+                                                                 type_second)
+    elif exclude_types is not None and type_first in exclude_types:
+        return ""
+    elif isinstance(first_object, (list, tuple)):
+        return _compare_lists(first_object=first_object, second_object=second_object,
+                              significant_digits=significant_digits,
+                              exclude_types=exclude_types, msg=msg)
+    elif isinstance(first_object, dict):
+        return _compare_dicts(first_object=first_object, second_object=second_object,
+                              significant_digits=significant_digits,
+                              exclude_types=exclude_types, msg=msg)
+    elif isinstance(first_object, set):
+        return _compare_sets(first_object=first_object, second_object=second_object,
+                             msg=msg)
+    elif isinstance(first_object, float):
+        abs_tol = 0.0001
+        if significant_digits:
+            abs_tol = 1.0 / 10 ** significant_digits
+        if not isclose(first_object, second_object, abs_tol=abs_tol):
+            return "{} the first value {} is different from the second value" \
+                   " {}.".format(msg, first_object, second_object)
+    else:
+        if first_object != second_object:
+            return "{} First value {} is different from the second {}.".format(
+                msg, first_object, second_object)
+
+    return ""
+
+
+def _compare_dicts(first_object, second_object, msg, significant_digits=None,
+                   exclude_types=None):
+    """
+    Compare two dictionaries recursively and return a message indicating any
+     differences.
+
+    :param first_object: The first dictionary for comparison.
+    :param second_object: The second dictionary for comparison.
+    :param significant_digits: The number of significant digits to consider for float
+                               comparison.
+    :param exclude_types: A list of types to exclude from comparison.
+    :param msg: A message to prepend to any difference messages.
+
+    :return: A message indicating the differences, or an empty string if objects are
+             equal.
+    """
+    keys_first = set(first_object.keys())
+    keys_second = set(second_object.keys())
+    diff = keys_first ^ keys_second
+    if diff:
+        for key in keys_first:
+            if key not in keys_second:
+                return "{} key {} is in the first {} but not in the second dict {}.".format(
+                    msg, key, first_object, second_object)
+        for key in keys_second:
+            if key not in keys_first:
+                return "{} key {} is in the second {} but not in the first dict {}.".format(
+                    msg, key, first_object, second_object)
+    else:
+        for key in keys_first:
+            res = diff_data(first_object=first_object[key],
+                            second_object=second_object[key],
+                            significant_digits=significant_digits,
+                            exclude_types=exclude_types,
+                            msg="{} -> [{}]".format(msg, key))
+            if res:
+                return res
+    return ""
+
+
+def _compare_sets(first_object, second_object, msg):
+    """
+
+    Compare two sets.
+
+    :param first_object: The first object for comparison.
+    :param second_object: The second object for comparison.
+    :param msg: A message to prepend to any difference messages.
+    :return: A message indicating the differences, or an empty string if objects are
+     equal.
+    """
+    diff = first_object.symmetric_difference(second_object)
+    if diff:
+        for item in first_object:
+            if item not in second_object:
+                return "{} item {} is in the first set {} but not in the second set {}.".format(
+                    msg, item, first_object, second_object)
+        for item in second_object:
+            if item not in first_object:
+                return "{} item {} is in the second set {} but not in the first set {}.".format(
+                    msg, item, first_object, second_object)
+    return ""
+
+
+def _compare_lists(first_object, second_object, msg, significant_digits=None,
+                   exclude_types=None):
+    """
+    Compare two lists or tuples recursively and return a message indicating any
+     differences.
+
+    :param first_object: The first list or tuple for comparison.
+    :param second_object: The second list or tuple for comparison.
+    :param significant_digits: The number of significant digits to consider for float
+                               comparison.
+    :param exclude_types: A list of types to exclude from comparison.
+    :param msg: A message to prepend to any difference messages.
+
+    :return: A message indicating the differences, or an empty string if objects are
+             equal.
+    """
+    len_first = len(first_object)
+    len_second = len(second_object)
+    if len_first != len_second:
+        return "{} List {} has {} item(s) but {} has {} item(s)".format(
+            msg, first_object, len_first, second_object, len_second)
+    max_element = len(first_object)
+    for i in range(0, max_element):
+        res = diff_data(first_object=first_object[i], second_object=second_object[i],
+                        msg="{} -> [{}]".format(msg, i),
+                        significant_digits=significant_digits,
+                        exclude_types=exclude_types,
+                        )
+        if res:
+            return res
+    return ""
 
 
 def convert_to_number(value):

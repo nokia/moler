@@ -7,6 +7,8 @@ __author__ = 'Grzegorz Latuszek, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
+import copy
+
 import mock
 import pytest
 import re
@@ -345,3 +347,34 @@ def test_regexp_with_right_anchor():
     expected = "abc"
     regex = re.compile(r"abc$")
     assert expected == regexp_without_anchors(regex).pattern
+
+
+def test_diff_the_same_structure():
+    from moler.helpers import diff_data
+    a = ['a', 3, 4.0, True, False, ['abc', 'def'], (2.5, 3.6, 4.2), {1, 2, 3},
+         {'a': 3, 'b': {'c': 5, 'd': 6.3}}]
+    b = copy.deepcopy(a)
+    msg = diff_data(first_object=a, second_object=b)
+    assert "" == msg
+
+
+def test_diff_different_types():
+    from moler.helpers import diff_data
+    a = ['a', 3, 4.0, True, False, ['abc', 'def'], (2.5, 3.6, 4.2), {1, 2, 3},
+         {'a': 3, 'b': {'c': 5, 'd': 6.3}}]
+    b = copy.deepcopy(a)
+    b[3] = 4
+    msg = diff_data(first_object=a, second_object=b)
+    assert "root -> [3] True is type of <class 'bool'> but 4 is type of <class 'int'>"\
+           == msg
+
+
+def test_diff_different_values():
+    from moler.helpers import diff_data
+    a = ['a', 3, 4.0, True, False, ['abc', 'def'], (2.5, 3.6, 4.2), {1, 2, 3},
+         {'a': 3, 'b': {'c': 5, 'd': 6.3}}]
+    b = copy.deepcopy(a)
+    b[-1] = {'a': 3, 'b': {'c': 5, 'd': 6.2}}
+    msg = diff_data(first_object=a, second_object=b)
+    assert "root -> [8] -> [b] -> [d] the first value 6.3 is different from the" \
+           " second value 6.2." == msg
