@@ -365,7 +365,6 @@ def test_diff_different_types():
     b = copy.deepcopy(a)
     b[3] = 4
     msg = diff_data(first_object=a, second_object=b)
-    print(msg)
     assert "root -> [3] True is type of <class 'bool'> but 4 is type of <class 'int'>"\
            == msg
 
@@ -377,6 +376,5 @@ def test_diff_different_values():
     b = copy.deepcopy(a)
     b[-1] = {'a': 3, 'b': {'c': 5, 'd': 6.2}}
     msg = diff_data(first_object=a, second_object=b)
-    print(msg)
     assert "root -> [8] -> [b] -> [d] the first value 6.3 is different from the" \
            " second value 6.2." == msg
