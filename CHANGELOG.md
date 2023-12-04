@@ -1,3 +1,6 @@
+## moler 2.17.0
+* Implementation of internal Quectel command for setting network preferences
+
 ## moler 2.16.0
 * Tests on Python 3.12
 * Warning for Pythons 2.7 -3.6 (support will be removed soon)

@@ -188,6 +188,13 @@ moler.cmd.at.quectel\_lock\_nr\earfcn module
     :undoc-members:
     :show-inheritance:
 
+moler.cmd.at.quectel\_network\_preferences module
+--------------------------------------
+
+.. automodule:: moler.cmd.at.quectel_network_preferences
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 Module contents
 ---------------
