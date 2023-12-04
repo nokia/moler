@@ -1,5 +1,6 @@
 ## moler 2.17.0
-* Implementation of internal Quectel command for setting network preferences
+* Implementation of internal Quectel AT command for setting network preferences
+* Removed Deepdiff
 
 ## moler 2.16.0
 * Tests on Python 3.12
