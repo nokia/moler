@@ -1,3 +1,6 @@
+## moler 2.17.1
+* Fix for compare objects under Python 2.7
+
 ## moler 2.17.0
 * Implementation of internal Quectel AT command for setting network preferences
 * Removed Deepdiff
