@@ -496,7 +496,7 @@ def test_connection_observer_exception_do_not_remove():
 # --------------------------- resources ---------------------------
 
 
-@pytest.yield_fixture(params=['connection_observer.ConnectionObserver', 'command.Command'])
+@pytest.fixture(params=['connection_observer.ConnectionObserver', 'command.Command'])
 def connection_observer_major_base_class(request):
     module_name, class_name = request.param.rsplit('.', 1)
     module = importlib.import_module('moler.{}'.format(module_name))

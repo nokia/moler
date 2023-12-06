@@ -722,7 +722,7 @@ if is_python36_or_above():
     pass
 
 
-@pytest.yield_fixture(params=available_bg_runners)
+@pytest.fixture(params=available_bg_runners)
 def observer_runner(request):
     module_name, class_name = request.param.rsplit('.', 1)
     module = importlib.import_module('moler.{}'.format(module_name))
@@ -735,7 +735,7 @@ def observer_runner(request):
     runner.shutdown()
 
 
-@pytest.yield_fixture(params=available_standalone_runners)
+@pytest.fixture(params=available_standalone_runners)
 def standalone_runner(request):
     module_name, class_name = request.param.rsplit('.', 1)
     module = importlib.import_module('moler.{}'.format(module_name))
@@ -747,7 +747,7 @@ def standalone_runner(request):
     runner.shutdown()
 
 
-@pytest.yield_fixture(params=available_async_runners)
+@pytest.fixture(params=available_async_runners)
 def async_runner(request):
     module_name, class_name = request.param.rsplit('.', 1)
     module = importlib.import_module('moler.{}'.format(module_name))
@@ -777,7 +777,7 @@ class NetworkDownDetector(ConnectionObserver):
                 self.set_result(result=when_detected)
 
 
-@pytest.yield_fixture()
+@pytest.fixture()
 def connection_observer(observer_runner):
     from moler.threaded_moler_connection import ThreadedMolerConnection
     moler_conn = ThreadedMolerConnection()
@@ -822,7 +822,7 @@ def use_loud_event_loop():
     asyncio.set_event_loop_policy(loud_policy)
 
 
-@pytest.yield_fixture()
+@pytest.fixture()
 def event_loop():
     from moler.asyncio_runner import cancel_remaining_feeders
 

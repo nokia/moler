@@ -115,7 +115,7 @@ def test_device_logging_suffix(buffer_connection):
 # --------------------------- resources ---------------------------
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def configure_net_1_connection():
     import mock
     from moler.config import connections as conn_cfg

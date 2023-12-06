@@ -813,25 +813,25 @@ def test_can_load_configuration_when_already_loaded_from_same_file(moler_config,
 # --------------------------- resources ---------------------------
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def moler_config(clear_all_cfg):
     import moler.config as moler_cfg
     yield moler_cfg
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def device_config(clear_all_cfg):
     import moler.config.devices as dev_cfg
     yield dev_cfg
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def device_factory(clear_all_cfg):
     from moler.device.device import DeviceFactory as dev_factory
     yield dev_factory
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def clear_all_cfg():
     import mock
     import moler.config as moler_cfg

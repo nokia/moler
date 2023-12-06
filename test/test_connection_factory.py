@@ -112,7 +112,7 @@ def builtin_io_type_example(request):
     return request.param, kwargs
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def builtin_connection_factories():
     import moler.connection  # installs builtin ones
     import moler.config.connections as connection_cfg

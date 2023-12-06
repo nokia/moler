@@ -407,7 +407,7 @@ def test_get_string_message():
 # --------------------------- resources ---------------------------
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def moler_test_se():
     from moler.util.moler_test import MolerTest
 
@@ -430,7 +430,7 @@ def moler_test_se():
     yield MolerTestExampleSE()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def moler_test():
     from moler.util.moler_test import MolerTest
 
@@ -458,7 +458,7 @@ def moler_test_not_raise_exception_when_no_steps_end_for_global_method():
     MolerTest.info("Start global method with log and without steps_end")
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def do_nothing_connection_observer():
     from moler.connection_observer import ConnectionObserver
 
