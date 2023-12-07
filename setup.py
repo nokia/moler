@@ -14,7 +14,7 @@ with io.open(join(here, 'requirements.txt'), encoding='utf-8') as f:
 setup(
     name='moler',  # Required
     version='2.17.1',  # Required
-    description='Moler is library to help in building automated tests',  # Required
+    description='Moler is a library for working with terminals, mainly for automated tests',  # Required
     long_description=long_description,  # Optional
     long_description_content_type='text/markdown',  # Optional (see note above)
     url='https://github.com/nokia/moler',  # Optional
