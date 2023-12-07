@@ -364,7 +364,7 @@ my_unix = DeviceFactory.get_device(name='MyMachine')
 
 my_unix.set_logging_suffix("device_suffix")  # to add suffix to filename with logs
 
-my_unix.set_suffix(None)  # to remove suffix from filename with logs
+my_unix.set_logging_suffix(None)  # to remove suffix from filename with logs
 ```
 
 Previous examples ask device to create command. We can also create command ourselves
