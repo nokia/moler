@@ -83,7 +83,7 @@ def test_terminal_lsof(terminal_connection):
     assert ret["NUMBER"] > 1
 
 
-@pytest.yield_fixture()
+@pytest.fixture()
 def terminal_connection():
     from moler.threaded_moler_connection import ThreadedMolerConnection
 

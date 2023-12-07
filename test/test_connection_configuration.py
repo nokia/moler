@@ -166,7 +166,7 @@ def test_load_config_checks_env_variable_existence(moler_config):
 
 # --------------------------- resources ---------------------------
 
-@pytest.yield_fixture
+@pytest.fixture
 def moler_config():
     import mock
     import moler.config as moler_cfg
@@ -182,7 +182,7 @@ def moler_config():
                 yield moler_cfg
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def connections_config():
     import mock
     import moler.config.connections as conn_cfg
@@ -192,7 +192,7 @@ def connections_config():
             yield conn_cfg
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def builtin_connection_factories():
     import moler.connection  # installs builtin ones
     import moler.config.connections as connection_cfg

@@ -14,7 +14,7 @@
 5. [Designed API](#designed-api)
 
 # Changelog
-View our [chronological list](./CHANGELOG.md) of user-facing changes, large and small, made to the Moler project.
+View our [chronological list](https://github.com/nokia/moler/CHANGELOG.md) of user-facing changes, large and small, made to the Moler project.
 
 ![moler logo](https://i.imgur.com/mkPutdC.png)
 # Moler
@@ -41,18 +41,18 @@ Let's see Moler in action. Here is hypothetical use case: "find PIDs of all pyth
 
 ```python
 
-    from moler.config import load_config
-    from moler.device.device import DeviceFactory
+from moler.config import load_config
+from moler.device import DeviceFactory    
 
-    load_config(config='my_devices.yml')                    # description of available devices
-    my_unix = DeviceFactory.get_device(name='MyMachine')    # take specific device out of available ones
-    ps_cmd = my_unix.get_cmd(cmd_name="ps",                 # take command of that device
-                             cmd_params={"options": "-ef"})
+load_config(config='my_devices.yml')                    # description of available devices
+my_unix = DeviceFactory.get_device(name='MyMachine')    # take specific device out of available ones
+ps_cmd = my_unix.get_cmd(cmd_name="ps",                 # take command of that device
+                         cmd_params={"options": "-ef"})
 
-    processes_info = ps_cmd()                               # run the command, it returns result
-    for proc_info in processes_info:
-        if 'python' in proc_info['CMD']:
-            print("PID: {info[PID]} CMD: {info[CMD]}".format(info=proc_info))
+processes_info = ps_cmd()                               # run the command, it returns result
+for proc_info in processes_info:
+    if 'python' in proc_info['CMD']:
+        print("PID: {info[PID]} CMD: {info[CMD]}".format(info=proc_info))
 ```
 
 * To have command we ask device "give me such command".
@@ -87,26 +87,26 @@ How does it know what `'MyMachine'` means? Code loads definition from `my_device
                 host: test.rebex.net
                 login: demo
                 password: password
-                set_timeout: False   # remote doesn't support: export TMOUT
+                set_timeout: None   # remote doesn't support: export TMOUT
 ```
 
 We have remote machine in our config. Let's check if there is 'readme.txt' file
 on that machine (and some info about the file):
 
 ```python
+from moler.device import DeviceFactory
+remote_unix = DeviceFactory.get_device(name='RebexTestMachine')  # it starts in local shell
+remote_unix.goto_state(state="UNIX_REMOTE")                      # make it go to remote shell
 
-    remote_unix = DeviceFactory.get_device(name='RebexTestMachine')  # it starts in local shell
-    remote_unix.goto_state(state="UNIX_REMOTE")                      # make it go to remote shell
+ls_cmd = remote_unix.get_cmd(cmd_name="ls", cmd_params={"options": "-l"})
 
-    ls_cmd = remote_unix.get_cmd(cmd_name="ls", cmd_params={"options": "-l"})
+remote_files = ls_cmd()
 
-    remote_files = ls_cmd()
-
-    if 'readme.txt' in remote_files['files']:
-        print("readme.txt file:")
-        readme_file_info = remote_files['files']['readme.txt']
-        for attr in readme_file_info:
-            print("  {:<18}: {}".format(attr, readme_file_info[attr]))
+if 'readme.txt' in remote_files['files']:
+    print("readme.txt file:")
+    readme_file_info = remote_files['files']['readme.txt']
+    for attr in readme_file_info:
+        print("  {:<18}: {}".format(attr, readme_file_info[attr]))
 ```
 
 As you may noticed device is state machine. State transitions are defined inside
@@ -133,6 +133,7 @@ How about doing multiple things in parallel. Let's ping google
 while asking test.rebex.net about readme.txt file:
 
 ```python
+from moler.device import DeviceFactory
 my_unix = DeviceFactory.get_device(name='MyMachine')
 host = 'www.google.com'
 ping_cmd = my_unix.get_cmd(cmd_name="ping", cmd_params={"destination": host, "options": "-w 6"})
@@ -346,6 +347,7 @@ In a script we can also disable logging from device. Please use it very carefull
  impossible if we don't have full logs.
  
 ```python
+from moler.device import DeviceFactory
 my_unix = DeviceFactory.get_device(name='MyMachine')
 
 my_unix.disbale_logging()  # to disable logging on device
@@ -356,6 +358,7 @@ my_unix.enable_logging()  # to enable logging on device
 In a script you can add suffix to all log files or only to files for specific devices. with disable logging from device. 
  
 ```python
+from moler.device import DeviceFactory
 from moler.config.loggers import change_logging_suffix
 change_logging_suffix(".suffix1")  # all log files with suffix
 change_logging_suffix(None)  # all log files without suffx
@@ -364,7 +367,7 @@ my_unix = DeviceFactory.get_device(name='MyMachine')
 
 my_unix.set_logging_suffix("device_suffix")  # to add suffix to filename with logs
 
-my_unix.set_suffix(None)  # to remove suffix from filename with logs
+my_unix.set_logging_suffix(None)  # to remove suffix from filename with logs
 ```
 
 Previous examples ask device to create command. We can also create command ourselves
@@ -372,25 +375,25 @@ giving it connection to operate on:
 
 ```python
 
-    import time
-    from moler.cmd.unix.ping import Ping
-    from moler.connection_factory import get_connection
+import time
+from moler.cmd.unix.ping import Ping
+from moler.connection_factory import get_connection
 
-    host = 'www.google.com'
-    terminal = get_connection(io_type='terminal', variant='threaded')  # take connection
-    with terminal.open():
-        ping_cmd = Ping(connection=terminal.moler_connection,
-                        destination=host, options="-w 6")
-        print("Start pinging {} ...".format(host))
-        ping_cmd.start()
-        print("Doing other stuff while pinging {} ...".format(host))
-        time.sleep(3)
-        ping_stats = ping_cmd.await_done(timeout=4)
-        print("ping {}: {}={}, {}={} [{}]".format(host,'packet_loss',
-                                                  ping_stats['packet_loss'],
-                                                  'time_avg',
-                                                  ping_stats['time_avg'],
-                                                  ping_stats['time_unit']))
+host = 'www.google.com'
+terminal = get_connection(io_type='terminal', variant='threaded')  # take connection
+with terminal.open():
+    ping_cmd = Ping(connection=terminal.moler_connection,
+                    destination=host, options="-w 6")
+    print("Start pinging {} ...".format(host))
+    ping_cmd.start()
+    print("Doing other stuff while pinging {} ...".format(host))
+    time.sleep(3)
+    ping_stats = ping_cmd.await_done(timeout=4)
+    print("ping {}: {}={}, {}={} [{}]".format(host,'packet_loss',
+                                              ping_stats['packet_loss'],
+                                              'time_avg',
+                                              ping_stats['time_avg'],
+                                              ping_stats['time_unit']))
 ```
 
 Please note also that connection is context manager doing open/close actions.
@@ -404,10 +407,11 @@ Please note also that connection is context manager doing open/close actions.
 ```
 
 ## Reuse freedom
-Library gives you freedom which part you want to reuse. We are fan's of "take what you need only".
+Library gives you freedom which part you want to reuse. We are fans of "take what you need only".
 * You may use configuration files or configure things by Python calls.
 
    ```python
+   from moler.config import load_config
    load_config(config={'DEVICES': {'MyMachine': {'DEVICE_CLASS': 'moler.device.unixlocal.UnixLocal'}}})
    ```
 * You may use devices or create commands manually
@@ -440,14 +444,14 @@ Running that command and parsing its output may take some time, so till that poi
 
 ## Command as future
 * it starts some command on device/shell over connection
-  (as future-function starts it's execution)
+  (as future-function starts its execution)
 * it parses data incoming over such connection
-  (as future-function does it's processing)
+  (as future-function does its processing)
 * it stores result of that parsing
   (as future-function concludes in calculation result)
 * it provides means to return that result
   (as future-function does via 'return' or 'yield' statement)
-* it's result is not ready "just-after" calling command
+* its result is not ready "just-after" calling command
   (as it is with future in contrast to function)
 
 So command should have future API.

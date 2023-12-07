@@ -68,7 +68,7 @@ def test_CancellableFuture_can_be_cancelled_while_it_is_running(observer_runner)
 # --------------------------- resources ---------------------------
 
 
-@pytest.yield_fixture()
+@pytest.fixture()
 def observer_runner():
     from moler.runner import ThreadPoolExecutorRunner
     runner = ThreadPoolExecutorRunner()

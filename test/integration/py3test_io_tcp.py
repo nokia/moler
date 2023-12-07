@@ -141,7 +141,7 @@ def tcp_connection_class(request):
     return connection_class
 
 
-@pytest.yield_fixture()
+@pytest.fixture()
 def integration_tcp_server_and_pipe():
     from moler.io.raw.tcpserverpiped import tcp_server_piped
     with tcp_server_piped(use_stderr_logger=True) as server_and_pipe:

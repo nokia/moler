@@ -79,7 +79,7 @@ class NetworkDownDetector(ConnectionObserver):
                 self.set_result(result=when_detected)
 
 
-@pytest.yield_fixture(params=['FIFO-in-memory'])
+@pytest.fixture(params=['FIFO-in-memory'])
 def ext_io_connection(request):
     from moler.io.raw.memory import ThreadedFifoBuffer
     from moler.threaded_moler_connection import ThreadedMolerConnection

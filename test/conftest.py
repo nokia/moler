@@ -4,10 +4,10 @@ Testing resources for tests of AT commands.
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
-from pytest import fixture, yield_fixture
+from pytest import fixture
 import os
 import logging
 import psutil
@@ -92,7 +92,7 @@ def pytest_runtest_logreport(report):
 
 
 # --------------------------- cmd_at and cmd_at_get_imsi resources ---------------------------
-@yield_fixture
+@fixture
 def buffer_connection():
     from moler.io.raw.memory import ThreadedFifoBuffer
     from moler.threaded_moler_connection import ThreadedMolerConnection
@@ -176,7 +176,7 @@ def nice_cmd():
 
 
 # --------------------------- test/device/test_SM_DEVICE_NAME.py resources ---------------------------
-@yield_fixture
+@fixture
 def device_connection():
     ext_io_in_memory = get_memory_device_connection()
     # all tests assume working with already open connection
