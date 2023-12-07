@@ -87,7 +87,7 @@ How does it know what `'MyMachine'` means? Code loads definition from `my_device
                 host: test.rebex.net
                 login: demo
                 password: password
-                set_timeout: False   # remote doesn't support: export TMOUT
+                set_timeout: None   # remote doesn't support: export TMOUT
 ```
 
 We have remote machine in our config. Let's check if there is 'readme.txt' file
