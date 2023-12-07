@@ -404,7 +404,7 @@ Please note also that connection is context manager doing open/close actions.
 ```
 
 ## Reuse freedom
-Library gives you freedom which part you want to reuse. We are fan's of "take what you need only".
+Library gives you freedom which part you want to reuse. We are fans of "take what you need only".
 * You may use configuration files or configure things by Python calls.
 
    ```python
@@ -440,14 +440,14 @@ Running that command and parsing its output may take some time, so till that poi
 
 ## Command as future
 * it starts some command on device/shell over connection
-  (as future-function starts it's execution)
+  (as future-function starts its execution)
 * it parses data incoming over such connection
-  (as future-function does it's processing)
+  (as future-function does its processing)
 * it stores result of that parsing
   (as future-function concludes in calculation result)
 * it provides means to return that result
   (as future-function does via 'return' or 'yield' statement)
-* it's result is not ready "just-after" calling command
+* its result is not ready "just-after" calling command
   (as it is with future in contrast to function)
 
 So command should have future API.
