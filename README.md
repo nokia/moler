@@ -14,7 +14,7 @@
 5. [Designed API](#designed-api)
 
 # Changelog
-View our [chronological list](./CHANGELOG.md) of user-facing changes, large and small, made to the Moler project.
+View our [chronological list](https://github.com/nokia/moler/CHANGELOG.md) of user-facing changes, large and small, made to the Moler project.
 
 ![moler logo](https://i.imgur.com/mkPutdC.png)
 # Moler
