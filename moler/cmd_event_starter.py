@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Event awaiter
+CmdEventStarter
 """
 
 
@@ -8,70 +8,43 @@ __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2024, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
-import time
+from moler.helpers import copy_list
 
 
 class CmdEventStarter(object):
+    """
+    Class for starting commands and events sequentially.
+
+    Attributes:
+        None
+
+    Methods:
+        start(cmds, events): Start the given commands and events sequentially.
+
+    """
 
     @classmethod
-    def start(cmds, events):
+    def start(cls, cmds, events):
         """
-        Wait for all events are done or timeout occurs
+        Start the given commands and events sequentially. The next command starts when the previous event is done.
 
-        :param timeout: time in seconds
-        :param events: list of events to check
-        :param interval: interval in seconds between checking events
-        :return: True if all events are done, False otherwise
-        
-"""
+        Args:
+            cmds (list): A list of commands to start.
+            events (list): A list of events to start. If None, then the next command is started immediately.
 
+        Returns:
+            None
+        """
+        events = copy_list(events, deep_copy=False)
         for cmd in cmds:
-            cmd.start()
-            event = events.pop(0)
-    
-        for event in events:
-            event.start()
-
-    @staticmethod
-    def wait_for_any(timeout, events, interval=0.001):
-        """
-        :param timeout: time in seconds
-        :param events: list of events to check
-        :param interval: interval in seconds between checking events
-        :return: True if any event is done, False otherwise
-        """
-        grand_timeout = timeout
-        start_time = time.time()
-        any_done = False
-        while timeout >= 0 and not any_done:
-            time.sleep(interval)
-            for event in events:
-                if event.done():
-                    any_done = True
-                    break
-            timeout = grand_timeout - (time.time() - start_time)
-        return any_done
-
-    @staticmethod
-    def separate_done_events(events):
-        """
-        :param events: list of events to check and separate
-        :return: tuple. 0th element is list of done events, 1st element is list of non done events
-        """
-        done_events = list()
-        not_done_events = list()
-        for event in events:
-            if event.done():
-                done_events.append(event)
+            try:
+                event = events.pop(0)
+            except IndexError:
+                cmd.start()
             else:
-                not_done_events.append(event)
-        return [done_events, not_done_events]
+                if event is not None:
+                    event.start()
+                cmd.start()
+                if event is not None:
+                    event.await_done()
 
-    @staticmethod
-    def cancel_all_events(events):
-        """
-        :param events: list of events to cancel
-        :return: None
-        """
-        for event in events:
-            event.cancel()
