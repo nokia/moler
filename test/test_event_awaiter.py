@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 from moler.events.unix.wait4prompt import Wait4prompt
+from moler.cmd.unix.pwd import Pwd
 from moler.event_awaiter import EventAwaiter
 from moler.threaded_moler_connection import ThreadedMolerConnection
 import datetime
@@ -87,3 +88,22 @@ def test_events_false_any():
     assert 0 == len(done)
     assert 2 == len(not_done)
     EventAwaiter.cancel_all_events(events)
+
+
+def test_start_command_after_event(buffer_connection):    
+    moler_connection = buffer_connection.moler_connection    
+    pattern = "aaa"    
+    event = Wait4prompt(connection=moler_connection, till_occurs_times=1, prompt=pattern)
+    events = [event]
+    buffer_connection.remote_inject_response(pattern)
+
+    cmd_pwd1 = Pwd(connection=moler_connection)
+    cmd_pwd2 = Pwd(connection=moler_connection)
+    cmds = (cmd_pwd1, cmd_pwd2)    
+    EventAwaiter.start_command_after_event(events=events, cmds=cmds)
+    assert cmd_pwd1.running() is True
+    assert cmd_pwd2.running() is True
+    assert event.running() is False
+    assert event.done() is True    
+    EventAwaiter.cancel_all_events(events)
+    EventAwaiter.cancel_all_events(cmds)

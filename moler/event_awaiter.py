@@ -84,7 +84,7 @@ class EventAwaiter(object):
             event.cancel()
 
     @classmethod
-    def start_command_after_event(cls, cmds, events):
+    def start_command_after_event(cls, cmds, events, event_timeout=6):
         """
         Start the given commands and events sequentially. The next command starts when the previous event is done.
         Passed cmds and events can be lists of ConnectionObserver objects or lists/tuples of ConnectionObserver objects.
@@ -92,14 +92,15 @@ class EventAwaiter(object):
         Args:
             cmds (list): A list of commands to start.
             events (list): A list of events to start. If None, then the next command is started immediately.
+            event_timeout (int): Timeout for each event.
 
         Returns:
             None
-        """
-        events = copy_list(events, deep_copy=False)
-        for cmd in cmds:
+        """        
+        events_cp = copy_list(events, deep_copy=False)
+        for cmd in cmds:            
             try:
-                event = events.pop(0)
+                event = events_cp.pop(0)
             except IndexError:
                 cmd.start()
             else:
@@ -112,4 +113,4 @@ class EventAwaiter(object):
                     event.start()
                 cmd.start()
                 for event in events_after_command:
-                    event.await_done()
+                    event.await_done(timeout=event_timeout)
