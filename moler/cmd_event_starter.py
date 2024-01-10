@@ -47,4 +47,3 @@ class CmdEventStarter(object):
                 cmd.start()
                 if event is not None:
                     event.await_done()
-
