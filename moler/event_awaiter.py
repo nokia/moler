@@ -5,10 +5,12 @@ Event awaiter
 
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import time
+from moler.helpers import copy_list
+from moler.connection_observer import ConnectionObserver
 
 
 class EventAwaiter(object):
@@ -80,3 +82,34 @@ class EventAwaiter(object):
         """
         for event in events:
             event.cancel()
+
+    @classmethod
+    def start_command_after_event(cls, cmds, events):
+        """
+        Start the given commands and events sequentially. The next command starts when the previous event is done.
+        Passed cmds and events can be lists of ConnectionObserver objects or lists/tuples of ConnectionObserver objects.
+
+        Args:
+            cmds (list): A list of commands to start.
+            events (list): A list of events to start. If None, then the next command is started immediately.
+
+        Returns:
+            None
+        """
+        events = copy_list(events, deep_copy=False)
+        for cmd in cmds:
+            try:
+                event = events.pop(0)
+            except IndexError:
+                cmd.start()
+            else:
+                events_after_command = event
+                if event is None:
+                    events_after_command = ()
+                elif isinstance(event, ConnectionObserver):
+                    events_after_command = (event,)
+                for event in events_after_command:
+                    event.start()
+                cmd.start()
+                for event in events_after_command:
+                    event.await_done()
