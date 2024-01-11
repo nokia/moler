@@ -98,7 +98,10 @@ class EventAwaiter(object):
             None
         """        
         events_cp = copy_list(events, deep_copy=False)
-        for cmd in cmds:            
+        for cmd in cmds:
+            cmds_items = cmd
+            if isinstance(cmd, ConnectionObserver):
+                cmds_items = (cmd,)
             try:
                 event = events_cp.pop(0)
             except IndexError:
@@ -111,6 +114,7 @@ class EventAwaiter(object):
                     events_after_command = (event,)
                 for event in events_after_command:
                     event.start()
-                cmd.start()
+                for cmd_item in cmds_items:
+                    cmd_item.start()
                 for event in events_after_command:
                     event.await_done(timeout=event_timeout)
