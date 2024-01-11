@@ -96,7 +96,7 @@ class EventAwaiter(object):
 
         Returns:
             None
-        """        
+        """
         events_cp = copy_list(events, deep_copy=False)
         for cmd in cmds:
             cmds_items = cmd
