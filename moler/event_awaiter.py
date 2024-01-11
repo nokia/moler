@@ -14,9 +14,12 @@ from moler.connection_observer import ConnectionObserver
 
 
 class EventAwaiter(object):
+    """
+    A utility class for waiting and managing events.
+    """
 
-    @staticmethod
-    def wait_for_all(timeout, events, interval=0.001):
+    @classmethod
+    def wait_for_all(cls, timeout, events, interval=0.001):
         """
         Wait for all events to be done or timeout occurs.
 
@@ -40,8 +43,8 @@ class EventAwaiter(object):
             timeout = grand_timeout - (time.time() - start_time)
         return all_done
 
-    @staticmethod
-    def wait_for_any(timeout, events, interval=0.001):
+    @classmethod
+    def wait_for_any(cls, timeout, events, interval=0.001):
         """
         Wait for any event to complete within the specified timeout.
 
@@ -62,8 +65,8 @@ class EventAwaiter(object):
             timeout = grand_timeout - (time.time() - start_time)
         return any_done
 
-    @staticmethod
-    def separate_done_events(events):
+    @classmethod
+    def separate_done_events(cls, events):
         """
         Separate list of events into two lists: done events and non-done events.
 
@@ -79,16 +82,16 @@ class EventAwaiter(object):
                 not_done_events.append(event)
         return (done_events, not_done_events)
 
-    @staticmethod
-    def cancel_all_events(events):
-            """
-            Cancel all events in the given list.
+    @classmethod
+    def cancel_all_events(cls, events):
+        """
+        Cancel all events in the given list.
 
-            :param events: list of events to cancel
-            :return: None
-            """
-            for event in events:
-                event.cancel()
+        :param events: list of events to cancel
+        :return: None
+        """
+        for event in events:
+            event.cancel()
 
     @classmethod
     def start_command_after_event(cls, cmds, events, event_timeout=6):
@@ -96,11 +99,10 @@ class EventAwaiter(object):
         Start the given commands and events sequentially. The next command starts when the previous event is done.
         Passed cmds and events can be lists of ConnectionObserver objects or lists/tuples of ConnectionObserver objects.
 
-        
-        param cmds: A list of commands to start.
-        param events: A list of events to start. If None, then the next command is started immediately.
-        param event_timeout: Timeout for each event.
-        return: None
+        :param cmds: A list of commands to start.
+        :param events: A list of events to start. If None, then the next command is started immediately.
+        :param event_timeout: Timeout for each event.
+        :return: None
         """
         events_cp = copy_list(events, deep_copy=False)
         for cmd in cmds:
