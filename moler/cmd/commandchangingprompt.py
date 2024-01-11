@@ -96,7 +96,6 @@ class CommandChangingPrompt(CommandTextualGeneric):
         if self._sent and is_full_line:
             self._sent = False
 
-
     def _detect_prompt_after_exception(self, line):
         """
         Detects start prompt.
@@ -114,7 +113,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
 
         :param line: Line from device.
         :param is_full_line: True if line had new line chars, False otherwise.
-        :return: None but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has informaion to handle by this method.
         """
         sent = self._send_after_login_settings(line)
         if sent:
