@@ -72,7 +72,7 @@ class EventAwaiter(object):
                 done_events.append(event)
             else:
                 not_done_events.append(event)
-        return [done_events, not_done_events]
+        return (done_events, not_done_events)
 
     @staticmethod
     def cancel_all_events(events):

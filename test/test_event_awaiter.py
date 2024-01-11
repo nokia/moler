@@ -24,6 +24,7 @@ def test_events_true_all():
     done, not_done = EventAwaiter.separate_done_events(events)
     assert 2 == len(done)
     assert 0 == len(not_done)
+    assert type(EventAwaiter.separate_done_events(events)) is tuple
     EventAwaiter.cancel_all_events(events)
 
 
