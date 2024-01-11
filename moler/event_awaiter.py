@@ -18,11 +18,12 @@ class EventAwaiter(object):
     @staticmethod
     def wait_for_all(timeout, events, interval=0.001):
         """
-        Wait for all events are done or timeout occurs
-        :param timeout: time in seconds
-        :param events: list of events to check
-        :param interval: interval in seconds between checking events
-        :return: True if all events are done, False otherwise
+        Wait for all events to be done or timeout occurs.
+
+        :param timeout: Time in seconds to wait for all events to be done.
+        :param events: List of events to check.
+        :param interval: Interval in seconds between checking events.
+        :return: True if all events are done, False otherwise.
         """
         grand_timeout = timeout
         start_time = time.time()
@@ -42,10 +43,12 @@ class EventAwaiter(object):
     @staticmethod
     def wait_for_any(timeout, events, interval=0.001):
         """
-        :param timeout: time in seconds
-        :param events: list of events to check
-        :param interval: interval in seconds between checking events
-        :return: True if any event is done, False otherwise
+        Wait for any event to complete within the specified timeout.
+
+        :param timeout: The maximum time to wait in seconds.
+        :param events: A list of events to check.
+        :param interval: The interval in seconds between checking events.
+        :return: True if any event is done, False otherwise.
         """
         grand_timeout = timeout
         start_time = time.time()
@@ -62,8 +65,10 @@ class EventAwaiter(object):
     @staticmethod
     def separate_done_events(events):
         """
-        :param events: list of events to check and separate
-        :return: tuple. 0th element is list of done events, 1st element is list of non done events
+        Separate list of events into two lists: done events and non-done events.
+
+        :param events: A list of events to check and separate.
+        :return: A tuple containing two lists. The first element is a list of done events, and the second element is a list of non-done events.
         """
         done_events = list()
         not_done_events = list()
@@ -76,12 +81,14 @@ class EventAwaiter(object):
 
     @staticmethod
     def cancel_all_events(events):
-        """
-        :param events: list of events to cancel
-        :return: None
-        """
-        for event in events:
-            event.cancel()
+            """
+            Cancel all events in the given list.
+
+            :param events: list of events to cancel
+            :return: None
+            """
+            for event in events:
+                event.cancel()
 
     @classmethod
     def start_command_after_event(cls, cmds, events, event_timeout=6):
@@ -89,13 +96,11 @@ class EventAwaiter(object):
         Start the given commands and events sequentially. The next command starts when the previous event is done.
         Passed cmds and events can be lists of ConnectionObserver objects or lists/tuples of ConnectionObserver objects.
 
-        Args:
-            cmds (list): A list of commands to start.
-            events (list): A list of events to start. If None, then the next command is started immediately.
-            event_timeout (int): Timeout for each event.
-
-        Returns:
-            None
+        
+        param cmds: A list of commands to start.
+        param events: A list of events to start. If None, then the next command is started immediately.
+        param event_timeout: Timeout for each event.
+        return: None
         """
         events_cp = copy_list(events, deep_copy=False)
         for cmd in cmds:
