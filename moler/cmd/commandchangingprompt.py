@@ -156,6 +156,10 @@ class CommandChangingPrompt(CommandTextualGeneric):
         """
         Sends command to set timeout
 
+        This method sends a command to set the timeout for the connection.
+        It first sends an empty line, followed by the value of `set_timeout`.
+        After sending the command, it sets the `_sent_timeout` and `_sent` flags to True.
+
         :return: None
         """
         self.connection.sendline("")
@@ -206,7 +210,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
 
         :param line: Line from device
         :return: Match object or None
-        """        
+        """
         found = self._regex_helper.search_compiled(self._re_prompt_after_login, line)
         if not found and self.enter_on_prompt_without_anchors is True:
             if self._regex_helper.search_compiled(self._re_prompt_after_login_without_anchors, line):
