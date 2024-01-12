@@ -97,8 +97,15 @@ class EventAwaiter(object):
     def start_command_after_event(cls, cmds, events, event_timeout=6):
         """
         Start the given commands and events sequentially. The next command starts when the previous event is done.
-        Passed cmds and events can be lists of ConnectionObserver objects or lists/tuples of ConnectionObserver objects.
+        Passed cmds and events can be lists of ConnectionObserver objects or lists of lists/tuples containing ConnectionObserver objects.
 
+        Example 1:
+            cmds = [cmd1, cmd2, cmd3]
+            events = [event1, (event2, event3), event4]
+
+        Example 2:
+            cmds = [(cmd1, cmd2), cmd3, cmd4]
+            events = [event1, event2]
         :param cmds: A list of commands to start.
         :param events: A list of events to start. If None, then the next command is started immediately.
         :param event_timeout: Timeout for each event.
