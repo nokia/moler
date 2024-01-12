@@ -70,8 +70,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
         obtained from the superclass, as well as the regular expressions
         for the expected prompt and the prompt after login.
 
-        Returns:
-            str: A string representation of the CommandChangingPrompt object.
+        :return: A string representation of the CommandChangingPrompt object.
         """
         base_str = super(CommandChangingPrompt, self).__str__()
         expected_prompt = self._re_expected_prompt.pattern
@@ -147,11 +146,8 @@ class CommandChangingPrompt(CommandTextualGeneric):
         """
         Determines whether to set the connection after login.
 
-        Args:
-            line (str): The input line.
-
-        Returns:
-            bool: True if the connection should be set after login, False otherwise.
+        :param line: The input line.
+        :return: True if the connection should be set after login, False otherwise.
         """
         return False
 
