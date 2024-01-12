@@ -4,7 +4,7 @@ Generic command class for commands change prompt
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2023, Nokia'
+__copyright__ = 'Copyright (C) 2019-2024, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import abc
@@ -63,6 +63,15 @@ class CommandChangingPrompt(CommandTextualGeneric):
         self._re_prompt_after_login_without_anchors = regexp_without_anchors(self._re_prompt_after_login)
 
     def __str__(self):
+        """
+        Return a string representation of the CommandChangingPrompt object.
+
+        The string representation includes the base string representation
+        obtained from the superclass, as well as the regular expressions
+        for the expected prompt and the prompt after login.
+
+        :return: A string representation of the CommandChangingPrompt object.
+        """
         base_str = super(CommandChangingPrompt, self).__str__()
         expected_prompt = self._re_expected_prompt.pattern
         prompt_after_login = self._re_prompt_after_login.pattern
@@ -103,7 +112,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
 
         :param line: Line from device.
         :param is_full_line: True if line had new line chars, False otherwise.
-        :return: None but raises ParsingDone if line has information to handle by this method.
+        :return: None but raises ParsingDone if line has informaion to handle by this method.
         """
         sent = self._send_after_login_settings(line)
         if sent:
@@ -134,6 +143,12 @@ class CommandChangingPrompt(CommandTextualGeneric):
         return False  # nothing sent
 
     def _commands_to_set_connection_after_login(self, line):
+        """
+        Determines whether to set the connection after login.
+
+        :param line: The input line.
+        :return: True if the connection should be set after login, False otherwise.
+        """
         return False
 
     def _no_after_login_settings_needed(self):
@@ -155,6 +170,10 @@ class CommandChangingPrompt(CommandTextualGeneric):
     def _send_timeout_set(self):
         """
         Sends command to set timeout
+
+        This method sends a command to set the timeout for the connection.
+        It first sends an empty line, followed by the value of `set_timeout`.
+        After sending the command, it sets the `_sent_timeout` and `_sent` flags to True.
 
         :return: None
         """
