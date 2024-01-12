@@ -4,7 +4,7 @@ Generic Unix/Linux module
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2023, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
@@ -19,7 +19,9 @@ cmd_failure_causes = ['not found',
                       'No such file or directory',
                       'running it may require superuser privileges',
                       'Cannot find device',
-                      'Input/output error']
+                      'Input/output error',
+                      'Permission denied',
+                      ]
 r_cmd_failure_cause_alternatives = r'{}'.format("|".join(cmd_failure_causes))
 
 
