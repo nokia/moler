@@ -20,7 +20,6 @@ cmd_failure_causes = ['not found',
                       'running it may require superuser privileges',
                       'Cannot find device',
                       'Input/output error',
-                      'Permission denied',
                       ]
 r_cmd_failure_cause_alternatives = r'{}'.format("|".join(cmd_failure_causes))
 
@@ -75,3 +74,17 @@ class GenericUnixCommand(CommandTextualGeneric):
         if self.remove_all_known_special_chars_from_terminal_output:
             line = remove_all_known_special_chars(line)
         return line
+
+    def add_failure_indication(self, indication):
+        """
+        Add failure indication to command.
+
+        :param indication: String or regexp with ndication of failure.
+        :return: None
+        """
+        if self._re_fail is None:
+            new_indication = indication
+        else:
+            current_indications = self._re_fail.pattern
+            new_indication = r'{}|{}'.format(current_indications, indication)
+        self._re_fail = re.compile(new_indication, re.IGNORECASE)

@@ -1,4 +1,15 @@
+# -*- coding: utf-8 -*-
+"""
+Command touch module
+"""
+
+
+__author__ = 'Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
+__email__ = 'marcin.usielski@nokia.com'
+
 from moler.cmd.unix.genericunix import GenericUnixCommand
+
 
 class Touch(GenericUnixCommand):
 
@@ -17,6 +28,7 @@ class Touch(GenericUnixCommand):
         self.ret_required = False
         self.options = options
         self.path = path
+        self.add_failure_indication('touch: cannot touch')
 
     def build_command_string(self):
         """
