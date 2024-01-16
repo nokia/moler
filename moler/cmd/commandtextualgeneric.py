@@ -82,7 +82,7 @@ class CommandTextualGeneric(Command):
         # False to consider also chunks.
         self.enter_on_prompt_without_anchors = False  # Set True to try to match prompt in line without ^ and $.
         self.debug_data_received = False  # Set True to log as hex all data received by command in data_received
-        self.re_failure = None  # Regex to failure the command if it occurrs in the command output
+        self.re_fail = None  # Regex to failure the command if it occurrs in the command output
 
         if not self._newline_chars:
             self._newline_chars = CommandTextualGeneric._default_newline_chars
@@ -251,6 +251,7 @@ class CommandTextualGeneric(Command):
                         self.logger.debug("{} is done".format(self))
                     break
         except UnicodeDecodeError as ex:
+            print("UnicodeDecodeError")
             if self._ignore_unicode_errors:
                 self._log(lvl=logging.WARNING,
                           msg="Processing data from '{}' with unicode problem: '{}'.".format(self, ex))
@@ -260,6 +261,7 @@ class CommandTextualGeneric(Command):
                           msg="Processing data from '{}' raised: '{}'.".format(self, ex))
                 raise ex
         except Exception as ex:  # pragma: no cover # log it just to catch that rare hanging thread issue
+            print("Exception {}".format(ex))
             self._log(lvl=logging.WARNING,
                       msg="Processing data from '{}' raised: '{}'.".format(self, ex))
             raise ex
@@ -339,8 +341,8 @@ class CommandTextualGeneric(Command):
                           msg="Found candidate for final prompt but current ret is None or empty, required not None"
                               " nor empty.")
         else:
+            self.failure_indiction(line=line, is_full_line=is_full_line)
             self._break_exec_on_regex(line=line, is_full_line=is_full_line)
-            self._failure_indiction(line=line, is_full_line=is_full_line)
 
     def is_end_of_cmd_output(self, line):
         """
@@ -531,7 +533,7 @@ class CommandTextualGeneric(Command):
         # having expected prompt visible simplifies troubleshooting
         return "{}, prompt_regex:r'{}')".format(base_str[:-1], expected_prompt)
 
-    def _is_failure_indication(self, line, is_full_line):
+    def is_failure_indication(self, line, is_full_line):
         """
         Checks if the given line is a failure indication.
 
@@ -539,11 +541,12 @@ class CommandTextualGeneric(Command):
         :param is_full_line: Indicates if the line is a full line or a partial line.
         :return: True if the line is a failure indication, False otherwise.
         """
-        if self.re_failure is not None and is_full_line and self.is_failure_indication(line, self.re_failure):
+        if self.re_fail is not None and is_full_line and self._regex_helper.search_compiled(
+            compiled=self.re_fail, string=line):
             return True
         return False
 
-    def _failure_indiction(self, line, is_full_line):
+    def failure_indiction(self, line, is_full_line):
         """
         Set CommandException if failure string in the line.
 
@@ -551,5 +554,19 @@ class CommandTextualGeneric(Command):
         :param is_full_line: Indicates if the line is a full line or a partial line.
         :return: None
         """
-        if self._is_failure_indication(line=line, is_full_line=is_full_line):
+        if self.is_failure_indication(line=line, is_full_line=is_full_line):
             self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+
+    def add_failure_indication(self, indication):
+        """
+        Add failure indication to command.
+
+        :param indication: String or regexp with ndication of failure.
+        :return: None
+        """
+        if self.re_fail is None:
+            new_indication = indication
+        else:
+            current_indications = self.re_fail.pattern
+            new_indication = r'{}|{}'.format(current_indications, indication)
+        self.re_fail = re.compile(new_indication, re.IGNORECASE)

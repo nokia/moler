@@ -26,7 +26,7 @@ r_cmd_failure_cause_alternatives = r'{}'.format("|".join(cmd_failure_causes))
 
 @six.add_metaclass(abc.ABCMeta)
 class GenericUnixCommand(CommandTextualGeneric):
-    _re_fail = re.compile(r_cmd_failure_cause_alternatives, re.IGNORECASE)
+    # _re_fail = re.compile(r_cmd_failure_cause_alternatives, re.IGNORECASE)
 
     def __init__(self, connection, prompt=None, newline_chars=None, runner=None):
         """
@@ -38,31 +38,33 @@ class GenericUnixCommand(CommandTextualGeneric):
         super(GenericUnixCommand, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                                  runner=runner)
         self.remove_all_known_special_chars_from_terminal_output = True
+        self.re_fail = re.compile(r_cmd_failure_cause_alternatives, re.IGNORECASE)
+        # self._re_fail = None
 
-    def on_new_line(self, line, is_full_line):
-        """
-        Method to parse command output. Will be called after line with command echo.
-        Write your own implementation but don't forget to call on_new_line from base class
+    # def on_new_line(self, line, is_full_line):
+    #     """
+    #     Method to parse command output. Will be called after line with command echo.
+    #     Write your own implementation but don't forget to call on_new_line from base class
 
-        :param line: Line to parse, new lines are trimmed
-        :param is_full_line:  False for chunk of line; True on full line (NOTE: new line character removed)
-        :return: None
-        """
-        if is_full_line and self.is_failure_indication(line) is not None:
-            self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
-        return super(GenericUnixCommand, self).on_new_line(line, is_full_line)
+    #     :param line: Line to parse, new lines are trimmed
+    #     :param is_full_line:  False for chunk of line; True on full line (NOTE: new line character removed)
+    #     :return: None
+    #     """
+    #     if is_full_line and self.is_failure_indication(line) is not None:
+    #         self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+    #     return super(GenericUnixCommand, self).on_new_line(line, is_full_line)
 
-    def is_failure_indication(self, line):
-        """
-        Method to detect if passed line contains part indicating failure of command
+    # def is_failure_indication(self, line):
+    #     """
+    #     Method to detect if passed line contains part indicating failure of command
 
-        :param line: Line from command output on device
-        :return: Match object if find regex in line, None otherwise.
-        """
-        if self._re_fail:
-            return self._regex_helper.search_compiled(compiled=self._re_fail,
-                                                      string=line)
-        return None
+    #     :param line: Line from command output on device
+    #     :return: Match object if find regex in line, None otherwise.
+    #     """
+    #     if self._re_fail:
+    #         return self._regex_helper.search_compiled(compiled=self._re_fail,
+    #                                                   string=line)
+    #     return None
 
     def _decode_line(self, line):
         """
@@ -75,16 +77,16 @@ class GenericUnixCommand(CommandTextualGeneric):
             line = remove_all_known_special_chars(line)
         return line
 
-    def add_failure_indication(self, indication):
-        """
-        Add failure indication to command.
+    # def add_failure_indication(self, indication):
+    #     """
+    #     Add failure indication to command.
 
-        :param indication: String or regexp with ndication of failure.
-        :return: None
-        """
-        if self._re_fail is None:
-            new_indication = indication
-        else:
-            current_indications = self._re_fail.pattern
-            new_indication = r'{}|{}'.format(current_indications, indication)
-        self._re_fail = re.compile(new_indication, re.IGNORECASE)
+    #     :param indication: String or regexp with ndication of failure.
+    #     :return: None
+    #     """
+    #     if self._re_fail is None:
+    #         new_indication = indication
+    #     else:
+    #         current_indications = self._re_fail.pattern
+    #         new_indication = r'{}|{}'.format(current_indications, indication)
+    #     self._re_fail = re.compile(new_indication, re.IGNORECASE)
