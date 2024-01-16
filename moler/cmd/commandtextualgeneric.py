@@ -541,8 +541,8 @@ class CommandTextualGeneric(Command):
         :param is_full_line: Indicates if the line is a full line or a partial line.
         :return: True if the line is a failure indication, False otherwise.
         """
-        if self.re_fail is not None and is_full_line and self._regex_helper.search_compiled(
-            compiled=self.re_fail, string=line):
+        if self.re_fail is not None and is_full_line and\
+                self._regex_helper.search_compiled(compiled=self.re_fail, string=line):
             return True
         return False
 
