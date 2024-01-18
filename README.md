@@ -1,5 +1,5 @@
-[![image](https://img.shields.io/badge/pypi-v2.17.1-blue.svg)](https://pypi.org/project/moler/)
-[![image](https://img.shields.io/badge/python-2.7%20%7C%203.6%20%7C%203.7%20%7C%203.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://pypi.org/project/moler/)
+[![image](https://img.shields.io/badge/pypi-v3.0.0-blue.svg)](https://pypi.org/project/moler/)
+[![image](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://pypi.org/project/moler/)
 [![Build Status](https://travis-ci.org/nokia/moler.svg?branch=master)](https://travis-ci.org/nokia/moler)
 [![Coverage Status](https://coveralls.io/repos/github/nokia/moler/badge.svg?branch=master)](https://coveralls.io/github/nokia/moler?branch=master)
 [![BCH compliance](https://bettercodehub.com/edge/badge/nokia/moler?branch=master)](https://bettercodehub.com/)
@@ -42,7 +42,7 @@ Let's see Moler in action. Here is hypothetical use case: "find PIDs of all pyth
 ```python
 
 from moler.config import load_config
-from moler.device import DeviceFactory    
+from moler.device import DeviceFactory
 
 load_config(config='my_devices.yml')                    # description of available devices
 my_unix = DeviceFactory.get_device(name='MyMachine')    # take specific device out of available ones
@@ -296,13 +296,13 @@ to keep maximum 999 files:
         KIND: size
         INTERVAL: 5242880
         BACKUP_COUNT: 999  # Default value
-      
+
 
 ```
 
 The log files can be split by time. For example let's assume we want split log files every 30 minutes (1800 seconds)
  and we want to keep maximum 999 files (default value):
- 
+
 ```yaml
     LOGGER:
       PATH: ./logs
@@ -339,13 +339,13 @@ to show how to compress logs:
         KIND: time
         INTERVAL: 1800
         BACKUP_COUNT: 999  # Default value
-        COMPRESS_COMMAND: "zip -9mq {compressed} {log_input}"  # Default value      
+        COMPRESS_COMMAND: "zip -9mq {compressed} {log_input}"  # Default value
         COMPRESSED_FILE_EXTENSION: ".zip"  # Default value
 ```
 
 In a script we can also disable logging from device. Please use it very carefully. Investigation any issue may be
  impossible if we don't have full logs.
- 
+
 ```python
 from moler.device import DeviceFactory
 my_unix = DeviceFactory.get_device(name='MyMachine')
@@ -355,8 +355,8 @@ my_unix.disbale_logging()  # to disable logging on device
 my_unix.enable_logging()  # to enable logging on device
 ```
 
-In a script you can add suffix to all log files or only to files for specific devices. with disable logging from device. 
- 
+In a script you can add suffix to all log files or only to files for specific devices. with disable logging from device.
+
 ```python
 from moler.device import DeviceFactory
 from moler.config.loggers import change_logging_suffix
@@ -559,4 +559,4 @@ result = command.await_done(timeout)
 * timeout is required parameter (not as in concurrent.futures) since we don't expect endless execution of command (user must know what is worst case timeout to await command completion)
 
 # Video introduction
-You can [watch videos how to use Moler on YouTube](https://www.youtube.com/channel/UCgToo2qq8kLMyEgzd4btM9g). 
+You can [watch videos how to use Moler on YouTube](https://www.youtube.com/channel/UCgToo2qq8kLMyEgzd4btM9g).
