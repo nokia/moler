@@ -4,7 +4,7 @@ Generic class for all command with textual output.
 """
 
 __author__ = 'Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2023, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
@@ -13,6 +13,7 @@ import re
 
 import six
 
+from moler.exceptions import CommandFailure
 from moler.cmd import RegexHelper
 from moler.command import Command
 from moler.helpers import regexp_without_anchors
@@ -81,6 +82,7 @@ class CommandTextualGeneric(Command):
         # False to consider also chunks.
         self.enter_on_prompt_without_anchors = False  # Set True to try to match prompt in line without ^ and $.
         self.debug_data_received = False  # Set True to log as hex all data received by command in data_received
+        self.re_fail = None  # Regex to failure the command if it occurrs in the command output
 
         if not self._newline_chars:
             self._newline_chars = CommandTextualGeneric._default_newline_chars
@@ -337,6 +339,7 @@ class CommandTextualGeneric(Command):
                           msg="Found candidate for final prompt but current ret is None or empty, required not None"
                               " nor empty.")
         else:
+            self.failure_indiction(line=line, is_full_line=is_full_line)
             self._break_exec_on_regex(line=line, is_full_line=is_full_line)
 
     def is_end_of_cmd_output(self, line):
@@ -527,3 +530,46 @@ class CommandTextualGeneric(Command):
             expected_prompt = self._re_prompt.pattern
         # having expected prompt visible simplifies troubleshooting
         return "{}, prompt_regex:r'{}')".format(base_str[:-1], expected_prompt)
+
+    def is_failure_indication(self, line, is_full_line):
+        """
+        Checks if the given line is a failure indication.
+
+        :param line: The line to check.
+        :param is_full_line: Indicates if the line is a full line or a partial line.
+        :return: True if the line is a failure indication, False otherwise.
+        """
+        if self.re_fail is not None and is_full_line and\
+                self._regex_helper.search_compiled(compiled=self.re_fail, string=line):
+            return True
+        return False
+
+    def failure_indiction(self, line, is_full_line):
+        """
+        Set CommandException if failure string in the line.
+
+        :param line: The line to check.
+        :param is_full_line: Indicates if the line is a full line or a partial line.
+        :return: None
+        """
+        if self.is_failure_indication(line=line, is_full_line=is_full_line):
+            self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+
+    def add_failure_indication(self, indication, flags=re.IGNORECASE):
+        """
+        Add failure indication to command.
+
+        :param indication: String or regexp with ndication of failure.
+        :param flags: Flags for compiled regexp.
+        :return: None
+        """
+        try:
+            indication_str = indication.pattern
+        except AttributeError:
+            indication_str = indication
+        if self.re_fail is None:
+            new_indication = indication_str
+        else:
+            current_indications = self.re_fail.pattern
+            new_indication = r'{}|{}'.format(current_indications, indication_str)
+        self.re_fail = re.compile(new_indication, flags)
