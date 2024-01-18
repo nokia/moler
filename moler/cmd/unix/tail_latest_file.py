@@ -7,9 +7,9 @@ import os
 import time
 from moler.cmd.unix.genericunix import GenericUnixCommand
 
-__author__ = 'Tomasz Krol'
-__copyright__ = 'Copyright (C) 2020, Nokia'
-__email__ = 'tomasz.krol@nokia.com'
+__author__ = 'Tomasz Krol, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2020-2024, Nokia'
+__email__ = 'tomasz.krol@nokia.com, marcin.usielski@nokia.com'
 
 
 class TailLatestFile(GenericUnixCommand):
@@ -89,19 +89,20 @@ class TailLatestFile(GenericUnixCommand):
                 self._first_line_time = time.time()
         super(TailLatestFile, self).on_new_line(line=line, is_full_line=is_full_line)
 
-    def is_failure_indication(self, line):
+    def is_failure_indication(self, line, is_full_line):
         """
         Check if line has info about failure indication.
 
         :param line: Line from device
-        :return: None if line does not match regex with failure, Match object if line matches the failure regex.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: False if line does not match regex with failure, True if line matches the failure regex.
         """
         if self._check_failure_indication:
             if time.time() - self._first_line_time < self.time_for_failure:
-                return self._regex_helper.search_compiled(self._re_fail, line)
+                return self._regex_helper.search_compiled(self.re_fail, line) is not None
             else:
                 self._check_failure_indication = False  # do not check time for future output. It's too late already.
-        return None
+        return False
 
 
 COMMAND_OUTPUT = r"""

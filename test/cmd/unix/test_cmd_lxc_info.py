@@ -10,8 +10,8 @@ LxcInfo command test module.
 """
 
 __author__ = 'Piotr Frydrych, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2020, Nokia'
-__email__ = 'piotr.frydrych@nokia.com'
+__copyright__ = 'Copyright (C) 2019-2024, Nokia'
+__email__ = 'piotr.frydrych@nokia.com, marcin.usielski@nokia.com'
 
 
 from moler.cmd.unix.lxc_info import LxcInfo
@@ -24,10 +24,12 @@ def test_lxc_info_raise_command_error(buffer_connection, command_output_and_expe
     buffer_connection.remote_inject_response(data)
     cmd = LxcInfo(name="0xe049", connection=buffer_connection.moler_connection, options="-z")
     from time import time
-    print("test_lxc_info_raise_command_error S {}".format(time()))
+    start_time = time()
     with pytest.raises(CommandFailure):
         cmd()
-    print("test_lxc_info_raise_command_error E {}".format(time()))
+    end_time = time()
+    assert (end_time - start_time) < cmd.timeout
+
 
 
 def test_lxc_info_raise_container_name_error(buffer_connection, container_name_error_and_expected_result):
@@ -36,10 +38,11 @@ def test_lxc_info_raise_container_name_error(buffer_connection, container_name_e
     cmd = LxcInfo(name="0xe0499", connection=buffer_connection.moler_connection)
     cmd.terminating_timeout = 0
     from time import time
-    print("test_lxc_info_raise_container_name_error S {}".format(time()))
+    start_time = time()
     with pytest.raises(CommandFailure):
         cmd()
-    print("test_lxc_info_raise_container_name_error E {}".format(time()))
+    end_time = time()
+    assert (end_time - start_time) < cmd.timeout
 
 
 @pytest.fixture()

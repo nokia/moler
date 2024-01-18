@@ -81,14 +81,14 @@ class Cat(GenericUnixCommand):
             return
         return super(Cat, self).set_exception(exception)
 
-    def is_failure_indication(self, line):
+    def is_failure_indication(self, line, is_full_line):
         """
         Method to detect if passed line contains part indicating failure of command.
 
         :param line: Line from command output on device
         :return: Match object if find regex in line, None otherwise.
         """
-        return self._regex_helper.search_compiled(Cat._re_parse_error, line)
+        return self._regex_helper.search_compiled(Cat._re_parse_error, line) is not None
 
     def _parse_line(self, line):
         if not line == "":
