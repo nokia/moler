@@ -2,6 +2,7 @@
 * Common way to fail commands based on their output
 * Start command(s) when event(s) finished - start_command_after_event
 * Changed deprecated test code
+* Removed support for Python 2.7-3.6
 
 ## moler 2.17.1
 * Fix for compare objects under Python 2.7
