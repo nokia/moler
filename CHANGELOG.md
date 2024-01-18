@@ -1,3 +1,8 @@
+## moler 3.0.0
+* Common way to fail commands based on their output
+* Start command(s) when event(s) finished - start_command_after_event
+* Changed deprecated test code
+
 ## moler 2.17.1
 * Fix for compare objects under Python 2.7
 
@@ -8,7 +13,7 @@
 ## moler 2.16.0
 * Tests on Python 3.12
 * Warning for Pythons 2.7 -3.6 (support will be removed soon)
-* Prompt detection for overloaded systems 
+* Prompt detection for overloaded systems
 
 ## moler 2.15.0
 * ConnectionObserver objects store full exception stack for Python3.5+
@@ -65,13 +70,13 @@
 ### Improved
 
 * Command run_script for AT
-* Improved tests for state machines - continued  
+* Improved tests for state machines - continued
 
 ## moler 2.5.0
 
 ### Improved
 
-* Improved tests of state machines - continued 
+* Improved tests of state machines - continued
 
 ## moler 2.4.0
 
@@ -104,7 +109,7 @@
 ### Improved
 
 * Improvement state NOT_CONNECTED in device SM.
-* SM can enter state if prompt regex matches a line without anchors.  
+* SM can enter state if prompt regex matches a line without anchors.
 
 ## moler 2.1.0
 
@@ -112,14 +117,14 @@
 
 * Optional compress logs after rotation.
 * Log stack for set_exception in ConnectionObserver.
-* Caller stack info for MolerTest.error. 
+* Caller stack info for MolerTest.error.
 
 ## moler 2.0.0
 
 ### Improved
 
 * Change default runner and connection type (less threads).
-* Improve removing escape character from unix output 
+* Improve removing escape character from unix output
 
 ## moler 1.33.0
 
@@ -132,7 +137,7 @@
 ## moler 1.32.2
 
 ### Improved
-* Proper handled timeout in wait_for of RunnerSingleThread 
+* Proper handled timeout in wait_for of RunnerSingleThread
 
 ## moler 1.32.1
 
@@ -211,19 +216,19 @@
 ### Improved
 * Logging suffix
 * Terminal investigation
- 
+
 ## moler 1.26.0
 
 ### Added
 * New output for iptables and add rest in ret
 * nft command
 
-### Improved 
+### Improved
 * Modify cu command
 
 ## moler 1.25.1
 
-### Improved 
+### Improved
 * Don't tail full file for first file
 
 ## moler 1.25.0
@@ -233,14 +238,14 @@
 * Create cu.py
 * tail_latest_file
 
-### Improved 
+### Improved
 * Change ATI cmd name to GetProductInfo
 * Log exception from runner
 * Modify regex in get_apns.py
 
 ## moler 1.24.0
 
-### Improved 
+### Improved
 * nmap
 * Remove hardcore
 * Command traceroute
@@ -248,7 +253,7 @@
 
 ## moler 1.23.0
 
-### Improved 
+### Improved
 * Openssl cmd
 * Unix lxc* commands
 
@@ -268,11 +273,11 @@
 
 ## moler 1.20.0
 
-### Improved 
-* Load events only if they are not loaded 
-* Unxz 
+### Improved
+* Load events only if they are not loaded
+* Unxz
 * Fix packages for UnixLocal in examples
-* Commands may break on regex 
+* Commands may break on regex
 
 ## moler 1.19.0
 
