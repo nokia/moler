@@ -251,7 +251,6 @@ class CommandTextualGeneric(Command):
                         self.logger.debug("{} is done".format(self))
                     break
         except UnicodeDecodeError as ex:
-            print("UnicodeDecodeError")
             if self._ignore_unicode_errors:
                 self._log(lvl=logging.WARNING,
                           msg="Processing data from '{}' with unicode problem: '{}'.".format(self, ex))
@@ -261,7 +260,6 @@ class CommandTextualGeneric(Command):
                           msg="Processing data from '{}' raised: '{}'.".format(self, ex))
                 raise ex
         except Exception as ex:  # pragma: no cover # log it just to catch that rare hanging thread issue
-            print("Exception {}".format(ex))
             self._log(lvl=logging.WARNING,
                       msg="Processing data from '{}' raised: '{}'.".format(self, ex))
             raise ex
@@ -557,16 +555,21 @@ class CommandTextualGeneric(Command):
         if self.is_failure_indication(line=line, is_full_line=is_full_line):
             self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
 
-    def add_failure_indication(self, indication):
+    def add_failure_indication(self, indication, flags=re.IGNORECASE):
         """
         Add failure indication to command.
 
         :param indication: String or regexp with ndication of failure.
+        :param flags: Flags for compiled regexp.
         :return: None
         """
+        try:
+            indication_str = indication.pattern
+        except AttributeError:
+            indication_str = indication
         if self.re_fail is None:
-            new_indication = indication
+            new_indication = indication_str
         else:
             current_indications = self.re_fail.pattern
-            new_indication = r'{}|{}'.format(current_indications, indication)
-        self.re_fail = re.compile(new_indication, re.IGNORECASE)
+            new_indication = r'{}|{}'.format(current_indications, indication_str)
+        self.re_fail = re.compile(new_indication, flags)
