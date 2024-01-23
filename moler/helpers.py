@@ -270,15 +270,9 @@ def diff_data(first_object, second_object, significant_digits=None,
         abs_tol = 0.0001
         if significant_digits:
             abs_tol = 1.0 / 10 ** significant_digits
-        if sys.version_info > (3, 5):
-            if not isclose(first_object, second_object, abs_tol=abs_tol):
-                return "{} the first value {} is different from the second value" \
-                       " {}.".format(msg, first_object, second_object)
-        else:
-            # Remove when no support for Python 2.7
-            if abs(first_object - second_object) > abs_tol:
-                return "{} the first value {} is different from the second value" \
-                       " {}.".format(msg, first_object, second_object)
+        if not isclose(first_object, second_object, abs_tol=abs_tol):
+            return "{} the first value {} is different from the second value" \
+                    " {}.".format(msg, first_object, second_object)
     else:
         if first_object != second_object:
             return "{} First value {} is different from the second {}.".format(
