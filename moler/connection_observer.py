@@ -43,8 +43,6 @@ class ConnectionObserver(object):
         Create instance of ConnectionObserver class
         :param connection: connection used to receive data awaited for
         """
-        print(type(connection))
-        print(type(runner))
         super(ConnectionObserver, self).__init__()
         self.life_status = ConnectionObserverLifeStatus()
         self.connection = connection
