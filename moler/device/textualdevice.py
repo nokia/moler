@@ -5,7 +5,7 @@ Moler's device has 2 main responsibilities:
 - be the state machine that controls which commands may run in given state
 """
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2023, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
@@ -18,7 +18,7 @@ import re
 import time
 import traceback
 import threading
-
+import queue
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.connection_observer import ConnectionObserver
 from moler.config.loggers import configure_device_logger
@@ -30,12 +30,6 @@ from moler.helpers import copy_list
 from moler.instance_loader import create_instance_from_class_fullname
 from moler.device.abstract_device import AbstractDevice
 from moler.config.loggers import change_logging_suffix
-
-try:
-    import queue
-except ImportError:
-    # noinspection PyUnresolvedReferences
-    import Queue as queue  # For python 2
 
 
 # TODO: name, logger/logger_name as param

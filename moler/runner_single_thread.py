@@ -5,25 +5,18 @@ Moler implementation of Runner with single thread for MolerConnection: MolerConn
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2021-2023, Nokia'
+__copyright__ = 'Copyright (C) 2021-2024, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 
-from threading import Lock
+import threading
+import logging
+import time
 from moler.runner import ConnectionObserverRunner
 from moler.exceptions import CommandTimeout
 from moler.exceptions import ConnectionObserverTimeout
 from moler.util.loghelper import log_into_logger
 from moler.helpers import copy_list
-import threading
-import logging
-import time
-
-try:
-    import queue
-except ImportError:
-    # noinspection PyUnresolvedReferences
-    import Queue as queue  # For python 2
 
 
 class RunnerSingleThread(ConnectionObserverRunner):
@@ -48,7 +41,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
                                              name="RunnerSingle-{}".format(RunnerSingleThread._th_nr)
                                              )
         RunnerSingleThread._th_nr += 1
-        self._connection_observer_lock = Lock()
+        self._connection_observer_lock = threading.Lock()
         self._loop_thread.daemon = True
         self._loop_thread.start()
 

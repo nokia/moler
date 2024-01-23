@@ -7,16 +7,16 @@ __author__ = 'Grzegorz Latuszek, Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
-from functools import wraps
-from types import FunctionType, MethodType
-from six import string_types
-from math import isclose
-import collections.abc as collections
 import copy
 import importlib
 import logging
 import re
 import sys
+import collections.abc
+from functools import wraps
+from types import FunctionType, MethodType
+from six import string_types
+from math import isclose
 
 
 class ClassProperty(property):
@@ -203,7 +203,7 @@ def create_object_from_name(full_class_name, constructor_params):
 def update_dict(target_dict, expand_dict):
     for key, value in expand_dict.items():
         if (key in target_dict and isinstance(target_dict[key], dict) and isinstance(expand_dict[key],
-                                                                                     collections.Mapping)):
+                                                                                     collections.abc.Mapping)):
             update_dict(target_dict[key], expand_dict[key])
         else:
             target_dict[key] = expand_dict[key]
