@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2023 Nokia'
+__copyright__ = 'Copyright (C) 2018-2024 Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import logging
@@ -29,6 +29,8 @@ from moler.util.loghelper import log_into_logger
 from moler.runner_factory import get_runner
 from moler.command_scheduler import CommandScheduler
 from moler.util.connection_observer_life_status import ConnectionObserverLifeStatus
+from moler.abstract_moler_connection import AbstractMolerConnection
+from moler.runner import ConnectionObserverRunner
 
 
 @add_metaclass(ABCMeta)
@@ -36,11 +38,13 @@ class ConnectionObserver(object):
     _not_raised_exceptions = list()  # list of dict: "exception" and "time"
     _exceptions_lock = threading.Lock()
 
-    def __init__(self, connection=None, runner=None):
+    def __init__(self, connection:AbstractMolerConnection=None, runner:ConnectionObserverRunner=None):
         """
         Create instance of ConnectionObserver class
         :param connection: connection used to receive data awaited for
         """
+        print(type(connection))
+        print(type(runner))
         super(ConnectionObserver, self).__init__()
         self.life_status = ConnectionObserverLifeStatus()
         self.connection = connection
@@ -324,11 +328,8 @@ class ConnectionObserver(object):
         :param exception: exception to set
         :return: None
         """
-        if sys.version_info >= (3, 6):
-            mg = traceback.format_list(traceback.extract_stack()[:-3] + traceback.extract_tb(exception.__traceback__))
-            stack_msg = ''.join(mg) + '\n  {} {}'.format(exception.__class__, exception)
-        else:
-            stack_msg = traceback.format_exc()
+        mg = traceback.format_list(traceback.extract_stack()[:-3] + traceback.extract_tb(exception.__traceback__))
+        stack_msg = ''.join(mg) + '\n  {} {}'.format(exception.__class__, exception)
 
         if self._is_done:
             self._log(logging.WARNING,
