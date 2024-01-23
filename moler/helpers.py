@@ -4,24 +4,19 @@ Utility/common code of library.
 """
 
 __author__ = 'Grzegorz Latuszek, Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2023, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
+from functools import wraps
+from types import FunctionType, MethodType
+from six import string_types
+from math import isclose
+import collections.abc as collections
 import copy
 import importlib
 import logging
 import re
 import sys
-from functools import wraps
-from types import FunctionType, MethodType
-from six import string_types
-if sys.version_info > (3, 5):
-    from math import isclose
-
-try:
-    import collections.abc as collections
-except ImportError:
-    import collections
 
 
 class ClassProperty(property):
