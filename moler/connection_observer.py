@@ -38,7 +38,7 @@ class ConnectionObserver(object):
     _not_raised_exceptions = list()  # list of dict: "exception" and "time"
     _exceptions_lock = threading.Lock()
 
-    def __init__(self, connection:AbstractMolerConnection=None, runner:ConnectionObserverRunner=None):
+    def __init__(self, connection: AbstractMolerConnection = None, runner: ConnectionObserverRunner = None):
         """
         Create instance of ConnectionObserver class
         :param connection: connection used to receive data awaited for
