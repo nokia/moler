@@ -199,18 +199,6 @@ def _reformat_str_to_unicode(cmd_result):
     return cmd_result
 
 
-def _convert_str_to_unicode(input):
-    if isinstance(input, dict):
-        return {_convert_str_to_unicode(key): _convert_str_to_unicode(value) for key, value in input.items()}
-    elif isinstance(input, list):
-        return [_convert_str_to_unicode(element) for element in input]
-    elif isinstance(input, str):
-        # noinspection PyUnresolvedReferences
-        return input.decode('utf-8')  # Python 2.7
-    else:
-        return input
-
-
 def _run_command_parsing_test(moler_cmd, creation_str, buffer_io, cmd_output, cmd_result, variant, base_class,
                               observer_type):
     with buffer_io:  # open it (autoclose by context-mngr)
