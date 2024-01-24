@@ -10,8 +10,8 @@ import time
 import traceback
 import typing
 from abc import abstractmethod, ABCMeta
-
 from six import add_metaclass
+from typing import Self, Optional
 
 from moler.exceptions import ConnectionObserverNotStarted
 from moler.exceptions import ConnectionObserverTimeout
@@ -221,7 +221,7 @@ class ConnectionObserver(object):
         #    result = await connection_observer
         return self.__iter__()
 
-    def await_done(self, timeout: typing.Optional[float] = None):
+    def await_done(self, timeout: Optional[float] = None):
         """
         Await completion of connection-observer.
 
@@ -406,7 +406,7 @@ class ConnectionObserver(object):
                 return list_of_exceptions
 
     @staticmethod
-    def _change_unraised_exception(new_exception: Exception, observer, stack_msg: str) -> None:
+    def _change_unraised_exception(new_exception: Exception, observer: Self, stack_msg: str) -> None:
         with ConnectionObserver._exceptions_lock:
             old_exception = observer._exception
             ConnectionObserver._log_unraised_exceptions(observer)
@@ -432,7 +432,7 @@ class ConnectionObserver(object):
             observer._exception_stack_msg = stack_msg
 
     @staticmethod
-    def _log_unraised_exceptions(observer):
+    def _log_unraised_exceptions(observer: Self) -> None:
         for i, item in enumerate(ConnectionObserver._not_raised_exceptions):
             observer._log(logging.DEBUG, "{:4d} NOT RAISED: {!r}".format(i + 1, item), levels_to_go_up=2)
             observer._log(logging.DEBUG, observer._exception_stack_msg)
