@@ -12,28 +12,30 @@ Additionally:
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 from abc import ABCMeta
 
 from six import add_metaclass
+from typing import Optional
 
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import NoCommandStringProvided
 from moler.helpers import instance_id
-
+from moler.abstract_moler_connection import AbstractMolerConnection
+from moler.runner import ConnectionObserverRunner
 
 @add_metaclass(ABCMeta)
 class Command(ConnectionObserver):
-    def __init__(self, connection=None, runner=None):
+    def __init__(self, connection: Optional[AbstractMolerConnection] = None, runner: Optional[ConnectionObserverRunner] = None):
         """
         Create instance of Command class
         :param connection: connection used to start CMD and receive its output
         """
         super(Command, self).__init__(connection=connection, runner=runner)
-        self.command_string = None
-        self.cmd_name = Command.observer_name
+        self.command_string: Optional[str] = None
+        self.cmd_name: str = Command.observer_name
 
     def __str__(self):
         cmd_str = self.command_string if self.command_string else '<EMPTY COMMAND STRING>'
@@ -41,7 +43,7 @@ class Command(ConnectionObserver):
             cmd_str = cmd_str[:-1] + r'<\n>'
         return '{}("{}", id:{})'.format(self.__class__.__name__, cmd_str, instance_id(self))
 
-    def _validate_start(self, *args, **kwargs):
+    def _validate_start(self, *args, **kwargs) -> None:
         # check base class invariants first
         super(Command, self)._validate_start(*args, **kwargs)
         # then what is needed for command
@@ -49,19 +51,19 @@ class Command(ConnectionObserver):
             # no chance to start CMD
             raise NoCommandStringProvided(self)
 
-    def get_long_desc(self):
+    def get_long_desc(self) -> str:
         return "Command {}.{}".format(self.__class__.__module__, self)
 
-    def get_short_desc(self):
+    def get_short_desc(self) -> str:
         return "Command {}.{}(id:{})".format(self.__class__.__module__, self.__class__.__name__, instance_id(self))
 
-    def is_command(self):
+    def is_command(self) -> bool:
         """
         :return: True if instance of ConnectionObserver is a command. False if not a command.
         """
         return True
 
-    def send_command(self):
+    def send_command(self) -> None:
         """
         Sends command string over connection.
 

@@ -37,7 +37,7 @@ class ConnectionObserver(object):
     _not_raised_exceptions = list()  # list of dict: "exception" and "time"
     _exceptions_lock = threading.Lock()
 
-    def __init__(self, connection: AbstractMolerConnection = None, runner: ConnectionObserverRunner = None):
+    def __init__(self, connection: Optional[AbstractMolerConnection] = None, runner: Optional[ConnectionObserverRunner] = None):
         """
         Create instance of ConnectionObserver class
         :param connection: connection used to receive data awaited for
@@ -147,7 +147,7 @@ class ConnectionObserver(object):
         else:
             return self.__class__.__name__
 
-    def start(self, timeout=None, *args, **kwargs):
+    def start(self, timeout: Optional[float] = None, *args, **kwargs):
         """Start background execution of connection-observer."""
         with exception_stored_if_not_main_thread(self):
             if timeout:
