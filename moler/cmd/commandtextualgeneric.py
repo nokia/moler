@@ -33,7 +33,7 @@ class CommandTextualGeneric(Command):
     _re_default_prompt = re.compile(r_default_prompt)  # When user provides no prompt
     _default_newline_chars = ("\n", "\r")  # New line chars on device, not system with script!
 
-    def __init__(self, connection: Optional[AbstractMolerConnection], prompt: Optional[str|Pattern] = None, newline_chars: Optional[list|tuple]=None, runner: Optional[ConnectionObserverRunner] = None):
+    def __init__(self, connection: Optional[AbstractMolerConnection], prompt: Optional[str | Pattern] = None, newline_chars: Optional[list | tuple] = None, runner: Optional[ConnectionObserverRunner] = None):
         """
         Base class for textual commands.
 
