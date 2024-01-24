@@ -44,11 +44,11 @@ class ConnectionObserver(object):
         :param connection: connection used to receive data awaited for
         """
         super(ConnectionObserver, self).__init__()
-        self.life_status = ConnectionObserverLifeStatus()
-        self.connection = connection
-        self.runner = self._get_runner(runner=runner)
+        self.life_status: ConnectionObserverLifeStatus = ConnectionObserverLifeStatus()
+        self.connection: AbstractMolerConnection = connection
+        self.runner: ConnectionObserverRunner = self._get_runner(runner=runner)
         self._result = None
-        self._exception = None
+        self._exception: Exception = None
         self._exception_stack_msg = None
 
         self._future = None
