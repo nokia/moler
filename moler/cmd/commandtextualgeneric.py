@@ -10,7 +10,7 @@ __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 import abc
 import logging
 import re
-
+import datetime
 import six
 
 from moler.exceptions import CommandFailure
@@ -20,7 +20,7 @@ from moler.helpers import regexp_without_anchors
 from moler.abstract_moler_connection import AbstractMolerConnection
 from moler.runner import ConnectionObserverRunner
 from threading import Lock
-from typing import Optional, Pattern, Union
+from typing import Optional, Pattern, Union, Tuple
 
 
 r_default_prompt: str = r'^[^<]*[$%#>~]\s*$'  # When user provides no prompt
@@ -93,7 +93,7 @@ class CommandTextualGeneric(Command):
         self._re_prompt_without_anchors = regexp_without_anchors(self._re_prompt)
 
     @property
-    def break_exec_regex(self):
+    def break_exec_regex(self) -> Pattern:
         """
         Getter for break_exec_regex
 
@@ -102,7 +102,7 @@ class CommandTextualGeneric(Command):
         return self._break_exec_regex
 
     @break_exec_regex.setter
-    def break_exec_regex(self, break_exec_regex):
+    def break_exec_regex(self, break_exec_regex: Union[str, Pattern]) -> None:
         """
         Setterfor break_exec_regex
         :param break_exec_regex: String with regex, compiled regex object or None
@@ -113,7 +113,7 @@ class CommandTextualGeneric(Command):
         self._break_exec_regex = break_exec_regex
 
     @property
-    def command_string(self):
+    def command_string(self) -> str:
         """
         Getter for command_string.
 
@@ -133,7 +133,7 @@ class CommandTextualGeneric(Command):
         return self.__command_string
 
     @command_string.setter
-    def command_string(self, command_string):
+    def command_string(self, command_string: str) -> None:
         """
         Setter for command_string.
 
@@ -143,7 +143,7 @@ class CommandTextualGeneric(Command):
         self.__command_string = command_string
         self._build_command_string_escaped()
 
-    def _build_command_string_escaped(self):
+    def _build_command_string_escaped(self) -> None:
         """
         Builds escaped command string for regular expression based on command_string property .
 
@@ -161,7 +161,7 @@ class CommandTextualGeneric(Command):
 
             self._cmd_escaped = re.compile(sub_command_string)
 
-    def _build_command_string_slice(self, command_string):
+    def _build_command_string_slice(self, command_string: str) -> str:
         """
         Builds slice of command string.
 
@@ -182,11 +182,11 @@ class CommandTextualGeneric(Command):
         return re_sub_command_string
 
     @property
-    def _is_done(self):
+    def _is_done(self) -> bool:
         return super(CommandTextualGeneric, self)._is_done
 
     @_is_done.setter
-    def _is_done(self, value):
+    def _is_done(self, value: bool) -> None:
         with self._lock_is_done:
             if self._stored_exception:
                 exception = self._stored_exception
@@ -201,7 +201,7 @@ class CommandTextualGeneric(Command):
             super(CommandTextualGeneric, self.__class__)._is_done.fset(self, value)
 
     @staticmethod
-    def _calculate_prompt(prompt):
+    def _calculate_prompt(prompt: Union[str, Pattern]) -> Pattern:
         """
         Calculates prompt as regex from passed prompt.
         :param prompt: Prompt as regex  in string or as compiled regex object.
@@ -213,7 +213,7 @@ class CommandTextualGeneric(Command):
             prompt = re.compile(prompt)
         return prompt
 
-    def has_endline_char(self, line):
+    def has_endline_char(self, line: str) -> None:
         """
         Method to check if line has chars of new line at the right side.
 
@@ -224,7 +224,7 @@ class CommandTextualGeneric(Command):
             return True
         return False
 
-    def data_received(self, data, recv_time):
+    def data_received(self, data: list, recv_time: datetime.datetime) -> None:
         """
         Called by framework when any data are sent by device.
 
@@ -270,7 +270,7 @@ class CommandTextualGeneric(Command):
             if self.__class__.__name__ == 'CmConnect':  # pragma: no cover
                 self.logger.debug("{} exiting data processing of '{}'".format(self, data))
 
-    def _process_line_from_command(self, current_chunk, line, is_full_line):
+    def _process_line_from_command(self, current_chunk: str, line: str, is_full_line: bool) -> None:
         """
         Processes line from command.
 
@@ -284,7 +284,7 @@ class CommandTextualGeneric(Command):
             self.logger.debug("{} line = '{}', decoded_line = '{}', is_full_line={}".format(self, line, decoded_line, is_full_line))
         self.on_new_line(line=decoded_line, is_full_line=is_full_line)
 
-    def _cache_line_before_command_start(self, line, is_full_line):
+    def _cache_line_before_command_start(self, line: str, is_full_line: bool) -> None:
         """
         Stores output before command starts.
 
@@ -295,7 +295,7 @@ class CommandTextualGeneric(Command):
         if self._concatenate_before_command_starts and not self._cmd_output_started and is_full_line:
             self._last_not_full_line = line
 
-    def _update_from_cached_incomplete_line(self, current_chunk):
+    def _update_from_cached_incomplete_line(self, current_chunk: str) -> Tuple[str, bool]:
         """
         Concatenates (if necessary) previous chunk(s) of line and current.
 
@@ -315,14 +315,14 @@ class CommandTextualGeneric(Command):
         return line, is_full_line
 
     @abc.abstractmethod
-    def build_command_string(self):
+    def build_command_string(self) -> str:
         """
         Returns string with command constructed with parameters of object.
 
         :return:  String with command.
         """
 
-    def on_new_line(self, line, is_full_line):
+    def on_new_line(self, line: str, is_full_line: bool) -> None:
         """
         Method to parse command output. Will be called after line with command echo.
         Write your own implementation but don't forget to call on_new_line from base class in most cases.
@@ -345,7 +345,7 @@ class CommandTextualGeneric(Command):
             self.failure_indiction(line=line, is_full_line=is_full_line)
             self._break_exec_on_regex(line=line, is_full_line=is_full_line)
 
-    def is_end_of_cmd_output(self, line):
+    def is_end_of_cmd_output(self, line: str) -> bool:
         """
         Checks if end of command is reached.
 
@@ -367,7 +367,7 @@ class CommandTextualGeneric(Command):
                 self.enter_on_prompt_without_anchors = False
         return False
 
-    def _strip_new_lines_chars(self, line):
+    def _strip_new_lines_chars(self, line: str) -> str:
         """
         Removes new line char(s) from line.
 
@@ -384,7 +384,7 @@ class CommandTextualGeneric(Command):
                     last_char = None
         return line
 
-    def _detect_start_of_cmd_output(self, line, is_full_line):
+    def _detect_start_of_cmd_output(self, line: str, is_full_line: bool) -> str:
         """
         Checks if command stated.
 
@@ -398,7 +398,7 @@ class CommandTextualGeneric(Command):
         if self.__class__.__name__ == 'CmConnect':  # pragma: no cover
             self.logger.debug("{} line = '{}', is_full_line={}, _cmd_output_started={}".format(self, line, is_full_line, self._cmd_output_started))
 
-    def break_cmd(self, silent=False, force=False):
+    def break_cmd(self, silent: bool = False, force: bool = False) -> None:
         """
         Send ctrl+c to device to break command execution.
 
@@ -412,7 +412,7 @@ class CommandTextualGeneric(Command):
             if silent is False:
                 self._log(lvl=logging.WARNING, msg="Tried to break not running command '{}'. Ignored".format(self))
 
-    def cancel(self):
+    def cancel(self) -> bool:
         """
         Called by framework to cancel the command.
 
@@ -421,7 +421,7 @@ class CommandTextualGeneric(Command):
         self.break_cmd(silent=True)
         return super(CommandTextualGeneric, self).cancel()
 
-    def set_exception(self, exception):
+    def set_exception(self, exception: Exception) -> None:
         """
         Set exception object as failure for command object.
 
@@ -444,28 +444,28 @@ class CommandTextualGeneric(Command):
                               self._stored_exception),
                           levels_to_go_up=2)
 
-    def on_failure(self):
+    def on_failure(self) -> None:
         """
         Callback called by framework when command is just about to finish with failure. Set ret is called.
 
         :return: None
         """
 
-    def on_success(self):
+    def on_success(self) -> None:
         """
         Callback called by framework when command is just about to finish with success. Set ret is called.
 
         :return: None
         """
 
-    def on_done(self):
+    def on_done(self) -> None:
         """
         Callback called by framework when command is just about to finish.
 
         :return: None
         """
 
-    def on_timeout(self):
+    def on_timeout(self) -> None:
         """
         Callback called by framework when timeout occurs.
 
@@ -475,7 +475,7 @@ class CommandTextualGeneric(Command):
             self.break_cmd()
         return super(CommandTextualGeneric, self).on_timeout()
 
-    def has_any_result(self):
+    def has_any_result(self) -> bool:
         """
         Checks if any result was already set by command.
 
@@ -486,7 +486,7 @@ class CommandTextualGeneric(Command):
             is_ret = True
         return is_ret
 
-    def send_command(self):
+    def send_command(self) -> None:
         """
         Sends command string over connection.
 
@@ -497,14 +497,14 @@ class CommandTextualGeneric(Command):
         else:
             self.connection.send(self.command_string)
 
-    def send_enter(self):
+    def send_enter(self) -> None:
         """
         Sends enter over connection.
         :return: None
         """
         self.connection.send("\n")
 
-    def _decode_line(self, line):
+    def _decode_line(self, line: str) -> str:
         """
         Decodes line if necessary. Put here code to remove colors from terminal etc.
 
@@ -513,7 +513,7 @@ class CommandTextualGeneric(Command):
         """
         return line
 
-    def _break_exec_on_regex(self, line, is_full_line):
+    def _break_exec_on_regex(self, line: str, is_full_line: bool) -> None:
         """
         Breaks the execution of the command if self._break_exec_regex matches line.
 
@@ -534,7 +534,7 @@ class CommandTextualGeneric(Command):
         # having expected prompt visible simplifies troubleshooting
         return "{}, prompt_regex:r'{}')".format(base_str[:-1], expected_prompt)
 
-    def is_failure_indication(self, line, is_full_line):
+    def is_failure_indication(self, line: str, is_full_line: bool) -> bool:
         """
         Checks if the given line is a failure indication.
 
@@ -547,7 +547,7 @@ class CommandTextualGeneric(Command):
             return True
         return False
 
-    def failure_indiction(self, line, is_full_line):
+    def failure_indiction(self, line: str, is_full_line: bool) -> None:
         """
         Set CommandException if failure string in the line.
 
@@ -558,7 +558,7 @@ class CommandTextualGeneric(Command):
         if self.is_failure_indication(line=line, is_full_line=is_full_line):
             self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
 
-    def add_failure_indication(self, indication, flags=re.IGNORECASE):
+    def add_failure_indication(self, indication: Union[Pattern, str], flags: int = re.IGNORECASE) -> None:
         """
         Add failure indication to command.
 
