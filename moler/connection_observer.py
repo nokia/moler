@@ -221,7 +221,7 @@ class ConnectionObserver(object):
         #    result = await connection_observer
         return self.__iter__()
 
-    def await_done(self, timeout: float|None=None):
+    def await_done(self, timeout: float=None):
         """
         Await completion of connection-observer.
 
