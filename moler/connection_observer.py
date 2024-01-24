@@ -55,7 +55,7 @@ class ConnectionObserver(object):
         self.device_logger = logging.getLogger('moler.{}'.format(self.get_logger_name()))
         self.logger = logging.getLogger('moler.connection.{}'.format(self.get_logger_name()))
 
-    def _get_runner(self, runner: Optional(ConnectionObserverRunner)) -> ConnectionObserverRunner:
+    def _get_runner(self, runner: Optional[ConnectionObserverRunner]) -> ConnectionObserverRunner:
         """
 
         :param runner: Runner
