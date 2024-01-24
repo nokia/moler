@@ -26,6 +26,7 @@ from moler.helpers import instance_id
 from moler.abstract_moler_connection import AbstractMolerConnection
 from moler.runner import ConnectionObserverRunner
 
+
 @add_metaclass(ABCMeta)
 class Command(ConnectionObserver):
     def __init__(self, connection: Optional[AbstractMolerConnection] = None, runner: Optional[ConnectionObserverRunner] = None):
