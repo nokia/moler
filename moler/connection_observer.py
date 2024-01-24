@@ -8,7 +8,7 @@ import logging
 import threading
 import time
 import traceback
-import sys
+import typing
 from abc import abstractmethod, ABCMeta
 
 from six import add_metaclass
@@ -221,7 +221,7 @@ class ConnectionObserver(object):
         #    result = await connection_observer
         return self.__iter__()
 
-    def await_done(self, timeout: float=None):
+    def await_done(self, timeout: typing.Optional[float] = None):
         """
         Await completion of connection-observer.
 
@@ -395,7 +395,7 @@ class ConnectionObserver(object):
         return name
 
     @staticmethod
-    def get_unraised_exceptions(remove: bool=True) -> list:
+    def get_unraised_exceptions(remove: bool = True) -> list:
         with ConnectionObserver._exceptions_lock:
             if remove:
                 list_of_exceptions = ConnectionObserver._not_raised_exceptions
