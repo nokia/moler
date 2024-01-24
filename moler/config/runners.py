@@ -4,8 +4,8 @@ Runners related configuration
 """
 
 __author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import sys
 
@@ -26,8 +26,7 @@ def clear():
 
 def register_builtin_runners(runner_factory):
     _register_builtin_runners(runner_factory)
-    if (sys.version_info[0] >= 3) and (sys.version_info[1] >= 5):
-        _register_python3_builtin_runners(runner_factory)
+    _register_python3_builtin_runners(runner_factory)
 
 
 def _register_builtin_runners(runner_factory):

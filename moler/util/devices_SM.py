@@ -4,7 +4,7 @@ Perform devices SM autotest.
 """
 
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2023, Nokia'
+__copyright__ = 'Copyright (C) 2019-2024, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import os
@@ -12,7 +12,7 @@ import random
 import time
 import math
 import threading
-
+import queue
 from moler.io.raw.memory import ThreadedFifoBuffer
 from moler.device import DeviceFactory
 from moler.device.textualdevice import TextualDevice
@@ -20,12 +20,6 @@ from moler.exceptions import MolerException
 from moler.config import load_config
 from moler.helpers import copy_list
 from moler.util.moler_test import MolerTest
-
-try:
-    import queue
-except ImportError:
-    # noinspection PyUnresolvedReferences
-    import Queue as queue  # Python 2 and 3.
 
 
 def iterate_over_device_states(device, max_time=None, tests_per_device=300, max_no_of_threads=11, rerun=0,

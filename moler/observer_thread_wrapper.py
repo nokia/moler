@@ -3,23 +3,17 @@
 """Wrapper for observer registered in ThreadedMolerConnection (old name: ObservableConnection)."""
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2020-2023, Nokia'
+__copyright__ = 'Copyright (C) 2020-2024, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import logging
 import traceback
 import threading
-from threading import Thread
-
+import queue
 from moler.util import tracked_thread
 from moler.config.loggers import TRACE
 from moler.exceptions import CommandFailure, MolerException
-
-try:
-    import queue
-except ImportError:
-    # noinspection PyUnresolvedReferences
-    import Queue as queue  # For python 2
+from threading import Thread
 
 
 class ObserverThreadWrapper(object):

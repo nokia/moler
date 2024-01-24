@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import abc
 import six
-import sys
 import logging
 from moler.event import Event
 from moler.cmd import RegexHelper
@@ -51,8 +50,6 @@ class TextualEvent(Event):
         if not self._paused:
             self._last_recv_time_data_read_from_connection = recv_time
             try:
-                # Workaround for some terminals and python 2.7
-                data = u"".join(str(data.encode("utf-8", errors="ignore"))) if sys.version_info < (3, 0) else data
                 lines = data.splitlines(True)
                 for current_chunk in lines:
                     if not self.done():

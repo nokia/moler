@@ -6,19 +6,18 @@ Perform command autotest for selected command(s).
 from __future__ import print_function
 
 __author__ = 'Grzegorz Latuszek', 'Michal Ernst', 'Michal Plichta, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2023, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com', 'michal.ernst@nokia.com', 'michal.plichta@nokia.com,' \
                                                                      ' marcin.usielski@nokia.com'
 
 import collections
-import sys
+import time
 from argparse import ArgumentParser
 from datetime import datetime
 from importlib import import_module
 from os import walk, sep
 from os.path import abspath, join, relpath, exists, split
 from pprint import pformat
-import time
 
 from moler.command import Command
 from moler.event import Event
@@ -200,18 +199,6 @@ def _reformat_str_to_unicode(cmd_result):
     return cmd_result
 
 
-def _convert_str_to_unicode(input):
-    if isinstance(input, dict):
-        return {_convert_str_to_unicode(key): _convert_str_to_unicode(value) for key, value in input.items()}
-    elif isinstance(input, list):
-        return [_convert_str_to_unicode(element) for element in input]
-    elif isinstance(input, str):
-        # noinspection PyUnresolvedReferences
-        return input.decode('utf-8')  # Python 2.7
-    else:
-        return input
-
-
 def _run_command_parsing_test(moler_cmd, creation_str, buffer_io, cmd_output, cmd_result, variant, base_class,
                               observer_type):
     with buffer_io:  # open it (autoclose by context-mngr)
@@ -225,11 +212,6 @@ def _run_command_parsing_test(moler_cmd, creation_str, buffer_io, cmd_output, cm
         elif base_class is Command:
             buffer_io.remote_inject_response([cmd_output])
             result = moler_cmd()
-
-        if sys.version_info < (3, 0):
-            # workaround for python2.7 - convert str to unicode
-            cmd_result = _convert_str_to_unicode(cmd_result)
-            result = _convert_str_to_unicode(result)
 
         try:
             diff = compare_objects(cmd_result, result, significant_digits=6, exclude_types=exclude_types)

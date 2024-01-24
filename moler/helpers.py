@@ -4,7 +4,7 @@ Utility/common code of library.
 """
 
 __author__ = 'Grzegorz Latuszek, Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2023, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import copy
@@ -12,16 +12,11 @@ import importlib
 import logging
 import re
 import sys
+import collections.abc
 from functools import wraps
 from types import FunctionType, MethodType
 from six import string_types
-if sys.version_info > (3, 5):
-    from math import isclose
-
-try:
-    import collections.abc as collections
-except ImportError:
-    import collections
+from math import isclose
 
 
 class ClassProperty(property):
@@ -208,7 +203,7 @@ def create_object_from_name(full_class_name, constructor_params):
 def update_dict(target_dict, expand_dict):
     for key, value in expand_dict.items():
         if (key in target_dict and isinstance(target_dict[key], dict) and isinstance(expand_dict[key],
-                                                                                     collections.Mapping)):
+                                                                                     collections.abc.Mapping)):
             update_dict(target_dict[key], expand_dict[key])
         else:
             target_dict[key] = expand_dict[key]
@@ -275,15 +270,9 @@ def diff_data(first_object, second_object, significant_digits=None,
         abs_tol = 0.0001
         if significant_digits:
             abs_tol = 1.0 / 10 ** significant_digits
-        if sys.version_info > (3, 5):
-            if not isclose(first_object, second_object, abs_tol=abs_tol):
-                return "{} the first value {} is different from the second value" \
-                       " {}.".format(msg, first_object, second_object)
-        else:
-            # Remove when no support for Python 2.7
-            if abs(first_object - second_object) > abs_tol:
-                return "{} the first value {} is different from the second value" \
-                       " {}.".format(msg, first_object, second_object)
+        if not isclose(first_object, second_object, abs_tol=abs_tol):
+            return "{} the first value {} is different from the second value" \
+                   " {}.".format(msg, first_object, second_object)
     else:
         if first_object != second_object:
             return "{} First value {} is different from the second {}.".format(

@@ -4,8 +4,8 @@ Connections related configuration
 """
 
 __author__ = 'Grzegorz Latuszek, Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import sys
 import platform
@@ -54,10 +54,6 @@ def set_defaults():
     set_default_variant(io_type="sshshell", variant="threaded")
 
 
-def _running_python_3_5_or_above():
-    return (sys.version_info[0] >= 3) and (sys.version_info[1] >= 5)
-
-
 supported_unix_systems = ['Linux', "FreeBSD", "Darwin", "SunOS"]
 supported_windows_systems = ['Windows']
 supported_systems = supported_unix_systems + supported_windows_systems
@@ -73,13 +69,11 @@ def _running_on_supported_windows():
 
 def register_builtin_connections(connection_factory, moler_conn_class):
     _register_builtin_connections(connection_factory, moler_conn_class)  # unix & windows connections
-    if _running_python_3_5_or_above():
-        _register_python3_builtin_connections(connection_factory, moler_conn_class)
+    _register_python3_builtin_connections(connection_factory, moler_conn_class)
 
     if _running_on_supported_unix():
         _register_builtin_unix_connections(connection_factory, moler_conn_class)  # unix-only connections
-        if _running_python_3_5_or_above():
-            _register_builtin_py3_unix_connections(connection_factory, moler_conn_class)
+        _register_builtin_py3_unix_connections(connection_factory, moler_conn_class)
     elif _running_on_supported_windows():
         pass  # placeholder for windows-only connections
     else:
