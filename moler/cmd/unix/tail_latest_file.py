@@ -86,7 +86,7 @@ class TailLatestFile(GenericUnixCommand):
         """
         if is_full_line:
             if not self._first_line_time:
-                self._first_line_time = time.time()
+                self._first_line_time = time.monotonic()
         super(TailLatestFile, self).on_new_line(line=line, is_full_line=is_full_line)
 
     def is_failure_indication(self, line, is_full_line):
@@ -98,7 +98,7 @@ class TailLatestFile(GenericUnixCommand):
         :return: False if line does not match regex with failure, True if line matches the failure regex.
         """
         if self._check_failure_indication:
-            if time.time() - self._first_line_time < self.time_for_failure:
+            if time.monotonic() - self._first_line_time < self.time_for_failure:
                 return self._regex_helper.search_compiled(self.re_fail, line) is not None
             else:
                 self._check_failure_indication = False  # do not check time for future output. It's too late already.

@@ -111,7 +111,7 @@ def _start_device_tests(source_device, tested, states_to_test, max_time, new_dev
 
 def _perform_device_tests(device, tested, states_to_test, max_time, rerun, timeout_multiply):
     device.set_all_prompts_on_line(True)
-    start_time = time.time()
+    start_time = time.monotonic()
     test_nr = 0
     while 0 < states_to_test.qsize():
         source_state, target_state = states_to_test.get(0)
@@ -132,7 +132,7 @@ def _perform_device_tests(device, tested, states_to_test, max_time, rerun, timeo
                 "Cannot trigger change state: '{}' -> '{}'. Successful tests: {}\n{}\nAlready tested '{}'.".format(
                     source_state, target_state, test_nr, exc, tested))
         test_nr += 1
-        if max_time is not None and time.time() - start_time > max_time:
+        if max_time is not None and time.monotonic() - start_time > max_time:
             return
 
 

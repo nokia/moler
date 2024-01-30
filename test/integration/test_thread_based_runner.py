@@ -19,7 +19,7 @@ from moler.connection_observer import ConnectionObserver
 
 def test_can_submit_connection_observer_into_background(connection_observer,
                                                         observer_runner):
-    connection_observer.life_status.start_time = time.time()  # must start observer lifetime before runner.submit()
+    connection_observer.life_status.start_time = time.monotonic()  # must start observer lifetime before runner.submit()
     connection_observer_future = observer_runner.submit(connection_observer)
     # see API of concurrent.futures.Future
     try:
@@ -90,7 +90,7 @@ class NetworkDownDetector(ConnectionObserver):
         self.all_data_received.append(data)
         if not self.done():
             if "Network is unreachable" in data:
-                when_detected = time.time()
+                when_detected = time.monotonic()
                 self.set_result(result=when_detected)
 
 

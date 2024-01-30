@@ -233,7 +233,7 @@ class SshShell(object):
                 raise  # let any other error be visible
 
     def _send(self, data, timeout=1.0):
-        start_time = time.time()
+        start_time = time.monotonic()
         nb_bytes_to_send = len(data)
         nb_bytes_sent = 0
         data2send = data
@@ -246,7 +246,7 @@ class SshShell(object):
                 nb_bytes_sent = 0
             if nb_bytes_sent >= nb_bytes_to_send:
                 break
-            if time.time() - start_time >= timeout:
+            if time.monotonic() - start_time >= timeout:
                 send_status = '[{} of {} bytes] {}'.format(nb_bytes_sent, nb_bytes_to_send, data)
                 # don't want to show class name - just ssh address
                 # want same output from any implementation of SshShell-connection

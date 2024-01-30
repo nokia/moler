@@ -76,7 +76,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
             observer_timeout = connection_observer.timeout
             # we count timeout from now if timeout is given; else we use .life.status.start_time and .timeout of
             # observer
-            current_time = time.time()
+            current_time = time.monotonic()
             start_time = current_time if max_timeout else connection_observer.life_status.start_time
             await_timeout = max_timeout if max_timeout else observer_timeout
             if max_timeout:
@@ -162,7 +162,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
                 connection_observer._log(logging.INFO,
                                          "{} started, {}".format(connection_observer.get_long_desc(), msg))
                 self._start_command(connection_observer=connection_observer)
-                connection_observer.life_status.last_feed_time = time.time()
+                connection_observer.life_status.last_feed_time = time.monotonic()
 
     @classmethod
     def _its_remaining_time(cls, prefix, timeout, from_start_time):
@@ -174,7 +174,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
         :param from_start_time: start of lifetime for the object
         :return: remaining time as float and related description message
         """
-        already_passed = time.time() - from_start_time
+        already_passed = time.monotonic() - from_start_time
         remain_time = timeout - already_passed
         if remain_time < 0.0:
             remain_time = 0.0
@@ -231,7 +231,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
         timeout_add = 0.1
         term_timeout = 0 if connection_observer.life_status.terminating_timeout is None else \
             connection_observer.life_status.terminating_timeout
-        remain_time = timeout - (time.time() - connection_observer.life_status.start_time) + term_timeout + timeout_add
+        remain_time = timeout - (time.monotonic() - connection_observer.life_status.start_time) + term_timeout + timeout_add
         while remain_time >= 0:
             if connection_observer.done():
                 return True
@@ -240,7 +240,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
                 timeout = connection_observer.timeout
             term_timeout = 0 if connection_observer.life_status.terminating_timeout is None else \
                 connection_observer.life_status.terminating_timeout
-            remain_time = timeout - (time.time() - connection_observer.life_status.start_time) + term_timeout + \
+            remain_time = timeout - (time.monotonic() - connection_observer.life_status.start_time) + term_timeout + \
                 timeout_add
         return False
 
@@ -252,10 +252,10 @@ class RunnerSingleThread(ConnectionObserverRunner):
         """
         # Have to wait till connection_observer is done with terminaing timeout.
         eol_remain_time = connection_observer.life_status.terminating_timeout
-        start_time = time.time()
+        start_time = time.monotonic()
         while not connection_observer.done() and eol_remain_time > 0.0:
             time.sleep(self._tick)
-            eol_remain_time = start_time + connection_observer.life_status.terminating_timeout - time.time()
+            eol_remain_time = start_time + connection_observer.life_status.terminating_timeout - time.monotonic()
 
     def _runner_loop(self):
         """
@@ -277,7 +277,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
         Call on_inactivity on connection_observer if needed.
         :return: None
         """
-        current_time = time.time()
+        current_time = time.monotonic()
         for connection_observer in self._copy_of_connections_observers:
             life_status = connection_observer.life_status
             if (life_status.inactivity_timeout > 0.0) and (life_status.last_feed_time is not None):
@@ -299,7 +299,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
         """
         for connection_observer in self._copy_of_connections_observers:
             start_time = connection_observer.life_status.start_time
-            current_time = time.time()
+            current_time = time.monotonic()
             run_duration = current_time - start_time
             timeout = connection_observer.timeout
             if connection_observer.life_status.in_terminating:
@@ -315,7 +315,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
                                            timeout=connection_observer.timeout, passed_time=run_duration,
                                            runner_logger=self.logger)
                     if connection_observer.life_status.terminating_timeout > 0.0:
-                        connection_observer.life_status.start_time = time.time()
+                        connection_observer.life_status.start_time = time.monotonic()
                         connection_observer.life_status.in_terminating = True
                     else:
                         connection_observer.set_end_of_life()
@@ -327,7 +327,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
         :param timeout: timeout in seconds.
         :return: None
         """
-        passed = time.time() - connection_observer.life_status.start_time
+        passed = time.monotonic() - connection_observer.life_status.start_time
         self._timeout_observer(connection_observer=connection_observer,
                                timeout=timeout, passed_time=passed,
                                runner_logger=self.logger, kind="await_done")

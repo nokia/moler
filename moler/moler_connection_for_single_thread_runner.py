@@ -109,7 +109,7 @@ class MolerConnectionForSingleThreadRunner(ThreadedMolerConnection):
         """
         super(MolerConnectionForSingleThreadRunner, self).notify_observers(data=data, recv_time=recv_time)
         for connection_observer in self._connection_observers:
-            connection_observer.life_status.last_feed_time = time.time()
+            connection_observer.life_status.last_feed_time = time.monotonic()
 
     def _create_observer_wrapper(self, observer_reference, self_for_observer):
         """

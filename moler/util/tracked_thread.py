@@ -35,11 +35,11 @@ def log_exit_exception(fun):
 
 
 def report_alive(report_tick=5.0):
-    last_report_time = time.time()
+    last_report_time = time.monotonic()
     do_report = True
     while True:
         yield do_report  # TODO log long loop tick, allowed_loop_tick as param
-        now = time.time()
+        now = time.monotonic()
         delay = now - last_report_time
         if delay >= report_tick:
             last_report_time = now

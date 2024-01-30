@@ -344,7 +344,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         max_timeout = timeout
         observer_timeout = connection_observer.timeout
         # we count timeout from now if timeout is given; else we use .life_status.start_time and .timeout of observer
-        start_time = time.time() if max_timeout else connection_observer.life_status.start_time
+        start_time = time.monotonic() if max_timeout else connection_observer.life_status.start_time
         await_timeout = max_timeout if max_timeout else observer_timeout
         if max_timeout:
             remain_time, msg = his_remaining_time("await max.", timeout=max_timeout, from_start_time=start_time)
@@ -393,7 +393,7 @@ class AsyncioRunner(ConnectionObserverRunner):
                 del self._submitted_futures[id(future)]
 
     def _wait_for_time_out(self, connection_observer, connection_observer_future, timeout):
-        passed = time.time() - connection_observer.life_status.start_time
+        passed = time.monotonic() - connection_observer.life_status.start_time
         future = connection_observer_future or connection_observer._future
         if future:
             with future.observer_lock:
@@ -593,7 +593,7 @@ class AsyncioRunner(ConnectionObserverRunner):
                 if connection_observer.done():
                     self.logger.debug("done {}".format(connection_observer))
                     break
-                run_duration = time.time() - start_time
+                run_duration = time.monotonic() - start_time
                 # we need to check connection_observer.timeout at each round since timeout may change
                 # during lifetime of connection_observer
                 if (connection_observer.timeout is not None) and (run_duration >= connection_observer.timeout):
@@ -742,7 +742,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
         self.logger.debug("go foreground: {!r} - await max. {} [sec]".format(connection_observer, timeout))
         if connection_observer.done():  # may happen when failed to start observer feeder
             return None
-        start_time = time.time()
+        start_time = time.monotonic()
 
         async def wait_for_connection_observer_done():
             result_of_future = await connection_observer_future  # feed() always returns None
@@ -784,7 +784,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
                 thread4async.start_async_coroutine(conn_observer_fut_cancel())
 
         # handle timeout
-        passed = time.time() - start_time
+        passed = time.monotonic() - start_time
         fired_timeout = timeout if timeout else connection_observer.timeout
         time_out_observer(connection_observer=connection_observer,
                           timeout=fired_timeout, passed_time=passed,
@@ -916,7 +916,7 @@ class AsyncioLoopThread(TillDoneThread):
 
     def run_async_coroutine(self, coroutine_to_run, timeout):
         """Start coroutine in dedicated thread and await its result with timeout"""
-        start_time = time.time()
+        start_time = time.monotonic()
         coro_future = self.start_async_coroutine(coroutine_to_run)
         # run_coroutine_threadsafe returns future as concurrent.futures.Future() and not asyncio.Future
         # so, we can await it with timeout inside current thread
@@ -925,7 +925,7 @@ class AsyncioLoopThread(TillDoneThread):
             self.logger.debug("scheduled {} returned {}".format(coroutine_to_run, coro_result))
             return coro_result
         except concurrent.futures.TimeoutError:
-            passed = time.time() - start_time
+            passed = time.monotonic() - start_time
             raise MolerTimeout(timeout=timeout,
                                kind="run_async_coroutine({})".format(coroutine_to_run),
                                passed_time=passed)

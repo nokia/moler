@@ -23,11 +23,11 @@ def test_lxc_info_raise_command_error(buffer_connection, command_output_and_expe
     data, expected_result = command_output_and_expected_result
     buffer_connection.remote_inject_response(data)
     cmd = LxcInfo(name="0xe049", connection=buffer_connection.moler_connection, options="-z")
-    from time import time
-    start_time = time()
+    from time import monotonic
+    start_time = monotonic()
     with pytest.raises(CommandFailure):
         cmd()
-    end_time = time()
+    end_time = monotonic()
     assert (end_time - start_time) < cmd.timeout
 
 
@@ -37,11 +37,11 @@ def test_lxc_info_raise_container_name_error(buffer_connection, container_name_e
     buffer_connection.remote_inject_response(data)
     cmd = LxcInfo(name="0xe0499", connection=buffer_connection.moler_connection)
     cmd.terminating_timeout = 0
-    from time import time
-    start_time = time()
+    from time import monotonic
+    start_time = monotonic()
     with pytest.raises(CommandFailure):
         cmd()
-    end_time = time()
+    end_time = monotonic()
     assert (end_time - start_time) < cmd.timeout
 
 

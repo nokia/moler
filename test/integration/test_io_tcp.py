@@ -113,7 +113,7 @@ def test_can_receive_binary_data_from_connection(tcp_connection_class,
 
 
 def _wait_for_last_message(tcp_server_pipe, last_message="Client disconnected", timeout=5):
-    start_time = time.time()
+    start_time = time.monotonic()
     dialog_with_server = []
 
     while last_message not in dialog_with_server:
@@ -121,7 +121,7 @@ def _wait_for_last_message(tcp_server_pipe, last_message="Client disconnected", 
         time.sleep(0.01)
         dialog_with_server = tcp_server_pipe.recv()
 
-        if time.time() - start_time > timeout:
+        if time.monotonic() - start_time > timeout:
             break
 
     return dialog_with_server

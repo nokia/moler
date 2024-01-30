@@ -117,7 +117,7 @@ def test_RawTraceFormatter_produces_yaml_record():
     import mock
     trace_formatter = RawTraceFormatter()
     binary_msg = b"127.0.0.1 \xe2\x86\x92 ttl"
-    now = time.time()
+    now = time.monotonic()
     with mock.patch("time.time", return_value=now):
         record = logging.Logger(name='moler').makeRecord(name=None, level=RAW_DATA, fn="", lno=0,
                                                          msg=binary_msg,

@@ -29,7 +29,7 @@ class EventAwaiter(object):
         :return: True if all events are done, False otherwise.
         """
         grand_timeout = timeout
-        start_time = time.time()
+        start_time = time.monotonic()
         all_done = True
         while timeout >= 0:
             time.sleep(interval)
@@ -40,7 +40,7 @@ class EventAwaiter(object):
                     break
             if all_done:
                 break
-            timeout = grand_timeout - (time.time() - start_time)
+            timeout = grand_timeout - (time.monotonic() - start_time)
         return all_done
 
     @classmethod
@@ -54,7 +54,7 @@ class EventAwaiter(object):
         :return: True if any event is done, False otherwise.
         """
         grand_timeout = timeout
-        start_time = time.time()
+        start_time = time.monotonic()
         any_done = False
         while timeout >= 0 and not any_done:
             time.sleep(interval)
@@ -62,7 +62,7 @@ class EventAwaiter(object):
                 if event.done():
                     any_done = True
                     break
-            timeout = grand_timeout - (time.time() - start_time)
+            timeout = grand_timeout - (time.monotonic() - start_time)
         return any_done
 
     @classmethod

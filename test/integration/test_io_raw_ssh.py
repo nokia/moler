@@ -288,12 +288,12 @@ def test_opening_connection_created_from_existing_one_is_quicker(sshshell_connec
     full_open_durations = []
     reused_conn_open_durations = []
     for cnt in range(10):
-        start1 = time.time()
+        start1 = time.monotonic()
         with connection.open():
-            end1 = time.time()
-            start2 = time.time()
+            end1 = time.monotonic()
+            start2 = time.monotonic()
             with new_connection.open():
-                end2 = time.time()
+                end2 = time.monotonic()
         full_open_durations.append(end1 - start1)
         reused_conn_open_durations.append(end2 - start2)
 
@@ -560,21 +560,21 @@ def test_active_connection_can_notify_on_establishing_and_closing_connection(act
     notifications = []
 
     def on_connection_made(connection):
-        notifications.append(("made", time.time(), connection))
+        notifications.append(("made", time.monotonic(), connection))
 
     def on_connection_lost(connection):
-        notifications.append(("lost", time.time(), connection))
+        notifications.append(("lost", time.monotonic(), connection))
 
     connection = active_sshshell_connection
     connection.notify(callback=on_connection_made, when="connection_made")
     connection.notify(callback=on_connection_lost, when="connection_lost")
-    before_open_time = time.time()
+    before_open_time = time.monotonic()
     with connection.open():
-        after_open_time = time.time()
+        after_open_time = time.monotonic()
         time.sleep(0.1)
-        before_close_time = time.time()
+        before_close_time = time.monotonic()
         time.sleep(0.1)
-    after_close_time = time.time()
+    after_close_time = time.monotonic()
 
     assert len(notifications) == 2
     assert "made" == notifications[0][0]
@@ -592,7 +592,7 @@ def test_active_connection_can_notify_on_losing_connection(active_sshshell_conne
     lost_time = []
 
     def on_connection_lost(connection):
-        lost_time.append(time.time())
+        lost_time.append(time.monotonic())
 
     connection = active_sshshell_connection
     moler_conn = connection.moler_connection
@@ -600,9 +600,9 @@ def test_active_connection_can_notify_on_losing_connection(active_sshshell_conne
     with connection.open():
         time.sleep(0.1)
         moler_conn.send(data="exit\n")
-        before_exit_from_remote_time = time.time()
+        before_exit_from_remote_time = time.monotonic()
         time.sleep(0.5)
-        before_close_time = time.time()
+        before_close_time = time.monotonic()
 
     assert len(lost_time) == 1
     connection_lost_time = lost_time[0]

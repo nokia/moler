@@ -33,10 +33,10 @@ def test_command_quickly_fails_on_error_in_proxy(buffer_connection, command_outp
     run = run_serial_proxy.RunSerialProxy(connection=buffer_connection.moler_connection,
                                           prompt="image9|>>>", serial_devname="COM5")
     buffer_connection.remote_inject_response([command_output_from_failed_python_code])
-    start_time = time.time()
+    start_time = time.monotonic()
     with pytest.raises(CommandFailure):
         run()
-    assert (time.time() - start_time) < 0.8
+    assert (time.monotonic() - start_time) < 0.8
 
 
 def test_command_exits_python_interactive_shell(buffer_connection):

@@ -36,9 +36,9 @@ def test_can_retrieve_connection_observer_start_time(do_nothing_connection_obser
                                                      connection_to_remote):
     connection_observer = do_nothing_connection_observer__for_major_base_class
     connection_observer.connection = connection_to_remote.moler_connection
-    time1 = time.time()
+    time1 = time.monotonic()
     connection_observer.start()
-    time2 = time.time()
+    time2 = time.monotonic()
     assert connection_observer.start_time >= time1
     assert connection_observer.start_time <= time2
 
@@ -355,9 +355,9 @@ def test_awaiting_done_on_already_done_connection_observer_immediately_returns_r
     # till it decides "ok, I've found what I was looking for"
     # and it internally sets the result
     connection_observer.set_result(14361)
-    result_set_time = time.time()
+    result_set_time = time.monotonic()
     assert connection_observer.await_done() == 14361
-    assert time.time() - result_set_time < 0.01  # our immediately ;-)
+    assert time.monotonic() - result_set_time < 0.01  # our immediately ;-)
 
 
 def test_awaiting_done_on_not_running_connection_observer_raises_ConnectionObserverNotStarted(

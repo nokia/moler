@@ -461,7 +461,7 @@ class ProxyPc2(UnixLocal):
         for try_nr in range(1, 10, 1):
             if self._after_open_prompt_detector is None or self._after_open_prompt_detector.running() is False:
                 self._detect_after_open_prompt(self._set_after_open_prompt)
-            while time.time() - self._after_open_prompt_detector.life_status.start_time < self._prompt_detector_timeout:
+            while time.monotonic() - self._after_open_prompt_detector.life_status.start_time < self._prompt_detector_timeout:
                 time.sleep(0.1)
                 if self._prompt_detected is True:
                     break

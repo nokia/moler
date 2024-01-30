@@ -37,10 +37,10 @@ def test_calling_uptime_timeout_with_long_timeout(buffer_connection):
     uptime_cmd.terminating_timeout = 0.2
     uptime_cmd.start(timeout=long_timeout)
     uptime_cmd.timeout = long_timeout
-    start_time = time.time()
+    start_time = time.monotonic()
     with pytest.raises(CommandTimeout):
         uptime_cmd.await_done(timeout=1)
-    end_time = time.time()
+    end_time = time.monotonic()
     duration = end_time - start_time
     assert duration < long_timeout/10
 
@@ -50,10 +50,10 @@ def test_calling_uptime_timeout_with_short_timeout(buffer_connection):
     short_timeout = 1
     uptime_cmd.terminating_timeout = 0.2
     uptime_cmd.start(timeout=short_timeout)
-    start_time = time.time()
+    start_time = time.monotonic()
     with pytest.raises(CommandTimeout):
         uptime_cmd.await_done()
-    end_time = time.time()
+    end_time = time.monotonic()
     duration = end_time - start_time
     assert duration < short_timeout + 1
     assert duration >= short_timeout

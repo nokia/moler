@@ -159,7 +159,7 @@ class ConnectionObserver(object):
             # That is so, since observer lifetime starts with it's timeout-clock
             # and timeout is counted from calling observer.start()
             self.life_status._is_running = True
-            self.life_status.start_time = time.time()
+            self.life_status.start_time = time.monotonic()
             # Besides not started parallelism machinery causing start-delay
             # we can have start-delay caused by commands queue on connection
             # (can't submit command to background-run till previous stops running)

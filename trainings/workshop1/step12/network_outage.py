@@ -7,14 +7,14 @@ from moler.util.moler_test import MolerTest
 
 def outage_callback(device_name, ping_times):
     MolerTest.info("Network outage on {}".format(device_name))
-    ping_times["lost_connection_time"] = time.time()
+    ping_times["lost_connection_time"] = time.monotonic()
 
 
 def ping_is_on_callback(ping_times):
     MolerTest.info("Ping works")
     if ping_times["lost_connection_time"] > 0:  # ping operable AFTER any net loss
         if ping_times["reconnection_time"] == 0:
-            ping_times["reconnection_time"] = time.time()
+            ping_times["reconnection_time"] = time.monotonic()
             outage_time = ping_times["reconnection_time"] - ping_times["lost_connection_time"]
             MolerTest.info("Network outage time is {}".format(outage_time))
 
