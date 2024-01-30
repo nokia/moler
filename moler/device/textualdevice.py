@@ -449,13 +449,13 @@ class TextualDevice(AbstractDevice):
         :return: None
         :raise DeviceChangeStateFailure: if the goto_state chain is not empty and timeout occurs.
         """
-        start_time = time.time()
-        while time.time() - start_time <= timeout:
+        start_time = time.monotonic()
+        while time.monotonic() - start_time <= timeout:
             if self._queue_states.empty() and self._thread_for_goto_state is None:
                 return
         raise DeviceChangeStateFailure(device=self.__class__.__name__,
                                        exception="After {} seconds there are still states to go: '{}' and/or thread to"
-                                                 " change state".format(time.time() - start_time, self._queue_states,
+                                                 " change state".format(time.monotonic() - start_time, self._queue_states,
                                                                         self._thread_for_goto_state),
                                        device_name=self.name)
 
@@ -519,7 +519,7 @@ class TextualDevice(AbstractDevice):
 
         is_dest_state = False
         is_timeout = False
-        start_time = time.time()
+        start_time = time.monotonic()
         final_timeout = timeout_multiply * timeout
         next_stage_timeout = final_timeout
 
@@ -534,7 +534,7 @@ class TextualDevice(AbstractDevice):
                 is_dest_state = True
 
             if timeout > 0:
-                next_stage_timeout = final_timeout - (time.time() - start_time)
+                next_stage_timeout = final_timeout - (time.monotonic() - start_time)
                 if next_stage_timeout <= 0:
                     is_timeout = True
         if keep_state:

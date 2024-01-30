@@ -75,7 +75,7 @@ class NetworkDownDetector(ConnectionObserver):
         """
         if not self.done():
             if "Network is unreachable" in data:
-                when_detected = time.time()
+                when_detected = time.monotonic()
                 self.set_result(result=when_detected)
 
 

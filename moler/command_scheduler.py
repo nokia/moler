@@ -106,7 +106,7 @@ class CommandScheduler(object):
                 cmd.set_exception(CommandTimeout(cmd,
                                                  timeout=cmd.timeout,
                                                  kind="scheduler.await_done",
-                                                 passed_time=time.time() - start_time))
+                                                 passed_time=time.monotonic() - start_time))
                 cmd.set_end_of_life()
                 self._remove_command(cmd=cmd)
         return False
@@ -144,9 +144,9 @@ class CommandScheduler(object):
         """
         connection = cmd.connection
         lock = self._lock_for_connection(connection)
-        start_time = time.time()
+        start_time = time.monotonic()
         conn_atr = self._locks[connection]
-        while cmd.timeout >= (time.time() - start_time):
+        while cmd.timeout >= (time.monotonic() - start_time):
             time.sleep(0.005)
             with lock:
                 if conn_atr['current_cmd'] is None and len(conn_atr['queue']) >= 1 and cmd == conn_atr['queue'][0]:

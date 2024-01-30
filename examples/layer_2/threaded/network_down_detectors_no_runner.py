@@ -63,8 +63,8 @@ def ping_observing_task(ext_io_connection, ping_ip):
 
     with ext_io_connection.open():
         observing_timeout = 10
-        start_time = time.time()
-        while time.time() < start_time + observing_timeout:
+        start_time = time.monotonic()
+        while time.monotonic() < start_time + observing_timeout:
             # anytime new data comes it may change status of observer
             if not net_drop_found and net_down_detector.done():
                 net_drop_found = True

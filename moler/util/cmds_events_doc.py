@@ -259,7 +259,7 @@ def check_if_documentation_exists(path2cmds):
     number_of_command_found = 0
     for moler_module, moler_class in _walk_moler_nonabstract_commands(path=path2cmds, base_class=base_class):
         number_of_command_found += 1
-        start_time = time.time()
+        start_time = time.monotonic()
         print("processing: '{}'...".format(moler_class), end="")
 
         test_data = _retrieve_command_documentation(moler_module, observer_type)
@@ -298,7 +298,7 @@ def check_if_documentation_exists(path2cmds):
             if error_msg:
                 wrong_commands[moler_class.__name__] = 1
                 errors_found.append(error_msg)
-        print(" - {:.3f} s.".format(time.time() - start_time))
+        print(" - {:.3f} s.".format(time.monotonic() - start_time))
 
     print("")
     if errors_found:

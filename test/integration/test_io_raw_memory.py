@@ -185,12 +185,12 @@ def test_can_inject_data_with_specified_delay(memory_connection_without_decoder)
     connection = memory_connection_without_decoder
     moler_conn = connection.moler_connection
     received_data = bytearray()
-    start_time = time.time()
+    start_time = time.monotonic()
 
     def receiver(data, time_recv):
         received_data.extend(data)
         if b"msg3" in received_data:
-            duration = time.time() - start_time
+            duration = time.monotonic() - start_time
             assert b'msg1\nmsg2\nmsg3\n' == received_data
             assert (duration > 0.7) and (duration < 0.8)
 

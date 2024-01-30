@@ -31,7 +31,7 @@ class NetworkToggleDetector(ConnectionObserver):
         """Awaiting ping output change"""
         if not self.done():
             if self.detect_pattern in data:
-                when_detected = time.time()
+                when_detected = time.monotonic()
                 self.logger.debug("Network {} {}!".format(self.net_ip,
                                                           self.detected_status))
                 self.set_result(result=when_detected)

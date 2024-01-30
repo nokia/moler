@@ -26,8 +26,8 @@ def test_event_ping_no_response(buffer_connection):
     assert 0 == counter['nr']
     event.start()
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
-    start_time = time.time()
-    while time.time() - start_time <= max_timeout:
+    start_time = time.monotonic()
+    while time.monotonic() - start_time <= max_timeout:
         if 1 == counter['nr']:
             break
         MolerTest.sleep(sleep_time)
@@ -39,8 +39,8 @@ def test_event_ping_no_response(buffer_connection):
     event.resume()
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     event.await_done()
-    start_time = time.time()
-    while time.time() - start_time <= max_timeout:
+    start_time = time.monotonic()
+    while time.monotonic() - start_time <= max_timeout:
         if 2 == counter['nr']:
             break
         MolerTest.sleep(sleep_time)
@@ -76,9 +76,9 @@ def test_erase_not_full_line_on_pause(buffer_connection):
 
     tf = threading.Thread(target=feed_in_separate_thread)
     tf.start()
-    start_time = time.time()
+    start_time = time.monotonic()
 
-    while (time.time() - start_time < 4) or (processed['process'] < 300):
+    while (time.monotonic() - start_time < 4) or (processed['process'] < 300):
         event.pause()
         MolerTest.sleep(sleep_time)
         event.resume()
