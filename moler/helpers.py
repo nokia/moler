@@ -11,12 +11,12 @@ import copy
 import importlib
 import logging
 import re
-import sys
 import collections.abc
 from functools import wraps
 from types import FunctionType, MethodType
 from six import string_types
 from math import isclose
+from typing import Any
 
 
 class ClassProperty(property):
@@ -24,7 +24,7 @@ class ClassProperty(property):
         return classmethod(self.fget).__get__(None, owner)()
 
 
-def copy_list(src, deep_copy=False):
+def copy_list(src, deep_copy: bool = False) -> list:
     """
     Copies list, if None then returns empty list
     :param src: List to copy
@@ -38,7 +38,7 @@ def copy_list(src, deep_copy=False):
     return list(src)
 
 
-def copy_dict(src, deep_copy=False):
+def copy_dict(src, deep_copy: bool = False) -> dict:
     """
     Copies dict, if None then returns empty dict
     :param src: List to copy
@@ -61,7 +61,7 @@ def instance_id(instance):
     return instance_id
 
 
-def camel_case_to_lower_case_underscore(string):
+def camel_case_to_lower_case_underscore(string: str) -> str:
     """
     Split string by upper case letters.
     F.e. useful to convert camel case strings to underscore separated ones.
@@ -81,7 +81,7 @@ _re_escape_codes = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")  # Regex to remove col
 _re_escape_codes_cursor = re.compile(r"\x1B(([\dA-F]+)|(\[\d+;\d+r)|(J))")
 
 
-def remove_escape_codes(line):
+def remove_escape_codes(line: str) -> str:
     """
     :param line: line from terminal
     :return: line without terminal escape codes
@@ -98,7 +98,7 @@ def remove_escape_codes(line):
 _re_cursor_visibility_codes = re.compile(r"\x1B\[\?(12|25)[hl]")
 
 
-def remove_cursor_visibility_codes(multiline):
+def remove_cursor_visibility_codes(multiline: str) -> str:
     """
     :param multiline: string from terminal holding single or multiple lines
     :return: line(s) without terminal escape codes related to cursor visibility
@@ -112,7 +112,7 @@ def remove_cursor_visibility_codes(multiline):
 _re_text_formatting_codes = re.compile(r"\x1B\[\d*m")
 
 
-def remove_text_formatting_codes(multiline):
+def remove_text_formatting_codes(multiline: str) -> str:
     """
     :param multiline: string from terminal holding single or multiple lines
     :return: line(s) without terminal escape codes related to text formatting
@@ -126,7 +126,7 @@ def remove_text_formatting_codes(multiline):
 _re_console_title_codes = re.compile(r"\x1B\][02];[^\x07]+\x07")
 
 
-def remove_window_title_codes(multiline):
+def remove_window_title_codes(multiline: str) -> str:
     """
     :param multiline: string from terminal holding single or multiple lines
     :return: line(s) without terminal escape codes setting console window/icon title
@@ -140,7 +140,7 @@ def remove_window_title_codes(multiline):
 _re_space_fill_to_right_margin = re.compile(r"(\x1B\[\d+[XC])+(\r|\n)")
 
 
-def remove_fill_spaces_right_codes(multiline):
+def remove_fill_spaces_right_codes(multiline: str) -> str:
     """
     :param multiline: string from terminal holding single or multiple lines
     :return: line(s) without spaces added till right VT-screen margin
@@ -153,7 +153,7 @@ def remove_fill_spaces_right_codes(multiline):
 _re_overwritten_left_writes = re.compile(r"^[^\n\r]*\x1B\[H(.)", flags=re.DOTALL | re.MULTILINE)
 
 
-def remove_overwritten_left_write(multiline):
+def remove_overwritten_left_write(multiline: str) -> str:
     """
     :param multiline: string from terminal holding single or multiple lines
     :return: line without spaces added till right VT-screen margin
@@ -165,7 +165,7 @@ def remove_overwritten_left_write(multiline):
 _re_remove_terminal_last_cmd_status = re.compile(r'\x1b]777;notify;.*\x07')
 
 
-def remove_terminal_last_cmd_status(line):
+def remove_terminal_last_cmd_status(line: str) -> str:
     """
         :param line: line from terminal
         :return: line without terminal last cmd status
@@ -174,7 +174,7 @@ def remove_terminal_last_cmd_status(line):
     return line
 
 
-def remove_all_known_special_chars(line):
+def remove_all_known_special_chars(line: str) -> str:
     """
     :param line: line from terminal
     :return: line without all known special chars
@@ -189,7 +189,7 @@ def remove_all_known_special_chars(line):
     return line
 
 
-def create_object_from_name(full_class_name, constructor_params):
+def create_object_from_name(full_class_name: str, constructor_params: dict) -> object:
     name_splitted = full_class_name.split('.')
     module_name = ".".join(name_splitted[:-1])
     class_name = name_splitted[-1]
@@ -200,7 +200,7 @@ def create_object_from_name(full_class_name, constructor_params):
     return obj
 
 
-def update_dict(target_dict, expand_dict):
+def update_dict(target_dict: dict, expand_dict: dict) -> dict:
     for key, value in expand_dict.items():
         if (key in target_dict and isinstance(target_dict[key], dict) and isinstance(expand_dict[key],
                                                                                      collections.abc.Mapping)):
@@ -209,8 +209,8 @@ def update_dict(target_dict, expand_dict):
             target_dict[key] = expand_dict[key]
 
 
-def compare_objects(first_object, second_object, significant_digits=None,
-                    exclude_types=None):
+def compare_objects(first_object: Any, second_object: Any, significant_digits=None,
+                    exclude_types=None) -> str:
     """
     Return difference between two objects.
     :param first_object: first object to compare
@@ -228,8 +228,8 @@ def compare_objects(first_object, second_object, significant_digits=None,
     return diff
 
 
-def diff_data(first_object, second_object, significant_digits=None,
-              exclude_types=None, msg=None):
+def diff_data(first_object: Any, second_object: Any, significant_digits=None,
+              exclude_types=None, msg=None) -> str:
     """
     Compare two objects recursively and return a message indicating any differences.
 
@@ -281,8 +281,8 @@ def diff_data(first_object, second_object, significant_digits=None,
     return ""
 
 
-def _compare_dicts(first_object, second_object, msg, significant_digits=None,
-                   exclude_types=None):
+def _compare_dicts(first_object: dict, second_object: dict, msg: str, significant_digits=None,
+                   exclude_types=None) -> str:
     """
     Compare two dictionaries recursively and return a message indicating any
      differences.
@@ -321,7 +321,7 @@ def _compare_dicts(first_object, second_object, msg, significant_digits=None,
     return ""
 
 
-def _compare_sets(first_object, second_object, msg):
+def _compare_sets(first_object: set, second_object: set, msg: str) -> str:
     """
 
     Compare two sets.
