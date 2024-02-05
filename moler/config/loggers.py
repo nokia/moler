@@ -599,7 +599,7 @@ def _list_libraries(logger):
     :param logger: logger to log.
     :return: None
     """
-    installed_packages = pkg_resources.working_set  #  # pylint: disable=not-an-iterable
+    installed_packages = pkg_resources.working_set  # pylint: disable=not-an-iterable
     packages = {}
     re_moler = re.compile("moler")
 
