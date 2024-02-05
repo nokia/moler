@@ -48,8 +48,8 @@ ute@debdev:~$ md5sum test.txt
 ute@debdev:~$
 """
 COMMAND_RESULT_parms = {
-    'FILE': u'test.txt',
-    'SUM': u'91503d6cac7a663901b30fc400e93644'
+    'FILE': 'test.txt',
+    'SUM': '91503d6cac7a663901b30fc400e93644'
 }
 COMMAND_KWARGS_parms = {
     "path": "test.txt",

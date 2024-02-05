@@ -55,16 +55,16 @@ user@host:~$
 """
 
 COMMAND_RESULT = {'LINES': [u'VmallocChunk:   34359608824 kB',
-                            u'HardwareCorrupted:     0 kB',
-                            u'AnonHugePages:         0 kB',
-                            u'HugePages_Total:       0',
-                            u'HugePages_Free:        0',
-                            u'HugePages_Rsvd:        0',
-                            u'HugePages_Surp:        0',
-                            u'Hugepagesize:       2048 kB',
-                            u'DirectMap4k:       53184 kB',
-                            u'DirectMap2M:     4141056 kB',
-                            u'user@host:~$']}
+                            'HardwareCorrupted:     0 kB',
+                            'AnonHugePages:         0 kB',
+                            'HugePages_Total:       0',
+                            'HugePages_Free:        0',
+                            'HugePages_Rsvd:        0',
+                            'HugePages_Surp:        0',
+                            'Hugepagesize:       2048 kB',
+                            'DirectMap4k:       53184 kB',
+                            'DirectMap2M:     4141056 kB',
+                            'user@host:~$']}
 
 COMMAND_KWARGS = {
     "path": "/proc/meminfo"

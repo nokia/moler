@@ -101,7 +101,7 @@ user@host:~# """
 
 COMMAND_KWARGS_one_parameter = {'address': '0x01f00000'}
 
-COMMAND_RESULT_one_parameter = {'VALUE': u'0x1000'}
+COMMAND_RESULT_one_parameter = {'VALUE': '0x1000'}
 
 COMMAND_OUTPUT_change_value = """
 user@host:~# devmem b 0x01f00000 255

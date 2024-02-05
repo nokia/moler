@@ -84,7 +84,7 @@ class Service(GenericUnixCommand):
             raise ParsingDone
 
 
-COMMAND_OUTPUT_status_all = u"""service --status-all
+COMMAND_OUTPUT_status_all = """service --status-all
  [ + ]  acpid
  [ - ]  alsa-utils
  [ - ]  anacron
@@ -235,7 +235,7 @@ COMMAND_RESULT_status_all = {
     'x11-common': '[ - ]'
 }
 
-COMMAND_OUTPUT_status = u"""service ssh status
+COMMAND_OUTPUT_status = """service ssh status
 ● ssh.service - OpenBSD Secure Shell server
    Loaded: loaded (/lib/systemd/system/ssh.service; enabled)
    Active: active (running) since Thu 2018-07-19 15:15:42 CEST; 32s ago

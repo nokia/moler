@@ -44,7 +44,7 @@ EVENT_KWARGS = {
 
 EVENT_RESULT = [{
     "line": "From 192.168.255.126 icmp_seq=1 Destination Host Unreachable",
-    "groups": (None, u"From 192.168.255.126 icmp_seq=1 Destination Host Unreachable"),
+    "groups": (None, "From 192.168.255.126 icmp_seq=1 Destination Host Unreachable"),
     "named_groups": {},
     "matched": "From 192.168.255.126 icmp_seq=1 Destination Host Unreachable",
     "time": datetime.datetime.now()
