@@ -123,11 +123,7 @@ class Iptables(GenericUnixCommand):
     _re_parse_details = re.compile(r"(?P<VALUE>\S+)")
 
     def _parse_details(self, line):
-        if (
-            self.chain
-            and self._key_details
-            and self._regex_helper.search_compiled(Iptables._re_parse_details, line)
-        ):
+        if self.chain and self._key_details and self._regex_helper.search_compiled(Iptables._re_parse_details, line):
             values = re.findall(Iptables._re_parse_details, line)
             ret = {}
             if len(values) >= len(self._key_details):

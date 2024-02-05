@@ -264,12 +264,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
             if connection_observer.life_status.terminating_timeout is None
             else connection_observer.life_status.terminating_timeout
         )
-        remain_time = (
-            timeout
-            - (time.monotonic() - connection_observer.life_status.start_time)
-            + term_timeout
-            + timeout_add
-        )
+        remain_time = timeout - (time.monotonic() - connection_observer.life_status.start_time) + term_timeout + timeout_add
         while remain_time >= 0:
             if connection_observer.done():
                 return True
@@ -281,12 +276,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
                 if connection_observer.life_status.terminating_timeout is None
                 else connection_observer.life_status.terminating_timeout
             )
-            remain_time = (
-                timeout
-                - (time.monotonic() - connection_observer.life_status.start_time)
-                + term_timeout
-                + timeout_add
-            )
+            remain_time = timeout - (time.monotonic() - connection_observer.life_status.start_time) + term_timeout + timeout_add
         return False
 
     def _wait_for_not_started_connection_observer_is_done(self, connection_observer):
@@ -300,11 +290,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
         start_time = time.monotonic()
         while not connection_observer.done() and eol_remain_time > 0.0:
             time.sleep(self._tick)
-            eol_remain_time = (
-                start_time
-                + connection_observer.life_status.terminating_timeout
-                - time.monotonic()
-            )
+            eol_remain_time = start_time + connection_observer.life_status.terminating_timeout - time.monotonic()
 
     def _runner_loop(self):
         """

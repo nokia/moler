@@ -155,13 +155,9 @@ class TextualDevice(AbstractDevice):
         self._thread_for_goto_state = None
         self.SM.state_change_log_callable = self._log
         self.SM.current_state_callable = self._get_current_state
-        self._goto_state_in_production_mode = (
-            True  # Set False only for tests. May cause problems in production code.
-        )
+        self._goto_state_in_production_mode = True  # Set False only for tests. May cause problems in production code.
         self._check_all_prompts_on_line = False
-        self.last_wrong_wait4_occurrence = (
-            None  # Last occurrence from Wait4prompts if at least 2 prompts matched the
-        )
+        self.last_wrong_wait4_occurrence = None  # Last occurrence from Wait4prompts if at least 2 prompts matched the
         # same line.
 
     def set_all_prompts_on_line(self, value=True):
@@ -564,10 +560,8 @@ class TextualDevice(AbstractDevice):
         ignore_exceptions=False,
         timeout_multiply=1.0,
     ):
-        if (
-            self._goto_state_in_production_mode
-            and self._goto_state_lock.acquire(queue_if_goto_state_in_another_thread)
-        ) or (self._goto_state_in_production_mode is False):
+        if (self._goto_state_in_production_mode and self._goto_state_lock.acquire(
+                queue_if_goto_state_in_another_thread)) or (self._goto_state_in_production_mode is False):
             try:
                 self._goto_state_to_run_in_try(
                     dest_state=dest_state,
@@ -705,11 +699,7 @@ class TextualDevice(AbstractDevice):
     ):
         entered_state = False
         retrying = 0
-        while (
-            (retrying <= rerun)
-            and (not entered_state)
-            and (self.current_state is not next_state)
-        ):
+        while retrying <= rerun and (not entered_state) and (self.current_state is not next_state):
             try:
                 change_state_method(self.current_state, next_state, timeout=timeout)
                 entered_state = True

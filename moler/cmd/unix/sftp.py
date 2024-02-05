@@ -134,11 +134,7 @@ class Sftp(GenericUnixCommand):
             self.connection.sendline(self.command)
             self.command_entered = True
             raise ParsingDone
-        elif (
-            not self.exit_sent
-            and self.command_sent
-            and self._regex_helper.match_compiled(Sftp._re_prompt, line)
-        ):
+        elif not self.exit_sent and self.command_sent and self._regex_helper.match_compiled(Sftp._re_prompt, line):
             self.connection.sendline("exit")
             self.exit_sent = True
             raise ParsingDone

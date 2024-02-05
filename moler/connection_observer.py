@@ -357,10 +357,7 @@ class ConnectionObserver(object):
         :param exception: exception to set
         :return: None
         """
-        mg = traceback.format_list(
-            traceback.extract_stack()[:-3]
-            + traceback.extract_tb(exception.__traceback__)
-        )
+        mg = traceback.format_list(traceback.extract_stack()[:-3] + traceback.extract_tb(exception.__traceback__))
         stack_msg = "".join(mg) + "\n  {} {}".format(exception.__class__, exception)
 
         if self._is_done:

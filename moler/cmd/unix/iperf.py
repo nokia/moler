@@ -134,10 +134,7 @@ class Iperf(GenericUnixCommand):
         r"(?P<CONNECTION_ID>\[\s*\d*\])\s*(?P<CONNECTION_REPORT>.*)"
     )
     _re_ci = r"(?P<ID>\[\s*\d*\])\s+(?P<Interval>\d+.+sec)\s+(?P<Transfer>[\d\.]+\s+\w+)\s+(?P<Bandwidth>[\d\.]+\s+\w+/sec)"
-    _re_ci_udp_svr = (
-        _re_ci
-        + r"\s+(?P<Jitter>\d+\.\d+\s\w+)\s+(?P<Lost_vs_Total_Datagrams>\d+/\s*\d+\s*\([\d\.]+\%\))"
-    )
+    _re_ci_udp_svr = _re_ci + r"\s+(?P<Jitter>\d+\.\d+\s\w+)\s+(?P<Lost_vs_Total_Datagrams>\d+/\s*\d+\s*\([\d\.]+\%\))"
     _re_iperf_record = re.compile(_re_ci)
     _re_iperf_record_udp_svr = re.compile(_re_ci_udp_svr)
 

@@ -158,10 +158,7 @@ class ThreadedMolerConnection(AbstractMolerConnection):
             )
             self._log(level=TRACE, msg="unsubscribe({})".format(observer))
             observer_key, _ = self._get_observer_key_value(observer)
-            if (
-                observer_key in self._observer_wrappers
-                and observer_key in self._connection_closed_handlers
-            ):
+            if observer_key in self._observer_wrappers and observer_key in self._connection_closed_handlers:
                 self._observer_wrappers[observer_key].request_stop()
                 del self._connection_closed_handlers[observer_key]
                 del self._observer_wrappers[observer_key]

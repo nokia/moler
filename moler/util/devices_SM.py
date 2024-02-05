@@ -372,19 +372,11 @@ def _get_all_states_from_device(device):
 
     for attr_name in dir(device):
         attr = getattr(device, attr_name)
-        if (
-            type(attr) is str
-            and not attr_name.startswith("_")
-            and attr_name not in dir(TextualDevice)
-        ):
+        if type(attr) is str and not attr_name.startswith("_") and attr_name not in dir(TextualDevice):
             if attr not in states and attr not in states_to_skip:
                 states.append(attr)
 
-    if (
-        "PROXY_PC" in states
-        and hasattr(device, "_use_proxy_pc")
-        and not getattr(device, "_use_proxy_pc")
-    ):
+    if "PROXY_PC" in states and hasattr(device, "_use_proxy_pc") and not getattr(device, "_use_proxy_pc"):
         states.remove("PROXY_PC")
     assert "NOT_CONNECTED" not in states
     return states

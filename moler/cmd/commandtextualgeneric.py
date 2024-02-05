@@ -150,10 +150,7 @@ class CommandTextualGeneric(Command):
 
         :return: String with command_string.
         """
-        if not self.__command_string or (
-            self.command_path
-            and not self.__command_string.startswith(self.command_path)
-        ):
+        if not self.__command_string or self.command_path and not self.__command_string.startswith(self.command_path):
             try:
                 self.__command_string = (
                     "CANNOT BUILD COMMAND STRING"  # To avoid infinite recursion if
@@ -218,7 +215,7 @@ class CommandTextualGeneric(Command):
             re_sub_command_string = sub_command_start_string
         if self._max_index_from_end != 0:
             sub_command_finish_string = re.escape(
-                command_string[-self._max_index_from_end :]
+                command_string[-self._max_index_from_end:]
             )
             re_sub_command_string = sub_command_finish_string
         if sub_command_finish_string and sub_command_start_string:
@@ -370,11 +367,7 @@ class CommandTextualGeneric(Command):
         :param is_full_line: True if line had new line char at the end. False otherwise.
         :return: None.
         """
-        if (
-            self._concatenate_before_command_starts
-            and not self._cmd_output_started
-            and is_full_line
-        ):
+        if self._concatenate_before_command_starts and not self._cmd_output_started and is_full_line:
             self._last_not_full_line = line
 
     def _update_from_cached_incomplete_line(
@@ -442,11 +435,7 @@ class CommandTextualGeneric(Command):
             return True
         # when command is broken via Ctrl-C then ^C may be appended to start of prompt
         # if prompt regexp requires "at start of line" via r'^' then such ^C concatenation will falsify prompt
-        if (
-            self._remove_ctrlc_chars_for_prompt
-            and (len(line) > 2)
-            and line.startswith("^C")
-        ):
+        if self._remove_ctrlc_chars_for_prompt and len(line) > 2 and line.startswith("^C"):
             non_ctrl_c_started_line = line[2:]
             if self._regex_helper.search_compiled(
                 self._re_prompt, non_ctrl_c_started_line
@@ -659,11 +648,8 @@ class CommandTextualGeneric(Command):
         :param is_full_line: Indicates if the line is a full line or a partial line.
         :return: True if the line is a failure indication, False otherwise.
         """
-        if (
-            self.re_fail is not None
-            and is_full_line
-            and self._regex_helper.search_compiled(compiled=self.re_fail, string=line)
-        ):
+        if self.re_fail is not None and is_full_line and self._regex_helper.search_compiled(
+                compiled=self.re_fail, string=line):
             return True
         return False
 

@@ -229,12 +229,9 @@ class Top(GenericUnixCommand):
         :param line: Line of output of command.
         :return: None but raises ParsingDone if line has information to handle by this method.
         """
-        if (
-            self._regex_helper.search_compiled(Top._re_processes_header, line)
-            and not self._processes_list_headers
-        ):
+        if self._regex_helper.search_compiled(Top._re_processes_header, line) and not self._processes_list_headers:
             self._processes_list_headers.extend(line.strip().split())
-            self.current_ret.update({"processes": list()})
+            self.current_ret.update({"processes": []})
             raise ParsingDone
 
     def _parse_processes_list(self, line):

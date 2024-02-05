@@ -99,11 +99,7 @@ class Gunzip(GenericUnixCommand):
         if self.keys and not self.current_ret["RESULT"]:
             self.values = line.strip().split()
             if "date" in self.keys:
-                self.values = (
-                    self.values[:2]
-                    + ["{} {}".format(self.values[2], self.values[3])]
-                    + self.values[4:]
-                )
+                self.values = self.values[:2] + ["{} {}".format(self.values[2], self.values[3])] + self.values[4:]
             self.current_ret["RESULT"].append(dict(zip(self.keys, self.values)))
             raise ParsingDone
         if self._regex_helper.search_compiled(Gunzip._re_l_option, line):

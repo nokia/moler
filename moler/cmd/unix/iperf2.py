@@ -123,11 +123,7 @@ class Iperf2(GenericUnixCommand, Publisher):
 
     @property
     def protocol(self):
-        if (
-            self.options.startswith("-u")
-            or (" -u" in self.options)
-            or ("--udp" in self.options)
-        ):
+        if self.options.startswith("-u") or (" -u" in self.options) or ("--udp" in self.options):
             return "udp"
         return "tcp"
 
@@ -168,11 +164,7 @@ class Iperf2(GenericUnixCommand, Publisher):
 
     @property
     def server(self):
-        return (
-            self.options.startswith("-s")
-            or (" -s" in self.options)
-            or ("--server" in self.options)
-        )
+        return self.options.startswith("-s") or (" -s" in self.options) or ("--server" in self.options)
 
     @property
     def parallel_client(self):

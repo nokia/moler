@@ -123,12 +123,8 @@ class Nmap(GenericUnixCommand):
     _re_indent = re.compile(r"^\s*\|(?P<INDENT>\s*)(?P<VALUE>\S.*\S|\S+)")
 
     def _parse_compressors(self, line):
-        if (
-            self._current_crypto_proto
-            and "compressors" == self._current_crypto_proto_type
-            and self._indent > 0
-            and self._regex_helper.search_compiled(Nmap._re_indent, line)
-        ):
+        if self._current_crypto_proto and 'compressors' == self._current_crypto_proto_type and self._indent > 0 \
+                and self._regex_helper.search_compiled(Nmap._re_indent, line):
             current_indent = len(self._regex_helper.group("INDENT"))
             if current_indent < self._indent:
                 self._indent = 0
@@ -263,13 +259,10 @@ class Nmap(GenericUnixCommand):
 
     def _parse_extend_timeout(self, line):
         if self._regex_helper.search_compiled(Nmap._re_extend_timeout, line):
-            timedelta = (
-                self._converter_helper.to_number(self._regex_helper.group("HOURS"))
-                * 3600
-                + self._converter_helper.to_number(self._regex_helper.group("MINUTES"))
-                * 60
-                + self._converter_helper.to_number(self._regex_helper.group("SECONDS"))
-            )
+            timedelta = self._converter_helper.to_number(
+                self._regex_helper.group("HOURS")) * 3600 + self._converter_helper.to_number(
+                self._regex_helper.group("MINUTES")) * 60 + self._converter_helper.to_number(
+                self._regex_helper.group("SECONDS"))
             self.extend_timeout(timedelta=timedelta)
 
     # |       TLS_ABC_RSA_WITH_AED_256_GCB_SHA123

@@ -152,11 +152,7 @@ class Systemctl(Service):
         :raises: ParsingDone if regex matches the line.
         """
 
-        if (
-            is_full_line
-            and self._header_found
-            and self._regex_helper.search_compiled(Systemctl._re_line, line)
-        ):
+        if is_full_line and self._header_found and self._regex_helper.search_compiled(Systemctl._re_line, line):
             service = self._regex_helper.group(Systemctl._columns[0])
             self.current_ret[service] = {}
 
