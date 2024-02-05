@@ -199,7 +199,7 @@ def set_logging_path(path):
 
 
 def get_logging_path():
-    global _logging_path  # pylint: disable=global-statement
+    global _logging_path  # pylint: disable=global-statement, global-variable-not-assigned
     return _logging_path
 
 
@@ -243,7 +243,7 @@ def get_error_log_stack():
     Get how many functions stack you want to log when error is logged.
     :return: True to get log of all
     """
-    global _error_log_stack  # pylint: disable=global-statement
+    global _error_log_stack  # pylint: disable=global-statement, global-variable-not-assigned
     return _error_log_stack
 
 
@@ -263,9 +263,9 @@ def change_logging_suffix(suffix=None, logger_name=None):
     :param logger_name: name of logger. None for all loggers.
     :return: None
     """
-    global _kind  # pylint: disable=global-statement
+    global _kind  # pylint: disable=global-statement, global-variable-not-assigned
     if _kind is not None:
-        global _main_logger  # pylint: disable=global-statement
+        global _main_logger  # pylint: disable=global-statement, global-variable-not-assigned
         if _main_logger is not None:
             # noinspection PyUnresolvedReferences
             _main_logger.info(
@@ -273,7 +273,7 @@ def change_logging_suffix(suffix=None, logger_name=None):
                 " available now.".format(_kind)
             )
         return
-    global _logging_suffixes  # pylint: disable=global-statement
+    global _logging_suffixes  # pylint: disable=global-statement, global-variable-not-assigned
     _reopen_all_logfiles_with_new_suffix(
         logger_suffixes=_logging_suffixes, new_suffix=suffix, logger_name=logger_name
     )
@@ -387,13 +387,13 @@ def setup_new_file_handler(
     :param filter: filter for file logger
     :return:  logging.FileHandler object
     """
-    global write_mode  # pylint: disable=global-statement
-    global _kind  # pylint: disable=global-statement
-    global _interval  # pylint: disable=global-statement
-    global _backup_count  # pylint: disable=global-statement
-    global _compress_after_rotation  # pylint: disable=global-statement
-    global _compress_command  # pylint: disable=global-statement
-    global _compressed_file_extension  # pylint: disable=global-statement
+    global write_mode  # pylint: disable=global-statement, global-variable-not-assigned
+    global _kind  # pylint: disable=global-statement, global-variable-not-assigned
+    global _interval  # pylint: disable=global-statement, global-variable-not-assigned
+    global _backup_count  # pylint: disable=global-statement, global-variable-not-assigned
+    global _compress_after_rotation  # pylint: disable=global-statement, global-variable-not-assigned
+    global _compress_command  # pylint: disable=global-statement, global-variable-not-assigned
+    global _compressed_file_extension  # pylint: disable=global-statement, global-variable-not-assigned
     logger = logging.getLogger(logger_name)
     if _kind is None:
         cfh = logging.FileHandler(log_filename, write_mode)
@@ -471,7 +471,7 @@ def _add_raw_file_handler(logger_name, log_file):
     :param log_file: Path to logfile. Final logfile location is logging_path + log_file
     :return: None
     """
-    global write_mode  # pylint: disable=global-statement
+    global write_mode  # pylint: disable=global-statement, global-variable-not-assigned
     logfile_full_path = os.path.join(_logging_path, log_file)
     _prepare_logs_folder(logfile_full_path)
     logger = logging.getLogger(logger_name)
@@ -486,7 +486,7 @@ def _add_raw_trace_file_handler(logger_name, log_file):
     :param log_file: Path to logfile. Final logfile location is logging_path + log_file
     :return: None
     """
-    global write_mode  # pylint: disable=global-statement
+    global write_mode  # pylint: disable=global-statement, global-variable-not-assigned
     logfile_full_path = os.path.join(_logging_path, log_file)
     _prepare_logs_folder(logfile_full_path)
     logger = logging.getLogger(logger_name)
