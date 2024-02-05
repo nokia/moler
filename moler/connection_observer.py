@@ -392,7 +392,7 @@ class ConnectionObserver(object):
         """Retrieve final result of connection-observer"""
         with ConnectionObserver._exceptions_lock:
             ConnectionObserver._log_unraised_exceptions(self)
-            if self._exception:
+            if self._exception is not None:
                 exception = self._exception
                 if exception in ConnectionObserver._not_raised_exceptions:
                     ConnectionObserver._not_raised_exceptions.remove(exception)
@@ -450,7 +450,6 @@ class ConnectionObserver(object):
 
         :return: None
         """
-        pass
 
     @ClassProperty
     def observer_name(cls):

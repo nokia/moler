@@ -8,6 +8,8 @@ __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
+# pylint: skip-file
+
 import asyncio
 import asyncio.futures
 import asyncio.tasks
