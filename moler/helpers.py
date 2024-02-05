@@ -37,7 +37,7 @@ def copy_list(src, deep_copy=False):
         return []
     if deep_copy:
         return copy.deepcopy(src)
-    return copy.copy(src)
+    return list(src)
 
 
 def copy_dict(src, deep_copy=False):
@@ -51,7 +51,7 @@ def copy_dict(src, deep_copy=False):
         return {}
     if deep_copy:
         return copy.deepcopy(src)
-    return copy.copy(src)
+    return dict(src)
 
 
 def instance_id(instance):
