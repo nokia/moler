@@ -91,7 +91,7 @@ class Publisher(object):
         :param raised_exception: exception raised by subscriber during publishing
         :return: None
         """
-        pass  # TODO: we may log it
+        # TODO: we may log it
 
     @staticmethod
     def _get_subscriber_key_and_value(subscriber):

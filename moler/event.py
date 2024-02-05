@@ -43,6 +43,7 @@ class Event(ConnectionObserver):
         """
         return "{}(id:{})".format(self.__class__.__name__, instance_id(self))
 
+    # pylint: disable=keyword-arg-before-vararg
     def start(self, timeout=None, *args, **kwargs):
         """Start background execution of command."""
         self._validate_start(*args, **kwargs)
@@ -102,7 +103,7 @@ class Event(ConnectionObserver):
         :param event_data: data to set as value of occurrence.
         :return: None
         """
-        """Should be used to set final result"""
+        # Should be used to set final result of event.
         if self.done():
             raise ResultAlreadySet(self)
         if self._occurred is None:

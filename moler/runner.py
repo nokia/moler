@@ -476,12 +476,12 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             try:
                 if connection_observer.done() or self._in_shutdown:
                     return  # even not unsubscribed secure_data_received() won't pass data to done observer
-                self.logger.debug(u">>> Entering {}. conn-obs '{}' runner '{}' data '{}'".format(observer_lock, connection_observer, self, data))
+                self.logger.debug(">>> Entering {}. conn-obs '{}' runner '{}' data '{}'".format(observer_lock, connection_observer, self, data))
                 with observer_lock:
-                    self.logger.debug(u">>> Entered  {}. conn-obs '{}' runner '{}' data '{}'".format(observer_lock, connection_observer, self, data))
+                    self.logger.debug(">>> Entered  {}. conn-obs '{}' runner '{}' data '{}'".format(observer_lock, connection_observer, self, data))
                     connection_observer.data_received(data, timestamp)
                     connection_observer.life_status.last_feed_time = time.monotonic()
-                self.logger.debug(u">>> Exited   {}. conn-obs '{}' runner '{}' data '{}'".format(observer_lock, connection_observer, self, data))
+                self.logger.debug(">>> Exited   {}. conn-obs '{}' runner '{}' data '{}'".format(observer_lock, connection_observer, self, data))
 
             except Exception as exc:  # TODO: handling stacktrace
                 # observers should not raise exceptions during data parsing
@@ -549,6 +549,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         self._stop_feeding(connection_observer, subscribed_data_receiver, feed_done, observer_lock)
 
     @tracked_thread.log_exit_exception
+    # pylint: disable=arguments-differ
     def feed(self, connection_observer, subscribed_data_receiver, stop_feeding, feed_done,
              observer_lock):
         """

@@ -61,14 +61,6 @@ class MolerConnectionForSingleThreadRunner(ThreadedMolerConnection):
         self._connection_observers = []
         self.open()
 
-    def shutdown(self):
-        """
-        Shutdown MolerConnection.
-
-        :return: None
-        """
-        super(MolerConnectionForSingleThreadRunner, self).shutdown()
-
     def open(self):
         """
         Open MolerConnection.
