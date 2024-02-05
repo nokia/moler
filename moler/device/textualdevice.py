@@ -703,6 +703,7 @@ class TextualDevice(AbstractDevice):
             try:
                 change_state_method(self.current_state, next_state, timeout=timeout)
                 entered_state = True
+            # pylint: disable-next=unused-variable
             except Exception as ex:
                 if self.current_state == next_state:
                     ex_traceback = traceback.format_exc()
@@ -776,6 +777,7 @@ class TextualDevice(AbstractDevice):
             )
             available_cmds.update(module_available_cmds)
         else:
+            # pylint: disable-next=unused-variable
             for importer, modname, is_pkg in pkgutil.iter_modules(mod_path):
                 module_name = "{}.{}".format(package_name, modname)
                 module_available_cmds = self._load_cmds_from_module(module_name)

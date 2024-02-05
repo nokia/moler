@@ -263,6 +263,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         assert connection_observer.life_status.start_time > 0.0  # connection-observer lifetime should already been
         # started
         observer_timeout = connection_observer.timeout
+        # pylint: disable-next=unused-variable
         remain_time, msg = his_remaining_time("remaining", timeout=observer_timeout,
                                               from_start_time=connection_observer.life_status.start_time)
         self.logger.debug("go background: {!r} - {}".format(connection_observer, msg))
@@ -379,6 +380,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             future = connection_observer_future or connection_observer._future  # pylint: disable=protected-access
             assert future is not None
             if max_timeout:
+                # pylint: disable-next=unused-variable
                 done, not_done = wait([future], timeout=remain_time)
                 if (future in done) or connection_observer.done():
                     self._cancel_submitted_future(connection_observer, future)
@@ -514,6 +516,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             moler_conn.subscribe(observer=secure_data_received,
                                  connection_closed_handler=connection_observer.connection_closed_handler)
             # after subscription we have data path so observer is started
+            # pylint: disable-next=unused-variable
             remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                                   from_start_time=connection_observer.life_status.start_time)
             connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))  # pylint: disable=protected-access
@@ -532,6 +535,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 moler_conn.unsubscribe(observer=subscribed_data_receiver,
                                        connection_closed_handler=connection_observer.connection_closed_handler)
                 # after unsubscription we break data path so observer is finished
+                # pylint: disable-next=unused-variable
                 remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                                       from_start_time=connection_observer.life_status.start_time)
                 connection_observer._log(logging.INFO,  # pylint: disable=protected-access
@@ -553,6 +557,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         """
         logging.getLogger("moler_threads").debug("ENTER {}".format(connection_observer))
 
+        # pylint: disable-next=unused-variable
         remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                               from_start_time=connection_observer.life_status.start_time)
         self.logger.debug("thread started  for {}, {}".format(connection_observer, msg))

@@ -331,6 +331,7 @@ class Iperf2(GenericUnixCommand, Publisher):
                 # header line is after connections
                 # so, we can create virtual Summary connection
                 client, server = list(self._connection_dict.values())[0]
+                # pylint: disable-next=unused-variable
                 (
                     client_host,
                     client_port,
@@ -414,7 +415,9 @@ class Iperf2(GenericUnixCommand, Publisher):
             self.current_ret["CONNECTIONS"].update(connection_dict)
 
     def _all_multiport_records_of_interval(self, connection_name):
+        # pylint: disable-next=unused-variable
         client, server = connection_name
+        # pylint: disable-next=unused-variable
         client_port, client_host = client.split("@")
         last_interval = self.current_ret["CONNECTIONS"][connection_name][-1]["Interval"]
         for conn_name in self._same_host_connections[client_host]:
@@ -449,6 +452,7 @@ class Iperf2(GenericUnixCommand, Publisher):
 
     def _calculate_multiport_summary_record_of_interval(self, connection_name):
         client, server = connection_name
+        # pylint: disable-next=unused-variable
         client_port, client_host = client.split("@")
         connections = self._same_host_connections[client_host]
 
@@ -527,6 +531,7 @@ class Iperf2(GenericUnixCommand, Publisher):
             return  # for parallel we take report / publish stats only from summary records
         last_record = self.current_ret["CONNECTIONS"][connection_name][-1]
         if self._is_final_record(last_record):
+            # pylint: disable-next=unused-variable
             (
                 client_host,
                 client_port,
@@ -560,6 +565,7 @@ class Iperf2(GenericUnixCommand, Publisher):
         if len(self._connection_dict) < 1:
             return False
         result = self.current_ret["CONNECTIONS"]
+        # pylint: disable-next=unused-variable
         connections = list(self._connection_dict.values())
         (
             client_host,

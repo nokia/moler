@@ -41,6 +41,7 @@ def find_caller(levels_to_go_up=0):
         if filename == _srcfile:
             f = f.f_back
             continue
+        # pylint: disable-next=unused-variable
         for lv in range(levels_to_go_up):
             f = f.f_back
             if hasattr(f, "f_code"):

@@ -188,6 +188,7 @@ def _create_command(moler_class, moler_connection, cmd_kwargs):
 
 def _reformat_str_to_unicode(cmd_result):
     if (isinstance(cmd_result, dict)):
+        # pylint: disable-next=unused-variable
         for key, value in cmd_result.items():
             if (key in cmd_result and isinstance(cmd_result[key], dict) and isinstance(cmd_result[key],
                                                                                        collections.Mapping)):

@@ -157,6 +157,7 @@ class Iperf3(Iperf2):
         if self._regex_helper.search_compiled(Iperf3._re_headers, line):
             if self.parallel_client:
                 client, server = list(self._connection_dict.values())[0]
+                # pylint: disable-next=unused-variable
                 (
                     client_host,
                     client_port,
@@ -267,6 +268,7 @@ class Iperf3(Iperf2):
             return  # for parallel we take report / publish stats only from summary records
         last_record = self.current_ret["CONNECTIONS"][connection_name][-1]
 
+        # pylint: disable-next=unused-variable
         if self._is_final_record(line):
             (
                 client_host,

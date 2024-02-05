@@ -458,6 +458,7 @@ class ProxyPc2(UnixLocal):
 
     def _detect_prompt_get_cmd(self):
         self.logger.debug("get_cmd was called but prompt has not been detected yet.")
+        # pylint: disable-next=unused-variable
         for try_nr in range(1, 10, 1):
             if self._after_open_prompt_detector is None or self._after_open_prompt_detector.running() is False:
                 self._detect_after_open_prompt(self._set_after_open_prompt)
