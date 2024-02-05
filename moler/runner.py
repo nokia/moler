@@ -539,6 +539,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 feed_done.set()
         self.logger.debug(">>> Exited   {}. conn-obs '{}' runner '{}'".format(observer_lock, connection_observer, self))
 
+    # pylint: disable-next=unused-argument
     def _feed_finish_callback(self, future, connection_observer, subscribed_data_receiver, feed_done, observer_lock):
         """Callback attached to concurrent.futures.Future of submitted feed()"""
         self._stop_feeding(connection_observer, subscribed_data_receiver, feed_done, observer_lock)

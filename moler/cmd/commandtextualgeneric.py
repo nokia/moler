@@ -339,6 +339,7 @@ class CommandTextualGeneric(Command):
                     "{} exiting data processing of '{}'".format(self, data)
                 )
 
+    # pylint: disable-next=unused-argument
     def _process_line_from_command(
         self, current_chunk: str, line: str, is_full_line: bool
     ) -> None:

@@ -95,6 +95,7 @@ class ObserverThreadWrapper(object):
         self._observer_self = None
         logging.getLogger("moler_threads").debug("EXIT")
 
+    # pylint: disable-next=unused-argument
     def _handle_unexpected_error_from_observer(self, exception, data, timestamp):
         self.logger.exception(msg=r'Exception inside: {}({!r}) at {}'.format(self._observer, repr(data), timestamp))
 

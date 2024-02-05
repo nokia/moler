@@ -1037,9 +1037,11 @@ class TextualDevice(AbstractDevice):
         self._set_state("UNIX_LOCAL")
         self._run_prompts_observers()
 
+    # pylint: disable-next=unused-argument
     def _open_connection(self, source_state, dest_state, timeout):
         self.establish_connection()
 
+    # pylint: disable-next=unused-argument
     def _close_connection(self, source_state, dest_state, timeout):
         self._stop_prompts_observers()
         self.io_connection.close()
@@ -1214,6 +1216,7 @@ class TextualDevice(AbstractDevice):
             self._log(logging.ERROR, exc)
             raise exc
 
+    # pylint: disable-next=unused-argument
     def _send_enter_after_changed_state(self, *args, **kwargs):
         from moler.cmd.unix.enter import Enter
 
@@ -1243,6 +1246,7 @@ class TextualDevice(AbstractDevice):
         if proxy in sm_params:
             return True
 
+        # pylint: disable-next=unused-variable
         for key, value in sm_params.items():
             if isinstance(value, dict):
                 item = self._is_proxy_pc_in_sm_params(value, proxy)

@@ -263,6 +263,7 @@ class Iperf2(GenericUnixCommand, Publisher):
         if self._stopping_server and (not self.done()):
             self.break_cmd()
 
+    # pylint: disable-next=unused-argument
     def _schedule_delayed_break(self, delay):
         self.life_status.inactivity_timeout = 1.0  # will activate on_inactivity()
 

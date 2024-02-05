@@ -191,6 +191,7 @@ class ConnectionObserver(object):
             # or setting self._future will be delayed by nonempty commands queue.
         return self
 
+    # pylint: disable-next=unused-argument
     def _validate_start(self, *args, **kwargs) -> None:
         # check base class invariants first
         if self.done():

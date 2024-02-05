@@ -138,6 +138,7 @@ class AbstractMolerConnection(object):
         return data.strip() if isinstance(data, six.string_types) else data
 
     # TODO: should timeout be property of IO? We timeout whole connection-observer.
+    # pylint: disable-next=unused-argument
     def send(self, data, timeout=30, encrypt=False, levels_to_go_up=2):
         """Outgoing-IO API: Send data over external-IO."""
         if not self.is_open():
@@ -189,7 +190,6 @@ class AbstractMolerConnection(object):
 
     def data_received(self, data, recv_time):
         """Incoming-IO API: external-IO should call this method when data is received."""
-        pass
 
     def encode(self, data):
         """Prepare data for Outgoing-IO."""

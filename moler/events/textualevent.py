@@ -66,6 +66,7 @@ class TextualEvent(Event):
                 else:
                     raise ex
 
+    # pylint: disable-next=unused-argument
     def _process_line_from_output(self, current_chunk, line, is_full_line):
         """
         Processes line from connection (device) output.

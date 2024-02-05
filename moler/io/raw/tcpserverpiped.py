@@ -161,6 +161,7 @@ class TcpServerPiped(Process):
         self.do_close_connection(**kwargs)
         self.server_is_running = False
 
+    # pylint: disable-next=unused-argument
     def do_close_connection(self, **kwargs):
         """
         Handles following pipe message
@@ -200,6 +201,7 @@ class TcpServerPiped(Process):
             err = 'data for "inject response" must contain "req" and "resp" keys - not %s' % kwargs
             self.history.append(err)
 
+    # pylint: disable-next=unused-argument
     def do_get_history(self, **kwargs):
         """
         Handles following pipe message

@@ -14,3 +14,5 @@ The only 3 requirements for these connections is:
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
+
+# pylint: skip-file

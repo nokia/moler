@@ -59,6 +59,7 @@ def _buffer_connection():
     return ext_io_in_memory
 
 
+# pylint: disable-next=unused-argument
 def _walk_moler_python_files(path, *args):
     """
     Walk thru directory with commands and search for python source code (except __init__.py)
