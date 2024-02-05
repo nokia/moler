@@ -160,9 +160,9 @@ class Iperf3(Iperf2):
                 # pylint: disable-next=unused-variable
                 (
                     client_host,
-                    client_port,
-                    server_host,
-                    server_port,
+                    _,
+                    _,
+                    _,
                 ) = self._split_connection_name((client, server))
                 connection_id = "[SUM]"
                 self._connection_dict[connection_id] = (
@@ -268,11 +268,11 @@ class Iperf3(Iperf2):
             return  # for parallel we take report / publish stats only from summary records
         last_record = self.current_ret["CONNECTIONS"][connection_name][-1]
 
-        # pylint: disable-next=unused-variable
         if self._is_final_record(line):
+            # pylint: disable-next=unused-variable
             (
                 client_host,
-                client_port,
+                _,
                 server_host,
                 server_port,
             ) = self._split_connection_name(connection_name)

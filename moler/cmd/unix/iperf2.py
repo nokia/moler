@@ -534,7 +534,7 @@ class Iperf2(GenericUnixCommand, Publisher):
             # pylint: disable-next=unused-variable
             (
                 client_host,
-                client_port,
+                _,
                 server_host,
                 server_port,
             ) = self._split_connection_name(connection_name)
@@ -565,13 +565,13 @@ class Iperf2(GenericUnixCommand, Publisher):
         if len(self._connection_dict) < 1:
             return False
         result = self.current_ret["CONNECTIONS"]
-        # pylint: disable-next=unused-variable
         connections = list(self._connection_dict.values())
+        # pylint: disable-next=unused-variable
         (
             client_host,
-            client_port,
+            _,
             server_host,
-            server_port,
+            _,
         ) = self._split_connection_name(connections[0])
         from_client, to_server = client_host, "{}@{}".format(self.port, server_host)
         has_client_report = (from_client, to_server) in result
