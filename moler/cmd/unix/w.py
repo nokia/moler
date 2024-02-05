@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-__author__ = 'Mateusz Szczurek'
-__copyright__ = 'Copyright (C) 2019, Nokia'
-__email__ = 'mateusz.m.szczurek@nokia.com'
+__author__ = "Mateusz Szczurek"
+__copyright__ = "Copyright (C) 2019, Nokia"
+__email__ = "mateusz.m.szczurek@nokia.com"
 
-import re
 import datetime
+import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
@@ -13,7 +13,9 @@ from moler.exceptions import ParsingDone
 class W(GenericUnixCommand):
     """W command class."""
 
-    def __init__(self, connection, options="", prompt=None, newline_chars=None, runner=None):
+    def __init__(
+        self, connection, options="", prompt=None, newline_chars=None, runner=None
+    ):
         """
         W command.
 
@@ -23,14 +25,19 @@ class W(GenericUnixCommand):
         :param newline_chars: Characters to split lines - list.
         :param runner: Runner to run command.
         """
-        super(W, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+        super(W, self).__init__(
+            connection=connection,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
         # Parameters defined by calling the command
         self.options = options
         self.ret_required = False
         self._is_overwritten = False
-        self.current_ret['GENERAL_INFO'] = dict()
-        self.current_ret['RESULT'] = list()
-        self.headers = list()
+        self.current_ret["GENERAL_INFO"] = {}
+        self.current_ret["RESULT"] = []
+        self.headers = []
 
     # -hs -h -sh
     _re_h = re.compile(r"(?P<BEGINNING>-h)\S|(?P<SOLO>-h)|(?P<MIDDLE>h)")
@@ -43,9 +50,9 @@ class W(GenericUnixCommand):
         """
         if self._regex_helper.search_compiled(W._re_h, self.options):
             if self._regex_helper.group("SOLO"):
-                self.options = self.options.replace('-h', '')
+                self.options = self.options.replace("-h", "")
             else:
-                self.options = self.options.replace('h', '')
+                self.options = self.options.replace("h", "")
 
             cmd = "{} {}".format("w", self.options)
         else:
@@ -70,8 +77,10 @@ class W(GenericUnixCommand):
         return super(W, self).on_new_line(line, is_full_line)
 
     # 09:07:41 up 148 days, 21:57, 11 users,  load average: 1.92, 1.82, 1.81
-    _re_general_info = re.compile(r"(?P<TIME>\d{2}:\d{2}:\d{2})\s*up\s*(?P<UPTIME>.*),\s*(?P<USER_NUMBER>\d*)\s*users,"
-                                  r"\s*load\s*average:\s(?P<L_AVERAGE>\S*,\s*\S*,\s*\S*)")
+    _re_general_info = re.compile(
+        r"(?P<TIME>\d{2}:\d{2}:\d{2})\s*up\s*(?P<UPTIME>.*),\s*(?P<USER_NUMBER>\d*)\s*users,"
+        r"\s*load\s*average:\s(?P<L_AVERAGE>\S*,\s*\S*,\s*\S*)"
+    )
 
     def _parse_general_info(self, line):
         """
@@ -81,12 +90,16 @@ class W(GenericUnixCommand):
         :return: None but raises ParsingDone if line has the information to handle by this method.
         """
         if self._regex_helper.search_compiled(W._re_general_info, line):
-            self.current_ret['GENERAL_INFO'].update({
-                'time': datetime.datetime.strptime(self._regex_helper.group("TIME"), '%H:%M:%S').time(),
-                'uptime': self._regex_helper.group("UPTIME"),
-                'user_number': self._regex_helper.group("USER_NUMBER"),
-                'load_average': self._regex_helper.group("L_AVERAGE")
-            })
+            self.current_ret["GENERAL_INFO"].update(
+                {
+                    "time": datetime.datetime.strptime(
+                        self._regex_helper.group("TIME"), "%H:%M:%S"
+                    ).time(),
+                    "uptime": self._regex_helper.group("UPTIME"),
+                    "user_number": self._regex_helper.group("USER_NUMBER"),
+                    "load_average": self._regex_helper.group("L_AVERAGE"),
+                }
+            )
             raise ParsingDone
 
     # w from procps-ng 3.3.9
@@ -100,12 +113,12 @@ class W(GenericUnixCommand):
         :return: None but raises ParsingDone if line has the information to handle by this method.
         """
         if self._regex_helper.search_compiled(W._re_v_option, line):
-            self.current_ret['RESULT'].append(self._regex_helper.group("V_OPTION"))
+            self.current_ret["RESULT"].append(self._regex_helper.group("V_OPTION"))
             raise ParsingDone
 
     # USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
     # ute      pts/1    :0               07:14    0.00s  0.05s  0.00s w
-    _re_header = re.compile(r'(?P<HEADERS>\S+(\s\S+)*?)')
+    _re_header = re.compile(r"(?P<HEADERS>\S+(\s\S+)*?)")
 
     def _parse_header(self, line):
         """
@@ -121,22 +134,22 @@ class W(GenericUnixCommand):
                 raise ParsingDone
             else:
                 # Dictionary which is going to be appended to the returned list
-                ret = dict()
+                ret = {}
                 # List of entries
-                _entries = list()
+                _entries = []
                 # List of values in WHAT entry
-                _what_entry = list()
+                _what_entry = []
                 for value in re.findall(W._re_header, line):
                     _entries.append(value[0])
                 for what_index in range(len(self.headers) - 1, len(_entries)):
                     _what_entry.append(_entries[what_index])
-                _what_entry_string = ' '.join(_what_entry)
+                _what_entry_string = " ".join(_what_entry)
                 for index in range(len(self.headers)):
                     if index < len(self.headers) - 1:
                         ret.update({self.headers[index]: _entries[index]})
                     else:
                         ret.update({self.headers[index]: _what_entry_string})
-                self.current_ret['RESULT'].append(ret)
+                self.current_ret["RESULT"].append(ret)
                 raise ParsingDone
 
 
@@ -149,31 +162,37 @@ ute      pts/0    :0               07:28    4:35m  0.08s  0.08s bash
 host:~ # """
 
 COMMAND_RESULT_parse_general_case = {
-    'GENERAL_INFO': {'load_average': '0.50, 0.33, 0.14',
-                     'time': datetime.time(14, 40, 19),
-                     'uptime': '7:12',
-                     'user_number': '5'},
-    'RESULT': [{'FROM': ':0',
-                'IDLE': '?xdm?',
-                'JCPU': '29:23',
-                'LOGIN@': '07:28',
-                'PCPU': '0.04s',
-                'TTY': ':0',
-                'USER': 'ute',
-                'WHAT': 'gdm-session-worker [pam/gdm-password]'},
-               {'FROM': ':0',
-                'IDLE': '4:35m',
-                'JCPU': '0.08s',
-                'LOGIN@': '07:28',
-                'PCPU': '0.08s',
-                'TTY': 'pts/0',
-                'USER': 'ute',
-                'WHAT': 'bash'}]
-
+    "GENERAL_INFO": {
+        "load_average": "0.50, 0.33, 0.14",
+        "time": datetime.time(14, 40, 19),
+        "uptime": "7:12",
+        "user_number": "5",
+    },
+    "RESULT": [
+        {
+            "FROM": ":0",
+            "IDLE": "?xdm?",
+            "JCPU": "29:23",
+            "LOGIN@": "07:28",
+            "PCPU": "0.04s",
+            "TTY": ":0",
+            "USER": "ute",
+            "WHAT": "gdm-session-worker [pam/gdm-password]",
+        },
+        {
+            "FROM": ":0",
+            "IDLE": "4:35m",
+            "JCPU": "0.08s",
+            "LOGIN@": "07:28",
+            "PCPU": "0.08s",
+            "TTY": "pts/0",
+            "USER": "ute",
+            "WHAT": "bash",
+        },
+    ],
 }
 
-COMMAND_KWARGS_parse_general_case = {
-}
+COMMAND_KWARGS_parse_general_case = {}
 
 COMMAND_OUTPUT_s_option = """
 host:~ #  w -s
@@ -184,39 +203,34 @@ ute      pts/0    :0                6:19  bash
 host:~ # """
 
 COMMAND_RESULT_s_option = {
-    'GENERAL_INFO': {'load_average': '0.22, 0.33, 0.32',
-                     'time': datetime.time(10, 22, 30),
-                     'uptime': '3:09',
-                     'user_number': '3'},
-    'RESULT': [{'FROM': ':0',
-                'IDLE': '?xdm?',
-                'TTY': ':0',
-                'USER': 'ute',
-                'WHAT': 'gdm-session-worker [pam/gdm-password]'},
-               {'FROM': ':0',
-                'IDLE': '6:19',
-                'TTY': 'pts/0',
-                'USER': 'ute',
-                'WHAT': 'bash'}]
+    "GENERAL_INFO": {
+        "load_average": "0.22, 0.33, 0.32",
+        "time": datetime.time(10, 22, 30),
+        "uptime": "3:09",
+        "user_number": "3",
+    },
+    "RESULT": [
+        {
+            "FROM": ":0",
+            "IDLE": "?xdm?",
+            "TTY": ":0",
+            "USER": "ute",
+            "WHAT": "gdm-session-worker [pam/gdm-password]",
+        },
+        {"FROM": ":0", "IDLE": "6:19", "TTY": "pts/0", "USER": "ute", "WHAT": "bash"},
+    ],
 }
 
-COMMAND_KWARGS_s_option = {
-    "options": "-s"
-}
+COMMAND_KWARGS_s_option = {"options": "-s"}
 
 COMMAND_OUTPUT_V_option = """
 host:~ #  w -V
 w from procps-ng 3.3.9
 host:~ # """
 
-COMMAND_RESULT_V_option = {
-    'GENERAL_INFO': {},
-    'RESULT': ['w from procps-ng 3.3.9']
-}
+COMMAND_RESULT_V_option = {"GENERAL_INFO": {}, "RESULT": ["w from procps-ng 3.3.9"]}
 
-COMMAND_KWARGS_V_option = {
-    "options": "-V"
-}
+COMMAND_KWARGS_V_option = {"options": "-V"}
 
 COMMAND_OUTPUT_h_option_solo = """
 host:~ #  w -h
@@ -226,23 +240,27 @@ ute      :0       :0               07:28   ?xdm?  29:23   0.04s gdm-session-work
 host:~ # """
 
 COMMAND_RESULT_h_option_solo = {
-    'GENERAL_INFO': {'load_average': '0.50, 0.33, 0.14',
-                     'time': datetime.time(14, 40, 19),
-                     'uptime': '7:12',
-                     'user_number': '5'},
-    'RESULT': [{'FROM': ':0',
-                'IDLE': '?xdm?',
-                'JCPU': '29:23',
-                'LOGIN@': '07:28',
-                'PCPU': '0.04s',
-                'TTY': ':0',
-                'USER': 'ute',
-                'WHAT': 'gdm-session-worker [pam/gdm-password]'}]
+    "GENERAL_INFO": {
+        "load_average": "0.50, 0.33, 0.14",
+        "time": datetime.time(14, 40, 19),
+        "uptime": "7:12",
+        "user_number": "5",
+    },
+    "RESULT": [
+        {
+            "FROM": ":0",
+            "IDLE": "?xdm?",
+            "JCPU": "29:23",
+            "LOGIN@": "07:28",
+            "PCPU": "0.04s",
+            "TTY": ":0",
+            "USER": "ute",
+            "WHAT": "gdm-session-worker [pam/gdm-password]",
+        }
+    ],
 }
 
-COMMAND_KWARGS_h_option_solo = {
-    "options": "-h"
-}
+COMMAND_KWARGS_h_option_solo = {"options": "-h"}
 
 COMMAND_OUTPUT_h_option_middle = """
 host:~ #  w -sh
@@ -252,20 +270,24 @@ ute      :0       :0               07:28   ?xdm?  29:23   0.04s gdm-session-work
 host:~ # """
 
 COMMAND_RESULT_h_option_middle = {
-    'GENERAL_INFO': {'load_average': '0.50, 0.33, 0.14',
-                     'time': datetime.time(14, 40, 19),
-                     'uptime': '7:12',
-                     'user_number': '5'},
-    'RESULT': [{'FROM': ':0',
-                'IDLE': '?xdm?',
-                'JCPU': '29:23',
-                'LOGIN@': '07:28',
-                'PCPU': '0.04s',
-                'TTY': ':0',
-                'USER': 'ute',
-                'WHAT': 'gdm-session-worker [pam/gdm-password]'}]
+    "GENERAL_INFO": {
+        "load_average": "0.50, 0.33, 0.14",
+        "time": datetime.time(14, 40, 19),
+        "uptime": "7:12",
+        "user_number": "5",
+    },
+    "RESULT": [
+        {
+            "FROM": ":0",
+            "IDLE": "?xdm?",
+            "JCPU": "29:23",
+            "LOGIN@": "07:28",
+            "PCPU": "0.04s",
+            "TTY": ":0",
+            "USER": "ute",
+            "WHAT": "gdm-session-worker [pam/gdm-password]",
+        }
+    ],
 }
 
-COMMAND_KWARGS_h_option_middle = {
-    "options": "-sh"
-}
+COMMAND_KWARGS_h_option_middle = {"options": "-sh"}

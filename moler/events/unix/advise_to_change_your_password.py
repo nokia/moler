@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-__author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2020, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__author__ = "Marcin Usielski"
+__copyright__ = "Copyright (C) 2019-2020, Nokia"
+__email__ = "marcin.usielski@nokia.com"
 
 import datetime
 import re
@@ -19,8 +19,10 @@ class AdviseToChangeYourPassword(GenericUnixTextualEvent):
         :param till_occurs_times: number of event occurrence
         :param runner: Runner to run event
         """
-        super(AdviseToChangeYourPassword, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times)
-        self.current_ret = dict()
+        super(AdviseToChangeYourPassword, self).__init__(
+            connection=connection, runner=runner, till_occurs_times=till_occurs_times
+        )
+        self.current_ret = {}
 
     def on_new_line(self, line, is_full_line):
         """
@@ -38,14 +40,16 @@ class AdviseToChangeYourPassword(GenericUnixTextualEvent):
 
     # Warning: you are advised to change your password (more than 90 days old)
     _re_advise = re.compile(
-        r'Warning: you are advised to change your password \(more than\s+(?P<DAYS>\d+)\s+days old\)', re.I)
+        r"Warning: you are advised to change your password \(more than\s+(?P<DAYS>\d+)\s+days old\)",
+        re.I,
+    )
 
     def _parse_advise(self, line):
         if self._regex_helper.search(AdviseToChangeYourPassword._re_advise, line):
             self.current_ret["time"] = self._last_recv_time_data_read_from_connection
             self.current_ret["days"] = int(self._regex_helper.group("DAYS"))
             self.event_occurred(event_data=self.current_ret)
-            self.current_ret = dict()
+            self.current_ret = {}
             raise ParsingDone()
 
 
@@ -53,13 +57,6 @@ EVENT_OUTPUT = """
 Warning: you are advised to change your password (more than 90 days old)
 """
 
-EVENT_KWARGS = {
-    "till_occurs_times": 1
-}
+EVENT_KWARGS = {"till_occurs_times": 1}
 
-EVENT_RESULT = [
-    {
-        'time': datetime.datetime(2019, 1, 14, 13, 12, 48),
-        'days': 90
-    }
-]
+EVENT_RESULT = [{"time": datetime.datetime(2019, 1, 14, 13, 12, 48), "days": 90}]

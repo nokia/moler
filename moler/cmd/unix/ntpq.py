@@ -3,18 +3,26 @@
 Ntpq command module.
 """
 
-__author__ = 'Sylwester Golonka'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'sylwester.golonka@nokia.com'
+__author__ = "Sylwester Golonka"
+__copyright__ = "Copyright (C) 2018, Nokia"
+__email__ = "sylwester.golonka@nokia.com"
 
 import re
+
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
 
 
 class Ntpq(GenericUnixCommand):
-    def __init__(self, connection, options=None, prompt=None, newline_chars=None, runner=None):
-        super(Ntpq, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+    def __init__(
+        self, connection, options=None, prompt=None, newline_chars=None, runner=None
+    ):
+        super(Ntpq, self).__init__(
+            connection=connection,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
         self.options = options
         self.headers = []
         self.row_nr = 0
@@ -33,17 +41,17 @@ class Ntpq(GenericUnixCommand):
                 pass
         return super(Ntpq, self).on_new_line(line, is_full_line)
 
-    _re_parse_tab_details = re.compile(r'(?P<VALUE>\S+)')
+    _re_parse_tab_details = re.compile(r"(?P<VALUE>\S+)")
 
     def _parse_tab_details(self, line):
         if self._regex_helper.search(Ntpq._re_parse_tab_details, line):
             parse_all = re.findall(Ntpq._re_parse_tab_details, line)
-            if (len(parse_all) > 4):
+            if len(parse_all) > 4:
                 if not self.headers:
                     for parse in parse_all:
                         self.headers.append(parse)
                 else:
-                    self.current_ret[parse_all[0]] = dict()
+                    self.current_ret[parse_all[0]] = {}
                     for header, parse in zip(self.headers, parse_all):
                         self.current_ret[parse_all[0]][header] = parse
             raise ParsingDone
@@ -61,51 +69,57 @@ host:~ # ntpq -pn
 host:~ #"""
 
 COMMAND_RESULT_parms_pn = {
-    u'62.236.120.71': {u'delay': u'0.000',
-                       u'jitter': u'0.000',
-                       u'offset': u'0.000',
-                       u'poll': u'64',
-                       u'reach': u'0',
-                       u'refid': u'.INIT.',
-                       u'remote': u'62.236.120.71',
-                       u'st': u'16',
-                       u't': u'u',
-                       u'when': u'-'},
-    u'62.241.198.253': {u'delay': u'0.000',
-                        u'jitter': u'0.000',
-                        u'offset': u'0.000',
-                        u'poll': u'64',
-                        u'reach': u'0',
-                        u'refid': u'.INIT.',
-                        u'remote': u'62.241.198.253',
-                        u'st': u'16',
-                        u't': u'u',
-                        u'when': u'-'},
-    u'64.113.44.54': {u'delay': u'0.000',
-                      u'jitter': u'0.000',
-                      u'offset': u'0.000',
-                      u'poll': u'64',
-                      u'reach': u'0',
-                      u'refid': u'.INIT.',
-                      u'remote': u'64.113.44.54',
-                      u'st': u'16',
-                      u't': u'u',
-                      u'when': u'-'},
-    u'83.145.237.222': {u'delay': u'0.000',
-                        u'jitter': u'0.000',
-                        u'offset': u'0.000',
-                        u'poll': u'64',
-                        u'reach': u'0',
-                        u'refid': u'.INIT.',
-                        u'remote': u'83.145.237.222',
-                        u'st': u'16',
-                        u't': u'u',
-                        u'when': u'-'}
+    "62.236.120.71": {
+        "delay": "0.000",
+        "jitter": "0.000",
+        "offset": "0.000",
+        "poll": "64",
+        "reach": "0",
+        "refid": ".INIT.",
+        "remote": "62.236.120.71",
+        "st": "16",
+        "t": "u",
+        "when": "-",
+    },
+    "62.241.198.253": {
+        "delay": "0.000",
+        "jitter": "0.000",
+        "offset": "0.000",
+        "poll": "64",
+        "reach": "0",
+        "refid": ".INIT.",
+        "remote": "62.241.198.253",
+        "st": "16",
+        "t": "u",
+        "when": "-",
+    },
+    "64.113.44.54": {
+        "delay": "0.000",
+        "jitter": "0.000",
+        "offset": "0.000",
+        "poll": "64",
+        "reach": "0",
+        "refid": ".INIT.",
+        "remote": "64.113.44.54",
+        "st": "16",
+        "t": "u",
+        "when": "-",
+    },
+    "83.145.237.222": {
+        "delay": "0.000",
+        "jitter": "0.000",
+        "offset": "0.000",
+        "poll": "64",
+        "reach": "0",
+        "refid": ".INIT.",
+        "remote": "83.145.237.222",
+        "st": "16",
+        "t": "u",
+        "when": "-",
+    },
 }
 
-COMMAND_KWARGS_parms_pn = {
-    "options": "-pn"
-}
+COMMAND_KWARGS_parms_pn = {"options": "-pn"}
 
 COMMAND_OUTPUT_parms_p = """
 ute@debdev:~$ ntpq -p
@@ -119,48 +133,54 @@ ute@debdev:~$ ntpq -p
 host:~ #"""
 
 COMMAND_RESULT_parms_p = {
-    u'heh.fi': {u'delay': u'0.000',
-                u'jitter': u'0.000',
-                u'offset': u'0.000',
-                u'poll': u'64',
-                u'reach': u'0',
-                u'refid': u'.INIT.',
-                u'remote': u'heh.fi',
-                u'st': u'16',
-                u't': u'u',
-                u'when': u'-'},
-    u'ns2.posiona.net': {u'delay': u'0.000',
-                         u'jitter': u'0.000',
-                         u'offset': u'0.000',
-                         u'poll': u'64',
-                         u'reach': u'0',
-                         u'refid': u'.INIT.',
-                         u'remote': u'ns2.posiona.net',
-                         u'st': u'16',
-                         u't': u'u',
-                         u'when': u'-'},
-    u'ntp3.dnainterne': {u'delay': u'0.000',
-                         u'jitter': u'0.000',
-                         u'offset': u'0.000',
-                         u'poll': u'64',
-                         u'reach': u'0',
-                         u'refid': u'.INIT.',
-                         u'remote': u'ntp3.dnainterne',
-                         u'st': u'16',
-                         u't': u'u',
-                         u'when': u'-'},
-    u'rolex.netservic': {u'delay': u'0.000',
-                         u'jitter': u'0.000',
-                         u'offset': u'0.000',
-                         u'poll': u'64',
-                         u'reach': u'0',
-                         u'refid': u'.INIT.',
-                         u'remote': u'rolex.netservic',
-                         u'st': u'16',
-                         u't': u'u',
-                         u'when': u'-'}
+    "heh.fi": {
+        "delay": "0.000",
+        "jitter": "0.000",
+        "offset": "0.000",
+        "poll": "64",
+        "reach": "0",
+        "refid": ".INIT.",
+        "remote": "heh.fi",
+        "st": "16",
+        "t": "u",
+        "when": "-",
+    },
+    "ns2.posiona.net": {
+        "delay": "0.000",
+        "jitter": "0.000",
+        "offset": "0.000",
+        "poll": "64",
+        "reach": "0",
+        "refid": ".INIT.",
+        "remote": "ns2.posiona.net",
+        "st": "16",
+        "t": "u",
+        "when": "-",
+    },
+    "ntp3.dnainterne": {
+        "delay": "0.000",
+        "jitter": "0.000",
+        "offset": "0.000",
+        "poll": "64",
+        "reach": "0",
+        "refid": ".INIT.",
+        "remote": "ntp3.dnainterne",
+        "st": "16",
+        "t": "u",
+        "when": "-",
+    },
+    "rolex.netservic": {
+        "delay": "0.000",
+        "jitter": "0.000",
+        "offset": "0.000",
+        "poll": "64",
+        "reach": "0",
+        "refid": ".INIT.",
+        "remote": "rolex.netservic",
+        "st": "16",
+        "t": "u",
+        "when": "-",
+    },
 }
 
-COMMAND_KWARGS_parms_p = {
-    "options": "-p"
-}
+COMMAND_KWARGS_parms_p = {"options": "-p"}

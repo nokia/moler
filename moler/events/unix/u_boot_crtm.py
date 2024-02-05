@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-__author__ = 'Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
-__email__ = 'michal.ernst@nokia.com'
+__author__ = "Michal Ernst"
+__copyright__ = "Copyright (C) 2018-2020, Nokia"
+__email__ = "michal.ernst@nokia.com"
 
 import datetime
 import re
@@ -18,8 +18,10 @@ class UBootCrtm(GenericUnixTextualEvent):
         :param till_occurs_times: number of event occurrence
         :param runner: Runner to run event
         """
-        super(UBootCrtm, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times)
-        self.current_ret = dict()
+        super(UBootCrtm, self).__init__(
+            connection=connection, runner=runner, till_occurs_times=till_occurs_times
+        )
+        self.current_ret = {}
 
     def on_new_line(self, line, is_full_line):
         """
@@ -39,7 +41,7 @@ class UBootCrtm(GenericUnixTextualEvent):
             except ParsingDone:
                 pass
 
-    _re_u_boot_crtm = re.compile(r'U-Boot CRTM.*$')
+    _re_u_boot_crtm = re.compile(r"U-Boot CRTM.*$")
 
     def _parse_u_boot_crtm(self, line):
         if self._regex_helper.search(UBootCrtm._re_u_boot_crtm, line):
@@ -47,7 +49,7 @@ class UBootCrtm(GenericUnixTextualEvent):
 
             raise ParsingDone
 
-    _re_cpld_version = re.compile(r'\[CPLD\]\s*Version\s*=(?P<CPLD_version>.*)')
+    _re_cpld_version = re.compile(r"\[CPLD\]\s*Version\s*=(?P<CPLD_version>.*)")
 
     def _parse_cpld_version(self, line):
         if self._regex_helper.search(UBootCrtm._re_cpld_version, line):
@@ -55,23 +57,27 @@ class UBootCrtm(GenericUnixTextualEvent):
 
             raise ParsingDone
 
-    _re_reset_reason = re.compile(r'Reset\s*Reason\s*[=:](?P<CPLD_reset_reason>.*)')
+    _re_reset_reason = re.compile(r"Reset\s*Reason\s*[=:](?P<CPLD_reset_reason>.*)")
 
     def _parse_reset_reason(self, line):
         if self._regex_helper.search(UBootCrtm._re_reset_reason, line):
-            self.current_ret["CPLD_reset_reason"] = self._regex_helper.group("CPLD_reset_reason")
+            self.current_ret["CPLD_reset_reason"] = self._regex_helper.group(
+                "CPLD_reset_reason"
+            )
 
             raise ParsingDone
 
-    _re_board_id = re.compile(r'\[CPLD\]\s*Board Id\s*=(?P<CPLD_board_id>.*)')
+    _re_board_id = re.compile(r"\[CPLD\]\s*Board Id\s*=(?P<CPLD_board_id>.*)")
 
     def _parse_board_id(self, line):
         if self._regex_helper.search(UBootCrtm._re_board_id, line):
-            self.current_ret["CPLD_board_id"] = self._regex_helper.group("CPLD_board_id")
+            self.current_ret["CPLD_board_id"] = self._regex_helper.group(
+                "CPLD_board_id"
+            )
 
             raise ParsingDone
 
-    _re_gpir = re.compile(r'\[CPLD\]\s*GPIR\s*=(?P<CPLD_gpir>.*)')
+    _re_gpir = re.compile(r"\[CPLD\]\s*GPIR\s*=(?P<CPLD_gpir>.*)")
 
     def _parse_gpir(self, line):
         if self._regex_helper.search(UBootCrtm._re_gpir, line):
@@ -79,13 +85,13 @@ class UBootCrtm(GenericUnixTextualEvent):
 
             raise ParsingDone
 
-    _re_sjmpr = re.compile(r'\[CPLD\]\s*SJMPR\s*=(?P<CPLD_sjmpr>.*)')
+    _re_sjmpr = re.compile(r"\[CPLD\]\s*SJMPR\s*=(?P<CPLD_sjmpr>.*)")
 
     def _parse_sjmpr(self, line):
         if self._regex_helper.search(UBootCrtm._re_sjmpr, line):
             self.current_ret["CPLD_sjmpr"] = self._regex_helper.group("CPLD_sjmpr")
             self.event_occurred(event_data=self.current_ret)
-            self.current_ret = dict()
+            self.current_ret = {}
 
             raise ParsingDone
 
@@ -126,17 +132,15 @@ Using default environment
 SF: Detected MX25U12835E with page size 64 KiB, total 16 MiB
 """
 
-EVENT_KWARGS = {
-    "till_occurs_times": 1
-}
+EVENT_KWARGS = {"till_occurs_times": 1}
 
 EVENT_RESULT = [
     {
-        'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
-        'CPLD_version': ' 0x01.04',
-        'CPLD_board_id': ' 0x20',
-        'CPLD_reset_reason': ' [02 00] Reset',
-        'CPLD_gpir': ' 0x17',
-        'CPLD_sjmpr': ' 0x00'
+        "time": datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
+        "CPLD_version": " 0x01.04",
+        "CPLD_board_id": " 0x20",
+        "CPLD_reset_reason": " [02 00] Reset",
+        "CPLD_gpir": " 0x17",
+        "CPLD_sjmpr": " 0x00",
     }
 ]

@@ -3,19 +3,28 @@
 cut command module.
 """
 
-__author__ = 'Marcin Szlapa'
-__copyright__ = 'Copyright (C) 2019, Nokia'
-__email__ = 'marcin.szlapa@nokia.com'
+__author__ = "Marcin Szlapa"
+__copyright__ = "Copyright (C) 2019, Nokia"
+__email__ = "marcin.szlapa@nokia.com"
+
+import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
-from moler.exceptions import ParsingDone, CommandFailure
-import re
+from moler.exceptions import CommandFailure, ParsingDone
 
 
 class Cut(GenericUnixCommand):
     """Unix command cut."""
 
-    def __init__(self, connection, options=None, path=None, prompt=None, newline_chars=None, runner=None):
+    def __init__(
+        self,
+        connection,
+        options=None,
+        path=None,
+        prompt=None,
+        newline_chars=None,
+        runner=None,
+    ):
         """
         Unix command cut.
         :param connection: moler connection to device, terminal when command is executed
@@ -25,11 +34,15 @@ class Cut(GenericUnixCommand):
         :param newline_chars: Characters to split lines
         :param runner: Runner to run command
         """
-        super(Cut, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
-                                  runner=runner)
+        super(Cut, self).__init__(
+            connection=connection,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
         self.options = options
         self.path = path
-        self.current_ret["LINES"] = list()
+        self.current_ret["LINES"] = []
 
     def build_command_string(self):
         """
@@ -38,9 +51,9 @@ class Cut(GenericUnixCommand):
         """
         cmd = "cut"
         if self.options:
-            cmd = '{} {}'.format(cmd, self.options)
+            cmd = "{} {}".format(cmd, self.options)
         if self.path:
-            cmd = '{} {}'.format(cmd, self.path)
+            cmd = "{} {}".format(cmd, self.path)
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -59,11 +72,15 @@ class Cut(GenericUnixCommand):
         return super(Cut, self).on_new_line(line, is_full_line)
 
     # cut: you must specify a list of bytes, characters, or fields
-    _re_parse_error = re.compile(r'cut:\s(?P<ERROR>.*)')
+    _re_parse_error = re.compile(r"cut:\s(?P<ERROR>.*)")
 
     def _parse_error(self, line):
         if self._regex_helper.search_compiled(Cut._re_parse_error, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
+            self.set_exception(
+                CommandFailure(
+                    self, "ERROR: {}".format(self._regex_helper.group("ERROR"))
+                )
+            )
             raise ParsingDone
 
     # # This file describes the network interfaces av
@@ -89,19 +106,18 @@ allow-hotplug enp0s3
 iface enp0s3 inet dhcp
 host:~ #"""
 
-COMMAND_KWARGS_params = {
-    "options": "-d 'a' -f 1-3",
-    "path": "/etc/network/interfaces"
-}
+COMMAND_KWARGS_params = {"options": "-d 'a' -f 1-3", "path": "/etc/network/interfaces"}
 
 COMMAND_RESULT_params = {
-    "LINES": ["# This file describes the network interfaces av",
-              "# and how to activ",
-              "source /etc/network/interfaces.d/*",
-              "# The loopback network interface",
-              "auto lo",
-              "iface lo inet loopback",
-              "# The primary network interface",
-              "allow-hotplug enp0s3",
-              "iface enp0s3 inet dhcp"]
+    "LINES": [
+        "# This file describes the network interfaces av",
+        "# and how to activ",
+        "source /etc/network/interfaces.d/*",
+        "# The loopback network interface",
+        "auto lo",
+        "iface lo inet loopback",
+        "# The primary network interface",
+        "allow-hotplug enp0s3",
+        "iface enp0s3 inet dhcp",
+    ]
 }

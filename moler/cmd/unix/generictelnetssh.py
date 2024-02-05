@@ -3,20 +3,20 @@
 Base class for telnet and ssh commands.
 """
 
-__author__ = 'Marcin Usielski, Tomasz Krol'
-__copyright__ = 'Copyright (C) 2019-2021, Nokia'
-__email__ = 'marcin.usielski@nokia.com, tomasz.krol@nokia.com'
+__author__ = "Marcin Usielski, Tomasz Krol"
+__copyright__ = "Copyright (C) 2019-2021, Nokia"
+__email__ = "marcin.usielski@nokia.com, tomasz.krol@nokia.com"
 
-import re
-import six
 import abc
+import re
 
-from moler.cmd.commandtextualgeneric import CommandTextualGeneric
-from moler.cmd.commandchangingprompt import CommandChangingPrompt
-from moler.exceptions import CommandFailure
-from moler.exceptions import ParsingDone
-from moler.helpers import copy_list
+import six
 from dateutil import parser
+
+from moler.cmd.commandchangingprompt import CommandChangingPrompt
+from moler.cmd.commandtextualgeneric import CommandTextualGeneric
+from moler.exceptions import CommandFailure, ParsingDone
+from moler.helpers import copy_list
 from moler.util.converterhelper import ConverterHelper
 
 
@@ -36,16 +36,37 @@ class GenericTelnetSsh(CommandChangingPrompt):
         r"closed by foreign host|telnet:.*Name or service not known|No route to host|ssh: Could not|"
         r"is not a typo you can use command-not-found to lookup the package|command not found|"
         r"Too many authentication failures|Received disconnect from|Authentication failed",
-        re.IGNORECASE)
+        re.IGNORECASE,
+    )
 
     # CLIENT5 [] has just connected!
-    _re_has_just_connected = re.compile(r"has just connected|\{bash_history,ssh\}|Escape character is", re.IGNORECASE)
+    _re_has_just_connected = re.compile(
+        r"has just connected|\{bash_history,ssh\}|Escape character is", re.IGNORECASE
+    )
 
-    def __init__(self, connection, host, login=None, password=None, newline_chars=None, prompt=None, runner=None,
-                 port=0, expected_prompt=r'^>\s*', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
-                 term_mono="TERM=xterm-mono", encrypt_password=True, target_newline="\n",
-                 allowed_newline_after_prompt=False, repeat_password=True, failure_exceptions_indication=None,
-                 prompt_after_login=None, send_enter_after_connection=True, username=None):
+    def __init__(
+        self,
+        connection,
+        host,
+        login=None,
+        password=None,
+        newline_chars=None,
+        prompt=None,
+        runner=None,
+        port=0,
+        expected_prompt=r"^>\s*",
+        set_timeout=r"export TMOUT=\"2678400\"",
+        set_prompt=None,
+        term_mono="TERM=xterm-mono",
+        encrypt_password=True,
+        target_newline="\n",
+        allowed_newline_after_prompt=False,
+        repeat_password=True,
+        failure_exceptions_indication=None,
+        prompt_after_login=None,
+        send_enter_after_connection=True,
+        username=None,
+    ):
         """
         Base Moler class of Unix commands telnet and ssh.
 
@@ -72,25 +93,35 @@ class GenericTelnetSsh(CommandChangingPrompt):
         :param send_enter_after_connection: set True to send new line char(s) after connection is established, False
          otherwise.
         """
-        super(GenericTelnetSsh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
-                                               runner=runner, expected_prompt=expected_prompt, set_timeout=set_timeout,
-                                               set_prompt=set_prompt, target_newline=target_newline,
-                                               allowed_newline_after_prompt=allowed_newline_after_prompt,
-                                               prompt_after_login=prompt_after_login)
+        super(GenericTelnetSsh, self).__init__(
+            connection=connection,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+            expected_prompt=expected_prompt,
+            set_timeout=set_timeout,
+            set_prompt=set_prompt,
+            target_newline=target_newline,
+            allowed_newline_after_prompt=allowed_newline_after_prompt,
+            prompt_after_login=prompt_after_login,
+        )
 
         self.timeout = 90
         # Parameters defined by calling the command
         self._re_failure_exceptions_indication = None
         if failure_exceptions_indication:
-            self._re_failure_exceptions_indication = CommandTextualGeneric._calculate_prompt(
-                failure_exceptions_indication)
+            self._re_failure_exceptions_indication = (
+                CommandTextualGeneric._calculate_prompt(failure_exceptions_indication)
+            )
         self.login = login
         if isinstance(password, six.string_types):
             self._passwords = [password]
         elif password is None:
             self._passwords = []
         else:
-            self._passwords = copy_list(password, deep_copy=False)  # copy of list of passwords to modify
+            self._passwords = copy_list(
+                password, deep_copy=False
+            )  # copy of list of passwords to modify
         self.host = host
         self.port = port
         self.term_mono = term_mono
@@ -104,13 +135,17 @@ class GenericTelnetSsh(CommandChangingPrompt):
 
         if login and username:
             self.command_string = self.__class__.__name__
-            raise CommandFailure(self, "Please set login ('{}') or username ('{}') but not both.".format(login,
-                                                                                                         username))
+            raise CommandFailure(
+                self,
+                "Please set login ('{}') or username ('{}') but not both.".format(
+                    login, username
+                ),
+            )
         elif username:
             self.login = username
-        self.current_ret['LINES'] = list()
-        self.current_ret['LAST_LOGIN'] = dict()
-        self.current_ret['FAILED_LOGIN_ATTEMPTS'] = None
+        self.current_ret["LINES"] = []
+        self.current_ret["LAST_LOGIN"] = {}
+        self.current_ret["FAILED_LOGIN_ATTEMPTS"] = None
         self._converter_helper = ConverterHelper.get_converter_helper()
 
     def on_new_line(self, line, is_full_line):
@@ -134,12 +169,17 @@ class GenericTelnetSsh(CommandChangingPrompt):
         super(GenericTelnetSsh, self).on_new_line(line=line, is_full_line=is_full_line)
 
     # Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
-    _re_last_login = re.compile(r"Last login:\s+(?P<DATE>.*?)\s+(?P<KIND>from|on)\s+(?P<WHERE>\S+)", re.IGNORECASE)
+    _re_last_login = re.compile(
+        r"Last login:\s+(?P<DATE>.*?)\s+(?P<KIND>from|on)\s+(?P<WHERE>\S+)",
+        re.IGNORECASE,
+    )
 
     # There were 2 failed login attempts since the last successful login
     _re_attempts = re.compile(
-        r'There (?:were|was|have been) (?P<ATTEMPTS_NR>\d+) (?:failed|unsuccessful) login attempts? '
-        r'since the last successful login', re.I)
+        r"There (?:were|was|have been) (?P<ATTEMPTS_NR>\d+) (?:failed|unsuccessful) login attempts? "
+        r"since the last successful login",
+        re.I,
+    )
 
     def _add_line_to_ret(self, line):
         """
@@ -148,19 +188,22 @@ class GenericTelnetSsh(CommandChangingPrompt):
         :param line: line form connection.
         :return: None
         """
-        self.current_ret['LINES'].append(line)
+        self.current_ret["LINES"].append(line)
         if self._regex_helper.search_compiled(GenericTelnetSsh._re_last_login, line):
             date_raw = self._regex_helper.group("DATE")
-            self.current_ret['LAST_LOGIN']['RAW_DATE'] = date_raw
-            self.current_ret['LAST_LOGIN']['KIND'] = self._regex_helper.group("KIND")
-            self.current_ret['LAST_LOGIN']['WHERE'] = self._regex_helper.group("WHERE")
+            self.current_ret["LAST_LOGIN"]["RAW_DATE"] = date_raw
+            self.current_ret["LAST_LOGIN"]["KIND"] = self._regex_helper.group("KIND")
+            self.current_ret["LAST_LOGIN"]["WHERE"] = self._regex_helper.group("WHERE")
             try:
-                self.current_ret['LAST_LOGIN']['DATE'] = parser.parse(date_raw)
+                self.current_ret["LAST_LOGIN"]["DATE"] = parser.parse(date_raw)
             except Exception:  # do not fail ssh or telnet if unknown date format.
                 pass
         elif self._regex_helper.search_compiled(GenericTelnetSsh._re_attempts, line):
-            self.current_ret['FAILED_LOGIN_ATTEMPTS'] = self._converter_helper.to_number(
-                self._regex_helper.group("ATTEMPTS_NR"))
+            self.current_ret[
+                "FAILED_LOGIN_ATTEMPTS"
+            ] = self._converter_helper.to_number(
+                self._regex_helper.group("ATTEMPTS_NR")
+            )
 
     def _parse_failure_indication(self, line):
         """
@@ -172,7 +215,9 @@ class GenericTelnetSsh(CommandChangingPrompt):
         """
         if self.is_failure_indication(line):
             if not self._is_failure_exception(line):
-                self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+                self.set_exception(
+                    CommandFailure(self, "command failed in line '{}'".format(line))
+                )
                 raise ParsingDone()
 
     def _just_connected(self, line):
@@ -183,7 +228,9 @@ class GenericTelnetSsh(CommandChangingPrompt):
         :return: None but raises ParsingDone if line has information to handle by this method.
         """
         if self.send_enter_after_connection:
-            if self._regex_helper.search_compiled(GenericTelnetSsh._re_has_just_connected, line):
+            if self._regex_helper.search_compiled(
+                GenericTelnetSsh._re_has_just_connected, line
+            ):
                 self.connection.send(self.target_newline)
                 raise ParsingDone()
 
@@ -211,13 +258,23 @@ class GenericTelnetSsh(CommandChangingPrompt):
             try:
                 pwd = self._passwords.pop(0)
                 self._last_password = pwd
-                self.connection.send("{}{}".format(pwd, self.target_newline), encrypt=self.encrypt_password)
+                self.connection.send(
+                    "{}{}".format(pwd, self.target_newline),
+                    encrypt=self.encrypt_password,
+                )
             except IndexError:
                 if self.repeat_password:
-                    self.connection.send("{}{}".format(self._last_password, self.target_newline),
-                                         encrypt=self.encrypt_password)
+                    self.connection.send(
+                        "{}{}".format(self._last_password, self.target_newline),
+                        encrypt=self.encrypt_password,
+                    )
                 else:
-                    self.set_exception(CommandFailure(self, "Password was requested but no more passwords provided."))
+                    self.set_exception(
+                        CommandFailure(
+                            self,
+                            "Password was requested but no more passwords provided.",
+                        )
+                    )
                     self.break_cmd()
             self._sent_login = False
             self._sent = True
@@ -230,7 +287,9 @@ class GenericTelnetSsh(CommandChangingPrompt):
         :param line: Line from device
         :return: Match object or None
         """
-        return self._regex_helper.search_compiled(GenericTelnetSsh._re_failed_strings, line)
+        return self._regex_helper.search_compiled(
+            GenericTelnetSsh._re_failed_strings, line
+        )
 
     def _is_failure_exception(self, line):
         """
@@ -241,7 +300,9 @@ class GenericTelnetSsh(CommandChangingPrompt):
         """
         if not self._re_failure_exceptions_indication:
             return None
-        return self._regex_helper.search_compiled(self._re_failure_exceptions_indication, line)
+        return self._regex_helper.search_compiled(
+            self._re_failure_exceptions_indication, line
+        )
 
     def _is_login_requested(self, line):
         """

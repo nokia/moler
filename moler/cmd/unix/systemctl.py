@@ -3,9 +3,9 @@
 Systemctl command module.
 """
 
-__author__ = 'Michal Ernst'
-__copyright__ = 'Copyright (C) 2019, Nokia'
-__email__ = 'michal.ernst@nokia.com'
+__author__ = "Michal Ernst"
+__copyright__ = "Copyright (C) 2019, Nokia"
+__email__ = "michal.ernst@nokia.com"
 
 import re
 
@@ -14,9 +14,17 @@ from moler.exceptions import ParsingDone
 
 
 class Systemctl(Service):
-
-    def __init__(self, connection, options=None, service=None, password=None, prompt=None, newline_chars=None,
-                 runner=None, encrypt_password=True):
+    def __init__(
+        self,
+        connection,
+        options=None,
+        service=None,
+        password=None,
+        prompt=None,
+        newline_chars=None,
+        runner=None,
+        encrypt_password=True,
+    ):
         """
         Constructs object for Unix command systemctl.
 
@@ -29,9 +37,13 @@ class Systemctl(Service):
         :param runner: Runner to run command.
         :param encrypt_password: If True then * will be in logs when password is sent, otherwise plain text.
         """
-        super(Systemctl, self).__init__(connection=connection, options=options, prompt=prompt,
-                                        newline_chars=newline_chars,
-                                        runner=runner)
+        super(Systemctl, self).__init__(
+            connection=connection,
+            options=options,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
         # Parameters defined by calling the command
         self.service = service
         self.password = password
@@ -105,24 +117,30 @@ class Systemctl(Service):
         :return: None.
         :raises: ParsingDone if regex matches the line.
         """
-        if is_full_line and self._regex_helper.search_compiled(Systemctl._re_authenticating_as, line):
-            self.current_ret['USER'] = self._regex_helper.group('USER')
+        if is_full_line and self._regex_helper.search_compiled(
+            Systemctl._re_authenticating_as, line
+        ):
+            self.current_ret["USER"] = self._regex_helper.group("USER")
             raise ParsingDone
 
     _columns = ["UNIT", "LOAD", "ACTIVE", "SUB", "DESCRIPTION"]
 
     # UNIT                                                                    LOAD   ACTIVE     SUB          DESCRIPTION
-    _re_header = re.compile(r'\s+'.join(map(str, _columns)), re.I)
+    _re_header = re.compile(r"\s+".join(map(str, _columns)), re.I)
 
     def _parse_header(self, line, is_full_line):
-        if is_full_line and self._regex_helper.search_compiled(Systemctl._re_header, line):
+        if is_full_line and self._regex_helper.search_compiled(
+            Systemctl._re_header, line
+        ):
             self._header_found = True
 
             raise ParsingDone
 
     # basic.target                                                           loaded active     active       Basic System
     _re_line = re.compile(
-        r"^\s+(?P<UNIT>\S+)\s+(?P<LOAD>\S+)\s+(?P<ACTIVE>\S+)\s+(?P<SUB>\S+)\s+(?P<DESCRIPTION>.+)", re.I)
+        r"^\s+(?P<UNIT>\S+)\s+(?P<LOAD>\S+)\s+(?P<ACTIVE>\S+)\s+(?P<SUB>\S+)\s+(?P<DESCRIPTION>.+)",
+        re.I,
+    )
 
     def _parse_line(self, line, is_full_line):
         """
@@ -134,12 +152,18 @@ class Systemctl(Service):
         :raises: ParsingDone if regex matches the line.
         """
 
-        if is_full_line and self._header_found and self._regex_helper.search_compiled(Systemctl._re_line, line):
+        if (
+            is_full_line
+            and self._header_found
+            and self._regex_helper.search_compiled(Systemctl._re_line, line)
+        ):
             service = self._regex_helper.group(Systemctl._columns[0])
-            self.current_ret[service] = dict()
+            self.current_ret[service] = {}
 
             for column in Systemctl._columns[1:]:
-                self.current_ret[service][column] = self._regex_helper.group(column.strip())
+                self.current_ret[service][column] = self._regex_helper.group(
+                    column.strip()
+                )
 
             raise ParsingDone
 
@@ -147,7 +171,9 @@ class Systemctl(Service):
     _re_send_space_or_q = re.compile(r"^lines.+")
 
     def _parse_send_space_or_q(self, line):
-        if not self._space_or_q_sent and self._regex_helper.search_compiled(Systemctl._re_send_space_or_q, line):
+        if not self._space_or_q_sent and self._regex_helper.search_compiled(
+            Systemctl._re_send_space_or_q, line
+        ):
             if "END" in line:
                 self.connection.sendline("q")
             else:
@@ -173,25 +199,25 @@ Jul 19 15:15:42 debdev sshd[2544]: Server listening on 0.0.0.0 port 22.
 Jul 19 15:15:43 debdev sshd[2544]: Server listening on :: port 22.
 user@debdev:/home/ute# """
 
-COMMAND_KWARGS_status = {
-    'options': 'status',
-    'service': 'ssh.service'
-}
+COMMAND_KWARGS_status = {"options": "status", "service": "ssh.service"}
 
 COMMAND_RESULT_status = {
-    'Description': 'OpenBSD Secure Shell server',
-    'Service': 'ssh.service',
-    'Loaded': 'loaded (/lib/systemd/system/ssh.service; enabled)',
-    'Active': 'active (running) since Thu 2018-07-19 15:15:42 CEST; 32s ago',
-    'Process': ['1231 ExecReload=/bin/kill -HUP $MAINPID (code=exited, status=0/SUCCESS)',
-                '1227 ExecReload=/usr/sbin/sshd -t (code=exited, status=0/SUCCESS)',
-                '2543 ExecStartPre=/usr/sbin/sshd -t (code=exited, status=0/SUCCESS)',
-                ],
-    'Main PID': '2544 (sshd)',
-    'CGroup': '/system.slice/ssh.service',
-    'Log': ['Jul 19 15:15:42 debdev systemd[1]: Started OpenBSD Secure Shell server.',
-            'Jul 19 15:15:42 debdev sshd[2544]: Server listening on 0.0.0.0 port 22.',
-            'Jul 19 15:15:43 debdev sshd[2544]: Server listening on :: port 22.'],
+    "Description": "OpenBSD Secure Shell server",
+    "Service": "ssh.service",
+    "Loaded": "loaded (/lib/systemd/system/ssh.service; enabled)",
+    "Active": "active (running) since Thu 2018-07-19 15:15:42 CEST; 32s ago",
+    "Process": [
+        "1231 ExecReload=/bin/kill -HUP $MAINPID (code=exited, status=0/SUCCESS)",
+        "1227 ExecReload=/usr/sbin/sshd -t (code=exited, status=0/SUCCESS)",
+        "2543 ExecStartPre=/usr/sbin/sshd -t (code=exited, status=0/SUCCESS)",
+    ],
+    "Main PID": "2544 (sshd)",
+    "CGroup": "/system.slice/ssh.service",
+    "Log": [
+        "Jul 19 15:15:42 debdev systemd[1]: Started OpenBSD Secure Shell server.",
+        "Jul 19 15:15:42 debdev sshd[2544]: Server listening on 0.0.0.0 port 22.",
+        "Jul 19 15:15:43 debdev sshd[2544]: Server listening on :: port 22.",
+    ],
 }
 
 COMMAND_OUTPUT_start = """user@debdev:/home/ute# systemctl start ssh.service
@@ -203,14 +229,12 @@ Password:
 user@debdev:/home/ute#"""
 
 COMMAND_KWARGS_start = {
-    'options': 'start',
-    'service': 'ssh.service',
-    'password': 'password'
+    "options": "start",
+    "service": "ssh.service",
+    "password": "password",
 }
 
-COMMAND_RESULT_start = {
-    "USER": 'root'
-}
+COMMAND_RESULT_start = {"USER": "root"}
 
 COMMAND_OUTPUT = """user@debdev:/home/ute# systemctl
   UNIT                                                                                      LOAD   ACTIVE     SUB          DESCRIPTION
@@ -247,110 +271,157 @@ SUB    = The low-level unit activation state, values depend on unit type.
 To show all installed unit files use 'systemctl list-unit-files'.
 user@debdev:/home/ute# """
 
-COMMAND_KWARGS = {
-}
+COMMAND_KWARGS = {}
 
 COMMAND_RESULT = {
-    'anacron.timer': {'ACTIVE': 'active',
-                      'DESCRIPTION': 'Trigger anacron every hour',
-                      'LOAD': 'loaded',
-                      'SUB': 'waiting'},
-    'apt-daily-upgrade.timer': {'ACTIVE': 'active',
-                                'DESCRIPTION': 'Daily apt upgrade and clean '
-                                               'activities',
-                                'LOAD': 'loaded',
-                                'SUB': 'waiting'},
-    'apt-daily.timer': {'ACTIVE': 'active',
-                        'DESCRIPTION': 'Daily apt download activities',
-                        'LOAD': 'loaded',
-                        'SUB': 'waiting'},
-    'basic.target': {'ACTIVE': 'active',
-                     'DESCRIPTION': 'Basic System',
-                     'LOAD': 'loaded',
-                     'SUB': 'active'},
-    'cryptsetup.target': {'ACTIVE': 'active',
-                          'DESCRIPTION': 'Encrypted Volumes',
-                          'LOAD': 'loaded',
-                          'SUB': 'active'},
-    'getty.target': {'ACTIVE': 'active',
-                     'DESCRIPTION': 'Login Prompts',
-                     'LOAD': 'loaded',
-                     'SUB': 'active'},
-    'graphical.target': {'ACTIVE': 'active',
-                         'DESCRIPTION': 'Graphical Interface',
-                         'LOAD': 'loaded',
-                         'SUB': 'active'},
-    'local-fs-pre.target': {'ACTIVE': 'active',
-                            'DESCRIPTION': 'Local File Systems (Pre)',
-                            'LOAD': 'loaded',
-                            'SUB': 'active'},
-    'local-fs.target': {'ACTIVE': 'active',
-                        'DESCRIPTION': 'Local File Systems',
-                        'LOAD': 'loaded',
-                        'SUB': 'active'},
-    'multi-user.target': {'ACTIVE': 'active',
-                          'DESCRIPTION': 'Multi-User System',
-                          'LOAD': 'loaded',
-                          'SUB': 'active'},
-    'network-online.target': {'ACTIVE': 'active',
-                              'DESCRIPTION': 'Network is Online',
-                              'LOAD': 'loaded',
-                              'SUB': 'active'},
-    'network-pre.target': {'ACTIVE': 'active',
-                           'DESCRIPTION': 'Network (Pre)',
-                           'LOAD': 'loaded',
-                           'SUB': 'active'},
-    'network.target': {'ACTIVE': 'active',
-                       'DESCRIPTION': 'Network',
-                       'LOAD': 'loaded',
-                       'SUB': 'active'},
-    'nss-lookup.target': {'ACTIVE': 'active',
-                          'DESCRIPTION': 'Host and Network Name Lookups',
-                          'LOAD': 'loaded',
-                          'SUB': 'active'},
-    'nss-user-lookup.target': {'ACTIVE': 'active',
-                               'DESCRIPTION': 'User and Group Name Lookups',
-                               'LOAD': 'loaded',
-                               'SUB': 'active'},
-    'paths.target': {'ACTIVE': 'active',
-                     'DESCRIPTION': 'Paths',
-                     'LOAD': 'loaded',
-                     'SUB': 'active'},
-    'remote-fs.target': {'ACTIVE': 'active',
-                         'DESCRIPTION': 'Remote File Systems',
-                         'LOAD': 'loaded',
-                         'SUB': 'active'},
-    'slices.target': {'ACTIVE': 'active',
-                      'DESCRIPTION': 'Slices',
-                      'LOAD': 'loaded',
-                      'SUB': 'active'},
-    'sockets.target': {'ACTIVE': 'active',
-                       'DESCRIPTION': 'Sockets',
-                       'LOAD': 'loaded',
-                       'SUB': 'active'},
-    'sound.target': {'ACTIVE': 'active',
-                     'DESCRIPTION': 'Sound Card',
-                     'LOAD': 'loaded',
-                     'SUB': 'active'},
-    'swap.target': {'ACTIVE': 'active',
-                    'DESCRIPTION': 'Swap',
-                    'LOAD': 'loaded',
-                    'SUB': 'active'},
-    'sysinit.target': {'ACTIVE': 'active',
-                       'DESCRIPTION': 'System Initialization',
-                       'LOAD': 'loaded',
-                       'SUB': 'active'},
-    'systemd-tmpfiles-clean.timer': {'ACTIVE': 'active',
-                                     'DESCRIPTION': 'Daily Cleanup of '
-                                                    'Temporary Directories',
-                                     'LOAD': 'loaded',
-                                     'SUB': 'waiting'},
-    'time-sync.target': {'ACTIVE': 'active',
-                         'DESCRIPTION': 'System Time Synchronized',
-                         'LOAD': 'loaded',
-                         'SUB': 'active'},
-    'timers.target': {'ACTIVE': 'active',
-                      'DESCRIPTION': 'Timers',
-                      'LOAD': 'loaded',
-                      'SUB': 'active'}
+    "anacron.timer": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Trigger anacron every hour",
+        "LOAD": "loaded",
+        "SUB": "waiting",
+    },
+    "apt-daily-upgrade.timer": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Daily apt upgrade and clean " "activities",
+        "LOAD": "loaded",
+        "SUB": "waiting",
+    },
+    "apt-daily.timer": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Daily apt download activities",
+        "LOAD": "loaded",
+        "SUB": "waiting",
+    },
+    "basic.target": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Basic System",
+        "LOAD": "loaded",
+        "SUB": "active",
+    },
+    "cryptsetup.target": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Encrypted Volumes",
+        "LOAD": "loaded",
+        "SUB": "active",
+    },
+    "getty.target": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Login Prompts",
+        "LOAD": "loaded",
+        "SUB": "active",
+    },
+    "graphical.target": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Graphical Interface",
+        "LOAD": "loaded",
+        "SUB": "active",
+    },
+    "local-fs-pre.target": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Local File Systems (Pre)",
+        "LOAD": "loaded",
+        "SUB": "active",
+    },
+    "local-fs.target": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Local File Systems",
+        "LOAD": "loaded",
+        "SUB": "active",
+    },
+    "multi-user.target": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Multi-User System",
+        "LOAD": "loaded",
+        "SUB": "active",
+    },
+    "network-online.target": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Network is Online",
+        "LOAD": "loaded",
+        "SUB": "active",
+    },
+    "network-pre.target": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Network (Pre)",
+        "LOAD": "loaded",
+        "SUB": "active",
+    },
+    "network.target": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Network",
+        "LOAD": "loaded",
+        "SUB": "active",
+    },
+    "nss-lookup.target": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Host and Network Name Lookups",
+        "LOAD": "loaded",
+        "SUB": "active",
+    },
+    "nss-user-lookup.target": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "User and Group Name Lookups",
+        "LOAD": "loaded",
+        "SUB": "active",
+    },
+    "paths.target": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Paths",
+        "LOAD": "loaded",
+        "SUB": "active",
+    },
+    "remote-fs.target": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Remote File Systems",
+        "LOAD": "loaded",
+        "SUB": "active",
+    },
+    "slices.target": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Slices",
+        "LOAD": "loaded",
+        "SUB": "active",
+    },
+    "sockets.target": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Sockets",
+        "LOAD": "loaded",
+        "SUB": "active",
+    },
+    "sound.target": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Sound Card",
+        "LOAD": "loaded",
+        "SUB": "active",
+    },
+    "swap.target": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Swap",
+        "LOAD": "loaded",
+        "SUB": "active",
+    },
+    "sysinit.target": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "System Initialization",
+        "LOAD": "loaded",
+        "SUB": "active",
+    },
+    "systemd-tmpfiles-clean.timer": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Daily Cleanup of " "Temporary Directories",
+        "LOAD": "loaded",
+        "SUB": "waiting",
+    },
+    "time-sync.target": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "System Time Synchronized",
+        "LOAD": "loaded",
+        "SUB": "active",
+    },
+    "timers.target": {
+        "ACTIVE": "active",
+        "DESCRIPTION": "Timers",
+        "LOAD": "loaded",
+        "SUB": "active",
+    },
 }

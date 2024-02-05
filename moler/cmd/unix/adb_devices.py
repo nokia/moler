@@ -2,9 +2,9 @@
 Module for command adb devices.
 """
 
-__author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2022, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__author__ = "Marcin Usielski"
+__copyright__ = "Copyright (C) 2022, Nokia"
+__email__ = "marcin.usielski@nokia.com"
 
 
 import re
@@ -14,8 +14,14 @@ from moler.exceptions import ParsingDone
 
 
 class AdbDevices(GenericUnixCommand):
-
-    def __init__(self, connection=None, prompt=None, newline_chars=None, runner=None, options=None):
+    def __init__(
+        self,
+        connection=None,
+        prompt=None,
+        newline_chars=None,
+        runner=None,
+        options=None,
+    ):
         """
         Create instance of adb devices class.
         :param connection: Moler connection to device, terminal when command is executed.
@@ -23,18 +29,24 @@ class AdbDevices(GenericUnixCommand):
         :param newline_chars: Characters to split lines - list.
         :param runner: Runner to run command.
         """
-        super(AdbDevices, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
-                                         runner=runner)
+        super(AdbDevices, self).__init__(
+            connection=connection,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
         self.options = options
         self.ret_required = False
-        self.current_ret['DEVICES'] = dict()
+        self.current_ret["DEVICES"] = {}
 
     def build_command_string(self):
         """
         Builds command string from parameters passed to object.
         :return: String representation of command to send over connection to device.
         """
-        cmd = "adb devices" if not self.options else "adb devices {}".format(self.options)
+        cmd = (
+            "adb devices" if not self.options else "adb devices {}".format(self.options)
+        )
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -67,9 +79,9 @@ class AdbDevices(GenericUnixCommand):
         if self._regex_helper.search_compiled(AdbDevices._re_2_elements, line):
             name = self._regex_helper.group("NAME")
             kind = self._regex_helper.group("TYPE")
-            self.current_ret['DEVICES'][name] = dict()
-            self.current_ret['DEVICES'][name]['NAME'] = name
-            self.current_ret['DEVICES'][name]['TYPE'] = kind
+            self.current_ret["DEVICES"][name] = {}
+            self.current_ret["DEVICES"][name]["NAME"] = name
+            self.current_ret["DEVICES"][name]["TYPE"] = kind
             raise ParsingDone()
 
     # emulator-5556 device product:sdk_google_phone_x86_64 model:Android_SDK_built_for_x86_64 device:generic_x86_64
@@ -79,15 +91,15 @@ class AdbDevices(GenericUnixCommand):
         if self._regex_helper.search_compiled(AdbDevices._re_more_elements, line):
             name = self._regex_helper.group("NAME")
             kind = self._regex_helper.group("TYPE")
-            raw = self._regex_helper.group('RAW')
-            self.current_ret['DEVICES'][name] = dict()
-            self.current_ret['DEVICES'][name]['DETAILS'] = dict()
-            self.current_ret['DEVICES'][name]['NAME'] = name
-            self.current_ret['DEVICES'][name]['TYPE'] = kind
-            self.current_ret['DEVICES'][name]['DETAILS']['raw'] = raw
+            raw = self._regex_helper.group("RAW")
+            self.current_ret["DEVICES"][name] = {}
+            self.current_ret["DEVICES"][name]["DETAILS"] = {}
+            self.current_ret["DEVICES"][name]["NAME"] = name
+            self.current_ret["DEVICES"][name]["TYPE"] = kind
+            self.current_ret["DEVICES"][name]["DETAILS"]["raw"] = raw
             for subelement in raw.split():
                 token_name, token_value = subelement.split(":")
-                self.current_ret['DEVICES'][name]['DETAILS'][token_name] = token_value
+                self.current_ret["DEVICES"][name]["DETAILS"][token_name] = token_value
             raise ParsingDone()
 
 
@@ -97,10 +109,10 @@ emulator-4357 device
 $"""
 
 COMMAND_RESULT = {
-    'DEVICES': {
-        'emulator-4357': {
-            'NAME': 'emulator-4357',
-            'TYPE': 'device',
+    "DEVICES": {
+        "emulator-4357": {
+            "NAME": "emulator-4357",
+            "TYPE": "device",
         }
     },
 }
@@ -114,16 +126,16 @@ emulator-4356 device product:sdk_google_phone_x86_64 model:Android_SDK_built_for
 $"""
 
 COMMAND_RESULT_more = {
-    'DEVICES': {
-        'emulator-4356': {
-            'NAME': 'emulator-4356',
-            'TYPE': 'device',
-            'DETAILS': {
-                'raw': 'product:sdk_google_phone_x86_64 model:Android_SDK_built_for_x86_64 device:generic_x86_64',
-                'product': 'sdk_google_phone_x86_64',
-                'model': 'Android_SDK_built_for_x86_64',
-                'device': 'generic_x86_64',
-            }
+    "DEVICES": {
+        "emulator-4356": {
+            "NAME": "emulator-4356",
+            "TYPE": "device",
+            "DETAILS": {
+                "raw": "product:sdk_google_phone_x86_64 model:Android_SDK_built_for_x86_64 device:generic_x86_64",
+                "product": "sdk_google_phone_x86_64",
+                "model": "Android_SDK_built_for_x86_64",
+                "device": "generic_x86_64",
+            },
         }
     },
 }

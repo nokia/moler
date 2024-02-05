@@ -7,9 +7,9 @@ google for: 3gpp specification 27.007
 (always check against latest version of standard)
 """
 
-__author__ = 'Adam Klekowski'
-__copyright__ = 'Copyright (C) 2020, Nokia'
-__email__ = 'adam.klekowski@nokia.com'
+__author__ = "Adam Klekowski"
+__copyright__ = "Copyright (C) 2020, Nokia"
+__email__ = "adam.klekowski@nokia.com"
 
 import re
 
@@ -32,11 +32,17 @@ class GetProductInfo(GenericAtCommand):
 
     OK
     """
+
     def __init__(self, connection=None, prompt=None, newline_chars=None, runner=None):
         """Create instance of GetProductInfo class"""
-        super(GetProductInfo, self).__init__(connection, operation='execute', prompt=prompt,
-                                             newline_chars=newline_chars, runner=runner)
-        self.current_ret = dict()
+        super(GetProductInfo, self).__init__(
+            connection,
+            operation="execute",
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
+        self.current_ret = {}
 
     def build_command_string(self):
         return "ATI"
@@ -70,7 +76,9 @@ class GetProductInfo(GenericAtCommand):
         return super(GetProductInfo, self).on_new_line(line, is_full_line)
 
     # Manufacturer: QUALCOMM INCORPORATED
-    _re_product_information = re.compile(r'^(?P<key>([^\:\n]+))\:( )*(?P<value>([^\n]+))$')
+    _re_product_information = re.compile(
+        r"^(?P<key>([^\:\n]+))\:( )*(?P<value>([^\n]+))$"
+    )
 
     def _parse_product_information(self, line):
         """
@@ -86,7 +94,9 @@ class GetProductInfo(GenericAtCommand):
         +GCAP: +CGSM
         """
         if self._regex_helper.match_compiled(self._re_product_information, line):
-            self.current_ret[self._regex_helper.group("key")] = self._regex_helper.group("value")
+            self.current_ret[
+                self._regex_helper.group("key")
+            ] = self._regex_helper.group("value")
             raise ParsingDone
 
 
@@ -120,13 +130,13 @@ OK
 COMMAND_KWARGS_askey = {}
 
 COMMAND_RESULT_askey = {
-    'Manufacturer': 'QUALCOMM INCORPORATED',
-    'Model': '334',
-    'OEM_VER': 'RTL6300_NOKIA_V0.0.3_201116.1_m',
-    'OEM_BLD': 'master@dailybuild2, 11/16/2020 05:56:34',
-    'QC_VER': 'MPSS.HI.2.0.c3-00246-SDX55_CPEALL_PACK-1',
-    'IMEI': '352569090027192',
-    '+GCAP': '+CGSM'
+    "Manufacturer": "QUALCOMM INCORPORATED",
+    "Model": "334",
+    "OEM_VER": "RTL6300_NOKIA_V0.0.3_201116.1_m",
+    "OEM_BLD": "master@dailybuild2, 11/16/2020 05:56:34",
+    "QC_VER": "MPSS.HI.2.0.c3-00246-SDX55_CPEALL_PACK-1",
+    "IMEI": "352569090027192",
+    "+GCAP": "+CGSM",
 }
 
 COMMAND_OUTPUT_nokia = """
@@ -144,12 +154,12 @@ OK
 COMMAND_KWARGS_nokia = {}
 
 COMMAND_RESULT_nokia = {
-    'Manufacturer': 'QUALCOMM INCORPORATED',
-    'Model': '334',
-    'Revision': 'MPSS.HI.2.0.5-00162.3-SAIPAN_GEN_PACK-1  1  [May 15 2020 07:00:00]',
-    'SVN': '01',
-    'IMEI': '353139110019915',
-    '+GCAP': '+CGSM,+DS,+ES'
+    "Manufacturer": "QUALCOMM INCORPORATED",
+    "Model": "334",
+    "Revision": "MPSS.HI.2.0.5-00162.3-SAIPAN_GEN_PACK-1  1  [May 15 2020 07:00:00]",
+    "SVN": "01",
+    "IMEI": "353139110019915",
+    "+GCAP": "+CGSM,+DS,+ES",
 }
 
 COMMAND_OUTPUT_inseego = """
@@ -167,10 +177,10 @@ OK
 COMMAND_KWARGS_inseego = {}
 
 COMMAND_RESULT_inseego = {
-    'Manufacturer': 'Inseego Corp.',
-    'Model': 'M2000A',
-    'Revision': '1.36  SVN 1 [2020-07-31 18:38:02] (Release Build - nvtl)',
-    'SVN': '01',
-    'IMEI': '990016250011564',
-    '+GCAP': '+CLTE3, +MS, +ES, +DS'
+    "Manufacturer": "Inseego Corp.",
+    "Model": "M2000A",
+    "Revision": "1.36  SVN 1 [2020-07-31 18:38:02] (Release Build - nvtl)",
+    "SVN": "01",
+    "IMEI": "990016250011564",
+    "+GCAP": "+CLTE3, +MS, +ES, +DS",
 }

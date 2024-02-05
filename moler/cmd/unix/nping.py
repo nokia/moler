@@ -3,9 +3,9 @@
 Nping command module.
 """
 
-__author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2021, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__author__ = "Marcin Usielski"
+__copyright__ = "Copyright (C) 2021, Nokia"
+__email__ = "marcin.usielski@nokia.com"
 
 import re
 
@@ -15,8 +15,15 @@ from moler.util.converterhelper import ConverterHelper
 
 
 class Nping(GenericUnixCommand):
-
-    def __init__(self, connection, destination, options=None, prompt=None, newline_chars=None, runner=None):
+    def __init__(
+        self,
+        connection,
+        destination,
+        options=None,
+        prompt=None,
+        newline_chars=None,
+        runner=None,
+    ):
         """
         Nping command.
         :param connection: moler connection to device, terminal when command is executed.
@@ -26,7 +33,12 @@ class Nping(GenericUnixCommand):
         :param newline_chars: characters to split lines.
         :param runner: Runner to run command
         """
-        super(Nping, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+        super(Nping, self).__init__(
+            connection=connection,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
         # Parameters defined by calling the command
         self.options = options
         self.destination = destination
@@ -62,78 +74,122 @@ class Nping(GenericUnixCommand):
         return super(Nping, self).on_new_line(line, is_full_line)
 
     # Raw packets sent: 4 (160B) | Rcvd: 3 (128B) | Lost: 1 (25.00%)
-    _re_packets_sent = re.compile(r"Raw packets sent:\s+(?P<PKT_SENT>\d+)\s+\((?P<SENT_SIZE>\d+)(?P<SENT_UNIT>\w)\)\s+"
-                                  r"\|\s+Rcvd:\s+(?P<PKT_RCVD>\d+)\s+\((?P<RCVD_SIZE>\d+)(?P<RCVD_UNIT>\w)\)\s+\|"
-                                  r"\s+Lost:\s+(?P<LOST_PKT>\d+)\s+\((?P<LOST_PERCENTAGE>\d+\.\d+)%\)")
+    _re_packets_sent = re.compile(
+        r"Raw packets sent:\s+(?P<PKT_SENT>\d+)\s+\((?P<SENT_SIZE>\d+)(?P<SENT_UNIT>\w)\)\s+"
+        r"\|\s+Rcvd:\s+(?P<PKT_RCVD>\d+)\s+\((?P<RCVD_SIZE>\d+)(?P<RCVD_UNIT>\w)\)\s+\|"
+        r"\s+Lost:\s+(?P<LOST_PKT>\d+)\s+\((?P<LOST_PERCENTAGE>\d+\.\d+)%\)"
+    )
 
     def _parse_packets_summary(self, line):
         if self._regex_helper.search_compiled(Nping._re_packets_sent, line):
-            self.current_ret['STATISTICS'] = dict() if 'STATISTICS' not in self.current_ret else \
-                self.current_ret['STATISTICS']
-            self.current_ret['STATISTICS']['PKT_SENT'] = self._converter_helper.to_number(
-                self._regex_helper.group("PKT_SENT"), raise_exception=False)
-            self.current_ret['STATISTICS']['PKT_SENT_SIZE'] = self._converter_helper.to_number(
-                self._regex_helper.group("SENT_SIZE"), raise_exception=False)
-            self.current_ret['STATISTICS']['PKT_SENT_UNIT'] = self._regex_helper.group("SENT_UNIT")
-            self.current_ret['STATISTICS']['PKT_RCVD'] = self._converter_helper.to_number(
-                self._regex_helper.group("PKT_RCVD"), raise_exception=False)
-            self.current_ret['STATISTICS']['PKT_RCVD_SIZE'] = self._converter_helper.to_number(
-                self._regex_helper.group("RCVD_SIZE"), raise_exception=False)
-            self.current_ret['STATISTICS']['PKT_RCVD_UNIT'] = self._regex_helper.group("RCVD_UNIT")
-            self.current_ret['STATISTICS']['LOST_PKT'] = self._converter_helper.to_number(
-                self._regex_helper.group("LOST_PKT"), raise_exception=False)
-            self.current_ret['STATISTICS']['LOST_PERCENTAGE'] = self._converter_helper.to_number(
-                self._regex_helper.group("LOST_PERCENTAGE"), raise_exception=False)
+            self.current_ret["STATISTICS"] = (
+                {}
+                if "STATISTICS" not in self.current_ret
+                else self.current_ret["STATISTICS"]
+            )
+            self.current_ret["STATISTICS"][
+                "PKT_SENT"
+            ] = self._converter_helper.to_number(
+                self._regex_helper.group("PKT_SENT"), raise_exception=False
+            )
+            self.current_ret["STATISTICS"][
+                "PKT_SENT_SIZE"
+            ] = self._converter_helper.to_number(
+                self._regex_helper.group("SENT_SIZE"), raise_exception=False
+            )
+            self.current_ret["STATISTICS"]["PKT_SENT_UNIT"] = self._regex_helper.group(
+                "SENT_UNIT"
+            )
+            self.current_ret["STATISTICS"][
+                "PKT_RCVD"
+            ] = self._converter_helper.to_number(
+                self._regex_helper.group("PKT_RCVD"), raise_exception=False
+            )
+            self.current_ret["STATISTICS"][
+                "PKT_RCVD_SIZE"
+            ] = self._converter_helper.to_number(
+                self._regex_helper.group("RCVD_SIZE"), raise_exception=False
+            )
+            self.current_ret["STATISTICS"]["PKT_RCVD_UNIT"] = self._regex_helper.group(
+                "RCVD_UNIT"
+            )
+            self.current_ret["STATISTICS"][
+                "LOST_PKT"
+            ] = self._converter_helper.to_number(
+                self._regex_helper.group("LOST_PKT"), raise_exception=False
+            )
+            self.current_ret["STATISTICS"][
+                "LOST_PERCENTAGE"
+            ] = self._converter_helper.to_number(
+                self._regex_helper.group("LOST_PERCENTAGE"), raise_exception=False
+            )
             raise ParsingDone()
 
     # Statistics for host nokia.com (162.13.40.196):
     _re_statistics_header = re.compile(
-        r"Statistics for host (?P<HOST>\S+) \((?P<ADDRESS>\S+)\):")
+        r"Statistics for host (?P<HOST>\S+) \((?P<ADDRESS>\S+)\):"
+    )
 
     def _parse_statistics_header(self, line):
         if self._regex_helper.search_compiled(Nping._re_statistics_header, line):
             host = self._regex_helper.group("HOST")
             self._current_statistics = host
-            if 'STATISTICS' not in self.current_ret:
-                self.current_ret['STATISTICS'] = dict()
-            if 'HOSTS' not in self.current_ret['STATISTICS']:
-                self.current_ret['STATISTICS']['HOSTS'] = dict()
-            self.current_ret['STATISTICS']['HOSTS'][host] = dict()
-            self.current_ret['STATISTICS']['HOSTS'][host]['address'] = self._regex_helper.group("ADDRESS")
+            if "STATISTICS" not in self.current_ret:
+                self.current_ret["STATISTICS"] = {}
+            if "HOSTS" not in self.current_ret["STATISTICS"]:
+                self.current_ret["STATISTICS"]["HOSTS"] = {}
+            self.current_ret["STATISTICS"]["HOSTS"][host] = {}
+            self.current_ret["STATISTICS"]["HOSTS"][host][
+                "address"
+            ] = self._regex_helper.group("ADDRESS")
             raise ParsingDone()
 
     # Probes Sent: 2 | Rcvd: 2 | Lost: 0  (0.00%)
     _re_statistics = re.compile(r"(\w.*\w|\S+):\s+\S+\s+\|\s+(\w.*\w|\S+):\s+\S+")
 
     # Lost: 0  (0.00%)
-    _re_statistics_part = re.compile(r'(?!_)(?P<KEY>\w.*\w|\S+)\s*:\s*(?P<VALUE>\S.*\S|\S+)')
+    _re_statistics_part = re.compile(
+        r"(?!_)(?P<KEY>\w.*\w|\S+)\s*:\s*(?P<VALUE>\S.*\S|\S+)"
+    )
 
     def _parse_statistics(self, line):
         if self._regex_helper.search_compiled(Nping._re_statistics, line):
-            for part in line.split('|'):
+            for part in line.split("|"):
                 if self._regex_helper.search_compiled(Nping._re_statistics_part, part):
                     key = self._regex_helper.group("KEY")
                     value = self._regex_helper.group("VALUE")
                     if self._current_statistics:
-                        self.current_ret['STATISTICS']['HOSTS'][self._current_statistics][key] = value
+                        self.current_ret["STATISTICS"]["HOSTS"][
+                            self._current_statistics
+                        ][key] = value
                     else:
-                        if 'STATISTICS' not in self.current_ret:
-                            self.current_ret['STATISTICS'] = dict()
-                        if 'HOST' not in self.current_ret['STATISTICS']:
-                            self.current_ret['STATISTICS']['HOST'] = dict()
-                        self.current_ret['STATISTICS']['HOST'][key] = value
+                        if "STATISTICS" not in self.current_ret:
+                            self.current_ret["STATISTICS"] = {}
+                        if "HOST" not in self.current_ret["STATISTICS"]:
+                            self.current_ret["STATISTICS"]["HOST"] = {}
+                        self.current_ret["STATISTICS"]["HOST"][key] = value
             raise ParsingDone()
 
     # Nping done: 2 IP addresses pinged in 3.77 seconds
-    _re_addresses = re.compile(r"(?P<ADDRESSES>\d+) IP address(e?s?) pinged in\s+(?P<TIME>\d+\.\d+)\s+(?P<UNIT>\w+)")
+    _re_addresses = re.compile(
+        r"(?P<ADDRESSES>\d+) IP address(e?s?) pinged in\s+(?P<TIME>\d+\.\d+)\s+(?P<UNIT>\w+)"
+    )
 
     def _parse_addresses(self, line):
         if self._regex_helper.search_compiled(Nping._re_addresses, line):
-            self.current_ret['STATISTICS']['NO_OF_ADDRESSES'] = self._converter_helper.to_number(
-                self._regex_helper.group("ADDRESSES"), raise_exception=False)
-            self.current_ret['STATISTICS']['PING_TIME'] = self._converter_helper.to_number(
-                self._regex_helper.group("TIME"), raise_exception=False)
-            self.current_ret['STATISTICS']['PING_TIME_UNIT'] = self._regex_helper.group("UNIT")
+            self.current_ret["STATISTICS"][
+                "NO_OF_ADDRESSES"
+            ] = self._converter_helper.to_number(
+                self._regex_helper.group("ADDRESSES"), raise_exception=False
+            )
+            self.current_ret["STATISTICS"][
+                "PING_TIME"
+            ] = self._converter_helper.to_number(
+                self._regex_helper.group("TIME"), raise_exception=False
+            )
+            self.current_ret["STATISTICS"]["PING_TIME_UNIT"] = self._regex_helper.group(
+                "UNIT"
+            )
             raise ParsingDone()
 
 
@@ -158,42 +214,44 @@ Raw packets sent: 4 (160B) | Rcvd: 3 (128B) | Lost: 1 (25.00%)
 Nping done: 2 IP addresses pinged in 3.77 seconds
 moler_bash#"""
 
-COMMAND_KWARGS_options = {'destination': 'scanme.nmap.org nokia.com', 'options': '-c 1 --tcp -p 80,433'}
+COMMAND_KWARGS_options = {
+    "destination": "scanme.nmap.org nokia.com",
+    "options": "-c 1 --tcp -p 80,433",
+}
 
 COMMAND_RESULT_options = {
-    'STATISTICS': {
-        'HOSTS': {
-            'nokia.com': {
-                'Lost': '1  (50.00%)',
-                'Probes Sent': '2',
-                'Rcvd': '1',
-                'Avg rtt': '203.962ms',
-                'Max rtt': '203.962ms',
-                'Min rtt': '203.962ms',
-                'address': '162.13.40.196'
+    "STATISTICS": {
+        "HOSTS": {
+            "nokia.com": {
+                "Lost": "1  (50.00%)",
+                "Probes Sent": "2",
+                "Rcvd": "1",
+                "Avg rtt": "203.962ms",
+                "Max rtt": "203.962ms",
+                "Min rtt": "203.962ms",
+                "address": "162.13.40.196",
             },
-            'scanme.nmap.org': {
-                'Lost': '0  (0.00%)',
-                'Probes Sent': '2',
-                'Rcvd': '2',
-                'Avg rtt': '1018.830ms',
-                'Max rtt': '1650.226ms',
-                'Min rtt': '387.435ms',
-                'address': '45.33.32.156'
-            }
+            "scanme.nmap.org": {
+                "Lost": "0  (0.00%)",
+                "Probes Sent": "2",
+                "Rcvd": "2",
+                "Avg rtt": "1018.830ms",
+                "Max rtt": "1650.226ms",
+                "Min rtt": "387.435ms",
+                "address": "45.33.32.156",
+            },
         },
-        'LOST_PERCENTAGE': 25.0,
-        'LOST_PKT': 1,
-        'PKT_RCVD': 3,
-        'PKT_RCVD_SIZE': 128,
-        'PKT_RCVD_UNIT': 'B',
-        'PKT_SENT': 4,
-        'PKT_SENT_SIZE': 160,
-        'PKT_SENT_UNIT': 'B',
-        'NO_OF_ADDRESSES': 2,
-        'PING_TIME': 3.77,
-        'PING_TIME_UNIT': 'seconds',
-
+        "LOST_PERCENTAGE": 25.0,
+        "LOST_PKT": 1,
+        "PKT_RCVD": 3,
+        "PKT_RCVD_SIZE": 128,
+        "PKT_RCVD_UNIT": "B",
+        "PKT_SENT": 4,
+        "PKT_SENT_SIZE": 160,
+        "PKT_SENT_UNIT": "B",
+        "NO_OF_ADDRESSES": 2,
+        "PING_TIME": 3.77,
+        "PING_TIME_UNIT": "seconds",
     }
 }
 
@@ -217,26 +275,26 @@ Nping done: 1 IP address pinged in 4.34 seconds
 moler_bash#"""
 
 COMMAND_KWARGS_no_options = {
-    'destination': 'nokia.com',
+    "destination": "nokia.com",
 }
 
 COMMAND_RESULT_no_options = {
-    'STATISTICS': {
-        'HOST': {
-            'Avg rtt': '224.007ms',
-            'Max rtt': '262.930ms',
-            'Min rtt': '188.069ms'
+    "STATISTICS": {
+        "HOST": {
+            "Avg rtt": "224.007ms",
+            "Max rtt": "262.930ms",
+            "Min rtt": "188.069ms",
         },
-        'LOST_PERCENTAGE': 0.0,
-        'LOST_PKT': 0,
-        'NO_OF_ADDRESSES': 1,
-        'PING_TIME': 4.34,
-        'PING_TIME_UNIT': 'seconds',
-        'PKT_RCVD': 5,
-        'PKT_RCVD_SIZE': 140,
-        'PKT_RCVD_UNIT': 'B',
-        'PKT_SENT': 5,
-        'PKT_SENT_SIZE': 140,
-        'PKT_SENT_UNIT': 'B'
+        "LOST_PERCENTAGE": 0.0,
+        "LOST_PKT": 0,
+        "NO_OF_ADDRESSES": 1,
+        "PING_TIME": 4.34,
+        "PING_TIME_UNIT": "seconds",
+        "PKT_RCVD": 5,
+        "PKT_RCVD_SIZE": 140,
+        "PKT_RCVD_UNIT": "B",
+        "PKT_SENT": 5,
+        "PKT_SENT_SIZE": 140,
+        "PKT_SENT_UNIT": "B",
     }
 }

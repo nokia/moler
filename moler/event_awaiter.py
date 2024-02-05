@@ -4,13 +4,14 @@ Event awaiter
 """
 
 
-__author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2024, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__author__ = "Marcin Usielski"
+__copyright__ = "Copyright (C) 2018-2024, Nokia"
+__email__ = "marcin.usielski@nokia.com"
 
 import time
-from moler.helpers import copy_list
+
 from moler.connection_observer import ConnectionObserver
+from moler.helpers import copy_list
 
 
 class EventAwaiter(object):
@@ -73,8 +74,8 @@ class EventAwaiter(object):
         :param events: A list of events to check and separate.
         :return: A tuple containing two lists. The first element is a list of done events, and the second element is a list of non-done events.
         """
-        done_events = list()
-        not_done_events = list()
+        done_events = []
+        not_done_events = []
         for event in events:
             if event.done():
                 done_events.append(event)

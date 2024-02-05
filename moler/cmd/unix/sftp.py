@@ -2,22 +2,41 @@
 """
 SFTP command module.
 """
-__author__ = 'Agnieszka Bylica'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'agnieszka.bylica@nokia.com'
+__author__ = "Agnieszka Bylica"
+__copyright__ = "Copyright (C) 2018, Nokia"
+__email__ = "agnieszka.bylica@nokia.com"
 
+
+import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
-from moler.exceptions import CommandFailure
-from moler.exceptions import ParsingDone
-import re
+from moler.exceptions import CommandFailure, ParsingDone
 
 
 class Sftp(GenericUnixCommand):
-    def __init__(self, connection, host, password, user=None, confirm_connection=True, source_path=None,
-                 destination_path=None, options=None, command=None, no_result=False, prompt=None, newline_chars=None,
-                 timeout=60, runner=None):
-        super(Sftp, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+    def __init__(
+        self,
+        connection,
+        host,
+        password,
+        user=None,
+        confirm_connection=True,
+        source_path=None,
+        destination_path=None,
+        options=None,
+        command=None,
+        no_result=False,
+        prompt=None,
+        newline_chars=None,
+        timeout=60,
+        runner=None,
+    ):
+        super(Sftp, self).__init__(
+            connection=connection,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
 
         # Attributes defined by calling the command
         self.host = host
@@ -36,7 +55,9 @@ class Sftp(GenericUnixCommand):
         # Internal variables
         if self.command:
             self.command = self.command.strip()
-            self._re_command_sent = re.compile(r"sftp> {}".format(re.escape(self.command)), re.I)
+            self._re_command_sent = re.compile(
+                r"sftp> {}".format(re.escape(self.command)), re.I
+            )
 
         # Flags
         self.ready_to_parse_line = False
@@ -79,10 +100,14 @@ class Sftp(GenericUnixCommand):
             pass
         super(Sftp, self).on_new_line(line, is_full_line)
 
-    _re_confirm_connection = re.compile(r"Are\syou\ssure\syou\swant\sto\scontinue\sconnecting\s\(yes/no\)\?", re.I)
+    _re_confirm_connection = re.compile(
+        r"Are\syou\ssure\syou\swant\sto\scontinue\sconnecting\s\(yes/no\)\?", re.I
+    )
 
     def _confirm_connection(self, line):
-        if not self.connection_confirmed and self._regex_helper.search_compiled(Sftp._re_confirm_connection, line):
+        if not self.connection_confirmed and self._regex_helper.search_compiled(
+            Sftp._re_confirm_connection, line
+        ):
             if self.confirm_connection:
                 self.connection.sendline("yes")
             else:
@@ -93,7 +118,9 @@ class Sftp(GenericUnixCommand):
     _re_password = re.compile(r"(?P<USER_HOST>.*)\spassword:", re.IGNORECASE)
 
     def _send_password(self, line):
-        if not self.password_sent and self._regex_helper.search_compiled(Sftp._re_password, line):
+        if not self.password_sent and self._regex_helper.search_compiled(
+            Sftp._re_password, line
+        ):
             self.connection.sendline(self.password, encrypt=True)
             self.password_sent = True
             raise ParsingDone
@@ -101,17 +128,25 @@ class Sftp(GenericUnixCommand):
     _re_prompt = re.compile(r"sftp>", re.I)
 
     def _send_command_if_prompt(self, line):
-        if not self.command_sent and self._regex_helper.match_compiled(Sftp._re_prompt, line):
+        if not self.command_sent and self._regex_helper.match_compiled(
+            Sftp._re_prompt, line
+        ):
             self.connection.sendline(self.command)
             self.command_entered = True
             raise ParsingDone
-        elif not self.exit_sent and self.command_sent and self._regex_helper.match_compiled(Sftp._re_prompt, line):
+        elif (
+            not self.exit_sent
+            and self.command_sent
+            and self._regex_helper.match_compiled(Sftp._re_prompt, line)
+        ):
             self.connection.sendline("exit")
             self.exit_sent = True
             raise ParsingDone
 
     def _check_if_command_sent(self, line):
-        if self.command_entered and self._regex_helper.match_compiled(self._re_command_sent, line):
+        if self.command_entered and self._regex_helper.match_compiled(
+            self._re_command_sent, line
+        ):
             self.command_sent = True
             if self.no_result:
                 self.ret_required = False
@@ -135,28 +170,38 @@ class Sftp(GenericUnixCommand):
             raise ParsingDone
 
     _re_fetching = re.compile(r"(Fetching\s.*|Uploading\s.*)", re.I)
-    _re_progress_bar = re.compile(r"(.+\s+\d{1,2}%\s+\d+(\w+)?\s+.+/s\s+((\d+:\d+)|(--:--))\sETA)", re.I)
+    _re_progress_bar = re.compile(
+        r"(.+\s+\d{1,2}%\s+\d+(\w+)?\s+.+/s\s+((\d+:\d+)|(--:--))\sETA)", re.I
+    )
     _re_success_bar = re.compile(r"(.+\s+100%\s+\d+(\w+)?\s+.+/s\s+\d+:\d+)", re.I)
 
     def _parse_line_fetching_uploading(self, line):
         if self.ready_to_parse_line:
             if self._regex_helper.search_compiled(Sftp._re_fetching, line):
                 if not self.sending_started:
-                    self.current_ret['RESULT'] = list()
+                    self.current_ret["RESULT"] = []
                 self.sending_started = True
-                self.current_ret['RESULT'].append(line)
+                self.current_ret["RESULT"].append(line)
                 raise ParsingDone
-            elif self.sending_started and self._regex_helper.search_compiled(Sftp._re_success_bar, line):
-                self.current_ret['RESULT'].append(line)
+            elif self.sending_started and self._regex_helper.search_compiled(
+                Sftp._re_success_bar, line
+            ):
+                self.current_ret["RESULT"].append(line)
                 raise ParsingDone
-            elif self.sending_started and self._regex_helper.search_compiled(Sftp._re_progress_bar, line):
+            elif self.sending_started and self._regex_helper.search_compiled(
+                Sftp._re_progress_bar, line
+            ):
                 raise ParsingDone
             elif self.sending_started:
                 self.set_exception(CommandFailure(self, "ERROR: {}".format(line)))
                 raise ParsingDone
 
-    _re_resend_password = re.compile(r"(?P<RESEND>Permission\sdenied,\splease\stry\sagain)", re.I)
-    _re_authentication = re.compile(r"(?P<AUTH>Authentication\sfailed.*)|(?P<PERM>.*Permission\sdenied.*)", re.I)
+    _re_resend_password = re.compile(
+        r"(?P<RESEND>Permission\sdenied,\splease\stry\sagain)", re.I
+    )
+    _re_authentication = re.compile(
+        r"(?P<AUTH>Authentication\sfailed.*)|(?P<PERM>.*Permission\sdenied.*)", re.I
+    )
 
     def _authentication_failure(self, line):
         if self._regex_helper.search_compiled(Sftp._re_resend_password, line):
@@ -165,17 +210,29 @@ class Sftp(GenericUnixCommand):
         elif self._regex_helper.search_compiled(Sftp._re_authentication, line):
             auth = self._regex_helper.group("AUTH")
             perm = self._regex_helper.group("PERM")
-            self.set_exception(CommandFailure(self, "ERROR: {msg}".format(msg=auth if auth else perm)))
+            self.set_exception(
+                CommandFailure(self, "ERROR: {msg}".format(msg=auth if auth else perm))
+            )
             raise ParsingDone
 
-    _error_regex_compiled = list()
+    _error_regex_compiled = []
     _error_regex_compiled.append(re.compile(r"(?P<NOT_FOUND>File.*not\sfound.*)", re.I))
-    _error_regex_compiled.append(re.compile(r"(?P<NO_FILE>.*No\ssuch\sfile\sor\sdirectory.*)", re.I))
-    _error_regex_compiled.append(re.compile(r"(?P<CONNECTION>Couldn't\sread\spacket:"
-                                            r"\sConnection\sreset\sby\speer)", re.I))
-    _error_regex_compiled.append(re.compile(r"(?P<OPTION>(unknown|invalid)\soption\s.*)", re.I))
+    _error_regex_compiled.append(
+        re.compile(r"(?P<NO_FILE>.*No\ssuch\sfile\sor\sdirectory.*)", re.I)
+    )
+    _error_regex_compiled.append(
+        re.compile(
+            r"(?P<CONNECTION>Couldn't\sread\spacket:" r"\sConnection\sreset\sby\speer)",
+            re.I,
+        )
+    )
+    _error_regex_compiled.append(
+        re.compile(r"(?P<OPTION>(unknown|invalid)\soption\s.*)", re.I)
+    )
     _error_regex_compiled.append(re.compile(r"(?P<SSH_ERROR>ssh:.+)", re.I))
-    _error_regex_compiled.append(re.compile(r"(?P<NOT_CONFIRMED>Host\skey\sverification\sfailed)", re.I))
+    _error_regex_compiled.append(
+        re.compile(r"(?P<NOT_CONFIRMED>Host\skey\sverification\sfailed)", re.I)
+    )
     _re_help = re.compile(r"(?P<HELP_MSG>usage:\ssftp\s.*)", re.I)
 
     def _command_error(self, line):
@@ -190,9 +247,9 @@ class Sftp(GenericUnixCommand):
     def _parse_line_from_prompt(self, line):
         if self.ready_to_parse_line:
             if self.command_sent:
-                if 'RESULT' not in self.current_ret:
-                    self.current_ret['RESULT'] = list()
-                self.current_ret['RESULT'].append(line)
+                if "RESULT" not in self.current_ret:
+                    self.current_ret["RESULT"] = []
+                self.current_ret["RESULT"].append(line)
                 raise ParsingDone
 
 
@@ -208,16 +265,18 @@ Fetching /upload/cat to /home/xyz/Docs/cat
 xyz@debian:/home$"""
 
 COMMAND_KWARGS = {
-    'host': '192.168.0.102',
-    'user': 'fred',
-    'source_path': 'cat',
-    'destination_path': '/home/xyz/Docs/cat',
-    'password': '1234'
+    "host": "192.168.0.102",
+    "user": "fred",
+    "source_path": "cat",
+    "destination_path": "/home/xyz/Docs/cat",
+    "password": "1234",
 }
 
 COMMAND_RESULT = {
-    'RESULT': ["Fetching /upload/cat to /home/xyz/Docs/cat",
-               "/upload/cat                                   100%   23    34.4KB/s   00:00"]
+    "RESULT": [
+        "Fetching /upload/cat to /home/xyz/Docs/cat",
+        "/upload/cat                                   100%   23    34.4KB/s   00:00",
+    ]
 }
 
 
@@ -234,15 +293,17 @@ sftp>
 xyz@debian:/home$"""
 
 COMMAND_KWARGS_upload = {
-    'host': '192.168.0.102',
-    'user': 'fred',
-    'password': '1234',
-    'command': 'put /home/xyz/Docs/echo/*.py'
+    "host": "192.168.0.102",
+    "user": "fred",
+    "password": "1234",
+    "command": "put /home/xyz/Docs/echo/*.py",
 }
 
 COMMAND_RESULT_upload = {
-    'RESULT': ["Uploading /home/xyz/Docs/echo/special_chars.py to /upload/special_chars.py",
-               "/home/xyz/Docs/echo/special_chars.py         100%   95   377.2KB/s   00:00",
-               "Uploading /home/xyz/Docs/echo/special_chars2.py to /upload/special_chars2.py",
-               "/home/xyz/Docs/echo/special_chars2.py         100%   26   17.2KB/s   00:00"]
+    "RESULT": [
+        "Uploading /home/xyz/Docs/echo/special_chars.py to /upload/special_chars.py",
+        "/home/xyz/Docs/echo/special_chars.py         100%   95   377.2KB/s   00:00",
+        "Uploading /home/xyz/Docs/echo/special_chars2.py to /upload/special_chars2.py",
+        "/home/xyz/Docs/echo/special_chars2.py         100%   26   17.2KB/s   00:00",
+    ]
 }

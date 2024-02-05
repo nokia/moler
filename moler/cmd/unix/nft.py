@@ -3,9 +3,9 @@
 nft command module.
 """
 
-__author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2021, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__author__ = "Marcin Usielski"
+__copyright__ = "Copyright (C) 2021, Nokia"
+__email__ = "marcin.usielski@nokia.com"
 
 import re
 
@@ -15,9 +15,15 @@ from moler.helpers import convert_to_number
 
 
 class Nft(GenericUnixCommand):
-    def __init__(self, connection, options=None, prompt=None, newline_chars=None, runner=None):
-        super(Nft, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
-                                  runner=runner)
+    def __init__(
+        self, connection, options=None, prompt=None, newline_chars=None, runner=None
+    ):
+        super(Nft, self).__init__(
+            connection=connection,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
         self.options = options
         self.ret_required = False
         self._outer = None
@@ -46,11 +52,11 @@ class Nft(GenericUnixCommand):
         if self._regex_helper.search_compiled(Nft._begin_bracket, line):
             if self._outer is None:
                 self._outer = self._regex_helper.group("KEY")
-                self.current_ret[self._outer] = dict()
+                self.current_ret[self._outer] = {}
                 raise ParsingDone()
             elif self._inner is None:
                 self._inner = self._regex_helper.group("KEY")
-                self.current_ret[self._outer][self._inner] = dict()
+                self.current_ret[self._outer][self._inner] = {}
                 raise ParsingDone()
 
     # }
@@ -65,16 +71,20 @@ class Nft(GenericUnixCommand):
                 self._outer = None
                 raise ParsingDone()
 
-    _lines_key = 'LINES'
+    _lines_key = "LINES"
 
     # type filter hook input priority 0; policy drop;
     _re_line = re.compile(r"^\s*(?P<CONTENT>\S.*\S|\S+)\s*$")
 
     def _parse_data_line(self, line):
-        if self._inner is not None and self._regex_helper.search_compiled(self._re_line, line):
+        if self._inner is not None and self._regex_helper.search_compiled(
+            self._re_line, line
+        ):
             if Nft._lines_key not in self.current_ret[self._outer][self._inner]:
-                self.current_ret[self._outer][self._inner][Nft._lines_key] = list()
-            self.current_ret[self._outer][self._inner][Nft._lines_key].append(self._regex_helper.group("CONTENT"))
+                self.current_ret[self._outer][self._inner][Nft._lines_key] = []
+            self.current_ret[self._outer][self._inner][Nft._lines_key].append(
+                self._regex_helper.group("CONTENT")
+            )
             try:
                 self._parse_two_values_with_type(line=line)
                 self._parse_one_value(line=line)
@@ -84,17 +94,20 @@ class Nft(GenericUnixCommand):
 
     # counter packets 0 bytes 0
     _re_two_values_with_type = re.compile(
-        r"^\s*(?P<KIND>\S+)\s+(?P<KEY1>\S+)\s+(?P<VALUE1>\d+)\s+(?P<KEY2>\S+)\s+(?P<VALUE2>\d+)\s*$")
+        r"^\s*(?P<KIND>\S+)\s+(?P<KEY1>\S+)\s+(?P<VALUE1>\d+)\s+(?P<KEY2>\S+)\s+(?P<VALUE2>\d+)\s*$"
+    )
 
     def _parse_two_values_with_type(self, line):
         if self._regex_helper.search_compiled(self._re_two_values_with_type, line):
             kind = self._regex_helper.group("KIND")
             if kind not in self.current_ret[self._outer][self._inner]:
-                self.current_ret[self._outer][self._inner][kind] = dict()
-            self.current_ret[self._outer][self._inner][kind][self._regex_helper.group("KEY1")] = \
-                convert_to_number(self._regex_helper.group("VALUE1"))
-            self.current_ret[self._outer][self._inner][kind][self._regex_helper.group("KEY2")] = \
-                convert_to_number(self._regex_helper.group("VALUE2"))
+                self.current_ret[self._outer][self._inner][kind] = {}
+            self.current_ret[self._outer][self._inner][kind][
+                self._regex_helper.group("KEY1")
+            ] = convert_to_number(self._regex_helper.group("VALUE1"))
+            self.current_ret[self._outer][self._inner][kind][
+                self._regex_helper.group("KEY2")
+            ] = convert_to_number(self._regex_helper.group("VALUE2"))
             raise ParsingDone()
 
     # type ipv4_addr
@@ -102,8 +115,9 @@ class Nft(GenericUnixCommand):
 
     def _parse_one_value(self, line):
         if self._regex_helper.search_compiled(self._re_one_value, line):
-            self.current_ret[self._outer][self._inner][self._regex_helper.group("KEY")] = \
-                convert_to_number(self._regex_helper.group("VALUE"))
+            self.current_ret[self._outer][self._inner][
+                self._regex_helper.group("KEY")
+            ] = convert_to_number(self._regex_helper.group("VALUE"))
             raise ParsingDone()
 
 
@@ -139,54 +153,40 @@ chain output {
 }
 user@server$"""
 
-COMMAND_KWARGS = {
-    'options': 'list table inet filter'
-}
+COMMAND_KWARGS = {"options": "list table inet filter"}
 
 COMMAND_RESULT = {
-    'table inet filter': {
-        'set blackhole': {
-            'LINES': [
-                'type ipv4_addr',
-                'size 65536',
-                'flags timeout'
-            ],
-            'flags': 'timeout',
-            'size': 65536,
-            'type': 'ipv4_addr'
+    "table inet filter": {
+        "set blackhole": {
+            "LINES": ["type ipv4_addr", "size 65536", "flags timeout"],
+            "flags": "timeout",
+            "size": 65536,
+            "type": "ipv4_addr",
         },
-        'chain input': {
-            'LINES': [
-                'type filter hook input priority 0; policy drop;',
-                'ct state invalid drop',
-                'ct state established,related accept',
+        "chain input": {
+            "LINES": [
+                "type filter hook input priority 0; policy drop;",
+                "ct state invalid drop",
+                "ct state established,related accept",
                 'iif "lo" accept',
-                'ip6 nexthdr 58 icmpv6 type { destination-unreachable, packet-too-big, time-exceeded, parameter-problem, echo-request, echo-reply, mld-listener-query, mld-listener-report, mld-listener-done, nd-router-solicit, nd-router-advert, nd-neighbor-solicit, nd-neighbor-advert, ind-neighbor-solicit, ind-neighbor-advert, mld2-listener-report } accept',
-                'ip protocol icmp icmp type { echo-reply, destination-unreachable, echo-request, router-advertisement, router-solicitation, time-exceeded, parameter-problem } accept',
-                'ip saddr @blackhole counter packets 0 bytes 0 drop',
-                'tcp flags syn tcp dport ssh meter flood { ip saddr timeout 1m limit rate over 10/second burst 5 packets}  set add ip saddr timeout 1m @blackhole drop',
-                'tcp dport ssh accept',
-                'counter packets 0 bytes 0',
+                "ip6 nexthdr 58 icmpv6 type { destination-unreachable, packet-too-big, time-exceeded, parameter-problem, echo-request, echo-reply, mld-listener-query, mld-listener-report, mld-listener-done, nd-router-solicit, nd-router-advert, nd-neighbor-solicit, nd-neighbor-advert, ind-neighbor-solicit, ind-neighbor-advert, mld2-listener-report } accept",
+                "ip protocol icmp icmp type { echo-reply, destination-unreachable, echo-request, router-advertisement, router-solicitation, time-exceeded, parameter-problem } accept",
+                "ip saddr @blackhole counter packets 0 bytes 0 drop",
+                "tcp flags syn tcp dport ssh meter flood { ip saddr timeout 1m limit rate over 10/second burst 5 packets}  set add ip saddr timeout 1m @blackhole drop",
+                "tcp dport ssh accept",
+                "counter packets 0 bytes 0",
             ],
-            'counter': {
-                'bytes': 0,
-                'packets': 0
-            }
+            "counter": {"bytes": 0, "packets": 0},
         },
-        'chain forward': {
-            'LINES': [
-                'type filter hook forward priority 0; policy drop;'
-            ]
+        "chain forward": {
+            "LINES": ["type filter hook forward priority 0; policy drop;"]
         },
-        'chain output': {
-            'LINES': [
-                'type filter hook output priority 0; policy accept;',
-                'counter packets 0 bytes 0'
+        "chain output": {
+            "LINES": [
+                "type filter hook output priority 0; policy accept;",
+                "counter packets 0 bytes 0",
             ],
-            'counter': {
-                'bytes': 0,
-                'packets': 0
-            }
+            "counter": {"bytes": 0, "packets": 0},
         },
     }
 }

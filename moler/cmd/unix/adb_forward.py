@@ -2,16 +2,17 @@
 Module for command adb forward.
 """
 
-__author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2022, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__author__ = "Marcin Usielski"
+__copyright__ = "Copyright (C) 2022, Nokia"
+__email__ = "marcin.usielski@nokia.com"
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 
 
 class AdbForward(GenericUnixCommand):
-
-    def __init__(self, options, connection=None, prompt=None, newline_chars=None, runner=None):
+    def __init__(
+        self, options, connection=None, prompt=None, newline_chars=None, runner=None
+    ):
         """
         Create instance of adb forward class.
         :param options: Options for command.
@@ -20,10 +21,14 @@ class AdbForward(GenericUnixCommand):
         :param newline_chars: Characters to split lines - list.
         :param runner: Runner to run command.
         """
-        super(AdbForward, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
-                                         runner=runner)
+        super(AdbForward, self).__init__(
+            connection=connection,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
         self.options = options
-        self.current_ret['LINES'] = list()
+        self.current_ret["LINES"] = []
 
     def build_command_string(self):
         """
@@ -41,7 +46,7 @@ class AdbForward(GenericUnixCommand):
         :return: None
         """
         if is_full_line:
-            self.current_ret['LINES'].append(line)
+            self.current_ret["LINES"].append(line)
 
         super(AdbForward, self).on_new_line(line=line, is_full_line=is_full_line)
 
@@ -50,10 +55,6 @@ COMMAND_OUTPUT = """adb forward tcp:5678 localfilesystem:/dev/socket/adb_atci_so
 5678
 $"""
 
-COMMAND_RESULT = {
-    'LINES': ['5678']
-}
+COMMAND_RESULT = {"LINES": ["5678"]}
 
-COMMAND_KWARGS = {
-    'options': "tcp:5678 localfilesystem:/dev/socket/adb_atci_socket"
-}
+COMMAND_KWARGS = {"options": "tcp:5678 localfilesystem:/dev/socket/adb_atci_socket"}

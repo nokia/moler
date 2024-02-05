@@ -8,15 +8,17 @@ import re
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
 
-__author__ = 'Marcin Szlapa'
-__copyright__ = 'Copyright (C) 2020, Nokia'
-__email__ = 'marcin.szlapa@nokia.com'
+__author__ = "Marcin Szlapa"
+__copyright__ = "Copyright (C) 2020, Nokia"
+__email__ = "marcin.szlapa@nokia.com"
 
 
 class OpensslSClient(GenericUnixCommand):
     """openssl command s_client"""
 
-    def __init__(self, connection, options, prompt=None, newline_chars=None, runner=None):
+    def __init__(
+        self, connection, options, prompt=None, newline_chars=None, runner=None
+    ):
         """
         s_client command.
 
@@ -26,9 +28,11 @@ class OpensslSClient(GenericUnixCommand):
         :param newline_chars: Characters to split lines
         :param runner: Runner to run command
         """
-        super(OpensslSClient, self).__init__(connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+        super(OpensslSClient, self).__init__(
+            connection, prompt=prompt, newline_chars=newline_chars, runner=runner
+        )
         self.options = options
-        self.current_ret = dict()
+        self.current_ret = {}
 
     def build_command_string(self):
         """
@@ -57,11 +61,15 @@ class OpensslSClient(GenericUnixCommand):
         return super(OpensslSClient, self).on_new_line(line, is_full_line)
 
     #     Protocol  : TLSv1.1
-    _re_properties = re.compile(r"^\s+(?P<KEY>.+)(?<!\s)\s*:\s*(?P<VALUE>.+)?(?<!\s)\s*$")
+    _re_properties = re.compile(
+        r"^\s+(?P<KEY>.+)(?<!\s)\s*:\s*(?P<VALUE>.+)?(?<!\s)\s*$"
+    )
 
     def _parse_properties(self, line):
         if self._regex_helper.search_compiled(OpensslSClient._re_properties, line):
-            self.current_ret[self._regex_helper.group('KEY')] = self._regex_helper.group('VALUE')
+            self.current_ret[
+                self._regex_helper.group("KEY")
+            ] = self._regex_helper.group("VALUE")
             raise ParsingDone
 
     # issuer=XX = abc, XX = net, XY = Root
@@ -69,7 +77,7 @@ class OpensslSClient(GenericUnixCommand):
 
     def _parse_issuer(self, line):
         if self._regex_helper.search_compiled(OpensslSClient._re_issuer, line):
-            self.current_ret["issuer"] = self._regex_helper.group('ISSUER')
+            self.current_ret["issuer"] = self._regex_helper.group("ISSUER")
             raise ParsingDone
 
 

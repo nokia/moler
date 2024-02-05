@@ -28,13 +28,13 @@ So, below class is not needed to work as base class. It may, but
 rather it is generic template how to glue external-IO with Moler's connection.
 """
 
-__author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2022, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
+__author__ = "Grzegorz Latuszek, Marcin Usielski"
+__copyright__ = "Copyright (C) 2018-2022, Nokia"
+__email__ = "grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com"
 
+import contextlib
 import logging
 from threading import Lock
-import contextlib
 
 
 class IOConnection(object):
@@ -48,9 +48,9 @@ class IOConnection(object):
         :param moler_connection: object of abstract class moler.connection.Connection
         """
         super(IOConnection, self).__init__()
-        self._connect_subscribers = list()
+        self._connect_subscribers = []
         self._connect_subscribers_lock = Lock()
-        self._disconnect_subscribers = list()
+        self._disconnect_subscribers = []
         self._disconnect_subscribers_lock = Lock()
         self.moler_connection = moler_connection
         self.__name = "UNNAMED_IO_CONNECTION"
@@ -137,7 +137,9 @@ class IOConnection(object):
         :param subscriber: reference to function to call when connection is open/established
         :return: None
         """
-        self._subscribe(self._connect_subscribers_lock, self._connect_subscribers, subscriber)
+        self._subscribe(
+            self._connect_subscribers_lock, self._connect_subscribers, subscriber
+        )
 
     def subscribe_on_connection_lost(self, subscriber):
         """
@@ -145,7 +147,9 @@ class IOConnection(object):
         :param subscriber: reference to function to call when connection is closed/disconnected
         :return: None
         """
-        self._subscribe(self._disconnect_subscribers_lock, self._disconnect_subscribers, subscriber)
+        self._subscribe(
+            self._disconnect_subscribers_lock, self._disconnect_subscribers, subscriber
+        )
 
     def unsubscribe_on_connection_made(self, subscriber):
         """
@@ -153,7 +157,9 @@ class IOConnection(object):
         :param subscriber: reference to function registered by method subscribe_on_connection_made
         :return: None
         """
-        self._unsubscribe(self._connect_subscribers_lock, self._connect_subscribers, subscriber)
+        self._unsubscribe(
+            self._connect_subscribers_lock, self._connect_subscribers, subscriber
+        )
 
     def unsubscribe_on_connection_lost(self, subscriber):
         """
@@ -161,7 +167,9 @@ class IOConnection(object):
         :param subscriber: reference to function registered by method subscribe_on_connection_lost
         :return: None
         """
-        self._unsubscribe(self._disconnect_subscribers_lock, self._disconnect_subscribers, subscriber)
+        self._unsubscribe(
+            self._disconnect_subscribers_lock, self._disconnect_subscribers, subscriber
+        )
 
     def disable_logging(self):
         """
@@ -186,14 +194,14 @@ class IOConnection(object):
     def _notify_on_connect(self):
         self.logger.info(
             msg="Connection to: '{}' has been opened.".format(self.name),
-            extra={'log_name': self.name}
+            extra={"log_name": self.name},
         )
         self._notify(self._connect_subscribers_lock, self._connect_subscribers)
 
     def _notify_on_disconnect(self):
         self.logger.info(
             msg="Connection to: '{}' has been closed.".format(self.name),
-            extra={'log_name': self.name}
+            extra={"log_name": self.name},
         )
         self._notify(self._disconnect_subscribers_lock, self._disconnect_subscribers)
 

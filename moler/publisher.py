@@ -10,13 +10,15 @@ This is required since:
 - both parties may keep references to themselves creating reference cycles
 """
 
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2020, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__author__ = "Grzegorz Latuszek"
+__copyright__ = "Copyright (C) 2020, Nokia"
+__email__ = "grzegorz.latuszek@nokia.com"
 
 import weakref
 from threading import Lock
+
 import six
+
 from moler.helpers import instance_id
 
 
@@ -34,7 +36,7 @@ class Publisher(object):
     def __init__(self):
         """Create Publisher instance."""
         super(Publisher, self).__init__()
-        self._subscribers = dict()
+        self._subscribers = {}
         self._subscribers_lock = Lock()
 
     def subscribe(self, subscriber):
@@ -44,7 +46,9 @@ class Publisher(object):
         :param subscriber: function to be called to notify about data.
         """
         with self._subscribers_lock:
-            subscription_key, subscription_value = self._get_subscriber_key_and_value(subscriber)
+            subscription_key, subscription_value = self._get_subscriber_key_and_value(
+                subscriber
+            )
 
             if subscription_key not in self._subscribers:
                 self._subscribers[subscription_key] = subscription_value
@@ -76,7 +80,9 @@ class Publisher(object):
             except Exception as exc:  # we don't want subscriber bug to kill publisher
                 self.handle_subscriber_exception(self_or_none, subscriber_function, exc)
 
-    def handle_subscriber_exception(self, subscriber_owner, subscriber_function, raised_exception):
+    def handle_subscriber_exception(
+        self, subscriber_owner, subscriber_function, raised_exception
+    ):
         """
         Handle exception raised by subscriber during publishing.
 

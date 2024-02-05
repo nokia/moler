@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-__author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2023, Nokia'
-__email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
+__author__ = "Michal Ernst, Marcin Usielski"
+__copyright__ = "Copyright (C) 2019-2023, Nokia"
+__email__ = "michal.ernst@nokia.com, marcin.usielski@nokia.com"
 
 import datetime
 import re
+from operator import attrgetter
 
 from moler.events.unix.genericunix_textualevent import GenericUnixTextualEvent
 from moler.exceptions import ParsingDone
-from operator import attrgetter
 from moler.helpers import copy_dict
 
 
@@ -21,14 +21,18 @@ class Wait4prompts(GenericUnixTextualEvent):
         :param till_occurs_times: number of event occurrence
         :param runner: Runner to run event
         """
-        super(Wait4prompts, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times)
-        self.compiled_prompts_regex = None  # Dict, key is a compiled regex, value is state name
+        super(Wait4prompts, self).__init__(
+            connection=connection, runner=runner, till_occurs_times=till_occurs_times
+        )
+        self.compiled_prompts_regex = (
+            None  # Dict, key is a compiled regex, value is state name
+        )
         self._prompts_list = None  # List of compiled regexps
         self._set_prompts(prompts=prompts)
 
         self.process_full_lines_only = False
         self.check_against_all_prompts = False
-        self._ret_list_matched = list()
+        self._ret_list_matched = []
 
     def on_new_line(self, line, is_full_line):
         try:
@@ -44,17 +48,19 @@ class Wait4prompts(GenericUnixTextualEvent):
 
     def _set_prompts(self, prompts):
         self.compiled_prompts_regex = self._compile_prompts_patterns(prompts=prompts)
-        self._prompts_list = sorted(self.compiled_prompts_regex.keys(), key=attrgetter('pattern'))
+        self._prompts_list = sorted(
+            self.compiled_prompts_regex.keys(), key=attrgetter("pattern")
+        )
 
     def _parse_prompts(self, line):
         current_ret = None
         for prompt_regex in self._prompts_list:
             if self._regex_helper.search_compiled(prompt_regex, line):
                 current_ret = {
-                    'line': line,
-                    'prompt_regex': prompt_regex.pattern,
-                    'state': self.compiled_prompts_regex[prompt_regex],
-                    'time': datetime.datetime.now()
+                    "line": line,
+                    "prompt_regex": prompt_regex.pattern,
+                    "state": self.compiled_prompts_regex[prompt_regex],
+                    "time": datetime.datetime.now(),
                 }
                 if self.check_against_all_prompts:
                     self._ret_list_matched.append(copy_dict(current_ret))
@@ -62,13 +68,13 @@ class Wait4prompts(GenericUnixTextualEvent):
                     break
         if current_ret:
             if self.check_against_all_prompts:
-                current_ret['list_matched'] = self._ret_list_matched
-                self._ret_list_matched = list()
+                current_ret["list_matched"] = self._ret_list_matched
+                self._ret_list_matched = []
             self.event_occurred(event_data=current_ret)
             raise ParsingDone()
 
     def _compile_prompts_patterns(self, prompts):
-        compiled_patterns = dict()
+        compiled_patterns = {}
         for pattern in prompts.keys():
             if not hasattr(pattern, "match"):  # Not compiled regexp
                 compiled_pattern = re.compile(pattern)
@@ -88,17 +94,14 @@ Have a lot of fun...
 CLIENT5 [] has just connected!
 host:~ #"""
 
-EVENT_KWARGS = {
-    "prompts": {r'host:.*#': "UNIX_LOCAL"},
-    "till_occurs_times": 1
-}
+EVENT_KWARGS = {"prompts": {r"host:.*#": "UNIX_LOCAL"}, "till_occurs_times": 1}
 
 EVENT_RESULT = [
     {
-        'line': "host:~ #",
+        "line": "host:~ #",
         "prompt_regex": "host:.*#",
         "state": "UNIX_LOCAL",
-        'time': datetime.datetime(2019, 8, 22, 12, 42, 38, 278418)
+        "time": datetime.datetime(2019, 8, 22, 12, 42, 38, 278418),
     }
 ]
 
@@ -113,15 +116,15 @@ CLIENT5 [] has just connected!
 host:~ #"""
 
 EVENT_KWARGS_compiled = {
-    "prompts": {re.compile(r'host:.*#'): "UNIX_LOCAL"},
-    "till_occurs_times": 1
+    "prompts": {re.compile(r"host:.*#"): "UNIX_LOCAL"},
+    "till_occurs_times": 1,
 }
 
 EVENT_RESULT_compiled = [
     {
-        'line': "host:~ #",
+        "line": "host:~ #",
         "prompt_regex": "host:.*#",
         "state": "UNIX_LOCAL",
-        'time': datetime.datetime(2019, 8, 22, 12, 42, 38, 278418)
+        "time": datetime.datetime(2019, 8, 22, 12, 42, 38, 278418),
     }
 ]

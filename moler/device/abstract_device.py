@@ -4,20 +4,20 @@ Moler's device has 2 main responsibilities:
 - be the factory that returns commands of that device
 - be the state machine that controls which commands may run in given state
 """
-__author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2020, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__author__ = "Marcin Usielski"
+__copyright__ = "Copyright (C) 2019-2020, Nokia"
+__email__ = "marcin.usielski@nokia.com"
+
+import abc
 
 import six
-import abc
 
 
 @six.add_metaclass(abc.ABCMeta)
 class AbstractDevice(object):
-
     def __init__(self):
         super(AbstractDevice, self).__init__()
-        self._remove_callbacks = list()
+        self._remove_callbacks = []
 
     @property
     @abc.abstractmethod
@@ -79,8 +79,15 @@ class AbstractDevice(object):
         """
 
     @abc.abstractmethod
-    def goto_state(self, state, timeout=-1, rerun=0, send_enter_after_changed_state=False,
-                   log_stacktrace_on_fail=True, keep_state=True):
+    def goto_state(
+        self,
+        state,
+        timeout=-1,
+        rerun=0,
+        send_enter_after_changed_state=False,
+        log_stacktrace_on_fail=True,
+        keep_state=True,
+    ):
         """
         Goes to state.
 
@@ -164,7 +171,9 @@ class AbstractDevice(object):
         """
 
     @abc.abstractmethod
-    def get_event(self, event_name, event_params=None, check_state=True, for_state=None):
+    def get_event(
+        self, event_name, event_params=None, check_state=True, for_state=None
+    ):
         """
         Return instance of event connected with the device.
 

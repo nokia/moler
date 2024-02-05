@@ -3,26 +3,31 @@
 Configure logging for Moler's needs
 """
 
-__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2024, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
+__author__ = "Grzegorz Latuszek, Marcin Usielski, Michal Ernst"
+__copyright__ = "Copyright (C) 2018-2024, Nokia"
+__email__ = (
+    "grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com"
+)
 
 import codecs
+import copy
 import logging
 import os
-import sys
-import copy
-import re
-import pkg_resources
 import platform
-from logging.handlers import TimedRotatingFileHandler, RotatingFileHandler
-from moler.util.compressed_timed_rotating_file_handler import CompressedTimedRotatingFileHandler
-from moler.util.compressed_rotating_file_handler import CompressedRotatingFileHandler
-from moler.util import tracked_thread
+import re
+import sys
+from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 
+import pkg_resources
+
+from moler.util import tracked_thread
+from moler.util.compressed_rotating_file_handler import CompressedRotatingFileHandler
+from moler.util.compressed_timed_rotating_file_handler import (
+    CompressedTimedRotatingFileHandler,
+)
 
 _logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
-_logging_suffixes = dict()  # Suffix for log files. None for nothing.
+_logging_suffixes = {}  # Suffix for log files. None for nothing.
 active_loggers = set()  # Active loggers created by Moler
 date_format = "%d %H:%M:%S"
 
@@ -35,9 +40,13 @@ TEST_CASE = 45
 debug_level = None  # means: inactive
 raw_logs_active = False
 write_mode = "a"
-_kind = None  # None for plain logger, 'time' to time rotating, 'size' for size rotating.
+_kind = (
+    None  # None for plain logger, 'time' to time rotating, 'size' for size rotating.
+)
 _compress_after_rotation = False  # Set True to compress logs after rotation
-_compress_command = "zip -9mq {compressed} {log_input}"  # Execute command to compress the log file
+_compress_command = (
+    "zip -9mq {compressed} {log_input}"  # Execute command to compress the log file
+)
 _compressed_file_extension = ".zip"  # Suffix for compressed file
 _backup_count = 999  # int number of how many files to keep to rotate logs.
 _interval = 100 * 1024  # int number in bytes or seconds when log rotates
@@ -96,7 +105,9 @@ def _get_moler_version_cloned_from_git_repository(setup_py_path):
     if os.path.isfile(setup_py_path):
         with open(setup_py_path, "r") as f:
             for line in f:
-                search_version = re.search(r'version\s*=\s*\'(?P<VERSION>\d+\.\d+\.\d+)', line)
+                search_version = re.search(
+                    r"version\s*=\s*\'(?P<VERSION>\d+\.\d+\.\d+)", line
+                )
                 if search_version:
                     version = search_version.group("VERSION")
 
@@ -140,7 +151,7 @@ def set_kind(kind):
     if kind is None:
         _kind = None
     kind = kind.lower()
-    if kind in ['size', 'time']:
+    if kind in ["size", "time"]:
         _kind = kind
 
 
@@ -207,9 +218,9 @@ def configure_debug_level(level=None):
     if level:
         level_name = level
     else:
-        level_name = os.getenv('MOLER_DEBUG_LEVEL', 'not_found').upper()
+        level_name = os.getenv("MOLER_DEBUG_LEVEL", "not_found").upper()
 
-    allowed = {'TRACE': TRACE, 'DEBUG': logging.DEBUG}
+    allowed = {"TRACE": TRACE, "DEBUG": logging.DEBUG}
 
     if level_name in allowed:
         debug_level = allowed[level_name]
@@ -257,12 +268,15 @@ def change_logging_suffix(suffix=None, logger_name=None):
         global _main_logger
         if _main_logger is not None:
             # noinspection PyUnresolvedReferences
-            _main_logger.info("Logs are rotated automatically: '{}'. Changing log suffixes is not"
-                              " available now.".format(_kind))
+            _main_logger.info(
+                "Logs are rotated automatically: '{}'. Changing log suffixes is not"
+                " available now.".format(_kind)
+            )
         return
     global _logging_suffixes
-    _reopen_all_logfiles_with_new_suffix(logger_suffixes=_logging_suffixes, new_suffix=suffix,
-                                         logger_name=logger_name)
+    _reopen_all_logfiles_with_new_suffix(
+        logger_suffixes=_logging_suffixes, new_suffix=suffix, logger_name=logger_name
+    )
 
 
 def _reopen_all_logfiles_with_new_suffix(logger_suffixes, new_suffix, logger_name):
@@ -283,15 +297,18 @@ def _reopen_all_logfiles_with_new_suffix(logger_suffixes, new_suffix, logger_nam
         written_to_log = False
         for handler in logger_handlers:
             if isinstance(handler, logging.FileHandler):
-                new_log_full_path = _get_new_filepath_with_suffix(old_path=handler.baseFilename,
-                                                                  old_suffix=old_suffix, new_suffix=new_suffix)
+                new_log_full_path = _get_new_filepath_with_suffix(
+                    old_path=handler.baseFilename,
+                    old_suffix=old_suffix,
+                    new_suffix=new_suffix,
+                )
                 if not written_to_log:
                     written_to_log = True
                     logger.info("Switch to new path: '{}'.".format(new_log_full_path))
-                if 'b' in handler.mode:
+                if "b" in handler.mode:
                     handler.mode = "ab"
                 else:
-                    handler.mode = 'a'
+                    handler.mode = "a"
                 handler.close()
                 handler.baseFilename = new_log_full_path
                 handler.stream = handler._open()
@@ -327,7 +344,9 @@ def reconfigure_logging_path(log_path):
     old_logging_path = _logging_path
     set_logging_path(log_path)
     _create_logs_folder(log_path)
-    _reopen_all_logfiles_in_new_path(old_logging_path=old_logging_path, new_logging_path=log_path)
+    _reopen_all_logfiles_in_new_path(
+        old_logging_path=old_logging_path, new_logging_path=log_path
+    )
 
 
 def _reopen_all_logfiles_in_new_path(old_logging_path, new_logging_path):
@@ -338,7 +357,9 @@ def _reopen_all_logfiles_in_new_path(old_logging_path, new_logging_path):
         for handler in logger_handlers:
             if isinstance(handler, logging.FileHandler):
                 handler.close()
-                handler.baseFilename = handler.baseFilename.replace(old_logging_path, new_logging_path)
+                handler.baseFilename = handler.baseFilename.replace(
+                    old_logging_path, new_logging_path
+                )
                 handler.stream = handler._open()
 
 
@@ -354,7 +375,9 @@ def debug_level_or_info_level():
     return level
 
 
-def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filter=None):
+def setup_new_file_handler(
+    logger_name, log_level, log_filename, formatter, filter=None
+):
     """
     Sets up new file handler for given logger
     :param logger_name: name of logger to which filelogger is added
@@ -374,23 +397,40 @@ def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filt
     logger = logging.getLogger(logger_name)
     if _kind is None:
         cfh = logging.FileHandler(log_filename, write_mode)
-    elif _kind == 'time':
+    elif _kind == "time":
         if _compress_after_rotation:
-            cfh = CompressedTimedRotatingFileHandler(compress_command=_compress_command,
-                                                     compressed_file_extension=_compressed_file_extension, filename=log_filename,
-                                                     when='S', interval=_interval, backupCount=_backup_count)
+            cfh = CompressedTimedRotatingFileHandler(
+                compress_command=_compress_command,
+                compressed_file_extension=_compressed_file_extension,
+                filename=log_filename,
+                when="S",
+                interval=_interval,
+                backupCount=_backup_count,
+            )
         else:
-            cfh = TimedRotatingFileHandler(filename=log_filename, when='S', interval=_interval,
-                                           backupCount=_backup_count)
+            cfh = TimedRotatingFileHandler(
+                filename=log_filename,
+                when="S",
+                interval=_interval,
+                backupCount=_backup_count,
+            )
     else:
         if _compress_after_rotation:
-            cfh = CompressedRotatingFileHandler(compress_command=_compress_command,
-                                                compressed_file_extension=_compressed_file_extension, filename=log_filename,
-                                                mode=write_mode, backupCount=_backup_count,
-                                                maxBytes=_interval)
+            cfh = CompressedRotatingFileHandler(
+                compress_command=_compress_command,
+                compressed_file_extension=_compressed_file_extension,
+                filename=log_filename,
+                mode=write_mode,
+                backupCount=_backup_count,
+                maxBytes=_interval,
+            )
         else:
-            cfh = RotatingFileHandler(filename=log_filename, mode=write_mode, backupCount=_backup_count,
-                                      maxBytes=_interval)
+            cfh = RotatingFileHandler(
+                filename=log_filename,
+                mode=write_mode,
+                backupCount=_backup_count,
+                maxBytes=_interval,
+            )
     cfh.setLevel(log_level)
     cfh.setFormatter(formatter)
     if filter:
@@ -399,8 +439,9 @@ def setup_new_file_handler(logger_name, log_level, log_filename, formatter, filt
     return cfh
 
 
-def _add_new_file_handler(logger_name,
-                          log_file, formatter, log_level=TRACE, filter=None):
+def _add_new_file_handler(
+    logger_name, log_file, formatter, log_level=TRACE, filter=None
+):
     """
     Add file writer into Logger
     :param logger_name: Logger name
@@ -414,12 +455,13 @@ def _add_new_file_handler(logger_name,
     logfile_full_path = os.path.join(_logging_path, log_file)
 
     _prepare_logs_folder(logfile_full_path)
-    setup_new_file_handler(logger_name=logger_name,
-                           log_level=log_level,
-                           log_filename=logfile_full_path,
-                           formatter=formatter,
-                           filter=filter,
-                           )
+    setup_new_file_handler(
+        logger_name=logger_name,
+        log_level=log_level,
+        log_filename=logfile_full_path,
+        formatter=formatter,
+        filter=filter,
+    )
 
 
 def _add_raw_file_handler(logger_name, log_file):
@@ -433,7 +475,7 @@ def _add_raw_file_handler(logger_name, log_file):
     logfile_full_path = os.path.join(_logging_path, log_file)
     _prepare_logs_folder(logfile_full_path)
     logger = logging.getLogger(logger_name)
-    rfh = RawFileHandler(filename=logfile_full_path, mode='{}b'.format(write_mode))
+    rfh = RawFileHandler(filename=logfile_full_path, mode="{}b".format(write_mode))
     logger.addHandler(rfh)
 
 
@@ -455,10 +497,13 @@ def _add_raw_trace_file_handler(logger_name, log_file):
     logger.addHandler(trace_rfh)
 
 
-def create_logger(name,
-                  log_file=None, log_level=TRACE,
-                  log_format="%(asctime)s %(levelname)-10s: |%(message)s",
-                  datefmt=None):
+def create_logger(
+    name,
+    log_file=None,
+    log_level=TRACE,
+    log_format="%(asctime)s %(levelname)-10s: |%(message)s",
+    datefmt=None,
+):
     """
     Creates Logger with (optional) file writer
     :param name: Logger name
@@ -471,13 +516,15 @@ def create_logger(name,
     logger = logging.getLogger(name)
     if name not in active_loggers:
         logger.setLevel(log_level)
-        if log_file:  # if present means: "please add this file as logs storage for my logger"
-            _add_new_file_handler(logger_name=name,
-                                  log_file=log_file,
-                                  log_level=log_level,
-                                  formatter=logging.Formatter(fmt=log_format,
-                                                              datefmt=datefmt),
-                                  )
+        if (
+            log_file
+        ):  # if present means: "please add this file as logs storage for my logger"
+            _add_new_file_handler(
+                logger_name=name,
+                log_file=log_file,
+                log_level=log_level,
+                formatter=logging.Formatter(fmt=log_format, datefmt=datefmt),
+            )
         active_loggers.add(name)
     return logger
 
@@ -485,31 +532,38 @@ def create_logger(name,
 def configure_moler_main_logger():
     """Configure main logger of Moler"""
     # warning or above go to logfile
-    if 'moler' not in active_loggers:
-        logger = create_logger(name='moler', log_level=TRACE, datefmt=date_format)
+    if "moler" not in active_loggers:
+        logger = create_logger(name="moler", log_level=TRACE, datefmt=date_format)
         logger.propagate = True
 
         main_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(message)s"
-        _add_new_file_handler(logger_name='moler',
-                              log_file='moler.log',
-                              log_level=logging.INFO,  # only hi-level info from library
-                              formatter=MolerMainMultilineWithDirectionFormatter(fmt=main_log_format,
-                                                                                 datefmt=date_format))
+        _add_new_file_handler(
+            logger_name="moler",
+            log_file="moler.log",
+            log_level=logging.INFO,  # only hi-level info from library
+            formatter=MolerMainMultilineWithDirectionFormatter(
+                fmt=main_log_format, datefmt=date_format
+            ),
+        )
 
         if want_debug_details():
             debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(name)-30s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() %(transfer_direction)s|%(message)s"
-            _add_new_file_handler(logger_name='moler',
-                                  log_file='moler.debug.log',
-                                  log_level=debug_level,
-                                  # entries from different components go to single file, so we need to
-                                  # differentiate them by logger name: "%(name)s"
-                                  # do we need "%(threadName)-30s" ???
-                                  formatter=MultilineWithDirectionFormatter(fmt=debug_log_format,
-                                                                            datefmt=date_format))
+            _add_new_file_handler(
+                logger_name="moler",
+                log_file="moler.debug.log",
+                log_level=debug_level,
+                # entries from different components go to single file, so we need to
+                # differentiate them by logger name: "%(name)s"
+                # do we need "%(threadName)-30s" ???
+                formatter=MultilineWithDirectionFormatter(
+                    fmt=debug_log_format, datefmt=date_format
+                ),
+            )
 
         logger.info(moler_logo)
-        msg = "Using specific packages version:\nPython: {}\nmoler: {}".format(platform.python_version(),
-                                                                               _get_moler_version())
+        msg = "Using specific packages version:\nPython: {}\nmoler: {}".format(
+            platform.python_version(), _get_moler_version()
+        )
         logger.info(msg)
         configure_moler_threads_logger()
         logger.info("More logs in: {}".format(_logging_path))
@@ -522,13 +576,15 @@ def configure_moler_threads_logger():
     """Configure threads logger of Moler"""
     # warning or above go to logfile
     if tracked_thread.do_threads_debug:
-        if 'moler_threads' not in active_loggers:
+        if "moler_threads" not in active_loggers:
             th_log_fmt = "%(asctime)s.%(msecs)03d %(levelname)-12s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() |%(message)s"
-            logger = create_logger(name='moler_threads',
-                                   log_level=TRACE,
-                                   log_file='moler.threads.log',
-                                   log_format=th_log_fmt,
-                                   datefmt=date_format)
+            logger = create_logger(
+                name="moler_threads",
+                log_level=TRACE,
+                log_file="moler.threads.log",
+                log_format=th_log_fmt,
+                datefmt=date_format,
+            )
             logger.propagate = False
             msg = "-------------------started threads logger ---------------------"
             logger.info(msg)
@@ -544,7 +600,7 @@ def _list_libraries(logger):
     :return: None
     """
     installed_packages = pkg_resources.working_set
-    packages = dict()
+    packages = {}
     re_moler = re.compile("moler")
 
     for dist in installed_packages:
@@ -561,37 +617,46 @@ def _list_libraries(logger):
 
 def configure_runner_logger(runner_name):
     """Configure logger with file storing runner's log"""
-    logger_name = 'moler.runner.{}'.format(runner_name)
+    logger_name = "moler.runner.{}".format(runner_name)
     if logger_name not in active_loggers:
-        create_logger(name=logger_name,
-                      log_file='moler.runner.{}.log'.format(runner_name),
-                      log_level=debug_level_or_info_level(),
-                      log_format="%(asctime)s.%(msecs)03d %(levelname)-12s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() |%(message)s",
-                      datefmt=date_format
-                      # log_format="%(asctime)s %(levelname)-10s %(subarea)-30s: |%(message)s"
-                      )
+        create_logger(
+            name=logger_name,
+            log_file="moler.runner.{}.log".format(runner_name),
+            log_level=debug_level_or_info_level(),
+            log_format="%(asctime)s.%(msecs)03d %(levelname)-12s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() |%(message)s",
+            datefmt=date_format,
+            # log_format="%(asctime)s %(levelname)-10s %(subarea)-30s: |%(message)s"
+        )
 
 
 def configure_device_logger(connection_name, propagate=False):
     """Configure logger with file storing connection's log"""
-    logger_name = 'moler.{}'.format(connection_name)
+    logger_name = "moler.{}".format(connection_name)
     if logger_name not in active_loggers:
         logger = create_logger(name=logger_name, log_level=TRACE)
         logger.propagate = propagate
         conn_formatter = MultilineWithDirectionFormatter(
             fmt="%(asctime)s.%(msecs)03d %(transfer_direction)s|%(message)s",
-            datefmt=date_format)
-        _add_new_file_handler(logger_name=logger_name,
-                              log_file='{}.log'.format(logger_name),
-                              log_level=logging.INFO,
-                              formatter=conn_formatter)
+            datefmt=date_format,
+        )
+        _add_new_file_handler(
+            logger_name=logger_name,
+            log_file="{}.log".format(logger_name),
+            log_level=logging.INFO,
+            formatter=conn_formatter,
+        )
         if want_raw_logs():
             # RAW_LOGS is lowest log-level so we need to change log-level of logger
             # to make it pass data into raw-log-handler
             logger.setLevel(min(RAW_DATA, TRACE))
-            _add_raw_file_handler(logger_name=logger_name, log_file='{}.raw.log'.format(logger_name))
+            _add_raw_file_handler(
+                logger_name=logger_name, log_file="{}.raw.log".format(logger_name)
+            )
             if debug_level == TRACE:
-                _add_raw_trace_file_handler(logger_name=logger_name, log_file='{}.raw.trace.log'.format(logger_name))
+                _add_raw_trace_file_handler(
+                    logger_name=logger_name,
+                    log_file="{}.raw.trace.log".format(logger_name),
+                )
     else:
         logger = logging.getLogger(logger_name)
     return logger
@@ -630,7 +695,7 @@ class TracedIn(object):
 
     def __init__(self, logger_name):  # decorator parameter
         self.logger = logging.getLogger(logger_name)
-        self.trace_active = (debug_level == TRACE)
+        self.trace_active = debug_level == TRACE
 
     def __call__(self, decorated_method):
         if not self.trace_active:
@@ -638,16 +703,14 @@ class TracedIn(object):
 
         method_name = decorated_method.__name__
 
-        def _traced_method(*args,
-                           **kwargs):  # parameters of decorated_method
+        def _traced_method(*args, **kwargs):  # parameters of decorated_method
             args_list = [str(arg) for arg in args]
-            kwargs_list = ['{}={}'.format(arg, kwargs[arg]) for arg in
-                           kwargs]
-            param_str = ', '.join(args_list + kwargs_list)
+            kwargs_list = ["{}={}".format(arg, kwargs[arg]) for arg in kwargs]
+            param_str = ", ".join(args_list + kwargs_list)
             ret = decorated_method(*args, **kwargs)
-            self.logger.log(TRACE, '{}({}) returned: {}'.format(method_name,
-                                                                param_str,
-                                                                ret))
+            self.logger.log(
+                TRACE, "{}({}) returned: {}".format(method_name, param_str, ret)
+            )
             return ret
 
         return _traced_method
@@ -659,7 +722,8 @@ class RawDataFormatter(object):
         raw_bytes = record.msg
         if not isinstance(raw_bytes, (bytes, bytearray)):
             err_msg = "Log record directed for raw-logs must have encoder if record.msg is not bytes (it is {})".format(
-                type(record.msg))
+                type(record.msg)
+            )
             assert hasattr(record, "encoder"), err_msg
             raw_bytes = record.encoder(record.msg)
         return raw_bytes
@@ -667,7 +731,9 @@ class RawDataFormatter(object):
 
 class RawTraceFormatter(RawDataFormatter):
     def __init__(self):
-        self.date_formatter = logging.Formatter(fmt="%(asctime)s.%(msecs)03d", datefmt=date_format)
+        self.date_formatter = logging.Formatter(
+            fmt="%(asctime)s.%(msecs)03d", datefmt=date_format
+        )
         self.total_bytesize = 0
 
     def format(self, record):
@@ -675,15 +741,19 @@ class RawTraceFormatter(RawDataFormatter):
         raw_bytes = super(RawTraceFormatter, self).format(record)
         bytesize = len(raw_bytes)
         timestamp = self.date_formatter.format(record)
-        direction = record.transfer_direction if hasattr(record, 'transfer_direction') else '.'
+        direction = (
+            record.transfer_direction if hasattr(record, "transfer_direction") else "."
+        )
         offset = self.total_bytesize
         self.total_bytesize += bytesize
         # make it look like YAML implicit document record:
         # - 1536862639.4494998: {time: '20:17:19.449', direction: <, bytesize: 17, offset: 17}
         # see:   https://pyyaml.org/wiki/PyYAMLDocumentation
         # but we don't use yaml library since we want predictable order
-        raw_trace_record = "- %s: {time: '%s', direction: %s, bytesize: %s, offset: %s}\n" % (
-            record.created, timestamp, direction, bytesize, offset)
+        raw_trace_record = (
+            "- %s: {time: '%s', direction: %s, bytesize: %s, offset: %s}\n"
+            % (record.created, timestamp, direction, bytesize, offset)
+        )
         return raw_trace_record
 
 
@@ -738,9 +808,9 @@ class MultilineWithDirectionFormatter(logging.Formatter):
         super(MultilineWithDirectionFormatter, self).__init__(fmt=fmt, datefmt=datefmt)
 
     def format(self, record):
-        if not hasattr(record, 'transfer_direction'):
-            record.transfer_direction = ' '
-        if not hasattr(record, 'log_name'):
+        if not hasattr(record, "transfer_direction"):
+            record.transfer_direction = " "
+        if not hasattr(record, "log_name"):
             record.log_name = ""
 
         msg_lines = record.getMessage().splitlines(True)
@@ -752,22 +822,24 @@ class MultilineWithDirectionFormatter(logging.Formatter):
             empty_prefix = self._calculate_empty_prefix(msg_lines[0], out_lines[0])
             for line in out_lines[1:]:
                 try:
-                    output += u"{}|{}".format(empty_prefix, line)
+                    output += "{}|{}".format(empty_prefix, line)
                 except UnicodeDecodeError as err:
                     if hasattr(err, "encoding"):
                         encoding = err.encoding
                     else:
                         encoding = sys.getdefaultencoding()
-                    decoded_line = codecs.decode(line, encoding, 'replace')
-                    output += u"{}|{}".format(empty_prefix, decoded_line)
+                    decoded_line = codecs.decode(line, encoding, "replace")
+                    output += "{}|{}".format(empty_prefix, decoded_line)
 
                     # TODO: line completion for connection decoded data comming in chunks
-        output = MolerMainMultilineWithDirectionFormatter._remove_duplicate_log_name(record, output)
+        output = MolerMainMultilineWithDirectionFormatter._remove_duplicate_log_name(
+            record, output
+        )
         return output
 
     def _calculate_empty_prefix(self, message_first_line, output_first_line):
         try:
-            prefix_len = output_first_line.rindex(u"|{}".format(message_first_line))
+            prefix_len = output_first_line.rindex("|{}".format(message_first_line))
         except ValueError:
             prefix_len = 1
         empty_prefix = " " * prefix_len
@@ -789,13 +861,13 @@ class MolerMainMultilineWithDirectionFormatter(MultilineWithDirectionFormatter):
         super(MultilineWithDirectionFormatter, self).__init__(fmt=fmt, datefmt=datefmt)
 
     def format(self, record):
-        if not hasattr(record, 'log_name'):
+        if not hasattr(record, "log_name"):
             record.log_name = record.name
 
-        if hasattr(record, 'moler_error'):
+        if hasattr(record, "moler_error"):
             record.levelname = "MOLER_ERROR"
 
-        record.msg = u"{:<20}|{}".format(record.log_name, record.msg)
+        record.msg = "{:<20}|{}".format(record.log_name, record.msg)
 
         return super(MolerMainMultilineWithDirectionFormatter, self).format(record)
 
