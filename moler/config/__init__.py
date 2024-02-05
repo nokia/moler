@@ -75,7 +75,7 @@ def load_config(config=None, from_env_var=None, *args, **kwargs):
     :param from_env_var: name of environment variable storing config filename (file is in YAML format)
     :return: None
     """
-    global loaded_config
+    global loaded_config  # pylint: disable=global-statement
     add_devices_only = False
     from moler.device import DeviceFactory
 
@@ -315,7 +315,7 @@ def reconfigure_logging_path(logging_path):
 
 def clear():
     """Cleanup Moler's configuration"""
-    global loaded_config
+    global loaded_config  # pylint: disable=global-statement
     loaded_config = ["NOT_LOADED_YET"]
     conn_cfg.clear()
     dev_cfg.clear()

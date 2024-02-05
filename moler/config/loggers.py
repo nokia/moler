@@ -121,7 +121,7 @@ def set_backup_count(backup_count):
     :param backup_count: int number of how many files to keep to rotate logs.
     :return: None
     """
-    global _backup_count
+    global _backup_count  # pylint: disable=global-statement
     try:
         _backup_count = int(backup_count)
     except ValueError:
@@ -134,7 +134,7 @@ def set_interval(interval):
     :param interval: int number in bytes or seconds
     :return: None
     """
-    global _interval
+    global _interval  # pylint: disable=global-statement
     try:
         _interval = int(interval)
     except ValueError:
@@ -147,7 +147,7 @@ def set_kind(kind):
     :param kind: None for plain logger, 'time' to time rotating, 'size' for size rotating.
     :return: None
     """
-    global _kind
+    global _kind  # pylint: disable=global-statement
     if kind is None:
         _kind = None
     kind = kind.lower()
@@ -161,7 +161,7 @@ def set_compress_after_rotation(compress_after_rotation):
     :param compress_after_rotation: True to compress, False otherwsie
     :return: None
     """
-    global _compress_after_rotation
+    global _compress_after_rotation  # pylint: disable=global-statement
     _compress_after_rotation = compress_after_rotation
 
 
@@ -171,7 +171,7 @@ def set_compress_command(compress_command):
     :param compress_command: String with compress command with two fields {compressed} and {log_input}
     :return: None
     """
-    global _compress_command
+    global _compress_command  # pylint: disable=global-statement
     _compress_command = compress_command
 
 
@@ -181,12 +181,12 @@ def set_compressed_file_extension(compressed_file_extension):
     :param compressed_file_extension: String with file extension, for example ".zip"
     :return: None
     """
-    global _compressed_file_extension
+    global _compressed_file_extension  # pylint: disable=global-statement
     _compressed_file_extension = compressed_file_extension
 
 
 def set_write_mode(mode):
-    global write_mode
+    global write_mode  # pylint: disable=global-statement
     if mode.lower() in ["a", "append"]:
         write_mode = "a"
     elif mode.lower() in ["w", "write"]:
@@ -194,17 +194,17 @@ def set_write_mode(mode):
 
 
 def set_logging_path(path):
-    global _logging_path
+    global _logging_path  # pylint: disable=global-statement
     _logging_path = path
 
 
 def get_logging_path():
-    global _logging_path
+    global _logging_path  # pylint: disable=global-statement
     return _logging_path
 
 
 def set_date_format(format):
-    global date_format
+    global date_format  # pylint: disable=global-statement
     date_format = format
 
 
@@ -214,7 +214,7 @@ def configure_debug_level(level=None):
     We use additional env variable besides MOLER_CONFIG to allow for quick/temporary change
     since debug level is intended also for troubleshooting
     """
-    global debug_level
+    global debug_level  # pylint: disable=global-statement
     if level:
         level_name = level
     else:
@@ -234,7 +234,7 @@ def set_error_log_stack(error_log_stack=False):
     :param error_log_stack: True to get all functions, False to get the last one.
     :return: None
     """
-    global _error_log_stack
+    global _error_log_stack  # pylint: disable=global-statement
     _error_log_stack = error_log_stack
 
 
@@ -243,7 +243,7 @@ def get_error_log_stack():
     Get how many functions stack you want to log when error is logged.
     :return: True to get log of all
     """
-    global _error_log_stack
+    global _error_log_stack  # pylint: disable=global-statement
     return _error_log_stack
 
 
@@ -263,9 +263,9 @@ def change_logging_suffix(suffix=None, logger_name=None):
     :param logger_name: name of logger. None for all loggers.
     :return: None
     """
-    global _kind
+    global _kind  # pylint: disable=global-statement
     if _kind is not None:
-        global _main_logger
+        global _main_logger  # pylint: disable=global-statement
         if _main_logger is not None:
             # noinspection PyUnresolvedReferences
             _main_logger.info(
@@ -273,7 +273,7 @@ def change_logging_suffix(suffix=None, logger_name=None):
                 " available now.".format(_kind)
             )
         return
-    global _logging_suffixes
+    global _logging_suffixes  # pylint: disable=global-statement
     _reopen_all_logfiles_with_new_suffix(
         logger_suffixes=_logging_suffixes, new_suffix=suffix, logger_name=logger_name
     )
@@ -387,13 +387,13 @@ def setup_new_file_handler(
     :param filter: filter for file logger
     :return:  logging.FileHandler object
     """
-    global write_mode
-    global _kind
-    global _interval
-    global _backup_count
-    global _compress_after_rotation
-    global _compress_command
-    global _compressed_file_extension
+    global write_mode  # pylint: disable=global-statement
+    global _kind  # pylint: disable=global-statement
+    global _interval  # pylint: disable=global-statement
+    global _backup_count  # pylint: disable=global-statement
+    global _compress_after_rotation  # pylint: disable=global-statement
+    global _compress_command  # pylint: disable=global-statement
+    global _compressed_file_extension  # pylint: disable=global-statement
     logger = logging.getLogger(logger_name)
     if _kind is None:
         cfh = logging.FileHandler(log_filename, write_mode)
@@ -471,7 +471,7 @@ def _add_raw_file_handler(logger_name, log_file):
     :param log_file: Path to logfile. Final logfile location is logging_path + log_file
     :return: None
     """
-    global write_mode
+    global write_mode  # pylint: disable=global-statement
     logfile_full_path = os.path.join(_logging_path, log_file)
     _prepare_logs_folder(logfile_full_path)
     logger = logging.getLogger(logger_name)
@@ -486,7 +486,7 @@ def _add_raw_trace_file_handler(logger_name, log_file):
     :param log_file: Path to logfile. Final logfile location is logging_path + log_file
     :return: None
     """
-    global write_mode
+    global write_mode  # pylint: disable=global-statement
     logfile_full_path = os.path.join(_logging_path, log_file)
     _prepare_logs_folder(logfile_full_path)
     logger = logging.getLogger(logger_name)
@@ -568,7 +568,7 @@ def configure_moler_main_logger():
         configure_moler_threads_logger()
         logger.info("More logs in: {}".format(_logging_path))
         _list_libraries(logger=logger)
-        global _main_logger
+        global _main_logger  # pylint: disable=global-statement
         _main_logger = logger
 
 

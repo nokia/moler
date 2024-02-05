@@ -14,7 +14,7 @@ default_connection = {"io_type": "terminal", "variant": "threaded"}
 
 def set_default_connection(io_type, variant):
     """Set connection to use as default when requesting 'device' without connection specification"""
-    global default_connection
+    global default_connection  # pylint: disable=global-statement
     default_connection = {"io_type": io_type, "variant": variant}
 
 
@@ -47,6 +47,6 @@ def define_device(
 
 def clear():
     """Cleanup configuration related to devices"""
-    global default_connection
+    global default_connection  # pylint: disable=global-statement
     default_connection = {"io_type": "terminal", "variant": "threaded"}
     named_devices.clear()
