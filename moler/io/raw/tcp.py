@@ -11,6 +11,8 @@ The only 3 requirements for these connections are:
 (3) forward IO received data into self.moler_connection.data_received(data)
 """
 
+# pylint: skip-file
+
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'

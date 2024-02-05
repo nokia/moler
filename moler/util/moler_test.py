@@ -277,7 +277,7 @@ class MolerTest(object):
 
     @classmethod
     def _wrapper(cls, method, check_steps_end):
-        if hasattr(method, "_already_decorated") and method._already_decorated:
+        if hasattr(method, "_already_decorated") and method._already_decorated:  # pylint: disable=protected-access
             return method
 
         @wraps(method)
@@ -296,5 +296,5 @@ class MolerTest(object):
             gc.collect()
             return result
 
-        wrapped._already_decorated = True
+        wrapped._already_decorated = True  # pylint: disable=protected-access
         return wrapped

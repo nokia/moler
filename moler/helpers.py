@@ -511,12 +511,12 @@ def mark_to_call_base_class_method_with_same_name(func):
     :param func: function to mark.
     :return: marked function
     """
-    func._decorate = True
+    func._decorate = True  # pylint: disable=protected-access
     return func
 
 
 def _wrapper(method, obj):
-    if hasattr(method, "_already_decorated") and method._already_decorated:
+    if hasattr(method, "_already_decorated") and method._already_decorated:  # pylint: disable=protected-access
         return method
 
     @wraps(method)
@@ -529,7 +529,7 @@ def _wrapper(method, obj):
 
         return base_result
 
-    wrapped._already_decorated = True
+    wrapped._already_decorated = True  # pylint: disable=protected-access
     return wrapped
 
 

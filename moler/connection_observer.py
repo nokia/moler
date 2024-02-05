@@ -180,7 +180,7 @@ class ConnectionObserver(object):
             # (thread didn't get control, coro didn't start in async-loop)
             # That is so, since observer lifetime starts with it's timeout-clock
             # and timeout is counted from calling observer.start()
-            self.life_status._is_running = True
+            self.life_status._is_running = True  # pylint: disable=protected-access
             self.life_status.start_time = time.monotonic()
             # Besides not started parallelism machinery causing start-delay
             # we can have start-delay caused by commands queue on connection
@@ -264,7 +264,7 @@ class ConnectionObserver(object):
         if self.done():
             return self.result()
         with exception_stored_if_not_main_thread(self):
-            if not self.life_status._is_running:
+            if not self.life_status._is_running:  # pylint: disable=protected-access
                 raise ConnectionObserverNotStarted(self)
             # check if already is running
             self.runner.wait_for(
@@ -297,9 +297,9 @@ class ConnectionObserver(object):
 
     def running(self) -> bool:
         """Return True if the connection-observer is currently executing."""
-        if self.done() and self.life_status._is_running:
-            self.life_status._is_running = False
-        return self.life_status._is_running
+        if self.done() and self.life_status._is_running:  # pylint: disable=protected-access
+            self.life_status._is_running = False  # pylint: disable=protected-access
+        return self.life_status._is_running  # pylint: disable=protected-access
 
     def done(self) -> bool:
         """Return True if the connection-observer is already done."""
@@ -474,10 +474,10 @@ class ConnectionObserver(object):
         new_exception: Exception, observer, stack_msg: str
     ) -> None:
         with ConnectionObserver._exceptions_lock:
-            old_exception = observer._exception
+            old_exception = observer._exception  # pylint: disable=protected-access
             ConnectionObserver._log_unraised_exceptions(observer)
             if old_exception:
-                observer._log(
+                observer._log(  # pylint: disable=protected-access
                     logging.DEBUG,
                     "{} has overwritten exception. From {!r} to {!r}".format(
                         observer,
@@ -488,7 +488,7 @@ class ConnectionObserver(object):
                 if old_exception in ConnectionObserver._not_raised_exceptions:
                     ConnectionObserver._not_raised_exceptions.remove(old_exception)
                 else:
-                    observer._log(
+                    observer._log(  # pylint: disable=protected-access
                         logging.DEBUG,
                         "{}: cannot find exception {!r} in _not_raised_exceptions.".format(
                             observer,
@@ -498,18 +498,18 @@ class ConnectionObserver(object):
                     ConnectionObserver._log_unraised_exceptions(observer)
 
             ConnectionObserver._not_raised_exceptions.append(new_exception)
-            observer._exception = new_exception
-            observer._exception_stack_msg = stack_msg
+            observer._exception = new_exception  # pylint: disable=protected-access
+            observer._exception_stack_msg = stack_msg  # pylint: disable=protected-access
 
     @staticmethod
     def _log_unraised_exceptions(observer) -> None:
         for i, item in enumerate(ConnectionObserver._not_raised_exceptions):
-            observer._log(
+            observer._log(  # pylint: disable=protected-access
                 logging.DEBUG,
                 "{:4d} NOT RAISED: {!r}".format(i + 1, item),
                 levels_to_go_up=2,
             )
-            observer._log(logging.DEBUG, observer._exception_stack_msg)
+            observer._log(logging.DEBUG, observer._exception_stack_msg)  # pylint: disable=protected-access
 
     def get_long_desc(self):
         return "Observer '{}.{}'".format(self.__class__.__module__, self)

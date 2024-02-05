@@ -197,7 +197,7 @@ class ThreadedMolerConnection(AbstractMolerConnection):
             try:
                 self.logger.debug(
                     ">>> Queue for notifying. conn-obs '{}' moler-conn '{}' data {}".format(
-                        wrapper._observer, self, repr(data)
+                        wrapper._observer, self, repr(data)  # pylint: disable=protected-access
                     )
                 )
             except ReferenceError:

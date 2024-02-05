@@ -28,16 +28,16 @@ class CommandScheduler(object):
         """
         scheduler = CommandScheduler._get_scheduler()
         if not connection_observer.is_command():  # Passed observer, not command.
-            scheduler._submit(connection_observer)
+            scheduler._submit(connection_observer)  # pylint: disable=protected-access
             return
-        if scheduler._add_command_to_connection(
+        if scheduler._add_command_to_connection(  # pylint: disable=protected-access
             cmd=connection_observer, wait_for_slot=False
         ):
             #  We have a free slot available
             return
         # We have to wait to finish other command(s) so let's do it in another thread.
         t1 = Thread(
-            target=scheduler._add_command_to_connection,
+            target=scheduler._add_command_to_connection,  # pylint: disable=protected-access
             args=(connection_observer, True),
             name="CommandScheduler",
         )
@@ -55,7 +55,7 @@ class CommandScheduler(object):
         if not connection_observer.is_command():  # Passed observer, not command.
             return
         scheduler = CommandScheduler._get_scheduler()
-        scheduler._remove_command(cmd=connection_observer)
+        scheduler._remove_command(cmd=connection_observer)  # pylint: disable=protected-access
 
     @staticmethod
     def is_waiting_for_execution(connection_observer):
@@ -67,7 +67,7 @@ class CommandScheduler(object):
         """
         if connection_observer.is_command:
             scheduler = CommandScheduler._get_scheduler()
-            return scheduler._does_it_wait_in_queue(cmd=connection_observer)
+            return scheduler._does_it_wait_in_queue(cmd=connection_observer)  # pylint: disable=protected-access
         return False
 
     # internal methods and variables
@@ -162,7 +162,7 @@ class CommandScheduler(object):
                 if conn_atr["current_cmd"] is None and len(conn_atr["queue"]) >= 1 and cmd == conn_atr["queue"][0]:
                     conn_atr["queue"].pop(0)
                     conn_atr["current_cmd"] = cmd
-                    cmd._log(
+                    cmd._log(  # pylint: disable=protected-access
                         logging.DEBUG,
                         ">'{}': added  added cmd ('{}') from queue.".format(
                             cmd.connection.name, cmd
@@ -244,5 +244,5 @@ class CommandScheduler(object):
         :return: None
         """
         runner = connection_observer.runner
-        if not connection_observer._is_done and not runner.is_in_shutdown():
-            connection_observer._future = runner.submit(connection_observer)
+        if not connection_observer._is_done and not runner.is_in_shutdown():  # pylint: disable=protected-access
+            connection_observer._future = runner.submit(connection_observer)  # pylint: disable=protected-access

@@ -311,7 +311,7 @@ def _reopen_all_logfiles_with_new_suffix(logger_suffixes, new_suffix, logger_nam
                     handler.mode = "a"
                 handler.close()
                 handler.baseFilename = new_log_full_path
-                handler.stream = handler._open()
+                handler.stream = handler._open()  # pylint: disable=protected-access
         logger_suffixes[current_logger_name] = new_suffix
 
 
@@ -360,7 +360,7 @@ def _reopen_all_logfiles_in_new_path(old_logging_path, new_logging_path):
                 handler.baseFilename = handler.baseFilename.replace(
                     old_logging_path, new_logging_path
                 )
-                handler.stream = handler._open()
+                handler.stream = handler._open()  # pylint: disable=protected-access
 
 
 def debug_level_or_info_level():
@@ -599,7 +599,7 @@ def _list_libraries(logger):
     :param logger: logger to log.
     :return: None
     """
-    installed_packages = pkg_resources.working_set
+    installed_packages = pkg_resources.working_set  #  # pylint: disable=not-an-iterable
     packages = {}
     re_moler = re.compile("moler")
 
@@ -832,7 +832,7 @@ class MultilineWithDirectionFormatter(logging.Formatter):
                     output += "{}|{}".format(empty_prefix, decoded_line)
 
                     # TODO: line completion for connection decoded data comming in chunks
-        output = MolerMainMultilineWithDirectionFormatter._remove_duplicate_log_name(
+        output = MolerMainMultilineWithDirectionFormatter._remove_duplicate_log_name(  # pylint: disable=protected-access
             record, output
         )
         return output

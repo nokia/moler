@@ -35,10 +35,10 @@ class Scheduler(object):
         decorated = DecoratedCallable(callback, cancel_on_exception)
 
         if misfire_grace_time != 0:
-            job_internal = instance._scheduler.add_job(decorated.call, 'interval', seconds=interval,
+            job_internal = instance._scheduler.add_job(decorated.call, 'interval', seconds=interval,  # pylint: disable=protected-access
                                                        misfire_grace_time=misfire_grace_time, kwargs=callback_params)
         else:
-            job_internal = instance._scheduler.add_job(decorated.call, 'interval', seconds=interval,
+            job_internal = instance._scheduler.add_job(decorated.call, 'interval', seconds=interval,  # pylint: disable=protected-access
                                                        kwargs=callback_params)
         job_internal.pause()
         job = Job(job_internal)
@@ -54,7 +54,7 @@ class Scheduler(object):
         :return: None. If scheduler_type is not supported then it raises object of type moler.exceptions.WrongUsage
         """
         instance = Scheduler._get_instance()
-        instance._swap_scheduler(scheduler_type)
+        instance._swap_scheduler(scheduler_type)  # pylint: disable=protected-access
 
     @staticmethod
     def _get_instance():

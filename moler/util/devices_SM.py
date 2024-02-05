@@ -49,7 +49,7 @@ def iterate_over_device_states(
     device.last_wrong_wait4_occurrence = None
     device.set_all_prompts_on_line(True)
 
-    device._goto_state_in_production_mode = False
+    device._goto_state_in_production_mode = False  # pylint: disable=protected-access
     device.goto_state(state=source_states[0], rerun=rerun)
 
     random.shuffle(source_states)
@@ -234,14 +234,14 @@ def _prepare_device(device, connection, device_output):
     device.set_all_prompts_on_line(True)
     device.io_connection.remote_inject_response(device_output)
     assert device.io_connection.data == device_output
-    if device._prompts_event is None:
-        device._run_prompts_observers()
-    assert device._check_all_prompts_on_line is True
-    assert device._prompts_event.check_against_all_prompts is True
+    if device._prompts_event is None:  # pylint: disable=protected-access
+        device._run_prompts_observers()  # pylint: disable=protected-access
+    assert device._check_all_prompts_on_line is True  # pylint: disable=protected-access
+    assert device._prompts_event.check_against_all_prompts is True  # pylint: disable=protected-access
     connection.open()
     if device.current_state == "NOT_CONNECTED":
-        if device._established is True:
-            device._established = False
+        if device._established is True:  # pylint: disable=protected-access
+            device._established = False  # pylint: disable=protected-access
         device.establish_connection()
 
     assert device.current_state != "NOT_CONNECTED"

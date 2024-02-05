@@ -44,7 +44,7 @@ class LineEvent(TextualEvent):
 
         self._validate_start(*args, **kwargs)
         ret = super(LineEvent, self).start(timeout, *args, **kwargs)
-        self.life_status._is_running = True
+        self.life_status._is_running = True  # pylint: disable=protected-access
 
         return ret
 

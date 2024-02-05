@@ -136,7 +136,7 @@ class AtRemote(UnixRemote):
         hops_config = self._configurations[TextualDevice.connection_hops]
         serial_devname = hops_config[UnixRemote.unix_remote][AtRemote.at_remote]["command_params"]["serial_devname"]
         proxy_prompt = "{}> port READY".format(serial_devname)
-        at_cmds_prompt = GenericAtCommand._re_default_at_prompt.pattern
+        at_cmds_prompt = GenericAtCommand._re_default_at_prompt.pattern  # pylint: disable=protected-access
         state_prompts = {
             AtRemote.at_remote: "{}|{}".format(proxy_prompt, at_cmds_prompt)
         }

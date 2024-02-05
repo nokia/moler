@@ -177,7 +177,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
                     timeout=connection_observer.timeout,
                     from_start_time=connection_observer.life_status.start_time,
                 )
-                connection_observer._log(
+                connection_observer._log(  # pylint: disable=protected-access
                     logging.INFO,
                     "{} started, {}".format(connection_observer.get_long_desc(), msg),
                 )
@@ -429,7 +429,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
                 msg = "{} {}".format(observer_info, timeout_msg)
 
                 # levels_to_go_up: extract caller info to log where .time_out_observer has been called from
-                connection_observer._log(logging.INFO, msg, levels_to_go_up=2)
+                connection_observer._log(logging.INFO, msg, levels_to_go_up=2)  # pylint: disable=protected-access
                 log_into_logger(
                     runner_logger,
                     level=logging.DEBUG,
@@ -451,7 +451,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
                     timeout=connection_observer.timeout,
                     from_start_time=connection_observer.life_status.start_time,
                 )
-                connection_observer._log(
+                connection_observer._log(  # pylint: disable=protected-access
                     logging.INFO,
                     "{} finished, {}".format(connection_observer.get_short_desc(), msg),
                 )

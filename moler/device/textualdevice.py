@@ -891,10 +891,10 @@ class TextualDevice(AbstractDevice):
             )
 
         if check_state:
-            original_fun = observer._validate_start
+            original_fun = observer._validate_start  # pylint: disable=protected-access
             creation_state = for_state
 
-            @functools.wraps(observer._validate_start)
+            @functools.wraps(observer._validate_start)  # pylint: disable=protected-access
             def validate_device_state_before_observer_start(*args, **kargs):
                 current_state = self.current_state
                 if current_state == creation_state:
@@ -905,7 +905,7 @@ class TextualDevice(AbstractDevice):
                     self._log(logging.ERROR, exc)
                     raise exc
 
-            observer._validate_start = validate_device_state_before_observer_start
+            observer._validate_start = validate_device_state_before_observer_start  # pylint: disable=protected-access
         return observer
 
     def get_cmd(self, cmd_name, cmd_params=None, check_state=True, for_state=None):
