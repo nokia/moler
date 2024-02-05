@@ -15,6 +15,8 @@ The only 3 requirements for these connections are:
 # https://github.com/osrf/osrf_pycommon/tree/master/osrf_pycommon/process_utils
 # thanks William Woodall :-)
 
+# pylint: skip-file
+
 import re
 import struct
 import termios

@@ -506,7 +506,7 @@ class TextualDevice(AbstractDevice):
         raise DeviceChangeStateFailure(
             device=self.__class__.__name__,
             exception="After {} seconds there are still states to go: '{}' and/or thread to"
-            " change state".format(
+            " change state. {}".format(
                 time.monotonic() - start_time,
                 self._queue_states,
                 self._thread_for_goto_state,

@@ -452,8 +452,8 @@ class ConnectionObserver(object):
         """
 
     @ClassProperty
-    def observer_name(cls):
-        name = camel_case_to_lower_case_underscore(cls.__name__)
+    def observer_name(self):
+        name = camel_case_to_lower_case_underscore(self.__name__)
         return name
 
     @staticmethod

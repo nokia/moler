@@ -140,7 +140,7 @@ class Tcp(object):
         else:
             # don't want to show class name - just tcp address
             # want same output from any implementation of TCP-connection
-            info = "Timeout (> %.3f sec) on {}".format(timeout, self)
+            info = "Timeout {} (> %.3f sec) on {}".format(timeout, self)
             raise ConnectionTimeout(info)
 
     def _close_ignoring_exceptions(self):

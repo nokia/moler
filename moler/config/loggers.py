@@ -603,7 +603,7 @@ def _list_libraries(logger):
     packages = {}
     re_moler = re.compile("moler")
 
-    for dist in installed_packages:
+    for dist in installed_packages:  # noqa
         packages[dist.project_name] = dist.version
 
     logger.info("Installed packages:")
