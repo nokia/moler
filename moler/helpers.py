@@ -208,11 +208,8 @@ def create_object_from_name(full_class_name, constructor_params):
 
 def update_dict(target_dict, expand_dict):
     for key, value in expand_dict.items():
-        if (
-            key in target_dict
-            and isinstance(target_dict[key], dict)
-            and isinstance(expand_dict[key], collections.abc.Mapping)
-        ):
+        if (key in target_dict and isinstance(target_dict[key], dict) and isinstance(expand_dict[key],
+                                                                                     collections.abc.Mapping)):
             update_dict(target_dict[key], expand_dict[key])
         else:
             target_dict[key] = expand_dict[key]
