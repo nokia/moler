@@ -28,7 +28,7 @@ class StateMachine(transitions.Machine):
         self.logger.propagate = False
         self.logger.setLevel(1)
 
-        global forwarding_handler
+        global forwarding_handler  # pylint: disable=global-statement
         if not forwarding_handler:
             forwarding_handler = ForwardingHandler(target_logger_name="moler.state_machine")
             self.logger.addHandler(forwarding_handler)

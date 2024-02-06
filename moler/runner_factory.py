@@ -29,7 +29,7 @@ def get_runner(variant=None, reuse_last=True, **constructor_kwargs):
     return runner
 
 
-class RunnerFactory(object):
+class RunnerFactory:
     """
     RunnerFactory creates plugin-system: external code can register
     "construction recipe" that will be used to create specific runner.

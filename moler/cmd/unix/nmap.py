@@ -3,22 +3,31 @@
 Nmap command module.
 """
 
-__author__ = 'Yeshu Yang, Marcin Usielski, Bartosz Odziomek, Marcin Szlapa'
-__copyright__ = 'Copyright (C) 2018-2022, Nokia'
-__email__ = 'yeshu.yang@nokia-sbell.com, marcin.usielski@nokia.com, bartosz.odziomek@nokia.com,' \
-            'marcin.szlapa@nokia.com'
+__author__ = "Yeshu Yang, Marcin Usielski, Bartosz Odziomek, Marcin Szlapa"
+__copyright__ = "Copyright (C) 2018-2022, Nokia"
+__email__ = (
+    "yeshu.yang@nokia-sbell.com, marcin.usielski@nokia.com, bartosz.odziomek@nokia.com,"
+    "marcin.szlapa@nokia.com"
+)
 
 import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
-from moler.exceptions import ParsingDone
-from moler.exceptions import CommandFailure
+from moler.exceptions import CommandFailure, ParsingDone
 from moler.util.converterhelper import ConverterHelper
 
 
 class Nmap(GenericUnixCommand):
-
-    def __init__(self, connection, ip, is_ping=False, options=None, prompt=None, newline_chars=None, runner=None):
+    def __init__(
+        self,
+        connection,
+        ip,
+        is_ping=False,
+        options=None,
+        prompt=None,
+        newline_chars=None,
+        runner=None,
+    ):
         """
         :param connection: Moler connection to device, terminal when command is executed.
         :param ip: IP address of host.
@@ -28,7 +37,12 @@ class Nmap(GenericUnixCommand):
         :param newline_chars: Characters to split lines - list.
         :param runner: Runner to run command.
         """
-        super(Nmap, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+        super(Nmap, self).__init__(
+            connection=connection,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
         self.options = options
         self.ip = ip
         self.is_ping = is_ping
@@ -81,14 +95,14 @@ class Nmap(GenericUnixCommand):
 
     def _parse_ssl_types(self, line):
         if self._regex_helper.search_compiled(Nmap._re_ssl_type, line):
-            key = 'CRYPTO_PROTOCOLS'
+            key = "CRYPTO_PROTOCOLS"
             if key not in self.current_ret:
-                self.current_ret[key] = list()
-            self._current_crypto_proto = self._regex_helper.group('PROTO')
+                self.current_ret[key] = []
+            self._current_crypto_proto = self._regex_helper.group("PROTO")
             self.current_ret[key].append(self._current_crypto_proto)
-            if 'CRYPTO' not in self.current_ret:
-                self.current_ret['CRYPTO'] = dict()
-            self.current_ret['CRYPTO'][self._current_crypto_proto] = dict()
+            if "CRYPTO" not in self.current_ret:
+                self.current_ret["CRYPTO"] = {}
+            self.current_ret["CRYPTO"][self._current_crypto_proto] = {}
             self._current_crypto_proto_type = None
             raise ParsingDone()
 
@@ -96,10 +110,13 @@ class Nmap(GenericUnixCommand):
     _re_cipher_preference = re.compile(r"cipher preference:\s+(?P<CP>\S.*\S)\s*$")
 
     def _parse_cipher_preference(self, line):
-        if self._current_crypto_proto and self._regex_helper.search_compiled(Nmap._re_cipher_preference, line):
-            self.current_ret['CRYPTO'][self._current_crypto_proto]['cipher preference'] = [
-                self._regex_helper.group("CP")]
-            self._current_crypto_proto_type = 'cipher preference'
+        if self._current_crypto_proto and self._regex_helper.search_compiled(
+            Nmap._re_cipher_preference, line
+        ):
+            self.current_ret["CRYPTO"][self._current_crypto_proto][
+                "cipher preference"
+            ] = [self._regex_helper.group("CP")]
+            self._current_crypto_proto_type = "cipher preference"
             raise ParsingDone()
 
     # |       NULL
@@ -113,83 +130,103 @@ class Nmap(GenericUnixCommand):
                 self._indent = 0
                 self._current_crypto_proto_type = None
             else:
-                if 'compressors' not in self.current_ret['CRYPTO'][self._current_crypto_proto]:
-                    self.current_ret['CRYPTO'][self._current_crypto_proto]['compressors'] = list()
-                self.current_ret['CRYPTO'][self._current_crypto_proto]['compressors'].append(
-                    self._regex_helper.group("VALUE").strip())
+                if (
+                    "compressors"
+                    not in self.current_ret["CRYPTO"][self._current_crypto_proto]
+                ):
+                    self.current_ret["CRYPTO"][self._current_crypto_proto][
+                        "compressors"
+                    ] = []
+                self.current_ret["CRYPTO"][self._current_crypto_proto][
+                    "compressors"
+                ].append(self._regex_helper.group("VALUE").strip())
             raise ParsingDone()
 
-    _re_compressors_preference = re.compile(r"^\s*\|(?P<INDENT>\s+)(?P<TYPE>compressors):\s*$")
+    _re_compressors_preference = re.compile(
+        r"^\s*\|(?P<INDENT>\s+)(?P<TYPE>compressors):\s*$"
+    )
 
     def _parse_compressors_header(self, line):
-        if self._current_crypto_proto and self._regex_helper.search_compiled(Nmap._re_compressors_preference, line):
+        if self._current_crypto_proto and self._regex_helper.search_compiled(
+            Nmap._re_compressors_preference, line
+        ):
             self._current_crypto_proto_type = self._regex_helper.group("TYPE")
             self._indent = len(self._regex_helper.group("INDENT"))
             raise ParsingDone()
 
     # def _parse_compressors_preference_data(self, line):
 
-    _re_ports_line = re.compile(r"^(?P<LINES>(?P<PORTS>(?P<PORT>\d+)\/(?P<TYPE>\w+))\s+"
-                                r"(?P<STATE>\S+)\s+(?P<SERVICE>\S+)\s*(?P<REASON>\S+)?\s*)$")
+    _re_ports_line = re.compile(
+        r"^(?P<LINES>(?P<PORTS>(?P<PORT>\d+)\/(?P<TYPE>\w+))\s+"
+        r"(?P<STATE>\S+)\s+(?P<SERVICE>\S+)\s*(?P<REASON>\S+)?\s*)$"
+    )
 
     def _parse_ports_line(self, line):
         if self._regex_helper.search_compiled(Nmap._re_ports_line, line):
             if "PORTS" not in self.current_ret:
-                self.current_ret["PORTS"] = dict()
+                self.current_ret["PORTS"] = {}
             if "LINES" not in self.current_ret["PORTS"]:
-                self.current_ret["PORTS"]["LINES"] = list()
+                self.current_ret["PORTS"]["LINES"] = []
             ports = self._regex_helper.group("PORTS")
             self.current_ret["PORTS"][ports] = self._regex_helper.groupdict()
             self.current_ret["PORTS"]["LINES"].append(self._regex_helper.group("LINES"))
-            del (self.current_ret["PORTS"][ports]["PORTS"])
-            del (self.current_ret["PORTS"][ports]["LINES"])
+            del self.current_ret["PORTS"][ports]["PORTS"]
+            del self.current_ret["PORTS"][ports]["LINES"]
             raise ParsingDone
 
     #    Raw packets sent: 65544 (2.884MB) | Rcvd: 65528 (2.621MB)
-    _re_raw_packets = re.compile(r"Raw packets sent: (?P<SENT_NO>\d+)\s+\((?P<SENT_SIZE>\S+)\)\s+"
-                                 r"\|\s+Rcvd:\s+(?P<RCVD_NO>\d+)\s+\((?P<RCVD_SIZE>\S+)\)")
+    _re_raw_packets = re.compile(
+        r"Raw packets sent: (?P<SENT_NO>\d+)\s+\((?P<SENT_SIZE>\S+)\)\s+"
+        r"\|\s+Rcvd:\s+(?P<RCVD_NO>\d+)\s+\((?P<RCVD_SIZE>\S+)\)"
+    )
 
     def _parse_raw_packets(self, line):
         if self._regex_helper.search_compiled(Nmap._re_raw_packets, line):
             if "RAW_PACKETS" not in self.current_ret:
-                self.current_ret["RAW_PACKETS"] = dict()
+                self.current_ret["RAW_PACKETS"] = {}
             self.current_ret["RAW_PACKETS"] = self._regex_helper.groupdict()
             raise ParsingDone
 
     #    Nmap scan report for 192.168.255.4 [host down, received no-response]
-    _re_scan_report = re.compile(r"(?P<LINE>Nmap scan report for (?P<ADDRESS>\S+)\s+\[host\s+"
-                                 r"(?P<HOST>\S+),\s+received\s+(?P<RECEIVED>\S+)\])")
+    _re_scan_report = re.compile(
+        r"(?P<LINE>Nmap scan report for (?P<ADDRESS>\S+)\s+\[host\s+"
+        r"(?P<HOST>\S+),\s+received\s+(?P<RECEIVED>\S+)\])"
+    )
 
     def _parse_scan_report(self, line):
         if self._regex_helper.search_compiled(Nmap._re_scan_report, line):
             if "SCAN_REPORT" not in self.current_ret:
-                self.current_ret["SCAN_REPORT"] = dict()
+                self.current_ret["SCAN_REPORT"] = {}
             self.current_ret["SCAN_REPORT"] = self._regex_helper.groupdict()
             raise ParsingDone
 
     #   Nmap scan report for 192.168.255.132
-    _re_scan_reports = re.compile(r"(?P<LINE>Nmap scan report for (?P<ADDRESS>\S+)"
-                                  r"(?:\s+\[host\s+(?P<HOST>\S+),\s+received\s+(?P<RECEIVED>\S+)\])?)")
+    _re_scan_reports = re.compile(
+        r"(?P<LINE>Nmap scan report for (?P<ADDRESS>\S+)"
+        r"(?:\s+\[host\s+(?P<HOST>\S+),\s+received\s+(?P<RECEIVED>\S+)\])?)"
+    )
 
     def _parse_scan_reports(self, line):
         if self._regex_helper.search_compiled(Nmap._re_scan_reports, line):
             if "SCAN_REPORTS" not in self.current_ret:
-                self.current_ret["SCAN_REPORTS"] = list()
+                self.current_ret["SCAN_REPORTS"] = []
             self.current_ret["SCAN_REPORTS"].append(self._regex_helper.groupdict())
             raise ParsingDone
 
     # if "HOST" not in self.current_ret["SKIPPING_HOST"]:
-    #     self.current_ret["SKIPPING_HOST"]["HOST"] = list()
+    #     self.current_ret["SKIPPING_HOST"]["HOST"] = []
     # self.current_ret["SKIPPING_HOST"]["HOST"].append(self._regex_helper.group("HOST"))
 
     #    SYN Stealth Scan Timing: About 78.01% done; ETC: 23:30 (0:00:52 remaining)
-    _re_syn_stealth_scan = re.compile(r"SYN Stealth Scan Timing: About (?P<DONE>[\d\.]+)% done; "
-                                      r"ETC: (?P<ETC>[\d:]+) \((?P<REMAINING>[\d:]+) remaining\)")
+    _re_syn_stealth_scan = re.compile(
+        r"SYN Stealth Scan Timing: About (?P<DONE>[\d\.]+)% done; "
+        r"ETC: (?P<ETC>[\d:]+) \((?P<REMAINING>[\d:]+) remaining\)"
+    )
 
     def _parse_syn_stealth_scan(self, line):
         if self._regex_helper.search_compiled(Nmap._re_syn_stealth_scan, line):
             if "SYN_STEALTH_SCAN" not in self.current_ret:
-                self.current_ret["SYN_STEALTH_SCAN"] = dict()
+                self.current_ret["SYN_STEALTH_SCAN"] = {}
             self.current_ret["SYN_STEALTH_SCAN"] = self._regex_helper.groupdict()
             raise ParsingDone
 
@@ -207,14 +244,18 @@ class Nmap(GenericUnixCommand):
     def _parse_skipping_host(self, line):
         if self._regex_helper.search_compiled(Nmap._re_skipping_host, line):
             if "SKIPPING_HOST" not in self.current_ret:
-                self.current_ret["SKIPPING_HOST"] = dict()
+                self.current_ret["SKIPPING_HOST"] = {}
             if "HOST" not in self.current_ret["SKIPPING_HOST"]:
-                self.current_ret["SKIPPING_HOST"]["HOST"] = list()
-            self.current_ret["SKIPPING_HOST"]["HOST"].append(self._regex_helper.group("HOST"))
+                self.current_ret["SKIPPING_HOST"]["HOST"] = []
+            self.current_ret["SKIPPING_HOST"]["HOST"].append(
+                self._regex_helper.group("HOST")
+            )
             raise ParsingDone
 
     #    UDP Scan Timing: About 61.09% done; ETC: 14:18 (0:21:04 remaining)
-    _re_extend_timeout = re.compile(r"\((?P<HOURS>\d+):(?P<MINUTES>\d+):(?P<SECONDS>\d+)\s+remaining\)")
+    _re_extend_timeout = re.compile(
+        r"\((?P<HOURS>\d+):(?P<MINUTES>\d+):(?P<SECONDS>\d+)\s+remaining\)"
+    )
 
     def _parse_extend_timeout(self, line):
         if self._regex_helper.search_compiled(Nmap._re_extend_timeout, line):
@@ -231,13 +272,20 @@ class Nmap(GenericUnixCommand):
         if self._regex_helper.search_compiled(Nmap._re_cipher, line):
             cipher = self._regex_helper.group("CIPHER")
             if "CIPHERS" not in self.current_ret:
-                self.current_ret["CIPHERS"] = list()
+                self.current_ret["CIPHERS"] = []
             self.current_ret["CIPHERS"].append(cipher)
             if self._current_crypto_proto:
-                if 'ciphers' not in self.current_ret['CRYPTO'][self._current_crypto_proto]:
-                    self.current_ret['CRYPTO'][self._current_crypto_proto]['ciphers'] = list()
-                self.current_ret['CRYPTO'][self._current_crypto_proto]['ciphers'].append(cipher)
-                self._current_crypto_proto_type = 'ciphers'
+                if (
+                    "ciphers"
+                    not in self.current_ret["CRYPTO"][self._current_crypto_proto]
+                ):
+                    self.current_ret["CRYPTO"][self._current_crypto_proto][
+                        "ciphers"
+                    ] = []
+                self.current_ret["CRYPTO"][self._current_crypto_proto][
+                    "ciphers"
+                ].append(cipher)
+                self._current_crypto_proto_type = "ciphers"
             raise ParsingDone
 
 
@@ -301,129 +349,134 @@ Nmap done: 1 IP address (1 host up) scanned in 17.52 seconds
            Raw packets sent: 65544 (2.884MB) | Rcvd: 65528 (2.621MB)
 root@cp19-nj:/home/ute# """
 
-COMMAND_KWARGS_host_up = {'options': '-d1 -p- -S 192.168.255.126',
-                          'ip': '192.168.255.129'}
+COMMAND_KWARGS_host_up = {
+    "options": "-d1 -p- -S 192.168.255.126",
+    "ip": "192.168.255.129",
+}
 
 COMMAND_RESULT_host_up = {
-    'PORTS': {
-        'LINES': [
-            '21/tcp    filtered ftp         no-response',
-            '22/tcp    filtered ssh         no-response',
-            '443/tcp   open     https       syn-ack',
-            '3300/tcp  open     unknown     syn-ack',
-            '6001/tcp  open     X11:1       syn-ack',
-            '12000/tcp open     cce4x       syn-ack',
-            '12001/tcp open     entextnetwk syn-ack',
-            '15001/tcp filtered unknown     no-response',
-            '15002/tcp filtered unknown     no-response',
-            '15003/tcp filtered unknown     no-response',
-            '15004/tcp filtered unknown     no-response',
-            '15005/tcp filtered unknown     no-response',
-            '15007/tcp filtered unknown     no-response'
+    "PORTS": {
+        "LINES": [
+            "21/tcp    filtered ftp         no-response",
+            "22/tcp    filtered ssh         no-response",
+            "443/tcp   open     https       syn-ack",
+            "3300/tcp  open     unknown     syn-ack",
+            "6001/tcp  open     X11:1       syn-ack",
+            "12000/tcp open     cce4x       syn-ack",
+            "12001/tcp open     entextnetwk syn-ack",
+            "15001/tcp filtered unknown     no-response",
+            "15002/tcp filtered unknown     no-response",
+            "15003/tcp filtered unknown     no-response",
+            "15004/tcp filtered unknown     no-response",
+            "15005/tcp filtered unknown     no-response",
+            "15007/tcp filtered unknown     no-response",
         ],
-        '21/tcp': {
-            'PORT': '21',
-            'REASON': 'no-response',
-            'SERVICE': 'ftp',
-            'STATE': 'filtered',
-            'TYPE': 'tcp'
+        "21/tcp": {
+            "PORT": "21",
+            "REASON": "no-response",
+            "SERVICE": "ftp",
+            "STATE": "filtered",
+            "TYPE": "tcp",
         },
-        '22/tcp': {
-            'PORT': '22',
-            'REASON': 'no-response',
-            'SERVICE': 'ssh',
-            'STATE': 'filtered',
-            'TYPE': 'tcp'
+        "22/tcp": {
+            "PORT": "22",
+            "REASON": "no-response",
+            "SERVICE": "ssh",
+            "STATE": "filtered",
+            "TYPE": "tcp",
         },
-        '443/tcp': {
-            'PORT': '443',
-            'REASON': 'syn-ack',
-            'SERVICE': 'https',
-            'STATE': 'open',
-            'TYPE': 'tcp'
+        "443/tcp": {
+            "PORT": "443",
+            "REASON": "syn-ack",
+            "SERVICE": "https",
+            "STATE": "open",
+            "TYPE": "tcp",
         },
-        '3300/tcp': {
-            'PORT': '3300',
-            'REASON': 'syn-ack',
-            'SERVICE': 'unknown',
-            'STATE': 'open',
-            'TYPE': 'tcp'
+        "3300/tcp": {
+            "PORT": "3300",
+            "REASON": "syn-ack",
+            "SERVICE": "unknown",
+            "STATE": "open",
+            "TYPE": "tcp",
         },
-        '6001/tcp': {
-            'PORT': '6001',
-            'REASON': 'syn-ack',
-            'SERVICE': 'X11:1',
-            'STATE': 'open',
-            'TYPE': 'tcp'
+        "6001/tcp": {
+            "PORT": "6001",
+            "REASON": "syn-ack",
+            "SERVICE": "X11:1",
+            "STATE": "open",
+            "TYPE": "tcp",
         },
-        '12000/tcp': {
-            'PORT': '12000',
-            'REASON': 'syn-ack',
-            'SERVICE': 'cce4x',
-            'STATE': 'open',
-            'TYPE': 'tcp'
+        "12000/tcp": {
+            "PORT": "12000",
+            "REASON": "syn-ack",
+            "SERVICE": "cce4x",
+            "STATE": "open",
+            "TYPE": "tcp",
         },
-        '12001/tcp': {
-            'PORT': '12001',
-            'REASON': 'syn-ack',
-            'SERVICE': 'entextnetwk',
-            'STATE': 'open',
-            'TYPE': 'tcp'
+        "12001/tcp": {
+            "PORT": "12001",
+            "REASON": "syn-ack",
+            "SERVICE": "entextnetwk",
+            "STATE": "open",
+            "TYPE": "tcp",
         },
-        '15001/tcp': {
-            'PORT': '15001',
-            'REASON': 'no-response',
-            'SERVICE': 'unknown',
-            'STATE': 'filtered',
-            'TYPE': 'tcp'
+        "15001/tcp": {
+            "PORT": "15001",
+            "REASON": "no-response",
+            "SERVICE": "unknown",
+            "STATE": "filtered",
+            "TYPE": "tcp",
         },
-        '15002/tcp': {
-            'PORT': '15002',
-            'REASON': 'no-response',
-            'SERVICE': 'unknown',
-            'STATE': 'filtered',
-            'TYPE': 'tcp'
+        "15002/tcp": {
+            "PORT": "15002",
+            "REASON": "no-response",
+            "SERVICE": "unknown",
+            "STATE": "filtered",
+            "TYPE": "tcp",
         },
-        '15003/tcp': {
-            'PORT': '15003',
-            'REASON': 'no-response',
-            'SERVICE': 'unknown',
-            'STATE': 'filtered',
-            'TYPE': 'tcp'
+        "15003/tcp": {
+            "PORT": "15003",
+            "REASON": "no-response",
+            "SERVICE": "unknown",
+            "STATE": "filtered",
+            "TYPE": "tcp",
         },
-        '15004/tcp': {
-            'PORT': '15004',
-            'REASON': 'no-response',
-            'SERVICE': 'unknown',
-            'STATE': 'filtered',
-            'TYPE': 'tcp'
+        "15004/tcp": {
+            "PORT": "15004",
+            "REASON": "no-response",
+            "SERVICE": "unknown",
+            "STATE": "filtered",
+            "TYPE": "tcp",
         },
-        '15005/tcp': {
-            'PORT': '15005',
-            'REASON': 'no-response',
-            'SERVICE': 'unknown',
-            'STATE': 'filtered',
-            'TYPE': 'tcp'
+        "15005/tcp": {
+            "PORT": "15005",
+            "REASON": "no-response",
+            "SERVICE": "unknown",
+            "STATE": "filtered",
+            "TYPE": "tcp",
         },
-        '15007/tcp': {
-            'PORT': '15007',
-            'REASON': 'no-response',
-            'SERVICE': 'unknown',
-            'STATE': 'filtered',
-            'TYPE': 'tcp'
+        "15007/tcp": {
+            "PORT": "15007",
+            "REASON": "no-response",
+            "SERVICE": "unknown",
+            "STATE": "filtered",
+            "TYPE": "tcp",
+        },
+    },
+    "RAW_PACKETS": {
+        "RCVD_NO": "65528",
+        "RCVD_SIZE": "2.621MB",
+        "SENT_NO": "65544",
+        "SENT_SIZE": "2.884MB",
+    },
+    "SCAN_REPORTS": [
+        {
+            "ADDRESS": "192.168.255.129",
+            "HOST": None,
+            "LINE": "Nmap scan report for 192.168.255.129",
+            "RECEIVED": None,
         }
-    },
-    'RAW_PACKETS': {
-        'RCVD_NO': '65528',
-        'RCVD_SIZE': '2.621MB',
-        'SENT_NO': '65544',
-        'SENT_SIZE': '2.884MB'
-    },
-    'SCAN_REPORTS': [{u'ADDRESS': u'192.168.255.129',
-                      u'HOST': None,
-                      u'LINE': u'Nmap scan report for 192.168.255.129',
-                      u'RECEIVED': None}]
-
+    ],
 }
 
 COMMAND_OUTPUT_host_down = """root@cp19-nj:/home/ute# nmap -d1 -p- -S 192.168.255.126 192.168.255.4 -PN
@@ -450,22 +503,24 @@ Nmap done: 1 IP address (0 hosts up) scanned in 0.54 seconds
            Raw packets sent: 2 (56B) | Rcvd: 0 (0B)
 root@cp19-nj:/home/ute# """
 
-COMMAND_KWARGS_host_down = {'options': '-d1 -p- -S 192.168.255.126',
-                            'ip': '192.168.255.4'}
+COMMAND_KWARGS_host_down = {
+    "options": "-d1 -p- -S 192.168.255.126",
+    "ip": "192.168.255.4",
+}
 
 COMMAND_RESULT_host_down = {
-    'RAW_PACKETS': {
-        'RCVD_NO': '0',
-        'RCVD_SIZE': '0B',
-        'SENT_NO': '2',
-        'SENT_SIZE': '56B'
+    "RAW_PACKETS": {
+        "RCVD_NO": "0",
+        "RCVD_SIZE": "0B",
+        "SENT_NO": "2",
+        "SENT_SIZE": "56B",
     },
-    'SCAN_REPORT': {
-        'ADDRESS': '192.168.255.4',
-        'HOST': 'down',
-        'LINE': 'Nmap scan report for 192.168.255.4 [host down, received no-response]',
-        'RECEIVED': 'no-response'
-    }
+    "SCAN_REPORT": {
+        "ADDRESS": "192.168.255.4",
+        "HOST": "down",
+        "LINE": "Nmap scan report for 192.168.255.4 [host down, received no-response]",
+        "RECEIVED": "no-response",
+    },
 }
 
 COMMAND_OUTPUT = """root@cp19-nj:/home/ute#  nmap -d1 -p- --host-timeout 100 10.9.134.0/28 -PN
@@ -605,104 +660,134 @@ Nmap done: 16 IP addresses (16 hosts up) scanned in 209.25 seconds
            Raw packets sent: 210722 (9.272MB) | Rcvd: 18224 (730.812KB)
 root@cp19-nj:/home/ute# """
 
-COMMAND_KWARGS = {'options': '-d1 -p- --host-timeout 100',
-                  'ip': '10.9.134.0/28'}
+COMMAND_KWARGS = {"options": "-d1 -p- --host-timeout 100", "ip": "10.9.134.0/28"}
 
 COMMAND_RESULT = {
-    'RAW_PACKETS': {
-        'RCVD_NO': '18224',
-        'RCVD_SIZE': '730.812KB',
-        'SENT_NO': '210722',
-        'SENT_SIZE': '9.272MB'
+    "RAW_PACKETS": {
+        "RCVD_NO": "18224",
+        "RCVD_SIZE": "730.812KB",
+        "SENT_NO": "210722",
+        "SENT_SIZE": "9.272MB",
     },
-    'SKIPPING_HOST': {
-        'HOST': [
-            '10.9.134.0',
-            '10.9.134.1',
-            '10.9.134.2',
-            '10.9.134.3',
-            '10.9.134.4',
-            '10.9.134.5',
-            '10.9.134.6',
-            '10.9.134.7',
-            '10.9.134.8',
-            '10.9.134.9',
-            '10.9.134.10',
-            '10.9.134.11',
-            '10.9.134.12',
-            '10.9.134.13',
-            '10.9.134.14',
-            '10.9.134.15']},
-    'SYN_STEALTH_SCAN': {
-        'DONE': '11.04',
-        'ETC': '03:39',
-        'REMAINING': '0:12:13'
+    "SKIPPING_HOST": {
+        "HOST": [
+            "10.9.134.0",
+            "10.9.134.1",
+            "10.9.134.2",
+            "10.9.134.3",
+            "10.9.134.4",
+            "10.9.134.5",
+            "10.9.134.6",
+            "10.9.134.7",
+            "10.9.134.8",
+            "10.9.134.9",
+            "10.9.134.10",
+            "10.9.134.11",
+            "10.9.134.12",
+            "10.9.134.13",
+            "10.9.134.14",
+            "10.9.134.15",
+        ]
     },
-    'SCAN_REPORTS': [{u'ADDRESS': u'10.9.134.0',
-                      u'HOST': None,
-                      u'LINE': u'Nmap scan report for 10.9.134.0',
-                      u'RECEIVED': None},
-                     {u'ADDRESS': u'10.9.134.1',
-                      u'HOST': None,
-                      u'LINE': u'Nmap scan report for 10.9.134.1',
-                      u'RECEIVED': None},
-                     {u'ADDRESS': u'10.9.134.2',
-                      u'HOST': None,
-                      u'LINE': u'Nmap scan report for 10.9.134.2',
-                      u'RECEIVED': None},
-                     {u'ADDRESS': u'10.9.134.3',
-                      u'HOST': None,
-                      u'LINE': u'Nmap scan report for 10.9.134.3',
-                      u'RECEIVED': None},
-                     {u'ADDRESS': u'10.9.134.4',
-                      u'HOST': None,
-                      u'LINE': u'Nmap scan report for 10.9.134.4',
-                      u'RECEIVED': None},
-                     {u'ADDRESS': u'10.9.134.5',
-                      u'HOST': None,
-                      u'LINE': u'Nmap scan report for 10.9.134.5',
-                      u'RECEIVED': None},
-                     {u'ADDRESS': u'10.9.134.6',
-                      u'HOST': None,
-                      u'LINE': u'Nmap scan report for 10.9.134.6',
-                      u'RECEIVED': None},
-                     {u'ADDRESS': u'10.9.134.7',
-                      u'HOST': None,
-                      u'LINE': u'Nmap scan report for 10.9.134.7',
-                      u'RECEIVED': None},
-                     {u'ADDRESS': u'10.9.134.8',
-                      u'HOST': None,
-                      u'LINE': u'Nmap scan report for 10.9.134.8',
-                      u'RECEIVED': None},
-                     {u'ADDRESS': u'10.9.134.9',
-                      u'HOST': None,
-                      u'LINE': u'Nmap scan report for 10.9.134.9',
-                      u'RECEIVED': None},
-                     {u'ADDRESS': u'10.9.134.10',
-                      u'HOST': None,
-                      u'LINE': u'Nmap scan report for 10.9.134.10',
-                      u'RECEIVED': None},
-                     {u'ADDRESS': u'10.9.134.11',
-                      u'HOST': None,
-                      u'LINE': u'Nmap scan report for 10.9.134.11',
-                      u'RECEIVED': None},
-                     {u'ADDRESS': u'10.9.134.12',
-                      u'HOST': None,
-                      u'LINE': u'Nmap scan report for 10.9.134.12',
-                      u'RECEIVED': None},
-                     {u'ADDRESS': u'10.9.134.13',
-                      u'HOST': None,
-                      u'LINE': u'Nmap scan report for 10.9.134.13',
-                      u'RECEIVED': None},
-                     {u'ADDRESS': u'10.9.134.14',
-                      u'HOST': None,
-                      u'LINE': u'Nmap scan report for 10.9.134.14',
-                      u'RECEIVED': None},
-                     {u'ADDRESS': u'10.9.134.15',
-                      u'HOST': None,
-                      u'LINE': u'Nmap scan report for 10.9.134.15',
-                      u'RECEIVED': None}],
-
+    "SYN_STEALTH_SCAN": {"DONE": "11.04", "ETC": "03:39", "REMAINING": "0:12:13"},
+    "SCAN_REPORTS": [
+        {
+            "ADDRESS": "10.9.134.0",
+            "HOST": None,
+            "LINE": "Nmap scan report for 10.9.134.0",
+            "RECEIVED": None,
+        },
+        {
+            "ADDRESS": "10.9.134.1",
+            "HOST": None,
+            "LINE": "Nmap scan report for 10.9.134.1",
+            "RECEIVED": None,
+        },
+        {
+            "ADDRESS": "10.9.134.2",
+            "HOST": None,
+            "LINE": "Nmap scan report for 10.9.134.2",
+            "RECEIVED": None,
+        },
+        {
+            "ADDRESS": "10.9.134.3",
+            "HOST": None,
+            "LINE": "Nmap scan report for 10.9.134.3",
+            "RECEIVED": None,
+        },
+        {
+            "ADDRESS": "10.9.134.4",
+            "HOST": None,
+            "LINE": "Nmap scan report for 10.9.134.4",
+            "RECEIVED": None,
+        },
+        {
+            "ADDRESS": "10.9.134.5",
+            "HOST": None,
+            "LINE": "Nmap scan report for 10.9.134.5",
+            "RECEIVED": None,
+        },
+        {
+            "ADDRESS": "10.9.134.6",
+            "HOST": None,
+            "LINE": "Nmap scan report for 10.9.134.6",
+            "RECEIVED": None,
+        },
+        {
+            "ADDRESS": "10.9.134.7",
+            "HOST": None,
+            "LINE": "Nmap scan report for 10.9.134.7",
+            "RECEIVED": None,
+        },
+        {
+            "ADDRESS": "10.9.134.8",
+            "HOST": None,
+            "LINE": "Nmap scan report for 10.9.134.8",
+            "RECEIVED": None,
+        },
+        {
+            "ADDRESS": "10.9.134.9",
+            "HOST": None,
+            "LINE": "Nmap scan report for 10.9.134.9",
+            "RECEIVED": None,
+        },
+        {
+            "ADDRESS": "10.9.134.10",
+            "HOST": None,
+            "LINE": "Nmap scan report for 10.9.134.10",
+            "RECEIVED": None,
+        },
+        {
+            "ADDRESS": "10.9.134.11",
+            "HOST": None,
+            "LINE": "Nmap scan report for 10.9.134.11",
+            "RECEIVED": None,
+        },
+        {
+            "ADDRESS": "10.9.134.12",
+            "HOST": None,
+            "LINE": "Nmap scan report for 10.9.134.12",
+            "RECEIVED": None,
+        },
+        {
+            "ADDRESS": "10.9.134.13",
+            "HOST": None,
+            "LINE": "Nmap scan report for 10.9.134.13",
+            "RECEIVED": None,
+        },
+        {
+            "ADDRESS": "10.9.134.14",
+            "HOST": None,
+            "LINE": "Nmap scan report for 10.9.134.14",
+            "RECEIVED": None,
+        },
+        {
+            "ADDRESS": "10.9.134.15",
+            "HOST": None,
+            "LINE": "Nmap scan report for 10.9.134.15",
+            "RECEIVED": None,
+        },
+    ],
 }
 
 COMMAND_OUTPUT_CIPHERS = """root@cp19-nj:# nmap --script ssl-enum-ciphers -p 443 10.83.180.140 -PN
@@ -724,83 +809,85 @@ PORT    STATE SERVICE
 Nmap done: 1 IP address (1 host up) scanned in 0.44 seconds
 root@cp19-nj:#"""
 
-COMMAND_KWARGS_CIPHERS = {'options': '--script ssl-enum-ciphers -p 443',
-                          'ip': '10.83.180.140'}
+COMMAND_KWARGS_CIPHERS = {
+    "options": "--script ssl-enum-ciphers -p 443",
+    "ip": "10.83.180.140",
+}
 
 COMMAND_RESULT_CIPHERS = {
-    u'CRYPTO_PROTOCOLS': [u'TLSv1.2'],
-    u'CRYPTO': {
-        'TLSv1.2': {
-            'cipher preference': ['client'],
-            'ciphers': ['TLS_DHE_RSA_WITH_AES_128_GCM_SHA256'],
-            'compressors': ['NULL'],
+    "CRYPTO_PROTOCOLS": ["TLSv1.2"],
+    "CRYPTO": {
+        "TLSv1.2": {
+            "cipher preference": ["client"],
+            "ciphers": ["TLS_DHE_RSA_WITH_AES_128_GCM_SHA256"],
+            "compressors": ["NULL"],
         }
     },
-    u'CIPHERS': [u'TLS_DHE_RSA_WITH_AES_128_GCM_SHA256'],
-    u'PORTS': {
-        u'443/tcp': {
-            u'PORT': u'443',
-            u'REASON': None,
-            u'SERVICE': u'https',
-            u'STATE': u'open',
-            u'TYPE': u'tcp'
+    "CIPHERS": ["TLS_DHE_RSA_WITH_AES_128_GCM_SHA256"],
+    "PORTS": {
+        "443/tcp": {
+            "PORT": "443",
+            "REASON": None,
+            "SERVICE": "https",
+            "STATE": "open",
+            "TYPE": "tcp",
         },
-        u'LINES': [u'443/tcp open  https']
+        "LINES": ["443/tcp open  https"],
     },
-    u'SCAN_REPORTS': [
+    "SCAN_REPORTS": [
         {
-            u'ADDRESS': u'10.83.182.143',
-            u'HOST': None,
-            u'LINE': u'Nmap scan report for 10.83.182.143',
-            u'RECEIVED': None
+            "ADDRESS": "10.83.182.143",
+            "HOST": None,
+            "LINE": "Nmap scan report for 10.83.182.143",
+            "RECEIVED": None,
         }
-    ]
+    ],
 }
 
 COMMAND_KWARGS_two_cryptoprotocols = {
-    'options': '--script ssl-enum-ciphers',
-    'ip': '10.83.182.238'
+    "options": "--script ssl-enum-ciphers",
+    "ip": "10.83.182.238",
 }
 
 COMMAND_RESULT_two_cryptoprotocols = {
-    'CIPHERS': ['TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA',
-                'TLS_DHE_RSA_WITH_AES_256_CBC_SHA',
-                'TLS_RSA_WITH_AES_256_CBC_SHA',
-                'TLS_DHE_RSA_WITH_AES_128_CBC_SHA',
-                'TLS_RSA_WITH_AES_128_CBC_SHA',
-                'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384',
-                'TLS_DHE_RSA_WITH_AES_256_GCM_SHA384',
-                'TLS_DHE_RSA_WITH_AES_256_CBC_SHA256',
-                'TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA',
-                'TLS_DHE_RSA_WITH_AES_256_CBC_SHA',
-                'TLS_RSA_WITH_AES_256_GCM_SHA384',
-                'TLS_RSA_WITH_AES_256_CBC_SHA256',
-                'TLS_RSA_WITH_AES_256_CBC_SHA',
-                'TLS_DHE_RSA_WITH_AES_128_GCM_SHA256',
-                'TLS_DHE_RSA_WITH_AES_128_CBC_SHA256',
-                'TLS_DHE_RSA_WITH_AES_128_CBC_SHA',
-                'TLS_RSA_WITH_AES_128_GCM_SHA256',
-                'TLS_RSA_WITH_AES_128_CBC_SHA256',
-                'TLS_RSA_WITH_AES_128_CBC_SHA'],
-    'CRYPTO_PROTOCOLS': ['TLSv1.1', 'TLSv1.2'],
-    'CRYPTO': {
-        'TLSv1.1': {
-            'ciphers': [
+    "CIPHERS": [
+        "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+        "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+        "TLS_RSA_WITH_AES_256_CBC_SHA",
+        "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+        "TLS_RSA_WITH_AES_128_CBC_SHA",
+        "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+        "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
+        "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256",
+        "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+        "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+        "TLS_RSA_WITH_AES_256_GCM_SHA384",
+        "TLS_RSA_WITH_AES_256_CBC_SHA256",
+        "TLS_RSA_WITH_AES_256_CBC_SHA",
+        "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
+        "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256",
+        "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+        "TLS_RSA_WITH_AES_128_GCM_SHA256",
+        "TLS_RSA_WITH_AES_128_CBC_SHA256",
+        "TLS_RSA_WITH_AES_128_CBC_SHA",
+    ],
+    "CRYPTO_PROTOCOLS": ["TLSv1.1", "TLSv1.2"],
+    "CRYPTO": {
+        "TLSv1.1": {
+            "ciphers": [
                 "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
                 "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
                 "TLS_RSA_WITH_AES_256_CBC_SHA",
                 "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
                 "TLS_RSA_WITH_AES_128_CBC_SHA",
             ],
-            'compressors': [
-                'NULL',
+            "compressors": [
+                "NULL",
             ],
-            'cipher preference': [
-                'server'
-            ],
+            "cipher preference": ["server"],
         },
-        'TLSv1.2': {
-            'ciphers': [
+        "TLSv1.2": {
+            "ciphers": [
                 "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
                 "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
                 "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256",
@@ -816,88 +903,112 @@ COMMAND_RESULT_two_cryptoprotocols = {
                 "TLS_RSA_WITH_AES_128_CBC_SHA256",
                 "TLS_RSA_WITH_AES_128_CBC_SHA",
             ],
-            'compressors': [
-                'NULL',
+            "compressors": [
+                "NULL",
             ],
-            'cipher preference': [
-                'server'
-            ],
+            "cipher preference": ["server"],
         },
     },
-    'PORTS': {'111/tcp': {'PORT': '111',
-                          'REASON': None,
-                          'SERVICE': 'rpcbind',
-                          'STATE': 'open',
-                          'TYPE': 'tcp'},
-              '15002/tcp': {'PORT': '15002',
-                            'REASON': None,
-                            'SERVICE': 'onep-tls',
-                            'STATE': 'open',
-                            'TYPE': 'tcp'},
-              '15003/tcp': {'PORT': '15003',
-                            'REASON': None,
-                            'SERVICE': 'unknown',
-                            'STATE': 'open',
-                            'TYPE': 'tcp'},
-              '15004/tcp': {'PORT': '15004',
-                            'REASON': None,
-                            'SERVICE': 'unknown',
-                            'STATE': 'open',
-                            'TYPE': 'tcp'},
-              '2049/tcp': {'PORT': '2049',
-                           'REASON': None,
-                           'SERVICE': 'nfs',
-                           'STATE': 'open',
-                           'TYPE': 'tcp'},
-              '21/tcp': {'PORT': '21',
-                         'REASON': None,
-                         'SERVICE': 'ftp',
-                         'STATE': 'open',
-                         'TYPE': 'tcp'},
-              '22/tcp': {'PORT': '22',
-                         'REASON': None,
-                         'SERVICE': 'ssh',
-                         'STATE': 'open',
-                         'TYPE': 'tcp'},
-              '443/tcp': {'PORT': '443',
-                          'REASON': None,
-                          'SERVICE': 'https',
-                          'STATE': 'open',
-                          'TYPE': 'tcp'},
-              '80/tcp': {'PORT': '80',
-                         'REASON': None,
-                         'SERVICE': 'http',
-                         'STATE': 'open',
-                         'TYPE': 'tcp'},
-              '8080/tcp': {'PORT': '8080',
-                           'REASON': None,
-                           'SERVICE': 'http-proxy',
-                           'STATE': 'open',
-                           'TYPE': 'tcp'},
-              '8443/tcp': {'PORT': '8443',
-                           'REASON': None,
-                           'SERVICE': 'https-alt',
-                           'STATE': 'open',
-                           'TYPE': 'tcp'},
-              'LINES': ['21/tcp    open  ftp',
-                        '22/tcp    open  ssh',
-                        '80/tcp    open  http',
-                        '111/tcp   open  rpcbind',
-                        '443/tcp   open  https',
-                        '2049/tcp  open  nfs',
-                        '8080/tcp  open  http-proxy',
-                        '8443/tcp  open  https-alt',
-                        '15002/tcp open  onep-tls',
-                        '15003/tcp open  unknown',
-                        '15004/tcp open  unknown']},
-    'SCAN_REPORTS': [
+    "PORTS": {
+        "111/tcp": {
+            "PORT": "111",
+            "REASON": None,
+            "SERVICE": "rpcbind",
+            "STATE": "open",
+            "TYPE": "tcp",
+        },
+        "15002/tcp": {
+            "PORT": "15002",
+            "REASON": None,
+            "SERVICE": "onep-tls",
+            "STATE": "open",
+            "TYPE": "tcp",
+        },
+        "15003/tcp": {
+            "PORT": "15003",
+            "REASON": None,
+            "SERVICE": "unknown",
+            "STATE": "open",
+            "TYPE": "tcp",
+        },
+        "15004/tcp": {
+            "PORT": "15004",
+            "REASON": None,
+            "SERVICE": "unknown",
+            "STATE": "open",
+            "TYPE": "tcp",
+        },
+        "2049/tcp": {
+            "PORT": "2049",
+            "REASON": None,
+            "SERVICE": "nfs",
+            "STATE": "open",
+            "TYPE": "tcp",
+        },
+        "21/tcp": {
+            "PORT": "21",
+            "REASON": None,
+            "SERVICE": "ftp",
+            "STATE": "open",
+            "TYPE": "tcp",
+        },
+        "22/tcp": {
+            "PORT": "22",
+            "REASON": None,
+            "SERVICE": "ssh",
+            "STATE": "open",
+            "TYPE": "tcp",
+        },
+        "443/tcp": {
+            "PORT": "443",
+            "REASON": None,
+            "SERVICE": "https",
+            "STATE": "open",
+            "TYPE": "tcp",
+        },
+        "80/tcp": {
+            "PORT": "80",
+            "REASON": None,
+            "SERVICE": "http",
+            "STATE": "open",
+            "TYPE": "tcp",
+        },
+        "8080/tcp": {
+            "PORT": "8080",
+            "REASON": None,
+            "SERVICE": "http-proxy",
+            "STATE": "open",
+            "TYPE": "tcp",
+        },
+        "8443/tcp": {
+            "PORT": "8443",
+            "REASON": None,
+            "SERVICE": "https-alt",
+            "STATE": "open",
+            "TYPE": "tcp",
+        },
+        "LINES": [
+            "21/tcp    open  ftp",
+            "22/tcp    open  ssh",
+            "80/tcp    open  http",
+            "111/tcp   open  rpcbind",
+            "443/tcp   open  https",
+            "2049/tcp  open  nfs",
+            "8080/tcp  open  http-proxy",
+            "8443/tcp  open  https-alt",
+            "15002/tcp open  onep-tls",
+            "15003/tcp open  unknown",
+            "15004/tcp open  unknown",
+        ],
+    },
+    "SCAN_REPORTS": [
         {
-            'ADDRESS': '10.83.182.238',
-            'HOST': None,
-            'LINE': 'Nmap scan report for 10.83.182.238',
-            'RECEIVED': None
+            "ADDRESS": "10.83.182.238",
+            "HOST": None,
+            "LINE": "Nmap scan report for 10.83.182.238",
+            "RECEIVED": None,
         }
-    ]
+    ],
 }
 
 COMMAND_OUTPUT_two_cryptoprotocols = """nmap --script ssl-enum-ciphers 10.83.182.238 -PN

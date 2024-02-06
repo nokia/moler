@@ -142,6 +142,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
                 return True  # just sent
         return False  # nothing sent
 
+    # pylint: disable-next=unused-argument
     def _commands_to_set_connection_after_login(self, line):
         """
         Determines whether to set the connection after login.

@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-__author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2020, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__author__ = "Marcin Usielski"
+__copyright__ = "Copyright (C) 2019-2020, Nokia"
+__email__ = "marcin.usielski@nokia.com"
 
 import datetime
 import re
+
 from dateutil import parser
 
 from moler.events.unix.genericunix_textualevent import GenericUnixTextualEvent
@@ -20,8 +21,10 @@ class LastLogin(GenericUnixTextualEvent):
         :param till_occurs_times: number of event occurrence
         :param runner: Runner to run event
         """
-        super(LastLogin, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times)
-        self.current_ret = dict()
+        super(LastLogin, self).__init__(
+            connection=connection, runner=runner, till_occurs_times=till_occurs_times
+        )
+        self.current_ret = {}
         self._re_line = self._get_re_line()
 
     def on_new_line(self, line, is_full_line):
@@ -39,7 +42,9 @@ class LastLogin(GenericUnixTextualEvent):
                 pass
 
     # Last login: Tue Jun 12 08:54:44 2018 from 127.0.0.1
-    _re_last_login = re.compile(r'Last login:\s+(?P<DATE>\S.*\S)\s+from\s+(?P<HOST>\S+)', re.I)
+    _re_last_login = re.compile(
+        r"Last login:\s+(?P<DATE>\S.*\S)\s+from\s+(?P<HOST>\S+)", re.I
+    )
 
     def _parse_last_login(self, line):
         """
@@ -56,7 +61,7 @@ class LastLogin(GenericUnixTextualEvent):
             self.current_ret["date_raw"] = date_str
             self.current_ret["date"] = parser.parse(date_str)
             self.event_occurred(event_data=self.current_ret)
-            self.current_ret = dict()
+            self.current_ret = {}
             raise ParsingDone()
 
     def _get_re_line(self):
@@ -72,15 +77,13 @@ EVENT_OUTPUT = """
 Last login: Tue Jun 12 08:54:44 2018 from 127.0.0.1
 """
 
-EVENT_KWARGS = {
-    "till_occurs_times": 1
-}
+EVENT_KWARGS = {"till_occurs_times": 1}
 
 EVENT_RESULT = [
     {
-        'time': datetime.datetime(2019, 1, 14, 13, 12, 48),
-        'host': '127.0.0.1',
-        'date_raw': 'Tue Jun 12 08:54:44 2018',
-        'date': datetime.datetime(2018, 6, 12, 8, 54, 44),
+        "time": datetime.datetime(2019, 1, 14, 13, 12, 48),
+        "host": "127.0.0.1",
+        "date_raw": "Tue Jun 12 08:54:44 2018",
+        "date": datetime.datetime(2018, 6, 12, 8, 54, 44),
     }
 ]

@@ -157,11 +157,12 @@ class Iperf3(Iperf2):
         if self._regex_helper.search_compiled(Iperf3._re_headers, line):
             if self.parallel_client:
                 client, server = list(self._connection_dict.values())[0]
+                # pylint: disable-next=unused-variable
                 (
                     client_host,
-                    client_port,
-                    server_host,
-                    server_port,
+                    _,
+                    _,
+                    _,
                 ) = self._split_connection_name((client, server))
                 connection_id = "[SUM]"
                 self._connection_dict[connection_id] = (
@@ -262,15 +263,17 @@ class Iperf3(Iperf2):
             return last_rec
         return None
 
+    # pylint: disable-next=arguments-differ
     def _parse_final_record(self, connection_name, line):
         if self.parallel_client and ("multiport" not in connection_name[0]):
             return  # for parallel we take report / publish stats only from summary records
         last_record = self.current_ret["CONNECTIONS"][connection_name][-1]
 
         if self._is_final_record(line):
+            # pylint: disable-next=unused-variable
             (
                 client_host,
-                client_port,
+                _,
                 server_host,
                 server_port,
             ) = self._split_connection_name(connection_name)
@@ -302,6 +305,7 @@ class Iperf3(Iperf2):
     _re_iperf_record_tcp_cli_summary_report = re.compile(
         _r_rec_tcp_cli_summary_report)
 
+    # pylint: disable-next=arguments-renamed
     def _is_final_record(self, line):
         regex_found = self._regex_helper.search_compiled
 

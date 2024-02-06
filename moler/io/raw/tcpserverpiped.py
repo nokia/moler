@@ -80,7 +80,7 @@ class TcpServerPiped(Process):
         self.server_sock.bind(svr_addr)
         self.server_sock.setblocking(True)
         self.server_sock.listen(1)
-        self.logger.debug("listening on %s:%s" % svr_addr)
+        self.logger.debug("listening on {}:{}".format(svr_addr[0], svr_addr[1]))
 
     def handle_controlling_action(self):
         """Handle actions coming from server-controlling pipe"""
@@ -90,7 +90,7 @@ class TcpServerPiped(Process):
                 input_msg = self.pipe_in.recv()
         except IOError:
             if self.client_sock is not None:
-                self.logger.debug("closing cli sock %s (on pipe's IOError)" % self.client_sock)
+                self.logger.debug("closing cli sock {} (on pipe's IOError)".format(self.client_sock))
                 self.client_sock.close()
                 self.client_sock = None
             self.server_is_running = False
@@ -121,7 +121,7 @@ class TcpServerPiped(Process):
     def handle_incomming_client(self):
         """Accept incoming client - make socket connection for it"""
         self.client_sock, addr = self.server_sock.accept()
-        self.logger.debug("accepted cli sock %s" % self.client_sock)
+        self.logger.debug("accepted cli sock {}".format(self.client_sock))
         self.history.append('Client connected')
         self.history.append('Client details: {}'.format(addr))
 
@@ -129,7 +129,7 @@ class TcpServerPiped(Process):
         """Handle client leaving server"""
         self.history.append('Client disconnected')
         if self.client_sock is not None:
-            self.logger.debug("closing cli sock %s (on leaving)" % self.client_sock)
+            self.logger.debug("closing cli sock {} (on leaving)".format(self.client_sock))
             self.client_sock.close()
             self.client_sock = None
 
@@ -161,6 +161,7 @@ class TcpServerPiped(Process):
         self.do_close_connection(**kwargs)
         self.server_is_running = False
 
+    # pylint: disable-next=unused-argument
     def do_close_connection(self, **kwargs):
         """
         Handles following pipe message
@@ -169,7 +170,7 @@ class TcpServerPiped(Process):
         """
         if self.client_sock is not None:
             self.history.append('Closing client connection')
-            self.logger.debug('Closing client connection %s (on do_close request)' % self.client_sock)
+            self.logger.debug('Closing client connection {} (on do_close request)'.format(self.client_sock))
             self.client_sock.close()
             self.client_sock = None
 
@@ -200,6 +201,7 @@ class TcpServerPiped(Process):
             err = 'data for "inject response" must contain "req" and "resp" keys - not %s' % kwargs
             self.history.append(err)
 
+    # pylint: disable-next=unused-argument
     def do_get_history(self, **kwargs):
         """
         Handles following pipe message
@@ -219,7 +221,7 @@ class TcpServerPiped(Process):
             async_msg = kwargs['msg']
             log_msg = 'Sending asynchronous msg: {}'.format(str(async_msg))
             self.history.append(['Sending asynchronous msg:', async_msg])
-            self.logger.debug(log_msg + " to cli sock {}".format(self.client_sock))
+            self.logger.debug("{} to cli sock {}".format(log_msg, self.client_sock))
             self.client_sock.send(async_msg)
         else:
             err = 'data for "send async msg" must contain "msg" key - not %s' % kwargs

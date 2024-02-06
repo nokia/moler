@@ -2,18 +2,19 @@
 
 """Scheduler for commands and events."""
 
-__author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2023, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__author__ = "Marcin Usielski"
+__copyright__ = "Copyright (C) 2019-2023, Nokia"
+__email__ = "marcin.usielski@nokia.com"
 
+import logging
 import threading
 import time
-import logging
-from moler.exceptions import CommandTimeout
 from threading import Thread
 
+from moler.exceptions import CommandTimeout
 
-class CommandScheduler(object):
+
+class CommandScheduler:
     """Scheduler for commands and events."""
 
     @staticmethod
@@ -27,14 +28,19 @@ class CommandScheduler(object):
         """
         scheduler = CommandScheduler._get_scheduler()
         if not connection_observer.is_command():  # Passed observer, not command.
-            scheduler._submit(connection_observer)
+            scheduler._submit(connection_observer)  # pylint: disable=protected-access
             return
-        if scheduler._add_command_to_connection(cmd=connection_observer, wait_for_slot=False):
+        if scheduler._add_command_to_connection(  # pylint: disable=protected-access
+            cmd=connection_observer, wait_for_slot=False
+        ):
             #  We have a free slot available
             return
         # We have to wait to finish other command(s) so let's do it in another thread.
-        t1 = Thread(target=scheduler._add_command_to_connection, args=(connection_observer, True),
-                    name="CommandScheduler")
+        t1 = Thread(
+            target=scheduler._add_command_to_connection,  # pylint: disable=protected-access
+            args=(connection_observer, True),
+            name="CommandScheduler",
+        )
         t1.daemon = True
         t1.start()
 
@@ -49,7 +55,7 @@ class CommandScheduler(object):
         if not connection_observer.is_command():  # Passed observer, not command.
             return
         scheduler = CommandScheduler._get_scheduler()
-        scheduler._remove_command(cmd=connection_observer)
+        scheduler._remove_command(cmd=connection_observer)  # pylint: disable=protected-access
 
     @staticmethod
     def is_waiting_for_execution(connection_observer):
@@ -61,7 +67,7 @@ class CommandScheduler(object):
         """
         if connection_observer.is_command:
             scheduler = CommandScheduler._get_scheduler()
-            return scheduler._does_it_wait_in_queue(cmd=connection_observer)
+            return scheduler._does_it_wait_in_queue(cmd=connection_observer)  # pylint: disable=protected-access
         return False
 
     # internal methods and variables
@@ -73,7 +79,7 @@ class CommandScheduler(object):
         """Create Scheduler object."""
         with CommandScheduler._conn_lock:
             if CommandScheduler._scheduler is None:
-                self._locks = dict()
+                self._locks = {}
                 CommandScheduler._scheduler = self
 
     @staticmethod
@@ -103,10 +109,14 @@ class CommandScheduler(object):
                     self._submit(connection_observer=cmd)
                     return True
                 # If we are here it means command timeout before it really starts.
-                cmd.set_exception(CommandTimeout(cmd,
-                                                 timeout=cmd.timeout,
-                                                 kind="scheduler.await_done",
-                                                 passed_time=time.monotonic() - start_time))
+                cmd.set_exception(
+                    CommandTimeout(
+                        cmd,
+                        timeout=cmd.timeout,
+                        kind="scheduler.await_done",
+                        passed_time=time.monotonic() - start_time,
+                    )
+                )
                 cmd.set_end_of_life()
                 self._remove_command(cmd=cmd)
         return False
@@ -121,7 +131,7 @@ class CommandScheduler(object):
         with CommandScheduler._conn_lock:
             if connection not in self._locks:
                 self._locks[connection] = self._create_empty_connection_dict()
-            return self._locks[connection]['lock']
+            return self._locks[connection]["lock"]
 
     def _create_empty_connection_dict(self):
         """
@@ -129,10 +139,10 @@ class CommandScheduler(object):
 
         :return: Initial dict for connection
         """
-        ret = dict()
-        ret['lock'] = threading.Lock()
-        ret['queue'] = list()
-        ret['current_cmd'] = None
+        ret = {}
+        ret["lock"] = threading.Lock()
+        ret["queue"] = []
+        ret["current_cmd"] = None
         return ret
 
     def _wait_for_slot_for_command(self, cmd):
@@ -149,12 +159,15 @@ class CommandScheduler(object):
         while cmd.timeout >= (time.monotonic() - start_time):
             time.sleep(0.005)
             with lock:
-                if conn_atr['current_cmd'] is None and len(conn_atr['queue']) >= 1 and cmd == conn_atr['queue'][0]:
-                    conn_atr['queue'].pop(0)
-                    conn_atr['current_cmd'] = cmd
-                    cmd._log(logging.DEBUG,
-                             ">'{}': added  added cmd ('{}') from queue.".format(
-                                 cmd.connection.name, cmd))
+                if conn_atr["current_cmd"] is None and len(conn_atr["queue"]) >= 1 and cmd == conn_atr["queue"][0]:
+                    conn_atr["queue"].pop(0)
+                    conn_atr["current_cmd"] = cmd
+                    cmd._log(  # pylint: disable=protected-access
+                        logging.DEBUG,
+                        ">'{}': added  added cmd ('{}') from queue.".format(
+                            cmd.connection.name, cmd
+                        ),
+                    )
                     return True
         return False
 
@@ -170,10 +183,10 @@ class CommandScheduler(object):
         lock = self._lock_for_connection(connection)
         conn_atr = self._locks[connection]
         with lock:
-            if cmd == conn_atr['current_cmd']:
-                conn_atr['current_cmd'] = None
+            if cmd == conn_atr["current_cmd"]:
+                conn_atr["current_cmd"] = None
             try:
-                queue = conn_atr['queue']
+                queue = conn_atr["queue"]
                 index = queue.index(cmd)
                 queue.pop(index)
             except ValueError:  # command object does not exist in the list
@@ -190,8 +203,8 @@ class CommandScheduler(object):
         lock = self._lock_for_connection(connection)
         conn_atr = self._locks[connection]
         with lock:
-            if conn_atr['current_cmd'] is None:
-                conn_atr['current_cmd'] = cmd
+            if conn_atr["current_cmd"] is None:
+                conn_atr["current_cmd"] = cmd
                 return True
         return False
 
@@ -206,7 +219,7 @@ class CommandScheduler(object):
         lock = self._lock_for_connection(connection)
         conn_atr = self._locks[connection]
         with lock:
-            conn_atr['queue'].append(cmd)
+            conn_atr["queue"].append(cmd)
 
     def _does_it_wait_in_queue(self, cmd):
         """
@@ -219,7 +232,7 @@ class CommandScheduler(object):
         lock = self._lock_for_connection(connection)
         conn_atr = self._locks[connection]
         with lock:
-            if cmd in conn_atr['queue']:
+            if cmd in conn_atr["queue"]:
                 return True
         return False
 
@@ -231,5 +244,5 @@ class CommandScheduler(object):
         :return: None
         """
         runner = connection_observer.runner
-        if not connection_observer._is_done and not runner.is_in_shutdown():
-            connection_observer._future = runner.submit(connection_observer)
+        if not connection_observer._is_done and not runner.is_in_shutdown():  # pylint: disable=protected-access
+            connection_observer._future = runner.submit(connection_observer)  # pylint: disable=protected-access

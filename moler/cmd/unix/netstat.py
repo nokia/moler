@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-__author__ = 'Mateusz Szczurek, Michal Ernst'
-__copyright__ = 'Copyright (C) 2019, Nokia'
-__email__ = 'mateusz.m.szczurek@nokia.com, michal.ernst@nokia.com'
+__author__ = "Mateusz Szczurek, Michal Ernst"
+__copyright__ = "Copyright (C) 2019, Nokia"
+__email__ = "mateusz.m.szczurek@nokia.com, michal.ernst@nokia.com"
 
 import re
 
@@ -13,7 +13,9 @@ from moler.helpers import convert_to_number
 class Netstat(GenericUnixCommand):
     """Netstat command class."""
 
-    def __init__(self, connection, options="", prompt=None, newline_chars=None, runner=None):
+    def __init__(
+        self, connection, options="", prompt=None, newline_chars=None, runner=None
+    ):
         """
         Netstat command.
 
@@ -23,10 +25,16 @@ class Netstat(GenericUnixCommand):
         :param newline_chars: Characters to split lines - list.
         :param runner: Runner to run command.
         """
-        super(Netstat, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+        super(Netstat, self).__init__(
+            connection=connection,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
         # Parameters defined by calling the command
         self.options = options
-        self._active = ''
+        self._active = ""
+        self.statistics_proto = ""
 
     def build_command_string(self):
         """
@@ -62,7 +70,9 @@ class Netstat(GenericUnixCommand):
         return super(Netstat, self).on_new_line(line, is_full_line)
 
     # Active UNIX domain sockets (w/o servers)
-    _re_active = re.compile(r"Active\s*(?P<ACTIVE>.*) \s*\((w/o servers|servers and established)\)")
+    _re_active = re.compile(
+        r"Active\s*(?P<ACTIVE>.*) \s*\((w/o servers|servers and established)\)"
+    )
 
     def _parse_active(self, line):
         """
@@ -78,7 +88,8 @@ class Netstat(GenericUnixCommand):
     # unix  2      [ ]         DGRAM                    15382    /var/cache/samba/msg/950
     _re_header_unix = re.compile(
         r"(?P<PROTO>\S*)\s+(?P<REFCNT>\d*)\s+(?P<FLAGS>\[.*\])\s+(?P<TYPE>[A-Z]*)\s+(?P<STATE>[A-Z]*)?\s+(?P<INODE>\d*)"
-        r"\s*(?P<PID>\d+/\S+|-)?\s+(?P<PATH>\S*)")
+        r"\s*(?P<PID>\d+/\S+|-)?\s+(?P<PATH>\S*)"
+    )
 
     def _parse_headers_unix(self, line):
         """
@@ -90,7 +101,7 @@ class Netstat(GenericUnixCommand):
         """
         if self._active == "UNIX domain sockets":
             if "UNIX_SOCKETS" not in self.current_ret:
-                self.current_ret['UNIX_SOCKETS'] = list()
+                self.current_ret["UNIX_SOCKETS"] = []
             if self._regex_helper.search_compiled(Netstat._re_header_unix, line):
                 _ret_dict = {
                     "proto": self._regex_helper.group("PROTO"),
@@ -99,17 +110,20 @@ class Netstat(GenericUnixCommand):
                     "type": self._regex_helper.group("TYPE"),
                     "state": self._regex_helper.group("STATE"),
                     "i-node": convert_to_number(self._regex_helper.group("INODE")),
-                    "path": self._regex_helper.group("PATH")
+                    "path": self._regex_helper.group("PATH"),
                 }
                 if self._regex_helper.group("PID"):
-                    _ret_dict.update({"pid/program name": self._regex_helper.group("PID")})
-                self.current_ret['UNIX_SOCKETS'].append(_ret_dict)
+                    _ret_dict.update(
+                        {"pid/program name": self._regex_helper.group("PID")}
+                    )
+                self.current_ret["UNIX_SOCKETS"].append(_ret_dict)
                 raise ParsingDone
 
     # tcp6       1      0 localhost:34256         localhost:ipp           CLOSE_WAIT
     _re_header_internet = re.compile(
         r"(?P<PROTO>\S+)\s{1,10}(?P<RECVQ>\d+)?\s*(?P<SENDQ>\d+)?\s*(?P<LADDRESS>\S+:\S+)\s+(?P<FADDRESS>\S+:\S+)"
-        r"?\s+(?P<STATE>\S+)\s*(?P<PID>\d+/\S+|-)?")
+        r"?\s+(?P<STATE>\S+)\s*(?P<PID>\d+/\S+|-)?"
+    )
 
     def _parse_headers_internet(self, line):
         """
@@ -121,7 +135,7 @@ class Netstat(GenericUnixCommand):
         """
         if self._active == "Internet connections":
             if "INTERNET_CONNECTIONS" not in self.current_ret:
-                self.current_ret['INTERNET_CONNECTIONS'] = list()
+                self.current_ret["INTERNET_CONNECTIONS"] = []
             if self._regex_helper.search_compiled(Netstat._re_header_internet, line):
                 _ret_dict = {
                     "proto": self._regex_helper.group("PROTO"),
@@ -129,11 +143,13 @@ class Netstat(GenericUnixCommand):
                     "send-q": convert_to_number(self._regex_helper.group("SENDQ")),
                     "local address": self._regex_helper.group("LADDRESS"),
                     "foreign address": self._regex_helper.group("FADDRESS"),
-                    "state": self._regex_helper.group("STATE")
+                    "state": self._regex_helper.group("STATE"),
                 }
                 if self._regex_helper.group("PID"):
-                    _ret_dict.update({"pid/program name": self._regex_helper.group("PID")})
-                self.current_ret['INTERNET_CONNECTIONS'].append(_ret_dict)
+                    _ret_dict.update(
+                        {"pid/program name": self._regex_helper.group("PID")}
+                    )
+                self.current_ret["INTERNET_CONNECTIONS"].append(_ret_dict)
                 raise ParsingDone
 
     # lo              1      all-systems.mcast.net
@@ -147,21 +163,24 @@ class Netstat(GenericUnixCommand):
         :param line: Line to process.
         :return: None but raises ParsingDone if line has the information to handle by this method.
         """
-        if "g" in self.options and self._regex_helper.search_compiled(Netstat._re_groups, line):
+        if "g" in self.options and self._regex_helper.search_compiled(
+            Netstat._re_groups, line
+        ):
             if "GROUP" not in self.current_ret:
-                self.current_ret['GROUP'] = list()
+                self.current_ret["GROUP"] = []
             _ret_dict = {
                 "interface": self._regex_helper.group("INTERFACE"),
                 "refcnt": convert_to_number(self._regex_helper.group("REFCNT")),
-                "group": self._regex_helper.group("GROUP")
+                "group": self._regex_helper.group("GROUP"),
             }
-            self.current_ret['GROUP'].append(_ret_dict)
+            self.current_ret["GROUP"].append(_ret_dict)
             raise ParsingDone
 
     # eth0       1500 0    178226      0      0 0          1417      0      0      0 BMRU
     _re_interface = re.compile(
         r"(?P<INTERFACE>\S*)\s+(?P<MTU>\d*)\s+(?P<MET>\d*)\s+(?P<RXOK>\d*)\s+(?P<RXERR>\d*)\s+(?P<RXDRP>\d*)"
-        r"\s+(?P<RXOVR>\d*)\s+(?P<TXOK>\d*)\s+(?P<TXERR>\d*)\s+(?P<TXDRP>\d*)\s+(?P<TXOVR>\d*)\s+(?P<FLG>\S*)")
+        r"\s+(?P<RXOVR>\d*)\s+(?P<TXOK>\d*)\s+(?P<TXERR>\d*)\s+(?P<TXDRP>\d*)\s+(?P<TXOVR>\d*)\s+(?P<FLG>\S*)"
+    )
 
     def _parse_interface(self, line):
         """
@@ -171,9 +190,11 @@ class Netstat(GenericUnixCommand):
         :param line: Line to process.
         :return: None but raises ParsingDone if line has the information to handle by this method.
         """
-        if "i" in self.options and self._regex_helper.search_compiled(Netstat._re_interface, line):
+        if "i" in self.options and self._regex_helper.search_compiled(
+            Netstat._re_interface, line
+        ):
             if "INTERFACE" not in self.current_ret:
-                self.current_ret['INTERFACE'] = list()
+                self.current_ret["INTERFACE"] = []
             _ret_dict = {
                 "iface": self._regex_helper.group("INTERFACE"),
                 "mtu": convert_to_number(self._regex_helper.group("MTU")),
@@ -186,15 +207,16 @@ class Netstat(GenericUnixCommand):
                 "tx-err": convert_to_number(self._regex_helper.group("TXERR")),
                 "tx-drp": convert_to_number(self._regex_helper.group("TXDRP")),
                 "tx-ovr": convert_to_number(self._regex_helper.group("TXOVR")),
-                "flg": self._regex_helper.group("FLG")
+                "flg": self._regex_helper.group("FLG"),
             }
-            self.current_ret['INTERFACE'].append(_ret_dict)
+            self.current_ret["INTERFACE"].append(_ret_dict)
             raise ParsingDone
 
     # default         123.123.123.123  0.0.0.0         UG        0 0          0 eth0
     _re_routing_table = re.compile(
         r"(?P<DESTINATION>\S*)\s+(?P<GATEWAY>\S*)\s+(?P<GENMASK>\S*)\s+(?P<FLAGS>[A-Z]*)\s+(?P<MSS>\d*)"
-        r"\s+(?P<WINDOW>\d*)\s+(?P<IRTT>\d*)\s+(?P<INTERFACE>\S*)$")
+        r"\s+(?P<WINDOW>\d*)\s+(?P<IRTT>\d*)\s+(?P<INTERFACE>\S*)$"
+    )
 
     def _parse_routing_table(self, line):
         """
@@ -204,9 +226,11 @@ class Netstat(GenericUnixCommand):
         :param line: Line to process.
         :return: None but raises ParsingDone if line has the information to handle by this method.
         """
-        if "r" in self.options and self._regex_helper.search_compiled(Netstat._re_routing_table, line):
+        if "r" in self.options and self._regex_helper.search_compiled(
+            Netstat._re_routing_table, line
+        ):
             if "ROUTING_TABLE" not in self.current_ret:
-                self.current_ret['ROUTING_TABLE'] = list()
+                self.current_ret["ROUTING_TABLE"] = []
             _ret_dict = {
                 "destination": self._regex_helper.group("DESTINATION"),
                 "gateway": self._regex_helper.group("GATEWAY"),
@@ -215,9 +239,9 @@ class Netstat(GenericUnixCommand):
                 "mss": convert_to_number(self._regex_helper.group("MSS")),
                 "window": convert_to_number(self._regex_helper.group("WINDOW")),
                 "irtt": convert_to_number(self._regex_helper.group("IRTT")),
-                "iface": self._regex_helper.group("INTERFACE")
+                "iface": self._regex_helper.group("INTERFACE"),
             }
-            self.current_ret['ROUTING_TABLE'].append(_ret_dict)
+            self.current_ret["ROUTING_TABLE"].append(_ret_dict)
             raise ParsingDone
 
     # IcmpMsg:
@@ -233,12 +257,14 @@ class Netstat(GenericUnixCommand):
         """
         if "s" in self.options:
             if "STATISTICS" not in self.current_ret:
-                self.current_ret['STATISTICS'] = dict()
+                self.current_ret["STATISTICS"] = {}
             if self._regex_helper.search_compiled(Netstat._re_statistics, line):
                 self.statistics_proto = self._regex_helper.group("PROTO")
-                self.current_ret['STATISTICS'][self.statistics_proto] = list()
+                self.current_ret["STATISTICS"][self.statistics_proto] = []
             else:
-                self.current_ret['STATISTICS'][self.statistics_proto].append(line.lstrip())
+                self.current_ret["STATISTICS"][self.statistics_proto].append(
+                    line.lstrip()
+                )
             raise ParsingDone
 
 
@@ -258,55 +284,71 @@ unix  2      [ ]         DGRAM                    15404    /var/cache/samba/msg/
 host:~ # """
 
 COMMAND_RESULT = {
-    'UNIX_SOCKETS': [{'flags': '[ ]',
-                      'i-node': 15365,
-                      'path': '/var/cache/samba/msg/846',
-                      'proto': 'unix',
-                      'refcnt': 2,
-                      'state': '',
-                      'type': 'DGRAM'},
-                     {'flags': '[ ]',
-                      'i-node': 15404,
-                      'path': '/var/cache/samba/msg/878',
-                      'proto': 'unix',
-                      'refcnt': 2,
-                      'state': '',
-                      'type': 'DGRAM'}],
-
-    'INTERNET_CONNECTIONS': [{'foreign address': 'localhost.localdo:20570',
-                              'local address': 'localhost.localdo:20567',
-                              'proto': 'tcp',
-                              'recv-q': 0,
-                              'send-q': 0,
-                              'state': 'ESTABLISHED'},
-                             {'foreign address': 'localhost.localdo:20568',
-                              'local address': 'localhost.localdo:20567',
-                              'proto': 'tcp',
-                              'recv-q': 0,
-                              'send-q': 0,
-                              'state': 'ESTABLISHED'},
-                             {'foreign address': None,
-                              'local address': 'localhost.localdo:65432',
-                              'proto': 'sctp',
-                              'recv-q': None,
-                              'send-q': None,
-                              'state': 'LISTEN'},
-                             {'foreign address': None,
-                              'local address': 'localhost.localdo:65435',
-                              'proto': 'sctp',
-                              'recv-q': 1,
-                              'send-q': None,
-                              'state': 'LISTEN'},
-                             {'foreign address': 'localhost.localdo:20537',
-                              'local address': 'localhost.localdo:65438',
-                              'proto': 'sctp',
-                              'recv-q': None,
-                              'send-q': 1,
-                              'state': 'LISTEN'}]
+    "UNIX_SOCKETS": [
+        {
+            "flags": "[ ]",
+            "i-node": 15365,
+            "path": "/var/cache/samba/msg/846",
+            "proto": "unix",
+            "refcnt": 2,
+            "state": "",
+            "type": "DGRAM",
+        },
+        {
+            "flags": "[ ]",
+            "i-node": 15404,
+            "path": "/var/cache/samba/msg/878",
+            "proto": "unix",
+            "refcnt": 2,
+            "state": "",
+            "type": "DGRAM",
+        },
+    ],
+    "INTERNET_CONNECTIONS": [
+        {
+            "foreign address": "localhost.localdo:20570",
+            "local address": "localhost.localdo:20567",
+            "proto": "tcp",
+            "recv-q": 0,
+            "send-q": 0,
+            "state": "ESTABLISHED",
+        },
+        {
+            "foreign address": "localhost.localdo:20568",
+            "local address": "localhost.localdo:20567",
+            "proto": "tcp",
+            "recv-q": 0,
+            "send-q": 0,
+            "state": "ESTABLISHED",
+        },
+        {
+            "foreign address": None,
+            "local address": "localhost.localdo:65432",
+            "proto": "sctp",
+            "recv-q": None,
+            "send-q": None,
+            "state": "LISTEN",
+        },
+        {
+            "foreign address": None,
+            "local address": "localhost.localdo:65435",
+            "proto": "sctp",
+            "recv-q": 1,
+            "send-q": None,
+            "state": "LISTEN",
+        },
+        {
+            "foreign address": "localhost.localdo:20537",
+            "local address": "localhost.localdo:65438",
+            "proto": "sctp",
+            "recv-q": None,
+            "send-q": 1,
+            "state": "LISTEN",
+        },
+    ],
 }
 
-COMMAND_KWARGS = {
-}
+COMMAND_KWARGS = {}
 
 COMMAND_OUTPUT_group = """
 host:~ #   netstat -g
@@ -318,17 +360,13 @@ eth0            1      224.0.0.251
 host:~ # """
 
 COMMAND_RESULT_group = {
-    'GROUP': [{'group': 'all-systems.mcast.net',
-               'interface': 'lo',
-               'refcnt': 1},
-              {'group': '224.0.0.251',
-               'interface': 'eth0',
-               'refcnt': 1}]
+    "GROUP": [
+        {"group": "all-systems.mcast.net", "interface": "lo", "refcnt": 1},
+        {"group": "224.0.0.251", "interface": "eth0", "refcnt": 1},
+    ]
 }
 
-COMMAND_KWARGS_group = {
-    "options": "-g"
-}
+COMMAND_KWARGS_group = {"options": "-g"}
 
 COMMAND_OUTPUT_interface = """
 host:~ #   netstat -i
@@ -339,35 +377,39 @@ lo        65536 0       687      0      0 0           687      0      0      0 L
 host:~ # """
 
 COMMAND_RESULT_interface = {
-    'INTERFACE': [{'flg': 'BMRU',
-                   'iface': 'eth0',
-                   'met': 0,
-                   'mtu': 1500,
-                   'rx-drp': 0,
-                   'rx-err': 0,
-                   'rx-ok': 182746,
-                   'rx-ovr': 0,
-                   'tx-drp': 0,
-                   'tx-err': 0,
-                   'tx-ok': 1454,
-                   'tx-ovr': 0},
-                  {'flg': 'LRU',
-                   'iface': 'lo',
-                   'met': 0,
-                   'mtu': 65536,
-                   'rx-drp': 0,
-                   'rx-err': 0,
-                   'rx-ok': 687,
-                   'rx-ovr': 0,
-                   'tx-drp': 0,
-                   'tx-err': 0,
-                   'tx-ok': 687,
-                   'tx-ovr': 0}]
+    "INTERFACE": [
+        {
+            "flg": "BMRU",
+            "iface": "eth0",
+            "met": 0,
+            "mtu": 1500,
+            "rx-drp": 0,
+            "rx-err": 0,
+            "rx-ok": 182746,
+            "rx-ovr": 0,
+            "tx-drp": 0,
+            "tx-err": 0,
+            "tx-ok": 1454,
+            "tx-ovr": 0,
+        },
+        {
+            "flg": "LRU",
+            "iface": "lo",
+            "met": 0,
+            "mtu": 65536,
+            "rx-drp": 0,
+            "rx-err": 0,
+            "rx-ok": 687,
+            "rx-ovr": 0,
+            "tx-drp": 0,
+            "tx-err": 0,
+            "tx-ok": 687,
+            "tx-ovr": 0,
+        },
+    ]
 }
 
-COMMAND_KWARGS_interface = {
-    "options": "-i"
-}
+COMMAND_KWARGS_interface = {"options": "-i"}
 
 COMMAND_OUTPUT_routing_table = """
 host:~ #   netstat -r
@@ -378,27 +420,31 @@ default         123.123.123.123  0.0.0.0         UG        0 0          0 eth0
 host:~ # """
 
 COMMAND_RESULT_routing_table = {
-    'ROUTING_TABLE': [{'destination': 'default',
-                       'flags': 'UG',
-                       'gateway': '123.123.123.123',
-                       'genmask': '0.0.0.0',
-                       'iface': 'eth0',
-                       'irtt': 0,
-                       'mss': 0,
-                       'window': 0},
-                      {'destination': '156.156.156.156',
-                       'flags': 'U',
-                       'gateway': '*',
-                       'genmask': '255.255.254.0',
-                       'iface': 'eth0',
-                       'irtt': 0,
-                       'mss': 0,
-                       'window': 0}]
+    "ROUTING_TABLE": [
+        {
+            "destination": "default",
+            "flags": "UG",
+            "gateway": "123.123.123.123",
+            "genmask": "0.0.0.0",
+            "iface": "eth0",
+            "irtt": 0,
+            "mss": 0,
+            "window": 0,
+        },
+        {
+            "destination": "156.156.156.156",
+            "flags": "U",
+            "gateway": "*",
+            "genmask": "255.255.254.0",
+            "iface": "eth0",
+            "irtt": 0,
+            "mss": 0,
+            "window": 0,
+        },
+    ]
 }
 
-COMMAND_KWARGS_routing_table = {
-    "options": "-r"
-}
+COMMAND_KWARGS_routing_table = {"options": "-r"}
 
 COMMAND_OUTPUT_pid = """
 host:~ #   netstat -p
@@ -415,47 +461,59 @@ unix  2      [ ]         DGRAM                    15390    -                   /
 host:~ # """
 
 COMMAND_RESULT_pid = {
-    'INTERNET_CONNECTIONS': [{'foreign address': 'localhost:60002',
-                              'local address': 'localhost:45138',
-                              'pid/program name': '6919/egate',
-                              'proto': 'tcp',
-                              'recv-q': 0,
-                              'send-q': 0,
-                              'state': 'ESTABLISHED'},
-                             {'foreign address': None,
-                              'local address': 'localhost.localdo:65432',
-                              'pid/program name': '29004/sctp_1',
-                              'proto': 'sctp',
-                              'recv-q': None,
-                              'send-q': None,
-                              'state': 'LISTEN'},
-                             {'foreign address': None,
-                              'local address': 'localhost.localdo:65435',
-                              'pid/program name': '29034/sctp_2',
-                              'proto': 'sctp',
-                              'recv-q': 1,
-                              'send-q': None,
-                              'state': 'LISTEN'},
-                             {'foreign address': 'localhost.localdo:20537',
-                              'local address': 'localhost.localdo:65438',
-                              'pid/program name': '29045/sctp_3',
-                              'proto': 'sctp',
-                              'recv-q': None,
-                              'send-q': 1,
-                              'state': 'LISTEN'}],
-    'UNIX_SOCKETS': [{'flags': '[ ]',
-                      'i-node': 15390,
-                      'path': '/var/cache/samba/msg/922',
-                      'pid/program name': '-',
-                      'proto': 'unix',
-                      'refcnt': 2,
-                      'state': '',
-                      'type': 'DGRAM'}]
+    "INTERNET_CONNECTIONS": [
+        {
+            "foreign address": "localhost:60002",
+            "local address": "localhost:45138",
+            "pid/program name": "6919/egate",
+            "proto": "tcp",
+            "recv-q": 0,
+            "send-q": 0,
+            "state": "ESTABLISHED",
+        },
+        {
+            "foreign address": None,
+            "local address": "localhost.localdo:65432",
+            "pid/program name": "29004/sctp_1",
+            "proto": "sctp",
+            "recv-q": None,
+            "send-q": None,
+            "state": "LISTEN",
+        },
+        {
+            "foreign address": None,
+            "local address": "localhost.localdo:65435",
+            "pid/program name": "29034/sctp_2",
+            "proto": "sctp",
+            "recv-q": 1,
+            "send-q": None,
+            "state": "LISTEN",
+        },
+        {
+            "foreign address": "localhost.localdo:20537",
+            "local address": "localhost.localdo:65438",
+            "pid/program name": "29045/sctp_3",
+            "proto": "sctp",
+            "recv-q": None,
+            "send-q": 1,
+            "state": "LISTEN",
+        },
+    ],
+    "UNIX_SOCKETS": [
+        {
+            "flags": "[ ]",
+            "i-node": 15390,
+            "path": "/var/cache/samba/msg/922",
+            "pid/program name": "-",
+            "proto": "unix",
+            "refcnt": 2,
+            "state": "",
+            "type": "DGRAM",
+        }
+    ],
 }
 
-COMMAND_KWARGS_pid = {
-    "options": "-p"
-}
+COMMAND_KWARGS_pid = {"options": "-p"}
 
 COMMAND_OUTPUT_statistics = """
 host:~ #   netstat -s
@@ -473,18 +531,16 @@ Udp:
 host:~ # """
 
 COMMAND_RESULT_statistics = {
-    'STATISTICS': {'IcmpMsg': ['InType3: 33',
-                               'InType8: 1',
-                               'OutType0: 1',
-                               'OutType3: 38'],
-                   'Udp': ['117068 packets received',
-                           '38 packets to unknown port received.',
-                           '0 packet receive errors',
-                           '661 packets sent'],
-                   'UdpLite': []}
-
+    "STATISTICS": {
+        "IcmpMsg": ["InType3: 33", "InType8: 1", "OutType0: 1", "OutType3: 38"],
+        "Udp": [
+            "117068 packets received",
+            "38 packets to unknown port received.",
+            "0 packet receive errors",
+            "661 packets sent",
+        ],
+        "UdpLite": [],
+    }
 }
 
-COMMAND_KWARGS_statistics = {
-    "options": "-s"
-}
+COMMAND_KWARGS_statistics = {"options": "-s"}

@@ -4,17 +4,25 @@ Command read status.
 """
 
 import re
+
 from moler.cmd.pdu_aten.pdu.generic_pdu import GenericPdu
 from moler.exceptions import ParsingDone
 
-__author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2020, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__author__ = "Marcin Usielski"
+__copyright__ = "Copyright (C) 2020, Nokia"
+__email__ = "marcin.usielski@nokia.com"
 
 
 class ReadStatus(GenericPdu):
-
-    def __init__(self, connection, outlet, output_format=None, prompt=">", newline_chars=None, runner=None):
+    def __init__(
+        self,
+        connection,
+        outlet,
+        output_format=None,
+        prompt=">",
+        newline_chars=None,
+        runner=None,
+    ):
         """
         Class for command read status for PDU Aten device.
 
@@ -25,8 +33,12 @@ class ReadStatus(GenericPdu):
         :param newline_chars:  new line chars on device (a list).
         :param runner: runner to run command.
         """
-        super(ReadStatus, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
-                                         runner=runner)
+        super(ReadStatus, self).__init__(
+            connection=connection,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
         self.outlet = outlet
         self.format = output_format
 
@@ -54,8 +66,10 @@ class ReadStatus(GenericPdu):
         if self._regex_helper.search_compiled(ReadStatus._re_outlet, line):
             value = self._regex_helper.group("VALUE")
             if ReadStatus._outlet_id not in self.current_ret:
-                self.current_ret[ReadStatus._outlet_id] = dict()
-            self.current_ret[ReadStatus._outlet_id][self._regex_helper.group("ID")] = value
+                self.current_ret[ReadStatus._outlet_id] = {}
+            self.current_ret[ReadStatus._outlet_id][
+                self._regex_helper.group("ID")
+            ] = value
             self.current_ret["STATUS"] = value
             raise ParsingDone()
 
@@ -64,7 +78,7 @@ class ReadStatus(GenericPdu):
 
     def _parse_value(self, line):
         if self._regex_helper.search_compiled(ReadStatus._re_value, line):
-            self.current_ret['STATUS'] = self._regex_helper.group("VALUE")
+            self.current_ret["STATUS"] = self._regex_helper.group("VALUE")
             raise ParsingDone()
 
 
@@ -79,10 +93,8 @@ COMMAND_KWARGS = {
 }
 
 COMMAND_RESULT = {
-    "STATUS": 'on',
-    "OUTLET": {
-        "01": 'on'
-    },
+    "STATUS": "on",
+    "OUTLET": {"01": "on"},
 }
 
 COMMAND_OUTPUT_simple = """read status o01
@@ -90,10 +102,8 @@ on
 
 >"""
 
-COMMAND_KWARGS_simple = {
-    "outlet": "o01"
-}
+COMMAND_KWARGS_simple = {"outlet": "o01"}
 
 COMMAND_RESULT_simple = {
-    "STATUS": 'on',
+    "STATUS": "on",
 }

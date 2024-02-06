@@ -1,38 +1,53 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Marcin Usielski, Tomasz Krol'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
-__email__ = 'marcin.usielski@nokia.com, tomasz.krol@nokia.com'
+__author__ = "Marcin Usielski, Tomasz Krol"
+__copyright__ = "Copyright (C) 2018-2020, Nokia"
+__email__ = "marcin.usielski@nokia.com, tomasz.krol@nokia.com"
 
+import abc
 import datetime
 import re
-import abc
+
 import six
+
 from moler.events.textualevent import TextualEvent
-from moler.exceptions import NoDetectPatternProvided
-from moler.exceptions import WrongUsage
-from moler.helpers import instance_id, copy_list, convert_to_number
+from moler.exceptions import NoDetectPatternProvided, WrongUsage
+from moler.helpers import convert_to_number, copy_list, instance_id
 
 
 @six.add_metaclass(abc.ABCMeta)
 class LineEvent(TextualEvent):
-    def __init__(self, detect_patterns, connection=None, till_occurs_times=-1, match='any', runner=None):
-        super(LineEvent, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times)
+    def __init__(
+        self,
+        detect_patterns,
+        connection=None,
+        till_occurs_times=-1,
+        match="any",
+        runner=None,
+    ):
+        super(LineEvent, self).__init__(
+            connection=connection, runner=runner, till_occurs_times=till_occurs_times
+        )
         self.detect_patterns = copy_list(detect_patterns)
         self.process_full_lines_only = False
         self.match = match
         self.convert_string_to_number = True
+        self.copy_compiled_patterns = []
+        self._current_ret = []
         self._prepare_parameters()
 
     def __str__(self):
-        return '{}({}, id:{})'.format(self.__class__.__name__, self.detect_patterns, instance_id(self))
+        return "{}({}, id:{})".format(
+            self.__class__.__name__, self.detect_patterns, instance_id(self)
+        )
 
+    # pylint: disable=keyword-arg-before-vararg
     def start(self, timeout=None, *args, **kwargs):
         """Start background execution of command."""
 
         self._validate_start(*args, **kwargs)
         ret = super(LineEvent, self).start(timeout, *args, **kwargs)
-        self.life_status._is_running = True
+        self.life_status._is_running = True  # pylint: disable=protected-access
 
         return ret
 
@@ -76,14 +91,19 @@ class LineEvent(TextualEvent):
         if self.match in parsers:
             return parsers[self.match]
         else:
-            self.set_exception(WrongUsage("'{}' is not supported. Possible choices: 'any', 'all' or 'sequence'".
-                                          format(self.match)))
+            self.set_exception(
+                WrongUsage(
+                    "'{}' is not supported. Possible choices: 'any', 'all' or 'sequence'".format(
+                        self.match
+                    )
+                )
+            )
 
     def _prepare_parameters(self):
         self.parser = self._get_parser()
         self.compiled_patterns = self.compile_patterns(self.detect_patterns)
 
-        if self.match in ['all', 'sequence']:
+        if self.match in ["all", "sequence"]:
             self._prepare_new_cycle_parameters()
 
     def _parse_line(self, line):
@@ -102,13 +122,15 @@ class LineEvent(TextualEvent):
             self._current_ret.append(current_ret)
 
     def _prepare_current_ret(self, line, match):
-        current_ret = dict()
+        current_ret = {}
         current_ret["line"] = line
         current_ret["time"] = self._last_recv_time_data_read_from_connection
 
         group_dict = match.groupdict()
         for named_group in match.groupdict():
-            group_dict[named_group] = self._convert_string_to_number(group_dict[named_group])
+            group_dict[named_group] = self._convert_string_to_number(
+                group_dict[named_group]
+            )
 
         current_ret["named_groups"] = group_dict
 
@@ -170,18 +192,15 @@ Have a lot of fun...
 CLIENT5 [] has just connected!
 host:~ #"""
 
-EVENT_KWARGS_single_pattern = {
-    "detect_patterns": [r'host:.*#'],
-    "till_occurs_times": 1
-}
+EVENT_KWARGS_single_pattern = {"detect_patterns": [r"host:.*#"], "till_occurs_times": 1}
 
 EVENT_RESULT_single_pattern = [
     {
-        'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
+        "time": datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
         "groups": (),
         "named_groups": {},
         "matched": "host:~ #",
-        'line': "host:~ #"
+        "line": "host:~ #",
     }
 ]
 
@@ -196,23 +215,23 @@ CLIENT5 [] has just connected!
 host:~ #"""
 
 EVENT_KWARGS_patterns_list = {
-    "detect_patterns": ['Last login', r'host:.*#'],
-    "till_occurs_times": 2
+    "detect_patterns": ["Last login", r"host:.*#"],
+    "till_occurs_times": 2,
 }
 
 EVENT_RESULT_patterns_list = [
     {
-        'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
+        "time": datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
         "groups": (),
         "named_groups": {},
         "matched": "Last login",
-        'line': "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1"
+        "line": "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
     },
     {
-        'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
+        "time": datetime.datetime(2019, 1, 14, 13, 12, 48, 224929),
         "groups": (),
         "named_groups": {},
         "matched": "host:~ #",
-        'line': "host:~ #"
-    }
+        "line": "host:~ #",
+    },
 ]

@@ -11,20 +11,12 @@ import threading
 import sys
 
 
-try:
-    threading.main_thread()  # Python 3.4+
-except AttributeError:
-    def inside_main_thread():
-        # noinspection PyUnresolvedReferences
-        in_main_thread = isinstance(threading.current_thread(), threading._MainThread)  # Python <3/4
-        return in_main_thread
-else:
-    def inside_main_thread():
-        in_main_thread = threading.current_thread() is threading.main_thread()
-        return in_main_thread
+def inside_main_thread():
+    in_main_thread = threading.current_thread() is threading.main_thread()
+    return in_main_thread
 
 
-class exception_stored_if_not_main_thread(object):
+class exception_stored_if_not_main_thread:
     """
     Context manager storing exception inside connection-observer for non-main threads
     """

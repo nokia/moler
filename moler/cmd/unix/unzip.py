@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-__author__ = 'Mateusz Szczurek'
-__copyright__ = 'Copyright (C) 2019, Nokia'
-__email__ = 'mateusz.m.szczurek@nokia.com'
+__author__ = "Mateusz Szczurek"
+__copyright__ = "Copyright (C) 2019, Nokia"
+__email__ = "mateusz.m.szczurek@nokia.com"
 
-import re
 import datetime
+import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure, ParsingDone
@@ -13,8 +13,17 @@ from moler.exceptions import CommandFailure, ParsingDone
 class Unzip(GenericUnixCommand):
     """Unzip command class."""
 
-    def __init__(self, connection, zip_file, extract_dir=None, options="", overwrite=False, prompt=None,
-                 newline_chars=None, runner=None):
+    def __init__(
+        self,
+        connection,
+        zip_file,
+        extract_dir=None,
+        options="",
+        overwrite=False,
+        prompt=None,
+        newline_chars=None,
+        runner=None,
+    ):
         """
         Unzip command.
 
@@ -27,7 +36,12 @@ class Unzip(GenericUnixCommand):
         :param newline_chars: Characters to split lines - list.
         :param runner: Runner to run command.
         """
-        super(Unzip, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+        super(Unzip, self).__init__(
+            connection=connection,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
         # Parameters defined by calling the command
         self.options = options
         self.zip_file = zip_file
@@ -35,8 +49,8 @@ class Unzip(GenericUnixCommand):
         self.overwrite = overwrite
         self.ret_required = False
         self._is_overwritten = False
-        self.current_ret['FILE_LIST'] = list()
-        self.current_ret['FILE_DICT'] = dict()
+        self.current_ret["FILE_LIST"] = []
+        self.current_ret["FILE_DICT"] = {}
 
     def build_command_string(self):
         """
@@ -45,9 +59,11 @@ class Unzip(GenericUnixCommand):
         :return: String representation of the command to send over a connection to the device.
         """
         if self.options and self.extract_dir:
-            cmd = "{} {} {} {} {}".format("unzip", self.options, self.zip_file, '-d', self.extract_dir)
+            cmd = "{} {} {} {} {}".format(
+                "unzip", self.options, self.zip_file, "-d", self.extract_dir
+            )
         elif self.extract_dir:
-            cmd = "{} {} {} {}".format("unzip", self.zip_file, '-d', self.extract_dir)
+            cmd = "{} {} {} {}".format("unzip", self.zip_file, "-d", self.extract_dir)
         elif self.options:
             cmd = "{} {} {}".format("unzip", self.options, self.zip_file)
         else:
@@ -83,11 +99,11 @@ class Unzip(GenericUnixCommand):
         :return: None but raises ParsingDone if line has the information to handle by this method.
         """
         if self._regex_helper.search_compiled(Unzip._re_info_output, line):
-            self.current_ret['FILE_LIST'].append(self._regex_helper.group("FILE_NAME"))
+            self.current_ret["FILE_LIST"].append(self._regex_helper.group("FILE_NAME"))
             raise ParsingDone
 
     # unzip:  cannot find or open test.zip, test.zip.zip or test.zip.ZIP.
-    _re_no_file = re.compile(r'(?P<error>unzip:+\s*cannot find or open.*)')
+    _re_no_file = re.compile(r"(?P<error>unzip:+\s*cannot find or open.*)")
 
     def _parse_error_no_file(self, line):
         """
@@ -96,14 +112,21 @@ class Unzip(GenericUnixCommand):
         :param line: Line to process.
         :return: None but raises ParsingDone if line has the information to handle by this method.
         """
-        if self._cmd_output_started and self._regex_helper.search_compiled(Unzip._re_no_file, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("error"))))
+        if self._cmd_output_started and self._regex_helper.search_compiled(
+            Unzip._re_no_file, line
+        ):
+            self.set_exception(
+                CommandFailure(
+                    self, "ERROR: {}".format(self._regex_helper.group("error"))
+                )
+            )
             raise ParsingDone
 
     # replace test.txt? [y]es, [n]o, [A]ll, [N]one, [r]ename:
     _re_overwrite = re.compile(
         r"replace\s*(?P<OVERWRITE>\S*)\?\s*\[y]es,\s*\[n\]o,\s*\[A\]ll,\s*\[N\]one,\s*\[r\]ename:",
-        re.IGNORECASE)
+        re.IGNORECASE,
+    )
 
     def _asks_to_overwrite(self, line):
         """
@@ -115,17 +138,24 @@ class Unzip(GenericUnixCommand):
         if self._regex_helper.search_compiled(Unzip._re_overwrite, line) and not self._is_overwritten:
             self._is_overwritten = True
             if self.overwrite:
-                self.connection.sendline('A')
+                self.connection.sendline("A")
             else:
-                self.connection.sendline('N')
+                self.connection.sendline("N")
                 self.set_exception(
-                    CommandFailure(self, "ERROR: {} already exists".format(self._regex_helper.group("OVERWRITE"))))
+                    CommandFailure(
+                        self,
+                        "ERROR: {} already exists".format(
+                            self._regex_helper.group("OVERWRITE")
+                        ),
+                    )
+                )
             raise ParsingDone
 
     # 0  Stored        0   0% 2019-01-30 08:58 00000000  file1.txt
     _re_assign_values = re.compile(
-        r'(?P<LENGTH>\d+)\s+(?P<METHOD>\S+)\s+(?P<SIZE>\d+)\s+(?P<CMPR>\S+)\s+(?P<DATE>\S+)\s+(?P<TIME>\S+)\s+'
-        r'(?P<CRC>\S+)\s+(?P<NAME>\S+)')
+        r"(?P<LENGTH>\d+)\s+(?P<METHOD>\S+)\s+(?P<SIZE>\d+)\s+(?P<CMPR>\S+)\s+(?P<DATE>\S+)\s+(?P<TIME>\S+)\s+"
+        r"(?P<CRC>\S+)\s+(?P<NAME>\S+)"
+    )
 
     def _parse_v_option(self, line):
         """
@@ -135,23 +165,33 @@ class Unzip(GenericUnixCommand):
         :param line: Line to process.
         :return: None but raises ParsingDone if line has the information to handle by this method.
         """
-        if 'v' in self.options and self._regex_helper.search_compiled(Unzip._re_assign_values, line):
+        if "v" in self.options and self._regex_helper.search_compiled(
+            Unzip._re_assign_values, line
+        ):
             _date_time_str = self._regex_helper.group("DATE") + " " + self._regex_helper.group("TIME")
-            self.current_ret['FILE_LIST'].append(self._regex_helper.group("NAME"))
-            self.current_ret['FILE_DICT'].update({self._regex_helper.group("NAME"): {
-                'length': self._regex_helper.group("LENGTH"),
-                'method': self._regex_helper.group("METHOD"),
-                'size': self._regex_helper.group("SIZE"),
-                'cmpr': self._regex_helper.group("CMPR"),
-                'date': self._regex_helper.group("DATE"),
-                'time': self._regex_helper.group("TIME"),
-                'crc-32': self._regex_helper.group("CRC"),
-                'datetime': datetime.datetime.strptime(_date_time_str, '%Y-%m-%d %H:%M')
-            }})
+            self.current_ret["FILE_LIST"].append(self._regex_helper.group("NAME"))
+            self.current_ret["FILE_DICT"].update(
+                {
+                    self._regex_helper.group("NAME"): {
+                        "length": self._regex_helper.group("LENGTH"),
+                        "method": self._regex_helper.group("METHOD"),
+                        "size": self._regex_helper.group("SIZE"),
+                        "cmpr": self._regex_helper.group("CMPR"),
+                        "date": self._regex_helper.group("DATE"),
+                        "time": self._regex_helper.group("TIME"),
+                        "crc-32": self._regex_helper.group("CRC"),
+                        "datetime": datetime.datetime.strptime(
+                            _date_time_str, "%Y-%m-%d %H:%M"
+                        ),
+                    }
+                }
+            )
             raise ParsingDone
 
     # unzip:  caution: filename not matched:  -q
-    _re_filename_not_matched = re.compile(r'(?P<caution>cannot create extraction directory:.*\S)')
+    _re_filename_not_matched = re.compile(
+        r"(?P<caution>cannot create extraction directory:.*\S)"
+    )
 
     def _parse_error_can_not_create_dir(self, line):
         """
@@ -160,8 +200,14 @@ class Unzip(GenericUnixCommand):
         :param line: Line to process.
         :return: None but raises ParsingDone if line has the information to handle by this method.
         """
-        if self._cmd_output_started and self._regex_helper.search_compiled(Unzip._re_filename_not_matched, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("caution"))))
+        if self._cmd_output_started and self._regex_helper.search_compiled(
+            Unzip._re_filename_not_matched, line
+        ):
+            self.set_exception(
+                CommandFailure(
+                    self, "ERROR: {}".format(self._regex_helper.group("caution"))
+                )
+            )
             raise ParsingDone
 
 
@@ -173,13 +219,11 @@ Archive:  test.zip
 host:~ # """
 
 COMMAND_RESULT_parse_info_output = {
-    'FILE_LIST': ['file1.txt', 'file.txt'],
-    'FILE_DICT': {}
+    "FILE_LIST": ["file1.txt", "file.txt"],
+    "FILE_DICT": {},
 }
 
-COMMAND_KWARGS_parse_info_output = {
-    "zip_file": "test.zip"
-}
+COMMAND_KWARGS_parse_info_output = {"zip_file": "test.zip"}
 
 COMMAND_OUTPUT_overwrite = """
 host:~ # unzip test.zip
@@ -188,15 +232,9 @@ replace test.txt? [y]es, [n]o, [A]ll, [N]one, [r]ename:
  extracting: test.txt
 host:~ # """
 
-COMMAND_RESULT_overwrite = {
-    'FILE_LIST': ['test.txt'],
-    'FILE_DICT': {}
-}
+COMMAND_RESULT_overwrite = {"FILE_LIST": ["test.txt"], "FILE_DICT": {}}
 
-COMMAND_KWARGS_overwrite = {
-    "zip_file": "test.zip",
-    "overwrite": True
-}
+COMMAND_KWARGS_overwrite = {"zip_file": "test.zip", "overwrite": True}
 
 COMMAND_OUTPUT_v_option = """
 host:~ # unzip -v files.zip
@@ -210,25 +248,29 @@ Archive:  files.zip
 host:~ # """
 
 COMMAND_RESULT_v_option = {
-    'FILE_LIST': ['file1.txt', 'file.txt'],
-    'FILE_DICT': {'file.txt': {'cmpr': '0%',
-                               'crc-32': '00000000',
-                               'date': '2019-01-30',
-                               'datetime': datetime.datetime(2019, 1, 30, 8, 58),
-                               'length': '0',
-                               'method': 'Stored',
-                               'size': '0',
-                               'time': '08:58'},
-                  'file1.txt': {'cmpr': '0%',
-                                'crc-32': '00000000',
-                                'date': '2019-01-30',
-                                'datetime': datetime.datetime(2019, 1, 30, 8, 58),
-                                'length': '0',
-                                'method': 'Stored',
-                                'size': '0',
-                                'time': '08:58'},
-                  }
-
+    "FILE_LIST": ["file1.txt", "file.txt"],
+    "FILE_DICT": {
+        "file.txt": {
+            "cmpr": "0%",
+            "crc-32": "00000000",
+            "date": "2019-01-30",
+            "datetime": datetime.datetime(2019, 1, 30, 8, 58),
+            "length": "0",
+            "method": "Stored",
+            "size": "0",
+            "time": "08:58",
+        },
+        "file1.txt": {
+            "cmpr": "0%",
+            "crc-32": "00000000",
+            "date": "2019-01-30",
+            "datetime": datetime.datetime(2019, 1, 30, 8, 58),
+            "length": "0",
+            "method": "Stored",
+            "size": "0",
+            "time": "08:58",
+        },
+    },
 }
 
 COMMAND_KWARGS_v_option = {
@@ -242,15 +284,9 @@ Archive:  test.zip
  extracting: /home/ute/temp/test.txt
 host:~ # """
 
-COMMAND_RESULT_extract_dir = {
-    'FILE_LIST': ['/home/ute/temp/test.txt'],
-    'FILE_DICT': {}
-}
+COMMAND_RESULT_extract_dir = {"FILE_LIST": ["/home/ute/temp/test.txt"], "FILE_DICT": {}}
 
-COMMAND_KWARGS_extract_dir = {
-    "zip_file": "test.zip",
-    "extract_dir": "/home/ute/temp"
-}
+COMMAND_KWARGS_extract_dir = {"zip_file": "test.zip", "extract_dir": "/home/ute/temp"}
 
 COMMAND_OUTPUT_options_extract_dir = """
 host:~ # unzip -u test.zip -d /home/ute/temp
@@ -259,12 +295,12 @@ Archive:  test.zip
 host:~ # """
 
 COMMAND_RESULT_options_extract_dir = {
-    'FILE_LIST': ['/home/ute/temp/test.txt'],
-    'FILE_DICT': {}
+    "FILE_LIST": ["/home/ute/temp/test.txt"],
+    "FILE_DICT": {},
 }
 
 COMMAND_KWARGS_options_extract_dir = {
     "options": "-u",
     "zip_file": "test.zip",
-    "extract_dir": "/home/ute/temp"
+    "extract_dir": "/home/ute/temp",
 }

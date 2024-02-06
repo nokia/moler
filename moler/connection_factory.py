@@ -53,7 +53,7 @@ def get_connection(name=None, io_type=None, variant=None, **constructor_kwargs):
     return io_conn
 
 
-class ConnectionFactory(object):
+class ConnectionFactory:
     """
     ConnectionFactory creates plugin-system: external code can register
     "construction recipe" that will be used to create specific connection.

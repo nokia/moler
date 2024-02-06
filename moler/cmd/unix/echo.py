@@ -2,9 +2,9 @@
 """
 Echo command module.
 """
-__author__ = 'Agnieszka Bylica, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
-__email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com'
+__author__ = "Agnieszka Bylica, Marcin Usielski"
+__copyright__ = "Copyright (C) 2018-2019, Nokia"
+__email__ = "agnieszka.bylica@nokia.com, marcin.usielski@nokia.com"
 
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
@@ -12,8 +12,18 @@ from moler.exceptions import ParsingDone
 
 
 class Echo(GenericUnixCommand):
-    def __init__(self, connection, options=None, text=None, write_mode=">", output_file=None, prompt=None,
-                 newline_chars=None, runner=None, text_in_quotation=True):
+    def __init__(
+        self,
+        connection,
+        options=None,
+        text=None,
+        write_mode=">",
+        output_file=None,
+        prompt=None,
+        newline_chars=None,
+        runner=None,
+        text_in_quotation=True,
+    ):
         """
         :param connection: Moler connection to device, terminal when command is executed.
         :param options: Options of command echo
@@ -25,7 +35,12 @@ class Echo(GenericUnixCommand):
         :param runner: Runner to run command.
         :param text_in_quotation: Set True if you need single quotation mark (') for parameter text, False if don't.
         """
-        super(Echo, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+        super(Echo, self).__init__(
+            connection=connection,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
 
         self.options = options
         self.text = text
@@ -33,7 +48,7 @@ class Echo(GenericUnixCommand):
         self.output_file = output_file
         self.text_in_quotation = text_in_quotation
 
-        self.current_ret['RESULT'] = list()
+        self.current_ret["RESULT"] = []
 
     def build_command_string(self):
         """
@@ -80,62 +95,41 @@ xyz@debian:~$"""
 
 COMMAND_KWARGS = {}
 
-COMMAND_RESULT = {
-    'RESULT': ['']
-}
+COMMAND_RESULT = {"RESULT": [""]}
 
 
 COMMAND_OUTPUT_variable = """xyz@debian:~$ echo $TERM
 xterm
 xyz@debian:~$"""
 
-COMMAND_KWARGS_variable = {
-    'text': '$TERM',
-    'text_in_quotation': False
-}
+COMMAND_KWARGS_variable = {"text": "$TERM", "text_in_quotation": False}
 
-COMMAND_RESULT_variable = {
-    'RESULT': ['xterm']
-}
+COMMAND_RESULT_variable = {"RESULT": ["xterm"]}
 
 COMMAND_OUTPUT_text = """xyz@debian:~$ echo 'abc'
 abc
 xyz@debian:~$"""
 
-COMMAND_KWARGS_text = {
-    'text': 'abc'
-}
+COMMAND_KWARGS_text = {"text": "abc"}
 
-COMMAND_RESULT_text = {
-    'RESULT': ['abc']
-}
+COMMAND_RESULT_text = {"RESULT": ["abc"]}
 
 
 COMMAND_OUTPUT_n_option = """xyz@debian:~$ echo -n 'Hello world'
 Hello worldxyz@debian:~$"""
 
-COMMAND_KWARGS_n_option = {
-    'options': '-n',
-    'text': 'Hello world'
-}
+COMMAND_KWARGS_n_option = {"options": "-n", "text": "Hello world"}
 
-COMMAND_RESULT_n_option = {
-    'RESULT': []
-}
+COMMAND_RESULT_n_option = {"RESULT": []}
 
 
 COMMAND_OUTPUT_e_option = """xyz@debian:~$ echo -e 'Hello \\rmy \\x08beautiful \\tdog!'
 Hello \rmy \x08beautiful \tdog!
 xyz@debian:~$"""
 
-COMMAND_KWARGS_e_option = {
-    'options': '-e',
-    'text': 'Hello \rmy \bbeautiful \tdog!'
-}
+COMMAND_KWARGS_e_option = {"options": "-e", "text": "Hello \rmy \bbeautiful \tdog!"}
 
-COMMAND_RESULT_e_option = {
-    'RESULT': ['Hello ', 'my \x08beautiful \tdog!']
-}
+COMMAND_RESULT_e_option = {"RESULT": ["Hello ", "my \x08beautiful \tdog!"]}
 
 
 COMMAND_OUTPUT_e_option_new_line = """xyz@debian:~$ echo -e 'Hello \\nmy \\nbeautiful \\ncode!'
@@ -143,10 +137,8 @@ Hello \nmy \nbeautiful \ncode!
 xyz@debian:~$"""
 
 COMMAND_KWARGS_e_option_new_line = {
-    'options': '-e',
-    'text': 'Hello \nmy \nbeautiful \ncode!'
+    "options": "-e",
+    "text": "Hello \nmy \nbeautiful \ncode!",
 }
 
-COMMAND_RESULT_e_option_new_line = {
-    'RESULT': ['Hello ', 'my ', 'beautiful ', 'code!']
-}
+COMMAND_RESULT_e_option_new_line = {"RESULT": ["Hello ", "my ", "beautiful ", "code!"]}

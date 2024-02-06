@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-__author__ = 'Michal Ernst'
-__copyright__ = 'Copyright (C) 2019-2020, Nokia'
-__email__ = 'michal.ernst@nokia.com'
+__author__ = "Michal Ernst"
+__copyright__ = "Copyright (C) 2019-2020, Nokia"
+__email__ = "michal.ernst@nokia.com"
 
 import datetime
 import re
+
 from moler.events.shared.genericshared_textualevent import GenericSharedTextualEvent
 from moler.exceptions import ParsingDone
 
@@ -18,7 +19,9 @@ class PasswordPrompt(GenericSharedTextualEvent):
         :param till_occurs_times: number of event occurrence
         :param runner: Runner to run event
         """
-        super(PasswordPrompt, self).__init__(connection=connection, runner=runner, till_occurs_times=till_occurs_times)
+        super(PasswordPrompt, self).__init__(
+            connection=connection, runner=runner, till_occurs_times=till_occurs_times
+        )
 
     def on_new_line(self, line, is_full_line):
         """
@@ -45,7 +48,7 @@ class PasswordPrompt(GenericSharedTextualEvent):
         :raise: ParsingDone if regex matches the line.
         """
         if self._regex_helper.search_compiled(PasswordPrompt._re_password, line):
-            current_ret = dict()
+            current_ret = {}
             current_ret["time"] = self._last_recv_time_data_read_from_connection
             current_ret["line"] = line
             self.event_occurred(event_data=current_ret)
@@ -63,13 +66,8 @@ Have a lot of fun...
 CLIENT5 [] has just connected!
 host:~ #"""
 
-EVENT_KWARGS = {
-    "till_occurs_times": 1
-}
+EVENT_KWARGS = {"till_occurs_times": 1}
 
 EVENT_RESULT = [
-    {
-        'time': datetime.datetime(2019, 1, 14, 13, 12, 48),
-        'line': 'Password:'
-    }
+    {"time": datetime.datetime(2019, 1, 14, 13, 12, 48), "line": "Password:"}
 ]

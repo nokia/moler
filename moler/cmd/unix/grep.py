@@ -3,21 +3,27 @@
 Grep command module.
 """
 
-__author__ = 'Julia Patacz'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'julia.patacz@nokia.com'
+__author__ = "Julia Patacz"
+__copyright__ = "Copyright (C) 2018, Nokia"
+__email__ = "julia.patacz@nokia.com"
 
 import re
 
-from moler.util.converterhelper import ConverterHelper
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
+from moler.util.converterhelper import ConverterHelper
 
 
 class Grep(GenericUnixCommand):
-
-    def __init__(self, connection, options, prompt=None, newline_chars=None, runner=None):
-        super(Grep, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+    def __init__(
+        self, connection, options, prompt=None, newline_chars=None, runner=None
+    ):
+        super(Grep, self).__init__(
+            connection=connection,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
         self._convert_helper = ConverterHelper()
         # Parameters defined by calling the command
         self.options = options
@@ -45,25 +51,31 @@ class Grep(GenericUnixCommand):
 
     def _process_line(self, line, regexp, key_list):
         if self._regex_helper.search_compiled(regexp, line):
-            _ret = dict()
+            _ret = {}
             for key in key_list:
                 _ret[key] = self._regex_helper.group(key)
             self.current_ret["LINES"].append(_ret)
             raise ParsingDone
 
     # /etc/iptables/rules.v4:16:196:#PREROUTING-RULES
-    _re_path_number_bytes_line = re.compile(r"^(?P<PATH>\/\S+):(?P<NUMBER>\d+):(?P<BYTES>\d+):(?P<LINE>.*)$")
+    _re_path_number_bytes_line = re.compile(
+        r"^(?P<PATH>\/\S+):(?P<NUMBER>\d+):(?P<BYTES>\d+):(?P<LINE>.*)$"
+    )
     _key_list_path_number_bytes_line = ["PATH", "NUMBER", "BYTES", "LINE"]
 
     def _parse_path_number_bytes_lines(self, line):
-        return self._process_line(line, Grep._re_path_number_bytes_line, Grep._key_list_path_number_bytes_line)
+        return self._process_line(
+            line, Grep._re_path_number_bytes_line, Grep._key_list_path_number_bytes_line
+        )
 
     # /etc/iptables/rules.v4:16:#PREROUTING-RULES
     _re_path_number_line = re.compile(r"^(?P<PATH>\/\S+):(?P<NUMBER>\d+):(?P<LINE>.*)$")
     _key_list_path_number_line = ["PATH", "NUMBER", "LINE"]
 
     def _parse_path_number_lines(self, line):
-        return self._process_line(line, Grep._re_path_number_line, Grep._key_list_path_number_line)
+        return self._process_line(
+            line, Grep._re_path_number_line, Grep._key_list_path_number_line
+        )
 
     # /etc/iptables/rules.v4:#PREROUTING-RULES
     _re_path_line = re.compile(r"^(?P<PATH>\/\S+):(?P<LINE>.*)$")
@@ -77,14 +89,18 @@ class Grep(GenericUnixCommand):
     _key_list_number_bytes_line = ["NUMBER", "BYTES", "LINE"]
 
     def _parse_number_bytes_lines(self, line):
-        return self._process_line(line, Grep._re_number_bytes_line, Grep._key_list_number_bytes_line)
+        return self._process_line(
+            line, Grep._re_number_bytes_line, Grep._key_list_number_bytes_line
+        )
 
     # 16:#PREROUTING-RULES
     _re_number_line = re.compile(r"^(?P<NUMBER>\d+):(?P<LINE>.*)$")
     _key_list_number_line = ["NUMBER", "LINE"]
 
     def _parse_number_lines(self, line):
-        return self._process_line(line, Grep._re_number_line, Grep._key_list_number_line)
+        return self._process_line(
+            line, Grep._re_number_line, Grep._key_list_number_line
+        )
 
     # Mode: 644
     def _parse_lines(self, line):
@@ -159,9 +175,7 @@ ute@debdev:~$ grep -H PREROUTING /etc/iptables/rules.v4
 /etc/iptables/rules.v4:-A PREROUTING -i eth0 -p udp -d  --dport 319 -j DNAT --to-destination 10.0.1.2:319
 /etc/iptables/rules.v4:-A PREROUTING -i eth0 -p udp -d  --dport 320 -j DNAT --to-destination 10.0.1.2:320
 ute@debdev:~$ """
-COMMAND_KWARGS_with_file_path = {
-    "options": "-H PREROUTING /etc/iptables/rules.v4"
-}
+COMMAND_KWARGS_with_file_path = {"options": "-H PREROUTING /etc/iptables/rules.v4"}
 COMMAND_RESULT_with_file_path = {
     "LINES": [
         {

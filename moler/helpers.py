@@ -3,20 +3,22 @@
 Utility/common code of library.
 """
 
-__author__ = 'Grzegorz Latuszek, Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2024, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
+__author__ = "Grzegorz Latuszek, Michal Ernst, Marcin Usielski"
+__copyright__ = "Copyright (C) 2018-2024, Nokia"
+__email__ = (
+    "grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com"
+)
 
+import collections.abc
 import copy
 import importlib
 import logging
 import re
-import sys
-import collections.abc
 from functools import wraps
-from types import FunctionType, MethodType
-from six import string_types
 from math import isclose
+from types import FunctionType, MethodType
+
+from six import string_types
 
 
 class ClassProperty(property):
@@ -32,7 +34,7 @@ def copy_list(src, deep_copy=False):
     :return: Copied list
     """
     if src is None:
-        return list()
+        return []
     if deep_copy:
         return copy.deepcopy(src)
     return list(src)
@@ -46,7 +48,7 @@ def copy_dict(src, deep_copy=False):
     :return: Copied dict
     """
     if src is None:
-        return dict()
+        return {}
     if deep_copy:
         return copy.deepcopy(src)
     return dict(src)
@@ -74,10 +76,12 @@ def camel_case_to_lower_case_underscore(string):
             words.append(string[from_char_position:current_char_position].lower())
             from_char_position = current_char_position
     words.append(string[from_char_position:].lower())
-    return '_'.join(words)
+    return "_".join(words)
 
 
-_re_escape_codes = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")  # Regex to remove color codes from command output
+_re_escape_codes = re.compile(
+    r"\x1B\[[0-?]*[ -/]*[@-~]"
+)  # Regex to remove color codes from command output
 _re_escape_codes_cursor = re.compile(r"\x1B(([\dA-F]+)|(\[\d+;\d+r)|(J))")
 
 
@@ -150,7 +154,9 @@ def remove_fill_spaces_right_codes(multiline):
 
 
 # ESC [ H        Move Cursor Home to let it write from first column
-_re_overwritten_left_writes = re.compile(r"^[^\n\r]*\x1B\[H(.)", flags=re.DOTALL | re.MULTILINE)
+_re_overwritten_left_writes = re.compile(
+    r"^[^\n\r]*\x1B\[H(.)", flags=re.DOTALL | re.MULTILINE
+)
 
 
 def remove_overwritten_left_write(multiline):
@@ -162,14 +168,14 @@ def remove_overwritten_left_write(multiline):
     return multiline
 
 
-_re_remove_terminal_last_cmd_status = re.compile(r'\x1b]777;notify;.*\x07')
+_re_remove_terminal_last_cmd_status = re.compile(r"\x1b]777;notify;.*\x07")
 
 
 def remove_terminal_last_cmd_status(line):
     """
-        :param line: line from terminal
-        :return: line without terminal last cmd status
-        """
+    :param line: line from terminal
+    :return: line without terminal last cmd status
+    """
     line = re.sub(_re_remove_terminal_last_cmd_status, "", line)
     return line
 
@@ -190,7 +196,7 @@ def remove_all_known_special_chars(line):
 
 
 def create_object_from_name(full_class_name, constructor_params):
-    name_splitted = full_class_name.split('.')
+    name_splitted = full_class_name.split(".")
     module_name = ".".join(name_splitted[:-1])
     class_name = name_splitted[-1]
 
@@ -201,6 +207,7 @@ def create_object_from_name(full_class_name, constructor_params):
 
 
 def update_dict(target_dict, expand_dict):
+    # pylint: disable-next=unused-variable
     for key, value in expand_dict.items():
         if (key in target_dict and isinstance(target_dict[key], dict) and isinstance(expand_dict[key],
                                                                                      collections.abc.Mapping)):
@@ -209,8 +216,9 @@ def update_dict(target_dict, expand_dict):
             target_dict[key] = expand_dict[key]
 
 
-def compare_objects(first_object, second_object, significant_digits=None,
-                    exclude_types=None):
+def compare_objects(
+    first_object, second_object, significant_digits=None, exclude_types=None
+):
     """
     Return difference between two objects.
     :param first_object: first object to compare
@@ -222,14 +230,19 @@ def compare_objects(first_object, second_object, significant_digits=None,
     if exclude_types is None:
         exclude_types = set()
 
-    diff = diff_data(first_object=first_object, second_object=second_object,
-                     significant_digits=significant_digits, exclude_types=exclude_types)
+    diff = diff_data(
+        first_object=first_object,
+        second_object=second_object,
+        significant_digits=significant_digits,
+        exclude_types=exclude_types,
+    )
 
     return diff
 
 
-def diff_data(first_object, second_object, significant_digits=None,
-              exclude_types=None, msg=None):
+def diff_data(
+    first_object, second_object, significant_digits=None, exclude_types=None, msg=None
+):
     """
     Compare two objects recursively and return a message indicating any differences.
 
@@ -245,44 +258,56 @@ def diff_data(first_object, second_object, significant_digits=None,
              equal.
     """
     if msg is None:
-        msg = 'root'
+        msg = "root"
     type_first = type(first_object)
     type_second = type(second_object)
     if type_first != type_second:
-        return "{} {} is type of {} but {} is type of {}".format(msg, first_object,
-                                                                 type_first,
-                                                                 second_object,
-                                                                 type_second)
+        return "{} {} is type of {} but {} is type of {}".format(
+            msg, first_object, type_first, second_object, type_second
+        )
     elif exclude_types is not None and type_first in exclude_types:
         return ""
     elif isinstance(first_object, (list, tuple)):
-        return _compare_lists(first_object=first_object, second_object=second_object,
-                              significant_digits=significant_digits,
-                              exclude_types=exclude_types, msg=msg)
+        return _compare_lists(
+            first_object=first_object,
+            second_object=second_object,
+            significant_digits=significant_digits,
+            exclude_types=exclude_types,
+            msg=msg,
+        )
     elif isinstance(first_object, dict):
-        return _compare_dicts(first_object=first_object, second_object=second_object,
-                              significant_digits=significant_digits,
-                              exclude_types=exclude_types, msg=msg)
+        return _compare_dicts(
+            first_object=first_object,
+            second_object=second_object,
+            significant_digits=significant_digits,
+            exclude_types=exclude_types,
+            msg=msg,
+        )
     elif isinstance(first_object, set):
-        return _compare_sets(first_object=first_object, second_object=second_object,
-                             msg=msg)
+        return _compare_sets(
+            first_object=first_object, second_object=second_object, msg=msg
+        )
     elif isinstance(first_object, float):
         abs_tol = 0.0001
         if significant_digits:
-            abs_tol = 1.0 / 10 ** significant_digits
+            abs_tol = 1.0 / 10**significant_digits
         if not isclose(first_object, second_object, abs_tol=abs_tol):
-            return "{} the first value {} is different from the second value" \
-                   " {}.".format(msg, first_object, second_object)
+            return (
+                "{} the first value {} is different from the second value"
+                " {}.".format(msg, first_object, second_object)
+            )
     else:
         if first_object != second_object:
             return "{} First value {} is different from the second {}.".format(
-                msg, first_object, second_object)
+                msg, first_object, second_object
+            )
 
     return ""
 
 
-def _compare_dicts(first_object, second_object, msg, significant_digits=None,
-                   exclude_types=None):
+def _compare_dicts(
+    first_object, second_object, msg, significant_digits=None, exclude_types=None
+):
     """
     Compare two dictionaries recursively and return a message indicating any
      differences.
@@ -304,18 +329,22 @@ def _compare_dicts(first_object, second_object, msg, significant_digits=None,
         for key in keys_first:
             if key not in keys_second:
                 return "{} key {} is in the first {} but not in the second dict {}.".format(
-                    msg, key, first_object, second_object)
+                    msg, key, first_object, second_object
+                )
         for key in keys_second:
             if key not in keys_first:
                 return "{} key {} is in the second {} but not in the first dict {}.".format(
-                    msg, key, first_object, second_object)
+                    msg, key, first_object, second_object
+                )
     else:
         for key in keys_first:
-            res = diff_data(first_object=first_object[key],
-                            second_object=second_object[key],
-                            significant_digits=significant_digits,
-                            exclude_types=exclude_types,
-                            msg="{} -> [{}]".format(msg, key))
+            res = diff_data(
+                first_object=first_object[key],
+                second_object=second_object[key],
+                significant_digits=significant_digits,
+                exclude_types=exclude_types,
+                msg="{} -> [{}]".format(msg, key),
+            )
             if res:
                 return res
     return ""
@@ -337,16 +366,19 @@ def _compare_sets(first_object, second_object, msg):
         for item in first_object:
             if item not in second_object:
                 return "{} item {} is in the first set {} but not in the second set {}.".format(
-                    msg, item, first_object, second_object)
+                    msg, item, first_object, second_object
+                )
         for item in second_object:
             if item not in first_object:
                 return "{} item {} is in the second set {} but not in the first set {}.".format(
-                    msg, item, first_object, second_object)
+                    msg, item, first_object, second_object
+                )
     return ""
 
 
-def _compare_lists(first_object, second_object, msg, significant_digits=None,
-                   exclude_types=None):
+def _compare_lists(
+    first_object, second_object, msg, significant_digits=None, exclude_types=None
+):
     """
     Compare two lists or tuples recursively and return a message indicating any
      differences.
@@ -365,14 +397,17 @@ def _compare_lists(first_object, second_object, msg, significant_digits=None,
     len_second = len(second_object)
     if len_first != len_second:
         return "{} List {} has {} item(s) but {} has {} item(s)".format(
-            msg, first_object, len_first, second_object, len_second)
+            msg, first_object, len_first, second_object, len_second
+        )
     max_element = len(first_object)
     for i in range(0, max_element):
-        res = diff_data(first_object=first_object[i], second_object=second_object[i],
-                        msg="{} -> [{}]".format(msg, i),
-                        significant_digits=significant_digits,
-                        exclude_types=exclude_types,
-                        )
+        res = diff_data(
+            first_object=first_object[i],
+            second_object=second_object[i],
+            msg="{} -> [{}]".format(msg, i),
+            significant_digits=significant_digits,
+            exclude_types=exclude_types,
+        )
         if res:
             return res
     return ""
@@ -434,7 +469,7 @@ class ForwardingHandler(logging.Handler):
     def __init__(self, target_logger_name):
         super(ForwardingHandler, self).__init__(level=1)
         self.target_logger_name = target_logger_name
-        self.target_logger = logging.getLogger('moler')
+        self.target_logger = logging.getLogger("moler")
 
     def emit(self, record):
         """
@@ -477,12 +512,12 @@ def mark_to_call_base_class_method_with_same_name(func):
     :param func: function to mark.
     :return: marked function
     """
-    func._decorate = True
+    func._decorate = True  # pylint: disable=protected-access
     return func
 
 
 def _wrapper(method, obj):
-    if hasattr(method, '_already_decorated') and method._already_decorated:
+    if hasattr(method, "_already_decorated") and method._already_decorated:  # pylint: disable=protected-access
         return method
 
     @wraps(method)
@@ -495,7 +530,7 @@ def _wrapper(method, obj):
 
         return base_result
 
-    wrapped._already_decorated = True
+    wrapped._already_decorated = True  # pylint: disable=protected-access
     return wrapped
 
 
@@ -506,9 +541,10 @@ def non_printable_chars_to_hex(source):
     :return: output string witch exchanged chars.
     """
     import string
+
     output = ""
     for char in source:
-        if char not in string.printable or char in ['\n', '\r']:
+        if char not in string.printable or char in ["\n", "\r"]:
             output += "\\x{:02x}".format(ord(char))
         else:
             output += char
@@ -536,9 +572,9 @@ def regexp_without_anchors(regexp):
     regexp_str = regexp.pattern.strip()
     org_regexp_str = regexp_str
     if len(org_regexp_str) >= 2:
-        if '^' == regexp_str[0]:
+        if "^" == regexp_str[0]:
             regexp_str = regexp_str[1:]
-        if '$' == regexp_str[-1] and '\\' != regexp_str[-2]:
+        if "$" == regexp_str[-1] and "\\" != regexp_str[-2]:
             regexp_str = regexp_str[:-1]
     if regexp_str == org_regexp_str:
         return regexp

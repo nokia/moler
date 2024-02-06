@@ -66,6 +66,7 @@ class TextualEvent(Event):
                 else:
                     raise ex
 
+    # pylint: disable-next=unused-argument
     def _process_line_from_output(self, current_chunk, line, is_full_line):
         """
         Processes line from connection (device) output.
@@ -88,7 +89,7 @@ class TextualEvent(Event):
         """
         line = current_chunk
         if self._last_not_full_line is not None:
-            line = u"{}{}".format(self._last_not_full_line, line)
+            line = "{}{}".format(self._last_not_full_line, line)
             self._last_not_full_line = None
         is_full_line = self.is_new_line(line)
         if is_full_line:

@@ -13,6 +13,7 @@ from logging.handlers import TimedRotatingFileHandler
 
 
 class CompressedTimedRotatingFileHandler(TimedRotatingFileHandler):
+    # pylint: disable=keyword-arg-before-vararg
     def __init__(self, compress_command='zip -9mq {compressed} {log_input}', compressed_file_extension='.zip',
                  *args, **kwargs):
         self.compress_command = compress_command

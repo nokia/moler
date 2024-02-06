@@ -5,18 +5,11 @@ import sys
 import platform
 import traceback
 
-# https://stackoverflow.com/questions/4915361/whats-the-difference-between-raw-input-and-input-in-python-3
-# forcing 'input' to mean same in Python2 and Python3:
-try:
-    # noinspection PyUnresolvedReferences
-    input = raw_input
-except NameError:
-    pass
 
 hostname = platform.node()
 
 
-class IOSerial(object):
+class IOSerial:
     """Serial-IO connection."""
     def __init__(self, port, baudrate=115200, stopbits=serial.STOPBITS_ONE,
                  parity=serial.PARITY_NONE, timeout=2, xonxoff=1):
@@ -183,7 +176,7 @@ class AtToStdout(serial.threaded.LineReader):
         return response_found
 
 
-class AtConsoleProxy(object):
+class AtConsoleProxy:
     """Class to proxy AT commands console into stdin/stdout"""
     def __init__(self, port, verbose=False, at_echo=False):
         super(AtConsoleProxy, self).__init__()

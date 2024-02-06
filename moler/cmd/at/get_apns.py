@@ -7,9 +7,9 @@ google for: 3gpp specification 27.007
 (always check against latest version of standard)
 """
 
-__author__ = 'Adam Klekowski'
-__copyright__ = 'Copyright (C) 2020, Nokia'
-__email__ = 'adam.klekowski@nokia.com'
+__author__ = "Adam Klekowski"
+__copyright__ = "Copyright (C) 2020, Nokia"
+__email__ = "adam.klekowski@nokia.com"
 
 import re
 
@@ -29,11 +29,17 @@ class GetApns(GenericAtCommand):
 
     OK
     """
+
     def __init__(self, connection=None, prompt=None, newline_chars=None, runner=None):
         """Create instance of GetApns class"""
-        super(GetApns, self).__init__(connection, operation='execute', prompt=prompt,
-                                      newline_chars=newline_chars, runner=runner)
-        self.current_ret = list()
+        super(GetApns, self).__init__(
+            connection,
+            operation="execute",
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
+        self.current_ret = []
 
     def build_command_string(self):
         return "AT+CGDCONT?"
@@ -64,8 +70,10 @@ class GetApns(GenericAtCommand):
         return super(GetApns, self).on_new_line(line, is_full_line)
 
     # +CGDCONT: 1,"IPV4V6","apnscp1","0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0",0,0,0,0
-    _re_apn = re.compile(r'^\s*\+CGDCONT\:\s(?P<apn_num>([0-9]+)),\"(?P<apn_ip_name>(IP(V4V6)?))\",\"'
-                         '(?P<apn_name>([a-zA-Z0-9]*))\".*$')
+    _re_apn = re.compile(
+        r"^\s*\+CGDCONT\:\s(?P<apn_num>([0-9]+)),\"(?P<apn_ip_name>(IP(V4V6)?))\",\""
+        '(?P<apn_name>([a-zA-Z0-9]*))".*$'
+    )
 
     def _parse_apns(self, line):
         """
@@ -80,7 +88,7 @@ class GetApns(GenericAtCommand):
             apn_dict = {
                 "apn_num": apn_num,
                 "apn_ip_name": apn_ip_name,
-                "apn_name": apn_name
+                "apn_name": apn_name,
             }
             self.current_ret.append(apn_dict)
             raise ParsingDone
@@ -113,11 +121,11 @@ OK
 COMMAND_KWARGS_ipv4v6 = {}
 
 COMMAND_RESULT_ipv4v6 = [
-    {'apn_num': '1', 'apn_ip_name': 'IPV4V6', 'apn_name': 'apnscp1'},
-    {'apn_num': '2', 'apn_ip_name': 'IPV4V6', 'apn_name': ''},
-    {'apn_num': '3', 'apn_ip_name': 'IPV4V6', 'apn_name': 'ims'},
-    {'apn_num': '4', 'apn_ip_name': 'IPV4V6', 'apn_name': 'sos'},
-    {'apn_num': '5', 'apn_ip_name': 'IPV4V6', 'apn_name': 'xcap'}
+    {"apn_num": "1", "apn_ip_name": "IPV4V6", "apn_name": "apnscp1"},
+    {"apn_num": "2", "apn_ip_name": "IPV4V6", "apn_name": ""},
+    {"apn_num": "3", "apn_ip_name": "IPV4V6", "apn_name": "ims"},
+    {"apn_num": "4", "apn_ip_name": "IPV4V6", "apn_name": "sos"},
+    {"apn_num": "5", "apn_ip_name": "IPV4V6", "apn_name": "xcap"},
 ]
 
 COMMAND_OUTPUT_ip = """
@@ -132,7 +140,7 @@ OK
 COMMAND_KWARGS_ip = {}
 
 COMMAND_RESULT_ip = [
-    {'apn_num': '1', 'apn_ip_name': 'IP', 'apn_name': ''},
-    {'apn_num': '2', 'apn_ip_name': 'IPV4V6', 'apn_name': ''},
-    {'apn_num': '3', 'apn_ip_name': 'IPV4V6', 'apn_name': ''}
+    {"apn_num": "1", "apn_ip_name": "IP", "apn_name": ""},
+    {"apn_num": "2", "apn_ip_name": "IPV4V6", "apn_name": ""},
+    {"apn_num": "3", "apn_ip_name": "IPV4V6", "apn_name": ""},
 ]

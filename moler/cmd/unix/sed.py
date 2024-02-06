@@ -3,22 +3,37 @@
 Sed command module.
 """
 
-__author__ = 'Agnieszka Bylica, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
-__email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
+__author__ = "Agnieszka Bylica, Marcin Usielski, Michal Ernst"
+__copyright__ = "Copyright (C) 2018-2019, Nokia"
+__email__ = (
+    "agnieszka.bylica@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com"
+)
 
 import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
-from moler.exceptions import CommandFailure
-from moler.exceptions import ParsingDone
+from moler.exceptions import CommandFailure, ParsingDone
 
 
 class Sed(GenericUnixCommand):
-
-    def __init__(self, connection, input_files, prompt=None, newline_chars=None, runner=None, options=None,
-                 scripts=None, script_files=None, output_file=None):
-        super(Sed, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+    def __init__(
+        self,
+        connection,
+        input_files,
+        prompt=None,
+        newline_chars=None,
+        runner=None,
+        options=None,
+        scripts=None,
+        script_files=None,
+        output_file=None,
+    ):
+        super(Sed, self).__init__(
+            connection=connection,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
 
         # Parameters defined by calling the command
         self.options = options  # string or None
@@ -28,7 +43,7 @@ class Sed(GenericUnixCommand):
         self.output_file = output_file  # string or None
 
         # Other parameters
-        self.current_ret['RESULT'] = list()
+        self.current_ret["RESULT"] = []
 
     def build_command_string(self):
         cmd = "sed"
@@ -60,11 +75,15 @@ class Sed(GenericUnixCommand):
 
     def _command_error(self, line):
         if self._regex_helper.search_compiled(Sed._re_command_error, line):
-            self.set_exception(CommandFailure(self, "ERROR {}".format(self._regex_helper.group("ERROR"))))
+            self.set_exception(
+                CommandFailure(
+                    self, "ERROR {}".format(self._regex_helper.group("ERROR"))
+                )
+            )
             raise ParsingDone
 
     def _parse_line(self, line):
-        self.current_ret['RESULT'].append(line)
+        self.current_ret["RESULT"].append(line)
         raise ParsingDone
 
     def _is_input_file(self):
@@ -73,7 +92,9 @@ class Sed(GenericUnixCommand):
             if file and not file.isspace():
                 is_empty = False
         if is_empty:
-            raise CommandFailure(self, "No input file given in: {}".format(self.input_files))
+            raise CommandFailure(
+                self, "No input file given in: {}".format(self.input_files)
+            )
 
     def _validate_start(self, *args, **kwargs):
         super(Sed, self)._validate_start(*args, **kwargs)
@@ -85,12 +106,12 @@ COMMAND_OUTPUT = """xyz@debian:~$ sed -e 's/a/A/' old old2 > new
 xyz@debian:~$"""
 
 COMMAND_KWARGS = {
-    'scripts': ['s/a/A/'], 'output_file': 'new', 'input_files': ['old', 'old2']
+    "scripts": ["s/a/A/"],
+    "output_file": "new",
+    "input_files": ["old", "old2"],
 }
 
-COMMAND_RESULT = {
-    'RESULT': []
-}
+COMMAND_RESULT = {"RESULT": []}
 
 COMMAND_OUTPUT_to_stdout = """xyz@debian:~$ sed -e 's/a/A/' old old2
 Apple
@@ -98,37 +119,28 @@ peAr
 plum
 xyz@debian:~$"""
 
-COMMAND_KWARGS_to_stdout = {
-    'scripts': ['s/a/A/'],
-    'input_files': ['old', 'old2']
-}
+COMMAND_KWARGS_to_stdout = {"scripts": ["s/a/A/"], "input_files": ["old", "old2"]}
 
-COMMAND_RESULT_to_stdout = {
-    'RESULT': ['Apple', 'peAr', 'plum']
-}
+COMMAND_RESULT_to_stdout = {"RESULT": ["Apple", "peAr", "plum"]}
 
 COMMAND_OUTPUT_with_script_file = """xyz@debian:~$ sed -f script old old2 > new
 xyz@debian:~$"""
 
 COMMAND_KWARGS_with_script_file = {
-    'script_files': ['script'],
-    'output_file': 'new',
-    'input_files': ['old', 'old2']
+    "script_files": ["script"],
+    "output_file": "new",
+    "input_files": ["old", "old2"],
 }
 
-COMMAND_RESULT_with_script_file = {
-    'RESULT': []
-}
+COMMAND_RESULT_with_script_file = {"RESULT": []}
 
 COMMAND_OUTPUT_with_option = """xyz@debian:~$ sed -i -e 's/a/A/' old old2
 xyz@debian:~$"""
 
 COMMAND_KWARGS_with_option = {
-    'options': '-i',
-    'scripts': ['s/a/A/'],
-    'input_files': ['old', 'old2']
+    "options": "-i",
+    "scripts": ["s/a/A/"],
+    "input_files": ["old", "old2"],
 }
 
-COMMAND_RESULT_with_option = {
-    'RESULT': []
-}
+COMMAND_RESULT_with_option = {"RESULT": []}

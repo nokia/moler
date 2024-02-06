@@ -5,18 +5,22 @@ Moler implementation of MolerConnection for Runner with single thread.
 """
 
 
-__author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2021, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__author__ = "Marcin Usielski"
+__copyright__ = "Copyright (C) 2021, Nokia"
+__email__ = "marcin.usielski@nokia.com"
 
+
+import threading
+import time
 
 import moler.connection_observer
 from moler.abstract_moler_connection import identity_transformation
-from moler.observer_thread_wrapper import ObserverThreadWrapper, ObserverThreadWrapperForConnectionObserver
-from moler.threaded_moler_connection import ThreadedMolerConnection
+from moler.observer_thread_wrapper import (
+    ObserverThreadWrapper,
+    ObserverThreadWrapperForConnectionObserver,
+)
 from moler.runner_single_thread import RunnerSingleThread
-import time
-import threading
+from moler.threaded_moler_connection import ThreadedMolerConnection
 
 
 class MolerConnectionForSingleThreadRunner(ThreadedMolerConnection):
@@ -26,8 +30,15 @@ class MolerConnectionForSingleThreadRunner(ThreadedMolerConnection):
     _runner = None  # One runner for all connections.
     _runner_lock = threading.Lock()
 
-    def __init__(self, how2send=None, encoder=identity_transformation, decoder=identity_transformation,
-                 name=None, newline='\n', logger_name=""):
+    def __init__(
+        self,
+        how2send=None,
+        encoder=identity_transformation,
+        decoder=identity_transformation,
+        name=None,
+        newline="\n",
+        logger_name="",
+    ):
         """
         Create Connection via registering external-IO
         :param how2send: any callable performing outgoing IO
@@ -39,19 +50,16 @@ class MolerConnectionForSingleThreadRunner(ThreadedMolerConnection):
         If logger_name == "" - take logger "moler.connection.<name>"
         If logger_name is None - don't use logging
         """
-        super(MolerConnectionForSingleThreadRunner, self).__init__(how2send, encoder, decoder, name=name,
-                                                                   newline=newline,
-                                                                   logger_name=logger_name)
-        self._connection_observers = list()
+        super(MolerConnectionForSingleThreadRunner, self).__init__(
+            how2send,
+            encoder,
+            decoder,
+            name=name,
+            newline=newline,
+            logger_name=logger_name,
+        )
+        self._connection_observers = []
         self.open()
-
-    def shutdown(self):
-        """
-        Shutdown MolerConnection.
-
-        :return: None
-        """
-        super(MolerConnectionForSingleThreadRunner, self).shutdown()
 
     def open(self):
         """
@@ -83,7 +91,7 @@ class MolerConnectionForSingleThreadRunner(ThreadedMolerConnection):
             self._connection_observers.append(connection_observer)
             self.subscribe(
                 observer=connection_observer.data_received,
-                connection_closed_handler=connection_observer.connection_closed_handler
+                connection_closed_handler=connection_observer.connection_closed_handler,
             )
 
     def unsubscribe_connection_observer(self, connection_observer):
@@ -97,7 +105,7 @@ class MolerConnectionForSingleThreadRunner(ThreadedMolerConnection):
             self._connection_observers.remove(connection_observer)
             self.unsubscribe(
                 observer=connection_observer.data_received,
-                connection_closed_handler=connection_observer.connection_closed_handler
+                connection_closed_handler=connection_observer.connection_closed_handler,
             )
 
     def notify_observers(self, data, recv_time):
@@ -107,7 +115,9 @@ class MolerConnectionForSingleThreadRunner(ThreadedMolerConnection):
         :param recv_time: time of data really read form connection.
         :return None
         """
-        super(MolerConnectionForSingleThreadRunner, self).notify_observers(data=data, recv_time=recv_time)
+        super(MolerConnectionForSingleThreadRunner, self).notify_observers(
+            data=data, recv_time=recv_time
+        )
         for connection_observer in self._connection_observers:
             connection_observer.life_status.last_feed_time = time.monotonic()
 
@@ -121,10 +131,16 @@ class MolerConnectionForSingleThreadRunner(ThreadedMolerConnection):
         """
         if self._is_connection_observer_instance(self_for_observer) is True:
             otw = ObserverThreadWrapperForConnectionObserver(
-                observer=observer_reference, observer_self=self_for_observer, logger=self.logger)
+                observer=observer_reference,
+                observer_self=self_for_observer,
+                logger=self.logger,
+            )
         else:
             otw = ObserverThreadWrapper(
-                observer=observer_reference, observer_self=self_for_observer, logger=self.logger)
+                observer=observer_reference,
+                observer_self=self_for_observer,
+                logger=self.logger,
+            )
         return otw
 
     def _is_connection_observer_instance(self, self_for_observer):

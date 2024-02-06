@@ -3,21 +3,33 @@
 Which command module.
 """
 
-__author__ = 'Agnieszka Bylica, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
-__email__ = 'agnieszka.bylica@nokia.com, michal.ernst@nokia.com'
+__author__ = "Agnieszka Bylica, Michal Ernst"
+__copyright__ = "Copyright (C) 2018-2019, Nokia"
+__email__ = "agnieszka.bylica@nokia.com, michal.ernst@nokia.com"
 
 
 import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
-from moler.exceptions import CommandFailure
-from moler.exceptions import ParsingDone
+from moler.exceptions import CommandFailure, ParsingDone
 
 
 class Which(GenericUnixCommand):
-    def __init__(self, connection, names, show_all=None, prompt=None, newline_chars=None, runner=None):
-        super(Which, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+    def __init__(
+        self,
+        connection,
+        names,
+        show_all=None,
+        prompt=None,
+        newline_chars=None,
+        runner=None,
+    ):
+        super(Which, self).__init__(
+            connection=connection,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
 
         # Parameters defined by calling the command
         self.names = names
@@ -30,7 +42,7 @@ class Which(GenericUnixCommand):
     def build_command_string(self):
         cmd = "which"
         if self.show_all:
-            cmd = "{} {}".format(cmd, '-a')
+            cmd = "{} {}".format(cmd, "-a")
         for name in self.names:
             cmd = "{} {}".format(cmd, name)
         return cmd
@@ -62,7 +74,7 @@ class Which(GenericUnixCommand):
                 if not name:
                     raise CommandFailure(self, "ERROR: name is empty")
                 else:
-                    self.current_ret[name] = list()
+                    self.current_ret[name] = []
             self._result_set = True
 
     def _validate_start(self, *args, **kwargs):
@@ -77,14 +89,9 @@ xyz@debian:~$ which uname git
 /usr/bin/git
 xyz@debian:~$"""
 
-COMMAND_KWARGS = {
-    'names': ['uname', 'git']
-}
+COMMAND_KWARGS = {"names": ["uname", "git"]}
 
-COMMAND_RESULT = {
-    'uname': ['/bin/uname'],
-    'git': ['/usr/bin/git']
-}
+COMMAND_RESULT = {"uname": ["/bin/uname"], "git": ["/usr/bin/git"]}
 
 
 COMMAND_OUTPUT_all = """
@@ -94,26 +101,15 @@ xyz@debian:~$ which -a git less
 /bin/less
 xyz@debian:~$"""
 
-COMMAND_KWARGS_all = {
-    'names': ['git', 'less'],
-    'show_all': True
-}
+COMMAND_KWARGS_all = {"names": ["git", "less"], "show_all": True}
 
-COMMAND_RESULT_all = {
-    'git': ['/usr/bin/git'],
-    'less': ['/usr/bin/less', '/bin/less']
-}
+COMMAND_RESULT_all = {"git": ["/usr/bin/git"], "less": ["/usr/bin/less", "/bin/less"]}
 
 
 COMMAND_OUTPUT_no_result = """
 xyz@debian:~$ which -a abc
 xyz@debian:~$"""
 
-COMMAND_KWARGS_no_result = {
-    'names': ['abc'],
-    'show_all': True
-}
+COMMAND_KWARGS_no_result = {"names": ["abc"], "show_all": True}
 
-COMMAND_RESULT_no_result = {
-    'abc': []
-}
+COMMAND_RESULT_no_result = {"abc": []}

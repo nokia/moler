@@ -13,12 +13,10 @@ class ParsingDone(MolerException):
     Indicate that given part of output has been fully parsed
     and requires no further processing.
     """
-    pass
 
 
 class WrongUsage(MolerException):
     """Wrong usage of library"""
-    pass
 
 
 # TODO: do we need it? Just mapping to asyncio/concurrent.futures naming?

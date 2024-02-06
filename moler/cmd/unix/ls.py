@@ -3,16 +3,15 @@
 Ls command module.
 """
 
-__author__ = 'Marcin Usielski, Michal Ernst, Marcin Szlapa'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
-__email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com, marcin.szlapa@nokia.com'
+__author__ = "Marcin Usielski, Michal Ernst, Marcin Szlapa"
+__copyright__ = "Copyright (C) 2018-2020, Nokia"
+__email__ = "marcin.usielski@nokia.com, michal.ernst@nokia.com, marcin.szlapa@nokia.com"
 
 import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
+from moler.exceptions import ParsingDone, ResultNotAvailableYet
 from moler.util.converterhelper import ConverterHelper
-from moler.exceptions import ResultNotAvailableYet
-from moler.exceptions import ParsingDone
 
 
 class Ls(GenericUnixCommand):
@@ -20,11 +19,22 @@ class Ls(GenericUnixCommand):
 
     _re_files_list = re.compile(r"\S{2,}")
     _re_total = re.compile(r"total\s+(\d+\S*)")
-    _re_long = re.compile(r"([\w-]{10}[\.\+]?)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S.*\S)\s+(\S+)\s*$")
+    _re_long = re.compile(
+        r"([\w-]{10}[\.\+]?)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S.*\S)\s+(\S+)\s*$"
+    )
     _re_long_links = re.compile(
-        r"([\w-]{10}[\.\+]?)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S.*\S)\s+(\S+)\s+->\s+(\S+)\s*$")
+        r"([\w-]{10}[\.\+]?)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S.*\S)\s+(\S+)\s+->\s+(\S+)\s*$"
+    )
 
-    def __init__(self, connection, prompt=None, newline_chars=None, options=None, path=None, runner=None):
+    def __init__(
+        self,
+        connection,
+        prompt=None,
+        newline_chars=None,
+        options=None,
+        path=None,
+        runner=None,
+    ):
         """
         Unix command ls
 
@@ -35,9 +45,14 @@ class Ls(GenericUnixCommand):
         :param path: path to list
         :param runner: Runner to run command.
         """
-        super(Ls, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+        super(Ls, self).__init__(
+            connection=connection,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
         self._converter_helper = ConverterHelper()
-        self.current_ret["files"] = dict()
+        self.current_ret["files"] = {}
         # Parameters defined by calling the command
         self.options = options
         self.path = path
@@ -48,7 +63,7 @@ class Ls(GenericUnixCommand):
 
         :return: Dict, key is item, value is parsed information about item
         """
-        return self._get_types('d')
+        return self._get_types("d")
 
     def get_links(self):
         """
@@ -56,7 +71,7 @@ class Ls(GenericUnixCommand):
 
         :return: Dict, key is item, value is parsed information about item
         """
-        return self._get_types('l')
+        return self._get_types("l")
 
     def get_files(self):
         """
@@ -64,7 +79,7 @@ class Ls(GenericUnixCommand):
 
         :return: Dict, key is item, value is parsed information about item
         """
-        return self._get_types('-')
+        return self._get_types("-")
 
     def build_command_string(self):
         """
@@ -107,7 +122,7 @@ class Ls(GenericUnixCommand):
         if self._regex_helper.search_compiled(Ls._re_files_list, line):
             files = line.split()
             for filename in files:
-                self.current_ret["files"][filename] = dict()
+                self.current_ret["files"][filename] = {}
                 self.current_ret["files"][filename]["name"] = filename
             raise ParsingDone()
 
@@ -142,9 +157,11 @@ class Ls(GenericUnixCommand):
         """
         if self._regex_helper.search_compiled(Ls._re_total, line):
             if "total" not in self.current_ret:
-                self.current_ret["total"] = dict()
+                self.current_ret["total"] = {}
             self.current_ret["total"]["raw"] = self._regex_helper.group(1)
-            self.current_ret["total"]["bytes"] = self._converter_helper.to_bytes(self._regex_helper.group(1))[0]
+            self.current_ret["total"]["bytes"] = self._converter_helper.to_bytes(
+                self._regex_helper.group(1)
+            )[0]
             raise ParsingDone()
 
     def _add_new_file_long(self, islink):
@@ -155,14 +172,17 @@ class Ls(GenericUnixCommand):
         :return: None.
         """
         filename = self._regex_helper.group(7)
-        self.current_ret["files"][filename] = dict()
+        self.current_ret["files"][filename] = {}
         self.current_ret["files"][filename]["permissions"] = self._regex_helper.group(1)
-        self.current_ret["files"][filename]["hard_links_count"] = int(self._regex_helper.group(2))
+        self.current_ret["files"][filename]["hard_links_count"] = int(
+            self._regex_helper.group(2)
+        )
         self.current_ret["files"][filename]["owner"] = self._regex_helper.group(3)
         self.current_ret["files"][filename]["group"] = self._regex_helper.group(4)
         self.current_ret["files"][filename]["size_raw"] = self._regex_helper.group(5)
-        self.current_ret["files"][filename]["size_bytes"] = \
-            self._converter_helper.to_bytes(self._regex_helper.group(5))[0]
+        self.current_ret["files"][filename][
+            "size_bytes"
+        ] = self._converter_helper.to_bytes(self._regex_helper.group(5))[0]
         self.current_ret["files"][filename]["date"] = self._regex_helper.group(6)
         self.current_ret["files"][filename]["name"] = self._regex_helper.group(7)
         if islink:
@@ -177,9 +197,9 @@ class Ls(GenericUnixCommand):
         if not self.done():
             raise ResultNotAvailableYet("Command not executed already")
         requested_type = requested_type.lower()
-        ret = dict()
+        ret = {}
         result = self.result()
-        if 'files' in result:
+        if "files" in result:
             for file_name in result["files"]:
                 file_dict = result["files"][file_name]
                 permissions = file_dict["permissions"]
@@ -202,22 +222,58 @@ host:~ #"""
 COMMAND_KWARGS_ver_human = {"options": "-lh"}
 
 COMMAND_RESULT_ver_human = {
-    "total": {
-        "raw": "1T",
-        "bytes": 1099511627776
-    },
-
+    "total": {"raw": "1T", "bytes": 1099511627776},
     "files": {
-        "file1": {"permissions": "-rwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root",
-                  "size_bytes": 4096, "size_raw": "4.0K", "date": "Nov 10  2016", "name": "file1", },
-        "file2": {"permissions": "-rwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root",
-                  "size_bytes": 4718592, "size_raw": "4.5M", "date": "Nov 10  2016", "name": "file2", },
-        "file3": {"permissions": "-rwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root",
-                  "size_bytes": 3221225472, "size_raw": "3.0G", "date": "Nov 10  2016", "name": "file3", },
-        "file4": {"permissions": "-rwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root",
-                  "size_bytes": 1099511627776, "size_raw": "1.0T", "date": "Nov 10  2016", "name": "file4", },
-        "file5": {"permissions": "-rwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root",
-                  "size_bytes": 92, "size_raw": "92", "date": "Nov 10  2016", "name": "file5", },
+        "file1": {
+            "permissions": "-rwxr-xr-x",
+            "hard_links_count": 2,
+            "owner": "root",
+            "group": "root",
+            "size_bytes": 4096,
+            "size_raw": "4.0K",
+            "date": "Nov 10  2016",
+            "name": "file1",
+        },
+        "file2": {
+            "permissions": "-rwxr-xr-x",
+            "hard_links_count": 2,
+            "owner": "root",
+            "group": "root",
+            "size_bytes": 4718592,
+            "size_raw": "4.5M",
+            "date": "Nov 10  2016",
+            "name": "file2",
+        },
+        "file3": {
+            "permissions": "-rwxr-xr-x",
+            "hard_links_count": 2,
+            "owner": "root",
+            "group": "root",
+            "size_bytes": 3221225472,
+            "size_raw": "3.0G",
+            "date": "Nov 10  2016",
+            "name": "file3",
+        },
+        "file4": {
+            "permissions": "-rwxr-xr-x",
+            "hard_links_count": 2,
+            "owner": "root",
+            "group": "root",
+            "size_bytes": 1099511627776,
+            "size_raw": "1.0T",
+            "date": "Nov 10  2016",
+            "name": "file4",
+        },
+        "file5": {
+            "permissions": "-rwxr-xr-x",
+            "hard_links_count": 2,
+            "owner": "root",
+            "group": "root",
+            "size_bytes": 92,
+            "size_raw": "92",
+            "date": "Nov 10  2016",
+            "name": "file5",
+        },
     },
 }
 
@@ -235,28 +291,73 @@ host:~ #"""
 COMMAND_KWARGS_ver_long = {"options": "-l"}
 
 COMMAND_RESULT_ver_long = {
-
     "total": {
         "raw": "8",
         "bytes": 8,
     },
-
     "files": {
-        "bin": {"permissions": "drwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root",
-                "size_bytes": 4096, "size_raw": "4096", "date": "Sep 25  2014", "name": "bin", },
-        "btslog2": {"permissions": "drwxr-xr-x", "hard_links_count": 5, "owner": "root", "group": "root",
-                    "size_bytes": 4096, "size_raw": "4096", "date": "Mar 20  2015", "name": "btslog2", },
-        "getfzmip.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1, "owner": "root", "group": "root",
-                         "size_bytes": 51, "size_raw": "51", "date": "Dec 15 10:48", "name": "getfzmip.txt", },
-        "getfzmip.txt-old.20171215-104858.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1, "owner": "root",
-                                                 "group": "root", "size_bytes": 24, "size_raw": "24",
-                                                 "date": "Dec 15 10:48",
-                                                 "name": "getfzmip.txt-old.20171215-104858.txt", },
-        "bcn": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root", "size_bytes": 4,
-                "size_raw": "4", "date": "Mar 20  2015", "name": "bcn", "link": "/bcn"},
-        "logsremote": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root",
-                       "size_bytes": 10, "size_raw": "10", "date": "Mar 20  2015", "name": "logsremote",
-                       "link": "/mnt/logs/"},
+        "bin": {
+            "permissions": "drwxr-xr-x",
+            "hard_links_count": 2,
+            "owner": "root",
+            "group": "root",
+            "size_bytes": 4096,
+            "size_raw": "4096",
+            "date": "Sep 25  2014",
+            "name": "bin",
+        },
+        "btslog2": {
+            "permissions": "drwxr-xr-x",
+            "hard_links_count": 5,
+            "owner": "root",
+            "group": "root",
+            "size_bytes": 4096,
+            "size_raw": "4096",
+            "date": "Mar 20  2015",
+            "name": "btslog2",
+        },
+        "getfzmip.txt": {
+            "permissions": "-rw-r--r--",
+            "hard_links_count": 1,
+            "owner": "root",
+            "group": "root",
+            "size_bytes": 51,
+            "size_raw": "51",
+            "date": "Dec 15 10:48",
+            "name": "getfzmip.txt",
+        },
+        "getfzmip.txt-old.20171215-104858.txt": {
+            "permissions": "-rw-r--r--",
+            "hard_links_count": 1,
+            "owner": "root",
+            "group": "root",
+            "size_bytes": 24,
+            "size_raw": "24",
+            "date": "Dec 15 10:48",
+            "name": "getfzmip.txt-old.20171215-104858.txt",
+        },
+        "bcn": {
+            "permissions": "lrwxrwxrwx",
+            "hard_links_count": 1,
+            "owner": "root",
+            "group": "root",
+            "size_bytes": 4,
+            "size_raw": "4",
+            "date": "Mar 20  2015",
+            "name": "bcn",
+            "link": "/bcn",
+        },
+        "logsremote": {
+            "permissions": "lrwxrwxrwx",
+            "hard_links_count": 1,
+            "owner": "root",
+            "group": "root",
+            "size_bytes": 10,
+            "size_raw": "10",
+            "date": "Mar 20  2015",
+            "name": "logsremote",
+            "link": "/mnt/logs/",
+        },
     },
 }
 
@@ -274,28 +375,73 @@ host:~ #"""
 COMMAND_KWARGS_ver_long_path = {"options": "-l", "path": "~/"}
 
 COMMAND_RESULT_ver_long_path = {
-
     "total": {
         "raw": "8",
         "bytes": 8,
     },
-
     "files": {
-        "bin": {"permissions": "drwxr-xr-x", "hard_links_count": 2, "owner": "root", "group": "root",
-                "size_bytes": 4096, "size_raw": "4096", "date": "Sep 25  2014", "name": "bin", },
-        "btslog2": {"permissions": "drwxr-xr-x", "hard_links_count": 5, "owner": "root", "group": "root",
-                    "size_bytes": 4096, "size_raw": "4096", "date": "Mar 20  2015", "name": "btslog2", },
-        "getfzmip.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1, "owner": "root", "group": "root",
-                         "size_bytes": 51, "size_raw": "51", "date": "Dec 15 10:48", "name": "getfzmip.txt", },
-        "getfzmip.txt-old.20171215-104858.txt": {"permissions": "-rw-r--r--", "hard_links_count": 1, "owner": "root",
-                                                 "group": "root", "size_bytes": 24, "size_raw": "24",
-                                                 "date": "Dec 15 10:48",
-                                                 "name": "getfzmip.txt-old.20171215-104858.txt", },
-        "bcn": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root", "size_bytes": 4,
-                "size_raw": "4", "date": "Mar 20  2015", "name": "bcn", "link": "/bcn"},
-        "logsremote": {"permissions": "lrwxrwxrwx", "hard_links_count": 1, "owner": "root", "group": "root",
-                       "size_bytes": 10, "size_raw": "10", "date": "Mar 20  2015", "name": "logsremote",
-                       "link": "/mnt/logs/"},
+        "bin": {
+            "permissions": "drwxr-xr-x",
+            "hard_links_count": 2,
+            "owner": "root",
+            "group": "root",
+            "size_bytes": 4096,
+            "size_raw": "4096",
+            "date": "Sep 25  2014",
+            "name": "bin",
+        },
+        "btslog2": {
+            "permissions": "drwxr-xr-x",
+            "hard_links_count": 5,
+            "owner": "root",
+            "group": "root",
+            "size_bytes": 4096,
+            "size_raw": "4096",
+            "date": "Mar 20  2015",
+            "name": "btslog2",
+        },
+        "getfzmip.txt": {
+            "permissions": "-rw-r--r--",
+            "hard_links_count": 1,
+            "owner": "root",
+            "group": "root",
+            "size_bytes": 51,
+            "size_raw": "51",
+            "date": "Dec 15 10:48",
+            "name": "getfzmip.txt",
+        },
+        "getfzmip.txt-old.20171215-104858.txt": {
+            "permissions": "-rw-r--r--",
+            "hard_links_count": 1,
+            "owner": "root",
+            "group": "root",
+            "size_bytes": 24,
+            "size_raw": "24",
+            "date": "Dec 15 10:48",
+            "name": "getfzmip.txt-old.20171215-104858.txt",
+        },
+        "bcn": {
+            "permissions": "lrwxrwxrwx",
+            "hard_links_count": 1,
+            "owner": "root",
+            "group": "root",
+            "size_bytes": 4,
+            "size_raw": "4",
+            "date": "Mar 20  2015",
+            "name": "bcn",
+            "link": "/bcn",
+        },
+        "logsremote": {
+            "permissions": "lrwxrwxrwx",
+            "hard_links_count": 1,
+            "owner": "root",
+            "group": "root",
+            "size_bytes": 10,
+            "size_raw": "10",
+            "date": "Mar 20  2015",
+            "name": "logsremote",
+            "link": "/mnt/logs/",
+        },
     },
 }
 
@@ -323,9 +469,7 @@ host:~ # ls ~/
 .bash_history          Downloads
 host:~ #"""
 
-COMMAND_KWARGS_specific_path = {
-    'path': '~/'
-}
+COMMAND_KWARGS_specific_path = {"path": "~/"}
 
 COMMAND_RESULT_specific_path = {
     "files": {
@@ -344,8 +488,7 @@ host:~/tmp/a$"""
 COMMAND_KWARGS_no_output = {}
 
 COMMAND_RESULT_no_output = {
-    "files": {
-    },
+    "files": {},
 }
 
 COMMAND_OUTPUT_extra_acl_permission = """
@@ -359,38 +502,48 @@ host:~ #"""
 COMMAND_KWARGS_extra_acl_permission = {"options": "-la", "path": "~/"}
 
 COMMAND_RESULT_extra_acl_permission = {
-    'files': {'bcn': {'date': 'Mar 19 08:31',
-                      'group': 'root',
-                      'hard_links_count': 1,
-                      'link': '/bcn',
-                      'name': 'bcn',
-                      'owner': 'root',
-                      'permissions': '-rw-rw----+',
-                      'size_bytes': 7296,
-                      'size_raw': '7296'},
-              'getfzmip.txt': {'date': 'Jan  3 08:12',
-                               'group': 'root',
-                               'hard_links_count': 1,
-                               'name': 'getfzmip.txt',
-                               'owner': 'root',
-                               'permissions': '-rw-rw-r--',
-                               'size_bytes': 88,
-                               'size_raw': '88'},
-              'getfzmip.txt-old.20171215-104858.txt': {'date': 'Jan  3 08:12',
-                                                       'group': 'root',
-                                                       'hard_links_count': 1,
-                                                       'name': 'getfzmip.txt-old.20171215-104858.txt',
-                                                       'owner': 'root',
-                                                       'permissions': '-rw-rw-r--.',
-                                                       'size_bytes': 88,
-                                                       'size_raw': '88'},
-              'logsremote': {'date': 'Mar 19 08:33',
-                             'group': 'root',
-                             'hard_links_count': 1,
-                             'link': '/mnt/logs/',
-                             'name': 'logsremote',
-                             'owner': 'root',
-                             'permissions': '-rw-rw-r--+',
-                             'size_bytes': 105216,
-                             'size_raw': '105216'}}
+    "files": {
+        "bcn": {
+            "date": "Mar 19 08:31",
+            "group": "root",
+            "hard_links_count": 1,
+            "link": "/bcn",
+            "name": "bcn",
+            "owner": "root",
+            "permissions": "-rw-rw----+",
+            "size_bytes": 7296,
+            "size_raw": "7296",
+        },
+        "getfzmip.txt": {
+            "date": "Jan  3 08:12",
+            "group": "root",
+            "hard_links_count": 1,
+            "name": "getfzmip.txt",
+            "owner": "root",
+            "permissions": "-rw-rw-r--",
+            "size_bytes": 88,
+            "size_raw": "88",
+        },
+        "getfzmip.txt-old.20171215-104858.txt": {
+            "date": "Jan  3 08:12",
+            "group": "root",
+            "hard_links_count": 1,
+            "name": "getfzmip.txt-old.20171215-104858.txt",
+            "owner": "root",
+            "permissions": "-rw-rw-r--.",
+            "size_bytes": 88,
+            "size_raw": "88",
+        },
+        "logsremote": {
+            "date": "Mar 19 08:33",
+            "group": "root",
+            "hard_links_count": 1,
+            "link": "/mnt/logs/",
+            "name": "logsremote",
+            "owner": "root",
+            "permissions": "-rw-rw-r--+",
+            "size_bytes": 105216,
+            "size_raw": "105216",
+        },
+    }
 }

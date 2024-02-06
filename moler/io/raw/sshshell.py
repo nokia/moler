@@ -34,7 +34,7 @@ from moler.io.raw import TillDoneThread
 import datetime
 
 
-class SshShell(object):
+class SshShell:
     """
     Implementation of 'remote shell over Ssh' connection using python Paramiko module
 
@@ -228,7 +228,7 @@ class SshShell(object):
             if "Socket is closed" in str(serr):
                 self._close()
                 info = "{} during send msg '{}'".format(serr, data)
-                raise RemoteEndpointDisconnected('Socket error: ' + info)
+                raise RemoteEndpointDisconnected('Socket error: ' + info) from serr
             else:
                 raise  # let any other error be visible
 
@@ -274,11 +274,11 @@ class SshShell(object):
             if not self._shell_channel.gettimeout():
                 self._shell_channel.settimeout(self.await_ready_tick_resolution)
             data = self._shell_channel.recv(self.receive_buffer_size)
-        except socket.timeout:
+        except socket.timeout as exc:
             # don't want to show class name - just ssh address
             # want same output from any implementation of SshShell-connection
             info = "Timeout (> {:.3f} sec) on {}".format(self.timeout, self)
-            raise ConnectionTimeout(info)
+            raise ConnectionTimeout(info) from exc
 
         if not data:
             self._debug("shell ssh channel closed for {}".format(self))
@@ -425,11 +425,11 @@ class ThreadedSshShell(IOConnection):
 
     @property
     def _ssh_transport(self):
-        return self.sshshell._ssh_transport
+        return self.sshshell._ssh_transport  # pylint: disable=protected-access
 
     @property
     def _shell_channel(self):
-        return self.sshshell._shell_channel
+        return self.sshshell._shell_channel  # pylint: disable=protected-access
 
     def __str__(self):
         address = self.sshshell.__str__()
@@ -452,7 +452,7 @@ class ThreadedSshShell(IOConnection):
             self._notify_on_connect()
         if self.pulling_thread is None:
             # set reading timeout in same thread where we open shell and before starting pulling thread
-            self.sshshell._settimeout(timeout=self.pulling_timeout)
+            self.sshshell._settimeout(timeout=self.pulling_timeout)  # pylint: disable=protected-access
             self._pulling_done.clear()
             self.pulling_thread = TillDoneThread(target=self._pull_data,
                                                  done_event=self._pulling_done,
@@ -494,7 +494,7 @@ class ThreadedSshShell(IOConnection):
             self.moler_connection.data_received(data)
 
         """
-        data = self.sshshell._recv()
+        data = self.sshshell._recv()  # pylint: disable=protected-access
         return data
 
     @tracked_thread.log_exit_exception

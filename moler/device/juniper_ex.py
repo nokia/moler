@@ -53,5 +53,3 @@ class JuniperEX(JuniperGeneric):
                 login: cli_login
                 password: password
     """
-
-    pass

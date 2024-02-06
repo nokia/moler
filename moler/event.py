@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
-__email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
+__author__ = "Michal Ernst, Marcin Usielski"
+__copyright__ = "Copyright (C) 2018-2020, Nokia"
+__email__ = "michal.ernst@nokia.com, marcin.usielski@nokia.com"
 
-import functools
 import abc
-import six
+import functools
 import logging
+
+import six
+
 from moler.connection_observer import ConnectionObserver
-from moler.exceptions import MolerException
-from moler.exceptions import ResultAlreadySet
+from moler.exceptions import MolerException, ResultAlreadySet
 from moler.helpers import instance_id
 
 
 @six.add_metaclass(abc.ABCMeta)
 class Event(ConnectionObserver):
-
     def __init__(self, connection=None, till_occurs_times=-1, runner=None):
         """
 
@@ -29,7 +29,7 @@ class Event(ConnectionObserver):
         # mainly designed to catch something inside event_occurred(), notify interested parties and keep going.
         self.timeout = 60 * 60 * 24 * 356 * 100  # [sec]
         self.callback = None
-        self.callback_params = dict()
+        self.callback_params = {}
         self._occurred = None
         self.till_occurs_times = till_occurs_times
         self._log_every_occurrence = True
@@ -41,24 +41,27 @@ class Event(ConnectionObserver):
 
         :return: String representation of event.
         """
-        return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
+        return "{}(id:{})".format(self.__class__.__name__, instance_id(self))
 
+    # pylint: disable=keyword-arg-before-vararg
     def start(self, timeout=None, *args, **kwargs):
         """Start background execution of command."""
         self._validate_start(*args, **kwargs)
         ret = super(Event, self).start(timeout, *args, **kwargs)
-        self.life_status._is_running = True
+        self.life_status._is_running = True  # pylint: disable=protected-access
         return ret
 
     def add_event_occurred_callback(self, callback, callback_params=None):
         if not self.callback:
             if callback_params is None:
-                callback_params = dict()
+                callback_params = {}
             partial_callback = functools.partial(callback, **callback_params)
             self.callback = partial_callback
         else:
-            raise MolerException("Cannot assign a callback '{}' to event '{}' when another callback '{}' is already "
-                                 "assigned".format(callback, self, self.callback))
+            raise MolerException(
+                "Cannot assign a callback '{}' to event '{}' when another callback '{}' is already "
+                "assigned".format(callback, self, self.callback)
+            )
 
     def enable_log_occurrence(self):
         """
@@ -100,7 +103,7 @@ class Event(ConnectionObserver):
         :param event_data: data to set as value of occurrence.
         :return: None
         """
-        """Should be used to set final result"""
+        # Should be used to set final result of event.
         if self.done():
             raise ResultAlreadySet(self)
         if self._occurred is None:

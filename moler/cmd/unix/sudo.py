@@ -111,6 +111,7 @@ class Sudo(CommandChangingPrompt):
             self._sent_password = False
         super(Sudo, self).on_new_line(line, is_full_line)
 
+    # pylint: disable=keyword-arg-before-vararg
     def start(self, timeout=None, *args, **kwargs):
         """Start background execution of connection-observer."""
         if timeout is not None:
@@ -149,7 +150,7 @@ class Sudo(CommandChangingPrompt):
         if self.cmd_object:
             if not self._sent_command_string:
                 self._sent_command_string = True
-                self.cmd_object.life_status._is_running = True
+                self.cmd_object.life_status._is_running = True  # pylint: disable=protected-access
                 cs = "{}{}".format(self.cmd_object.command_string, self.newline_seq)
                 self.cmd_object.data_received(cs, self._last_recv_time_data_read_from_connection)
 
@@ -254,7 +255,7 @@ class Sudo(CommandChangingPrompt):
                         self.set_exception(
                             CommandFailure(self, "Password was requested but no more passwords provided."))
                         self.break_cmd()
-                        raise ParsingDone()
+                        raise ParsingDone()  # pylint: disable=raise-missing-from
 
                 self._sent_password = True
             raise ParsingDone()

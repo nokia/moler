@@ -1,31 +1,33 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'Dariusz Rosinski, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
-__email__ = 'dariusz.rosinski@nokia.com, marcin.usielski@nokia.com'
+__author__ = "Dariusz Rosinski, Marcin Usielski"
+__copyright__ = "Copyright (C) 2018-2020, Nokia"
+__email__ = "dariusz.rosinski@nokia.com, marcin.usielski@nokia.com"
 
 import re
+
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
 from moler.util.converterhelper import ConverterHelper
 
-"""
-ps command module.
-Commad Ps is parsed to list of dictionary.
-Each dictionary in list contains all columns defined in columns printed in first line of command result
-Last column may contain more parameters while this field is responsible for process name
-Form of line result:
-{'UID' : 'avahi-a+', 'PID' : 3597, 'PPID' : 1, 'C' : 0, 'STIME' : 2017, 'TTY' : '?', 'TIME' : ' 00:00:45',
-'CMD': 'avahi-autoipd: [ens4] sleeping'}
-Each key is derived from first line of executed ps command so accessing it needs ps command with option
-result knowledge
-"""
+
+# ps command module.
+# Commad Ps is parsed to list of dictionary.
+# Each dictionary in list contains all columns defined in columns printed in first line of command result
+# Last column may contain more parameters while this field is responsible for process name
+# Form of line result:
+# {'UID' : 'avahi-a+', 'PID' : 3597, 'PPID' : 1, 'C' : 0, 'STIME' : 2017, 'TTY' : '?', 'TIME' : ' 00:00:45',
+# 'CMD': 'avahi-autoipd: [ens4] sleeping'}
+# Each key is derived from first line of executed ps command so accessing it needs ps command with option
+# result knowledge
 
 
 class Ps(GenericUnixCommand):
     """Unix command ps."""
 
-    def __init__(self, connection=None, options='', prompt=None, newline_chars=None, runner=None):
+    def __init__(
+        self, connection=None, options="", prompt=None, newline_chars=None, runner=None
+    ):
         """
         Represents Unix command ps.
 
@@ -35,8 +37,13 @@ class Ps(GenericUnixCommand):
         :param newline_chars: characters to split lines
         :param runner: Runner to run command
         """
-        super(Ps, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
-        self.current_ret = list()
+        super(Ps, self).__init__(
+            connection=connection,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
+        self.current_ret = []
         self.options = options
         self._headers = None
         self._header_pos = None
@@ -74,7 +81,7 @@ class Ps(GenericUnixCommand):
                 matched = re.findall(r"\s*(\S+)\s*", line)
                 if matched:
                     self._headers = matched
-                    self._header_pos = list()
+                    self._header_pos = []
                     previous_pos = 0
                     for header in self._headers:
                         position = line.find(header, previous_pos)
@@ -96,7 +103,7 @@ class Ps(GenericUnixCommand):
         :return: None
         """
         if self._headers:
-            item = dict()
+            item = {}
             max_column = len(self._headers)
             previous_end_pos = 0
             for column_nr in range(max_column):
@@ -113,7 +120,9 @@ class Ps(GenericUnixCommand):
                 content = line[start_pos:end_pos]
                 content = content.strip()
                 try:
-                    content = self._converter_helper.to_number(value=content, raise_exception=True)
+                    content = self._converter_helper.to_number(
+                        value=content, raise_exception=True
+                    )
                 except ValueError:
                     pass
                 item[self._headers[column_nr]] = content
@@ -133,7 +142,7 @@ class Ps(GenericUnixCommand):
         return cmd
 
 
-COMMAND_OUTPUT = '''ps -o user,pid,vsz,osz,pmem,rss,cmd -e
+COMMAND_OUTPUT = """ps -o user,pid,vsz,osz,pmem,rss,cmd -e
  USER       PID    VSZ SZ  MEM   RSS COMMAND
  root         1   1664  -  0.1   572 init [3]
  root         2      0  -  0.0     0 [ksoftirqd/0]
@@ -150,28 +159,149 @@ COMMAND_OUTPUT = '''ps -o user,pid,vsz,osz,pmem,rss,cmd -e
  bin        814   1908  -  0.1   544 /sbin/portmap
  root       847   1772  -  0.1   712 /sbin/syslogd -r
  root       855   1664  -  0.0   500 /sbin/klogd -x
- client@server>'''
+ client@server>"""
 
 COMMAND_KWARGS = {"options": "-o user,pid,vsz,osz,pmem,rss,cmd -e"}
 
 COMMAND_RESULT = [
-    {'USER': 'root', 'PID': 1, 'VSZ': 1664, 'SZ': '-', 'MEM': 0.1, 'RSS': 572, 'COMMAND': 'init [3]'},
-    {'USER': 'root', 'PID': 2, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[ksoftirqd/0]'},
-    {'USER': 'root', 'PID': 3, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[desched/0]'},
-    {'USER': 'root', 'PID': 4, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[events/0]'},
-    {'USER': 'root', 'PID': 5, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[khelper]'},
-    {'USER': 'root', 'PID': 10, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[kthread]'},
-    {'USER': 'root', 'PID': 34, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[kblockd/0]'},
-    {'USER': 'root', 'PID': 67, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[pdflush]'},
-    {'USER': 'root', 'PID': 68, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[pdflush]'},
-    {'USER': 'root', 'PID': 70, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[aio/0]'},
-    {'USER': 'root', 'PID': 69, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[kswapd0]'},
-    {'USER': 'root', 'PID': 665, 'VSZ': 0, 'SZ': '-', 'MEM': 0.0, 'RSS': 0, 'COMMAND': '[kjournald]'},
-    {'USER': 'bin', 'PID': 814, 'VSZ': 1908, 'SZ': '-', 'MEM': 0.1, 'RSS': 544, 'COMMAND': '/sbin/portmap'},
-    {'USER': 'root', 'PID': 847, 'VSZ': 1772, 'SZ': '-', 'MEM': 0.1, 'RSS': 712, 'COMMAND': '/sbin/syslogd -r'},
-    {'USER': 'root', 'PID': 855, 'VSZ': 1664, 'SZ': '-', 'MEM': 0.0, 'RSS': 500, 'COMMAND': '/sbin/klogd -x'}]
+    {
+        "USER": "root",
+        "PID": 1,
+        "VSZ": 1664,
+        "SZ": "-",
+        "MEM": 0.1,
+        "RSS": 572,
+        "COMMAND": "init [3]",
+    },
+    {
+        "USER": "root",
+        "PID": 2,
+        "VSZ": 0,
+        "SZ": "-",
+        "MEM": 0.0,
+        "RSS": 0,
+        "COMMAND": "[ksoftirqd/0]",
+    },
+    {
+        "USER": "root",
+        "PID": 3,
+        "VSZ": 0,
+        "SZ": "-",
+        "MEM": 0.0,
+        "RSS": 0,
+        "COMMAND": "[desched/0]",
+    },
+    {
+        "USER": "root",
+        "PID": 4,
+        "VSZ": 0,
+        "SZ": "-",
+        "MEM": 0.0,
+        "RSS": 0,
+        "COMMAND": "[events/0]",
+    },
+    {
+        "USER": "root",
+        "PID": 5,
+        "VSZ": 0,
+        "SZ": "-",
+        "MEM": 0.0,
+        "RSS": 0,
+        "COMMAND": "[khelper]",
+    },
+    {
+        "USER": "root",
+        "PID": 10,
+        "VSZ": 0,
+        "SZ": "-",
+        "MEM": 0.0,
+        "RSS": 0,
+        "COMMAND": "[kthread]",
+    },
+    {
+        "USER": "root",
+        "PID": 34,
+        "VSZ": 0,
+        "SZ": "-",
+        "MEM": 0.0,
+        "RSS": 0,
+        "COMMAND": "[kblockd/0]",
+    },
+    {
+        "USER": "root",
+        "PID": 67,
+        "VSZ": 0,
+        "SZ": "-",
+        "MEM": 0.0,
+        "RSS": 0,
+        "COMMAND": "[pdflush]",
+    },
+    {
+        "USER": "root",
+        "PID": 68,
+        "VSZ": 0,
+        "SZ": "-",
+        "MEM": 0.0,
+        "RSS": 0,
+        "COMMAND": "[pdflush]",
+    },
+    {
+        "USER": "root",
+        "PID": 70,
+        "VSZ": 0,
+        "SZ": "-",
+        "MEM": 0.0,
+        "RSS": 0,
+        "COMMAND": "[aio/0]",
+    },
+    {
+        "USER": "root",
+        "PID": 69,
+        "VSZ": 0,
+        "SZ": "-",
+        "MEM": 0.0,
+        "RSS": 0,
+        "COMMAND": "[kswapd0]",
+    },
+    {
+        "USER": "root",
+        "PID": 665,
+        "VSZ": 0,
+        "SZ": "-",
+        "MEM": 0.0,
+        "RSS": 0,
+        "COMMAND": "[kjournald]",
+    },
+    {
+        "USER": "bin",
+        "PID": 814,
+        "VSZ": 1908,
+        "SZ": "-",
+        "MEM": 0.1,
+        "RSS": 544,
+        "COMMAND": "/sbin/portmap",
+    },
+    {
+        "USER": "root",
+        "PID": 847,
+        "VSZ": 1772,
+        "SZ": "-",
+        "MEM": 0.1,
+        "RSS": 712,
+        "COMMAND": "/sbin/syslogd -r",
+    },
+    {
+        "USER": "root",
+        "PID": 855,
+        "VSZ": 1664,
+        "SZ": "-",
+        "MEM": 0.0,
+        "RSS": 500,
+        "COMMAND": "/sbin/klogd -x",
+    },
+]
 
-COMMAND_OUTPUT_V2 = '''ps -ef
+COMMAND_OUTPUT_V2 = """ps -ef
 UID        PID  PPID  C STIME TTY          TIME CMD
 avahi-a+  3597     1  0  2017 ?        00:00:45 avahi-autoipd: [ens4] sleeping
 root      3598  3597  0  2017 ?        00:00:00 avahi-autoipd: [ens4] callout dispatcher
@@ -186,40 +316,144 @@ avahi-a+  4592     1  0  2017 ?        00:17:15 avahi-autoipd: [ens3] sleeping
 root      4593  4592  0  2017 ?        00:00:00 avahi-autoipd: [ens3] callout dispatcher
 root      4648     1  0  2017 ?        00:00:00 /sbin/dhcpcd --netconfig -L -E -HHH -c /etc/sysconfig/network/scripts/dhcpcd-hook -t 0 -h FZM-FDD-086-
 root      5823     2  0 Mar09 ?        00:00:03 [kworker/u8:2]
-client@server>'''
+client@server>"""
 
 COMMAND_KWARGS_V2 = {"options": "-ef"}
 
 COMMAND_RESULT_V2 = [
-    {'UID': 'avahi-a+', 'PID': 3597, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:45',
-     'CMD': 'avahi-autoipd: [ens4] sleeping'},
-    {'UID': 'root', 'PID': 3598, 'PPID': 3597, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:00',
-     'CMD': 'avahi-autoipd: [ens4] callout dispatcher'},
-    {'UID': 'root', 'PID': 3681, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:17',
-     'CMD': '/sbin/dhclient6 -6 -cf /var/lib/dhcp6/dhclient6.ens3.conf -lf /var/lib/dhcp6/dhclient6.ens3.lease -pf'},
-    {'UID': 'root', 'PID': 3812, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:00',
-     'CMD': '/usr/sbin/xinetd -stayalive -dontfork'},
-    {'UID': 'root', 'PID': 3814, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:00',
-     'CMD': '/usr/sbin/vsftpd /etc/vsftpd.conf'},
-    {'UID': 'root', 'PID': 3826, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:02',
-     'CMD': '/usr/sbin/sshd -D'},
-    {'UID': 'root', 'PID': 3835, 'PPID': 2, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:00', 'CMD': '[cifsiod]'},
-    {'UID': 'root', 'PID': 3867, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:18',
-     'CMD': '/usr/sbin/cron -n'},
-    {'UID': 'root', 'PID': 3870, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': 'tty1', 'TIME': '00:00:00',
-     'CMD': '/sbin/agetty --noclear tty1 linux'},
-    {'UID': 'avahi-a+', 'PID': 4592, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:17:15',
-     'CMD': 'avahi-autoipd: [ens3] sleeping'},
-    {'UID': 'root', 'PID': 4593, 'PPID': 4592, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:00',
-     'CMD': 'avahi-autoipd: [ens3] callout dispatcher'},
-    {'UID': 'root', 'PID': 4648, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:00',
-     'CMD': '/sbin/dhcpcd --netconfig -L -E -HHH -c /etc/sysconfig/network/scripts/dhcpcd-hook -t 0 -h FZM-FDD-086-'},
-    {'UID': 'root', 'PID': 5823, 'PPID': 2, 'C': 0, 'STIME': 'Mar09', 'TTY': '?', 'TIME': '00:00:03',
-     'CMD': '[kworker/u8:2]'},
-
+    {
+        "UID": "avahi-a+",
+        "PID": 3597,
+        "PPID": 1,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:00:45",
+        "CMD": "avahi-autoipd: [ens4] sleeping",
+    },
+    {
+        "UID": "root",
+        "PID": 3598,
+        "PPID": 3597,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:00:00",
+        "CMD": "avahi-autoipd: [ens4] callout dispatcher",
+    },
+    {
+        "UID": "root",
+        "PID": 3681,
+        "PPID": 1,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:00:17",
+        "CMD": "/sbin/dhclient6 -6 -cf /var/lib/dhcp6/dhclient6.ens3.conf -lf /var/lib/dhcp6/dhclient6.ens3.lease -pf",
+    },
+    {
+        "UID": "root",
+        "PID": 3812,
+        "PPID": 1,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:00:00",
+        "CMD": "/usr/sbin/xinetd -stayalive -dontfork",
+    },
+    {
+        "UID": "root",
+        "PID": 3814,
+        "PPID": 1,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:00:00",
+        "CMD": "/usr/sbin/vsftpd /etc/vsftpd.conf",
+    },
+    {
+        "UID": "root",
+        "PID": 3826,
+        "PPID": 1,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:00:02",
+        "CMD": "/usr/sbin/sshd -D",
+    },
+    {
+        "UID": "root",
+        "PID": 3835,
+        "PPID": 2,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:00:00",
+        "CMD": "[cifsiod]",
+    },
+    {
+        "UID": "root",
+        "PID": 3867,
+        "PPID": 1,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:00:18",
+        "CMD": "/usr/sbin/cron -n",
+    },
+    {
+        "UID": "root",
+        "PID": 3870,
+        "PPID": 1,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "tty1",
+        "TIME": "00:00:00",
+        "CMD": "/sbin/agetty --noclear tty1 linux",
+    },
+    {
+        "UID": "avahi-a+",
+        "PID": 4592,
+        "PPID": 1,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:17:15",
+        "CMD": "avahi-autoipd: [ens3] sleeping",
+    },
+    {
+        "UID": "root",
+        "PID": 4593,
+        "PPID": 4592,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:00:00",
+        "CMD": "avahi-autoipd: [ens3] callout dispatcher",
+    },
+    {
+        "UID": "root",
+        "PID": 4648,
+        "PPID": 1,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:00:00",
+        "CMD": "/sbin/dhcpcd --netconfig -L -E -HHH -c /etc/sysconfig/network/scripts/dhcpcd-hook -t 0 -h FZM-FDD-086-",
+    },
+    {
+        "UID": "root",
+        "PID": 5823,
+        "PPID": 2,
+        "C": 0,
+        "STIME": "Mar09",
+        "TTY": "?",
+        "TIME": "00:00:03",
+        "CMD": "[kworker/u8:2]",
+    },
 ]
 
-COMMAND_OUTPUT_V3 = '''ps -ef
+COMMAND_OUTPUT_V3 = """ps -ef
 UID        PID  PPID  C STIME TTY   CMD                                                                                                                 TIME
 avahi-a+  3597     1  0  2017 ?     avahi-autoipd: [ens4] sleeping                                                                                      00:00:45
 root      3598  3597  0  2017 ?     avahi-autoipd: [ens4] callout dispatcher                                                                            00:00:00
@@ -234,53 +468,169 @@ avahi-a+  4592     1  0  2017 ?     avahi-autoipd: [ens3] sleeping              
 root      4593  4592  0  2017 ?     avahi-autoipd: [ens3] callout dispatcher                                                                            00:00:00
 root      4648     1  0  2017 ?     /sbin/dhcpcd --netconfig -L -E -HHH -c /etc/sysconfig/network/scripts/dhcpcd-hook -t 0 -h FZM-FDD-086-              00:00:00
 root      5823     2  0 Mar09 ?     [kworker/u8:2]                                                                                                      00:00:03
-client@server>'''
+client@server>"""
 
 COMMAND_KWARGS_V3 = {"options": "-ef"}
 
 COMMAND_RESULT_V3 = [
-    {'UID': 'avahi-a+', 'PID': 3597, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:45',
-     'CMD': 'avahi-autoipd: [ens4] sleeping'},
-    {'UID': 'root', 'PID': 3598, 'PPID': 3597, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:00',
-     'CMD': 'avahi-autoipd: [ens4] callout dispatcher'},
-    {'UID': 'root', 'PID': 3681, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:17',
-     'CMD': '/sbin/dhclient6 -6 -cf /var/lib/dhcp6/dhclient6.ens3.conf -lf /var/lib/dhcp6/dhclient6.ens3.lease -pf'},
-    {'UID': 'root', 'PID': 3812, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:00',
-     'CMD': '/usr/sbin/xinetd -stayalive -dontfork'},
-    {'UID': 'root', 'PID': 3814, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:00',
-     'CMD': '/usr/sbin/vsftpd /etc/vsftpd.conf'},
-    {'UID': 'root', 'PID': 3826, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:02',
-     'CMD': '/usr/sbin/sshd -D'},
-    {'UID': 'root', 'PID': 3835, 'PPID': 2, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:00', 'CMD': '[cifsiod]'},
-    {'UID': 'root', 'PID': 3867, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:18',
-     'CMD': '/usr/sbin/cron -n'},
-    {'UID': 'root', 'PID': 3870, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': 'tty1', 'TIME': '00:00:00',
-     'CMD': '/sbin/agetty --noclear tty1 linux'},
-    {'UID': 'avahi-a+', 'PID': 4592, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:17:15',
-     'CMD': 'avahi-autoipd: [ens3] sleeping'},
-    {'UID': 'root', 'PID': 4593, 'PPID': 4592, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:00',
-     'CMD': 'avahi-autoipd: [ens3] callout dispatcher'},
-    {'UID': 'root', 'PID': 4648, 'PPID': 1, 'C': 0, 'STIME': 2017, 'TTY': '?', 'TIME': '00:00:00',
-     'CMD': '/sbin/dhcpcd --netconfig -L -E -HHH -c /etc/sysconfig/network/scripts/dhcpcd-hook -t 0 -h FZM-FDD-086-'},
-    {'UID': 'root', 'PID': 5823, 'PPID': 2, 'C': 0, 'STIME': 'Mar09', 'TTY': '?', 'TIME': '00:00:03',
-     'CMD': '[kworker/u8:2]'},
+    {
+        "UID": "avahi-a+",
+        "PID": 3597,
+        "PPID": 1,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:00:45",
+        "CMD": "avahi-autoipd: [ens4] sleeping",
+    },
+    {
+        "UID": "root",
+        "PID": 3598,
+        "PPID": 3597,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:00:00",
+        "CMD": "avahi-autoipd: [ens4] callout dispatcher",
+    },
+    {
+        "UID": "root",
+        "PID": 3681,
+        "PPID": 1,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:00:17",
+        "CMD": "/sbin/dhclient6 -6 -cf /var/lib/dhcp6/dhclient6.ens3.conf -lf /var/lib/dhcp6/dhclient6.ens3.lease -pf",
+    },
+    {
+        "UID": "root",
+        "PID": 3812,
+        "PPID": 1,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:00:00",
+        "CMD": "/usr/sbin/xinetd -stayalive -dontfork",
+    },
+    {
+        "UID": "root",
+        "PID": 3814,
+        "PPID": 1,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:00:00",
+        "CMD": "/usr/sbin/vsftpd /etc/vsftpd.conf",
+    },
+    {
+        "UID": "root",
+        "PID": 3826,
+        "PPID": 1,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:00:02",
+        "CMD": "/usr/sbin/sshd -D",
+    },
+    {
+        "UID": "root",
+        "PID": 3835,
+        "PPID": 2,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:00:00",
+        "CMD": "[cifsiod]",
+    },
+    {
+        "UID": "root",
+        "PID": 3867,
+        "PPID": 1,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:00:18",
+        "CMD": "/usr/sbin/cron -n",
+    },
+    {
+        "UID": "root",
+        "PID": 3870,
+        "PPID": 1,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "tty1",
+        "TIME": "00:00:00",
+        "CMD": "/sbin/agetty --noclear tty1 linux",
+    },
+    {
+        "UID": "avahi-a+",
+        "PID": 4592,
+        "PPID": 1,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:17:15",
+        "CMD": "avahi-autoipd: [ens3] sleeping",
+    },
+    {
+        "UID": "root",
+        "PID": 4593,
+        "PPID": 4592,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:00:00",
+        "CMD": "avahi-autoipd: [ens3] callout dispatcher",
+    },
+    {
+        "UID": "root",
+        "PID": 4648,
+        "PPID": 1,
+        "C": 0,
+        "STIME": 2017,
+        "TTY": "?",
+        "TIME": "00:00:00",
+        "CMD": "/sbin/dhcpcd --netconfig -L -E -HHH -c /etc/sysconfig/network/scripts/dhcpcd-hook -t 0 -h FZM-FDD-086-",
+    },
+    {
+        "UID": "root",
+        "PID": 5823,
+        "PPID": 2,
+        "C": 0,
+        "STIME": "Mar09",
+        "TTY": "?",
+        "TIME": "00:00:03",
+        "CMD": "[kworker/u8:2]",
+    },
 ]
 
-COMMAND_OUTPUT_aux = '''ps -aux
+COMMAND_OUTPUT_aux = """ps -aux
 USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
 root         1  0.0  0.1 139360  7220 ?        Ss   Mar01   1:16 /sbin/init
-client@server>'''
+client@server>"""
 
 COMMAND_KWARGS_aux = {"options": "-aux"}
 
 COMMAND_RESULT_aux = [
-    {'USER': 'root', 'PID': 1, '%CPU': float("0.0"), "%MEM": float("0.1"), 'VSZ': 139360, 'RSS': 7220, 'TTY': '?',
-     'STAT': 'Ss', 'START': 'Mar01', 'TIME': '1:16', 'COMMAND': '/sbin/init'}
+    {
+        "USER": "root",
+        "PID": 1,
+        "%CPU": float("0.0"),
+        "%MEM": float("0.1"),
+        "VSZ": 139360,
+        "RSS": 7220,
+        "TTY": "?",
+        "STAT": "Ss",
+        "START": "Mar01",
+        "TIME": "1:16",
+        "COMMAND": "/sbin/init",
+    }
 ]
 
-COMMAND_OUTPUT_no_results = '''ps -fC some_process
+COMMAND_OUTPUT_no_results = """ps -fC some_process
 UID        PID  PPID  C STIME TTY          TIME CMD
-client@server>'''
+client@server>"""
 
 COMMAND_KWARGS_no_results = {"options": "-fC some_process"}
 

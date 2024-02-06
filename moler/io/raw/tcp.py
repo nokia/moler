@@ -11,6 +11,8 @@ The only 3 requirements for these connections are:
 (3) forward IO received data into self.moler_connection.data_received(data)
 """
 
+# pylint: skip-file
+
 __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
@@ -34,7 +36,7 @@ from moler.util import tracked_thread
 # TODO: logging - rethink details
 
 
-class Tcp(object):
+class Tcp:
     r"""
     Implementation of TCP connection using python builtin modules.::
 
@@ -140,7 +142,7 @@ class Tcp(object):
         else:
             # don't want to show class name - just tcp address
             # want same output from any implementation of TCP-connection
-            info = "Timeout (> %.3f sec) on {}".format(timeout, self)
+            info = "Timeout {} (> %.3f sec) on {}".format(timeout, self)
             raise ConnectionTimeout(info)
 
     def _close_ignoring_exceptions(self):

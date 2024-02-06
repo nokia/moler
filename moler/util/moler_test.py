@@ -3,30 +3,27 @@
 Utility/common code of library.
 """
 
-__author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst, Tomasz Krol'
-__copyright__ = 'Copyright (C) 2018-2022, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com, tomasz.krol@nokia.com'
+__author__ = "Grzegorz Latuszek, Marcin Usielski, Michal Ernst, Tomasz Krol"
+__copyright__ = "Copyright (C) 2018-2022, Nokia"
+__email__ = "grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com, tomasz.krol@nokia.com"
 
+import gc
 import inspect
 import logging
-import time
-import gc
-import pprint
 import os
+import pprint
 import signal
+import time
 import traceback
-from functools import partial
-from functools import wraps
+from functools import partial, wraps
 from types import FunctionType, MethodType
 
-from moler.connection_observer import ConnectionObserver
-from moler.exceptions import MolerException
-from moler.exceptions import ExecutionException
 from moler.config.loggers import get_error_log_stack
+from moler.connection_observer import ConnectionObserver
+from moler.exceptions import ExecutionException, MolerException
 
 
-class MolerTest(object):
-
+class MolerTest:
     @classmethod
     def steps_end(cls):
         """
@@ -135,14 +132,14 @@ class MolerTest(object):
     _was_error = False
     _was_steps_end = False
     _logger = logging.getLogger("moler")
-    _list_of_errors = list()
+    _list_of_errors = []
 
     @classmethod
     def _error(cls, msg, raise_exception=False, dump=None):
         caller_msg = cls._caller_info()
         cls._was_error = True
         msg = cls._get_string_message(msg, dump, caller_msg)
-        cls._logger.error(msg, extra={'moler_error': True})
+        cls._logger.error(msg, extra={"moler_error": True})
 
         if raise_exception:
             raise MolerException(msg)
@@ -159,7 +156,9 @@ class MolerTest(object):
             function_name = fi[3]
             line_no = fi[2]
             file_abs_path = os.path.abspath(filename)
-            msg = "{}    from {} at {}:{}".format(msg, function_name, file_abs_path, line_no)
+            msg = "{}    from {} at {}:{}".format(
+                msg, function_name, file_abs_path, line_no
+            )
             if full_stack:
                 msg = "{}\n".format(msg)
             else:
@@ -169,12 +168,14 @@ class MolerTest(object):
     @classmethod
     def _steps_start(cls):
         err_msg = cls._prepare_err_msg(None)
-        cls._list_of_errors = list()  # clean the list for new test
+        cls._list_of_errors = []  # clean the list for new test
         cls._was_error = False
         cls._was_steps_end = False
         if err_msg:
-            prefix = "Moler caught some error messages during execution. Please check Moler logs for details."\
-                     " List of them:\n"
+            prefix = (
+                "Moler caught some error messages during execution. Please check Moler logs for details."
+                " List of them:\n"
+            )
             err_msg = "{} {}".format(prefix, err_msg)
             cls._error(err_msg)
 
@@ -185,7 +186,7 @@ class MolerTest(object):
         get_traceback = False
 
         unraised_exceptions = ConnectionObserver.get_unraised_exceptions(True)
-        occured_exceptions = list()
+        occured_exceptions = []
         for unraised_exception in unraised_exceptions:
             occured_exceptions.append(unraised_exception)
         if caught_exception:
@@ -196,8 +197,8 @@ class MolerTest(object):
         if len(occured_exceptions) > 0:
             err_msg += "There were unhandled exceptions from test caught by Moler.\n"
             for i, exc in enumerate(occured_exceptions, 1):
-                if hasattr(exc, '__traceback__'):
-                    exc_traceback = ' '.join(traceback.format_tb(exc.__traceback__))
+                if hasattr(exc, "__traceback__"):
+                    exc_traceback = " ".join(traceback.format_tb(exc.__traceback__))
                     err_msg += "  ({}) {}{}\n".format(i, exc_traceback, repr(exc))
                 else:
                     get_traceback = True
@@ -223,7 +224,7 @@ class MolerTest(object):
         if err_msg:
             cls._error(err_msg)
             cls._was_error = False
-            cls._list_of_errors = list()
+            cls._list_of_errors = []
             raise ExecutionException(err_msg)
 
     @classmethod
@@ -236,14 +237,19 @@ class MolerTest(object):
 
     @classmethod
     def _decorate(cls, obj=None, check_steps_end=False):
-
         # check that decorated function is not staticmethod or classmethod
         if not obj:
-            raise ExecutionException("Decorator for 'staticmethod' or 'classmethod' not implemented yet.",
-                                     )
-        desc = next((desc for desc in (staticmethod, classmethod) if isinstance(obj, desc)), None)
+            raise ExecutionException(
+                "Decorator for 'staticmethod' or 'classmethod' not implemented yet.",
+            )
+        desc = next(
+            (desc for desc in (staticmethod, classmethod) if isinstance(obj, desc)),
+            None,
+        )
         if desc:
-            raise ExecutionException("Use decorator '@staticmethod' or '@classmethod' as uppermost.")
+            raise ExecutionException(
+                "Use decorator '@staticmethod' or '@classmethod' as uppermost."
+            )
 
         if hasattr(obj, "__dict__"):
             if obj.__dict__.items():
@@ -255,7 +261,13 @@ class MolerTest(object):
 
                     if not attributeName.startswith("_"):
                         if isinstance(attribute, (FunctionType, MethodType)):
-                            setattr(obj, attributeName, cls._wrapper(attribute, check_steps_end=check_steps_end))
+                            setattr(
+                                obj,
+                                attributeName,
+                                cls._wrapper(
+                                    attribute, check_steps_end=check_steps_end
+                                ),
+                            )
             else:
                 obj = cls._wrapper(obj, check_steps_end=check_steps_end)
         else:
@@ -265,7 +277,7 @@ class MolerTest(object):
 
     @classmethod
     def _wrapper(cls, method, check_steps_end):
-        if hasattr(method, '_already_decorated') and method._already_decorated:
+        if hasattr(method, "_already_decorated") and method._already_decorated:  # pylint: disable=protected-access
             return method
 
         @wraps(method)
@@ -284,5 +296,5 @@ class MolerTest(object):
             gc.collect()
             return result
 
-        wrapped._already_decorated = True
+        wrapped._already_decorated = True  # pylint: disable=protected-access
         return wrapped

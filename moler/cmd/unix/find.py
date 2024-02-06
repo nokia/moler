@@ -3,20 +3,28 @@
 Find command module.
 """
 
-__author__ = 'Adrianna Pienkowska, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'adrianna.pienkowska@nokia.com, marcin.usielski@nokia.com'
+__author__ = "Adrianna Pienkowska, Marcin Usielski"
+__copyright__ = "Copyright (C) 2018, Nokia"
+__email__ = "adrianna.pienkowska@nokia.com, marcin.usielski@nokia.com"
+
+import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
-from moler.exceptions import CommandFailure
-from moler.exceptions import ParsingDone
+from moler.exceptions import CommandFailure, ParsingDone
 from moler.helpers import copy_list
-import re
 
 
 class Find(GenericUnixCommand):
-    def __init__(self, connection, paths=None, prompt=None, newline_chars=None, options=None, operators=None,
-                 runner=None):
+    def __init__(
+        self,
+        connection,
+        paths=None,
+        prompt=None,
+        newline_chars=None,
+        options=None,
+        operators=None,
+        runner=None,
+    ):
         """
         :param connection: moler connection to device, terminal when command is executed
         :param paths: list of paths to find
@@ -26,11 +34,16 @@ class Find(GenericUnixCommand):
         :param operators: operators of unix command find
         :param runner: Runner to run command
         """
-        super(Find, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+        super(Find, self).__init__(
+            connection=connection,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
         self.options = options
         self.operators = operators
         self.paths = copy_list(paths)
-        self.current_ret['RESULT'] = list()
+        self.current_ret["RESULT"] = []
 
     def build_command_string(self):
         """
@@ -63,7 +76,9 @@ class Find(GenericUnixCommand):
                 pass
         return super(Find, self).on_new_line(line, is_full_line)
 
-    _re_permission_denied = re.compile(r"find:\s(?P<PERMISSION_DENIED>.*Permission denied)", re.IGNORECASE)
+    _re_permission_denied = re.compile(
+        r"find:\s(?P<PERMISSION_DENIED>.*Permission denied)", re.IGNORECASE
+    )
 
     def _ignore_permission_denied(self, line):
         """
@@ -83,7 +98,11 @@ class Find(GenericUnixCommand):
         :return: None but raises ParsingDone if regex matches.
         """
         if self._regex_helper.search_compiled(Find._re_error, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG_FIND"))))
+            self.set_exception(
+                CommandFailure(
+                    self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG_FIND"))
+                )
+            )
             raise ParsingDone()
 
     def _parse_file(self, line):
@@ -92,7 +111,7 @@ class Find(GenericUnixCommand):
         :param line: Line from device
         :return: None but raises ParsingDone
         """
-        self.current_ret['RESULT'].append(line)
+        self.current_ret["RESULT"].append(line)
         raise ParsingDone()
 
 
@@ -118,9 +137,23 @@ xyz@debian:~$"""
 COMMAND_KWARGS_without_arguments = {}
 
 COMMAND_RESULT_without_arguments = {
-    'RESULT': ['.', './key', './sed', './sed/new', './sed/new2', './sed/is_true.py', './sed/new5', './sed/new3',
-               './sed/test', './sed/old', './sed/file2.sed', './sed/file1.sed', './uname', './uname/uname_trash.py',
-               './uname/uname.py']
+    "RESULT": [
+        ".",
+        "./key",
+        "./sed",
+        "./sed/new",
+        "./sed/new2",
+        "./sed/is_true.py",
+        "./sed/new5",
+        "./sed/new3",
+        "./sed/test",
+        "./sed/old",
+        "./sed/file2.sed",
+        "./sed/file1.sed",
+        "./uname",
+        "./uname/uname_trash.py",
+        "./uname/uname.py",
+    ]
 }
 
 COMMAND_OUTPUT_with_files = """
@@ -140,14 +173,24 @@ uname/uname_trash.py
 uname/uname.py
 xyz@debian:~$"""
 
-COMMAND_KWARGS_with_files = {
-    'paths': ['sed', 'uname']
-}
+COMMAND_KWARGS_with_files = {"paths": ["sed", "uname"]}
 
 COMMAND_RESULT_with_files = {
-    'RESULT': ['sed', 'sed/new', 'sed/new2', 'sed/is_true.py', 'sed/new5', 'sed/new3',
-               'sed/test', 'sed/old', 'sed/file2.sed', 'sed/file1.sed', 'uname', 'uname/uname_trash.py',
-               'uname/uname.py']
+    "RESULT": [
+        "sed",
+        "sed/new",
+        "sed/new2",
+        "sed/is_true.py",
+        "sed/new5",
+        "sed/new3",
+        "sed/test",
+        "sed/old",
+        "sed/file2.sed",
+        "sed/file1.sed",
+        "uname",
+        "uname/uname_trash.py",
+        "uname/uname.py",
+    ]
 }
 
 COMMAND_OUTPUT_with_options = """
@@ -170,14 +213,27 @@ xyz@debian:~$ find -L
 ./uname/uname.py
 xyz@debian:~$"""
 
-COMMAND_KWARGS_with_options = {
-    'options': '-L'
-}
+COMMAND_KWARGS_with_options = {"options": "-L"}
 
 COMMAND_RESULT_with_options = {
-    'RESULT': ['.', './key', './to_new5', './sed', './sed/new', './sed/new2', './sed/is_true.py', './sed/new5',
-               './sed/new3', './sed/test', './sed/old', './sed/file2.sed', './sed/file1.sed', './uname',
-               './uname/uname_trash.py', './uname/uname.py']
+    "RESULT": [
+        ".",
+        "./key",
+        "./to_new5",
+        "./sed",
+        "./sed/new",
+        "./sed/new2",
+        "./sed/is_true.py",
+        "./sed/new5",
+        "./sed/new3",
+        "./sed/test",
+        "./sed/old",
+        "./sed/file2.sed",
+        "./sed/file1.sed",
+        "./uname",
+        "./uname/uname_trash.py",
+        "./uname/uname.py",
+    ]
 }
 
 COMMAND_OUTPUT_with_operators = """
@@ -189,30 +245,25 @@ xyz@debian:~$ find -name 'my*' -type f
 ./.config/libreoffice/4/user/autotext/mytexts.bau
 xyz@debian:~$"""
 
-COMMAND_KWARGS_with_operators = {
-    'operators': "-name 'my*' -type f"
-}
+COMMAND_KWARGS_with_operators = {"operators": "-name 'my*' -type f"}
 
 COMMAND_RESULT_with_operators = {
-    'RESULT': ['./Pobrane/pycharm-community-2018.1.4/helpers/typeshed/third_party/2and3/mypy_extensions.pyi',
-               './Pobrane/pycharm-community-2018.1.4/helpers/typeshed/tests/mypy_blacklist.txt',
-               './Pobrane/pycharm-community-2018.1.4/helpers/typeshed/tests/mypy_selftest.py',
-               './Pobrane/pycharm-community-2018.1.4/helpers/typeshed/tests/mypy_test.py',
-               './.config/libreoffice/4/user/autotext/mytexts.bau']
+    "RESULT": [
+        "./Pobrane/pycharm-community-2018.1.4/helpers/typeshed/third_party/2and3/mypy_extensions.pyi",
+        "./Pobrane/pycharm-community-2018.1.4/helpers/typeshed/tests/mypy_blacklist.txt",
+        "./Pobrane/pycharm-community-2018.1.4/helpers/typeshed/tests/mypy_selftest.py",
+        "./Pobrane/pycharm-community-2018.1.4/helpers/typeshed/tests/mypy_test.py",
+        "./.config/libreoffice/4/user/autotext/mytexts.bau",
+    ]
 }
 
 COMMAND_OUTPUT_no_files_found = """
 xyz@debian:~$ find Doc -name 'my*' -type f -print.
 xyz@debian:~$"""
 
-COMMAND_KWARGS_no_files_found = {
-    'paths': ['Doc'],
-    'operators': "-name 'my*' -type f"
-}
+COMMAND_KWARGS_no_files_found = {"paths": ["Doc"], "operators": "-name 'my*' -type f"}
 
-COMMAND_RESULT_no_files_found = {
-    'RESULT': []
-}
+COMMAND_RESULT_no_files_found = {"RESULT": []}
 
 COMMAND_OUTPUT_permission_denied = """
 xyz@debian:~$ find
@@ -233,11 +284,16 @@ xyz@debian:~$"""
 COMMAND_KWARGS_permission_denied = {}
 
 COMMAND_RESULT_permission_denied = {
-    'RESULT': ['./devices/LNXSYSTM:00/LNXPWRBN:00/input/input3/power/autosuspend_delay_ms',
-               './devices/LNXSYSTM:00/LNXPWRBN:00/input/input3/power/runtime_enabled',
-               './devices/LNXSYSTM:00/LNXPWRBN:00/input/input3/power/runtime_active_time',
-               './devices/LNXSYSTM:00/LNXPWRBN:00/input/input3/power/control',
-               './devices/LNXSYSTM:00/LNXPWRBN:00/input/input3/power/async',
-               './module/kernel', './module/kernel/parameters', './module/kernel/parameters/crash_kexec_post_notifiers',
-               './module/kernel/parameters/consoleblank', './module/kernel/parameters/initcall_debug']
+    "RESULT": [
+        "./devices/LNXSYSTM:00/LNXPWRBN:00/input/input3/power/autosuspend_delay_ms",
+        "./devices/LNXSYSTM:00/LNXPWRBN:00/input/input3/power/runtime_enabled",
+        "./devices/LNXSYSTM:00/LNXPWRBN:00/input/input3/power/runtime_active_time",
+        "./devices/LNXSYSTM:00/LNXPWRBN:00/input/input3/power/control",
+        "./devices/LNXSYSTM:00/LNXPWRBN:00/input/input3/power/async",
+        "./module/kernel",
+        "./module/kernel/parameters",
+        "./module/kernel/parameters/crash_kexec_post_notifiers",
+        "./module/kernel/parameters/consoleblank",
+        "./module/kernel/parameters/initcall_debug",
+    ]
 }

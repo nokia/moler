@@ -2,27 +2,39 @@
 """
 Wget command module.
 """
-__author__ = 'Agnieszka Bylica, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'agnieszka.bylica@nokia.com, michal.ernst@nokia.com'
+__author__ = "Agnieszka Bylica, Michal Ernst"
+__copyright__ = "Copyright (C) 2018, Nokia"
+__email__ = "agnieszka.bylica@nokia.com, michal.ernst@nokia.com"
 
 import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
-from moler.exceptions import CommandFailure
-from moler.exceptions import ParsingDone
+from moler.exceptions import CommandFailure, ParsingDone
 
 
 class Wget(GenericUnixCommand):
-    def __init__(self, connection, options, log_progress_bar=False, prompt=None, newline_chars=None, runner=None):
-        super(Wget, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+    def __init__(
+        self,
+        connection,
+        options,
+        log_progress_bar=False,
+        prompt=None,
+        newline_chars=None,
+        runner=None,
+    ):
+        super(Wget, self).__init__(
+            connection=connection,
+            prompt=prompt,
+            newline_chars=newline_chars,
+            runner=runner,
+        )
 
         self.options = options  # should contain URLs
         self.log_progress_bar = log_progress_bar
         self.current_percent = 0
-        self.current_ret['RESULT'] = list()
+        self.current_ret["RESULT"] = []
         if self.log_progress_bar:
-            self.current_ret['PROGRESS_LOG'] = list()
+            self.current_ret["PROGRESS_LOG"] = []
 
     def build_command_string(self):
         cmd = "wget {}".format(self.options)
@@ -39,28 +51,39 @@ class Wget(GenericUnixCommand):
                 pass
         super(Wget, self).on_new_line(line, is_full_line)
 
-    _re_command_error = list()
-    _re_command_error.append(re.compile(r"(?P<ERROR>Connecting\sto\s.*\sfailed:.*)", re.I))
+    _re_command_error = []
+    _re_command_error.append(
+        re.compile(r"(?P<ERROR>Connecting\sto\s.*\sfailed:.*)", re.I)
+    )
     _re_command_error.append(re.compile(r"wget:\s(?P<ERROR>.*)", re.I))
 
     def _command_error(self, line):
         for _re_error in Wget._re_command_error:
             if self._regex_helper.search_compiled(_re_error, line):
-                self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
+                self.set_exception(
+                    CommandFailure(
+                        self, "ERROR: {}".format(self._regex_helper.group("ERROR"))
+                    )
+                )
                 raise ParsingDone
 
-    _re_progress_bar = re.compile(r"(?P<BAR>(?P<PERCENT>\d{1,3})%\s?\[\s*[=+>]*\s*\].+)", re.I)
+    _re_progress_bar = re.compile(
+        r"(?P<BAR>(?P<PERCENT>\d{1,3})%\s?\[\s*[=+>]*\s*\].+)", re.I
+    )
 
     def _parse_line_progress_bar(self, line):
         if self._regex_helper.search_compiled(Wget._re_progress_bar, line):
-            self.current_ret['PROGRESS_LOG'].append(self._regex_helper.group("BAR"))
+            self.current_ret["PROGRESS_LOG"].append(self._regex_helper.group("BAR"))
             raise ParsingDone
 
-    _re_file_saved = re.compile(r"(?P<SAVED>\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s\(\d+.\d+\s\w{2}/s\)\s-\s.*)", re.I)
+    _re_file_saved = re.compile(
+        r"(?P<SAVED>\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\s\(\d+.\d+\s\w{2}/s\)\s-\s.*)",
+        re.I,
+    )
 
     def _parse_line_complete(self, line):
         if self._regex_helper.search_compiled(Wget._re_file_saved, line):
-            self.current_ret['RESULT'].append(self._regex_helper.group("SAVED"))
+            self.current_ret["RESULT"].append(self._regex_helper.group("SAVED"))
             raise ParsingDone
 
 
@@ -176,12 +199,12 @@ Saving to: wget-1.5.3.tar.gz
 moler@debian:~$"""
 
 COMMAND_KWARGS = {
-    'options': 'http://ftp.gnu.org/gnu/wget/wget-1.5.3.tar.gz',
-    'log_progress_bar': False,
+    "options": "http://ftp.gnu.org/gnu/wget/wget-1.5.3.tar.gz",
+    "log_progress_bar": False,
 }
 
 COMMAND_RESULT = {
-    'RESULT': ['2012-10-02 11:28:38 (58.9 KB/s) - wget-1.5.3.tar.gz'],
+    "RESULT": ["2012-10-02 11:28:38 (58.9 KB/s) - wget-1.5.3.tar.gz"],
 }
 
 COMMAND_OUTPUT_2 = """moler@debian:~$ wget -m http://users.student.com/lesson01/character.html
@@ -211,22 +234,25 @@ Downloaded: 1 files, 3.6K in 0s (210 MB/s)
 moler@debian:~$"""
 
 COMMAND_KWARGS_2 = {
-    'options': '-m http://users.student.com/lesson01/character.html',
-    'log_progress_bar': True
+    "options": "-m http://users.student.com/lesson01/character.html",
+    "log_progress_bar": True,
 }
 
 COMMAND_RESULT_2 = {
-    'RESULT': ["""2018-09-14 13:06:20 (210 MB/s) - 'users.student.com/lesson01/character.html' saved [3648/3648]"""],
-    'PROGRESS_LOG': [
-        '0% [                                                                                                                                                                                                                                                                   ] 0           --.-K/s',
-        '10% [=========================>                                                                                                                                                                                                                                         ] 30,646,272  1.42MB/s  eta 3m 3s',
-        '20% [===================================================>                                                                                                                                                                                                               ] 61,431,808  1.51MB/s  eta 2m 41s',
-        '30% [============================================================================>                                                                                                                                                                                      ] 91,594,752  1.51MB/s  eta 2m 19s',
-        '40% [======================================================================================================>                                                                                                                                                            ] 122,085,376 1.53MB/s  eta 1m 59s',
-        '50% [================================================================================================================================>                                                                                                                                  ] 152,838,144 1.52MB/s  eta 99s',
-        '60% [==========================================================================================================================================================>                                                                                                        ] 183,132,160 1.56MB/s  eta 79s',
-        '70% [====================================================================================================================================================================================>                                                                              ] 213,819,392 1.47MB/s  eta 60s',
-        '80% [==============================================================================================================================================================================================================>                                                    ] 244,473,856 1.17MB/s  eta 41s',
-        '90% [========================================================================================================================================================================================================================================>                          ] 274,915,328 1.57MB/s  eta 20s',
-        '100%[==================================================================================================================================================================================================================================================================>] 305,135,616 1.59MB/s   in 3m 19s']
+    "RESULT": [
+        """2018-09-14 13:06:20 (210 MB/s) - 'users.student.com/lesson01/character.html' saved [3648/3648]"""
+    ],
+    "PROGRESS_LOG": [
+        "0% [                                                                                                                                                                                                                                                                   ] 0           --.-K/s",
+        "10% [=========================>                                                                                                                                                                                                                                         ] 30,646,272  1.42MB/s  eta 3m 3s",
+        "20% [===================================================>                                                                                                                                                                                                               ] 61,431,808  1.51MB/s  eta 2m 41s",
+        "30% [============================================================================>                                                                                                                                                                                      ] 91,594,752  1.51MB/s  eta 2m 19s",
+        "40% [======================================================================================================>                                                                                                                                                            ] 122,085,376 1.53MB/s  eta 1m 59s",
+        "50% [================================================================================================================================>                                                                                                                                  ] 152,838,144 1.52MB/s  eta 99s",
+        "60% [==========================================================================================================================================================>                                                                                                        ] 183,132,160 1.56MB/s  eta 79s",
+        "70% [====================================================================================================================================================================================>                                                                              ] 213,819,392 1.47MB/s  eta 60s",
+        "80% [==============================================================================================================================================================================================================>                                                    ] 244,473,856 1.17MB/s  eta 41s",
+        "90% [========================================================================================================================================================================================================================================>                          ] 274,915,328 1.57MB/s  eta 20s",
+        "100%[==================================================================================================================================================================================================================================================================>] 305,135,616 1.59MB/s   in 3m 19s",
+    ],
 }

@@ -14,7 +14,7 @@ from moler.exceptions import WrongUsage
 from moler.helpers import ForwardingHandler
 
 
-class Scheduler(object):
+class Scheduler:
 
     @staticmethod
     def get_job(callback, interval, callback_params=None, cancel_on_exception=False, misfire_grace_time=0):
@@ -35,10 +35,10 @@ class Scheduler(object):
         decorated = DecoratedCallable(callback, cancel_on_exception)
 
         if misfire_grace_time != 0:
-            job_internal = instance._scheduler.add_job(decorated.call, 'interval', seconds=interval,
+            job_internal = instance._scheduler.add_job(decorated.call, 'interval', seconds=interval,  # pylint: disable=protected-access
                                                        misfire_grace_time=misfire_grace_time, kwargs=callback_params)
         else:
-            job_internal = instance._scheduler.add_job(decorated.call, 'interval', seconds=interval,
+            job_internal = instance._scheduler.add_job(decorated.call, 'interval', seconds=interval,  # pylint: disable=protected-access
                                                        kwargs=callback_params)
         job_internal.pause()
         job = Job(job_internal)
@@ -54,7 +54,7 @@ class Scheduler(object):
         :return: None. If scheduler_type is not supported then it raises object of type moler.exceptions.WrongUsage
         """
         instance = Scheduler._get_instance()
-        instance._swap_scheduler(scheduler_type)
+        instance._swap_scheduler(scheduler_type)  # pylint: disable=protected-access
 
     @staticmethod
     def _get_instance():
@@ -114,7 +114,7 @@ class Scheduler(object):
         return scheduler
 
 
-class DecoratedCallable(object):
+class DecoratedCallable:
     def __init__(self, callback, cancel_on_exception):
         self.callback = callback
         self.cancel_on_exception = cancel_on_exception
@@ -133,7 +133,7 @@ class DecoratedCallable(object):
                 pass
 
 
-class Job(object):
+class Job:
 
     def __init__(self, job):
         super(Job, self).__init__()

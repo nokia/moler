@@ -59,6 +59,7 @@ def _buffer_connection():
     return ext_io_in_memory
 
 
+# pylint: disable-next=unused-argument
 def _walk_moler_python_files(path, *args):
     """
     Walk thru directory with commands and search for python source code (except __init__.py)
@@ -117,7 +118,7 @@ def _walk_moler_nonabstract_commands(path, base_class):
                 continue  # ABSTRACT BASE-CLASS COMMAND - skip it
         except Exception as err:
             print(str(err))
-            pass  # other error of class instantiation, maybe missing args
+            # other error of class instantiation, maybe missing args
         yield moler_module, moler_class
 
 
@@ -138,7 +139,7 @@ def _retrieve_command_documentation(moler_module, observer_type):
 def _validate_documentation_existence(moler_module, test_data, observer_type):
     """Check if module has at least one variant of output documented"""
     if len(test_data.keys()) == 0:
-        expected_info = '{}_OUTPUT/{}_KWARGS/{}_RESULT'.format(observer_type, observer_type, observer_type)
+        expected_info = f"{observer_type}_OUTPUT/{observer_type}_KWARGS/{observer_type}_RESULT"
         error_msg = "{} is missing documentation: {}".format(moler_module, expected_info)
         return error_msg
     return ""
@@ -182,11 +183,12 @@ def _create_command(moler_class, moler_connection, cmd_kwargs):
         return moler_cmd, constructor_str
     except Exception as err:
         error_msg = "Can't create command instance via {} : {}".format(constructor_str, str(err))
-        raise Exception(error_msg)
+        raise Exception(error_msg) from err
 
 
 def _reformat_str_to_unicode(cmd_result):
     if (isinstance(cmd_result, dict)):
+        # pylint: disable-next=unused-variable
         for key, value in cmd_result.items():
             if (key in cmd_result and isinstance(cmd_result[key], dict) and isinstance(cmd_result[key],
                                                                                        collections.Mapping)):

@@ -28,6 +28,7 @@ from moler.runner import ConnectionObserverRunner
 
 
 @add_metaclass(ABCMeta)
+# pylint: disable=W0223
 class Command(ConnectionObserver):
     def __init__(self, connection: Optional[AbstractMolerConnection] = None, runner: Optional[ConnectionObserverRunner] = None):
         """

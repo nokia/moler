@@ -7,11 +7,8 @@ __author__ = 'Grzegorz Latuszek, Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
-import sys
 import platform
 from moler.exceptions import MolerException
-from moler.moler_connection_for_single_thread_runner import MolerConnectionForSingleThreadRunner
-
 
 default_variant = {}
 named_connections = {}
@@ -210,6 +207,7 @@ def _register_builtin_unix_connections(connection_factory, moler_conn_class):
     def terminal_thd_conn_st(name=None):
         # ThreadedTerminal works on unicode so moler_connection must do no encoding
         # mlr_conn = mlr_conn_no_encoding(moler_conn_class, name=name)
+        from moler.moler_connection_for_single_thread_runner import MolerConnectionForSingleThreadRunner
         mlr_conn = mlr_conn_no_encoding_partial_clean_vt100(MolerConnectionForSingleThreadRunner, name=name)
         io_conn = ThreadedTerminal(moler_connection=mlr_conn)  # TODO: add name, logger
         return io_conn

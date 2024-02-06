@@ -34,13 +34,14 @@ def find_caller(levels_to_go_up=0):
     f = logging.currentframe()
     # On some versions of IronPython, currentframe() returns None if
     # IronPython isn't run with -X:Frames.
-    rv = "(unknown file)", 0, "(unknown function)", None
+    rv = "(unknown file)", 0, "(unknown function)"
     while hasattr(f, "f_code"):
         co = f.f_code
         filename = os.path.normcase(co.co_filename)
         if filename == _srcfile:
             f = f.f_back
             continue
+        # pylint: disable-next=unused-variable
         for lv in range(levels_to_go_up):
             f = f.f_back
             if hasattr(f, "f_code"):

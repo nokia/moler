@@ -8,6 +8,8 @@ __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
+# pylint: skip-file
+
 import asyncio
 import asyncio.futures
 import asyncio.tasks
@@ -947,7 +949,7 @@ _asyncio_loop_thread_lock = threading.Lock()
 def get_asyncio_loop_thread():
     logger = logging.getLogger('moler.asyncio-loop-thrd')
     with _asyncio_loop_thread_lock:
-        global _asyncio_loop_thread
+        global _asyncio_loop_thread  # pylint: disable=global-statement
         if _asyncio_loop_thread is None:
             logger.debug(">>> >>> found _asyncio_loop_thread as {}".format(_asyncio_loop_thread))
 

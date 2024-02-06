@@ -7,20 +7,19 @@ __author__ = 'Grzegorz Latuszek'
 __copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
-import sys
 
 default_variant = "threaded"
 
 
 def set_default_variant(variant):
     """Set variant to use as default when requesting runner"""
-    global default_variant
+    global default_variant  # pylint: disable=global-statement
     default_variant = variant
 
 
 def clear():
     """Cleanup configuration related to runners"""
-    global default_variant
+    global default_variant  # pylint: disable=global-statement
     default_variant = "threaded"
 
 
