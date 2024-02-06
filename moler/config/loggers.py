@@ -103,7 +103,7 @@ def _get_moler_version_cloned_from_git_repository(setup_py_path):
     version = "UNKNOWN"
 
     if os.path.isfile(setup_py_path):
-        with open(setup_py_path, "r") as f:
+        with open(setup_py_path, "r", encoding="utf-8") as f:
             for line in f:
                 search_version = re.search(
                     r"version\s*=\s*\'(?P<VERSION>\d+\.\d+\.\d+)", line

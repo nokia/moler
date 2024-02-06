@@ -29,7 +29,7 @@ def read_configfile(path):
     :return: configuration file content as string
     """
 
-    with open(path, "r") as config_file:
+    with open(path, "r", encoding="utf-8") as config_file:
         content = config_file.read()
         yield content
 
