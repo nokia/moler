@@ -514,6 +514,15 @@ def test_abstract_moler_connection_identity_transformation():
     assert data_out == data_exp
 
 
+def test_abstract_moler_connection():
+    from  moler.abstract_moler_connection import AbstractMolerConnection
+    data_exp = "data"
+    for i in range(0, 10):
+        data_in = "{}{}".format(data_exp, " " * i)
+        data_out = AbstractMolerConnection._strip_data(data_in)
+        assert data_out == data_exp
+
+
 # --------------------------- resources ---------------------------
 
 
