@@ -504,6 +504,16 @@ def test_garbage_collected_subscriber_is_not_notified():
     MolerTest.sleep(1, True)  # Processing in separate thread so have to wait.
     assert len(received_data) == 1
 
+
+def test_abstract_moler_connection_identity_transformation():
+    import moler.abstract_moler_connection
+    import copy
+    data_in = "data"
+    data_exp = copy.copy(data_in)
+    data_out = moler.abstract_moler_connection.identity_transformation(data_in)
+    assert data_out == data_exp
+
+
 # --------------------------- resources ---------------------------
 
 
