@@ -22,7 +22,6 @@ from moler.util.converterhelper import ConverterHelper
 # result knowledge
 
 
-
 class Ps(GenericUnixCommand):
     """Unix command ps."""
 

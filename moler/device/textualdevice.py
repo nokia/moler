@@ -827,10 +827,10 @@ class TextualDevice(AbstractDevice):
 
         exc = DeviceFailure(
             device=self.__class__.__name__,
-            message=f"Failed to create {observer_type}-object for '{observer_name}' {observer_type}."\
-                f" '{observer_name}' {observer_type} is unknown for state '{for_state}' of device "\
-                f"'{self.__class__.__name__}'. Available names: {available_observer_names}."
-            )
+            message=f"Failed to create {observer_type}-object for '{observer_name}' {observer_type}."
+                    f" '{observer_name}' {observer_type} is unknown for state '{for_state}' of device "
+                    f"'{self.__class__.__name__}'. Available names: {available_observer_names}."
+        )
         self._log(logging.ERROR, exc)
         raise exc
 
