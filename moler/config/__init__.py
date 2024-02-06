@@ -64,7 +64,7 @@ def configs_are_same(config_list, config_to_find):
     return False
 
 
-# pylint: disable-next=unused-argument
+# pylint: disable-next=unused-argument, keyword-arg-before-vararg
 def load_config(config=None, from_env_var=None, *args, **kwargs):
     """
     Load Moler's configuration from config file.

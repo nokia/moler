@@ -39,6 +39,7 @@ class LineEvent(TextualEvent):
             self.__class__.__name__, self.detect_patterns, instance_id(self)
         )
 
+    # pylint: disable=keyword-arg-before-vararg
     def start(self, timeout=None, *args, **kwargs):
         """Start background execution of command."""
 

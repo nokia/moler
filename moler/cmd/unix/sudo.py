@@ -111,6 +111,7 @@ class Sudo(CommandChangingPrompt):
             self._sent_password = False
         super(Sudo, self).on_new_line(line, is_full_line)
 
+    # pylint: disable=keyword-arg-before-vararg
     def start(self, timeout=None, *args, **kwargs):
         """Start background execution of connection-observer."""
         if timeout is not None:

@@ -97,6 +97,7 @@ class ConnectionObserver(object):
             connection_str = repr(self.connection)
         return "{}, using {})".format(cmd_str[:-1], connection_str)
 
+    # pylint: disable=keyword-arg-before-vararg
     def __call__(self, timeout=None, *args, **kwargs):
         """
         Run connection-observer in foreground
@@ -169,6 +170,7 @@ class ConnectionObserver(object):
         else:
             return self.__class__.__name__
 
+    # pylint: disable=keyword-arg-before-vararg
     def start(self, timeout: Optional[float] = None, *args, **kwargs):
         """Start background execution of connection-observer."""
         with exception_stored_if_not_main_thread(self):
