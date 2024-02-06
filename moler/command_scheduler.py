@@ -14,7 +14,7 @@ from threading import Thread
 from moler.exceptions import CommandTimeout
 
 
-class CommandScheduler(object):
+class CommandScheduler:
     """Scheduler for commands and events."""
 
     @staticmethod

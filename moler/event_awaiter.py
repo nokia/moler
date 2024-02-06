@@ -14,7 +14,7 @@ from moler.connection_observer import ConnectionObserver
 from moler.helpers import copy_list
 
 
-class EventAwaiter(object):
+class EventAwaiter:
     """
     A utility class for waiting and managing events.
     """

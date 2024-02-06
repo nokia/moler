@@ -36,7 +36,7 @@ from moler.util import tracked_thread
 # TODO: logging - rethink details
 
 
-class Tcp(object):
+class Tcp:
     r"""
     Implementation of TCP connection using python builtin modules.::
 

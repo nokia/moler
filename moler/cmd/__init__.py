@@ -11,7 +11,7 @@ from re import search, match
 from moler.exceptions import WrongUsage
 
 
-class RegexHelper(object):
+class RegexHelper:
     """
     Class to help with working with regular expressions.
     """

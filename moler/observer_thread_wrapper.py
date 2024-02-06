@@ -16,7 +16,7 @@ from moler.exceptions import CommandFailure, MolerException
 from threading import Thread
 
 
-class ObserverThreadWrapper(object):
+class ObserverThreadWrapper:
     """Wrapper for observer registered in ThreadedMolerConnection (old name: ObservableConnection)."""
 
     _th_nr = 1

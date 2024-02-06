@@ -23,7 +23,7 @@ from moler.connection_observer import ConnectionObserver
 from moler.exceptions import ExecutionException, MolerException
 
 
-class MolerTest(object):
+class MolerTest:
     @classmethod
     def steps_end(cls):
         """

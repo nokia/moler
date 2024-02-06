@@ -7,7 +7,6 @@ __author__ = 'Grzegorz Latuszek, Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
-import sys
 import platform
 from moler.exceptions import MolerException
 from moler.moler_connection_for_single_thread_runner import MolerConnectionForSingleThreadRunner

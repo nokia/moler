@@ -34,7 +34,7 @@ from moler.io.raw import TillDoneThread
 import datetime
 
 
-class SshShell(object):
+class SshShell:
     """
     Implementation of 'remote shell over Ssh' connection using python Paramiko module
 

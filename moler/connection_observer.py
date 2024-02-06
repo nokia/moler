@@ -40,7 +40,7 @@ from moler.util.loghelper import log_into_logger
 
 
 @add_metaclass(ABCMeta)
-class ConnectionObserver(object):
+class ConnectionObserver:
     _not_raised_exceptions = []  # list of dict: "exception" and "time"
     _exceptions_lock = threading.Lock()
 

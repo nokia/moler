@@ -31,7 +31,7 @@ from moler.util import tracked_thread
 
 
 @add_metaclass(ABCMeta)
-class ConnectionObserverRunner(object):
+class ConnectionObserverRunner:
     @abstractmethod
     def shutdown(self):
         """Cleanup used resources."""
@@ -139,7 +139,7 @@ def result_for_runners(connection_observer):
     return connection_observer.result()
 
 
-class CancellableFuture(object):
+class CancellableFuture:
     def __init__(self, future, observer_lock, stop_running, is_done, stop_timeout=0.5):
         """
         Wrapper to allow cancelling already running concurrent.futures.Future

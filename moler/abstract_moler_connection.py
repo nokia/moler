@@ -30,7 +30,7 @@ def identity_transformation(data):
     return data
 
 
-class AbstractMolerConnection(object):
+class AbstractMolerConnection:
     """Connection API required by ConnectionObservers."""
 
     def __init__(self, how2send=None, encoder=identity_transformation, decoder=identity_transformation,

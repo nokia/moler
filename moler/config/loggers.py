@@ -682,7 +682,7 @@ def _create_logs_folder(logdir):
         os.makedirs(logdir)
 
 
-class TracedIn(object):
+class TracedIn:
     """
     Decorator to allow for tracing method/function invocation
     It sends function name and parameters into logger given as decorator parameter
@@ -716,7 +716,7 @@ class TracedIn(object):
         return _traced_method
 
 
-class RawDataFormatter(object):
+class RawDataFormatter:
     def format(self, record):
         """We want to take data from log_record.msg as bytes"""
         raw_bytes = record.msg
@@ -877,7 +877,7 @@ class MolerMainMultilineWithDirectionFormatter(MultilineWithDirectionFormatter):
         return empty_prefix
 
 
-class SpecificLevelFilter(object):
+class SpecificLevelFilter:
     def __init__(self, level):
         self.__level = level
 

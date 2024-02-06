@@ -23,7 +23,7 @@ from moler.util.moler_test import MolerTest
 logger = logging.getLogger("moler")
 
 
-class DeviceFactory(object):
+class DeviceFactory:
     _lock_device = threading.Lock()
 
     _devices = {}

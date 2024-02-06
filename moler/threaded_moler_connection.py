@@ -210,7 +210,7 @@ class ThreadedMolerConnection(AbstractMolerConnection):
         """
         Subscribing methods of objects is tricky::
 
-            class TheObserver(object):
+            class TheObserver:
                 def __init__(self):
                     self.received_data = []
 

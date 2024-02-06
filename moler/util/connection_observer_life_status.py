@@ -8,7 +8,7 @@ __email__ = 'marcin.usielski@nokia.com'
 from typing import Optional
 
 
-class ConnectionObserverLifeStatus(object):
+class ConnectionObserverLifeStatus:
 
     def __init__(self):
         """

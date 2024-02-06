@@ -9,7 +9,7 @@ import traceback
 hostname = platform.node()
 
 
-class IOSerial(object):
+class IOSerial:
     """Serial-IO connection."""
     def __init__(self, port, baudrate=115200, stopbits=serial.STOPBITS_ONE,
                  parity=serial.PARITY_NONE, timeout=2, xonxoff=1):
@@ -176,7 +176,7 @@ class AtToStdout(serial.threaded.LineReader):
         return response_found
 
 
-class AtConsoleProxy(object):
+class AtConsoleProxy:
     """Class to proxy AT commands console into stdin/stdout"""
     def __init__(self, port, verbose=False, at_echo=False):
         super(AtConsoleProxy, self).__init__()

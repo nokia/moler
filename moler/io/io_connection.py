@@ -37,7 +37,7 @@ import logging
 from threading import Lock
 
 
-class IOConnection(object):
+class IOConnection:
     """External-IO connection."""
 
     def __init__(self, moler_connection):

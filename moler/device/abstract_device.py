@@ -14,7 +14,7 @@ import six
 
 
 @six.add_metaclass(abc.ABCMeta)
-class AbstractDevice(object):
+class AbstractDevice:
     def __init__(self):
         super(AbstractDevice, self).__init__()
         self._remove_callbacks = []

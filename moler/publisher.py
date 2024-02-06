@@ -22,7 +22,7 @@ import six
 from moler.helpers import instance_id
 
 
-class Publisher(object):
+class Publisher:
     """
     Allows objects to subscribe for notification about data.
 
@@ -100,7 +100,7 @@ class Publisher(object):
 
         Subscribing methods of objects is tricky::
 
-            class TheObserver(object):
+            class TheObserver:
                 def __init__(self):
                     self.received_data = []
 

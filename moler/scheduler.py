@@ -14,7 +14,7 @@ from moler.exceptions import WrongUsage
 from moler.helpers import ForwardingHandler
 
 
-class Scheduler(object):
+class Scheduler:
 
     @staticmethod
     def get_job(callback, interval, callback_params=None, cancel_on_exception=False, misfire_grace_time=0):
@@ -114,7 +114,7 @@ class Scheduler(object):
         return scheduler
 
 
-class DecoratedCallable(object):
+class DecoratedCallable:
     def __init__(self, callback, cancel_on_exception):
         self.callback = callback
         self.cancel_on_exception = cancel_on_exception
@@ -133,7 +133,7 @@ class DecoratedCallable(object):
                 pass
 
 
-class Job(object):
+class Job:
 
     def __init__(self, job):
         super(Job, self).__init__()
