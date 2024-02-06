@@ -54,7 +54,7 @@ DirectMap2M:     4141056 kB
 user@host:~$
 """
 
-COMMAND_RESULT = {'LINES': [u'VmallocChunk:   34359608824 kB',
+COMMAND_RESULT = {'LINES': ['VmallocChunk:   34359608824 kB',
                             'HardwareCorrupted:     0 kB',
                             'AnonHugePages:         0 kB',
                             'HugePages_Total:       0',

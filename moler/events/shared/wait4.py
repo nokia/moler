@@ -157,7 +157,7 @@ EVENT_RESULT_sequence2 = [
         },
         {
             'line': "Line9 contains message number 20",
-            "groups": (u"Line9", "contains message"),
+            "groups": ("Line9", "contains message"),
             "named_groups": {"LINE_NUMBER": "Line9"},
             "matched": "Line9 contains message number 20",
             'time': datetime.datetime(2019, 1, 14, 13, 12, 48, 224945),

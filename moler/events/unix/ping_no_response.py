@@ -108,7 +108,7 @@ EVENT_KWARGS_2 = {
 EVENT_RESULT_2 = [
     {
         "line": "no answer yet for icmp_seq=22",
-        "groups": (u"no answer yet for icmp_seq=22", None),
+        "groups": ("no answer yet for icmp_seq=22", None),
         "named_groups": {},
         "matched": "no answer yet for icmp_seq=22",
         "time": datetime.datetime.now()
