@@ -203,9 +203,9 @@ def get_logging_path():
     return _logging_path
 
 
-def set_date_format(format):
+def set_date_format(format_):
     global date_format  # pylint: disable=global-statement
-    date_format = format
+    date_format = format_
 
 
 def configure_debug_level(level=None):
@@ -376,7 +376,7 @@ def debug_level_or_info_level():
 
 
 def setup_new_file_handler(
-    logger_name, log_level, log_filename, formatter, filter=None
+    logger_name, log_level, log_filename, formatter, log_filter=None
 ):
     """
     Sets up new file handler for given logger
@@ -384,7 +384,7 @@ def setup_new_file_handler(
     :param log_level: logging level
     :param log_filename: path to log file
     :param formatter: formatter for file logger
-    :param filter: filter for file logger
+    :param log_filter: filter for file logger
     :return:  logging.FileHandler object
     """
     global write_mode  # pylint: disable=global-statement, global-variable-not-assigned
@@ -433,14 +433,14 @@ def setup_new_file_handler(
             )
     cfh.setLevel(log_level)
     cfh.setFormatter(formatter)
-    if filter:
-        cfh.addFilter(filter)
+    if log_filter:
+        cfh.addFilter(log_filter)
     logger.addHandler(cfh)
     return cfh
 
 
 def _add_new_file_handler(
-    logger_name, log_file, formatter, log_level=TRACE, filter=None
+    logger_name, log_file, formatter, log_level=TRACE, log_filter=None
 ):
     """
     Add file writer into Logger
@@ -448,7 +448,7 @@ def _add_new_file_handler(
     :param log_file: Path to logfile. Final logfile location is logging_path + log_file
     :param log_level: only log records with equal and greater level will be accepted for storage in log
     :param formatter: formatter for file logger
-    :param filter: filter for file logger
+    :param log_filter: filter for file logger
     :return: None
     """
 
@@ -460,7 +460,7 @@ def _add_new_file_handler(
         log_level=log_level,
         log_filename=logfile_full_path,
         formatter=formatter,
-        filter=filter,
+        log_filter=log_filter,
     )
 
 
