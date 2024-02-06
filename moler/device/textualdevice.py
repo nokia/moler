@@ -22,7 +22,6 @@ import threading
 import time
 import traceback
 
-from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.config.loggers import change_logging_suffix, configure_device_logger
 from moler.connection_factory import get_connection
 from moler.connection_observer import ConnectionObserver
@@ -925,6 +924,7 @@ class TextualDevice(AbstractDevice):
             for_state=for_state,
             **cmd_params,
         )
+        from moler.cmd.commandtextualgeneric import CommandTextualGeneric
         assert isinstance(cmd, CommandTextualGeneric)
         return cmd
 
