@@ -34,6 +34,7 @@ class Netstat(GenericUnixCommand):
         # Parameters defined by calling the command
         self.options = options
         self._active = ""
+        self.statistics_proto = ""
 
     def build_command_string(self):
         """

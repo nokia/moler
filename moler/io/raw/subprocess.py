@@ -5,10 +5,11 @@ __author__ = 'Michal Plichta'
 __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'michal.plichta@nokia.com'
 
+import abc
+import six
 
-class Subprocess(object):
-    def __init__(self):
-        super(Subprocess, self).__init__()
+@six.add_metaclass(abc.ABCMeta)
+class Subprocess:
 
     def start(self):
         pass
@@ -29,9 +30,8 @@ class Subprocess(object):
         pass
 
 
+@six.add_metaclass(abc.ABCMeta)
 class ThreadedSubprocess(Subprocess):
-    def __init__(self):
-        super(ThreadedSubprocess, self).__init__()
 
     def open(self):
         pass

@@ -12,7 +12,6 @@ import abc
 import six
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
-from moler.exceptions import CommandFailure
 from moler.helpers import remove_all_known_special_chars
 
 cmd_failure_causes = ['not found',

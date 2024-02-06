@@ -218,7 +218,7 @@ class Sftp(GenericUnixCommand):
     )
     _error_regex_compiled.append(
         re.compile(
-            r"(?P<CONNECTION>Couldn't\sread\spacket:" r"\sConnection\sreset\sby\speer)",
+            r"(?P<CONNECTION>Couldn't\sread\spacket:\sConnection\sreset\sby\speer)",
             re.I,
         )
     )

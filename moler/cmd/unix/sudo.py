@@ -255,7 +255,7 @@ class Sudo(CommandChangingPrompt):
                         self.set_exception(
                             CommandFailure(self, "Password was requested but no more passwords provided."))
                         self.break_cmd()
-                        raise ParsingDone()
+                        raise ParsingDone()  # pylint: disable=raise-missing-from
 
                 self._sent_password = True
             raise ParsingDone()

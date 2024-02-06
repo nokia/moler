@@ -160,7 +160,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
         try:
             if is_full_line:
                 self._add_line_to_ret(line)
-            self._parse_failure_indication(line)
+            self._parse_failure_indication(line, is_full_line)
             self._send_login_if_requested(line)
             self._send_password_if_requested(line)
             self._just_connected(line)
@@ -205,18 +205,19 @@ class GenericTelnetSsh(CommandChangingPrompt):
                 self._regex_helper.group("ATTEMPTS_NR")
             )
 
-    def _parse_failure_indication(self, line):
+    def _parse_failure_indication(self, line, is_full_line):
         """
         Detects fail from command output.
 
         :param line: Line from device.
+        :param is_full_line: True if line had new line chars, False otherwise
         :return: None.
         :raises: ParsingDone if line matched failure indication.
         """
-        if self.is_failure_indication(line):
+        if self.is_failure_indication(line, is_full_line):
             if not self._is_failure_exception(line):
                 self.set_exception(
-                    CommandFailure(self, "command failed in line '{}'".format(line))
+                    CommandFailure(self, f"command failed in line '{line}', {is_full_line}")
                 )
                 raise ParsingDone()
 
@@ -280,16 +281,17 @@ class GenericTelnetSsh(CommandChangingPrompt):
             self._sent = True
             raise ParsingDone()
 
-    def is_failure_indication(self, line):
+    def is_failure_indication(self, line, is_full_line=True):
         """
         Checks if line contains information that command fails.
 
         :param line: Line from device
-        :return: Match object or None
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: True if line contains information that command fails, False otherwise
         """
         return self._regex_helper.search_compiled(
             GenericTelnetSsh._re_failed_strings, line
-        )
+        ) is not None
 
     def _is_failure_exception(self, line):
         """

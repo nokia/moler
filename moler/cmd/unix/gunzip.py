@@ -37,6 +37,7 @@ class Gunzip(GenericUnixCommand):
         self.overwrite = overwrite
         self.keys = []
         self.current_ret["RESULT"] = []
+        self.values = []
 
         # private variables
         self._answered_file = None

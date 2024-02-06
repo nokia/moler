@@ -263,6 +263,7 @@ class Iperf3(Iperf2):
             return last_rec
         return None
 
+    # pylint: disable-next=arguments-differ
     def _parse_final_record(self, connection_name, line):
         if self.parallel_client and ("multiport" not in connection_name[0]):
             return  # for parallel we take report / publish stats only from summary records
@@ -304,6 +305,7 @@ class Iperf3(Iperf2):
     _re_iperf_record_tcp_cli_summary_report = re.compile(
         _r_rec_tcp_cli_summary_report)
 
+    # pylint: disable-next=arguments-renamed
     def _is_final_record(self, line):
         regex_found = self._regex_helper.search_compiled
 

@@ -216,26 +216,26 @@ class Iperf2(GenericUnixCommand, Publisher):
         found_echo = self._regex_helper.search(prompt_and_command, line)
         return found_echo is not None
 
-    def subscribe(self, subscriber):
-        """
-        Subscribe for notifications about iperf statistic as it comes.
+    # def subscribe(self, subscriber):
+    #     """
+    #     Subscribe for notifications about iperf statistic as it comes.
 
-        Anytime we find iperf statistics line like:
-        [  3]  2.0- 3.0 sec   612 KBytes  5010 Kbits/sec   0.022 ms    0/  426 (0%)
-        such line is parsed and published to subscriber
+    #     Anytime we find iperf statistics line like:
+    #     [  3]  2.0- 3.0 sec   612 KBytes  5010 Kbits/sec   0.022 ms    0/  426 (0%)
+    #     such line is parsed and published to subscriber
 
-        Subscriber must be function or method with following signature (name doesn't matter):
+    #     Subscriber must be function or method with following signature (name doesn't matter):
 
-            def iperf_observer(from_client, to_server, data_record=None, report=None):
-                ...
+    #         def iperf_observer(from_client, to_server, data_record=None, report=None):
+    #             ...
 
-        Either data_record is published or report.
-        Report is published on last line of iperf statistics summarizing stats for whole period:
-        [904]   0.0-10.0 sec   11.8 MBytes   9.86 Mbits/sec   2.618 ms   9/ 8409  (0.11%)
+    #     Either data_record is published or report.
+    #     Report is published on last line of iperf statistics summarizing stats for whole period:
+    #     [904]   0.0-10.0 sec   11.8 MBytes   9.86 Mbits/sec   2.618 ms   9/ 8409  (0.11%)
 
-        :param subscriber: function to be called to notify about data.
-        """
-        super(Iperf2, self).subscribe(subscriber)
+    #     :param subscriber: function to be called to notify about data.
+    #     """
+    #     super(Iperf2, self).subscribe(subscriber)
 
     def is_end_of_cmd_output(self, line):
         """
@@ -334,9 +334,9 @@ class Iperf2(GenericUnixCommand, Publisher):
                 # pylint: disable-next=unused-variable
                 (
                     client_host,
-                    client_port,
-                    server_host,
-                    server_port,
+                    _,
+                    _,
+                    _,
                 ) = self._split_connection_name((client, server))
                 connection_id = "[SUM]"
                 self._connection_dict[connection_id] = (

@@ -720,7 +720,7 @@ class TextualDevice(AbstractDevice):
                     )
                     if log_stacktrace_on_fail:
                         self._log(logging.ERROR, exc)
-                    raise exc
+                    raise exc from ex
                 else:
                     retrying += 1
                     self._log(
@@ -827,17 +827,10 @@ class TextualDevice(AbstractDevice):
 
         exc = DeviceFailure(
             device=self.__class__.__name__,
-            message="Failed to create {}-object for '{}' {}. '{}' {} is unknown for state '{}' of device '{}'. Available names: {}".format(
-                observer_type,
-                observer_name,
-                observer_type,
-                observer_name,
-                observer_type,
-                for_state,
-                self.__class__.__name__,
-                available_observer_names,
-            ),
-        )
+            message=f"Failed to create {observer_type}-object for '{observer_name}' {observer_type}."\
+                f" '{observer_name}' {observer_type} is unknown for state '{for_state}' of device "\
+                f"'{self.__class__.__name__}'. Available names: {available_observer_names}."
+            )
         self._log(logging.ERROR, exc)
         raise exc
 
@@ -1229,7 +1222,6 @@ class TextualDevice(AbstractDevice):
             self._log(
                 logging.DEBUG, "Cannot execute command 'enter' properly: {}".format(ex)
             )
-            pass
 
     def _get_newline(self, state=None):
         if not state:

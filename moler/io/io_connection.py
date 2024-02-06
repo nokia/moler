@@ -79,7 +79,6 @@ class IOConnection(object):
 
     def close(self):
         """Close established connection."""
-        pass
 
     def __enter__(self):
         self.open()
@@ -96,7 +95,6 @@ class IOConnection(object):
         Because of plugin done in constructor it will be called
         by moler_connection when it needs.
         """
-        pass
 
     def receive(self):
         """
@@ -109,7 +107,6 @@ class IOConnection(object):
             self.moler_connection.data_received(data)
 
         """
-        pass
 
     def data_received(self, data, recv_time):
         """

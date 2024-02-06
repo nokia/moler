@@ -99,11 +99,11 @@ class Hciconfig(GenericUnixCommand):
 
     def _parse_RX_TX(self, line):
         if self._regex_helper.search_compiled(Hciconfig._re_RX_TX, line):
-            type = self._regex_helper.group("TYPE")
-            self.current_ret[self.if_name][type] = {}
+            type_ = self._regex_helper.group("TYPE")
+            self.current_ret[self.if_name][type_] = {}
             parse = re.findall(Hciconfig._re_RX_TX_details, line)
             for key, value in parse:
-                self.current_ret[self.if_name][type][key] = value
+                self.current_ret[self.if_name][type_][key] = value
             raise ParsingDone
 
     _re_HCI_LMP = re.compile(
@@ -112,12 +112,12 @@ class Hciconfig(GenericUnixCommand):
 
     def _parse_HCI_LMP(self, line):
         if self._regex_helper.search_compiled(Hciconfig._re_HCI_LMP, line):
-            type = self._regex_helper.group("TYPE")
-            self.current_ret[self.if_name][type] = {}
-            self.current_ret[self.if_name][type]["VERSION"] = self._regex_helper.group(
+            type_ = self._regex_helper.group("TYPE")
+            self.current_ret[self.if_name][type_] = {}
+            self.current_ret[self.if_name][type_]["VERSION"] = self._regex_helper.group(
                 "VERSION"
             )
-            self.current_ret[self.if_name][type][
+            self.current_ret[self.if_name][type_][
                 self._regex_helper.group("KEY")
             ] = self._regex_helper.group("VALUE")
             raise ParsingDone

@@ -7,7 +7,6 @@ import six
 import abc
 import re
 from moler.cmd.pdu_aten.generic_pdu_aten import GenericPduAten
-from moler.exceptions import CommandFailure
 
 __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2020-2024, Nokia'

@@ -10,17 +10,17 @@ from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import ParsingDone
 from moler.util.converterhelper import ConverterHelper
 
-"""
-ps command module.
-Commad Ps is parsed to list of dictionary.
-Each dictionary in list contains all columns defined in columns printed in first line of command result
-Last column may contain more parameters while this field is responsible for process name
-Form of line result:
-{'UID' : 'avahi-a+', 'PID' : 3597, 'PPID' : 1, 'C' : 0, 'STIME' : 2017, 'TTY' : '?', 'TIME' : ' 00:00:45',
-'CMD': 'avahi-autoipd: [ens4] sleeping'}
-Each key is derived from first line of executed ps command so accessing it needs ps command with option
-result knowledge
-"""
+
+# ps command module.
+# Commad Ps is parsed to list of dictionary.
+# Each dictionary in list contains all columns defined in columns printed in first line of command result
+# Last column may contain more parameters while this field is responsible for process name
+# Form of line result:
+# {'UID' : 'avahi-a+', 'PID' : 3597, 'PPID' : 1, 'C' : 0, 'STIME' : 2017, 'TTY' : '?', 'TIME' : ' 00:00:45',
+# 'CMD': 'avahi-autoipd: [ens4] sleeping'}
+# Each key is derived from first line of executed ps command so accessing it needs ps command with option
+# result knowledge
+
 
 
 class Ps(GenericUnixCommand):

@@ -228,7 +228,7 @@ class SshShell(object):
             if "Socket is closed" in str(serr):
                 self._close()
                 info = "{} during send msg '{}'".format(serr, data)
-                raise RemoteEndpointDisconnected('Socket error: ' + info)
+                raise RemoteEndpointDisconnected('Socket error: ' + info) from serr
             else:
                 raise  # let any other error be visible
 
@@ -274,11 +274,11 @@ class SshShell(object):
             if not self._shell_channel.gettimeout():
                 self._shell_channel.settimeout(self.await_ready_tick_resolution)
             data = self._shell_channel.recv(self.receive_buffer_size)
-        except socket.timeout:
+        except socket.timeout as exc:
             # don't want to show class name - just ssh address
             # want same output from any implementation of SshShell-connection
             info = "Timeout (> {:.3f} sec) on {}".format(self.timeout, self)
-            raise ConnectionTimeout(info)
+            raise ConnectionTimeout(info) from exc
 
         if not data:
             self._debug("shell ssh channel closed for {}".format(self))

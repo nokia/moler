@@ -12,7 +12,6 @@ __copyright__ = 'Copyright (C) 2023, Nokia'
 __email__ = 'jakub.kochaniak@nokia.com'
 
 from moler.cmd.at.genericat import GenericAtCommand
-from moler.exceptions import WrongUsage
 
 
 class SetCellIdGprs(GenericAtCommand):

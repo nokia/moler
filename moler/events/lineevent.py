@@ -32,6 +32,8 @@ class LineEvent(TextualEvent):
         self.process_full_lines_only = False
         self.match = match
         self.convert_string_to_number = True
+        self.copy_compiled_patterns = []
+        self._current_ret = []
         self._prepare_parameters()
 
     def __str__(self):
