@@ -195,11 +195,11 @@ def _perform_device_tests(
             )
             tested.add((source_state, target_state))
             if device.last_wrong_wait4_occurrence is not None:
-                msg = "More than 1 prompt match the same line!: '{}' in change state {} -> {} -> {}".format(
+                msg = "More than 1 prompt match the same line!: '{}' in change state '{}' -> '{}' -> '{}'".format(
                     device.last_wrong_wait4_occurrence,
                     state_before_test,
-                    state_before_test,
                     source_state,
+                    target_state,
                 )
                 raise MolerException(msg)
         except Exception as exc:
@@ -207,7 +207,7 @@ def _perform_device_tests(
                 "Cannot trigger change state: '{}' -> '{}'. Successful tests: {}\n{}\nAlready tested '{}'.".format(
                     source_state, target_state, test_nr, exc, tested
                 )
-            )
+            ) from exc
         test_nr += 1
         if max_time is not None and time.monotonic() - start_time > max_time:
             return
@@ -323,7 +323,7 @@ class RemoteConnection(ThreadedFifoBuffer):
                 "Available outputs for the state: '{}'.\n"
                 "Please update your device_output dict!\n"
                 "{}".format(cmd_data_string, self.device.state, available_outputs, exc)
-            )
+            ) from exc
 
     def write(self, input_bytes):
         """
