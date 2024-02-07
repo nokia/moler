@@ -1,3 +1,9 @@
+## moler 3.1.0
+* Refactoring - Pylint
+* Changed time calculation to time.monotonic()
+* Type annotations for command base classes
+* Removed code for Python < 3.7
+
 ## moler 3.0.0
 * Common way to fail commands based on their output
 * Start command(s) when event(s) finished - start_command_after_event
