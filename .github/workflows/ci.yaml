@@ -106,7 +106,7 @@ jobs:
 #          pydocstyle --count moler
       - name: Check PyLint
         run: |
-          pylint moler --fail-under=8.72 --rcfile=./pylint.cfg || (exit $(($? % 4)))
+          pylint moler --fail-under=9.4 --rcfile=./pylint.cfg || (exit $(($? % 4)))
       - name: Check flake8
         run: |
           flake8 moler --count --select=E9,F63,F7,F82 --show-source --statistics
