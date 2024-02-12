@@ -89,7 +89,7 @@ def _get_moler_version():
     setup_py_path = os.path.join(os.path.dirname(__file__), "..", "..", "setup.py")
 
     if "site-packages" in setup_py_path:
-        if sys.version_info >= (3,8):
+        if sys.version_info >= (3, 8):
             from importlib.metadata import version, PackageNotFoundError
             try:
                 return version("moler")
