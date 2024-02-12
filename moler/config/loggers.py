@@ -18,8 +18,6 @@ import re
 import sys
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 
-import pkg_resources
-
 from moler.util import tracked_thread
 from moler.util.compressed_rotating_file_handler import CompressedRotatingFileHandler
 from moler.util.compressed_timed_rotating_file_handler import (
@@ -91,10 +89,18 @@ def _get_moler_version():
     setup_py_path = os.path.join(os.path.dirname(__file__), "..", "..", "setup.py")
 
     if "site-packages" in setup_py_path:
-        try:
-            return pkg_resources.get_distribution("moler").version
-        except pkg_resources.DistributionNotFound:
-            return _get_moler_version_cloned_from_git_repository(setup_py_path)
+        if sys.version_info >= (3,8):
+            from importlib.metadata import version, PackageNotFoundError
+            try:
+                return version("moler")
+            except PackageNotFoundError:
+                return _get_moler_version_cloned_from_git_repository(setup_py_path)
+        else:
+            import pkg_resources
+            try:
+                return pkg_resources.get_distribution("moler").version
+            except pkg_resources.DistributionNotFound:
+                return _get_moler_version_cloned_from_git_repository(setup_py_path)
     else:
         return _get_moler_version_cloned_from_git_repository(setup_py_path)
 
@@ -599,6 +605,7 @@ def _list_libraries(logger):
     :param logger: logger to log.
     :return: None
     """
+    import pkg_resources
     installed_packages = pkg_resources.working_set  # pylint: disable=not-an-iterable
     packages = {}
     re_moler = re.compile("moler")
