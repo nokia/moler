@@ -1014,7 +1014,7 @@ Warning: Permanently added '10.0.1.67' (RSA) to the list of known hosts.
 Password:
 ****
 
-Last login: Fri Jul  3 11:50:03 CEST 2020 from 192.168.255.126 on pts/0
+Last login: Fri Jul  3 11:50:03 UTC+2 2020 from 192.168.255.126 on pts/0
 host:~ #"""
 
 COMMAND_RESULT_pts0 = {
@@ -1024,13 +1024,13 @@ COMMAND_RESULT_pts0 = {
         "Password:",
         "****",
         "",
-        "Last login: Fri Jul  3 11:50:03 CEST 2020 from 192.168.255.126 on pts/0",
+        "Last login: Fri Jul  3 11:50:03 UTC+2 2020 from 192.168.255.126 on pts/0",
     ],
     'LAST_LOGIN': {
         'KIND': 'from',
         'WHERE': '192.168.255.126',
-        'RAW_DATE': 'Fri Jul  3 11:50:03 CEST 2020',
-        'DATE': parser.parse('Fri Jul  3 11:50:03 CEST 2020'),
+        'RAW_DATE': 'Fri Jul  3 11:50:03 UTC+2 2020',
+        'DATE': parser.parse('Fri Jul  3 11:50:03 UTC+2 2020'),
     },
     'FAILED_LOGIN_ATTEMPTS': None,
 }
@@ -1057,7 +1057,7 @@ user@client: TERM=xterm-mono ssh -l user -o ServerAliveInterval=7 -o ServerAlive
 Password:
 ****
 
-Last login: Fri Jul  3 11:50:03 CEST 2020 from 192.168.255.126
+Last login: Fri Jul  3 11:50:03 UTC+2 2020 from 192.168.255.126
 user@host:~ #"""
 
 COMMAND_RESULT_override_keygen = {
@@ -1079,13 +1079,13 @@ COMMAND_RESULT_override_keygen = {
         r'Password:',
         r'****',
         r'',
-        r'Last login: Fri Jul  3 11:50:03 CEST 2020 from 192.168.255.126'
+        r'Last login: Fri Jul  3 11:50:03 UTC+2 2020 from 192.168.255.126'
     ],
     'LAST_LOGIN': {
         'KIND': 'from',
         'WHERE': '192.168.255.126',
-        'RAW_DATE': 'Fri Jul  3 11:50:03 CEST 2020',
-        'DATE': parser.parse('Fri Jul  3 11:50:03 CEST 2020'),
+        'RAW_DATE': 'Fri Jul  3 11:50:03 UTC+2 2020',
+        'DATE': parser.parse('Fri Jul  3 11:50:03 UTC+2 2020'),
     },
     'FAILED_LOGIN_ATTEMPTS': None,
 }
