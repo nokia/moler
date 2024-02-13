@@ -31,9 +31,12 @@ jobs:
       - name:  Create local users required by integration tests
         run: |
           cat /etc/passwd | grep home
-          sudo useradd molerssh -c MolerSshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("moler_password", "mr"))'`
-          sudo useradd sshproxy -c Proxy4SshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("proxy_password", "mr"))'`
-          sudo useradd adbshell -c AdbShell4SshTest -s /bin/bash -l -m -p `python3 -c 'import crypt; print(crypt.crypt("adb_password", "mr"))'`
+          sudo useradd molerssh -c MolerSshTest -s /bin/bash -l -m
+          echo 'molerssh:moler_password' | sudo chpasswd
+          sudo useradd sshproxy -c Proxy4SshTest -s /bin/bash -l -m
+          echo 'sshproxy:proxy_password' | sudo chpasswd
+          sudo useradd adbshell -c AdbShell4SshTest -s /bin/bash -l -m
+          echo 'adbshell:adb_password' | sudo chpasswd
           cat /etc/passwd | grep home
           echo ---- try logging as integration tests users via ssh
           sshpass -p moler_password ssh -oStrictHostKeyChecking=no molerssh@localhost pwd
