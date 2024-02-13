@@ -4,15 +4,20 @@ Ssh command module.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
 
+import warnings
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    from dateutil import parser  # https://github.com/aws/jsii/issues/4406
+
 from moler.cmd.unix.generictelnetssh import GenericTelnetSsh
 from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
-from dateutil import parser
+
 
 
 class Ssh(GenericTelnetSsh):
