@@ -19,7 +19,6 @@ from moler.exceptions import CommandFailure
 from moler.exceptions import ParsingDone
 
 
-
 class Ssh(GenericTelnetSsh):
     # Compiled regexp
 
