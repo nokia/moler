@@ -53,9 +53,9 @@ class SetFunctionalityLevel(GenericAtCommand):
         :return: String representation of command to send over connection to device.
         """
         if self.rst is None:
-            return "AT+CFUN={}".format(self.fun_level)
+            return f"AT+CFUN={self.fun_level}"
         else:
-            return "AT+CFUN={},{}".format(self.fun_level, self.rst)
+            return f"AT+CFUN={self.fun_level},{self.rst}"
 
 
 # -----------------------------------------------------------------------------

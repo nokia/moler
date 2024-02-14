@@ -100,7 +100,7 @@ class RegexHelper:
         :return: Match object.
         """
         if self._match is None:
-            exp = WrongUsage("{}. Nothing was matched before calling group in RegexHelper.".format(self))
+            exp = WrongUsage(f"{self}. Nothing was matched before calling group in RegexHelper.")
             raise exp
         return self._match.group(number)
 
@@ -111,7 +111,7 @@ class RegexHelper:
         :return: Groups from match object.
         """
         if self._match is None:
-            exp = WrongUsage("{}. Nothing was matched before calling groups in RegexHelper.".format(self))
+            exp = WrongUsage(f"{self}. Nothing was matched before calling groups in RegexHelper.")
             raise exp
         return self._match.groups()
 
@@ -122,6 +122,6 @@ class RegexHelper:
         :return: Groupdict from match object.
         """
         if self._match is None:
-            exp = WrongUsage("{}. Nothing was matched before calling groupdict in RegexHelper".format(self))
+            exp = WrongUsage(f"{self}. Nothing was matched before calling groupdict in RegexHelper")
             raise exp
         return self._match.groupdict()

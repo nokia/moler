@@ -56,14 +56,14 @@ class Echo(GenericUnixCommand):
         """
         cmd = "echo"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         if self.text:
             if self.text_in_quotation:
-                cmd = "{} {!r}".format(cmd, self.text)
+                cmd = f"{cmd} {self.text!r}"
             else:
-                cmd = "{} {}".format(cmd, self.text)
+                cmd = f"{cmd} {self.text}"
         if self.output_file:
-            cmd = "{} {} {}".format(cmd, self.write_mode, self.output_file)
+            cmd = f"{cmd} {self.write_mode} {self.output_file}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

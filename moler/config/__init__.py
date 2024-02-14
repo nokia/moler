@@ -45,7 +45,7 @@ def read_yaml_configfile(path):
         with read_configfile(path) as content:
             return yaml.load(content, Loader=yaml.FullLoader)
     else:
-        error = "Loading configuration requires absolute path and not '{}'".format(path)
+        error = f"Loading configuration requires absolute path and not '{path}'"
         raise MolerException(error)
 
 
@@ -109,7 +109,7 @@ def load_config(config=None, from_env_var=None, *args, **kwargs):
         )
     if not config:
         if from_env_var not in os.environ:
-            raise KeyError("Environment variable '{}' is not set".format(from_env_var))
+            raise KeyError(f"Environment variable '{from_env_var}' is not set")
         path = os.environ[from_env_var]
         config = read_yaml_configfile(path)
     elif isinstance(config, six.string_types):

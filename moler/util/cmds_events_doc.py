@@ -72,7 +72,7 @@ def _walk_moler_python_files(path, *args):
     repo_path = abspath(join(path, '..', '..'))
 
     observer = "event" if "events" in split(path) else "command"
-    print("Processing {}s test from path: '{}'".format(observer, path))
+    print(f"Processing {observer}s test from path: '{path}'")
 
     for (dirpath, _, filenames) in walk(path):
         for filename in filenames:
@@ -125,9 +125,9 @@ def _walk_moler_nonabstract_commands(path, base_class):
 def _retrieve_command_documentation(moler_module, observer_type):
     test_data = {}
     for attr, value in moler_module.__dict__.items():
-        for info in ['{}_OUTPUT'.format(observer_type),
-                     '{}_KWARGS'.format(observer_type),
-                     '{}_RESULT'.format(observer_type)]:
+        for info in [f'{observer_type}_OUTPUT',
+                     f'{observer_type}_KWARGS',
+                     f'{observer_type}_RESULT']:
             if attr.startswith(info):
                 variant = attr[len(info):]
                 if variant not in test_data:
@@ -140,49 +140,49 @@ def _validate_documentation_existence(moler_module, test_data, observer_type):
     """Check if module has at least one variant of output documented"""
     if len(test_data.keys()) == 0:
         expected_info = f"{observer_type}_OUTPUT/{observer_type}_KWARGS/{observer_type}_RESULT"
-        error_msg = "{} is missing documentation: {}".format(moler_module, expected_info)
+        error_msg = f"{moler_module} is missing documentation: {expected_info}"
         return error_msg
     return ""
 
 
 def _validate_documentation_consistency(moler_module, test_data, variant, observer_type):
     errors = []
-    for attr in ['{}_OUTPUT'.format(observer_type), '{}_KWARGS'.format(observer_type),
-                 '{}_RESULT'.format(observer_type)]:
+    for attr in [f'{observer_type}_OUTPUT', f'{observer_type}_KWARGS',
+                 f'{observer_type}_RESULT']:
         if attr in test_data[variant]:
-            if '{}_OUTPUT'.format(observer_type) not in test_data[variant]:
-                error_msg = "{} has {} but no {}_OUTPUT{}".format(moler_module, attr + variant, observer_type, variant)
+            if f'{observer_type}_OUTPUT' not in test_data[variant]:
+                error_msg = f"{moler_module} has {attr + variant} but no {observer_type}_OUTPUT{variant}"
                 errors.append(error_msg)
-            if '{}_KWARGS'.format(observer_type) not in test_data[variant]:
-                error_msg = "{} has {} but no {}_KWARGS{}".format(moler_module, attr + variant, observer_type, variant)
+            if f'{observer_type}_KWARGS' not in test_data[variant]:
+                error_msg = f"{moler_module} has {attr + variant} but no {observer_type}_KWARGS{variant}"
                 errors.append(error_msg)
-            if '{}_RESULT'.format(observer_type) not in test_data[variant]:
-                error_msg = "{} has {} but no {}_RESULT{}".format(moler_module, attr + variant, observer_type, variant)
+            if f'{observer_type}_RESULT' not in test_data[variant]:
+                error_msg = f"{moler_module} has {attr + variant} but no {observer_type}_RESULT{variant}"
                 errors.append(error_msg)
     return errors
 
 
 def _get_doc_variant(test_data, variant, observer_type):
-    cmd_output = test_data[variant]['{}_OUTPUT'.format(observer_type)]
+    cmd_output = test_data[variant][f'{observer_type}_OUTPUT']
     # COMMAND_KWARGS is optional? missing == {}
     # or we should be direct "zen of Python"
-    if '{}_KWARGS'.format(observer_type) in test_data[variant]:
-        cmd_kwargs = test_data[variant]['{}_KWARGS'.format(observer_type)]
+    if f'{observer_type}_KWARGS' in test_data[variant]:
+        cmd_kwargs = test_data[variant][f'{observer_type}_KWARGS']
     else:
         cmd_kwargs = {}
-    cmd_result = test_data[variant]['{}_RESULT'.format(observer_type)]
+    cmd_result = test_data[variant][f'{observer_type}_RESULT']
     return cmd_output, cmd_kwargs, cmd_result
 
 
 def _create_command(moler_class, moler_connection, cmd_kwargs):
     """Can we construct instance with given params?"""
-    arguments = ", ".join(["{}={}".format(param, value) for (param, value) in cmd_kwargs.items()])
-    constructor_str = "{}({})".format(moler_class.__name__, arguments)
+    arguments = ", ".join([f"{param}={value}" for (param, value) in cmd_kwargs.items()])
+    constructor_str = f"{moler_class.__name__}({arguments})"
     try:
         moler_cmd = moler_class(connection=moler_connection, **cmd_kwargs)
         return moler_cmd, constructor_str
     except Exception as err:
-        error_msg = "Can't create command instance via {} : {}".format(constructor_str, str(err))
+        error_msg = f"Can't create command instance via {constructor_str} : {str(err)}"
         raise Exception(error_msg) from err
 
 
@@ -262,7 +262,7 @@ def check_if_documentation_exists(path2cmds):
     for moler_module, moler_class in _walk_moler_nonabstract_commands(path=path2cmds, base_class=base_class):
         number_of_command_found += 1
         start_time = time.monotonic()
-        print("processing: '{}'...".format(moler_class), end="")
+        print(f"processing: '{moler_class}'...", end="")
 
         test_data = _retrieve_command_documentation(moler_module, observer_type)
 
@@ -300,20 +300,20 @@ def check_if_documentation_exists(path2cmds):
             if error_msg:
                 wrong_commands[moler_class.__name__] = 1
                 errors_found.append(error_msg)
-        print(" - {:.3f} s.".format(time.monotonic() - start_time))
+        print(f" - {time.monotonic() - start_time:.3f} s.")
 
     print("")
     if errors_found:
         print("\n".join(errors_found))
-        msg = "Following {} have incorrect documentation:".format(observer_type.lower())
+        msg = f"Following {observer_type.lower()} have incorrect documentation:"
         err_msg = "{}\n    {}".format(msg, "\n    ".join(wrong_commands.keys()))
         print(err_msg)
         return False
     if number_of_command_found == 0:
-        err_msg = "No tests run! Not found any {} to test in path: '{}'!".format(observer_type.lower(), path2cmds)
+        err_msg = f"No tests run! Not found any {observer_type.lower()} to test in path: '{path2cmds}'!"
         print(err_msg)
         return False
-    print("All of {} processed {}s have correct documentation".format(number_of_command_found, observer_type.lower()))
+    print(f"All of {number_of_command_found} processed {observer_type.lower()}s have correct documentation")
     return True
 
 
@@ -323,7 +323,7 @@ if __name__ == '__main__':
     options = parser.parse_args()
 
     if not exists(options.cmd_filename):
-        print('\n{} path doesn\'t exist!\n'.format(options.cmd_filename))
+        print(f'\n{options.cmd_filename} path doesn\'t exist!\n')
         parser.print_help()
         exit()
     else:

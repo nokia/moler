@@ -183,8 +183,8 @@ class AdbRemote(UnixRemote):
             if adb_shell_prompt.endswith("$"):
                 adb_shell_root_prompt = adb_shell_prompt[:-1] + "#"
             else:
-                consequence = "Won't be able to detect {} state".format(AdbRemote.adb_shell_root)
-                fix = "Please provide configuration with 'expected_prompt' for {} state".format(AdbRemote.adb_shell_root)
+                consequence = f"Won't be able to detect {AdbRemote.adb_shell_root} state"
+                fix = f"Please provide configuration with 'expected_prompt' for {AdbRemote.adb_shell_root} state"
                 self._log(logging.WARNING, "Unknown prompt for {} state. {}. {}.".format(AdbRemote.adb_shell_root,
                                                                                          consequence, fix))
                 adb_shell_root_prompt = "Unknown_adb_root_prompt"

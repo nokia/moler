@@ -39,7 +39,7 @@ class Ln(GenericUnixCommand):
 
     def _parse_failure_via_output_line(self, line):
         if self._cmd_output_started and self._regex_helper.search_compiled(Ln._re_ln_line, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("error"))))
+            self.set_exception(CommandFailure(self, f"ERROR: {self._regex_helper.group('error')}"))
             raise ParsingDone
 
 

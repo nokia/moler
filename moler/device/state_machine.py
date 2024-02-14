@@ -44,6 +44,6 @@ class StateMachine(transitions.Machine):
         if self.state_change_log_callable:
             current_state = self.current_state_callable()
             if current_state != state:
-                msg = "Changed state from '{}' into '{}.".format(current_state, state)
+                msg = f"Changed state from '{current_state}' into '{state}."
                 self.state_change_log_callable(logging.INFO, msg)
         super(StateMachine, self).set_state(state=state, model=model)

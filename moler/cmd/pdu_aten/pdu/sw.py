@@ -32,9 +32,9 @@ class Sw(GenericPdu):
         self.ret_required = False
 
     def build_command_string(self):
-        cmd = "sw {} {}".format(self.outlet, self.control)
+        cmd = f"sw {self.outlet} {self.control}"
         if self.option:
-            cmd = "{} {}".format(cmd, self.option)
+            cmd = f"{cmd} {self.option}"
         return cmd
 
 

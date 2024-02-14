@@ -77,10 +77,10 @@ class LineEvent(TextualEvent):
         return value
 
     def get_long_desc(self):
-        return "Event {}.{}".format(self.__class__.__module__, str(self))
+        return f"Event {self.__class__.__module__}.{str(self)}"
 
     def get_short_desc(self):
-        return "Event {}.{}".format(self.__class__.__module__, str(self))
+        return f"Event {self.__class__.__module__}.{str(self)}"
 
     def _get_parser(self):
         parsers = {

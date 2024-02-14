@@ -29,9 +29,9 @@ class Ethtool(GenericUnixCommand):
 
     def build_command_string(self):
         if self.options:
-            cmd = "ethtool {} {}".format(self.options, self.interface)
+            cmd = f"ethtool {self.options} {self.interface}"
         else:
-            cmd = "ethtool {}".format(self.interface)
+            cmd = f"ethtool {self.interface}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

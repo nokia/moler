@@ -43,9 +43,9 @@ class ReadStatus(GenericPdu):
         self.format = output_format
 
     def build_command_string(self):
-        cmd = "read status {}".format(self.outlet)
+        cmd = f"read status {self.outlet}"
         if self.format:
-            cmd = "{} {}".format(cmd, self.format)
+            cmd = f"{cmd} {self.format}"
         return cmd
 
     _outlet_id = "OUTLET"

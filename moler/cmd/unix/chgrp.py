@@ -45,7 +45,7 @@ class Chgrp(GenericUnixCommand):
 
     def _command_failure(self, line):
         if self._regex_helper.search_compiled(Chgrp._re_error, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG"))))
+            self.set_exception(CommandFailure(self, f"ERROR: {self._regex_helper.group('ERROR_MSG')}"))
             raise ParsingDone
 
 

@@ -42,9 +42,9 @@ class Cat(GenericUnixCommand):
         """
         cmd = "cat"
         if self.options:
-            cmd = "{} {} {}".format(cmd, self.path, self.options)
+            cmd = f"{cmd} {self.path} {self.options}"
         else:
-            cmd = "{} {}".format(cmd, self.path)
+            cmd = f"{cmd} {self.path}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -76,7 +76,7 @@ class Cat(GenericUnixCommand):
         """
         if self.failure_only_in_first_line and self._line_nr > 1 and not isinstance(exception, CommandTimeout):
             if self._exception_warn is False:
-                self._log(logging.WARNING, "The exception ({}) is tried to be set but was ignored (requested).".format(exception))
+                self._log(logging.WARNING, f"The exception ({exception}) is tried to be set but was ignored (requested).")
             self._exception_warn = True
             return
         return super(Cat, self).set_exception(exception)

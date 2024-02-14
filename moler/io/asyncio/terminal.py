@@ -111,7 +111,7 @@ class AsyncioTerminal(IOConnection):
         """
         if not self._shell_operable.done():
             decoded_data = self.moler_connection.decode(data)
-            self.logger.debug("<|{}".format(data))
+            self.logger.debug(f"<|{data}")
             assert isinstance(decoded_data, str)
             self.read_buffer += decoded_data
             if re.search(self.prompt, self.read_buffer, re.MULTILINE):
@@ -123,7 +123,7 @@ class AsyncioTerminal(IOConnection):
                 data = self.moler_connection.encode(data_str)
             else:
                 return
-        self.logger.debug("<|{}".format(data))
+        self.logger.debug(f"<|{data}")
         super(AsyncioTerminal, self).data_received(data, recv_time)
 
     @property
@@ -133,14 +133,14 @@ class AsyncioTerminal(IOConnection):
     @name.setter
     def name(self, value):
         self.__name = value
-        self.logger = logging.getLogger("moler.connection.{}.io".format(self.__name))
+        self.logger = logging.getLogger(f"moler.connection.{self.__name}.io")
 
     def __str__(self):
-        address = 'terminal:{}'.format(self._cmd[0])
+        address = f'terminal:{self._cmd[0]}'
         return address
 
     def __repr__(self):
-        address = 'terminal:{}'.format(self._cmd)
+        address = f'terminal:{self._cmd}'
         return address
 
 
@@ -235,7 +235,7 @@ class PtySubprocessProtocol(asyncio.SubprocessProtocol):
     # --- callbacks called by asyncio.SubprocessProtocol API
 
     def on_process_exited(self, return_code):
-        msg = "Exited with return code: {0}".format(return_code)
+        msg = f"Exited with return code: {return_code}"
         print(msg)
 
     # --- callbacks called by PtyFdProtocol

@@ -119,7 +119,7 @@ class TextualDevice(AbstractDevice):
 
         self.io_connection.name = self.name
         self.io_connection.moler_connection.name = self.name
-        self.logger = logging.getLogger("moler.connection.{}".format(self.name))
+        self.logger = logging.getLogger(f"moler.connection.{self.name}")
         self.configure_logger(name=self.name, propagate=False)
 
         self._prepare_transitions()
@@ -237,7 +237,7 @@ class TextualDevice(AbstractDevice):
         except DeviceChangeStateFailure:
             self._close_connection(None, None, None)
         super(TextualDevice, self).remove()
-        msg = "Device '{}' is closed.".format(self.name)
+        msg = f"Device '{self.name}' is closed."
         self._log(level=logging.INFO, msg=msg)
         self._close_logger()
 
@@ -531,7 +531,7 @@ class TextualDevice(AbstractDevice):
             if self._thread_for_goto_state is None:
                 thread = threading.Thread(
                     target=self._goto_state_thread,
-                    name="GotoStateThread-{}".format(self.name),
+                    name=f"GotoStateThread-{self.name}",
                 )
                 thread.daemon = True
                 thread.start()
@@ -601,7 +601,7 @@ class TextualDevice(AbstractDevice):
             return
         self._log(
             logging.DEBUG,
-            "Go to state '%s' from '%s'" % (dest_state, self.current_state),
+            f"Go to state '{dest_state}' from '{self.current_state}'",
         )
 
         is_dest_state = False
@@ -661,7 +661,7 @@ class TextualDevice(AbstractDevice):
         # all state triggers used by SM are methods with names starting from "GOTO_"
         # for e.g. GOTO_REMOTE, GOTO_CONNECTED
         for goto_method in self.goto_states_triggers:
-            if "GOTO_{}".format(next_state) == goto_method:
+            if f"GOTO_{next_state}" == goto_method:
                 change_state_method = getattr(self, goto_method)
 
         if change_state_method:
@@ -739,7 +739,7 @@ class TextualDevice(AbstractDevice):
                 self._send_enter_after_changed_state()
             self._log(
                 logging.DEBUG,
-                "{}: Successfully enter state '{}'".format(self.name, next_state),
+                f"{self.name}: Successfully enter state '{next_state}'",
             )
 
     def on_connection_made(self, connection):
@@ -778,7 +778,7 @@ class TextualDevice(AbstractDevice):
         else:
             # pylint: disable-next=unused-variable
             for importer, modname, is_pkg in pkgutil.iter_modules(mod_path):
-                module_name = "{}.{}".format(package_name, modname)
+                module_name = f"{package_name}.{modname}"
                 module_available_cmds = self._load_cmds_from_module(module_name)
                 available_cmds.update(module_available_cmds)
 
@@ -799,7 +799,7 @@ class TextualDevice(AbstractDevice):
                     # like:  IpAddr --> ip_addr
                     cmd_name = cmd_class_obj.observer_name
                     # like:  IpAddr --> moler.cmd.unix.ip_addr.IpAddr
-                    cmd_class_fullname = "{}.{}".format(module_name, cmd_class_name)
+                    cmd_class_fullname = f"{module_name}.{cmd_class_name}"
 
                     available_cmds.update({cmd_name: cmd_class_fullname})
         return available_cmds
@@ -1050,9 +1050,7 @@ class TextualDevice(AbstractDevice):
             if len(occurrence["list_matched"]) > 1:
                 self._log(
                     level=logging.ERROR,
-                    msg="More than 1 prompt matched the same line! '{}'.".format(
-                        occurrence
-                    ),
+                    msg=f"More than 1 prompt matched the same line! '{occurrence}'.",
                 )
                 self.last_wrong_wait4_occurrence = occurrence
 
@@ -1108,9 +1106,7 @@ class TextualDevice(AbstractDevice):
             if prompt not in prompts.keys():
                 prompts[prompt] = state
             else:
-                error_message += "\n'{}' -> '{}', '{}'".format(
-                    prompt, prompts[prompt], state
-                )
+                error_message += f"\n'{prompt}' -> '{prompts[prompt]}', '{state}'"
 
         if error_message:
             exc = DeviceFailure(
@@ -1129,7 +1125,7 @@ class TextualDevice(AbstractDevice):
             self._prompts_event = None
 
     def build_trigger_to_state(self, state):
-        trigger = "GOTO_{}".format(state)
+        trigger = f"GOTO_{state}"
         if trigger not in self.goto_states_triggers:
             self.goto_states_triggers += [trigger]
         return trigger
@@ -1220,7 +1216,7 @@ class TextualDevice(AbstractDevice):
             cmd_enter()
         except Exception as ex:
             self._log(
-                logging.DEBUG, "Cannot execute command 'enter' properly: {}".format(ex)
+                logging.DEBUG, f"Cannot execute command 'enter' properly: {ex}"
             )
 
     def _get_newline(self, state=None):

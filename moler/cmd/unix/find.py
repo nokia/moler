@@ -52,12 +52,12 @@ class Find(GenericUnixCommand):
         """
         cmd = "find"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         if self.paths:
             for afile in self.paths:
-                cmd = "{} {}".format(cmd, afile)
+                cmd = f"{cmd} {afile}"
         if self.operators:
-            cmd = "{} {}".format(cmd, self.operators)
+            cmd = f"{cmd} {self.operators}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -100,7 +100,7 @@ class Find(GenericUnixCommand):
         if self._regex_helper.search_compiled(Find._re_error, line):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG_FIND"))
+                    self, f"ERROR: {self._regex_helper.group('ERROR_MSG_FIND')}"
                 )
             )
             raise ParsingDone()

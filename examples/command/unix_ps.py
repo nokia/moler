@@ -15,7 +15,7 @@ with terminal.open():
     processes = ps_cmd()
     for proc in processes:
         if 'python' in proc['CMD']:
-            print("PID: {} CMD: {}".format(proc['PID'], proc['CMD']))
+            print(f"PID: {proc['PID']} CMD: {proc['CMD']}")
 
 # result:
 """

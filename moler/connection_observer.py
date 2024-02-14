@@ -64,10 +64,10 @@ class ConnectionObserver:
         self._future = None
 
         self.device_logger = logging.getLogger(
-            "moler.{}".format(self.get_logger_name())
+            f"moler.{self.get_logger_name()}"
         )
         self.logger = logging.getLogger(
-            "moler.connection.{}".format(self.get_logger_name())
+            f"moler.connection.{self.get_logger_name()}"
         )
 
     def _get_runner(
@@ -86,7 +86,7 @@ class ConnectionObserver:
         return return_runner
 
     def __str__(self):
-        return "{}(id:{})".format(self.__class__.__name__, instance_id(self))
+        return f"{self.__class__.__name__}(id:{instance_id(self)})"
 
     __base_str = __str__
 
@@ -95,7 +95,7 @@ class ConnectionObserver:
         connection_str = "<NO CONNECTION>"
         if self.connection:
             connection_str = repr(self.connection)
-        return "{}, using {})".format(cmd_str[:-1], connection_str)
+        return f"{cmd_str[:-1]}, using {connection_str})"
 
     # pylint: disable=keyword-arg-before-vararg
     def __call__(self, timeout=None, *args, **kwargs):
@@ -153,9 +153,7 @@ class ConnectionObserver:
         # levels_to_go_up=2 : extract caller info to log where .timeout=XXX has been called from
         self._log(
             logging.DEBUG,
-            "Setting {} timeout to {} [sec]".format(
-                ConnectionObserver.__base_str(self), value
-            ),
+            f"Setting {ConnectionObserver.__base_str(self)} timeout to {value} [sec]",
             levels_to_go_up=2,
         )
         self.life_status.timeout = value
@@ -198,7 +196,7 @@ class ConnectionObserver:
         # check base class invariants first
         if self.done():
             raise WrongUsage(
-                "You can't run same {} multiple times. It is already done.".format(self)
+                f"You can't run same {self} multiple times. It is already done."
             )
         if not self.connection:
             # only if we have connection we can expect some data on it
@@ -361,19 +359,17 @@ class ConnectionObserver:
         :return: None
         """
         mg = traceback.format_list(traceback.extract_stack()[:-3] + traceback.extract_tb(exception.__traceback__))
-        stack_msg = "".join(mg) + "\n  {} {}".format(exception.__class__, exception)
+        stack_msg = "".join(mg) + f"\n  {exception.__class__} {exception}"
 
         if self._is_done:
             self._log(
                 logging.WARNING,
-                "Attempt to set exception {!r} on already done {}".format(
-                    exception, self
-                ),
+                f"Attempt to set exception {exception!r} on already done {self}",
                 levels_to_go_up=2,
             )
             self._log(
                 logging.WARNING,
-                "Stack for unsuccessful set exception: {}".format(stack_msg),
+                f"Stack for unsuccessful set exception: {stack_msg}",
             )
 
             return
@@ -382,13 +378,11 @@ class ConnectionObserver:
         )
         self._log(
             logging.INFO,
-            "{}.{} has set exception {!r}".format(
-                self.__class__.__module__, self, exception
-            ),
+            f"{self.__class__.__module__}.{self} has set exception {exception!r}",
             levels_to_go_up=2,
         )
         self._log(
-            logging.WARNING, "Stack for successful set exception: {}".format(stack_msg)
+            logging.WARNING, f"Stack for successful set exception: {stack_msg}"
         )
 
     def result(self):
@@ -401,9 +395,7 @@ class ConnectionObserver:
                     ConnectionObserver._not_raised_exceptions.remove(exception)
                 self._log(
                     logging.INFO,
-                    "Stack stored with the exception: {}".format(
-                        self._exception_stack_msg
-                    ),
+                    f"Stack stored with the exception: {self._exception_stack_msg}",
                 )
                 raise exception
         if self.cancelled():
@@ -417,9 +409,7 @@ class ConnectionObserver:
         msg = ""
         for attribute_name in sorted(self.__dict__.keys()):
             if msg:
-                msg = "{}, '{}':'{}'".format(
-                    msg, attribute_name, self.__dict__[attribute_name]
-                )
+                msg = f"{msg}, '{attribute_name}':'{self.__dict__[attribute_name]}'"
             else:
                 msg = "Timeout when '{}':'{}'".format(
                     attribute_name, self.__dict__[attribute_name]
@@ -509,16 +499,16 @@ class ConnectionObserver:
         for i, item in enumerate(ConnectionObserver._not_raised_exceptions):
             observer._log(  # pylint: disable=protected-access
                 logging.DEBUG,
-                "{:4d} NOT RAISED: {!r}".format(i + 1, item),
+                f"{i + 1:4d} NOT RAISED: {item!r}",
                 levels_to_go_up=2,
             )
             observer._log(logging.DEBUG, observer._exception_stack_msg)  # pylint: disable=protected-access
 
     def get_long_desc(self):
-        return "Observer '{}.{}'".format(self.__class__.__module__, self)
+        return f"Observer '{self.__class__.__module__}.{self}'"
 
     def get_short_desc(self):
-        return "Observer '{}.{}'".format(self.__class__.__module__, self)
+        return f"Observer '{self.__class__.__module__}.{self}'"
 
     def _log(self, lvl, msg, extra=None, levels_to_go_up=1):
         extra_params = {"log_name": self.get_logger_name()}

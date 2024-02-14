@@ -20,9 +20,9 @@ class Md5sum(GenericUnixCommand):
     def build_command_string(self):
         cmd = "md5sum"
         if self.options:
-            cmd = "{} {} {}".format(cmd, self.path, self.options)
+            cmd = f"{cmd} {self.path} {self.options}"
         else:
-            cmd = "{} {}".format(cmd, self.path)
+            cmd = f"{cmd} {self.path}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

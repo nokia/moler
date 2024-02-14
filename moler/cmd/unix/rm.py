@@ -31,9 +31,9 @@ class Rm(GenericUnixCommand):
         Builds command string from parameters passed to object.
         :return: String representation of command to send over connection to device.
         """
-        cmd = "{} {}".format('rm', self.file)
+        cmd = f"rm {self.file}"
         if self.options:
-            cmd = "{} {} {}".format('rm', self.options, self.file)
+            cmd = f"rm {self.options} {self.file}"
 
         return cmd
 

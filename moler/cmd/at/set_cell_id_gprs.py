@@ -42,7 +42,7 @@ class SetCellIdGprs(GenericAtCommand):
         self.ret_required = False
 
     def build_command_string(self):
-        return "AT+CGREG={}".format(self.selected_mode)
+        return f"AT+CGREG={self.selected_mode}"
 
 
 # -----------------------------------------------------------------------------

@@ -69,7 +69,7 @@ class ConverterHelper:
                 value_in_bytes = int(multipliers[value_unit] * value_in_units)
             else:
                 raise ValueError(
-                    "Unsupported unit '{}' in passed value: '{}'".format(value_unit, str_bytes))
+                    f"Unsupported unit '{value_unit}' in passed value: '{str_bytes}'")
         return value_in_bytes, value_in_units, value_unit
 
     def to_seconds_str(self, str_time):
@@ -96,7 +96,7 @@ class ConverterHelper:
         """
         if unit not in ConverterHelper._seconds_multipliers:
             raise ValueError(
-                "Unsupported unit '{}' for passed value: '{}'".format(unit, value))
+                f"Unsupported unit '{unit}' for passed value: '{value}'")
         return ConverterHelper._seconds_multipliers[unit] * value
 
     def to_number(self, value, raise_exception=True):

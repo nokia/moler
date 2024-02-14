@@ -38,8 +38,8 @@ class Touch(GenericUnixCommand):
         """
         cmd = "touch"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
-        cmd = "{} {}".format(cmd, self.path)
+            cmd = f"{cmd} {self.options}"
+        cmd = f"{cmd} {self.path}"
         return cmd
 
 

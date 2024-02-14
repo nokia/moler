@@ -64,7 +64,7 @@ class Hexdump(GenericUnixCommand):
         if self._regex_helper.search_compiled(Hexdump._re_error, line):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG"))
+                    self, f"ERROR: {self._regex_helper.group('ERROR_MSG')}"
                 )
             )
             raise ParsingDone

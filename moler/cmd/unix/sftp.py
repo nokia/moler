@@ -71,15 +71,15 @@ class Sftp(GenericUnixCommand):
     def build_command_string(self):
         cmd = "sftp"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         if self.user:
-            cmd = "{} {}@{}".format(cmd, self.user, self.host)
+            cmd = f"{cmd} {self.user}@{self.host}"
         else:
-            cmd = "{} {}".format(cmd, self.host)
+            cmd = f"{cmd} {self.host}"
         if self.source_path:
-            cmd = "{}:{}".format(cmd, self.source_path)
+            cmd = f"{cmd}:{self.source_path}"
         if self.destination_path:
-            cmd = "{} {}".format(cmd, self.destination_path)
+            cmd = f"{cmd} {self.destination_path}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -189,7 +189,7 @@ class Sftp(GenericUnixCommand):
             ):
                 raise ParsingDone
             elif self.sending_started:
-                self.set_exception(CommandFailure(self, "ERROR: {}".format(line)))
+                self.set_exception(CommandFailure(self, f"ERROR: {line}"))
                 raise ParsingDone
 
     _re_resend_password = re.compile(
@@ -207,7 +207,7 @@ class Sftp(GenericUnixCommand):
             auth = self._regex_helper.group("AUTH")
             perm = self._regex_helper.group("PERM")
             self.set_exception(
-                CommandFailure(self, "ERROR: {msg}".format(msg=auth if auth else perm))
+                CommandFailure(self, f"ERROR: {auth if auth else perm}")
             )
             raise ParsingDone
 
@@ -237,7 +237,7 @@ class Sftp(GenericUnixCommand):
             raise ParsingDone
         for _re_error in Sftp._error_regex_compiled:
             if self._regex_helper.search_compiled(_re_error, line):
-                self.set_exception(CommandFailure(self, "ERROR: {}".format(line)))
+                self.set_exception(CommandFailure(self, f"ERROR: {line}"))
                 raise ParsingDone
 
     def _parse_line_from_prompt(self, line):

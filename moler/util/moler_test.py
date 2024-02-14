@@ -93,9 +93,9 @@ class MolerTest:
     def _get_string_message(cls, msg, dump, caller_msg):
         if dump is not None:
             dump_str = cls._dump(dump)
-            msg = "{}\n{}".format(msg, dump_str)
+            msg = f"{msg}\n{dump_str}"
         if caller_msg:
-            msg = "{}\n{}".format(msg, caller_msg)
+            msg = f"{msg}\n{caller_msg}"
 
         return msg
 
@@ -109,7 +109,7 @@ class MolerTest:
         :return:
         """
         if not quiet:
-            cls.info("Sleep for {:.2f} seconds.".format(seconds))
+            cls.info(f"Sleep for {seconds:.2f} seconds.")
         time.sleep(seconds)
 
     @classmethod
@@ -156,11 +156,9 @@ class MolerTest:
             function_name = fi[3]
             line_no = fi[2]
             file_abs_path = os.path.abspath(filename)
-            msg = "{}    from {} at {}:{}".format(
-                msg, function_name, file_abs_path, line_no
-            )
+            msg = f"{msg}    from {function_name} at {file_abs_path}:{line_no}"
             if full_stack:
-                msg = "{}\n".format(msg)
+                msg = f"{msg}\n"
             else:
                 break
         return msg
@@ -176,7 +174,7 @@ class MolerTest:
                 "Moler caught some error messages during execution. Please check Moler logs for details."
                 " List of them:\n"
             )
-            err_msg = "{} {}".format(prefix, err_msg)
+            err_msg = f"{prefix} {err_msg}"
             cls._error(err_msg)
 
     @classmethod
@@ -199,17 +197,17 @@ class MolerTest:
             for i, exc in enumerate(occured_exceptions, 1):
                 if hasattr(exc, "__traceback__"):
                     exc_traceback = " ".join(traceback.format_tb(exc.__traceback__))
-                    err_msg += "  ({}) {}{}\n".format(i, exc_traceback, repr(exc))
+                    err_msg += f"  ({i}) {exc_traceback}{repr(exc)}\n"
                 else:
                     get_traceback = True
             if get_traceback:
-                err_msg += "  {}\n".format(cls._get_tracebacks())
+                err_msg += f"  {cls._get_tracebacks()}\n"
 
         if len(cls._list_of_errors) > 0:
             err_msg += "Moler caught some error messages during execution:\n"
 
             for i, msg in enumerate(cls._list_of_errors, 1):
-                err_msg += "  {}) >>{}<<\n".format(i, msg)
+                err_msg += f"  {i}) >>{msg}<<\n"
 
         return err_msg
 

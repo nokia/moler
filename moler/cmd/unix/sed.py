@@ -48,18 +48,18 @@ class Sed(GenericUnixCommand):
     def build_command_string(self):
         cmd = "sed"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         if self.scripts:
             for script in self.scripts:
-                cmd = "{} -e '{}'".format(cmd, script)
+                cmd = f"{cmd} -e '{script}'"
         if self.script_files:
             for script_file in self.script_files:
-                cmd = "{} -f {}".format(cmd, script_file)
+                cmd = f"{cmd} -f {script_file}"
         if self.input_files:
             for in_file in self.input_files:
-                cmd = "{} {}".format(cmd, in_file)
+                cmd = f"{cmd} {in_file}"
         if self.output_file:
-            cmd = "{} > {}".format(cmd, self.output_file)
+            cmd = f"{cmd} > {self.output_file}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -77,7 +77,7 @@ class Sed(GenericUnixCommand):
         if self._regex_helper.search_compiled(Sed._re_command_error, line):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR {}".format(self._regex_helper.group("ERROR"))
+                    self, f"ERROR {self._regex_helper.group('ERROR')}"
                 )
             )
             raise ParsingDone
@@ -93,7 +93,7 @@ class Sed(GenericUnixCommand):
                 is_empty = False
         if is_empty:
             raise CommandFailure(
-                self, "No input file given in: {}".format(self.input_files)
+                self, f"No input file given in: {self.input_files}"
             )
 
     def _validate_start(self, *args, **kwargs):

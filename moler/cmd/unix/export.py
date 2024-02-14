@@ -27,7 +27,7 @@ class Export(GenericUnixCommand):
     def build_command_string(self):
         cmd = "export"
         if self.ps1:
-            cmd = cmd + " PS1={}".format(self.ps1)
+            cmd = cmd + f" PS1={self.ps1}"
         elif self.set:
             cmd = cmd + " " + self.set
         return cmd

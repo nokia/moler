@@ -118,32 +118,32 @@ class AtToStdout(serial.threaded.LineReader):
     def connection_made(self, transport):
         super(AtToStdout, self).connection_made(transport)
         if self.verbose:
-            msg = "{} opened".format(self.prefix)
-            sys.stdout.write('{}\n'.format(msg))
+            msg = f"{self.prefix} opened"
+            sys.stdout.write(f'{msg}\n')
 
     def connection_lost(self, exc):
         if exc:
             traceback.print_exc(exc)
         if self.verbose:
-            msg = "{} closed".format(self.prefix)
-            sys.stdout.write('{}\n'.format(msg))
+            msg = f"{self.prefix} closed"
+            sys.stdout.write(f'{msg}\n')
 
     def handle_line(self, line):
         # works in reader thread
         if self.verbose:
-            print("received line: {!r}".format(line))
+            print(f"received line: {line!r}")
         if not line:
             return  # don't output empty lines
         print(line)
         if self._await.is_set():
             if self.awaited_output and (self.awaited_output in line):
                 if self.verbose:
-                    print("found {!r} in {!r}".format(self.awaited_output, line))
+                    print(f"found {self.awaited_output!r} in {line!r}")
                 self._found.set()
 
     def send(self, line):
         if self.verbose:
-            print("sending line: {!r}".format(line))
+            print(f"sending line: {line!r}")
         super(AtToStdout, self).write_line(line)
         # self.transport.serial.flush()  # TODO: do we need it
 
@@ -152,7 +152,7 @@ class AtToStdout(serial.threaded.LineReader):
         # to be used in "sender thread"
         try:
             if self.verbose:
-                print("will await: {!r}".format(response))
+                print(f"will await: {response!r}")
             self.awaited_output = response
             self._found.clear()
             self._await.set()
@@ -161,7 +161,7 @@ class AtToStdout(serial.threaded.LineReader):
             response_found = self.await_response_event(timeout)
 
             if self.verbose:
-                print("{!r} {!r} response_found: {!r}".format(line, response, response_found))
+                print(f"{line!r} {response!r} response_found: {response_found!r}")
             self._found.clear()
             self._await.clear()
             return response_found
@@ -180,7 +180,7 @@ class AtConsoleProxy:
     """Class to proxy AT commands console into stdin/stdout"""
     def __init__(self, port, verbose=False, at_echo=False):
         super(AtConsoleProxy, self).__init__()
-        ser_to_stdout = AtToStdout("{}:{}  port".format(hostname, port), verbose=verbose)
+        ser_to_stdout = AtToStdout(f"{hostname}:{port}  port", verbose=verbose)
         self._serial_io = IoThreadedSerial(port=port, protocol_factory=ser_to_stdout)
         self.verbose = verbose
         self.at_echo = at_echo
@@ -191,11 +191,11 @@ class AtConsoleProxy:
 
         Return context manager to allow for:  with connection.open() as conn:
         """
-        print("{}  opening serial port {}".format(hostname, self._serial_io.port))
+        print(f"{hostname}  opening serial port {self._serial_io.port}")
         self._serial_io.open()
 
         self._apply_initial_configuration()
-        print("{}:{}> port READY".format(hostname, self._serial_io.port))
+        print(f"{hostname}:{self._serial_io.port}> port READY")
 
         return self
 
@@ -212,9 +212,9 @@ class AtConsoleProxy:
     def close(self):
         """Close underlying serial connection."""
         if self.verbose:
-            print("{}:{}  closing serial port {}".format(hostname, devname, self._serial_io.port))
+            print(f"{hostname}:{devname}  closing serial port {self._serial_io.port}")
         self._serial_io.close()
-        print("{}  serial port {} closed".format(hostname, self._serial_io.port))
+        print(f"{hostname}  serial port {self._serial_io.port} closed")
 
     def __enter__(self):
         if self._serial_io.pulling_thread is None:
@@ -229,7 +229,7 @@ class AtConsoleProxy:
     def send(self, cmd):
         """Send data over underlying serial connection"""
         if self.verbose:
-            print("{}:{}  sending AT command '{}'".format(hostname, devname, cmd))
+            print(f"{hostname}:{devname}  sending AT command '{cmd}'")
         self._serial_io.send(cmd)
 
 
@@ -247,7 +247,7 @@ if __name__ == '__main__':
     options = get_options()
     devname = options.serial_devname
 
-    print("starting {} proxy at {} ...".format(devname, hostname))
+    print(f"starting {devname} proxy at {hostname} ...")
 
     with AtConsoleProxy(port=options.serial_devname, verbose=options.verbose, at_echo=options.at_echo) as proxy:
         while True:
@@ -259,4 +259,4 @@ if __name__ == '__main__':
                 proxy.send(cmd)
             except serial.SerialException as err:
                 if options.verbose:
-                    print("{}:{}  serial transmission of cmd '{}' failed: {!r}".format(hostname, devname, cmd, err))
+                    print(f"{hostname}:{devname}  serial transmission of cmd '{cmd}' failed: {err!r}")

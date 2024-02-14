@@ -52,9 +52,9 @@ class Passwd(GenericUnixCommand):
         """
         cmd = "passwd"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         if self.user:
-            cmd = "{} {}".format(cmd, self.user)
+            cmd = f"{cmd} {self.user}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -169,7 +169,7 @@ class Passwd(GenericUnixCommand):
         :return: None but raises ParsingDone if all required commands are sent.
         """
         if self._regex_helper.search_compiled(Passwd._re_passwd_error, line):
-            self.set_exception(CommandFailure(self, "Unexpected error: '{}'".format(self._regex_helper.group('ERROR'))))
+            self.set_exception(CommandFailure(self, f"Unexpected error: '{self._regex_helper.group('ERROR')}'"))
 
             self._cancel_cmd = True
             raise ParsingDone

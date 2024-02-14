@@ -42,9 +42,9 @@ class Which(GenericUnixCommand):
     def build_command_string(self):
         cmd = "which"
         if self.show_all:
-            cmd = "{} {}".format(cmd, "-a")
+            cmd = f"{cmd} -a"
         for name in self.names:
-            cmd = "{} {}".format(cmd, name)
+            cmd = f"{cmd} {name}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

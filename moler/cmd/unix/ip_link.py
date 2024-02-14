@@ -22,9 +22,9 @@ class IpLink(GenericUnixCommand):
         self.line = False
 
     def build_command_string(self):
-        cmd = "ip link {}".format(self.action)
+        cmd = f"ip link {self.action}"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

@@ -53,9 +53,9 @@ class LxcInfo(GenericUnixCommand):
 
         :return: String representation of command to send over connection to device.
         """
-        cmd = "lxc-info -n {}".format(self.name)
+        cmd = f"lxc-info -n {self.name}"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -82,7 +82,7 @@ class LxcInfo(GenericUnixCommand):
         if self._regex_helper.search_compiled(LxcInfo._re_command_error, line):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR: {}".format(self._regex_helper.group("ERROR"))
+                    self, f"ERROR: {self._regex_helper.group('ERROR')}"
                 )
             )
             raise ParsingDone
@@ -97,7 +97,7 @@ class LxcInfo(GenericUnixCommand):
             self.set_exception(
                 CommandFailure(
                     self,
-                    "NODE_ERROR: {}".format(self._regex_helper.group("NODE_ERROR")),
+                    f"NODE_ERROR: {self._regex_helper.group('NODE_ERROR')}",
                 )
             )
             raise ParsingDone

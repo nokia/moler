@@ -58,10 +58,10 @@ class Nmap(GenericUnixCommand):
         """
         cmd = "nmap"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
-        cmd = "{} {}".format(cmd, self.ip)
+            cmd = f"{cmd} {self.options}"
+        cmd = f"{cmd} {self.ip}"
         if not self.is_ping:
-            cmd = "{} -PN".format(cmd)
+            cmd = f"{cmd} -PN"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -235,7 +235,7 @@ class Nmap(GenericUnixCommand):
 
     def _parse_error(self, line):
         if self._regex_helper.search_compiled(Nmap._re_fail_file, line):
-            self.set_exception(CommandFailure(self, "Fail in line: '{}'".format(line)))
+            self.set_exception(CommandFailure(self, f"Fail in line: '{line}'"))
             raise ParsingDone()
 
     #    Skipping host 10.9.134.1 due to host timeout

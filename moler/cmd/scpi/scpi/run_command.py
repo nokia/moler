@@ -38,7 +38,7 @@ class RunCommand(GenericScpiState):
     def on_new_line(self, line, is_full_line):
         if is_full_line:
             if self.error_regex and self._regex_helper.search_compiled(self.error_regex, line):
-                self.set_exception(CommandFailure(self, "Found error regex in line '{}'".format(line)))
+                self.set_exception(CommandFailure(self, f"Found error regex in line '{line}'"))
         super(RunCommand, self).on_new_line(line, is_full_line)
 
 

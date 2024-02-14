@@ -38,7 +38,7 @@ class SetMode(GenericAtCommand):
         self.ret_required = False
 
     def build_command_string(self):
-        return "AT+COPS={}".format(SetMode.mode2cops_value[self.selected_mode])
+        return f"AT+COPS={SetMode.mode2cops_value[self.selected_mode]}"
 
 
 # -----------------------------------------------------------------------------

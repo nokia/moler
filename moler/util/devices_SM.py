@@ -71,7 +71,7 @@ def iterate_over_device_states(
     while thread_nr < nr_of_threads:
         new_connection = get_memory_device_connection()
         new_connection.open()
-        new_device_name = "{}_C{}".format(device.name, thread_nr)
+        new_device_name = f"{device.name}_C{thread_nr}"
         th = _perform_device_tests_start_thread(
             source_device=device,
             tested=tested,
@@ -99,7 +99,7 @@ def iterate_over_device_states(
     if max_time is None:
         assert 0 == states_to_test.qsize()
     for ex in exceptions:
-        print("ex: '{}' -> '{}'.".format(ex, repr(ex)))
+        print(f"ex: '{ex}' -> '{repr(ex)}'.")
     assert 0 == len(exceptions)
 
 
@@ -134,7 +134,7 @@ def _perform_device_tests_start_thread(
         return th
     except Exception as ex:
         exceptions.append(ex)
-        MolerTest.info("exception: '{}' -> '{}'".format(ex, repr(ex)))
+        MolerTest.info(f"exception: '{ex}' -> '{repr(ex)}'")
 
 
 def _start_device_tests(
@@ -165,7 +165,7 @@ def _start_device_tests(
         )
     except Exception as ex:
         exceptions.append(ex)
-        MolerTest.info("exception: '{}' -> '{}'".format(ex, repr(ex)))
+        MolerTest.info(f"exception: '{ex}' -> '{repr(ex)}'")
 
 
 def _perform_device_tests(

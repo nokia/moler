@@ -7,9 +7,9 @@ terminal = get_connection(io_type='terminal', variant='threaded')
 with terminal.open():
     ping_cmd = Ping(connection=terminal.moler_connection,
                     destination=host, options="-w 6")
-    print("Start pinging {} ...".format(host))
+    print(f"Start pinging {host} ...")
     ping_cmd.start()
-    print("Doing other stuff while pinging {} ...".format(host))
+    print(f"Doing other stuff while pinging {host} ...")
     time.sleep(3)
     ping_stats = ping_cmd.await_done(timeout=4)
     print("ping {}: {}={}, {}={} [{}]".format(host,'packet_loss',

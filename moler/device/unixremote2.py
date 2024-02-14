@@ -392,8 +392,7 @@ class UnixRemote2(ProxyPc2):
             old_prompt = self._state_prompts.get(state, None)
             prompt = re.escape(prompt)
             self._state_prompts[state] = prompt
-            self.logger.debug("state_prompts after change: {}".format(
-                self._state_prompts))
+            self.logger.debug(f"state_prompts after change: {self._state_prompts}")
             self._prepare_reverse_state_prompts_dict()
             if old_prompt is not None and prompt != old_prompt:
                 self.logger.info("Different prompt candidates: '{}' -> '{}' for"
@@ -408,7 +407,7 @@ class UnixRemote2(ProxyPc2):
                 self.logger.debug("prompts event is not none")
                 self._prompts_event.change_prompts(
                     prompts=self._reverse_state_prompts_dict)
-            self.logger.debug("New prompts: {}".format(self._state_prompts))
+            self.logger.debug(f"New prompts: {self._state_prompts}")
             self.logger.debug("After prepare_reverse_state_prompts_dict: {}".format(
                 self._reverse_state_prompts_dict))
             self._prompt_detected = True

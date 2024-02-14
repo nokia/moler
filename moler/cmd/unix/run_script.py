@@ -81,7 +81,7 @@ class RunScript(GenericUnixCommand):
                 self.set_exception(
                     CommandFailure(
                         self,
-                        "Found error regex '{}' in line '{}'".format(error_regex, line),
+                        f"Found error regex '{error_regex}' in line '{line}'",
                     )
                 )
                 raise ParsingDone()
@@ -111,9 +111,7 @@ class RunScript(GenericUnixCommand):
             self._set_exception_without_done(
                 CommandFailure(
                     self,
-                    "Not found all regex for success. Left: '{}'.".format(
-                        self.success_regexes
-                    ),
+                    f"Not found all regex for success. Left: '{self.success_regexes}'.",
                 )
             )
         super(RunScript, self.__class__)._is_done.fset(self, value)

@@ -22,9 +22,9 @@ class Chown(GenericUnixCommand):
 
     def build_command_string(self):
         if self.options:
-            cmd = "{} {} {} {}".format("chown", self.options, self.param, self.filename)
+            cmd = f"chown {self.options} {self.param} {self.filename}"
         else:
-            cmd = "{} {} {}".format("chown", self.param, self.filename)
+            cmd = f"chown {self.param} {self.filename}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

@@ -35,7 +35,7 @@ def _cleanup_remaining_tasks(loop, logger):
         # NOTE: following code cancels all tasks - possibly not ours as well
         remaining_tasks = asyncio.gather(*not_done_tasks, loop=loop, return_exceptions=True)
         remaining_tasks.add_done_callback(lambda t: loop.stop())
-        logger.debug("remaining tasks = {}".format(not_done_tasks))
+        logger.debug(f"remaining tasks = {not_done_tasks}")
         remaining_tasks.cancel()
 
         # Keep the event loop running until it is either destroyed or all

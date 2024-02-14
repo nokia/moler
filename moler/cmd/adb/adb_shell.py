@@ -65,7 +65,7 @@ class AdbShell(CommandChangingPrompt):
         """
         cmd = "adb shell"
         if self.serial_number:
-            cmd = "adb -s {} shell".format(self.serial_number)
+            cmd = f"adb -s {self.serial_number} shell"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -93,7 +93,7 @@ class AdbShell(CommandChangingPrompt):
         :raise ParsingDone: if regex matches.
         """
         if self._regex_helper.search_compiled(AdbShell._re_command_fail, line):
-            self.set_exception(CommandFailure(self, "Found error regex in line '{}'".format(line)))
+            self.set_exception(CommandFailure(self, f"Found error regex in line '{line}'"))
             raise ParsingDone
 
     def _decode_line(self, line):

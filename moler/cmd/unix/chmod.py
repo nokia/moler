@@ -22,9 +22,9 @@ class Chmod(GenericUnixCommand):
 
     def build_command_string(self):
         if self.options:
-            cmd = "{} {} {} {}".format("chmod", self.options, self.permission, self.filename)
+            cmd = f"chmod {self.options} {self.permission} {self.filename}"
         else:
-            cmd = "{} {} {}".format("chmod", self.permission, self.filename)
+            cmd = f"chmod {self.permission} {self.filename}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

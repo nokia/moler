@@ -101,7 +101,7 @@ class LoudEventLoop(asyncio.SelectorEventLoop):
     def stop(self):
         logger = logging.getLogger('moler')
         loop_id = instance_id(self)
-        msg = "Called loop.stop() of {}:{}".format(loop_id, self)
+        msg = f"Called loop.stop() of {loop_id}:{self}"
         debug_into_logger(logger, msg=msg, levels_to_go_up=1)
         debug_into_logger(logger, msg=msg, levels_to_go_up=2)
         debug_into_logger(logger, msg=msg, levels_to_go_up=3)
@@ -131,7 +131,7 @@ def thread_secure_get_event_loop(logger_name="moler.runner.asyncio"):
             loop = asyncio.new_event_loop()
             loop_id = instance_id(loop)
             logger = logging.getLogger(logger_name)
-            logger.debug("created new event loop {}:{}".format(loop_id, loop))
+            logger.debug(f"created new event loop {loop_id}:{loop}")
             asyncio.set_event_loop(loop)
             new_loop = True
         else:
@@ -148,7 +148,7 @@ def _run_until_complete_cb(fut):
         # stop it.
         return
     fut_id = instance_id(fut)
-    msg = "_run_until_complete_cb(fut_id = {}, {})".format(fut_id, fut)
+    msg = f"_run_until_complete_cb(fut_id = {fut_id}, {fut})"
     sys.stderr.write(msg + "\n")
     logging.getLogger("moler").debug(msg)
     fut._loop.stop()
@@ -167,11 +167,11 @@ def is_feeder(task):
 
 def handle_cancelled_feeder(connection_observer, observer_lock, subscribed_data_receiver, logger, future):
     if future.cancelled() and not connection_observer.done():
-        logger.debug("cancelled {}".format(future))
+        logger.debug(f"cancelled {future}")
         with observer_lock:
-            logger.debug("cancelling {}".format(connection_observer))
+            logger.debug(f"cancelling {connection_observer}")
             connection_observer.cancel()
-        logger.debug("unsubscribing {}".format(connection_observer))
+        logger.debug(f"unsubscribing {connection_observer}")
         moler_conn = connection_observer.connection
         moler_conn.unsubscribe(observer=subscribed_data_receiver,
                                connection_closed_handler=connection_observer.connection_closed_handler)
@@ -183,10 +183,10 @@ def cancel_remaining_feeders(loop, logger_name="moler.runner.asyncio", in_shutdo
         logger = logging.getLogger(logger_name)
         loop_id = instance_id(loop)
         log_level = logging.WARNING if in_shutdown else logging.DEBUG
-        logger.log(level=log_level, msg="cancelling all remaining feeders of loop {}:".format(loop_id))
+        logger.log(level=log_level, msg=f"cancelling all remaining feeders of loop {loop_id}:")
         remaining_tasks = asyncio.gather(*remaining, loop=loop, return_exceptions=True)
         for feeder in remaining:
-            logger.log(level=log_level, msg="  remaining {}:{}".format(instance_id(feeder), feeder))
+            logger.log(level=log_level, msg=f"  remaining {instance_id(feeder)}:{feeder}")
         remaining_tasks.cancel()
         if not loop.is_running():
             # Keep the event loop running until it is either destroyed or all tasks have really terminated
@@ -203,8 +203,8 @@ class AsyncioRunner(ConnectionObserverRunner):
         with AsyncioRunner.runner_lock:
             AsyncioRunner.last_runner_id += 1
             self._id = AsyncioRunner.last_runner_id  # instance_id(self)
-        self.logger = logging.getLogger('{}.#{}'.format(logger_name, self._id))
-        self.logger.debug("created {}.#{}".format(self.__class__.__name__, self._id))
+        self.logger = logging.getLogger(f'{logger_name}.#{self._id}')
+        self.logger.debug(f"created {self.__class__.__name__}.#{self._id}")
         logging.getLogger("asyncio").setLevel(logging.DEBUG)
         self._submitted_futures = {}  # id(future): future
         self._started_ev_loops = []
@@ -222,7 +222,7 @@ class AsyncioRunner(ConnectionObserverRunner):
                 self.logger.debug("before closing loops ({} owned loops): {}".format(owned_loops_nb,
                                                                                      sys_resources_usage_msg))
                 for owned_loop in self._started_ev_loops:
-                    msg = "CLOSING EV_LOOP owned by AsyncioRunner {}:{!r}".format(instance_id(owned_loop), owned_loop)
+                    msg = f"CLOSING EV_LOOP owned by AsyncioRunner {instance_id(owned_loop)}:{owned_loop!r}"
                     sys.stderr.write(msg + '\n')
                     self.logger.debug(msg)
                     cancel_remaining_feeders(owned_loop, logger_name=self.logger.name, in_shutdown=True)
@@ -230,7 +230,7 @@ class AsyncioRunner(ConnectionObserverRunner):
                     if remaining:
                         msg = "AsyncioRunner owned loop has still running task"
                         for still_running_task in remaining:
-                            msg = "{}: {!r}\n".format(msg, still_running_task)
+                            msg = f"{msg}: {still_running_task!r}\n"
                             sys.stderr.write(msg + '\n')
                             self.logger.debug(msg)
                     owned_loop.close()
@@ -259,7 +259,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         observer_timeout = connection_observer.timeout
         remain_time, msg = his_remaining_time("remaining", timeout=observer_timeout,
                                               from_start_time=connection_observer.life_status.start_time)
-        self.logger.debug("go background: {!r} - {}".format(connection_observer, msg))
+        self.logger.debug(f"go background: {connection_observer!r} - {msg}")
 
         # Our submit consists of two steps:
         # 1. _start_feeding() which establishes data path from connection to observer
@@ -286,7 +286,7 @@ class AsyncioRunner(ConnectionObserverRunner):
             with AsyncioRunner.runner_lock:
                 self._started_ev_loops.append(event_loop)
         subscribed_data_receiver = self._start_feeding(connection_observer, observer_lock)
-        self.logger.debug("scheduling feed({})".format(connection_observer))
+        self.logger.debug(f"scheduling feed({connection_observer})")
         connection_observer_future = asyncio.ensure_future(self.feed(connection_observer,
                                                                      subscribed_data_receiver,
                                                                      observer_lock),
@@ -297,11 +297,11 @@ class AsyncioRunner(ConnectionObserverRunner):
             # most probably we have some exception during ensure_future(); it should be stored inside future
             try:
                 too_early_result = connection_observer_future.result()
-                err_msg = "PROBLEM: future returned {} already in runner.submit()".format(too_early_result)
-                self.logger.warning("go background: {} - {}".format(connection_observer, err_msg))
+                err_msg = f"PROBLEM: future returned {too_early_result} already in runner.submit()"
+                self.logger.warning(f"go background: {connection_observer} - {err_msg}")
             except Exception as err:
-                err_msg = "PROBLEM: future raised {!r} during runner.submit()".format(err)
-                self.logger.warning("go background: {} - {}".format(connection_observer, err_msg))
+                err_msg = f"PROBLEM: future raised {err!r} during runner.submit()"
+                self.logger.warning(f"go background: {connection_observer} - {err_msg}")
                 self.logger.exception(err_msg)
                 raise
 
@@ -339,7 +339,7 @@ class AsyncioRunner(ConnectionObserverRunner):
             #    wait_for() might be called so late after submit() that observer already got result/exception
             #
             # In all above cases we want to stop future if it is still running
-            self.logger.debug("go foreground: {} is already done".format(connection_observer))
+            self.logger.debug(f"go foreground: {connection_observer} is already done")
             self._cancel_submitted_future(connection_observer, connection_observer_future)
             return None
 
@@ -353,7 +353,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         else:
             remain_time, msg = his_remaining_time("remaining", timeout=observer_timeout, from_start_time=start_time)
 
-        self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
+        self.logger.debug(f"go foreground: {connection_observer} - {msg}")
         event_loop, its_new = thread_secure_get_event_loop()
         assert not its_new  # should not happen since submit() is called first
 
@@ -377,7 +377,7 @@ class AsyncioRunner(ConnectionObserverRunner):
                 self._run_via_asyncio(event_loop, connection_observer_future, max_timeout, remain_time)
 
             except asyncio.futures.CancelledError:
-                self.logger.debug("canceled {}".format(connection_observer))
+                self.logger.debug(f"canceled {connection_observer}")
                 connection_observer.cancel()
             except asyncio.futures.TimeoutError:
                 self._wait_for_time_out(connection_observer, connection_observer_future,
@@ -415,11 +415,11 @@ class AsyncioRunner(ConnectionObserverRunner):
                 timeout_limited_future = asyncio.wait_for(connection_observer_future, timeout=remain_time)
 
                 fut_id = instance_id(connection_observer_future)
-                msg = "__run_via_asyncio with timeout: (fut_id = {}, {})".format(fut_id, connection_observer_future)
+                msg = f"__run_via_asyncio with timeout: (fut_id = {fut_id}, {connection_observer_future})"
                 sys.stderr.write(msg + "\n")
                 logging.getLogger("moler").debug(msg)
                 fut_id = instance_id(timeout_limited_future)
-                msg = "__run_via_asyncio with timeout: (tmout_fut_id = {}, {})".format(fut_id, timeout_limited_future)
+                msg = f"__run_via_asyncio with timeout: (tmout_fut_id = {fut_id}, {timeout_limited_future})"
                 sys.stderr.write(msg + "\n")
                 logging.getLogger("moler").debug(msg)
 
@@ -427,7 +427,7 @@ class AsyncioRunner(ConnectionObserverRunner):
 
             else:
                 fut_id = instance_id(connection_observer_future)
-                msg = "__run_via_asyncio no timeout: (fut_id = {}, {})".format(fut_id, connection_observer_future)
+                msg = f"__run_via_asyncio no timeout: (fut_id = {fut_id}, {connection_observer_future})"
                 sys.stderr.write(msg + "\n")
                 logging.getLogger("moler").debug(msg)
                 AsyncioRunner._run_until_complete(event_loop, connection_observer_future)  # timeout is handled by feed()
@@ -485,10 +485,10 @@ class AsyncioRunner(ConnectionObserverRunner):
             future.remove_done_callback(_run_until_complete_cb)
         if not future.done():
             fut_id = instance_id(future)
-            msg = "not done future in _run_until_complete(fut_id = {}, {})".format(fut_id, future)
+            msg = f"not done future in _run_until_complete(fut_id = {fut_id}, {future})"
             sys.stderr.write(msg + "\n")
             logging.getLogger("moler").debug(msg)
-            raise RuntimeError('Event loop stopped before Future completed. (fut_id = {}, {})'.format(fut_id, future))
+            raise RuntimeError(f'Event loop stopped before Future completed. (fut_id = {fut_id}, {future})')
 
         return future.result()
 
@@ -498,8 +498,8 @@ class AsyncioRunner(ConnectionObserverRunner):
         (_, _, _, caller_caller_name, _, _) = inspect.stack()[2]
         # Prefer to speak in observer API not runner API since user uses observers-API (runner is hidden)
         user_call_name = caller_caller_name if caller_caller_name == 'await_done' else caller_name
-        err_msg = "Can't call {}() from 'async def' - it is blocking call".format(user_call_name)
-        err_msg += "\n    observer = {}()".format(connection_observer.__class__.__name__)
+        err_msg = f"Can't call {user_call_name}() from 'async def' - it is blocking call"
+        err_msg += f"\n    observer = {connection_observer.__class__.__name__}()"
         err_msg += "\n    observer.start()"
         err_msg += "\nconsider using:"
         err_msg += "\n    await observer"
@@ -520,7 +520,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         :param connection_observer_future: Future of connection-observer returned from submit().
         :return: iterator
         """
-        self.logger.debug("go foreground: {!r}".format(connection_observer))
+        self.logger.debug(f"go foreground: {connection_observer!r}")
 
         # assuming that connection_observer.start() / runner.submit(connection_observer)
         # has already scheduled future via asyncio.ensure_future
@@ -561,12 +561,12 @@ class AsyncioRunner(ConnectionObserverRunner):
             finally:
                 if connection_observer.done() and not connection_observer.cancelled():
                     if connection_observer._exception:
-                        self.logger.debug("{} raised: {!r}".format(connection_observer, connection_observer._exception))
+                        self.logger.debug(f"{connection_observer} raised: {connection_observer._exception!r}")
                     else:
-                        self.logger.debug("{} returned: {}".format(connection_observer, connection_observer._result))
+                        self.logger.debug(f"{connection_observer} returned: {connection_observer._result}")
 
         moler_conn = connection_observer.connection
-        self.logger.debug("subscribing for data {}".format(connection_observer))
+        self.logger.debug(f"subscribing for data {connection_observer}")
         moler_conn.subscribe(observer=secure_data_received,
                              connection_closed_handler=connection_observer.connection_closed_handler)
         if connection_observer.is_command():
@@ -580,8 +580,8 @@ class AsyncioRunner(ConnectionObserverRunner):
         """
         remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                               from_start_time=connection_observer.life_status.start_time)
-        self.logger.debug("{} started, {}".format(connection_observer, msg))
-        connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))
+        self.logger.debug(f"{connection_observer} started, {msg}")
+        connection_observer._log(logging.INFO, f"{connection_observer.get_long_desc()} started, {msg}")
 
         if not subscribed_data_receiver:
             subscribed_data_receiver = self._start_feeding(connection_observer, observer_lock)
@@ -593,7 +593,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         try:
             while True:
                 if connection_observer.done():
-                    self.logger.debug("done {}".format(connection_observer))
+                    self.logger.debug(f"done {connection_observer}")
                     break
                 run_duration = time.monotonic() - start_time
                 # we need to check connection_observer.timeout at each round since timeout may change
@@ -606,7 +606,7 @@ class AsyncioRunner(ConnectionObserverRunner):
                                           runner_logger=self.logger)
                     break
                 if self._in_shutdown:
-                    self.logger.debug("shutdown so cancelling {}".format(connection_observer))
+                    self.logger.debug(f"shutdown so cancelling {connection_observer}")
                     connection_observer.cancel()
                 await asyncio.sleep(0.005)  # give moler_conn a chance to feed observer
             #
@@ -626,20 +626,20 @@ class AsyncioRunner(ConnectionObserverRunner):
             # Another words - it is not feed's exception but observer's exception so, it should not be raised here.
             #
         except asyncio.CancelledError:
-            self.logger.debug("cancelling {}.feed".format(self))
+            self.logger.debug(f"cancelling {self}.feed")
             # cancelling connection_observer is done inside handle_cancelled_feeder()
             raise  # need to reraise to inform "I agree for cancellation"
 
         finally:
-            self.logger.debug("unsubscribing {}".format(connection_observer))
+            self.logger.debug(f"unsubscribing {connection_observer}")
             moler_conn.unsubscribe(observer=subscribed_data_receiver,
                                    connection_closed_handler=connection_observer.connection_closed_handler)
             # feed_done.set()
 
             remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                                   from_start_time=connection_observer.life_status.start_time)
-            connection_observer._log(logging.INFO, "{} finished, {}".format(connection_observer.get_short_desc(), msg))
-            self.logger.debug("{} finished, {}".format(connection_observer, msg))
+            connection_observer._log(logging.INFO, f"{connection_observer.get_short_desc()} finished, {msg}")
+            self.logger.debug(f"{connection_observer} finished, {msg}")
         return None
 
     def timeout_change(self, timedelta):
@@ -677,7 +677,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
         Submit connection observer to background execution.
         Returns Future that could be used to await for connection_observer done.
         """
-        self.logger.debug("go background: {!r}".format(connection_observer))
+        self.logger.debug(f"go background: {connection_observer!r}")
 
         # TODO: check dependency - connection_observer.connection
 
@@ -707,12 +707,12 @@ class AsyncioInThreadRunner(AsyncioRunner):
 
         async def start_feeder():
             feed_started = asyncio.Event()
-            self.logger.debug("scheduling feed({})".format(connection_observer))
+            self.logger.debug(f"scheduling feed({connection_observer})")
             # noinspection PyArgumentList
             conn_observer_future = asyncio.ensure_future(self.feed(connection_observer,
                                                                    feed_started,
                                                                    subscribed_data_receiver=None))
-            self.logger.debug("scheduled feed() - future: {}".format(conn_observer_future))
+            self.logger.debug(f"scheduled feed() - future: {conn_observer_future}")
             await feed_started.wait()
             self.logger.debug("feed() started - future: {}:{}".format(instance_id(conn_observer_future),
                                                                       conn_observer_future))
@@ -723,7 +723,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
         try:
             connection_observer_future = thread4async.run_async_coroutine(start_feeder(), timeout=start_timeout)
         except MolerTimeout:
-            err_msg = "Failed to start observer feeder within {} sec".format(start_timeout)
+            err_msg = f"Failed to start observer feeder within {start_timeout} sec"
             self.logger.error(err_msg)
             exc = MolerException(err_msg)
             connection_observer.set_exception(exception=exc)
@@ -741,7 +741,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
         :param timeout: Max time (in float seconds) to await before give up. None - use connection_observer.timeout
         :return:
         """
-        self.logger.debug("go foreground: {!r} - await max. {} [sec]".format(connection_observer, timeout))
+        self.logger.debug(f"go foreground: {connection_observer!r} - await max. {timeout} [sec]")
         if connection_observer.done():  # may happen when failed to start observer feeder
             return None
         start_time = time.monotonic()
@@ -773,7 +773,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
             connection_observer.cancel()
             return None
         except Exception as err:
-            err_msg = "{} raised {!r}".format(connection_observer, err)
+            err_msg = f"{connection_observer} raised {err!r}"
             self.logger.debug(err_msg)
             if connection_observer._exception != err:
                 connection_observer.set_exception(err)
@@ -804,7 +804,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
         :param connection_observer_future: Future of connection-observer returned from submit().
         :return: iterator
         """
-        self.logger.debug("returning iterator for {}".format(connection_observer))
+        self.logger.debug(f"returning iterator for {connection_observer}")
         while not connection_observer_future.done():
             yield None
         # return result_for_runners(connection_observer)  # May raise too.   # Python > 3.3
@@ -826,7 +826,7 @@ def cleanup_remaining_tasks(loop, logger):
 
 
 def cleanup_selected_tasks(tasks2cancel, loop, logger):
-    logger.debug("tasks to cancel: {}".format(tasks2cancel))
+    logger.debug(f"tasks to cancel: {tasks2cancel}")
     remaining_tasks = asyncio.gather(*tasks2cancel, loop=loop, return_exceptions=True)
     remaining_tasks.add_done_callback(lambda t: loop.stop())
     remaining_tasks.cancel()
@@ -856,7 +856,7 @@ class AsyncioLoopThread(TillDoneThread):
 
         self.ev_loop.set_debug(enabled=True)
 
-        self.logger.debug("created asyncio loop: {}:{}".format(id(self.ev_loop), self.ev_loop))
+        self.logger.debug(f"created asyncio loop: {id(self.ev_loop)}:{self.ev_loop}")
         self.ev_loop_done = AsyncioEventThreadsafe(loop=self.ev_loop)
         self.ev_loop_done.clear()
         self.ev_loop_started = threading.Event()
@@ -868,8 +868,8 @@ class AsyncioLoopThread(TillDoneThread):
                                                         'loop_done': self.ev_loop_done})
         # Thread-3  -->  [Thread, 3]
         name_parts = self.name.split('-')
-        self.name = "{}-{}".format(name, name_parts[-1])
-        self.logger.debug("created thread {} for asyncio loop".format(self))
+        self.name = f"{name}-{name_parts[-1]}"
+        self.logger.debug(f"created thread {self} for asyncio loop")
 
     def start(self):
         """
@@ -880,7 +880,7 @@ class AsyncioLoopThread(TillDoneThread):
         # await loop thread to be really started
         start_timeout = 0.5
         if not self.ev_loop_started.wait(timeout=start_timeout):
-            err_msg = "Failed to start asyncio loop thread within {} sec".format(start_timeout)
+            err_msg = f"Failed to start asyncio loop thread within {start_timeout} sec"
             self.ev_loop_done.set()
             raise MolerException(err_msg)
         self.logger.info("started new asyncio-loop-thrd ...")
@@ -893,9 +893,9 @@ class AsyncioLoopThread(TillDoneThread):
         super(AsyncioLoopThread, self).join(timeout=timeout)
         self.logger.info("finished asyncio-loop-thrd ...")
         self.logger.info("closing events loop ...")
-        sys.stderr.write("CLOSING EV_LOOP of AsyncioLoopThread {!r}\n".format(self.ev_loop))
+        sys.stderr.write(f"CLOSING EV_LOOP of AsyncioLoopThread {self.ev_loop!r}\n")
         for still_running_tasks in asyncio.Task.all_tasks(loop=self.ev_loop):
-            sys.stderr.write("AsyncioLoopThread has still running task: {!r}\n".format(still_running_tasks))
+            sys.stderr.write(f"AsyncioLoopThread has still running task: {still_running_tasks!r}\n")
         self.ev_loop.close()
         self.logger.info("... asyncio loop closed")
 
@@ -924,12 +924,12 @@ class AsyncioLoopThread(TillDoneThread):
         # so, we can await it with timeout inside current thread
         try:
             coro_result = coro_future.result(timeout=timeout)
-            self.logger.debug("scheduled {} returned {}".format(coroutine_to_run, coro_result))
+            self.logger.debug(f"scheduled {coroutine_to_run} returned {coro_result}")
             return coro_result
         except concurrent.futures.TimeoutError:
             passed = time.monotonic() - start_time
             raise MolerTimeout(timeout=timeout,
-                               kind="run_async_coroutine({})".format(coroutine_to_run),
+                               kind=f"run_async_coroutine({coroutine_to_run})",
                                passed_time=passed)
         except concurrent.futures.CancelledError:
             raise
@@ -937,7 +937,7 @@ class AsyncioLoopThread(TillDoneThread):
     def start_async_coroutine(self, coroutine_to_run):
         """Start coroutine in dedicated thread, don't await its result"""
         # we are scheduling to other thread (so, can't use asyncio.ensure_future() )
-        self.logger.debug("scheduling {} into {}".format(coroutine_to_run, self.ev_loop))
+        self.logger.debug(f"scheduling {coroutine_to_run} into {self.ev_loop}")
         coro_future = asyncio.run_coroutine_threadsafe(coroutine_to_run, loop=self.ev_loop)
         return coro_future
 
@@ -951,13 +951,13 @@ def get_asyncio_loop_thread():
     with _asyncio_loop_thread_lock:
         global _asyncio_loop_thread  # pylint: disable=global-statement
         if _asyncio_loop_thread is None:
-            logger.debug(">>> >>> found _asyncio_loop_thread as {}".format(_asyncio_loop_thread))
+            logger.debug(f">>> >>> found _asyncio_loop_thread as {_asyncio_loop_thread}")
 
-            logger.debug(">>> >>> will create thread {}".format(_asyncio_loop_thread))
+            logger.debug(f">>> >>> will create thread {_asyncio_loop_thread}")
             new_loop_thread = AsyncioLoopThread()
-            logger.debug(">>> >>> AsyncioLoopThread() --> {}".format(new_loop_thread))
+            logger.debug(f">>> >>> AsyncioLoopThread() --> {new_loop_thread}")
             new_loop_thread.start()
-            logger.debug(">>> >>> started {}".format(new_loop_thread))
+            logger.debug(f">>> >>> started {new_loop_thread}")
             _asyncio_loop_thread = new_loop_thread
-    logger.debug(">>> >>> returning {}".format(_asyncio_loop_thread))
+    logger.debug(f">>> >>> returning {_asyncio_loop_thread}")
     return _asyncio_loop_thread

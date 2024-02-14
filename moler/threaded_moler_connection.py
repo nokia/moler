@@ -113,7 +113,7 @@ class ThreadedMolerConnection(AbstractMolerConnection):
                     self._observers_lock, observer, self
                 )
             )
-            self._log(level=TRACE, msg="subscribe({})".format(observer))
+            self._log(level=TRACE, msg=f"subscribe({observer})")
             observer_key, value = self._get_observer_key_value(observer)
 
             if observer_key not in self._observer_wrappers:
@@ -156,7 +156,7 @@ class ThreadedMolerConnection(AbstractMolerConnection):
                     self._observers_lock, observer, self
                 )
             )
-            self._log(level=TRACE, msg="unsubscribe({})".format(observer))
+            self._log(level=TRACE, msg=f"unsubscribe({observer})")
             observer_key, _ = self._get_observer_key_value(observer)
             if observer_key in self._observer_wrappers and observer_key in self._connection_closed_handlers:
                 self._observer_wrappers[observer_key].request_stop()

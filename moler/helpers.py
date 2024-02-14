@@ -343,7 +343,7 @@ def _compare_dicts(
                 second_object=second_object[key],
                 significant_digits=significant_digits,
                 exclude_types=exclude_types,
-                msg="{} -> [{}]".format(msg, key),
+                msg=f"{msg} -> [{key}]",
             )
             if res:
                 return res
@@ -404,7 +404,7 @@ def _compare_lists(
         res = diff_data(
             first_object=first_object[i],
             second_object=second_object[i],
-            msg="{} -> [{}]".format(msg, i),
+            msg=f"{msg} -> [{i}]",
             significant_digits=significant_digits,
             exclude_types=exclude_types,
         )
@@ -545,7 +545,7 @@ def non_printable_chars_to_hex(source):
     output = ""
     for char in source:
         if char not in string.printable or char in ["\n", "\r"]:
-            output += "\\x{:02x}".format(ord(char))
+            output += f"\\x{ord(char):02x}"
         else:
             output += char
     return output
@@ -559,7 +559,7 @@ def all_chars_to_hex(source):
     """
     output = ""
     for char in source:
-        output += "\\x{:02x}".format(ord(char))
+        output += f"\\x{ord(char):02x}"
     return output
 
 

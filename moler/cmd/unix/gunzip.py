@@ -46,12 +46,12 @@ class Gunzip(GenericUnixCommand):
     def build_command_string(self):
         cmd = "gunzip"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         if self.archive_name:
             for file in self.archive_name:
-                cmd = "{} {}".format(cmd, file)
+                cmd = f"{cmd} {file}"
         if self.output_file_name:
-            cmd = "{} > {}".format(cmd, self.output_file_name)
+            cmd = f"{cmd} > {self.output_file_name}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -85,7 +85,7 @@ class Gunzip(GenericUnixCommand):
                     self.connection.sendline("n")
                     self.set_exception(
                         CommandFailure(
-                            self, "ERROR: {} already exists".format(current_file)
+                            self, f"ERROR: {current_file} already exists"
                         )
                     )
                 self._answered_file = current_file
@@ -100,7 +100,7 @@ class Gunzip(GenericUnixCommand):
         if self.keys and not self.current_ret["RESULT"]:
             self.values = line.strip().split()
             if "date" in self.keys:
-                self.values = self.values[:2] + ["{} {}".format(self.values[2], self.values[3])] + self.values[4:]
+                self.values = self.values[:2] + [f"{self.values[2]} {self.values[3]}"] + self.values[4:]
             self.current_ret["RESULT"].append(dict(zip(self.keys, self.values)))
             raise ParsingDone
         if self._regex_helper.search_compiled(Gunzip._re_l_option, line):
@@ -113,7 +113,7 @@ class Gunzip(GenericUnixCommand):
         if self._regex_helper.search_compiled(Gunzip._re_error, line):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG"))
+                    self, f"ERROR: {self._regex_helper.group('ERROR_MSG')}"
                 )
             )
             raise ParsingDone

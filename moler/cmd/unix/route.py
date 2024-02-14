@@ -26,7 +26,7 @@ class Route(GenericUnixCommand):
     def build_command_string(self):
         cmd = "route"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -72,7 +72,7 @@ class Route(GenericUnixCommand):
             self.values.append(self._regex_helper.group('val_7'))
             self.values.append(self._regex_helper.group('val_8'))
 
-            key = "{}_{}".format(self._regex_helper.group('val_8'), self._regex_helper.group('val_1'))
+            key = f"{self._regex_helper.group('val_8')}_{self._regex_helper.group('val_1')}"
             if key not in self.current_ret.keys():
                 self.current_ret[key] = {}
             for i in range(0, len(self.headers)):
@@ -87,7 +87,7 @@ class Route(GenericUnixCommand):
 
     def _parse_fail(self, line):
         if self._regex_helper.search_compiled(Route._re_fail, line):
-            self.set_exception(CommandFailure(self, "Command failed in line '{}'".format(line)))
+            self.set_exception(CommandFailure(self, f"Command failed in line '{line}'"))
             raise ParsingDone
 
 

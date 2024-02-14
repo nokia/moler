@@ -35,7 +35,7 @@ class SetCellId(GenericAtCommand):
         self.ret_required = False
 
     def build_command_string(self):
-        return "AT+CREG={}".format(self.selected_mode)
+        return f"AT+CREG={self.selected_mode}"
 
 
 # -----------------------------------------------------------------------------

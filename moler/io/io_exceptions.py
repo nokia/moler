@@ -47,7 +47,7 @@ class RemoteEndpointDisconnected(ConnectionBaseError):
         if platform.system() == 'Windows':
             err_str = "Windows Socket error: %d" % self.err_code
             short_meaning, long_meaning = WIN_SOCKET_ERRORS.get(self.err_code, ("", ""))
-            return "%s\n%s\n%s" % (err_str, short_meaning, long_meaning)
+            return f"{err_str}\n{short_meaning}\n{long_meaning}"
         else:
             return "Socket error: %d" % self.err_code
 

@@ -68,11 +68,11 @@ def test_erase_not_full_line_on_pause(buffer_connection):
     def feed_in_separate_thread():
         cnt = 1
         while not stopped.is_set():
-            data = "[{}] abcde\nfghi\njkl".format(cnt)
+            data = f"[{cnt}] abcde\nfghi\njkl"
             buffer_connection.moler_connection.data_received(data.encode("utf-8"), datetime.datetime.now())
             MolerTest.sleep(sleep_time/10)
             cnt += 1
-        MolerTest.info("feed_in_separate_thread() exited after producing {} records".format(cnt))
+        MolerTest.info(f"feed_in_separate_thread() exited after producing {cnt} records")
 
     tf = threading.Thread(target=feed_in_separate_thread)
     tf.start()

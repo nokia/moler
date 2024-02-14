@@ -54,9 +54,9 @@ class W(GenericUnixCommand):
             else:
                 self.options = self.options.replace("h", "")
 
-            cmd = "{} {}".format("w", self.options)
+            cmd = f"w {self.options}"
         else:
-            cmd = "{}".format("w")
+            cmd = "w"
         return cmd
 
     def on_new_line(self, line, is_full_line):

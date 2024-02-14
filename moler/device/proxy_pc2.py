@@ -90,7 +90,7 @@ class ProxyPc2(UnixLocal):
         future_change = "{} into {} device in Moler 2.0.0 and {} will be removed".format(merge_info,
                                                                                          target_classname,
                                                                                          temporary_classname)
-        warn_msg = "Class {} is an {}. {}.".format(temporary_classname, what, future_change)
+        warn_msg = f"Class {temporary_classname} is an {what}. {future_change}."
         self.logger.warning(warn_msg)
 
     def _should_use_proxy_pc(self, sm_params, proxy):
@@ -102,11 +102,11 @@ class ProxyPc2(UnixLocal):
     def goto_state(self, state, *args, **kwargs):
         """Goes to specific state."""
         if ((state == UNIX_LOCAL) or (state == UNIX_LOCAL_ROOT)) and (not self._use_local_unix_state):
-            used_io = "{} {}".format(self.io_connection.__class__.__name__, self.io_connection)
-            msg = "Device {} has no {}/{} states".format(self, UNIX_LOCAL, UNIX_LOCAL_ROOT)
-            why = "since it uses following io: {}".format(used_io)
+            used_io = f"{self.io_connection.__class__.__name__} {self.io_connection}"
+            msg = f"Device {self} has no {UNIX_LOCAL}/{UNIX_LOCAL_ROOT} states"
+            why = f"since it uses following io: {used_io}"
             fix = 'You need io of type "terminal" to have unix-local states'
-            err_msg = "{} {}. {}.".format(msg, why, fix)
+            err_msg = f"{msg} {why}. {fix}."
             raise ValueError(err_msg)
         super(ProxyPc2, self).goto_state(state=state, *args, **kwargs)
 
@@ -290,9 +290,9 @@ class ProxyPc2(UnixLocal):
             if old_prompt is not None and prompt != old_prompt:
                 self.logger.info("Different prompt candidates: '{}' -> '{}' for"
                                  " state {}.".format(old_prompt, prompt, state))
-            self.logger.debug("New prompts: {}".format(self._state_prompts))
+            self.logger.debug(f"New prompts: {self._state_prompts}")
             self._prepare_reverse_state_prompts_dict()
-            self.logger.debug("After prepare_reverse_state_prompts_dict: {}".format(self._reverse_state_prompts_dict))
+            self.logger.debug(f"After prepare_reverse_state_prompts_dict: {self._reverse_state_prompts_dict}")
             if self._prompts_event is not None:
                 self.logger.debug("prompts event is not none")
                 self._prompts_event.change_prompts(prompts=self._reverse_state_prompts_dict)
@@ -475,4 +475,4 @@ class ProxyPc2(UnixLocal):
         self._after_open_prompt_detector.cancel()
         self._after_open_prompt_detector = None
         if self._prompt_detected is False:
-            raise MolerException("Device {} cannot detect prompt!".format(self.public_name))
+            raise MolerException(f"Device {self.public_name} cannot detect prompt!")

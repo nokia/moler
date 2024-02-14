@@ -338,7 +338,7 @@ def test_str_representation_of_connection(sshshell_connection):
     assert str(connection) == "ssh://molerssh@localhost:22"
     with connection.open():
         shell_channel_id = connection._shell_channel.get_id()
-        assert str(connection) == "ssh://molerssh@localhost:22 [channel {}]".format(shell_channel_id)
+        assert str(connection) == f"ssh://molerssh@localhost:22 [channel {shell_channel_id}]"
     assert str(connection) == "ssh://molerssh@localhost:22"
 
 
@@ -436,14 +436,14 @@ def test_passive_connection_receive_detects_remote_end_close(passive_sshshell_co
             resp_bytes = connection.receive(timeout=0.5)
             chunks_nb += 1
             resp += resp_bytes.decode("utf-8")
-            print("resp = {}".format(resp))
+            print(f"resp = {resp}")
             if ('logout' in resp) and resp.endswith("\n"):
                 break
         time.sleep(0.1)  # let it drop connection
 
         with pytest.raises(RemoteEndpointDisconnected):
             resp = connection.receive(timeout=0.5)
-            print("resp = {}".format(resp))
+            print(f"resp = {resp}")
         assert connection._shell_channel is None
         assert connection._ssh_transport is None
 
@@ -483,7 +483,7 @@ def test_send_can_timeout(sshshell_connection):
     with connection.open():
         with pytest.raises(ConnectionTimeout) as exc:
             big_data = "123456789 " * 10000
-            request = "echo {}\n".format(big_data)
+            request = f"echo {big_data}\n"
             bytes2send = request.encode("utf-8")
             for x in range(10):
                 connection.send(bytes2send, timeout=0.0005)
@@ -494,7 +494,7 @@ def test_send_can_push_remaining_data_within_timeout(sshshell_connection):
     connection = sshshell_connection
     with connection.open():
         big_data = "123456789 " * 10000
-        request = "echo {}\n".format(big_data)
+        request = f"echo {big_data}\n"
         bytes2send = request.encode("utf-8")
 
         data_chunks_len = []
@@ -531,7 +531,7 @@ def test_passive_connection_send_detects_remote_end_closed(passive_sshshell_conn
             resp_bytes = connection.receive(timeout=0.5)
             chunks_nb += 1
             resp += resp_bytes.decode("utf-8")
-            print("resp = {}".format(resp))
+            print(f"resp = {resp}")
             if ('logout' in resp) and resp.endswith("\n"):
                 break
         time.sleep(0.1)  # let it drop connection
@@ -712,7 +712,7 @@ def test_can_use_default_logger_based_on_connection_name(active_sshshell_connect
     moler_conn = Connection()
     connection = active_sshshell_connection_class(moler_connection=moler_conn, host='localhost')
     assert isinstance(connection.logger, logging.Logger)
-    assert connection.logger.name == "moler.connection.{}.io".format(connection.name)
+    assert connection.logger.name == f"moler.connection.{connection.name}.io"
 
 
 def test_can_use_default_logger_based_on_moler_connection_name(active_sshshell_connection_class):
@@ -895,7 +895,7 @@ def mocked_logger():
         elif level == logging.INFO:
             logger.info(msg)
         else:
-            raise ValueError("unexpected logging level = {}".format(level))
+            raise ValueError(f"unexpected logging level = {level}")
 
     with mock.patch("moler.io.raw.sshshell.SshShell._log", mocked_log):
         logger = MyLogger()

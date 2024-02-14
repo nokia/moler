@@ -46,7 +46,7 @@ def create_class_instance(class_object, constructor_params):
         class_instance = class_object(**constructor_params)
         return class_instance
     except TypeError as err:
-        raise TypeError("Creating '%s' instance: %s" % (class_object, str(err))) from err
+        raise TypeError(f"Creating '{class_object}' instance: {str(err)}") from err
 
 
 # ------------------------------------ implementation
@@ -86,4 +86,4 @@ def _import_class_from_module(module, class_name):
                                                                                        class_name,
                                                                                        type(module_attribute)))
     except AttributeError as ae:
-        raise AttributeError("Module '%s' has no attribute '%s'" % (module, class_name)) from ae
+        raise AttributeError(f"Module '{module}' has no attribute '{class_name}'") from ae

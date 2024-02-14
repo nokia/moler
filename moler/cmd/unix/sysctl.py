@@ -41,9 +41,9 @@ class Sysctl(GenericUnixCommand):
         """
         cmd = "sysctl"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         if self.parameter and self.value:
-            cmd = "{} {{{}={}}}".format(cmd, self.parameter, self.value)
+            cmd = f"{cmd} {{{self.parameter}={self.value}}}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

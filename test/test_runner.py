@@ -106,7 +106,7 @@ def test_CancellableFuture_str_casting_shows_embedded_future():
     c_future = CancellableFuture(connection_observer_future, observer_lock, stop_feeding, feed_done)
     connection_observer_future_as_str = str(connection_observer_future)
     c_future_as_str = str(c_future)
-    assert c_future_as_str == "CancellableFuture({})".format(connection_observer_future_as_str)
+    assert c_future_as_str == f"CancellableFuture({connection_observer_future_as_str})"
     executor.shutdown()
 
 
@@ -149,7 +149,7 @@ def test_ThreadPoolExecutorRunner_logs_about_reused_executor():
     with mock.patch.object(logger, "debug") as log_debug:
         ThreadPoolExecutorRunner(executor=external_executor)
 
-    assert mock.call("reusing provided executor {!r}".format(external_executor)) in log_debug.mock_calls
+    assert mock.call(f"reusing provided executor {external_executor!r}") in log_debug.mock_calls
     external_executor.shutdown()
 
 

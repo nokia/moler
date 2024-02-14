@@ -28,9 +28,9 @@ class Zip(GenericUnixCommand):
 
     def build_command_string(self):
         if self.options:
-            cmd = "{} {} {} {}".format("zip", self.options, self.zip_file, self.file_name)
+            cmd = f"zip {self.options} {self.zip_file} {self.file_name}"
         else:
-            cmd = "{} {} {}".format("zip", self.zip_file, self.file_name)
+            cmd = f"zip {self.zip_file} {self.file_name}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -45,7 +45,7 @@ class Zip(GenericUnixCommand):
 
     def _parse_error_via_output_line(self, line):
         if self._cmd_output_started and self._regex_helper.search_compiled(Zip._re_zip_line, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("error"))))
+            self.set_exception(CommandFailure(self, f"ERROR: {self._regex_helper.group('error')}"))
             raise ParsingDone
 
 

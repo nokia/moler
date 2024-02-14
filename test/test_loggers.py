@@ -125,7 +125,7 @@ def test_RawTraceFormatter_produces_yaml_record():
                                                          extra={'transfer_direction': '<'})
     trace_msg = trace_formatter.format(record=record)
     timestamp = logging.Formatter(fmt="%(asctime)s.%(msecs)03d", datefmt=date_format).format(record)
-    assert trace_msg.startswith("- {}".format(record.created))
+    assert trace_msg.startswith(f"- {record.created}")
     trace_msg_rest = trace_msg[2 + len(str(record.created)):]  # 2 for '- '
     assert trace_msg_rest == ": {time: '%s', direction: <, bytesize: 17, offset: 0}\n" % timestamp
     trace_msg = trace_formatter.format(record=record)

@@ -45,7 +45,7 @@ class AdbDevices(GenericUnixCommand):
         :return: String representation of command to send over connection to device.
         """
         cmd = (
-            "adb devices" if not self.options else "adb devices {}".format(self.options)
+            "adb devices" if not self.options else f"adb devices {self.options}"
         )
         return cmd
 

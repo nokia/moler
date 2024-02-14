@@ -32,9 +32,9 @@ class Unxz(GenericUnixCommand):
         :return: String representation of the command to send over a connection to the device.
         """
         if self.options:
-            cmd = "{} {} {}".format("unxz", self.options, self.xz_file)
+            cmd = f"unxz {self.options} {self.xz_file}"
         else:
-            cmd = "{} {}".format("unxz", self.xz_file)
+            cmd = f"unxz {self.xz_file}"
         return cmd
 
 

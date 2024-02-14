@@ -41,7 +41,7 @@ class SetApn(GenericAtCommand):
         Builds command string from parameters passed to object.
         :return: String representation of command to send over connection to device.
         """
-        return "AT+CGDCONT={},\"{}\",\"{}\"".format(self.context_identifier, self.pdp_type, self.apn_name)
+        return f"AT+CGDCONT={self.context_identifier},\"{self.pdp_type}\",\"{self.apn_name}\""
 
 
 # -----------------------------------------------------------------------------

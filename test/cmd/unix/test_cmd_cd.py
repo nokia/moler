@@ -46,7 +46,7 @@ def test_command_unicode_error(buffer_connection, command_output_and_expected_re
             super(CdUnicodeError, self).on_new_line(line, is_full_line)
 
     cmd = CdUnicodeError(connection=buffer_connection.moler_connection, path="/home/user/")
-    cmd_start_string = "{}\n".format(cmd.command_string)
+    cmd_start_string = f"{cmd.command_string}\n"
     cmd.start()
     MolerTest.sleep(sleep_time)
     buffer_connection.moler_connection.data_received(cmd_start_string.encode("utf-8"), datetime.datetime.now())

@@ -64,11 +64,11 @@ class Su(Sudo):
         self._build_command_object()
         cmd = "su"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         if self.cmd_object:
-            cmd = "{} -c '{}'".format(cmd, self.cmd_object.command_string)
+            cmd = f"{cmd} -c '{self.cmd_object.command_string}'"
         if self.login:
-            cmd = "{} {}".format(cmd, self.login)
+            cmd = f"{cmd} {self.login}"
         return cmd
 
     def _validate_passed_object_or_command_parameters(self):

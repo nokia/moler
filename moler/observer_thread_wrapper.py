@@ -69,7 +69,7 @@ class ObserverThreadWrapper:
 
         :return: None
         """
-        logging.getLogger("moler_threads").debug("ENTER {}".format(self._observer))
+        logging.getLogger("moler_threads").debug(f"ENTER {self._observer}")
         heartbeat = tracked_thread.report_alive()
         while not self._request_end.is_set():
             if next(heartbeat):

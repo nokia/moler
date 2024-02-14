@@ -65,7 +65,7 @@ async def ping_observing_task(ext_io_connection, ping_ip):
                                         connection=ext_io_connection.moler_connection,
                                         runner=get_runner(variant="asyncio"))
 
-    info = '{} on {} using {}'.format(ping_ip, conn_addr, net_down_detector)
+    info = f'{ping_ip} on {conn_addr} using {net_down_detector}'
     logger.debug('observe ' + info)
 
     # 4. start observer (nonblocking, using as future)
@@ -77,19 +77,19 @@ async def ping_observing_task(ext_io_connection, ping_ip):
         try:
             net_down_time = await asyncio.wait_for(net_down_detector, timeout=10)  # =2 --> TimeoutError
             timestamp = time.strftime("%H:%M:%S", time.localtime(net_down_time))
-            logger.debug('Network {} is down from {}'.format(ping_ip, timestamp))
+            logger.debug(f'Network {ping_ip} is down from {timestamp}')
         except asyncio.TimeoutError:
             logger.debug('Network down detector timed out')
 
         # 6. call next observer (blocking till completes)
-        info = '{} on {} using {}'.format(ping_ip, conn_addr, net_up_detector)
+        info = f'{ping_ip} on {conn_addr} using {net_up_detector}'
         logger.debug('observe ' + info)
         # using as synchronous function (so we want verb to express action)
         detect_network_up = net_up_detector
         net_up_time = await detect_network_up  # if you want timeout - see code above
         timestamp = time.strftime("%H:%M:%S", time.localtime(net_up_time))
-        logger.debug('Network {} is back "up" from {}'.format(ping_ip, timestamp))
-    logger.debug('exiting ping_observing_task({})'.format(ping_ip))
+        logger.debug(f'Network {ping_ip} is back "up" from {timestamp}')
+    logger.debug(f'exiting ping_observing_task({ping_ip})')
 
 
 # ==============================================================================
@@ -106,7 +106,7 @@ async def main(connections2observe4ip):
         # Another words, all we want here is stg like:
         # "give me connection to main_dns_server"
         # ------------------------------------------------------------------
-        con_logger = logging.getLogger('tcp-async-io.{}'.format(connection_name))
+        con_logger = logging.getLogger(f'tcp-async-io.{connection_name}')
         tcp_connection = get_connection(name=connection_name, variant='asyncio', logger=con_logger)
 
         # client_task= asyncio.ensure_future(ping_observing_task(tcp_connection, ping_ip))

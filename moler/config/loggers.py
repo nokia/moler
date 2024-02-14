@@ -111,7 +111,7 @@ def _get_moler_version_cloned_from_git_repository(setup_py_path):
                 if search_version:
                     version = search_version.group("VERSION")
 
-    return "{} cloned from git repository".format(version)
+    return f"{version} cloned from git repository"
 
 
 def set_backup_count(backup_count):
@@ -304,7 +304,7 @@ def _reopen_all_logfiles_with_new_suffix(logger_suffixes, new_suffix, logger_nam
                 )
                 if not written_to_log:
                     written_to_log = True
-                    logger.info("Switch to new path: '{}'.".format(new_log_full_path))
+                    logger.info(f"Switch to new path: '{new_log_full_path}'.")
                 if "b" in handler.mode:
                     handler.mode = "ab"
                 else:
@@ -327,11 +327,11 @@ def _get_new_filepath_with_suffix(old_path, old_suffix, new_suffix):
     if new_suffix is None:
         new_suffix = ""
     if old_suffix is None:
-        path = "{}{}".format(path, new_suffix)
+        path = f"{path}{new_suffix}"
     else:
         head, _, tail = path.rpartition(old_suffix)
-        path = "{}{}{}".format(head, new_suffix, tail)
-    new_path = "{}{}".format(path, extension)
+        path = f"{head}{new_suffix}{tail}"
+    new_path = f"{path}{extension}"
     return new_path
 
 
@@ -475,7 +475,7 @@ def _add_raw_file_handler(logger_name, log_file):
     logfile_full_path = os.path.join(_logging_path, log_file)
     _prepare_logs_folder(logfile_full_path)
     logger = logging.getLogger(logger_name)
-    rfh = RawFileHandler(filename=logfile_full_path, mode="{}b".format(write_mode))
+    rfh = RawFileHandler(filename=logfile_full_path, mode=f"{write_mode}b")
     logger.addHandler(rfh)
 
 
@@ -566,7 +566,7 @@ def configure_moler_main_logger():
         )
         logger.info(msg)
         configure_moler_threads_logger()
-        logger.info("More logs in: {}".format(_logging_path))
+        logger.info(f"More logs in: {_logging_path}")
         _list_libraries(logger=logger)
         global _main_logger  # pylint: disable=global-statement
         _main_logger = logger
@@ -608,7 +608,7 @@ def _list_libraries(logger):
 
     logger.info("Installed packages:")
     for dist_name in sorted(packages.keys()):
-        msg = "'{}':'{}'.".format(dist_name, packages[dist_name])
+        msg = f"'{dist_name}':'{packages[dist_name]}'."
         if re.search(re_moler, dist_name):
             logger.info(msg)
         else:
@@ -617,11 +617,11 @@ def _list_libraries(logger):
 
 def configure_runner_logger(runner_name):
     """Configure logger with file storing runner's log"""
-    logger_name = "moler.runner.{}".format(runner_name)
+    logger_name = f"moler.runner.{runner_name}"
     if logger_name not in active_loggers:
         create_logger(
             name=logger_name,
-            log_file="moler.runner.{}.log".format(runner_name),
+            log_file=f"moler.runner.{runner_name}.log",
             log_level=debug_level_or_info_level(),
             log_format="%(asctime)s.%(msecs)03d %(levelname)-12s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() |%(message)s",
             datefmt=date_format,
@@ -631,7 +631,7 @@ def configure_runner_logger(runner_name):
 
 def configure_device_logger(connection_name, propagate=False):
     """Configure logger with file storing connection's log"""
-    logger_name = "moler.{}".format(connection_name)
+    logger_name = f"moler.{connection_name}"
     if logger_name not in active_loggers:
         logger = create_logger(name=logger_name, log_level=TRACE)
         logger.propagate = propagate
@@ -641,7 +641,7 @@ def configure_device_logger(connection_name, propagate=False):
         )
         _add_new_file_handler(
             logger_name=logger_name,
-            log_file="{}.log".format(logger_name),
+            log_file=f"{logger_name}.log",
             log_level=logging.INFO,
             formatter=conn_formatter,
         )
@@ -650,12 +650,12 @@ def configure_device_logger(connection_name, propagate=False):
             # to make it pass data into raw-log-handler
             logger.setLevel(min(RAW_DATA, TRACE))
             _add_raw_file_handler(
-                logger_name=logger_name, log_file="{}.raw.log".format(logger_name)
+                logger_name=logger_name, log_file=f"{logger_name}.raw.log"
             )
             if debug_level == TRACE:
                 _add_raw_trace_file_handler(
                     logger_name=logger_name,
-                    log_file="{}.raw.trace.log".format(logger_name),
+                    log_file=f"{logger_name}.raw.trace.log",
                 )
     else:
         logger = logging.getLogger(logger_name)
@@ -705,11 +705,11 @@ class TracedIn:
 
         def _traced_method(*args, **kwargs):  # parameters of decorated_method
             args_list = [str(arg) for arg in args]
-            kwargs_list = ["{}={}".format(arg, kwargs[arg]) for arg in kwargs]
+            kwargs_list = [f"{arg}={kwargs[arg]}" for arg in kwargs]
             param_str = ", ".join(args_list + kwargs_list)
             ret = decorated_method(*args, **kwargs)
             self.logger.log(
-                TRACE, "{}({}) returned: {}".format(method_name, param_str, ret)
+                TRACE, f"{method_name}({param_str}) returned: {ret}"
             )
             return ret
 
@@ -822,14 +822,14 @@ class MultilineWithDirectionFormatter(logging.Formatter):
             empty_prefix = self._calculate_empty_prefix(msg_lines[0], out_lines[0])
             for line in out_lines[1:]:
                 try:
-                    output += "{}|{}".format(empty_prefix, line)
+                    output += f"{empty_prefix}|{line}"
                 except UnicodeDecodeError as err:
                     if hasattr(err, "encoding"):
                         encoding = err.encoding
                     else:
                         encoding = sys.getdefaultencoding()
                     decoded_line = codecs.decode(line, encoding, "replace")
-                    output += "{}|{}".format(empty_prefix, decoded_line)
+                    output += f"{empty_prefix}|{decoded_line}"
 
                     # TODO: line completion for connection decoded data comming in chunks
         output = MolerMainMultilineWithDirectionFormatter._remove_duplicate_log_name(  # pylint: disable=protected-access
@@ -839,7 +839,7 @@ class MultilineWithDirectionFormatter(logging.Formatter):
 
     def _calculate_empty_prefix(self, message_first_line, output_first_line):
         try:
-            prefix_len = output_first_line.rindex("|{}".format(message_first_line))
+            prefix_len = output_first_line.rindex(f"|{message_first_line}")
         except ValueError:
             prefix_len = 1
         empty_prefix = " " * prefix_len
@@ -847,8 +847,8 @@ class MultilineWithDirectionFormatter(logging.Formatter):
 
     @staticmethod
     def _remove_duplicate_log_name(record, output):
-        if record.log_name and "|{}".format(record.log_name) in output:
-            output = output.replace("|{:<20}".format(record.log_name), "")
+        if record.log_name and f"|{record.log_name}" in output:
+            output = output.replace(f"|{record.log_name:<20}", "")
         return output
 
 
@@ -867,7 +867,7 @@ class MolerMainMultilineWithDirectionFormatter(MultilineWithDirectionFormatter):
         if hasattr(record, "moler_error"):
             record.levelname = "MOLER_ERROR"
 
-        record.msg = "{:<20}|{}".format(record.log_name, record.msg)
+        record.msg = f"{record.log_name:<20}|{record.msg}"
 
         return super(MolerMainMultilineWithDirectionFormatter, self).format(record)
 

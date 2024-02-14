@@ -43,9 +43,9 @@ class Netstat(GenericUnixCommand):
         :return: String representation of the command to send over a connection to the device.
         """
         if self.options:
-            cmd = "{} {}".format("netstat", self.options)
+            cmd = f"netstat {self.options}"
         else:
-            cmd = "{}".format("netstat")
+            cmd = "netstat"
         return cmd
 
     def on_new_line(self, line, is_full_line):

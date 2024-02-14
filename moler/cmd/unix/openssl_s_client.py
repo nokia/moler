@@ -41,7 +41,7 @@ class OpensslSClient(GenericUnixCommand):
         :return: String representation of command to send over connection to device.
         """
         cmd = "openssl s_client"
-        cmd = "{} {}".format(cmd, self.options)
+        cmd = f"{cmd} {self.options}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

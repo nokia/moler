@@ -93,7 +93,7 @@ class Iperf3(Iperf2):
         if ((short_option in options) or (long_option in options)) and (
                 ("-s" in options) or ("--server" in options)):
             raise AttributeError(
-                "Option ({}) you are trying to set is client only".format(long_option))
+                f"Option ({long_option}) you are trying to set is client only")
 
     def build_command_string(self):
         cmd = "iperf3 " + str(self.options)
@@ -122,8 +122,8 @@ class Iperf3(Iperf2):
                 remote_host,
                 remote_port,
             ) = self._regex_helper.groups()
-            local = "{}@{}".format(local_port, local_host)
-            remote = "{}@{}".format(remote_port, remote_host)
+            local = f"{local_port}@{local_host}"
+            remote = f"{remote_port}@{remote_host}"
             if self.port == int(remote_port):
                 from_client, to_server = local, remote
                 client_host = local_host
@@ -166,7 +166,7 @@ class Iperf3(Iperf2):
                 ) = self._split_connection_name((client, server))
                 connection_id = "[SUM]"
                 self._connection_dict[connection_id] = (
-                    "{}@{}".format("multiport", client_host),
+                    f"multiport@{client_host}",
                     server,)
             raise ParsingDone
 
@@ -277,9 +277,7 @@ class Iperf3(Iperf2):
                 server_host,
                 server_port,
             ) = self._split_connection_name(connection_name)
-            from_client, to_server = client_host, "{}@{}".format(
-                server_port, server_host
-            )
+            from_client, to_server = client_host, f"{server_port}@{server_host}"
             result_connection = (from_client, to_server)
             self.current_ret["CONNECTIONS"][result_connection] = {
                 "report": last_record}
@@ -334,8 +332,7 @@ class Iperf3(Iperf2):
         connections = list(self._connection_dict.values())
         client_host, _, server_host, _ = self._split_connection_name(
             connections[0])
-        return (client_host, "{}@{}".format(
-            self.port, server_host)) in result
+        return (client_host, f"{self.port}@{server_host}") in result
 
     # - - - - - - - - - - - - - - - - - - - - - - - - -
     _re_summary_ornament = re.compile(r"(?P<SUM_ORNAMENT>(-\s)+)")

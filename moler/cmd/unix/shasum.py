@@ -51,9 +51,9 @@ class Shasum(GenericUnixCommand):
         """
         cmd = self.cmd_kind
         if self.options:
-            cmd = "{} {} {}".format(cmd, self.options, self.path)
+            cmd = f"{cmd} {self.options} {self.path}"
         else:
-            cmd = "{} {}".format(cmd, self.path)
+            cmd = f"{cmd} {self.path}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

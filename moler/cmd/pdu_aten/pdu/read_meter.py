@@ -35,12 +35,12 @@ class ReadMeter(GenericPdu):
         self._converter_helper = ConverterHelper.get_converter_helper()
 
     def build_command_string(self):
-        cmd = "read meter {}".format(self.target)
+        cmd = f"read meter {self.target}"
         if self.outlet:
-            cmd = "{} {}".format(cmd, self.outlet)
-        cmd = "{} {}".format(cmd, self.measurement)
+            cmd = f"{cmd} {self.outlet}"
+        cmd = f"{cmd} {self.measurement}"
         if self.format:
-            cmd = "{} {}".format(cmd, self.format)
+            cmd = f"{cmd} {self.format}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

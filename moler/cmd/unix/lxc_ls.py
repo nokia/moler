@@ -48,7 +48,7 @@ class LxcLs(GenericUnixCommand):
         """
         cmd = "lxc-ls"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -75,7 +75,7 @@ class LxcLs(GenericUnixCommand):
         if self._regex_helper.search_compiled(LxcLs._re_command_error, line):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR: {}".format(self._regex_helper.group("ERROR"))
+                    self, f"ERROR: {self._regex_helper.group('ERROR')}"
                 )
             )
 

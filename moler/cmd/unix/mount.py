@@ -55,11 +55,11 @@ class Mount(GenericUnixCommand):
     def build_command_string(self):
         cmd = "mount"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         if self.device:
-            cmd = "{} {}".format(cmd, self.device)
+            cmd = f"{cmd} {self.device}"
         if self.directory:
-            cmd = "{} {}".format(cmd, self.directory)
+            cmd = f"{cmd} {self.directory}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -94,7 +94,7 @@ class Mount(GenericUnixCommand):
         if self._regex_helper.search_compiled(Mount._re_error, line):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR: {}".format(self._regex_helper.group("ERROR"))
+                    self, f"ERROR: {self._regex_helper.group('ERROR')}"
                 )
             )
             raise ParsingDone

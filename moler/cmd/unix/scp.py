@@ -77,9 +77,9 @@ class Scp(GenericUnixCommand):
         """
         cmd = "scp"
         if self.options:
-            cmd = "{} {} {} {}".format(cmd, self.options, self.source, self.dest)
+            cmd = f"{cmd} {self.options} {self.source} {self.dest}"
         else:
-            cmd = "{} {} {}".format(cmd, self.source, self.dest)
+            cmd = f"{cmd} {self.source} {self.dest}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -136,7 +136,7 @@ class Scp(GenericUnixCommand):
         """
         if self._regex_helper.search_compiled(Scp._re_parse_failed, line):
             self.set_exception(
-                CommandFailure(self, "Command failed in line >>{}<<.".format(line))
+                CommandFailure(self, f"Command failed in line >>{line}<<.")
             )
             raise ParsingDone()
 
@@ -254,7 +254,7 @@ class Scp(GenericUnixCommand):
                 self._handle_failed_host_key_verification()
             else:
                 self.set_exception(
-                    CommandFailure(self, "Command failed in line >>{}<<.".format(line))
+                    CommandFailure(self, f"Command failed in line >>{line}<<.")
                 )
             raise ParsingDone()
 

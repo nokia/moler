@@ -39,7 +39,7 @@ class RunSerialProxy(CommandChangingPrompt):
         Builds command string from parameters passed to object.
         :return: String representation of command to send over connection to device.
         """
-        proxy_command = "python -i moler_serial_proxy.py {}".format(self.serial_devname)
+        proxy_command = f"python -i moler_serial_proxy.py {self.serial_devname}"
         return proxy_command
 
     def on_new_line(self, line, is_full_line):
@@ -69,7 +69,7 @@ class RunSerialProxy(CommandChangingPrompt):
         :raise ParsingDone: if regex matches.
         """
         if self._regex_helper.search_compiled(self._re_command_fail, line):
-            self.set_exception(CommandFailure(self, "Found error regex in line '{}'".format(line)))
+            self.set_exception(CommandFailure(self, f"Found error regex in line '{line}'"))
             raise ParsingDone
 
     def _exit_from_python_shell(self, line):
@@ -80,7 +80,7 @@ class RunSerialProxy(CommandChangingPrompt):
         :return: None
         """
         if (not self._python_shell_exit_sent) and self._in_python_shell(line):
-            self.connection.send("exit(){}".format(self.target_newline))
+            self.connection.send(f"exit(){self.target_newline}")
             self._python_shell_exit_sent = True
             raise ParsingDone
 

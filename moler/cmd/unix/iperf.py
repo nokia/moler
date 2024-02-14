@@ -93,7 +93,7 @@ class Iperf(GenericUnixCommand):
         if self._regex_helper.search_compiled(Iperf._re_command_failure, line):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR: {}".format(self._regex_helper.group("FAILURE_MSG"))
+                    self, f"ERROR: {self._regex_helper.group('FAILURE_MSG')}"
                 )
             )
             raise ParsingDone

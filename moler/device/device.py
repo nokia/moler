@@ -172,7 +172,7 @@ class DeviceFactory:
         """
         with cls._lock_device:
             logger.info(
-                "START creating device {} from {}".format(new_name, source_device)
+                f"START creating device {new_name} from {source_device}"
             )
             source_device_name = source_device
             if isinstance(source_device, six.string_types):
@@ -188,7 +188,7 @@ class DeviceFactory:
                     additional_params=additional_params,
                 )
                 logger.info(
-                    "STEP 1 - creating source device {}".format(source_device_name)
+                    f"STEP 1 - creating source device {source_device_name}"
                 )
             source_name = source_device.name  # name already translated to alias.
             if new_name in cls._devices.keys():
@@ -214,7 +214,7 @@ class DeviceFactory:
             constructor_parameters["initial_state"] = initial_state
             if constructor_parameters["name"]:
                 constructor_parameters["name"] = new_name
-            logger.info("STEP 2 - creating cloned device {}".format(new_name))
+            logger.info(f"STEP 2 - creating cloned device {new_name}")
             dev = cls._create_instance_and_remember_it(
                 device_class=device_class,
                 constructor_parameters=constructor_parameters,
@@ -224,7 +224,7 @@ class DeviceFactory:
             new_name = dev.name
             cls._devices_params[new_name]["cloned_from"] = source_name
             logger.info(
-                "DONE creating device {} from {}".format(new_name, source_device_name)
+                f"DONE creating device {new_name} from {source_device_name}"
             )
         return dev
 
@@ -254,9 +254,7 @@ class DeviceFactory:
             whats_wrong = "No connection_desc selected"
             selection_method = "directly or via configuration"
             raise KeyError(
-                "{} ({}) for '{}' connection".format(
-                    whats_wrong, selection_method, device_class
-                )
+                f"{whats_wrong} ({selection_method}) for '{device_class}' connection"
             )
         return connection_desc
 
@@ -274,7 +272,7 @@ class DeviceFactory:
         if name:
             if name not in devices_config.named_devices:
                 whats_wrong = "was not defined inside configuration"
-                raise KeyError("Device named '{}' {}".format(name, whats_wrong))
+                raise KeyError(f"Device named '{name}' {whats_wrong}")
             (
                 cfg_device_class,
                 cfg_connection_desc,
@@ -539,7 +537,7 @@ class DeviceFactory:
         if name in cls._unique_names:
             nr = 2
             while new_device_name in cls._already_used_names:
-                new_device_name = "{}_{}".format(name, nr)
+                new_device_name = f"{name}_{nr}"
                 nr += 1
         cls._unique_names[name] = new_device_name
         cls._already_used_names.add(new_device_name)

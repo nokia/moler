@@ -68,7 +68,7 @@ class Socat(GenericUnixCommand):
         if self._regex_helper.search_compiled(Socat._re_error, line):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG"))
+                    self, f"ERROR: {self._regex_helper.group('ERROR_MSG')}"
                 )
             )
             raise ParsingDone

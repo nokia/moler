@@ -86,7 +86,7 @@ class ConnectionFactory:
         :return: None
         """
         if not callable(constructor):
-            err_msg = "constructor must be callable not {}".format(constructor)
+            err_msg = f"constructor must be callable not {constructor}"
             _moler_logger_log(level=logging.DEBUG, msg=err_msg)
             raise ValueError(err_msg)
         cls._constructors_registry[(io_type, variant)] = constructor
@@ -103,7 +103,7 @@ class ConnectionFactory:
         """
         key = (io_type, variant)
         if key not in cls._constructors_registry:
-            err_msg = "No constructor registered for [{}] connection".format(key)
+            err_msg = f"No constructor registered for [{key}] connection"
             _moler_logger_log(level=logging.DEBUG, msg=err_msg)
             raise KeyError(err_msg)
         constructor = cls._constructors_registry[key]
@@ -135,7 +135,7 @@ def _try_take_named_connection_params(name, io_type, **constructor_kwargs):
     if name:
         if name not in connection_cfg.named_connections:
             whats_wrong = "was not defined inside configuration"
-            err_msg = "Connection named '{}' {}".format(name, whats_wrong)
+            err_msg = f"Connection named '{name}' {whats_wrong}"
             _moler_logger_log(level=logging.DEBUG, msg=err_msg)
             raise KeyError(err_msg)
         org_kwargs = constructor_kwargs
@@ -152,9 +152,9 @@ def _try_take_named_connection_params(name, io_type, **constructor_kwargs):
 
 def _try_select_io_type_variant(io_type, variant):
     if (io_type == 'terminal') and (platform.system() == 'Windows'):  # TODO: fix if we will have win implementation of terminal
-        whats_wrong = "No '{}' connection available on Windows".format(io_type)
+        whats_wrong = f"No '{io_type}' connection available on Windows"
         fix = "try using 'sshshell' connection instead"
-        err_msg = "{} ({})".format(whats_wrong, fix)
+        err_msg = f"{whats_wrong} ({fix})"
         _moler_logger_log(level=logging.DEBUG, msg=err_msg)
         raise AttributeError(err_msg)
 
@@ -164,16 +164,12 @@ def _try_select_io_type_variant(io_type, variant):
     if variant is None:
         whats_wrong = "No variant selected"
         selection_method = "directly or via configuration"
-        err_msg = "{} ({}) for '{}' connection".format(whats_wrong,
-                                                       selection_method,
-                                                       io_type)
+        err_msg = f"{whats_wrong} ({selection_method}) for '{io_type}' connection"
         _moler_logger_log(level=logging.DEBUG, msg=err_msg)
         raise KeyError(err_msg)
     if variant not in ConnectionFactory.available_variants(io_type):
         whats_wrong = "is not registered inside ConnectionFactory"
-        err_msg = "'{}' variant of '{}' connection {}".format(variant,
-                                                              io_type,
-                                                              whats_wrong)
+        err_msg = f"'{variant}' variant of '{io_type}' connection {whats_wrong}"
         _moler_logger_log(level=logging.DEBUG, msg=err_msg)
         raise KeyError(err_msg)
     return variant

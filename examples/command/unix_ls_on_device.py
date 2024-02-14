@@ -41,7 +41,7 @@ if 'readme.txt' in remote_files['files']:
     print("readme.txt file:")
     readme_file_info = remote_files['files']['readme.txt']
     for attr in readme_file_info:
-        print("  {:<18}: {}".format(attr, readme_file_info[attr]))
+        print(f"  {attr:<18}: {readme_file_info[attr]}")
 
 # result:
 """

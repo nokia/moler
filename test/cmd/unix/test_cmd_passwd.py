@@ -39,7 +39,7 @@ def test_passwd_raise_exception_password_too_short_and_cancel_cmd(buffer_connect
 
         for line in command_output:
             if not line.endswith(": "):
-                line = "{}\n".format(line)
+                line = f"{line}\n"
 
             buffer_connection.moler_connection.data_received(line.encode("utf-8"), datetime.datetime.now())
 
@@ -61,7 +61,7 @@ def test_passwd_raise_exception_password_too_simple_and_cancel_cmd(buffer_connec
 
         for line in command_output:
             if not line.endswith(": "):
-                line = "{}\n".format(line)
+                line = f"{line}\n"
 
             buffer_connection.moler_connection.data_received(line.encode("utf-8"), datetime.datetime.now())
 

@@ -45,7 +45,7 @@ class ExitSerialProxy(CommandTextualGeneric):
         :return: None
         """
         if (not self._python_shell_exit_sent) and self._in_python_shell(line):
-            self.connection.send("exit(){}".format(self.target_newline))
+            self.connection.send(f"exit(){self.target_newline}")
             self._python_shell_exit_sent = True
             raise ParsingDone
 

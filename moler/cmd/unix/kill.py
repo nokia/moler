@@ -40,7 +40,7 @@ class Kill(GenericUnixCommand):
 
     def _parse_no_permit(self, line):
         if self._regex_helper.search(r'(Operation not permitted)', line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group(1))))
+            self.set_exception(CommandFailure(self, f"ERROR: {self._regex_helper.group(1)}"))
             raise ParsingDone
 
 #    -bash: kill: (973) - No such process

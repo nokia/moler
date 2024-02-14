@@ -42,7 +42,7 @@ class SetCellIdLte(GenericAtCommand):
         self.ret_required = False
 
     def build_command_string(self):
-        return "AT+CEREG={}".format(self.selected_mode)
+        return f"AT+CEREG={self.selected_mode}"
 
 
 # -----------------------------------------------------------------------------

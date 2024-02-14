@@ -297,14 +297,14 @@ def test_convert_to_int():
 def test_convert_to_number_int():
     from moler.helpers import convert_to_number
     expected = 4
-    result = convert_to_number("{}".format(expected))
+    result = convert_to_number(f"{expected}")
     assert expected == result
 
 
 def test_convert_to_number_float():
     from moler.helpers import convert_to_number
     expected = 3.2
-    result = convert_to_number("{}".format(expected))
+    result = convert_to_number(f"{expected}")
     assert expected == result
 
 

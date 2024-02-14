@@ -44,9 +44,9 @@ class LxcAttach(CommandChangingPrompt):
 
         :return: String representation of command to send over connection to device.
         """
-        cmd = "lxc-attach --name={}".format(self.name)
+        cmd = f"lxc-attach --name={self.name}"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -68,7 +68,7 @@ class LxcAttach(CommandChangingPrompt):
 
     def _command_error(self, line):
         if self._regex_helper.search_compiled(LxcAttach._re_command_error, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
+            self.set_exception(CommandFailure(self, f"ERROR: {self._regex_helper.group('ERROR')}"))
             raise ParsingDone()
 
 

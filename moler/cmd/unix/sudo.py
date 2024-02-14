@@ -87,9 +87,9 @@ class Sudo(CommandChangingPrompt):
         self._build_command_object()
         cmd = "sudo"
         if self.sudo_params:
-            cmd = "{} {}".format(cmd, self.sudo_params)
+            cmd = f"{cmd} {self.sudo_params}"
         if self.cmd_object:
-            cmd = "{} {}".format(cmd, self.cmd_object.command_string)
+            cmd = f"{cmd} {self.cmd_object.command_string}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -151,7 +151,7 @@ class Sudo(CommandChangingPrompt):
             if not self._sent_command_string:
                 self._sent_command_string = True
                 self.cmd_object.life_status._is_running = True  # pylint: disable=protected-access
-                cs = "{}{}".format(self.cmd_object.command_string, self.newline_seq)
+                cs = f"{self.cmd_object.command_string}{self.newline_seq}"
                 self.cmd_object.data_received(cs, self._last_recv_time_data_read_from_connection)
 
             prev_cmd_timeout = self.cmd_object.timeout
@@ -182,7 +182,7 @@ class Sudo(CommandChangingPrompt):
         :raises: ParsingDone if regex matches the line.
         """
         if re.search(Sudo._re_sudo_command_not_found, line):
-            self.set_exception(CommandFailure(self, "Command not found in line '{}'.".format(line)))
+            self.set_exception(CommandFailure(self, f"Command not found in line '{line}'."))
             self._finish_on_final_prompt = True
             raise ParsingDone()
 
@@ -203,7 +203,7 @@ class Sudo(CommandChangingPrompt):
         if re.search(self._get_wrong_password_regex(), line):
             if not self._command_output_started:
                 if (len(self.password) == 0) and (self.repeat_password is False):
-                    self.set_exception(CommandFailure(self, "Command error password found in line '{}'.".format(line)))
+                    self.set_exception(CommandFailure(self, f"Command error password found in line '{line}'."))
                     self._finish_on_final_prompt = True
                     self._sent_password = False
                 raise ParsingDone()
@@ -224,7 +224,7 @@ class Sudo(CommandChangingPrompt):
         :raises: ParsingDone if regex matches the line.
         """
         if re.search(self._get_error_regex(), line):
-            self.set_exception(CommandFailure(self, "Command su error found in line '{}'.".format(line)))
+            self.set_exception(CommandFailure(self, f"Command su error found in line '{line}'."))
             self._finish_on_final_prompt = True
             raise ParsingDone()
 
@@ -250,7 +250,7 @@ class Sudo(CommandChangingPrompt):
                     self.connection.sendline(current_password, encrypt=self.encrypt_password)
                 except IndexError:
                     if self.repeat_password:
-                        self.connection.sendline("{}".format(self._last_password), encrypt=self.encrypt_password)
+                        self.connection.sendline(f"{self._last_password}", encrypt=self.encrypt_password)
                     else:
                         self.set_exception(
                             CommandFailure(self, "Password was requested but no more passwords provided."))

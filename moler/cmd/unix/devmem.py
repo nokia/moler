@@ -44,13 +44,13 @@ class Devmem(GenericUnixCommand):
         """
         cmd = "devmem"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
-        cmd = "{} {}".format(cmd, self.address)
+            cmd = f"{cmd} {self.options}"
+        cmd = f"{cmd} {self.address}"
         if self.size and self.value:
-            cmd = "{} {} {}".format(cmd, self.size, self.value)
+            cmd = f"{cmd} {self.size} {self.value}"
             self.ret_required = False
         elif self.value:
-            cmd = "{} {}".format(cmd, self.value)
+            cmd = f"{cmd} {self.value}"
             self.ret_required = False
         return cmd
 

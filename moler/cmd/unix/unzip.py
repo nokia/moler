@@ -59,15 +59,13 @@ class Unzip(GenericUnixCommand):
         :return: String representation of the command to send over a connection to the device.
         """
         if self.options and self.extract_dir:
-            cmd = "{} {} {} {} {}".format(
-                "unzip", self.options, self.zip_file, "-d", self.extract_dir
-            )
+            cmd = f"unzip {self.options} {self.zip_file} -d {self.extract_dir}"
         elif self.extract_dir:
-            cmd = "{} {} {} {}".format("unzip", self.zip_file, "-d", self.extract_dir)
+            cmd = f"unzip {self.zip_file} -d {self.extract_dir}"
         elif self.options:
-            cmd = "{} {} {}".format("unzip", self.options, self.zip_file)
+            cmd = f"unzip {self.options} {self.zip_file}"
         else:
-            cmd = "{} {}".format("unzip", self.zip_file)
+            cmd = f"unzip {self.zip_file}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -117,7 +115,7 @@ class Unzip(GenericUnixCommand):
         ):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR: {}".format(self._regex_helper.group("error"))
+                    self, f"ERROR: {self._regex_helper.group('error')}"
                 )
             )
             raise ParsingDone
@@ -205,7 +203,7 @@ class Unzip(GenericUnixCommand):
         ):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR: {}".format(self._regex_helper.group("caution"))
+                    self, f"ERROR: {self._regex_helper.group('caution')}"
                 )
             )
             raise ParsingDone

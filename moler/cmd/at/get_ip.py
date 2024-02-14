@@ -46,7 +46,7 @@ class GetIp(GenericAtCommand):
         self.current_ret = {}
 
     def build_command_string(self):
-        return "AT+CGPADDR={}".format(self.context_identifier)
+        return f"AT+CGPADDR={self.context_identifier}"
 
     def on_new_line(self, line, is_full_line):
         """

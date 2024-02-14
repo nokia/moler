@@ -43,13 +43,13 @@ class Useradd(GenericUnixCommand):
     def build_command_string(self):
         cmd = "useradd"
         if self.defaults:
-            cmd = "{} -D".format(cmd)
+            cmd = f"{cmd} -D"
             if self.options:
-                cmd = "{} {}".format(cmd, self.options)
+                cmd = f"{cmd} {self.options}"
         elif self.user:
             if self.options:
-                cmd = "{} {}".format(cmd, self.options)
-            cmd = "{} {}".format(cmd, self.user)
+                cmd = f"{cmd} {self.options}"
+            cmd = f"{cmd} {self.user}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -74,7 +74,7 @@ class Useradd(GenericUnixCommand):
         if self._regex_helper.search_compiled(Useradd._re_error, line):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR: {}".format(self._regex_helper.group("ERROR"))
+                    self, f"ERROR: {self._regex_helper.group('ERROR')}"
                 )
             )
             raise ParsingDone

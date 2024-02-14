@@ -51,9 +51,9 @@ class Cut(GenericUnixCommand):
         """
         cmd = "cut"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         if self.path:
-            cmd = "{} {}".format(cmd, self.path)
+            cmd = f"{cmd} {self.path}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -78,7 +78,7 @@ class Cut(GenericUnixCommand):
         if self._regex_helper.search_compiled(Cut._re_parse_error, line):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR: {}".format(self._regex_helper.group("ERROR"))
+                    self, f"ERROR: {self._regex_helper.group('ERROR')}"
                 )
             )
             raise ParsingDone
