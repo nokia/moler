@@ -44,4 +44,3 @@ class ConnectionObserverLifeStatus:
                f"in_terminating={self.in_terminating}, was_on_timeout_called={self.was_on_timeout_called}, " \
                f"_is_running={self._is_running}, terminating_timeout={self.terminating_timeout}, " \
                f"timeout={self.timeout}, is_done={self.is_done}, is_cancelled={self.is_cancelled})"
-    
