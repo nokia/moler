@@ -30,3 +30,18 @@ class ConnectionObserverLifeStatus:
         self.timeout: Optional[float] = 20.0  # default
         self.is_done: bool = False
         self.is_cancelled: bool = False
+
+    def __str__(self):
+        return f"{self.__class__.__name__}(inactivity_timeout={self.inactivity_timeout}, " \
+               f"last_feed_time={self.last_feed_time}, start_time={self.start_time}, " \
+               f"in_terminating={self.in_terminating}, was_on_timeout_called={self.was_on_timeout_called}, " \
+               f"_is_running={self._is_running}, terminating_timeout={self.terminating_timeout}, " \
+               f"timeout={self.timeout}, is_done={self.is_done}, is_cancelled={self.is_cancelled})"
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(inactivity_timeout={self.inactivity_timeout}, " \
+               f"last_feed_time={self.last_feed_time}, start_time={self.start_time}, " \
+               f"in_terminating={self.in_terminating}, was_on_timeout_called={self.was_on_timeout_called}, " \
+               f"_is_running={self._is_running}, terminating_timeout={self.terminating_timeout}, " \
+               f"timeout={self.timeout}, is_done={self.is_done}, is_cancelled={self.is_cancelled})"
+    
