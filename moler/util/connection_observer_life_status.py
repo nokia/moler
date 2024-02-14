@@ -9,10 +9,13 @@ from typing import Optional
 
 
 class ConnectionObserverLifeStatus:
+    """
+    Class represents life status of ConnectionObserver.
+    """
 
     def __init__(self):
         """
-        Creates instance of ConnectionObserverLifeStatus class.
+        Create instance of ConnectionObserverLifeStatus class.
         """
         self.inactivity_timeout: float = 0.0  # If positive value and no data are sent by connection in this time then method
         #                                on_inactivity will be called.
@@ -31,14 +34,23 @@ class ConnectionObserverLifeStatus:
         self.is_done: bool = False
         self.is_cancelled: bool = False
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        Return string representation of ConnectionObserverLifeStatus object.
+        :return: String representation of ConnectionObserverLifeStatus object.
+        """
+
         return f"{self.__class__.__name__}(inactivity_timeout={self.inactivity_timeout}, " \
                f"last_feed_time={self.last_feed_time}, start_time={self.start_time}, " \
                f"in_terminating={self.in_terminating}, was_on_timeout_called={self.was_on_timeout_called}, " \
                f"_is_running={self._is_running}, terminating_timeout={self.terminating_timeout}, " \
                f"timeout={self.timeout}, is_done={self.is_done}, is_cancelled={self.is_cancelled})"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """ Returns string representation of ConnectionObserverLifeStatus object.
+        :return: String representation of ConnectionObserverLifeStatus object.
+        """
+
         return f"{self.__class__.__name__}(inactivity_timeout={self.inactivity_timeout}, " \
                f"last_feed_time={self.last_feed_time}, start_time={self.start_time}, " \
                f"in_terminating={self.in_terminating}, was_on_timeout_called={self.was_on_timeout_called}, " \
