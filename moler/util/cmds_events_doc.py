@@ -301,7 +301,12 @@ def check_if_documentation_exists(path2cmds):
     if errors_found:
         print("\n".join(errors_found))
         msg = f"Following {observer_type.lower()} have incorrect documentation:"
-        err_msg = "{}\n    {}".format(msg, "\n    ".join(wrong_commands.keys()))  # pylint: disable=consider-using-f-string
+        err_msg = f"{msg}\n    "
+
+        for wrong_command in wrong_commands.keys():
+            err_msg += f"\n    {wrong_command}"
+
+        # err_msg = "{}\n    {}".format(msg, "\n    ".join(wrong_commands.keys()))  # pylint: disable=consider-using-f-string
         print(err_msg)
         return False
     if number_of_command_found == 0:
