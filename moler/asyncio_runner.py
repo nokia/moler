@@ -57,8 +57,7 @@ def system_resources_usage():
 
 
 def system_resources_usage_msg(curr_fds_open, curr_threads_nb):
-    msg = "RESOURCES USAGE: {}/{} FDs OPEN, {} threads active.".format(curr_fds_open, max_open_files_limit_soft,
-                                                                       curr_threads_nb)
+    msg = f"RESOURCES USAGE: {curr_fds_open}/{max_open_files_limit_soft} FDs OPEN, {curr_threads_nb} threads active."
     return msg
 
 
@@ -68,8 +67,7 @@ def check_system_resources_limit(connection_observer, observer_lock, logger):
 
     if curr_fds_open > max_open_files_limit_soft - 10:
         err_cause = "Can't run new asyncio loop - ALMOST REACHED MAX OPEN FILES LIMIT"
-        msg = "{} ({}). Now {} FDs open, {} threads active.".format(err_cause, max_open_files_limit_soft,
-                                                                    curr_fds_open, curr_threads_nb)
+        msg = f"{err_cause} ({max_open_files_limit_soft}). Now {curr_fds_open} FDs open, {curr_threads_nb} threads active."
         logger.warning(msg)
         limit_exception = MolerException(msg)
         # make future done and observer done-with-exception
@@ -219,8 +217,7 @@ class AsyncioRunner(ConnectionObserverRunner):
             owned_loops_nb = len(self._started_ev_loops)
             if owned_loops_nb:
                 sys_resources_usage_msg = system_resources_usage_msg(*system_resources_usage())
-                self.logger.debug("before closing loops ({} owned loops): {}".format(owned_loops_nb,
-                                                                                     sys_resources_usage_msg))
+                self.logger.debug(f"before closing loops ({owned_loops_nb} owned loops): {sys_resources_usage_msg}")
                 for owned_loop in self._started_ev_loops:
                     msg = f"CLOSING EV_LOOP owned by AsyncioRunner {instance_id(owned_loop)}:{owned_loop!r}"
                     sys.stderr.write(f"{msg}\n")
@@ -291,8 +288,7 @@ class AsyncioRunner(ConnectionObserverRunner):
                                                                      subscribed_data_receiver,
                                                                      observer_lock),
                                                            loop=event_loop)
-        self.logger.debug("runner submit() returning - future: {}:{}".format(instance_id(connection_observer_future),
-                                                                             connection_observer_future))
+        self.logger.debug(f"runner submit() returning - future: {instance_id(connection_observer_future)}:{connection_observer_future}")
         if connection_observer_future.done():
             # most probably we have some exception during ensure_future(); it should be stored inside future
             try:
@@ -435,10 +431,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         except BaseException as exc:
             fut = connection_observer_future
             fut_id = instance_id(connection_observer_future)
-            err_msg = "_run_until_complete(max_tm={}, remain={}): raised {!r}\n\tfut: {}:{!r}".format(max_timeout,
-                                                                                                      remain_time,
-                                                                                                      exc,
-                                                                                                      fut_id, fut)
+            err_msg = f"_run_until_complete(max_tm={max_timeout}, remain={remain_time}): raised {exc!r}\n\tfut: {fut_id}:{fut!r}"
             sys.stderr.write(f"{err_msg}\n")
             logging.getLogger("moler").debug(err_msg)
             raise
@@ -461,8 +454,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         fut_id = instance_id(future)
         future = asyncio.tasks.ensure_future(future, loop=event_loop)
         task_id = instance_id(future)
-        msg = "task for future id ({}) future = asyncio.tasks.ensure_future: (task_id = {}, {})".format(fut_id, task_id,
-                                                                                                        future)
+        msg = f"task for future id ({fut_id}) future = asyncio.tasks.ensure_future: (task_id = {task_id}, {future})"
         sys.stderr.write(f"{msg}\n")
         logging.getLogger("moler").debug(msg)
 
@@ -714,8 +706,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
                                                                    subscribed_data_receiver=None))
             self.logger.debug(f"scheduled feed() - future: {conn_observer_future}")
             await feed_started.wait()
-            self.logger.debug("feed() started - future: {}:{}".format(instance_id(conn_observer_future),
-                                                                      conn_observer_future))
+            self.logger.debug(f"feed() started - future: {instance_id(conn_observer_future)}:{conn_observer_future}")
             return conn_observer_future
 
         thread4async = get_asyncio_loop_thread()
@@ -728,8 +719,7 @@ class AsyncioInThreadRunner(AsyncioRunner):
             exc = MolerException(err_msg)
             connection_observer.set_exception(exception=exc)
             return None
-        self.logger.debug("runner submit() returning - future: {}:{}".format(instance_id(connection_observer_future),
-                                                                             connection_observer_future))
+        self.logger.debug(f"runner submit() returning - future: {instance_id(connection_observer_future)}:{connection_observer_future}")
         return connection_observer_future
 
     def wait_for(self, connection_observer, connection_observer_future, timeout=None):

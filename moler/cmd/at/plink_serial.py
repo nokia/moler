@@ -27,7 +27,7 @@ class PlinkSerial(CommandChangingPrompt):
         :param runner: Runner to run command.
         """
         self.serial_devname = serial_devname
-        proxy_prompt = r"{}>".format(serial_devname)
+        proxy_prompt = f"{serial_devname}>"
         super(PlinkSerial, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                           expected_prompt=proxy_prompt, target_newline=target_newline, runner=runner)
         self.ret_required = False

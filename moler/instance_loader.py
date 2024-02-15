@@ -71,8 +71,8 @@ def _import_module(module_name):
         module_of_class = importlib.import_module(module_name)
         return module_of_class
     except ImportError as err:
-        raise ImportError("Could not import '{}' module ({}). Please make sure "
-                          "import path is correct.".format(module_name, str(err))) from err
+        raise ImportError(f"Could not import '{module_name}' module ({str(err)}). Please make sure "
+                          f"import path is correct.") from err
 
 
 def _import_class_from_module(module, class_name):

@@ -137,9 +137,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
             self.command_string = self.__class__.__name__
             raise CommandFailure(
                 self,
-                "Please set login ('{}') or username ('{}') but not both.".format(
-                    login, username
-                ),
+                f"Please set login ('{login}') or username ('{username}') but not both.",
             )
         elif username:
             self.login = username

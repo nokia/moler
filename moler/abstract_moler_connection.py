@@ -74,7 +74,7 @@ class AbstractMolerConnection:
         """
         if self._name == value:
             return
-        self._log(level=TRACE, msg=r'changing name: {} --> {}'.format(self._name, value), levels_to_go_up=2)
+        self._log(level=TRACE, msg=f'changing name: {self._name} --> {value}', levels_to_go_up=2)
         if self._using_default_logger():
             self.logger = AbstractMolerConnection._select_logger(logger_name="", connection_name=value)
         self._name = value
@@ -107,7 +107,7 @@ class AbstractMolerConnection:
         sender_str = "?"
         if self.how2send != self._unknown_send:
             sender_str = repr(self.how2send)
-        # return '{}, how2send {})'.format(cmd_str[:-1], sender_str)
+        # return f'{cmd_str[:-1]}, how2send {sender_str})'
         return f'{cmd_str}-->[{sender_str}]'
 
     def _use_or_generate_name(self, name):
@@ -228,8 +228,7 @@ class AbstractMolerConnection:
     def _unknown_send(self, data2send):
         err_msg = f"Can't send('{data2send}')"
         err_msg += "\nYou haven't installed sending method of external-IO system"
-        err_msg += "\n{}: {}(how2send=external_io_send)".format("Do it either during connection construction",
-                                                                self.__class__.__name__)
+        err_msg += f"\n{{'Do it either during connection construction: {self.__class__.__name__}(how2send=external_io_send)\}}'"
         err_msg += "\nor later via attribute direct set: connection.how2send = external_io_send"
         self._log(level=logging.ERROR, msg=err_msg)
         raise WrongUsage(err_msg)

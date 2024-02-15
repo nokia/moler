@@ -44,8 +44,7 @@ class RegexHelper:
         """
         if compiled is None:
             if raise_if_compiled_is_none:
-                exp = WrongUsage("{} parameter compiled passed to search_compiled is None. Expected not None."
-                                 " String is '{}'.".format(self, string))
+                exp = WrongUsage(f"{self} parameter compiled passed to search_compiled is None. Expected not None. String is '{string}'.")
                 raise exp
             else:
                 return None
@@ -76,8 +75,7 @@ class RegexHelper:
         """
         if compiled is None:
             if raise_if_compiled_is_none:
-                exp = WrongUsage("{} parameter compiled passed to match_compiled is None. Expected not None."
-                                 " String is '{}.".format(self, string))
+                exp = WrongUsage(f"{self} parameter compiled passed to match_compiled is None. Expected not None. String is '{string}'.")
                 raise exp
             else:
                 return None

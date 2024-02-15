@@ -20,24 +20,24 @@ class Date(GenericUnixCommand):
         self.options = options
         self.date_table_output = date_table_output
 
-    def build_command_string(self):
-        cmd = "date"
+        def build_command_string(self):
+            cmd = "date"
 
-        if self.options:
-            cmd = f"{cmd} {self.options}"
+            if self.options:
+                cmd = f"{cmd} {self.options}"
 
-        if self.date_table_output:
-            cmd = """{} \
-'+DATE:%t%t%d-%m-%Y%n\
-TIME:%t%t%H:%M:%S%n\
-ZONE:%t%t%z %Z%n\
-EPOCH:%t%t%s%n\
-WEEK_NUMBER:%t%-V%n\
-DAY_OF_YEAR:%t%-j%n\
-DAY_OF_WEEK:%t%u (%A)%n\
-MONTH:%t%t%-m (%B)'""".format(cmd)
+            if self.date_table_output:
+                cmd = f"{cmd} \
+    '+DATE:%t%t%d-%m-%Y%n\
+    TIME:%t%t%H:%M:%S%n\
+    ZONE:%t%t%z %Z%n\
+    EPOCH:%t%t%s%n\
+    WEEK_NUMBER:%t%-V%n\
+    DAY_OF_YEAR:%t%-j%n\
+    DAY_OF_WEEK:%t%u (%A)%n\
+    MONTH:%t%t%-m (%B)'"
 
-        return cmd
+            return cmd
 
     # Compiled regexp
     _re_date_line = re.compile(r"DATE:\s+((\d+)-(\d+)-(\d+))", re.IGNORECASE)

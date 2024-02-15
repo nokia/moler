@@ -32,8 +32,7 @@ class SetMode(GenericAtCommand):
         self.selected_mode = selected_mode.lower()
 
         if self.selected_mode not in SetMode.mode2cops_value:
-            raise WrongUsage('\"{}\" is not correct mode. Available modes: {}.'.format(
-                self.selected_mode, list(SetMode.mode2cops_value.keys())))
+            raise WrongUsage(f'"{self.selected_mode}" is not correct mode. Available modes: {list(SetMode.mode2cops_value.keys())}.')
 
         self.ret_required = False
 

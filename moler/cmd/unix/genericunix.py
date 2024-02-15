@@ -20,7 +20,7 @@ cmd_failure_causes = ['not found',
                       'Cannot find device',
                       'Input/output error',
                       ]
-r_cmd_failure_cause_alternatives = r'{}'.format("|".join(cmd_failure_causes))
+r_cmd_failure_cause_alternatives = f'{ "|".join(cmd_failure_causes) }'
 
 
 @six.add_metaclass(abc.ABCMeta)

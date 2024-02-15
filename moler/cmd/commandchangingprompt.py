@@ -76,8 +76,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
         expected_prompt = self._re_expected_prompt.pattern
         prompt_after_login = self._re_prompt_after_login.pattern
         # having expected prompt visible simplifies troubleshooting
-        return "{}, expected_prompt_regex:r'{}', prompt_after_login:r'{}')".format(base_str[:-1], expected_prompt,
-                                                                                   prompt_after_login)
+        return f"{base_str[:-1]}, expected_prompt_regex:r'{expected_prompt}', prompt_after_login:r'{prompt_after_login}')"
 
     def on_new_line(self, line, is_full_line):
         """
@@ -212,10 +211,9 @@ class CommandChangingPrompt(CommandTextualGeneric):
         found = self._regex_helper.search_compiled(self._re_expected_prompt, line)
         if not found and self.enter_on_prompt_without_anchors is True:
             if self._regex_helper.search_compiled(self._re_expected_prompt_without_anchors, line):
-                self.logger.info("Candidate for expected prompt '{}' (used without anchors:'{}') in line '{}'.".format(
-                    self._re_expected_prompt.pattern, self._re_expected_prompt_without_anchors.pattern,
-                    line)
-                )
+                self.logger.info(f"Candidate for expected prompt '{self._re_expected_prompt.pattern}' "
+                                 f"(used without anchors:'{self._re_expected_prompt_without_anchors.pattern}') "
+                                 f"in line '{line}'.")
                 self.send_enter()
                 self.enter_on_prompt_without_anchors = False
         return found
@@ -230,10 +228,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
         found = self._regex_helper.search_compiled(self._re_prompt_after_login, line)
         if not found and self.enter_on_prompt_without_anchors is True:
             if self._regex_helper.search_compiled(self._re_prompt_after_login_without_anchors, line):
-                self.logger.info("Candidate for prompt after login '{}' in line '{}'.".format(
-                    self._re_prompt_after_login.pattern,
-                    line)
-                )
+                self.logger.info(f"Candidate for prompt after login '{self._re_prompt_after_login.pattern}' in line '{line}'.")
                 self.send_enter()
                 self.enter_on_prompt_without_anchors = False
         return found

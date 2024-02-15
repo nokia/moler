@@ -42,8 +42,7 @@ class Chmod(GenericUnixCommand):
 
     def _parse_error(self, line):
         if self._regex_helper.search(Chmod._reg_fail, line):
-            self.set_exception(CommandFailure(self, "ERROR: {} or {}".format(self._regex_helper.group("ERROR"),
-                                                                             self._regex_helper.group("ERROR1"))))
+            self.set_exception(CommandFailure(self, f"ERROR: {self._regex_helper.group('ERROR')} or {self._regex_helper.group('ERROR1')}"))
             raise ParsingDone
 
 

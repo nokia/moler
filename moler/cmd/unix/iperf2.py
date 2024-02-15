@@ -97,9 +97,7 @@ class Iperf2(GenericUnixCommand, Publisher):
 
     def __str__(self):
         str_base_value = super(Iperf2, self).__str__()
-        str_value = "{}, awaited_prompt='{}')".format(
-            str_base_value[:-1], self._re_prompt.pattern
-        )
+        str_value = f"{str_base_value[:-1]}, awaited_prompt='{self._re_prompt.pattern}')"
         return str_value
 
     _re_port = re.compile(r"(?P<PORT_OPTION>\-\-port|\-p)\s+(?P<PORT>\d+)")
@@ -210,9 +208,7 @@ class Iperf2(GenericUnixCommand, Publisher):
         self.on_new_line(line=decoded_line, is_full_line=is_full_line)
 
     def _is_replicated_cmd_echo(self, line):
-        prompt_and_command = r"{}\s*{}".format(
-            self._re_prompt.pattern, self.command_string
-        )
+        prompt_and_command = fr"{self._re_prompt.pattern}\s*{self.command_string}"
         found_echo = self._regex_helper.search(prompt_and_command, line)
         return found_echo is not None
 
@@ -365,8 +361,8 @@ class Iperf2(GenericUnixCommand, Publisher):
     _r_bandwidth = r"(?P<Bandwidth>[\d\.]+\s+\w+/sec)"
     _r_jitter = r"(?P<Jitter>\d+\.\d+\s\w+)"
     _r_datagrams = r"(?P<Lost_vs_Total_Datagrams>\d+/\s*\d+)\s*\((?P<Lost_Datagrams_ratio>[\d\.]+\%)\)"
-    _r_rec = r"{}\s+{}\s+{}\s+{}".format(_r_id, _r_interval, _r_transfer, _r_bandwidth)
-    _r_rec_udp_svr = r"{}\s+{}\s+{}".format(_r_rec, _r_jitter, _r_datagrams)
+    _r_rec = f"{_r_id} {_r_interval} {_r_transfer} {_r_bandwidth}"
+    _r_rec_udp_svr = f"{_r_rec} {_r_jitter} {_r_datagrams}"
     _re_iperf_record = re.compile(_r_rec)
     _re_iperf_record_udp_svr = re.compile(_r_rec_udp_svr)
 
@@ -513,9 +509,7 @@ class Iperf2(GenericUnixCommand, Publisher):
             sum_record["Jitter"] = f"{max(jitter_values)} {jitter_unit}"
             # noinspection PyUnboundLocalVariable
             sum_record["Lost_vs_Total_Datagrams"] = (lost_datagrams, total_datagrams)
-            sum_record["Lost_Datagrams_ratio"] = "{:.2f}%".format(
-                lost_datagrams * 100 / total_datagrams
-            )
+            sum_record["Lost_Datagrams_ratio"] = f"{lost_datagrams * 100 / total_datagrams:.2f}%"
 
         from_client = f"multiport@{client_host}"
         sum_connection_name = (from_client, server)

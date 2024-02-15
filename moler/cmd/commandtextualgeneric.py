@@ -217,9 +217,7 @@ class CommandTextualGeneric(Command):
             )
             re_sub_command_string = sub_command_finish_string
         if sub_command_finish_string and sub_command_start_string:
-            re_sub_command_string = "{}|{}".format(
-                sub_command_start_string, sub_command_finish_string
-            )
+            re_sub_command_string = f"{sub_command_start_string}|{sub_command_finish_string}"
         return re_sub_command_string
 
     @property
@@ -277,9 +275,7 @@ class CommandTextualGeneric(Command):
         :return: None.
         """
         if self.debug_data_received:
-            msg = "\nIncoming data: 0X{}\n".format(
-                "".join([" {:02X}".format(ord(ch)) for ch in data])
-            )
+            msg = f"\nIncoming data: 0X{''.join([f' {ord(ch):02X}' for ch in data])}\n"
             self.logger.info(msg)
         self._last_recv_time_data_read_from_connection = recv_time
         self._last_chunk = data
@@ -350,9 +346,7 @@ class CommandTextualGeneric(Command):
         decoded_line = self._decode_line(line=line)
         if self.__class__.__name__ == "CmConnect":  # pragma: no cover
             self.logger.debug(
-                "{} line = '{}', decoded_line = '{}', is_full_line={}".format(
-                    self, line, decoded_line, is_full_line
-                )
+                f"{self} line = '{line}', decoded_line = '{decoded_line}', is_full_line={is_full_line}"
             )
         self.on_new_line(line=decoded_line, is_full_line=is_full_line)
 
@@ -443,9 +437,7 @@ class CommandTextualGeneric(Command):
                 self._re_prompt_without_anchors, line
             ):
                 self.logger.info(
-                    "Candidate for prompt '{}' in line '{}'.".format(
-                        self._re_prompt.pattern, line
-                    )
+                    f"Candidate for prompt '{self._re_prompt.pattern}' in line '{line}'."
                 )
                 self.send_enter()
                 self.enter_on_prompt_without_anchors = False
@@ -483,9 +475,7 @@ class CommandTextualGeneric(Command):
                 self._cmd_output_started = True
         if self.__class__.__name__ == "CmConnect":  # pragma: no cover
             self.logger.debug(
-                "{} line = '{}', is_full_line={}, _cmd_output_started={}".format(
-                    self, line, is_full_line, self._cmd_output_started
-                )
+                f"{self} line = '{line}', is_full_line={is_full_line}, _cmd_output_started={self._cmd_output_started}"
             )
 
     def break_cmd(self, silent: bool = False, force: bool = False) -> None:
@@ -527,21 +517,14 @@ class CommandTextualGeneric(Command):
             if self._stored_exception is None:
                 self._log(
                     logging.INFO,
-                    "{}.{} has set exception {!r}".format(
-                        self.__class__.__module__, self, exception
-                    ),
+                    f"{self.__class__.__module__}.{self} has set exception {exception!r}",
                     levels_to_go_up=2,
                 )
                 self._stored_exception = exception
             else:
                 self._log(
                     logging.INFO,
-                    "{}.{} tried set exception {!r} on already set exception {!r}".format(
-                        self.__class__.__module__,
-                        self,
-                        exception,
-                        self._stored_exception,
-                    ),
+                    f"{self.__class__.__module__}.{self} tried set exception {exception!r} on already set exception {self._stored_exception!r}",
                     levels_to_go_up=2,
                 )
 
@@ -681,5 +664,5 @@ class CommandTextualGeneric(Command):
             new_indication = indication_str
         else:
             current_indications = self.re_fail.pattern
-            new_indication = r"{}|{}".format(current_indications, indication_str)
+            new_indication = f"{current_indications}|{indication_str}"
         self.re_fail = re.compile(new_indication, flags)
