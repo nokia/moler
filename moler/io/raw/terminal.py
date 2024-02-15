@@ -82,8 +82,9 @@ class ThreadedTerminal(IOConnection):
             while (retry < 10) and (not is_operable):
                 is_operable = self._shell_operable.wait(timeout=1)
                 if not is_operable:
+                    buff = self.read_buffer.encode("UTF-8", "replace")
                     self.logger.warning(
-                        f"Terminal open but not fully operable yet.\nREAD_BUFFER: '{self.read_buffer.encode("UTF-8", "replace")}'")
+                        f"Terminal open but not fully operable yet.\nREAD_BUFFER: '{buff}'")
                     self._terminal.write('\n')
                     retry += 1
 
