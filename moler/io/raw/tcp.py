@@ -110,7 +110,7 @@ class Tcp:
             if (serr.errno == 10054) or (serr.errno == 10053):
                 self._close_ignoring_exceptions()
                 info = f"{serr.errno} during send msg '{data}'"
-                raise RemoteEndpointDisconnected('Socket error: ' + info)
+                raise RemoteEndpointDisconnected(f"Socket error: {info}")
             else:
                 raise
 

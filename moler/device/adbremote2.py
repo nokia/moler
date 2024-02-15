@@ -265,7 +265,7 @@ class AdbRemote2(UnixRemote2):
         adb_shell_root_prompt = cfg_adb2adbroot["command_params"]["expected_prompt"]
         if adb_shell_root_prompt is None:
             if adb_shell_prompt.endswith("$"):
-                adb_shell_root_prompt = adb_shell_prompt[:-1] + "#"
+                adb_shell_root_prompt = f"{adb_shell_prompt[:-1]}#"
             else:
                 consequence = f"Won't be able to detect {ADB_SHELL_ROOT} state"
                 fix = f"Please provide configuration with 'expected_prompt' for {ADB_SHELL_ROOT} state"
@@ -533,7 +533,7 @@ class AdbRemote2(UnixRemote2):
             adb_shell_root_prompt = cfg_adb2adbroot["command_params"]["expected_prompt"]
             if adb_shell_root_prompt is None:
                 if adb_shell_prompt.endswith("$"):
-                    adb_shell_root_prompt = adb_shell_prompt[:-1] + "#"
+                    adb_shell_root_prompt = f"{adb_shell_prompt[:-1]}#"
                     cfg_adb2adbroot["command_params"]["expected_prompt"] = adb_shell_root_prompt
 
     def _get_packages_for_state(self, state, observer):

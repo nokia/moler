@@ -45,14 +45,14 @@ class CompressedRotatingFileHandler(RotatingFileHandler):
             self.stream = None
         if int(self.backupCount) > 0:
             for i in range(int(self.backupCount) - 1, 0, -1):
-                sfn = self.rotation_filename("%s.%d%s" % (self.baseFilename, i, self.compressed_file_extension))
+                sfn = self.rotation_filename(f"{self.baseFilename}.{int(i)}{self.compressed_file_extension}")
                 dfn = self.rotation_filename("%s.%d%s" % (self.baseFilename,
                                                           i + 1, self.compressed_file_extension))
                 if os.path.exists(sfn):
                     if os.path.exists(dfn):
                         os.remove(dfn)
                     os.rename(sfn, dfn)
-            dfn = self.rotation_filename(self.baseFilename + ".1")
+            dfn = self.rotation_filename(f"{self.baseFilename}.1")
             compressed_dfn = dfn + self.compressed_file_extension
             if os.path.exists(compressed_dfn):
                 os.remove(compressed_dfn)

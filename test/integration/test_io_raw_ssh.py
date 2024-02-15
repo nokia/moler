@@ -830,7 +830,7 @@ def import_class(packet_prefixed_class_name):
 #########################################################################
 @pytest.fixture(params=['io.raw.sshshell.SshShell'])
 def passive_sshshell_connection_class(request):
-    connection_class = import_class('moler.' + request.param)
+    connection_class = import_class(f"moler.{request.param}")
     return connection_class
 
 
@@ -840,14 +840,14 @@ def passive_sshshell_connection_class(request):
 ######################################################################################################################
 @pytest.fixture(params=['io.raw.sshshell.ThreadedSshShell'])
 def active_sshshell_connection_class(request):
-    connection_class = import_class('moler.' + request.param)
+    connection_class = import_class(f"moler.{request.param}")
     return connection_class
 
 
 @pytest.fixture(params=['io.raw.sshshell.SshShell', 'io.raw.sshshell.ThreadedSshShell'])
 def sshshell_connection(request):
     from moler.threaded_moler_connection import ThreadedMolerConnection
-    connection_class = import_class('moler.' + request.param)
+    connection_class = import_class(f"moler.{request.param}")
     ######################################################################################
     # SshShell and ThreadedSshShell differ in API - ThreadedSshShell gets moler_connection
     # Why - see comment in sshshell.py
@@ -883,11 +883,11 @@ def mocked_logger():
 
         def debug(self, msg):
             msg_without_details = msg.split(" |", 1)
-            self.calls.append("DEBUG: " + msg_without_details[0])
+            self.calls.append(f"DEBUG: {msg_without_details[0]}")
 
         def info(self, msg, **kwargs):
             msg_without_details = msg.split(" |", 1)
-            self.calls.append(" INFO: " + msg_without_details[0])
+            self.calls.append(f" INFO: {msg_without_details[0]}")
 
     def mocked_log(self, msg, level, levels_to_go_up=1):
         if level == logging.DEBUG:

@@ -166,7 +166,7 @@ class Unzip(GenericUnixCommand):
         if "v" in self.options and self._regex_helper.search_compiled(
             Unzip._re_assign_values, line
         ):
-            _date_time_str = self._regex_helper.group("DATE") + " " + self._regex_helper.group("TIME")
+            _date_time_str = f"{self._regex_helper.group('DATE')} {self._regex_helper.group('TIME')}"
             self.current_ret["FILE_LIST"].append(self._regex_helper.group("NAME"))
             self.current_ret["FILE_DICT"].update(
                 {

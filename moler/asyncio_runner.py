@@ -149,7 +149,7 @@ def _run_until_complete_cb(fut):
         return
     fut_id = instance_id(fut)
     msg = f"_run_until_complete_cb(fut_id = {fut_id}, {fut})"
-    sys.stderr.write(msg + "\n")
+    sys.stderr.write(f"{msg}\n")
     logging.getLogger("moler").debug(msg)
     fut._loop.stop()
 
@@ -223,7 +223,7 @@ class AsyncioRunner(ConnectionObserverRunner):
                                                                                      sys_resources_usage_msg))
                 for owned_loop in self._started_ev_loops:
                     msg = f"CLOSING EV_LOOP owned by AsyncioRunner {instance_id(owned_loop)}:{owned_loop!r}"
-                    sys.stderr.write(msg + '\n')
+                    sys.stderr.write(f"{msg}\n")
                     self.logger.debug(msg)
                     cancel_remaining_feeders(owned_loop, logger_name=self.logger.name, in_shutdown=True)
                     remaining = [task for task in asyncio.Task.all_tasks(loop=owned_loop) if not task.done()]
@@ -231,12 +231,12 @@ class AsyncioRunner(ConnectionObserverRunner):
                         msg = "AsyncioRunner owned loop has still running task"
                         for still_running_task in remaining:
                             msg = f"{msg}: {still_running_task!r}\n"
-                            sys.stderr.write(msg + '\n')
+                            sys.stderr.write(f"{msg}\n")
                             self.logger.debug(msg)
                     owned_loop.close()
                 self._started_ev_loops = []
                 sys_resources_usage_msg = system_resources_usage_msg(*system_resources_usage())
-                self.logger.debug("after closing loops: " + sys_resources_usage_msg)
+                self.logger.debug(f"after closing loops: {sys_resources_usage_msg}")
 
         event_loop, its_new = thread_secure_get_event_loop(logger_name=self.logger.name)
         if not event_loop.is_closed():
@@ -416,11 +416,11 @@ class AsyncioRunner(ConnectionObserverRunner):
 
                 fut_id = instance_id(connection_observer_future)
                 msg = f"__run_via_asyncio with timeout: (fut_id = {fut_id}, {connection_observer_future})"
-                sys.stderr.write(msg + "\n")
+                sys.stderr.write(f"{msg}\n")
                 logging.getLogger("moler").debug(msg)
                 fut_id = instance_id(timeout_limited_future)
                 msg = f"__run_via_asyncio with timeout: (tmout_fut_id = {fut_id}, {timeout_limited_future})"
-                sys.stderr.write(msg + "\n")
+                sys.stderr.write(f"{msg}\n")
                 logging.getLogger("moler").debug(msg)
 
                 AsyncioRunner._run_until_complete(event_loop, timeout_limited_future)
@@ -428,7 +428,7 @@ class AsyncioRunner(ConnectionObserverRunner):
             else:
                 fut_id = instance_id(connection_observer_future)
                 msg = f"__run_via_asyncio no timeout: (fut_id = {fut_id}, {connection_observer_future})"
-                sys.stderr.write(msg + "\n")
+                sys.stderr.write(f"{msg}\n")
                 logging.getLogger("moler").debug(msg)
                 AsyncioRunner._run_until_complete(event_loop, connection_observer_future)  # timeout is handled by feed()
 
@@ -439,7 +439,7 @@ class AsyncioRunner(ConnectionObserverRunner):
                                                                                                       remain_time,
                                                                                                       exc,
                                                                                                       fut_id, fut)
-            sys.stderr.write(err_msg + "\n")
+            sys.stderr.write(f"{err_msg}\n")
             logging.getLogger("moler").debug(err_msg)
             raise
 
@@ -463,7 +463,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         task_id = instance_id(future)
         msg = "task for future id ({}) future = asyncio.tasks.ensure_future: (task_id = {}, {})".format(fut_id, task_id,
                                                                                                         future)
-        sys.stderr.write(msg + "\n")
+        sys.stderr.write(f"{msg}\n")
         logging.getLogger("moler").debug(msg)
 
         if new_task:
@@ -486,7 +486,7 @@ class AsyncioRunner(ConnectionObserverRunner):
         if not future.done():
             fut_id = instance_id(future)
             msg = f"not done future in _run_until_complete(fut_id = {fut_id}, {future})"
-            sys.stderr.write(msg + "\n")
+            sys.stderr.write(f"{msg}\n")
             logging.getLogger("moler").debug(msg)
             raise RuntimeError(f'Event loop stopped before Future completed. (fut_id = {fut_id}, {future})')
 

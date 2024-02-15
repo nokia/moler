@@ -21,7 +21,7 @@ class Tar(GenericUnixCommand):
 
     def build_command_string(self):
         cmd = "tar"
-        cmd = cmd + " " + self.options + " " + self.file
+        cmd = f"{cmd} {self.options} {self.file}"
         return cmd
 
 

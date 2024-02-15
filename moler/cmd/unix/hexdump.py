@@ -36,10 +36,10 @@ class Hexdump(GenericUnixCommand):
     def build_command_string(self):
         cmd = "hexdump"
         if self.options:
-            cmd = cmd + " " + self.options
+            cmd = f"{cmd} {self.options}"
         if self.files:
             for afile in self.files:
-                cmd = cmd + " " + afile
+                cmd = f"{cmd} {afile}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

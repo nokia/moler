@@ -24,9 +24,9 @@ class Kill(GenericUnixCommand):
     def build_command_string(self):
         cmd = "kill"
         if self.options:
-            cmd = cmd + " " + self.options
+            cmd = f"{cmd} {self.options}"
         if self.pid:
-            cmd = cmd + " " + self.pid
+            cmd = f"{cmd} {self.pid}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

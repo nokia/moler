@@ -146,7 +146,7 @@ class TcpServerPiped(Process):
         """Interpret message that came from controlling pipe"""
         (action, data) = msg
         try:
-            func = getattr(self, 'do_' + action.replace(' ', '_'))
+            func = getattr(self, f"do_{action.replace(' ', '_')}")
         except AttributeError:
             self.history.append(f'Unknown action: "{str(action)}"')
         else:

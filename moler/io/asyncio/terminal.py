@@ -382,7 +382,7 @@ async def terminal_io_test():
             cmd2send = cmds[cmd_idx[0]]
             if (cmd2send == 'password') and ('Password' not in data):
                 return
-            moler_conn.send(data=cmd2send + '\n')
+            moler_conn.send(data=f"{cmd2send}\n")
             cmd_idx[0] += 1
 
     moler_conn.subscribe(data_observer, None)

@@ -96,7 +96,7 @@ class Iperf3(Iperf2):
                 f"Option ({long_option}) you are trying to set is client only")
 
     def build_command_string(self):
-        cmd = "iperf3 " + str(self.options)
+        cmd = f"iperf3 {str(self.options)}"
         return cmd
 
     @property
@@ -350,13 +350,13 @@ class Iperf3(Iperf2):
         for key, raw_value in input_dict.items():
             # iperf MBytes means 1024 * 1024 Bytes - see iperf.fr/iperf-doc.php
             if not isinstance(raw_value, int) and ("Bytes" in raw_value):
-                new_dict[key + " Raw"] = raw_value
+                new_dict[f"{key} Raw"] = raw_value
                 value_in_bytes, _, _ = self._converter_helper.to_bytes(
                     raw_value)
                 new_dict[key] = value_in_bytes
             # iperf Mbits means 1000 * 1000 bits - see iperf.fr/iperf-doc.php
             elif not isinstance(raw_value, int) and ("bits" in raw_value):
-                new_dict[key + " Raw"] = raw_value
+                new_dict[f"{key} Raw"] = raw_value
                 value_in_bits, _, _ = self._converter_helper.to_bytes(
                     raw_value, binary_multipliers=False)
                 value_in_bytes = value_in_bits // 8
@@ -370,7 +370,7 @@ class Iperf3(Iperf2):
         for key in list(input_dict):
             raw_value = input_dict[key]
             if not isinstance(raw_value, (int, float)) and "ms" in raw_value:
-                input_dict[key + " Raw"] = raw_value
+                input_dict[f"{key} Raw"] = raw_value
                 value_in_ms, _ = raw_value.split(" ")
                 value_in_ms = float(value_in_ms)
                 input_dict[key] = value_in_ms

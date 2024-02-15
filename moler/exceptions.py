@@ -67,7 +67,7 @@ class MolerTimeout(MolerException):
         if passed_time and isinstance(passed_time, (int, float)):
             passed_time = f'{passed_time:.2f} '
         err_msg = f'{kind} time {passed_time}>= {timeout:.2f} sec'
-        super(MolerTimeout, self).__init__(err_msg + ' timeout')
+        super(MolerTimeout, self).__init__(f"{err_msg} timeout")
         self.timeout = timeout
 
 

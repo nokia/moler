@@ -34,7 +34,7 @@ class exception_stored_if_not_main_thread:
             else:
                 err_msg = f"NOT MainThread: {self.connection_observer} raised {exc_val!r}"
                 self.logger.debug(err_msg)
-                sys.stderr.write(err_msg + "\n")
+                sys.stderr.write(f"{err_msg}\n")
                 self.connection_observer.set_exception(exc_val)
                 return True  # means: exception already handled
         return True

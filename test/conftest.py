@@ -114,7 +114,7 @@ def buffer_connection():
             """
             if add_newline:
                 if not line.endswith("\n"):
-                    line = line + "\n"
+                    line = f"{line}\n"
             line_as_bytes = line.encode("utf-8")
             self.inject([line_as_bytes], delay)
 

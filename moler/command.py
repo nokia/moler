@@ -42,7 +42,7 @@ class Command(ConnectionObserver):
     def __str__(self):
         cmd_str = self.command_string if self.command_string else '<EMPTY COMMAND STRING>'
         if cmd_str[-1] == '\n':
-            cmd_str = cmd_str[:-1] + r'<\n>'
+            cmd_str = f"{cmd_str[:-1]}<\\n>"
         return f'{self.__class__.__name__}("{cmd_str}", id:{instance_id(self)})'
 
     def _validate_start(self, *args, **kwargs) -> None:

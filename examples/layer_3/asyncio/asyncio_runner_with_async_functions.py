@@ -66,7 +66,7 @@ async def ping_observing_task(ext_io_connection, ping_ip):
                                         runner=get_runner(variant="asyncio"))
 
     info = f'{ping_ip} on {conn_addr} using {net_down_detector}'
-    logger.debug('observe ' + info)
+    logger.debug(f"observe {info}")
 
     # 4. start observer (nonblocking, using as future)
     net_down_detector.start()  # should be started before we open connection
@@ -83,7 +83,7 @@ async def ping_observing_task(ext_io_connection, ping_ip):
 
         # 6. call next observer (blocking till completes)
         info = f'{ping_ip} on {conn_addr} using {net_up_detector}'
-        logger.debug('observe ' + info)
+        logger.debug(f"observe {info}")
         # using as synchronous function (so we want verb to express action)
         detect_network_up = net_up_detector
         net_up_time = await detect_network_up  # if you want timeout - see code above

@@ -59,7 +59,7 @@ def ping_observing_task(ext_io_connection, ping_ip):
     moler_conn.subscribe(net_down_detector.data_received)
 
     info = f'{ping_ip} on {conn_addr} using {net_down_detector}'
-    logger.debug('observe ' + info)
+    logger.debug(f"observe {info}")
 
     with ext_io_connection.open():
         observing_timeout = 10
@@ -75,7 +75,7 @@ def ping_observing_task(ext_io_connection, ping_ip):
                 moler_conn.unsubscribe(net_down_detector.data_received)
                 # 4. and start subsequent one (to know when net is back "up")
                 info = f'{ping_ip} on {conn_addr} using {net_up_detector}'
-                logger.debug('observe ' + info)
+                logger.debug(f"observe {info}")
                 moler_conn.subscribe(net_up_detector.data_received)
             if net_up_detector.done():
                 net_up_time = net_up_detector.result()

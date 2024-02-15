@@ -118,7 +118,7 @@ class Iperf2(GenericUnixCommand, Publisher):
         return port, options
 
     def build_command_string(self):
-        cmd = "iperf " + str(self.options)
+        cmd = f"iperf {str(self.options)}"
         return cmd
 
     @property
@@ -606,13 +606,13 @@ class Iperf2(GenericUnixCommand, Publisher):
             if (
                 "Bytes" in raw_value
             ):  # iperf MBytes means 1024 * 1024 Bytes - see iperf.fr/iperf-doc.php
-                new_dict[key + " Raw"] = raw_value
+                new_dict[f"{key} Raw"] = raw_value
                 value_in_bytes, _, _ = self._converter_helper.to_bytes(raw_value)
                 new_dict[key] = value_in_bytes
             elif (
                 "bits" in raw_value
             ):  # iperf Mbits means 1000 * 1000 bits - see iperf.fr/iperf-doc.php
-                new_dict[key + " Raw"] = raw_value
+                new_dict[f"{key} Raw"] = raw_value
                 value_in_bits, _, _ = self._converter_helper.to_bytes(
                     raw_value, binary_multipliers=False
                 )

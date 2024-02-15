@@ -265,9 +265,9 @@ class Scp(GenericUnixCommand):
         :return: None.
         """
         if "rm" == self.known_hosts_on_failure:
-            self.connection.sendline("\nrm -f " + self._hosts_file)
+            self.connection.sendline(f"\nrm -f {self._hosts_file}")
         elif "keygen" == self.known_hosts_on_failure:
-            self.connection.sendline("\nssh-keygen -R " + self.dest)
+            self.connection.sendline(f"\nssh-keygen -R {self.dest}")
         else:
             self.set_exception(
                 CommandFailure(

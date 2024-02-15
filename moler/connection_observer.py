@@ -359,7 +359,7 @@ class ConnectionObserver:
         :return: None
         """
         mg = traceback.format_list(traceback.extract_stack()[:-3] + traceback.extract_tb(exception.__traceback__))
-        stack_msg = "".join(mg) + f"\n  {exception.__class__} {exception}"
+        stack_msg = f"{''.join(mg)}\n  {exception.__class__} {exception}"
 
         if self._is_done:
             self._log(

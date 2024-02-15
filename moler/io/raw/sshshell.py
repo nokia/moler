@@ -228,7 +228,7 @@ class SshShell:
             if "Socket is closed" in str(serr):
                 self._close()
                 info = f"{serr} during send msg '{data}'"
-                raise RemoteEndpointDisconnected('Socket error: ' + info) from serr
+                raise RemoteEndpointDisconnected(f"Socket error: {info}") from serr
             else:
                 raise  # let any other error be visible
 

@@ -80,7 +80,7 @@ class TcpConnection(Protocol):
 
     def connectionMade(self):
         conn_info = 'tcp://{}:{}'.format(*self.transport.realAddress)
-        self.logger.debug('... connected to ' + conn_info)
+        self.logger.debug(f"... connected to {conn_info}")
 
     def connectionLost(self, reason):
         self.logger.debug("... closed")
