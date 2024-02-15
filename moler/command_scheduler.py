@@ -164,9 +164,7 @@ class CommandScheduler:
                     conn_atr["current_cmd"] = cmd
                     cmd._log(  # pylint: disable=protected-access
                         logging.DEBUG,
-                        ">'{}': added  added cmd ('{}') from queue.".format(
-                            cmd.connection.name, cmd
-                        ),
+                        f">{cmd.connection.name}: added cmd ('{cmd}') from queue."
                     )
                     return True
         return False

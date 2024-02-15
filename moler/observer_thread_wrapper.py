@@ -35,8 +35,7 @@ class ObserverThreadWrapper:
         self._request_end = threading.Event()
         self._timeout_for_get_from_queue = 1
         self.logger = logger
-        self._t = Thread(target=self._loop_for_observer, name="ObserverThreadWrapper-{}-{}".format(
-            ObserverThreadWrapper._th_nr, observer_self))
+        self._t = Thread(target=self._loop_for_observer, name=f"ObserverThreadWrapper-{ObserverThreadWrapper._th_nr}-{observer_self}")
         ObserverThreadWrapper._th_nr += 1
         self._t.daemon = True
         self._t.start()
@@ -77,7 +76,7 @@ class ObserverThreadWrapper:
             try:
                 data, timestamp = self._queue.get(True, self._timeout_for_get_from_queue)
                 try:
-                    self.logger.log(level=TRACE, msg=r'notifying {}({!r})'.format(self._observer, repr(data)))
+                    self.logger.log(level=TRACE, msg=f'notifying {self._observer}({repr(data)})')
                 except ReferenceError:
                     self._request_end.set()  # self._observer is no more valid.
                 try:
@@ -97,7 +96,7 @@ class ObserverThreadWrapper:
 
     # pylint: disable-next=unused-argument
     def _handle_unexpected_error_from_observer(self, exception, data, timestamp):
-        self.logger.exception(msg=r'Exception inside: {}({!r}) at {}'.format(self._observer, repr(data), timestamp))
+        self.logger.exception(f'Exception inside: {self._observer}({repr(data)}) at {timestamp}')
 
 
 class ObserverThreadWrapperForConnectionObserver(ObserverThreadWrapper):
@@ -105,12 +104,10 @@ class ObserverThreadWrapperForConnectionObserver(ObserverThreadWrapper):
     def _handle_unexpected_error_from_observer(self, exception, data, timestamp):
 
         stack_msg = traceback.format_exc()
-        self.logger.warning("Unhandled exception from '{} 'caught by ObserverThreadWrapperForConnectionObserver"
-                            " (Runner normally). '{}' : '{}' \nStack:\n{}.".format(self._observer_self, exception,
-                                                                                   repr(exception), stack_msg))
-        ex_msg = "Unexpected exception from {} caught by runner when processing data >>{}<< at '{}':" \
-                 " >>>{}<<< -> repr: >>>{}<<<\n{}".format(self._observer_self, data, timestamp, exception,
-                                                          repr(exception), stack_msg)
+        self.logger.warning(f"Unhandled exception from '{self._observer_self}' caught by ObserverThreadWrapperForConnectionObserver"
+                            f" (Runner normally). '{exception}' : '{repr(exception)}' \nStack:\n{stack_msg}.")
+        ex_msg = f"Unexpected exception from {self._observer_self} caught by runner when processing data >>{data}<< at '{timestamp}':" \
+                 f" >>>{exception}<<< -> repr: >>>{repr(exception)}<<<\n{stack_msg}"
         if self._observer_self.is_command():
             ex = CommandFailure(command=self._observer_self, message=ex_msg)
         else:

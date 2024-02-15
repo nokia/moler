@@ -321,9 +321,7 @@ class ConnectionObserver:
         """
         if not self.done():
             connection_name = self.get_logger_name()
-            msg = "'{}' is not done but connection '{}' is about to be closed.".format(
-                self, connection_name
-            )
+            msg = f"'{self}' is not done but connection '{connection_name}' is about to be closed."
             ex = WrongUsage(msg)
             self.set_exception(ex)
         self.cancel()
@@ -411,9 +409,7 @@ class ConnectionObserver:
             if msg:
                 msg = f"{msg}, '{attribute_name}':'{self.__dict__[attribute_name]}'"
             else:
-                msg = "Timeout when '{}':'{}'".format(
-                    attribute_name, self.__dict__[attribute_name]
-                )
+                msg = f"Timeout when '{attribute_name}':'{self.__dict__[attribute_name]}'"
         self._log(lvl=logging.INFO, msg=msg, levels_to_go_up=2)
 
     def is_command(self) -> bool:
@@ -472,21 +468,14 @@ class ConnectionObserver:
             if old_exception:
                 observer._log(  # pylint: disable=protected-access
                     logging.DEBUG,
-                    "{} has overwritten exception. From {!r} to {!r}".format(
-                        observer,
-                        old_exception,
-                        new_exception,
-                    ),
+                    f"{observer} has overwritten exception. From {old_exception!r} to {new_exception!r}",
                 )
                 if old_exception in ConnectionObserver._not_raised_exceptions:
                     ConnectionObserver._not_raised_exceptions.remove(old_exception)
                 else:
                     observer._log(  # pylint: disable=protected-access
                         logging.DEBUG,
-                        "{}: cannot find exception {!r} in _not_raised_exceptions.".format(
-                            observer,
-                            old_exception,
-                        ),
+                        f"{observer}: cannot find exception {old_exception!r} in _not_raised_exceptions.",
                     )
                     ConnectionObserver._log_unraised_exceptions(observer)
 

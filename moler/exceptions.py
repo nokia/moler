@@ -112,24 +112,21 @@ class NoConnectionProvided(MolerException):
 
 class CommandFailure(MolerException):
     def __init__(self, command, message):
-        err_msg = "Command '{}.{}' ('{}') failed with >>{}<<.".format(command.__class__.__module__, command.__class__.__name__,
-                                                                      command.command_string, message)
+        err_msg = f"Command '{command.__class__.__module__}.{command.__class__.__name__}' ('{command.command_string}') failed with >>{message}<<."
         self.command = command
         super(CommandFailure, self).__init__(err_msg)
 
 
 class CommandWrongState(MolerException):
     def __init__(self, command, expected_state, current_state):
-        err_msg = "Command '{}' tried to run in state '{}' but created in '{}'.".format(command.command_string,
-                                                                                        current_state, expected_state)
+        err_msg = f"Command '{command.command_string}' tried to run in state '{current_state}' but created in '{expected_state}'."
         self.command = command
         super(CommandWrongState, self).__init__(err_msg)
 
 
 class EventWrongState(MolerException):
     def __init__(self, event, expected_state, current_state):
-        err_msg = "Event '{}' tried to run in state '{}' but created in '{}'.".format(event.event_name,
-                                                                                      current_state, expected_state)
+        err_msg = f"Event '{event.event_name}' tried to run in state '{current_state}' but created in '{expected_state}'."
         self.event = event
         super(EventWrongState, self).__init__(err_msg)
 
@@ -151,7 +148,5 @@ class DeviceChangeStateFailure(DeviceFailure):
         if device_name is None:
             device_name = 'unknown name'
         self.device = device
-        err_msg = "Exception raised by device '{}' ({}) SM when try to changing state: '{}'.".format(device,
-                                                                                                     device_name,
-                                                                                                     exception)
+        err_msg = f"Exception raised by device '{device}' ({device_name}) SM when try to changing state: '{exception}'."
         super(DeviceChangeStateFailure, self).__init__(device, err_msg)

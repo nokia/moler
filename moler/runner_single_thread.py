@@ -198,9 +198,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
         remain_time = timeout - already_passed
         if remain_time < 0.0:
             remain_time = 0.0
-        msg = "{} {:.3f} [sec], already passed {:.3f} [sec]".format(
-            prefix, remain_time, already_passed
-        )
+        msg = f"{prefix} {remain_time:.3f} [sec], already passed {already_passed:.3f} [sec]"
         return remain_time, msg
 
     def _execute_till_eol(
@@ -328,9 +326,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
                         connection_observer.on_inactivity()
                     except Exception as ex:
                         self.logger.exception(
-                            msg=r'Exception "{}" ("{}") inside: {} when on_inactivity.'.format(
-                                ex, repr(ex), connection_observer
-                            )
+                            msg=f'Exception "{ex}" ("{repr(ex)}") inside: {connection_observer} when on_inactivity.'
                         )
                         connection_observer.set_exception(exception=ex)
                     finally:
@@ -350,10 +346,8 @@ class RunnerSingleThread(ConnectionObserverRunner):
                 timeout = connection_observer.life_status.terminating_timeout
             if (timeout is not None) and (run_duration >= timeout):
                 if connection_observer.life_status.in_terminating:
-                    msg = (
-                        "{} underlying real command failed to finish during {} seconds. It will be forcefully"
-                        " terminated".format(connection_observer, timeout)
-                    )
+                    msg = f"{connection_observer} underlying real command failed to finish during {timeout} seconds. It will be forcefully terminated"
+
                     self.logger.info(msg)
                     connection_observer.set_end_of_life()
                 else:
@@ -422,9 +416,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
                 connection_observer.set_exception(exception)
                 connection_observer.on_timeout()
 
-                observer_info = "{}.{}".format(
-                    connection_observer.__class__.__module__, connection_observer
-                )
+                observer_info = f"{connection_observer.__class__.__module__}.{connection_observer}"
                 timeout_msg = f"has timed out after {passed_time:.2f} seconds."
                 msg = f"{observer_info} {timeout_msg}"
 

@@ -59,8 +59,7 @@ class Event(ConnectionObserver):
             self.callback = partial_callback
         else:
             raise MolerException(
-                "Cannot assign a callback '{}' to event '{}' when another callback '{}' is already "
-                "assigned".format(callback, self, self.callback)
+                f"Cannot assign a callback '{callback}' to event '{self}' when another callback '{self.callback}' is already assigned"
             )
 
     def enable_log_occurrence(self):

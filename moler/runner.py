@@ -490,11 +490,9 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 self.logger.debug(f">>> Entering err {observer_lock}. conn-obs '{connection_observer}' runner. '{self}'")
                 with observer_lock:
                     self.logger.debug(f">>> Entered  err {observer_lock}. conn-obs '{connection_observer}' runner. '{self}'")
-                    self.logger.warning("Unhandled exception from '{} 'caught by runner. '{}' : '{}'.\n{}".format(
-                        connection_observer, exc, repr(exc), stack_msg))
-                    ex_msg = "Unexpected exception from {} caught by runner when processing data >>{}<< at '{}':" \
-                             " >>>{}<<< -> repr: >>>{}<<<\nStack: {}".format(connection_observer, data, timestamp, exc,
-                                                                             repr(exc), stack_msg)
+                    self.logger.warning(f"Unhandled exception from '{connection_observer}' caught by runner. '{exc}' : '{repr(exc)}'.\n{stack_msg}")
+                    ex_msg = f"Unexpected exception from {connection_observer} caught by runner when processing data >>{data}<< at '{timestamp}': " \
+                             f">>>{exc}<<< -> repr: >>>{repr(exc)}<<<\nStack: {stack_msg}"
                     if connection_observer.is_command():
                         ex = CommandFailure(command=connection_observer, message=ex_msg)
                     else:
@@ -599,8 +597,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 timeout = connection_observer.life_status.terminating_timeout
             if (timeout is not None) and (run_duration >= timeout):
                 if connection_observer.life_status.in_terminating:
-                    msg = "{} underlying real command failed to finish during {} seconds. It will be forcefully" \
-                          " terminated".format(connection_observer, timeout)
+                    msg = f"{connection_observer} underlying real command failed to finish during {timeout} seconds. It will be forcefully terminated"
                     self.logger.info(msg)
                     connection_observer.set_end_of_life()
                 else:
