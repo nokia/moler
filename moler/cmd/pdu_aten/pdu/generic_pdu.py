@@ -15,7 +15,7 @@ __email__ = 'marcin.usielski@nokia.com'
 cmd_failure_causes = ['Not Support',
                       'Invalid command']
 
-r_cmd_failure_cause_alternatives = f'{ "|".join(cmd_failure_causes) }'
+r_cmd_failure_cause_alternatives = f'{"|".join(cmd_failure_causes)}'
 
 
 @six.add_metaclass(abc.ABCMeta)

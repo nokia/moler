@@ -228,7 +228,7 @@ class AbstractMolerConnection:
     def _unknown_send(self, data2send):
         err_msg = f"Can't send('{data2send}')"
         err_msg += "\nYou haven't installed sending method of external-IO system"
-        err_msg += f"\n{{'Do it either during connection construction: {self.__class__.__name__}(how2send=external_io_send)\}}'"
+        err_msg += f"\n{{'Do it either during connection construction: {self.__class__.__name__}(how2send=external_io_send)}}'"
         err_msg += "\nor later via attribute direct set: connection.how2send = external_io_send"
         self._log(level=logging.ERROR, msg=err_msg)
         raise WrongUsage(err_msg)

@@ -403,7 +403,7 @@ class UnixRemote2(ProxyPc2):
                 self._prompts_event.change_prompts(
                     prompts=self._reverse_state_prompts_dict)
             self.logger.debug(f"New prompts: {self._state_prompts}")
-            self.logger.debug(f"After prepare_reverse_state_prompts_dict: {self._reverse_state_prompts_dict}"
+            self.logger.debug(f"After prepare_reverse_state_prompts_dict: {self._reverse_state_prompts_dict}")
             self._prompt_detected = True
 
     @mark_to_call_base_class_method_with_same_name

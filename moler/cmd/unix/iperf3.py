@@ -203,7 +203,7 @@ class Iperf3(Iperf2):
 
     _r_total_datagrams = r"(?P<Total_Datagrams>\d+)"
 
-    _r_rec_tcp_svr = f"{_r_id}\s+{_r_interval}\s+{_r_transfer}\s+{_r_bitrate}"
+    _r_rec_tcp_svr = fr"{_r_id}\s+{_r_interval}\s+{_r_transfer}\s+{_r_bitrate}"
     _r_rec_tcp_cli = f"{_r_rec_tcp_svr} {_r_retr} {_r_cwnd}"
     _r_rec_udp_svr = f"{_r_rec_tcp_svr} {_r_jitter} {_r_datagrams}"
     _r_rec_udp_cli = f"{_r_rec_tcp_svr} {_r_total_datagrams}"
