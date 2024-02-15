@@ -204,10 +204,10 @@ class Iperf3(Iperf2):
     _r_total_datagrams = r"(?P<Total_Datagrams>\d+)"
 
     _r_rec_tcp_svr = fr"{_r_id}\s+{_r_interval}\s+{_r_transfer}\s+{_r_bitrate}"
-    _r_rec_tcp_cli = f"{_r_rec_tcp_svr} {_r_retr} {_r_cwnd}"
-    _r_rec_udp_svr = f"{_r_rec_tcp_svr} {_r_jitter} {_r_datagrams}"
-    _r_rec_udp_cli = f"{_r_rec_tcp_svr} {_r_total_datagrams}"
-    _r_rec_tcp_cli_summary = f"{_r_rec_tcp_svr} {_r_retr}"
+    _r_rec_tcp_cli = fr"{_r_rec_tcp_svr}\s+{_r_retr}\s+{_r_cwnd}"
+    _r_rec_udp_svr = fr"{_r_rec_tcp_svr}\s+{_r_jitter}\s+{_r_datagrams}"
+    _r_rec_udp_cli = fr"{_r_rec_tcp_svr}\s+{_r_total_datagrams}"
+    _r_rec_tcp_cli_summary = fr"{_r_rec_tcp_svr}\s+{_r_retr}"
 
     _re_iperf_record_tcp_svr = re.compile(_r_rec_tcp_svr)
     _re_iperf_record_tcp_cli = re.compile(_r_rec_tcp_cli)
@@ -287,11 +287,11 @@ class Iperf3(Iperf2):
                 from_client=from_client, to_server=to_server, data_record=last_record)
 
     _r_option_report = r"(?P<Option>receiver|sender)"
-    _r_rec_tcp_svr_report = f"{_r_rec_tcp_svr} {_r_option_report}"
-    _r_rec_tcp_cli_report = f"{_r_rec_tcp_cli} {_r_option_report}"
-    _r_rec_udp_svr_report = f"{_r_rec_udp_svr} {_r_option_report}"
-    _r_rec_udp_cli_report = f"{_r_rec_udp_cli} {_r_option_report}"
-    _r_rec_tcp_cli_summary_report = f"{_r_rec_tcp_cli_summary} {_r_option_report}"
+    _r_rec_tcp_svr_report = fr"{_r_rec_tcp_svr}\s+{_r_option_report}"
+    _r_rec_tcp_cli_report = fr"{_r_rec_tcp_cli}\s+{_r_option_report}"
+    _r_rec_udp_svr_report = fr"{_r_rec_udp_svr}\s+{_r_option_report}"
+    _r_rec_udp_cli_report = fr"{_r_rec_udp_cli}\s+{_r_option_report}"
+    _r_rec_tcp_cli_summary_report = fr"{_r_rec_tcp_cli_summary}\s+{_r_option_report}"
 
     _re_iperf_record_tcp_svr_report = re.compile(_r_rec_tcp_svr_report)
     _re_iperf_record_tcp_cli_report = re.compile(_r_rec_tcp_cli_report)

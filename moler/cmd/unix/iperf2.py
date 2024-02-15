@@ -361,8 +361,8 @@ class Iperf2(GenericUnixCommand, Publisher):
     _r_bandwidth = r"(?P<Bandwidth>[\d\.]+\s+\w+/sec)"
     _r_jitter = r"(?P<Jitter>\d+\.\d+\s\w+)"
     _r_datagrams = r"(?P<Lost_vs_Total_Datagrams>\d+/\s*\d+)\s*\((?P<Lost_Datagrams_ratio>[\d\.]+\%)\)"
-    _r_rec = f"{_r_id} {_r_interval} {_r_transfer} {_r_bandwidth}"
-    _r_rec_udp_svr = f"{_r_rec} {_r_jitter} {_r_datagrams}"
+    _r_rec = fr"{_r_id}\s+{_r_interval}\s+{_r_transfer}\s+{_r_bandwidth}"
+    _r_rec_udp_svr = fr"{_r_rec}\s+{_r_jitter}\s+{_r_datagrams}"
     _re_iperf_record = re.compile(_r_rec)
     _re_iperf_record_udp_svr = re.compile(_r_rec_udp_svr)
 

@@ -301,7 +301,7 @@ def check_if_documentation_exists(path2cmds):
     if errors_found:
         print("\n".join(errors_found))
         msg = f"Following {observer_type.lower()} have incorrect documentation:"
-        err_msg = f"{msg}\n    {'\n    '.join(wrong_commands.keys())}"
+        err_msg = "{}\n    {}".format(msg, "\n    ".join(wrong_commands.keys()))
         print(err_msg)
         return False
     if number_of_command_found == 0:
