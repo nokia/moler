@@ -47,7 +47,7 @@ class CompressedRotatingFileHandler(RotatingFileHandler):
         if int(self.backupCount) > 0:
             for i in range(int(self.backupCount) - 1, 0, -1):
                 sfn = self.rotation_filename(f"{self.baseFilename}.{int(i)}{self.compressed_file_extension}")
-                dfn = self.rotation_filename(f"{self.baseFilename}.{i+1}{self.compressed_file_extension}")
+                dfn = self.rotation_filename(f"{self.baseFilename}.{i + 1}{self.compressed_file_extension}")
                 if os.path.exists(sfn):
                     if os.path.exists(dfn):
                         os.remove(dfn)
