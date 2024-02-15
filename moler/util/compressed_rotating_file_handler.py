@@ -30,8 +30,9 @@ class CompressedRotatingFileHandler(RotatingFileHandler):
 
     def _compress_file(self, filename):
         if os.path.exists(filename):
-            full_pack_command = self.compress_command.format(compressed=filename + self.compressed_file_extension,
-                                                             log_input=filename)  # pylint-disable-line: consider-using-f-string
+            # pylint: disable-next=consider-using-f-string
+            full_pack_command = self.compress_command.format(compressed=f"{filename}{self.compressed_file_extension}",
+                                                              log_input=filename)
             subprocess.Popen(full_pack_command.split())  # Potential issue if pack command takes more time than next
             #                                              log rotation.
 

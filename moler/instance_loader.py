@@ -82,8 +82,6 @@ def _import_class_from_module(module, class_name):
             class_object = module_attribute
             return class_object
         else:
-            raise TypeError("Module's '%s' attribute '%s' is not class (it is %s)." % (module,
-                                                                                       class_name,
-                                                                                       type(module_attribute)))
+            raise TypeError(f"Module's '{module}' attribute '{class_name}' is not class (it is {type(module_attribute)}).")
     except AttributeError as ae:
         raise AttributeError(f"Module '{module}' has no attribute '{class_name}'") from ae

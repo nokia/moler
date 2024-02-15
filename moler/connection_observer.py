@@ -425,11 +425,7 @@ class ConnectionObserver:
     ):  # TODO: probably API to remove since we have runner tracking .timeout=XXX
         prev_timeout = self.timeout
         self.timeout = self.timeout + timedelta
-        msg = "Extended timeout from %.2f with delta %.2f to %.2f" % (
-            prev_timeout,
-            timedelta,
-            self.timeout,
-        )
+        msg = f"Extended timeout from {prev_timeout:.2f} with delta {timedelta:.2f} to {self.timeout:.2f}"
         self.runner.timeout_change(timedelta)
         self._log(logging.INFO, msg)
 
