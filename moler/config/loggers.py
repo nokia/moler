@@ -269,8 +269,8 @@ def change_logging_suffix(suffix=None, logger_name=None):
         if _main_logger is not None:
             # noinspection PyUnresolvedReferences
             _main_logger.info(
-                "Logs are rotated automatically: '{}'. Changing log suffixes is not"
-                " available now.".format(_kind)
+                f"Logs are rotated automatically: '{_kind}'. Changing log suffixes is not"
+                " available now."
             )
         return
     global _logging_suffixes  # pylint: disable=global-statement, global-variable-not-assigned
@@ -561,9 +561,7 @@ def configure_moler_main_logger():
             )
 
         logger.info(moler_logo)
-        msg = "Using specific packages version:\nPython: {}\nmoler: {}".format(
-            platform.python_version(), _get_moler_version()
-        )
+        msg = f"Using specific packages version:\nPython: {platform.python_version()}\nmoler: {_get_moler_version()}"
         logger.info(msg)
         configure_moler_threads_logger()
         logger.info(f"More logs in: {_logging_path}")
@@ -721,9 +719,7 @@ class RawDataFormatter:
         """We want to take data from log_record.msg as bytes"""
         raw_bytes = record.msg
         if not isinstance(raw_bytes, (bytes, bytearray)):
-            err_msg = "Log record directed for raw-logs must have encoder if record.msg is not bytes (it is {})".format(
-                type(record.msg)
-            )
+            err_msg = f"Log record directed for raw-logs must have encoder if record.msg is not bytes (it is {type(record.msg)})"
             assert hasattr(record, "encoder"), err_msg
             raw_bytes = record.encoder(record.msg)
         return raw_bytes

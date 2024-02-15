@@ -144,9 +144,9 @@ class Iptables(GenericUnixCommand):
         regex_for_rest = ""
         i = 0
         while i < len(self._key_details):
-            regex_for_rest = r"{}\S+\s+".format(regex_for_rest)
+            regex_for_rest = fr"{regex_for_rest}\S+\s+"
             i += 1
-        regex_for_rest = r"{}(?P<REST>\S.*\S|\S+)".format(regex_for_rest)
+        regex_for_rest = fr"{regex_for_rest}(?P<REST>\S.*\S|\S+)"
         re_for_rest = re.compile(regex_for_rest)
         return re_for_rest
 

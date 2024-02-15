@@ -306,8 +306,8 @@ class Sudo(CommandChangingPrompt):
             # instead of setting it
             raise CommandFailure(
                 self,
-                "Not allowed to run again the embedded command (embedded command is done): {}.".format(
-                    self.cmd_object))
+                f"Not allowed to run again the embedded command (embedded command is done): {self.cmd_object}."
+            )
         self._validated_embedded_parameters = True
 
     def _build_command_object(self):

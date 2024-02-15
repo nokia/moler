@@ -68,9 +68,7 @@ class Userdel(GenericUnixCommand):
             self.set_exception(
                 CommandFailure(
                     self,
-                    "ERROR: wrong syntax, should be: {}".format(
-                        self._regex_helper.group("HELP_MSG")
-                    ),
+                    f"ERROR: wrong syntax, should be: {self._regex_helper.group('HELP_MSG')}",
                 )
             )
             raise ParsingDone
@@ -88,10 +86,7 @@ class Userdel(GenericUnixCommand):
                     Userdel._re_command_error_user_used, line
                 ):
                     self.current_ret["RESULT"].append(
-                        "User {} currently used by process {} was deleted".format(
-                            self._regex_helper.group("USER"),
-                            self._regex_helper.group("PROCESS"),
-                        )
+                        f"User {self._regex_helper.group('USER')} currently used by process {self._regex_helper.group('PROCESS')} was deleted"
                     )
                     raise ParsingDone
 

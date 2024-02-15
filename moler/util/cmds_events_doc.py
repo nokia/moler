@@ -224,12 +224,7 @@ def _run_command_parsing_test(moler_cmd, creation_str, buffer_io, cmd_output, cm
             expected_result = pformat(cmd_result, indent=4)
             real_result = pformat(result, indent=4)
             diff = pformat(diff, indent=4)
-            error_msg = "{} {} {} (see {}{}):\n{}\n{}:\n{}\n{}\n{}".format(observer_type, creation_str,
-                                                                           'expected to return',
-                                                                           '{}_RESULT'.format(observer_type), variant,
-                                                                           expected_result,
-                                                                           'but returned', real_result,
-                                                                           'difference:', diff)
+            error_msg = f"{observer_type} {creation_str} expected to return {observer_type}_RESULT{variant}:\n{expected_result}\nbut returned: {real_result}\ndifference: {diff}"
             return error_msg
     return ""
 
@@ -306,7 +301,7 @@ def check_if_documentation_exists(path2cmds):
     if errors_found:
         print("\n".join(errors_found))
         msg = f"Following {observer_type.lower()} have incorrect documentation:"
-        err_msg = "{}\n    {}".format(msg, "\n    ".join(wrong_commands.keys()))
+        err_msg = f"{msg}\n    {'\n    '.join(wrong_commands.keys())}"
         print(err_msg)
         return False
     if number_of_command_found == 0:

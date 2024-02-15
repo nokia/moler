@@ -87,9 +87,7 @@ class ProxyPc2(UnixLocal):
         temporary_classname = self.__class__.__name__
         target_classname = temporary_classname[:-1]
         merge_info = "Its functionality will be merged"
-        future_change = "{} into {} device in Moler 2.0.0 and {} will be removed".format(merge_info,
-                                                                                         target_classname,
-                                                                                         temporary_classname)
+        future_change = f"{merge_info} into {target_classname} device in the distant future and {temporary_classname} will be removed"
         warn_msg = f"Class {temporary_classname} is an {what}. {future_change}."
         self.logger.warning(warn_msg)
 
@@ -260,7 +258,7 @@ class ProxyPc2(UnixLocal):
 
     def _detect_after_open_prompt(self, set_callback):
         self._after_open_prompt_detector = Wait4(
-            detect_patterns=[r'^(.+){}'.format(self._detecting_prompt_cmd)],
+            detect_patterns=[rf'^(.+){self._detecting_prompt_cmd}'],
             connection=self.io_connection.moler_connection,
             till_occurs_times=2
         )
@@ -279,17 +277,13 @@ class ProxyPc2(UnixLocal):
         occurrence = event.get_last_occurrence()
         prompt = re.escape(occurrence['groups'][0].rstrip())
         state = self._get_current_state()
-        self.logger.debug("ProxyPc2 for state '{}' new prompt '{}' reverse_state"
-                          "_prompts_dict: '{}'.".format(state,
-                                                        prompt,
-                                                        self._reverse_state_prompts_dict))
+        self.logger.debug(f"ProxyPc2 for state '{state}' new prompt '{prompt}' reverse_state_prompts_dict: '{self._reverse_state_prompts_dict}'.")
         with self._state_prompts_lock:
             old_prompt = self._state_prompts.get(state, None)
             prompt = re.escape(prompt)
             self._state_prompts[state] = prompt
             if old_prompt is not None and prompt != old_prompt:
-                self.logger.info("Different prompt candidates: '{}' -> '{}' for"
-                                 " state {}.".format(old_prompt, prompt, state))
+                self.logger.info(f"Different prompt candidates: '{old_prompt}' -> '{prompt}' for state {state}.")
             self.logger.debug(f"New prompts: {self._state_prompts}")
             self._prepare_reverse_state_prompts_dict()
             self.logger.debug(f"After prepare_reverse_state_prompts_dict: {self._reverse_state_prompts_dict}")

@@ -21,8 +21,7 @@ class Mv(GenericUnixCommand):
         self.ret_required = False
 
     def build_command_string(self):
-        return f"mv {self.src} {self.dst} {self.options}" if self.options else "{} {} {}" \
-            .format("mv", self.src, self.dst)
+        return f"mv {self.src} {self.dst} {self.options}" if self.options else f"mv {self.src} {self.dst}"
 
     def on_new_line(self, line, is_full_line):
         if self._cmd_output_started:

@@ -65,7 +65,7 @@ class Which(GenericUnixCommand):
 
     def _compile_regex(self):
         for name in self.names:
-            _re_name = re.compile(r"(?P<NAME>.*{}.*)".format(name), re.IGNORECASE)
+            _re_name = re.compile(fr"(?P<NAME>.*{name}.*)", re.IGNORECASE)
             self._compiled_regex.append((name, _re_name))
 
     def _set_result(self):

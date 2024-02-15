@@ -81,7 +81,7 @@ class FifoBuffer(IOConnection):
         If connection is using default logger ("moler.connection.<name>.io")
         then modify logger after connection name change.
         """
-        self._log(msg=r'changing name: {} --> {}'.format(self._name, value), level=TRACE)
+        self._log(msg=f'changing name: {self._name} --> {value}', level=TRACE)
         self.moler_connection.name = value
         if self._using_default_logger():
             self.logger = self._select_logger(logger_name="",

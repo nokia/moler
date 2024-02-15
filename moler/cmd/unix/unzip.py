@@ -142,9 +142,7 @@ class Unzip(GenericUnixCommand):
                 self.set_exception(
                     CommandFailure(
                         self,
-                        "ERROR: {} already exists".format(
-                            self._regex_helper.group("OVERWRITE")
-                        ),
+                        f"ERROR: {self._regex_helper.group('OVERWRITE')} already exists",
                     )
                 )
             raise ParsingDone

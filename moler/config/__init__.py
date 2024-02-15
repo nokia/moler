@@ -103,9 +103,7 @@ def load_config(config=None, from_env_var=None, *args, **kwargs):
         )
     elif (not from_env_var and wrong_type_config) or (config and wrong_type_config):
         raise WrongUsage(
-            "Unsupported config type: '{}'. Allowed are: 'dict' or 'str' holding config filename (file is in YAML format).".format(
-                type(config)
-            )
+            f"Unsupported config type: '{type(config)}'. Allowed are: 'dict' or 'str' holding config filename (file is in YAML format)."
         )
     if not config:
         if from_env_var not in os.environ:

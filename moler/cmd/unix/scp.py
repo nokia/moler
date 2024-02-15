@@ -272,10 +272,8 @@ class Scp(GenericUnixCommand):
             self.set_exception(
                 CommandFailure(
                     self,
-                    "Bad value of parameter known_hosts_on_failure '{}'. "
-                    "Supported values: rm or keygen.".format(
-                        self.known_hosts_on_failure
-                    ),
+                    f"Bad value of parameter known_hosts_on_failure '{self.known_hosts_on_failure}'. "
+                    "Supported values: rm or keygen."
                 )
             )
         self._sent_continue_connecting = False

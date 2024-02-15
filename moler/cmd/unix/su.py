@@ -92,8 +92,8 @@ class Su(Sudo):
             # instead of setting it
             raise CommandFailure(
                 self,
-                "Not allowed to run again the embedded command (embedded command is done): {}.".format(
-                    self.cmd_object))
+                f"Not allowed to run again the embedded command (embedded command is done): {self.cmd_object}."
+            )
         if not self.cmd_object:
             self._finish_on_final_prompt = True
         self._validated_embedded_parameters = True

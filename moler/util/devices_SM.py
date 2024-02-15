@@ -195,18 +195,11 @@ def _perform_device_tests(
             )
             tested.add((source_state, target_state))
             if device.last_wrong_wait4_occurrence is not None:
-                msg = "More than 1 prompt match the same line!: '{}' in change state '{}' -> '{}' -> '{}'".format(
-                    device.last_wrong_wait4_occurrence,
-                    state_before_test,
-                    source_state,
-                    target_state,
-                )
+                msg = f"More than 1 prompt match the same line!: '{device.last_wrong_wait4_occurrence}' in change state '{state_before_test}' -> '{source_state}' -> '{target_state}'"
                 raise MolerException(msg)
         except Exception as exc:
             raise MolerException(
-                "Cannot trigger change state: '{}' -> '{}'. Successful tests: {}\n{}\nAlready tested '{}'.".format(
-                    source_state, target_state, test_nr, exc, tested
-                )
+                f"Cannot trigger change state: '{source_state}' -> '{target_state}'. Successful tests: {test_nr}\n{exc}\nAlready tested '{tested}'."
             ) from exc
         test_nr += 1
         if max_time is not None and time.monotonic() - start_time > max_time:
@@ -289,16 +282,12 @@ class RemoteConnection(ThreadedFifoBuffer):
         """
         if self.device.state == "NOT_CONNECTED":
             raise MolerException(
-                "Device '{}' in unsupported state '{}'.".format(
-                    self.device.name, self.device.state
-                )
+                f"Device '{self.device.name}' in unsupported state '{self.device.state}'."
             )
         cmd_data_string = self.input_bytes.decode("utf-8")
         if cmd_data_string:
             if "\n" in cmd_data_string:
-                cmd_data_string = cmd_data_string[
-                    :-1
-                ]  # remove \n from command_string on connection
+                cmd_data_string = cmd_data_string[:-1]  # remove \n from command_string on connection
         else:
             cmd_data_string = self.input_bytes
 
@@ -315,14 +304,12 @@ class RemoteConnection(ThreadedFifoBuffer):
             try:
                 available_outputs = self.data[self.device.state].keys()
             except (KeyError, AttributeError):
-                available_outputs = "No output for state '{}'. Data: '{}'.".format(
-                    self.device.state, self.data
-                )
+                available_outputs = f"No output for state '{self.device.state}'. Data: '{self.data}'."
             raise MolerException(
-                "No output for cmd: '{}' in state '{}'!\n"
-                "Available outputs for the state: '{}'.\n"
+                f"No output for cmd: '{cmd_data_string}' in state '{self.device.state}'!\n"
+                f"Available outputs for the state: '{available_outputs}'.\n"
                 "Please update your device_output dict!\n"
-                "{}".format(cmd_data_string, self.device.state, available_outputs, exc)
+                f"{exc}"
             ) from exc
 
     def write(self, input_bytes):

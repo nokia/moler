@@ -56,9 +56,7 @@ class DeviceFactory:
             except Exception as ex:
                 if ignore_exception:
                     logger.warning(
-                        "Cannot create device '{}' because of exception: >>{}<< : >>{}<<".format(
-                            device_name, ex, repr(ex)
-                        )
+                        f"Cannot create device '{device_name}' because of exception: >>{ex}<< : >>{repr(ex)}<<"
                     )
                 else:
                     raise ex
@@ -197,10 +195,8 @@ class DeviceFactory:
                     return cls._devices[new_name]
                 else:
                     msg = (
-                        "Attempt to create device '{}' as clone of '{}' but device with such name already created "
-                        "as clone of '{}'.".format(
-                            new_name, source_name, cached_cloned_from
-                        )
+                        f"Attempt to create device '{new_name}' as clone of '{source_name}' but device with such name already created "
+                        f"as clone of '{cached_cloned_from}'."
                     )
                     raise WrongUsage(msg)
             if initial_state is None:
@@ -439,24 +435,18 @@ class DeviceFactory:
         current_full_class = requested_device_def["DEVICE_CLASS"]
         if already_full_class == current_full_class:
             default_hops = {}
-            already_hops = already_device_def["constructor_parameters"][
-                "sm_params"
-            ].get("CONNECTION_HOPS", default_hops)
+            already_hops = already_device_def["constructor_parameters"]["sm_params"].get("CONNECTION_HOPS", default_hops)
             current_hops = requested_device_def.get("CONNECTION_HOPS", default_hops)
             diff = compare_objects(already_hops, current_hops)
             if diff:
                 different_msg = (
-                    "Device '{}' already created with SM parameters: '{}' but now requested with SM"
-                    " params: {}. \nDiff: {}".format(
-                        already_device_name, already_hops, current_hops, diff
-                    )
+                    f"Device '{already_device_name}' already created with SM parameters: '{already_hops}' but now requested with SM"
+                    f" params: {current_hops}. \nDiff: {diff}"
                 )
         else:
             different_msg = (
-                "Device '{}' already created as instance of class '{}' and now requested as instance of "
-                "class '{}'".format(
-                    already_device_name, already_full_class, current_full_class
-                )
+                f"Device '{already_device_name}' already created as instance of class '{already_full_class}' and now requested as instance of "
+                f"class '{current_full_class}'"
             )
         return different_msg
 

@@ -185,8 +185,7 @@ class AdbRemote(UnixRemote):
             else:
                 consequence = f"Won't be able to detect {AdbRemote.adb_shell_root} state"
                 fix = f"Please provide configuration with 'expected_prompt' for {AdbRemote.adb_shell_root} state"
-                self._log(logging.WARNING, "Unknown prompt for {} state. {}. {}.".format(AdbRemote.adb_shell_root,
-                                                                                         consequence, fix))
+                self._log(logging.WARNING, f"Unknown prompt for {AdbRemote.adb_shell_root} state. {consequence}. {fix}.")
                 adb_shell_root_prompt = "Unknown_adb_root_prompt"
 
         state_prompts = {
@@ -213,7 +212,7 @@ class AdbRemote(UnixRemote):
             adb_shell_prompt = adb_shell_cmd_params["expected_prompt"]
         if not adb_shell_prompt:
             # adb_shell@f57e6b77 $
-            adb_shell_prompt = AdbShell.re_generated_prompt.format(self._serial_number)
+            adb_shell_prompt = AdbShell.re_generated_prompt.format(self._serial_number)  # pylint-disable-line: consider-using-f-string
         return adb_shell_prompt
 
     @mark_to_call_base_class_method_with_same_name

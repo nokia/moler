@@ -27,7 +27,7 @@ class RunSerialProxy(CommandChangingPrompt):
         :param runner: Runner to run command.
         """
         self.serial_devname = serial_devname
-        proxy_prompt = r"{}>".format(serial_devname)
+        proxy_prompt = fr"{serial_devname}>"
         super(RunSerialProxy, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                              runner=runner, expected_prompt=proxy_prompt, target_newline=target_newline)
         self.ret_required = False
@@ -58,7 +58,7 @@ class RunSerialProxy(CommandChangingPrompt):
         super(RunSerialProxy, self).on_new_line(line=line, is_full_line=is_full_line)
 
     # error in python code of proxy - will show Traceback on python shell
-    _re_command_fail = re.compile(r"{}|traceback".format(r_cmd_failure_cause_alternatives), re.IGNORECASE)
+    _re_command_fail = re.compile(fr"{r_cmd_failure_cause_alternatives}|traceback", re.IGNORECASE)
 
     def _check_command_failure(self, line):
         """

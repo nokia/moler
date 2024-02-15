@@ -112,7 +112,7 @@ class Ssh(GenericTelnetSsh):
         self._was_overridden_key_pass_keyboard = False
         self._permission_denied_key_pass_keyboard_cmd = None
         if permission_denied_key_pass_keyboard is not None:
-            self._permission_denied_key_pass_keyboard_cmd = permission_denied_key_pass_keyboard.format(host=host)
+            self._permission_denied_key_pass_keyboard_cmd = permission_denied_key_pass_keyboard.format(host=host)  # pylint-disable-line: consider-using-f-string
 
     def build_command_string(self):
         """
@@ -261,9 +261,8 @@ class Ssh(GenericTelnetSsh):
             self.connection.sendline(f"\nssh-keygen -R {self.host}")
         else:
             exception = CommandFailure(self,
-                                       "Bad value of parameter known_hosts_on_failure '{}'. "
-                                       "Supported values: rm or keygen.".format(
-                                           self.known_hosts_on_failure))
+                                       f"Bad value of parameter known_hosts_on_failure '{self.known_hosts_on_failure}'. "
+                                       "Supported values: rm or keygen.")
         if exception:
             self.set_exception(exception=exception)
         else:

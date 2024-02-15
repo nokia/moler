@@ -56,7 +56,7 @@ class Sftp(GenericUnixCommand):
         if self.command:
             self.command = self.command.strip()
             self._re_command_sent = re.compile(
-                r"sftp> {}".format(re.escape(self.command)), re.I
+                f"sftp> {re.escape(self.command)}", re.I
             )
 
         # Flags
