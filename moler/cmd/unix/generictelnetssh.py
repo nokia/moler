@@ -4,14 +4,17 @@ Base class for telnet and ssh commands.
 """
 
 __author__ = "Marcin Usielski, Tomasz Krol"
-__copyright__ = "Copyright (C) 2019-2021, Nokia"
+__copyright__ = "Copyright (C) 2019-2024, Nokia"
 __email__ = "marcin.usielski@nokia.com, tomasz.krol@nokia.com"
 
 import abc
 import re
-
 import six
-from dateutil import parser
+
+import warnings
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    from dateutil import parser  # https://github.com/aws/jsii/issues/4406
 
 from moler.cmd.commandchangingprompt import CommandChangingPrompt
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric

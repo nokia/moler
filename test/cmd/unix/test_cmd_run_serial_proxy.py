@@ -51,7 +51,7 @@ def test_command_exits_python_interactive_shell(buffer_connection):
     connection_send.assert_called_once_with("exit()\n")
 
 
-failed_pycode = """python -i moler_serial_proxy.py COM5
+failed_pycode = r"""python -i moler_serial_proxy.py COM5
 starting COM5 proxy at image9 ...
 Traceback (most recent call last):
   File "moler_serial_proxy.py", line 159, in <module>
@@ -63,8 +63,8 @@ Traceback (most recent call last):
 NameError: global name 'timeout2' is not defined
 >>>"""
 
-serial_dev_in_use = """python -i moler_serial_proxy.py COM5
-user-lab0@10.83.179.159's password: 
+serial_dev_in_use = r"""python -i moler_serial_proxy.py COM5
+user-lab0@10.83.179.159's password:
 starting COM5 proxy at PC11 ...
 PC11  opening serial port COM5
 Traceback (most recent call last):
@@ -85,7 +85,7 @@ Traceback (most recent call last):
 serial.serialutil.SerialException: could not open port 'COM5': WindowsError(32, 'The process cannot access the file because it is being used by another process.')
 >>>"""
 
-no_proxy = """python -i moler_serial_proxy.py COM5
+no_proxy = r"""python -i moler_serial_proxy.py COM5
 C:\Python27\python.exe: can't open file 'moler_serial_proxy.py': [Errno 2] No such file or directory
 image9$"""
 

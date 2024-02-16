@@ -233,7 +233,7 @@ def loaded_adb_device_config(empty_moler_config):
     import yaml
     from moler.config import load_device_from_config
 
-    adb_dev_config_yaml = """
+    adb_dev_config_yaml = r"""
     DEVICES:
         ADB_LHOST:
             DEVICE_CLASS: moler.device.adbremote2.AdbRemote2
@@ -264,7 +264,7 @@ def loaded_proxy_pc_config(empty_moler_config):
     import yaml
     from moler.config import load_device_from_config
 
-    config_yaml = """
+    config_yaml = r"""
     DEVICES:
         PROXY:
             DEVICE_CLASS: moler.device.proxy_pc2.ProxyPc2
@@ -284,7 +284,7 @@ def loaded_unix_remote_config(empty_moler_config):
     import yaml
     from moler.config import load_device_from_config
 
-    config_yaml = """
+    config_yaml = r"""
     DEVICES:
         UX_REMOTE:
             DEVICE_CLASS: moler.device.unixremote2.UnixRemote2
@@ -309,7 +309,7 @@ def loaded_unix_remote_config(empty_moler_config):
 def uxlocal2proxypc_connection_hops():
     import yaml
 
-    hops_yaml = """
+    hops_yaml = r"""
         UNIX_LOCAL:
             PROXY_PC:
                 execute_command: ssh
@@ -327,7 +327,7 @@ def uxlocal2proxypc_connection_hops():
 def proxypc2uxremote_connection_hops():
     import yaml
 
-    hops_yaml = """
+    hops_yaml = r"""
         PROXY_PC:
             UNIX_REMOTE:
                 execute_command: ssh
@@ -345,7 +345,7 @@ def proxypc2uxremote_connection_hops():
 def ux2uxroot_connection_hops():
     import yaml
 
-    hops_yaml = """
+    hops_yaml = r"""
         UNIX_REMOTE:
             UNIX_REMOTE_ROOT:
                 command_params:
@@ -375,7 +375,7 @@ def uxlocal2uxremote_connection_hops(uxlocal2proxypc_connection_hops,
 def ux2adbshell_connection_hops():
     import yaml
 
-    hops_yaml = """
+    hops_yaml = r"""
         UNIX_REMOTE:
             ADB_SHELL:
                 execute_command: adb_shell
@@ -390,7 +390,7 @@ def ux2adbshell_connection_hops():
 def adbshell2adbshellroot_connection_hops():
     import yaml
 
-    hops_yaml = """
+    hops_yaml = r"""
         ADB_SHELL:
             ADB_SHELL_ROOT:
                 execute_command: su

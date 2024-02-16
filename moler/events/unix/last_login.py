@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 __author__ = "Marcin Usielski"
-__copyright__ = "Copyright (C) 2019-2020, Nokia"
+__copyright__ = "Copyright (C) 2019-2024, Nokia"
 __email__ = "marcin.usielski@nokia.com"
 
 import datetime
 import re
 
-from dateutil import parser
+import warnings
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    from dateutil import parser  # https://github.com/aws/jsii/issues/4406
 
 from moler.events.unix.genericunix_textualevent import GenericUnixTextualEvent
 from moler.exceptions import ParsingDone

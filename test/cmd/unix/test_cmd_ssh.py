@@ -191,7 +191,7 @@ def command_output_keygen():
     Password:
     ****
 
-    Last login: Fri Jul  3 11:50:03 CEST 2020 from 192.168.255.126
+    Last login: Fri Jul  3 11:50:03 UTC+2 2020 from 192.168.255.126
     user@host:~ #"""
     return data
 

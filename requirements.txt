@@ -8,3 +8,4 @@ python-dateutil
 pyserial
 cryptography
 paramiko
+importlib-metadata

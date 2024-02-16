@@ -9,10 +9,18 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 
 import pytest
 import time
+import datetime
+
+import warnings
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    from dateutil import parser  # https://github.com/aws/jsii/issues/4406
+
 from moler.cmd.unix.telnet import Telnet
 from moler.exceptions import CommandFailure
-from dateutil import parser
-import datetime
+
+
+
 
 
 def test_calling_telnet_returns_result_parsed_from_command_output(buffer_connection, command_output_and_expected_result):
