@@ -1,3 +1,8 @@
+## moler 3.2.0
+* Refactoring - removed warnings for Python
+* ConnectionObserverLifeStatus - debug enhancement
+* Refactoring - fstrings
+
 ## moler 3.1.0
 * Refactoring - Pylint
 * Changed time calculation to time.monotonic()
