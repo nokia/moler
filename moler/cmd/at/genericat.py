@@ -39,7 +39,7 @@ class GenericAtCommand(CommandTextualGeneric):
         super(GenericAtCommand, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                                runner=runner)
         if operation not in ["execute", "read", "test"]:
-            raise CommandFailure(self, "{} mode not supported".format(operation))
+            raise CommandFailure(self, f"{operation} mode not supported")
         # TODO: do we have any way to stop AT cmd?
         self.terminating_timeout = 0  # no additional timeout for Ctrl-C..till..prompt (shutdown after cmd timeout)
 
@@ -81,7 +81,7 @@ class GenericAtCommand(CommandTextualGeneric):
         if self._regex_helper.match_compiled(self._re_cme_error, line):
             error_type = self._regex_helper.group("ERR_TYPE")
             error_info = self._regex_helper.group("ERROR")
-            self.set_exception(CommandFailure(self, "{} ERROR: {}".format(error_type, error_info)))
+            self.set_exception(CommandFailure(self, f"{error_type} ERROR: {error_info}"))
             raise ParsingDone
         elif self._regex_helper.match_compiled(self._re_error, line):
             error_info = self._regex_helper.group(1)

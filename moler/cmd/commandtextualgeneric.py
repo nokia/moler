@@ -158,9 +158,7 @@ class CommandTextualGeneric(Command):
                 # build_command_string raises an exception.
                 command_string = self.build_command_string()
                 if self.command_path:
-                    self.__command_string = "{}{}".format(
-                        self.command_path, command_string
-                    )
+                    self.__command_string = f"{self.command_path}{command_string}"
                 else:
                     self.__command_string = command_string
             finally:
@@ -219,9 +217,7 @@ class CommandTextualGeneric(Command):
             )
             re_sub_command_string = sub_command_finish_string
         if sub_command_finish_string and sub_command_start_string:
-            re_sub_command_string = "{}|{}".format(
-                sub_command_start_string, sub_command_finish_string
-            )
+            re_sub_command_string = f"{sub_command_start_string}|{sub_command_finish_string}"
         return re_sub_command_string
 
     @property
@@ -279,9 +275,7 @@ class CommandTextualGeneric(Command):
         :return: None.
         """
         if self.debug_data_received:
-            msg = "\nIncoming data: 0X{}\n".format(
-                "".join([" {:02X}".format(ord(ch)) for ch in data])
-            )
+            msg = f"\nIncoming data: 0X{''.join([f' {ord(ch):02X}' for ch in data])}\n"
             self.logger.info(msg)
         self._last_recv_time_data_read_from_connection = recv_time
         self._last_chunk = data
@@ -290,7 +284,7 @@ class CommandTextualGeneric(Command):
             for current_chunk in lines:
                 if self.__class__.__name__ == "CmConnect":  # pragma: no cover
                     self.logger.debug(
-                        "{} current_chunk = '{}'".format(self, current_chunk)
+                        f"{self} current_chunk = '{current_chunk}'"
                     )
                 line, is_full_line = self._update_from_cached_incomplete_line(
                     current_chunk=current_chunk
@@ -310,33 +304,31 @@ class CommandTextualGeneric(Command):
                     )
                 if self.done() and self.do_not_process_after_done:
                     if self.__class__.__name__ == "CmConnect":  # pragma: no cover
-                        self.logger.debug("{} is done".format(self))
+                        self.logger.debug(f"{self} is done")
                     break
         except UnicodeDecodeError as ex:
             if self._ignore_unicode_errors:
                 self._log(
                     lvl=logging.WARNING,
-                    msg="Processing data from '{}' with unicode problem: '{}'.".format(
-                        self, ex
-                    ),
+                    msg=f"Processing data from '{self}' with unicode problem: '{ex}'.",
                 )
             else:
                 # log it just to catch that rare hanging thread issue
                 self._log(
                     lvl=logging.WARNING,
-                    msg="Processing data from '{}' raised: '{}'.".format(self, ex),
+                    msg=f"Processing data from '{self}' raised: '{ex}'.",
                 )
                 raise ex
         except Exception as ex:  # pragma: no cover # log it just to catch that rare hanging thread issue
             self._log(
                 lvl=logging.WARNING,
-                msg="Processing data from '{}' raised: '{}'.".format(self, ex),
+                msg=f"Processing data from '{self}' raised: '{ex}'.",
             )
             raise ex
         finally:
             if self.__class__.__name__ == "CmConnect":  # pragma: no cover
                 self.logger.debug(
-                    "{} exiting data processing of '{}'".format(self, data)
+                    f"{self} exiting data processing of '{data}'"
                 )
 
     # pylint: disable=unused-argument
@@ -354,9 +346,7 @@ class CommandTextualGeneric(Command):
         decoded_line = self._decode_line(line=line)
         if self.__class__.__name__ == "CmConnect":  # pragma: no cover
             self.logger.debug(
-                "{} line = '{}', decoded_line = '{}', is_full_line={}".format(
-                    self, line, decoded_line, is_full_line
-                )
+                f"{self} line = '{line}', decoded_line = '{decoded_line}', is_full_line={is_full_line}"
             )
         self.on_new_line(line=decoded_line, is_full_line=is_full_line)
 
@@ -383,7 +373,7 @@ class CommandTextualGeneric(Command):
         """
         line = current_chunk
         if self._last_not_full_line is not None:
-            line = "{}{}".format(self._last_not_full_line, line)
+            line = f"{self._last_not_full_line}{line}"
             self._last_not_full_line = None
         is_full_line = self.has_endline_char(line)
         if is_full_line:
@@ -447,9 +437,7 @@ class CommandTextualGeneric(Command):
                 self._re_prompt_without_anchors, line
             ):
                 self.logger.info(
-                    "Candidate for prompt '{}' in line '{}'.".format(
-                        self._re_prompt.pattern, line
-                    )
+                    f"Candidate for prompt '{self._re_prompt.pattern}' in line '{line}'."
                 )
                 self.send_enter()
                 self.enter_on_prompt_without_anchors = False
@@ -487,9 +475,7 @@ class CommandTextualGeneric(Command):
                 self._cmd_output_started = True
         if self.__class__.__name__ == "CmConnect":  # pragma: no cover
             self.logger.debug(
-                "{} line = '{}', is_full_line={}, _cmd_output_started={}".format(
-                    self, line, is_full_line, self._cmd_output_started
-                )
+                f"{self} line = '{line}', is_full_line={is_full_line}, _cmd_output_started={self._cmd_output_started}"
             )
 
     def break_cmd(self, silent: bool = False, force: bool = False) -> None:
@@ -506,7 +492,7 @@ class CommandTextualGeneric(Command):
             if silent is False:
                 self._log(
                     lvl=logging.WARNING,
-                    msg="Tried to break not running command '{}'. Ignored".format(self),
+                    msg=f"Tried to break not running command '{self}'. Ignored",
                 )
 
     def cancel(self) -> bool:
@@ -531,21 +517,14 @@ class CommandTextualGeneric(Command):
             if self._stored_exception is None:
                 self._log(
                     logging.INFO,
-                    "{}.{} has set exception {!r}".format(
-                        self.__class__.__module__, self, exception
-                    ),
+                    f"{self.__class__.__module__}.{self} has set exception {exception!r}",
                     levels_to_go_up=2,
                 )
                 self._stored_exception = exception
             else:
                 self._log(
                     logging.INFO,
-                    "{}.{} tried set exception {!r} on already set exception {!r}".format(
-                        self.__class__.__module__,
-                        self,
-                        exception,
-                        self._stored_exception,
-                    ),
+                    f"{self.__class__.__module__}.{self} tried set exception {exception!r} on already set exception {self._stored_exception!r}",
                     levels_to_go_up=2,
                 )
 
@@ -639,7 +618,7 @@ class CommandTextualGeneric(Command):
         if self._re_prompt:
             expected_prompt = self._re_prompt.pattern
         # having expected prompt visible simplifies troubleshooting
-        return "{}, prompt_regex:r'{}')".format(base_str[:-1], expected_prompt)
+        return f"{base_str[:-1]}, prompt_regex:r'{expected_prompt}')"
 
     def is_failure_indication(self, line: str, is_full_line: bool) -> bool:
         """
@@ -664,7 +643,7 @@ class CommandTextualGeneric(Command):
         """
         if self.is_failure_indication(line=line, is_full_line=is_full_line):
             self.set_exception(
-                CommandFailure(self, "command failed in line '{}'".format(line))
+                CommandFailure(self, f"command failed in line '{line}'")
             )
 
     def add_failure_indication(
@@ -685,5 +664,5 @@ class CommandTextualGeneric(Command):
             new_indication = indication_str
         else:
             current_indications = self.re_fail.pattern
-            new_indication = r"{}|{}".format(current_indications, indication_str)
+            new_indication = f"{current_indications}|{indication_str}"
         self.re_fail = re.compile(new_indication, flags)

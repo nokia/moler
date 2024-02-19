@@ -25,14 +25,14 @@ class Cp(GenericUnixCommand):
 
     def build_command_string(self):
         if self.options:
-            cmd = "{} {} {} {}".format("cp", self.options, self.src, self.dst)
+            cmd = f"cp {self.options} {self.src} {self.dst}"
         else:
-            cmd = "{} {} {}".format("cp", self.src, self.dst)
+            cmd = f"cp {self.src} {self.dst}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
         if self._cmd_output_started and self._regex_helper.search(r'(cp\: cannot access)', line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group(1))))
+            self.set_exception(CommandFailure(self, f"ERROR: {self._regex_helper.group(1)}"))
         return super(Cp, self).on_new_line(line, is_full_line)
 
 

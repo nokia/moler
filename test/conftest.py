@@ -50,7 +50,7 @@ def check_system_resources_limit(logger):
     curr_fds_open = current_process.num_fds()
     if curr_fds_open > max_open_files_limit_soft - 10:
         prefix = "!!! ALMOST REACHED"
-        msg = "{} MAX OPEN FILES LIMIT ({}). Now {} FDs open".format(prefix, max_open_files_limit_soft, curr_fds_open)
+        msg = f"{prefix} MAX OPEN FILES LIMIT ({max_open_files_limit_soft}). Now {curr_fds_open} FDs open"
         logger.warning(msg)
         raise Exception(msg)
 
@@ -66,7 +66,7 @@ def pytest_runtest_protocol(item, nextitem):
     logger = logging.getLogger("moler")
     logger.propagate = False
     resources_usage_msg = system_resources_usage_msg(*resources_stats['START'])
-    logger.log(level=moler.config.loggers.TEST_CASE, msg="{} - {}".format(item.nodeid, resources_usage_msg))
+    logger.log(level=moler.config.loggers.TEST_CASE, msg=f"{item.nodeid} - {resources_usage_msg}")
     check_system_resources_limit(logger)
 
 
@@ -76,7 +76,7 @@ def pytest_runtest_logreport(report):
     when = str(report.when).upper()
     resources_stats[when] = system_resources_usage()
     resources_usage_msg = system_resources_usage_msg(*resources_stats[when])
-    msg = "TC {} [{}] - {}".format(when, str(report.outcome).upper(), resources_usage_msg)
+    msg = f"TC {when} [{str(report.outcome).upper()}] - {resources_usage_msg}"
     logger.log(level=moler.config.loggers.TEST_CASE, msg=msg)
     if when == 'TEARDOWN':
         logger.log(level=moler.config.loggers.TEST_CASE, msg=str(resources_stats))
@@ -114,7 +114,7 @@ def buffer_connection():
             """
             if add_newline:
                 if not line.endswith("\n"):
-                    line = line + "\n"
+                    line = f"{line}\n"
             line_as_bytes = line.encode("utf-8")
             self.inject([line_as_bytes], delay)
 

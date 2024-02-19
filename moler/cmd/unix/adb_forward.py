@@ -35,7 +35,7 @@ class AdbForward(GenericUnixCommand):
         Builds command string from parameters passed to object.
         :return: String representation of command to send over connection to device.
         """
-        cmd = "adb forward {}".format(self.options)
+        cmd = f"adb forward {self.options}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

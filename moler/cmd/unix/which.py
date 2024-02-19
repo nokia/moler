@@ -42,9 +42,9 @@ class Which(GenericUnixCommand):
     def build_command_string(self):
         cmd = "which"
         if self.show_all:
-            cmd = "{} {}".format(cmd, "-a")
+            cmd = f"{cmd} -a"
         for name in self.names:
-            cmd = "{} {}".format(cmd, name)
+            cmd = f"{cmd} {name}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -65,7 +65,7 @@ class Which(GenericUnixCommand):
 
     def _compile_regex(self):
         for name in self.names:
-            _re_name = re.compile(r"(?P<NAME>.*{}.*)".format(name), re.IGNORECASE)
+            _re_name = re.compile(fr"(?P<NAME>.*{name}.*)", re.IGNORECASE)
             self._compiled_regex.append((name, _re_name))
 
     def _set_result(self):

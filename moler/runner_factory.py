@@ -57,7 +57,7 @@ class RunnerFactory:
         """
         if not callable(constructor):
             raise ValueError(
-                "constructor must be callable not {}".format(constructor))
+                f"constructor must be callable not {constructor}")
         cls._constructors_registry[variant] = constructor
 
     @classmethod
@@ -73,7 +73,7 @@ class RunnerFactory:
         key = variant
         if key not in cls._constructors_registry:
             raise KeyError(
-                "No constructor registered for [{}] runner".format(key))
+                f"No constructor registered for [{key}] runner")
         if reuse_last and (key in cls._runners_cache):
             runner = cls._runners_cache[key]
         else:
@@ -99,10 +99,10 @@ def _try_select_runner_variant(variant):
     if variant is None:
         whats_wrong = "No variant selected"
         selection_method = "directly or via configuration"
-        raise KeyError("{} ({}) for runner".format(whats_wrong, selection_method))
+        raise KeyError(f"{whats_wrong} ({selection_method}) for runner")
     if variant not in RunnerFactory.available_variants():
         whats_wrong = "is not registered inside RunnerFactory"
-        raise KeyError("'{}' variant of runner {}".format(variant, whats_wrong))
+        raise KeyError(f"'{variant}' variant of runner {whats_wrong}")
     return variant
 
 

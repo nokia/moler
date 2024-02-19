@@ -63,9 +63,9 @@ class IpRoute(GenericUnixCommand):
         if self.is_ipv6:
             cmd = "ip -6 route"
         if self.addr_get:
-            cmd = "{} get {}".format(cmd, self.addr_get)
+            cmd = f"{cmd} get {self.addr_get}"
             if self.addr_from:
-                cmd = "{} from {}".format(cmd, self.addr_from)
+                cmd = f"{cmd} from {self.addr_from}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

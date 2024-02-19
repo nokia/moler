@@ -138,7 +138,7 @@ class Ps(GenericUnixCommand):
         """
         cmd = "ps"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         return cmd
 
 

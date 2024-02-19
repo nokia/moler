@@ -46,14 +46,14 @@ class AsyncioTcp(IOConnection):
             data = await self._stream_reader.read(self.receive_buffer_size)  # if size not provided it reads till EOF (may block)
             if not data:
                 break
-            self._debug('< {}'.format(data))
+            self._debug(f'< {data}')
             # forward data to moler-connection
             self.data_received(data, datetime.datetime.now())
         self.connection_lost.set_result(True)  # makes Future done
 
     async def open(self):
         """Open TCP connection."""
-        self._debug('connecting to {}'.format(self))
+        self._debug(f'connecting to {self}')
         # If a task is canceled while it is waiting for another concurrent operation,
         # the task is notified of its cancellation by having a CancelledError exception
         # raised at the point where it is waiting
@@ -61,13 +61,13 @@ class AsyncioTcp(IOConnection):
             self._stream_reader, self._stream_writer = await asyncio.open_connection(host=self.host, port=self.port)
             # self._stream_reader, self._stream_writer = await asyncio.wait_for(asyncio.open_connection(host=self.host, port=self.port), timeout=10)
         except asyncio.CancelledError as err:
-            self._debug("CancelledError while awaiting for open_connection({}), err: {}".format(self, err))
+            self._debug(f"CancelledError while awaiting for open_connection({self}), err: {err}")
             # TODO: stop child task of asyncio.open_connection
             raise
         else:
             self.connection_lost = asyncio.Future()  # delayed to be created in same loop as open()
             asyncio.ensure_future(self.forward_connection_read_data())
-        self._debug('connection {} is open'.format(self))
+        self._debug(f'connection {self} is open')
 
     async def close(self):
         """
@@ -76,14 +76,14 @@ class AsyncioTcp(IOConnection):
         Connection should allow for calling close on closed/not-open connection.
         """
         if self._stream_writer:
-            self._debug('closing {}'.format(self))
+            self._debug(f'closing {self}')
             self._stream_writer.close()
             if self.connection_lost:
                 await self.connection_lost
             self._stream_reader = None
             self._stream_writer = None
             self.connection_lost = None
-        self._debug('connection {} is closed'.format(self))
+        self._debug(f'connection {self} is closed')
 
     async def __aenter__(self):
         if self._stream_reader is None:
@@ -95,7 +95,7 @@ class AsyncioTcp(IOConnection):
         return False  # reraise exceptions if any
 
     def _send(self, data):
-        self._debug('> {}'.format(data))
+        self._debug(f'> {data}')
         self._stream_writer.write(data)  # TODO: check if we have writer (if open)
 
     async def send(self, data):
@@ -109,7 +109,7 @@ class AsyncioTcp(IOConnection):
         await self._stream_writer.drain()
 
     def __str__(self):
-        address = 'tcp://{}:{}'.format(self.host, self.port)
+        address = f'tcp://{self.host}:{self.port}'
         return address
 
     def _debug(self, msg):  # TODO: refactor to class decorator or so

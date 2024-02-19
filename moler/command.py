@@ -42,8 +42,8 @@ class Command(ConnectionObserver):
     def __str__(self):
         cmd_str = self.command_string if self.command_string else '<EMPTY COMMAND STRING>'
         if cmd_str[-1] == '\n':
-            cmd_str = cmd_str[:-1] + r'<\n>'
-        return '{}("{}", id:{})'.format(self.__class__.__name__, cmd_str, instance_id(self))
+            cmd_str = f"{cmd_str[:-1]}<\\n>"
+        return f'{self.__class__.__name__}("{cmd_str}", id:{instance_id(self)})'
 
     def _validate_start(self, *args, **kwargs) -> None:
         # check base class invariants first
@@ -54,10 +54,10 @@ class Command(ConnectionObserver):
             raise NoCommandStringProvided(self)
 
     def get_long_desc(self) -> str:
-        return "Command {}.{}".format(self.__class__.__module__, self)
+        return f"Command {self.__class__.__module__}.{self}"
 
     def get_short_desc(self) -> str:
-        return "Command {}.{}(id:{})".format(self.__class__.__module__, self.__class__.__name__, instance_id(self))
+        return f"Command {self.__class__.__module__}.{self.__class__.__name__}(id:{instance_id(self)})"
 
     def is_command(self) -> bool:
         """

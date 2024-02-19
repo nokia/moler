@@ -262,9 +262,7 @@ def diff_data(
     type_first = type(first_object)
     type_second = type(second_object)
     if type_first != type_second:
-        return "{} {} is type of {} but {} is type of {}".format(
-            msg, first_object, type_first, second_object, type_second
-        )
+        return f"{msg} {first_object} is type of {type_first} but {second_object} is type of {type_second}"
     elif exclude_types is not None and type_first in exclude_types:
         return ""
     elif isinstance(first_object, (list, tuple)):
@@ -292,15 +290,10 @@ def diff_data(
         if significant_digits:
             abs_tol = 1.0 / 10**significant_digits
         if not isclose(first_object, second_object, abs_tol=abs_tol):
-            return (
-                "{} the first value {} is different from the second value"
-                " {}.".format(msg, first_object, second_object)
-            )
+            return f"{msg} the first value {first_object} is different from the second value {second_object}."
     else:
         if first_object != second_object:
-            return "{} First value {} is different from the second {}.".format(
-                msg, first_object, second_object
-            )
+            return f"{msg} First value {first_object} is different from the second {second_object}."
 
     return ""
 
@@ -328,14 +321,10 @@ def _compare_dicts(
     if diff:
         for key in keys_first:
             if key not in keys_second:
-                return "{} key {} is in the first {} but not in the second dict {}.".format(
-                    msg, key, first_object, second_object
-                )
+                return f"{msg} key {key} is in the first {first_object} but not in the second dict {second_object}."
         for key in keys_second:
             if key not in keys_first:
-                return "{} key {} is in the second {} but not in the first dict {}.".format(
-                    msg, key, first_object, second_object
-                )
+                return f"{msg} key {key} is in the second {first_object} but not in the first dict {second_object}."
     else:
         for key in keys_first:
             res = diff_data(
@@ -343,7 +332,7 @@ def _compare_dicts(
                 second_object=second_object[key],
                 significant_digits=significant_digits,
                 exclude_types=exclude_types,
-                msg="{} -> [{}]".format(msg, key),
+                msg=f"{msg} -> [{key}]",
             )
             if res:
                 return res
@@ -365,14 +354,10 @@ def _compare_sets(first_object, second_object, msg):
     if diff:
         for item in first_object:
             if item not in second_object:
-                return "{} item {} is in the first set {} but not in the second set {}.".format(
-                    msg, item, first_object, second_object
-                )
+                return f"{msg} item {item} is in the first set {first_object} but not in the second set {second_object}."
         for item in second_object:
             if item not in first_object:
-                return "{} item {} is in the second set {} but not in the first set {}.".format(
-                    msg, item, first_object, second_object
-                )
+                return f"{msg} item {item} is in the second set {second_object} but not in the first set {first_object}."
     return ""
 
 
@@ -396,15 +381,13 @@ def _compare_lists(
     len_first = len(first_object)
     len_second = len(second_object)
     if len_first != len_second:
-        return "{} List {} has {} item(s) but {} has {} item(s)".format(
-            msg, first_object, len_first, second_object, len_second
-        )
+        return f"{msg} List {first_object} has {len_first} item(s) but {second_object} has {len_second} item(s)"
     max_element = len(first_object)
     for i in range(0, max_element):
         res = diff_data(
             first_object=first_object[i],
             second_object=second_object[i],
-            msg="{} -> [{}]".format(msg, i),
+            msg=f"{msg} -> [{i}]",
             significant_digits=significant_digits,
             exclude_types=exclude_types,
         )
@@ -545,7 +528,7 @@ def non_printable_chars_to_hex(source):
     output = ""
     for char in source:
         if char not in string.printable or char in ["\n", "\r"]:
-            output += "\\x{:02x}".format(ord(char))
+            output += f"\\x{ord(char):02x}"
         else:
             output += char
     return output
@@ -559,7 +542,7 @@ def all_chars_to_hex(source):
     """
     output = ""
     for char in source:
-        output += "\\x{:02x}".format(ord(char))
+        output += f"\\x{ord(char):02x}"
     return output
 
 

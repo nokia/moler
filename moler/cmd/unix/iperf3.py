@@ -93,10 +93,10 @@ class Iperf3(Iperf2):
         if ((short_option in options) or (long_option in options)) and (
                 ("-s" in options) or ("--server" in options)):
             raise AttributeError(
-                "Option ({}) you are trying to set is client only".format(long_option))
+                f"Option ({long_option}) you are trying to set is client only")
 
     def build_command_string(self):
-        cmd = "iperf3 " + str(self.options)
+        cmd = f"iperf3 {str(self.options)}"
         return cmd
 
     @property
@@ -122,8 +122,8 @@ class Iperf3(Iperf2):
                 remote_host,
                 remote_port,
             ) = self._regex_helper.groups()
-            local = "{}@{}".format(local_port, local_host)
-            remote = "{}@{}".format(remote_port, remote_host)
+            local = f"{local_port}@{local_host}"
+            remote = f"{remote_port}@{remote_host}"
             if self.port == int(remote_port):
                 from_client, to_server = local, remote
                 client_host = local_host
@@ -166,7 +166,7 @@ class Iperf3(Iperf2):
                 ) = self._split_connection_name((client, server))
                 connection_id = "[SUM]"
                 self._connection_dict[connection_id] = (
-                    "{}@{}".format("multiport", client_host),
+                    f"multiport@{client_host}",
                     server,)
             raise ParsingDone
 
@@ -203,13 +203,11 @@ class Iperf3(Iperf2):
 
     _r_total_datagrams = r"(?P<Total_Datagrams>\d+)"
 
-    _r_rec_tcp_svr = r"{}\s+{}\s+{}\s+{}".format(
-        _r_id, _r_interval, _r_transfer, _r_bitrate)
-    _r_rec_tcp_cli = r"{}\s+{}\s+{}".format(_r_rec_tcp_svr, _r_retr, _r_cwnd)
-    _r_rec_udp_svr = r"{}\s+{}\s+{}".format(
-        _r_rec_tcp_svr, _r_jitter, _r_datagrams)
-    _r_rec_udp_cli = r"{}\s+{}".format(_r_rec_tcp_svr, _r_total_datagrams)
-    _r_rec_tcp_cli_summary = r"{}\s+{}".format(_r_rec_tcp_svr, _r_retr)
+    _r_rec_tcp_svr = fr"{_r_id}\s+{_r_interval}\s+{_r_transfer}\s+{_r_bitrate}"
+    _r_rec_tcp_cli = fr"{_r_rec_tcp_svr}\s+{_r_retr}\s+{_r_cwnd}"
+    _r_rec_udp_svr = fr"{_r_rec_tcp_svr}\s+{_r_jitter}\s+{_r_datagrams}"
+    _r_rec_udp_cli = fr"{_r_rec_tcp_svr}\s+{_r_total_datagrams}"
+    _r_rec_tcp_cli_summary = fr"{_r_rec_tcp_svr}\s+{_r_retr}"
 
     _re_iperf_record_tcp_svr = re.compile(_r_rec_tcp_svr)
     _re_iperf_record_tcp_cli = re.compile(_r_rec_tcp_cli)
@@ -277,9 +275,7 @@ class Iperf3(Iperf2):
                 server_host,
                 server_port,
             ) = self._split_connection_name(connection_name)
-            from_client, to_server = client_host, "{}@{}".format(
-                server_port, server_host
-            )
+            from_client, to_server = client_host, f"{server_port}@{server_host}"
             result_connection = (from_client, to_server)
             self.current_ret["CONNECTIONS"][result_connection] = {
                 "report": last_record}
@@ -291,12 +287,11 @@ class Iperf3(Iperf2):
                 from_client=from_client, to_server=to_server, data_record=last_record)
 
     _r_option_report = r"(?P<Option>receiver|sender)"
-    _r_rec_tcp_svr_report = r"{}\s+{}".format(_r_rec_tcp_svr, _r_option_report)
-    _r_rec_tcp_cli_report = r"{}\s+{}".format(_r_rec_tcp_cli, _r_option_report)
-    _r_rec_udp_svr_report = r"{}\s+{}".format(_r_rec_udp_svr, _r_option_report)
-    _r_rec_udp_cli_report = r"{}\s+{}".format(_r_rec_udp_cli, _r_option_report)
-    _r_rec_tcp_cli_summary_report = r"{}\s+{}".format(
-        _r_rec_tcp_cli_summary, _r_option_report)
+    _r_rec_tcp_svr_report = fr"{_r_rec_tcp_svr}\s+{_r_option_report}"
+    _r_rec_tcp_cli_report = fr"{_r_rec_tcp_cli}\s+{_r_option_report}"
+    _r_rec_udp_svr_report = fr"{_r_rec_udp_svr}\s+{_r_option_report}"
+    _r_rec_udp_cli_report = fr"{_r_rec_udp_cli}\s+{_r_option_report}"
+    _r_rec_tcp_cli_summary_report = fr"{_r_rec_tcp_cli_summary}\s+{_r_option_report}"
 
     _re_iperf_record_tcp_svr_report = re.compile(_r_rec_tcp_svr_report)
     _re_iperf_record_tcp_cli_report = re.compile(_r_rec_tcp_cli_report)
@@ -334,8 +329,7 @@ class Iperf3(Iperf2):
         connections = list(self._connection_dict.values())
         client_host, _, server_host, _ = self._split_connection_name(
             connections[0])
-        return (client_host, "{}@{}".format(
-            self.port, server_host)) in result
+        return (client_host, f"{self.port}@{server_host}") in result
 
     # - - - - - - - - - - - - - - - - - - - - - - - - -
     _re_summary_ornament = re.compile(r"(?P<SUM_ORNAMENT>(-\s)+)")
@@ -353,13 +347,13 @@ class Iperf3(Iperf2):
         for key, raw_value in input_dict.items():
             # iperf MBytes means 1024 * 1024 Bytes - see iperf.fr/iperf-doc.php
             if not isinstance(raw_value, int) and ("Bytes" in raw_value):
-                new_dict[key + " Raw"] = raw_value
+                new_dict[f"{key} Raw"] = raw_value
                 value_in_bytes, _, _ = self._converter_helper.to_bytes(
                     raw_value)
                 new_dict[key] = value_in_bytes
             # iperf Mbits means 1000 * 1000 bits - see iperf.fr/iperf-doc.php
             elif not isinstance(raw_value, int) and ("bits" in raw_value):
-                new_dict[key + " Raw"] = raw_value
+                new_dict[f"{key} Raw"] = raw_value
                 value_in_bits, _, _ = self._converter_helper.to_bytes(
                     raw_value, binary_multipliers=False)
                 value_in_bytes = value_in_bits // 8
@@ -373,7 +367,7 @@ class Iperf3(Iperf2):
         for key in list(input_dict):
             raw_value = input_dict[key]
             if not isinstance(raw_value, (int, float)) and "ms" in raw_value:
-                input_dict[key + " Raw"] = raw_value
+                input_dict[f"{key} Raw"] = raw_value
                 value_in_ms, _ = raw_value.split(" ")
                 value_in_ms = float(value_in_ms)
                 input_dict[key] = value_in_ms

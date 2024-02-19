@@ -25,12 +25,12 @@ class Chgrp(GenericUnixCommand):
     def build_command_string(self):
         cmd = "chgrp"
         if self.options:
-            cmd = cmd + " " + self.options
+            cmd = f"{cmd} {self.options}"
         if self.group:
-            cmd = cmd + " " + self.group
+            cmd = f"{cmd} {self.group}"
         if self.files:
             for file in self.files:
-                cmd = cmd + " " + file
+                cmd = f"{cmd} {file}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -45,7 +45,7 @@ class Chgrp(GenericUnixCommand):
 
     def _command_failure(self, line):
         if self._regex_helper.search_compiled(Chgrp._re_error, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG"))))
+            self.set_exception(CommandFailure(self, f"ERROR: {self._regex_helper.group('ERROR_MSG')}"))
             raise ParsingDone
 
 

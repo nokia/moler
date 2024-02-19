@@ -81,7 +81,7 @@ class FifoBuffer(IOConnection):
         If connection is using default logger ("moler.connection.<name>.io")
         then modify logger after connection name change.
         """
-        self._log(msg=r'changing name: {} --> {}'.format(self._name, value), level=TRACE)
+        self._log(msg=f'changing name: {self._name} --> {value}', level=TRACE)
         self.moler_connection.name = value
         if self._using_default_logger():
             self.logger = self._select_logger(logger_name="",
@@ -93,7 +93,7 @@ class FifoBuffer(IOConnection):
     def _select_logger(logger_name, connection_name, moler_connection):
         if logger_name is None:
             return None  # don't use logging
-        default_logger_name = "moler.connection.{}.io".format(connection_name)
+        default_logger_name = f"moler.connection.{connection_name}.io"
         if logger_name:
             name = logger_name
         else:
@@ -101,18 +101,17 @@ class FifoBuffer(IOConnection):
             if moler_connection.logger is None:
                 name = default_logger_name
             else:
-                name = "{}.io".format(moler_connection.logger.name)
+                name = f"{moler_connection.logger.name}.io"
         logger = logging.getLogger(name)
         if name and (name != default_logger_name):
-            msg = "using '{}' logger - not default '{}'".format(name,
-                                                                default_logger_name)
+            msg = f"using '{name}' logger - not default '{default_logger_name}'"
             logger.log(level=logging.WARNING, msg=msg)
         return logger
 
     def _using_default_logger(self):
         if self.logger is None:
             return False
-        return self.logger.name == "moler.connection.{}.io".format(self._name)
+        return self.logger.name == f"moler.connection.{self._name}.io"
 
     def inject(self, input_bytes, delay=0.0):
         """
@@ -183,7 +182,7 @@ class FifoBuffer(IOConnection):
     receive = read  # just alias to make base class happy :-)
 
     def __str__(self):
-        return '{}:FIFO-in-memory'.format(self._name)
+        return f'{self._name}:FIFO-in-memory'
 
     def _log(self, msg, level, extra=None):
         if self.logger:
@@ -216,7 +215,7 @@ class ThreadedFifoBuffer(FifoBuffer):
                                              done_event=done,
                                              kwargs={'pulling_done': done})
         self.pulling_thread.start()
-        self._log(msg="open {}".format(self), level=logging.INFO)
+        self._log(msg=f"open {self}", level=logging.INFO)
         self._notify_on_connect()
         self.moler_connection.open()
         return ret
@@ -227,7 +226,7 @@ class ThreadedFifoBuffer(FifoBuffer):
             self.pulling_thread.join()
             self.pulling_thread = None
         super(ThreadedFifoBuffer, self).close()
-        self._log(msg="closed {}".format(self), level=logging.INFO)
+        self._log(msg=f"closed {self}", level=logging.INFO)
         self._notify_on_disconnect()
         self.moler_connection.shutdown()
 
@@ -254,11 +253,11 @@ class ThreadedFifoBuffer(FifoBuffer):
     @tracked_thread.log_exit_exception
     def pull_data(self, pulling_done):
         """Pull data from FIFO buffer."""
-        logging.getLogger("moler_threads").debug("ENTER {}".format(self))
+        logging.getLogger("moler_threads").debug(f"ENTER {self}")
         heartbeat = tracked_thread.report_alive()
         while not pulling_done.is_set():
             if next(heartbeat):
-                logging.getLogger("moler_threads").debug("ALIVE {}".format(self))
+                logging.getLogger("moler_threads").debug(f"ALIVE {self}")
             self.read()  # internally forwards to embedded Moler connection
             try:
                 data, delay = self.injections.get_nowait()
@@ -268,4 +267,4 @@ class ThreadedFifoBuffer(FifoBuffer):
                 self.injections.task_done()
             except Empty:
                 time.sleep(0.01)  # give FIFO chance to get data
-        logging.getLogger("moler_threads").debug("EXIT  {}".format(self))
+        logging.getLogger("moler_threads").debug(f"EXIT  {self}")

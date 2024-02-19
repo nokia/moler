@@ -80,7 +80,7 @@ class TcpServerPiped(Process):
         self.server_sock.bind(svr_addr)
         self.server_sock.setblocking(True)
         self.server_sock.listen(1)
-        self.logger.debug("listening on {}:{}".format(svr_addr[0], svr_addr[1]))
+        self.logger.debug(f"listening on {svr_addr[0]}:{svr_addr[1]}")
 
     def handle_controlling_action(self):
         """Handle actions coming from server-controlling pipe"""
@@ -90,7 +90,7 @@ class TcpServerPiped(Process):
                 input_msg = self.pipe_in.recv()
         except IOError:
             if self.client_sock is not None:
-                self.logger.debug("closing cli sock {} (on pipe's IOError)".format(self.client_sock))
+                self.logger.debug(f"closing cli sock {self.client_sock} (on pipe's IOError)")
                 self.client_sock.close()
                 self.client_sock = None
             self.server_is_running = False
@@ -121,15 +121,15 @@ class TcpServerPiped(Process):
     def handle_incomming_client(self):
         """Accept incoming client - make socket connection for it"""
         self.client_sock, addr = self.server_sock.accept()
-        self.logger.debug("accepted cli sock {}".format(self.client_sock))
+        self.logger.debug(f"accepted cli sock {self.client_sock}")
         self.history.append('Client connected')
-        self.history.append('Client details: {}'.format(addr))
+        self.history.append(f'Client details: {addr}')
 
     def handle_leaving_client(self):
         """Handle client leaving server"""
         self.history.append('Client disconnected')
         if self.client_sock is not None:
-            self.logger.debug("closing cli sock {} (on leaving)".format(self.client_sock))
+            self.logger.debug(f"closing cli sock {self.client_sock} (on leaving)")
             self.client_sock.close()
             self.client_sock = None
 
@@ -146,9 +146,9 @@ class TcpServerPiped(Process):
         """Interpret message that came from controlling pipe"""
         (action, data) = msg
         try:
-            func = getattr(self, 'do_' + action.replace(' ', '_'))
+            func = getattr(self, f"do_{action.replace(' ', '_')}")
         except AttributeError:
-            self.history.append('Unknown action: "{}"'.format(str(action)))
+            self.history.append(f'Unknown action: "{str(action)}"')
         else:
             return func(**data)
 
@@ -170,7 +170,7 @@ class TcpServerPiped(Process):
         """
         if self.client_sock is not None:
             self.history.append('Closing client connection')
-            self.logger.debug('Closing client connection {} (on do_close request)'.format(self.client_sock))
+            self.logger.debug(f'Closing client connection {self.client_sock} (on do_close request)')
             self.client_sock.close()
             self.client_sock = None
 
@@ -183,7 +183,7 @@ class TcpServerPiped(Process):
         if 'delay' in kwargs:
             self.delay = kwargs['delay']
         else:
-            err = 'data for "set delay" must contain "delay" key - not %s' % kwargs
+            err = f'data for "set delay" must contain "delay" key - not {kwargs}'
             self.history.append(err)
 
     def do_inject_response(self, **kwargs):
@@ -198,7 +198,7 @@ class TcpServerPiped(Process):
             response = kwargs['resp']
             self.responses[request] = response
         else:
-            err = 'data for "inject response" must contain "req" and "resp" keys - not %s' % kwargs
+            err = f'data for "inject response" must contain "req" and "resp" keys - not {kwargs}'
             self.history.append(err)
 
     # pylint: disable-next=unused-argument
@@ -219,12 +219,12 @@ class TcpServerPiped(Process):
         """
         if 'msg' in kwargs:
             async_msg = kwargs['msg']
-            log_msg = 'Sending asynchronous msg: {}'.format(str(async_msg))
+            log_msg = f'Sending asynchronous msg: {str(async_msg)}'
             self.history.append(['Sending asynchronous msg:', async_msg])
-            self.logger.debug("{} to cli sock {}".format(log_msg, self.client_sock))
+            self.logger.debug(f"{log_msg} to cli sock {self.client_sock}")
             self.client_sock.send(async_msg)
         else:
-            err = 'data for "send async msg" must contain "msg" key - not %s' % kwargs
+            err = f'data for "send async msg" must contain "msg" key - not {kwargs}'
             self.history.append(err)
 
     def configure_stderr_logger(self):
@@ -254,6 +254,6 @@ class TcpServerPiped(Process):
                 else:
                     self.check_and_handle_client_socket()
         except Exception as err:
-            err_msg = "TcpServerPiped error: {} - history: {}".format(err, self.history)
+            err_msg = f"TcpServerPiped error: {err} - history: {self.history}"
             self.logger.debug(err_msg)
         self.logger.debug("TcpServerPiped process is gone")

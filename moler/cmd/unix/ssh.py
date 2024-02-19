@@ -116,7 +116,7 @@ class Ssh(GenericTelnetSsh):
         self._was_overridden_key_pass_keyboard = False
         self._permission_denied_key_pass_keyboard_cmd = None
         if permission_denied_key_pass_keyboard is not None:
-            self._permission_denied_key_pass_keyboard_cmd = permission_denied_key_pass_keyboard.format(host=host)
+            self._permission_denied_key_pass_keyboard_cmd = permission_denied_key_pass_keyboard.format(host=host)  # pylint-disable-line: consider-using-f-string
 
     def build_command_string(self):
         """
@@ -126,18 +126,18 @@ class Ssh(GenericTelnetSsh):
         """
         cmd = ""
         if self.term_mono:
-            cmd = "{} ".format(self.term_mono)
+            cmd = f"{self.term_mono} "
         cmd += "ssh"
         if self.port:
-            cmd = "{} -p {}".format(cmd, self.port)
+            cmd = f"{cmd} -p {self.port}"
         if self.login:
-            cmd = "{} -l {}".format(cmd, self.login)
+            cmd = f"{cmd} -l {self.login}"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         if self.host:
-            cmd = "{} {}".format(cmd, self.host)
+            cmd = f"{cmd} {self.host}"
         if self.suffix:
-            cmd = "{} {}".format(cmd, self.suffix)
+            cmd = f"{cmd} {self.suffix}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -184,7 +184,7 @@ class Ssh(GenericTelnetSsh):
             if self._permission_denied_key_pass_keyboard_cmd:
                 self._handle_permission_denied_key_pass_keyboard()
             else:
-                self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+                self.set_exception(CommandFailure(self, f"command failed in line '{line}'"))
             raise ParsingDone()
 
     def _host_key_verification(self, line):
@@ -198,7 +198,7 @@ class Ssh(GenericTelnetSsh):
             if self._hosts_file:
                 self._handle_failed_host_key_verification()
             else:
-                self.set_exception(CommandFailure(self, "command failed in line '{}'".format(line)))
+                self.set_exception(CommandFailure(self, f"command failed in line '{line}'"))
             raise ParsingDone()
 
     def _id_dsa(self, line):
@@ -249,7 +249,7 @@ class Ssh(GenericTelnetSsh):
 
         :return: None
         """
-        self.connection.sendline("\n{}".format(self._permission_denied_key_pass_keyboard_cmd))
+        self.connection.sendline(f"\n{self._permission_denied_key_pass_keyboard_cmd}")
         self._resend_command_string()
 
     def _handle_failed_host_key_verification(self):
@@ -260,14 +260,13 @@ class Ssh(GenericTelnetSsh):
         """
         exception = None
         if "rm" == self.known_hosts_on_failure:
-            self.connection.sendline("\nrm -f {}".format(self._hosts_file))
+            self.connection.sendline(f"\nrm -f {self._hosts_file}")
         elif "keygen" == self.known_hosts_on_failure:
-            self.connection.sendline("\nssh-keygen -R {}".format(self.host))
+            self.connection.sendline(f"\nssh-keygen -R {self.host}")
         else:
             exception = CommandFailure(self,
-                                       "Bad value of parameter known_hosts_on_failure '{}'. "
-                                       "Supported values: rm or keygen.".format(
-                                           self.known_hosts_on_failure))
+                                       f"Bad value of parameter known_hosts_on_failure '{self.known_hosts_on_failure}'. "
+                                       "Supported values: rm or keygen.")
         if exception:
             self.set_exception(exception=exception)
         else:

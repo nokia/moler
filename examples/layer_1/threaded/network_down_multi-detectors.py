@@ -51,25 +51,25 @@ def ping_observing_task(address, ping_ip):
     # 2. virtually "start" observer by making it data-listener
     moler_conn.subscribe(net_down_detector.data_received)
 
-    info = '{} on {} using {}'.format(ping_ip, net_addr, net_down_detector)
-    logger.debug('observe ' + info)
+    info = f'{ping_ip} on {net_addr} using {net_down_detector}'
+    logger.debug(f"observe {info}")
     for _ in tcp_connection(address, moler_conn):
         # anytime new data comes it may change status of observer
         if not net_drop_found and net_down_detector.done():
             net_drop_found = True
             net_down_time = net_down_detector.result()
             timestamp = time.strftime("%H:%M:%S", time.localtime(net_down_time))
-            logger.debug('Network {} is down from {}'.format(ping_ip, timestamp))
+            logger.debug(f'Network {ping_ip} is down from {timestamp}')
             # 3. virtually "stop" that observer
             moler_conn.unsubscribe(net_down_detector.data_received)
             # 4. and start subsequent one (to know when net is back "up")
-            info = '{} on {} using {}'.format(ping_ip, net_addr, net_up_detector)
-            logger.debug('observe ' + info)
+            info = f'{ping_ip} on {net_addr} using {net_up_detector}'
+            logger.debug(f"observe {info}")
             moler_conn.subscribe(net_up_detector.data_received)
         if net_up_detector.done():
             net_up_time = net_up_detector.result()
             timestamp = time.strftime("%H:%M:%S", time.localtime(net_up_time))
-            logger.debug('Network {} is back "up" from {}'.format(ping_ip, timestamp))
+            logger.debug(f'Network {ping_ip} is back "up" from {timestamp}')
             # 5. virtually "stop" that observer
             moler_conn.unsubscribe(net_up_detector.data_received)
             break
@@ -87,7 +87,7 @@ def tcp_connection(address, moler_conn):
         while True:
             data = client_socket.recv(128)
             if data:
-                logger.debug('<<< {!r}'.format(data))
+                logger.debug(f'<<< {data!r}')
                 # Forward received data into Moler's connection
                 moler_conn.data_received(data)
                 yield data

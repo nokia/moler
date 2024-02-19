@@ -85,7 +85,7 @@ def test_can_use_default_logger_based_on_connection_name(memory_connection_class
     moler_conn = Connection()
     connection = memory_connection_class(moler_connection=moler_conn)
     assert isinstance(connection.logger, logging.Logger)
-    assert connection.logger.name == "moler.connection.{}.io".format(connection.name)
+    assert connection.logger.name == f"moler.connection.{connection.name}.io"
 
 
 def test_can_use_default_logger_based_on_moler_connection_name(memory_connection_class):

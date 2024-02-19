@@ -109,7 +109,7 @@ class Scheduler:
             scheduler = MolerAsyncioScheduler()
         else:
             raise WrongUsage(
-                "Wrong value of 'scheduler_type': '{}'. Allowed are 'thread' or 'asyncio'".format(scheduler_type))
+                f"Wrong value of 'scheduler_type': '{scheduler_type}'. Allowed are 'thread' or 'asyncio'")
         scheduler.start()
         return scheduler
 

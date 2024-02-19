@@ -62,9 +62,9 @@ class Systemctl(Service):
         """
         cmd = "systemctl"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         if self.service:
-            cmd = "{} {}".format(cmd, self.service)
+            cmd = f"{cmd} {self.service}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

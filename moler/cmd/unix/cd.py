@@ -42,7 +42,7 @@ class Cd(GenericUnixCommand):
         """
         cmd = "cd"
         if self.path:
-            cmd = "{} {}".format(cmd, self.path)
+            cmd = f"{cmd} {self.path}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

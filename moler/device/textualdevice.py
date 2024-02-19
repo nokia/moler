@@ -119,7 +119,7 @@ class TextualDevice(AbstractDevice):
 
         self.io_connection.name = self.name
         self.io_connection.moler_connection.name = self.name
-        self.logger = logging.getLogger("moler.connection.{}".format(self.name))
+        self.logger = logging.getLogger(f"moler.connection.{self.name}")
         self.configure_logger(name=self.name, propagate=False)
 
         self._prepare_transitions()
@@ -140,11 +140,7 @@ class TextualDevice(AbstractDevice):
         self._default_prompt = re.compile(r"^[^<]*[\$|%|#|>|~]\s*$")
         self._neighbour_devices = None
         self._established = False
-        msg = "Created device '{}' as instance of class '{}.{}'.".format(
-            self.name,
-            self.__class__.__module__,
-            self.__class__.__name__,
-        )
+        msg = f"Created device '{self.name}' as instance of class '{self.__class__.__module__}.{self.__class__.__name__}'."
         self._log(level=logging.DEBUG, msg=msg)
         self._public_name = None
         self._warning_was_sent = False
@@ -211,17 +207,10 @@ class TextualDevice(AbstractDevice):
             self._run_prompts_observers()
 
         msg = (
-            "Established connection to device '{}' (as instance of class '{}.{}', io_connection: '{}.{}', "
-            "moler_connection: '{}.{}') with prompts: '{}'.".format(
-                self.name,
-                self.__class__.__module__,
-                self.__class__.__name__,
-                self.io_connection.__class__.__module__,
-                self.io_connection.__class__.__name__,
-                self.io_connection.moler_connection.__class__.__module__,
-                self.io_connection.moler_connection.__class__.__name__,
-                self._state_prompts,
-            )
+            f"Established connection to device '{self.name}' (as instance of class '{self.__class__.__module__}.{self.__class__.__name__}', "
+            f"io_connection: '{self.io_connection.__class__.__module__}.{self.io_connection.__class__.__name__}', "
+            f"moler_connection: '{self.io_connection.moler_connection.__class__.__module__}.{self.io_connection.moler_connection.__class__.__name__}') "
+            f"with prompts: '{self._state_prompts}'."
         )
         self._established = True
         self._log(level=logging.INFO, msg=msg)
@@ -237,7 +226,7 @@ class TextualDevice(AbstractDevice):
         except DeviceChangeStateFailure:
             self._close_connection(None, None, None)
         super(TextualDevice, self).remove()
-        msg = "Device '{}' is closed.".format(self.name)
+        msg = f"Device '{self.name}' is closed."
         self._log(level=logging.INFO, msg=msg)
         self._close_logger()
 
@@ -504,12 +493,7 @@ class TextualDevice(AbstractDevice):
                 return
         raise DeviceChangeStateFailure(
             device=self.__class__.__name__,
-            exception="After {} seconds there are still states to go: '{}' and/or thread to"
-            " change state. {}".format(
-                time.monotonic() - start_time,
-                self._queue_states,
-                self._thread_for_goto_state,
-            ),
+            exception=f"After {time.monotonic() - start_time} seconds there are still states to go: '{self._queue_states}' and/or thread to change state. {self._thread_for_goto_state}",
             device_name=self.name,
         )
 
@@ -531,7 +515,7 @@ class TextualDevice(AbstractDevice):
             if self._thread_for_goto_state is None:
                 thread = threading.Thread(
                     target=self._goto_state_thread,
-                    name="GotoStateThread-{}".format(self.name),
+                    name=f"GotoStateThread-{self.name}",
                 )
                 thread.daemon = True
                 thread.start()
@@ -580,9 +564,7 @@ class TextualDevice(AbstractDevice):
         else:
             self._log(
                 logging.WARNING,
-                "{}: Another thread in goto_state. Didn't try to go to '{}'.".format(
-                    self.name, dest_state
-                ),
+                f"{self.name}: Another thread in goto_state. Didn't try to go to '{dest_state}'.",
             )
 
     def _goto_state_to_run_in_try(
@@ -601,7 +583,7 @@ class TextualDevice(AbstractDevice):
             return
         self._log(
             logging.DEBUG,
-            "Go to state '%s' from '%s'" % (dest_state, self.current_state),
+            f"Go to state '{dest_state}' from '{self.current_state}'",
         )
 
         is_dest_state = False
@@ -653,15 +635,13 @@ class TextualDevice(AbstractDevice):
     ):
         self._log(
             logging.DEBUG,
-            "'{}'. Changing state from '{}' into '{}'.".format(
-                self.name, self.current_state, next_state
-            ),
+            f"'{self.name}'. Changing state from '{self.current_state}' into '{next_state}'.",
         )
         change_state_method = None
         # all state triggers used by SM are methods with names starting from "GOTO_"
         # for e.g. GOTO_REMOTE, GOTO_CONNECTED
         for goto_method in self.goto_states_triggers:
-            if "GOTO_{}".format(next_state) == goto_method:
+            if f"GOTO_{next_state}" == goto_method:
                 change_state_method = getattr(self, goto_method)
 
         if change_state_method:
@@ -676,12 +656,10 @@ class TextualDevice(AbstractDevice):
         else:
             exc = DeviceFailure(
                 device=self.__class__.__name__,
-                message="{}. Failed to change state from '{}' to '{}'. "
+                message=f"{self.name}. Failed to change state from '{self.state}' to '{next_state}'. "
                 "Either target state does not exist in SM or there is no direct/indirect transition "
                 "towards target state. Try to change state machine definition. "
-                "Available states: {}".format(
-                    self.name, self.state, next_state, self.states
-                ),
+                f"Available states: {self.states}",
             )
             if log_stacktrace_on_fail:
                 self._log(logging.ERROR, exc)
@@ -706,9 +684,7 @@ class TextualDevice(AbstractDevice):
             except Exception as ex:
                 if self.current_state == next_state:
                     ex_traceback = traceback.format_exc()
-                    msg = "Method to change state failed but device '{}' is in proper state {}'. Exception: {}".format(
-                        self.name, self.current_state, ex_traceback
-                    )
+                    msg = f"Method to change state failed but device '{self.name}' is in proper state '{self.current_state}'. Exception: {ex_traceback}"
                     self._log(logging.WARNING, msg=msg)
                 elif retrying == rerun:
                     ex_traceback = traceback.format_exc()
@@ -724,10 +700,7 @@ class TextualDevice(AbstractDevice):
                     retrying += 1
                     self._log(
                         logging.DEBUG,
-                        "Cannot change state into '{}'. "
-                        "Retrying '{}' of '{}' times.".format(
-                            next_state, retrying, rerun
-                        ),
+                        f"Cannot change state into '{next_state}'. Retrying '{retrying}' of '{rerun}' times.",
                     )
                     if send_enter_after_changed_state:
                         self._send_enter_after_changed_state()
@@ -739,7 +712,7 @@ class TextualDevice(AbstractDevice):
                 self._send_enter_after_changed_state()
             self._log(
                 logging.DEBUG,
-                "{}: Successfully enter state '{}'".format(self.name, next_state),
+                f"{self.name}: Successfully enter state '{next_state}'",
             )
 
     def on_connection_made(self, connection):
@@ -778,7 +751,7 @@ class TextualDevice(AbstractDevice):
         else:
             # pylint: disable-next=unused-variable
             for importer, modname, is_pkg in pkgutil.iter_modules(mod_path):
-                module_name = "{}.{}".format(package_name, modname)
+                module_name = f"{package_name}.{modname}"
                 module_available_cmds = self._load_cmds_from_module(module_name)
                 available_cmds.update(module_available_cmds)
 
@@ -799,7 +772,7 @@ class TextualDevice(AbstractDevice):
                     # like:  IpAddr --> ip_addr
                     cmd_name = cmd_class_obj.observer_name
                     # like:  IpAddr --> moler.cmd.unix.ip_addr.IpAddr
-                    cmd_class_fullname = "{}.{}".format(module_name, cmd_class_name)
+                    cmd_class_fullname = f"{module_name}.{cmd_class_name}"
 
                     available_cmds.update({cmd_name: cmd_class_fullname})
         return available_cmds
@@ -1050,9 +1023,7 @@ class TextualDevice(AbstractDevice):
             if len(occurrence["list_matched"]) > 1:
                 self._log(
                     level=logging.ERROR,
-                    msg="More than 1 prompt matched the same line! '{}'.".format(
-                        occurrence
-                    ),
+                    msg=f"More than 1 prompt matched the same line! '{occurrence}'.",
                 )
                 self.last_wrong_wait4_occurrence = occurrence
 
@@ -1108,16 +1079,12 @@ class TextualDevice(AbstractDevice):
             if prompt not in prompts.keys():
                 prompts[prompt] = state
             else:
-                error_message += "\n'{}' -> '{}', '{}'".format(
-                    prompt, prompts[prompt], state
-                )
+                error_message += f"\n'{prompt}' -> '{prompts[prompt]}', '{state}'"
 
         if error_message:
             exc = DeviceFailure(
                 device=self.__class__.__name__,
-                message="Incorrect device configuration. The same prompts for states: {}.".format(
-                    error_message
-                ),
+                message=f"Incorrect device configuration. The same prompts for states: {error_message}.",
             )
             self._log(logging.ERROR, exc)
             raise exc
@@ -1129,7 +1096,7 @@ class TextualDevice(AbstractDevice):
             self._prompts_event = None
 
     def build_trigger_to_state(self, state):
-        trigger = "GOTO_{}".format(state)
+        trigger = f"GOTO_{state}"
         if trigger not in self.goto_states_triggers:
             self.goto_states_triggers += [trigger]
         return trigger
@@ -1197,16 +1164,12 @@ class TextualDevice(AbstractDevice):
                                 "command_params"
                             ]
                         ):
-                            exception_message += "\n'{}' in 'command_params' in transition from '{}' to '{}'".format(
-                                required_command_param, source_state, dest_state
-                            )
+                            exception_message += f"\n'{required_command_param}' in 'command_params' in transition from '{source_state}' to '{dest_state}'"
 
         if exception_message:
             exc = DeviceFailure(
                 device=self.__class__.__name__,
-                message="Missing required parameter(s). There is no required parameter(s):{}".format(
-                    exception_message
-                ),
+                message=f"Missing required parameter(s). There is no required parameter(s):{exception_message}",
             )
             self._log(logging.ERROR, exc)
             raise exc
@@ -1220,7 +1183,7 @@ class TextualDevice(AbstractDevice):
             cmd_enter()
         except Exception as ex:
             self._log(
-                logging.DEBUG, "Cannot execute command 'enter' properly: {}".format(ex)
+                logging.DEBUG, f"Cannot execute command 'enter' properly: {ex}"
             )
 
     def _get_newline(self, state=None):

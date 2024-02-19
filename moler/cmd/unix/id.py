@@ -38,7 +38,7 @@ class Id(GenericUnixCommand):
         """
         cmd = "id"
         if self.user:
-            cmd = "{} {}".format(cmd, self.user)
+            cmd = f"{cmd} {self.user}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

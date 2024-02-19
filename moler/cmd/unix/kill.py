@@ -24,9 +24,9 @@ class Kill(GenericUnixCommand):
     def build_command_string(self):
         cmd = "kill"
         if self.options:
-            cmd = cmd + " " + self.options
+            cmd = f"{cmd} {self.options}"
         if self.pid:
-            cmd = cmd + " " + self.pid
+            cmd = f"{cmd} {self.pid}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -40,7 +40,7 @@ class Kill(GenericUnixCommand):
 
     def _parse_no_permit(self, line):
         if self._regex_helper.search(r'(Operation not permitted)', line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group(1))))
+            self.set_exception(CommandFailure(self, f"ERROR: {self._regex_helper.group(1)}"))
             raise ParsingDone
 
 #    -bash: kill: (973) - No such process

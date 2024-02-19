@@ -21,8 +21,7 @@ class Mv(GenericUnixCommand):
         self.ret_required = False
 
     def build_command_string(self):
-        return "{} {} {} {}".format("mv", self.src, self.dst, self.options) if self.options else "{} {} {}" \
-            .format("mv", self.src, self.dst)
+        return f"mv {self.src} {self.dst} {self.options}" if self.options else f"mv {self.src} {self.dst}"
 
     def on_new_line(self, line, is_full_line):
         if self._cmd_output_started:
@@ -40,7 +39,7 @@ class Mv(GenericUnixCommand):
 
     def _parse_errors(self, line):
         if self._regex_helper.search(Mv._reg_fail, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group(1))))
+            self.set_exception(CommandFailure(self, f"ERROR: {self._regex_helper.group(1)}"))
             raise ParsingDone
 
 

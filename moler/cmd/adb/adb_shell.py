@@ -46,8 +46,8 @@ class AdbShell(CommandChangingPrompt):
             if not prompt_after_login:
                 prompt_after_login = self._re_default_prompt
             if serial_number and (not set_prompt):
-                set_prompt = r'export PS1="adb_shell@{} \$ "'.format(serial_number)
-                expected_prompt = re.compile(self.re_generated_prompt.format(serial_number))
+                set_prompt = fr'export PS1="adb_shell@{serial_number} \$ "'
+                expected_prompt = re.compile(self.re_generated_prompt.format(serial_number))  # pylint: disable=consider-using-f-string
         super(AdbShell, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars,
                                        runner=runner, expected_prompt=expected_prompt, set_timeout=set_timeout,
                                        set_prompt=set_prompt, target_newline=target_newline,
@@ -65,7 +65,7 @@ class AdbShell(CommandChangingPrompt):
         """
         cmd = "adb shell"
         if self.serial_number:
-            cmd = "adb -s {} shell".format(self.serial_number)
+            cmd = f"adb -s {self.serial_number} shell"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -82,7 +82,7 @@ class AdbShell(CommandChangingPrompt):
             pass
         super(AdbShell, self).on_new_line(line=line, is_full_line=is_full_line)
 
-    _re_command_fail = re.compile(r"{}|^error:".format(r_cmd_failure_cause_alternatives), re.IGNORECASE)
+    _re_command_fail = re.compile(f"{r_cmd_failure_cause_alternatives}|^error:", re.IGNORECASE)
 
     def _command_failure(self, line):
         """
@@ -93,7 +93,7 @@ class AdbShell(CommandChangingPrompt):
         :raise ParsingDone: if regex matches.
         """
         if self._regex_helper.search_compiled(AdbShell._re_command_fail, line):
-            self.set_exception(CommandFailure(self, "Found error regex in line '{}'".format(line)))
+            self.set_exception(CommandFailure(self, f"Found error regex in line '{line}'"))
             raise ParsingDone
 
     def _decode_line(self, line):

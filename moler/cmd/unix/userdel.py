@@ -39,9 +39,9 @@ class Userdel(GenericUnixCommand):
     def build_command_string(self):
         cmd = "userdel"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         if self.user:
-            cmd = "{} {}".format(cmd, self.user)
+            cmd = f"{cmd} {self.user}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -60,7 +60,7 @@ class Userdel(GenericUnixCommand):
         if self._regex_helper.search_compiled(Userdel._re_command_error, line):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR: {}".format(self._regex_helper.group("ERROR"))
+                    self, f"ERROR: {self._regex_helper.group('ERROR')}"
                 )
             )
             raise ParsingDone
@@ -68,9 +68,7 @@ class Userdel(GenericUnixCommand):
             self.set_exception(
                 CommandFailure(
                     self,
-                    "ERROR: wrong syntax, should be: {}".format(
-                        self._regex_helper.group("HELP_MSG")
-                    ),
+                    f"ERROR: wrong syntax, should be: {self._regex_helper.group('HELP_MSG')}",
                 )
             )
             raise ParsingDone
@@ -88,10 +86,7 @@ class Userdel(GenericUnixCommand):
                     Userdel._re_command_error_user_used, line
                 ):
                     self.current_ret["RESULT"].append(
-                        "User {} currently used by process {} was deleted".format(
-                            self._regex_helper.group("USER"),
-                            self._regex_helper.group("PROCESS"),
-                        )
+                        f"User {self._regex_helper.group('USER')} currently used by process {self._regex_helper.group('PROCESS')} was deleted"
                     )
                     raise ParsingDone
 

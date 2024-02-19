@@ -70,9 +70,9 @@ class Tcp:
         if sys.platform.startswith('java'):  # Program runs under Jython
             blocking = False  # Jython  limitation
         self.socket.setblocking(blocking)
-        self._debug('connecting to {}'.format(self))
+        self._debug(f'connecting to {self}')
         self.socket.connect((self.host, self.port))
-        self._debug('connection {} is open'.format(self))
+        self._debug(f'connection {self} is open')
         return contextlib.closing(self)
 
     def close(self):
@@ -82,10 +82,10 @@ class Tcp:
         Connection should allow for calling close on closed/not-open connection.
         """
         if self.socket is not None:
-            self._debug('closing {}'.format(self))
+            self._debug(f'closing {self}')
             self.socket.close()
             self.socket = None
-        self._debug('connection {} is closed'.format(self))
+        self._debug(f'connection {self} is closed')
 
     def __enter__(self):
         """While working as context manager connection should auto-open if it's not open yet."""
@@ -109,8 +109,8 @@ class Tcp:
         except socket.error as serr:
             if (serr.errno == 10054) or (serr.errno == 10053):
                 self._close_ignoring_exceptions()
-                info = "{} during send msg '{}'".format(serr.errno, data)
-                raise RemoteEndpointDisconnected('Socket error: ' + info)
+                info = f"{serr.errno} during send msg '{data}'"
+                raise RemoteEndpointDisconnected(f"Socket error: {info}")
             else:
                 raise
 
@@ -142,7 +142,7 @@ class Tcp:
         else:
             # don't want to show class name - just tcp address
             # want same output from any implementation of TCP-connection
-            info = "Timeout {} (> %.3f sec) on {}".format(timeout, self)
+            info = f"Timeout {timeout} (> %.3f sec) on {self}"
             raise ConnectionTimeout(info)
 
     def _close_ignoring_exceptions(self):
@@ -153,7 +153,7 @@ class Tcp:
         self.socket = None
 
     def __str__(self):
-        address = 'tcp://{}:{}'.format(self.host, self.port)
+        address = f'tcp://{self.host}:{self.port}'
         return address
 
     def _debug(self, msg):  # TODO: refactor to class decorator or so
@@ -201,11 +201,11 @@ class ThreadedTcp(Tcp):
     @tracked_thread.log_exit_exception
     def pull_data(self, pulling_done):
         """Pull data from TCP connection."""
-        logging.getLogger("moler_threads").debug("ENTER {}".format(self))
+        logging.getLogger("moler_threads").debug(f"ENTER {self}")
         heartbeat = tracked_thread.report_alive()
         while not pulling_done.is_set():
             if next(heartbeat):
-                logging.getLogger("moler_threads").debug("ALIVE {}".format(self))
+                logging.getLogger("moler_threads").debug(f"ALIVE {self}")
             try:
                 data = self.receive(timeout=0.1)
                 if data:
@@ -219,4 +219,4 @@ class ThreadedTcp(Tcp):
                 break
         if self.socket is not None:
             self._close_ignoring_exceptions()
-        logging.getLogger("moler_threads").debug("EXIT  {}".format(self))
+        logging.getLogger("moler_threads").debug(f"EXIT  {self}")

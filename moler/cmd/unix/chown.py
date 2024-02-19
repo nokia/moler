@@ -22,9 +22,9 @@ class Chown(GenericUnixCommand):
 
     def build_command_string(self):
         if self.options:
-            cmd = "{} {} {} {}".format("chown", self.options, self.param, self.filename)
+            cmd = f"chown {self.options} {self.param} {self.filename}"
         else:
-            cmd = "{} {} {}".format("chown", self.param, self.filename)
+            cmd = f"chown {self.param} {self.filename}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -42,8 +42,7 @@ class Chown(GenericUnixCommand):
 
     def _parse_error(self, line):
         if self._regex_helper.search(Chown._reg_fail, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}or {}".format(self._regex_helper.group("ERROR"),
-                                                                            self._regex_helper.group("ERROR1"))))
+            self.set_exception(CommandFailure(self, f"ERROR: {self._regex_helper.group('ERROR')} or {self._regex_helper.group('ERROR1')}"))
             raise ParsingDone
 
 

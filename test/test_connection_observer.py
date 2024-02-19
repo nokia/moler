@@ -63,7 +63,7 @@ def test_str_conversion_of_connection_observer_object():
 
     transfer_received = TransferCounter()
     observer_id = instance_id(transfer_received)
-    assert 'TransferCounter(id:{})'.format(observer_id) == str(transfer_received)
+    assert f'TransferCounter(id:{observer_id})' == str(transfer_received)
 
 
 # repr - same analysis as for str above
@@ -78,7 +78,7 @@ def test_repr_conversion_of_connection_observer_object():
             self.target_host = target_host
 
         def __repr__(self):
-            return "<SshConnection({})>".format(self.target_host)
+            return f"<SshConnection({self.target_host})>"
 
         def get_runner(self):
             return None
@@ -96,10 +96,10 @@ def test_repr_conversion_of_connection_observer_object():
     observer_id = instance_id(transfer_received)
 
     # repr(conn_observer) uses repr(connection) which is used by that observer
-    assert 'TransferCounter(id:{}, using <SshConnection(127.0.0.1)>)'.format(observer_id) == repr(transfer_received)
+    assert f'TransferCounter(id:{observer_id}, using <SshConnection(127.0.0.1)>)' == repr(transfer_received)
 
     transfer_received.connection = None
-    assert 'TransferCounter(id:{}, using <NO CONNECTION>)'.format(observer_id) == repr(transfer_received)
+    assert f'TransferCounter(id:{observer_id}, using <NO CONNECTION>)' == repr(transfer_received)
 
 
 def test_connection_observer_stores_connection_it_is_operating_on(do_nothing_connection_observer__for_major_base_class):
@@ -287,7 +287,7 @@ def test_setting_result_multiple_times_raises_ResultAlreadySet(do_nothing_connec
         connection_observer.set_result(78990)  # connection_observer internally tries to overwrite the result
 
     assert error.value.connection_observer == connection_observer
-    assert str(error.value) == 'for {}'.format(str(connection_observer))
+    assert str(error.value) == f'for {str(connection_observer)}'
 
 
 def test_setting_result_after_set_exception_raises_ResultAlreadySet(do_nothing_connection_observer__for_major_base_class):
@@ -301,7 +301,7 @@ def test_setting_result_after_set_exception_raises_ResultAlreadySet(do_nothing_c
         connection_observer.set_result(78990)  # trial to overwrite exception with the result
 
     assert error.value.connection_observer == connection_observer
-    assert str(error.value) == 'for {}'.format(str(connection_observer))
+    assert str(error.value) == f'for {str(connection_observer)}'
 
 
 def test_calling_result_on_cancelled_connection_observer_raises_NoResultSinceCommandCancelled(
@@ -316,7 +316,7 @@ def test_calling_result_on_cancelled_connection_observer_raises_NoResultSinceCom
         connection_observer.result()
 
     assert error.value.connection_observer == connection_observer
-    assert str(error.value) == 'for {}'.format(str(connection_observer))
+    assert str(error.value) == f'for {str(connection_observer)}'
 
 
 def test_calling_result_on_exception_broken_connection_observer_raises_that_exception(
@@ -345,7 +345,7 @@ def test_calling_result_while_result_is_yet_not_available_raises_CommandResultNo
         connection_observer.result()
 
     assert error.value.connection_observer == connection_observer
-    assert str(error.value) == 'for {}'.format(str(connection_observer))
+    assert str(error.value) == f'for {str(connection_observer)}'
 
 
 def test_awaiting_done_on_already_done_connection_observer_immediately_returns_result(
@@ -367,7 +367,7 @@ def test_awaiting_done_on_not_running_connection_observer_raises_ConnectionObser
     with pytest.raises(ConnectionObserverNotStarted) as error:
         connection_observer.await_done()
     assert error.value.connection_observer == connection_observer
-    assert str(error.value) == 'for {}'.format(str(connection_observer))
+    assert str(error.value) == f'for {str(connection_observer)}'
 
 
 def test_connection_observer_has_data_received_api(connection_observer_major_base_class):
@@ -499,7 +499,7 @@ def test_connection_observer_exception_do_not_remove():
 @pytest.fixture(params=['connection_observer.ConnectionObserver', 'command.Command'])
 def connection_observer_major_base_class(request):
     module_name, class_name = request.param.rsplit('.', 1)
-    module = importlib.import_module('moler.{}'.format(module_name))
+    module = importlib.import_module(f'moler.{module_name}')
     klass = getattr(module, class_name)
     yield klass
     # remove exceptions collected inside ConnectionObserver

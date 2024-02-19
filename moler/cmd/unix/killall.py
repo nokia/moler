@@ -35,9 +35,9 @@ class Killall(GenericUnixCommand):
 
     def build_command_string(self):
         if self.is_verbose:
-            cmd = "{} {} {}".format("killall", "-v", self.name)
+            cmd = f"killall -v {self.name}"
         else:
-            cmd = "{} {}".format("killall", self.name)
+            cmd = f"killall {self.name}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -52,7 +52,7 @@ class Killall(GenericUnixCommand):
     def _parse_no_permit(self, line):
         if self._regex_helper.search(r"(Operation not permitted)", line):
             self.set_exception(
-                CommandFailure(self, "ERROR: {}".format(self._regex_helper.group(1)))
+                CommandFailure(self, f"ERROR: {self._regex_helper.group(1)}")
             )
             raise ParsingDone
 

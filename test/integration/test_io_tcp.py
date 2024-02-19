@@ -130,7 +130,7 @@ def _wait_for_last_message(tcp_server_pipe, last_message="Client disconnected", 
 @pytest.fixture(params=['io.raw.tcp.ThreadedTcp'])
 def tcp_connection_class(request):
     module_name, class_name = request.param.rsplit('.', 1)
-    module = importlib.import_module('moler.{}'.format(module_name))
+    module = importlib.import_module(f'moler.{module_name}')
     connection_class = getattr(module, class_name)
     return connection_class
 

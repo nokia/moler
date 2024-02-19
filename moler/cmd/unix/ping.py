@@ -38,11 +38,11 @@ class Ping(GenericUnixCommand):
         :return: String representation of command to send over connection to device.
         """
         if ":" in self.destination:
-            cmd = "ping6 {}".format(self.destination)
+            cmd = f"ping6 {self.destination}"
         else:
-            cmd = "ping {}".format(self.destination)
+            cmd = f"ping {self.destination}"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

@@ -37,18 +37,18 @@ def test_str_conversion_of_command_object():
     class PingCmd(Command):
         def __init__(self, host='localhost', connection=None):
             super(PingCmd, self).__init__(connection=connection)
-            self.command_string = 'ping {}'.format(host)
+            self.command_string = f'ping {host}'
 
         def data_received(self, data, recv_time):
             pass  # not important now
 
     ping = PingCmd()
-    assert 'PingCmd("ping localhost", id:{})'.format(instance_id(ping)) == str(ping)
+    assert f'PingCmd("ping localhost", id:{instance_id(ping)})' == str(ping)
 
     ping = PingCmd(host='127.0.0.1')
-    assert 'PingCmd("ping 127.0.0.1", id:{})'.format(instance_id(ping)) == str(ping)
+    assert f'PingCmd("ping 127.0.0.1", id:{instance_id(ping)})' == str(ping)
     ping.command_string = ''
-    assert 'PingCmd("<EMPTY COMMAND STRING>", id:{})'.format(instance_id(ping)) == str(ping)
+    assert f'PingCmd("<EMPTY COMMAND STRING>", id:{instance_id(ping)})' == str(ping)
 
 
 def test_str_conversion_of_command_object_encodes_newline_for_display():
@@ -56,7 +56,7 @@ def test_str_conversion_of_command_object_encodes_newline_for_display():
     class PingCmd(Command):
         def __init__(self, host='localhost', connection=None):
             super(PingCmd, self).__init__(connection=connection)
-            self.command_string = 'ping {}\n'.format(host)
+            self.command_string = f'ping {host}\n'
 
         def data_received(self, data, recv_time):
             pass  # not important now
@@ -76,7 +76,7 @@ def test_repr_conversion_of_command_object():
     class LsCmd(Command):
         def __init__(self, options='-l', connection=None):
             super(LsCmd, self).__init__(connection=connection)
-            self.command_string = 'ls {}'.format(options)
+            self.command_string = f'ls {options}'
 
         def data_received(self, data, recv_time):
             pass  # not important now
@@ -84,20 +84,20 @@ def test_repr_conversion_of_command_object():
     ls = LsCmd(connection=moler_conn)
 
     # (1) command with ThreadedMolerConnection to glued to ext-io
-    assert 'LsCmd("ls -l", id:{}, using ThreadedMolerConnection(id:{})-->[?])'.format(instance_id(ls), instance_id(moler_conn)) == repr(ls)
+    assert f'LsCmd("ls -l", id:{instance_id(ls)}, using ThreadedMolerConnection(id:{instance_id(moler_conn)})-->[?])' == repr(ls)
     # TODO: add test for <ThreadedMolerConnection( id:{}>
 
     # (2) command with ThreadedMolerConnection glued to ext-io
     ext_io_connection = FifoBuffer(moler_connection=moler_conn)
     how2send_repr = repr(ext_io_connection.write)
-    assert 'LsCmd("ls -l", id:{}, using ThreadedMolerConnection(id:{})-->[{}])'.format(instance_id(ls), instance_id(moler_conn), how2send_repr) == repr(ls)
+    assert f'LsCmd("ls -l", id:{instance_id(ls)}, using ThreadedMolerConnection(id:{instance_id(moler_conn)})-->[{how2send_repr}])' == repr(ls)
     # TODO: move ThreadedMolerConnection(id:{})-->[{}])'.format(instance_id(moler_conn), how2send_repr) into ThreadedMolerConnection __repr__ test
     # TODO: and here just:
     # assert 'LsCmd("ls -l", id:{}, using {})'.format(instance_id(ls), repr(moler_conn)) == repr(ls)
 
     # (3) command without connection
     ls.connection = None
-    assert 'LsCmd("ls -l", id:{}, using <NO CONNECTION>)'.format(instance_id(ls)) == repr(ls)
+    assert f'LsCmd("ls -l", id:{instance_id(ls)}, using <NO CONNECTION>)' == repr(ls)
 
     # TODO: generic - shift into ConnectionObserver; here just show that command's repr adds command string
 
@@ -114,7 +114,7 @@ def test_command_string_is_required_to_start_command(command_major_base_class):
         command.start()  # start the command-future (background run)
 
     assert error.value.command == command
-    assert 'for {}'.format(str(command)) in str(error.value)
+    assert f'for {str(command)}' in str(error.value)
     assert 'You should fill .command_string member before starting command' in str(error.value)
 
 
@@ -131,7 +131,7 @@ def test_command_string_is_required_to_call_command(command_major_base_class):
         with pytest.raises(NoCommandStringProvided) as error:
             command()
         assert error.value.command == command
-        assert 'for {}'.format(str(command)) in str(error.value)
+        assert f'for {str(command)}' in str(error.value)
         assert 'You should fill .command_string member before starting command' in str(error.value)
 
     cmd_thrd = threading.Thread(target=command_in_thread)
@@ -143,7 +143,7 @@ def test_command_string_is_required_to_call_command(command_major_base_class):
         command()  # call the command-future (foreground run)
 
     assert error.value.command == command
-    assert 'for {}'.format(str(command)) in str(error.value)
+    assert f'for {str(command)}' in str(error.value)
     assert 'You should fill .command_string member before starting command' in str(error.value)
 
 
@@ -222,7 +222,7 @@ def test_command_is_running_after_sending_command_string(do_nothing_command__for
 @pytest.fixture(params=['command.Command'])
 def command_major_base_class(request):
     module_name, class_name = request.param.rsplit('.', 1)
-    module = importlib.import_module('moler.{}'.format(module_name))
+    module = importlib.import_module(f'moler.{module_name}')
     klass = getattr(module, class_name)
     return klass
 

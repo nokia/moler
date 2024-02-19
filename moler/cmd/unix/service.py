@@ -25,7 +25,7 @@ class Service(GenericUnixCommand):
         self.arr = False
 
     def build_command_string(self):
-        cmd = "service {}".format(self.options)
+        cmd = f"service {self.options}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

@@ -54,7 +54,7 @@ class IOConnection:
         self._disconnect_subscribers_lock = Lock()
         self.moler_connection = moler_connection
         self.__name = "UNNAMED_IO_CONNECTION"
-        self.logger = logging.getLogger("moler.connection.{}.io".format(self.__name))
+        self.logger = logging.getLogger(f"moler.connection.{self.__name}.io")
         # plugin the way we output data to external world
         self.moler_connection.how2send = self.send
 
@@ -65,7 +65,7 @@ class IOConnection:
     @name.setter
     def name(self, value):
         self.__name = value
-        self.logger = logging.getLogger("moler.connection.{}.io".format(self.__name))
+        self.logger = logging.getLogger(f"moler.connection.{self.__name}.io")
 
     def open(self):
         """
@@ -190,14 +190,14 @@ class IOConnection:
 
     def _notify_on_connect(self):
         self.logger.info(
-            msg="Connection to: '{}' has been opened.".format(self.name),
+            msg=f"Connection to: '{self.name}' has been opened.",
             extra={"log_name": self.name},
         )
         self._notify(self._connect_subscribers_lock, self._connect_subscribers)
 
     def _notify_on_disconnect(self):
         self.logger.info(
-            msg="Connection to: '{}' has been closed.".format(self.name),
+            msg=f"Connection to: '{self.name}' has been closed.",
             extra={"log_name": self.name},
         )
         self._notify(self._disconnect_subscribers_lock, self._disconnect_subscribers)

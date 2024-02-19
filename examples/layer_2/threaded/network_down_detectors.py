@@ -54,8 +54,8 @@ def ping_observing_task(ext_io_connection, ping_ip):
     net_up_detector = NetworkUpDetector(ping_ip)
     net_up_detector.connection = ext_io_connection.moler_connection
 
-    info = '{} on {} using {}'.format(ping_ip, conn_addr, net_down_detector)
-    logger.debug('observe ' + info)
+    info = f'{ping_ip} on {conn_addr} using {net_down_detector}'
+    logger.debug(f"observe {info}")
 
     # 4. start observer (nonblocking, using as future)
     net_down_detector.start()  # should be started before we open connection
@@ -65,16 +65,16 @@ def ping_observing_task(ext_io_connection, ping_ip):
         # 5. await that observer to complete
         net_down_time = net_down_detector.await_done(timeout=10)
         timestamp = time.strftime("%H:%M:%S", time.localtime(net_down_time))
-        logger.debug('Network {} is down from {}'.format(ping_ip, timestamp))
+        logger.debug(f'Network {ping_ip} is down from {timestamp}')
 
         # 6. call next observer (blocking till completes)
-        info = '{} on {} using {}'.format(ping_ip, conn_addr, net_up_detector)
-        logger.debug('observe ' + info)
+        info = f'{ping_ip} on {conn_addr} using {net_up_detector}'
+        logger.debug(f"observe {info}")
         # using as synchronous function (so we want verb to express action)
         detect_network_up = net_up_detector
         net_up_time = detect_network_up()
         timestamp = time.strftime("%H:%M:%S", time.localtime(net_up_time))
-        logger.debug('Network {} is back "up" from {}'.format(ping_ip, timestamp))
+        logger.debug(f'Network {ping_ip} is back "up" from {timestamp}')
 
 
 # ==============================================================================

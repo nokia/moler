@@ -65,7 +65,7 @@ def ping_observing_task(address):
             net_down_time = net_down_detector.result()
             timestamp = time.strftime("%H:%M:%S",
                                       time.localtime(net_down_time))
-            logger.debug('Network is down from {}'.format(timestamp))
+            logger.debug(f'Network is down from {timestamp}')
             observer_done.callback(None)  # break tcp client and server
 
     start_tcp_connection(address, feed_moler)
@@ -80,13 +80,13 @@ class TcpConnection(Protocol):
 
     def connectionMade(self):
         conn_info = 'tcp://{}:{}'.format(*self.transport.realAddress)
-        self.logger.debug('... connected to ' + conn_info)
+        self.logger.debug(f"... connected to {conn_info}")
 
     def connectionLost(self, reason):
         self.logger.debug("... closed")
 
     def dataReceived(self, data):
-        self.logger.debug('<<< {!r}'.format(data))
+        self.logger.debug(f'<<< {data!r}')
         self.forward_data(data)
 
 

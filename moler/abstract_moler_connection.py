@@ -54,7 +54,7 @@ class AbstractMolerConnection:
         self._decoder = decoder
         self._name = self._use_or_generate_name(name)
         self.newline = newline
-        self.data_logger = logging.getLogger('moler.{}'.format(self.name))
+        self.data_logger = logging.getLogger(f'moler.{self.name}')
         self.logger = AbstractMolerConnection._select_logger(logger_name, self._name)
         self._is_open = True
         self._enabled_logging = True  # Set True to log incoming data. False to not log incoming data.
@@ -74,7 +74,7 @@ class AbstractMolerConnection:
         """
         if self._name == value:
             return
-        self._log(level=TRACE, msg=r'changing name: {} --> {}'.format(self._name, value), levels_to_go_up=2)
+        self._log(level=TRACE, msg=f'changing name: {self._name} --> {value}', levels_to_go_up=2)
         if self._using_default_logger():
             self.logger = AbstractMolerConnection._select_logger(logger_name="", connection_name=value)
         self._name = value
@@ -94,7 +94,7 @@ class AbstractMolerConnection:
 
         :return String with representation of the object.
         """
-        return '{}(id:{})'.format(self.__class__.__name__, instance_id(self))
+        return f'{self.__class__.__name__}(id:{instance_id(self)})'
 
     def __repr__(self):
         """
@@ -107,8 +107,8 @@ class AbstractMolerConnection:
         sender_str = "?"
         if self.how2send != self._unknown_send:
             sender_str = repr(self.how2send)
-        # return '{}, how2send {})'.format(cmd_str[:-1], sender_str)
-        return '{}-->[{}]'.format(cmd_str, sender_str)
+        # return f'{cmd_str[:-1]}, how2send {sender_str})'
+        return f'{cmd_str}-->[{sender_str}]'
 
     def _use_or_generate_name(self, name):
         if name:
@@ -119,19 +119,19 @@ class AbstractMolerConnection:
     def _select_logger(logger_name, connection_name):
         if logger_name is None:
             return None  # don't use logging
-        default_logger_name = "moler.connection.{}".format(connection_name)
+        default_logger_name = f"moler.connection.{connection_name}"
         name = logger_name or default_logger_name
         logger = logging.getLogger(name)
 
         if logger_name and (logger_name != default_logger_name):
-            msg = "using '{}' logger - not default '{}'".format(logger_name, default_logger_name)
+            msg = f"using '{logger_name}' logger - not default '{default_logger_name}'"
             logger.log(level=logging.WARNING, msg=msg)
         return logger
 
     def _using_default_logger(self):
         if self.logger is None:
             return False
-        return self.logger.name == "moler.connection.{}".format(self._name)
+        return self.logger.name == f"moler.connection.{self._name}"
 
     @staticmethod
     def _strip_data(data):
@@ -176,11 +176,11 @@ class AbstractMolerConnection:
         """
         if self.newline != newline_seq:
             characters = [ord(char) for char in self.newline]
-            newline_old = "0x" + ''.join("'{:02X}'".format(a) for a in characters)
+            newline_old = "0x" + ''.join(f"'{a:02X}'" for a in characters)
             characters = [ord(char) for char in newline_seq]
-            newline_new = "0x" + ''.join("'{:02X}'".format(a) for a in characters)
+            newline_new = "0x" + ''.join(f"'{a:02X}'" for a in characters)
             # 11 15:30:32.855 DEBUG        moler.connection.UnixRemote1    |changing newline seq old '0x'0D''0A'' -> new '0x'0A''
-            self._log(logging.DEBUG, "changing newline seq old '{}' -> new '{}'".format(newline_old, newline_new))
+            self._log(logging.DEBUG, f"changing newline seq old '{newline_old}' -> new '{newline_new}'")
         self.newline = newline_seq
 
     def sendline(self, data, timeout=30, encrypt=False):
@@ -226,10 +226,9 @@ class AbstractMolerConnection:
         return self._is_open
 
     def _unknown_send(self, data2send):
-        err_msg = "Can't send('{}')".format(data2send)
+        err_msg = f"Can't send('{data2send}')"
         err_msg += "\nYou haven't installed sending method of external-IO system"
-        err_msg += "\n{}: {}(how2send=external_io_send)".format("Do it either during connection construction",
-                                                                self.__class__.__name__)
+        err_msg += f"\n{{'Do it either during connection construction: {self.__class__.__name__}(how2send=external_io_send)}}'"
         err_msg += "\nor later via attribute direct set: connection.how2send = external_io_send"
         self._log(level=logging.ERROR, msg=err_msg)
         raise WrongUsage(err_msg)

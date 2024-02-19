@@ -43,7 +43,7 @@ class QuectelNetworkPreferences(GenericAtCommand):
 
     def build_command_string(self):
         command_prefix = 'AT+QNWPREFCFG='
-        return '{}"{}",{}'.format(command_prefix, self.config_option, self.option_value)
+        return f'{command_prefix}"{self.config_option}",{self.option_value}'
 
 
 # -----------------------------------------------------------------------------

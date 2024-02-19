@@ -136,7 +136,7 @@ async def test_can_receive_binary_data_from_connection(tcp_connection_class,
 @pytest.fixture(params=['io.asyncio.tcp.AsyncioTcp'])
 def tcp_connection_class(request):
     module_name, class_name = request.param.rsplit('.', 1)
-    module = importlib.import_module('moler.{}'.format(module_name))
+    module = importlib.import_module(f'moler.{module_name}')
     connection_class = getattr(module, class_name)
     return connection_class
 

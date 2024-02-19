@@ -44,7 +44,7 @@ class Tee(GenericUnixCommand):
 
         :return: String representation of command to send over connection to device.
         """
-        cmd = "tee {} << {}".format(self.path, self.border)
+        cmd = f"tee {self.path} << {self.border}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

@@ -41,7 +41,7 @@ class QuectelLockNrEarfcn(GenericAtCommand):
 
     def build_command_string(self):
         command_prefix = 'AT+QNWCFG='
-        command_values = '"nr5g_earfcn_lock",1,{}:{}'.format(self.earfcn, self.scs) if self.earfcn > 0 \
+        command_values = f'"nr5g_earfcn_lock",1,{self.earfcn}:{self.scs}' if self.earfcn > 0 \
             else '"nr5g_earfcn_lock",0'
         return command_prefix + command_values
 

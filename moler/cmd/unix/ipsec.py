@@ -27,7 +27,7 @@ class Ipsec(GenericUnixCommand):
         self.entry_key = None
 
     def build_command_string(self):
-        return "ipsec {}".format(self.options)
+        return f"ipsec {self.options}"
 
     def on_new_line(self, line, is_full_line):
         if is_full_line:

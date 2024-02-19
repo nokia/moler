@@ -41,10 +41,10 @@ class Gzip(GenericUnixCommand):
         """
         cmd = 'gzip'
         if self.options:
-            cmd = '{} {}'.format(cmd, self.options)
-        cmd = '{} {}'.format(cmd, self.file_name)
+            cmd = f'{cmd} {self.options}'
+        cmd = f'{cmd} {self.file_name}'
         if self.compressed_file_name:
-            cmd = '{} -c > {}'.format(cmd, self.compressed_file_name)
+            cmd = f'{cmd} -c > {self.compressed_file_name}'
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -79,7 +79,7 @@ class Gzip(GenericUnixCommand):
                     self.connection.sendline('n')
                     self.set_exception(
                         CommandFailure(
-                            self, "ERROR: {} already exists".format(compressed_file_name)))
+                            self, f"ERROR: {compressed_file_name} already exists"))
                 self.answered_files.add(compressed_file_name)
             raise ParsingDone
 
@@ -92,7 +92,7 @@ class Gzip(GenericUnixCommand):
         :return: None but raises ParsingDone if regex matches.
         """
         if self._regex_helper.search_compiled(self._re_error, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG"))))
+            self.set_exception(CommandFailure(self, f"ERROR: {self._regex_helper.group('ERROR_MSG')}"))
             raise ParsingDone
 
 

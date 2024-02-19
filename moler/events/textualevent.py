@@ -62,7 +62,7 @@ class TextualEvent(Event):
             except UnicodeDecodeError as ex:
                 if self._ignore_unicode_errors:
                     self._log(lvl=logging.WARNING,
-                              msg="Processing data from '{}' with unicode problem: '{}'.".format(self, ex))
+                              msg=f"Processing data from '{self}' with unicode problem: '{ex}'.")
                 else:
                     raise ex
 
@@ -89,7 +89,7 @@ class TextualEvent(Event):
         """
         line = current_chunk
         if self._last_not_full_line is not None:
-            line = "{}{}".format(self._last_not_full_line, line)
+            line = f"{self._last_not_full_line}{line}"
             self._last_not_full_line = None
         is_full_line = self.is_new_line(line)
         if is_full_line:

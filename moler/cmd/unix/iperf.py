@@ -70,7 +70,7 @@ class Iperf(GenericUnixCommand):
         )
 
     def build_command_string(self):
-        cmd = "iperf " + str(self.options)
+        cmd = f"iperf {str(self.options)}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -93,7 +93,7 @@ class Iperf(GenericUnixCommand):
         if self._regex_helper.search_compiled(Iperf._re_command_failure, line):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR: {}".format(self._regex_helper.group("FAILURE_MSG"))
+                    self, f"ERROR: {self._regex_helper.group('FAILURE_MSG')}"
                 )
             )
             raise ParsingDone
@@ -134,7 +134,7 @@ class Iperf(GenericUnixCommand):
         r"(?P<CONNECTION_ID>\[\s*\d*\])\s*(?P<CONNECTION_REPORT>.*)"
     )
     _re_ci = r"(?P<ID>\[\s*\d*\])\s+(?P<Interval>\d+.+sec)\s+(?P<Transfer>[\d\.]+\s+\w+)\s+(?P<Bandwidth>[\d\.]+\s+\w+/sec)"
-    _re_ci_udp_svr = _re_ci + r"\s+(?P<Jitter>\d+\.\d+\s\w+)\s+(?P<Lost_vs_Total_Datagrams>\d+/\s*\d+\s*\([\d\.]+\%\))"
+    _re_ci_udp_svr = f"{_re_ci}\\s+(?P<Jitter>\\d+\\.\\d+\\s\\w+)\\s+(?P<Lost_vs_Total_Datagrams>\\d+/\\s*\\d+\\s*\\([\\d\\.]+\\%\\))"
     _re_iperf_record = re.compile(_re_ci)
     _re_iperf_record_udp_svr = re.compile(_re_ci_udp_svr)
 
@@ -173,13 +173,13 @@ class Iperf(GenericUnixCommand):
             if (
                 "Bytes" in raw_value
             ):  # iperf MBytes means 1024 * 1024 Bytes - see iperf.fr/iperf-doc.php
-                new_dict[key + " Raw"] = raw_value
+                new_dict[f"{key} Raw"] = raw_value
                 value_in_bytes, _, _ = self._converter_helper.to_bytes(raw_value)
                 new_dict[key] = value_in_bytes
             elif (
                 "bits" in raw_value
             ):  # iperf Mbits means 1000 * 1000 bits - see iperf.fr/iperf-doc.php
-                new_dict[key + " Raw"] = raw_value
+                new_dict[f"{key} Raw"] = raw_value
                 value_in_bits, _, _ = self._converter_helper.to_bytes(
                     raw_value, binary_multipliers=False
                 )

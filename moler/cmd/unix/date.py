@@ -24,10 +24,10 @@ class Date(GenericUnixCommand):
         cmd = "date"
 
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
 
         if self.date_table_output:
-            cmd = """{} \
+            cmd = f"{cmd} \
 '+DATE:%t%t%d-%m-%Y%n\
 TIME:%t%t%H:%M:%S%n\
 ZONE:%t%t%z %Z%n\
@@ -35,7 +35,7 @@ EPOCH:%t%t%s%n\
 WEEK_NUMBER:%t%-V%n\
 DAY_OF_YEAR:%t%-j%n\
 DAY_OF_WEEK:%t%u (%A)%n\
-MONTH:%t%t%-m (%B)'""".format(cmd)
+MONTH:%t%t%-m (%B)'"
 
         return cmd
 

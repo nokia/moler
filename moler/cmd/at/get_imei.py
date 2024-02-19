@@ -105,7 +105,7 @@ class GetImei(GenericAtCommand):
             if self._regex_helper.match_compiled(self._re_imei, line):
                 imei_parts = self._regex_helper.groupdict()
                 self.current_ret.update(imei_parts)
-                self.current_ret["imei"] = "{}{}{}".format(imei_parts["tac"], imei_parts["snr"], imei_parts["cd"])
+                self.current_ret["imei"] = f"{imei_parts['tac']}{imei_parts['snr']}{imei_parts['cd']}"
                 raise ParsingDone
 
         # TODO: 'imeisv' and 'svn' taken from latest AT standard; need real life examples to put into COMMAND_OUTPUT

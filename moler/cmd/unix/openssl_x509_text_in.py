@@ -38,7 +38,7 @@ class OpensslX509TextIn(GenericUnixCommand):
 
         :return: String representation of command to send over connection to device.
         """
-        cmd = 'openssl x509 -text -in {}'.format(self.path)
+        cmd = f'openssl x509 -text -in {self.path}'
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -62,7 +62,7 @@ class OpensslX509TextIn(GenericUnixCommand):
         """
         Add current line to string output.
         """
-        self._string_output = "{}{}\n".format(self._string_output, line)
+        self._string_output = f"{self._string_output}{line}\n"
 
     # -----END CERTIFICATE-----
     _re_end_certificate = re.compile(r"(?P<END_CERTIFICATE>-----END CERTIFICATE-----)")

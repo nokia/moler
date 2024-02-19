@@ -37,9 +37,7 @@ class LineEvent(TextualEvent):
         self._prepare_parameters()
 
     def __str__(self):
-        return "{}({}, id:{})".format(
-            self.__class__.__name__, self.detect_patterns, instance_id(self)
-        )
+        return f"{self.__class__.__name__}({self.detect_patterns}, id:{instance_id(self)})"
 
     # pylint: disable=keyword-arg-before-vararg
     def start(self, timeout=None, *args, **kwargs):
@@ -77,10 +75,10 @@ class LineEvent(TextualEvent):
         return value
 
     def get_long_desc(self):
-        return "Event {}.{}".format(self.__class__.__module__, str(self))
+        return f"Event {self.__class__.__module__}.{str(self)}"
 
     def get_short_desc(self):
-        return "Event {}.{}".format(self.__class__.__module__, str(self))
+        return f"Event {self.__class__.__module__}.{str(self)}"
 
     def _get_parser(self):
         parsers = {
@@ -93,9 +91,7 @@ class LineEvent(TextualEvent):
         else:
             self.set_exception(
                 WrongUsage(
-                    "'{}' is not supported. Possible choices: 'any', 'all' or 'sequence'".format(
-                        self.match
-                    )
+                    f"'{self.match}' is not supported. Possible choices: 'any', 'all' or 'sequence'"
                 )
             )
 

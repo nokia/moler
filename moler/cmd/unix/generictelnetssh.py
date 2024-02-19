@@ -140,9 +140,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
             self.command_string = self.__class__.__name__
             raise CommandFailure(
                 self,
-                "Please set login ('{}') or username ('{}') but not both.".format(
-                    login, username
-                ),
+                f"Please set login ('{login}') or username ('{username}') but not both.",
             )
         elif username:
             self.login = username
@@ -246,7 +244,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
         :return: None but raises ParsingDone if login was sent.
         """
         if (not self._sent_login) and self._is_login_requested(line) and self.login:
-            self.connection.send("{}{}".format(self.login, self.target_newline))
+            self.connection.send(f"{self.login}{self.target_newline}")
             self._sent_login = True
             self._sent = False
             raise ParsingDone()
@@ -263,13 +261,13 @@ class GenericTelnetSsh(CommandChangingPrompt):
                 pwd = self._passwords.pop(0)
                 self._last_password = pwd
                 self.connection.send(
-                    "{}{}".format(pwd, self.target_newline),
+                    f"{pwd}{self.target_newline}",
                     encrypt=self.encrypt_password,
                 )
             except IndexError:
                 if self.repeat_password:
                     self.connection.send(
-                        "{}{}".format(self._last_password, self.target_newline),
+                        f"{self._last_password}{self.target_newline}",
                         encrypt=self.encrypt_password,
                     )
                 else:

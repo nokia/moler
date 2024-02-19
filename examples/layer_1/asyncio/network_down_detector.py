@@ -58,7 +58,7 @@ async def ping_observing_task(address):
             # 5. ... to know when it can ask for result
             net_down_time = net_down_detector.result()
             timestamp = time.strftime("%H:%M:%S", time.localtime(net_down_time))
-            logger.debug('Network is down from {}'.format(timestamp))
+            logger.debug(f'Network is down from {timestamp}')
             break
 
 
@@ -72,7 +72,7 @@ async def tcp_connection(address):
         while True:
             data = await reader.read(128)
             if data:
-                logger.debug('<<< {!r}'.format(data))
+                logger.debug(f'<<< {data!r}')
                 yield data
             else:
                 break

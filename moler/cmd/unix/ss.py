@@ -43,9 +43,9 @@ class Ss(GenericUnixCommand):
         :return: String representation of the command to send over a connection to the device.
         """
         if self.options:
-            cmd = "{} {}".format("ss", self.options)
+            cmd = f"ss {self.options}"
         else:
-            cmd = "{}".format("ss")
+            cmd = "ss"
         return cmd
 
     def on_new_line(self, line, is_full_line):

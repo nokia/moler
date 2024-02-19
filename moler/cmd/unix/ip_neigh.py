@@ -29,7 +29,7 @@ class IpNeigh(GenericUnixCommand):
     def build_command_string(self):
         cmd = "ip neigh"
         if self.options:
-            cmd = cmd + " " + self.options
+            cmd = f"{cmd} {self.options}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

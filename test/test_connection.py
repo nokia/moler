@@ -208,7 +208,7 @@ def test_can_use_default_logger_based_on_connection_name():
 
     moler_conn = Connection()
     assert isinstance(moler_conn.logger, logging.Logger)
-    assert moler_conn.logger.name == "moler.connection.{}".format(moler_conn.name)
+    assert moler_conn.logger.name == f"moler.connection.{moler_conn.name}"
 
 
 def test_changing_connection_name_doesnt_switch_logger_if_external_logger_used():
@@ -518,7 +518,7 @@ def test_abstract_moler_connection():
     from  moler.abstract_moler_connection import AbstractMolerConnection
     data_exp = "data"
     for i in range(0, 10):
-        data_in = "{}{}".format(data_exp, " " * i)
+        data_in = f"{data_exp}{' ' * i}"
         data_out = AbstractMolerConnection._strip_data(data_in)
         assert data_out == data_exp
 

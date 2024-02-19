@@ -30,7 +30,7 @@ class AdbRoot(GenericUnixCommand):
         Builds command string from parameters passed to object.
         :return: String representation of command to send over connection to device.
         """
-        cmd = "adb root" if not self.options else "adb root {}".format(self.options)
+        cmd = "adb root" if not self.options else f"adb root {self.options}"
         return cmd
 
 

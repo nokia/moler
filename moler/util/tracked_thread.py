@@ -27,7 +27,7 @@ def log_exit_exception(fun):
         except:  # noqa, pylint: disable=bare-except
             th_exc_info = _exc_info()
             try:
-                logger.error("Exception in thread {}".format(thread_name), exc_info=th_exc_info)
+                logger.error(f"Exception in thread {thread_name}", exc_info=th_exc_info)
             finally:
                 del th_exc_info
 
@@ -51,7 +51,7 @@ def report_alive(report_tick=5.0):
 def threads_dumper(report_tick=10.0):
     while True:
         time.sleep(report_tick)
-        logging.getLogger("moler_threads").info("ACTIVE: {}".format(threading.enumerate()))
+        logging.getLogger("moler_threads").info(f"ACTIVE: {threading.enumerate()}")
 
 
 def start_threads_dumper():

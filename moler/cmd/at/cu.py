@@ -51,9 +51,9 @@ class Cu(CommandChangingPrompt):
         :return: String representation of command to send over connection to device.
         """
         if self.options:
-            proxy_command = "cu -l /dev/ttyS{} -s 19200 -E '-' {}".format(self.serial_devname, self.options)
+            proxy_command = f"cu -l /dev/ttyS{self.serial_devname} -s 19200 -E '-' {self.options}"
         else:
-            proxy_command = "cu -l /dev/ttyS{} -s 19200 -E '-'".format(self.serial_devname)
+            proxy_command = f"cu -l /dev/ttyS{self.serial_devname} -s 19200 -E '-'"
         return proxy_command
 
     def on_new_line(self, line, is_full_line):
@@ -81,7 +81,7 @@ class Cu(CommandChangingPrompt):
         :raise ParsingDone: if regex matches.
         """
         if self._regex_helper.search_compiled(self._re_command_fail, line):
-            self.set_exception(CommandFailure(self, "Found error regex in line '{}'".format(line)))
+            self.set_exception(CommandFailure(self, f"Found error regex in line '{line}'"))
             raise ParsingDone
 
 

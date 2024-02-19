@@ -50,13 +50,13 @@ class TableText:
         # if there is more regexps than keys then add COL_x to result
         if amount_of_regexps > amount_of_keys:
             for index in range(amount_of_keys + 1, amount_of_regexps + 1, 1):
-                self._header_keys.append("COL_" + str(index))
+                self._header_keys.append(f"COL_{str(index)}")
         for index in range(amount_of_regexps):
             regexp = self._header_regexps[index]
             name = self._header_keys[index]
             # add dictionary keys to regexp
-            group_re = "(?P<" + name + ">" + regexp + ")"
-            hdr_groups += ".*" + group_re
+            group_re = f"(?P<{name}>{regexp})"
+            hdr_groups += f".*{group_re}"
         return hdr_groups
 
     def parse(self, data):
@@ -125,7 +125,7 @@ class TableText:
                         connected_value = " "
                     break
                 else:
-                    connected_value += " " + values[start_value_index + i]["value"]
+                    connected_value += f" {values[start_value_index + i]['value']}"
                     value_index += 1
             # if values were connected then set it to data value in other case set only passed value for index
             if connected_value:
@@ -135,7 +135,7 @@ class TableText:
                 data_value = ""
         else:
             for i in range(len(values[start_value_index:])):
-                connected_value += " " + values[start_value_index + i]["value"]
+                connected_value += f" {values[start_value_index + i]['value']}"
             data_value = connected_value
         data_value = str.strip(str(data_value))
         return self.convert_data_to_type(

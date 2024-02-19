@@ -37,7 +37,7 @@ class Uptime(GenericUnixCommand):
         """
         cmd = "uptime"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -108,7 +108,7 @@ class Uptime(GenericUnixCommand):
         elif self._regex_helper.search_compiled(self._re_minutes, val_str):
             seconds = 60 * self._converter_helper.to_number(self._regex_helper.group("MINS"))
         else:
-            self.set_exception(CommandFailure(self, "Unsupported string format in line '{}'".format(line)))
+            self.set_exception(CommandFailure(self, f"Unsupported string format in line '{line}'"))
         return seconds
 
     # 2018-11-06 13:41:00

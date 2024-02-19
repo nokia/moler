@@ -50,7 +50,7 @@ class Lsof(GenericUnixCommand):
         """
         cmd = "lsof"
         if self.options:
-            cmd = "lsof {}".format(self.options)
+            cmd = f"lsof {self.options}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

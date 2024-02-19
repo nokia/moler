@@ -115,14 +115,14 @@ def time_out_observer(connection_observer, timeout, passed_time, runner_logger, 
 
             connection_observer.on_timeout()
 
-            observer_info = "{}.{}".format(connection_observer.__class__.__module__, connection_observer)
-            timeout_msg = "has timed out after {:.2f} seconds.".format(passed_time)
-            msg = "{} {}".format(observer_info, timeout_msg)
+            observer_info = f"{connection_observer.__class__.__module__}.{connection_observer}"
+            timeout_msg = f"has timed out after {passed_time:.2f} seconds."
+            msg = f"{observer_info} {timeout_msg}"
 
             # levels_to_go_up: extract caller info to log where .time_out_observer has been called from
             connection_observer._log(logging.INFO, msg, levels_to_go_up=2)  # pylint: disable=protected-access
             log_into_logger(runner_logger, level=logging.DEBUG,
-                            msg="{} {}".format(connection_observer, timeout_msg),
+                            msg=f"{connection_observer} {timeout_msg}",
                             levels_to_go_up=1)
 
 
@@ -167,7 +167,7 @@ class CancellableFuture:
     def __str__(self):
         """Make it proxy to embedded future"""
         f_str = str(self._future)
-        return "CancellableFuture({})".format(f_str)
+        return f"CancellableFuture({f_str})"
 
     def cancel(self, no_wait=False):
         """
@@ -191,7 +191,7 @@ class CancellableFuture:
         if no_wait:
             return
         if not self._is_done.wait(timeout=self._stop_timeout):
-            err_msg = "Failed to stop thread-running function within {} sec".format(self._stop_timeout)
+            err_msg = f"Failed to stop thread-running function within {self._stop_timeout} sec"
             # TODO: should we break current thread or just set this exception inside connection-observer
             #       (is it symetric to failed-start ?)
             # may cause leaking resources - no call to moler_conn.unsubscribe()
@@ -218,10 +218,10 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                     self.executor = ThreadPoolExecutor(max_workers=max_workers)
                 else:
                     raise
-            self.logger.debug("created own executor {!r}".format(self.executor))
+            self.logger.debug(f"created own executor {self.executor!r}")
             self._i_own_executor = True
         else:
-            self.logger.debug("reusing provided executor {!r}".format(self.executor))
+            self.logger.debug(f"reusing provided executor {self.executor!r}")
 
     def _register_autoshutdown(self):
         if sys.version_info < (3, 9):
@@ -250,7 +250,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         return self._in_shutdown
 
     def shutdown(self):
-        self.logger.debug("shutting down runner {}".format(self))
+        self.logger.debug(f"shutting down runner {self}")
         self._in_shutdown = True  # will exit from feed() without stopping executor (since others may still use that executor)
         if self._i_own_executor:
             self.executor.shutdown()  # also stop executor since only I use it
@@ -266,7 +266,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         # pylint: disable-next=unused-variable
         remain_time, msg = his_remaining_time("remaining", timeout=observer_timeout,
                                               from_start_time=connection_observer.life_status.start_time)
-        self.logger.debug("go background: {!r} - {}".format(connection_observer, msg))
+        self.logger.debug(f"go background: {connection_observer!r} - {msg}")
         # TODO: check dependency - connection_observer.connection
 
         # Our submit consists of two steps:
@@ -300,11 +300,11 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             # most probably we have some exception during submit(); it should be stored inside future
             try:
                 too_early_result = connection_observer_future.result()
-                err_msg = "PROBLEM: future returned {} already in runner.submit()".format(too_early_result)
-                self.logger.debug("go background: {} - {}".format(connection_observer, err_msg))
+                err_msg = f"PROBLEM: future returned {too_early_result} already in runner.submit()"
+                self.logger.debug(f"go background: {connection_observer} - {err_msg}")
             except Exception as err:
-                err_msg = "PROBLEM: future raised {!r} during runner.submit()".format(err)
-                self.logger.warning("go background: {} - {}".format(connection_observer, err_msg))
+                err_msg = f"PROBLEM: future raised {err!r} during runner.submit()"
+                self.logger.warning(f"go background: {connection_observer} - {err_msg}")
                 self.logger.exception(err_msg)
                 raise
 
@@ -343,7 +343,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             #
             # In all above cases we want to stop future if it is still running
 
-            self.logger.debug("go foreground: {} is already done".format(connection_observer))
+            self.logger.debug(f"go foreground: {connection_observer} is already done")
             self._cancel_submitted_future(connection_observer, connection_observer_future)
             return None
 
@@ -356,7 +356,7 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             remain_time, msg = his_remaining_time("await max.", timeout=max_timeout, from_start_time=start_time)
         else:
             remain_time, msg = his_remaining_time("remaining", timeout=observer_timeout, from_start_time=start_time)
-        self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
+        self.logger.debug(f"go foreground: {connection_observer} - {msg}")
 
         if connection_observer_future is None:
             end_of_life, remain_time = await_future_or_eol(connection_observer, remain_time, start_time, await_timeout,
@@ -437,13 +437,13 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         passed = time.monotonic() - connection_observer.life_status.start_time
         future = connection_observer_future or connection_observer._future  # pylint: disable=protected-access
         if future:
-            self.logger.debug(">>> Entering {}. conn-obs '{}' runner '{}' future '{}'".format(future.observer_lock, connection_observer, self, future))
+            self.logger.debug(f">>> Entering {future.observer_lock}. conn-obs '{connection_observer}' runner '{self}' future '{future}'")
             with future.observer_lock:
-                self.logger.debug(">>> Entered  {}. conn-obs '{}' runner '{}' future '{}'".format(future.observer_lock, connection_observer, self, future))
+                self.logger.debug(f">>> Entered  {future.observer_lock}. conn-obs '{connection_observer}' runner '{self}' future '{future}'")
                 time_out_observer(connection_observer=connection_observer,
                                   timeout=timeout, passed_time=passed,
                                   runner_logger=self.logger, kind="await_done")
-            self.logger.debug(">>> Exited   {}. conn-obs '{}' runner '{}' future '{}'".format(future.observer_lock, connection_observer, self, future))
+            self.logger.debug(f">>> Exited   {future.observer_lock}. conn-obs '{connection_observer}' runner '{self}' future '{future}'")
         else:
             # sorry, we don't have lock yet (it is created by runner.submit()
             time_out_observer(connection_observer=connection_observer,
@@ -476,62 +476,60 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
             try:
                 if connection_observer.done() or self._in_shutdown:
                     return  # even not unsubscribed secure_data_received() won't pass data to done observer
-                self.logger.debug(">>> Entering {}. conn-obs '{}' runner '{}' data '{}'".format(observer_lock, connection_observer, self, data))
+                self.logger.debug(f">>> Entering {observer_lock}. conn-obs '{connection_observer}' runner '{self}' data '{data}'")
                 with observer_lock:
-                    self.logger.debug(">>> Entered  {}. conn-obs '{}' runner '{}' data '{}'".format(observer_lock, connection_observer, self, data))
+                    self.logger.debug(f">>> Entered  {observer_lock}. conn-obs '{connection_observer}' runner '{self}' data '{data}'")
                     connection_observer.data_received(data, timestamp)
                     connection_observer.life_status.last_feed_time = time.monotonic()
-                self.logger.debug(">>> Exited   {}. conn-obs '{}' runner '{}' data '{}'".format(observer_lock, connection_observer, self, data))
+                self.logger.debug(f">>> Exited   {observer_lock}. conn-obs '{connection_observer}' runner '{self}' data '{data}'")
 
             except Exception as exc:  # TODO: handling stacktrace
                 # observers should not raise exceptions during data parsing
                 # but if they do so - we fix it
                 stack_msg = traceback.format_exc()
-                self.logger.debug(">>> Entering err {}. conn-obs '{}' runner. '{}'".format(observer_lock, connection_observer, self))
+                self.logger.debug(f">>> Entering err {observer_lock}. conn-obs '{connection_observer}' runner. '{self}'")
                 with observer_lock:
-                    self.logger.debug(">>> Entered  err {}. conn-obs '{}' runner. '{}'".format(observer_lock, connection_observer, self))
-                    self.logger.warning("Unhandled exception from '{} 'caught by runner. '{}' : '{}'.\n{}".format(
-                        connection_observer, exc, repr(exc), stack_msg))
-                    ex_msg = "Unexpected exception from {} caught by runner when processing data >>{}<< at '{}':" \
-                             " >>>{}<<< -> repr: >>>{}<<<\nStack: {}".format(connection_observer, data, timestamp, exc,
-                                                                             repr(exc), stack_msg)
+                    self.logger.debug(f">>> Entered  err {observer_lock}. conn-obs '{connection_observer}' runner. '{self}'")
+                    self.logger.warning(f"Unhandled exception from '{connection_observer}' caught by runner. '{exc}' : '{repr(exc)}'.\n{stack_msg}")
+                    ex_msg = f"Unexpected exception from {connection_observer} caught by runner when processing data >>{data}<< at '{timestamp}': " \
+                             f">>>{exc}<<< -> repr: >>>{repr(exc)}<<<\nStack: {stack_msg}"
                     if connection_observer.is_command():
                         ex = CommandFailure(command=connection_observer, message=ex_msg)
                     else:
                         ex = MolerException(ex_msg)
                     connection_observer.set_exception(ex)
-                self.logger.debug(">>> Exited   err {}. conn-obs '{}' runner. '{}'".format(observer_lock, connection_observer, self))
+                self.logger.debug(f">>> Exited   err {observer_lock}. conn-obs '{connection_observer}' runner. '{self}'")
             finally:
                 if connection_observer.done() and not connection_observer.cancelled():
                     if connection_observer._exception:  # pylint: disable=protected-access
-                        self.logger.debug("{} raised: {!r}".format(connection_observer, connection_observer._exception))  # pylint: disable=protected-access
+                        self.logger.debug(f"{connection_observer} raised: {connection_observer._exception!r}")  # pylint: disable=protected-access
                     else:
-                        self.logger.debug("{} returned: {}".format(connection_observer, connection_observer._result))  # pylint: disable=protected-access
+                        self.logger.debug(f"{connection_observer} returned: {connection_observer._result}")  # pylint: disable=protected-access
 
         moler_conn = connection_observer.connection
-        self.logger.debug("subscribing for data {}".format(connection_observer))
-        self.logger.debug(">>> Entering {}. conn-obs '{}' runner '{}' moler-conn '{}'".format(observer_lock, connection_observer, self, moler_conn))
+        self.logger.debug(f"subscribing for data {connection_observer}")
+        self.logger.debug(f">>> Entering {observer_lock}. conn-obs '{connection_observer}' runner '{self}' moler-conn '{moler_conn}'")
         with observer_lock:
-            self.logger.debug(">>> Entered  {}. conn-obs '{}' runner '{}' moler-conn '{}'".format(observer_lock, connection_observer, self, moler_conn))
+            self.logger.debug(f">>> Entered  {observer_lock}. conn-obs '{connection_observer}' runner '{self}' moler-conn '{moler_conn}'")
             moler_conn.subscribe(observer=secure_data_received,
                                  connection_closed_handler=connection_observer.connection_closed_handler)
             # after subscription we have data path so observer is started
             # pylint: disable-next=unused-variable
             remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                                   from_start_time=connection_observer.life_status.start_time)
-            connection_observer._log(logging.INFO, "{} started, {}".format(connection_observer.get_long_desc(), msg))  # pylint: disable=protected-access
-        self.logger.debug(">>> Exited   {}. conn-obs '{}' runner '{}' moler-conn '{}'".format(observer_lock, connection_observer, self, moler_conn))
+            connection_observer._log(logging.INFO, f"{connection_observer.get_long_desc()} started, {msg}")  # pylint: disable=protected-access
+        self.logger.debug(f">>> Exited   {observer_lock}. conn-obs '{connection_observer}' runner '{self}' moler-conn '{moler_conn}'")
         if connection_observer.is_command():
             connection_observer.send_command()
         return secure_data_received  # to know what to unsubscribe
 
     def _stop_feeding(self, connection_observer, subscribed_data_receiver, feed_done, observer_lock):
-        self.logger.debug(">>> Entering {}. conn-obs '{}' runner '{}'".format(observer_lock, connection_observer, self))
+        self.logger.debug(f">>> Entering {observer_lock}. conn-obs '{connection_observer}' runner '{self}'")
         with observer_lock:
-            self.logger.debug(">>> Entered  {}. conn-obs '{}' runner '{}'".format(observer_lock, connection_observer, self))
+            self.logger.debug(f">>> Entered  {observer_lock}. conn-obs '{connection_observer}' runner '{self}'")
             if not feed_done.is_set():
                 moler_conn = connection_observer.connection
-                self.logger.debug("unsubscribing {}".format(connection_observer))
+                self.logger.debug(f"unsubscribing {connection_observer}")
                 moler_conn.unsubscribe(observer=subscribed_data_receiver,
                                        connection_closed_handler=connection_observer.connection_closed_handler)
                 # after unsubscription we break data path so observer is finished
@@ -539,9 +537,9 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                                       from_start_time=connection_observer.life_status.start_time)
                 connection_observer._log(logging.INFO,  # pylint: disable=protected-access
-                                         "{} finished, {}".format(connection_observer.get_short_desc(), msg))
+                                         f"{connection_observer.get_short_desc()} finished, {msg}")
                 feed_done.set()
-        self.logger.debug(">>> Exited   {}. conn-obs '{}' runner '{}'".format(observer_lock, connection_observer, self))
+        self.logger.debug(f">>> Exited   {observer_lock}. conn-obs '{connection_observer}' runner '{self}'")
 
     # pylint: disable-next=unused-argument
     def _feed_finish_callback(self, future, connection_observer, subscribed_data_receiver, feed_done, observer_lock):
@@ -556,12 +554,12 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         Feeds connection_observer by transferring data from connection and passing it to connection_observer.
         Should be called from background-processing of connection observer.
         """
-        logging.getLogger("moler_threads").debug("ENTER {}".format(connection_observer))
+        logging.getLogger("moler_threads").debug(f"ENTER {connection_observer}")
 
         # pylint: disable-next=unused-variable
         remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                               from_start_time=connection_observer.life_status.start_time)
-        self.logger.debug("thread started  for {}, {}".format(connection_observer, msg))
+        self.logger.debug(f"thread started  for {connection_observer}, {msg}")
 
         if not subscribed_data_receiver:
             subscribed_data_receiver = self._start_feeding(connection_observer, observer_lock)
@@ -572,9 +570,9 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
         remain_time, msg = his_remaining_time("remaining", timeout=connection_observer.timeout,
                                               from_start_time=connection_observer.life_status.start_time)
-        self.logger.debug("thread finished for {}, {}".format(connection_observer, msg))
+        self.logger.debug(f"thread finished for {connection_observer}, {msg}")
         self._stop_feeding(connection_observer, subscribed_data_receiver, feed_done, observer_lock)
-        logging.getLogger("moler_threads").debug("EXIT  {}".format(connection_observer))
+        logging.getLogger("moler_threads").debug(f"EXIT  {connection_observer}")
         return None
 
     def _feed_loop(self, connection_observer, stop_feeding, observer_lock):
@@ -582,13 +580,13 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         heartbeat = tracked_thread.report_alive()
         while True:
             if next(heartbeat):
-                logging.getLogger("moler_threads").debug("ALIVE {}".format(connection_observer))
+                logging.getLogger("moler_threads").debug(f"ALIVE {connection_observer}")
             if stop_feeding.is_set():
                 # TODO: should it be renamed to 'cancelled' to be in sync with initial action?
-                self.logger.debug("stopped {}".format(connection_observer))
+                self.logger.debug(f"stopped {connection_observer}")
                 break
             if connection_observer.done():
-                self.logger.debug("done {}".format(connection_observer))
+                self.logger.debug(f"done {connection_observer}")
                 break
             current_time = time.monotonic()
             run_duration = current_time - start_time
@@ -599,14 +597,13 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                 timeout = connection_observer.life_status.terminating_timeout
             if (timeout is not None) and (run_duration >= timeout):
                 if connection_observer.life_status.in_terminating:
-                    msg = "{} underlying real command failed to finish during {} seconds. It will be forcefully" \
-                          " terminated".format(connection_observer, timeout)
+                    msg = f"{connection_observer} underlying real command failed to finish during {timeout} seconds. It will be forcefully terminated"
                     self.logger.info(msg)
                     connection_observer.set_end_of_life()
                 else:
-                    self.logger.debug(">>> Entering {}. conn-obs '{}' runner '{}'".format(observer_lock, connection_observer, self))
+                    self.logger.debug(f">>> Entering {observer_lock}. conn-obs '{connection_observer}' runner '{self}'")
                     with observer_lock:
-                        self.logger.debug(">>> Entered  {}. conn-obs '{}' runner '{}'".format(observer_lock, connection_observer, self))
+                        self.logger.debug(f">>> Entered  {observer_lock}. conn-obs '{connection_observer}' runner '{self}'")
                         time_out_observer(connection_observer,
                                           timeout=connection_observer.timeout,
                                           passed_time=run_duration,
@@ -616,12 +613,12 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
                             connection_observer.life_status.in_terminating = True
                         else:
                             break
-                    self.logger.debug(">>> Exited   {}. conn-obs '{}' runner '{}'".format(observer_lock, connection_observer, self))
+                    self.logger.debug(f">>> Exited   {observer_lock}. conn-obs '{connection_observer}' runner '{self}'")
             else:
                 self._call_on_inactivity(connection_observer=connection_observer, current_time=current_time)
 
             if self._in_shutdown:
-                self.logger.debug("shutdown so cancelling {}".format(connection_observer))
+                self.logger.debug(f"shutdown so cancelling {connection_observer}")
                 connection_observer.cancel()
             time.sleep(self._tick)  # give moler_conn a chance to feed observer
 
@@ -660,7 +657,7 @@ def his_remaining_time(prefix, timeout, from_start_time):
     remain_time = timeout - already_passed
     if remain_time < 0.0:
         remain_time = 0.0
-    msg = "{} {:.3f} [sec], already passed {:.3f} [sec]".format(prefix, remain_time, already_passed)
+    msg = f"{prefix} {remain_time:.3f} [sec], already passed {already_passed:.3f} [sec]"
     return remain_time, msg
 
 
@@ -672,7 +669,7 @@ def await_future_or_eol(connection_observer, remain_time, start_time, timeout, l
     while (connection_observer._future is None) and (remain_time > 0.0):  # pylint: disable=protected-access
         time.sleep(0.005)
         if connection_observer.done():
-            logger.debug("{} is done before creating future".format(connection_observer))
+            logger.debug(f"{connection_observer} is done before creating future")
             end_of_life = True
             break
         now = time.monotonic()
@@ -685,6 +682,6 @@ def await_future_or_eol(connection_observer, remain_time, start_time, timeout, l
         if remain_observer_lifetime <= 0.0:
             remain_time = 0.0
         if remain_time <= 0.0:
-            logger.debug("{} timeout before creating future".format(connection_observer))
+            logger.debug(f"{connection_observer} timeout before creating future")
 
     return end_of_life, remain_time

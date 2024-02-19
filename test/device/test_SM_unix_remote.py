@@ -34,7 +34,7 @@ def test_unix_remote_proxy_pc_device_multiple_prompts(device_connection, unix_re
     combined_line = "moler_bash#"
     for src_state in unix_remote_proxy_pc_output.keys():
         for cmd_string in unix_remote_proxy_pc_output[src_state].keys():
-            combined_line = "{} {}".format(combined_line, unix_remote_proxy_pc_output[src_state][cmd_string])
+            combined_line = f"{combined_line} {unix_remote_proxy_pc_output[src_state][cmd_string]}"
     for src_state in unix_remote_proxy_pc_changed_output.keys():
         for cmd_string in unix_remote_proxy_pc_changed_output[src_state].keys():
             unix_remote_proxy_pc_changed_output[src_state][cmd_string] = combined_line

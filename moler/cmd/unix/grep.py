@@ -32,7 +32,7 @@ class Grep(GenericUnixCommand):
         self.line_no = 0
 
     def build_command_string(self):
-        cmd = "grep {}".format(self.options)
+        cmd = f"grep {self.options}"
         return cmd
 
     def on_new_line(self, line, is_full_line):

@@ -103,17 +103,13 @@ class ThreadedMolerConnection(AbstractMolerConnection):
         :param connection_closed_handler: callable to be called when connection is closed.
         """
         self.logger.debug(
-            ">>> Entering {}. conn-obs '{}' moler-conn '{}'".format(
-                self._observers_lock, observer, self
-            )
+            f">>> Entering {self._observers_lock}. conn-obs '{observer}' moler-conn '{self}'"
         )
         with self._observers_lock:
             self.logger.debug(
-                ">>> Entered  {}. conn-obs '{}' moler-conn '{}'".format(
-                    self._observers_lock, observer, self
-                )
+                f">>> Entered  {self._observers_lock}. conn-obs '{observer}' moler-conn '{self}'"
             )
-            self._log(level=TRACE, msg="subscribe({})".format(observer))
+            self._log(level=TRACE, msg=f"subscribe({observer})")
             observer_key, value = self._get_observer_key_value(observer)
 
             if observer_key not in self._observer_wrappers:
@@ -126,9 +122,7 @@ class ThreadedMolerConnection(AbstractMolerConnection):
                     observer_key
                 ] = connection_closed_handler
         self.logger.debug(
-            ">>> Exited   {}. conn-obs '{}' moler-conn '{}'".format(
-                self._observers_lock, observer, self
-            )
+            f">>> Exited   {self._observers_lock}. conn-obs '{observer}' moler-conn '{self}'"
         )
 
     def _create_observer_wrapper(self, observer_reference, self_for_observer):
@@ -146,17 +140,13 @@ class ThreadedMolerConnection(AbstractMolerConnection):
         :param connection_closed_handler: callable to be called when connection is closed.
         """
         self.logger.debug(
-            ">>> Entering {}. conn-obs '{}' moler-conn '{}'".format(
-                self._observers_lock, observer, self
-            )
+            f">>> Entering {self._observers_lock}. conn-obs '{observer}' moler-conn '{self}'"
         )
         with self._observers_lock:
             self.logger.debug(
-                ">>> Entered  {}. conn-obs '{}' moler-conn '{}'".format(
-                    self._observers_lock, observer, self
-                )
+                f">>> Entered  {self._observers_lock}. conn-obs '{observer}' moler-conn '{self}'"
             )
-            self._log(level=TRACE, msg="unsubscribe({})".format(observer))
+            self._log(level=TRACE, msg=f"unsubscribe({observer})")
             observer_key, _ = self._get_observer_key_value(observer)
             if observer_key in self._observer_wrappers and observer_key in self._connection_closed_handlers:
                 self._observer_wrappers[observer_key].request_stop()
@@ -165,15 +155,11 @@ class ThreadedMolerConnection(AbstractMolerConnection):
             else:
                 self._log(
                     level=logging.WARNING,
-                    msg="{} and {} were not both subscribed.".format(
-                        observer, connection_closed_handler
-                    ),
+                    msg=f"{observer} and {connection_closed_handler} were not both subscribed.",
                     levels_to_go_up=2,
                 )
         self.logger.debug(
-            ">>> Exited   {}. conn-obs '{}' moler-conn '{}'".format(
-                self._observers_lock, observer, self
-            )
+            f">>> Exited   {self._observers_lock}. conn-obs '{observer}' moler-conn '{self}'"
         )
 
     def shutdown(self):
@@ -196,9 +182,7 @@ class ThreadedMolerConnection(AbstractMolerConnection):
         for wrapper in subscribers_wrappers:
             try:
                 self.logger.debug(
-                    ">>> Queue for notifying. conn-obs '{}' moler-conn '{}' data {}".format(
-                        wrapper._observer, self, repr(data)  # pylint: disable=protected-access
-                    )
+                    f">>> Queue for notifying. conn-obs '{wrapper._observer}' moler-conn '{self}' data {repr(data)}"  # pylint: disable=protected-access
                 )
             except ReferenceError:
                 pass  # wrapper._observer is no more valid

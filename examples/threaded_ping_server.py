@@ -52,7 +52,7 @@ def ping_sim_tcp_server(server_port, ping_ip, client, address):
 
 
 def server_loop(server_port, server_socket, ping_ip, done_event):
-    logger = logging.getLogger('threaded.ping.tcp-server({})'.format(server_port))
+    logger = logging.getLogger(f'threaded.ping.tcp-server({server_port})')
     while not done_event.is_set():
         # without select we can't break loop from outside (via done_event)
         # since .accept() is blocking
@@ -71,7 +71,7 @@ def server_loop(server_port, server_socket, ping_ip, done_event):
 def start_ping_sim_server(server_address, ping_ip):
     """Run server simulating ping command output, this is one-shot server"""
     _, server_port = server_address
-    logger = logging.getLogger('threaded.ping.tcp-server({})'.format(server_port))
+    logger = logging.getLogger(f'threaded.ping.tcp-server({server_port})')
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind(server_address)
@@ -96,7 +96,7 @@ def tcp_connection(address, moler_conn):
         while True:
             data = client_socket.recv(128)
             if data:
-                logger.debug('<<< {!r}'.format(data))
+                logger.debug(f'<<< {data!r}')
                 # Forward received data into Moler's connection
                 moler_conn.data_received(data)
                 yield data

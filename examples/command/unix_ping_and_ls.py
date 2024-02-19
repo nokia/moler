@@ -12,9 +12,9 @@ remote_unix = DeviceFactory.get_device(name='RebexTestMachine')
 remote_unix.goto_state(state="UNIX_REMOTE")
 ls_cmd = remote_unix.get_cmd(cmd_name="ls", cmd_params={"options": "-l"})
 
-print("Start pinging {} ...".format(host))
+print(f"Start pinging {host} ...")
 ping_cmd.start()                                # run command in background
-print("Let's check readme.txt at {} while pinging {} ...".format(remote_unix.name, host))
+print(f"Let's check readme.txt at {remote_unix.name} while pinging {host} ...")
 
 remote_files = ls_cmd()                         # foreground "run in the meantime"
 file_info = remote_files['files']['readme.txt']

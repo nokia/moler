@@ -89,17 +89,17 @@ class Telnet(GenericTelnetSsh):
         """
         cmd = ""
         if self.term_mono:
-            cmd = "{} ".format(self.term_mono)
-        cmd = "{}telnet".format(cmd)
+            cmd = f"{self.term_mono} "
+        cmd = f"{cmd}telnet"
         if self.prefix:
-            cmd = "{} {}".format(cmd, self.prefix)
+            cmd = f"{cmd} {self.prefix}"
         host_port_cmd = self.host
         if self.port:
-            host_port_cmd = "{} {}".format(host_port_cmd, self.port)
+            host_port_cmd = f"{host_port_cmd} {self.port}"
         if 0 == len(self.cmds_before_establish_connection):
-            cmd = "{} {}".format(cmd, host_port_cmd)
+            cmd = f"{cmd} {host_port_cmd}"
         else:
-            self.cmds_before_establish_connection.append("open {}".format(host_port_cmd))
+            self.cmds_before_establish_connection.append(f"open {host_port_cmd}")
         return cmd
 
     def on_new_line(self, line, is_full_line):

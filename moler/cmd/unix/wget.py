@@ -37,7 +37,7 @@ class Wget(GenericUnixCommand):
             self.current_ret["PROGRESS_LOG"] = []
 
     def build_command_string(self):
-        cmd = "wget {}".format(self.options)
+        cmd = f"wget {self.options}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -62,7 +62,7 @@ class Wget(GenericUnixCommand):
             if self._regex_helper.search_compiled(_re_error, line):
                 self.set_exception(
                     CommandFailure(
-                        self, "ERROR: {}".format(self._regex_helper.group("ERROR"))
+                        self, f"ERROR: {self._regex_helper.group('ERROR')}"
                     )
                 )
                 raise ParsingDone

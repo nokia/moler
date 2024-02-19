@@ -18,4 +18,4 @@ print("----- test results ------")
 iperf_result = iperf_cmd.await_done(timeout=4.2)
 for conn in iperf_result['CONNECTIONS']:
     for iperf_record in iperf_result['CONNECTIONS'][conn]:
-        print("{}: {}".format(iperf_record['Interval'], iperf_record['Transfer Raw']))
+        print(f"{iperf_record['Interval']}: {iperf_record['Transfer Raw']}")

@@ -117,7 +117,7 @@ class SshShell:
         May be used as context manager: with connection.open():
         """
         if self._shell_channel is None:
-            self._debug('connecting to {}'.format(self))
+            self._debug(f'connecting to {self}')
 
             transport = self.ssh_client.get_transport()
             if transport is None:
@@ -126,17 +126,14 @@ class SshShell:
                 action = "established"
             else:
                 action = "reusing"
-            transport_info = ['local version = {}'.format(transport.local_version),
-                              'remote version = {}'.format(transport.remote_version),
-                              'using socket = {}'.format(transport.sock)]
-            self._debug('  {} ssh transport to {}:{} |{}\n    {}'.format(action, self.host, self.port, transport,
-                                                                         "\n    ".join(transport_info)))
+            transport_info = [f'local version = {transport.local_version}',
+                              f'remote version = {transport.remote_version}',
+                              f'using socket = {transport.sock}']
+            self._debug(f'  {action} ssh transport to {self.host}:{self.port} |{transport}\n    {", ".join(transport_info)}')
             self._shell_channel = self.ssh_client.invoke_shell()  # newly created channel will be connected to Pty
             self._remember_channel_of_transport(self._shell_channel)
-            self._debug('  established shell ssh to {}:{} [channel {}] |{}'.format(self.host, self.port,
-                                                                                   self._shell_channel.get_id(),
-                                                                                   self._shell_channel))
-        self._info('connection {} is open'.format(self))
+            self._debug(f'  established shell ssh to {self.host}:{self.port} [channel {self._shell_channel.get_id()}] |{self._shell_channel}')
+        self._info(f'connection {self} is open')
         return contextlib.closing(self)
 
     @classmethod
@@ -172,26 +169,24 @@ class SshShell:
         Ssh transport will be closed after it's last channel is closed.
         """
         if self._shell_channel is not None:
-            self._debug('closing {}'.format(self))
+            self._debug(f'closing {self}')
         self._close()
 
     def _close(self):
         which_channel = ""
         if self._shell_channel is not None:
-            which_channel = "[channel {}] ".format(self._shell_channel.get_id())
+            which_channel = f"[channel {self._shell_channel.get_id()}] "
             self._shell_channel.close()
             time.sleep(0.05)  # give Paramiko threads time to catch correct value of status variables
-            self._debug('  closed shell ssh to {}:{} {}|{}'.format(self.host, self.port,
-                                                                   which_channel,
-                                                                   self._shell_channel))
+            self._debug(f'  closed shell ssh to {self.host}:{self.port} {which_channel}|{self._shell_channel}')
             self._forget_channel_of_transport(self._shell_channel)
             self._shell_channel = None
         transport = self.ssh_client.get_transport()
         if transport is not None:
             if self._num_channels_of_transport(transport) == 0:
-                self._debug('  closing ssh transport to {}:{} |{}'.format(self.host, self.port, transport))
+                self._debug(f'  closing ssh transport to {self.host}:{self.port} |{transport}')
                 self.ssh_client.close()
-        self._info('connection {} {}is closed'.format(self, which_channel))
+        self._info(f'connection {self} {which_channel}is closed')
 
     def __enter__(self):
         """While working as context manager connection should auto-open if it's not open yet."""
@@ -205,9 +200,9 @@ class SshShell:
     def __str__(self):
         if self._shell_channel:
             shell_channel_id = self._shell_channel.get_id()
-            address = 'ssh://{}@{}:{} [channel {}]'.format(self.username, self.host, self.port, shell_channel_id)
+            address = f'ssh://{self.username}@{self.host}:{self.port} [channel {shell_channel_id}]'
         else:
-            address = 'ssh://{}@{}:{}'.format(self.username, self.host, self.port)
+            address = f'ssh://{self.username}@{self.host}:{self.port}'
         return address
 
     def send(self, data, timeout=1):
@@ -227,8 +222,8 @@ class SshShell:
         except socket.error as serr:
             if "Socket is closed" in str(serr):
                 self._close()
-                info = "{} during send msg '{}'".format(serr, data)
-                raise RemoteEndpointDisconnected('Socket error: ' + info) from serr
+                info = f"{serr} during send msg '{data}'"
+                raise RemoteEndpointDisconnected(f"Socket error: {info}") from serr
             else:
                 raise  # let any other error be visible
 
@@ -247,10 +242,10 @@ class SshShell:
             if nb_bytes_sent >= nb_bytes_to_send:
                 break
             if time.monotonic() - start_time >= timeout:
-                send_status = '[{} of {} bytes] {}'.format(nb_bytes_sent, nb_bytes_to_send, data)
+                send_status = f'[{nb_bytes_sent} of {nb_bytes_to_send} bytes] {data}'
                 # don't want to show class name - just ssh address
                 # want same output from any implementation of SshShell-connection
-                info = "Timeout (> {:.3f} sec) on {}, sent {}".format(timeout, self, send_status)
+                info = f"Timeout (> {timeout:.3f} sec) on {self}, sent {send_status}"
                 raise ConnectionTimeout(info)
             data2send = data[nb_bytes_sent:]
 
@@ -277,11 +272,11 @@ class SshShell:
         except socket.timeout as exc:
             # don't want to show class name - just ssh address
             # want same output from any implementation of SshShell-connection
-            info = "Timeout (> {:.3f} sec) on {}".format(self.timeout, self)
+            info = f"Timeout (> {self.timeout:.3f} sec) on {self}"
             raise ConnectionTimeout(info) from exc
 
         if not data:
-            self._debug("shell ssh channel closed for {}".format(self))
+            self._debug(f"shell ssh channel closed for {self}")
             self._close()
             raise RemoteEndpointDisconnected()
 
@@ -412,16 +407,16 @@ class ThreadedSshShell(IOConnection):
             if moler_connection.logger is None:
                 name = default_logger_name
             else:
-                name = "{}.io".format(moler_connection.logger.name)
+                name = f"{moler_connection.logger.name}.io"
         logger = logging.getLogger(name)
         if name and (name != default_logger_name):
-            msg = "using '{}' logger - not default '{}'".format(name, default_logger_name)
+            msg = f"using '{name}' logger - not default '{default_logger_name}'"
             logger.log(level=logging.WARNING, msg=msg)
         return logger
 
     @staticmethod
     def _default_logger_name(connection_name):
-        return "moler.connection.{}.io".format(connection_name)
+        return f"moler.connection.{connection_name}.io"
 
     @property
     def _ssh_transport(self):
@@ -500,12 +495,12 @@ class ThreadedSshShell(IOConnection):
     @tracked_thread.log_exit_exception
     def _pull_data(self, pulling_done):
         """Pull data from SshShell connection."""
-        logging.getLogger("moler_threads").debug("ENTER {}".format(self))
+        logging.getLogger("moler_threads").debug(f"ENTER {self}")
         heartbeat = tracked_thread.report_alive()
         already_notified = False
         while not pulling_done.is_set():
             if next(heartbeat):
-                logging.getLogger("moler_threads").debug("ALIVE {}".format(self))
+                logging.getLogger("moler_threads").debug(f"ALIVE {self}")
             try:
                 data = self.receive()
                 if data:
@@ -519,15 +514,15 @@ class ThreadedSshShell(IOConnection):
                 already_notified = True
                 break
             except Exception as err:
-                err_msg = "Unexpected {!r} during pulling for data in {}".format(err, self)
+                err_msg = f"Unexpected {err!r} during pulling for data in {self}"
                 if self.sshshell.logger:
                     self.sshshell.logger.exception(err_msg)
                 else:
-                    print("ERROR: {}".format(err_msg))
+                    print(f"ERROR: {err_msg}")
                 break
         was_open = self._shell_channel is not None
         self.sshshell.close()
         is_closed = self._shell_channel is None
         if was_open and is_closed and (not already_notified):
             self._notify_on_disconnect()
-        logging.getLogger("moler_threads").debug("EXIT  {}".format(self))
+        logging.getLogger("moler_threads").debug(f"EXIT  {self}")

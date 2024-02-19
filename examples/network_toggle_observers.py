@@ -25,15 +25,14 @@ class NetworkToggleDetector(ConnectionObserver):
         self.net_ip = net_ip
         self.detect_pattern = detect_pattern
         self.detected_status = detected_status
-        self.logger = logging.getLogger('moler.{}'.format(self))
+        self.logger = logging.getLogger(f'moler.{self}')
 
     def data_received(self, data, recv_time):
         """Awaiting ping output change"""
         if not self.done():
             if self.detect_pattern in data:
                 when_detected = time.monotonic()
-                self.logger.debug("Network {} {}!".format(self.net_ip,
-                                                          self.detected_status))
+                self.logger.debug(f"Network {self.net_ip} {self.detected_status}!")
                 self.set_result(result=when_detected)
 
 
@@ -60,7 +59,7 @@ class NetworkUpDetector(NetworkToggleDetector):
     64 bytes from 10.0.2.15: icmp_req=7 ttl=64 time=0.123 ms
     """
     def __init__(self, net_ip, connection=None, runner=None):
-        detect_pattern = "bytes from {}".format(net_ip)
+        detect_pattern = f"bytes from {net_ip}"
         detected_status = "is up"
         super(NetworkUpDetector, self).__init__(net_ip,
                                                 detect_pattern,

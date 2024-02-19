@@ -36,10 +36,10 @@ class Hexdump(GenericUnixCommand):
     def build_command_string(self):
         cmd = "hexdump"
         if self.options:
-            cmd = cmd + " " + self.options
+            cmd = f"{cmd} {self.options}"
         if self.files:
             for afile in self.files:
-                cmd = cmd + " " + afile
+                cmd = f"{cmd} {afile}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -64,7 +64,7 @@ class Hexdump(GenericUnixCommand):
         if self._regex_helper.search_compiled(Hexdump._re_error, line):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG"))
+                    self, f"ERROR: {self._regex_helper.group('ERROR_MSG')}"
                 )
             )
             raise ParsingDone

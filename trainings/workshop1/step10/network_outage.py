@@ -6,7 +6,7 @@ from moler.util.moler_test import MolerTest
 
 
 def outage_callback(device_name):
-    MolerTest.info("Network outage on {}".format(device_name))
+    MolerTest.info(f"Network outage on {device_name}")
 
 
 def test_network_outage():

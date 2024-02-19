@@ -22,9 +22,9 @@ class Mkdir(GenericUnixCommand):
     def build_command_string(self):
         cmd = "mkdir"
         if self.options:
-            cmd = "{} {} {}".format(cmd, self.path, self.options)
+            cmd = f"{cmd} {self.path} {self.options}"
         else:
-            cmd = "{} {}".format(cmd, self.path)
+            cmd = f"{cmd} {self.path}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -39,7 +39,7 @@ class Mkdir(GenericUnixCommand):
 
     def _parse_error(self, line):
         if self._regex_helper.search_compiled(Mkdir._re_parse_error, line):
-            self.set_exception(CommandFailure(self, "ERROR: {}".format(self._regex_helper.group("ERROR"))))
+            self.set_exception(CommandFailure(self, f"ERROR: {self._regex_helper.group('ERROR')}"))
             raise ParsingDone
 
 

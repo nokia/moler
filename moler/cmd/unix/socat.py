@@ -42,11 +42,11 @@ class Socat(GenericUnixCommand):
     def build_command_string(self):
         cmd = "socat"
         if self.options:
-            cmd = cmd + " " + self.options
+            cmd = f"{cmd} {self.options}"
         if self.input_options:
-            cmd = cmd + " " + self.input_options
+            cmd = f"{cmd} {self.input_options}"
         if self.output_options:
-            cmd = cmd + " " + self.output_options
+            cmd = f"{cmd} {self.output_options}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -68,7 +68,7 @@ class Socat(GenericUnixCommand):
         if self._regex_helper.search_compiled(Socat._re_error, line):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG"))
+                    self, f"ERROR: {self._regex_helper.group('ERROR_MSG')}"
                 )
             )
             raise ParsingDone

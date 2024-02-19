@@ -41,7 +41,7 @@ class Event(ConnectionObserver):
 
         :return: String representation of event.
         """
-        return "{}(id:{})".format(self.__class__.__name__, instance_id(self))
+        return f"{self.__class__.__name__}(id:{instance_id(self)})"
 
     # pylint: disable=keyword-arg-before-vararg
     def start(self, timeout=None, *args, **kwargs):
@@ -59,8 +59,7 @@ class Event(ConnectionObserver):
             self.callback = partial_callback
         else:
             raise MolerException(
-                "Cannot assign a callback '{}' to event '{}' when another callback '{}' is already "
-                "assigned".format(callback, self, self.callback)
+                f"Cannot assign a callback '{callback}' to event '{self}' when another callback '{self.callback}' is already assigned"
             )
 
     def enable_log_occurrence(self):
@@ -115,7 +114,7 @@ class Event(ConnectionObserver):
         self.notify()
 
     def _get_module_class(self):
-        return "{}.{}".format(self.__class__.__module__, self)
+        return f"{self.__class__.__module__}.{self}"
 
     def get_long_desc(self):
         """
@@ -123,7 +122,7 @@ class Event(ConnectionObserver):
 
         :return: String with description.
         """
-        return "Event '{}'".format(self._get_module_class())
+        return f"Event '{self._get_module_class()}'"
 
     def get_short_desc(self):
         """
@@ -150,13 +149,13 @@ class Event(ConnectionObserver):
 
         :return: None
         """
-        msg = "Notify for event:  '{}.{}'".format(self.__class__.__module__, self)
+        msg = f"Notify for event:  '{self.__class__.__module__}.{self}'"
         if self._log_every_occurrence:
             self._log(lvl=logging.INFO, msg=msg)
         if self.callback:
-            msg = "{} with callback '{}'.".format(msg, self.callback)
+            msg = f"{msg} with callback '{self.callback}'."
         else:
-            msg = "{} without callback.".format(msg)
+            msg = f"{msg} without callback."
         self._log(lvl=logging.DEBUG, msg=msg)
 
     @abc.abstractmethod

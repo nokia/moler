@@ -54,9 +54,9 @@ class Top(GenericUnixCommand):
         """
         cmd = "top"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         if self.n:
-            cmd = "{} n {}".format(cmd, self.n)
+            cmd = f"{cmd} n {self.n}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -90,7 +90,7 @@ class Top(GenericUnixCommand):
         if self._regex_helper.search_compiled(Top._re_error, line):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR: {}".format(self._regex_helper.group("ERROR_MSG"))
+                    self, f"ERROR: {self._regex_helper.group('ERROR_MSG')}"
                 )
             )
             raise ParsingDone

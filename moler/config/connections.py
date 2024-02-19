@@ -74,7 +74,7 @@ def register_builtin_connections(connection_factory, moler_conn_class):
     elif _running_on_supported_windows():
         pass  # placeholder for windows-only connections
     else:
-        err_msg = "Unsupported system {} detected! Supported systems: {}".format(platform.system(), supported_systems)
+        err_msg = f"Unsupported system {platform.system()} detected! Supported systems: {supported_systems}"
         raise MolerException(err_msg)
 
 
@@ -144,7 +144,7 @@ def _register_builtin_connections(connection_factory, moler_conn_class):
             if not ((host is None) and (port is None) and (username is None) and (login is None) and (password is None)):
                 incorrect_params = "host/port/username/login/password"
                 when = "building sshshell reusing ssh of other sshshell"
-                err_msg = "Don't use {} when {}".format(incorrect_params, when)
+                err_msg = f"Don't use {incorrect_params} when {when}"
                 raise MolerException(err_msg)
             io_conn = ThreadedSshShell.from_sshshell(moler_connection=mlr_conn,  # TODO: add name
                                                      sshshell=reuse_ssh_of_shell,

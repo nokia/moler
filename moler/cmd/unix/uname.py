@@ -30,7 +30,7 @@ class Uname(GenericUnixCommand):
     def build_command_string(self):
         cmd = "uname"
         if self.options:
-            cmd = cmd + " " + self.options
+            cmd = f"{cmd} {self.options}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -53,7 +53,7 @@ class Uname(GenericUnixCommand):
         if self._regex_helper.search_compiled(Uname._re_invalid_option, line):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR: {}".format(self._regex_helper.group("OPTION"))
+                    self, f"ERROR: {self._regex_helper.group('OPTION')}"
                 )
             )
             raise ParsingDone
@@ -61,7 +61,7 @@ class Uname(GenericUnixCommand):
         elif self._regex_helper.search_compiled(Uname._re_command_fail, line):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR: {}".format(self._regex_helper.group("COMMAND"))
+                    self, f"ERROR: {self._regex_helper.group('COMMAND')}"
                 )
             )
             raise ParsingDone

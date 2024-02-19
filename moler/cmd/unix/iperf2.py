@@ -97,9 +97,7 @@ class Iperf2(GenericUnixCommand, Publisher):
 
     def __str__(self):
         str_base_value = super(Iperf2, self).__str__()
-        str_value = "{}, awaited_prompt='{}')".format(
-            str_base_value[:-1], self._re_prompt.pattern
-        )
+        str_value = f"{str_base_value[:-1]}, awaited_prompt='{self._re_prompt.pattern}')"
         return str_value
 
     _re_port = re.compile(r"(?P<PORT_OPTION>\-\-port|\-p)\s+(?P<PORT>\d+)")
@@ -118,7 +116,7 @@ class Iperf2(GenericUnixCommand, Publisher):
         return port, options
 
     def build_command_string(self):
-        cmd = "iperf " + str(self.options)
+        cmd = f"iperf {str(self.options)}"
         return cmd
 
     @property
@@ -210,9 +208,7 @@ class Iperf2(GenericUnixCommand, Publisher):
         self.on_new_line(line=decoded_line, is_full_line=is_full_line)
 
     def _is_replicated_cmd_echo(self, line):
-        prompt_and_command = r"{}\s*{}".format(
-            self._re_prompt.pattern, self.command_string
-        )
+        prompt_and_command = fr"{self._re_prompt.pattern}\s*{self.command_string}"
         found_echo = self._regex_helper.search(prompt_and_command, line)
         return found_echo is not None
 
@@ -281,7 +277,7 @@ class Iperf2(GenericUnixCommand, Publisher):
         if self._regex_helper.search_compiled(Iperf2._re_command_failure, line):
             self.set_exception(
                 CommandFailure(
-                    self, "ERROR: {}".format(self._regex_helper.group("FAILURE_MSG"))
+                    self, f"ERROR: {self._regex_helper.group('FAILURE_MSG')}"
                 )
             )
             raise ParsingDone
@@ -301,8 +297,8 @@ class Iperf2(GenericUnixCommand, Publisher):
                 remote_host,
                 remote_port,
             ) = self._regex_helper.groups()
-            local = "{}@{}".format(local_port, local_host)
-            remote = "{}@{}".format(remote_port, remote_host)
+            local = f"{local_port}@{local_host}"
+            remote = f"{remote_port}@{remote_host}"
             if self.port == int(remote_port):
                 from_client, to_server = local, remote
                 client_host = local_host
@@ -340,7 +336,7 @@ class Iperf2(GenericUnixCommand, Publisher):
                 ) = self._split_connection_name((client, server))
                 connection_id = "[SUM]"
                 self._connection_dict[connection_id] = (
-                    "{}@{}".format("multiport", client_host),
+                    f"multiport@{client_host}",
                     server,
                 )
             raise ParsingDone
@@ -365,8 +361,8 @@ class Iperf2(GenericUnixCommand, Publisher):
     _r_bandwidth = r"(?P<Bandwidth>[\d\.]+\s+\w+/sec)"
     _r_jitter = r"(?P<Jitter>\d+\.\d+\s\w+)"
     _r_datagrams = r"(?P<Lost_vs_Total_Datagrams>\d+/\s*\d+)\s*\((?P<Lost_Datagrams_ratio>[\d\.]+\%)\)"
-    _r_rec = r"{}\s+{}\s+{}\s+{}".format(_r_id, _r_interval, _r_transfer, _r_bandwidth)
-    _r_rec_udp_svr = r"{}\s+{}\s+{}".format(_r_rec, _r_jitter, _r_datagrams)
+    _r_rec = fr"{_r_id}\s+{_r_interval}\s+{_r_transfer}\s+{_r_bandwidth}"
+    _r_rec_udp_svr = fr"{_r_rec}\s+{_r_jitter}\s+{_r_datagrams}"
     _re_iperf_record = re.compile(_r_rec)
     _re_iperf_record_udp_svr = re.compile(_r_rec_udp_svr)
 
@@ -504,22 +500,18 @@ class Iperf2(GenericUnixCommand, Publisher):
         sum_record = {
             "Interval": interval,
             "Transfer": sum(transfers),
-            "Transfer Raw": "{} {}".format(sum(raw_transfer_values), raw_transfer_unit),
+            "Transfer Raw": f"{sum(raw_transfer_values)} {raw_transfer_unit}",
             "Bandwidth": sum(bandwidths),
-            "Bandwidth Raw": "{} {}".format(
-                sum(raw_bandwidth_values), raw_bandwidth_unit
-            ),
+            "Bandwidth Raw": f"{sum(raw_bandwidth_values)} {raw_bandwidth_unit}",
         }
         if self.protocol == "udp":
             # noinspection PyUnboundLocalVariable
-            sum_record["Jitter"] = "{} {}".format(max(jitter_values), jitter_unit)
+            sum_record["Jitter"] = f"{max(jitter_values)} {jitter_unit}"
             # noinspection PyUnboundLocalVariable
             sum_record["Lost_vs_Total_Datagrams"] = (lost_datagrams, total_datagrams)
-            sum_record["Lost_Datagrams_ratio"] = "{:.2f}%".format(
-                lost_datagrams * 100 / total_datagrams
-            )
+            sum_record["Lost_Datagrams_ratio"] = f"{lost_datagrams * 100 / total_datagrams:.2f}%"
 
-        from_client = "multiport@{}".format(client_host)
+        from_client = f"multiport@{client_host}"
         sum_connection_name = (from_client, server)
         self._update_current_ret(sum_connection_name, sum_record)
         self.notify_subscribers(
@@ -540,7 +532,7 @@ class Iperf2(GenericUnixCommand, Publisher):
             ) = self._split_connection_name(connection_name)
             from_client, to_server = (
                 client_host,
-                "{}@{}".format(server_port, server_host),
+                f"{server_port}@{server_host}",
             )
             result_connection = (from_client, to_server)
             self.current_ret["CONNECTIONS"][result_connection] = {"report": last_record}
@@ -573,10 +565,10 @@ class Iperf2(GenericUnixCommand, Publisher):
             server_host,
             _,
         ) = self._split_connection_name(connections[0])
-        from_client, to_server = client_host, "{}@{}".format(self.port, server_host)
+        from_client, to_server = client_host, f"{self.port}@{server_host}"
         has_client_report = (from_client, to_server) in result
         if self.works_in_dualtest:  # need two reports
-            from_server, to_client = server_host, "{}@{}".format(self.port, client_host)
+            from_server, to_client = server_host, f"{self.port}@{client_host}"
             has_server_report = (from_server, to_client) in result
             all_reports = has_client_report and has_server_report
             works_as_client = True  # in dualtest both server and client work as client
@@ -608,13 +600,13 @@ class Iperf2(GenericUnixCommand, Publisher):
             if (
                 "Bytes" in raw_value
             ):  # iperf MBytes means 1024 * 1024 Bytes - see iperf.fr/iperf-doc.php
-                new_dict[key + " Raw"] = raw_value
+                new_dict[f"{key} Raw"] = raw_value
                 value_in_bytes, _, _ = self._converter_helper.to_bytes(raw_value)
                 new_dict[key] = value_in_bytes
             elif (
                 "bits" in raw_value
             ):  # iperf Mbits means 1000 * 1000 bits - see iperf.fr/iperf-doc.php
-                new_dict[key + " Raw"] = raw_value
+                new_dict[f"{key} Raw"] = raw_value
                 value_in_bits, _, _ = self._converter_helper.to_bytes(
                     raw_value, binary_multipliers=False
                 )
@@ -2091,7 +2083,7 @@ COMMAND_RESULT_multiple_connections_udp_server = {
         ("multiport@192.168.44.1", "5016@192.168.44.130"): [
             {
                 "Lost_Datagrams_ratio": "0.00%",
-                "Jitter": "{} ms".format(max(1.464, 1.541, 1.556)),
+                "Jitter": f"{max(1.464, 1.541, 1.556)} ms",
                 "Transfer": 123904 + 124928 + 124928,
                 "Interval": (0.0, 1.0),
                 "Transfer Raw": "365.0 KBytes",
@@ -2101,7 +2093,7 @@ COMMAND_RESULT_multiple_connections_udp_server = {
             },
             {
                 "Lost_Datagrams_ratio": "0.00%",
-                "Jitter": "{} ms".format(max(0.565, 0.719, 0.654)),
+                "Jitter": f"{max(0.565, 0.719, 0.654)} ms",
                 "Transfer": 128000 + 125952 + 125952,
                 "Interval": (1.0, 2.0),
                 "Transfer Raw": "371.0 KBytes",
@@ -2111,7 +2103,7 @@ COMMAND_RESULT_multiple_connections_udp_server = {
             },
             {
                 "Lost_Datagrams_ratio": "0.00%",
-                "Jitter": "{} ms".format(max(1.191, 0.376, 0.463)),
+                "Jitter": f"{max(1.191, 0.376, 0.463)} ms",
                 "Transfer": 123904 + 123904 + 123904,
                 "Interval": (2.0, 3.0),
                 "Transfer Raw": "363.0 KBytes",
@@ -2121,7 +2113,7 @@ COMMAND_RESULT_multiple_connections_udp_server = {
             },
             {
                 "Lost_Datagrams_ratio": "0.00%",
-                "Jitter": "{} ms".format(max(1.225, 1.470, 0.951)),
+                "Jitter": f"{max(1.225, 1.47, 0.951)} ms",
                 "Transfer": 125952 + 125952 + 125952,
                 "Interval": (3.0, 4.0),
                 "Transfer Raw": "369.0 KBytes",
@@ -2131,7 +2123,7 @@ COMMAND_RESULT_multiple_connections_udp_server = {
             },
             {
                 "Lost_Datagrams_ratio": "0.00%",
-                "Jitter": "{} ms".format(max(1.273, 1.332, 0.821)),
+                "Jitter": f"{max(1.273, 1.332, 0.821)} ms",
                 "Transfer": 124928 + 124928 + 124928,
                 "Interval": (4.0, 5.0),
                 "Transfer Raw": "366.0 KBytes",

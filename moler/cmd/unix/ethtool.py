@@ -29,9 +29,9 @@ class Ethtool(GenericUnixCommand):
 
     def build_command_string(self):
         if self.options:
-            cmd = "ethtool {} {}".format(self.options, self.interface)
+            cmd = f"ethtool {self.options} {self.interface}"
         else:
-            cmd = "ethtool {}".format(self.interface)
+            cmd = f"ethtool {self.interface}"
         return cmd
 
     def on_new_line(self, line, is_full_line):
@@ -116,8 +116,7 @@ class Ethtool(GenericUnixCommand):
 
     def _parse_curr_msg_lvl(self, line):
         if self._curr_msg_lvl and self._regex_helper.search_compiled(Ethtool._re_curr_msg_lvl, line):
-            self.current_ret[self.int][self._curr_msg_lvl] = "{} {}".format(
-                self.current_ret[self.int][self._curr_msg_lvl], line.strip())
+            self.current_ret[self.int][self._curr_msg_lvl] = f"{self.current_ret[self.int][self._curr_msg_lvl]} {line.strip()}"
             self._curr_msg_lvl = None
             raise ParsingDone
 

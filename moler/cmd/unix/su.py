@@ -64,11 +64,11 @@ class Su(Sudo):
         self._build_command_object()
         cmd = "su"
         if self.options:
-            cmd = "{} {}".format(cmd, self.options)
+            cmd = f"{cmd} {self.options}"
         if self.cmd_object:
-            cmd = "{} -c '{}'".format(cmd, self.cmd_object.command_string)
+            cmd = f"{cmd} -c '{self.cmd_object.command_string}'"
         if self.login:
-            cmd = "{} {}".format(cmd, self.login)
+            cmd = f"{cmd} {self.login}"
         return cmd
 
     def _validate_passed_object_or_command_parameters(self):
@@ -92,8 +92,8 @@ class Su(Sudo):
             # instead of setting it
             raise CommandFailure(
                 self,
-                "Not allowed to run again the embedded command (embedded command is done): {}.".format(
-                    self.cmd_object))
+                f"Not allowed to run again the embedded command (embedded command is done): {self.cmd_object}."
+            )
         if not self.cmd_object:
             self._finish_on_final_prompt = True
         self._validated_embedded_parameters = True

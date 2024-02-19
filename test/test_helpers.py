@@ -195,7 +195,7 @@ def test_groupdict_without_match_object():
 
 def test_all_chars_to_hex():
     from moler.helpers import all_chars_to_hex
-    source = "a\n\rb" + chr(3) + chr(5)
+    source = f'a\n\rb{chr(3)}{chr(5)}'
     expected_output = r"\x61\x0a\x0d\x62\x03\x05"
     output = all_chars_to_hex(source=source)
     assert output == expected_output
@@ -203,7 +203,7 @@ def test_all_chars_to_hex():
 
 def test_non_printable_chars_to_hex():
     from moler.helpers import non_printable_chars_to_hex
-    source = "a\n\rb" + chr(3) + chr(5)
+    source = f'a\n\rb{chr(3)}{chr(5)}'
     expected_output = r"a\x0a\x0db\x03\x05"
     output = non_printable_chars_to_hex(source=source)
     assert output == expected_output
@@ -297,14 +297,14 @@ def test_convert_to_int():
 def test_convert_to_number_int():
     from moler.helpers import convert_to_number
     expected = 4
-    result = convert_to_number("{}".format(expected))
+    result = convert_to_number(f"{expected}")
     assert expected == result
 
 
 def test_convert_to_number_float():
     from moler.helpers import convert_to_number
     expected = 3.2
-    result = convert_to_number("{}".format(expected))
+    result = convert_to_number(f"{expected}")
     assert expected == result
 
 

@@ -24,7 +24,7 @@ class TillDoneThread(threading.Thread):
 
     def __init__(self, done_event, target=None, name=None, kwargs=None):
         if name is None:
-            name = "TillDoneThread-{}".format(TillDoneThread._tdh_nr)
+            name = f"TillDoneThread-{TillDoneThread._tdh_nr}"
             TillDoneThread._tdh_nr += 1
         super(TillDoneThread, self).__init__(target=target, name=name,
                                              kwargs=kwargs)

@@ -725,7 +725,7 @@ if is_python36_or_above():
 @pytest.fixture(params=available_bg_runners)
 def observer_runner(request):
     module_name, class_name = request.param.rsplit('.', 1)
-    module = importlib.import_module('moler.{}'.format(module_name))
+    module = importlib.import_module(f'moler.{module_name}')
     runner_class = getattr(module, class_name)
     runner = runner_class()
     # NOTE: AsyncioRunner given here will start without running event loop
@@ -738,7 +738,7 @@ def observer_runner(request):
 @pytest.fixture(params=available_standalone_runners)
 def standalone_runner(request):
     module_name, class_name = request.param.rsplit('.', 1)
-    module = importlib.import_module('moler.{}'.format(module_name))
+    module = importlib.import_module(f'moler.{module_name}')
     runner_class = getattr(module, class_name)
     runner = runner_class()
     yield runner
@@ -750,7 +750,7 @@ def standalone_runner(request):
 @pytest.fixture(params=available_async_runners)
 def async_runner(request):
     module_name, class_name = request.param.rsplit('.', 1)
-    module = importlib.import_module('moler.{}'.format(module_name))
+    module = importlib.import_module(f'moler.{module_name}')
     runner_class = getattr(module, class_name)
     runner = runner_class()
     yield runner

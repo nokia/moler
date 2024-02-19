@@ -46,7 +46,7 @@ def create_class_instance(class_object, constructor_params):
         class_instance = class_object(**constructor_params)
         return class_instance
     except TypeError as err:
-        raise TypeError("Creating '%s' instance: %s" % (class_object, str(err))) from err
+        raise TypeError(f"Creating '{class_object}' instance: {str(err)}") from err
 
 
 # ------------------------------------ implementation
@@ -71,8 +71,8 @@ def _import_module(module_name):
         module_of_class = importlib.import_module(module_name)
         return module_of_class
     except ImportError as err:
-        raise ImportError("Could not import '{}' module ({}). Please make sure "
-                          "import path is correct.".format(module_name, str(err))) from err
+        raise ImportError(f"Could not import '{module_name}' module ({str(err)}). Please make sure "
+                          f"import path is correct.") from err
 
 
 def _import_class_from_module(module, class_name):
@@ -82,8 +82,6 @@ def _import_class_from_module(module, class_name):
             class_object = module_attribute
             return class_object
         else:
-            raise TypeError("Module's '%s' attribute '%s' is not class (it is %s)." % (module,
-                                                                                       class_name,
-                                                                                       type(module_attribute)))
+            raise TypeError(f"Module's '{module}' attribute '{class_name}' is not class (it is {type(module_attribute)}).")
     except AttributeError as ae:
-        raise AttributeError("Module '%s' has no attribute '%s'" % (module, class_name)) from ae
+        raise AttributeError(f"Module '{module}' has no attribute '{class_name}'") from ae

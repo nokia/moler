@@ -223,7 +223,7 @@ def test_asyncio_thread_can_run_async_function():
 
     async def my_coro(param):
         await asyncio.sleep(0.1)
-        return "called with param={}".format(param)
+        return f"called with param={param}"
 
     assert "called with param=2" == thread4async.run_async_coroutine(my_coro(param=2), timeout=0.2)
 
@@ -238,7 +238,7 @@ def test_asyncio_thread_can_timeout_async_function():
 
     async def my_coro(param):
         await asyncio.sleep(0.2)
-        return "called with param={}".format(param)
+        return f"called with param={param}"
 
     with pytest.raises(MolerTimeout):
         thread4async.run_async_coroutine(my_coro(param=2), timeout=0.1)
@@ -342,7 +342,7 @@ def test_connections_use_same_loop(tcp_connection_class,
 @pytest.fixture(params=['io.asyncio.tcp.AsyncioInThreadTcp'])
 def tcp_connection_class(request):
     module_name, class_name = request.param.rsplit('.', 1)
-    module = importlib.import_module('moler.{}'.format(module_name))
+    module = importlib.import_module(f'moler.{module_name}')
     connection_class = getattr(module, class_name)
     return connection_class
 

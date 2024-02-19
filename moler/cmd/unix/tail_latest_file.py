@@ -55,7 +55,7 @@ class TailLatestFile(GenericUnixCommand):
                       'file_index=0\n' \
                       'while :\n' \
                       'do\n' \
-                      'current_last_file=`ls -t {} | head -1`\n' \
+                      f'current_last_file=`ls -t {file_path} | head -1`\n' \
                       'if [ "$last_file" != "$current_last_file" ]\n' \
                       'then\n' \
                       '[ -n "$tail_pid" ] && kill $tail_pid\n' \
@@ -71,10 +71,7 @@ class TailLatestFile(GenericUnixCommand):
                       'fi\n' \
                       'sleep 0.5\n' \
                       "done'"
-
-        cmd = bash_script.format(file_path)
-
-        return cmd
+        return bash_script
 
     def on_new_line(self, line, is_full_line):
         """

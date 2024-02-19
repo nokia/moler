@@ -39,7 +39,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
         self._in_shutdown = False
         self._loop_thread = threading.Thread(
             target=self._runner_loop,
-            name="RunnerSingle-{}".format(RunnerSingleThread._th_nr),
+            name=f"RunnerSingle-{RunnerSingleThread._th_nr}",
         )
         RunnerSingleThread._th_nr += 1
         self._connection_observer_lock = threading.Lock()
@@ -74,7 +74,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
         """
         if connection_observer.done():
             self.logger.debug(
-                "go foreground: {} is already done".format(connection_observer)
+                f"go foreground: {connection_observer} is already done"
             )
         else:
             max_timeout = timeout
@@ -96,7 +96,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
                 remain_time, msg = RunnerSingleThread._its_remaining_time(
                     "remaining", timeout=observer_timeout, from_start_time=start_time
                 )
-            self.logger.debug("go foreground: {} - {}".format(connection_observer, msg))
+            self.logger.debug(f"go foreground: {connection_observer} - {msg}")
             connection_observer.life_status.start_time = start_time
             self._execute_till_eol(
                 connection_observer=connection_observer,
@@ -179,7 +179,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
                 )
                 connection_observer._log(  # pylint: disable=protected-access
                     logging.INFO,
-                    "{} started, {}".format(connection_observer.get_long_desc(), msg),
+                    f"{connection_observer.get_long_desc()} started, {msg}",
                 )
                 self._start_command(connection_observer=connection_observer)
                 connection_observer.life_status.last_feed_time = time.monotonic()
@@ -198,9 +198,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
         remain_time = timeout - already_passed
         if remain_time < 0.0:
             remain_time = 0.0
-        msg = "{} {:.3f} [sec], already passed {:.3f} [sec]".format(
-            prefix, remain_time, already_passed
-        )
+        msg = f"{prefix} {remain_time:.3f} [sec], already passed {already_passed:.3f} [sec]"
         return remain_time, msg
 
     def _execute_till_eol(
@@ -328,9 +326,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
                         connection_observer.on_inactivity()
                     except Exception as ex:
                         self.logger.exception(
-                            msg=r'Exception "{}" ("{}") inside: {} when on_inactivity.'.format(
-                                ex, repr(ex), connection_observer
-                            )
+                            msg=f'Exception "{ex}" ("{repr(ex)}") inside: {connection_observer} when on_inactivity.'
                         )
                         connection_observer.set_exception(exception=ex)
                     finally:
@@ -350,10 +346,8 @@ class RunnerSingleThread(ConnectionObserverRunner):
                 timeout = connection_observer.life_status.terminating_timeout
             if (timeout is not None) and (run_duration >= timeout):
                 if connection_observer.life_status.in_terminating:
-                    msg = (
-                        "{} underlying real command failed to finish during {} seconds. It will be forcefully"
-                        " terminated".format(connection_observer, timeout)
-                    )
+                    msg = f"{connection_observer} underlying real command failed to finish during {timeout} seconds. It will be forcefully terminated"
+
                     self.logger.info(msg)
                     connection_observer.set_end_of_life()
                 else:
@@ -422,18 +416,16 @@ class RunnerSingleThread(ConnectionObserverRunner):
                 connection_observer.set_exception(exception)
                 connection_observer.on_timeout()
 
-                observer_info = "{}.{}".format(
-                    connection_observer.__class__.__module__, connection_observer
-                )
-                timeout_msg = "has timed out after {:.2f} seconds.".format(passed_time)
-                msg = "{} {}".format(observer_info, timeout_msg)
+                observer_info = f"{connection_observer.__class__.__module__}.{connection_observer}"
+                timeout_msg = f"has timed out after {passed_time:.2f} seconds."
+                msg = f"{observer_info} {timeout_msg}"
 
                 # levels_to_go_up: extract caller info to log where .time_out_observer has been called from
                 connection_observer._log(logging.INFO, msg, levels_to_go_up=2)  # pylint: disable=protected-access
                 log_into_logger(
                     runner_logger,
                     level=logging.DEBUG,
-                    msg="{} {}".format(connection_observer, timeout_msg),
+                    msg=f"{connection_observer} {timeout_msg}",
                     levels_to_go_up=1,
                 )
 
@@ -453,7 +445,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
                 )
                 connection_observer._log(  # pylint: disable=protected-access
                     logging.INFO,
-                    "{} finished, {}".format(connection_observer.get_short_desc(), msg),
+                    f"{connection_observer.get_short_desc()} finished, {msg}",
                 )
         if self._to_remove_connection_observers:
             with self._connection_observer_lock:

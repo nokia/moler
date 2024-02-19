@@ -82,9 +82,9 @@ class ThreadedTerminal(IOConnection):
             while (retry < 10) and (not is_operable):
                 is_operable = self._shell_operable.wait(timeout=1)
                 if not is_operable:
+                    buff = self.read_buffer.encode("UTF-8", "replace")
                     self.logger.warning(
-                        "Terminal open but not fully operable yet.\nREAD_BUFFER: '{}'".format(
-                            self.read_buffer.encode("UTF-8", "replace")))
+                        f"Terminal open but not fully operable yet.\nREAD_BUFFER: '{buff}'")
                     self._terminal.write('\n')
                     retry += 1
 
@@ -102,7 +102,7 @@ class ThreadedTerminal(IOConnection):
             try:
                 self._terminal.close(force=True)
             except Exception as ex:
-                self.logger.warning("Exception while closing terminal: {}".format(ex))
+                self.logger.warning(f"Exception while closing terminal: {ex}")
         self._terminal = None
         self._shell_operable.clear()
         self._export_sent = False
@@ -117,17 +117,17 @@ class ThreadedTerminal(IOConnection):
     @tracked_thread.log_exit_exception
     def pull_data(self, pulling_done):
         """Pull data from ThreadedTerminal connection."""
-        logging.getLogger("moler_threads").debug("ENTER {}".format(self))
+        logging.getLogger("moler_threads").debug(f"ENTER {self}")
         heartbeat = tracked_thread.report_alive()
         reads = []
 
         while not pulling_done.is_set():
             if next(heartbeat):
-                logging.getLogger("moler_threads").debug("ALIVE {}".format(self))
+                logging.getLogger("moler_threads").debug(f"ALIVE {self}")
             try:
                 reads, _, _ = select.select([self._terminal.fd], [], [], self._select_timeout)
             except ValueError as exc:
-                self.logger.warning("'{}: {}'".format(exc.__class__, exc))
+                self.logger.warning(f"'{exc.__class__}: {exc}'")
                 self._notify_on_disconnect()
                 pulling_done.set()
 
@@ -135,9 +135,9 @@ class ThreadedTerminal(IOConnection):
                 try:
                     data = self._terminal.read(self._read_buffer_size)
                     if self.debug_hex_on_all_chars:
-                        self.logger.debug("incoming data: '{}'.".format(all_chars_to_hex(data)))
+                        self.logger.debug(f"incoming data: '{all_chars_to_hex(data)}'.")
                     if self.debug_hex_on_non_printable_chars:
-                        self.logger.debug("incoming data: '{}'.".format(non_printable_chars_to_hex(data)))
+                        self.logger.debug(f"incoming data: '{non_printable_chars_to_hex(data)}'.")
 
                     if self._shell_operable.is_set():
                         self.data_received(data=data, recv_time=datetime.datetime.now())
@@ -146,7 +146,7 @@ class ThreadedTerminal(IOConnection):
                 except EOFError:
                     self._notify_on_disconnect()
                     pulling_done.set()
-        logging.getLogger("moler_threads").debug("EXIT  {}".format(self))
+        logging.getLogger("moler_threads").debug(f"EXIT  {self}")
 
     def _verify_shell_is_operable(self, data):
         self.read_buffer = self.read_buffer + data

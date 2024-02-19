@@ -35,7 +35,7 @@ def test_str_conversion_of_event_object():
             pass  # not important now
 
     wait4 = Wait4()
-    assert "Wait4(['Connection close'], id:{})".format(instance_id(wait4)) == str(wait4)
+    assert f"Wait4(['Connection close'], id:{instance_id(wait4)})" == str(wait4)
 
 
 def test_event_string_is_required_to_start_command(lineevent_class):
@@ -185,7 +185,7 @@ def test_get_not_supported_parser():
 @pytest.fixture(params=['event.Event'])
 def command_major_base_class(request):
     module_name, class_name = request.param.rsplit('.', 1)
-    module = importlib.import_module('moler.{}'.format(module_name))
+    module = importlib.import_module(f'moler.{module_name}')
     klass = getattr(module, class_name)
     return klass
 
@@ -193,7 +193,7 @@ def command_major_base_class(request):
 @pytest.fixture(params=['events.lineevent.LineEvent'])
 def lineevent_class(request):
     module_name, class_name = request.param.rsplit('.', 1)
-    module = importlib.import_module('moler.{}'.format(module_name))
+    module = importlib.import_module(f'moler.{module_name}')
     klass = getattr(module, class_name)
     return klass
 
