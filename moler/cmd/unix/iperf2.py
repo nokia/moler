@@ -94,6 +94,7 @@ class Iperf2(GenericUnixCommand, Publisher):
         self._got_server_report_hdr = False
         self._got_server_report = False
         self._stopping_server = False
+        self._ctrl_z_sent = False
 
     def __str__(self):
         str_base_value = super(Iperf2, self).__str__()
@@ -197,6 +198,7 @@ class Iperf2(GenericUnixCommand, Publisher):
                 self._parse_too_early_ctrl_c(line)
                 self._parse_svr_report_header(line)
                 self._parse_connection_headers(line)
+                self._parse_control_z(line)
             except ParsingDone:
                 pass
         return super(Iperf2, self).on_new_line(line, is_full_line)
@@ -624,6 +626,32 @@ class Iperf2(GenericUnixCommand, Publisher):
         if self._regex_helper.search_compiled(Iperf2._re_interrupt_again, line):
             self.break_cmd()  # send Ctrl-C once more
             raise ParsingDone
+
+    def on_timeout(self) -> None:
+        """
+        Callback called by framework when timeout occurs.
+
+        :return: None.
+        """
+        self.connection.send("\x1A")  # ctrl+z
+        self._ctrl_z_sent = True
+
+    # [2]+  Stopped
+    _re_stopped = re.compile(r"\[(?P<JOB_ID>\d+)\]\+\s+Stopped")
+    def parse_control_z(self, line: str) -> None:
+        """
+        Parse line that is control+z.
+
+        :param line: Line from device.
+        :return: None.
+        """
+        if self._ctrl_z_sent and self._regex_helper.search_compiled(Iperf2._re_stopped, line):
+            self._stopping_server = True
+            job_id = self._regex_helper.group("JOB_ID")
+            self.connection.send(f"kill %{job_id}")
+            raise ParsingDone()
+
+
 
 
 COMMAND_OUTPUT_basic_client = """
