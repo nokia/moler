@@ -16,9 +16,9 @@ Important changes:
 - as a consequence -b doesn't force -u
 """
 
-__author__ = "Grzegorz Latuszek"
-__copyright__ = "Copyright (C) 2019-2023, Nokia"
-__email__ = "grzegorz.latuszek@nokia.com"
+__author__ = "Grzegorz Latuszek, Marcin Usielski"
+__copyright__ = "Copyright (C) 2019-2024, Nokia"
+__email__ = "grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com"
 
 
 import re
@@ -639,7 +639,7 @@ class Iperf2(GenericUnixCommand, Publisher):
     # [2]+  Stopped
     _re_stopped = re.compile(r"\[(?P<JOB_ID>\d+)\]\+\s+Stopped")
 
-    def parse_control_z(self, line: str) -> None:
+    def _parse_control_z(self, line: str) -> None:
         """
         Parse line that is control+z.
 
