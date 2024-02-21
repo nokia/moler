@@ -638,6 +638,7 @@ class Iperf2(GenericUnixCommand, Publisher):
 
     # [2]+  Stopped
     _re_stopped = re.compile(r"\[(?P<JOB_ID>\d+)\]\+\s+Stopped")
+
     def parse_control_z(self, line: str) -> None:
         """
         Parse line that is control+z.
@@ -650,8 +651,6 @@ class Iperf2(GenericUnixCommand, Publisher):
             job_id = self._regex_helper.group("JOB_ID")
             self.connection.send(f"kill %{job_id}")
             raise ParsingDone()
-
-
 
 
 COMMAND_OUTPUT_basic_client = """
