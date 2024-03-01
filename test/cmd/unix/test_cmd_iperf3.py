@@ -9,6 +9,7 @@ __email__ = "kacper.kozik@nokia.com"
 
 import pytest
 import mock
+import time
 from moler.cmd.unix.iperf3 import Iperf3
 from moler.exceptions import CommandFailure
 
@@ -404,6 +405,7 @@ def test_iperf_publishes_records_to_subscribed_observers(buffer_connection):
             ) and ('report' not in iperf_stats[-1])
     conn.remote_inject_line(
         "[  5]   9.00-10.00  sec   129 KBytes  1.06 Mbits/sec  0.022 ms  0/6 (0%)")
+    time.sleep(0.1)
     assert len(iperf_stats) == 3
     assert ('data_record' in iperf_stats[-1]
             ) and ('report' not in iperf_stats[-1])
@@ -498,7 +500,7 @@ xyz@debian>"""
 @pytest.fixture
 def command_output_and_expected_result_on_iperf_problem():
     output = """xyz@debian>iperf3 -i
-iperf: option requires an argument -- i 
+iperf: option requires an argument -- i
 xyz@debian>"""
     result = dict()
     return output, result

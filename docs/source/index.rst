@@ -1,4 +1,4 @@
-Moler - library to help in building automated tests
+Moler - a library to help build automated tests
 ===================================================
 
 Moler key features

@@ -12,15 +12,7 @@ from moler.util.moler_test import MolerTest
 import time
 import pytest
 import sys
-
-try:
-    import asyncio
-except ImportError:  # pragma: nocover
-    try:
-        import trollius as asyncio
-    except ImportError:
-        raise ImportError(
-            'Support for asyncio requires either Python 3.4 or the asyncio package installed or trollius installed for python 2.7')
+import asyncio
 
 
 def test_job():
