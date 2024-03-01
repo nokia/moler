@@ -91,20 +91,39 @@ def test_events_false_any():
     EventAwaiter.cancel_all_events(events)
 
 
-def test_start_command_after_event(buffer_connection):    
-    moler_connection = buffer_connection.moler_connection    
-    pattern = "aaa"    
+def test_start_command_after_event(buffer_connection):
+    moler_connection = buffer_connection.moler_connection
+    pattern = "aaa"
     event = Wait4prompt(connection=moler_connection, till_occurs_times=1, prompt=pattern)
     events = [event]
     buffer_connection.remote_inject_response(pattern)
 
     cmd_pwd1 = Pwd(connection=moler_connection)
     cmd_pwd2 = Pwd(connection=moler_connection)
-    cmds = (cmd_pwd1, cmd_pwd2)    
+    cmds = (cmd_pwd1, cmd_pwd2)
     EventAwaiter.start_command_after_event(events=events, cmds=cmds)
     assert cmd_pwd1.running() is True
     assert cmd_pwd2.running() is True
     assert event.running() is False
-    assert event.done() is True    
+    assert event.done() is True
+    EventAwaiter.cancel_all_events(events)
+    EventAwaiter.cancel_all_events(cmds)
+
+
+def test_start_command_after_event_with_sleep(buffer_connection):
+    moler_connection = buffer_connection.moler_connection
+    pattern = "aaa"
+    event = Wait4prompt(connection=moler_connection, till_occurs_times=1, prompt=pattern)
+    events = [event]
+    buffer_connection.remote_inject_response(pattern)
+
+    cmd_pwd1 = Pwd(connection=moler_connection)
+    cmd_pwd2 = Pwd(connection=moler_connection)
+    cmds = (cmd_pwd1, cmd_pwd2)
+    EventAwaiter.start_command_after_event(events=events, cmds=cmds, sleep_after_event=0.3)
+    assert cmd_pwd1.running() is True
+    assert cmd_pwd2.running() is True
+    assert event.running() is False
+    assert event.done() is True
     EventAwaiter.cancel_all_events(events)
     EventAwaiter.cancel_all_events(cmds)
