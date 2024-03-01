@@ -42,7 +42,6 @@ class GenericUnixCommand(CommandTextualGeneric):
         self.remove_all_known_special_chars_from_terminal_output = True
         self.re_fail = re.compile(r_cmd_failure_cause_alternatives, re.IGNORECASE)
 
-
         self._ctrl_z_sent = False
         self._kill_ctrl_z_sent = False
         self._instance_timeout_action = None
@@ -78,7 +77,7 @@ class GenericUnixCommand(CommandTextualGeneric):
         else:
             super(GenericUnixCommand, self).on_timeout()
 
-    def set_timeout_action(self, action: str, all_instances: bool=False) -> str:
+    def set_timeout_action(self, action: str, all_instances: bool = False) -> str:
         """
         Set the timeout action for the command.
 
@@ -101,7 +100,6 @@ class GenericUnixCommand(CommandTextualGeneric):
             raise WrongUsage(f"Passed action: '{action}' and value for all_instances: '{all_instances}'."
                              f" Allowed action: {allowed_actions} or None with all_instances=False.")
         return self.get_timeout_action()
-
 
     def get_timeout_action(self) -> str:
         """
