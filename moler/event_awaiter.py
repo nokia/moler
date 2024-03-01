@@ -16,14 +16,13 @@ from moler.util.moler_test import MolerTest
 from moler.helpers import copy_list
 
 
-
 class EventAwaiter:
     """
     A utility class for waiting and managing events.
     """
 
     @classmethod
-    def wait_for_all(cls, timeout: float, events: Sequence, interval: float=0.001) -> bool:
+    def wait_for_all(cls, timeout: float, events: Sequence, interval: float = 0.001) -> bool:
         """
         Wait for all events to be done or timeout occurs.
 
@@ -48,7 +47,7 @@ class EventAwaiter:
         return all_done
 
     @classmethod
-    def wait_for_any(cls, timeout: float, events: Sequence, interval: float=0.001) -> bool:
+    def wait_for_any(cls, timeout: float, events: Sequence, interval: float = 0.001) -> bool:
         """
         Wait for any event to complete within the specified timeout.
 
@@ -98,7 +97,7 @@ class EventAwaiter:
             event.cancel()
 
     @classmethod
-    def start_command_after_event(cls, cmds: Sequence, events: Sequence, event_timeout: float=6., sleep_after_event: float=0.) -> None:
+    def start_command_after_event(cls, cmds: Sequence, events: Sequence, event_timeout: float = 6., sleep_after_event: float = 0.) -> None:
         """
         Start the given commands and events sequentially. The next command starts when the previous event is done.
         Passed cmds and events can be lists of ConnectionObserver objects or lists of lists/tuples containing ConnectionObserver objects.
