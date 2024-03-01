@@ -70,7 +70,7 @@ class EventAwaiter:
         return any_done
 
     @classmethod
-    def separate_done_events(cls, events: list) -> tuple[Sequence, Sequence]:
+    def separate_done_events(cls, events: Sequence) -> tuple:
         """
         Separate list of events into two lists: done events and non-done events.
 
