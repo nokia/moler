@@ -12,7 +12,7 @@ import datetime
 import logging
 import re
 from threading import Lock
-from typing import Optional, Pattern, Tuple, Union
+from typing import Optional, Pattern, Tuple, Union, Sequence
 
 import six
 
@@ -40,7 +40,7 @@ class CommandTextualGeneric(Command):
         self,
         connection: Optional[AbstractMolerConnection],
         prompt: Optional[Union[str, Pattern]] = None,
-        newline_chars: Optional[Union[list, tuple]] = None,
+        newline_chars: Optional[Sequence[str]] = None,
         runner: Optional[ConnectionObserverRunner] = None,
     ):
         """

@@ -10,7 +10,9 @@ __email__ = 'marcin.usielski@nokia.com'
 import re
 import abc
 import six
-
+from typing import Optional, Union, Pattern, Sequence
+from moler.abstract_moler_connection import AbstractMolerConnection
+from moler.runner import ConnectionObserverRunner
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.exceptions import ParsingDone, WrongUsage
 from moler.helpers import remove_all_known_special_chars
@@ -21,7 +23,7 @@ cmd_failure_causes = ['not found',
                       'Cannot find device',
                       'Input/output error',
                       ]
-r_cmd_failure_cause_alternatives = f'{"|".join(cmd_failure_causes)}'
+r_cmd_failure_cause_alternatives = "|".join(cmd_failure_causes)
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -30,7 +32,8 @@ class GenericUnixCommand(CommandTextualGeneric):
 
     _whole_timeout_action = 'c'
 
-    def __init__(self, connection, prompt=None, newline_chars=None, runner=None):
+    def __init__(self, connection: Optional[AbstractMolerConnection], prompt: Optional[Union[str, Pattern]] = None,
+                 newline_chars: Optional[Sequence[str]] = None, runner: Optional[ConnectionObserverRunner] = None):
         """
         :param connection: Moler connection to device, terminal when command is executed.
         :param prompt: prompt (on system where command runs).
@@ -46,7 +49,7 @@ class GenericUnixCommand(CommandTextualGeneric):
         self._kill_ctrl_z_sent = False
         self._instance_timeout_action = None
 
-    def _decode_line(self, line):
+    def _decode_line(self, line: str) -> str:
         """
         Method to delete new line chars and other chars we don not need to parse in on_new_line (color escape character)
 
