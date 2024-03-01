@@ -17,7 +17,7 @@ Important changes:
 """
 
 __author__ = "Grzegorz Latuszek"
-__copyright__ = "Copyright (C) 2019, Nokia"
+__copyright__ = "Copyright (C) 2019-2023, Nokia"
 __email__ = "grzegorz.latuszek@nokia.com"
 
 
