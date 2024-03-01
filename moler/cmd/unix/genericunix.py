@@ -12,6 +12,7 @@ import abc
 import six
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
+from moler.exceptions import ParsingDone, WrongUsage
 from moler.helpers import remove_all_known_special_chars
 
 cmd_failure_causes = ['not found',
@@ -27,6 +28,8 @@ r_cmd_failure_cause_alternatives = f'{"|".join(cmd_failure_causes)}'
 class GenericUnixCommand(CommandTextualGeneric):
     # _re_fail = re.compile(r_cmd_failure_cause_alternatives, re.IGNORECASE)
 
+    _whole_timeout_action = 'c'
+
     def __init__(self, connection, prompt=None, newline_chars=None, runner=None):
         """
         :param connection: Moler connection to device, terminal when command is executed.
@@ -39,6 +42,11 @@ class GenericUnixCommand(CommandTextualGeneric):
         self.remove_all_known_special_chars_from_terminal_output = True
         self.re_fail = re.compile(r_cmd_failure_cause_alternatives, re.IGNORECASE)
 
+
+        self._ctrl_z_sent = False
+        self._kill_ctrl_z_sent = False
+        self._instance_timeout_action = None
+
     def _decode_line(self, line):
         """
         Method to delete new line chars and other chars we don not need to parse in on_new_line (color escape character)
@@ -49,3 +57,89 @@ class GenericUnixCommand(CommandTextualGeneric):
         if self.remove_all_known_special_chars_from_terminal_output:
             line = remove_all_known_special_chars(line)
         return line
+
+    def on_new_line(self, line: str, is_full_line: bool) -> None:
+        if self._ctrl_z_sent and is_full_line:
+            try:
+                self._parse_control_z(line=line)
+            except ParsingDone:
+                pass
+        return super(GenericUnixCommand, self).on_new_line(line, is_full_line)
+
+    def on_timeout(self) -> None:
+        """
+        Callback called by framework when timeout occurs.
+
+        :return: None.
+        """
+        if self.get_timeout_action() == 'z':
+            self.connection.send("\x1A")  # ctrl+z
+            self._ctrl_z_sent = True
+        else:
+            super(GenericUnixCommand, self).on_timeout()
+
+    def set_timeout_action(self, action: str, all_instances: bool=False) -> str:
+        """
+        Set the timeout action for the command.
+
+        Parameters:
+        :param action (str): The timeout action to be set. Valid values are 'z' and 'c'.
+        :param all_instances (bool): If True, sets the timeout action for all instances of the command.
+
+        :return: str: The current timeout action.
+
+        """
+        allowed_actions = ('c', 'z')
+        if action is None and all_instances is False:
+            self._instance_timeout_action = None
+        elif action in allowed_actions:
+            if all_instances:
+                GenericUnixCommand._whole_timeout_action = action
+            else:
+                self._instance_timeout_action = action
+        else:
+            raise WrongUsage(f"Passed action: '{action}' and value for all_instances: '{all_instances}'."
+                             f" Allowed action: {allowed_actions} or None with all_instances=False.")
+        return self.get_timeout_action()
+
+
+    def get_timeout_action(self) -> str:
+        """
+        Return the timeout action for the command.
+
+        If the instance-specific timeout action is not set, it returns the default
+        timeout action defined in the GenericUnixCommand class.
+
+        returns: timeout action for the command.
+        """
+        if self._instance_timeout_action is None:
+            return GenericUnixCommand._whole_timeout_action
+        return self._instance_timeout_action
+
+    def is_end_of_cmd_output(self, line: str) -> bool:
+        """
+        Checks if end of command is reached.
+
+        :param line: Line from device.
+        :return: True if end of command is reached, False otherwise.
+        """
+        if not self._kill_ctrl_z_sent and self._ctrl_z_sent:
+            return False
+        return super(GenericUnixCommand, self).is_end_of_cmd_output(line=line)
+
+    # [2]+  Stopped
+    _re_ctrl_z_stopped = re.compile(r"\[(?P<JOB_ID>\d+)\]\+\s+Stopped")
+
+    def _parse_control_z(self, line: str) -> None:
+        """
+        Parse line that is control+z.
+
+        :param line: Line from device.
+        :return: None.
+        """
+        if self._ctrl_z_sent and not self._kill_ctrl_z_sent and self._regex_helper.search_compiled(GenericUnixCommand._re_ctrl_z_stopped, line):
+            self._stopping_server = True
+            job_id = self._regex_helper.group("JOB_ID")
+            self.connection.sendline(f"kill %{job_id}")
+            self._kill_ctrl_z_sent = True
+            raise ParsingDone()

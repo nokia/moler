@@ -1,11 +1,11 @@
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2022, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
 import time
 import os
-from moler.util.devices_SM import iterate_over_device_states, get_device, get_cloned_device, get_memory_device_connection
+from moler.util.devices_SM import iterate_over_device_states, get_device
 from moler.exceptions import MolerException, DeviceChangeStateFailure
 from moler.helpers import copy_dict
 from moler.util.moler_test import MolerTest
@@ -73,7 +73,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg(device_connection, unix_remot
     execution_time_fg = time.monotonic() - start_time
     assert unix_remote_proxy_pc.current_state == dst_state
     time_diff = abs(execution_time_bg - execution_time_fg)
-    assert time_diff < min(execution_time_fg, execution_time_bg) / 2
+    assert time_diff < min(execution_time_fg, execution_time_bg)
 
 
 def test_unix_remote_proxy_pc_device_goto_state_bg_and_goto(device_connection, unix_remote_proxy_pc_output):

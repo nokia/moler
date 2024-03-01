@@ -15,7 +15,7 @@ View our [chronological list](https://github.com/nokia/moler/CHANGELOG.md) of us
 
 ![moler logo](https://i.imgur.com/mkPutdC.png)
 # Moler
-Moler ([name origin](https://github.com/nokia/moler/wiki#moler-name-origin)) is Python library
+Moler ([name origin](https://github.com/nokia/moler/wiki#moler-name-origin)) is a Python library
 that provides "bricks" for building  automated tests.
 All these "bricks" have clearly defined responsibilities, have similar API,
 follow same construction pattern (so new ones are easy to create).

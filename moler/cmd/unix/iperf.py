@@ -16,7 +16,6 @@ __email__ = "adrianna.pienkowska@nokia.com"
 
 
 import re
-import warnings
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure, ParsingDone
@@ -63,10 +62,8 @@ class Iperf(GenericUnixCommand):
         # private values
         self._connection_dict = {}
         self._converter_helper = ConverterHelper()
-        warnings.warn(
-            "Iperf command is deprecated - use Iperf2 instead",
-            DeprecationWarning,
-            stacklevel=2,
+        self.logger.warning(
+            "Iperf command is deprecated - use Iperf2 instead.",
         )
 
     def build_command_string(self):
