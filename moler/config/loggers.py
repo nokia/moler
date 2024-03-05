@@ -256,6 +256,7 @@ def want_log_console(logger_name: str) -> bool:
     """Check if we want to have logs on console."""
     return logger_name in _console_loggers
 
+
 def want_raw_logs():
     return raw_logs_active
 
@@ -478,7 +479,6 @@ def _add_stdout_file_handler(logger_name, formatter, log_level=logging.INFO, log
     :return: None
     """
 
-
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(log_level)
     handler.setFormatter(formatter)
@@ -486,8 +486,6 @@ def _add_stdout_file_handler(logger_name, formatter, log_level=logging.INFO, log
         handler.addFilter(log_filter)
     logger = logging.getLogger(logger_name)
     logger.addHandler(handler)
-
-
 
 
 def _add_raw_file_handler(logger_name, log_file):
@@ -591,7 +589,6 @@ def configure_moler_main_logger():
             )
             if want_log_console("moler.debug"):
                 _add_stdout_file_handler(logger_name="moler", formatter=debug_formatter, log_level=debug_level)
-
 
         logger.info(moler_logo)
         msg = f"Using specific packages version:\nPython: {platform.python_version()}\nmoler: {_get_moler_version()}"
