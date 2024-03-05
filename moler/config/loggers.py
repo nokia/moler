@@ -254,7 +254,6 @@ def want_debug_details():
 
 def want_log_console(logger_name: str) -> bool:
     """Check if we want to have logs on console."""
-    print(f"want_log_console({logger_name}) -> {logger_name in _console_loggers}, _console_loggers={_console_loggers}")
     return logger_name in _console_loggers
 
 
@@ -479,7 +478,6 @@ def _add_stdout_file_handler(logger_name: str, formatter, log_level, log_filter=
     :param log_filter: filter for file logger
     :return: None
     """
-    print(f"Adding stdout handler for {logger_name}, log_level={log_level}, formatter={formatter}, log_filter={log_filter}")
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(log_level)
     handler.setFormatter(formatter)
@@ -556,15 +554,12 @@ def create_logger(
 def configure_moler_main_logger():
     """Configure main logger of Moler"""
     # warning or above go to logfile
-    print("\n\nconfigure_moler_main_logger\n\n")
     if "moler" not in active_loggers:
-        print("moler not in active_loggers")
         logger = create_logger(name="moler", log_level=TRACE, datefmt=date_format)
         logger.propagate = True
 
         main_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(message)s"
         main_formatter = MolerMainMultilineWithDirectionFormatter(fmt=main_log_format, datefmt=date_format)
-        print("print _add_new_file_handler")
         _add_new_file_handler(
             logger_name="moler",
             log_file="moler.log",
@@ -572,7 +567,6 @@ def configure_moler_main_logger():
             formatter=main_formatter,
         )
         if want_log_console("moler"):
-            print("1 want log console")
             _add_stdout_file_handler(logger_name="moler", formatter=main_formatter, log_level=logging.INFO)
 
         if want_debug_details():
@@ -588,7 +582,6 @@ def configure_moler_main_logger():
                 formatter=debug_formatter
             )
             if want_log_console("moler.debug"):
-                print("2 want log console")
                 _add_stdout_file_handler(logger_name="moler", formatter=debug_formatter, log_level=debug_level)
 
         logger.info(moler_logo)
