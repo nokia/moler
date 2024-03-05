@@ -300,6 +300,9 @@ def _config_rotating(config):
             log_cfg.set_compressed_file_extension(
                 log_rotation["COMPRESSED_FILE_EXTENSION"]
             )
+    if "CONSOLE_LOGS" in config["LOGGER"]:
+        for log in config["LOGGER"]["CONSOLE_LOGS"]:
+            log_cfg.add_console_log(log)
 
 
 def reconfigure_logging_path(logging_path):

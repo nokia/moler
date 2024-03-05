@@ -28,6 +28,7 @@ from moler.util.compressed_timed_rotating_file_handler import (
 _logging_path = os.getcwd()  # Logging path that is used as a prefix for log file paths
 _logging_suffixes = {}  # Suffix for log files. None for nothing.
 active_loggers = set()  # Active loggers created by Moler
+_console_loggers = set()  # Loggers that should log to console
 date_format = "%d %H:%M:%S"
 
 # new logging levels
@@ -251,6 +252,10 @@ def want_debug_details():
     return debug_level is not None
 
 
+def want_log_console(logger_name: str) -> bool:
+    """Check if we want to have logs on console."""
+    return logger_name in _console_loggers
+
 def want_raw_logs():
     return raw_logs_active
 
@@ -463,6 +468,28 @@ def _add_new_file_handler(
     )
 
 
+def _add_stdout_file_handler(logger_name, formatter, log_level=logging.INFO, log_filter=None) -> None:
+    """
+    Add file writer into Logger.
+
+    :param formatter: formatter for file logger
+    :param log_level: only log records with equal and greater level will be accepted for storage in log
+    :param log_filter: filter for file logger
+    :return: None
+    """
+
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(log_level)
+    handler.setFormatter(formatter)
+    if log_filter:
+        handler.addFilter(log_filter)
+    logger = logging.getLogger(logger_name)
+    logger.addHandler(handler)
+
+
+
+
 def _add_raw_file_handler(logger_name, log_file):
     """
     Add raw/binary file writer into Logger
@@ -515,16 +542,20 @@ def create_logger(
     logger = logging.getLogger(name)
     if name not in active_loggers:
         logger.setLevel(log_level)
-        if (
-            log_file
-        ):  # if present means: "please add this file as logs storage for my logger"
+        if log_file:  # if present means: "please add this file as logs storage for my logger"
             _add_new_file_handler(
                 logger_name=name,
                 log_file=log_file,
                 log_level=log_level,
                 formatter=logging.Formatter(fmt=log_format, datefmt=datefmt),
             )
+        if want_log_console(name):
+            _add_stdout_file_handler(
+                logger_name=name,
+                formatter=logging.Formatter(fmt=log_format, datefmt=datefmt),
+                log_level=log_level,)
         active_loggers.add(name)
+
     return logger
 
 
@@ -536,17 +567,19 @@ def configure_moler_main_logger():
         logger.propagate = True
 
         main_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(message)s"
+        main_formatter = MolerMainMultilineWithDirectionFormatter(fmt=main_log_format, datefmt=date_format)
         _add_new_file_handler(
             logger_name="moler",
             log_file="moler.log",
             log_level=logging.INFO,  # only hi-level info from library
-            formatter=MolerMainMultilineWithDirectionFormatter(
-                fmt=main_log_format, datefmt=date_format
-            ),
+            formatter=main_formatter,
         )
+        if want_log_console("moler"):
+            _add_stdout_file_handler(logger_name="moler", formatter=main_formatter, log_level=logging.INFO)
 
         if want_debug_details():
             debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(name)-30s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() %(transfer_direction)s|%(message)s"
+            debug_formatter = MultilineWithDirectionFormatter(fmt=debug_log_format, datefmt=date_format)
             _add_new_file_handler(
                 logger_name="moler",
                 log_file="moler.debug.log",
@@ -554,10 +587,11 @@ def configure_moler_main_logger():
                 # entries from different components go to single file, so we need to
                 # differentiate them by logger name: "%(name)s"
                 # do we need "%(threadName)-30s" ???
-                formatter=MultilineWithDirectionFormatter(
-                    fmt=debug_log_format, datefmt=date_format
-                ),
+                formatter=debug_formatter
             )
+            if want_log_console("moler.debug"):
+                _add_stdout_file_handler(logger_name="moler", formatter=debug_formatter, log_level=debug_level)
+
 
         logger.info(moler_logo)
         msg = f"Using specific packages version:\nPython: {platform.python_version()}\nmoler: {_get_moler_version()}"
@@ -582,6 +616,12 @@ def configure_moler_threads_logger():
                 log_format=th_log_fmt,
                 datefmt=date_format,
             )
+            if want_log_console("moler_threads"):
+                _add_stdout_file_handler(
+                    logger_name="moler_threads",
+                    formatter=logging.Formatter(fmt=th_log_fmt, datefmt=date_format),
+                    log_level=TRACE
+                )
             logger.propagate = False
             msg = "-------------------started threads logger ---------------------"
             logger.info(msg)
@@ -676,6 +716,15 @@ def _create_logs_folder(logdir):
     """
     if not os.path.exists(logdir):
         os.makedirs(logdir)
+
+
+def add_console_log(log_name: str) -> None:
+    """
+    Add console log for given logger
+    :param log_name: name of logger
+    :return: None
+    """
+    _console_loggers.add(log_name)
 
 
 class TracedIn:
