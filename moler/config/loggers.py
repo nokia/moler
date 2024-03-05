@@ -254,6 +254,7 @@ def want_debug_details():
 
 def want_log_console(logger_name: str) -> bool:
     """Check if we want to have logs on console."""
+    print(f"want_log_console({logger_name}) -> {logger_name in _console_loggers}, _console_loggers={_console_loggers}")
     return logger_name in _console_loggers
 
 
@@ -469,7 +470,7 @@ def _add_new_file_handler(
     )
 
 
-def _add_stdout_file_handler(logger_name, formatter, log_level=logging.INFO, log_filter=None) -> None:
+def _add_stdout_file_handler(logger_name: str, formatter, log_level, log_filter=None) -> None:
     """
     Add file writer into Logger.
 
@@ -478,7 +479,7 @@ def _add_stdout_file_handler(logger_name, formatter, log_level=logging.INFO, log
     :param log_filter: filter for file logger
     :return: None
     """
-
+    print(f"Adding stdout handler for {logger_name}, log_level={log_level}, formatter={formatter}, log_filter={log_filter}")
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(log_level)
     handler.setFormatter(formatter)
@@ -547,11 +548,6 @@ def create_logger(
                 log_level=log_level,
                 formatter=logging.Formatter(fmt=log_format, datefmt=datefmt),
             )
-        if want_log_console(name):
-            _add_stdout_file_handler(
-                logger_name=name,
-                formatter=logging.Formatter(fmt=log_format, datefmt=datefmt),
-                log_level=log_level,)
         active_loggers.add(name)
 
     return logger
@@ -560,12 +556,15 @@ def create_logger(
 def configure_moler_main_logger():
     """Configure main logger of Moler"""
     # warning or above go to logfile
+    print("\n\nconfigure_moler_main_logger\n\n")
     if "moler" not in active_loggers:
+        print("moler not in active_loggers")
         logger = create_logger(name="moler", log_level=TRACE, datefmt=date_format)
         logger.propagate = True
 
         main_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(message)s"
         main_formatter = MolerMainMultilineWithDirectionFormatter(fmt=main_log_format, datefmt=date_format)
+        print("print _add_new_file_handler")
         _add_new_file_handler(
             logger_name="moler",
             log_file="moler.log",
@@ -573,6 +572,7 @@ def configure_moler_main_logger():
             formatter=main_formatter,
         )
         if want_log_console("moler"):
+            print("1 want log console")
             _add_stdout_file_handler(logger_name="moler", formatter=main_formatter, log_level=logging.INFO)
 
         if want_debug_details():
@@ -588,6 +588,7 @@ def configure_moler_main_logger():
                 formatter=debug_formatter
             )
             if want_log_console("moler.debug"):
+                print("2 want log console")
                 _add_stdout_file_handler(logger_name="moler", formatter=debug_formatter, log_level=debug_level)
 
         logger.info(moler_logo)
@@ -678,6 +679,12 @@ def configure_device_logger(connection_name, propagate=False):
             log_level=logging.INFO,
             formatter=conn_formatter,
         )
+        if want_log_console(logger_name):
+            _add_stdout_file_handler(
+                logger_name=logger_name,
+                formatter=conn_formatter,
+                log_level=logging.INFO,
+            )
         if want_raw_logs():
             # RAW_LOGS is lowest log-level so we need to change log-level of logger
             # to make it pass data into raw-log-handler
