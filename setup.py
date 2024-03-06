@@ -11,7 +11,7 @@ with io.open(join(here, 'requirements.txt'), encoding='utf-8') as f:
 
 setup(
     name='moler',
-    version='3.2.0',
+    version='3.3.0',
     description='Moler is a library for working with terminals, mainly for automated tests',  # Required
     long_description=long_description,
     long_description_content_type='text/markdown',

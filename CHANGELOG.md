@@ -1,3 +1,8 @@
+## moler 3.3.0
+* Optional log to console/stdout
+* Optional sleep before commands in EventAwaiter
+* Unix commands - optional ctrl + z and kill on timeout
+
 ## moler 3.2.0
 * Refactoring - removed warnings for Python
 * ConnectionObserverLifeStatus - debug enhancement
