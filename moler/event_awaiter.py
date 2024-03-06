@@ -10,7 +10,9 @@ __email__ = "marcin.usielski@nokia.com"
 
 import time
 
+from typing import Sequence
 from moler.connection_observer import ConnectionObserver
+from moler.util.moler_test import MolerTest
 from moler.helpers import copy_list
 
 
@@ -20,7 +22,7 @@ class EventAwaiter:
     """
 
     @classmethod
-    def wait_for_all(cls, timeout, events, interval=0.001):
+    def wait_for_all(cls, timeout: float, events: Sequence, interval: float = 0.001) -> bool:
         """
         Wait for all events to be done or timeout occurs.
 
@@ -45,7 +47,7 @@ class EventAwaiter:
         return all_done
 
     @classmethod
-    def wait_for_any(cls, timeout, events, interval=0.001):
+    def wait_for_any(cls, timeout: float, events: Sequence, interval: float = 0.001) -> bool:
         """
         Wait for any event to complete within the specified timeout.
 
@@ -67,7 +69,7 @@ class EventAwaiter:
         return any_done
 
     @classmethod
-    def separate_done_events(cls, events):
+    def separate_done_events(cls, events: Sequence) -> tuple:
         """
         Separate list of events into two lists: done events and non-done events.
 
@@ -84,7 +86,7 @@ class EventAwaiter:
         return (done_events, not_done_events)
 
     @classmethod
-    def cancel_all_events(cls, events):
+    def cancel_all_events(cls, events: Sequence[ConnectionObserver]) -> None:
         """
         Cancel all events in the given list.
 
@@ -95,7 +97,7 @@ class EventAwaiter:
             event.cancel()
 
     @classmethod
-    def start_command_after_event(cls, cmds, events, event_timeout=6):
+    def start_command_after_event(cls, cmds: Sequence, events: Sequence, event_timeout: float = 6., sleep_after_event: float = 0.) -> None:
         """
         Start the given commands and events sequentially. The next command starts when the previous event is done.
         Passed cmds and events can be lists of ConnectionObserver objects or lists of lists/tuples containing ConnectionObserver objects.
@@ -110,6 +112,7 @@ class EventAwaiter:
         :param cmds: A list of commands to start.
         :param events: A list of events to start. If None, then the next command is started immediately.
         :param event_timeout: Timeout for each event.
+        :param sleep_after_event: Time to sleep after every event.
         :return: None
         """
         events_cp = copy_list(events, deep_copy=False)
@@ -133,3 +136,5 @@ class EventAwaiter:
                     cmd_item.start()
                 for event in events_after_command:
                     event.await_done(timeout=event_timeout)
+                if sleep_after_event > 0.:
+                    MolerTest.sleep(sleep_after_event)
