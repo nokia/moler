@@ -270,17 +270,17 @@ def load_logger_from_config(config):
 def _config_rotating(config):
     if "KIND" in config["LOGGER"]:
         print(
-            "Warning! Please update LOGGER to new style"
+            "Warning! Please update LOGGER to new style. 'KIND' should now exist in LOG_ROTATION section."
         )  # Logger is not available here.
         log_cfg.set_kind(config["LOGGER"]["KIND"])
     if "INTERVAL" in config["LOGGER"]:
         print(
-            "Warning! Please update LOGGER to new style"
+            "Warning! Please update LOGGER to new style. 'INTERVAL' should now exist in LOG_ROTATION section."
         )  # Logger is not available here.
         log_cfg.set_interval(config["LOGGER"]["INTERVAL"])
     if "BACKUP_COUNT" in config["LOGGER"]:
         print(
-            "Warning! Please update LOGGER to new style"
+            "Warning! Please update LOGGER to new style. 'BACKUP_COUNT' should now exist in LOG_ROTATION section."
         )  # Logger is not available here.
         log_cfg.set_backup_count(config["LOGGER"]["BACKUP_COUNT"])
     if "LOG_ROTATION" in config["LOGGER"]:
@@ -300,6 +300,9 @@ def _config_rotating(config):
             log_cfg.set_compressed_file_extension(
                 log_rotation["COMPRESSED_FILE_EXTENSION"]
             )
+    if "CONSOLE_LOGS" in config["LOGGER"]:
+        for logger_name in config["LOGGER"]["CONSOLE_LOGS"]:
+            log_cfg.add_console_log(logger_name)
 
 
 def reconfigure_logging_path(logging_path):
