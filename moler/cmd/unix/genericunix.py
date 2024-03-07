@@ -77,6 +77,7 @@ class GenericUnixCommand(CommandTextualGeneric):
         if self.get_timeout_action() == 'z':
             self.connection.send("\x1A")  # ctrl+z
             self._ctrl_z_sent = True
+            self._log_timeout()
         else:
             super(GenericUnixCommand, self).on_timeout()
 
