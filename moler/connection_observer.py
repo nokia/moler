@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+"""Base class for all events and commands that are to be observed on connection."""
+
 __author__ = "Grzegorz Latuszek, Marcin Usielski, Michal Ernst"
 __copyright__ = "Copyright (C) 2018-2024 Nokia"
 __email__ = (
@@ -41,6 +43,9 @@ from moler.util.loghelper import log_into_logger
 
 @add_metaclass(ABCMeta)
 class ConnectionObserver:
+
+    """Base class for all events and commands that are to be observed on connection."""
+
     _not_raised_exceptions = []  # list of dict: "exception" and "time"
     _exceptions_lock = threading.Lock()
 
@@ -426,11 +431,14 @@ class ConnectionObserver:
         """
         return False
 
-    def extend_timeout(
-        self, timedelta: float
-    ) -> (
-        None
-    ):  # TODO: probably API to remove since we have runner tracking .timeout=XXX
+    def extend_timeout(self, timedelta: float) -> None:
+        """
+        Extend timeout by timedelta seconds.
+
+        :param timedelta: The time to extend the timeout by.
+        :return: None
+        """
+        # TODO: probably API to remove since we have runner tracking .timeout=XXX
         prev_timeout = self.timeout
         self.timeout = self.timeout + timedelta
         msg = f"Extended timeout from {prev_timeout:.2f} with delta {timedelta:.2f} to {self.timeout:.2f}"
@@ -445,12 +453,21 @@ class ConnectionObserver:
         """
 
     @ClassProperty
-    def observer_name(self):
+    def observer_name(self) -> str:
+        """
+        Return the name of the observer.
+        """
         name = camel_case_to_lower_case_underscore(self.__name__)
         return name
 
     @staticmethod
     def get_unraised_exceptions(remove: bool = True) -> list:
+        """
+        Return list of unraised exceptions.
+
+        :param remove: If True, remove the exceptions from the list. Defaults to True.
+        :return: list of unraised exceptions.
+        """
         with ConnectionObserver._exceptions_lock:
             if remove:
                 list_of_exceptions = ConnectionObserver._not_raised_exceptions
@@ -463,9 +480,16 @@ class ConnectionObserver:
                 return list_of_exceptions
 
     @staticmethod
-    def _change_unraised_exception(
-        new_exception: Exception, observer, stack_msg: str
-    ) -> None:
+    def _change_unraised_exception(new_exception: Exception, observer, stack_msg: str) -> None:
+        """
+        Change the unraised exception for the given observer.
+
+        :param  new_exception: The new exception to be set.
+        :param  observer: The observer object.
+        :param  stack_msg: The stack message associated with the exception.
+
+        return: None
+        """
         with ConnectionObserver._exceptions_lock:
             old_exception = observer._exception  # pylint: disable=protected-access
             ConnectionObserver._log_unraised_exceptions(observer)
@@ -489,6 +513,13 @@ class ConnectionObserver:
 
     @staticmethod
     def _log_unraised_exceptions(observer) -> None:
+        """
+        Logs the unraised exceptions for the observer.
+
+
+        :param observer: The observer object (command or event).
+        :return: None
+        """
         for i, item in enumerate(ConnectionObserver._not_raised_exceptions):
             observer._log(  # pylint: disable=protected-access
                 logging.DEBUG,
@@ -497,13 +528,27 @@ class ConnectionObserver:
             )
             observer._log(logging.DEBUG, observer._exception_stack_msg)  # pylint: disable=protected-access
 
-    def get_long_desc(self):
+    def get_long_desc(self) -> str:
+        """
+        Return a long description of the observer.
+        """
         return f"Observer '{self.__class__.__module__}.{self}'"
 
-    def get_short_desc(self):
+    def get_short_desc(self) -> str:
+        """
+        Return a short description of the observer.
+        """
         return f"Observer '{self.__class__.__module__}.{self}'"
 
-    def _log(self, lvl, msg, extra=None, levels_to_go_up=1):
+    def _log(self, lvl:int, msg:str, extra:dict = None, levels_to_go_up:int = 1) -> None:
+        """
+        Log a message with the specified level.
+
+        :param lvl: The log level.
+        :param msg: The log message.
+        :param extra: Extra parameters to include in the log message. Defaults to None.
+        :param levels_to_go_up: The number of levels to go up in the call stack to determine the caller info. Defaults to 1.
+        """
         extra_params = {"log_name": self.get_logger_name()}
 
         if extra:
