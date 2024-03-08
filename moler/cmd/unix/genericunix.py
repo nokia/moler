@@ -9,8 +9,8 @@ __email__ = 'marcin.usielski@nokia.com'
 
 import re
 import abc
-import six
 from typing import Optional, Union, Pattern, Sequence
+import six
 from moler.abstract_moler_connection import AbstractMolerConnection
 from moler.runner import ConnectionObserverRunner
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
@@ -28,6 +28,7 @@ r_cmd_failure_cause_alternatives = "|".join(cmd_failure_causes)
 
 @six.add_metaclass(abc.ABCMeta)
 class GenericUnixCommand(CommandTextualGeneric):
+    """GenericUnixCommand is a base class for Unix/Linux commands."""
     # _re_fail = re.compile(r_cmd_failure_cause_alternatives, re.IGNORECASE)
 
     _whole_timeout_action = 'c'
@@ -140,7 +141,6 @@ class GenericUnixCommand(CommandTextualGeneric):
         :return: None.
         """
         if self._ctrl_z_sent and not self._kill_ctrl_z_sent and self._regex_helper.search_compiled(GenericUnixCommand._re_ctrl_z_stopped, line):
-            self._stopping_server = True
             job_id = self._regex_helper.group("JOB_ID")
             self.connection.sendline(f"kill %{job_id}")
             self._kill_ctrl_z_sent = True
