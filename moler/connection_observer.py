@@ -125,32 +125,39 @@ class ConnectionObserver:
 
     @property
     def _is_done(self) -> bool:
+        """Return if observer is done."""
         return self.life_status.is_done
 
     @_is_done.setter
     def _is_done(self, value: bool):
+        """Set if observer is done."""
         self.life_status.is_done = value
         if value:
             CommandScheduler.dequeue_running_on_connection(connection_observer=self)
 
     @property
     def _is_cancelled(self) -> bool:
+        """Return if observer is cancelled."""
         return self.life_status.is_cancelled
 
     @_is_cancelled.setter
     def _is_cancelled(self, value: bool):
+        """Set if observer is cancelled."""
         self.life_status.is_cancelled = value
 
     @property
     def terminating_timeout(self) -> float:
+        """Return timeout for observer termination."""
         return self.life_status.terminating_timeout
 
     @terminating_timeout.setter
     def terminating_timeout(self, value: float):
+        """Set timeout for observer termination."""
         self.life_status.terminating_timeout = value
 
     @property
     def timeout(self) -> float:
+        """Return timeout for observer."""
         return self.life_status.timeout
 
     @timeout.setter
@@ -165,13 +172,14 @@ class ConnectionObserver:
 
     @property
     def start_time(self) -> float:
+        """Return time when observer has been started."""
         return self.life_status.start_time
 
     def get_logger_name(self) -> str:
+        """Return logger name for this connection-observer"""
         if self.connection and hasattr(self.connection, "name"):
             return self.connection.name
-        else:
-            return self.__class__.__name__
+        return self.__class__.__name__
 
     # pylint: disable=keyword-arg-before-vararg
     def start(self, timeout: Optional[float] = None, *args, **kwargs):
@@ -424,6 +432,7 @@ class ConnectionObserver:
                 msg = f"{msg}, '{attribute_name}':'{self.__dict__[attribute_name]}'"
             else:
                 msg = f"Timeout when '{attribute_name}':'{self.__dict__[attribute_name]}'"
+        return msg
 
     def is_command(self) -> bool:
         """
@@ -472,12 +481,9 @@ class ConnectionObserver:
             if remove:
                 list_of_exceptions = ConnectionObserver._not_raised_exceptions
                 ConnectionObserver._not_raised_exceptions = []
-                return list_of_exceptions
             else:
-                list_of_exceptions = copy_list(
-                    ConnectionObserver._not_raised_exceptions
-                )
-                return list_of_exceptions
+                list_of_exceptions = copy_list(ConnectionObserver._not_raised_exceptions)
+            return list_of_exceptions
 
     @staticmethod
     def _change_unraised_exception(new_exception: Exception, observer, stack_msg: str) -> None:
