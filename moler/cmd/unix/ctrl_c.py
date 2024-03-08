@@ -7,9 +7,9 @@ __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2019, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
+import re
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
-import re
 
 
 class CtrlC(GenericUnixCommand):
