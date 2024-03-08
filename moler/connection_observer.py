@@ -540,7 +540,7 @@ class ConnectionObserver:
         """
         return f"Observer '{self.__class__.__module__}.{self}'"
 
-    def _log(self, lvl:int, msg:str, extra:dict = None, levels_to_go_up:int = 1) -> None:
+    def _log(self, lvl: int, msg: str, extra: dict = None, levels_to_go_up: int = 1) -> None:
         """
         Log a message with the specified level.
 
