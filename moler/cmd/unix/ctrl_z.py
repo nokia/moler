@@ -8,6 +8,7 @@ __copyright__ = 'Copyright (C) 2024, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
+from moler.exceptions import ParsingDone
 from moler.cmd.unix.ctrl_c import CtrlC
 
 
@@ -46,13 +47,47 @@ class CtrlZ(CtrlC):
         self.__command_string = command_string
         self._cmd_escaped = re.compile(r"\^Z", re.I)
 
+    def on_new_line(self, line: str, is_full_line: bool) -> None:
+        """
+        Method to parse line from device.
+
+        :param line: Line from device.
+        :param is_full_line: Flag marking if line is not partial.
+        :return: None
+        """
+        if is_full_line:
+            try:
+                self._process_id(line)
+            except ParsingDone:
+                pass
+        super(CtrlZ, self).on_new_line(line, is_full_line)
+
+    # [2]+  Stopped                 ping 10.83.200.200
+    _re_ctrl_z = re.compile(r'\[(?P<ID>\d+)\]\+\s+Stopped\s+(?P<PROCESS>.*)')
+
+    def _process_id(self, line: str) -> None:
+        """
+        Method to parse line with process id.
+
+        :param line: Line from device.
+        :return: None
+        """
+        if self._regex_helper.search(CtrlZ._re_ctrl_z, line):
+            self.current_ret['id'] = int(self._regex_helper.group('ID'))
+            self.current_ret['process'] = self._regex_helper.group('PROCESS')
+            raise ParsingDone()
+
 
 COMMAND_OUTPUT = """
 prompt>^Z
+[2]+  Stopped                 myScript param1 param2
 bash-4.2:~ #"""
 
 COMMAND_KWARGS = {
     "expected_prompt": r'bash-4.2'
 }
 
-COMMAND_RESULT = {}
+COMMAND_RESULT = {
+    'id': 2,
+    'process': 'myScript param1 param2',
+}

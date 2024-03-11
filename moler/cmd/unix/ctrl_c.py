@@ -73,7 +73,7 @@ class CtrlC(GenericUnixCommand):
         """
         if self._regex_helper.search_compiled(self._re_expected_prompt, line):
             if not self.done():
-                self.set_result({})
+                self.set_result(self.current_ret)
 
 
 COMMAND_OUTPUT = """
