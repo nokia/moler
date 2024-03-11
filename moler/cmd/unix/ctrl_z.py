@@ -40,7 +40,7 @@ class CtrlZ(CtrlC):
         """
         Setter for command_string.
 
-        :param command_string: Stting with command to set.
+        :param command_string: String with command to set.
         :return: None
         """
         self.__command_string = command_string
