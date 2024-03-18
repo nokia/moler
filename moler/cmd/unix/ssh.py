@@ -55,7 +55,8 @@ class Ssh(GenericTelnetSsh):
                  options='-o ServerAliveInterval=7 -o ServerAliveCountMax=2',
                  failure_exceptions_indication=None, prompt_after_login=None, send_enter_after_connection=True,
                  username=None, permission_denied_key_pass_keyboard=r'ssh-keygen -f "~/.ssh/known_hosts" -R "{host}"',
-                 allow_override_denied_key_pass_keyboard=True, suffix=None):
+                 allow_override_denied_key_pass_keyboard=True, suffix=None,
+                 failure_indication=None):
         """
         Moler class of Unix command ssh.
 
@@ -89,6 +90,8 @@ class Ssh(GenericTelnetSsh):
         :param allow_override_denied_key_pass_keyboard: Set True to override the command ssh-keygen to command from ssh
          output. False to ignore ssh output.
         :param suffix: String to append after command ssh.
+        :param failure_indication: String with regex or regex object to fail command. If None then default values will be used.
+         was found.
         """
         super(Ssh, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner,
                                   port=port, host=host, login=login, password=password,
@@ -100,7 +103,7 @@ class Ssh(GenericTelnetSsh):
                                   failure_exceptions_indication=failure_exceptions_indication,
                                   prompt_after_login=prompt_after_login,
                                   send_enter_after_connection=send_enter_after_connection,
-                                  username=username
+                                  username=username, failure_indication=failure_indication
                                   )
 
         # Parameters defined by calling the command

@@ -69,6 +69,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
         prompt_after_login=None,
         send_enter_after_connection=True,
         username=None,
+        failure_indication=None
     ):
         """
         Base Moler class of Unix commands telnet and ssh.
@@ -95,6 +96,8 @@ class GenericTelnetSsh(CommandChangingPrompt):
          then leave it None.
         :param send_enter_after_connection: set True to send new line char(s) after connection is established, False
          otherwise.
+        :param failure_indication: String with regex or regex object to fail command. If None then default values will be used.
+         was found.
         """
         super(GenericTelnetSsh, self).__init__(
             connection=connection,
@@ -116,6 +119,10 @@ class GenericTelnetSsh(CommandChangingPrompt):
             self._re_failure_exceptions_indication = (
                 CommandTextualGeneric._calculate_prompt(failure_exceptions_indication)
             )
+        self._re_failure_indication = GenericTelnetSsh._re_failed_strings
+        if failure_indication is not None:
+            self._re_failure_indication = CommandTextualGeneric._calculate_prompt(failure_indication)
+
         self.login = login
         if isinstance(password, six.string_types):
             self._passwords = [password]
@@ -290,9 +297,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
         :param is_full_line: True if line had new line chars, False otherwise
         :return: True if line contains information that command fails, False otherwise
         """
-        return self._regex_helper.search_compiled(
-            GenericTelnetSsh._re_failed_strings, line
-        ) is not None
+        return self._regex_helper.search_compiled(self._re_failed_strings, line) is not None
 
     def _is_failure_exception(self, line):
         """
