@@ -119,9 +119,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
             self._re_failure_exceptions_indication = (
                 CommandTextualGeneric._calculate_prompt(failure_exceptions_indication)
             )
-        self._re_failure_indication = GenericTelnetSsh._re_failed_strings
-        if failure_indication is not None:
-            self._re_failure_indication = CommandTextualGeneric._calculate_prompt(failure_indication)
+        self._re_failure_indication = GenericTelnetSsh._re_failed_strings if failure_indication is None else CommandTextualGeneric._calculate_prompt(failure_indication)
 
         self.login = login
         if isinstance(password, six.string_types):
