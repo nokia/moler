@@ -233,7 +233,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
                 self.enter_on_prompt_without_anchors = False
         return found is not None
 
-    def _all_after_login_settings_sent(self):
+    def _all_after_login_settings_sent(self) -> bool:
         """
         Checks if all commands were sent by telnet command.
 
@@ -247,7 +247,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
         terminal_cmds_sent = ((both_requested and both_sent) or req_and_sent_timeout or req_and_sent_prompt)
         return terminal_cmds_sent and additional_commands_sent
 
-    def _sent_additional_settings_commands(self):
+    def _sent_additional_settings_commands(self) -> bool:
         """
         Checks if additional commands after connection established are sent (useful for telnet, not used for ssh).
 
@@ -256,7 +256,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
         return True
 
     @abc.abstractmethod
-    def build_command_string(self):
+    def build_command_string(self) -> str:
         """
         Returns string with command constructed with parameters of object.
 

@@ -84,7 +84,7 @@ class Telnet(GenericTelnetSsh):
         # Internal variables
         self._telnet_command_mode = False
 
-    def build_command_string(self):
+    def build_command_string(self) -> str:
         """
         Builds command string from parameters passed to object.
 
@@ -105,7 +105,7 @@ class Telnet(GenericTelnetSsh):
             self.cmds_before_establish_connection.append(f"open {host_port_cmd}")
         return cmd
 
-    def on_new_line(self, line, is_full_line):
+    def on_new_line(self, line: str, is_full_line: bool) -> None:
         """
         Parses the output of the command.
 
@@ -120,7 +120,7 @@ class Telnet(GenericTelnetSsh):
             pass
         super(Telnet, self).on_new_line(line=line, is_full_line=is_full_line)
 
-    def _send_telnet_commands(self, line, is_full_line, commands):
+    def _send_telnet_commands(self, line: str, is_full_line: bool, commands: list) -> bool:
         """
         Sends telnet commands.
 
@@ -137,7 +137,7 @@ class Telnet(GenericTelnetSsh):
             return True
         return False
 
-    def _send_commands_before_establish_connection_if_requested(self, line, is_full_line):
+    def _send_commands_before_establish_connection_if_requested(self, line: str, is_full_line: bool) -> None:
         """
         Sends commands before open connection to telnet server.
 
@@ -148,7 +148,7 @@ class Telnet(GenericTelnetSsh):
         if self._send_telnet_commands(line, is_full_line, self.cmds_before_establish_connection):
             raise ParsingDone()
 
-    def _send_commands_after_establish_connection_if_requested(self, line, is_full_line):
+    def _send_commands_after_establish_connection_if_requested(self, line: str, is_full_line: bool) -> None:
         """
         Sends commands after connection (after login and password) to telnet server.
 
@@ -162,7 +162,7 @@ class Telnet(GenericTelnetSsh):
                 self._telnet_command_mode = False
                 raise ParsingDone()
 
-    def _change_telnet_to_setting_commands(self):
+    def _change_telnet_to_setting_commands(self) -> None:
         """
         Changes telnet mode to enter telnet commands not information from server.
 
@@ -172,7 +172,7 @@ class Telnet(GenericTelnetSsh):
             self.connection.send(chr(0x1D))  # ctrl + ]
             self._telnet_command_mode = True
 
-    def _cmds_after_establish_connection_needed(self):
+    def _cmds_after_establish_connection_needed(self) -> bool:
         """
         Checks if any command is requested to be sent to telnet command after establishing connection.
 
@@ -183,7 +183,7 @@ class Telnet(GenericTelnetSsh):
             ret = True
         return ret
 
-    def _commands_to_set_connection_after_login(self, line):
+    def _commands_to_set_connection_after_login(self, line: str) -> bool:
         """
         Sends command to telnet to change mode to enter telnet commands.
 
@@ -195,7 +195,7 @@ class Telnet(GenericTelnetSsh):
             return True
         return False
 
-    def _sent_additional_settings_commands(self):
+    def _sent_additional_settings_commands(self) -> bool:
         """
         Checks if additional commands for telnet mode are sent.
 

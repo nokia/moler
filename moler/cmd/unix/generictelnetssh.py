@@ -154,7 +154,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
         self.current_ret["FAILED_LOGIN_ATTEMPTS"] = None
         self._converter_helper = ConverterHelper.get_converter_helper()
 
-    def on_new_line(self, line, is_full_line):
+    def on_new_line(self, line: str, is_full_line: bool) -> None:
         """
         Parses the output of the command.
 
@@ -187,7 +187,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
         re.I,
     )
 
-    def _add_line_to_ret(self, line):
+    def _add_line_to_ret(self, line: str) -> None:
         """
         Adds lint to ret value of command.
 
@@ -211,7 +211,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
                 self._regex_helper.group("ATTEMPTS_NR")
             )
 
-    def _parse_failure_indication(self, line, is_full_line):
+    def _parse_failure_indication(self, line: str, is_full_line: bool) -> None:
         """
         Detects fail from command output.
 
@@ -227,7 +227,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
                 )
                 raise ParsingDone()
 
-    def _just_connected(self, line):
+    def _just_connected(self, line: str) -> None:
         """
         Checks if line contains has just connected.
 
@@ -241,7 +241,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
                 self.connection.send(self.target_newline)
                 raise ParsingDone()
 
-    def _send_login_if_requested(self, line):
+    def _send_login_if_requested(self, line: str) -> None:
         """
         Sends login if requested by server.
 
@@ -254,7 +254,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
             self._sent = False
             raise ParsingDone()
 
-    def _send_password_if_requested(self, line):
+    def _send_password_if_requested(self, line: str) -> None:
         """
         Sends server if requested by server.
 
@@ -287,7 +287,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
             self._sent = True
             raise ParsingDone()
 
-    def is_failure_indication(self, line, is_full_line=True):
+    def is_failure_indication(self, line: str, is_full_line: bool=True) -> bool:
         """
         Checks if line contains information that command fails.
 
@@ -297,33 +297,31 @@ class GenericTelnetSsh(CommandChangingPrompt):
         """
         return self._regex_helper.search_compiled(self._re_failed_strings, line) is not None
 
-    def _is_failure_exception(self, line):
+    def _is_failure_exception(self, line: str) -> bool:
         """
         Checks if line contains exception information that command fails.
 
         :param line: Line from device
-        :return: Match object or None
+        :return: True if line contains information that command doesn't fail, False otherwise
         """
         if not self._re_failure_exceptions_indication:
-            return None
-        return self._regex_helper.search_compiled(
-            self._re_failure_exceptions_indication, line
-        )
+            return False
+        return self._regex_helper.search_compiled(self._re_failure_exceptions_indication, line) is not None
 
-    def _is_login_requested(self, line):
+    def _is_login_requested(self, line: str) -> bool:
         """
         Checks if line contains information that commands waits for login.
 
         :param line: Line from device
-        :return: Match object or None
+        :return: True if line contains information that commands waits for login, False otherwise
         """
-        return self._regex_helper.search_compiled(GenericTelnetSsh._re_login, line)
+        return self._regex_helper.search_compiled(GenericTelnetSsh._re_login, line) is not None
 
-    def _is_password_requested(self, line):
+    def _is_password_requested(self, line: str) -> bool:
         """
         Checks if line contains information that commands waits for password.
 
         :param line: Line from device
-        :return: Match object or None
+        :return: True if line contains information that commands waits for password, False otherwise
         """
-        return self._regex_helper.search_compiled(GenericTelnetSsh._re_password, line)
+        return self._regex_helper.search_compiled(GenericTelnetSsh._re_password, line) is not None

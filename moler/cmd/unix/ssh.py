@@ -121,7 +121,7 @@ class Ssh(GenericTelnetSsh):
         if permission_denied_key_pass_keyboard is not None:
             self._permission_denied_key_pass_keyboard_cmd = permission_denied_key_pass_keyboard.format(host=host)  # pylint-disable-line: consider-using-f-string
 
-    def build_command_string(self):
+    def build_command_string(self) -> str:
         """
         Builds command string from parameters passed to object.
 
@@ -143,7 +143,7 @@ class Ssh(GenericTelnetSsh):
             cmd = f"{cmd} {self.suffix}"
         return cmd
 
-    def on_new_line(self, line, is_full_line):
+    def on_new_line(self, line: str, is_full_line: bool) -> None:
         """
         Parses the output of the command.
 
@@ -163,7 +163,7 @@ class Ssh(GenericTelnetSsh):
             pass
         super(Ssh, self).on_new_line(line=line, is_full_line=is_full_line)
 
-    def _override_permission_denied_key_pass_keyboard(self, line):
+    def _override_permission_denied_key_pass_keyboard(self, line: str) -> None:
         """
         Checks if line contains new command.
         :param line: Line from device
@@ -176,7 +176,7 @@ class Ssh(GenericTelnetSsh):
             self._was_overridden_key_pass_keyboard = True
             raise ParsingDone()
 
-    def _permission_denied_key_pass_keyboard(self, line):
+    def _permission_denied_key_pass_keyboard(self, line: str) -> None:
         """
         Checks regex host key verification.
 
@@ -190,7 +190,7 @@ class Ssh(GenericTelnetSsh):
                 self.set_exception(CommandFailure(self, f"command failed in line '{line}'"))
             raise ParsingDone()
 
-    def _host_key_verification(self, line):
+    def _host_key_verification(self, line: str) -> None:
         """
         Checks regex host key verification.
 
@@ -204,7 +204,7 @@ class Ssh(GenericTelnetSsh):
                 self.set_exception(CommandFailure(self, f"command failed in line '{line}'"))
             raise ParsingDone()
 
-    def _id_dsa(self, line):
+    def _id_dsa(self, line: str) -> None:
         """
         Checks id dsa.
 
@@ -215,7 +215,7 @@ class Ssh(GenericTelnetSsh):
             self.connection.sendline("")
             raise ParsingDone()
 
-    def _get_hosts_file_if_displayed(self, line):
+    def _get_hosts_file_if_displayed(self, line: str) -> None:
         """
         Checks if line from device has info about hosts file.
 
@@ -226,7 +226,7 @@ class Ssh(GenericTelnetSsh):
             self._hosts_file = self._regex_helper.group("HOSTS_FILE")
             raise ParsingDone()
 
-    def _push_yes_if_needed(self, line):
+    def _push_yes_if_needed(self, line: str) -> None:
         """
         Checks if line from device has information about waiting for sent yes/no.
 
@@ -238,7 +238,7 @@ class Ssh(GenericTelnetSsh):
             self._sent_continue_connecting = True
             raise ParsingDone()
 
-    def _resend_command_string(self):
+    def _resend_command_string(self) -> None:
         self._cmd_output_started = False
         self._sent_continue_connecting = False
         self._sent_prompt = False
@@ -246,7 +246,7 @@ class Ssh(GenericTelnetSsh):
         self._sent = False
         self.connection.sendline(self.command_string)
 
-    def _handle_permission_denied_key_pass_keyboard(self):
+    def _handle_permission_denied_key_pass_keyboard(self) -> None:
         """
         Handles situation when permission denied.
 
@@ -255,7 +255,7 @@ class Ssh(GenericTelnetSsh):
         self.connection.sendline(f"\n{self._permission_denied_key_pass_keyboard_cmd}")
         self._resend_command_string()
 
-    def _handle_failed_host_key_verification(self):
+    def _handle_failed_host_key_verification(self) -> None:
         """
         Handles situation when failed host key verification.
 
@@ -275,7 +275,7 @@ class Ssh(GenericTelnetSsh):
         else:
             self._resend_command_string()
 
-    def _check_if_resize(self, line):
+    def _check_if_resize(self, line: str) -> None:
         """
         Checks if line from device has information about size of windows.
 
@@ -287,14 +287,14 @@ class Ssh(GenericTelnetSsh):
             self.connection.sendline("")
             raise ParsingDone()
 
-    def _is_password_requested(self, line):
+    def _is_password_requested(self, line: str) -> bool:
         """
         Checks if line contains information that commands waits for password.
 
         :param line: Line from device
-        :return: Match object or None
+        :return: True if line contains information about password, False otherwise.
         """
-        return self._regex_helper.search_compiled(Ssh._re_password, line)
+        return self._regex_helper.search_compiled(Ssh._re_password, line) is not None
 
 
 COMMAND_OUTPUT = """
