@@ -20,6 +20,8 @@ from moler.exceptions import ParsingDone
 
 
 class Ssh(GenericTelnetSsh):
+    """ Unix command ssh """
+
     # Compiled regexp
 
     # Add correct host key in /home/you/.ssh/known_hosts to get rid of this message.

@@ -201,7 +201,7 @@ class Telnet(GenericTelnetSsh):
 
         :return: True if no any commands to change telnet left. False if any command left.
         """
-        telnet_cmds_sent = (0 == len(self.cmds_after_establish_connection))
+        telnet_cmds_sent = 0 == len(self.cmds_after_establish_connection)
         return telnet_cmds_sent
 
 
