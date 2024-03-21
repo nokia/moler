@@ -9,9 +9,10 @@ __email__ = "marcin.usielski@nokia.com, tomasz.krol@nokia.com"
 
 import abc
 import re
+import warnings
+
 import six
 
-import warnings
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     from dateutil import parser  # https://github.com/aws/jsii/issues/4406
@@ -25,6 +26,8 @@ from moler.util.converterhelper import ConverterHelper
 
 @six.add_metaclass(abc.ABCMeta)
 class GenericTelnetSsh(CommandChangingPrompt):
+    """Base class for telnet and ssh commands."""
+
     # Compiled regexp
 
     # Login:
@@ -147,7 +150,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
                 self,
                 f"Please set login ('{login}') or username ('{username}') but not both.",
             )
-        elif username:
+        if username:
             self.login = username
         self.current_ret["LINES"] = []
         self.current_ret["LAST_LOGIN"] = {}

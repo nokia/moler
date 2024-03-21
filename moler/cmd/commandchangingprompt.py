@@ -136,7 +136,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
             if self._timeout_set_needed() and not self._sent:
                 self._send_timeout_set()
                 return True  # just sent
-            elif self._prompt_set_needed() and not self._sent:
+            if self._prompt_set_needed() and not self._sent:
                 self._send_prompt_set()
                 return True  # just sent
         return False  # nothing sent
@@ -211,9 +211,10 @@ class CommandChangingPrompt(CommandTextualGeneric):
         found = self._regex_helper.search_compiled(self._re_expected_prompt, line)
         if not found and self.enter_on_prompt_without_anchors is True:
             if self._regex_helper.search_compiled(self._re_expected_prompt_without_anchors, line):
-                self.logger.info(f"Candidate for expected prompt '{self._re_expected_prompt.pattern}' "
-                                 f"(used without anchors:'{self._re_expected_prompt_without_anchors.pattern}') "
-                                 f"in line '{line}'.")
+                msg = f"Candidate for expected prompt '{self._re_expected_prompt.pattern}' "\
+                      f"(used without anchors:'{self._re_expected_prompt_without_anchors.pattern}') "\
+                      f"in line '{line}'."
+                self.logger.info(msg)
                 self.send_enter()
                 self.enter_on_prompt_without_anchors = False
         return found is not None
@@ -228,7 +229,8 @@ class CommandChangingPrompt(CommandTextualGeneric):
         found = self._regex_helper.search_compiled(self._re_prompt_after_login, line)
         if not found and self.enter_on_prompt_without_anchors is True:
             if self._regex_helper.search_compiled(self._re_prompt_after_login_without_anchors, line):
-                self.logger.info(f"Candidate for prompt after login '{self._re_prompt_after_login.pattern}' in line '{line}'.")
+                msg = f"Candidate for prompt after login '{self._re_prompt_after_login.pattern}' in line '{line}'."
+                self.logger.info(msg)
                 self.send_enter()
                 self.enter_on_prompt_without_anchors = False
         return found is not None
