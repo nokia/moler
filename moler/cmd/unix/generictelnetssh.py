@@ -287,7 +287,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
             self._sent = True
             raise ParsingDone()
 
-    def is_failure_indication(self, line: str, is_full_line: bool=True) -> bool:
+    def is_failure_indication(self, line: str, is_full_line: bool = True) -> bool:
         """
         Checks if line contains information that command fails.
 
