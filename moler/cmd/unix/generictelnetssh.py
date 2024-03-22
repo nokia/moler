@@ -298,9 +298,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
         :param is_full_line: True if line had new line chars, False otherwise
         :return: True if line contains information that command fails, False otherwise
         """
-        if self._re_failed_strings:
-            return self._regex_helper.search_compiled(self._re_failed_strings, line) is not None
-        return False
+        return False if self._re_failed_strings is None else self._regex_helper.search_compiled(self._re_failed_strings, line) is not None
 
     def _is_failure_exception(self, line: str, is_full_line: bool) -> bool:
         """
