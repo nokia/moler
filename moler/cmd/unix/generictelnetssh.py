@@ -117,12 +117,12 @@ class GenericTelnetSsh(CommandChangingPrompt):
 
         self.timeout = 90
         # Parameters defined by calling the command
-        self._re_failure_exceptions_indication = None
-        if failure_exceptions_indication:
-            self._re_failure_exceptions_indication = (
-                CommandTextualGeneric._calculate_prompt(failure_exceptions_indication)
-            )
-        self._re_failure_indication = GenericTelnetSsh._re_failed_strings if failure_indication is None else CommandTextualGeneric._calculate_prompt(failure_indication)
+        self.add_failure_exception(failure_exceptions_indication)
+        self.add_failure_indication(None)
+        if failure_indication is None:
+            self.add_failure_indication(GenericTelnetSsh._re_failed_strings)
+        else:
+            self.add_failure_indication(failure_indication)
 
         self.login = login
         if isinstance(password, six.string_types):
@@ -298,18 +298,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
         :param is_full_line: True if line had new line chars, False otherwise
         :return: True if line contains information that command fails, False otherwise
         """
-        return False if self._re_failed_strings is None else self._regex_helper.search_compiled(self._re_failed_strings, line) is not None
-
-    def _is_failure_exception(self, line: str, is_full_line: bool) -> bool:
-        """
-        Checks if line contains exception information that command fails.
-
-        :param line: Line from device
-        :return: True if line contains information that command doesn't fail, False otherwise
-        """
-        if not self._re_failure_exceptions_indication:
-            return False
-        return self._regex_helper.search_compiled(self._re_failure_exceptions_indication, line) is not None
+        return False if self.re_fail is None else self._regex_helper.search_compiled(self.re_fail, line) is not None
 
     def _is_login_requested(self, line: str) -> bool:
         """
