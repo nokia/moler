@@ -224,7 +224,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
         :raises: ParsingDone if line matched failure indication.
         """
         if self.is_failure_indication(line, is_full_line):
-            if not self._is_failure_exception(line):
+            if not self._is_failure_exception(line=line, is_full_line=is_full_line):
                 self.set_exception(
                     CommandFailure(self, f"command failed in line '{line}', {is_full_line}")
                 )
@@ -298,9 +298,11 @@ class GenericTelnetSsh(CommandChangingPrompt):
         :param is_full_line: True if line had new line chars, False otherwise
         :return: True if line contains information that command fails, False otherwise
         """
-        return self._regex_helper.search_compiled(self._re_failed_strings, line) is not None
+        if self._re_failed_strings:
+            return self._regex_helper.search_compiled(self._re_failed_strings, line) is not None
+        return False
 
-    def _is_failure_exception(self, line: str) -> bool:
+    def _is_failure_exception(self, line: str, is_full_line: bool) -> bool:
         """
         Checks if line contains exception information that command fails.
 

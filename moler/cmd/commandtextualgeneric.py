@@ -122,6 +122,7 @@ class CommandTextualGeneric(Command):
             self._newline_chars = CommandTextualGeneric._default_newline_chars
 
         self._re_prompt_without_anchors = regexp_without_anchors(self._re_prompt)
+        self._re_failure_exception = None
 
     @property
     def break_exec_regex(self) -> Pattern:
@@ -135,7 +136,7 @@ class CommandTextualGeneric(Command):
     @break_exec_regex.setter
     def break_exec_regex(self, break_exec_regex: Union[str, Pattern]) -> None:
         """
-        Setterfor break_exec_regex
+        Setter for break_exec_regex
         :param break_exec_regex: String with regex, compiled regex object or None
         :return: None
         """
@@ -642,27 +643,65 @@ class CommandTextualGeneric(Command):
         :return: None
         """
         if self.is_failure_indication(line=line, is_full_line=is_full_line):
-            self.set_exception(
-                CommandFailure(self, f"command failed in line '{line}'")
-            )
+            if self._is_failure_exception(line=line, is_full_line=is_full_line) is False:
+                self.set_exception(
+                    CommandFailure(self, f"command failed in line '{line}'")
+                )
+
+    def _is_failure_exception(self, line: str, is_full_line: bool) -> bool:
+        """
+        Check if line contains exception information that command fails.
+
+        :param line: Line from device
+        :param is_full_line: Indicates if the line is a full line or a partial line.
+        :return: True if line contains information that command doesn't fail, False otherwise
+        """
+        if self._re_failure_exception is None:
+            return False
+        return self._regex_helper.search_compiled(self._re_failure_exception, line) is not None
 
     def add_failure_indication(
         self, indication: Union[Pattern, str], flags: int = re.IGNORECASE
     ) -> None:
         """
-        Add failure indication to command.
+        Add failure indication to the command.
 
-        :param indication: String or regexp with ndication of failure.
+        :param indication: String or regexp with indication of failure. Add None to clear all indications.
         :param flags: Flags for compiled regexp.
         :return: None
         """
+        self.re_fail = self._calculate_indication(
+            indication=indication, base=self.re_fail, flags=flags
+        )
+
+    def add_failure_exception(self, exception: Union[Pattern, str], flags: int = re.IGNORECASE) -> None:
+        """
+        Add failure exception to the command.
+
+        :param indication: String or regexp with exception of failure. Add None to clear all exceptions.
+        :param flags: Flags for compiled regexp.
+        :return: None
+        """
+        self._re_failure_exception = self._calculate_indication(
+            indication=exception, base=self._re_failure_exception, flags=flags
+        )
+
+    def _calculate_indication(self, indication: Union[Pattern, str], base: Pattern, flags: int) -> Pattern:
+        """
+        Calculate indication as regex from passed indication.
+
+        :param indication: Indication as regex in string or as compiled regex object.
+        :return: Compiled regex object.
+        """
+        if indication is None:
+            return None
         try:
             indication_str = indication.pattern
         except AttributeError:
             indication_str = indication
-        if self.re_fail is None:
+        if base is None:
             new_indication = indication_str
         else:
-            current_indications = self.re_fail.pattern
+            current_indications = base.pattern
             new_indication = f"{current_indications}|{indication_str}"
-        self.re_fail = re.compile(new_indication, flags)
+        return re.compile(new_indication, flags)
