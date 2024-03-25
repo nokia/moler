@@ -32,10 +32,18 @@ def test_touch_read_only(buffer_connection):
 
 def test_touch_read_only_remove(buffer_connection):
     touch_cmd = Touch(connection=buffer_connection.moler_connection, path="file.asc")
-    touch_cmd.re_fail = None
+    touch_cmd.add_failure_indication(None)
     touch_cmd.add_failure_indication("Read-only file system")
     assert "touch file.asc" == touch_cmd.command_string
     command_output = "touch file.asc\ntouch: cannot touch 'file.asc': Read-only file system\nmoler_bash#"
     buffer_connection.remote_inject_response([command_output])
     with pytest.raises(CommandFailure):
         touch_cmd()
+
+    touch_cmd = Touch(connection=buffer_connection.moler_connection, path="file.asc")
+    touch_cmd.add_failure_indication(None)
+    touch_cmd.add_failure_indication("Read-only file system")
+    touch_cmd.add_failure_exception("Read-only file system")
+    assert "touch file.asc" == touch_cmd.command_string
+    buffer_connection.remote_inject_response([command_output])
+    touch_cmd()
