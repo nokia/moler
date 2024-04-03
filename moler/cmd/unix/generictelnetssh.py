@@ -18,7 +18,6 @@ with warnings.catch_warnings():
     from dateutil import parser  # https://github.com/aws/jsii/issues/4406
 
 from moler.cmd.commandchangingprompt import CommandChangingPrompt
-from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.exceptions import CommandFailure, ParsingDone
 from moler.helpers import copy_list
 from moler.util.converterhelper import ConverterHelper

@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
-__email__ = 'michal.ernst@nokia.com'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
+__email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import logging
+from threading import Lock
 
 import transitions
 from moler.helpers import ForwardingHandler
@@ -18,6 +19,7 @@ class StateMachine(transitions.Machine):
                  ordered_transitions=False, ignore_invalid_triggers=None,
                  before_state_change=None, after_state_change=None, name=None,
                  queued=False, prepare_event=None, finalize_event=None, **kwargs):
+        self._set_state_lock = Lock()
         self.state_change_log_callable = None
         self.current_state_callable = None
         super(StateMachine, self).__init__(model, states, initial, transitions, send_event, auto_transitions,
@@ -42,8 +44,11 @@ class StateMachine(transitions.Machine):
         :return: None.
         """
         if self.state_change_log_callable:
-            current_state = self.current_state_callable()
-            if current_state != state:
-                msg = f"Changed state from '{current_state}' into '{state}."
-                self.state_change_log_callable(logging.INFO, msg)
-        super(StateMachine, self).set_state(state=state, model=model)
+            with self._set_state_lock:
+                current_state = self.current_state_callable()
+                if current_state != state:
+                    super(StateMachine, self).set_state(state=state, model=model)
+                    msg = f"Changed state from '{current_state}' into '{state}'."
+                    self.state_change_log_callable(logging.INFO, msg)
+        else:
+            super(StateMachine, self).set_state(state=state, model=model)
