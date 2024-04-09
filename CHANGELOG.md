@@ -1,3 +1,8 @@
+## moler 3.4.0
+* StateMachine - lock to avoid race conditions
+* Command failure regular expression and exceptions for them
+* Timeout msg for unix commands
+
 ## moler 3.3.0
 * Optional log to console/stdout
 * Optional sleep before commands in EventAwaiter
