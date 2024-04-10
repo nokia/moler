@@ -99,7 +99,9 @@ def remove_escape_codes(line):
 # ESC [ ? 12 l   Stop blinking the cursor
 # ESC [ ? 25 h   Show the cursor
 # ESC [ ? 25 l   Show the cursor
-_re_cursor_visibility_codes = re.compile(r"\x1B\[\?(12|25)[hl]")
+# ESC [ ? 2004 l Control sequence odd character
+# ESC [ ? 2004 h Control sequence odd character
+_re_cursor_visibility_codes = re.compile(r"\x1B\[\?(12|25|2004)[hl]")
 
 
 def remove_cursor_visibility_codes(multiline):

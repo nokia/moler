@@ -1,3 +1,7 @@
+## moler 3.5.0
+* Unix commands - optional ctrl + z and kill on timeout - add `wait` call after `kill`
+* Add helper for excape codes `[2004l` `[2004h`
+
 ## moler 3.4.0
 * StateMachine - lock to avoid race conditions
 * Command failure regular expression and exceptions for them
