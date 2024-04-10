@@ -1,4 +1,5 @@
 import io
+from os import getcwd
 from os.path import abspath, dirname, join
 from setuptools import setup, find_packages
 
@@ -6,7 +7,7 @@ here = abspath(dirname(__file__))
 with io.open(join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
-with io.open(join(here, 'requirements.txt'), encoding='utf-8') as f:
+with io.open(join(getcwd(), 'requirements', 'base.txt'), encoding='utf-8') as f:
     requirements = f.read().splitlines()
 
 setup(

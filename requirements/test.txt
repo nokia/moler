@@ -1,0 +1,12 @@
+-r base.txt
+pycodestyle
+coveralls
+pytest
+pytest-mccabe
+pytest-random
+mock
+pytest-cov
+pytest-asyncio
+flake8
+pydocstyle
+pylint

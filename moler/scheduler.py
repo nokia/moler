@@ -19,15 +19,16 @@ class Scheduler:
     @staticmethod
     def get_job(callback, interval, callback_params=None, cancel_on_exception=False, misfire_grace_time=0):
         """
-        Static method to create job.
+        Static method to create a job.
+
         :param callback: Reference to callable object (i.e. function, method)
         :param interval: time in float seconds when fun is called. If time of one execution is longer than interval then
-         some callbacks are missed. For example: interval is 2s and time of execution is 3s then callback will be called
-         when job ios created after 2s,  after 4s will not be executed because still the first excection is running,
-         then after 6s of is called.
+                         some callbacks are missed. For example: interval is 2s and time of execution is 3s then callback will be called
+                         when job ios created after 2s,  after 4s will not be executed because still the first exception is running,
+                         then after 6s of is called.
         :param callback_params: dict of params of fun
         :param cancel_on_exception: set True if you want to break next execution of this callback if previous raises an
-         exception
+                                    exception
         :param int misfire_grace_time: seconds after the designated runtime that the job is still allowed to be run
         :return: Instance of Job.
         """
@@ -48,10 +49,10 @@ class Scheduler:
     @staticmethod
     def change_kind(scheduler_type=None):
         """
-        Static method to change type of scheduler
+        Static method to change type of scheduler.
         :param scheduler_type: type of new scheduler. Allowed thread (default) or asyncio. If None then default multi
-            threading model will be used.
-        :return: None. If scheduler_type is not supported then it raises object of type moler.exceptions.WrongUsage
+                               threading model will be used.
+        :return: None. If scheduler_type is not supported then it raises object of type moler.exceptions.WrongUsage.
         """
         instance = Scheduler._get_instance()
         instance._swap_scheduler(scheduler_type)  # pylint: disable=protected-access

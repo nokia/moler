@@ -22,12 +22,7 @@ jobs:
         run: |
           sudo apt-get -y install sshpass
           python -m pip install --upgrade pip setuptools wheel
-          pip install -U pycodestyle coveralls pytest pytest-mccabe pytest-random mock
-          pip install -Ur requirements.txt
-      - name: Install Python 3 dependencies
-        if: ${{ matrix.python-version != '2.7' }}
-        run: |
-          pip install -U pytest-asyncio
+          pip install -Ur requirements/test.txt
       - name:  Create local users required by integration tests
         run: |
           cat /etc/passwd | grep home
@@ -99,8 +94,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip setuptools wheel
-          pip install flake8 pycodestyle pydocstyle pylint
-          pip install -Ur requirements.txt
+          pip install -Ur requirements/test.txt
       - name: Check PyCodeStyle
         run: |
           pycodestyle --statistics --count moler
