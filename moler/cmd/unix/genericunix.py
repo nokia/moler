@@ -3,9 +3,9 @@
 Generic Unix/Linux module
 """
 
-__author__ = 'Marcin Usielski'
+__author__ = 'Marcin Usielski', 'Jakub Kochaniak'
 __copyright__ = 'Copyright (C) 2018-2024, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__email__ = 'marcin.usielski@nokia.com', 'jakub.kochaniak@nokia.com'
 
 import re
 import abc
@@ -135,10 +135,10 @@ class GenericUnixCommand(CommandTextualGeneric):
     _re_ctrl_z_stopped = re.compile(r"\[(?P<JOB_ID>\d+)\]\+\s+Stopped")
 
     # [2]+  Done
-    _re_kill_done = re.compile(r"\[(?P<JOB_ID>\d+)\]\+\s+Done")
+    _re_kill_done = re.compile(r"\[?\d+\]\+\s+Done")
 
     # -bash: wait: %2: no such job
-    _re_kill_no_job = re.compile(r":\s\%(?P<JOB_ID>\d+): no such job")
+    _re_kill_no_job = re.compile(r"\:\s+\%\d+\s?\:\s+no such job")
 
     def _parse_control_z(self, line: str) -> None:
         """
