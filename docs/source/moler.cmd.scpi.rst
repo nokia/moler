@@ -12,8 +12,6 @@ Subpackages
 Submodules
 ----------
 
-moler.cmd.scpi.genricscpi module
---------------------------------
 
 .. automodule:: moler.cmd.scpi.genricscpi
    :members:

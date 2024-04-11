@@ -351,44 +351,43 @@ COMMAND_RESULT_3 = {
     ]
 }
 
-"""
-==================================================HELP=MESSAGE==========================================================
-root@0xe000:~ >lxc-ls --help
-Usage: lxc-ls
-[-P lxcpath] [--active] [--running] [--frozen] [--stopped] [--nesting] [-g groups] [--filter regex]
-[-1] [-P lxcpath] [--active] [--running] [--frozen] [--stopped] [--nesting] [-g groups] [--filter regex]
-[-f] [-P lxcpath] [--active] [--running] [--frozen] [--stopped] [--nesting] [-g groups] [--filter regex]
 
-lxc-ls list containers
+# ==================================================HELP=MESSAGE==========================================================
+# root@0xe000:~ >lxc-ls --help
+# Usage: lxc-ls
+# [-P lxcpath] [--active] [--running] [--frozen] [--stopped] [--nesting] [-g groups] [--filter regex]
+# [-1] [-P lxcpath] [--active] [--running] [--frozen] [--stopped] [--nesting] [-g groups] [--filter regex]
+# [-f] [-P lxcpath] [--active] [--running] [--frozen] [--stopped] [--nesting] [-g groups] [--filter regex]
 
-Options :
-  -1, --line         show one entry per line
-  -f, --fancy        use a fancy, column-based output
-  -F, --fancy-format comma separated list of columns to show in the fancy output
-                     valid columns are: NAME, STATE, PID, RAM, SWAP, AUTOSTART,
-                     GROUPS, INTERFACE, IPV4 and IPV6
-  --active           list only active containers
-  --running          list only running containers
-  --frozen           list only frozen containers
-  --stopped          list only stopped containers
-  --defined          list only defined containers
-  --nesting=NUM      list nested containers up to NUM (default is 5) levels of nesting
-  --filter=REGEX     filter container names by regular expression
-  -g --groups        comma separated list of groups a container must have to be displayed
+# lxc-ls list containers
 
-Common options :
-  -o, --logfile=FILE               Output log to FILE instead of stderr
-  -l, --logpriority=LEVEL          Set log priority to LEVEL
-  -q, --quiet                      Don't produce any output
-  -P, --lxcpath=PATH               Use specified container path
-  -?, --help                       Give this help list
-      --usage                      Give a short usage message
-      --version                    Print the version number
+# Options :
+#   -1, --line         show one entry per line
+#   -f, --fancy        use a fancy, column-based output
+#   -F, --fancy-format comma separated list of columns to show in the fancy output
+#                      valid columns are: NAME, STATE, PID, RAM, SWAP, AUTOSTART,
+#                      GROUPS, INTERFACE, IPV4 and IPV6
+#   --active           list only active containers
+#   --running          list only running containers
+#   --frozen           list only frozen containers
+#   --stopped          list only stopped containers
+#   --defined          list only defined containers
+#   --nesting=NUM      list nested containers up to NUM (default is 5) levels of nesting
+#   --filter=REGEX     filter container names by regular expression
+#   -g --groups        comma separated list of groups a container must have to be displayed
 
-Mandatory or optional arguments to long options are also mandatory or optional
-for any corresponding short options.
+# Common options :
+#   -o, --logfile=FILE               Output log to FILE instead of stderr
+#   -l, --logpriority=LEVEL          Set log priority to LEVEL
+#   -q, --quiet                      Don't produce any output
+#   -P, --lxcpath=PATH               Use specified container path
+#   -?, --help                       Give this help list
+#       --usage                      Give a short usage message
+#       --version                    Print the version number
 
-See the lxc-ls man page for further information.
+# Mandatory or optional arguments to long options are also mandatory or optional
+# for any corresponding short options.
 
-root@0xe000:~ >
-"""
+# See the lxc-ls man page for further information.
+
+# root@0xe000:~ >

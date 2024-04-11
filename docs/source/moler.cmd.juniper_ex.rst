@@ -13,8 +13,6 @@ Subpackages
 Submodules
 ----------
 
-moler.cmd.juniper\_ex.genericjuniperex module
----------------------------------------------
 
 .. automodule:: moler.cmd.juniper_ex.genericjuniperex
    :members:

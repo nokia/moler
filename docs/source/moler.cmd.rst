@@ -18,16 +18,12 @@ Subpackages
 Submodules
 ----------
 
-moler.cmd.commandchangingprompt module
---------------------------------------
 
 .. automodule:: moler.cmd.commandchangingprompt
    :members:
    :undoc-members:
    :show-inheritance:
 
-moler.cmd.commandtextualgeneric module
---------------------------------------
 
 .. automodule:: moler.cmd.commandtextualgeneric
    :members:

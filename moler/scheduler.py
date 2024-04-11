@@ -50,6 +50,7 @@ class Scheduler:
     def change_kind(scheduler_type=None):
         """
         Static method to change type of scheduler.
+
         :param scheduler_type: type of new scheduler. Allowed thread (default) or asyncio. If None then default multi
                                threading model will be used.
         :return: None. If scheduler_type is not supported then it raises object of type moler.exceptions.WrongUsage.
