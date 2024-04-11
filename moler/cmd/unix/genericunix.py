@@ -3,9 +3,9 @@
 Generic Unix/Linux module
 """
 
-__author__ = 'Marcin Usielski'
+__author__ = 'Marcin Usielski', 'Jakub Kochaniak'
 __copyright__ = 'Copyright (C) 2018-2024, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__email__ = 'marcin.usielski@nokia.com', 'jakub.kochaniak@nokia.com'
 
 import re
 import abc
@@ -48,6 +48,7 @@ class GenericUnixCommand(CommandTextualGeneric):
 
         self._ctrl_z_sent = False
         self._kill_ctrl_z_sent = False
+        self._kill_ctrl_z_job_done = False
         self._instance_timeout_action = None
 
     def _decode_line(self, line: str) -> str:
@@ -126,12 +127,18 @@ class GenericUnixCommand(CommandTextualGeneric):
         :param line: Line from device.
         :return: True if end of command is reached, False otherwise.
         """
-        if not self._kill_ctrl_z_sent and self._ctrl_z_sent:
+        if not self._kill_ctrl_z_job_done and self._ctrl_z_sent:
             return False
         return super(GenericUnixCommand, self).is_end_of_cmd_output(line=line)
 
     # [2]+  Stopped
     _re_ctrl_z_stopped = re.compile(r"\[(?P<JOB_ID>\d+)\]\+\s+Stopped")
+
+    # [2]+  Done
+    _re_kill_done = re.compile(r"\[?\d+\]\+\s+Done")
+
+    # -bash: wait: %2: no such job
+    _re_kill_no_job = re.compile(r"\:\s+\%\d+\s?\:\s+no such job")
 
     def _parse_control_z(self, line: str) -> None:
         """
@@ -140,8 +147,16 @@ class GenericUnixCommand(CommandTextualGeneric):
         :param line: Line from device.
         :return: None.
         """
-        if self._ctrl_z_sent and not self._kill_ctrl_z_sent and self._regex_helper.search_compiled(GenericUnixCommand._re_ctrl_z_stopped, line):
+        if self._ctrl_z_sent and not self._kill_ctrl_z_job_done and self._regex_helper.search_compiled(
+            GenericUnixCommand._re_ctrl_z_stopped, line
+        ):
             job_id = self._regex_helper.group("JOB_ID")
-            self.connection.sendline(f"kill %{job_id}")
+            self.connection.sendline(f"kill %{job_id}; wait %{job_id}")
             self._kill_ctrl_z_sent = True
+            raise ParsingDone()
+
+        if self._kill_ctrl_z_sent and (
+            self._regex_helper.search_compiled(GenericUnixCommand._re_kill_done, line) or self._regex_helper.search_compiled(GenericUnixCommand._re_kill_no_job, line)
+        ):
+            self._kill_ctrl_z_job_done = True
             raise ParsingDone()
