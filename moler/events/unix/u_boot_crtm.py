@@ -13,7 +13,8 @@ from moler.exceptions import ParsingDone
 class UBootCrtm(GenericUnixTextualEvent):
     def __init__(self, connection, till_occurs_times=-1, runner=None):
         """
-        Event for 'Site is resetting due to Fault'
+        Event for 'Site is resetting due to Fault'.
+
         :param connection: moler connection to device, terminal when command is executed
         :param till_occurs_times: number of event occurrence
         :param runner: Runner to run event
@@ -25,7 +26,8 @@ class UBootCrtm(GenericUnixTextualEvent):
 
     def on_new_line(self, line, is_full_line):
         """
-         Put your parsing code here.
+        Put your parsing code here.
+
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise
         :return: None

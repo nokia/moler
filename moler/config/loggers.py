@@ -117,7 +117,8 @@ def _get_moler_version_cloned_from_git_repository(setup_py_path):
 def set_backup_count(backup_count):
     """
     Set maximum number of files of logs to rotate for rotating logging. If parameter is not an int number then the
-     function does not change any value.
+    function does not change any value.
+
     :param backup_count: int number of how many files to keep to rotate logs.
     :return: None
     """
@@ -528,7 +529,8 @@ def create_logger(
     datefmt=None,
 ):
     """
-    Creates Logger with (optional) file writer
+    Creates Logger with (optional) file writer.
+
     :param name: Logger name
     :param log_file: Path to logfile. Final logfile location is logging_path + log_file
     :param log_level: only log records with equal and greater level will be accepted for storage in log
@@ -810,9 +812,10 @@ class RawFileHandler(logging.FileHandler):
     def emit(self, record):
         """
         Emit a record.
-        We don't want base class implementation since we don't want to do:
-        stream.write(self.terminator)
-        We are not adding any \n to bytes-message from record.
+
+        We don't want the base class implementation since we don't want to include stream.write(self.terminator).
+
+        We are not adding any newline character (\n) to the bytes message from the record.
         """
         if self.stream is None:
             self.stream = self._open()
@@ -827,17 +830,19 @@ class RawFileHandler(logging.FileHandler):
 
 class MultilineWithDirectionFormatter(logging.Formatter):
     """
-    We want logs to have non-overlapping areas
-    timestamp area TTTTTTTTTTT
+    We want logs to have non-overlapping areas.
+
+    Timestamp area TTTTTTTTTTT
     transfer direction area >  (shows send '>' or receive '<')
     log message area MMMMMMMMMM
     It should look like:
+
     TTTTTTTTTTTTTTT D MMMMMMMMMMMMMMM
     01 00:36:09.581 >|cat my_file.txt
     01 00:36:09.585 <|This is
                      |multiline
                      |content
-    This formatter allows to use %(transfer_direction)s inside format
+    This formatter allows to use %(transfer_direction)s inside format.
     """
 
     def __init__(self, fmt=None, datefmt=None):

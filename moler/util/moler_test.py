@@ -28,6 +28,7 @@ class MolerTest:
     def steps_end(cls):
         """
         You should call this function at the end of your test code with Moler.
+
         :return: None
         """
         cls._was_steps_end = True
@@ -36,6 +37,7 @@ class MolerTest:
     def error(cls, msg, raise_exception=False, dump=None):
         """
         Makes an error (fail the test) and (optional) continue the test flow.
+
         :param msg: Message to show.
         :param raise_exception: If True then raise an exception (if not in try except block then test will be
          terminated), if False then only show msg and mark error in logs.
@@ -48,7 +50,8 @@ class MolerTest:
     @classmethod
     def info(cls, msg, dump=None):
         """
-        Shows the message
+        Shows the message.
+
         :param msg: Message to show.
         :param dump: If defined then dump object.
         :return: None.
@@ -60,6 +63,7 @@ class MolerTest:
     def warning(cls, msg, dump=None):
         """
         Shows the message as warning.
+
         :param msg: Message to show.
         :param dump: If defined then dump object.
         :return: None
@@ -71,6 +75,7 @@ class MolerTest:
     def stop_python(cls, force=False):
         """
         Stops current Python.
+
         :return: None
         """
         cls.info("Python will be closed by user request.")
@@ -83,6 +88,7 @@ class MolerTest:
     def _dump(cls, obj):
         """
         Dumping objet to moler log.
+
         :param obj: Object to dump.
         :return: Dumped object as string
         """
@@ -102,7 +108,8 @@ class MolerTest:
     @classmethod
     def sleep(cls, seconds, quiet=False):
         """
-        Add sleep functionality
+        Add sleep functionality.
+
         TODO: add support to asyncio when runner ready
         :param seconds: Time to sleep (in seconds)
         :param quiet: If True then no info to log about sleeping, if False then sleep info will be logged
@@ -116,6 +123,7 @@ class MolerTest:
     def raise_background_exceptions(cls, decorated="function", check_steps_end=False):
         """
         Decorates the function, method or class.
+
         :param decorated: Function, method or class to decorate.
         :param check_steps_end: If True then check if steps_end was called before return the method, if False then do
          not check
