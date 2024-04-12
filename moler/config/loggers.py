@@ -529,13 +529,13 @@ def create_logger(
     datefmt=None,
 ):
     """
-    Creates Logger with (optional) file writer.
+    Create Logger with (optional) file writer.
 
     :param name: Logger name
-    :param log_file: Path to logfile. Final logfile location is logging_path + log_file
-    :param log_level: only log records with equal and greater level will be accepted for storage in log
-    :param log_format: layout of log file, default is "%(asctime)s %(levelname)-10s: |%(message)s"
-    :param datefmt: format the creation time of the log record
+    :param log_file: Path to logfile. Final logfile location is logging_path + log_file.
+    :param log_level: only log records with equal and greater level will be accepted for storage in log.
+    :param log_format: layout of log file.".
+    :param datefmt: format the creation time of the log record.
     :return: None
     """
     logger = logging.getLogger(name)
@@ -810,12 +810,19 @@ class RawFileHandler(logging.FileHandler):
         self.addFilter(raw_records_only_filter)
 
     def emit(self, record):
-        """
+        r"""
         Emit a record.
 
-        We don't want the base class implementation since we don't want to include stream.write(self.terminator).
 
-        We are not adding any newline character (\n) to the bytes message from the record.
+        ::
+
+
+            We don't want the base class implementation since we don't want to include
+            stream.write(self.terminator)
+            We are not adding any newline character (\n) to the bytes message
+            from the record.
+
+
         """
         if self.stream is None:
             self.stream = self._open()
@@ -832,17 +839,21 @@ class MultilineWithDirectionFormatter(logging.Formatter):
     """
     We want logs to have non-overlapping areas.
 
-    Timestamp area TTTTTTTTTTT
-    transfer direction area >  (shows send '>' or receive '<')
-    log message area MMMMMMMMMM
-    It should look like:
 
-    TTTTTTTTTTTTTTT D MMMMMMMMMMMMMMM
-    01 00:36:09.581 >|cat my_file.txt
-    01 00:36:09.585 <|This is
-                     |multiline
-                     |content
-    This formatter allows to use %(transfer_direction)s inside format.
+    ::
+
+
+        Timestamp area TTTTTTTTTTT
+        transfer direction area >  (shows send '>' or receive '<')
+        log message area MMMMMMMMMM
+        It should look like:
+
+        TTTTTTTTTTTTTTT D MMMMMMMMMMMMMMM
+        01 00:36:09.581 >|cat my_file.txt
+        01 00:36:09.585 <|This is
+                        |multiline
+                        |content
+        This formatter allows to use %(transfer_direction)s inside format.
     """
 
     def __init__(self, fmt=None, datefmt=None):

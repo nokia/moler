@@ -24,28 +24,32 @@ class AdbRemote(UnixRemote):
     r"""
     AdbRemote device class.
 
-    Example of device in yaml configuration file:
-    -without PROXY_PC:
-      ADB_1:
-       DEVICE_CLASS: moler.device.adbremote.AdbRemote
-       CONNECTION_HOPS:
-         UNIX_LOCAL:
-           UNIX_REMOTE:
-             execute_command: ssh # default value
-             command_params:
-               expected_prompt: unix_remote_prompt
-               host: host_ip
-               login: login
-               password: password
-      UNIX_REMOTE:
-        ADB_SHELL:
-          execute_command: adb_shell # default value; default command is:  adb shell
-          command_params:
-            serial_number: 'f57e6b7d'  #  to create:  adb -s f57e6b7d shell
-            expected_prompt: 'shell@adbhost: $'
-      ADB_SHELL:
-        UNIX_REMOTE:
-          execute_command: exit # default value
+
+    ::
+
+
+        Example of device in yaml configuration file:
+        -without PROXY_PC:
+            ADB_1:
+            DEVICE_CLASS: moler.device.adbremote.AdbRemote
+            CONNECTION_HOPS:
+                UNIX_LOCAL:
+                UNIX_REMOTE:
+                    execute_command: ssh # default value
+                    command_params:
+                    expected_prompt: unix_remote_prompt
+                    host: host_ip
+                    login: login
+                    password: password
+            UNIX_REMOTE:
+            ADB_SHELL:
+                execute_command: adb_shell # default value; default command is:  adb shell
+                command_params:
+                serial_number: 'f57e6b7d'  #  to create:  adb -s f57e6b7d shell
+                expected_prompt: 'shell@adbhost: $'
+            ADB_SHELL:
+            UNIX_REMOTE:
+                execute_command: exit # default value
     """
 
     adb_shell = "ADB_SHELL"

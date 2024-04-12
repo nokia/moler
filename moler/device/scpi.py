@@ -18,42 +18,46 @@ class Scpi(ProxyPc):
     r"""
     Scpi device class.
 
-    Example of device in yaml configuration file:
-    - with PROXY_PC:
-        SCPI_1:
-        DEVICE_CLASS: moler.device.scpi.Scpi
-        CONNECTION_HOPS:
-          PROXY_PC:
-            SCPI:
-              execute_command: telnet # default value
-              command_params:
-                expected_prompt: SCPI>
-                host: 10.0.0.1
-                port: 99999
-          SCPI:
-            PROXY_PC:
-              execute_command: exit_telnet # default value
-              command_params:
-                expected_prompt: proxy_pc.*>
-          UNIX_LOCAL:
-            PROXY_PC:
-              execute_command: ssh # default value
-              command_params:
-                expected_prompt: proxy_pc.*>
-                host: 10.0.0.2
-                login: user
-                password: password
-    -without PROXY_PC:
-        SCPI_1:
+
+    ::
+
+
+        Example of device in yaml configuration file:
+        - with PROXY_PC:
+            SCPI_1:
             DEVICE_CLASS: moler.device.scpi.Scpi
             CONNECTION_HOPS:
-              UNIX_LOCAL:
+            PROXY_PC:
                 SCPI:
-                  execute_command: telnet # default value
-                  command_params:
+                execute_command: telnet # default value
+                command_params:
                     expected_prompt: SCPI>
                     host: 10.0.0.1
                     port: 99999
+            SCPI:
+                PROXY_PC:
+                execute_command: exit_telnet # default value
+                command_params:
+                    expected_prompt: proxy_pc.*>
+            UNIX_LOCAL:
+                PROXY_PC:
+                execute_command: ssh # default value
+                command_params:
+                    expected_prompt: proxy_pc.*>
+                    host: 10.0.0.2
+                    login: user
+                    password: password
+        -without PROXY_PC:
+            SCPI_1:
+                DEVICE_CLASS: moler.device.scpi.Scpi
+                CONNECTION_HOPS:
+                UNIX_LOCAL:
+                    SCPI:
+                    execute_command: telnet # default value
+                    command_params:
+                        expected_prompt: SCPI>
+                        host: 10.0.0.1
+                        port: 99999
     """
 
     scpi = "SCPI"

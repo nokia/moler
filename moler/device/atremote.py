@@ -22,27 +22,31 @@ class AtRemote(UnixRemote):
     r"""
     AtRemote device class.
 
-    Example of device in yaml configuration file:
-    -without PROXY_PC:
-      AT_1:
-       DEVICE_CLASS: moler.device.atremote.AtRemote
-       CONNECTION_HOPS:
-         UNIX_LOCAL:
-           UNIX_REMOTE:
-             execute_command: ssh # default value
-             command_params:
-               expected_prompt: unix_remote_prompt
-               host: host_ip
-               login: login
-               password: password
-      UNIX_REMOTE:
-        AT_REMOTE:
-          execute_command: plink_serial # default value
-          command_params:
-            serial_devname: 'COM5'
-      AT_REMOTE:
+
+    ::
+
+
+        Example of device in yaml configuration file:
+        -without PROXY_PC:
+        AT_1:
+        DEVICE_CLASS: moler.device.atremote.AtRemote
+        CONNECTION_HOPS:
+            UNIX_LOCAL:
+            UNIX_REMOTE:
+                execute_command: ssh # default value
+                command_params:
+                expected_prompt: unix_remote_prompt
+                host: host_ip
+                login: login
+                password: password
         UNIX_REMOTE:
-          execute_command: ctrl_c # default value
+            AT_REMOTE:
+            execute_command: plink_serial # default value
+            command_params:
+                serial_devname: 'COM5'
+        AT_REMOTE:
+            UNIX_REMOTE:
+            execute_command: ctrl_c # default value
     """
 
     at_remote = "AT_REMOTE"
