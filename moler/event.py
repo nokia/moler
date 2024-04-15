@@ -62,7 +62,7 @@ class Event(ConnectionObserver):
                 f"Cannot assign a callback '{callback}' to event '{self}' when another callback '{self.callback}' is already assigned"
             )
 
-    def enable_log_occurrence(self):
+    def enable_log_occurrence(self) -> None:
         """
         Enables to log every occurrence of the event.
 
@@ -70,7 +70,7 @@ class Event(ConnectionObserver):
         """
         self._log_every_occurrence = True
 
-    def disable_log_occurrence(self):
+    def disable_log_occurrence(self) -> None:
         """
         Disables to log every occurrence of the event.
 
@@ -78,7 +78,7 @@ class Event(ConnectionObserver):
         """
         self._log_every_occurrence = False
 
-    def remove_event_occurred_callback(self):
+    def remove_event_occurred_callback(self) -> None:
         """
         Removes callback from the event.
 
@@ -86,7 +86,7 @@ class Event(ConnectionObserver):
         """
         self.callback = None
 
-    def notify(self):
+    def notify(self) -> None:
         """
         Notifies (call callback).
 
@@ -96,7 +96,7 @@ class Event(ConnectionObserver):
         if self.callback:
             self.callback()
 
-    def event_occurred(self, event_data):
+    def event_occurred(self, event_data) -> None:
         """
         Sets event_data as new item of occurrence ret.
         :param event_data: data to set as value of occurrence.
@@ -121,7 +121,7 @@ class Event(ConnectionObserver):
         if self._occurred is None:
             self._occurred = []
 
-    def _get_module_class(self):
+    def _get_module_class(self) -> str:
         return f"{self.__class__.__module__}.{self}"
 
     def get_long_desc(self) -> str:
