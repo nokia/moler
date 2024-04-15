@@ -6,8 +6,10 @@ __email__ = 'marcin.usielski@nokia.com'
 
 
 import time
+import pytest
 from moler.events.unix.ping_no_response import PingNoResponse
 from moler.util.moler_test import MolerTest
+from moler.exceptions import MolerException
 import datetime
 
 
@@ -111,3 +113,16 @@ def test_break_event(buffer_connection):
     assert event.result() is not None
     result = event.result()
     assert len(result) == 3
+
+
+def test_break_event_expected(buffer_connection):
+    output = "From 192.168.255.126 icmp_seq=1 Destination Host Unreachable"
+    event = PingNoResponse(connection=buffer_connection.moler_connection, till_occurs_times=3)
+    event.start()
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
+    time.sleep(0.1)
+    event.break_event()
+    with pytest.raises(MolerException) as exc:
+        event.result()
+    assert "Expected 3 occurrences but got 2" in str(exc.value)

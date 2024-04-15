@@ -124,7 +124,7 @@ class Event(ConnectionObserver):
     def _get_module_class(self):
         return f"{self.__class__.__module__}.{self}"
 
-    def get_long_desc(self):
+    def get_long_desc(self) -> str:
         """
         Returns string with description of event.
 
@@ -132,7 +132,7 @@ class Event(ConnectionObserver):
         """
         return f"Event '{self._get_module_class()}'"
 
-    def get_short_desc(self):
+    def get_short_desc(self) -> str:
         """
         Returns string with description of event.
 
@@ -151,15 +151,21 @@ class Event(ConnectionObserver):
         else:
             return None
 
-    def break_event(self):
+    def break_event(self, force=False) -> None:
         """
         Break event. Do not process anymore. Clean up all resources. Prepare result.
+
+        :param force: If False then check if no of occurred is as expected Force, True to not check.
+        :return: None.
         """
         if not self.done():
             self._prepare_occurred_2_result()
-            self.set_result(self._occurred)
+            if not force and len(self._occurred) < self.till_occurs_times:
+                self.set_exception(MolerException(f"Expected {self.till_occurs_times} occurrences but got {len(self._occurred)}."))
+            else:
+                self.set_result(self._occurred)
 
-    def _log_occurred(self):
+    def _log_occurred(self) -> None:
         """
         Logs info about notify when callback is not defined.
 
@@ -175,7 +181,7 @@ class Event(ConnectionObserver):
         self._log(lvl=logging.DEBUG, msg=msg)
 
     @abc.abstractmethod
-    def pause(self):
+    def pause(self) -> None:
         """
         Pauses the event. Do not process till resume.
 
@@ -183,7 +189,7 @@ class Event(ConnectionObserver):
         """
 
     @abc.abstractmethod
-    def resume(self):
+    def resume(self) -> None:
         """
         Resumes processing output from connection by the event.
 
