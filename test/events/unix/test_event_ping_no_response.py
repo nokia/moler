@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2020, Nokia'
+__copyright__ = 'Copyright (C) 2020-2024, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 
@@ -93,3 +93,21 @@ def test_erase_not_full_line_on_pause(buffer_connection):
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     event.await_done(timeout=1)
     assert event.done() is True
+
+
+def test_break_event(buffer_connection):
+    output = "From 192.168.255.126 icmp_seq=1 Destination Host Unreachable"
+    event = PingNoResponse(connection=buffer_connection.moler_connection, till_occurs_times=-1)
+    event.start()
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
+    time.sleep(0.1)
+    assert event.done() is False
+    assert event.running() is True
+    event.break_event()
+    assert event.done() is True
+    assert event.running() is False
+    assert event.result() is not None
+    result = event.result()
+    assert len(result) == 3

@@ -105,13 +105,21 @@ class Event(ConnectionObserver):
         # Should be used to set final result of event.
         if self.done():
             raise ResultAlreadySet(self)
-        if self._occurred is None:
-            self._occurred = []
+        self._prepare_occurred_2_result()
         self._occurred.append(event_data)
         if self.till_occurs_times > 0:
             if len(self._occurred) >= self.till_occurs_times:
-                self.set_result(self._occurred)
+                self.break_event()
         self.notify()
+
+    def _prepare_occurred_2_result(self) -> None:
+        """
+        Prepare result from occurred.
+
+        :return: None.
+        """
+        if self._occurred is None:
+            self._occurred = []
 
     def _get_module_class(self):
         return f"{self.__class__.__module__}.{self}"
@@ -142,6 +150,15 @@ class Event(ConnectionObserver):
             return self._occurred[-1]
         else:
             return None
+
+    def break_event(self):
+        """
+        Break event. Do not process anymore. Clean up all resources. Prepare result.
+        """
+        if not self.done():
+            self._prepare_occurred_2_result()
+            self.set_result(self._occurred)
+
 
     def _log_occurred(self):
         """
