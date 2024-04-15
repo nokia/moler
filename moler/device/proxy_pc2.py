@@ -53,7 +53,8 @@ class ProxyPc2(UnixLocal):
     def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, io_constructor_kwargs=None,
                  initial_state=None, lazy_cmds_events=False):
         """
-        Create Unix device communicating over io_connection
+        Create Unix device communicating over io_connection.
+
         :param sm_params: dict with parameters of state machine for device
         :param name: name of device
         :param io_connection: External-IO connection having embedded moler-connection
@@ -436,6 +437,7 @@ class ProxyPc2(UnixLocal):
     def get_cmd(self, cmd_name, cmd_params=None, check_state=True, for_state=None):
         """
         Returns instance of command connected with the device.
+
         :param cmd_name: name of commands, name of class (without package), for example "cd".
         :param cmd_params: dict with command parameters.
         :param check_state: if True then before execute of command the state of device will be check if the same

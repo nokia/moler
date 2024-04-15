@@ -33,89 +33,93 @@ class AdbRemote2(UnixRemote2):
     r"""
     AdbRemote device class.
 
-    Example of device in yaml configuration file:
 
-    - with PROXY_PC and io "terminal":
-      ADB_1:
-       DEVICE_CLASS: moler.device.adbremote2.AdbRemote2
-       CONNECTION_HOPS:
-         UNIX_LOCAL:
-           PROXY_PC:
-             execute_command: ssh # default value
-             command_params:
-               expected_prompt: proxy_pc_prompt
-               host: host_ip
-               login: login
-               password: password
-         PROXY_PC:
-           UNIX_REMOTE:
-             execute_command: ssh # default value
-             command_params:
-               expected_prompt: unix_remote_prompt
-               host: host_ip
-               login: login
-               password: password
-         UNIX_REMOTE:
-           ADB_SHELL:
-             execute_command: adb_shell # default value
-             command_params:
-               serial_number: 'f57e6b7d'
+    ::
 
-    - with PROXY_PC and remote-access-io like "sshshell":
-      ADB_1:
-       DEVICE_CLASS: moler.device.adbremote2.AdbRemote2
-       CONNECTION_DESC:
-         io_type: sshshell
-         host: host_ip
-         login: login
-         password: password
-       CONNECTION_HOPS:
-         PROXY_PC:
-           UNIX_REMOTE:
-             execute_command: ssh # default value
-             command_params:
-               expected_prompt: unix_remote_prompt
-               host: host_ip
-               login: login
-               password: password
-         UNIX_REMOTE:
-           ADB_SHELL:
-             execute_command: adb_shell # default value
-             command_params:
-               serial_number: 'f57e6b7d'
 
-    -without PROXY_PC and io "terminal":
-      ADB_1:
-       DEVICE_CLASS: moler.device.adbremote2.AdbRemote2
-       CONNECTION_HOPS:
-         UNIX_LOCAL:
-           UNIX_REMOTE:
-             execute_command: ssh # default value
-             command_params:
-               expected_prompt: unix_remote_prompt
-               host: host_ip
-               login: login
-               password: password
-         UNIX_REMOTE:
-           ADB_SHELL:
-             execute_command: adb_shell # default value
-             command_params:
-               serial_number: 'f57e6b7d'
+        Example of device in yaml configuration file:
 
-    -without PROXY_PC and remote-access-io like "sshshell":
-      ADB_1:
-       DEVICE_CLASS: moler.device.adbremote2.AdbRemote2
-       CONNECTION_DESC:
-         io_type: sshshell
-         host: host_ip
-         login: login
-         password: password
-       CONNECTION_HOPS:
-         UNIX_REMOTE:
-           ADB_SHELL:
-             execute_command: adb_shell # default value
-             command_params:
-               serial_number: 'f57e6b7d'
+        - with PROXY_PC and io "terminal":
+        ADB_1:
+        DEVICE_CLASS: moler.device.adbremote2.AdbRemote2
+        CONNECTION_HOPS:
+            UNIX_LOCAL:
+            PROXY_PC:
+                execute_command: ssh # default value
+                command_params:
+                expected_prompt: proxy_pc_prompt
+                host: host_ip
+                login: login
+                password: password
+            PROXY_PC:
+            UNIX_REMOTE:
+                execute_command: ssh # default value
+                command_params:
+                expected_prompt: unix_remote_prompt
+                host: host_ip
+                login: login
+                password: password
+            UNIX_REMOTE:
+            ADB_SHELL:
+                execute_command: adb_shell # default value
+                command_params:
+                serial_number: 'f57e6b7d'
+
+        - with PROXY_PC and remote-access-io like "sshshell":
+        ADB_1:
+        DEVICE_CLASS: moler.device.adbremote2.AdbRemote2
+        CONNECTION_DESC:
+            io_type: sshshell
+            host: host_ip
+            login: login
+            password: password
+        CONNECTION_HOPS:
+            PROXY_PC:
+            UNIX_REMOTE:
+                execute_command: ssh # default value
+                command_params:
+                expected_prompt: unix_remote_prompt
+                host: host_ip
+                login: login
+                password: password
+            UNIX_REMOTE:
+            ADB_SHELL:
+                execute_command: adb_shell # default value
+                command_params:
+                serial_number: 'f57e6b7d'
+
+        -without PROXY_PC and io "terminal":
+        ADB_1:
+        DEVICE_CLASS: moler.device.adbremote2.AdbRemote2
+        CONNECTION_HOPS:
+            UNIX_LOCAL:
+            UNIX_REMOTE:
+                execute_command: ssh # default value
+                command_params:
+                expected_prompt: unix_remote_prompt
+                host: host_ip
+                login: login
+                password: password
+            UNIX_REMOTE:
+            ADB_SHELL:
+                execute_command: adb_shell # default value
+                command_params:
+                serial_number: 'f57e6b7d'
+
+        -without PROXY_PC and remote-access-io like "sshshell":
+        ADB_1:
+        DEVICE_CLASS: moler.device.adbremote2.AdbRemote2
+        CONNECTION_DESC:
+            io_type: sshshell
+            host: host_ip
+            login: login
+            password: password
+        CONNECTION_HOPS:
+            UNIX_REMOTE:
+            ADB_SHELL:
+                execute_command: adb_shell # default value
+                command_params:
+                serial_number: 'f57e6b7d'
     """
 
     def __init__(self, sm_params, name=None, io_connection=None, io_type=None, variant=None, io_constructor_kwargs=None,

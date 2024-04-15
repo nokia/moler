@@ -18,38 +18,42 @@ class PduAten(ProxyPc):
     r"""
     PDU Aten device class.
 
-    Example of device in yaml configuration file:
-    - with PROXY_PC:
-      PDU_1:
-        DEVICE_CLASS: moler.device.pdu_aten.PduAten
-        CONNECTION_HOPS:
-          PROXY_PC:
-            PDU:
-              execute_command: telnet # default value
-              command_params:
-                host: 10.0.0.1
-          PDU:
-            PROXY_PC:
-              execute_command: exit_telnet # default value
-              command_params:
-                expected_prompt: proxy_pc.*>
-          UNIX_LOCAL:
-            PROXY_PC:
-              execute_command: ssh # default value
-              command_params:
-                expected_prompt: proxy_pc.*>
-                host: 10.0.0.2
-                login: user
-                password: password
-    -without PROXY_PC:
+
+    ::
+
+
+        Example of device in yaml configuration file:
+        - with PROXY_PC:
         PDU_1:
             DEVICE_CLASS: moler.device.pdu_aten.PduAten
             CONNECTION_HOPS:
-              UNIX_LOCAL:
+            PROXY_PC:
                 PDU:
-                  execute_command: telnet # default value
-                  command_params:
+                execute_command: telnet # default value
+                command_params:
                     host: 10.0.0.1
+            PDU:
+                PROXY_PC:
+                execute_command: exit_telnet # default value
+                command_params:
+                    expected_prompt: proxy_pc.*>
+            UNIX_LOCAL:
+                PROXY_PC:
+                execute_command: ssh # default value
+                command_params:
+                    expected_prompt: proxy_pc.*>
+                    host: 10.0.0.2
+                    login: user
+                    password: password
+        -without PROXY_PC:
+            PDU_1:
+                DEVICE_CLASS: moler.device.pdu_aten.PduAten
+                CONNECTION_HOPS:
+                UNIX_LOCAL:
+                    PDU:
+                    execute_command: telnet # default value
+                    command_params:
+                        host: 10.0.0.1
     """
 
     pdu = "PDU"

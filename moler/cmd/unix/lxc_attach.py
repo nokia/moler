@@ -93,66 +93,63 @@ COMMAND_KWARGS_2 = {
 COMMAND_RESULT_2 = {}
 
 
-"""
-=================================================HELP=MESSAGE===========================================================
-root@0xe000:~ >lxc-attach --help
-Usage: lxc-attach --name=NAME [-- COMMAND]
+# =================================================HELP=MESSAGE===========================================================
+# root@0xe000:~ >lxc-attach --help
+# Usage: lxc-attach --name=NAME [-- COMMAND]
 
-Execute the specified COMMAND - enter the container NAME
+# Execute the specified COMMAND - enter the container NAME
 
-Options :
-  -n, --name=NAME   NAME of the container
-  -e, --elevated-privileges=PRIVILEGES
-                    Use elevated privileges instead of those of the
-                    container. If you don't specify privileges to be
-                    elevated as OR'd list: CAP, CGROUP and LSM (capabilities,
-                    cgroup and restrictions, respectively) then all of them
-                    will be elevated.
-                    WARNING: This may leak privileges into the container.
-                    Use with care.
-  -a, --arch=ARCH   Use ARCH for program instead of container's own
-                    architecture.
-  -s, --namespaces=FLAGS
-                    Don't attach to all the namespaces of the container
-                    but just to the following OR'd list of flags:
-                    MOUNT, PID, UTSNAME, IPC, USER or NETWORK.
-                    WARNING: Using -s implies -e with all privileges
-                    elevated, it may therefore leak privileges into the
-                    container. Use with care.
-  -R, --remount-sys-proc
-                    Remount /sys and /proc if not attaching to the
-                    mount namespace when using -s in order to properly
-                    reflect the correct namespace context. See the
-                    lxc-attach(1) manual page for details.
-      --clear-env   Clear all environment variables before attaching.
-                    The attached shell/program will start with only
-                    container=lxc set.
-      --keep-env    Keep all current environment variables. This
-                    is the current default behaviour, but is likely to
-                    change in the future.
-  -L, --pty-log=FILE
-                    Log pty output to FILE
-  -v, --set-var     Set an additional variable that is seen by the
-                    attached program in the container. May be specified
-                    multiple times.
-      --keep-var    Keep an additional environment variable. Only
-                    applicable if --clear-env is specified. May be used
-                    multiple times.
-  -f, --rcfile=FILE
-                    Load configuration file FILE
+# Options :
+#   -n, --name=NAME   NAME of the container
+#   -e, --elevated-privileges=PRIVILEGES
+#                     Use elevated privileges instead of those of the
+#                     container. If you don't specify privileges to be
+#                     elevated as OR'd list: CAP, CGROUP and LSM (capabilities,
+#                     cgroup and restrictions, respectively) then all of them
+#                     will be elevated.
+#                     WARNING: This may leak privileges into the container.
+#                     Use with care.
+#   -a, --arch=ARCH   Use ARCH for program instead of container's own
+#                     architecture.
+#   -s, --namespaces=FLAGS
+#                     Don't attach to all the namespaces of the container
+#                     but just to the following OR'd list of flags:
+#                     MOUNT, PID, UTSNAME, IPC, USER or NETWORK.
+#                     WARNING: Using -s implies -e with all privileges
+#                     elevated, it may therefore leak privileges into the
+#                     container. Use with care.
+#   -R,--remount-sys-proc
+#                     Remount /sys and /proc if not attaching to the
+#                     mount namespace when using -s in order to properly
+#                     reflect the correct namespace context. See the
+#                     lxc-attach(1) manual page for details.
+#       --clear-env   Clear all environment variables before attaching.
+#                     The attached shell/program will start with only
+#                     container=lxc set.
+#       --keep-env    Keep all current environment variables. This
+#                     is the current default behaviour, but is likely to
+#                     change in the future.
+#   -L, --pty-log=FILE
+#                     Log pty output to FILE
+#   -v, --set-var     Set an additional variable that is seen by the
+#                     attached program in the container. May be specified
+#                     multiple times.
+#       --keep-var    Keep an additional environment variable. Only
+#                     applicable if --clear-env is specified. May be used
+#                     multiple times.
+#   -f, --rcfile=FILE
+#                     Load configuration file FILE
 
-Common options :
-  -o, --logfile=FILE               Output log to FILE instead of stderr
-  -l, --logpriority=LEVEL          Set log priority to LEVEL
-  -q, --quiet                      Don't produce any output
-  -P, --lxcpath=PATH               Use specified container path
-  -?, --help                       Give this help list
-      --usage                      Give a short usage message
-      --version                    Print the version number
+# Common options :
+#   -o, --logfile=FILE               Output log to FILE instead of stderr
+#   -l, --logpriority=LEVEL          Set log priority to LEVEL
+#   -q, --quiet                      Don't produce any output
+#   -P, --lxcpath=PATH               Use specified container path
+#   -?, --help                       Give this help list
+#       --usage                      Give a short usage message
+#       --version                    Print the version number
 
-Mandatory or optional arguments to long options are also mandatory or optional
-for any corresponding short options.
+# Mandatory or optional arguments to long options are also mandatory or optional
+# for any corresponding short options.
 
-See the lxc-attach man page for further information.
-
-"""
+# See the lxc-attach man page for further information.

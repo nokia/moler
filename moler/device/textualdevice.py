@@ -436,7 +436,7 @@ class TextualDevice(AbstractDevice):
         timeout_multiply=1.0,
     ):
         """
-        Goes to specific state.
+        Go to specific state.
 
         :param state: Name to state to change on the device.
         :param timeout: Timeout for changing state, if negative then timeout from commands are taken.
@@ -444,7 +444,7 @@ class TextualDevice(AbstractDevice):
         :param send_enter_after_changed_state: If True then enter is sent after state is changed. False nothing is sent.
         :param log_stacktrace_on_fail: Set True to have stacktrace in logs when failed, otherwise False.
         :param keep_state: if True and state is changed without goto_state then device tries to change state to state
-        defined by goto_state.
+         defined by goto_state.
         :param timeout_multiply: how many times multiply passed timeout to get final timeout.
         :return: None
         :raise: DeviceChangeStateFailure if cannot change the state of device.
@@ -877,7 +877,8 @@ class TextualDevice(AbstractDevice):
 
     def get_cmd(self, cmd_name, cmd_params=None, check_state=True, for_state=None):
         """
-        Returns instance of command connected with the device.
+        Return instance of command connected with the device.
+
         :param cmd_name: name of commands, name of class (without package), for example "cd".
         :param cmd_params: dict with command parameters.
         :param check_state: if True then before execute of command the state of device will be check if the same
@@ -906,6 +907,7 @@ class TextualDevice(AbstractDevice):
     ):
         """
         Return instance of event connected with the device.
+
         :param event_name: name of event, name of class (without package).
         :param event_params: dict with event parameters.
         :param check_state: if True then before execute of event the state of device will be check if the same

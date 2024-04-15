@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 Last modification: adding support for EPC tables and partially empty tables changes till 23.05.2018
-                   added adjustements for project requirements
-Commad TableText is parsing Linux Command to according to headers and columns (adjusted)
+                   added adjustments for project requirements.
+
+Command TableText is parsing Linux Command to according to headers and columns (adjusted)
 For initialization it is getting 4 parameters (2 required 2 optional)
 Required parameters:
 _header_regexps --> regexp array for finding headers

@@ -5,26 +5,24 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    moler.cmd.juniper_ex.cli
-    moler.cmd.juniper_ex.configure
+   moler.cmd.juniper_ex.cli
+   moler.cmd.juniper_ex.configure
 
 Submodules
 ----------
 
-moler.cmd.juniper\_ex.genericjuniperex module
----------------------------------------------
 
 .. automodule:: moler.cmd.juniper_ex.genericjuniperex
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Module contents
 ---------------
 
 .. automodule:: moler.cmd.juniper_ex
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

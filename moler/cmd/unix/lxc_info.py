@@ -198,35 +198,33 @@ COMMAND_KWARGS_2 = {"name": "0xe019", "options": "-s"}
 
 COMMAND_RESULT_2 = {"RESULT": {"State": "RUNNING"}}
 
-"""
-=================================================HELP=MESSAGE===========================================================
-root@server~ >lxc-info --help
-Usage: lxc-info --name=NAME
 
-lxc-info display some information about a container with the identifier NAME
+# =================================================HELP=MESSAGE===========================================================
+# root@server~ >lxc-info --help
+# Usage: lxc-info --name=NAME
 
-Options :
-  -n, --name=NAME       NAME of the container
-  -c, --config=KEY      show configuration variable KEY from running container
-  -i, --ips             shows the IP addresses
-  -p, --pid             shows the process id of the init container
-  -S, --stats           shows usage stats
-  -H, --no-humanize     shows stats as raw numbers, not humanized
-  -s, --state           shows the state of the container
-  --rcfile=FILE         Load configuration file FILE
+# lxc-info display some information about a container with the identifier NAME
 
-Common options :
-  -o, --logfile=FILE               Output log to FILE instead of stderr
-  -l, --logpriority=LEVEL          Set log priority to LEVEL
-  -q, --quiet                      Don't produce any output
-  -P, --lxcpath=PATH               Use specified container path
-  -?, --help                       Give this help list
-      --usage                      Give a short usage message
-      --version                    Print the version number
+# Options :
+#   -n, --name=NAME       NAME of the container
+#   -c, --config=KEY      show configuration variable KEY from running container
+#   -i, --ips             shows the IP addresses
+#   -p, --pid             shows the process id of the init container
+#   -S, --stats           shows usage stats
+#   -H, --no-humanize     shows stats as raw numbers, not humanized
+#   -s, --state           shows the state of the container
+#   --rcfile=FILE         Load configuration file FILE
 
-Mandatory or optional arguments to long options are also mandatory or optional
-for any corresponding short options.
+# Common options :
+#   -o, --logfile=FILE               Output log to FILE instead of stderr
+#   -l, --logpriority=LEVEL          Set log priority to LEVEL
+#   -q, --quiet                      Don't produce any output
+#   -P, --lxcpath=PATH               Use specified container path
+#   -?, --help                       Give this help list
+#       --usage                      Give a short usage message
+#       --version                    Print the version number
 
-See the lxc-info man page for further information.
+# Mandatory or optional arguments to long options are also mandatory or optional
+# for any corresponding short options.
 
-"""
+# See the lxc-info man page for further information.

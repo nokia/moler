@@ -33,6 +33,7 @@ def iterate_over_device_states(
 ):
     """
     Check all states in device under test.
+
     :param device: device
     :param max_time: maximum time of check. None for infinity. If execution time is greater then max_time then test is
      interrupted.

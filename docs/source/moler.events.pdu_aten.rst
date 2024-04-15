@@ -5,6 +5,6 @@ Module contents
 ---------------
 
 .. automodule:: moler.events.pdu_aten
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

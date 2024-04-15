@@ -109,6 +109,7 @@ class EventAwaiter:
         Example 2:
             cmds = [(cmd1, cmd2), cmd3, cmd4]
             events = [event1, event2]
+
         :param cmds: A list of commands to start.
         :param events: A list of events to start. If None, then the next command is started immediately.
         :param event_timeout: Timeout for each event.
