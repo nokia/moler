@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = "Michal Ernst, Marcin Usielski"
-__copyright__ = "Copyright (C) 2018-2020, Nokia"
+__copyright__ = "Copyright (C) 2018-2024, Nokia"
 __email__ = "michal.ernst@nokia.com, marcin.usielski@nokia.com"
 
 import abc
@@ -158,7 +158,6 @@ class Event(ConnectionObserver):
         if not self.done():
             self._prepare_occurred_2_result()
             self.set_result(self._occurred)
-
 
     def _log_occurred(self):
         """
