@@ -7,9 +7,11 @@ __email__ = "michal.ernst@nokia.com, marcin.usielski@nokia.com"
 import abc
 import functools
 import logging
-
+from typing import Optional
 import six
 
+from moler.abstract_moler_connection import AbstractMolerConnection
+from moler.runner import ConnectionObserverRunner
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import MolerException, ResultAlreadySet
 from moler.helpers import instance_id
@@ -17,7 +19,7 @@ from moler.helpers import instance_id
 
 @six.add_metaclass(abc.ABCMeta)
 class Event(ConnectionObserver):
-    def __init__(self, connection=None, till_occurs_times=-1, runner=None):
+    def __init__(self, connection: Optional[AbstractMolerConnection] = None, till_occurs_times: int = -1, runner: Optional[ConnectionObserverRunner] = None):
         """
 
         :param connection: connection to observe.
@@ -44,7 +46,7 @@ class Event(ConnectionObserver):
         return f"{self.__class__.__name__}(id:{instance_id(self)})"
 
     # pylint: disable=keyword-arg-before-vararg
-    def start(self, timeout=None, *args, **kwargs):
+    def start(self, timeout : float = None, *args, **kwargs):
         """Start background execution of command."""
         self._validate_start(*args, **kwargs)
         ret = super(Event, self).start(timeout, *args, **kwargs)
