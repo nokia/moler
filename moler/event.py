@@ -107,14 +107,14 @@ class Event(ConnectionObserver):
         # Should be used to set final result of event.
         if self.done():
             raise ResultAlreadySet(self)
-        self._prepare_occurred_2_result()
+        self._prepare_result_from_occurred()
         self._occurred.append(event_data)
         if self.till_occurs_times > 0:
             if len(self._occurred) >= self.till_occurs_times:
                 self.break_event()
         self.notify()
 
-    def _prepare_occurred_2_result(self) -> None:
+    def _prepare_result_from_occurred(self) -> None:
         """
         Prepare result from occurred.
 
@@ -161,7 +161,7 @@ class Event(ConnectionObserver):
         :return: None.
         """
         if not self.done():
-            self._prepare_occurred_2_result()
+            self._prepare_result_from_occurred()
             if not force and len(self._occurred) < self.till_occurs_times:
                 self.set_exception(MolerException(f"Expected {self.till_occurs_times} occurrences but got {len(self._occurred)}."))
             else:
