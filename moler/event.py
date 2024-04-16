@@ -46,7 +46,7 @@ class Event(ConnectionObserver):
         return f"{self.__class__.__name__}(id:{instance_id(self)})"
 
     # pylint: disable=keyword-arg-before-vararg
-    def start(self, timeout : float = None, *args, **kwargs):
+    def start(self, timeout: float = None, *args, **kwargs):
         """Start background execution of command."""
         self._validate_start(*args, **kwargs)
         ret = super(Event, self).start(timeout, *args, **kwargs)
