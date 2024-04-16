@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 
 __author__ = "Michal Ernst, Marcin Usielski"
-__copyright__ = "Copyright (C) 2018-2020, Nokia"
+__copyright__ = "Copyright (C) 2018-2024, Nokia"
 __email__ = "michal.ernst@nokia.com, marcin.usielski@nokia.com"
 
 import abc
 import functools
 import logging
-
+from typing import Optional
 import six
 
+from moler.abstract_moler_connection import AbstractMolerConnection
+from moler.runner import ConnectionObserverRunner
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import MolerException, ResultAlreadySet
 from moler.helpers import instance_id
@@ -17,7 +19,7 @@ from moler.helpers import instance_id
 
 @six.add_metaclass(abc.ABCMeta)
 class Event(ConnectionObserver):
-    def __init__(self, connection=None, till_occurs_times=-1, runner=None):
+    def __init__(self, connection: Optional[AbstractMolerConnection] = None, till_occurs_times: int = -1, runner: Optional[ConnectionObserverRunner] = None):
         """
 
         :param connection: connection to observe.
@@ -44,7 +46,7 @@ class Event(ConnectionObserver):
         return f"{self.__class__.__name__}(id:{instance_id(self)})"
 
     # pylint: disable=keyword-arg-before-vararg
-    def start(self, timeout=None, *args, **kwargs):
+    def start(self, timeout: float = None, *args, **kwargs):
         """Start background execution of command."""
         self._validate_start(*args, **kwargs)
         ret = super(Event, self).start(timeout, *args, **kwargs)
@@ -62,7 +64,7 @@ class Event(ConnectionObserver):
                 f"Cannot assign a callback '{callback}' to event '{self}' when another callback '{self.callback}' is already assigned"
             )
 
-    def enable_log_occurrence(self):
+    def enable_log_occurrence(self) -> None:
         """
         Enables to log every occurrence of the event.
 
@@ -70,7 +72,7 @@ class Event(ConnectionObserver):
         """
         self._log_every_occurrence = True
 
-    def disable_log_occurrence(self):
+    def disable_log_occurrence(self) -> None:
         """
         Disables to log every occurrence of the event.
 
@@ -78,7 +80,7 @@ class Event(ConnectionObserver):
         """
         self._log_every_occurrence = False
 
-    def remove_event_occurred_callback(self):
+    def remove_event_occurred_callback(self) -> None:
         """
         Removes callback from the event.
 
@@ -86,7 +88,7 @@ class Event(ConnectionObserver):
         """
         self.callback = None
 
-    def notify(self):
+    def notify(self) -> None:
         """
         Notifies (call callback).
 
@@ -96,7 +98,7 @@ class Event(ConnectionObserver):
         if self.callback:
             self.callback()
 
-    def event_occurred(self, event_data):
+    def event_occurred(self, event_data) -> None:
         """
         Sets event_data as new item of occurrence ret.
         :param event_data: data to set as value of occurrence.
@@ -105,18 +107,26 @@ class Event(ConnectionObserver):
         # Should be used to set final result of event.
         if self.done():
             raise ResultAlreadySet(self)
-        if self._occurred is None:
-            self._occurred = []
+        self._prepare_result_from_occurred()
         self._occurred.append(event_data)
         if self.till_occurs_times > 0:
             if len(self._occurred) >= self.till_occurs_times:
-                self.set_result(self._occurred)
+                self.break_event()
         self.notify()
 
-    def _get_module_class(self):
+    def _prepare_result_from_occurred(self) -> None:
+        """
+        Prepare result from occurred.
+
+        :return: None.
+        """
+        if self._occurred is None:
+            self._occurred = []
+
+    def _get_module_class(self) -> str:
         return f"{self.__class__.__module__}.{self}"
 
-    def get_long_desc(self):
+    def get_long_desc(self) -> str:
         """
         Returns string with description of event.
 
@@ -124,7 +134,7 @@ class Event(ConnectionObserver):
         """
         return f"Event '{self._get_module_class()}'"
 
-    def get_short_desc(self):
+    def get_short_desc(self) -> str:
         """
         Returns string with description of event.
 
@@ -143,7 +153,21 @@ class Event(ConnectionObserver):
         else:
             return None
 
-    def _log_occurred(self):
+    def break_event(self, force=False) -> None:
+        """
+        Break event. Do not process anymore. Clean up all resources. Prepare result.
+
+        :param force: If False then check if no of occurred is as expected Force, True to not check.
+        :return: None.
+        """
+        if not self.done():
+            self._prepare_result_from_occurred()
+            if not force and len(self._occurred) < self.till_occurs_times:
+                self.set_exception(MolerException(f"Expected {self.till_occurs_times} occurrences but got {len(self._occurred)}."))
+            else:
+                self.set_result(self._occurred)
+
+    def _log_occurred(self) -> None:
         """
         Logs info about notify when callback is not defined.
 
@@ -159,7 +183,7 @@ class Event(ConnectionObserver):
         self._log(lvl=logging.DEBUG, msg=msg)
 
     @abc.abstractmethod
-    def pause(self):
+    def pause(self) -> None:
         """
         Pauses the event. Do not process till resume.
 
@@ -167,7 +191,7 @@ class Event(ConnectionObserver):
         """
 
     @abc.abstractmethod
-    def resume(self):
+    def resume(self) -> None:
         """
         Resumes processing output from connection by the event.
 
