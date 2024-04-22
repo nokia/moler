@@ -9,6 +9,7 @@ import tempfile
 import os
 import six
 import getpass
+import platform
 from moler.device.unixlocal import UnixLocal
 from moler.event_awaiter import EventAwaiter
 
@@ -83,8 +84,9 @@ def test_uname(unix_terminal):
     cmd_uname = unix.get_cmd(cmd_name="uname", cmd_params={"options": "-a"})
     ret = cmd_uname()
     found = False
+    system_name = platform.system()
     for line in ret["RESULT"]:
-        if 'Linux' in line:
+        if system_name in line:
             found = True
     assert found
 
@@ -120,7 +122,7 @@ def test_cp_md5sum_cat_mv_rm_ls(unix_terminal):
 
     cmd_cp = unix.get_cmd(cmd_name="cp", cmd_params={"src": src, "dst": dst})
     cmd_cp()
-    cmd_ls = unix.get_cmd(cmd_name="ls", cmd_params={"options": '-l ' + tmp_dir})
+    cmd_ls = unix.get_cmd(cmd_name="ls", cmd_params={"options": f"-l {tmp_dir}"})
     ret = cmd_ls()
     assert src_file in ret['files']
     assert dst_file in ret['files']
