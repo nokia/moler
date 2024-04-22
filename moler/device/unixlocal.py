@@ -250,7 +250,11 @@ class UnixLocal(TextualDevice):
         command = self.get_cmd(
             cmd_name=command_name, cmd_params=command_params_without_timeout
         )
-        command(timeout=command_timeout)
+        self._prompts_event.pause()
+        try:
+            command(timeout=command_timeout)
+        finally:
+            self._prompts_event.resume()
 
     @classmethod
     def _parameters_without_timeout(cls, parameters):
