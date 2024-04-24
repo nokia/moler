@@ -52,5 +52,3 @@ class StateMachine(transitions.Machine):
                     self.state_change_log_callable(logging.INFO, msg)
         else:
             super(StateMachine, self).set_state(state=state, model=model)
-
-    
