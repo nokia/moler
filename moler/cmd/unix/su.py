@@ -4,7 +4,7 @@ Su command module.
 """
 
 __author__ = 'Agnieszka Bylica, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2023, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import re
@@ -181,6 +181,7 @@ COMMAND_RESULT_newline_after_prompt_with_prompt_change = {}
 COMMAND_OUTPUT_set_timeout = """
 xyz@debian:~$ su
 Password:
+root@debian:/home/xyz#
 root@debian:/home/xyz# export TMOUT="2678400"
 root@debian:/home/xyz# """
 

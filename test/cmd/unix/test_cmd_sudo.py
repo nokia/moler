@@ -237,10 +237,10 @@ def test_sudo_forwards_nonsudo_specific_connection_data_into_embedded_command(bu
 
 def test_wrong_password_repeat_password(buffer_connection):
     output1 = "sudo pwd\n"
-    output2 = "[sudo] password for ute: "
+    output2 = "[sudo] password for john: "
     output3 = "*****\n"
     output4 = "Sorry, try again.\n"
-    output5 = "[sudo] password for ute: "
+    output5 = "[sudo] password for john: "
     output6 = "*****\n"
     output7 = "/home/moler\n"
     output8 = "user@host:~/moler$"
@@ -258,10 +258,74 @@ def test_wrong_password_repeat_password(buffer_connection):
     cmd_sudo.await_done()
 
 
+def test_set_prompt(buffer_connection):
+    output1 = 'sudo ip netns exec NH123 bash -c "su - john"'
+    output2 = "\n"
+    output3 = "john@7-7-johncomp123:~$ "
+    output4 = "\njohn@7-7-johncomp123:~$ \n"
+    output5 = "export PS1=\"johnNamespace:\\W\\$\"\n"
+    output6 = "johnNamespace:~$ \n"
+    output7 = "\n"
+    output8 = "johnNamespace:~$ "
+
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection,
+                    sudo_params='ip netns exec NH123 bash -c \"su - john\"',
+                    prompt=r'john@.*(\$|#|>)\s+', expected_prompt= r'^johnNamespace.*',
+                    prompt_after_login=r'john@.*(\$|#|>)\s+',
+                    set_prompt=r'export PS1="johnNamespace:\W\$"',
+                    repeat_password=True)
+    assert cmd_sudo.command_string == output1
+    cmd_sudo.start(timeout=4)
+    time.sleep(0.1)
+    buffer_connection.moler_connection.data_received(output1.encode("utf-8"), datetime.datetime.now())
+    buffer_connection.moler_connection.data_received("\n".encode("utf-8"), datetime.datetime.now())
+    time.sleep(0.1)
+    assert cmd_sudo._cmd_output_started is True
+    assert cmd_sudo._sent_prompt is False
+    assert cmd_sudo._matched_prompt is False
+    outputs = [output2, output3, output4, output5, output6, output7, output8]
+    for output in outputs:
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
+        time.sleep(0.1)
+    assert cmd_sudo._sent_prompt is True
+    cmd_sudo.await_done()
+    assert cmd_sudo._matched_prompt is True
+
+def test_set_prompt_timeout(buffer_connection):
+    output1 = 'sudo ip netns exec NH123 bash -c "su - john"'
+    output2 = "\n"
+    output3 = "john@7-7-johncomp123:~$ "
+    output4 = "\njohn@7-7-johncomp123:~$ \n"
+    output5 = "export PS1=\"johnNamespace:\\W\\$\"\n"
+
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection,
+                    sudo_params='ip netns exec NH123 bash -c \"su - john\"',
+                    prompt=r'john@.*(\$|#|>)\s+', expected_prompt= r'^johnNamespace.*',
+                    prompt_after_login=r'john@.*(\$|#|>)\s+',
+                    set_prompt=r'export PS1="johnNamespace:\W\$"',
+                    repeat_password=True)
+    assert cmd_sudo.command_string == output1
+    cmd_sudo.start(timeout=4)
+    time.sleep(0.1)
+    buffer_connection.moler_connection.data_received(output1.encode("utf-8"), datetime.datetime.now())
+    buffer_connection.moler_connection.data_received("\n".encode("utf-8"), datetime.datetime.now())
+    time.sleep(0.1)
+    assert cmd_sudo._cmd_output_started is True
+    assert cmd_sudo._sent_prompt is False
+    assert cmd_sudo._matched_prompt is False
+    outputs = [output2, output3, output4, output5]
+    for output in outputs:
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
+        time.sleep(0.1)
+    assert cmd_sudo._sent_prompt is True
+    with pytest.raises(CommandTimeout):
+        cmd_sudo.await_done(timeout=0.2)
+    assert cmd_sudo._matched_prompt is True
+
 @pytest.fixture()
 def command_output_and_expected_result():
     output = """user@client:~/moler$ sudo pwd
-[sudo] password for user: 
+[sudo] password for user:
 /home/user/moler
 user@host:~/moler$ """
     result = {
@@ -275,7 +339,7 @@ user@host:~/moler$ """
 @pytest.fixture()
 def command_output_and_expected_result_timeout():
     output = """user@client:~/moler$ sudo pwd
-[sudo] password for user: 
+[sudo] password for user:
 /home/user/moler
 """
     return output
@@ -284,7 +348,7 @@ def command_output_and_expected_result_timeout():
 @pytest.fixture()
 def command_output_cp_fails():
     output = """sudo cp src.txt dst.txt
-[sudo] password for user: 
+[sudo] password for user:
 cp: cannot access
 user@host:~/moler$ """
     return output
@@ -292,7 +356,7 @@ user@host:~/moler$ """
 
 @pytest.fixture()
 def command_output_cp_bit_fails():
-    output = """sudo cp src.txt dst.txt 
+    output = """sudo cp src.txt dst.txt
 sudo: /usr/bin/sudo must be owned by uid 0 and have the setuid bit set
 user@host:~/moler$ """
     return output
@@ -301,11 +365,11 @@ user@host:~/moler$ """
 @pytest.fixture()
 def command_output_password_fails():
     output = """sudo whoami
-[sudo] password for ute: 
+[sudo] password for john:
 Sorry, try again.
-[sudo] password for ute: 
+[sudo] password for john:
 Sorry, try again.
-[sudo] password for ute: 
+[sudo] password for john:
 Sorry, try again.
 sudo: 3 incorrect password attempts
 [login]$ """
@@ -316,7 +380,7 @@ sudo: 3 incorrect password attempts
 @pytest.fixture()
 def command_output_command_not_found():
     output = """sudo pwd
-[sudo] password for ute: 
+[sudo] password for john:
 sudo: pwd: command not found
 user@host:~/moler$ """
     return output

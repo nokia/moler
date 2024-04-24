@@ -1020,6 +1020,8 @@ class TextualDevice(AbstractDevice):
     def _prompts_observer_callback(self, event):
         occurrence = event.get_last_occurrence()
         state = occurrence["state"]
+        line = occurrence["line"]
+        self._log(level=logging.DEBUG, msg=f"Callback for state {state} for line >>{line}<<")
         self._set_state(state)
         if self._check_all_prompts_on_line:
             if len(occurrence["list_matched"]) > 1:

@@ -4,7 +4,7 @@ Testing of ssh command.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2023, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 from moler.cmd.unix.ssh import Ssh
@@ -166,7 +166,7 @@ def test_ssh_change_prompt_in_the_same_line(buffer_connection, command_output_ch
 
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="pass",
                   set_timeout=None, set_prompt='export PS1="\\u$"', host="host.domain.net", prompt="client.*>",
-                  prompt_after_login='host:~ #', expected_prompt=r"^user\$$")
+                  prompt_after_login='^host:~ #', expected_prompt=r"^user\$$")
     assert ssh_cmd.enter_on_prompt_without_anchors is True
     ssh_cmd(timeout=1)
     assert ssh_cmd.enter_on_prompt_without_anchors is False
@@ -297,8 +297,8 @@ def command_output_and_expected_result():
         ' \n',
         'Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1\n',
         'Have a lot of fun...\n',
-        'host:~ # ',
-        'export TMOUT=\"2678400\"\n',
+        'host:~ # \n',
+        'host:~ # export TMOUT="2678400"\n',
         'host:~ # ',
     ]
     data = ""
@@ -348,7 +348,8 @@ You may put information to /etc/ssh_banner who is owner of this PC
 Password:
 Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
 Have a lot of fun...
+SOMETHINGhost:~ #
 host:~ #
-host:~ # export PS1="\\u$"user$
+host:~ # export PS1="\\u$"
 user$"""
     return lines
