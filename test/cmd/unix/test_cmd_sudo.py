@@ -291,6 +291,7 @@ def test_set_prompt(buffer_connection):
     cmd_sudo.await_done()
     assert cmd_sudo._matched_prompt is True
 
+
 def test_set_prompt_timeout(buffer_connection):
     output1 = 'sudo ip netns exec NH123 bash -c "su - john"'
     output2 = "\n"
@@ -321,6 +322,39 @@ def test_set_prompt_timeout(buffer_connection):
     with pytest.raises(CommandTimeout):
         cmd_sudo.await_done(timeout=0.2)
     assert cmd_sudo._matched_prompt is True
+
+
+def test_set_prompt_do_not_check_echo(buffer_connection):
+    output1 = 'sudo ip netns exec NH123 bash -c "su - john"'
+    output2 = "\n"
+    output3 = "john@7-7-johncomp123:~$ "
+    output4 = "\njohn@7-7-johncomp123:~$ \n"
+    output5 = "johnNamespace:~$ "
+
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection,
+                    sudo_params='ip netns exec NH123 bash -c \"su - john\"',
+                    prompt=r'john@.*(\$|#|>)\s+', expected_prompt= r'^johnNamespace.*',
+                    prompt_after_login=r'john@.*(\$|#|>)\s+',
+                    set_prompt=r'export PS1="johnNamespace:\W\$"',
+                    repeat_password=True)
+    cmd_sudo.check_echo_settings = False
+    assert cmd_sudo.command_string == output1
+    cmd_sudo.start(timeout=4)
+    time.sleep(0.1)
+    buffer_connection.moler_connection.data_received(output1.encode("utf-8"), datetime.datetime.now())
+    buffer_connection.moler_connection.data_received("\n".encode("utf-8"), datetime.datetime.now())
+    time.sleep(0.1)
+    assert cmd_sudo._cmd_output_started is True
+    assert cmd_sudo._sent_prompt is False
+    assert cmd_sudo._matched_prompt is False
+    outputs = [output2, output3, output4, output5]
+    for output in outputs:
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
+        time.sleep(0.1)
+    assert cmd_sudo._sent_prompt is True
+    cmd_sudo.await_done()
+    assert cmd_sudo._matched_prompt is False
+
 
 @pytest.fixture()
 def command_output_and_expected_result():

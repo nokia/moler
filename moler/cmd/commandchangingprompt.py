@@ -152,12 +152,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
         sent = self._send_after_login_settings(line)
         if sent:
             raise ParsingDone()
-        if self._is_target_prompt(line) and (not is_full_line or self.allowed_newline_after_prompt):
-            if self._all_after_login_settings_sent() or self._no_after_login_settings_needed():
-                if not self.done() and self._cmd_output_started:
-                    if self._finish_on_final_prompt:
-                        self.set_result(self.current_ret)
-                    raise ParsingDone()
+        self._detect_final_prompt(line=line, is_full_line=is_full_line)
 
     def _send_after_login_settings(self, line: str) -> bool:
         """
