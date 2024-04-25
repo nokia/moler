@@ -9,7 +9,7 @@ from moler.device.textualdevice import TextualDevice
 from moler.helpers import copy_dict
 
 __author__ = "Grzegorz Latuszek, Marcin Usielski, Michal Ernst"
-__copyright__ = "Copyright (C) 2018-2019, Nokia"
+__copyright__ = "Copyright (C) 2018-2024, Nokia"
 __email__ = (
     "grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com"
 )
@@ -71,9 +71,9 @@ class UnixLocal(TextualDevice):
         :param lazy_cmds_events: set False to load all commands and events when device is initialized, set True to load
                         commands and events when they are required for the first time.
         """
-        initial_state = (
-            initial_state if initial_state is not None else UnixLocal.unix_local
-        )
+        self.pause_prompts_event_on_state_change: bool = False  # Set True to pause the prompt event when _execute_command_to_change_state is being called
+        initial_state = initial_state if initial_state is not None else UnixLocal.unix_local
+
         super(UnixLocal, self).__init__(
             sm_params=sm_params,
             name=name,
@@ -250,14 +250,13 @@ class UnixLocal(TextualDevice):
         command = self.get_cmd(
             cmd_name=command_name, cmd_params=command_params_without_timeout
         )
-        command(timeout=command_timeout)
-        # if self._prompts_event:
-        #     self._prompts_event.pause()
-        # try:
-        #     command(timeout=command_timeout)
-        # finally:
-        #     if self._prompts_event:
-        #         self._prompts_event.resume()
+        if self.pause_prompts_event_on_state_change is True and self._prompts_event is not None:
+            self._prompts_event.pause()
+        try:
+             command(timeout=command_timeout)
+        finally:
+             if self._prompts_event is not None:
+                self._prompts_event.resume()
 
     @classmethod
     def _parameters_without_timeout(cls, parameters):
