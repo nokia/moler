@@ -1,3 +1,7 @@
+## moler 3.6.0
+ * Optional pause Wait4Prompts during state change
+ * Added CRT tests
+
 ## moler 3.5.0
 * Unix commands - optional ctrl + z and kill on timeout - add `wait` call after `kill`
 * Add helper for escape codes `[2004l` `[2004h`
