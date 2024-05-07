@@ -9,6 +9,7 @@ __email__ = 'marcin.usielski@nokia.com'
 
 import abc
 import six
+import re
 
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 from moler.exceptions import ParsingDone
@@ -50,17 +51,26 @@ class CommandChangingPrompt(CommandTextualGeneric):
         self.target_newline = target_newline
         self.allowed_newline_after_prompt = allowed_newline_after_prompt
         self.enter_on_prompt_without_anchors = True  # Set True to try to match prompt in line without ^ and $.
+        self.check_echo_settings = True  # Set True to check if echo of commands to set prompt and timeout is matched.
 
         # Internal variables
         self._re_failure_exceptions_indication = None
         self._sent_timeout = False
         self._sent_prompt = False
+        self._matched_timeout = False
+        self._matched_prompt = False
         self._sent = False
         self._finish_on_final_prompt = True  # Set True to finish Moler command by this generic after prompt after
         # command output. False if you want to finish command in your class.
 
         self._re_expected_prompt_without_anchors = regexp_without_anchors(self._re_expected_prompt)
         self._re_prompt_after_login_without_anchors = regexp_without_anchors(self._re_prompt_after_login)
+        self._re_timeout_echo = None
+        self._re_prompt_echo = None
+        if self.set_timeout:
+            self._re_timeout_echo = re.compile(self._build_command_string_slice(self.set_timeout))
+        if self.set_prompt:
+            self._re_prompt_echo = re.compile(self._build_command_string_slice(self.set_prompt))
 
     def __str__(self):
         """
@@ -87,12 +97,22 @@ class CommandChangingPrompt(CommandTextualGeneric):
         :return: None
         """
         try:
+            self._detect_final_prompt(line, is_full_line)
+            self._match_settings(line)
             self._settings_after_login(line, is_full_line)
             self._detect_prompt_after_exception(line)
         except ParsingDone:
             pass
         if self._sent and is_full_line:
             self._sent = False
+
+    def _detect_final_prompt(self, line: str, is_full_line: bool) -> None:
+        if self._is_target_prompt(line) and (not is_full_line or self.allowed_newline_after_prompt):
+            if self._all_after_login_settings_sent() or self._no_after_login_settings_needed():
+                if not self.done() and self._cmd_output_started:
+                    if self._finish_on_final_prompt:
+                        self.set_result(self.current_ret)
+                    raise ParsingDone()
 
     def _detect_prompt_after_exception(self, line: str):
         """
@@ -103,6 +123,22 @@ class CommandChangingPrompt(CommandTextualGeneric):
         """
         if self._stored_exception and self._regex_helper.search_compiled(self._re_prompt, line):
             self._is_done = True
+            raise ParsingDone()
+
+    def _match_settings(self, line: str) -> None:
+        """
+        Matches settings for prompt and timeout.
+
+        :param line: Line from device.
+        :return: None but raises ParsingDone if settings are matched.
+        """
+        if self.check_echo_settings is False:
+            return
+        if not self._matched_prompt and self._sent_prompt and self._regex_helper.search_compiled(self._re_prompt_echo, line):
+            self._matched_prompt = True
+            raise ParsingDone()
+        if not self._matched_timeout and self._send_timeout_set and self._regex_helper.search_compiled(self._re_timeout_echo, line):
+            self._matched_timeout = True
             raise ParsingDone()
 
     def _settings_after_login(self, line: str, is_full_line: bool) -> None:
@@ -116,12 +152,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
         sent = self._send_after_login_settings(line)
         if sent:
             raise ParsingDone()
-        if (not sent) and self._is_target_prompt(line) and (not is_full_line or self.allowed_newline_after_prompt):
-            if self._all_after_login_settings_sent() or self._no_after_login_settings_needed():
-                if not self.done() and self._cmd_output_started:
-                    if self._finish_on_final_prompt:
-                        self.set_result(self.current_ret)
-                    raise ParsingDone()
+        self._detect_final_prompt(line=line, is_full_line=is_full_line)
 
     def _send_after_login_settings(self, line: str) -> bool:
         """
@@ -246,6 +277,13 @@ class CommandChangingPrompt(CommandTextualGeneric):
         both_sent = self._sent_prompt and self._sent_timeout
         req_and_sent_prompt = self.set_prompt and self._sent_prompt
         req_and_sent_timeout = self.set_timeout and self._sent_timeout
+        if self.check_echo_settings:
+            if both_sent:
+                both_sent = both_sent and self._matched_prompt and self._matched_timeout
+            if req_and_sent_prompt:
+                req_and_sent_prompt = req_and_sent_prompt and self._matched_prompt
+            if req_and_sent_timeout:
+                req_and_sent_timeout = req_and_sent_timeout and self._matched_timeout
         terminal_cmds_sent = ((both_requested and both_sent) or req_and_sent_timeout or req_and_sent_prompt)
         return terminal_cmds_sent and additional_commands_sent
 

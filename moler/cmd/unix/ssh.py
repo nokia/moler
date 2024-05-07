@@ -51,7 +51,7 @@ class Ssh(GenericTelnetSsh):
     _re_keygen_from_output = re.compile(r"(?P<COMMAND>ssh-keygen.*)")
 
     def __init__(self, connection, login=None, password=None, host="0", prompt=None, expected_prompt='>', port=0,
-                 known_hosts_on_failure='keygen', set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None,
+                 known_hosts_on_failure='keygen', set_timeout=r'export TMOUT="2678400"', set_prompt=None,
                  term_mono="TERM=xterm-mono", newline_chars=None, encrypt_password=True, runner=None,
                  target_newline="\n", allowed_newline_after_prompt=False, repeat_password=True,
                  options='-o ServerAliveInterval=7 -o ServerAliveCountMax=2',
@@ -304,11 +304,11 @@ client:~/>TERM=xterm-mono ssh -l user host.domain.net
 To edit this message please edit /etc/ssh_banner
 You may put information to /etc/ssh_banner who is owner of this PC
 Password:
-Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Last login: Thu Nov 23 10:38:17 2017 from 127.0.0.1
 Have a lot of fun...
 host:~ #
 host:~ # export TMOUT="2678400"
-host:~ #"""
+host:~ # """
 
 COMMAND_KWARGS = {
     "login": "user", "password": "english",
@@ -320,16 +320,16 @@ COMMAND_RESULT = {
         "To edit this message please edit /etc/ssh_banner",
         "You may put information to /etc/ssh_banner who is owner of this PC",
         "Password:",
-        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Last login: Thu Nov 23 10:38:17 2017 from 127.0.0.1",
         "Have a lot of fun...",
         "host:~ #",
-        "host:~ # export TMOUT=\"2678400\"",
+        'host:~ # export TMOUT="2678400"',
     ],
     'LAST_LOGIN': {
         'KIND': 'from',
         'WHERE': '127.0.0.1',
-        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
-        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+        'RAW_DATE': 'Thu Nov 23 10:38:17 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:17 2017'),
     },
     'FAILED_LOGIN_ATTEMPTS': None,
 }
@@ -343,7 +343,7 @@ Password:
 Permission denied (publickey,password,keyboard-interactive)
 client:~/>ssh-keygen -f "~/.ssh/known_hosts" -R host.domain.net
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
-Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Last login: Thu Nov 23 10:38:18 2017 from 127.0.0.1
 Have a lot of fun...
 host:~ #
 host:~ # export TMOUT="2678400"
@@ -362,16 +362,16 @@ COMMAND_RESULT_permission_denied = {
         "Permission denied (publickey,password,keyboard-interactive)",
         # "client:~/>ssh-keygen -f \"~/.ssh/known_hosts\" -R host.domain.net",
         # "client:~/>TERM=xterm-mono ssh -l user host.domain.net",
-        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Last login: Thu Nov 23 10:38:18 2017 from 127.0.0.1",
         "Have a lot of fun...",
         "host:~ #",
-        "host:~ # export TMOUT=\"2678400\"",
+        'host:~ # export TMOUT="2678400"',
     ],
     'LAST_LOGIN': {
         'KIND': 'from',
         'WHERE': '127.0.0.1',
-        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
-        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+        'RAW_DATE': 'Thu Nov 23 10:38:18 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:18 2017'),
     },
     'FAILED_LOGIN_ATTEMPTS': None,
 }
@@ -381,7 +381,7 @@ client:~/>TERM=xterm-mono ssh -l user host.domain.net
 To edit this message please edit /etc/ssh_banner
 You may put information to /etc/ssh_banner who is owner of this PC
 Enter passphrase for key '/home/user/serviceuser_key_passphrase':
-Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Last login: Thu Nov 23 10:38:19 2017 from 127.0.0.1
 Have a lot of fun...
 host:~ #
 host:~ # export TMOUT="2678400"
@@ -397,16 +397,16 @@ COMMAND_RESULT_passphrase = {
         "To edit this message please edit /etc/ssh_banner",
         "You may put information to /etc/ssh_banner who is owner of this PC",
         "Enter passphrase for key '/home/user/serviceuser_key_passphrase':",
-        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Last login: Thu Nov 23 10:38:19 2017 from 127.0.0.1",
         "Have a lot of fun...",
         "host:~ #",
-        "host:~ # export TMOUT=\"2678400\"",
+        'host:~ # export TMOUT="2678400"',
     ],
     'LAST_LOGIN': {
         'KIND': 'from',
         'WHERE': '127.0.0.1',
-        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
-        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+        'RAW_DATE': 'Thu Nov 23 10:38:19 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:19 2017'),
     },
     'FAILED_LOGIN_ATTEMPTS': None,
 }
@@ -415,7 +415,7 @@ COMMAND_OUTPUT_username = """TERM=xterm-mono ssh -l user host.domain.net
 To edit this message please edit /etc/ssh_banner
 You may put information to /etc/ssh_banner who is owner of this PC
 Password:
-Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Last login: Thu Nov 23 10:38:26 2017 from 127.0.0.1
 Have a lot of fun...
 host:~ #
 host:~ # export TMOUT="2678400"
@@ -431,16 +431,16 @@ COMMAND_RESULT_username = {
         "To edit this message please edit /etc/ssh_banner",
         "You may put information to /etc/ssh_banner who is owner of this PC",
         "Password:",
-        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Last login: Thu Nov 23 10:38:26 2017 from 127.0.0.1",
         "Have a lot of fun...",
         "host:~ #",
-        "host:~ # export TMOUT=\"2678400\"",
+        'host:~ # export TMOUT="2678400"',
     ],
     'LAST_LOGIN': {
         'KIND': 'from',
         'WHERE': '127.0.0.1',
-        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
-        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+        'RAW_DATE': 'Thu Nov 23 10:38:26 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:26 2017'),
     },
     'FAILED_LOGIN_ATTEMPTS': None,
 }
@@ -451,14 +451,15 @@ Do you want to continue (yes/no)? yes
 To edit this message please edit /etc/ssh_banner
 You may put information to /etc/ssh_banner who is owner of this PC
 Password:
-Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Last login: Thu Nov 23 10:38:25 2017 from 127.0.0.1
 Have a lot of fun...
 host:~ #
 host:~ # export PS1="\\u$"
 user$"""
 
 COMMAND_KWARGS_prompt = {
-    "login": "user", "password": "english", "set_prompt": r'export PS1="\\u$"',
+    "set_timeout": None,
+    "login": "user", "password": "english", "set_prompt": 'export PS1="\\u$"',
     "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": r"host.*#|user\$",
     "options": None,
 }
@@ -469,7 +470,7 @@ COMMAND_RESULT_prompt = {
         "To edit this message please edit /etc/ssh_banner",
         "You may put information to /etc/ssh_banner who is owner of this PC",
         "Password:",
-        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Last login: Thu Nov 23 10:38:25 2017 from 127.0.0.1",
         "Have a lot of fun...",
         "host:~ #",
         "host:~ # export PS1=\"\\u$\"",
@@ -477,8 +478,8 @@ COMMAND_RESULT_prompt = {
     'LAST_LOGIN': {
         'KIND': 'from',
         'WHERE': '127.0.0.1',
-        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
-        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+        'RAW_DATE': 'Thu Nov 23 10:38:25 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:25 2017'),
     },
     'FAILED_LOGIN_ATTEMPTS': None,
 }
@@ -489,16 +490,16 @@ Do you want to continue (yes/no)? yes
 To edit this message please edit /etc/ssh_banner
 You may put information to /etc/ssh_banner who is owner of this PC
 Password:
-Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Last login: Thu Nov 23 10:38:36 2017 from 127.0.0.1
 Have a lot of fun...
 host:~ #
 host:~ # export PS1="\\u$"
 user$"""
 
 COMMAND_KWARGS_2prompts = {
-    "login": "user", "password": "english", "set_prompt": r'export PS1="\\u$"',
+    "login": "user", "password": "english", "set_prompt": 'export PS1="\\u$"',
     "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": r"user\$",
-    "prompt_after_login": r"host.*#", "options": None,
+    "prompt_after_login": r"host.*#", "options": None, "set_timeout": None,
 }
 
 COMMAND_RESULT_2prompts = {
@@ -508,7 +509,7 @@ COMMAND_RESULT_2prompts = {
         'You may put information to /etc/ssh_banner who is owner of '
         'this PC',
         'Password:',
-        'Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1',
+        'Last login: Thu Nov 23 10:38:36 2017 from 127.0.0.1',
         'Have a lot of fun...',
         'host:~ #',
         'host:~ # export PS1="\\u$"'
@@ -516,8 +517,8 @@ COMMAND_RESULT_2prompts = {
     'LAST_LOGIN': {
         'KIND': 'from',
         'WHERE': '127.0.0.1',
-        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
-        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+        'RAW_DATE': 'Thu Nov 23 10:38:36 2017',
+        'DATE': parser.parse('Thu Nov 23 10:38:36 2017'),
     },
     'FAILED_LOGIN_ATTEMPTS': None,
 }
@@ -543,7 +544,7 @@ client:~/>TERM=xterm-mono ssh -p 25 -l user host.domain.net
 To edit this message please edit /etc/ssh_banner
 You may put information to /etc/ssh_banner who is owner of this PC
 Password:
-Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Last login: Thu Nov 23 10:39:16 2017 from 127.0.0.1
 Have a lot of fun...
 host:~ #"""
 
@@ -573,14 +574,14 @@ COMMAND_RESULT_rm = {
         "To edit this message please edit /etc/ssh_banner",
         "You may put information to /etc/ssh_banner who is owner of this PC",
         "Password:",
-        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Last login: Thu Nov 23 10:39:16 2017 from 127.0.0.1",
         "Have a lot of fun...",
     ],
     'LAST_LOGIN': {
         'KIND': 'from',
         'WHERE': '127.0.0.1',
-        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
-        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+        'RAW_DATE': 'Thu Nov 23 10:39:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:39:16 2017'),
     },
     'FAILED_LOGIN_ATTEMPTS': None,
 }
@@ -605,7 +606,7 @@ client:~/>TERM=xterm-mono ssh -l user host.domain.net
 To edit this message please edit /etc/ssh_banner
 You may put information to /etc/ssh_banner who is owner of this PC
 Password:
-Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1
+Last login: Thu Nov 23 10:40:16 2017 from 127.0.0.1
 Have a lot of fun...
 host:~ #
 host:~ # export TMOUT="2678400"
@@ -637,16 +638,16 @@ COMMAND_RESULT_keygen = {
         "To edit this message please edit /etc/ssh_banner",
         "You may put information to /etc/ssh_banner who is owner of this PC",
         "Password:",
-        "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
+        "Last login: Thu Nov 23 10:40:16 2017 from 127.0.0.1",
         "Have a lot of fun...",
         "host:~ #",
-        "host:~ # export TMOUT=\"2678400\"",
+        'host:~ # export TMOUT="2678400"',
     ],
     'LAST_LOGIN': {
         'KIND': 'from',
         'WHERE': '127.0.0.1',
-        'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
-        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+        'RAW_DATE': 'Thu Nov 23 10:40:16 2017',
+        'DATE': parser.parse('Thu Nov 23 10:40:16 2017'),
     },
     'FAILED_LOGIN_ATTEMPTS': None,
 }
@@ -694,7 +695,7 @@ COMMAND_RESULT_2_passwords = {
         "USAGE OF THE ROOT ACCOUNT AND THE FULL BASH IS RECOMMENDED ONLY FOR LIMITED USE. PLEASE USE A NON-ROOT ACCOUNT AND THE SCLI SHELL (fsclish) AND/OR LIMITED BASH SHELL.",
         "",
         "host:~ #",
-        "host:~ # export TMOUT=\"2678400\"",
+        'host:~ # export TMOUT="2678400"',
     ],
     'LAST_LOGIN': {
     },
@@ -745,7 +746,7 @@ COMMAND_RESULT_2_passwords_repeat = {
         "USAGE OF THE ROOT ACCOUNT AND THE FULL BASH IS RECOMMENDED ONLY FOR LIMITED USE. PLEASE USE A NON-ROOT ACCOUNT AND THE SCLI SHELL (fsclish) AND/OR LIMITED BASH SHELL.",
         "",
         "host:~ #",
-        "host:~ # export TMOUT=\"2678400\"",
+        'host:~ # export TMOUT="2678400"',
     ],
     'LAST_LOGIN': {
     },
@@ -811,7 +812,7 @@ COMMAND_RESULT_resize_window = {
         "resize: unknown character, exiting.",
         "Have a lot of fun...",
         "host:~ #",
-        "host:~ # export TMOUT=\"2678400\""
+        'host:~ # export TMOUT="2678400"'
     ],
     'LAST_LOGIN': {
         'KIND': 'on',
@@ -881,7 +882,7 @@ COMMAND_RESULT_options = {
         "resize: unknown character, exiting.",
         "Have a lot of fun...",
         "host:~ #",
-        "host:~ # export TMOUT=\"2678400\""
+        'host:~ # export TMOUT="2678400"'
     ],
     'LAST_LOGIN': {
         'KIND': 'on',
@@ -922,7 +923,7 @@ COMMAND_RESULT_failure_exception = {
         "Can't open display",
         "-bash: /home/user/.bash_profile: Permission denied",
         "host:~ #",
-        "host:~ # export TMOUT=\"2678400\""
+        'host:~ # export TMOUT="2678400"'
     ],
     'LAST_LOGIN': {
         'KIND': 'from',
@@ -947,9 +948,9 @@ host:~ # export PS1="\\u$"
 user$"""
 
 COMMAND_KWARGS_prompt_fingerprint = {
-    "login": "user", "password": "english", "set_prompt": r'export PS1="\\u$"',
+    "login": "user", "password": "english", "set_prompt": 'export PS1="\\u$"',
     "host": "host.domain.net", "prompt": "client.*>", "expected_prompt": r"host.*#|user\$",
-    "options": None,
+    "options": None, "set_timeout": None,
 }
 
 COMMAND_RESULT_prompt_fingerprint = {
@@ -997,7 +998,7 @@ COMMAND_RESULT_wrong_date = {
         "Last login: Thu Nov 23 10:78:16 2017 from 127.0.0.1",
         "Have a lot of fun...",
         "host:~ #",
-        "host:~ # export TMOUT=\"2678400\"",
+        'host:~ # export TMOUT="2678400"',
     ],
     'LAST_LOGIN': {
         'KIND': 'from',

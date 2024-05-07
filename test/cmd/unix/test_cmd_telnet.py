@@ -31,7 +31,7 @@ def test_calling_telnet_returns_result_parsed_from_command_output(buffer_connect
     buffer_connection.remote_inject_response([command_output])
     telnet_cmd = Telnet(connection=buffer_connection.moler_connection, login="user", password="english", port=1500,
                         host="host.domain.net", expected_prompt="host:.*#")
-    result = telnet_cmd()
+    result = telnet_cmd(timeout=5)
     assert result == expected_result
 
 
@@ -142,7 +142,7 @@ def test_telnet_with_on_inactivity(buffer_connection):
     telnet> """
     output5 = """mode character
     host:~ #"""
-    output6 = """export TMOUT="2678400",
+    output6 = """export TMOUT="2678400"
     host:~ #"""
 
     class TelnetInact(Telnet):
@@ -179,8 +179,8 @@ def command_output_and_expected_result():
         ' \n',
         'Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1\n',
         'Have a lot of fun...\n',
-        'host:~ # ',
-        'export TMOUT=\"2678400\"\n',
+        'host:~ # \n',
+        'export TMOUT="2678400"\n',
         'host:~ # ',
 
     ]
@@ -193,7 +193,8 @@ def command_output_and_expected_result():
         'Password: ',
         'Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1',
         'Have a lot of fun...',
-        'host:~ # export TMOUT="2678400"'
+        'host:~ # ',
+        'export TMOUT="2678400"'
     ]
     result['LAST_LOGIN'] = {
         'KIND': 'from',
@@ -217,7 +218,7 @@ def command_output_and_expected_result_timeout():
         'Last login: Thu Nov 23 10:38:16 2017 from 10.83.200.37\n',
         'Have a lot of fun...\n',
         'host:~ # ',
-        'export TMOUT=\"2678400\"\n',
+        'export TMOUT="2678400"\n',
     ]
     data = ""
     for line in lines:

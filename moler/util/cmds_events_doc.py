@@ -23,6 +23,7 @@ from moler.command import Command
 from moler.event import Event
 from moler.helpers import compare_objects
 from moler.moler_connection_for_single_thread_runner import MolerConnectionForSingleThreadRunner
+from moler.exceptions import MolerException
 
 
 def _buffer_connection():
@@ -213,7 +214,11 @@ def _run_command_parsing_test(moler_cmd, creation_str, buffer_io, cmd_output, cm
             exclude_types = {datetime}
         elif base_class is Command:
             buffer_io.remote_inject_response([cmd_output])
-            result = moler_cmd()
+            try:
+                result = moler_cmd()
+            except MolerException as err:
+                error_msg = f"{observer_type} {creation_str} raised exception: {str(err)}"
+                return error_msg
 
         try:
             diff = compare_objects(cmd_result, result, significant_digits=6, exclude_types=exclude_types)
@@ -284,6 +289,7 @@ def check_if_documentation_exists(path2cmds):
             except Exception as err:
                 wrong_commands[moler_class.__name__] = 1
                 errors_found.append(str(err))
+                raise err
                 continue
 
             error_msg = _run_command_parsing_test(moler_cmd, creation_str,

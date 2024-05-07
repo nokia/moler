@@ -22,7 +22,7 @@ from moler.helpers import copy_list
 class Telnet(GenericTelnetSsh):
 
     def __init__(self, connection, host, login=None, password=None, port=0, prompt=None, expected_prompt=r'^>\s*',
-                 set_timeout=r'export TMOUT=\"2678400\"', set_prompt=None, term_mono="TERM=xterm-mono", prefix=None,
+                 set_timeout=r'export TMOUT="2678400"', set_prompt=None, term_mono="TERM=xterm-mono", prefix=None,
                  newline_chars=None, cmds_before_establish_connection=None, cmds_after_establish_connection=None,
                  telnet_prompt=r"^\s*telnet>\s*", encrypt_password=True, runner=None, target_newline="\n",
                  allowed_newline_after_prompt=False, repeat_password=True, failure_exceptions_indication=None,
@@ -231,7 +231,7 @@ COMMAND_RESULT = {
         "Have a lot of fun...",
         "CLIENT5 [] has just connected!",
         "host:~ #",
-        "export TMOUT=\"2678400\"",
+        'export TMOUT="2678400"',
     ],
     'LAST_LOGIN': {
         'KIND': 'from',
@@ -267,7 +267,7 @@ COMMAND_RESULT_username = {
         "Have a lot of fun...",
         "CLIENT5 [] has just connected!",
         "host:~ #",
-        "export TMOUT=\"2678400\"",
+        'export TMOUT="2678400"',
     ],
     'LAST_LOGIN': {
         'KIND': 'from',
@@ -308,7 +308,7 @@ COMMAND_RESULT_prompt = {
         "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
         "Have a lot of fun...",
         "host:~ #",
-        "export TMOUT=\"2678400\"",
+        'export TMOUT="2678400"',
         "host:~ #",
         "export PS1=\"host_new#\""
     ],
@@ -350,7 +350,7 @@ COMMAND_RESULT_2prompts = {
         "Last login: Thu Nov 23 10:38:16 2017 from 127.0.0.1",
         "Have a lot of fun...",
         "host:~ #",
-        "export TMOUT=\"2678400\"",
+        'export TMOUT="2678400"',
         "host:~ #",
         "export PS1=\"host_new#\""
     ],
