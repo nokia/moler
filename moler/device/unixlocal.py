@@ -253,9 +253,9 @@ class UnixLocal(TextualDevice):
         if self.pause_prompts_event_on_state_change is True and self._prompts_event is not None:
             self._prompts_event.pause()
         try:
-             command(timeout=command_timeout)
+            command(timeout=command_timeout)
         finally:
-             if self._prompts_event is not None:
+            if self._prompts_event is not None:
                 self._prompts_event.resume()
 
     @classmethod
