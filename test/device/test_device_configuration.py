@@ -3,7 +3,7 @@
 Testing possibilities to configure devices
 """
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import os
@@ -719,7 +719,7 @@ def test_cannot_load_configuration_with_the_same_named_device_loaded_from_anothe
 class UnixLocalWithExtraParam(UnixLocal):
     def __init__(self, sm_params=None, name=None, io_connection=None, io_type=None, variant=None,
                  io_constructor_kwargs=None, initial_state=None, lazy_cmds_events=False, extra_param_name=None,
-                 extra_param2=None):
+                 extra_param2=None, extra_param3=None):
         super(UnixLocalWithExtraParam, self).__init__(sm_params=sm_params, name=name, io_connection=io_connection,
                                                       io_type=io_type, variant=variant,
                                                       io_constructor_kwargs=io_constructor_kwargs,
@@ -727,6 +727,7 @@ class UnixLocalWithExtraParam(UnixLocal):
                                                       lazy_cmds_events=lazy_cmds_events)
         self.extra_value = extra_param_name
         self.extra_value2 = extra_param2
+        self.extra_value3 = extra_param3
 
 
 def test_load_device_from_config_extra_param(moler_config, device_factory):
@@ -753,6 +754,61 @@ def test_load_device_from_config_extra_param(moler_config, device_factory):
     dev1 = device_factory.get_device("UNIX_LOCAL")
     assert dev1.extra_value == r"value for extra param"
     assert dev1.extra_value2 == r'great value'
+    assert dev1.extra_value3 is None
+
+
+def test_load_device_from_config_extra_param_merged(moler_config, device_factory):
+
+    config1 = {
+        'LOGGER': {
+            'PATH': '/tmp/',
+            'RAW_LOG': True,
+            'DATE_FORMAT': '%d %H:%M:%S'
+        },
+        'DEVICES': {
+            'UNIX_LOCAL': {
+                'DEVICE_CLASS': 'test.device.test_device_configuration.UnixLocalWithExtraParam',
+                'INITIAL_STATE': 'UNIX_LOCAL',
+                'ADDITIONAL_PARAMS': {
+                    'extra_param_name': r"value for extra param",
+                    'extra_param2': r'great value'
+                },
+            }
+        }
+    }
+
+    moler_config.load_config(config1, None, 'dict')
+    dev1 = device_factory.get_device("UNIX_LOCAL", merge_additional_params=True, additional_params={'extra_param3': 'greatest value', 'extra_param2': 'value'})
+    assert dev1.extra_value == r"value for extra param"
+    assert dev1.extra_value2 == r'value'
+    assert dev1.extra_value3 == r'greatest value'
+
+
+def test_load_device_from_config_extra_param_overwritten(moler_config, device_factory):
+
+    config1 = {
+        'LOGGER': {
+            'PATH': '/tmp/',
+            'RAW_LOG': True,
+            'DATE_FORMAT': '%d %H:%M:%S'
+        },
+        'DEVICES': {
+            'UNIX_LOCAL': {
+                'DEVICE_CLASS': 'test.device.test_device_configuration.UnixLocalWithExtraParam',
+                'INITIAL_STATE': 'UNIX_LOCAL',
+                'ADDITIONAL_PARAMS': {
+                    'extra_param_name': r"value for extra param",
+                    'extra_param2': r'great value'
+                },
+            }
+        }
+    }
+
+    moler_config.load_config(config1, None, 'dict')
+    dev1 = device_factory.get_device("UNIX_LOCAL", additional_params={'extra_param3': 'greatest value', 'extra_param2': 'value'})
+    assert dev1.extra_value is None
+    assert dev1.extra_value2 == r'value'
+    assert dev1.extra_value3 == r'greatest value'
 
 
 def test_load_device_from_config(moler_config, device_factory):

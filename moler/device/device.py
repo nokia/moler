@@ -4,7 +4,7 @@ Package Open Source functionality of Moler.
 """
 
 __author__ = "Grzegorz Latuszek, Marcin Usielski, Michal Ernst, Tomasz Krol"
-__copyright__ = "Copyright (C) 2018-2021, Nokia"
+__copyright__ = "Copyright (C) 2018-2024, Nokia"
 __email__ = "grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com, tomasz.krol@nokia.com"
 
 
@@ -92,6 +92,7 @@ class DeviceFactory:
         lazy_cmds_events=False,
         io_connection=None,
         additional_params=None,
+        merge_additional_params=False
     ):
         """
         Return connection instance of given io_type/variant.
@@ -108,6 +109,7 @@ class DeviceFactory:
         :param io_connection: connection for device. Ignored if device is already created.
         :param additional_params: dict with parameter(s) specific for the device. Will be passed to the constructor. If no
                          specific parameter then set to None.
+        :param merge_additional_params: True to merge additional_params from configuration with additional_params from parameter.
         :return: requested device.
         """
         if (not name) and (not device_class):
@@ -127,6 +129,7 @@ class DeviceFactory:
                 lazy_cmds_events=lazy_cmds_events,
                 io_connection=io_connection,
                 additional_params=additional_params,
+                merge_additional_params=merge_additional_params
             )
 
         return dev
@@ -153,6 +156,7 @@ class DeviceFactory:
         lazy_cmds_events=False,
         io_connection=None,
         additional_params=None,
+        merge_additional_params=False
     ):
         """
         Creates (if necessary) and returns new device based on existed device.
@@ -166,6 +170,7 @@ class DeviceFactory:
         :param io_connection: connection for device. Ignored if device is already created.
         :param additional_params: dict with parameter(s) specific for the device. Will be passed to the constructor. If no
                          specific parameter then set to None.
+        :param merge_additional_params: True to merge additional_params from configuration with additional_params from parameter.
         :return: Device object.
         """
         with cls._lock_device:
@@ -184,6 +189,7 @@ class DeviceFactory:
                     lazy_cmds_events=lazy_cmds_events,
                     io_connection=None,
                     additional_params=additional_params,
+                    merge_additional_params=merge_additional_params,
                 )
                 logger.info(
                     f"STEP 1 - creating source device {source_device_name}"
@@ -264,7 +270,9 @@ class DeviceFactory:
         initial_state,
         lazy_cmds_events,
         additional_params,
+        merge_additional_params,
     ):
+        merged_params = {}
         if name:
             if name not in devices_config.named_devices:
                 whats_wrong = "was not defined inside configuration"
@@ -290,11 +298,13 @@ class DeviceFactory:
             lazy_cmds_events = (
                 cfg_lazy_cmds_events if lazy_cmds_events is None else lazy_cmds_events
             )
-            additional_params = (
-                cfg_additional_params
-                if additional_params is None
-                else additional_params
-            )
+            if merge_additional_params:
+                if cfg_additional_params is not None:
+                    merged_params.update(cfg_additional_params)
+                if additional_params is not None:
+                    merged_params.update(additional_params)
+            else:
+                merged_params = cfg_additional_params if additional_params is None else additional_params
 
         return (
             device_class,
@@ -302,7 +312,7 @@ class DeviceFactory:
             connection_hops,
             initial_state,
             lazy_cmds_events,
-            additional_params,
+            merged_params,
         )
 
     @classmethod
@@ -327,6 +337,7 @@ class DeviceFactory:
         lazy_cmds_events,
         io_connection,
         additional_params,
+        merge_additional_params
     ):
         """
         Creates and returns connection instance of given io_type/variant.
@@ -340,6 +351,7 @@ class DeviceFactory:
         :param io_connection: connection for device.
         :param additional_params: dict with parameter(s) specific for the device. Will be passed to the constructor. If no
                          specific parameter then set to None.
+        :param merge_additional_params: True to merge additional_params from configuration with additional_params from parameter.
         :return: requested device.
         """
         if connection_hops is not None:
@@ -366,6 +378,7 @@ class DeviceFactory:
             initial_state,
             lazy_cmds_events,
             additional_params,
+            merge_additional_params,
         )
         if device_class and (not connection_desc):
             connection_desc = cls._try_select_device_connection_desc(
@@ -498,6 +511,7 @@ class DeviceFactory:
         lazy_cmds_events,
         io_connection,
         additional_params,
+        merge_additional_params,
     ):
         new_name = cls._get_unique_name(name)
         if new_name in cls._devices.keys():
@@ -518,6 +532,7 @@ class DeviceFactory:
                 lazy_cmds_events=lazy_cmds_events,
                 io_connection=io_connection,
                 additional_params=additional_params,
+                merge_additional_params=merge_additional_params,
             )
         return dev
 
