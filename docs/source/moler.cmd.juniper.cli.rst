@@ -4,6 +4,8 @@ moler.cmd.juniper.cli package
 Submodules
 ----------
 
+moler.cmd.juniper.cli.configure module
+--------------------------------------
 
 .. automodule:: moler.cmd.juniper.cli.configure
    :members:

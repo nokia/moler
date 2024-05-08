@@ -12,6 +12,8 @@ Subpackages
 Submodules
 ----------
 
+moler.cmd.pdu\_aten.generic\_pdu\_aten module
+---------------------------------------------
 
 .. automodule:: moler.cmd.pdu_aten.generic_pdu_aten
    :members:
