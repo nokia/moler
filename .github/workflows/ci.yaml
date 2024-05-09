@@ -55,8 +55,9 @@ jobs:
         if: ${{ matrix.python-version == '3.12' }}
         timeout-minutes: 9
         run: |
-          coverage run -m pytest -vvvsss test/
-          coverage report -m --fail-under=100 --include="moler?cmd*"
+          pwd
+          coverage run --data-file=.coverage -m pytest -vvvsss test/
+          coverage report -m --data-file=.coverage --fail-under=100 --include="moler?cmd*"
           # coverage run -m pytest -c py3pytest.ini -vvvsss test/
       # - name: Validate coverage for moler commands
       #   if: ${{ matrix.python-version == '3.12' }}
