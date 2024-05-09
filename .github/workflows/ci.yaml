@@ -56,9 +56,10 @@ jobs:
         timeout-minutes: 9
         run: |
           pwd
-          coverage run --data-file=.coverage -m pytest -vvvsss test/
-          ls -l .coverage
-          coverage report -m --data-file=.coverage --fail-under=100 --include="moler?cmd*"
+          coverage erase --data-file=/tmp/.coverage
+          coverage run --data-file=/tmp/.coverage -m pytest -vvvsss test/
+          ls -l /tmp/.coverage
+          coverage report -m --data-file=/tmp/.coverage --fail-under=100 --include="moler?cmd*"
           # coverage run -m pytest -c py3pytest.ini -vvvsss test/
       # - name: Validate coverage for moler commands
       #   if: ${{ matrix.python-version == '3.12' }}
