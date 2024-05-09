@@ -55,28 +55,25 @@ jobs:
         if: ${{ matrix.python-version == '3.12' }}
         timeout-minutes: 9
         run: |
-          pwd
           pip list
           python --version
           coverage --version
-          coverage erase --data-file=/tmp/.coverage
-          coverage run --data-file=/tmp/.coverage -m pytest -vvvsss test/
-          ls -l /tmp/.coverage
-          coverage report -m --data-file=/tmp/.coverage --fail-under=91
-          # coverage report -m --data-file=/tmp/.coverage --fail-under=100 --include="moler?cmd*"
+          coverage run -m pytest -vvvsss test/
+          ls -l .coverage
+          # coverage report -m --fail-under=100 --include="moler?cmd*"
           # coverage run -m pytest -c py3pytest.ini -vvvsss test/
-      # - name: Validate coverage for moler commands
-      #   if: ${{ matrix.python-version == '3.12' }}
-      #   run: |
-      #     coverage report -m --fail-under=100 --include="moler?cmd*"
+      - name: Validate coverage for moler commands
+        if: ${{ matrix.python-version == '3.12' }}
+        run: |
+          coverage report -m --fail-under=100 --include="moler/cmd/**/*.py"
       - name: Validate coverage for moler events
         if: ${{ matrix.python-version == '3.12' }}
         run: |
-          coverage report -m --data-file=/tmp/.coverage --fail-under=100 --include="moler?events*"
+          coverage report -m --fail-under=100 --include="moler/events/**/*.py"
       - name: Validate moler overall coverage
         if: ${{ matrix.python-version == '3.12' }}
         run: |
-          coverage report -m --data-file=/tmp/.coverage --fail-under=91
+          coverage report -m --fail-under=91
       - name: Upload pytest test results
         uses: actions/upload-artifact@v2
         if: failure()
