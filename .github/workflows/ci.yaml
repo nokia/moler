@@ -62,7 +62,7 @@ jobs:
           coverage run -m pytest -vvvsss test/
           ls -l .coverage
       - name: Validate moler overall coverage
-        if: ${{ matrix.python-version == ${{ env.PYTHON_COVERAGE }} }}
+        if: ${{ matrix.python-version == '3.12' }}
         run: |
           coverage report -m --fail-under=91
       - name: Validate coverage for moler commands
