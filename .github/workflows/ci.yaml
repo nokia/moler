@@ -53,7 +53,7 @@ jobs:
           python -m pytest -vvvsss test/
           # python -m pytest -c py3pytest.ini -vvvsss test/
       - name: Test with pytest and coverage
-        if: ${{ matrix.python-version == '3.12' }}
+        if: ${{ matrix.python-version == env.PYTHON_COVERAGE }}
         timeout-minutes: 9
         run: |
           pip list
@@ -62,15 +62,15 @@ jobs:
           coverage run -m pytest -vvvsss test/
           ls -l .coverage
       - name: Validate moler overall coverage
-        if: ${{ matrix.python-version == '3.12' }}
+        if: ${{ matrix.python-version == env.PYTHON_COVERAGE }}
         run: |
           coverage report -m --fail-under=91
       - name: Validate coverage for moler commands
-        if: ${{ matrix.python-version == '3.12' }}
+        if: ${{ matrix.python-version == env.PYTHON_COVERAGE }}
         run: |
           coverage report -m --fail-under=100 --include="moler/cmd/**/*.py"
       - name: Validate coverage for moler events
-        if: ${{ matrix.python-version == '3.12' }}
+        if: ${{ matrix.python-version == env.PYTHON_COVERAGE }}
         run: |
           coverage report -m --fail-under=100 --include="moler/events/**/*.py"
       - name: Upload pytest test results
