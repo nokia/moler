@@ -12,6 +12,7 @@ jobs:
         python-version: [3.7, 3.8, 3.9, "3.10", 3.11, 3.12]
     env:
       MOLER_DEBUG_THREADS: True
+      PYTHON_COVERAGE: '3.12'
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.os }} ${{ matrix.python-version }}
@@ -61,7 +62,7 @@ jobs:
           coverage run -m pytest -vvvsss test/
           ls -l .coverage
       - name: Validate moler overall coverage
-        if: ${{ matrix.python-version == '3.12' }}
+        if: ${{ matrix.python-version == ${{ env.PYTHON_COVERAGE }} }}
         run: |
           coverage report -m --fail-under=91
       - name: Validate coverage for moler commands
