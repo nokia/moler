@@ -1,6 +1,6 @@
 -r base.txt
 pycodestyle
-coveralls==3.3.1
+coveralls
 pytest
 pytest-mccabe
 pytest-random
