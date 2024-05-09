@@ -72,11 +72,11 @@ jobs:
       - name: Validate coverage for moler events
         if: ${{ matrix.python-version == '3.12' }}
         run: |
-          coverage report -m --fail-under=100 --include="moler?events*"
+          coverage report -m --data-file=/tmp/.coverage --fail-under=100 --include="moler?events*"
       - name: Validate moler overall coverage
         if: ${{ matrix.python-version == '3.12' }}
         run: |
-          coverage report -m --fail-under=91
+          coverage report -m --data-file=/tmp/.coverage --fail-under=91
       - name: Upload pytest test results
         uses: actions/upload-artifact@v2
         if: failure()
