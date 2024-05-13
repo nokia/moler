@@ -236,9 +236,6 @@ class Iperf3(Iperf2):
             iperf_record = self._convert_retr_parameter(iperf_record)
             iperf_record = self._convert_datagrams_parameter(iperf_record)
 
-            if (not self.parallel_client) and (connection_id == "[SUM]"):
-                raise ParsingDone  # skip it
-
             connection_name = self._connection_dict[connection_id]
             normalized_iperf_record = self._normalize_to_bytes(iperf_record)
             normalized_iperf_record = self._convert_jitter(
