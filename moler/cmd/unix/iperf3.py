@@ -152,9 +152,11 @@ class Iperf3(Iperf2):
     # iperf3 output for: udp client
     # [ ID] Interval      Transfer      Bitrate      Total Datagrams
 
-    _re_headers = re.compile(r"\[\s+ID\]\s+Interval\s+Transfer\s+Bitrate")
+    # for iperf3 versions <= 3.1.7 the Bitrate column was named Bandwidth
+    _re_headers = re.compile(r"\[\s+ID\]\s+Interval\s+Transfer\s+(Bitrate|Bandwidth)")
 
     def _parse_headers(self, line):
+        self.logger.info(f"LINE: --- {line}")
         if self._regex_helper.search_compiled(Iperf3._re_headers, line):
             if self.parallel_client:
                 client, server = list(self._connection_dict.values())[0]
@@ -233,6 +235,9 @@ class Iperf3(Iperf2):
             iperf_record = self._detailed_parse_datagrams(iperf_record)
             iperf_record = self._convert_retr_parameter(iperf_record)
             iperf_record = self._convert_datagrams_parameter(iperf_record)
+
+            if (not self.parallel_client) and (connection_id == "[SUM]"):
+                raise ParsingDone  # skip it
 
             connection_name = self._connection_dict[connection_id]
             normalized_iperf_record = self._normalize_to_bytes(iperf_record)
