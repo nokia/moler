@@ -156,7 +156,6 @@ class Iperf3(Iperf2):
     _re_headers = re.compile(r"\[\s+ID\]\s+Interval\s+Transfer\s+(Bitrate|Bandwidth)")
 
     def _parse_headers(self, line):
-        self.logger.info(f"LINE: --- {line}")
         if self._regex_helper.search_compiled(Iperf3._re_headers, line):
             if self.parallel_client:
                 client, server = list(self._connection_dict.values())[0]
