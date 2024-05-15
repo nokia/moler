@@ -272,7 +272,7 @@ class DeviceFactory:
         additional_params,
         merge_additional_params,
     ):
-        merged_params = {}
+        merged_additional_params = {}
         if name:
             if name not in devices_config.named_devices:
                 whats_wrong = "was not defined inside configuration"
@@ -300,11 +300,11 @@ class DeviceFactory:
             )
             if merge_additional_params:
                 if cfg_additional_params is not None:
-                    merged_params.update(cfg_additional_params)
+                    merged_additional_params.update(cfg_additional_params)
                 if additional_params is not None:
-                    merged_params.update(additional_params)
+                    merged_additional_params.update(additional_params)
             else:
-                merged_params = cfg_additional_params if additional_params is None else additional_params
+                merged_additional_params = cfg_additional_params if additional_params is None else additional_params
 
         return (
             device_class,
@@ -312,7 +312,7 @@ class DeviceFactory:
             connection_hops,
             initial_state,
             lazy_cmds_events,
-            merged_params,
+            merged_additional_params,
         )
 
     @classmethod
