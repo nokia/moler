@@ -1,5 +1,7 @@
 ## moler 3.7.0
  * Changed regex in iperf3 cmd _parse_header to accept 'Bitrate' and 'Bandwidth' to support older iperf3 versions
+ * Optional mrge additional params from config and from function
+ * Coverage - parameters values converted to compatibility with version 7.4.4
 
 ## moler 3.6.0
  * Optional pause Wait4Prompts during state change
