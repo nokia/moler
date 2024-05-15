@@ -1,3 +1,6 @@
+## moler 3.7.0
+ * Changed regex in iperf3 cmd _parse_header to accept 'Bitrate' and 'Bandwidth' to support older iperf3 versions
+
 ## moler 3.6.0
  * Optional pause Wait4Prompts during state change
  * Added CRT tests

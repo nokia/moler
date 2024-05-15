@@ -152,7 +152,8 @@ class Iperf3(Iperf2):
     # iperf3 output for: udp client
     # [ ID] Interval      Transfer      Bitrate      Total Datagrams
 
-    _re_headers = re.compile(r"\[\s+ID\]\s+Interval\s+Transfer\s+Bitrate")
+    # for iperf3 versions <= 3.1.7 the Bitrate column was named Bandwidth
+    _re_headers = re.compile(r"\[\s+ID\]\s+Interval\s+Transfer\s+(Bitrate|Bandwidth)")
 
     def _parse_headers(self, line):
         if self._regex_helper.search_compiled(Iperf3._re_headers, line):
