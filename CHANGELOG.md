@@ -1,3 +1,6 @@
+## moler 3.7.1
+ * Fix version
+
 ## moler 3.7.0
  * Changed regex in iperf3 cmd _parse_header to accept 'Bitrate' and 'Bandwidth' to support older iperf3 versions
  * Optional mrge additional params from config and from function
