@@ -44,7 +44,7 @@ def test_can_create_passive_sshshell_connection_using_same_api(passive_sshshell_
     with pytest.raises(KeyError) as err:
         passive_sshshell_connection_class(host='localhost', port=22,
                                           username='molerssh', login='molerssh', password='moler_password')
-    assert "Use either 'username' or 'login', not both" in str(err.value)
+    assert "Use either 'username' (molerssh) or 'login' (molerssh), not both" in str(err.value)
 
 
 def test_can_create_active_sshshell_connection_using_same_api(active_sshshell_connection_class):
@@ -75,7 +75,7 @@ def test_can_create_active_sshshell_connection_using_same_api(active_sshshell_co
     with pytest.raises(KeyError) as err:
         active_sshshell_connection_class(moler_connection=moler_conn, host='localhost', port=22,
                                          username='molerssh', login='molerssh', password='moler_password')
-    assert "Use either 'username' or 'login', not both" in str(err.value)
+    assert "Use either 'username' (molerssh) or 'login' (molerssh), not both" in str(err.value)
 
 
 def test_can_open_and_close_connection(sshshell_connection):
@@ -221,7 +221,7 @@ def test_logging_for_open_close_of_passive_connection(passive_sshshell_connectio
                             'DEBUG:   established shell ssh to localhost:22 [channel 0]',
                             ' INFO: connection ssh://molerssh@localhost:22 [channel 0] is open',
                             'DEBUG: connecting to ssh://molerssh@localhost:22',
-                            'DEBUG:   reusing ssh transport to localhost:22',
+                            'DEBUG: local version = SSH-2.0-paramiko_3.4.0  reusing ssh transport to localhost:22',
                             'DEBUG:   established shell ssh to localhost:22 [channel 1]',
                             ' INFO: connection ssh://molerssh@localhost:22 [channel 1] is open',
                             'DEBUG: closing ssh://molerssh@localhost:22 [channel 1]',
@@ -258,7 +258,7 @@ def test_logging_for_open_close_of_active_connection(active_sshshell_connection_
                             ' INFO: connection ssh://molerssh@localhost:22 [channel 0] is open',
                             " INFO: Connection to: 'source_sshshell' has been opened.",
                             'DEBUG: connecting to ssh://molerssh@localhost:22',
-                            'DEBUG:   reusing ssh transport to localhost:22',
+                            'DEBUG: local version = SSH-2.0-paramiko_3.4.0  reusing ssh transport to localhost:22',
                             'DEBUG:   established shell ssh to localhost:22 [channel 1]',
                             ' INFO: connection ssh://molerssh@localhost:22 [channel 1] is open',
                             " INFO: Connection to: 'cloned_sshshell' has been opened.",
