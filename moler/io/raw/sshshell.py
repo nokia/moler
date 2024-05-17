@@ -263,7 +263,7 @@ class SshShell:
     def _recv(self):
         """Receive data."""
         if not self._shell_channel:
-            self._log(f"There is no shell channel for SshShell (already closed or never open) to '{self.username}@{self.host}'.")
+            self._info(f"There is no shell channel for SshShell (already closed or never open) to '{self.username}@{self.host}'.")
             raise RemoteEndpointNotConnected()
         try:
             # ensure we will never block in channel.recv()
