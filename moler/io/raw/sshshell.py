@@ -126,10 +126,10 @@ class SshShell:
                 action = "established"
             else:
                 action = "reusing"
-            transport_info = [f'local version = {transport.local_version}',
-                              f'remote version = {transport.remote_version}',
-                              f'using socket = {transport.sock}']
-            self._debug(f'  {action} ssh transport to {self.host}:{self.port} |{transport}\n    '.join(transport_info))
+            transport_info = f'local version = {transport.local_version}' \
+                             f' remote version = {transport.remote_version}' \
+                             f' using socket = {transport.sock}'
+            self._debug(f'  {action} ssh transport to {self.host}:{self.port} |{transport}\n{transport_info}')
             self._shell_channel = self.ssh_client.invoke_shell()  # newly created channel will be connected to Pty
             self._remember_channel_of_transport(self._shell_channel)
             self._debug(f'  established shell ssh to {self.host}:{self.port} [channel {self._shell_channel.get_id()}] |{self._shell_channel}')
