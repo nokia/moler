@@ -215,7 +215,9 @@ class SshShell:
         :type timeout: float
         """
         if not self._shell_channel:
-            raise RemoteEndpointNotConnected(f"No shell channel for SshShell to '{self.username}@{self.host}'")
+            msg = f"No shell channel for SshShell to '{self.username}@{self.host}'. Connection is already closed or never open. "
+            self._info(msg)
+            raise RemoteEndpointNotConnected(msg)
         assert timeout > 0.0
         try:
             self._send(data, timeout)
@@ -223,7 +225,9 @@ class SshShell:
             if "Socket is closed" in str(socket_err):
                 self._close()
                 info = f"{socket_err} during send msg '{data}' for SshShell to '{self.username}@{self.host}'"
-                raise RemoteEndpointDisconnected(f"Socket error: '{info}'") from socket_err
+                msg = f"Socket error: '{info}'"
+                self._info(msg)
+                raise RemoteEndpointDisconnected(msg) from socket_err
             else:
                 raise  # let any other error be visible
 
@@ -277,9 +281,10 @@ class SshShell:
             raise ConnectionTimeout(info) from exc
 
         if not data:
-            self._debug(f"No data received. Disconnected. shell ssh channel closed for {self}")
+            msg = f"No data received. Disconnected. shell ssh channel closed for {self}"
+            self._info(msg)
             self._close()
-            raise RemoteEndpointDisconnected()
+            raise RemoteEndpointDisconnected(msg)
 
         return data
 
