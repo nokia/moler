@@ -217,11 +217,11 @@ def test_logging_for_open_close_of_passive_connection(passive_sshshell_connectio
         with new_connection.open():
             pass
     assert logger.calls == ['DEBUG: connecting to ssh://molerssh@localhost:22',
-                            'DEBUG: local version = SSH-2.0-paramiko_3.4.0  established ssh transport to localhost:22',
+                            'DEBUG:   established ssh transport to localhost:22',
                             'DEBUG:   established shell ssh to localhost:22 [channel 0]',
                             ' INFO: connection ssh://molerssh@localhost:22 [channel 0] is open',
                             'DEBUG: connecting to ssh://molerssh@localhost:22',
-                            'DEBUG: local version = SSH-2.0-paramiko_3.4.0  reusing ssh transport to localhost:22',
+                            'DEBUG:   reusing ssh transport to localhost:22',
                             'DEBUG:   established shell ssh to localhost:22 [channel 1]',
                             ' INFO: connection ssh://molerssh@localhost:22 [channel 1] is open',
                             'DEBUG: closing ssh://molerssh@localhost:22 [channel 1]',
@@ -253,12 +253,12 @@ def test_logging_for_open_close_of_active_connection(active_sshshell_connection_
             with new_connection.open():
                 pass
     assert logger.calls == ['DEBUG: connecting to ssh://molerssh@localhost:22',
-                            'DEBUG: local version = SSH-2.0-paramiko_3.4.0  established ssh transport to localhost:22',
+                            'DEBUG:   established ssh transport to localhost:22',
                             'DEBUG:   established shell ssh to localhost:22 [channel 0]',
                             ' INFO: connection ssh://molerssh@localhost:22 [channel 0] is open',
                             " INFO: Connection to: 'source_sshshell' has been opened.",
                             'DEBUG: connecting to ssh://molerssh@localhost:22',
-                            'DEBUG: local version = SSH-2.0-paramiko_3.4.0  reusing ssh transport to localhost:22',
+                            'DEBUG:   reusing ssh transport to localhost:22',
                             'DEBUG:   established shell ssh to localhost:22 [channel 1]',
                             ' INFO: connection ssh://molerssh@localhost:22 [channel 1] is open',
                             " INFO: Connection to: 'cloned_sshshell' has been opened.",
