@@ -1,3 +1,7 @@
+## moler 3.8.0
+ * More info when SshShell is disconnected
+ * Fix prompt detection for ProxyPc2
+
 ## moler 3.7.1
  * Fix version
 
