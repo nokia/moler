@@ -281,7 +281,6 @@ class ProxyPc2(UnixLocal):
         self.logger.debug(f"ProxyPc2 for state '{state}' new prompt '{prompt}' reverse_state_prompts_dict: '{self._reverse_state_prompts_dict}'.")
         with self._state_prompts_lock:
             old_prompt = self._state_prompts.get(state, None)
-            prompt = re.escape(prompt)
             self._state_prompts[state] = prompt
             if old_prompt is not None and prompt != old_prompt:
                 self.logger.info(f"Different prompt candidates: '{old_prompt}' -> '{prompt}' for state {state}.")
