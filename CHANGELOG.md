@@ -1,5 +1,6 @@
-## moler 3.7.1
- * Fix version
+## moler 3.8.0
+ * More info when SshShell is disconnected
+ * Fix prompt detection for ProxyPc2
 
 ## moler 3.7.0
  * Changed regex in iperf3 cmd _parse_header to accept 'Bitrate' and 'Bandwidth' to support older iperf3 versions
