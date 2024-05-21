@@ -11,9 +11,9 @@ The only 3 requirements for these connections are:
 (3) forward IO received data into self.moler_connection.data_received(data)
 """
 
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2020, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2020-2024, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import socket
 import threading
@@ -63,7 +63,7 @@ class SshShell:
         self.host = host
         self.port = port
         if (username is not None) and (login is not None):
-            raise KeyError("Use either 'username' or 'login', not both")
+            raise KeyError(f"Use either 'username' ({username}) or 'login' ({login}), not both")
         username = login if username is None else username
         self.username = getpass.getuser() if username is None else username
         self.password = password
@@ -126,10 +126,8 @@ class SshShell:
                 action = "established"
             else:
                 action = "reusing"
-            transport_info = [f'local version = {transport.local_version}',
-                              f'remote version = {transport.remote_version}',
-                              f'using socket = {transport.sock}']
-            self._debug(f'  {action} ssh transport to {self.host}:{self.port} |{transport}\n    {", ".join(transport_info)}')
+            transport_info = f'local version = {transport.local_version}, remote version = {transport.remote_version}, using socket = {transport.sock}'
+            self._debug(f'  {action} ssh transport to {self.host}:{self.port} |{transport}\n{transport_info}')
             self._shell_channel = self.ssh_client.invoke_shell()  # newly created channel will be connected to Pty
             self._remember_channel_of_transport(self._shell_channel)
             self._debug(f'  established shell ssh to {self.host}:{self.port} [channel {self._shell_channel.get_id()}] |{self._shell_channel}')
@@ -215,15 +213,19 @@ class SshShell:
         :type timeout: float
         """
         if not self._shell_channel:
-            raise RemoteEndpointNotConnected()
+            msg = f"No shell channel for SshShell to '{self.username}@{self.host}'. Connection is already closed or never open. "
+            self._info(msg)
+            raise RemoteEndpointNotConnected(msg)
         assert timeout > 0.0
         try:
             self._send(data, timeout)
-        except socket.error as serr:
-            if "Socket is closed" in str(serr):
+        except socket.error as socket_err:
+            if "Socket is closed" in str(socket_err):
                 self._close()
-                info = f"{serr} during send msg '{data}'"
-                raise RemoteEndpointDisconnected(f"Socket error: {info}") from serr
+                info = f"{socket_err} during send msg '{data}' for SshShell to '{self.username}@{self.host}'"
+                msg = f"Socket error: '{info}'"
+                self._info(msg)
+                raise RemoteEndpointDisconnected(msg) from socket_err
             else:
                 raise  # let any other error be visible
 
@@ -263,6 +265,7 @@ class SshShell:
     def _recv(self):
         """Receive data."""
         if not self._shell_channel:
+            self._info(f"There is no shell channel for SshShell (already closed or never open) to '{self.username}@{self.host}'.")
             raise RemoteEndpointNotConnected()
         try:
             # ensure we will never block in channel.recv()
@@ -276,9 +279,10 @@ class SshShell:
             raise ConnectionTimeout(info) from exc
 
         if not data:
-            self._debug(f"shell ssh channel closed for {self}")
+            msg = f"No data received. Disconnected. shell ssh channel closed for {self}"
+            self._info(msg)
             self._close()
-            raise RemoteEndpointDisconnected()
+            raise RemoteEndpointDisconnected(msg)
 
         return data
 

@@ -6,7 +6,7 @@ Moler's device has 2 main responsibilities:
 """
 
 __author__ = 'Michal Ernst, Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2023, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'michal.ernst@nokia.com, grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import re
@@ -276,7 +276,7 @@ class ProxyPc2(UnixLocal):
 
     def _set_after_open_prompt(self, event):
         occurrence = event.get_last_occurrence()
-        prompt = re.escape(occurrence['groups'][0].rstrip())
+        prompt = occurrence['groups'][0].rstrip()
         state = self._get_current_state()
         self.logger.debug(f"ProxyPc2 for state '{state}' new prompt '{prompt}' reverse_state_prompts_dict: '{self._reverse_state_prompts_dict}'.")
         with self._state_prompts_lock:

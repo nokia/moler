@@ -6,9 +6,9 @@ Testing external-IO SSH connection
 - send/receive (naming may differ)
 """
 
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2020, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2020-2024, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 
 import time
@@ -43,8 +43,8 @@ def test_can_create_passive_sshshell_connection_using_same_api(passive_sshshell_
     # but you shouldn't use both names, we can't guess which one you wanted
     with pytest.raises(KeyError) as err:
         passive_sshshell_connection_class(host='localhost', port=22,
-                                          username='molerssh', login='molerssh', password='moler_password')
-    assert "Use either 'username' or 'login', not both" in str(err.value)
+                                          username='molerssh1', login='molerssh2', password='moler_password')
+    assert "Use either 'username' (molerssh1) or 'login' (molerssh2), not both" in str(err.value)
 
 
 def test_can_create_active_sshshell_connection_using_same_api(active_sshshell_connection_class):
@@ -74,8 +74,8 @@ def test_can_create_active_sshshell_connection_using_same_api(active_sshshell_co
     # but you shouldn't use both names, we can't guess which one you wanted
     with pytest.raises(KeyError) as err:
         active_sshshell_connection_class(moler_connection=moler_conn, host='localhost', port=22,
-                                         username='molerssh', login='molerssh', password='moler_password')
-    assert "Use either 'username' or 'login', not both" in str(err.value)
+                                         username='molerssh1', login='molerssh2', password='moler_password')
+    assert "Use either 'username' (molerssh1) or 'login' (molerssh2), not both" in str(err.value)
 
 
 def test_can_open_and_close_connection(sshshell_connection):
