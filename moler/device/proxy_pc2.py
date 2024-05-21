@@ -276,11 +276,12 @@ class ProxyPc2(UnixLocal):
 
     def _set_after_open_prompt(self, event):
         occurrence = event.get_last_occurrence()
-        prompt = re.escape(occurrence['groups'][0].rstrip())
+        prompt = occurrence['groups'][0].rstrip()
         state = self._get_current_state()
         self.logger.debug(f"ProxyPc2 for state '{state}' new prompt '{prompt}' reverse_state_prompts_dict: '{self._reverse_state_prompts_dict}'.")
         with self._state_prompts_lock:
             old_prompt = self._state_prompts.get(state, None)
+            prompt = re.escape(prompt)
             self._state_prompts[state] = prompt
             if old_prompt is not None and prompt != old_prompt:
                 self.logger.info(f"Different prompt candidates: '{old_prompt}' -> '{prompt}' for state {state}.")
