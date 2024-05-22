@@ -3,9 +3,9 @@
 Units converter
 """
 
-__author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2024, Nokia'
-__email__ = 'marcin.usielski@nokia.com'
+__author__ = "Marcin Usielski"
+__copyright__ = "Copyright (C) 2018-2024, Nokia"
+__email__ = "marcin.usielski@nokia.com"
 
 import re
 import warnings
@@ -57,22 +57,22 @@ class ConverterHelper:
     _time_zones = {
         "ACDT": "UTC+10:30",
         "ACST": "UTC+09:30",
-        "ACT": "UTC-05", # "UTC+08:00",  # ACT has two different meanings
+        "ACT": "UTC-05",  # "UTC+08:00",  # ACT has two different meanings
         "ACWST": "UTC+08:45",
         "ADT": "UTC-03",
         "AEDT": "UTC+11",
         "AEST": "UTC+10",
-        "AET": "UTC+10", # "UTC+11",  # AET has two different meanings
+        "AET": "UTC+10",  # "UTC+11",  # AET has two different meanings
         "AFT": "UTC+04:30",
         "AKDT": "UTC-08",
         "AKST": "UTC-09",
         "ALMT": "UTC+06",
         "AMST": "UTC-03",
-        "AMT": "UTC-04", # "UTC+04",  # AMT has two different meanings
+        "AMT": "UTC-04",  # "UTC+04",  # AMT has two different meanings
         "ANAT": "UTC+12",
         "AQTT": "UTC+05",
         "ART": "UTC-03",
-        "AST": "UTC+03", # "UTC-04",  # AST has two different meanings
+        "AST": "UTC+03",  # "UTC-04",  # AST has two different meanings
         "AWST": "UTC+08",
         "AZOST": "UTC±00",
         "AZOT": "UTC-01",
@@ -83,11 +83,11 @@ class ConverterHelper:
         "BOT": "UTC-04",
         "BRST": "UTC-02",
         "BRT": "UTC-03",
-        "BST": "UTC+06", #"UTC+11", "UTC+01",  # BST has three different meanings
+        "BST": "UTC+06",  # "UTC+11", "UTC+01",  # BST has three different meanings
         "BTT": "UTC+06",
         "CAT": "UTC+02",
         "CCT": "UTC+06:30",
-        "CDT": "UTC-05", # "UTC-04",  # CDT has two different meanings
+        "CDT": "UTC-05",  # "UTC-04",  # CDT has two different meanings
         "CEST": "UTC+02",
         "CET": "UTC+01",
         "CHADT": "UTC+13:45",
@@ -102,8 +102,8 @@ class ConverterHelper:
         "CLT": "UTC-04",
         "COST": "UTC-04",
         "COT": "UTC-05",
-        "CST": "UTC-06", # "UTC+08", "UTC-05"],  # CST has three different meanings
-        "CT": "UTC-06", # "UTC-05"],  # CT has two different meanings
+        "CST": "UTC-06",  # "UTC+08", "UTC-05"],  # CST has three different meanings
+        "CT": "UTC-06",  # "UTC-05"],  # CT has two different meanings
         "CVT": "UTC-01",
         "CWST": "UTC+08:45",
         "CXT": "UTC+07",
@@ -113,14 +113,14 @@ class ConverterHelper:
         "EASST": "UTC-05",
         "EAST": "UTC-06",
         "EAT": "UTC+03",
-        "ECT":"UTC-04", # "UTC-05"],  # ECT has two different meanings
+        "ECT": "UTC-04",  # "UTC-05"],  # ECT has two different meanings
         "EDT": "UTC-04",
         "EEST": "UTC+03",
         "EET": "UTC+02",
         "EGST": "UTC±00",
         "EGT": "UTC-01",
         "EST": "UTC-05",
-        "ET": "UTC-05", # "UTC-04"],  # ET has two different meanings
+        "ET": "UTC-05",  # "UTC-04"],  # ET has two different meanings
         "FET": "UTC+03",
         "FJT": "UTC+12",
         "FKST": "UTC-03",
@@ -133,7 +133,7 @@ class ConverterHelper:
         "GILT": "UTC+12",
         "GIT": "UTC-09",
         "GMT": "UTC±00",
-        "GST": "UTC-02", # "UTC+04"],  # GST has two different meanings
+        "GST": "UTC-02",  # "UTC+04"],  # GST has two different meanings
         "GYT": "UTC-04",
         "HDT": "UTC-09",
         "HAEC": "UTC+02",
@@ -149,14 +149,14 @@ class ConverterHelper:
         "IRDT": "UTC+04:30",
         "IRKT": "UTC+08",
         "IRST": "UTC+03:30",
-        "IST": "UTC+05:30", # "UTC+01", "UTC+02"],  # IST has three different meanings
+        "IST": "UTC+05:30",  # "UTC+01", "UTC+02"],  # IST has three different meanings
         "JST": "UTC+09",
         "KALT": "UTC+02",
         "KGT": "UTC+06",
         "KOST": "UTC+11",
         "KRAT": "UTC+07",
         "KST": "UTC+09",
-        "LHST": "UTC+10:30", # "UTC+11"],  # LHST has two different meanings
+        "LHST": "UTC+10:30",  # "UTC+11"],  # LHST has two different meanings
         "LINT": "UTC+14",
         "MAGT": "UTC+12",
         "MART": "UTC-09:30",
@@ -169,8 +169,8 @@ class ConverterHelper:
         "MIT": "UTC-09:30",
         "MMT": "UTC+06:30",
         "MSK": "UTC+03",
-        "MST": "UTC+08", # "UTC-07"],  # MST has two different meanings
-        "MT": "UTC-07", # "UTC-06"],  # MT has two different meanings
+        "MST": "UTC+08",  # "UTC-07"],  # MST has two different meanings
+        "MT": "UTC-07",  # "UTC-06"],  # MT has two different meanings
         "MUT": "UTC+04",
         "MVT": "UTC+05",
         "MYT": "UTC+08",
@@ -198,7 +198,7 @@ class ConverterHelper:
         "PMST": "UTC-03",
         "PONT": "UTC+11",
         "PST": "UTC-08",
-        "PT": "UTC-08", # "UTC-07"],  # PT has two different meanings
+        "PT": "UTC-08",  # "UTC-07"],  # PT has two different meanings
         "PWT": "UTC+09",
         "PYST": "UTC-03",
         "PYT": "UTC-04",
@@ -214,7 +214,7 @@ class ConverterHelper:
         "SLST": "UTC+05:30",
         "SRET": "UTC+11",
         "SRT": "UTC-03",
-        "SST": "UTC-11", # "UTC+08"],  # SST has two different meanings
+        "SST": "UTC-11",  # "UTC+08"],  # SST has two different meanings
         "SYOT": "UTC+03",
         "TAHT": "UTC-10",
         "THA": "UTC+07",
@@ -250,8 +250,9 @@ class ConverterHelper:
         "WGT": "UTC-03",
         "WST": "UTC+08",
         "YAKT": "UTC+09",
-        "YEKT": "UTC+05"
+        "YEKT": "UTC+05",
     }
+
     def to_bytes(self, str_bytes, binary_multipliers=True):
         """
         Method to convert size with unit to size in bytes
@@ -273,7 +274,8 @@ class ConverterHelper:
                 value_in_bytes = int(multipliers[value_unit] * value_in_units)
             else:
                 raise ValueError(
-                    f"Unsupported unit '{value_unit}' in passed value: '{str_bytes}'")
+                    f"Unsupported unit '{value_unit}' in passed value: '{str_bytes}'"
+                )
         return value_in_bytes, value_in_units, value_unit
 
     def to_seconds_str(self, str_time):
@@ -299,8 +301,7 @@ class ConverterHelper:
         :return: number of seconds
         """
         if unit not in ConverterHelper._seconds_multipliers:
-            raise ValueError(
-                f"Unsupported unit '{unit}' for passed value: '{value}'")
+            raise ValueError(f"Unsupported unit '{unit}' for passed value: '{value}'")
         return ConverterHelper._seconds_multipliers[unit] * value
 
     def to_number(self, value, raise_exception=True):
