@@ -6,13 +6,9 @@ __email__ = "marcin.usielski@nokia.com"
 import datetime
 import re
 
-import warnings
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    from dateutil import parser  # https://github.com/aws/jsii/issues/4406
-
 from moler.events.unix.genericunix_textualevent import GenericUnixTextualEvent
 from moler.exceptions import ParsingDone
+from moler.util.converterhelper import ConverterHelper
 
 
 class LastLogin(GenericUnixTextualEvent):
@@ -62,7 +58,7 @@ class LastLogin(GenericUnixTextualEvent):
             self.current_ret["host"] = self._regex_helper.group("HOST")
             date_str = self._regex_helper.group("DATE")
             self.current_ret["date_raw"] = date_str
-            self.current_ret["date"] = parser.parse(date_str)
+            self.current_ret["date"] = ConverterHelper.parse_date(date_str)
             self.event_occurred(event_data=self.current_ret)
             self.current_ret = {}
             raise ParsingDone()

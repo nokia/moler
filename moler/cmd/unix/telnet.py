@@ -9,14 +9,10 @@ __email__ = 'marcin.usielski@nokia.com'
 
 import re
 
-import warnings
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    from dateutil import parser  # https://github.com/aws/jsii/issues/4406
-
 from moler.cmd.unix.generictelnetssh import GenericTelnetSsh
 from moler.exceptions import ParsingDone
 from moler.helpers import copy_list
+from moler.util.converterhelper import ConverterHelper
 
 
 class Telnet(GenericTelnetSsh):
@@ -237,7 +233,7 @@ COMMAND_RESULT = {
         'KIND': 'from',
         'WHERE': '127.0.0.1',
         'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
-        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+        'DATE': ConverterHelper.parse_date('Thu Nov 23 10:38:16 2017'),
     },
     'FAILED_LOGIN_ATTEMPTS': None,
 }
@@ -273,7 +269,7 @@ COMMAND_RESULT_username = {
         'KIND': 'from',
         'WHERE': '127.0.0.1',
         'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
-        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+        'DATE': ConverterHelper.parse_date('Thu Nov 23 10:38:16 2017'),
     },
     'FAILED_LOGIN_ATTEMPTS': None,
 }
@@ -316,7 +312,7 @@ COMMAND_RESULT_prompt = {
         'KIND': 'from',
         'WHERE': '127.0.0.1',
         'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
-        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+        'DATE': ConverterHelper.parse_date('Thu Nov 23 10:38:16 2017'),
     },
     'FAILED_LOGIN_ATTEMPTS': None,
 }
@@ -358,7 +354,7 @@ COMMAND_RESULT_2prompts = {
         'KIND': 'from',
         'WHERE': '127.0.0.1',
         'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
-        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+        'DATE': ConverterHelper.parse_date('Thu Nov 23 10:38:16 2017'),
     },
     'FAILED_LOGIN_ATTEMPTS': None,
 }
@@ -393,7 +389,7 @@ COMMAND_RESULT_many_passwords = {
         'KIND': 'from',
         'WHERE': '127.0.0.1',
         'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
-        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+        'DATE': ConverterHelper.parse_date('Thu Nov 23 10:38:16 2017'),
     },
     'FAILED_LOGIN_ATTEMPTS': None,
 }
@@ -430,7 +426,7 @@ COMMAND_RESULT_many_passwords_repeat = {
         'KIND': 'from',
         'WHERE': '127.0.0.1',
         'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
-        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+        'DATE': ConverterHelper.parse_date('Thu Nov 23 10:38:16 2017'),
     },
     'FAILED_LOGIN_ATTEMPTS': None,
 }
@@ -463,7 +459,7 @@ COMMAND_RESULT_no_settings = {
         'KIND': 'from',
         'WHERE': '127.0.0.1',
         'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
-        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+        'DATE': ConverterHelper.parse_date('Thu Nov 23 10:38:16 2017'),
     },
     'FAILED_LOGIN_ATTEMPTS': None,
 }
@@ -490,7 +486,7 @@ COMMAND_RESULT_no_credentials = {
         'KIND': 'from',
         'WHERE': '127.0.0.1',
         'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
-        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+        'DATE': ConverterHelper.parse_date('Thu Nov 23 10:38:16 2017'),
     },
     'FAILED_LOGIN_ATTEMPTS': None,
 }
@@ -524,7 +520,7 @@ COMMAND_RESULT_prefix = {
         'KIND': 'from',
         'WHERE': '127.0.0.1',
         'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
-        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+        'DATE': ConverterHelper.parse_date('Thu Nov 23 10:38:16 2017'),
     },
     'FAILED_LOGIN_ATTEMPTS': None,
 }
@@ -561,7 +557,7 @@ COMMAND_RESULT_newline_after_prompt = {
         'KIND': 'from',
         'WHERE': '127.0.0.1',
         'RAW_DATE': 'Thu Nov 23 10:38:16 2017',
-        'DATE': parser.parse('Thu Nov 23 10:38:16 2017'),
+        'DATE': ConverterHelper.parse_date('Thu Nov 23 10:38:16 2017'),
     },
     'FAILED_LOGIN_ATTEMPTS': None,
 }

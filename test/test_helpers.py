@@ -4,7 +4,7 @@ Tests for helpers functions/classes.
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2023, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import copy
@@ -383,3 +383,37 @@ def test_diff_different_values():
     msg = diff_data(first_object=a, second_object=b)
     assert "root -> [8] -> [b] -> [d] the first value 6.3 is different from the" \
            " second value 6.2." == msg
+
+
+def test_date_parser_cest():
+    from moler.util.converterhelper import ConverterHelper
+    from datetime import datetime
+    from dateutil.tz import tzoffset
+
+    date_str = "Wed 22 May 2024 11:21:34 AM CEST"
+    date_parsed = ConverterHelper.parse_date(date_str)
+    date_expected = datetime(year=2024, month=5, day=22, hour=11, minute=21, second=34, tzinfo=tzoffset('CEST', 7200))
+    assert date_parsed == date_expected
+
+
+def test_date_parser_cet():
+    from moler.util.converterhelper import ConverterHelper
+    from datetime import datetime
+    from dateutil.tz import tzoffset
+
+    date_str = "Wed 22 May 2024 11:21:34 AM CET"
+    date_parsed = ConverterHelper.parse_date(date_str)
+    date_expected = datetime(year=2024, month=5, day=22, hour=11, minute=21, second=34, tzinfo=tzoffset('CET', 3600))
+    assert date_parsed == date_expected
+
+
+
+def test_date_parser_utc():
+    from moler.util.converterhelper import ConverterHelper
+    from datetime import datetime
+    from dateutil.tz import tzoffset
+
+    date_str = " Wed May 22 09:11:48 UTC 2024"
+    date_parsed = ConverterHelper.parse_date(date_str)
+    date_expected = datetime(year=2024, month=5, day=22, hour=9, minute=11, second=48, tzinfo=tzoffset('UTC', 0))
+    assert date_parsed == date_expected

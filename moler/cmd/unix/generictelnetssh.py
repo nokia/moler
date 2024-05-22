@@ -9,13 +9,8 @@ __email__ = "marcin.usielski@nokia.com, tomasz.krol@nokia.com"
 
 import abc
 import re
-import warnings
 
 import six
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    from dateutil import parser  # https://github.com/aws/jsii/issues/4406
 
 from moler.cmd.commandchangingprompt import CommandChangingPrompt
 from moler.exceptions import CommandFailure, ParsingDone
@@ -201,7 +196,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
             self.current_ret["LAST_LOGIN"]["KIND"] = self._regex_helper.group("KIND")
             self.current_ret["LAST_LOGIN"]["WHERE"] = self._regex_helper.group("WHERE")
             try:
-                self.current_ret["LAST_LOGIN"]["DATE"] = parser.parse(date_raw)
+                self.current_ret["LAST_LOGIN"]["DATE"] = ConverterHelper.parse_date(date_raw)
             except Exception:  # do not fail ssh or telnet if unknown date format.
                 pass
         elif self._regex_helper.search_compiled(GenericTelnetSsh._re_attempts, line):
