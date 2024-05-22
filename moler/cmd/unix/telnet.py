@@ -14,6 +14,7 @@ from moler.exceptions import ParsingDone
 from moler.helpers import copy_list
 from moler.util.converterhelper import ConverterHelper
 
+
 class Telnet(GenericTelnetSsh):
 
     def __init__(self, connection, host, login=None, password=None, port=0, prompt=None, expected_prompt=r'^>\s*',
