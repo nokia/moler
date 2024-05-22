@@ -384,7 +384,8 @@ def test_diff_different_values():
     assert "root -> [8] -> [b] -> [d] the first value 6.3 is different from the" \
            " second value 6.2." == msg
 
-def test_date_parser():
+
+def test_date_parser_cest():
     from moler.util.converterhelper import ConverterHelper
     from datetime import datetime
     from dateutil.tz import tzoffset
@@ -394,10 +395,23 @@ def test_date_parser():
     date_expected = datetime(year=2024, month=5, day=22, hour=11, minute=21, second=34, tzinfo=tzoffset('CEST', 7200))
     assert date_parsed == date_expected
 
+
+def test_date_parser_cet():
+    from moler.util.converterhelper import ConverterHelper
+    from datetime import datetime
+    from dateutil.tz import tzoffset
+
     date_str = "Wed 22 May 2024 11:21:34 AM CET"
     date_parsed = ConverterHelper.parse_date(date_str)
     date_expected = datetime(year=2024, month=5, day=22, hour=11, minute=21, second=34, tzinfo=tzoffset('CET', 3600))
     assert date_parsed == date_expected
+
+
+
+def test_date_parser_utc():
+    from moler.util.converterhelper import ConverterHelper
+    from datetime import datetime
+    from dateutil.tz import tzoffset
 
     date_str = " Wed May 22 09:11:48 UTC 2024"
     date_parsed = ConverterHelper.parse_date(date_str)
