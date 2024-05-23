@@ -87,7 +87,7 @@ class AbstractDevice:
         send_enter_after_changed_state=False,
         log_stacktrace_on_fail=True,
         keep_state=True,
-        sleep_after_change = 0.5
+        sleep_after_change=0.5
     ):
         """
         Goes to state.
