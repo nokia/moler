@@ -1043,7 +1043,7 @@ COMMAND_KWARGS_override_keygen = {
 }
 
 COMMAND_OUTPUT_override_keygen = """TERM=xterm-mono ssh -l user -o ServerAliveInterval=7 -o ServerAliveCountMax=2 10.0.1.67
-Offending ECDSA key in /home/ute/.ssh/known_hosts:17
+Offending ECDSA key in /home/user/.ssh/known_hosts:17
 
 remove with:
 
@@ -1064,7 +1064,7 @@ user@host:~ #"""
 
 COMMAND_RESULT_override_keygen = {
     'LINES': [
-        r'Offending ECDSA key in /home/ute/.ssh/known_hosts:17',
+        r'Offending ECDSA key in /home/user/.ssh/known_hosts:17',
         r'',
         r'remove with:',
         r'',
