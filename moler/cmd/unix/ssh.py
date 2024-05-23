@@ -264,7 +264,6 @@ class Ssh(GenericTelnetSsh):
         if "rm" == self.known_hosts_on_failure:
             self.connection.sendline(f"\nrm -f {self._hosts_file}")
         elif "keygen" == self.known_hosts_on_failure:
-            print(f"ssh-keygen -R {self.host} -f {self._hosts_file}")
             self.connection.sendline(f"\nssh-keygen -R {self.host} -f {self._hosts_file}")
         else:
             exception = CommandFailure(self,
