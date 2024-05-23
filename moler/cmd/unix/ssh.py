@@ -264,7 +264,8 @@ class Ssh(GenericTelnetSsh):
         if "rm" == self.known_hosts_on_failure:
             self.connection.sendline(f"\nrm -f {self._hosts_file}")
         elif "keygen" == self.known_hosts_on_failure:
-            self.connection.sendline(f"\nssh-keygen -R {self.host}")
+            print(f"ssh-keygen -R {self.host} -f {self._hosts_file}")
+            self.connection.sendline(f"\nssh-keygen -R {self.host} -f {self._hosts_file}")
         else:
             exception = CommandFailure(self,
                                        f"Bad value of parameter known_hosts_on_failure '{self.known_hosts_on_failure}'. "
@@ -598,7 +599,7 @@ Add correct host key in /home/you/.ssh/known_hosts to get rid of this message.
 Offending RSA key in /home/you/.ssh/known_hosts:86
 RSA host key for host.domain.net has changed and you have requested strict checking.
 Host key verification failed.
-client:~/>sh-keygen -R host.domain.net
+client:~/>sh-keygen -R host.domain.net -f /home/you/.ssh/known_hosts
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
 To edit this message please edit /etc/ssh_banner
 You may put information to /etc/ssh_banner who is owner of this PC
@@ -630,7 +631,7 @@ COMMAND_RESULT_keygen = {
         "Offending RSA key in /home/you/.ssh/known_hosts:86",
         "RSA host key for host.domain.net has changed and you have requested strict checking.",
         "Host key verification failed.",
-        # "client:~/>sh-keygen -R host.domain.net",
+        # "client:~/>sh-keygen -R host.domain.net -f /home/you/.ssh/known_hosts",
         # "client:~/>TERM=xterm-mono ssh -l user host.domain.net",
         "To edit this message please edit /etc/ssh_banner",
         "You may put information to /etc/ssh_banner who is owner of this PC",
@@ -765,7 +766,7 @@ Add correct host key in /home/you/.ssh/known_hosts to get rid of this message.
 Offending RSA key in /home/you/.ssh/known_hosts:86
 RSA host key for host.domain.net has changed and you have requested strict checking.
 Host key verification failed.
-client:~/>sh-keygen -R host.domain.net
+client:~/>sh-keygen -R host.domain.net -f /home/you/.ssh/known_hosts
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
 To edit this message please edit /etc/ssh_banner
 You may put information to /etc/ssh_banner who is owner of this PC
@@ -799,7 +800,7 @@ COMMAND_RESULT_resize_window = {
         "Offending RSA key in /home/you/.ssh/known_hosts:86",
         "RSA host key for host.domain.net has changed and you have requested strict checking.",
         "Host key verification failed.",
-        # "client:~/>sh-keygen -R host.domain.net",
+        # "client:~/>sh-keygen -R host.domain.net -f /home/you/.ssh/known_hosts",
         # "client:~/>TERM=xterm-mono ssh -l user host.domain.net",
         "To edit this message please edit /etc/ssh_banner",
         "You may put information to /etc/ssh_banner who is owner of this PC",
@@ -835,7 +836,7 @@ Add correct host key in /home/you/.ssh/known_hosts to get rid of this message.
 Offending RSA key in /home/you/.ssh/known_hosts:86
 RSA host key for host.domain.net has changed and you have requested strict checking.
 Host key verification failed.
-client:~/>sh-keygen -R host.domain.net
+client:~/>sh-keygen -R host.domain.net -f /home/you/.ssh/known_hosts
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
 To edit this message please edit /etc/ssh_banner
 You may put information to /etc/ssh_banner who is owner of this PC
@@ -869,7 +870,7 @@ COMMAND_RESULT_options = {
         "Offending RSA key in /home/you/.ssh/known_hosts:86",
         "RSA host key for host.domain.net has changed and you have requested strict checking.",
         "Host key verification failed.",
-        # "client:~/>sh-keygen -R host.domain.net",
+        # "client:~/>sh-keygen -R host.domain.net -f /home/you/.ssh/known_hosts",
         # "client:~/>TERM=xterm-mono ssh -l user host.domain.net",
         "To edit this message please edit /etc/ssh_banner",
         "You may put information to /etc/ssh_banner who is owner of this PC",
