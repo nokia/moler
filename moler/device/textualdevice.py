@@ -154,6 +154,7 @@ class TextualDevice(AbstractDevice):
         self._check_all_prompts_on_line = False
         self.last_wrong_wait4_occurrence = None  # Last occurrence from Wait4prompts if at least 2 prompts matched the
         # same line.
+        self._sleep_after_state_change = 0.5
 
     def set_all_prompts_on_line(self, value=True):
         """
@@ -434,6 +435,7 @@ class TextualDevice(AbstractDevice):
         log_stacktrace_on_fail=True,
         keep_state=False,
         timeout_multiply=1.0,
+        sleep_after_changed_state=0.5,
     ):
         """
         Go to specific state.
@@ -446,9 +448,11 @@ class TextualDevice(AbstractDevice):
         :param keep_state: if True and state is changed without goto_state then device tries to change state to state
          defined by goto_state.
         :param timeout_multiply: how many times multiply passed timeout to get final timeout.
+        :param sleep_after_change: Time in seconds to sleep after state change.
         :return: None
         :raise: DeviceChangeStateFailure if cannot change the state of device.
         """
+        self._sleep_after_state_change = sleep_after_changed_state
         self._kept_state = None
         if not self.has_established_connection():
             self.establish_connection()
@@ -610,6 +614,8 @@ class TextualDevice(AbstractDevice):
                 next_stage_timeout = final_timeout - (time.monotonic() - start_time)
                 if next_stage_timeout <= 0:
                     is_timeout = True
+        if self._sleep_after_state_change is not None and self._sleep_after_state_change > 0:
+            time.sleep(self._sleep_after_state_change)
         if keep_state:
             self._kept_state = dest_state
         self._warning_was_sent = False
