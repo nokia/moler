@@ -274,7 +274,7 @@ class Ssh(GenericTelnetSsh):
         if exception:
             self.set_exception(exception=exception)
         else:
-            self.connection.sendline(f"\nrm -f {self._hosts_file}")
+            self.connection.sendline(self._keygen_rm_cmd)
             self._resend_command_string()
 
     def _check_if_resize(self, line: str) -> None:
