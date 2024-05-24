@@ -171,6 +171,19 @@ def test_ssh_change_prompt_in_the_same_line(buffer_connection, command_output_ch
     ssh_cmd(timeout=1)
     assert ssh_cmd.enter_on_prompt_without_anchors is False
 
+def test_ssh_path_to_keys(buffer_connection, command_output_path_to_keys):
+    command_output = command_output_path_to_keys
+    buffer_connection.remote_inject_response([command_output])
+
+    ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password=None,
+                  set_timeout=None, set_prompt=None, host="192.168.223.26", prompt=r"root@host:~ >",
+                  expected_prompt=r"user@client:.*>")
+    assert ssh_cmd._hosts_file == ''
+    assert ssh_cmd._keygen_rm_cmd is None
+    ssh_cmd()
+    assert ssh_cmd._hosts_file == '/user/user2/.ssh/known_hosts'
+    assert ssh_cmd._keygen_rm_cmd == '\nssh-keygen -R 192.168.223.26 -f /user/user2/.ssh/known_hosts'
+
 
 @pytest.fixture
 def command_output_keygen():
@@ -352,4 +365,29 @@ SOMETHINGhost:~ #
 host:~ #
 host:~ # export PS1="\\u$"
 user$"""
+    return lines
+
+
+@pytest.fixture
+def command_output_path_to_keys():
+    lines = """
+root@host:~ >TERM=xterm-mono ssh -l user 192.168.223.26
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+It is also possible that a host key has just been changed.
+The fingerprint for the ECDSA key sent by the remote host is
+SHA256:Psdfhgdsfiuergnverbjnbu3u4yt43t6.
+Please contact your system administrator.
+Add correct host key in /user/user2/.ssh/known_hosts to get rid of this message.
+Offending ECDSA key in /user/user2/.ssh/known_hosts:2
+Host key for 192.168.223.26 has changed and you have requested strict checking.
+Host key verification failed.
+root@host:~ >
+root@host:~ >ssh-keygen -R 192.168.223.26 -f /user/user2/.ssh/known_hosts
+root@host:~ >TERM=xterm-mono ssh -l user 192.168.223.26
+Welcome
+user@client:~ >"""
     return lines

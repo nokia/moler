@@ -8,6 +8,7 @@ __copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
+import shlex
 
 
 from moler.cmd.unix.generictelnetssh import GenericTelnetSsh
@@ -119,6 +120,7 @@ class Ssh(GenericTelnetSsh):
         self._permission_denied_key_pass_keyboard_cmd = None
         if permission_denied_key_pass_keyboard is not None:
             self._permission_denied_key_pass_keyboard_cmd = permission_denied_key_pass_keyboard.format(host=host)  # pylint-disable-line: consider-using-f-string
+        self._keygen_rm_cmd = None
 
     def build_command_string(self) -> str:
         """
@@ -262,9 +264,9 @@ class Ssh(GenericTelnetSsh):
         """
         exception = None
         if "rm" == self.known_hosts_on_failure:
-            self.connection.sendline(f"\nrm -f {self._hosts_file}")
+            self._keygen_rm_cmd = f"\nrm -f {shlex.quote(self._hosts_file)}"
         elif "keygen" == self.known_hosts_on_failure:
-            self.connection.sendline(f"\nssh-keygen -R {self.host} -f {self._hosts_file}")
+            self._keygen_rm_cmd = f"\nssh-keygen -R {shlex.quote(self.host)} -f {shlex.quote(self._hosts_file)}"
         else:
             exception = CommandFailure(self,
                                        f"Bad value of parameter known_hosts_on_failure '{self.known_hosts_on_failure}'. "
@@ -272,6 +274,7 @@ class Ssh(GenericTelnetSsh):
         if exception:
             self.set_exception(exception=exception)
         else:
+            self.connection.sendline(f"\nrm -f {self._hosts_file}")
             self._resend_command_string()
 
     def _check_if_resize(self, line: str) -> None:
