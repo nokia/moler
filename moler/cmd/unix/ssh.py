@@ -34,7 +34,7 @@ class Ssh(GenericTelnetSsh):
 
     # Permission denied (publickey,password,keyboard-interactive)
     _re_permission_denied_key_pass_keyboard = re.compile(r"Permission denied \(publickey,password.*\)|Host key verification failed",
-                                                          re.IGNORECASE)
+                                                         re.IGNORECASE)
 
     # 7[r[999;999H[6n
     _re_resize = re.compile(r"999H")
@@ -215,9 +215,10 @@ class Ssh(GenericTelnetSsh):
                     elif "keygen" == self.known_hosts_on_failure:
                         self._permission_denied_key_pass_keyboard_cmd = f"ssh-keygen -R {shlex.quote(self.host)} -f {shlex.quote(self._hosts_file)}"
                     else:
-                        exception = CommandFailure(self,
-                                        f"Bad value of parameter known_hosts_on_failure '{self.known_hosts_on_failure}'. "
-                                        "Supported values: rm or keygen.")
+                        exception = CommandFailure(
+                            self,
+                            f"Bad value of parameter known_hosts_on_failure '{self.known_hosts_on_failure}'. "\
+                            "Supported values: rm or keygen.")
                     if exception:
                         self.set_exception(exception=exception)
                 raise ParsingDone()
@@ -252,7 +253,6 @@ class Ssh(GenericTelnetSsh):
             self._sent_handle_permission_denied_key_pass_keyboard_cmd = True
             self.connection.sendline(self._permission_denied_key_pass_keyboard_cmd)
             self._resend_command_string()
-
 
     def _check_if_resize(self, line: str) -> None:
         """
@@ -337,8 +337,8 @@ COMMAND_RESULT_permission_denied = {
         "You may put information to /etc/ssh_banner who is owner of this PC",
         "Password:",
         "Permission denied (publickey,password,keyboard-interactive)",
-        #"client:~/>ssh-keygen -f \"~/.ssh/known_hosts\" -R host.domain.net",
-        #"client:~/>TERM=xterm-mono ssh -l user host.domain.net",
+        # "client:~/>ssh-keygen -f \"~/.ssh/known_hosts\" -R host.domain.net",
+        # "client:~/>TERM=xterm-mono ssh -l user host.domain.net",
         "Last login: Thu Nov 23 10:38:18 2017 from 127.0.0.1",
         "Have a lot of fun...",
         "host:~ #",
