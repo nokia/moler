@@ -217,7 +217,7 @@ class Ssh(GenericTelnetSsh):
                     else:
                         exception = CommandFailure(
                             self,
-                            f"Bad value of parameter known_hosts_on_failure '{self.known_hosts_on_failure}'. "\
+                            f"Bad value of parameter known_hosts_on_failure '{self.known_hosts_on_failure}'. "
                             "Supported values: rm or keygen.")
                     if exception:
                         self.set_exception(exception=exception)
