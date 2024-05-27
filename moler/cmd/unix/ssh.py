@@ -32,9 +32,6 @@ class Ssh(GenericTelnetSsh):
     # id_dsa:
     _re_id_dsa = re.compile(r"id_dsa:", re.IGNORECASE)
 
-    ## Host key verification failed.
-    #_re_host_key_verification_failed = re.compile(r"Host key verification failed", re.IGNORECASE)
-
     # Permission denied (publickey,password,keyboard-interactive)
     _re_permission_denied_key_pass_keyboard = re.compile(r"Permission denied \(publickey,password.*\)|Host key verification failed",
                                                           re.IGNORECASE)
