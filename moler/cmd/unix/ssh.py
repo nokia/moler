@@ -32,11 +32,11 @@ class Ssh(GenericTelnetSsh):
     # id_dsa:
     _re_id_dsa = re.compile(r"id_dsa:", re.IGNORECASE)
 
-    # Host key verification failed.
-    _re_host_key_verification_failed = re.compile(r"Host key verification failed", re.IGNORECASE)
+    ## Host key verification failed.
+    #_re_host_key_verification_failed = re.compile(r"Host key verification failed", re.IGNORECASE)
 
     # Permission denied (publickey,password,keyboard-interactive)
-    _re_permission_denied_key_pass_keyboard = re.compile(r"Permission denied \(publickey,password.*\)",
+    _re_permission_denied_key_pass_keyboard = re.compile(r"Permission denied \(publickey,password.*\)|Host key verification failed",
                                                           re.IGNORECASE)
 
     # 7[r[999;999H[6n
@@ -120,7 +120,7 @@ class Ssh(GenericTelnetSsh):
         self._permission_denied_key_pass_keyboard_cmd = None
         if permission_denied_key_pass_keyboard is not None:
             self._permission_denied_key_pass_keyboard_cmd = permission_denied_key_pass_keyboard.format(host=host)  # pylint-disable-line: consider-using-f-string
-        self._keygen_rm_cmd = None
+        self._sent_handle_permission_denied_key_pass_keyboard_cmd = False
 
     def build_command_string(self) -> str:
         """
@@ -155,10 +155,9 @@ class Ssh(GenericTelnetSsh):
         try:
             self._override_permission_denied_key_pass_keyboard(line)
             self._check_if_resize(line)
-            self._get_hosts_file_if_displayed(line)
+            self._parse_hosts_file_if_displayed(line, is_full_line=is_full_line)
             self._push_yes_if_needed(line)
             self._id_dsa(line)
-            self._host_key_verification(line)
             self._permission_denied_key_pass_keyboard(line)
         except ParsingDone:
             pass
@@ -191,20 +190,6 @@ class Ssh(GenericTelnetSsh):
                 self.set_exception(CommandFailure(self, f"command failed in line '{line}'"))
             raise ParsingDone()
 
-    def _host_key_verification(self, line: str) -> None:
-        """
-        Checks regex host key verification.
-
-        :param line: Line from device.
-        :return: None but raises ParsingDone if regex matches.
-        """
-        if self._regex_helper.search_compiled(Ssh._re_host_key_verification_failed, line):
-            if self._hosts_file:
-                self._handle_failed_host_key_verification()
-            else:
-                self.set_exception(CommandFailure(self, f"command failed in line '{line}'"))
-            raise ParsingDone()
-
     def _id_dsa(self, line: str) -> None:
         """
         Checks id dsa.
@@ -216,16 +201,29 @@ class Ssh(GenericTelnetSsh):
             self.connection.sendline("")
             raise ParsingDone()
 
-    def _get_hosts_file_if_displayed(self, line: str) -> None:
+    def _parse_hosts_file_if_displayed(self, line: str, is_full_line: bool) -> None:
         """
         Checks if line from device has info about hosts file.
 
         :param line: Line from device.
         :return: None but raises ParsingDone if regex matches.
         """
-        if (self.known_hosts_on_failure is not None) and self._regex_helper.search_compiled(Ssh._re_host_key, line):
-            self._hosts_file = self._regex_helper.group("HOSTS_FILE")
-            raise ParsingDone()
+        if is_full_line:
+            if (self.known_hosts_on_failure is not None) and self._regex_helper.search_compiled(Ssh._re_host_key, line):
+                self._hosts_file = self._regex_helper.group("HOSTS_FILE")
+                if self.allow_override_denied_key_pass_keyboard:
+                    exception = None
+                    if "rm" == self.known_hosts_on_failure:
+                        self._permission_denied_key_pass_keyboard_cmd = f"rm -f {shlex.quote(self._hosts_file)}"
+                    elif "keygen" == self.known_hosts_on_failure:
+                        self._permission_denied_key_pass_keyboard_cmd = f"ssh-keygen -R {shlex.quote(self.host)} -f {shlex.quote(self._hosts_file)}"
+                    else:
+                        exception = CommandFailure(self,
+                                        f"Bad value of parameter known_hosts_on_failure '{self.known_hosts_on_failure}'. "
+                                        "Supported values: rm or keygen.")
+                    if exception:
+                        self.set_exception(exception=exception)
+                raise ParsingDone()
 
     def _push_yes_if_needed(self, line: str) -> None:
         """
@@ -253,29 +251,11 @@ class Ssh(GenericTelnetSsh):
 
         :return: None
         """
-        self.connection.sendline(f"\n{self._permission_denied_key_pass_keyboard_cmd}")
-        self._resend_command_string()
-
-    def _handle_failed_host_key_verification(self) -> None:
-        """
-        Handles situation when failed host key verification.
-
-        :return: None.
-        """
-        exception = None
-        if "rm" == self.known_hosts_on_failure:
-            self._keygen_rm_cmd = f"\nrm -f {shlex.quote(self._hosts_file)}"
-        elif "keygen" == self.known_hosts_on_failure:
-            self._keygen_rm_cmd = f"\nssh-keygen -R {shlex.quote(self.host)} -f {shlex.quote(self._hosts_file)}"
-        else:
-            exception = CommandFailure(self,
-                                       f"Bad value of parameter known_hosts_on_failure '{self.known_hosts_on_failure}'. "
-                                       "Supported values: rm or keygen.")
-        if exception:
-            self.set_exception(exception=exception)
-        else:
-            self.connection.sendline(self._keygen_rm_cmd)
+        if self._sent_handle_permission_denied_key_pass_keyboard_cmd is False:
+            self._sent_handle_permission_denied_key_pass_keyboard_cmd = True
+            self.connection.sendline(self._permission_denied_key_pass_keyboard_cmd)
             self._resend_command_string()
+
 
     def _check_if_resize(self, line: str) -> None:
         """
@@ -360,8 +340,8 @@ COMMAND_RESULT_permission_denied = {
         "You may put information to /etc/ssh_banner who is owner of this PC",
         "Password:",
         "Permission denied (publickey,password,keyboard-interactive)",
-        # "client:~/>ssh-keygen -f \"~/.ssh/known_hosts\" -R host.domain.net",
-        # "client:~/>TERM=xterm-mono ssh -l user host.domain.net",
+        #"client:~/>ssh-keygen -f \"~/.ssh/known_hosts\" -R host.domain.net",
+        #"client:~/>TERM=xterm-mono ssh -l user host.domain.net",
         "Last login: Thu Nov 23 10:38:18 2017 from 127.0.0.1",
         "Have a lot of fun...",
         "host:~ #",

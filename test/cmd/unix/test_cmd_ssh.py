@@ -40,7 +40,8 @@ def test_ssh_failed_host_key_verification(buffer_connection, command_output_fail
     buffer_connection.remote_inject_response([command_output])
 
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english",
-                  host="host.domain.net", expected_prompt="server:.*#", prompt="host:~ #", options=None)
+                  host="host.domain.net", expected_prompt="server:.*#", prompt="host:~ #", options=None,
+                  permission_denied_key_pass_keyboard=None)
     assert "TERM=xterm-mono ssh -l user host.domain.net" == ssh_cmd.command_string
     with pytest.raises(CommandFailure):
         ssh_cmd()
@@ -84,7 +85,7 @@ def test_ssh_failed_known_hosts(buffer_connection, command_output_failed_known_h
 
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password="english", prompt="client:~ #",
                   host="host.domain.net", expected_prompt="host:.*#", known_hosts_on_failure='badvalue',
-                  options=None)
+                  options=None, permission_denied_key_pass_keyboard=None)
     assert "TERM=xterm-mono ssh -l user host.domain.net" == ssh_cmd.command_string
     with pytest.raises(CommandFailure):
         ssh_cmd()
@@ -140,6 +141,7 @@ def test_ssh_change_rm_command(buffer_connection, command_output_keygen):
     ssh_cmd.break_cmd(silent=False)
     assert ssh_cmd._permission_denied_key_pass_keyboard_cmd == 'ssh-keygen -f "/home/user/.ssh/known_hosts" -R "10.0.1.67"'
     ssh_cmd.break_cmd(silent=True, force=True)
+    assert ssh_cmd._sent_handle_permission_denied_key_pass_keyboard_cmd is True
 
 
 def test_ssh_returns_proper_command_string(buffer_connection):
@@ -177,12 +179,62 @@ def test_ssh_path_to_keys(buffer_connection, command_output_path_to_keys):
 
     ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password=None,
                   set_timeout=None, set_prompt=None, host="192.168.223.26", prompt=r"root@host:~ >",
-                  expected_prompt=r"user@client:.*>")
+                  expected_prompt=r"user@client:.*>", permission_denied_key_pass_keyboard=None)
     assert ssh_cmd._hosts_file == ''
-    assert ssh_cmd._keygen_rm_cmd is None
+    assert ssh_cmd._permission_denied_key_pass_keyboard_cmd is None
+    assert ssh_cmd._sent_handle_permission_denied_key_pass_keyboard_cmd is False
     ssh_cmd()
     assert ssh_cmd._hosts_file == '/user/user2/.ssh/known_hosts'
-    assert ssh_cmd._keygen_rm_cmd == '\nssh-keygen -R 192.168.223.26 -f /user/user2/.ssh/known_hosts'
+    assert ssh_cmd._permission_denied_key_pass_keyboard_cmd == 'ssh-keygen -R 192.168.223.26 -f /user/user2/.ssh/known_hosts'
+    assert ssh_cmd._sent_handle_permission_denied_key_pass_keyboard_cmd is True
+
+
+def test_ssh_no_keyboard_active(buffer_connection, command_output_no_keyboard_active):
+    command_output = command_output_no_keyboard_active
+    buffer_connection.remote_inject_response([command_output])
+
+    ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password=None,
+                  set_timeout=None, set_prompt=None, host="192.168.223.26", prompt=r"root@host:~ >",
+                  expected_prompt=r"user@client:.*>", permission_denied_key_pass_keyboard=None)
+    assert ssh_cmd._hosts_file == ''
+    assert ssh_cmd._permission_denied_key_pass_keyboard_cmd is None
+    assert ssh_cmd._sent_handle_permission_denied_key_pass_keyboard_cmd is False
+    ssh_cmd()
+    assert ssh_cmd._hosts_file == '/user/user2/.ssh/known_hosts'
+    assert ssh_cmd._permission_denied_key_pass_keyboard_cmd == 'ssh-keygen -R 192.168.223.26 -f /user/user2/.ssh/known_hosts'
+    assert ssh_cmd._sent_handle_permission_denied_key_pass_keyboard_cmd is True
+
+
+
+@pytest.fixture
+def command_output_no_keyboard_active():
+    data = """TERM=xterm-mono ssh -l user -o 192.168.233.26
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+It is also possible that a host key has just been changed.
+The fingerprint for the ECDSA key sent by the remote host is
+SHA256:dfgkkhgkehjerihy53498y45685363grjgdfgeh.
+Please contact your system administrator.
+Add correct host key in /user/user2/.ssh/known_hosts to get rid of this message.
+Offending ECDSA key in /user/user2/.ssh/known_hosts:4
+Password authentication is disabled to avoid man-in-the-middle attacks.
+Keyboard-interactive authentication is disabled to avoid man-in-the-middle attacks.
+Agent forwarding is disabled to avoid man-in-the-middle attacks.
+X11 forwarding is disabled to avoid man-in-the-middle attacks.
+
+
+ute@192.168.255.126: Permission denied (publickey,password).
+
+
+root@host:~ > ssh-keygen -R 192.168.255.126 -f /user/user2/.ssh/known_hosts
+root@host:~ > TERM=xterm-mono ssh -l ute 192.168.233.26
+
+Welcome to Distro 152.04.6 LTS (GNU/Linux 489.4.0-257-generic x86_64)
+user@client:~ >"""
+    return data
 
 
 @pytest.fixture

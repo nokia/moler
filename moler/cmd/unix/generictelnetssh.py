@@ -32,7 +32,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
 
     # Permission denied.
     _re_failed_strings = re.compile(
-        r"Permission denied(?!\s+\(publickey,password,keyboard-interactive\)|(, please try again.))|"
+        r"Permission denied(?!\s+\(publickey,password.*\)|(, please try again.))|"
         r"closed by foreign host|telnet:.*Name or service not known|No route to host|ssh: Could not|"
         r"is not a typo you can use command-not-found to lookup the package|command not found|"
         r"Too many authentication failures|Received disconnect from|Authentication failed",
