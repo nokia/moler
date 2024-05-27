@@ -189,6 +189,25 @@ def test_ssh_path_to_keys(buffer_connection, command_output_path_to_keys):
     assert ssh_cmd._sent_handle_permission_denied_key_pass_keyboard_cmd is True
 
 
+def test_ssh_path_to_keys_no_override(buffer_connection, command_output_path_to_keys):
+    command_output = command_output_path_to_keys
+    buffer_connection.remote_inject_response([command_output])
+
+    keygen_cmd = r'ssh-keygen -R 192.168.223.26 -f /user/user150/.ssh/known_hosts'
+    ssh_cmd = Ssh(connection=buffer_connection.moler_connection, login="user", password=None,
+                  set_timeout=None, set_prompt=None, host="192.168.223.26", prompt=r"root@host:~ >",
+                  expected_prompt=r"user@client:.*>", allow_override_denied_key_pass_keyboard=False,
+                  permission_denied_key_pass_keyboard=keygen_cmd,
+                  )
+    assert ssh_cmd._hosts_file == ''
+    assert ssh_cmd._permission_denied_key_pass_keyboard_cmd == keygen_cmd
+    assert ssh_cmd._sent_handle_permission_denied_key_pass_keyboard_cmd is False
+    ssh_cmd()
+    assert ssh_cmd._hosts_file == '/user/user2/.ssh/known_hosts'
+    assert ssh_cmd._permission_denied_key_pass_keyboard_cmd == keygen_cmd
+    assert ssh_cmd._sent_handle_permission_denied_key_pass_keyboard_cmd is True
+
+
 def test_ssh_no_keyboard_active(buffer_connection, command_output_no_keyboard_active):
     command_output = command_output_no_keyboard_active
     buffer_connection.remote_inject_response([command_output])
