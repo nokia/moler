@@ -245,11 +245,11 @@ Agent forwarding is disabled to avoid man-in-the-middle attacks.
 X11 forwarding is disabled to avoid man-in-the-middle attacks.
 
 
-ute@192.168.255.126: Permission denied (publickey,password).
+user@192.168.233.26: Permission denied (publickey,password).
 
 
-root@host:~ > ssh-keygen -R 192.168.255.126 -f /user/user2/.ssh/known_hosts
-root@host:~ > TERM=xterm-mono ssh -l ute 192.168.233.26
+root@host:~ > ssh-keygen -R 192.168.233.26 -f /user/user2/.ssh/known_hosts
+root@host:~ > TERM=xterm-mono ssh -l user 192.168.233.26
 
 Welcome to Distro 152.04.6 LTS (GNU/Linux 489.4.0-257-generic x86_64)
 user@client:~ >"""
@@ -275,7 +275,7 @@ def command_output_keygen():
     Password:
     ****
 
-    Last login: Fri Jul  3 11:50:03 UTC+2 2020 from 192.168.255.126
+    Last login: Fri Jul  3 11:50:03 UTC+2 2020 from 192.168.233.26
     user@host:~ #"""
     return data
 
