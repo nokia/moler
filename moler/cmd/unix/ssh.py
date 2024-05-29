@@ -8,6 +8,7 @@ __copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
+import shlex
 
 
 from moler.cmd.unix.generictelnetssh import GenericTelnetSsh
@@ -31,12 +32,9 @@ class Ssh(GenericTelnetSsh):
     # id_dsa:
     _re_id_dsa = re.compile(r"id_dsa:", re.IGNORECASE)
 
-    # Host key verification failed.
-    _re_host_key_verification_failed = re.compile(r"Host key verification failed", re.IGNORECASE)
-
     # Permission denied (publickey,password,keyboard-interactive)
-    _re_permission_denied_key_pass_keyboard = re.compile(r"Permission denied \(publickey,password,"
-                                                         r"keyboard-interactive\)", re.IGNORECASE)
+    _re_permission_denied_key_pass_keyboard = re.compile(r"Permission denied \(publickey,password.*\)|Host key verification failed",
+                                                         re.IGNORECASE)
 
     # 7[r[999;999H[6n
     _re_resize = re.compile(r"999H")
@@ -119,6 +117,7 @@ class Ssh(GenericTelnetSsh):
         self._permission_denied_key_pass_keyboard_cmd = None
         if permission_denied_key_pass_keyboard is not None:
             self._permission_denied_key_pass_keyboard_cmd = permission_denied_key_pass_keyboard.format(host=host)  # pylint-disable-line: consider-using-f-string
+        self._sent_handle_permission_denied_key_pass_keyboard_cmd = False
 
     def build_command_string(self) -> str:
         """
@@ -153,10 +152,9 @@ class Ssh(GenericTelnetSsh):
         try:
             self._override_permission_denied_key_pass_keyboard(line)
             self._check_if_resize(line)
-            self._get_hosts_file_if_displayed(line)
+            self._parse_hosts_file_if_displayed(line, is_full_line=is_full_line)
             self._push_yes_if_needed(line)
             self._id_dsa(line)
-            self._host_key_verification(line)
             self._permission_denied_key_pass_keyboard(line)
         except ParsingDone:
             pass
@@ -189,20 +187,6 @@ class Ssh(GenericTelnetSsh):
                 self.set_exception(CommandFailure(self, f"command failed in line '{line}'"))
             raise ParsingDone()
 
-    def _host_key_verification(self, line: str) -> None:
-        """
-        Checks regex host key verification.
-
-        :param line: Line from device.
-        :return: None but raises ParsingDone if regex matches.
-        """
-        if self._regex_helper.search_compiled(Ssh._re_host_key_verification_failed, line):
-            if self._hosts_file:
-                self._handle_failed_host_key_verification()
-            else:
-                self.set_exception(CommandFailure(self, f"command failed in line '{line}'"))
-            raise ParsingDone()
-
     def _id_dsa(self, line: str) -> None:
         """
         Checks id dsa.
@@ -214,16 +198,30 @@ class Ssh(GenericTelnetSsh):
             self.connection.sendline("")
             raise ParsingDone()
 
-    def _get_hosts_file_if_displayed(self, line: str) -> None:
+    def _parse_hosts_file_if_displayed(self, line: str, is_full_line: bool) -> None:
         """
         Checks if line from device has info about hosts file.
 
         :param line: Line from device.
         :return: None but raises ParsingDone if regex matches.
         """
-        if (self.known_hosts_on_failure is not None) and self._regex_helper.search_compiled(Ssh._re_host_key, line):
-            self._hosts_file = self._regex_helper.group("HOSTS_FILE")
-            raise ParsingDone()
+        if is_full_line:
+            if (self.known_hosts_on_failure is not None) and self._regex_helper.search_compiled(Ssh._re_host_key, line):
+                self._hosts_file = self._regex_helper.group("HOSTS_FILE")
+                if self.allow_override_denied_key_pass_keyboard:
+                    exception = None
+                    if "rm" == self.known_hosts_on_failure:
+                        self._permission_denied_key_pass_keyboard_cmd = f"rm -f {shlex.quote(self._hosts_file)}"
+                    elif "keygen" == self.known_hosts_on_failure:
+                        self._permission_denied_key_pass_keyboard_cmd = f"ssh-keygen -R {shlex.quote(self.host)} -f {shlex.quote(self._hosts_file)}"
+                    else:
+                        exception = CommandFailure(
+                            self,
+                            f"Bad value of parameter known_hosts_on_failure '{self.known_hosts_on_failure}'. "
+                            "Supported values: rm or keygen.")
+                    if exception:
+                        self.set_exception(exception=exception)
+                raise ParsingDone()
 
     def _push_yes_if_needed(self, line: str) -> None:
         """
@@ -251,27 +249,9 @@ class Ssh(GenericTelnetSsh):
 
         :return: None
         """
-        self.connection.sendline(f"\n{self._permission_denied_key_pass_keyboard_cmd}")
-        self._resend_command_string()
-
-    def _handle_failed_host_key_verification(self) -> None:
-        """
-        Handles situation when failed host key verification.
-
-        :return: None.
-        """
-        exception = None
-        if "rm" == self.known_hosts_on_failure:
-            self.connection.sendline(f"\nrm -f {self._hosts_file}")
-        elif "keygen" == self.known_hosts_on_failure:
-            self.connection.sendline(f"\nssh-keygen -R {self.host}")
-        else:
-            exception = CommandFailure(self,
-                                       f"Bad value of parameter known_hosts_on_failure '{self.known_hosts_on_failure}'. "
-                                       "Supported values: rm or keygen.")
-        if exception:
-            self.set_exception(exception=exception)
-        else:
+        if self._sent_handle_permission_denied_key_pass_keyboard_cmd is False:
+            self._sent_handle_permission_denied_key_pass_keyboard_cmd = True
+            self.connection.sendline(self._permission_denied_key_pass_keyboard_cmd)
             self._resend_command_string()
 
     def _check_if_resize(self, line: str) -> None:
@@ -598,7 +578,7 @@ Add correct host key in /home/you/.ssh/known_hosts to get rid of this message.
 Offending RSA key in /home/you/.ssh/known_hosts:86
 RSA host key for host.domain.net has changed and you have requested strict checking.
 Host key verification failed.
-client:~/>sh-keygen -R host.domain.net
+client:~/>sh-keygen -R host.domain.net -f /home/you/.ssh/known_hosts
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
 To edit this message please edit /etc/ssh_banner
 You may put information to /etc/ssh_banner who is owner of this PC
@@ -630,7 +610,7 @@ COMMAND_RESULT_keygen = {
         "Offending RSA key in /home/you/.ssh/known_hosts:86",
         "RSA host key for host.domain.net has changed and you have requested strict checking.",
         "Host key verification failed.",
-        # "client:~/>sh-keygen -R host.domain.net",
+        # "client:~/>sh-keygen -R host.domain.net -f /home/you/.ssh/known_hosts",
         # "client:~/>TERM=xterm-mono ssh -l user host.domain.net",
         "To edit this message please edit /etc/ssh_banner",
         "You may put information to /etc/ssh_banner who is owner of this PC",
@@ -765,7 +745,7 @@ Add correct host key in /home/you/.ssh/known_hosts to get rid of this message.
 Offending RSA key in /home/you/.ssh/known_hosts:86
 RSA host key for host.domain.net has changed and you have requested strict checking.
 Host key verification failed.
-client:~/>sh-keygen -R host.domain.net
+client:~/>sh-keygen -R host.domain.net -f /home/you/.ssh/known_hosts
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
 To edit this message please edit /etc/ssh_banner
 You may put information to /etc/ssh_banner who is owner of this PC
@@ -799,7 +779,7 @@ COMMAND_RESULT_resize_window = {
         "Offending RSA key in /home/you/.ssh/known_hosts:86",
         "RSA host key for host.domain.net has changed and you have requested strict checking.",
         "Host key verification failed.",
-        # "client:~/>sh-keygen -R host.domain.net",
+        # "client:~/>sh-keygen -R host.domain.net -f /home/you/.ssh/known_hosts",
         # "client:~/>TERM=xterm-mono ssh -l user host.domain.net",
         "To edit this message please edit /etc/ssh_banner",
         "You may put information to /etc/ssh_banner who is owner of this PC",
@@ -835,7 +815,7 @@ Add correct host key in /home/you/.ssh/known_hosts to get rid of this message.
 Offending RSA key in /home/you/.ssh/known_hosts:86
 RSA host key for host.domain.net has changed and you have requested strict checking.
 Host key verification failed.
-client:~/>sh-keygen -R host.domain.net
+client:~/>sh-keygen -R host.domain.net -f /home/you/.ssh/known_hosts
 client:~/>TERM=xterm-mono ssh -l user host.domain.net
 To edit this message please edit /etc/ssh_banner
 You may put information to /etc/ssh_banner who is owner of this PC
@@ -869,7 +849,7 @@ COMMAND_RESULT_options = {
         "Offending RSA key in /home/you/.ssh/known_hosts:86",
         "RSA host key for host.domain.net has changed and you have requested strict checking.",
         "Host key verification failed.",
-        # "client:~/>sh-keygen -R host.domain.net",
+        # "client:~/>sh-keygen -R host.domain.net -f /home/you/.ssh/known_hosts",
         # "client:~/>TERM=xterm-mono ssh -l user host.domain.net",
         "To edit this message please edit /etc/ssh_banner",
         "You may put information to /etc/ssh_banner who is owner of this PC",
@@ -1016,7 +996,7 @@ Warning: Permanently added '10.0.1.67' (RSA) to the list of known hosts.
 Password:
 ****
 
-Last login: Fri Jul  3 11:50:03 UTC+2 2020 from 192.168.255.126 on pts/0
+Last login: Fri Jul  3 11:50:03 UTC+2 2020 from 192.168.233.26 on pts/0
 host:~ #"""
 
 COMMAND_RESULT_pts0 = {
@@ -1026,11 +1006,11 @@ COMMAND_RESULT_pts0 = {
         "Password:",
         "****",
         "",
-        "Last login: Fri Jul  3 11:50:03 UTC+2 2020 from 192.168.255.126 on pts/0",
+        "Last login: Fri Jul  3 11:50:03 UTC+2 2020 from 192.168.233.26 on pts/0",
     ],
     'LAST_LOGIN': {
         'KIND': 'from',
-        'WHERE': '192.168.255.126',
+        'WHERE': '192.168.233.26',
         'RAW_DATE': 'Fri Jul  3 11:50:03 UTC+2 2020',
         'DATE': ConverterHelper.parse_date('Fri Jul  3 11:50:03 UTC+2 2020'),
     },
@@ -1043,7 +1023,7 @@ COMMAND_KWARGS_override_keygen = {
 }
 
 COMMAND_OUTPUT_override_keygen = """TERM=xterm-mono ssh -l user -o ServerAliveInterval=7 -o ServerAliveCountMax=2 10.0.1.67
-Offending ECDSA key in /home/ute/.ssh/known_hosts:17
+Offending ECDSA key in /home/user/.ssh/known_hosts:17
 
 remove with:
 
@@ -1059,12 +1039,12 @@ user@client: TERM=xterm-mono ssh -l user -o ServerAliveInterval=7 -o ServerAlive
 Password:
 ****
 
-Last login: Fri Jul  3 11:50:03 UTC+2 2020 from 192.168.255.126
+Last login: Fri Jul  3 11:50:03 UTC+2 2020 from 192.168.233.26
 user@host:~ #"""
 
 COMMAND_RESULT_override_keygen = {
     'LINES': [
-        r'Offending ECDSA key in /home/ute/.ssh/known_hosts:17',
+        r'Offending ECDSA key in /home/user/.ssh/known_hosts:17',
         r'',
         r'remove with:',
         r'',
@@ -1081,11 +1061,11 @@ COMMAND_RESULT_override_keygen = {
         r'Password:',
         r'****',
         r'',
-        r'Last login: Fri Jul  3 11:50:03 UTC+2 2020 from 192.168.255.126'
+        r'Last login: Fri Jul  3 11:50:03 UTC+2 2020 from 192.168.233.26'
     ],
     'LAST_LOGIN': {
         'KIND': 'from',
-        'WHERE': '192.168.255.126',
+        'WHERE': '192.168.233.26',
         'RAW_DATE': 'Fri Jul  3 11:50:03 UTC+2 2020',
         'DATE': ConverterHelper.parse_date('Fri Jul  3 11:50:03 UTC+2 2020'),
     },
