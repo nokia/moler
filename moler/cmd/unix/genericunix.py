@@ -155,8 +155,6 @@ class GenericUnixCommand(CommandTextualGeneric):
             self._kill_ctrl_z_sent = True
             raise ParsingDone()
 
-        if self._kill_ctrl_z_sent and (
-            self._regex_helper.search_compiled(GenericUnixCommand._re_kill_done, line) or self._regex_helper.search_compiled(GenericUnixCommand._re_kill_no_job, line)
-        ):
+        if self._kill_ctrl_z_sent and self._regex_helper.search_compiled(GenericUnixCommand._re_kill_no_job, line):
             self._kill_ctrl_z_job_done = True
             raise ParsingDone()

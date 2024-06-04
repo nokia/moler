@@ -1,3 +1,6 @@
+## moler 3.9.0
+ * Change way of validating if Ctrl+Z has worked and stopped the command
+
 ## moler 3.8.0
  * More info when SshShell is disconnected
  * Fix prompt detection for ProxyPc2
