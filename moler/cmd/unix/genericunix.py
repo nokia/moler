@@ -134,9 +134,6 @@ class GenericUnixCommand(CommandTextualGeneric):
     # [2]+  Stopped
     _re_ctrl_z_stopped = re.compile(r"\[(?P<JOB_ID>\d+)\]\+\s+Stopped")
 
-    # [2]+  Done
-    _re_kill_done = re.compile(r"\[?\d+\]\+\s+Done")
-
     # -bash: wait: %2: no such job
     _re_kill_no_job = re.compile(r"\:\s+\%\d+\s?\:\s+no such job")
 
