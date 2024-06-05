@@ -5,7 +5,7 @@ Moler's device has 2 main responsibilities:
 - be the state machine that controls which commands may run in given state
 """
 __author__ = "Marcin Usielski"
-__copyright__ = "Copyright (C) 2019-2020, Nokia"
+__copyright__ = "Copyright (C) 2019-2024, Nokia"
 __email__ = "marcin.usielski@nokia.com"
 
 import abc
@@ -87,6 +87,7 @@ class AbstractDevice:
         send_enter_after_changed_state=False,
         log_stacktrace_on_fail=True,
         keep_state=True,
+        sleep_after_change=0.5
     ):
         """
         Goes to state.
@@ -98,6 +99,7 @@ class AbstractDevice:
         :param log_stacktrace_on_fail: Set True to log exceptions if command to enter state failed.
         :param keep_state: if True and state is changed without goto_state then device tries to change state to state
          defined by goto_state.
+        :param sleep_after_change: Time in seconds to sleep after state change.
         :return: None
         """
 

@@ -30,6 +30,7 @@ def iterate_over_device_states(
     max_no_of_threads=11,
     rerun=0,
     timeout_multiply=3.0,
+    sleep_after_changed_state=0.0
 ):
     """
     Check all states in device under test.
@@ -41,6 +42,7 @@ def iterate_over_device_states(
     :param max_no_of_threads: maximum number of threads that can be started.
     :param rerun: rerun for goto_state
     :param timeout_multiply: timeout_multiply for goto_state
+    :param sleep_after_changed_state: sleep after state change
     :return: None
     """
     source_states = _get_all_states_from_device(device=device)
@@ -51,7 +53,7 @@ def iterate_over_device_states(
     device.set_all_prompts_on_line(True)
 
     device._goto_state_in_production_mode = False  # pylint: disable=protected-access
-    device.goto_state(state=source_states[0], rerun=rerun)
+    device.goto_state(state=source_states[0], rerun=rerun, sleep_after_changed_state=sleep_after_changed_state)
 
     random.shuffle(source_states)
     random.shuffle(target_states)
@@ -83,6 +85,7 @@ def iterate_over_device_states(
             exceptions=exceptions,
             rerun=rerun,
             timeout_multiply=timeout_multiply,
+            sleep_after_changed_state=sleep_after_changed_state
         )
         test_threads.append((th, new_connection))
         thread_nr += 1
@@ -93,6 +96,7 @@ def iterate_over_device_states(
         max_time=max_time,
         rerun=rerun,
         timeout_multiply=timeout_multiply,
+        sleep_after_changed_state=sleep_after_changed_state
     )
     for th, dev_connection in test_threads:
         th.join()
@@ -114,6 +118,7 @@ def _perform_device_tests_start_thread(
     exceptions,
     rerun,
     timeout_multiply,
+    sleep_after_changed_state,
 ):
     try:
         th = threading.Thread(
@@ -128,6 +133,7 @@ def _perform_device_tests_start_thread(
                 exceptions,
                 rerun,
                 timeout_multiply,
+                sleep_after_changed_state,
             ),
         )
         th.daemon = True
@@ -148,6 +154,7 @@ def _start_device_tests(
     exceptions,
     rerun,
     timeout_multiply,
+    sleep_after_changed_state
 ):
     try:
         device = get_cloned_device(
@@ -155,7 +162,7 @@ def _start_device_tests(
             new_name=new_device_name,
             new_connection=connection,
         )
-        device.goto_state(state=states_to_test.queue[0][0], rerun=rerun)
+        device.goto_state(state=states_to_test.queue[0][0], rerun=rerun, sleep_after_changed_state=sleep_after_changed_state)
         _perform_device_tests(
             device=device,
             tested=tested,
@@ -163,6 +170,7 @@ def _start_device_tests(
             max_time=max_time,
             rerun=rerun,
             timeout_multiply=timeout_multiply,
+            sleep_after_changed_state=sleep_after_changed_state
         )
     except Exception as ex:
         exceptions.append(ex)
@@ -170,7 +178,7 @@ def _start_device_tests(
 
 
 def _perform_device_tests(
-    device, tested, states_to_test, max_time, rerun, timeout_multiply
+    device, tested, states_to_test, max_time, rerun, timeout_multiply, sleep_after_changed_state
 ):
     device.set_all_prompts_on_line(True)
     start_time = time.monotonic()
@@ -186,6 +194,7 @@ def _perform_device_tests(
                 keep_state=False,
                 rerun=rerun,
                 timeout_multiply=timeout_multiply,
+                sleep_after_changed_state=sleep_after_changed_state,
             )
             tested.add((state_before_test, source_state))
             device.goto_state(
@@ -193,6 +202,7 @@ def _perform_device_tests(
                 keep_state=False,
                 rerun=rerun,
                 timeout_multiply=timeout_multiply,
+                sleep_after_changed_state=sleep_after_changed_state,
             )
             tested.add((source_state, target_state))
             if device.last_wrong_wait4_occurrence is not None:

@@ -56,7 +56,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg(device_connection, unix_remot
     unix_remote_proxy_pc._goto_state_in_production_mode = True
     dst_state = "UNIX_REMOTE_ROOT"
     src_state = "UNIX_LOCAL"
-    unix_remote_proxy_pc.goto_state(state=src_state)
+    unix_remote_proxy_pc.goto_state(state=src_state, sleep_after_changed_state=0)
     assert unix_remote_proxy_pc.current_state == src_state
     start_time = time.monotonic()
     unix_remote_proxy_pc.goto_state_bg(state=dst_state)
@@ -66,10 +66,10 @@ def test_unix_remote_proxy_pc_device_goto_state_bg(device_connection, unix_remot
     execution_time_bg = time.monotonic() - start_time
     assert unix_remote_proxy_pc.current_state == dst_state
 
-    unix_remote_proxy_pc.goto_state(state=src_state)
+    unix_remote_proxy_pc.goto_state(state=src_state, sleep_after_changed_state=0)
     assert unix_remote_proxy_pc.current_state == src_state
     start_time = time.monotonic()
-    unix_remote_proxy_pc.goto_state(state=dst_state)
+    unix_remote_proxy_pc.goto_state(state=dst_state, sleep_after_changed_state=0)
     execution_time_fg = time.monotonic() - start_time
     assert unix_remote_proxy_pc.current_state == dst_state
     time_diff = abs(execution_time_bg - execution_time_fg)
@@ -83,11 +83,11 @@ def test_unix_remote_proxy_pc_device_goto_state_bg_and_goto(device_connection, u
 
     dst_state = "UNIX_REMOTE_ROOT"
     src_state = "UNIX_LOCAL"
-    unix_remote_proxy_pc.goto_state(state=src_state)
+    unix_remote_proxy_pc.goto_state(state=src_state, sleep_after_changed_state=0)
     assert unix_remote_proxy_pc.current_state == src_state
     unix_remote_proxy_pc.goto_state_bg(state=dst_state)
     assert unix_remote_proxy_pc.current_state != dst_state
-    unix_remote_proxy_pc.goto_state(state=dst_state)
+    unix_remote_proxy_pc.goto_state(state=dst_state, sleep_after_changed_state=0)
     assert unix_remote_proxy_pc.current_state == dst_state
 
 
@@ -97,7 +97,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg_await(device_connection, unix
     unix_remote_proxy_pc._goto_state_in_production_mode = True
     dst_state = "UNIX_REMOTE_ROOT"
     src_state = "UNIX_LOCAL"
-    unix_remote_proxy_pc.goto_state(state=src_state)
+    unix_remote_proxy_pc.goto_state(state=src_state, sleep_after_changed_state=0)
     assert unix_remote_proxy_pc.current_state == src_state
     unix_remote_proxy_pc.goto_state_bg(state=dst_state)
     assert unix_remote_proxy_pc.current_state != dst_state
@@ -111,7 +111,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg_await_excption(device_connect
     unix_remote_proxy_pc._goto_state_in_production_mode = True
     dst_state = "UNIX_REMOTE_ROOT"
     src_state = "UNIX_LOCAL"
-    unix_remote_proxy_pc.goto_state(state=src_state)
+    unix_remote_proxy_pc.goto_state(state=src_state, sleep_after_changed_state=0)
     assert unix_remote_proxy_pc.current_state == src_state
     unix_remote_proxy_pc.goto_state_bg(state=dst_state)
     assert unix_remote_proxy_pc.current_state != dst_state
@@ -126,19 +126,19 @@ def test_unix_remote_device_not_connected():
     dir_path = os.path.dirname(os.path.realpath(__file__))
     load_config(os.path.join(dir_path, os.pardir, os.pardir, 'test', 'resources', 'device_config.yml'))
     unix_remote = DeviceFactory.get_device(name="UNIX_REMOTE_REAL_IO", initial_state="UNIX_LOCAL")
-    unix_remote.goto_state("UNIX_LOCAL")
+    unix_remote.goto_state("UNIX_LOCAL", sleep_after_changed_state=0)
     cmd_whoami = unix_remote.get_cmd(cmd_name="whoami")
     ret1 = cmd_whoami()
     execution = 0
     while execution < 5:
-        unix_remote.goto_state("NOT_CONNECTED")
+        unix_remote.goto_state("NOT_CONNECTED", sleep_after_changed_state=0)
         with pytest.raises(DeviceFailure) as ex:
             cmd_whoami = unix_remote.get_cmd(cmd_name="whoami")
             cmd_whoami()
         assert "cmd is unknown for state 'NOT_CONNECTED'" in str(ex)
         assert unix_remote.io_connection._terminal is None
         assert unix_remote.io_connection.moler_connection.is_open() is False
-        unix_remote.goto_state("UNIX_LOCAL")
+        unix_remote.goto_state("UNIX_LOCAL", sleep_after_changed_state=0)
         assert unix_remote.io_connection._terminal is not None
         assert unix_remote.io_connection.moler_connection.is_open() is True
         cmd_whoami = unix_remote.get_cmd(cmd_name="whoami")
