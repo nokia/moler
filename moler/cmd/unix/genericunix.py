@@ -134,9 +134,6 @@ class GenericUnixCommand(CommandTextualGeneric):
     # [2]+  Stopped
     _re_ctrl_z_stopped = re.compile(r"\[(?P<JOB_ID>\d+)\]\+\s+Stopped")
 
-    # [2]+  Done
-    _re_kill_done = re.compile(r"\[?\d+\]\+\s+Done")
-
     # -bash: wait: %2: no such job
     _re_kill_no_job = re.compile(r"\:\s+\%\d+\s?\:\s+no such job")
 
@@ -155,8 +152,6 @@ class GenericUnixCommand(CommandTextualGeneric):
             self._kill_ctrl_z_sent = True
             raise ParsingDone()
 
-        if self._kill_ctrl_z_sent and (
-            self._regex_helper.search_compiled(GenericUnixCommand._re_kill_done, line) or self._regex_helper.search_compiled(GenericUnixCommand._re_kill_no_job, line)
-        ):
+        if self._kill_ctrl_z_sent and self._regex_helper.search_compiled(GenericUnixCommand._re_kill_no_job, line):
             self._kill_ctrl_z_job_done = True
             raise ParsingDone()

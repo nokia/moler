@@ -66,7 +66,8 @@ def test_run_script_ctrl_z(buffer_connection):
     output4 = "moler_bash# kill %4; wait %4\n"
     output5 = f"\n{output3}\n"
     output6 = f"[4]+  Done                 {output1}\n"
-    output7 = "moler_bash#"
+    output7 = "moler_bash# wait: %4: no such job\n"
+    output8 = "moler_bash#"
     cmd = RunScript(connection=buffer_connection.moler_connection, script_command=output1)
     cmd.set_timeout_action(action='z')
     assert cmd._cmd_output_started is False
@@ -92,6 +93,8 @@ def test_run_script_ctrl_z(buffer_connection):
     buffer_connection.moler_connection.data_received(output6.encode("utf-8"), datetime.datetime.now())
     time.sleep(0.1)
     buffer_connection.moler_connection.data_received(output7.encode("utf-8"), datetime.datetime.now())
+    time.sleep(0.1)
+    buffer_connection.moler_connection.data_received(output8.encode("utf-8"), datetime.datetime.now())
     assert cmd._kill_ctrl_z_job_done is True
     with pytest.raises(CommandTimeout):
         cmd.await_done()
