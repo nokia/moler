@@ -55,10 +55,10 @@ class CommandChangingPrompt(CommandTextualGeneric):
 
         # Internal variables
         self._re_failure_exceptions_indication = None
-        self._sent_timeout = False
-        self._sent_prompt = False
-        self._matched_timeout = False
-        self._matched_prompt = False
+        # self._sent_timeout = False
+        # self._sent_prompt = False
+        # self._matched_timeout = False
+        # self._matched_prompt = False
         self._sent = False
         self._finish_on_final_prompt = True  # Set True to finish Moler command by this generic after prompt after
         # command output. False if you want to finish command in your class.
@@ -72,9 +72,13 @@ class CommandChangingPrompt(CommandTextualGeneric):
         if self.set_prompt:
             self._re_prompt_echo = re.compile(self._build_command_string_slice(self.set_prompt))
         self._commands_to_send_when_prompt = []
-        self._commands_to_send_when_expected_prompt = []
         self._commands_to_send_when_after_login_prompt = []
-        self._sent_command = False
+        if self.set_timeout:
+            self._commands_to_send_when_after_login_prompt.append(self.set_timeout)
+        if self.set_prompt:
+            self._commands_to_send_when_after_login_prompt.append(self.set_prompt)
+        self._commands_to_send_when_expected_prompt = []
+        self._sent = False
 
     def __str__(self):
         """
@@ -101,19 +105,44 @@ class CommandChangingPrompt(CommandTextualGeneric):
         :return: None
         """
         try:
+            self._detect_prompts_without_anchors(line, is_full_line)
             self._detect_final_prompt(line, is_full_line)
-            self._match_settings(line)
-            self._settings_after_login(line, is_full_line)
             self._detect_prompt_after_exception(line)
             self._send_commands_when_prompt(line)
             self._send_commands_when_after_login_prompt(line)
             self._send_commands_when_expected_prompt(line)
         except ParsingDone:
             pass
-        if self._sent and is_full_line:
-            self._sent = False
         if is_full_line:
-            self._sent_command = False
+            self._sent = False
+
+    def _detect_prompts_without_anchors(self, line: str, is_full_line: bool):
+        if is_full_line or not self.enter_on_prompt_without_anchors or self._sent:
+            return
+        msg = None
+        if self._is_prompt_without_anchors(line=line, prompt_without_anchors=self._re_prompt_after_login_without_anchors,
+                                           prompt=self._re_prompt_after_login):
+            msg = f"Candidate for prompt after login '{self._re_prompt_after_login.pattern}' " \
+                  f"(used without anchors:'{self._re_prompt_after_login_without_anchors.pattern}') " \
+                  f"in line '{line}'."
+        elif self._is_prompt_without_anchors(line=line, prompt_without_anchors=self._re_expected_prompt_without_anchors,
+                                           prompt=self._re_expected_prompt):
+            msg = f"Candidate for prompt after login '{self._re_expected_prompt.pattern}' " \
+                  f"(used without anchors:'{self._re_expected_prompt_without_anchors.pattern}') " \
+                  f"in line '{line}'."
+        if msg:
+            self.logger.info(msg)
+            raise ParsingDone()
+
+    def _is_prompt_without_anchors(self, line: str, prompt_without_anchors, prompt) -> bool:
+        found = self._regex_helper.search_compiled(prompt, line)
+        if not found:
+            if self._regex_helper.search_compiled(
+                    prompt_without_anchors, line):
+                self._sent = True
+                self.send_enter()
+                return True
+        return False
 
     def _send_commands_when_prompt(self, line: str) -> None:
         """
@@ -146,139 +175,39 @@ class CommandChangingPrompt(CommandTextualGeneric):
                                             commands=self._commands_to_send_when_expected_prompt)
 
     def _parse_prompt_and_send_command(self, line: str, prompt, commands: list) -> None:
-        if self._sent_command:
+        if self._sent:
             return
         if len(commands) > 0 and self._regex_helper.search_compiled(prompt, line):
             cmd = commands.pop(0)
-            self._sent_command = True
+            self._sent = True
             self.connection.sendline(cmd)
             raise ParsingDone()
 
     def _detect_final_prompt(self, line: str, is_full_line: bool) -> None:
         if self._is_target_prompt(line) and (not is_full_line or self.allowed_newline_after_prompt):
-            if self._all_after_login_settings_sent() or self._no_after_login_settings_needed():
+            if self._sent is False and self._are_settings_needed() is False:
                 if not self.done() and self._cmd_output_started:
                     if self._finish_on_final_prompt:
                         self.set_result(self.current_ret)
                     raise ParsingDone()
+
+    def _are_settings_needed(self) -> bool:
+        if (len(self._commands_to_send_when_expected_prompt) > 0 or
+                len(self._commands_to_send_when_after_login_prompt) > 0):
+            return True
+        return False
 
     def _detect_prompt_after_exception(self, line: str):
         """
         Detects start prompt.
 
         :param line: Line from device.
-        :return: None but raises ParsingDone if detects start prompt and any exception was set.
+        :return: None but raises ParsingDone if detects start prompt and any exception
+         was set.
         """
         if self._stored_exception and self._regex_helper.search_compiled(self._re_prompt, line):
             self._is_done = True
             raise ParsingDone()
-
-    def _match_settings(self, line: str) -> None:
-        """
-        Matches settings for prompt and timeout.
-
-        :param line: Line from device.
-        :return: None but raises ParsingDone if settings are matched.
-        """
-        if self.check_echo_settings is False:
-            return
-        if not self._matched_prompt and self._sent_prompt and self._regex_helper.search_compiled(self._re_prompt_echo, line):
-            self._matched_prompt = True
-            raise ParsingDone()
-        if not self._matched_timeout and self._send_timeout_set and self._regex_helper.search_compiled(self._re_timeout_echo, line):
-            self._matched_timeout = True
-            raise ParsingDone()
-
-    def _settings_after_login(self, line: str, is_full_line: bool) -> None:
-        """
-        Checks if settings after login are requested and sent.
-
-        :param line: Line from device.
-        :param is_full_line: True if line had new line chars, False otherwise.
-        :return: None but raises ParsingDone if line has information to handle by this method.
-        """
-        sent = self._send_after_login_settings(line)
-        if sent:
-            raise ParsingDone()
-        self._detect_final_prompt(line=line, is_full_line=is_full_line)
-
-    def _send_after_login_settings(self, line: str) -> bool:
-        """
-        Sends commands to set timeout and to change prompt.
-
-        :param line: Line from device.
-        :return: True if any command was sent, False if no command was sent.
-        """
-        if self._is_prompt_after_login(line):
-            if self._commands_to_set_connection_after_login(line):
-                return True
-            if self._timeout_set_needed() and not self._sent:
-                self._send_timeout_set()
-                return True  # just sent
-            if self._prompt_set_needed() and not self._sent:
-                self._send_prompt_set()
-                return True  # just sent
-        return False  # nothing sent
-
-    # pylint: disable-next=unused-argument
-    def _commands_to_set_connection_after_login(self, line: str) -> bool:
-        """
-        Determines whether to set the connection after login.
-
-        :param line: The input line.
-        :return: True if the connection should be set after login, False otherwise.
-        """
-        return False
-
-    def _no_after_login_settings_needed(self) -> bool:
-        """
-        Checks if prompt and timeout commands are sent.
-
-        :return: True if commands for login nor timeout are no needed.
-        """
-        return (not self.set_prompt) and (not self.set_timeout)
-
-    def _timeout_set_needed(self) -> bool:
-        """
-        Checks if command to set timeout is still needed.
-
-        :return: True if command to set timeout is needed, otherwise (sent or not requested) False
-        """
-        return self.set_timeout and not self._sent_timeout
-
-    def _send_timeout_set(self) -> None:
-        """
-        Sends command to set timeout
-
-        This method sends a command to set the timeout for the connection.
-        It first sends an empty line, followed by the value of `set_timeout`.
-        After sending the command, it sets the `_sent_timeout` and `_sent` flags to True.
-
-        :return: None
-        """
-        self.connection.sendline("")
-        self.connection.sendline(self.set_timeout)
-        self._sent_timeout = True
-        self._sent = True
-
-    def _prompt_set_needed(self) -> bool:
-        """
-        Checks if command to set prompt is still needed.
-
-        :return: True if command to set prompt is needed, otherwise (sent or not requested) False
-        """
-        return self.set_prompt and not self._sent_prompt
-
-    def _send_prompt_set(self) -> None:
-        """
-        Sends command to set prompt.
-
-        :return: None
-        """
-        self.connection.sendline("")
-        self.connection.sendline(self.set_prompt)
-        self._sent_prompt = True
-        self._sent = True
 
     def _is_target_prompt(self, line: str) -> bool:
         """
@@ -288,14 +217,6 @@ class CommandChangingPrompt(CommandTextualGeneric):
         :return: True if line contains prompt on target device, False otherwise
         """
         found = self._regex_helper.search_compiled(self._re_expected_prompt, line)
-        if not found and self.enter_on_prompt_without_anchors is True:
-            if self._regex_helper.search_compiled(self._re_expected_prompt_without_anchors, line):
-                msg = f"Candidate for expected prompt '{self._re_expected_prompt.pattern}' "\
-                      f"(used without anchors:'{self._re_expected_prompt_without_anchors.pattern}') "\
-                      f"in line '{line}'."
-                self.logger.info(msg)
-                self.send_enter()
-                self.enter_on_prompt_without_anchors = False
         return found is not None
 
     def _is_prompt_after_login(self, line: str) -> bool:
@@ -314,34 +235,34 @@ class CommandChangingPrompt(CommandTextualGeneric):
                 self.enter_on_prompt_without_anchors = False
         return found is not None
 
-    def _all_after_login_settings_sent(self) -> bool:
-        """
-        Checks if all commands were sent by telnet command.
+    # def _all_after_login_settings_sent(self) -> bool:
+    #     """
+    #     Checks if all commands were sent by telnet command.
+    #
+    #     :return: True if all requested commands were sent, False if at least one left.
+    #     """
+    #     additional_commands_sent = self._sent_additional_settings_commands()  # Useful for Telnet commands
+    #     both_requested = self.set_prompt and self.set_timeout
+    #     both_sent = self._sent_prompt and self._sent_timeout
+    #     req_and_sent_prompt = self.set_prompt and self._sent_prompt
+    #     req_and_sent_timeout = self.set_timeout and self._sent_timeout
+    #     if self.check_echo_settings:
+    #         if both_sent:
+    #             both_sent = both_sent and self._matched_prompt and self._matched_timeout
+    #         if req_and_sent_prompt:
+    #             req_and_sent_prompt = req_and_sent_prompt and self._matched_prompt
+    #         if req_and_sent_timeout:
+    #             req_and_sent_timeout = req_and_sent_timeout and self._matched_timeout
+    #     terminal_cmds_sent = ((both_requested and both_sent) or req_and_sent_timeout or req_and_sent_prompt)
+    #     return terminal_cmds_sent and additional_commands_sent
 
-        :return: True if all requested commands were sent, False if at least one left.
-        """
-        additional_commands_sent = self._sent_additional_settings_commands()  # Useful for Telnet commands
-        both_requested = self.set_prompt and self.set_timeout
-        both_sent = self._sent_prompt and self._sent_timeout
-        req_and_sent_prompt = self.set_prompt and self._sent_prompt
-        req_and_sent_timeout = self.set_timeout and self._sent_timeout
-        if self.check_echo_settings:
-            if both_sent:
-                both_sent = both_sent and self._matched_prompt and self._matched_timeout
-            if req_and_sent_prompt:
-                req_and_sent_prompt = req_and_sent_prompt and self._matched_prompt
-            if req_and_sent_timeout:
-                req_and_sent_timeout = req_and_sent_timeout and self._matched_timeout
-        terminal_cmds_sent = ((both_requested and both_sent) or req_and_sent_timeout or req_and_sent_prompt)
-        return terminal_cmds_sent and additional_commands_sent
-
-    def _sent_additional_settings_commands(self) -> bool:
-        """
-        Checks if additional commands after connection established are sent (useful for telnet, not used for ssh).
-
-        :return: True if all additional commands are sent (if any). False if any command left in the queue.
-        """
-        return True
+    # def _sent_additional_settings_commands(self) -> bool:
+    #     """
+    #     Checks if additional commands after connection established are sent (useful for telnet, not used for ssh).
+    #
+    #     :return: True if all additional commands are sent (if any). False if any command left in the queue.
+    #     """
+    #     return True
 
     @abc.abstractmethod
     def build_command_string(self) -> str:

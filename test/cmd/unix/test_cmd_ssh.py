@@ -141,7 +141,6 @@ def test_ssh_change_rm_command(buffer_connection, command_output_keygen):
     ssh_cmd.break_cmd(silent=False)
     assert ssh_cmd._permission_denied_key_pass_keyboard_cmd == 'ssh-keygen -f "/home/user/.ssh/known_hosts" -R "10.0.1.67"'
     ssh_cmd.break_cmd(silent=True, force=True)
-    assert ssh_cmd._sent_handle_permission_denied_key_pass_keyboard_cmd is True
 
 
 def test_ssh_returns_proper_command_string(buffer_connection):
@@ -159,7 +158,6 @@ def test_ssh_prompt_in_the_same_line(buffer_connection, command_output_prompt_in
                   expected_prompt="^host.*#$")
     assert ssh_cmd.enter_on_prompt_without_anchors is True
     ssh_cmd(timeout=1)
-    assert ssh_cmd.enter_on_prompt_without_anchors is False
 
 
 def test_ssh_change_prompt_in_the_same_line(buffer_connection, command_output_change_prompt_in_the_same_line):
@@ -171,7 +169,7 @@ def test_ssh_change_prompt_in_the_same_line(buffer_connection, command_output_ch
                   prompt_after_login='^host:~ #', expected_prompt=r"^user\$$")
     assert ssh_cmd.enter_on_prompt_without_anchors is True
     ssh_cmd(timeout=1)
-    assert ssh_cmd.enter_on_prompt_without_anchors is False
+
 
 def test_ssh_path_to_keys(buffer_connection, command_output_path_to_keys):
     command_output = command_output_path_to_keys
@@ -182,11 +180,9 @@ def test_ssh_path_to_keys(buffer_connection, command_output_path_to_keys):
                   expected_prompt=r"user@client:.*>", permission_denied_key_pass_keyboard=None)
     assert ssh_cmd._hosts_file == ''
     assert ssh_cmd._permission_denied_key_pass_keyboard_cmd is None
-    assert ssh_cmd._sent_handle_permission_denied_key_pass_keyboard_cmd is False
     ssh_cmd()
     assert ssh_cmd._hosts_file == '/user/user2/.ssh/known_hosts'
     assert ssh_cmd._permission_denied_key_pass_keyboard_cmd == 'ssh-keygen -R 192.168.223.26 -f /user/user2/.ssh/known_hosts'
-    assert ssh_cmd._sent_handle_permission_denied_key_pass_keyboard_cmd is True
 
 
 def test_ssh_path_to_keys_no_override(buffer_connection, command_output_path_to_keys):
@@ -201,11 +197,9 @@ def test_ssh_path_to_keys_no_override(buffer_connection, command_output_path_to_
                   )
     assert ssh_cmd._hosts_file == ''
     assert ssh_cmd._permission_denied_key_pass_keyboard_cmd == keygen_cmd
-    assert ssh_cmd._sent_handle_permission_denied_key_pass_keyboard_cmd is False
     ssh_cmd()
     assert ssh_cmd._hosts_file == '/user/user2/.ssh/known_hosts'
     assert ssh_cmd._permission_denied_key_pass_keyboard_cmd == keygen_cmd
-    assert ssh_cmd._sent_handle_permission_denied_key_pass_keyboard_cmd is True
 
 
 def test_ssh_no_keyboard_active(buffer_connection, command_output_no_keyboard_active):
@@ -217,12 +211,9 @@ def test_ssh_no_keyboard_active(buffer_connection, command_output_no_keyboard_ac
                   expected_prompt=r"user@client:.*>", permission_denied_key_pass_keyboard=None)
     assert ssh_cmd._hosts_file == ''
     assert ssh_cmd._permission_denied_key_pass_keyboard_cmd is None
-    assert ssh_cmd._sent_handle_permission_denied_key_pass_keyboard_cmd is False
     ssh_cmd()
     assert ssh_cmd._hosts_file == '/user/user2/.ssh/known_hosts'
-    assert ssh_cmd._permission_denied_key_pass_keyboard_cmd == 'ssh-keygen -R 192.168.223.26 -f /user/user2/.ssh/known_hosts'
-    assert ssh_cmd._sent_handle_permission_denied_key_pass_keyboard_cmd is True
-
+    assert ssh_cmd._permission_denied_key_pass_keyboard_cmd == 'ssh-keygen -R 192.168.233.26 -f /user/user2/.ssh/known_hosts'
 
 
 @pytest.fixture
@@ -435,6 +426,7 @@ Have a lot of fun...
 SOMETHINGhost:~ #
 host:~ #
 host:~ # export PS1="\\u$"
+SOMETHINGuser$
 user$"""
     return lines
 
