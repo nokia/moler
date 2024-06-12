@@ -261,9 +261,10 @@ class CommandChangingPrompt(CommandTextualGeneric):
     #     """
     #     return True
 
-    def _send(self, command: str):
+    def _send(self, command: str, encrypt: bool = False):
         self._sent = True
-        self.connection.sendline(command)
+        self.connection.sendline(data=command, encrypt=encrypt)
+
     @abc.abstractmethod
     def build_command_string(self) -> str:
         """

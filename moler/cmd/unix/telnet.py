@@ -129,7 +129,7 @@ class Telnet(GenericTelnetSsh):
         match_telnet_prompt = re.search(self._re_telnet_prompt, line)
         if not is_full_line and (len_cmds > 0) and match_telnet_prompt:
             cmd = commands.pop(0)
-            self.connection.sendline(cmd)
+            self._send(cmd)
             return True
         return False
 

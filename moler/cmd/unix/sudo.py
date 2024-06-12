@@ -4,7 +4,7 @@ Sudo command module.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2023, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
@@ -247,10 +247,10 @@ class Sudo(CommandChangingPrompt):
                 try:
                     current_password = self.password.pop(0)
                     self._last_password = current_password
-                    self.connection.sendline(current_password, encrypt=self.encrypt_password)
+                    self._send(current_password, encrypt=self.encrypt_password)
                 except IndexError:
                     if self.repeat_password:
-                        self.connection.sendline(f"{self._last_password}", encrypt=self.encrypt_password)
+                        self._send(f"{self._last_password}", encrypt=self.encrypt_password)
                     else:
                         self.set_exception(
                             CommandFailure(self, "Password was requested but no more passwords provided."))
