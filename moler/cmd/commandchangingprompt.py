@@ -192,8 +192,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
                     raise ParsingDone()
 
     def _are_settings_needed(self) -> bool:
-        if (len(self._commands_to_send_when_expected_prompt) > 0
-                or len(self._commands_to_send_when_after_login_prompt) > 0):
+        if len(self._commands_to_send_when_expected_prompt) > 0 or len(self._commands_to_send_when_after_login_prompt) > 0:
             return True
         return False
 
