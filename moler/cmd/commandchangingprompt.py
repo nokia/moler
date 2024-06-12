@@ -126,7 +126,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
                   f"(used without anchors:'{self._re_prompt_after_login_without_anchors.pattern}') " \
                   f"in line '{line}'."
         elif self._is_prompt_without_anchors(line=line, prompt_without_anchors=self._re_expected_prompt_without_anchors,
-                                           prompt=self._re_expected_prompt):
+                                             prompt=self._re_expected_prompt):
             msg = f"Candidate for prompt after login '{self._re_expected_prompt.pattern}' " \
                   f"(used without anchors:'{self._re_expected_prompt_without_anchors.pattern}') " \
                   f"in line '{line}'."
@@ -192,8 +192,8 @@ class CommandChangingPrompt(CommandTextualGeneric):
                     raise ParsingDone()
 
     def _are_settings_needed(self) -> bool:
-        if (len(self._commands_to_send_when_expected_prompt) > 0 or
-                len(self._commands_to_send_when_after_login_prompt) > 0):
+        if (len(self._commands_to_send_when_expected_prompt) > 0
+                or len(self._commands_to_send_when_after_login_prompt) > 0):
             return True
         return False
 

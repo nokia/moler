@@ -267,12 +267,12 @@ def test_set_prompt(buffer_connection):
     output6 = "johnNamespace:~$ \n"
     output7 = "\n"
     output8 = "johnNamespace:~$ "
-
+    export_cmd = r'export PS1="johnNamespace:\W\$"'
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection,
                     sudo_params='ip netns exec NH123 bash -c \"su - john\"',
                     prompt=r'john@.*(\$|#|>)\s+', expected_prompt= r'^johnNamespace.*',
                     prompt_after_login=r'john@.*(\$|#|>)\s+',
-                    set_prompt=r'export PS1="johnNamespace:\W\$"',
+                    set_prompt=export_cmd,
                     repeat_password=True)
     assert cmd_sudo.command_string == output1
     cmd_sudo.start(timeout=4)
@@ -281,15 +281,14 @@ def test_set_prompt(buffer_connection):
     buffer_connection.moler_connection.data_received("\n".encode("utf-8"), datetime.datetime.now())
     time.sleep(0.1)
     assert cmd_sudo._cmd_output_started is True
-    assert cmd_sudo._sent_prompt is False
-    assert cmd_sudo._matched_prompt is False
+    assert export_cmd in cmd_sudo._commands_to_send_when_after_login_prompt
     outputs = [output2, output3, output4, output5, output6, output7, output8]
     for output in outputs:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
         time.sleep(0.1)
-    assert cmd_sudo._sent_prompt is True
+    assert export_cmd not in cmd_sudo._commands_to_send_when_after_login_prompt
     cmd_sudo.await_done()
-    assert cmd_sudo._matched_prompt is True
+    assert export_cmd not in cmd_sudo._commands_to_send_when_after_login_prompt
 
 
 def test_set_prompt_timeout(buffer_connection):
@@ -298,12 +297,12 @@ def test_set_prompt_timeout(buffer_connection):
     output3 = "john@7-7-johncomp123:~$ "
     output4 = "\njohn@7-7-johncomp123:~$ \n"
     output5 = "export PS1=\"johnNamespace:\\W\\$\"\n"
-
+    export_cmd = r'export PS1="johnNamespace:\W\$"'
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection,
                     sudo_params='ip netns exec NH123 bash -c \"su - john\"',
                     prompt=r'john@.*(\$|#|>)\s+', expected_prompt= r'^johnNamespace.*',
                     prompt_after_login=r'john@.*(\$|#|>)\s+',
-                    set_prompt=r'export PS1="johnNamespace:\W\$"',
+                    set_prompt=export_cmd,
                     repeat_password=True)
     assert cmd_sudo.command_string == output1
     cmd_sudo.start(timeout=4)
@@ -312,16 +311,15 @@ def test_set_prompt_timeout(buffer_connection):
     buffer_connection.moler_connection.data_received("\n".encode("utf-8"), datetime.datetime.now())
     time.sleep(0.1)
     assert cmd_sudo._cmd_output_started is True
-    assert cmd_sudo._sent_prompt is False
-    assert cmd_sudo._matched_prompt is False
+    assert export_cmd in cmd_sudo._commands_to_send_when_after_login_prompt
     outputs = [output2, output3, output4, output5]
     for output in outputs:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
         time.sleep(0.1)
-    assert cmd_sudo._sent_prompt is True
+    assert export_cmd not in cmd_sudo._commands_to_send_when_after_login_prompt
     with pytest.raises(CommandTimeout):
         cmd_sudo.await_done(timeout=0.2)
-    assert cmd_sudo._matched_prompt is True
+    assert export_cmd not in cmd_sudo._commands_to_send_when_after_login_prompt
 
 
 def test_set_prompt_do_not_check_echo(buffer_connection):
@@ -345,15 +343,14 @@ def test_set_prompt_do_not_check_echo(buffer_connection):
     buffer_connection.moler_connection.data_received("\n".encode("utf-8"), datetime.datetime.now())
     time.sleep(0.1)
     assert cmd_sudo._cmd_output_started is True
-    assert cmd_sudo._sent_prompt is False
-    assert cmd_sudo._matched_prompt is False
+    assert r'export PS1="johnNamespace:\W\$"' in cmd_sudo._commands_to_send_when_after_login_prompt
     outputs = [output2, output3, output4, output5]
     for output in outputs:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
         time.sleep(0.1)
-    assert cmd_sudo._sent_prompt is True
+
+    assert r'export PS1="johnNamespace:\W\$"' not in cmd_sudo._commands_to_send_when_after_login_prompt
     cmd_sudo.await_done()
-    assert cmd_sudo._matched_prompt is False
 
 
 @pytest.fixture()
