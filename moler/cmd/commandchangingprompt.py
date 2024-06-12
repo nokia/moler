@@ -139,8 +139,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
         if not found:
             if self._regex_helper.search_compiled(
                     prompt_without_anchors, line):
-                self._sent = True
-                self.send_enter()
+                self._send("")
                 return True
         return False
 
@@ -179,8 +178,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
             return
         if len(commands) > 0 and self._regex_helper.search_compiled(prompt, line):
             cmd = commands.pop(0)
-            self._sent = True
-            self.connection.sendline(cmd)
+            self._send(cmd)
             raise ParsingDone()
 
     def _detect_final_prompt(self, line: str, is_full_line: bool) -> None:
@@ -263,6 +261,9 @@ class CommandChangingPrompt(CommandTextualGeneric):
     #     """
     #     return True
 
+    def _send(self, command: str):
+        self._sent = True
+        self.connection.sendline(command)
     @abc.abstractmethod
     def build_command_string(self) -> str:
         """

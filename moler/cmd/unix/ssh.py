@@ -195,7 +195,7 @@ class Ssh(GenericTelnetSsh):
         :return: None but raises ParsingDone if regex matches.
         """
         if Ssh._re_id_dsa.search(line):
-            self.connection.sendline("")
+            self._send("")
             raise ParsingDone()
 
     def _parse_hosts_file_if_displayed(self, line: str, is_full_line: bool) -> None:
@@ -234,7 +234,7 @@ class Ssh(GenericTelnetSsh):
         :return: None but raises ParsingDone if regex matches.
         """
         if (not self._sent_continue_connecting) and self._regex_helper.search_compiled(Ssh._re_yes_no, line):
-            self.connection.sendline('yes')
+            self._send('yes')
             self._sent_continue_connecting = True
             raise ParsingDone()
 
@@ -255,7 +255,7 @@ class Ssh(GenericTelnetSsh):
         """
         if self._regex_helper.search_compiled(Ssh._re_resize, line) and not self._resize_sent:
             self._resize_sent = True
-            self.connection.sendline("")
+            self._send("")
             raise ParsingDone()
 
     def _is_password_requested(self, line: str) -> bool:
