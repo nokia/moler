@@ -71,6 +71,10 @@ class CommandChangingPrompt(CommandTextualGeneric):
             self._re_timeout_echo = re.compile(self._build_command_string_slice(self.set_timeout))
         if self.set_prompt:
             self._re_prompt_echo = re.compile(self._build_command_string_slice(self.set_prompt))
+        self._commands_to_send_when_prompt = []
+        self._commands_to_send_when_expected_prompt = []
+        self._commands_to_send_when_after_login_prompt = []
+        self._sent_command = False
 
     def __str__(self):
         """
@@ -101,10 +105,54 @@ class CommandChangingPrompt(CommandTextualGeneric):
             self._match_settings(line)
             self._settings_after_login(line, is_full_line)
             self._detect_prompt_after_exception(line)
+            self._send_commands_when_prompt(line)
+            self._send_commands_when_after_login_prompt(line)
+            self._send_commands_when_expected_prompt(line)
         except ParsingDone:
             pass
         if self._sent and is_full_line:
             self._sent = False
+        if is_full_line:
+            self._sent_command = False
+
+    def _send_commands_when_prompt(self, line: str) -> None:
+        """
+        Sends commands when start prompt is detected.
+
+        :param line: Line from device.
+        :return: None
+        """
+        self._parse_prompt_and_send_command(line=line, prompt=self._re_prompt,
+                                            commands=self._commands_to_send_when_prompt)
+
+    def _send_commands_when_after_login_prompt(self, line: str) -> None:
+        """
+        Sends commands when after login prompt is detected.
+
+        :param line: Line from device.
+        :return: None
+        """
+        self._parse_prompt_and_send_command(line=line, prompt=self._re_prompt_after_login,
+                                            commands=self._commands_to_send_when_after_login_prompt)
+
+    def _send_commands_when_expected_prompt(self, line: str) -> None:
+        """
+        Sends commands when final prompt is detected.
+
+        :param line: Line from device.
+        :return: None
+        """
+        self._parse_prompt_and_send_command(line=line, prompt=self._re_expected_prompt,
+                                            commands=self._commands_to_send_when_expected_prompt)
+
+    def _parse_prompt_and_send_command(self, line: str, prompt, commands: list) -> None:
+        if self._sent_command:
+            return
+        if len(commands) > 0 and self._regex_helper.search_compiled(prompt, line):
+            cmd = commands.pop(0)
+            self._sent_command = True
+            self.connection.sendline(cmd)
+            raise ParsingDone()
 
     def _detect_final_prompt(self, line: str, is_full_line: bool) -> None:
         if self._is_target_prompt(line) and (not is_full_line or self.allowed_newline_after_prompt):
