@@ -260,10 +260,10 @@ class GenericTelnetSsh(CommandChangingPrompt):
             try:
                 pwd = self._passwords.pop(0)
                 self._last_password = pwd
-                self._send(pwd, encrypt=self.encrypt_password)
+                self._send(pwd, newline=self.target_newline, encrypt=self.encrypt_password)
             except IndexError:
                 if self.repeat_password:
-                    self._send(self._last_password, encrypt=self.encrypt_password)
+                    self._send(self._last_password, newline=self.target_newline, encrypt=self.encrypt_password)
                 else:
                     self.set_exception(
                         CommandFailure(

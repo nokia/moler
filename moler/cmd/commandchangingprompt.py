@@ -216,21 +216,21 @@ class CommandChangingPrompt(CommandTextualGeneric):
         found = self._regex_helper.search_compiled(self._re_expected_prompt, line)
         return found is not None
 
-    def _is_prompt_after_login(self, line: str) -> bool:
-        """
-        Checks if line contains prompt just after login.
-
-        :param line: Line from device
-        :return: True if line contains prompt just after login. False otherwise.
-        """
-        found = self._regex_helper.search_compiled(self._re_prompt_after_login, line)
-        if not found and self.enter_on_prompt_without_anchors is True:
-            if self._regex_helper.search_compiled(self._re_prompt_after_login_without_anchors, line):
-                msg = f"Candidate for prompt after login '{self._re_prompt_after_login.pattern}' in line '{line}'."
-                self.logger.info(msg)
-                self.send_enter()
-                self.enter_on_prompt_without_anchors = False
-        return found is not None
+    # def _is_prompt_after_login(self, line: str) -> bool:
+    #     """
+    #     Checks if line contains prompt just after login.
+    #
+    #     :param line: Line from device
+    #     :return: True if line contains prompt just after login. False otherwise.
+    #     """
+    #     found = self._regex_helper.search_compiled(self._re_prompt_after_login, line)
+    #     if not found and self.enter_on_prompt_without_anchors is True:
+    #         if self._regex_helper.search_compiled(self._re_prompt_after_login_without_anchors, line):
+    #             msg = f"Candidate for prompt after login '{self._re_prompt_after_login.pattern}' in line '{line}'."
+    #             self.logger.info(msg)
+    #             self.send_enter()
+    #             self.enter_on_prompt_without_anchors = False
+    #     return found is not None
 
     # def _all_after_login_settings_sent(self) -> bool:
     #     """
