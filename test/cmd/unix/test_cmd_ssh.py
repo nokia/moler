@@ -11,6 +11,8 @@ from moler.cmd.unix.ssh import Ssh
 from moler.exceptions import CommandFailure
 from moler.exceptions import CommandTimeout
 import pytest
+import time
+import datetime
 
 
 def test_calling_ssh_returns_result_parsed_from_command_output(buffer_connection, command_output_and_expected_result):
@@ -215,6 +217,40 @@ def test_ssh_no_keyboard_active(buffer_connection, command_output_no_keyboard_ac
     assert ssh_cmd._hosts_file == '/user/user2/.ssh/known_hosts'
     assert ssh_cmd._permission_denied_key_pass_keyboard_cmd == 'ssh-keygen -R 192.168.233.26 -f /user/user2/.ssh/known_hosts'
 
+
+def test_ssh_prompts_with_additional_texts(buffer_connection):
+    cmd_echo = "TERM=xterm-mono ssh -l user -o ServerAliveInterval=7 -o ServerAliveCountMax=2 192.168.223.26"
+    outputs = [
+        "greatprompt>BLABLA",
+        "\n",
+        "greatprompt>",
+        'export PS1="\\u>"',
+        "\n",
+        "user>abc",
+        "\n",
+        "user>"
+
+    ]
+    cmd_ssh = Ssh(connection=buffer_connection.moler_connection, login="user",
+                  password=None,
+                  set_timeout=None, host="192.168.223.26",
+                  prompt=r"root@host:~ >",
+                  expected_prompt=r"user>$",
+                  prompt_after_login=r"greatprompt>$",
+                  set_prompt='export PS1="\\u>"',
+                  permission_denied_key_pass_keyboard=None)
+    assert cmd_echo == cmd_ssh.command_string
+    cmd_ssh.start()
+    time.sleep(0.1)
+    buffer_connection.moler_connection.data_received(f"{cmd_echo}\n".encode("utf-8"),
+                                                     datetime.datetime.now())
+    time.sleep(0.1)
+    for output in outputs:
+        buffer_connection.moler_connection.data_received(output.encode("utf-8"),
+                                                         datetime.datetime.now())
+        time.sleep(0.1)
+    cmd_ssh.await_done()
+    assert cmd_ssh.done() is True
 
 @pytest.fixture
 def command_output_no_keyboard_active():

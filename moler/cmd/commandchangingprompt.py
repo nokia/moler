@@ -127,7 +127,7 @@ class CommandChangingPrompt(CommandTextualGeneric):
                   f"in line '{line}'."
         elif self._is_prompt_without_anchors(line=line, prompt_without_anchors=self._re_expected_prompt_without_anchors,
                                              prompt=self._re_expected_prompt):
-            msg = f"Candidate for prompt after login '{self._re_expected_prompt.pattern}' " \
+            msg = f"Candidate for expected prompt '{self._re_expected_prompt.pattern}' " \
                   f"(used without anchors:'{self._re_expected_prompt_without_anchors.pattern}') " \
                   f"in line '{line}'."
         if msg:
