@@ -99,6 +99,8 @@ class Telnet(GenericTelnetSsh):
             cmd = f"{cmd} {host_port_cmd}"
         else:
             self.cmds_before_establish_connection.append(f"open {host_port_cmd}")
+        if len(self.cmds_after_establish_connection) > 0:
+            self.cmds_after_establish_connection.append(self.target_newline)
         return cmd
 
     def on_new_line(self, line: str, is_full_line: bool) -> None:
@@ -110,30 +112,13 @@ class Telnet(GenericTelnetSsh):
         :return: None
         """
         try:
-            self._send_commands_before_establish_connection_if_requested(line, is_full_line)
-            self._send_commands_after_establish_connection_if_requested(line, is_full_line)
+            self._send_commands_before_establish_connection_if_requested(line)
+            self._send_commands_after_establish_connection_if_requested(line)
         except ParsingDone:
             pass
         super(Telnet, self).on_new_line(line=line, is_full_line=is_full_line)
 
-    def _send_telnet_commands(self, line: str, is_full_line: bool, commands: list) -> bool:
-        """
-        Sends telnet commands.
-
-        :param line: Line from device.
-        :param is_full_line: True if line had new line chars, False otherwise.
-        :param commands: list of commands to send.
-        :return: if any command was sent then True, otherwise False.
-        """
-        len_cmds = len(commands)
-        match_telnet_prompt = re.search(self._re_telnet_prompt, line)
-        if not is_full_line and (len_cmds > 0) and match_telnet_prompt:
-            cmd = commands.pop(0)
-            self._send(cmd)
-            return True
-        return False
-
-    def _send_commands_before_establish_connection_if_requested(self, line: str, is_full_line: bool) -> None:
+    def _send_commands_before_establish_connection_if_requested(self, line: str) -> None:
         """
         Sends commands before open connection to telnet server.
 
@@ -141,22 +126,28 @@ class Telnet(GenericTelnetSsh):
         :param is_full_line: True if line had new line chars, False otherwise.
         :return: None but raises ParsingDone if any command was sent by this method.
         """
-        if self._send_telnet_commands(line, is_full_line, self.cmds_before_establish_connection):
-            raise ParsingDone()
 
-    def _send_commands_after_establish_connection_if_requested(self, line: str, is_full_line: bool) -> None:
+        self._parse_prompt_and_send_command(line=line, prompt=self._re_telnet_prompt,
+                                            commands=self.cmds_before_establish_connection)
+
+    def _send_commands_after_establish_connection_if_requested(self, line: str) -> None:
         """
         Sends commands after connection (after login and password) to telnet server.
 
         :param line: Line from device.
-        :param is_full_line: True if line had new line chars, False otherwise.
         :return: None but raises ParsingDone if any command was sent by this method.
         """
-        if self._telnet_command_mode:
-            if self._send_telnet_commands(line, is_full_line, self.cmds_after_establish_connection):
-                self.connection.send(self.target_newline)
-                self._telnet_command_mode = False
-                raise ParsingDone()
+        if self._telnet_command_mode and self._sent is False:
+            self._parse_prompt_and_send_command(
+                line=line, prompt=self._re_telnet_prompt,
+                commands=self.cmds_after_establish_connection
+            )
+
+    def _are_settings_needed(self) -> bool:
+        if self._telnet_command_mode is False and len(self.cmds_after_establish_connection) > 0:
+            self._change_telnet_to_setting_commands()
+            return True
+        return super()._are_settings_needed()
 
     def _change_telnet_to_setting_commands(self) -> None:
         """
