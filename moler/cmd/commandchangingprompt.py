@@ -216,51 +216,6 @@ class CommandChangingPrompt(CommandTextualGeneric):
         found = self._regex_helper.search_compiled(self._re_expected_prompt, line)
         return found is not None
 
-    # def _is_prompt_after_login(self, line: str) -> bool:
-    #     """
-    #     Checks if line contains prompt just after login.
-    #
-    #     :param line: Line from device
-    #     :return: True if line contains prompt just after login. False otherwise.
-    #     """
-    #     found = self._regex_helper.search_compiled(self._re_prompt_after_login, line)
-    #     if not found and self.enter_on_prompt_without_anchors is True:
-    #         if self._regex_helper.search_compiled(self._re_prompt_after_login_without_anchors, line):
-    #             msg = f"Candidate for prompt after login '{self._re_prompt_after_login.pattern}' in line '{line}'."
-    #             self.logger.info(msg)
-    #             self.send_enter()
-    #             self.enter_on_prompt_without_anchors = False
-    #     return found is not None
-
-    # def _all_after_login_settings_sent(self) -> bool:
-    #     """
-    #     Checks if all commands were sent by telnet command.
-    #
-    #     :return: True if all requested commands were sent, False if at least one left.
-    #     """
-    #     additional_commands_sent = self._sent_additional_settings_commands()  # Useful for Telnet commands
-    #     both_requested = self.set_prompt and self.set_timeout
-    #     both_sent = self._sent_prompt and self._sent_timeout
-    #     req_and_sent_prompt = self.set_prompt and self._sent_prompt
-    #     req_and_sent_timeout = self.set_timeout and self._sent_timeout
-    #     if self.check_echo_settings:
-    #         if both_sent:
-    #             both_sent = both_sent and self._matched_prompt and self._matched_timeout
-    #         if req_and_sent_prompt:
-    #             req_and_sent_prompt = req_and_sent_prompt and self._matched_prompt
-    #         if req_and_sent_timeout:
-    #             req_and_sent_timeout = req_and_sent_timeout and self._matched_timeout
-    #     terminal_cmds_sent = ((both_requested and both_sent) or req_and_sent_timeout or req_and_sent_prompt)
-    #     return terminal_cmds_sent and additional_commands_sent
-
-    # def _sent_additional_settings_commands(self) -> bool:
-    #     """
-    #     Checks if additional commands after connection established are sent (useful for telnet, not used for ssh).
-    #
-    #     :return: True if all additional commands are sent (if any). False if any command left in the queue.
-    #     """
-    #     return True
-
     def _send(self, command: str, newline: str = None, encrypt: bool = False):
         self._sent = True
         if newline:

@@ -238,14 +238,6 @@ class Ssh(GenericTelnetSsh):
             self._sent_continue_connecting = True
             raise ParsingDone()
 
-    # def _resend_command_string(self) -> None:
-    #     self._cmd_output_started = False
-    #     self._sent_continue_connecting = False
-    #     self._sent_prompt = False
-    #     self._sent_timeout = False
-    #     self._sent = False
-    #     self.connection.sendline(self.command_string)
-
     def _check_if_resize(self, line: str) -> None:
         """
         Checks if line from device has information about size of windows.
