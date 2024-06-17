@@ -113,6 +113,14 @@ class CommandChangingPrompt(CommandTextualGeneric):
             self._sent = False
 
     def _detect_prompts_without_anchors(self, line: str, is_full_line: bool):
+        """
+        Detects prompts without anchors in the provided line. If a prompt is detected, it sends an empty command to the device.
+        This method is used to handle situations where the prompt may appear in the middle of the line, without the start and end anchors (^ and $).
+
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: None
+        """
         if is_full_line or not self.enter_on_prompt_without_anchors or self._sent:
             return
         msg = None
@@ -131,6 +139,15 @@ class CommandChangingPrompt(CommandTextualGeneric):
             raise ParsingDone()
 
     def _is_prompt_without_anchors(self, line: str, prompt_without_anchors, prompt) -> bool:
+        """
+        Checks if the provided line matches the prompt without anchors. If a match is found, it sends an empty command to the device.
+        This method is used to handle situations where the prompt may appear in the middle of the line, without the start and end anchors (^ and $).
+
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param prompt_without_anchors: Regular expression object representing the prompt without start and end anchors.
+        :param prompt: Regular expression object representing the prompt with start and end anchors.
+        :return: True if the line matches the prompt without anchors, False otherwise.
+        """
         found = self._regex_helper.search_compiled(prompt, line)
         if not found:
             if self._regex_helper.search_compiled(
@@ -170,6 +187,15 @@ class CommandChangingPrompt(CommandTextualGeneric):
                                             commands=self._commands_to_send_when_expected_prompt)
 
     def _parse_prompt_and_send_command(self, line: str, prompt, commands: list) -> None:
+        """
+        Checks if the provided line matches the given prompt. If a match is found, it sends the first command from the commands list to the device.
+        This method is used to handle situations where a specific prompt is detected and a corresponding command needs to be sent.
+
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param prompt: Regular expression object representing the prompt to be matched.
+        :param commands: List of commands to be sent when the prompt is detected. The first command in the list is sent and then removed from the list.
+        :return: None
+        """
         if self._sent:
             return
         if len(commands) > 0 and self._regex_helper.search_compiled(prompt, line):
@@ -178,6 +204,16 @@ class CommandChangingPrompt(CommandTextualGeneric):
             raise ParsingDone()
 
     def _detect_final_prompt(self, line: str, is_full_line: bool) -> None:
+        """
+        Checks if the provided line matches the expected final prompt. If a match is found and the line is a full line or
+        newline characters are allowed after the prompt, it sets the result of the command and raises ParsingDone to stop further parsing.
+
+        This method is used to handle situations where the final prompt is detected, indicating the end of the command execution.
+
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: None
+        """
         if self._is_target_prompt(line) and (not is_full_line or self.allowed_newline_after_prompt):
             if self._sent is False and self._are_settings_needed() is False:
                 if not self.done() and self._cmd_output_started:
@@ -186,6 +222,15 @@ class CommandChangingPrompt(CommandTextualGeneric):
                     raise ParsingDone()
 
     def _are_settings_needed(self) -> bool:
+        """
+        Checks if there are any commands left to be sent when the expected or after login prompts are detected.
+
+        This method is used to determine if there are any settings commands that still need to be sent to the device.
+        If there are commands in either the `_commands_to_send_when_expected_prompt` or `_commands_to_send_when_after_login_prompt` lists,
+        it returns True, indicating that settings commands are still needed. Otherwise, it returns False.
+
+        :return: True if there are commands left to be sent when the expected or after login prompts are detected, False otherwise.
+        """
         if len(self._commands_to_send_when_expected_prompt) > 0 or len(self._commands_to_send_when_after_login_prompt) > 0:
             return True
         return False
@@ -213,11 +258,27 @@ class CommandChangingPrompt(CommandTextualGeneric):
         return found is not None
 
     def _send(self, command: str, newline: str = None, encrypt: bool = False):
+        """
+        Sends the provided command to the device. If a newline character is provided, it is appended to the command.
+        If the encrypt flag is set to True, the command is encrypted before being sent.
+
+        This method is used to send commands to the device during the execution of the command.
+
+        :param command: The command to be sent to the device.
+        :param newline: The newline character to be appended to the command. If None, the command is sent as is.
+        :param encrypt: If True, the command is encrypted before being sent. Default is False.
+        :return: None
+        """
         self._sent = True
         if newline:
             self.connection.send(data=f"{command}{newline}", encrypt=encrypt)
         else:
             self.connection.sendline(data=command, encrypt=encrypt)
+            self._sent = True
+            if newline:
+                self.connection.send(data=f"{command}{newline}", encrypt=encrypt)
+            else:
+                self.connection.sendline(data=command, encrypt=encrypt)
 
     @abc.abstractmethod
     def build_command_string(self) -> str:

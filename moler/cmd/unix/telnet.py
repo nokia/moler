@@ -144,6 +144,15 @@ class Telnet(GenericTelnetSsh):
             )
 
     def _are_settings_needed(self) -> bool:
+        """
+        Checks if there are any commands left to be sent when the expected or after login prompts are detected.
+
+        This method is used to determine if there are any settings commands that still need to be sent to the device.
+        If there are commands in either the `_commands_to_send_when_expected_prompt` or `_commands_to_send_when_after_login_prompt` lists,
+        it returns True, indicating that settings commands are still needed. Otherwise, it returns False.
+
+        :return: True if there are commands left to be sent when the expected or after login prompts are detected, False otherwise.
+        """
         if self._telnet_command_mode is False and len(self.cmds_after_establish_connection) > 0:
             self._change_telnet_to_setting_commands()
             return True
