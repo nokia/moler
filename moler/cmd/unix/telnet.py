@@ -159,37 +159,37 @@ class Telnet(GenericTelnetSsh):
             self.connection.send(chr(0x1D))  # ctrl + ]
             self._telnet_command_mode = True
 
-    def _cmds_after_establish_connection_needed(self) -> bool:
-        """
-        Checks if any command is requested to be sent to telnet command after establishing connection.
+    # def _cmds_after_establish_connection_needed(self) -> bool:
+    #     """
+    #     Checks if any command is requested to be sent to telnet command after establishing connection.
+    #
+    #     :return: True if there is at least one command to execute. False is there is no command to execute.
+    #     """
+    #     ret = False
+    #     if len(self.cmds_after_establish_connection) > 0:
+    #         ret = True
+    #     return ret
 
-        :return: True if there is at least one command to execute. False is there is no command to execute.
-        """
-        ret = False
-        if len(self.cmds_after_establish_connection) > 0:
-            ret = True
-        return ret
+    # def _commands_to_set_connection_after_login(self, line: str) -> bool:
+    #     """
+    #     Sends command to telnet to change mode to enter telnet commands.
+    #
+    #     :param line: Line from device.
+    #     :return: True if command to change telnet mode was sent, False otherwise.
+    #     """
+    #     if self._cmds_after_establish_connection_needed():
+    #         self._change_telnet_to_setting_commands()
+    #         return True
+    #     return False
 
-    def _commands_to_set_connection_after_login(self, line: str) -> bool:
-        """
-        Sends command to telnet to change mode to enter telnet commands.
-
-        :param line: Line from device.
-        :return: True if command to change telnet mode was sent, False otherwise.
-        """
-        if self._cmds_after_establish_connection_needed():
-            self._change_telnet_to_setting_commands()
-            return True
-        return False
-
-    def _sent_additional_settings_commands(self) -> bool:
-        """
-        Checks if additional commands for telnet mode are sent.
-
-        :return: True if no any commands to change telnet left. False if any command left.
-        """
-        telnet_cmds_sent = 0 == len(self.cmds_after_establish_connection)
-        return telnet_cmds_sent
+    # def _sent_additional_settings_commands(self) -> bool:
+    #     """
+    #     Checks if additional commands for telnet mode are sent.
+    #
+    #     :return: True if no any commands to change telnet left. False if any command left.
+    #     """
+    #     telnet_cmds_sent = 0 == len(self.cmds_after_establish_connection)
+    #     return telnet_cmds_sent
 
 
 COMMAND_OUTPUT = """
