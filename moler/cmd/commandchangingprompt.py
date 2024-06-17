@@ -55,10 +55,6 @@ class CommandChangingPrompt(CommandTextualGeneric):
 
         # Internal variables
         self._re_failure_exceptions_indication = None
-        # self._sent_timeout = False
-        # self._sent_prompt = False
-        # self._matched_timeout = False
-        # self._matched_prompt = False
         self._sent = False
         self._finish_on_final_prompt = True  # Set True to finish Moler command by this generic after prompt after
         # command output. False if you want to finish command in your class.
