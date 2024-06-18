@@ -699,6 +699,10 @@ class TextualDevice(AbstractDevice):
                         exception=ex_traceback,
                         device_name=self.name,
                     )
+                    self._log(
+                        logging.WARNING,
+                        msg=f"Cannot change state into '{next_state}' Current state '{self.current_state}'. After '{rerun}' rerun(s).",
+                    )
                     if log_stacktrace_on_fail:
                         self._log(logging.ERROR, exc)
                     raise exc from ex
