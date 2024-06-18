@@ -30,7 +30,8 @@ def iterate_over_device_states(
     max_no_of_threads=11,
     rerun=0,
     timeout_multiply=3.0,
-    sleep_after_changed_state=0.0
+    sleep_after_changed_state=0.0,
+    states_to_skip=None,
 ):
     """
     Check all states in device under test.
@@ -43,9 +44,12 @@ def iterate_over_device_states(
     :param rerun: rerun for goto_state
     :param timeout_multiply: timeout_multiply for goto_state
     :param sleep_after_changed_state: sleep after state change
+    :param states_to_skip: list of states to skip and not test. If None then all states are tested.
     :return: None
     """
     source_states = _get_all_states_from_device(device=device)
+    if states_to_skip is not None:
+        source_states = [state for state in source_states if state not in states_to_skip]
     target_states = copy_list(source_states)
     nr_of_tests = len(source_states) * len(target_states)
 
