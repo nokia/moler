@@ -31,7 +31,7 @@ def iterate_over_device_states(
     rerun=0,
     timeout_multiply=3.0,
     sleep_after_changed_state=0.0,
-    states_to_skip = None,
+    states_to_skip=None,
 ):
     """
     Check all states in device under test.
