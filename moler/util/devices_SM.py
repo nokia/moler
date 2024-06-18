@@ -44,7 +44,7 @@ def iterate_over_device_states(
     :param rerun: rerun for goto_state
     :param timeout_multiply: timeout_multiply for goto_state
     :param sleep_after_changed_state: sleep after state change
-    :param states_to_skip: list of states to skip and not test
+    :param states_to_skip: list of states to skip and not test. If None then all states are tested.
     :return: None
     """
     source_states = _get_all_states_from_device(device=device)
