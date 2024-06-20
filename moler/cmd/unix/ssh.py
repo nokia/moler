@@ -73,7 +73,7 @@ class Ssh(GenericTelnetSsh):
         :param runner: Runner to run command.
         :param target_newline: newline chars on remote system where ssh connects.
         :param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt.
-        :param repeat_password: If True then repeat last password if no more provided. If False then exception is set.
+        :param repeat_password: If True then repeats last password if no more provided. If False then exception is set.
         :param options: Options to add to command string just before host.
         :param failure_exceptions_indication: String with regex or regex object to omit failure even if failed string
          was found.
@@ -117,7 +117,6 @@ class Ssh(GenericTelnetSsh):
         self._permission_denied_key_pass_keyboard_cmd = None
         if permission_denied_key_pass_keyboard is not None:
             self._permission_denied_key_pass_keyboard_cmd = permission_denied_key_pass_keyboard.format(host=host)  # pylint-disable-line: consider-using-f-string
-        self._sent_handle_permission_denied_key_pass_keyboard_cmd = False
 
     def build_command_string(self) -> str:
         """
@@ -182,7 +181,8 @@ class Ssh(GenericTelnetSsh):
         """
         if self._regex_helper.search_compiled(Ssh._re_permission_denied_key_pass_keyboard, line):
             if self._permission_denied_key_pass_keyboard_cmd:
-                self._handle_permission_denied_key_pass_keyboard()
+                self._commands_to_send_when_prompt.append(self._permission_denied_key_pass_keyboard_cmd)
+                self._commands_to_send_when_prompt.append(self.command_string)
             else:
                 self.set_exception(CommandFailure(self, f"command failed in line '{line}'"))
             raise ParsingDone()
@@ -195,7 +195,7 @@ class Ssh(GenericTelnetSsh):
         :return: None but raises ParsingDone if regex matches.
         """
         if Ssh._re_id_dsa.search(line):
-            self.connection.sendline("")
+            self._send("")
             raise ParsingDone()
 
     def _parse_hosts_file_if_displayed(self, line: str, is_full_line: bool) -> None:
@@ -210,15 +210,18 @@ class Ssh(GenericTelnetSsh):
                 self._hosts_file = self._regex_helper.group("HOSTS_FILE")
                 if self.allow_override_denied_key_pass_keyboard:
                     exception = None
+                    cmd = None
                     if "rm" == self.known_hosts_on_failure:
-                        self._permission_denied_key_pass_keyboard_cmd = f"rm -f {shlex.quote(self._hosts_file)}"
+                        cmd = f"rm -f {shlex.quote(self._hosts_file)}"
                     elif "keygen" == self.known_hosts_on_failure:
-                        self._permission_denied_key_pass_keyboard_cmd = f"ssh-keygen -R {shlex.quote(self.host)} -f {shlex.quote(self._hosts_file)}"
+                        cmd = f"ssh-keygen -R {shlex.quote(self.host)} -f {shlex.quote(self._hosts_file)}"
                     else:
                         exception = CommandFailure(
                             self,
                             f"Bad value of parameter known_hosts_on_failure '{self.known_hosts_on_failure}'. "
                             "Supported values: rm or keygen.")
+                    if cmd:
+                        self._permission_denied_key_pass_keyboard_cmd = cmd
                     if exception:
                         self.set_exception(exception=exception)
                 raise ParsingDone()
@@ -231,28 +234,9 @@ class Ssh(GenericTelnetSsh):
         :return: None but raises ParsingDone if regex matches.
         """
         if (not self._sent_continue_connecting) and self._regex_helper.search_compiled(Ssh._re_yes_no, line):
-            self.connection.sendline('yes')
+            self._send('yes')
             self._sent_continue_connecting = True
             raise ParsingDone()
-
-    def _resend_command_string(self) -> None:
-        self._cmd_output_started = False
-        self._sent_continue_connecting = False
-        self._sent_prompt = False
-        self._sent_timeout = False
-        self._sent = False
-        self.connection.sendline(self.command_string)
-
-    def _handle_permission_denied_key_pass_keyboard(self) -> None:
-        """
-        Handles situation when permission denied.
-
-        :return: None
-        """
-        if self._sent_handle_permission_denied_key_pass_keyboard_cmd is False:
-            self._sent_handle_permission_denied_key_pass_keyboard_cmd = True
-            self.connection.sendline(self._permission_denied_key_pass_keyboard_cmd)
-            self._resend_command_string()
 
     def _check_if_resize(self, line: str) -> None:
         """
@@ -263,7 +247,7 @@ class Ssh(GenericTelnetSsh):
         """
         if self._regex_helper.search_compiled(Ssh._re_resize, line) and not self._resize_sent:
             self._resize_sent = True
-            self.connection.sendline("")
+            self._send("")
             raise ParsingDone()
 
     def _is_password_requested(self, line: str) -> bool:
@@ -337,8 +321,8 @@ COMMAND_RESULT_permission_denied = {
         "You may put information to /etc/ssh_banner who is owner of this PC",
         "Password:",
         "Permission denied (publickey,password,keyboard-interactive)",
-        # "client:~/>ssh-keygen -f \"~/.ssh/known_hosts\" -R host.domain.net",
-        # "client:~/>TERM=xterm-mono ssh -l user host.domain.net",
+        "client:~/>ssh-keygen -f \"~/.ssh/known_hosts\" -R host.domain.net",
+        "client:~/>TERM=xterm-mono ssh -l user host.domain.net",
         "Last login: Thu Nov 23 10:38:18 2017 from 127.0.0.1",
         "Have a lot of fun...",
         "host:~ #",
@@ -546,8 +530,8 @@ COMMAND_RESULT_rm = {
         "id_dsa:",
         "RSA host key for host.domain.net has changed and you have requested strict checking.",
         "Host key verification failed.",
-        # "client:~/>rm /home/you/.ssh/known_hosts",
-        # "client:~/>TERM=xterm-mono ssh -p 25 -l user host.domain.net",
+        "client:~/>rm /home/you/.ssh/known_hosts",
+        "client:~/>TERM=xterm-mono ssh -p 25 -l user host.domain.net",
         "To edit this message please edit /etc/ssh_banner",
         "You may put information to /etc/ssh_banner who is owner of this PC",
         "Password:",
@@ -610,8 +594,8 @@ COMMAND_RESULT_keygen = {
         "Offending RSA key in /home/you/.ssh/known_hosts:86",
         "RSA host key for host.domain.net has changed and you have requested strict checking.",
         "Host key verification failed.",
-        # "client:~/>sh-keygen -R host.domain.net -f /home/you/.ssh/known_hosts",
-        # "client:~/>TERM=xterm-mono ssh -l user host.domain.net",
+        "client:~/>sh-keygen -R host.domain.net -f /home/you/.ssh/known_hosts",
+        "client:~/>TERM=xterm-mono ssh -l user host.domain.net",
         "To edit this message please edit /etc/ssh_banner",
         "You may put information to /etc/ssh_banner who is owner of this PC",
         "Password:",
@@ -779,8 +763,8 @@ COMMAND_RESULT_resize_window = {
         "Offending RSA key in /home/you/.ssh/known_hosts:86",
         "RSA host key for host.domain.net has changed and you have requested strict checking.",
         "Host key verification failed.",
-        # "client:~/>sh-keygen -R host.domain.net -f /home/you/.ssh/known_hosts",
-        # "client:~/>TERM=xterm-mono ssh -l user host.domain.net",
+        "client:~/>sh-keygen -R host.domain.net -f /home/you/.ssh/known_hosts",
+        "client:~/>TERM=xterm-mono ssh -l user host.domain.net",
         "To edit this message please edit /etc/ssh_banner",
         "You may put information to /etc/ssh_banner who is owner of this PC",
         "Password:",
@@ -849,8 +833,8 @@ COMMAND_RESULT_options = {
         "Offending RSA key in /home/you/.ssh/known_hosts:86",
         "RSA host key for host.domain.net has changed and you have requested strict checking.",
         "Host key verification failed.",
-        # "client:~/>sh-keygen -R host.domain.net -f /home/you/.ssh/known_hosts",
-        # "client:~/>TERM=xterm-mono ssh -l user host.domain.net",
+        "client:~/>sh-keygen -R host.domain.net -f /home/you/.ssh/known_hosts",
+        "client:~/>TERM=xterm-mono ssh -l user host.domain.net",
         "To edit this message please edit /etc/ssh_banner",
         "You may put information to /etc/ssh_banner who is owner of this PC",
         "Password:",
@@ -1056,8 +1040,9 @@ COMMAND_RESULT_override_keygen = {
         r'Keyboard-interactive authentication is disabled to avoid '
         r'man-in-the-middle attacks.',
         r'',
-        r'user@client: Permission denied '
-        r'(publickey,password,keyboard-interactive).',
+        r'user@client: Permission denied (publickey,password,keyboard-interactive).',
+        r'user@client: ssh-keygen -f "/home/user/.ssh/known_hosts" -R "10.0.1.67"',
+        r'user@client: TERM=xterm-mono ssh -l user -o ServerAliveInterval=7 -o ServerAliveCountMax=2 10.0.1.67',
         r'Password:',
         r'****',
         r'',

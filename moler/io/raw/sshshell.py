@@ -39,7 +39,7 @@ class SshShell:
     Implementation of 'remote shell over Ssh' connection using python Paramiko module
 
     This connection is not intended for one-shot actions like execute_command of paramiko.
-    It's purpose is to provide continuous stream of bytes from remote shell.
+    Its purpose is to provide continuous stream of bytes from remote shell.
     Moreover, it works with Pty assigned to remote shell to enable interactive dialog
     like asking for login or password.
     """
