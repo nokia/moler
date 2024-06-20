@@ -1035,6 +1035,12 @@ class TextualDevice(AbstractDevice):
         self._set_state(state)
         if self._check_all_prompts_on_line:
             if len(occurrence["list_matched"]) > 1:
+                prompts = [{item["state"]: item["prompt_regex"]} for item in
+                           occurrence["list_matched"]]
+                self._log(
+                    level=logging.WARNING,
+                    msg=f"Prompts {prompts} match the same line '{line}'",
+                )
                 self._log(
                     level=logging.ERROR,
                     msg=f"More than 1 prompt matched the same line! '{occurrence}'.",
