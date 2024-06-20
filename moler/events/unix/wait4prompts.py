@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__ = "Michal Ernst, Marcin Usielski"
-__copyright__ = "Copyright (C) 2019-2023, Nokia"
+__copyright__ = "Copyright (C) 2019-2024, Nokia"
 __email__ = "michal.ernst@nokia.com, marcin.usielski@nokia.com"
 
 import datetime
@@ -33,6 +33,10 @@ class Wait4prompts(GenericUnixTextualEvent):
         self.process_full_lines_only = False
         self.check_against_all_prompts = False
         self._ret_list_matched = []
+
+        # Change default order and behavior after matching the prompt
+        self._reverse_order = True
+        self._break_processing_when_found = True
 
     def on_new_line(self, line, is_full_line):
         try:
