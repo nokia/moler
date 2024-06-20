@@ -210,7 +210,9 @@ def _perform_device_tests(
             )
             tested.add((source_state, target_state))
             if device.last_wrong_wait4_occurrence is not None:
-                msg = f"More than 1 prompt match the same line!: '{device.last_wrong_wait4_occurrence}' in change state '{state_before_test}' -> '{source_state}' -> '{target_state}'"
+                prompts = [{item["state"]: item["prompt_regex"]} for item in
+                           device.last_wrong_wait4_occurrence["list_matched"]]
+                msg = f"More than 1 prompt match the same line!: {prompts} in line '{device.last_wrong_wait4_occurrence['line']}' '{device.last_wrong_wait4_occurrence}' in change state '{state_before_test}' -> '{source_state}' -> '{target_state}'"
                 raise MolerException(msg)
         except Exception as exc:
             raise MolerException(
