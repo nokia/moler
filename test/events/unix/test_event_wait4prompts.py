@@ -80,7 +80,10 @@ def test_event_wait4prompts_reverse_order(buffer_connection):
     event._reverse_order = True
     event.start()
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
-    time.sleep(2)
+    start_time = time.monotonic()
+    while 1 != len(matched_states) and time.monotonic() - start_time < 10:
+        time.sleep(0.1)
+    time.sleep(0.1)
     event.cancel()
     assert 1 == len(matched_states)
     assert 'USER' in matched_states
@@ -103,7 +106,10 @@ def test_event_wait4prompts_normal_order(buffer_connection):
     event.add_event_occurred_callback(callback=callback, callback_params={"w4p_event": event})
     event.start()
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
-    time.sleep(2)
+    start_time = time.monotonic()
+    while 2 != len(matched_states) and time.monotonic() - start_time < 10:
+        time.sleep(0.1)
+    time.sleep(0.1)
     event.cancel()
     assert 2 == len(matched_states)
     assert matched_states == ['UNIX_LOCAL', 'USER']
