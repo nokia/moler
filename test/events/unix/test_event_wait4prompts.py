@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2021-2023, Nokia'
+__copyright__ = 'Copyright (C) 2021-2024, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
+import time
 
 from moler.events.unix.wait4prompts import Wait4prompts
 import datetime
@@ -62,4 +63,48 @@ def test_event_wait4prompts_wrong_1_prompt_from_1_line(buffer_connection):
     assert event.done() is True
     assert 'list_matched' not in ret
 
+
+def test_event_wait4prompts_reverse_order(buffer_connection):
+    matched_states = []
+
+    def callback(w4p_event):
+        occurrence = w4p_event.get_last_occurrence()
+        state = occurrence["state"]
+        matched_states.append(state)
+
+    prompts = {re.compile(r'host:.*#'): "UNIX_LOCAL", re.compile(r'user@server.*#'): "USER"}
+    output = "user@host:/home/#\nBLABLA\nuser@server:/home/#\n"
+    event = Wait4prompts(connection=buffer_connection.moler_connection,
+                         till_occurs_times=-1, prompts=prompts)
+    event.add_event_occurred_callback(callback=callback, callback_params={"w4p_event": event})
+    event._reverse_order = True
+    event.start()
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
+    time.sleep(2)
+    event.cancel()
+    assert 1 == len(matched_states)
+    assert 'USER' in matched_states
+
+
+def test_event_wait4prompts_normal_order(buffer_connection):
+    matched_states = []
+
+    def callback(w4p_event):
+        occurrence = w4p_event.get_last_occurrence()
+        state = occurrence["state"]
+        matched_states.append(state)
+
+    prompts = {re.compile(r'host:.*#'): "UNIX_LOCAL", re.compile(r'user@server.*#'): "USER"}
+    output = "user@host:/home/#\nBLABLA\nuser@server:/home/#\n"
+    event = Wait4prompts(connection=buffer_connection.moler_connection,
+                         till_occurs_times=-1, prompts=prompts)
+    event._reverse_order = False
+    event._break_processing_when_found = False
+    event.add_event_occurred_callback(callback=callback, callback_params={"w4p_event": event})
+    event.start()
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
+    time.sleep(2)
+    event.cancel()
+    assert 2 == len(matched_states)
+    assert matched_states == ['UNIX_LOCAL', 'USER']
 
