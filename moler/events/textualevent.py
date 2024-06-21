@@ -24,6 +24,10 @@ class TextualEvent(Event):
         self._ignore_unicode_errors = True  # If True then UnicodeDecodeError will be logged not raised in data_received
         self._last_recv_time_data_read_from_connection = None  # Time moment when data was really received from
         # connection (not when was passed to event).  Time is given as datetime.datetime instance
+        self._reverse_order: bool = False  # Order of processing lines in data_received
+        # method. False to process from the last line, True from the newest.
+        self._break_processing_when_found: bool = False  # Flag to break processing
+        # line when the first line is found.
 
     def event_occurred(self, event_data):
         self._consume_already_parsed_fragment()
@@ -51,13 +55,18 @@ class TextualEvent(Event):
             self._last_recv_time_data_read_from_connection = recv_time
             try:
                 lines = data.splitlines(True)
+                if self._reverse_order:
+                    lines.reverse()
                 for current_chunk in lines:
+                    self._last_chunk_matched = False
                     if not self.done():
                         line, is_full_line = self._update_from_cached_incomplete_line(current_chunk=current_chunk)
                         self._process_line_from_output(line=line, current_chunk=current_chunk,
                                                        is_full_line=is_full_line)
                         if self._paused:
                             self._last_not_full_line = None
+                            break
+                        if self._last_chunk_matched and self._break_processing_when_found:
                             break
             except UnicodeDecodeError as ex:
                 if self._ignore_unicode_errors:

@@ -36,6 +36,7 @@ class Event(ConnectionObserver):
         self.till_occurs_times = till_occurs_times
         self._log_every_occurrence = True
         self.event_name = Event.observer_name
+        self._last_chunk_matched = False
 
     def __str__(self):
         """
@@ -109,6 +110,7 @@ class Event(ConnectionObserver):
             raise ResultAlreadySet(self)
         self._prepare_result_from_occurred()
         self._occurred.append(event_data)
+        self._last_chunk_matched = True
         if self.till_occurs_times > 0:
             if len(self._occurred) >= self.till_occurs_times:
                 self.break_event()
