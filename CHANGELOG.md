@@ -1,3 +1,6 @@
+## moler 3.10.0
+ * Change at command `get_apns` to accept `-` in apn name
+
 ## moler 3.9.0
  * Change the way of validating if Ctrl+Z has worked and stopped the command
  * Keygen file is taken from ssh output
