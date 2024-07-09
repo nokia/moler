@@ -1,3 +1,8 @@
+## moler 3.10.0
+ * Wait4prompts - reverse order of processing lines
+ * More readable info when more than 1 prompt match the same line
+ * CommandChangingPrompt - refactoring
+
 ## moler 3.9.0
  * Change the way of validating if Ctrl+Z has worked and stopped the command
  * Keygen file is taken from ssh output
