@@ -1,5 +1,7 @@
 ## moler 3.10.0
- * Change at command `get_apns` to accept `-` in apn name
+ * Wait4prompts - reverse order of processing lines
+ * More readable info when more than 1 prompt match the same line
+ * CommandChangingPrompt - refactoring
 
 ## moler 3.9.0
  * Change the way of validating if Ctrl+Z has worked and stopped the command
