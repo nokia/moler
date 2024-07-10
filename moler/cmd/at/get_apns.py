@@ -73,7 +73,7 @@ class GetApns(GenericAtCommand):
     # +CGDCONT: 1,"IPV4V6","apn1-ips-05","0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0",0,0,0,0,,,,,,,,,"",,,,0
     _re_apn = re.compile(
         r"^\s*\+CGDCONT\:\s(?P<apn_num>([0-9]+)),\"(?P<apn_ip_name>(IP(V4V6)?))\",\""
-        '(?P<apn_name>([a-zA-Z0-9-]*))\".*$'
+        '(?P<apn_name>([a-zA-Z0-9-]*))".*$'
     )
 
     def _parse_apns(self, line):
