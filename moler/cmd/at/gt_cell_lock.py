@@ -8,7 +8,7 @@ https://drive.google.com/file/d/1hnt_gnJT55Fr-aR4IhOX4HKuuLxWwhd_/view?pli=1
 """
 
 __author__ = 'Piotr Wojdan'
-__copyright__ = 'Copyright (C) 2023, Nokia'
+__copyright__ = 'Copyright (C) 2024, Nokia'
 __email__ = 'piotr.wojdan@nokia.com'
 
 from moler.cmd.at.genericat import GenericAtCommand
