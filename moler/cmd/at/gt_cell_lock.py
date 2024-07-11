@@ -78,8 +78,8 @@ OK
 """
 
 COMMAND_KWARGS_option = {"enable": 1,
-                         "net_mode": 'lte',
-                         "lock_pci": 1,
+                         "net_mode": 'nr',
+                         "lock_pci": 0,
                          "earfcn": 649920,
                          "pci": 312,
                          "scs": 1,
