@@ -45,7 +45,10 @@ class GtCellLock(GenericAtCommand):
                                          newline_chars=newline_chars, runner=runner)
         self.ret_required = False
         self.enable = enable
-        self.net_mode = 1 if net_mode.lower() in ['nr', '5g'] else 0
+        try:
+            self.net_mode = int(net_mode)
+        except ValueError:
+            self.net_mode = 1 if net_mode.lower() in ['nr', '5g'] else 0
         self.earfcn = earfcn
         self.pci = pci
         self.scs = 0 if scs == 15 else 1
@@ -86,3 +89,19 @@ COMMAND_KWARGS_option = {"enable": 1,
                          "band": 5078}
 
 COMMAND_RESULT_option = {}
+
+
+COMMAND_OUTPUT_option_net_mode_nr = """
+AT+GTCELLLOCK=1,1,0,649920,312,1,5078
+OK
+"""
+
+COMMAND_KWARGS_option_net_mode_nr = {"enable": 1,
+                                     "net_mode": 1,
+                                     "lock_pci": 0,
+                                     "earfcn": 649920,
+                                     "pci": 312,
+                                     "scs": 1,
+                                     "band": 5078}
+
+COMMAND_RESULT_option_net_mode_nr = {}
