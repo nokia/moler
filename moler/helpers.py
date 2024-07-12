@@ -414,6 +414,9 @@ def convert_to_number(value, none_if_cannot_convert: bool = False):
             except ValueError:
                 if none_if_cannot_convert:
                     return None
+    else:
+        if none_if_cannot_convert:
+            return None
     return value
 
 

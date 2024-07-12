@@ -318,10 +318,10 @@ def test_convert_to_number_str():
 def test_convert_to_number_str_none():
     from moler.helpers import convert_to_number
     expected = "not a number"
-    result = convert_to_number(expected)
-    assert expected == result
-    result = convert_to_number(expected, True)
-    assert result is None
+    result1 = convert_to_number(expected, False)
+    assert expected == result1
+    result2 = convert_to_number(expected, True)
+    assert result2 is None
 
 
 def test_escape_cursors():
