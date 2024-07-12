@@ -323,7 +323,7 @@ class ConverterHelper:
                 if raise_exception:
                     raise ex
                 if none_if_cannot_convert:
-                    return None
+                    ret_val = None
         return ret_val
 
     @staticmethod

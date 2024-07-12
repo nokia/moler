@@ -67,6 +67,9 @@ def test_converterhelper_number_wrong_format():
         converter.to_number(value="abc", raise_exception=True)
     val = converter.to_number(value="abc", raise_exception=False)
     assert val == 0
+    val2 = converter.to_number(value="abc", raise_exception=False,
+                               none_if_cannot_convert=True)
+    assert val2 is None
 
 
 def test_converterhelper_number():
