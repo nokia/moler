@@ -315,6 +315,15 @@ def test_convert_to_number_str():
     assert expected == result
 
 
+def test_convert_to_number_str_none():
+    from moler.helpers import convert_to_number
+    expected = "not a number"
+    result = convert_to_number(expected)
+    assert expected == result
+    result = convert_to_number(expected, True)
+    assert result is None
+
+
 def test_escape_cursors():
     from moler.helpers import remove_escape_codes
     raw_line = "\x1B7\x1B[0;100r\x1B8\x1B[1A\x1B[Jmoler_bash#"
