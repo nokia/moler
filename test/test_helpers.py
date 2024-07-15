@@ -419,7 +419,6 @@ def test_date_parser_cet():
     assert date_parsed == date_expected
 
 
-
 def test_date_parser_utc():
     from moler.util.converterhelper import ConverterHelper
     from datetime import datetime
