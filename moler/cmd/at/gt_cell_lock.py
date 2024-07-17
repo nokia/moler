@@ -7,9 +7,9 @@ https://drive.google.com/file/d/1hnt_gnJT55Fr-aR4IhOX4HKuuLxWwhd_/view?pli=1
 (always check against the latest vendor release notes)
 """
 
-__author__ = 'Piotr Wojdan'
+__author__ = 'Piotr Wojdan, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2024, Nokia'
-__email__ = 'piotr.wojdan@nokia.com'
+__email__ = 'piotr.wojdan@nokia.com, marcin.usielski@nokia.com'
 
 from moler.cmd.at.genericat import GenericAtCommand
 from moler.helpers import convert_to_int
