@@ -18,7 +18,7 @@ from functools import wraps
 from math import isclose
 from types import FunctionType, MethodType
 
-from six import string_types
+from six import string_types, integer_types
 
 
 class ClassProperty(property):
@@ -439,10 +439,12 @@ def convert_to_int(obj, none_if_cannot_convert: bool = False):
     :param obj: object to convert
     :param none_if_cannot_convert: If True and obj is not int then return None
     """
-    if isinstance(obj, string_types):
+    if isinstance(obj, (string_types, integer_types)):
         try:
             return int(obj)
         except ValueError:
+            if none_if_cannot_convert:
+                return None
             return obj
     elif isinstance(obj, dict):
         return {k: convert_to_int(v) for k, v in obj.items()}

@@ -12,6 +12,7 @@ __copyright__ = 'Copyright (C) 2024, Nokia'
 __email__ = 'piotr.wojdan@nokia.com'
 
 from moler.cmd.at.genericat import GenericAtCommand
+from moler.helpers import convert_to_int
 
 
 class GtCellLock(GenericAtCommand):
@@ -45,9 +46,8 @@ class GtCellLock(GenericAtCommand):
                                          newline_chars=newline_chars, runner=runner)
         self.ret_required = False
         self.enable = enable
-        try:
-            self.net_mode = int(net_mode)
-        except ValueError:
+        self.net_mode = convert_to_int(net_mode, none_if_cannot_convert=True)
+        if self.net_mode is None:
             self.net_mode = 1 if net_mode.lower() in ['nr', '5g'] else 0
         self.earfcn = earfcn
         self.pci = pci
