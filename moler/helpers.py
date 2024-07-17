@@ -18,7 +18,7 @@ from functools import wraps
 from math import isclose
 from types import FunctionType, MethodType
 
-from six import string_types
+from six import string_types, integer_types
 
 
 class ClassProperty(property):
@@ -398,10 +398,11 @@ def _compare_lists(
     return ""
 
 
-def convert_to_number(value):
+def convert_to_number(value, none_if_cannot_convert: bool = False):
     """
     Convert value to Python number type.
     :param value: value to convert
+    :param none_if_cannot_convert: If True and obj is not int then return None
     :return: converted value if possible, otherwise original
     """
     if value and is_digit(value):
@@ -411,7 +412,11 @@ def convert_to_number(value):
             try:
                 value = float(value)
             except ValueError:
-                pass
+                if none_if_cannot_convert:
+                    return None
+    else:
+        if none_if_cannot_convert:
+            return None
     return value
 
 
@@ -428,21 +433,26 @@ def is_digit(value):
         return False
 
 
-def convert_to_int(obj):
+def convert_to_int(obj, none_if_cannot_convert: bool = False):
     """
     Convert element of object structure to int if it's possible.
     :param obj: object to convert
+    :param none_if_cannot_convert: If True and obj is not int then return None
     """
-    if isinstance(obj, string_types):
+    if isinstance(obj, (string_types, integer_types)):
         try:
             return int(obj)
         except ValueError:
+            if none_if_cannot_convert:
+                return None
             return obj
     elif isinstance(obj, dict):
         return {k: convert_to_int(v) for k, v in obj.items()}
     elif isinstance(obj, list):
         return [convert_to_int(v) for v in obj]
     else:
+        if none_if_cannot_convert:
+            return None
         return obj
 
 

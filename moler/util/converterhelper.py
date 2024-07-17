@@ -304,12 +304,13 @@ class ConverterHelper:
             raise ValueError(f"Unsupported unit '{unit}' for passed value: '{value}'")
         return ConverterHelper._seconds_multipliers[unit] * value
 
-    def to_number(self, value, raise_exception=True):
+    def to_number(self, value, raise_exception: bool = True, none_if_cannot_convert: bool = False):
         """
         Convert number to int or float.
 
         :param value: string with number inside
         :param raise_exception: if True then raise exception if cannot convert to number, If False then return 0.
+        :param none_if_cannot_convert: If True and obj is not int then return None
         :return: int or float with value.
         """
         ret_val = 0
@@ -321,6 +322,8 @@ class ConverterHelper:
             except ValueError as ex:
                 if raise_exception:
                     raise ex
+                if none_if_cannot_convert:
+                    ret_val = None
         return ret_val
 
     @staticmethod

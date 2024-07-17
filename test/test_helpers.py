@@ -67,6 +67,9 @@ def test_converterhelper_number_wrong_format():
         converter.to_number(value="abc", raise_exception=True)
     val = converter.to_number(value="abc", raise_exception=False)
     assert val == 0
+    val2 = converter.to_number(value="abc", raise_exception=False,
+                               none_if_cannot_convert=True)
+    assert val2 is None
 
 
 def test_converterhelper_number():
@@ -315,6 +318,15 @@ def test_convert_to_number_str():
     assert expected == result
 
 
+def test_convert_to_number_str_none():
+    from moler.helpers import convert_to_number
+    expected = "not a number"
+    result1 = convert_to_number(expected, False)
+    assert expected == result1
+    result2 = convert_to_number(expected, True)
+    assert result2 is None
+
+
 def test_escape_cursors():
     from moler.helpers import remove_escape_codes
     raw_line = "\x1B7\x1B[0;100r\x1B8\x1B[1A\x1B[Jmoler_bash#"
@@ -405,7 +417,6 @@ def test_date_parser_cet():
     date_parsed = ConverterHelper.parse_date(date_str)
     date_expected = datetime(year=2024, month=5, day=22, hour=11, minute=21, second=34, tzinfo=tzoffset('CET', 3600))
     assert date_parsed == date_expected
-
 
 
 def test_date_parser_utc():
