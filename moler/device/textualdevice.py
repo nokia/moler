@@ -1032,7 +1032,10 @@ class TextualDevice(AbstractDevice):
         state = occurrence["state"]
         line = occurrence["line"]
         self._log(level=logging.DEBUG, msg=f"Callback for state {state} for line >>{line}<<")
-        self._set_state(state)
+        if self.current_state != state:
+            self._log(level=logging.INFO,
+                      msg=f"Callback for state {state} for line >>{line}<<")
+            self._set_state(state)
         if self._check_all_prompts_on_line:
             if len(occurrence["list_matched"]) > 1:
                 prompts = [{item["state"]: item["prompt_regex"]} for item in
