@@ -1,4 +1,4 @@
-[![image](https://img.shields.io/badge/pypi-v3.10.0-blue.svg)](https://pypi.org/project/moler/)
+[![image](https://img.shields.io/badge/pypi-v3.11.0-blue.svg)](https://pypi.org/project/moler/)
 [![image](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://pypi.org/project/moler/)
 [![Build Status](https://github.com/nokia/moler/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/nokia/moler/actions)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](./LICENSE)

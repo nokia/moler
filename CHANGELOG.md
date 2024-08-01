@@ -1,3 +1,11 @@
+## moler 3.11.0
+ * New Unix commands (bzip2, 7z)
+ * uptime - new parser
+ * Log info for state observer
+ * Number converters can return None instead raise an exception
+ * New locking commands for AT devices
+ * Change at command to accept in apt name
+
 ## moler 3.10.0
  * Wait4prompts - reverse order of processing lines
  * More readable info when more than 1 prompt match the same line
@@ -8,7 +16,6 @@
  * Keygen file is taken from ssh output
  * Optional sleep after state change
  * Change the way the date is parsed (time zone)
-
 
 ## moler 3.8.0
  * More info when SshShell is disconnected

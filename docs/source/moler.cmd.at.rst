@@ -172,6 +172,14 @@ moler.cmd.at.get\_revision\_id module
    :undoc-members:
    :show-inheritance:
 
+moler.cmd.at.gt\_cell\_lock module
+----------------------------------
+
+.. automodule:: moler.cmd.at.gt_cell_lock
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 moler.cmd.at.plink\_serial module
 ---------------------------------
 
