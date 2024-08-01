@@ -4,7 +4,7 @@ Uptime command module.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
@@ -57,9 +57,12 @@ class Uptime(GenericUnixCommand):
 
     # Linux:
     # 10:38am  up 3 days  2:14,  29 users,  load average: 0.09, 0.10, 0.07
+    # 09:11:11 up  1:17,  load average: 0.42, 0.51, 0.50
+    # 11:39:09 up 3 min,  load average: 1.27, 1.08, 0.47
     # SunOs:
     # 1:16am  up 137 day(s), 19:07,  1 user,  load average: 0.27, 0.27, 0.27
     _re_uptime_line = re.compile(r"\s+up\s+(?P<UPTIME_VAL>\S.*\S),\s+(?P<USERS>\d+)\s+user.*", re.IGNORECASE)
+    _re_uptime_line_no_user = re.compile(r"\s+up\s+(?P<UPTIME_VAL>\S.*\S),(\s*load average:.*)", re.IGNORECASE)
 
     def _parse_uptime(self, line):
         """
@@ -67,9 +70,11 @@ class Uptime(GenericUnixCommand):
         :param line: Line from device.
         :return: None but raises ParsingDone if line matches regex.
         """
-        if self._regex_helper.search_compiled(Uptime._re_uptime_line, line):
-            val = self._regex_helper.group("UPTIME_VAL")
-            users = self._converter_helper.to_number(self._regex_helper.group("USERS"))
+        if self._regex_helper.search_compiled(Uptime._re_uptime_line, line) or \
+                self._regex_helper.search_compiled(Uptime._re_uptime_line_no_user, line):
+            values = self._regex_helper.groupdict()
+            val = values.get("UPTIME_VAL")
+            users = self._converter_helper.to_number(values["USERS"]) if values.get("USERS") else None
             uptime_seconds = self._calculate_seconds(val, line)
             self.current_ret["UPTIME"] = val
             self.current_ret["UPTIME_SECONDS"] = uptime_seconds
@@ -206,4 +211,19 @@ COMMAND_KWARGS_since = {'options': '-s'}
 COMMAND_RESULT_since = {
     "date": "2018-11-06",
     "time": "13:41:00"
+}
+
+
+COMMAND_OUTPUT_no_users = """uptime
+09:11:11 up  1:17,  load average: 0.42, 0.51, 0.50
+moler_bash# """
+
+
+COMMAND_KWARGS_no_users = {}
+
+
+COMMAND_RESULT_no_users = {
+    "UPTIME": '1:17',
+    "UPTIME_SECONDS": 4620,
+    "USERS": None
 }
