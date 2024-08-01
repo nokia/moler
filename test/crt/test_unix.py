@@ -98,6 +98,12 @@ def test_whoami(unix_terminal):
     assert getpass.getuser() == ret['USER']
 
 
+def test_7z(unix_terminal):
+    unix = unix_terminal
+    cmd_7z = unix.get_cmd(cmd_name="7z", cmd_params={"options": "a", "archive_file": "arch.7z", "files": ["a", "b"],})
+    assert cmd_7z is not None
+
+
 def test_cp_md5sum_cat_mv_rm_ls(unix_terminal):
     unix = unix_terminal
     f = tempfile.NamedTemporaryFile(delete=False)
