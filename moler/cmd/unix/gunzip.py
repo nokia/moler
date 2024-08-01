@@ -3,9 +3,9 @@
 Gunzip command module.
 """
 
-__author__ = "Adrianna Pienkowska"
-__copyright__ = "Copyright (C) 2018, Nokia"
-__email__ = "adrianna.pienkowska@nokia.com"
+__author__ = "Adrianna Pienkowska, Marcin Usielski"
+__copyright__ = "Copyright (C) 2018-2024, Nokia"
+__email__ = "adrianna.pienkowska@nokia.com, marcin.usielski@nokia.com"
 
 import re
 
@@ -60,6 +60,7 @@ class Gunzip(GenericUnixCommand):
             self._asks_to_overwrite(line)
             self._create_dictionary_at_l_option(line)
             self._command_failure(line)
+            self._parse_verbose(line)
         except ParsingDone:
             pass
         return super(Gunzip, self).on_new_line(line, is_full_line)
@@ -117,6 +118,24 @@ class Gunzip(GenericUnixCommand):
                 )
             )
             raise ParsingDone
+
+    # a.gz:	  0.0% -- created a
+    _re_verbose = re.compile(r"(?P<COMPRESSED_FILE>\S+):.*\s+(?P<RATIO>[\d\.]+%)\s+\S+\s+\S+\s+(?P<DECOMPRESSED_FILE>\S+)")
+
+    def _parse_verbose(self, line):
+        if self._regex_helper.search_compiled(Gunzip._re_verbose, line):
+            if 'files' not in self.current_ret:
+                self.current_ret['files'] = []
+                self.current_ret['details'] = []
+            file_desc = {
+                'compressed_file': self._regex_helper.group("COMPRESSED_FILE"),
+                'ratio': self._regex_helper.group("RATIO"),
+                'decompressed_file': self._regex_helper.group("DECOMPRESSED_FILE")
+            }
+            self.current_ret['files'].append(self._regex_helper.group("DECOMPRESSED_FILE"))
+            self.current_ret['details'].append(file_desc)
+
+            raise ParsingDone()
 
 
 COMMAND_OUTPUT_without_options = """
@@ -200,4 +219,29 @@ COMMAND_RESULT_on_vl_option = {
             "uncompressed_name": "afile",
         }
     ]
+}
+
+
+COMMAND_OUTPUT_verbose = """gunzip -fkv a.gz b.gz
+a.gz:	  0.0% -- created a
+b.gz:	  0.0% -- created b
+moler_bash# """
+
+COMMAND_KWARGS_verbose = {"archive_name": ["a.gz", "b.gz"], "options": "-fkv"}
+
+COMMAND_RESULT_verbose = {
+    "files": ["a", "b"],
+    "details": [
+        {
+            'compressed_file': 'a.gz',
+            'ratio': '0.0%',
+            'decompressed_file': 'a',
+        },
+        {
+            'compressed_file': 'b.gz',
+            'ratio': '0.0%',
+            'decompressed_file': 'b',
+        }
+    ],
+    'RESULT': []
 }
