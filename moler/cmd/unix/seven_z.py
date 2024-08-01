@@ -16,6 +16,7 @@ from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure, ParsingDone
 from moler.helpers import ClassProperty, convert_to_int
 
+
 class SevenZ(GenericUnixCommand):
 
     def __init__(self, connection, options, archive_file, files=None, prompt=None, newline_chars=None,
@@ -71,7 +72,7 @@ class SevenZ(GenericUnixCommand):
             self.set_exception(CommandFailure(self, f"ERROR: {self._regex_helper.group('error')}"))
             raise ParsingDone()
 
-    #? (Y)es / (N)o / (A)lways / (S)kip all / A(u)to rename all / (Q)uit? A
+    # ? (Y)es / (N)o / (A)lways / (S)kip all / A(u)to rename all / (Q)uit? A
     _re_all = re.compile(r"\(Y\)es / \(N\)o / \(A\)lways / \(S\)kip all / A\(u\)to rename all / \(Q\)uit\?")
 
     def _parse_all(self, line: str) -> None:
@@ -226,9 +227,10 @@ COMMAND_KWARGS_list = {
     "archive_file": "arch.7z",
 }
 
+
 COMMAND_RESULT_list = {
-     "files": ["a", "b"],
-     "details": [
+    "files": ["a", "b"],
+    "details": [
             {
                 'date': '2024-07-24',
                 'time': '13:17:27',

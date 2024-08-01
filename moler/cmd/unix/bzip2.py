@@ -14,6 +14,7 @@ import re
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure, ParsingDone
 
+
 class Bzip2(GenericUnixCommand):
 
     def __init__(self, connection, files, options=None, prompt=None, newline_chars=None,

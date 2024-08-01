@@ -12,7 +12,7 @@ import re
 
 from moler.cmd.unix.genericunix import GenericUnixCommand
 from moler.exceptions import CommandFailure, ParsingDone
-from moler.helpers import ClassProperty
+
 
 class Unrar(GenericUnixCommand):
 
@@ -46,7 +46,7 @@ class Unrar(GenericUnixCommand):
                 self._parse_error_via_output_line(line)
                 self._parse_file_name(line)
         except ParsingDone:
-                pass  # line has been fully parsed by one of above parse-methods
+            pass  # line has been fully parsed by one of above parse-methods
         if is_full_line:
             self._all_sent = False
         return super(Unrar, self).on_new_line(line, is_full_line)
@@ -68,7 +68,7 @@ class Unrar(GenericUnixCommand):
             self.current_ret['files'].append(self._regex_helper.group('filename'))
             raise ParsingDone()
 
-    #[Y]es, [N]o, [A]ll, n[E]ver, [R]ename, [Q]uit
+    # [Y]es, [N]o, [A]ll, n[E]ver, [R]ename, [Q]uit
     _re_all = re.compile(r"\[Y\]es, \[N\]o, \[A\]ll, n\[E\]ver, \[R\]ename, \[Q\]uit")
 
     def _parse_all(self, line: str) -> None:
