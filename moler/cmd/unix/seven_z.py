@@ -231,21 +231,21 @@ COMMAND_KWARGS_list = {
 COMMAND_RESULT_list = {
     "files": ["a", "b"],
     "details": [
-            {
-                'date': '2024-07-24',
-                'time': '13:17:27',
-                'attr': '....A',
-                'size': 0,
-                'compressed': 0,
-                'name': 'a'
-            },
-            {
-                'date': '2024-07-26',
-                'time': '12:04:29',
-                'attr': '....A',
-                'size': 0,
-                'compressed': 0,
-                'name': 'b'
-            }
-        ]
-    }
+        {
+            'date': '2024-07-24',
+            'time': '13:17:27',
+            'attr': '....A',
+            'size': 0,
+            'compressed': 0,
+            'name': 'a'
+        },
+        {
+            'date': '2024-07-26',
+            'time': '12:04:29',
+            'attr': '....A',
+            'size': 0,
+            'compressed': 0,
+            'name': 'b'
+        }
+    ]
+}
