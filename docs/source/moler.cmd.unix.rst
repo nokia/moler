@@ -36,6 +36,14 @@ moler.cmd.unix.bash module
    :undoc-members:
    :show-inheritance:
 
+moler.cmd.unix.bzip2 module
+---------------------------
+
+.. automodule:: moler.cmd.unix.bzip2
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 moler.cmd.unix.cat module
 -------------------------
 
@@ -652,6 +660,14 @@ moler.cmd.unix.service module
    :undoc-members:
    :show-inheritance:
 
+moler.cmd.unix.seven\_z module
+------------------------------
+
+.. automodule:: moler.cmd.unix.seven_z
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 moler.cmd.unix.sftp module
 --------------------------
 
@@ -824,6 +840,14 @@ moler.cmd.unix.uname module
 ---------------------------
 
 .. automodule:: moler.cmd.unix.uname
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+moler.cmd.unix.unrar module
+---------------------------
+
+.. automodule:: moler.cmd.unix.unrar
    :members:
    :undoc-members:
    :show-inheritance:
