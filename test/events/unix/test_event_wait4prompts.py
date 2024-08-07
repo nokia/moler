@@ -30,11 +30,13 @@ def test_split_lines(buffer_connection):
         occurrence = event.get_last_occurrence()
         state = occurrence["state"]
         line = occurrence["line"]
+        matched = occurrence["matched"]
         nonlocal was_callback_called
         was_callback_called = True
         try:
             assert state == "UNIX_LOCAL"
             assert line == "moler_bash#"
+            assert matched == "moler_bash#"
         except AssertionError as err:
             nonlocal error
             error = err
@@ -67,11 +69,13 @@ def test_split_lines_char_by_char(buffer_connection):
         occurrence = event.get_last_occurrence()
         state = occurrence["state"]
         line = occurrence["line"]
+        matched = occurrence["matched"]
         nonlocal was_callback_called
         was_callback_called =True
         try:
             assert state == "UNIX_LOCAL"
             assert line == "moler_bash#"
+            assert matched == "moler_bash#"
         except AssertionError as err:
             nonlocal error
             error = err

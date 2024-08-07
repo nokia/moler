@@ -63,6 +63,7 @@ class Wait4prompts(GenericUnixTextualEvent):
                 current_ret = {
                     "line": line,
                     "prompt_regex": prompt_regex.pattern,
+                    "matched": self._regex_helper.group(0),
                     "state": self.compiled_prompts_regex[prompt_regex],
                     "time": datetime.datetime.now(),
                 }
