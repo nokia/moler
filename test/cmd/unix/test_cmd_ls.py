@@ -3,11 +3,22 @@
 Testing of ls command.
 """
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2023, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import pytest
 from moler.cmd.unix.ls import Ls
+from moler.exceptions import CommandFailure
+
+
+def test_lines_split(buffer_connection):
+    output = r"ls *_SYSLOG*.log" +  chr(0x0D) + chr(0x0A) + "ls: cannot access '*_SYSLOG*.log': No such file or directory" + chr(0x0D) + chr(0x0A) + "moler_bash# "
+    buffer_connection.remote_inject_response([output])
+    ls_cmd = Ls(connection=buffer_connection.moler_connection, options="*_SYSLOG*.log")
+    ls_cmd.command_string = "ls *_SYSLOG*.log"
+    with pytest.raises(CommandFailure):
+        ls_cmd()
+
 
 def test_calling_ls_returns_result_parsed_from_command_output(buffer_connection, command_output_and_expected_result):
     command_output, expected_result = command_output_and_expected_result
