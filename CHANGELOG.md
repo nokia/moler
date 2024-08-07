@@ -1,3 +1,6 @@
+## moler 3.11.1
+ * Fix the Wait4prompts (processing data in reverse order)
+
 ## moler 3.11.0
  * New Unix commands (bzip2, 7z)
  * uptime - new parser
