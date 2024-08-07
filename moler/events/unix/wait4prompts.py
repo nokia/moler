@@ -104,6 +104,7 @@ EVENT_KWARGS = {"prompts": {r"host:.*#": "UNIX_LOCAL"}, "till_occurs_times": 1}
 EVENT_RESULT = [
     {
         "line": "host:~ #",
+        "matched": "host:~ #",
         "prompt_regex": "host:.*#",
         "state": "UNIX_LOCAL",
         "time": datetime.datetime(2019, 8, 22, 12, 42, 38, 278418),
@@ -128,6 +129,7 @@ EVENT_KWARGS_compiled = {
 EVENT_RESULT_compiled = [
     {
         "line": "host:~ #",
+        "matched": "host:~ #",
         "prompt_regex": "host:.*#",
         "state": "UNIX_LOCAL",
         "time": datetime.datetime(2019, 8, 22, 12, 42, 38, 278418),
