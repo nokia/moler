@@ -11,85 +11,6 @@ import datetime
 import re
 
 
-def test_split_lines(buffer_connection):
-    prompts = {re.compile(r'moler_bash#'): "UNIX_LOCAL", re.compile(r'(root@|[\\w-]+).*?:.*#\\s+'): 'UNIX_LOCAL_ROOT'}
-    outputs = [
-        r"ls *_SYSLOG*.log" + chr(0x0D) + chr(0x0A),
-        r"ls: ",
-        r"cannot access '*_SYSLOG*.log' ",
-        r": No such file or directory" + chr(0x0D) + chr(0x0A) + "moler_bash#"
-    ]
-    event = Wait4prompts(connection=buffer_connection.moler_connection, till_occurs_times=-1, prompts=prompts)
-    event.check_against_all_prompts = True
-    event._break_processing_when_found = False
-    event._reverse_order = True
-    was_callback_called = False
-    error = None
-
-    def _prompts_observer_callback(event):
-        occurrence = event.get_last_occurrence()
-        state = occurrence["state"]
-        line = occurrence["line"]
-        nonlocal was_callback_called
-        was_callback_called = True
-        try:
-            assert state == "UNIX_LOCAL"
-            assert line == "moler_bash#"
-        except AssertionError as err:
-            nonlocal error
-            error = err
-
-    event.add_event_occurred_callback(callback=_prompts_observer_callback,
-            callback_params={
-                "event": event,
-            },)
-    event.start()
-    for output in outputs:
-        buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
-        time.sleep(0.01)
-    time.sleep(0.5)
-    event.cancel()
-    assert was_callback_called is True
-    if error:
-        raise error
-
-
-def test_split_lines_char_by_char(buffer_connection):
-    prompts = {re.compile(r'moler_bash#'): "UNIX_LOCAL", re.compile(r'(root@|[\\w-]+).*?:.*#\\s+'): 'UNIX_LOCAL_ROOT'}
-    output = r"ls *_SYSLOG*.log" + chr(0x0D) + chr(0x0A) + "ls: cannot access '*_SYSLOG*.log': No such file or directory" + chr(0x0D) + chr(0x0A) + "moler_bash# "
-    event = Wait4prompts(connection=buffer_connection.moler_connection, till_occurs_times=-1, prompts=prompts)
-    event.check_against_all_prompts = True
-    event._break_processing_when_found = False
-    was_callback_called = False
-    error = None
-
-    def _prompts_observer_callback(event):
-        occurrence = event.get_last_occurrence()
-        state = occurrence["state"]
-        line = occurrence["line"]
-        nonlocal was_callback_called
-        was_callback_called =True
-        try:
-            assert state == "UNIX_LOCAL"
-            assert line == "moler_bash#"
-        except AssertionError as err:
-            nonlocal error
-            error = err
-
-    event.add_event_occurred_callback(callback=_prompts_observer_callback,
-            callback_params={
-                "event": event,
-            },)
-    event.start()
-    for char in output:
-        buffer_connection.moler_connection.data_received(char.encode("utf-8"), datetime.datetime.now())
-    time.sleep(0.5)
-    event.cancel()
-    assert was_callback_called is True
-    if error:
-        raise error
-
-
 def test_event_wait4prompts_good_2_prompts_from_1_line(buffer_connection):
     prompts = {re.compile(r'host:.*#'): "UNIX_LOCAL", re.compile(r'user@server.*#'): "USER"}
     output = "user@host:/home/#"
@@ -192,3 +113,4 @@ def test_event_wait4prompts_normal_order(buffer_connection):
     event.cancel()
     assert 2 == len(matched_states)
     assert matched_states == ['UNIX_LOCAL', 'USER']
+

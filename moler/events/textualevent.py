@@ -55,16 +55,12 @@ class TextualEvent(Event):
             self._last_recv_time_data_read_from_connection = recv_time
             try:
                 lines = data.splitlines(True)
-                processed = []
-                for current_chunk in lines:
-                    line, is_full_line = self._update_from_cached_incomplete_line(current_chunk=current_chunk)
-                    processed.append((current_chunk, line, is_full_line))
                 if self._reverse_order:
-                    processed.reverse()
-                for data in processed:
-                    current_chunk, line, is_full_line = data
+                    lines.reverse()
+                for current_chunk in lines:
                     self._last_chunk_matched = False
                     if not self.done():
+                        line, is_full_line = self._update_from_cached_incomplete_line(current_chunk=current_chunk)
                         self._process_line_from_output(line=line, current_chunk=current_chunk,
                                                        is_full_line=is_full_line)
                         if self._paused:
