@@ -1031,7 +1031,8 @@ class TextualDevice(AbstractDevice):
         occurrence = event.get_last_occurrence()
         state = occurrence["state"]
         line = occurrence["line"]
-        msg = f"Callback for state {state} for line >>{line}<<"
+        matched = occurrence["matched"]
+        msg = f"Callback for state {state} for line >>{line}<<, matched: '{matched}'."
         if self.current_state != state:
             self._log(level=logging.INFO, msg=msg)
             self._set_state(state)
