@@ -574,3 +574,34 @@ def regexp_without_anchors(regexp):
     if regexp_str == org_regexp_str:
         return regexp
     return re.compile(regexp_str)
+
+
+def remove_state_from_sm(source_sm: dict, state_to_remove: str) -> dict:
+    """
+    Remove a state from a state machine dict.
+    :param source_sm: a dict with state machine description
+    :param state_to_remove: name of state to remove
+    :return: a new state machine dict without state_to_remove
+    """
+    new_sm = copy.deepcopy(source_sm)
+    from_states = []
+    for from_state in source_sm.keys():
+        for to_state in source_sm[from_state].keys():
+            if to_state == state_to_remove:
+                from_states.append(from_state)
+
+    for to_state in source_sm[state_to_remove].keys():
+        if to_state == state_to_remove:
+            continue
+        for new_from in from_states:
+            if new_from != to_state and new_from != state_to_remove:
+                break
+        if new_from not in new_sm:
+            new_sm[new_from] = {}
+        new_sm[new_from][to_state] = copy.deepcopy(source_sm[state_to_remove][to_state])
+
+    del new_sm[state_to_remove]
+    for from_state in from_states:
+        del new_sm[from_state][state_to_remove]
+
+    return new_sm

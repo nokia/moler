@@ -428,3 +428,131 @@ def test_date_parser_utc():
     date_parsed = ConverterHelper.parse_date(date_str)
     date_expected = datetime(year=2024, month=5, day=22, hour=9, minute=11, second=48, tzinfo=tzoffset('UTC', 0))
     assert date_parsed == date_expected
+
+
+def test_remove_state_from_sm_dict():
+    from moler.device.unixremote import UnixRemote
+    from moler.helpers import remove_state_from_sm
+    source_sm = {
+        UnixRemote.unix_local: {
+            UnixRemote.proxy_pc: {
+                "execute_command": "ssh",
+                "command_params": {
+                    "target_newline": "\n"
+                },
+                "required_command_params": [
+                    "host",
+                    "login",
+                    "password",
+                    "expected_prompt"
+                ]
+            },
+        },
+        UnixRemote.proxy_pc: {  # from
+            UnixRemote.unix_remote: {  # to
+                "execute_command": "ssh",  # using command
+                "command_params": {  # with parameters
+                    "target_newline": "\n"
+                },
+                "required_command_params": [
+                    "host",
+                    "login",
+                    "password",
+                    "expected_prompt"
+                ]
+            },
+            UnixRemote.unix_local: { # to
+                "execute_command": "exit",  # using command
+                "command_params": {  # with parameters
+                    "target_newline": "\n"
+                },
+                "required_command_params": [    # with parameters
+                    "expected_prompt"
+                ]
+            },
+        },
+        UnixRemote.unix_remote: {  # from
+            UnixRemote.proxy_pc: {  # to
+                "execute_command": "exit",  # using command
+                "command_params": {  # with parameters
+                    "target_newline": "\n"
+                },
+                "required_command_params": [
+                    "expected_prompt"
+                ]
+            },
+            UnixRemote.unix_remote_root: {  # to
+                "execute_command": "su",  # using command
+                "command_params": {  # with parameters
+                    "password": "root_password",
+                    "expected_prompt": r'remote_root_prompt',
+                    "target_newline": "\n"
+                },
+                "required_command_params": [
+                ]
+            },
+        },
+        UnixRemote.unix_remote_root: {  # from
+            UnixRemote.unix_remote: {  # to
+                "execute_command": "exit",  # using command
+                "command_params": {  # with parameters
+                    "target_newline": "\n",
+                    "expected_prompt": r'remote_user_prompt'
+                },
+                "required_command_params": [
+                ]
+            }
+        }
+    }
+
+    expected_sm = {
+        UnixRemote.unix_local: {
+            UnixRemote.unix_remote: {  # to
+                "execute_command": "ssh",  # using command
+                "command_params": {  # with parameters
+                    "target_newline": "\n"
+                },
+                "required_command_params": [
+                    "host",
+                    "login",
+                    "password",
+                    "expected_prompt"
+                ]
+            },
+        },
+        UnixRemote.unix_remote: {  # from
+            UnixRemote.unix_local: {  # to
+                "execute_command": "exit",  # using command
+                "command_params": {  # with parameters
+                    "target_newline": "\n"
+                },
+                "required_command_params": [
+                    "expected_prompt"
+                ]
+            },
+            UnixRemote.unix_remote_root: {  # to
+                "execute_command": "su",  # using command
+                "command_params": {  # with parameters
+                    "password": "root_password",
+                    "expected_prompt": r'remote_root_prompt',
+                    "target_newline": "\n"
+                },
+                "required_command_params": [
+                ]
+            },
+        },
+        UnixRemote.unix_remote_root: {  # from
+            UnixRemote.unix_remote: {  # to
+                "execute_command": "exit",  # using command
+                "command_params": {  # with parameters
+                    "target_newline": "\n",
+                    "expected_prompt": r'remote_user_prompt'
+                },
+                "required_command_params": [
+                ]
+            }
+        }
+    }
+
+    current_sm = remove_state_from_sm(source_sm, UnixRemote.proxy_pc)
+    assert expected_sm == current_sm
