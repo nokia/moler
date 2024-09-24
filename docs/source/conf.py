@@ -24,7 +24,7 @@ copyright = '2019-2024, Nokia'
 author = 'Nokia'
 
 # The short X.Y version
-version = '3.11.1'
+version = '3.11.150'
 # The full version, including alpha/beta/rc tags
 release = 'stable'
 
