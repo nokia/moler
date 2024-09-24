@@ -222,6 +222,9 @@ class TextualDevice(AbstractDevice):
 
         :return: None
         """
+        self._log(level=logging.INFO, msg=f"Device '{self._name}' is about to remove.")
+        mg = traceback.format_list(traceback.extract_stack(limit=None))
+        self._log(level=logging.INFO, msg=f"Stack for device remove: '{self._name}': {mg}.")
         try:
             self.goto_state(TextualDevice.not_connected, rerun=5)
         except DeviceChangeStateFailure:
