@@ -217,7 +217,7 @@ class TextualDevice(AbstractDevice):
         self._established = True
         self._log(level=logging.INFO, msg=msg)
 
-    def remove(self, stack_limit = 6):
+    def remove(self, stack_limit=6):
         """
         Closes device, if any command or event is attached to this device they will be finished.
 
