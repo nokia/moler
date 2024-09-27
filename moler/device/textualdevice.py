@@ -35,6 +35,7 @@ from moler.exceptions import (
 )
 from moler.helpers import copy_dict, copy_list, update_dict
 from moler.instance_loader import create_instance_from_class_fullname
+from pprint import pformat
 
 
 # TODO: name, logger/logger_name as param
@@ -216,15 +217,16 @@ class TextualDevice(AbstractDevice):
         self._established = True
         self._log(level=logging.INFO, msg=msg)
 
-    def remove(self):
+    def remove(self, stack_limit = 6):
         """
         Closes device, if any command or event is attached to this device they will be finished.
 
+        :param stack_limit: how many stack frames to keep. If None then all stack frames are kept.
         :return: None
         """
-        self._log(level=logging.INFO, msg=f"Device '{self._name}' is about to remove.")
-        mg = traceback.format_list(traceback.extract_stack(limit=None))
-        self._log(level=logging.INFO, msg=f"Stack for device remove: '{self._name}': {mg}.")
+        mg = pformat(traceback.format_list(traceback.extract_stack(limit=stack_limit)))
+        self._log(level=logging.INFO, msg=f"Device '{self._name}' is about to remove. Requested by: {mg}")
+
         try:
             self.goto_state(TextualDevice.not_connected, rerun=5)
         except DeviceChangeStateFailure:
