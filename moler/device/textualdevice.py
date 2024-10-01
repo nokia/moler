@@ -209,7 +209,7 @@ class TextualDevice(AbstractDevice):
             self._run_prompts_observers()
 
         msg = (
-            f"Established connection to device '{self.name}' (as instance of class '{self.__class__.__module__}.{self.__class__.__name__}', "
+            f"Established connection to device '{self.name}' ({self.public_name}) (as instance of class '{self.__class__.__module__}.{self.__class__.__name__}', "
             f"io_connection: '{self.io_connection.__class__.__module__}.{self.io_connection.__class__.__name__}', "
             f"moler_connection: '{self.io_connection.moler_connection.__class__.__module__}.{self.io_connection.moler_connection.__class__.__name__}') "
             f"with prompts: '{self._state_prompts}'."
@@ -224,8 +224,8 @@ class TextualDevice(AbstractDevice):
         :param stack_limit: how many stack frames to keep. If None then all stack frames are kept.
         :return: None
         """
-        mg = pformat(traceback.format_list(traceback.extract_stack(limit=stack_limit)))
-        self._log(level=logging.INFO, msg=f"Device '{self._name}' is about to remove. Requested by: {mg}")
+        mg = pformat(traceback.format_list(traceback.extract_stack(limit=stack_limit))[::-1])
+        self._log(level=logging.INFO, msg=f"Device '{self.name}' is about to remove. Requested by: {mg}\n(...)")
 
         try:
             self.goto_state(TextualDevice.not_connected, rerun=5)
