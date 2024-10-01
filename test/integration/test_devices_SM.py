@@ -1,25 +1,19 @@
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2020-2021, Nokia'
+__copyright__ = 'Copyright (C) 2020-2024, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
-import sys
 from moler.device import DeviceFactory
 
-python3_only = pytest.mark.skipif(sys.version_info < (3, 0),
-                                  reason="Not stable under Python2 which is no more supported.")
 
-
-@python3_only
 def test_proxy_pc_with_sshshell(loaded_proxy_pc_config):
     dev = DeviceFactory.get_device(name="PROXY")
     assert dev.current_state == "PROXY_PC"
     dev.goto_state("NOT_CONNECTED")
     assert dev.current_state == "NOT_CONNECTED"
-    dev.remove()
+    dev.remove(stack_limit=2)
 
 
-@python3_only
 def test_proxy_pc_with_sshshell_cant_use_unix_local_states(loaded_proxy_pc_config):
     with pytest.raises(ValueError) as err:
         DeviceFactory.get_device(name="PROXY", initial_state="UNIX_LOCAL")
@@ -28,7 +22,6 @@ def test_proxy_pc_with_sshshell_cant_use_unix_local_states(loaded_proxy_pc_confi
     assert 'You need io of type "terminal" to have unix-local states' in str(err.value)
 
 
-@python3_only
 def test_proxy_pc_with_terminal_can_use_unix_local_states(loaded_proxy_pc_config, uxlocal2proxypc_connection_hops):
     # check backward compatibility
     dev = DeviceFactory.get_device(name="PROXY",
@@ -42,10 +35,9 @@ def test_proxy_pc_with_terminal_can_use_unix_local_states(loaded_proxy_pc_config
     assert dev.current_state == "UNIX_LOCAL"
     dev.goto_state("NOT_CONNECTED")
     assert dev.current_state == "NOT_CONNECTED"
-    dev.remove()
+    dev.remove(stack_limit=None)
 
 
-@python3_only
 def test_unix_remote_with_sshshell_only(loaded_unix_remote_config):
     dev = DeviceFactory.get_device(name="UX_REMOTE")
     assert dev.current_state == "UNIX_REMOTE"
@@ -56,7 +48,6 @@ def test_unix_remote_with_sshshell_only(loaded_unix_remote_config):
     dev.remove()
 
 
-@python3_only
 def test_unix_remote_with_sshshell_via_proxy_pc(loaded_unix_remote_config, proxypc2uxroot_connection_hops):
     dev = DeviceFactory.get_device(name="UX_REMOTE", initial_state="PROXY_PC",
                                    connection_desc={'io_type': 'sshshell',
@@ -78,7 +69,6 @@ def test_unix_remote_with_sshshell_via_proxy_pc(loaded_unix_remote_config, proxy
     dev.remove()
 
 
-@python3_only
 def test_unix_remote_with_sshshell_cant_use_unix_local_states(loaded_unix_remote_config):
     with pytest.raises(ValueError) as err:
         DeviceFactory.get_device(name="UX_REMOTE", initial_state="UNIX_LOCAL")
@@ -87,7 +77,6 @@ def test_unix_remote_with_sshshell_cant_use_unix_local_states(loaded_unix_remote
     assert 'You need io of type "terminal" to have unix-local states' in str(err.value)
 
 
-@python3_only
 def test_unix_remote_with_terminal_can_use_unix_local_states(loaded_unix_remote_config, uxlocal2uxremote_connection_hops):
     # check backward compatibility
     dev = DeviceFactory.get_device(name="UX_REMOTE",
@@ -110,7 +99,6 @@ def test_unix_remote_with_terminal_can_use_unix_local_states(loaded_unix_remote_
     dev.remove()
 
 
-@python3_only
 def test_adb_remote_with_sshshell_only(loaded_adb_device_config):
     dev = DeviceFactory.get_device(name="ADB_LHOST")
     assert dev.current_state == "ADB_SHELL"
@@ -123,7 +111,6 @@ def test_adb_remote_with_sshshell_only(loaded_adb_device_config):
     dev.remove()
 
 
-@python3_only
 def test_adb_remote_with_sshshell_via_proxy_pc(loaded_adb_device_config, proxypc2adbshell_connection_hops):
     dev = DeviceFactory.get_device(name="ADB_LHOST", initial_state="PROXY_PC",
                                    connection_desc={'io_type': 'sshshell',
@@ -149,7 +136,6 @@ def test_adb_remote_with_sshshell_via_proxy_pc(loaded_adb_device_config, proxypc
     dev.remove()
 
 
-@python3_only
 def test_adb_remote_with_terminal_can_use_unix_local_states(loaded_adb_device_config, uxlocal2adbshell_connection_hops):
     # check backward compatibility
     dev = DeviceFactory.get_device(name="ADB_LHOST",
