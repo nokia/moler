@@ -556,3 +556,68 @@ def test_remove_state_from_sm_dict():
 
     current_sm = remove_state_from_sm(source_sm, UnixRemote.proxy_pc)
     assert expected_sm == current_sm
+
+
+def test_remove_state_hops_from_sm():
+    from moler.device.unixremote import UnixRemote
+    from moler.helpers import remove_state_hops_from_sm
+    source_hops = {
+        UnixRemote.not_connected: {
+            UnixRemote.unix_remote: UnixRemote.unix_local,
+            UnixRemote.proxy_pc: UnixRemote.unix_local,
+            UnixRemote.unix_local_root: UnixRemote.unix_local,
+            UnixRemote.unix_remote_root: UnixRemote.unix_local
+        },
+        UnixRemote.unix_remote: {
+            UnixRemote.not_connected: UnixRemote.proxy_pc,
+            UnixRemote.unix_local: UnixRemote.proxy_pc,
+            UnixRemote.unix_local_root: UnixRemote.proxy_pc
+        },
+        UnixRemote.unix_local_root: {
+            UnixRemote.not_connected: UnixRemote.unix_local,
+            UnixRemote.unix_remote: UnixRemote.unix_local,
+            UnixRemote.unix_remote_root: UnixRemote.unix_local
+        },
+        UnixRemote.proxy_pc: {
+            UnixRemote.not_connected: UnixRemote.unix_local,
+            UnixRemote.unix_local_root: UnixRemote.unix_local,
+            UnixRemote.unix_remote_root: UnixRemote.unix_remote
+        },
+        UnixRemote.unix_local: {
+            UnixRemote.unix_remote: UnixRemote.proxy_pc,
+            UnixRemote.unix_remote_root: UnixRemote.proxy_pc
+        },
+        UnixRemote.unix_remote_root: {
+            UnixRemote.not_connected: UnixRemote.unix_remote,
+            UnixRemote.unix_local: UnixRemote.unix_remote,
+            UnixRemote.unix_local_root: UnixRemote.unix_remote,
+            UnixRemote.proxy_pc: UnixRemote.unix_remote,
+        }
+    }
+    expected_hops = {
+        UnixRemote.not_connected: {
+            UnixRemote.unix_remote: UnixRemote.unix_local,
+            UnixRemote.unix_local_root: UnixRemote.unix_local,
+            UnixRemote.unix_remote_root: UnixRemote.unix_local,
+        },
+        UnixRemote.unix_local: {
+            UnixRemote.unix_remote_root: UnixRemote.unix_remote
+        },
+        UnixRemote.unix_local_root: {
+            UnixRemote.not_connected: UnixRemote.unix_local,
+            UnixRemote.unix_remote: UnixRemote.unix_local,
+            UnixRemote.unix_remote_root: UnixRemote.unix_local
+        },
+        UnixRemote.unix_remote: {
+            UnixRemote.not_connected: UnixRemote.unix_local,
+            UnixRemote.unix_local_root: UnixRemote.unix_local
+        },
+        UnixRemote.unix_remote_root: {
+            UnixRemote.not_connected: UnixRemote.unix_remote,
+            UnixRemote.unix_local: UnixRemote.unix_remote,
+            UnixRemote.unix_local_root: UnixRemote.unix_remote,
+        }
+    }
+
+    current_hops = remove_state_hops_from_sm(source_hops, UnixRemote.proxy_pc)
+    assert expected_hops == current_hops

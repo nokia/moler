@@ -605,3 +605,31 @@ def remove_state_from_sm(source_sm: dict, state_to_remove: str) -> dict:
         del new_sm[from_state][state_to_remove]
 
     return new_sm
+
+
+def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str) -> dict:
+    """
+    Remove a state from a state machine dict.
+    :param source_sm: a dict with state machine description
+    :param state_to_remove: name of state to remove
+    :return: a new state machine hops dict without state_to_remove
+    """
+    new_hops = copy.deepcopy(source_hops)
+    for from_state in source_hops.keys():
+        item = source_hops[from_state]
+        for dest_state in item.keys():
+            direct_state = item[dest_state]
+            if direct_state == state_to_remove:
+                if state_to_remove in source_hops and dest_state in source_hops[state_to_remove]:
+                    new_hops[from_state][dest_state] = source_hops[state_to_remove][dest_state]
+                else:
+                    del new_hops[from_state][dest_state]
+
+    for from_state in source_hops.keys():
+        if from_state in new_hops and state_to_remove in new_hops[from_state]:
+            del new_hops[from_state][state_to_remove]
+
+    if state_to_remove in new_hops:
+        del new_hops[state_to_remove]
+
+    return new_hops

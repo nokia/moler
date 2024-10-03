@@ -6,7 +6,7 @@ Moler's device has 2 main responsibilities:
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 from moler.device.proxy_pc import ProxyPc
@@ -417,7 +417,6 @@ class UnixRemote(ProxyPc):
                 UnixRemote.not_connected: UnixRemote.unix_remote,
                 UnixRemote.unix_local: UnixRemote.unix_remote,
                 UnixRemote.unix_local_root: UnixRemote.unix_remote,
-                UnixRemote.proxy_pc: UnixRemote.unix_remote,
             }
         }
         return state_hops
