@@ -554,8 +554,81 @@ def test_remove_state_from_sm_dict():
         }
     }
 
-    current_sm = remove_state_from_sm(source_sm, UnixRemote.proxy_pc)
+    source_transitions = {
+        UnixRemote.unix_local: {
+            UnixRemote.proxy_pc: {
+                "action": [
+                    "_execute_command_to_change_state"
+                ],
+            }
+        },
+        UnixRemote.proxy_pc: {
+            UnixRemote.unix_local: {
+                "action": [
+                    "_execute_command_to_change_state"
+                ],
+            },
+        },
+        UnixRemote.proxy_pc: {
+            UnixRemote.unix_remote: {
+                "action": [
+                    "_execute_command_to_change_state"
+                ],
+            }
+        },
+        UnixRemote.unix_remote: {
+            UnixRemote.proxy_pc: {
+                "action": [
+                    "_execute_command_to_change_state"
+                ],
+            },
+            UnixRemote.unix_remote_root: {
+                "action": [
+                    "_execute_command_to_change_state"
+                ],
+            }
+        },
+        UnixRemote.unix_remote_root: {
+            UnixRemote.unix_remote: {
+                "action": [
+                    "_execute_command_to_change_state"
+                ],
+            }
+        }
+    }
+
+    expected_transitions = {
+        UnixRemote.unix_remote: {
+            UnixRemote.unix_local: {
+                "action": [
+                    "_execute_command_to_change_state"
+                ],
+            },
+            UnixRemote.unix_remote_root: {
+                "action": [
+                    "_execute_command_to_change_state"
+                ],
+            }
+        },
+        UnixRemote.unix_local: {
+            UnixRemote.unix_remote: {
+                "action": [
+                    "_execute_command_to_change_state"
+                ],
+            }
+        },
+        UnixRemote.unix_remote_root: {
+            UnixRemote.unix_remote: {
+                "action": [
+                    "_execute_command_to_change_state"
+                ],
+            }
+        }
+    }
+
+    (current_sm, current_transitions) = remove_state_from_sm(source_sm=source_sm, source_transitions=source_transitions, state_to_remove=UnixRemote.proxy_pc)
     assert expected_sm == current_sm
+    assert expected_transitions == current_transitions
 
 
 def test_remove_state_hops_from_sm():
@@ -621,3 +694,83 @@ def test_remove_state_hops_from_sm():
 
     current_hops = remove_state_hops_from_sm(source_hops, UnixRemote.proxy_pc)
     assert expected_hops == current_hops
+
+
+# def test_remove_transition_from_sm():
+#     from moler.device.unixremote import UnixRemote
+#     from moler.helpers import remove_transition_from_sm
+
+#     source_transitions = {
+#         UnixRemote.unix_local: {
+#             UnixRemote.proxy_pc: {
+#                 "action": [
+#                     "_execute_command_to_change_state"
+#                 ],
+#             }
+#         },
+#         UnixRemote.proxy_pc: {
+#             UnixRemote.unix_local: {
+#                 "action": [
+#                     "_execute_command_to_change_state"
+#                 ],
+#             },
+#         },
+#         UnixRemote.proxy_pc: {
+#             UnixRemote.unix_remote: {
+#                 "action": [
+#                     "_execute_command_to_change_state"
+#                 ],
+#             }
+#         },
+#         UnixRemote.unix_remote: {
+#             UnixRemote.proxy_pc: {
+#                 "action": [
+#                     "_execute_command_to_change_state"
+#                 ],
+#             },
+#             UnixRemote.unix_remote_root: {
+#                 "action": [
+#                     "_execute_command_to_change_state"
+#                 ],
+#             }
+#         },
+#         UnixRemote.unix_remote_root: {
+#             UnixRemote.unix_remote: {
+#                 "action": [
+#                     "_execute_command_to_change_state"
+#                 ],
+#             }
+#         }
+#     }
+
+#     expected_transitions = {
+#         UnixRemote.unix_remote: {
+#             UnixRemote.unix_local: {
+#                 "action": [
+#                     "_execute_command_to_change_state"
+#                 ],
+#             },
+#             UnixRemote.unix_remote_root: {
+#                 "action": [
+#                     "_execute_command_to_change_state"
+#                 ],
+#             }
+#         },
+#         UnixRemote.unix_local: {
+#             UnixRemote.unix_remote: {
+#                 "action": [
+#                     "_execute_command_to_change_state"
+#                 ],
+#             }
+#         },
+#         UnixRemote.unix_remote_root: {
+#             UnixRemote.unix_remote: {
+#                 "action": [
+#                     "_execute_command_to_change_state"
+#                 ],
+#             }
+#         }
+#     }
+
+#     current_transitions = remove_transition_from_sm(source_transitions=source_transitions, state_to_remove=UnixRemote.proxy_pc)
+#     assert expected_transitions == current_transitions
