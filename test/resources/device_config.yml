@@ -81,6 +81,62 @@ DEVICES:
           command_params:
             expected_prompt: "proxy_pc#"
 
+  UNIX_REMOTE3:
+    DEVICE_CLASS: moler.device.unixremote3.UnixRemote3
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        UNIX_REMOTE:
+          execute_command: ssh # default value
+          command_params:
+            expected_prompt: 'remote#'
+            host: remote_host
+            login: remote_login
+            password: login
+            set_timeout: null
+
+  UNIX_REMOTE3_REAL_IO:
+    DEVICE_CLASS: moler.device.unixremote3.UnixRemote3
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        UNIX_REMOTE:
+          execute_command: ssh # default value
+          command_params:
+            expected_prompt: 'remote#'
+            host: remote_host
+            login: remote_login
+            password: login
+            set_timeout: null
+
+  UNIX_REMOTE3_PROXY_PC:
+    DEVICE_CLASS: moler.device.unixremote3.UnixRemote3
+    INITIAL_STATE: UNIX_LOCAL
+    LAZY_CMDS_EVENTS: True
+    CONNECTION_HOPS:
+      PROXY_PC:
+        UNIX_REMOTE:
+          execute_command: ssh
+          command_params:
+            host: remote_host
+            login: remote_login
+            password: password
+            expected_prompt: "remote#"
+            set_timeout: null
+      UNIX_LOCAL:
+        PROXY_PC:
+          execute_command: ssh
+          command_params:
+            expected_prompt: "proxy_pc#"
+            host: proxy_pc_host
+            login: proxy_pc_login
+            password: password
+            set_timeout: null
+      UNIX_REMOTE:
+        PROXY_PC:
+          command_params:
+            expected_prompt: "proxy_pc#"
+
   JUNIPER_EX:
     DEVICE_CLASS: moler.device.juniper_ex.JuniperEX
     INITIAL_STATE: UNIX_LOCAL

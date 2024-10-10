@@ -123,10 +123,11 @@ class TextualDevice(AbstractDevice):
         self.logger = logging.getLogger(f"moler.connection.{self.name}")
         self.configure_logger(name=self.name, propagate=False)
 
-        self._prepare_transitions()
-        self._prepare_state_hops()
-        self._configure_state_machine(sm_params)
-        self._prepare_newline_chars()
+        self._prepare_sm_data(sm_params=sm_params)
+        # self._prepare_transitions()
+        # self._prepare_state_hops()
+        # self._configure_state_machine(sm_params)
+        # self._prepare_newline_chars()
 
         # TODO: Need test to ensure above sentence for all connection
         self.io_connection.notify(
@@ -156,6 +157,12 @@ class TextualDevice(AbstractDevice):
         self.last_wrong_wait4_occurrence = None  # Last occurrence from Wait4prompts if at least 2 prompts matched the
         # same line.
         self._sleep_after_state_change = 0.5
+
+    def _prepare_sm_data(self, sm_params):
+        self._prepare_transitions()
+        self._prepare_state_hops()
+        self._configure_state_machine(sm_params)
+        self._prepare_newline_chars()
 
     def set_all_prompts_on_line(self, value=True):
         """
