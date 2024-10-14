@@ -92,23 +92,74 @@ class UnixRemote3(ProxyPc):
 
 
     def _prepare_sm_data(self, sm_params):
-        self._prepare_transitions()
-        self._prepare_state_hops()
-        self._configure_state_machine(sm_params)
+        self._prepare_dicts_for_sm(sm_params=sm_params)
+
+        #self._configure_state_machine(sm_params)
         self._prepare_newline_chars()
+
 
     def _prepare_transitions(self):
         """
         Prepare transitions to change states.
+        :return: Nothing.
+        """
+
+        super(UnixRemote3, self)._prepare_transitions()
+
+        if self._use_proxy_pc:
+            transitions = self._prepare_transitions_with_proxy_pc()
+        else:
+            transitions = self._prepare_transitions_without_proxy_pc()
+        self._add_transitions(transitions=transitions)
+
+    def _prepare_dicts_for_sm(self, sm_params):
+        """
+        Prepare transitions to change states.
         :return: None.
         """
-        super(UnixRemote3, self)._prepare_transitions()
+
         transitions = self._prepare_transitions_with_proxy_pc()
-        from moler.helpers import remove_state_from_sm
+        state_hops = self._prepare_state_hops_with_proxy_pc()
+        from pprint import pformat
+        print(f"_prepare_dicts_for_sm state_hops: {pformat(state_hops)}")
+        default_sm_configurations = self._get_default_sm_configuration()
+
+
+
+        from moler.helpers import remove_state_from_sm, remove_state_hops_from_sm
         if not self._use_proxy_pc:
-            (, transitions) = remove_state_from_sm(source_sm=transitions, state_to_remove=UnixRemote3.proxy_pc)
+            print("\n\n\n\n************************************\n Remove PROXY_PC\n****************************")
+            (connection_hops, transitions) = remove_state_from_sm(source_sm=default_sm_configurations["CONNECTION_HOPS"], source_transitions=transitions, state_to_remove=UnixRemote3.proxy_pc)
+            state_hops = remove_state_hops_from_sm(source_hops=state_hops, state_to_remove=UnixRemote3.proxy_pc)
+            default_sm_configurations['CONNECTION_HOPS'] = connection_hops
+
+        print(f"self._state_hops before update: {pformat(self._state_hops)}")
+        print("\n\n\n==START OF DATA")
+        print(f"state hops to update: {pformat(state_hops)}")
+        print(f"default sm configurations: {pformat(default_sm_configurations)}")
+        print(f"transitions={pformat(transitions)}")
+        print("==END OF DATA\n\n\n")
 
         self._add_transitions(transitions=transitions)
+        self._update_dict(self._state_hops, state_hops)
+
+        self._configurations = default_sm_configurations
+        self._prepare_sm_configuration(
+            default_sm_configurations, sm_params
+        )
+        self._validate_device_configuration()
+        self._prepare_state_prompts()
+
+    def _get_default_sm_configuration(self):
+        """
+        Create State Machine default configuration.
+        :return: default sm configuration.
+        """
+        config = super(ProxyPc, self)._get_default_sm_configuration()
+        default_config = self._get_default_sm_configuration_with_proxy_pc()
+
+        self._update_dict(config, default_config)
+        return config
 
     @mark_to_call_base_class_method_with_same_name
     def _get_default_sm_configuration_with_proxy_pc(self):
