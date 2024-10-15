@@ -242,7 +242,6 @@ class UnixLocal(TextualDevice):
 
         command_name = configurations["execute_command"]
         command_params = configurations["command_params"]
-
         command_timeout = self.calc_timeout_for_command(timeout, command_params)
         command_params_without_timeout = self._parameters_without_timeout(
             parameters=command_params

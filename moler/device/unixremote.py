@@ -428,7 +428,12 @@ class UnixRemote(ProxyPc):
         :return: None.
         """
         super(UnixRemote, self)._configure_state_machine(sm_params)
+        self._overwrite_prompts()
 
+    def _overwrite_prompts(self):
+        """
+        Overwrite prompts for some states to easily configure the SM.
+        """
         if self._use_proxy_pc:
             self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote_root][UnixRemote.unix_remote][
                 "command_params"]["expected_prompt"] = \

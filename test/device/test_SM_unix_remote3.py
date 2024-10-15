@@ -14,8 +14,8 @@ from moler.config import load_config
 from moler.exceptions import DeviceFailure
 
 
-def test_unix_remote_device(device_connection, unix_remote_output):
-    unix_remote = get_device(name="UNIX_REMOTE3", connection=device_connection, device_output=unix_remote_output,
+def test_unix_remote_device(device_connection, unix_remote_output3):
+    unix_remote = get_device(name="UNIX_REMOTE3", connection=device_connection, device_output=unix_remote_output3,
                              test_file_path=__file__)
     iterate_over_device_states(device=unix_remote)
     assert None is not unix_remote._cmdnames_available_in_state['UNIX_LOCAL_ROOT']
@@ -148,7 +148,7 @@ def test_unix_remote_device_not_connected():
 
 
 @pytest.fixture
-def unix_remote_output():
+def unix_remote_output3():
     output = {
         "UNIX_LOCAL": {
             'TERM=xterm-mono ssh -l remote_login -o ServerAliveInterval=7 -o ServerAliveCountMax=2 remote_host': 'remote#',
