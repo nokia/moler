@@ -400,10 +400,7 @@ class UnixRemote3(ProxyPc):
         available = super(UnixRemote3, self)._get_packages_for_state(state, observer)
 
         if not available:
-            if (
-                state == UnixRemote3.unix_remote
-                or state == UnixRemote3.unix_remote_root
-            ):
+            if state == UnixRemote3.unix_remote or state == UnixRemote3.unix_remote_root:
                 available = {
                     UnixRemote3.cmds: ["moler.cmd.unix"],
                     UnixRemote3.events: ["moler.events.shared", "moler.events.unix"],
