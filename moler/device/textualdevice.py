@@ -125,10 +125,6 @@ class TextualDevice(AbstractDevice):
 
         self._stored_transitions = {}
         self._prepare_sm_data(sm_params=sm_params)
-        # self._prepare_transitions()
-        # self._prepare_state_hops()
-        # self._configure_state_machine(sm_params)
-        # self._prepare_newline_chars()
 
         # TODO: Need test to ensure above sentence for all connection
         self.io_connection.notify(

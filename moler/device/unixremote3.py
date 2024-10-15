@@ -13,6 +13,7 @@ from moler.device.proxy_pc import ProxyPc
 from moler.helpers import (
     call_base_class_method_with_same_name,
     mark_to_call_base_class_method_with_same_name,
+    remove_state_from_sm, remove_state_hops_from_sm
 )
 
 
@@ -139,8 +140,6 @@ class UnixRemote3(ProxyPc):
         state_hops = self._prepare_state_hops_with_proxy_pc()
 
         default_sm_configurations = self._get_default_sm_configuration()
-
-        from moler.helpers import remove_state_from_sm, remove_state_hops_from_sm
 
         if not self._use_proxy_pc:
             (connection_hops, transitions) = remove_state_from_sm(
