@@ -9,6 +9,8 @@ __author__ = "Marcin Usielski"
 __copyright__ = "Copyright (C) 2024, Nokia"
 __email__ = "marcin.usielski@nokia.com"
 
+
+import logging
 from moler.device.proxy_pc import ProxyPc
 from moler.helpers import (
     call_base_class_method_with_same_name,
@@ -109,7 +111,7 @@ class UnixRemote3(ProxyPc):
             initial_state=initial_state,
             lazy_cmds_events=lazy_cmds_events,
         )
-        self._log(msg="Experimental device. Maybe deleted at any moment. Please don't use it in your scripts.")
+        self._log(level=logging.WARNING, msg="Experimental device. Maybe deleted at any moment. Please don't use it in your scripts.")
 
     def _prepare_sm_data(self, sm_params):
         self._prepare_dicts_for_sm(sm_params=sm_params)
