@@ -587,17 +587,17 @@ def remove_state_from_sm(source_sm: dict, source_transitions: dict, state_to_rem
     new_sm = copy.deepcopy(source_sm)
     new_transitions = copy.deepcopy(source_transitions)
 
-    from_states = []
+    states_from_state_to_remove = []
     for from_state in source_sm.keys():
         for to_state in source_sm[from_state].keys():
             if to_state == state_to_remove:
-                from_states.append(from_state)
+                states_from_state_to_remove.append(from_state)
 
     for to_state in source_sm[state_to_remove].keys():
         if to_state == state_to_remove:
             continue
-        for new_from in from_states:
-            if new_from != to_state and new_from != state_to_remove:
+        for new_from in states_from_state_to_remove:
+            if new_from != to_state:
                 break
         if new_from not in new_sm:
             new_sm[new_from] = {}
