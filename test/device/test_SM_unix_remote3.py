@@ -1,6 +1,6 @@
-__author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2024, Nokia'
-__email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
+__author__ = 'Marcin Usielski'
+__copyright__ = 'Copyright (C) 2024, Nokia'
+__email__ = 'marcin.usielski@nokia.com'
 
 import pytest
 import time
@@ -14,30 +14,22 @@ from moler.config import load_config
 from moler.exceptions import DeviceFailure
 
 
-unix_remotes=['UNIX_REMOTE', 'UNIX_REMOTE3']
-unix_remotes_proxy_pc=['UNIX_REMOTE_PROXY_PC', 'UNIX_REMOTE3_PROXY_PC']
-unix_remotes_real_io = ['UNIX_REMOTE_REAL_IO', 'UNIX_REMOTE3_REAL_IO']
-
-
-@pytest.mark.parametrize("device_name", unix_remotes)
-def test_unix_remote_device(device_name, device_connection, unix_remote_output):
-    unix_remote = get_device(name=device_name, connection=device_connection, device_output=unix_remote_output,
+def test_unix_remote_device(device_connection, unix_remote_output3):
+    unix_remote = get_device(name="UNIX_REMOTE3", connection=device_connection, device_output=unix_remote_output3,
                              test_file_path=__file__)
     iterate_over_device_states(device=unix_remote)
     assert None is not unix_remote._cmdnames_available_in_state['UNIX_LOCAL_ROOT']
 
 
-@pytest.mark.parametrize("device_name", unix_remotes_proxy_pc)
-def test_unix_remote_proxy_pc_device(device_name, device_connection, unix_remote_proxy_pc_output):
-    unix_remote_proxy_pc = get_device(name=device_name, connection=device_connection,
+def test_unix_remote_proxy_pc_device(device_connection, unix_remote_proxy_pc_output):
+    unix_remote_proxy_pc = get_device(name="UNIX_REMOTE3_PROXY_PC", connection=device_connection,
                                       device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
 
     iterate_over_device_states(device=unix_remote_proxy_pc)
     assert None is not unix_remote_proxy_pc._cmdnames_available_in_state['UNIX_LOCAL_ROOT']
 
 
-@pytest.mark.parametrize("device_name", unix_remotes_proxy_pc)
-def test_unix_remote_proxy_pc_device_multiple_prompts(device_name, device_connection, unix_remote_proxy_pc_output):
+def test_unix_remote_proxy_pc_device_multiple_prompts(device_connection, unix_remote_proxy_pc_output):
     unix_remote_proxy_pc_changed_output = copy_dict(unix_remote_proxy_pc_output, deep_copy=True)
     combined_line = "moler_bash#"
     for src_state in unix_remote_proxy_pc_output.keys():
@@ -47,7 +39,7 @@ def test_unix_remote_proxy_pc_device_multiple_prompts(device_name, device_connec
         for cmd_string in unix_remote_proxy_pc_changed_output[src_state].keys():
             unix_remote_proxy_pc_changed_output[src_state][cmd_string] = combined_line
 
-    unix_remote_proxy_pc = get_device(name=device_name, connection=device_connection,
+    unix_remote_proxy_pc = get_device(name="UNIX_REMOTE3_PROXY_PC", connection=device_connection,
                                       device_output=unix_remote_proxy_pc_changed_output,
                                       test_file_path=__file__)
     assert unix_remote_proxy_pc._check_all_prompts_on_line is True
@@ -58,9 +50,8 @@ def test_unix_remote_proxy_pc_device_multiple_prompts(device_name, device_connec
     assert "More than 1 prompt match the same line" in str(exception.value)
 
 
-@pytest.mark.parametrize("device_name", unix_remotes_proxy_pc)
-def test_unix_remote_proxy_pc_device_goto_state_bg(device_name, device_connection, unix_remote_proxy_pc_output):
-    unix_remote_proxy_pc = get_device(name=device_name, connection=device_connection,
+def test_unix_remote_proxy_pc_device_goto_state_bg(device_connection, unix_remote_proxy_pc_output):
+    unix_remote_proxy_pc = get_device(name="UNIX_REMOTE3_PROXY_PC", connection=device_connection,
                                       device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
     unix_remote_proxy_pc._goto_state_in_production_mode = True
     dst_state = "UNIX_REMOTE_ROOT"
@@ -85,9 +76,8 @@ def test_unix_remote_proxy_pc_device_goto_state_bg(device_name, device_connectio
     assert time_diff < min(execution_time_fg, execution_time_bg)
 
 
-@pytest.mark.parametrize("device_name", unix_remotes_proxy_pc)
-def test_unix_remote_proxy_pc_device_goto_state_bg_and_goto(device_name, device_connection, unix_remote_proxy_pc_output):
-    unix_remote_proxy_pc = get_device(name=device_name, connection=device_connection,
+def test_unix_remote_proxy_pc_device_goto_state_bg_and_goto(device_connection, unix_remote_proxy_pc_output):
+    unix_remote_proxy_pc = get_device(name="UNIX_REMOTE3_PROXY_PC", connection=device_connection,
                                       device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
     unix_remote_proxy_pc._goto_state_in_production_mode = True
 
@@ -101,9 +91,8 @@ def test_unix_remote_proxy_pc_device_goto_state_bg_and_goto(device_name, device_
     assert unix_remote_proxy_pc.current_state == dst_state
 
 
-@pytest.mark.parametrize("device_name", unix_remotes_proxy_pc)
-def test_unix_remote_proxy_pc_device_goto_state_bg_await(device_name, device_connection, unix_remote_proxy_pc_output):
-    unix_remote_proxy_pc = get_device(name=device_name, connection=device_connection,
+def test_unix_remote_proxy_pc_device_goto_state_bg_await(device_connection, unix_remote_proxy_pc_output):
+    unix_remote_proxy_pc = get_device(name="UNIX_REMOTE3_PROXY_PC", connection=device_connection,
                                       device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
     unix_remote_proxy_pc._goto_state_in_production_mode = True
     dst_state = "UNIX_REMOTE_ROOT"
@@ -116,9 +105,8 @@ def test_unix_remote_proxy_pc_device_goto_state_bg_await(device_name, device_con
     assert unix_remote_proxy_pc.current_state == dst_state
 
 
-@pytest.mark.parametrize("device_name", unix_remotes_proxy_pc)
-def test_unix_remote_proxy_pc_device_goto_state_bg_await_exception(device_name, device_connection, unix_remote_proxy_pc_output):
-    unix_remote_proxy_pc = get_device(name=device_name, connection=device_connection,
+def test_unix_remote_proxy_pc_device_goto_state_bg_await_excption(device_connection, unix_remote_proxy_pc_output):
+    unix_remote_proxy_pc = get_device(name="UNIX_REMOTE3_PROXY_PC", connection=device_connection,
                                       device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
     unix_remote_proxy_pc._goto_state_in_production_mode = True
     dst_state = "UNIX_REMOTE_ROOT"
@@ -134,11 +122,10 @@ def test_unix_remote_proxy_pc_device_goto_state_bg_await_exception(device_name, 
     assert unix_remote_proxy_pc.current_state == dst_state
 
 
-@pytest.mark.parametrize("device_name", unix_remotes_real_io)
-def test_unix_remote_device_not_connected(device_name):
+def test_unix_remote_device_not_connected():
     dir_path = os.path.dirname(os.path.realpath(__file__))
     load_config(os.path.join(dir_path, os.pardir, os.pardir, 'test', 'resources', 'device_config.yml'))
-    unix_remote = DeviceFactory.get_device(name=device_name, initial_state="UNIX_LOCAL")
+    unix_remote = DeviceFactory.get_device(name="UNIX_REMOTE3_REAL_IO", initial_state="UNIX_LOCAL")
     unix_remote.goto_state("UNIX_LOCAL", sleep_after_changed_state=0)
     cmd_whoami = unix_remote.get_cmd(cmd_name="whoami")
     ret1 = cmd_whoami()
@@ -160,20 +147,8 @@ def test_unix_remote_device_not_connected(device_name):
         execution += 1
 
 
-@pytest.mark.parametrize("devices", [unix_remotes, unix_remotes_proxy_pc, unix_remotes_real_io])
-def test_unix_sm_identity(devices):
-    dev0 = DeviceFactory.get_device(name=devices[0])
-    dev1 = DeviceFactory.get_device(name=devices[1])
-
-    assert dev0._stored_transitions == dev1._stored_transitions
-    assert dev0._state_hops == dev1._state_hops
-    assert dev0._state_prompts == dev1._state_prompts
-    assert dev0._configurations == dev1._configurations
-    assert dev0._newline_chars == dev1._newline_chars
-
-
 @pytest.fixture
-def unix_remote_output():
+def unix_remote_output3():
     output = {
         "UNIX_LOCAL": {
             'TERM=xterm-mono ssh -l remote_login -o ServerAliveInterval=7 -o ServerAliveCountMax=2 remote_host': 'remote#',

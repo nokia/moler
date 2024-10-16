@@ -209,6 +209,7 @@ def _perform_device_tests(
                 sleep_after_changed_state=sleep_after_changed_state,
             )
             tested.add((source_state, target_state))
+
             if device.last_wrong_wait4_occurrence is not None:
                 prompts = [{item["state"]: item["prompt_regex"]} for item in
                            device.last_wrong_wait4_occurrence["list_matched"]]

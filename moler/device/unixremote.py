@@ -6,7 +6,7 @@ Moler's device has 2 main responsibilities:
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 from moler.device.proxy_pc import ProxyPc
@@ -25,41 +25,41 @@ class UnixRemote(ProxyPc):
             Example of device in yaml configuration file:
             - with PROXY_PC:
             UNIX_1:
-            DEVICE_CLASS: moler.device.unixremote.UnixRemote
-            CONNECTION_HOPS:
-                PROXY_PC:
-                UNIX_REMOTE:
-                    execute_command: ssh # default value
-                    command_params:
-                    expected_prompt: unix_remote_prompt
-                    host: host_ip
-                    login: login
-                    password: password
-                UNIX_REMOTE:
-                PROXY_PC:
-                    execute_command: exit # default value
-                    command_params:
-                    expected_prompt: proxy_pc_prompt
-                UNIX_LOCAL:
-                PROXY_PC:
-                    execute_command: ssh # default value
-                    command_params:
-                    expected_prompt: proxy_pc_prompt
-                    host: host_ip
-                    login: login
-                    password: password
+                DEVICE_CLASS: moler.device.unixremote.UnixRemote
+                CONNECTION_HOPS:
+                    PROXY_PC:
+                        UNIX_REMOTE:
+                            execute_command: ssh # default value
+                            command_params:
+                            expected_prompt: unix_remote_prompt
+                            host: host_ip
+                            login: login
+                            password: password
+                    UNIX_REMOTE:
+                        PROXY_PC:
+                            execute_command: exit # default value
+                            command_params:
+                            expected_prompt: proxy_pc_prompt
+                    UNIX_LOCAL:
+                        PROXY_PC:
+                            execute_command: ssh # default value
+                            command_params:
+                            expected_prompt: proxy_pc_prompt
+                            host: host_ip
+                            login: login
+                            password: password
             -without PROXY_PC:
             UNIX_1:
-            DEVICE_CLASS: moler.device.unixremote.UnixRemote
-            CONNECTION_HOPS:
-                UNIX_LOCAL:
-                UNIX_REMOTE:
-                    execute_command: ssh # default value
-                    command_params:
-                    expected_prompt: unix_remote_prompt
-                    host: host_ip
-                    login: login
-                    password: password
+                DEVICE_CLASS: moler.device.unixremote.UnixRemote
+                CONNECTION_HOPS:
+                    UNIX_LOCAL:
+                        UNIX_REMOTE:
+                            execute_command: ssh # default value
+                            command_params:
+                            expected_prompt: unix_remote_prompt
+                            host: host_ip
+                            login: login
+                            password: password
 
 
     """
@@ -417,7 +417,6 @@ class UnixRemote(ProxyPc):
                 UnixRemote.not_connected: UnixRemote.unix_remote,
                 UnixRemote.unix_local: UnixRemote.unix_remote,
                 UnixRemote.unix_local_root: UnixRemote.unix_remote,
-                UnixRemote.proxy_pc: UnixRemote.unix_remote,
             }
         }
         return state_hops
@@ -429,7 +428,12 @@ class UnixRemote(ProxyPc):
         :return: None.
         """
         super(UnixRemote, self)._configure_state_machine(sm_params)
+        self._overwrite_prompts()
 
+    def _overwrite_prompts(self):
+        """
+        Overwrite prompts for some states to easily configure the SM.
+        """
         if self._use_proxy_pc:
             self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote_root][UnixRemote.unix_remote][
                 "command_params"]["expected_prompt"] = \
