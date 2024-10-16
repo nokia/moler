@@ -25,41 +25,41 @@ class UnixRemote(ProxyPc):
             Example of device in yaml configuration file:
             - with PROXY_PC:
             UNIX_1:
-            DEVICE_CLASS: moler.device.unixremote.UnixRemote
-            CONNECTION_HOPS:
-                PROXY_PC:
-                UNIX_REMOTE:
-                    execute_command: ssh # default value
-                    command_params:
-                    expected_prompt: unix_remote_prompt
-                    host: host_ip
-                    login: login
-                    password: password
-                UNIX_REMOTE:
-                PROXY_PC:
-                    execute_command: exit # default value
-                    command_params:
-                    expected_prompt: proxy_pc_prompt
-                UNIX_LOCAL:
-                PROXY_PC:
-                    execute_command: ssh # default value
-                    command_params:
-                    expected_prompt: proxy_pc_prompt
-                    host: host_ip
-                    login: login
-                    password: password
+                DEVICE_CLASS: moler.device.unixremote.UnixRemote
+                CONNECTION_HOPS:
+                    PROXY_PC:
+                        UNIX_REMOTE:
+                            execute_command: ssh # default value
+                            command_params:
+                            expected_prompt: unix_remote_prompt
+                            host: host_ip
+                            login: login
+                            password: password
+                    UNIX_REMOTE:
+                        PROXY_PC:
+                            execute_command: exit # default value
+                            command_params:
+                            expected_prompt: proxy_pc_prompt
+                    UNIX_LOCAL:
+                        PROXY_PC:
+                            execute_command: ssh # default value
+                            command_params:
+                            expected_prompt: proxy_pc_prompt
+                            host: host_ip
+                            login: login
+                            password: password
             -without PROXY_PC:
             UNIX_1:
-            DEVICE_CLASS: moler.device.unixremote.UnixRemote
-            CONNECTION_HOPS:
-                UNIX_LOCAL:
-                UNIX_REMOTE:
-                    execute_command: ssh # default value
-                    command_params:
-                    expected_prompt: unix_remote_prompt
-                    host: host_ip
-                    login: login
-                    password: password
+                DEVICE_CLASS: moler.device.unixremote.UnixRemote
+                CONNECTION_HOPS:
+                    UNIX_LOCAL:
+                        UNIX_REMOTE:
+                            execute_command: ssh # default value
+                            command_params:
+                            expected_prompt: unix_remote_prompt
+                            host: host_ip
+                            login: login
+                            password: password
 
 
     """

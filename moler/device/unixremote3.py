@@ -29,41 +29,41 @@ class UnixRemote3(ProxyPc):
             Example of device in yaml configuration file:
             - with PROXY_PC:
             UNIX_1:
-            DEVICE_CLASS: moler.device.UnixRemote3.UnixRemote3
-            CONNECTION_HOPS:
-                PROXY_PC:
-                UNIX_REMOTE:
-                    execute_command: ssh # default value
-                    command_params:
-                    expected_prompt: unix_remote_prompt
-                    host: host_ip
-                    login: login
-                    password: password
-                UNIX_REMOTE:
-                PROXY_PC:
-                    execute_command: exit # default value
-                    command_params:
-                    expected_prompt: proxy_pc_prompt
-                UNIX_LOCAL:
-                PROXY_PC:
-                    execute_command: ssh # default value
-                    command_params:
-                    expected_prompt: proxy_pc_prompt
-                    host: host_ip
-                    login: login
-                    password: password
+                DEVICE_CLASS: moler.device.UnixRemote3.UnixRemote3
+                CONNECTION_HOPS:
+                    PROXY_PC:
+                        UNIX_REMOTE:
+                            execute_command: ssh # default value
+                            command_params:
+                            expected_prompt: unix_remote_prompt
+                            host: host_ip
+                            login: login
+                            password: password
+                    UNIX_REMOTE:
+                        PROXY_PC:
+                            execute_command: exit # default value
+                            command_params:
+                            expected_prompt: proxy_pc_prompt
+                    UNIX_LOCAL:
+                        PROXY_PC:
+                            execute_command: ssh # default value
+                            command_params:
+                            expected_prompt: proxy_pc_prompt
+                            host: host_ip
+                            login: login
+                            password: password
             -without PROXY_PC:
             UNIX_1:
-            DEVICE_CLASS: moler.device.UnixRemote3.UnixRemote3
-            CONNECTION_HOPS:
-                UNIX_LOCAL:
-                UNIX_REMOTE:
-                    execute_command: ssh # default value
-                    command_params:
-                    expected_prompt: unix_remote_prompt
-                    host: host_ip
-                    login: login
-                    password: password
+                DEVICE_CLASS: moler.device.UnixRemote3.UnixRemote3
+                CONNECTION_HOPS:
+                    UNIX_LOCAL:
+                        UNIX_REMOTE:
+                            execute_command: ssh # default value
+                            command_params:
+                            expected_prompt: unix_remote_prompt
+                            host: host_ip
+                            login: login
+                            password: password
 
 
     """
@@ -109,6 +109,7 @@ class UnixRemote3(ProxyPc):
             initial_state=initial_state,
             lazy_cmds_events=lazy_cmds_events,
         )
+        self._log(msg="Experimental device. Maybe deleted at any moment. Please don't use it in your scripts.")
 
     def _prepare_sm_data(self, sm_params):
         self._prepare_dicts_for_sm(sm_params=sm_params)
