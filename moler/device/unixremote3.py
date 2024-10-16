@@ -111,7 +111,7 @@ class UnixRemote3(ProxyPc):
             initial_state=initial_state,
             lazy_cmds_events=lazy_cmds_events,
         )
-        self._log(level=logging.WARNING, msg="Experimental device. Maybe deleted at any moment. Please don't use it in your scripts.")
+        self._log(level=logging.WARNING, msg="Experimental device. May be deleted at any moment. Please don't use it in your scripts.")
 
     def _prepare_sm_data(self, sm_params):
         self._prepare_dicts_for_sm(sm_params=sm_params)
