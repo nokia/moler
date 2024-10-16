@@ -18,6 +18,7 @@ unix_remotes=['UNIX_REMOTE', 'UNIX_REMOTE3']
 unix_remotes_proxy_pc=['UNIX_REMOTE_PROXY_PC', 'UNIX_REMOTE3_PROXY_PC']
 unix_remotes_real_io = ['UNIX_REMOTE_REAL_IO', 'UNIX_REMOTE3_REAL_IO']
 
+
 @pytest.mark.parametrize("device_name", unix_remotes)
 def test_unix_remote_device(device_name, device_connection, unix_remote_output):
     unix_remote = get_device(name=device_name, connection=device_connection, device_output=unix_remote_output,
@@ -157,6 +158,15 @@ def test_unix_remote_device_not_connected(device_name):
         ret2 = cmd_whoami()
         assert ret1 == ret2
         execution += 1
+
+
+@pytest.mark.parametrize("devices", [unix_remotes, unix_remotes_proxy_pc])
+def test_unix_sm_identity(devices):
+    dev0 = DeviceFactory.get_device(name=devices[0])
+    dev1 = DeviceFactory.get_device(name=devices[1])
+
+    assert dev0._stored_transitions == dev1._stored_transitions
+    assert dev0._
 
 
 @pytest.fixture
