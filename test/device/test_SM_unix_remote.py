@@ -160,13 +160,16 @@ def test_unix_remote_device_not_connected(device_name):
         execution += 1
 
 
-@pytest.mark.parametrize("devices", [unix_remotes, unix_remotes_proxy_pc])
+@pytest.mark.parametrize("devices", [unix_remotes, unix_remotes_proxy_pc, unix_remotes_real_io])
 def test_unix_sm_identity(devices):
     dev0 = DeviceFactory.get_device(name=devices[0])
     dev1 = DeviceFactory.get_device(name=devices[1])
 
     assert dev0._stored_transitions == dev1._stored_transitions
-    assert dev0._
+    assert dev0._state_hops == dev1._state_hops
+    assert dev0._state_prompts == dev1._state_prompts
+    assert dev0._configurations == dev1._configurations
+    assert dev0._newline_chars == dev1._newline_chars
 
 
 @pytest.fixture

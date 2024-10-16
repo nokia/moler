@@ -584,9 +584,6 @@ def remove_state_from_sm(source_sm: dict, source_transitions: dict, state_to_rem
     :param state_to_remove: name of state to remove
     :return: tuple with 2 dicts without state_to_remove, 0 - new state machine, 1 - new transitions
     """
-    from pprint import pformat
-    print(f"source sm: {pformat(source_sm)}")
-    print(f"source transitions: {pformat(source_transitions)}")
     new_sm = copy.deepcopy(source_sm)
     new_transitions = copy.deepcopy(source_transitions)
 
