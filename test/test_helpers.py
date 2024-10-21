@@ -428,3 +428,269 @@ def test_date_parser_utc():
     date_parsed = ConverterHelper.parse_date(date_str)
     date_expected = datetime(year=2024, month=5, day=22, hour=9, minute=11, second=48, tzinfo=tzoffset('UTC', 0))
     assert date_parsed == date_expected
+
+
+def test_remove_state_from_sm_dict():
+    from moler.device.unixremote import UnixRemote
+    from moler.helpers import remove_state_from_sm
+    source_sm = {
+        UnixRemote.unix_local: {
+            UnixRemote.proxy_pc: {
+                "execute_command": "ssh",
+                "command_params": {
+                    "target_newline": "\n"
+                },
+                "required_command_params": [
+                    "host",
+                    "login",
+                    "password",
+                    "expected_prompt"
+                ]
+            },
+        },
+        UnixRemote.proxy_pc: {  # from
+            UnixRemote.unix_remote: {  # to
+                "execute_command": "ssh",  # using command
+                "command_params": {  # with parameters
+                    "target_newline": "\n"
+                },
+                "required_command_params": [
+                    "host",
+                    "login",
+                    "password",
+                    "expected_prompt"
+                ]
+            },
+            UnixRemote.unix_local: { # to
+                "execute_command": "exit",  # using command
+                "command_params": {  # with parameters
+                    "target_newline": "\n"
+                },
+                "required_command_params": [    # with parameters
+                    "expected_prompt"
+                ]
+            },
+        },
+        UnixRemote.unix_remote: {  # from
+            UnixRemote.proxy_pc: {  # to
+                "execute_command": "exit",  # using command
+                "command_params": {  # with parameters
+                    "target_newline": "\n"
+                },
+                "required_command_params": [
+                    "expected_prompt"
+                ]
+            },
+            UnixRemote.unix_remote_root: {  # to
+                "execute_command": "su",  # using command
+                "command_params": {  # with parameters
+                    "password": "root_password",
+                    "expected_prompt": r'remote_root_prompt',
+                    "target_newline": "\n"
+                },
+                "required_command_params": [
+                ]
+            },
+        },
+        UnixRemote.unix_remote_root: {  # from
+            UnixRemote.unix_remote: {  # to
+                "execute_command": "exit",  # using command
+                "command_params": {  # with parameters
+                    "target_newline": "\n",
+                    "expected_prompt": r'remote_user_prompt'
+                },
+                "required_command_params": [
+                ]
+            }
+        }
+    }
+
+    expected_sm = {
+        UnixRemote.unix_local: {
+            UnixRemote.unix_remote: {  # to
+                "execute_command": "ssh",  # using command
+                "command_params": {  # with parameters
+                    "target_newline": "\n"
+                },
+                "required_command_params": [
+                    "host",
+                    "login",
+                    "password",
+                    "expected_prompt"
+                ]
+            },
+        },
+        UnixRemote.unix_remote: {  # from
+            UnixRemote.unix_local: {  # to
+                "execute_command": "exit",  # using command
+                "command_params": {  # with parameters
+                    "target_newline": "\n"
+                },
+                "required_command_params": [
+                    "expected_prompt"
+                ]
+            },
+            UnixRemote.unix_remote_root: {  # to
+                "execute_command": "su",  # using command
+                "command_params": {  # with parameters
+                    "password": "root_password",
+                    "expected_prompt": r'remote_root_prompt',
+                    "target_newline": "\n"
+                },
+                "required_command_params": [
+                ]
+            },
+        },
+        UnixRemote.unix_remote_root: {  # from
+            UnixRemote.unix_remote: {  # to
+                "execute_command": "exit",  # using command
+                "command_params": {  # with parameters
+                    "target_newline": "\n",
+                    "expected_prompt": r'remote_user_prompt'
+                },
+                "required_command_params": [
+                ]
+            }
+        }
+    }
+
+    source_transitions = {
+        UnixRemote.unix_local: {
+            UnixRemote.proxy_pc: {
+                "action": [
+                    "_execute_command_to_change_state"
+                ],
+            }
+        },
+        UnixRemote.proxy_pc: {
+            UnixRemote.unix_local: {
+                "action": [
+                    "_execute_command_to_change_state"
+                ],
+            },
+        },
+        UnixRemote.proxy_pc: {
+            UnixRemote.unix_remote: {
+                "action": [
+                    "_execute_command_to_change_state"
+                ],
+            }
+        },
+        UnixRemote.unix_remote: {
+            UnixRemote.proxy_pc: {
+                "action": [
+                    "_execute_command_to_change_state"
+                ],
+            },
+            UnixRemote.unix_remote_root: {
+                "action": [
+                    "_execute_command_to_change_state"
+                ],
+            }
+        },
+        UnixRemote.unix_remote_root: {
+            UnixRemote.unix_remote: {
+                "action": [
+                    "_execute_command_to_change_state"
+                ],
+            }
+        }
+    }
+
+    expected_transitions = {
+        UnixRemote.unix_remote: {
+            UnixRemote.unix_local: {
+                "action": [
+                    "_execute_command_to_change_state"
+                ],
+            },
+            UnixRemote.unix_remote_root: {
+                "action": [
+                    "_execute_command_to_change_state"
+                ],
+            }
+        },
+        UnixRemote.unix_local: {
+            UnixRemote.unix_remote: {
+                "action": [
+                    "_execute_command_to_change_state"
+                ],
+            }
+        },
+        UnixRemote.unix_remote_root: {
+            UnixRemote.unix_remote: {
+                "action": [
+                    "_execute_command_to_change_state"
+                ],
+            }
+        }
+    }
+
+    (current_sm, current_transitions) = remove_state_from_sm(source_sm=source_sm, source_transitions=source_transitions, state_to_remove=UnixRemote.proxy_pc)
+    assert expected_sm == current_sm
+    assert expected_transitions == current_transitions
+
+
+def test_remove_state_hops_from_sm():
+    from moler.device.unixremote import UnixRemote
+    from moler.helpers import remove_state_hops_from_sm
+    source_hops = {
+        UnixRemote.not_connected: {
+            UnixRemote.unix_remote: UnixRemote.unix_local,
+            UnixRemote.proxy_pc: UnixRemote.unix_local,
+            UnixRemote.unix_local_root: UnixRemote.unix_local,
+            UnixRemote.unix_remote_root: UnixRemote.unix_local
+        },
+        UnixRemote.unix_remote: {
+            UnixRemote.not_connected: UnixRemote.proxy_pc,
+            UnixRemote.unix_local: UnixRemote.proxy_pc,
+            UnixRemote.unix_local_root: UnixRemote.proxy_pc
+        },
+        UnixRemote.unix_local_root: {
+            UnixRemote.not_connected: UnixRemote.unix_local,
+            UnixRemote.unix_remote: UnixRemote.unix_local,
+            UnixRemote.unix_remote_root: UnixRemote.unix_local
+        },
+        UnixRemote.proxy_pc: {
+            UnixRemote.not_connected: UnixRemote.unix_local,
+            UnixRemote.unix_local_root: UnixRemote.unix_local,
+            UnixRemote.unix_remote_root: UnixRemote.unix_remote
+        },
+        UnixRemote.unix_local: {
+            UnixRemote.unix_remote: UnixRemote.proxy_pc,
+            UnixRemote.unix_remote_root: UnixRemote.proxy_pc
+        },
+        UnixRemote.unix_remote_root: {
+            UnixRemote.not_connected: UnixRemote.unix_remote,
+            UnixRemote.unix_local: UnixRemote.unix_remote,
+            UnixRemote.unix_local_root: UnixRemote.unix_remote,
+            UnixRemote.proxy_pc: UnixRemote.unix_remote,
+        }
+    }
+    expected_hops = {
+        UnixRemote.not_connected: {
+            UnixRemote.unix_remote: UnixRemote.unix_local,
+            UnixRemote.unix_local_root: UnixRemote.unix_local,
+            UnixRemote.unix_remote_root: UnixRemote.unix_local,
+        },
+        UnixRemote.unix_local: {
+            UnixRemote.unix_remote_root: UnixRemote.unix_remote
+        },
+        UnixRemote.unix_local_root: {
+            UnixRemote.not_connected: UnixRemote.unix_local,
+            UnixRemote.unix_remote: UnixRemote.unix_local,
+            UnixRemote.unix_remote_root: UnixRemote.unix_local
+        },
+        UnixRemote.unix_remote: {
+            UnixRemote.not_connected: UnixRemote.unix_local,
+            UnixRemote.unix_local_root: UnixRemote.unix_local
+        },
+        UnixRemote.unix_remote_root: {
+            UnixRemote.not_connected: UnixRemote.unix_remote,
+            UnixRemote.unix_local: UnixRemote.unix_remote,
+            UnixRemote.unix_local_root: UnixRemote.unix_remote,
+        }
+    }
+
+    current_hops = remove_state_hops_from_sm(source_hops, UnixRemote.proxy_pc)
+    assert expected_hops == current_hops

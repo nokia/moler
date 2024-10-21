@@ -123,10 +123,8 @@ class TextualDevice(AbstractDevice):
         self.logger = logging.getLogger(f"moler.connection.{self.name}")
         self.configure_logger(name=self.name, propagate=False)
 
-        self._prepare_transitions()
-        self._prepare_state_hops()
-        self._configure_state_machine(sm_params)
-        self._prepare_newline_chars()
+        self._stored_transitions = {}
+        self._prepare_sm_data(sm_params=sm_params)
 
         # TODO: Need test to ensure above sentence for all connection
         self.io_connection.notify(
@@ -156,6 +154,13 @@ class TextualDevice(AbstractDevice):
         self.last_wrong_wait4_occurrence = None  # Last occurrence from Wait4prompts if at least 2 prompts matched the
         # same line.
         self._sleep_after_state_change = 0.5
+
+    def _prepare_sm_data(self, sm_params):
+        self._prepare_transitions()
+        self._prepare_state_hops()
+        self._configure_state_machine(sm_params)
+        self._prepare_newline_chars()
+        self._send_transitions_to_sm(self._stored_transitions)
 
     def set_all_prompts_on_line(self, value=True):
         """
@@ -993,7 +998,10 @@ class TextualDevice(AbstractDevice):
 
         return events
 
-    def _add_transitions(self, transitions):
+    def _add_transitions(self, transitions: dict):
+        self._update_dict(self._stored_transitions, transitions)
+
+    def _send_transitions_to_sm(self, transitions: dict) -> None:
         for source_state in transitions.keys():
             for dest_state in transitions[source_state].keys():
                 self._update_SM_states(dest_state)

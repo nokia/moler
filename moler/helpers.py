@@ -574,3 +574,89 @@ def regexp_without_anchors(regexp):
     if regexp_str == org_regexp_str:
         return regexp
     return re.compile(regexp_str)
+
+
+def remove_state_from_sm(source_sm: dict, source_transitions: dict, state_to_remove: str) -> tuple:
+    """
+    Remove a state from a state machine dict.
+    :param source_sm: a dict with a state machine description
+    :param source_transitions: a dict with a state machine transitions
+    :param state_to_remove: name of state to remove
+    :return: tuple with 2 dicts without state_to_remove, 0 - new state machine, 1 - new transitions
+    """
+    new_sm = copy.deepcopy(source_sm)
+    new_transitions = copy.deepcopy(source_transitions)
+
+    states_from_state_to_remove = []
+    for from_state in source_sm.keys():
+        for to_state in source_sm[from_state].keys():
+            if to_state == state_to_remove:
+                states_from_state_to_remove.append(from_state)
+
+    for to_state in source_sm[state_to_remove].keys():
+        if to_state == state_to_remove:
+            continue
+        for new_from in states_from_state_to_remove:
+            if new_from != to_state:
+                break
+        if new_from not in new_sm:
+            new_sm[new_from] = {}
+        if new_from not in new_transitions:
+            new_transitions[new_from] = {}
+        new_sm[new_from][to_state] = copy.deepcopy(source_sm[state_to_remove][to_state])
+        if state_to_remove in source_transitions and to_state in source_transitions[state_to_remove]:
+            new_transitions[new_from][to_state] = copy.deepcopy(source_transitions[state_to_remove][to_state])
+        else:
+            new_transitions[new_from][to_state] = {
+                "action": [
+                    "_execute_command_to_change_state"
+                ],
+            }
+
+    _delete_state(sm=new_sm, state_to_remove=state_to_remove)
+    _delete_state(sm=new_transitions, state_to_remove=state_to_remove)
+
+    return (new_sm, new_transitions)
+
+
+def _delete_state(sm: dict, state_to_remove: str) -> None:
+    """
+    Delete state from a state machine dict (in place).
+    :param sm: dict with state machine
+    :param state_to_remove: name of state to delete
+    :return: None
+    """
+    if state_to_remove in sm:
+        del sm[state_to_remove]
+    for from_state in sm:
+        if from_state in sm and state_to_remove in sm[from_state]:
+            del sm[from_state][state_to_remove]
+
+
+def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str) -> dict:
+    """
+    Remove a state from a state machine dict.
+    :param source_sm: a dict with state machine description
+    :param state_to_remove: name of state to remove
+    :return: a new state machine hops dict without state_to_remove
+    """
+    new_hops = copy.deepcopy(source_hops)
+
+    for from_state in source_hops.keys():
+        item = source_hops[from_state]
+        for dest_state in item.keys():
+            direct_state = item[dest_state]
+            if direct_state == state_to_remove:
+                if state_to_remove in source_hops and dest_state in source_hops[state_to_remove]:
+                    new_hops[from_state][dest_state] = source_hops[state_to_remove][dest_state]
+                else:
+                    del new_hops[from_state][dest_state]
+
+    for from_state in source_hops.keys():
+        if from_state in new_hops and state_to_remove in new_hops[from_state]:
+            del new_hops[from_state][state_to_remove]
+
+    if state_to_remove in new_hops:
+        del new_hops[state_to_remove]
+
+    return new_hops
