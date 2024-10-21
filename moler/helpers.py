@@ -613,13 +613,13 @@ def remove_state_from_sm(source_sm: dict, source_transitions: dict, state_to_rem
                 ],
             }
 
-    del_state_to_remove(sm=new_sm, state_to_remove=state_to_remove)
-    del_state_to_remove(sm=new_transitions, state_to_remove=state_to_remove)
+    _delete_state(sm=new_sm, state_to_remove=state_to_remove)
+    _delete_state(sm=new_transitions, state_to_remove=state_to_remove)
 
     return (new_sm, new_transitions)
 
 
-def del_state_to_remove(sm: dict, state_to_remove: str) -> None:
+def _delete_state(sm: dict, state_to_remove: str) -> None:
     """
     Delete state from a state machine dict (in place).
     :param sm: dict with state machine
