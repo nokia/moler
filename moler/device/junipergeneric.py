@@ -124,8 +124,10 @@ class JuniperGeneric(ProxyPc):
                     JuniperGeneric.unix_local: {  # to
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
-                            "expected_prompt": r'^moler_bash#'
+                            "expected_prompt": r'^moler_bash#',
+                            "target_newline": "\n",
                         },
+                        "required_command_params": [],
                     },
                     JuniperGeneric.configure: {
                         "execute_command": "configure",
@@ -313,6 +315,7 @@ class JuniperGeneric(ProxyPc):
                 JuniperGeneric.configure: JuniperGeneric.cli,
             },
             JuniperGeneric.unix_local_root: {
+                JuniperGeneric.not_connected: JuniperGeneric.unix_local,
                 JuniperGeneric.cli: JuniperGeneric.unix_local,
                 JuniperGeneric.configure: JuniperGeneric.unix_local,
             },

@@ -170,7 +170,7 @@ class UnixRemote3(ProxyPc):
         Create State Machine default configuration.
         :return: default sm configuration.
         """
-        config = super(ProxyPc, self)._get_default_sm_configuration()
+        config = super(UnixRemote3, self)._get_default_sm_configuration()
         default_config = self._get_default_sm_configuration_with_proxy_pc()
 
         self._update_dict(config, default_config)
