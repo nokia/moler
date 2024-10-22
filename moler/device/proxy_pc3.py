@@ -39,19 +39,17 @@ class ProxyPc3(UnixLocal):
         initial_state = initial_state if initial_state is not None else ProxyPc3.unix_local
         self._use_proxy_pc = self._is_proxy_pc_in_sm_params(sm_params, ProxyPc3.proxy_pc)
         super(ProxyPc3, self).__init__(name=name, io_connection=io_connection,
-                                      io_type=io_type, variant=variant,
-                                      io_constructor_kwargs=io_constructor_kwargs,
-                                      sm_params=sm_params, initial_state=initial_state,
-                                      lazy_cmds_events=lazy_cmds_events)
+                                       io_type=io_type, variant=variant,
+                                       io_constructor_kwargs=io_constructor_kwargs,
+                                       sm_params=sm_params, initial_state=initial_state,
+                                       lazy_cmds_events=lazy_cmds_events)
         self._log(level=logging.WARNING, msg="Experimental device. May be deleted at any moment. Please don't use it in your scripts.")
-
 
     def _prepare_sm_data(self, sm_params):
         self._prepare_dicts_for_sm(sm_params=sm_params)
 
         self._prepare_newline_chars()
         self._send_transitions_to_sm(self._stored_transitions)
-
 
     def _prepare_transitions(self):
         """
@@ -98,7 +96,6 @@ class ProxyPc3(UnixLocal):
         self._overwrite_prompts()
         self._validate_device_configuration()
         self._prepare_state_prompts()
-
 
     def _overwrite_prompts(self) -> None:
         """
