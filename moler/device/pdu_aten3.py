@@ -76,8 +76,8 @@ class PduAten3(ProxyPc3):
         sm_params = sm_params.copy()
         initial_state = initial_state if initial_state is not None else PduAten3.pdu
         super(PduAten3, self).__init__(sm_params=sm_params, name=name, io_connection=io_connection,
-                                      io_type=io_type, variant=variant, io_constructor_kwargs=io_constructor_kwargs,
-                                      initial_state=initial_state, lazy_cmds_events=lazy_cmds_events)
+                                       io_type=io_type, variant=variant, io_constructor_kwargs=io_constructor_kwargs,
+                                       initial_state=initial_state, lazy_cmds_events=lazy_cmds_events)
         self.logger = logging.getLogger('moler.pdu')
 
     @mark_to_call_base_class_method_with_same_name

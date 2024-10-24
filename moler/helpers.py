@@ -638,11 +638,18 @@ def _delete_state(sm: dict, state_to_remove: str) -> None:
         if from_state in sm and state_to_remove in sm[from_state]:
             del sm[from_state][state_to_remove]
 
+
 def _delete_empty_states(sm: dict) -> None:
+    """
+    Delete empty states from a state machine dict (in place).
+    :param sm: dict with state machine
+    :return: None
+    """
     states = list(sm.keys())
     for state in states:
         if sm[state] is None or not sm[state]:
             del sm[state]
+
 
 def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str) -> dict:
     """
