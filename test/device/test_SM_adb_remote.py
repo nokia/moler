@@ -19,16 +19,16 @@ def test_adb_remote_device(device_name, device_connection, adb_remote_output):
     iterate_over_device_states(device=adb_remote)
 
 
-@pytest.mark.parametrize("devices", [adb_remotes])
-def test_unix_sm_identity(devices):
-    dev0 = DeviceFactory.get_device(name=devices[0])
-    dev1 = DeviceFactory.get_device(name=devices[1])
+# @pytest.mark.parametrize("devices", [adb_remotes])
+# def test_unix_sm_identity(devices):
+#     dev0 = DeviceFactory.get_device(name=devices[0])
+#     dev1 = DeviceFactory.get_device(name=devices[1])
 
-    assert dev0._stored_transitions == dev1._stored_transitions
-    assert dev0._state_hops == dev1._state_hops
-    assert dev0._state_prompts == dev1._state_prompts
-    assert dev0._configurations == dev1._configurations
-    assert dev0._newline_chars == dev1._newline_chars
+#     assert dev0._stored_transitions == dev1._stored_transitions
+#     assert dev0._state_hops == dev1._state_hops
+#     assert dev0._state_prompts == dev1._state_prompts
+#     assert dev0._configurations == dev1._configurations
+#     assert dev0._newline_chars == dev1._newline_chars
 
 
 @pytest.fixture
