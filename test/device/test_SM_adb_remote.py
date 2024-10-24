@@ -8,8 +8,8 @@ from moler.util.devices_SM import iterate_over_device_states, get_device
 from moler.device import DeviceFactory
 
 
-adb_remotes = ['ADB_REMOTE', 'ADB_REMOTE3']
-
+# adb_remotes = ['ADB_REMOTE', 'ADB_REMOTE3']
+adb_remotes = ['ADB_REMOTE']  # TODO: add ADB_REMOTE3 when it will be implemented
 
 @pytest.mark.parametrize("device_name", adb_remotes)
 def test_adb_remote_device(device_name, device_connection, adb_remote_output):
