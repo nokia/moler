@@ -603,7 +603,11 @@ def remove_state_from_sm(source_sm: dict, source_transitions: dict, state_to_rem
             new_sm[new_from] = {}
         if new_from not in new_transitions:
             new_transitions[new_from] = {}
+
         new_sm[new_from][to_state] = copy.deepcopy(source_sm[state_to_remove][to_state])
+        if 'execute_command' in source_sm[new_from][state_to_remove]:
+            new_sm[new_from][to_state]['execute_command'] = source_sm[new_from][state_to_remove]['execute_command']
+
         if state_to_remove in source_transitions and to_state in source_transitions[state_to_remove]:
             new_transitions[new_from][to_state] = copy.deepcopy(source_transitions[state_to_remove][to_state])
         else:
@@ -615,6 +619,8 @@ def remove_state_from_sm(source_sm: dict, source_transitions: dict, state_to_rem
 
     _delete_state(sm=new_sm, state_to_remove=state_to_remove)
     _delete_state(sm=new_transitions, state_to_remove=state_to_remove)
+    _delete_empty_states(new_sm)
+    _delete_empty_states(new_transitions)
 
     return (new_sm, new_transitions)
 
@@ -632,6 +638,11 @@ def _delete_state(sm: dict, state_to_remove: str) -> None:
         if from_state in sm and state_to_remove in sm[from_state]:
             del sm[from_state][state_to_remove]
 
+def _delete_empty_states(sm: dict) -> None:
+    states = list(sm.keys())
+    for state in states:
+        if sm[state] is None or not sm[state]:
+            del sm[state]
 
 def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str) -> dict:
     """
@@ -659,4 +670,5 @@ def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str) -> dict:
     if state_to_remove in new_hops:
         del new_hops[state_to_remove]
 
+    _delete_empty_states(new_hops)
     return new_hops

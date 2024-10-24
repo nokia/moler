@@ -10,13 +10,13 @@ __email__ = 'sylwester.golonka@nokia.com, jakub.kupiec@nokia.com'
 import logging
 from abc import ABCMeta
 from six import add_metaclass
-from moler.device.proxy_pc import ProxyPc
+from moler.device.proxy_pc3 import ProxyPc3
 from moler.helpers import call_base_class_method_with_same_name, mark_to_call_base_class_method_with_same_name
 
 
 @call_base_class_method_with_same_name
 @add_metaclass(ABCMeta)
-class JuniperGeneric(ProxyPc):
+class JuniperGeneric(ProxyPc3):
     """Junipergeneric device class."""
 
     cli = "CLI"

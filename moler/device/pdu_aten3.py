@@ -4,17 +4,17 @@ PduAten device class.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2020, Nokia'
+__copyright__ = 'Copyright (C) 2024, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import logging
 
-from moler.device.proxy_pc import ProxyPc
+from moler.device.proxy_pc3 import ProxyPc3
 from moler.helpers import call_base_class_method_with_same_name, mark_to_call_base_class_method_with_same_name
 
 
 @call_base_class_method_with_same_name
-class PduAten(ProxyPc):
+class PduAten3(ProxyPc3):
     r"""
     PDU Aten device class.
 
@@ -74,8 +74,8 @@ class PduAten(ProxyPc):
                         commands and events when they are required for the first time.
         """
         sm_params = sm_params.copy()
-        initial_state = initial_state if initial_state is not None else PduAten.pdu
-        super(PduAten, self).__init__(sm_params=sm_params, name=name, io_connection=io_connection,
+        initial_state = initial_state if initial_state is not None else PduAten3.pdu
+        super(PduAten3, self).__init__(sm_params=sm_params, name=name, io_connection=io_connection,
                                       io_type=io_type, variant=variant, io_constructor_kwargs=io_constructor_kwargs,
                                       initial_state=initial_state, lazy_cmds_events=lazy_cmds_events)
         self.logger = logging.getLogger('moler.pdu')
@@ -87,9 +87,9 @@ class PduAten(ProxyPc):
         :return: default sm configuration with proxy_pc state.
         """
         config = {
-            PduAten.connection_hops: {
-                PduAten.proxy_pc: {  # from
-                    PduAten.pdu: {  # to
+            PduAten3.connection_hops: {
+                PduAten3.proxy_pc: {  # from
+                    PduAten3.pdu: {  # to
                         "execute_command": "telnet",  # using command
                         "command_params": {  # with parameters
                             "expected_prompt": r'^>',
@@ -106,8 +106,8 @@ class PduAten(ProxyPc):
                         ]
                     },
                 },
-                PduAten.pdu: {  # from
-                    PduAten.proxy_pc: {  # to
+                PduAten3.pdu: {  # from
+                    PduAten3.proxy_pc: {  # to
                         "execute_command": "exit_telnet",  # using command
                         "command_params": {  # with parameters
                             "target_newline": "\n"
@@ -122,86 +122,21 @@ class PduAten(ProxyPc):
         return config
 
     @mark_to_call_base_class_method_with_same_name
-    def _get_default_sm_configuration_without_proxy_pc(self):
-        """
-        Return State Machine default configuration without proxy_pc state.
-        :return: default sm configuration without proxy_pc state.
-        """
-        config = {
-            PduAten.connection_hops: {
-                PduAten.unix_local: {  # from
-                    PduAten.pdu: {  # to
-                        "execute_command": "telnet",  # using command
-                        "command_params": {  # with parameters
-                            "expected_prompt": r'^>',
-                            "set_timeout": None,
-                            "target_newline": "\r\n",
-                            "login": "teladmin",
-                            "password": "telpwd",
-                            "encrypt_password": True,
-                            "send_enter_after_connection": False,
-                            "cmds_before_establish_connection": ['unset binary'],
-                        },
-                        "required_command_params": [
-                            "host",
-                        ]
-                    },
-                },
-                PduAten.pdu: {  # from
-                    PduAten.unix_local: {  # to
-                        "execute_command": "exit_telnet",  # using command
-                        "command_params": {  # with parameters
-                            "expected_prompt": r'^moler_bash#',
-                            "target_newline": "\n",
-                        },
-                        "required_command_params": [
-                        ]
-                    },
-                },
-            }
-        }
-        return config
-
-    @mark_to_call_base_class_method_with_same_name
     def _prepare_transitions_with_proxy_pc(self):
         transitions = {
-            PduAten.pdu: {
-                PduAten.proxy_pc: {
+            PduAten3.pdu: {
+                PduAten3.proxy_pc: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
                 },
             },
-            PduAten.proxy_pc: {
-                PduAten.pdu: {
+            PduAten3.proxy_pc: {
+                PduAten3.pdu: {
                     "action": [
                         "_execute_command_to_change_state"
                     ],
                 },
-            },
-        }
-        return transitions
-
-    @mark_to_call_base_class_method_with_same_name
-    def _prepare_transitions_without_proxy_pc(self):
-        """
-       Prepare transitions to change states without proxy_pc state.
-       :return: transitions without proxy_pc state.
-       """
-        transitions = {
-            PduAten.pdu: {
-                PduAten.unix_local: {
-                    "action": [
-                        "_execute_command_to_change_state"
-                    ],
-                },
-            },
-            PduAten.unix_local: {
-                PduAten.pdu: {
-                    "action": [
-                        "_execute_command_to_change_state"
-                    ],
-                }
             },
         }
         return transitions
@@ -213,8 +148,8 @@ class PduAten(ProxyPc):
         :return: textual prompt for each state with proxy_pc state.
         """
         state_prompts = {
-            PduAten.pdu:
-                self._configurations[PduAten.connection_hops][PduAten.proxy_pc][PduAten.pdu][
+            PduAten3.pdu:
+                self._configurations[PduAten3.connection_hops][PduAten3.proxy_pc][PduAten3.pdu][
                     "command_params"]["expected_prompt"],
         }
         return state_prompts
@@ -226,8 +161,8 @@ class PduAten(ProxyPc):
         :return: textual prompt for each state without proxy_pc state.
         """
         state_prompts = {
-            PduAten.pdu:
-                self._configurations[PduAten.connection_hops][PduAten.unix_local][PduAten.pdu][
+            PduAten3.pdu:
+                self._configurations[PduAten3.connection_hops][PduAten3.unix_local][PduAten3.pdu][
                     "command_params"]["expected_prompt"],
         }
         return state_prompts
@@ -239,41 +174,20 @@ class PduAten(ProxyPc):
         :return: non direct transitions for each state with proxy_pc state.
         """
         state_hops = {
-            PduAten.not_connected: {
-                PduAten.pdu: PduAten.unix_local,
+            PduAten3.not_connected: {
+                PduAten3.pdu: PduAten3.unix_local,
             },
-            PduAten.pdu: {
-                PduAten.not_connected: PduAten.proxy_pc,
-                PduAten.unix_local: PduAten.proxy_pc,
-                PduAten.unix_local_root: PduAten.proxy_pc
+            PduAten3.pdu: {
+                PduAten3.not_connected: PduAten3.proxy_pc,
+                PduAten3.unix_local: PduAten3.proxy_pc,
+                PduAten3.unix_local_root: PduAten3.proxy_pc
             },
-            PduAten.unix_local: {
-                PduAten.pdu: PduAten.proxy_pc,
+            PduAten3.unix_local: {
+                PduAten3.pdu: PduAten3.proxy_pc,
             },
-            PduAten.unix_local_root: {
-                PduAten.not_connected: PduAten.unix_local,
-                PduAten.pdu: PduAten.unix_local,
-            },
-        }
-        return state_hops
-
-    @mark_to_call_base_class_method_with_same_name
-    def _prepare_state_hops_without_proxy_pc(self):
-        """
-        Prepare non direct transitions for each state for State Machine without proxy_pc state.
-        :return: non direct transitions for each state without proxy_pc state.
-        """
-        state_hops = {
-            PduAten.not_connected: {
-                PduAten.pdu: PduAten.unix_local,
-            },
-            PduAten.pdu: {
-                PduAten.not_connected: PduAten.unix_local,
-                PduAten.unix_local_root: PduAten.unix_local
-            },
-            PduAten.unix_local_root: {
-                PduAten.not_connected: PduAten.unix_local,
-                PduAten.pdu: PduAten.unix_local,
+            PduAten3.unix_local_root: {
+                PduAten3.not_connected: PduAten3.unix_local,
+                PduAten3.pdu: PduAten3.unix_local,
             },
         }
         return state_hops
@@ -285,12 +199,12 @@ class PduAten(ProxyPc):
         :param observer: observer type, available: cmd, events
         :return: available cmds or events for specific device state.
         """
-        available = super(PduAten, self)._get_packages_for_state(state, observer)
+        available = super(PduAten3, self)._get_packages_for_state(state, observer)
 
         if not available:
-            if state == PduAten.pdu:
-                available = {PduAten.cmds: ['moler.cmd.pdu_aten.pdu'],
-                             PduAten.events: ['moler.events.unix', 'moler.events.pdu_aten']}
+            if state == PduAten3.pdu:
+                available = {PduAten3.cmds: ['moler.cmd.pdu_aten.pdu'],
+                             PduAten3.events: ['moler.events.unix', 'moler.events.pdu_aten']}
             if available:
                 return available[observer]
 
@@ -303,8 +217,8 @@ class PduAten(ProxyPc):
         :return: newline char for each state with proxy_pc state.
         """
         newline_chars = {
-            PduAten.pdu:
-                self._configurations[PduAten.connection_hops][PduAten.proxy_pc][PduAten.pdu][
+            PduAten3.pdu:
+                self._configurations[PduAten3.connection_hops][PduAten3.proxy_pc][PduAten3.pdu][
                     "command_params"]["target_newline"],
         }
         return newline_chars
@@ -316,8 +230,8 @@ class PduAten(ProxyPc):
         :return: newline char for each state without proxy_pc state.
         """
         newline_chars = {
-            PduAten.pdu:
-                self._configurations[PduAten.connection_hops][PduAten.unix_local][PduAten.pdu][
+            PduAten3.pdu:
+                self._configurations[PduAten3.connection_hops][PduAten3.unix_local][PduAten3.pdu][
                     "command_params"]["target_newline"],
         }
         return newline_chars
