@@ -11,7 +11,7 @@ __email__ = "marcin.usielski@nokia.com"
 
 
 import logging
-from moler.device.proxy_pc import ProxyPc
+from moler.device.proxy_pc3 import ProxyPc3
 from moler.helpers import (
     call_base_class_method_with_same_name,
     mark_to_call_base_class_method_with_same_name,
@@ -20,7 +20,7 @@ from moler.helpers import (
 
 
 @call_base_class_method_with_same_name
-class UnixRemote3(ProxyPc):
+class UnixRemote3(ProxyPc3):
     r"""
     UnixRemote3 device class.
 
@@ -170,7 +170,7 @@ class UnixRemote3(ProxyPc):
         Create State Machine default configuration.
         :return: default sm configuration.
         """
-        config = super(ProxyPc, self)._get_default_sm_configuration()
+        config = super(UnixRemote3, self)._get_default_sm_configuration()
         default_config = self._get_default_sm_configuration_with_proxy_pc()
 
         self._update_dict(config, default_config)

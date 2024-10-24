@@ -10,13 +10,13 @@ __email__ = 'sylwester.golonka@nokia.com, jakub.kupiec@nokia.com'
 import logging
 from abc import ABCMeta
 from six import add_metaclass
-from moler.device.proxy_pc import ProxyPc
+from moler.device.proxy_pc3 import ProxyPc3
 from moler.helpers import call_base_class_method_with_same_name, mark_to_call_base_class_method_with_same_name
 
 
 @call_base_class_method_with_same_name
 @add_metaclass(ABCMeta)
-class JuniperGeneric(ProxyPc):
+class JuniperGeneric(ProxyPc3):
     """Junipergeneric device class."""
 
     cli = "CLI"
@@ -124,8 +124,10 @@ class JuniperGeneric(ProxyPc):
                     JuniperGeneric.unix_local: {  # to
                         "execute_command": "exit",  # using command
                         "command_params": {  # with parameters
-                            "expected_prompt": r'^moler_bash#'
+                            "expected_prompt": r'^moler_bash#',
+                            "target_newline": "\n",
                         },
+                        "required_command_params": [],
                     },
                     JuniperGeneric.configure: {
                         "execute_command": "configure",
@@ -313,6 +315,7 @@ class JuniperGeneric(ProxyPc):
                 JuniperGeneric.configure: JuniperGeneric.cli,
             },
             JuniperGeneric.unix_local_root: {
+                JuniperGeneric.not_connected: JuniperGeneric.unix_local,
                 JuniperGeneric.cli: JuniperGeneric.unix_local,
                 JuniperGeneric.configure: JuniperGeneric.unix_local,
             },

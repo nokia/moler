@@ -1,5 +1,5 @@
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2020, Nokia'
+__copyright__ = 'Copyright (C) 2020-2024, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import pytest
@@ -7,18 +7,37 @@ import pytest
 from moler.util.devices_SM import iterate_over_device_states, get_device
 
 
-def test_pdu_device(device_connection, pdu_output):
-    pdu = get_device(name="PDU", connection=device_connection, device_output=pdu_output,
+pdus = ["PDU", "PDU3"]
+pdus_proxy = ["PDU_PROXY_PC", "PDU_PROXY_PC3"]
+
+
+@pytest.mark.parametrize("device_name", pdus)
+def test_pdu_device(device_name, device_connection, pdu_output):
+    pdu = get_device(name=device_name, connection=device_connection, device_output=pdu_output,
                      test_file_path=__file__)
 
     iterate_over_device_states(device=pdu)
 
 
-def test_pdu_proxy_pc_device(device_connection, pdu_proxy_pc_output):
-    pdu = get_device(name="PDU_PROXY_PC", connection=device_connection,
+@pytest.mark.parametrize("device_name", pdus_proxy)
+def test_pdu_proxy_pc_device(device_name, device_connection, pdu_proxy_pc_output):
+    pdu = get_device(name=device_name, connection=device_connection,
                      device_output=pdu_proxy_pc_output, test_file_path=__file__)
 
     iterate_over_device_states(device=pdu)
+
+
+@pytest.mark.parametrize("devices", [pdus, pdus_proxy])
+def test_unix_sm_identity(devices):
+    from moler.device import DeviceFactory
+    dev0 = DeviceFactory.get_device(name=devices[0])
+    dev1 = DeviceFactory.get_device(name=devices[1])
+
+    assert dev0._stored_transitions == dev1._stored_transitions
+    assert dev0._state_hops == dev1._state_hops
+    assert dev0._state_prompts == dev1._state_prompts
+    assert dev0._configurations == dev1._configurations
+    assert dev0._newline_chars == dev1._newline_chars
 
 
 @pytest.fixture
