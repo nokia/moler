@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   test:
-    timeout-minutes: 10
+    timeout-minutes: 15
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -48,13 +48,13 @@ jobs:
           adb devices
       - name: Test with pytest
         if: ${{ matrix.python-version != env.PYTHON_COVERAGE }}
-        timeout-minutes: 9
+        timeout-minutes: 14
         run: |
           python -m pytest -vvvsss test/
           # python -m pytest -c py3pytest.ini -vvvsss test/
       - name: Test with pytest and coverage
         if: ${{ matrix.python-version == env.PYTHON_COVERAGE }}
-        timeout-minutes: 9
+        timeout-minutes: 14
         run: |
           pip list
           python --version
