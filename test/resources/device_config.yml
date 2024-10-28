@@ -385,6 +385,34 @@ DEVICES:
           command_params:
             serial_devname: 'COM5'
 
+  AT_REMOTE_PROXY_PC:
+    DEVICE_CLASS: moler.device.atremote.AtRemote
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        PROXY_PC:
+          execute_command: ssh
+          command_params:
+            expected_prompt: "proxy_pc#"
+            host: proxy_pc_host
+            login: proxy_pc_login
+            password: password
+            set_timeout: null
+      PROXY_PC:
+        UNIX_REMOTE:
+          execute_command: ssh # default value
+          command_params:
+            expected_prompt: 'remote#'
+            host: remote_host
+            login: remote_login
+            password: passwd4remote
+            set_timeout: null
+      UNIX_REMOTE:
+        AT_REMOTE:
+          execute_command: plink_serial # default value
+          command_params:
+            serial_devname: 'COM5'
+
   ADB_REMOTE:
     DEVICE_CLASS: moler.device.adbremote.AdbRemote
     INITIAL_STATE: UNIX_LOCAL
