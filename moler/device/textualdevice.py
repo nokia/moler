@@ -159,6 +159,7 @@ class TextualDevice(AbstractDevice):
         self._prepare_transitions()
         self._prepare_state_hops()
         self._configure_state_machine(sm_params)
+        self._validate_device_configuration()
         self._prepare_newline_chars()
         self._send_transitions_to_sm(self._stored_transitions)
 
@@ -1153,7 +1154,6 @@ class TextualDevice(AbstractDevice):
         self._configurations = self._prepare_sm_configuration(
             default_sm_configurations, sm_params
         )
-        self._validate_device_configuration()
         self._prepare_state_prompts()
 
     def _prepare_sm_configuration(self, default_sm_configurations, sm_params):

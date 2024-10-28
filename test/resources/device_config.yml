@@ -404,6 +404,34 @@ DEVICES:
           command_params:
             serial_number: 'f57e6b77'  #  to create:  adb -s f57e6b77 shell
 
+  ADB_REMOTE_PROXY_PC:
+    DEVICE_CLASS: moler.device.adbremote.AdbRemote
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        PROXY_PC:
+          execute_command: ssh
+          command_params:
+            expected_prompt: "proxy_pc#"
+            host: proxy_pc_host
+            login: proxy_pc_login
+            password: password
+            set_timeout: null
+      PROXY_PC:
+        UNIX_REMOTE:
+          execute_command: ssh # default value
+          command_params:
+            expected_prompt: 'remote#'
+            host: remote_host
+            login: remote_login
+            password: passwd4remote
+            set_timeout: null
+      UNIX_REMOTE:
+        ADB_SHELL:
+          execute_command: adb_shell # default value; default command is:  adb shell
+          command_params:
+            serial_number: 'f57e6b77'  #  to create:  adb -s f57e6b77 shell
+
   # ADB_REMOTE3:
   #   DEVICE_CLASS: moler.device.adbremote3.AdbRemote3
   #   INITIAL_STATE: UNIX_LOCAL
