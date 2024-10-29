@@ -115,7 +115,7 @@ class CommandTextualGeneric(Command):
         )
         self.debug_data_received = False  # Set True to log as hex all data received by command in data_received
         self.re_fail = (
-            None  # Regex to failure the command if it occurrs in the command output
+            None  # Regex to failure the command if it occurs in the command output
         )
 
         if not self._newline_chars:
@@ -645,7 +645,7 @@ class CommandTextualGeneric(Command):
         if self.is_failure_indication(line=line, is_full_line=is_full_line):
             if self._is_failure_exception(line=line, is_full_line=is_full_line) is False:
                 self.set_exception(
-                    CommandFailure(self, f"command failed in line '{line}'")
+                    CommandFailure(self, f"command failed in the command output line '{line}'.")
                 )
 
     def _is_failure_exception(self, line: str, is_full_line: bool) -> bool:
