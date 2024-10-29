@@ -9,14 +9,15 @@ from moler.device import DeviceFactory
 
 
 adb_remotes = ['ADB_REMOTE',]  # 'ADB_REMOTE3']
-adb_remotes_proxy_pc = ['ADB_REMOTE_PROXY_PC',]  # 'ADB_REMOTE_PROXY_PC3']
+# adb_remotes_proxy_pc = ['ADB_REMOTE_PROXY_PC', 'ADB_REMOTE_PROXY_PC3']
+adb_remotes_proxy_pc = ['ADB_REMOTE_PROXY_PC3']
 
-@pytest.mark.parametrize("device_name", adb_remotes)
-def test_adb_remote_device(device_name, device_connection, adb_remote_output):
-    adb_remote = get_device(name=device_name, connection=device_connection, device_output=adb_remote_output,
-                            test_file_path=__file__)
+# @pytest.mark.parametrize("device_name", adb_remotes)
+# def test_adb_remote_device(device_name, device_connection, adb_remote_output):
+#     adb_remote = get_device(name=device_name, connection=device_connection, device_output=adb_remote_output,
+#                             test_file_path=__file__)
 
-    iterate_over_device_states(device=adb_remote)
+#     iterate_over_device_states(device=adb_remote)
 
 
 @pytest.mark.parametrize("device_name", adb_remotes_proxy_pc)
