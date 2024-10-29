@@ -113,68 +113,68 @@ class UnixRemote3(ProxyPc3):
         )
         self._log(level=logging.WARNING, msg="Experimental device. May be deleted at any moment. Please don't use it in your scripts.")
 
-    def _prepare_sm_data(self, sm_params):
-        self._prepare_dicts_for_sm(sm_params=sm_params)
+    # def _prepare_sm_data(self, sm_params):
+    #     self._prepare_dicts_for_sm(sm_params=sm_params)
 
-        self._prepare_newline_chars()
-        self._send_transitions_to_sm(self._stored_transitions)
+    #     self._prepare_newline_chars()
+    #     self._send_transitions_to_sm(self._stored_transitions)
 
-    def _prepare_transitions(self):
-        """
-        Prepare transitions to change states.
-        :return: None.
-        """
+    # def _prepare_transitions(self):
+    #     """
+    #     Prepare transitions to change states.
+    #     :return: None.
+    #     """
 
-        stored_is_proxy_pc = self._use_proxy_pc
-        self._use_proxy_pc = True
-        super(UnixRemote3, self)._prepare_transitions()
-        self._use_proxy_pc = stored_is_proxy_pc
-        transitions = self._prepare_transitions_with_proxy_pc()
-        self._add_transitions(transitions=transitions)
+    #     stored_is_proxy_pc = self._use_proxy_pc
+    #     self._use_proxy_pc = True
+    #     super(UnixRemote3, self)._prepare_transitions()
+    #     self._use_proxy_pc = stored_is_proxy_pc
+    #     transitions = self._prepare_transitions_with_proxy_pc()
+    #     self._add_transitions(transitions=transitions)
 
-    def _prepare_dicts_for_sm(self, sm_params):
-        """
-        Prepare transitions to change states.
-        :return: None.
-        """
+    # def _prepare_dicts_for_sm(self, sm_params):
+    #     """
+    #     Prepare transitions to change states.
+    #     :return: None.
+    #     """
 
-        self._prepare_transitions()
-        transitions = self._stored_transitions
-        state_hops = self._prepare_state_hops_with_proxy_pc()
+    #     self._prepare_transitions()
+    #     transitions = self._stored_transitions
+    #     state_hops = self._prepare_state_hops_with_proxy_pc()
 
-        default_sm_configurations = self._get_default_sm_configuration()
+    #     default_sm_configurations = self._get_default_sm_configuration()
 
-        if not self._use_proxy_pc:
-            (connection_hops, transitions) = remove_state_from_sm(
-                source_sm=default_sm_configurations[UnixRemote3.connection_hops],
-                source_transitions=transitions,
-                state_to_remove=UnixRemote3.proxy_pc,
-            )
-            state_hops = remove_state_hops_from_sm(
-                source_hops=state_hops, state_to_remove=UnixRemote3.proxy_pc
-            )
-            default_sm_configurations[UnixRemote3.connection_hops] = connection_hops
+    #     if not self._use_proxy_pc:
+    #         (connection_hops, transitions) = remove_state_from_sm(
+    #             source_sm=default_sm_configurations[UnixRemote3.connection_hops],
+    #             source_transitions=transitions,
+    #             state_to_remove=UnixRemote3.proxy_pc,
+    #         )
+    #         state_hops = remove_state_hops_from_sm(
+    #             source_hops=state_hops, state_to_remove=UnixRemote3.proxy_pc
+    #         )
+    #         default_sm_configurations[UnixRemote3.connection_hops] = connection_hops
 
-        self._stored_transitions = transitions
-        self._update_dict(self._state_hops, state_hops)
+    #     self._stored_transitions = transitions
+    #     self._update_dict(self._state_hops, state_hops)
 
-        self._configurations = self._prepare_sm_configuration(
-            default_sm_configurations, sm_params
-        )
-        self._overwrite_prompts()
-        self._validate_device_configuration()
-        self._prepare_state_prompts()
+    #     self._configurations = self._prepare_sm_configuration(
+    #         default_sm_configurations, sm_params
+    #     )
+    #     self._overwrite_prompts()
+    #     self._validate_device_configuration()
+    #     self._prepare_state_prompts()
 
-    def _get_default_sm_configuration(self):
-        """
-        Create State Machine default configuration.
-        :return: default sm configuration.
-        """
-        config = super(UnixRemote3, self)._get_default_sm_configuration()
-        default_config = self._get_default_sm_configuration_with_proxy_pc()
+    # def _get_default_sm_configuration(self):
+    #     """
+    #     Create State Machine default configuration.
+    #     :return: default sm configuration.
+    #     """
+    #     config = super(UnixRemote3, self)._get_default_sm_configuration()
+    #     default_config = self._get_default_sm_configuration_with_proxy_pc()
 
-        self._update_dict(config, default_config)
-        return config
+    #     self._update_dict(config, default_config)
+    #     return config
 
     def _overwrite_prompts(self):
         """

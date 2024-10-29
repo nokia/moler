@@ -8,9 +8,8 @@ from moler.util.devices_SM import iterate_over_device_states, get_device
 from moler.device import DeviceFactory
 
 
-# adb_remotes = ['ADB_REMOTE', 'ADB_REMOTE3']
-adb_remotes = ['ADB_REMOTE']  # TODO: add ADB_REMOTE3 when it will be implemented
-adb_remotes_proxy_pc = ['ADB_REMOTE_PROXY_PC']
+adb_remotes = ['ADB_REMOTE',]  # 'ADB_REMOTE3']
+adb_remotes_proxy_pc = ['ADB_REMOTE_PROXY_PC',]  # 'ADB_REMOTE_PROXY_PC3']
 
 @pytest.mark.parametrize("device_name", adb_remotes)
 def test_adb_remote_device(device_name, device_connection, adb_remote_output):
@@ -27,10 +26,12 @@ def test_adb_remote_device_proxy_pc(device_name, device_connection, adb_remote_o
 
     iterate_over_device_states(device=adb_remote)
 
-# @pytest.mark.parametrize("devices", [adb_remotes])
+# @pytest.mark.parametrize("devices", [adb_remotes_proxy_pc])
 # def test_unix_sm_identity(devices):
 #     dev0 = DeviceFactory.get_device(name=devices[0])
 #     dev1 = DeviceFactory.get_device(name=devices[1])
+
+#     print(f"tests: {dev0.name},  {dev1.name}")
 
 #     assert dev0._stored_transitions == dev1._stored_transitions
 #     assert dev0._state_hops == dev1._state_hops

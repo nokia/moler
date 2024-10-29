@@ -41,6 +41,8 @@ class ProxyPc(UnixLocal):
                                       io_constructor_kwargs=io_constructor_kwargs,
                                       sm_params=sm_params, initial_state=initial_state,
                                       lazy_cmds_events=lazy_cmds_events)
+        from pprint import pformat
+        print(f"ProxyPc {self.name} sm config: {pformat(self._configurations)}")
 
     def _get_default_sm_configuration(self):
         """
